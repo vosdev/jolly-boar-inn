@@ -15,7 +15,7 @@ Every choice below is final unless it appears in "Needs decision" at the end.
 | Python tooling | `uv`, `ruff`, `pytest`, `pytest-asyncio` | Fast, single lockfile, no extra config. |
 | Client | Svelte 5 + Vite SPA, TypeScript, `pnpm` | Decided in plan.md; no SSR needed, so no SvelteKit. |
 | Serving | FastAPI serves `client/dist` as static files, SPA fallback to `index.html` | One container, one origin, no CORS. |
-| Containers | One multi-stage `Dockerfile`, `docker-compose.yml` with `app` + `postgres:16` | Works out of the box for selfhosters. |
+| Containers | One multi-stage `Dockerfile`, `docker-compose.yml` with `app` + `postgres:18` | Works out of the box for selfhosters. |
 | Postgres | 18, `pgcrypto` not needed (`gen_random_uuid()` is built in) | Current stable. |
 | Time | Server-side `datetime.now(UTC)` everywhere, `timestamptz` columns, ISO 8601 strings on the wire | The client never sends a timestamp. |
 | IDs | `uuid` for rows, short text `code` for rooms, content hash for questions | Room codes are for humans, uuids for joins. |
@@ -664,7 +664,7 @@ Each task fits one working session and ends with a green CI run. Phase 0 is task
 **T1. Repo scaffold.** `server/` with `uv`, FastAPI hello endpoint, `ruff`, `pytest`; `client/` with Vite + Svelte + TS, `svelte-check`; `Makefile` targets `dev`, `test`, `lint`; `.env.example`; CI workflow running lint and tests for both.
 Accept: `make lint test` passes locally and in CI; `make dev` runs server on :8000 and client on :5173 with proxy.
 
-**T2. Containers.** Multi-stage `Dockerfile`, `docker-compose.yml` with `app` and `postgres:16` and a named volume, healthcheck on Postgres, `config.py` reading all env vars from section 1.
+**T2. Containers.** Multi-stage `Dockerfile`, `docker-compose.yml` with `app` and `postgres:18` and a named volume, healthcheck on Postgres, `config.py` reading all env vars from section 1.
 Accept: `docker compose up` on a clean checkout serves the client at `http://localhost:8000` and `/api/health` returns `{"ok": true, "db": true}`.
 
 **T3. Migrations.** `db.py` pool + runner, `0001_init.sql` from section 5, run at startup in `lifespan`.
