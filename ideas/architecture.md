@@ -661,10 +661,10 @@ Deviation from plan.md: created rooms are tracked in localStorage instead of a c
 
 Each task fits one working session and ends with a green CI run. Phase 0 is tasks 1–2.
 
-**T1. Repo scaffold.** `server/` with `uv`, FastAPI hello endpoint, `ruff`, `pytest`; `client/` with Vite + Svelte + TS, `svelte-check`; `Makefile` targets `dev`, `test`, `lint`; `.env.example`; CI workflow running lint and tests for both.
+DONE: **T1. Repo scaffold.** `server/` with `uv`, FastAPI hello endpoint, `ruff`, `pytest`; `client/` with Vite + Svelte + TS, `svelte-check`; `Makefile` targets `dev`, `test`, `lint`; `.env.example`; CI workflow running lint and tests for both.
 Accept: `make lint test` passes locally and in CI; `make dev` runs server on :8000 and client on :5173 with proxy.
 
-**T2. Containers.** Multi-stage `Dockerfile`, `docker-compose.yml` with `app` and `postgres:18` and a named volume, healthcheck on Postgres, `config.py` reading all env vars from section 1.
+DONE: **T2. Containers.** Multi-stage `Dockerfile`, `docker-compose.yml` with `app` and `postgres:18` and a named volume, healthcheck on Postgres, `config.py` reading all env vars from section 1.
 Accept: `docker compose up` on a clean checkout serves the client at `http://localhost:8000` and `/api/health` returns `{"ok": true, "db": true}`.
 
 **T3. Migrations.** `db.py` pool + runner, `0001_init.sql` from section 5, run at startup in `lifespan`.
