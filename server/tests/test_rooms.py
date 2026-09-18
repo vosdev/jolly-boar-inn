@@ -9,81 +9,19 @@ success returns a session; the player appears in ``GET /api/rooms/{code}``.
 Plus section 7: both tokens hashed at rest, one response for wrong and consumed tokens.
 """
 
-import asyncio
 import hashlib
 import re
-from collections.abc import Iterator
-from pathlib import Path
-from typing import Any
 from urllib.parse import urlsplit
 
-import asyncpg
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT, Settings
-from app.db import _init_connection
-from app.main import create_app
-
-BASE = "https://quiz.example"
+from tests.conftest import BASE
+from tests.rooms_api import claim, create, join
 
 
 def sha256(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
-
-
-@pytest.fixture
-def app(test_db_dsn: str, dist: Path) -> FastAPI:
-    settings = Settings(
-        _env_file=None,
-        database_url=test_db_dsn,
-        packs_dir=REPO_ROOT / "data" / "packs",
-        public_base_url=BASE,
-    )
-    return create_app(settings, dist)
-
-
-@pytest.fixture
-def client(app: FastAPI) -> Iterator[TestClient]:
-    with TestClient(app) as client:
-        yield client
-
-
-@pytest.fixture
-def db(test_db_dsn: str):
-    """``db(sql, *args)`` runs a query on the test database from the test thread."""
-
-    def run(sql: str, *args: Any) -> list[asyncpg.Record]:
-        async def go() -> list[asyncpg.Record]:
-            conn = await asyncpg.connect(test_db_dsn)
-            try:
-                await _init_connection(conn)  # jsonb as Python values, like the app's pool
-                return await conn.fetch(sql, *args)
-            finally:
-                await conn.close()
-
-        return asyncio.run(go())
-
-    return run
-
-
-def create(client: TestClient, **settings: Any) -> tuple[str, str]:
-    """Create a room, return ``(code, token)``."""
-    response = client.post("/api/rooms", json={"settings": settings})
-    assert response.status_code == 201, response.text
-    body = response.json()
-    fragment = urlsplit(body["admin_url"]).fragment
-    assert fragment.startswith("t=")
-    return body["code"], fragment[2:]
-
-
-def claim(client: TestClient, code: str, token: str, name: str = "Admin"):
-    return client.post(f"/api/rooms/{code}/claim", json={"token": token, "display_name": name})
-
-
-def join(client: TestClient, code: str, name: str):
-    return client.post(f"/api/rooms/{code}/join", json={"display_name": name})
 
 
 # --- T6: create -------------------------------------------------------------------
@@ -253,9 +191,10 @@ def test_claim_unknown_room_is_404(client: TestClient) -> None:
     assert response.json()["code"] == "not_found"
 
 
-def test_claim_expired_room_is_410_expired(client: TestClient, db) -> None:
+def test_claim_expired_room_is_410_expired(client: TestClient, db, evict) -> None:
     code, token = create(client)
     db("update rooms set expires_at = now() - interval '1 day' where code = $1", code)
+    evict(code)  # the row changed behind the cache; rehydrate on the next request
     response = claim(client, code, token)
     assert response.status_code == 410
     assert response.json()["code"] == "expired"
@@ -360,11 +299,12 @@ def test_join_name_rules(client: TestClient) -> None:
     assert join(client, code, "Tom & Jerry").status_code == 200
 
 
-def test_join_unknown_and_expired_rooms(client: TestClient, db) -> None:
+def test_join_unknown_and_expired_rooms(client: TestClient, db, evict) -> None:
     assert join(client, "NOSUCHROOM", "x").status_code == 404
     code, token = create(client)
     claim(client, code, token)
     db("update rooms set expires_at = now() where code = $1", code)
+    evict(code)
     response = join(client, code, "x")
     assert response.status_code == 410
     assert response.json()["code"] == "expired"
