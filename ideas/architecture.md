@@ -55,7 +55,6 @@ jolly-boar-inn/
 │   │   │   └── types/         # one module per question type
 │   │   │       ├── __init__.py    # registry: TYPES = {"higher_lower": higher_lower, ...}
 │   │   │       ├── higher_lower.py
-│   │   │       ├── alch_or_trash.py      # Phase 2
 │   │   │       ├── guess_examine.py      # Phase 2
 │   │   │       ├── price_is_right.py     # Phase 2
 │   │   │       ├── multiple_choice.py    # Phase 2
@@ -189,7 +188,7 @@ Design rules:
   "properties": {
     "id": { "type": "string", "pattern": "^q_[0-9a-f]{16}$" },
     "type": {
-      "enum": ["higher_lower", "alch_or_trash", "guess_examine", "price_is_right",
+      "enum": ["higher_lower", "guess_examine", "price_is_right",
                "multiple_choice", "free_text", "closest_number"]
     },
     "payload": { "type": "object" },
@@ -206,8 +205,6 @@ Design rules:
   "allOf": [
     { "if": { "properties": { "type": { "const": "higher_lower" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/higher_lower" } } } },
-    { "if": { "properties": { "type": { "const": "alch_or_trash" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/alch_or_trash" } } } },
     { "if": { "properties": { "type": { "const": "guess_examine" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/guess_examine" } } } },
     { "if": { "properties": { "type": { "const": "price_is_right" } } },
@@ -253,19 +250,6 @@ Design rules:
           "properties": { "subject": { "$ref": "#/$defs/subject" }, "value": { "type": "integer", "minimum": 0 } }
         },
         "answer": { "enum": ["higher", "lower"] },
-        "as_of": { "$ref": "#/$defs/date" }
-      }
-    },
-
-    "alch_or_trash": {
-      "type": "object",
-      "required": ["subject", "ge_price", "high_alch", "answer", "as_of"],
-      "additionalProperties": false,
-      "properties": {
-        "subject": { "$ref": "#/$defs/subject" },
-        "ge_price": { "type": "integer", "minimum": 0 },
-        "high_alch": { "type": "integer", "minimum": 0 },
-        "answer": { "enum": ["alch", "trash"] },
         "as_of": { "$ref": "#/$defs/date" }
       }
     },
@@ -360,7 +344,6 @@ Submitted answer values on the wire, per type (validated by `validate_value`):
 | Type | `value` |
 |---|---|
 | `higher_lower` | `"higher"` or `"lower"` |
-| `alch_or_trash` | `"alch"` or `"trash"` |
 | `price_is_right`, `multiple_choice` | integer option index |
 | `guess_examine`, `free_text` | string, max 80 chars |
 | `closest_number` | number |
@@ -723,7 +706,7 @@ Accept: a clean machine following only the README reaches a finished game; `dock
 **T15. Load test.** `scripts/loadtest.py`: 30 bot players join one room, answer every question at random times, one bot reconnects every question.
 Accept: 30 questions at `question_seconds = 10` complete with zero `error` messages, p99 `answer` → `answer_ack` under 200 ms on localhost, no lock contention warnings, and the answers table has exactly the expected row count.
 
-After T15, Phase 1 is a playable night. Phase 2 starts with the custom-question editor and the three price modes, which only add `types/*.py` modules, Svelte components, and the editor UI; no protocol or schema changes.
+After T15, Phase 1 is a playable night. Phase 2 starts with the custom-question editor and the remaining Phase 2 types, which only add `types/*.py` modules, Svelte components, and the editor UI; no protocol or schema changes.
 
 ## Needs decision (Done)
 

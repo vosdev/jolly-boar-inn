@@ -8,9 +8,6 @@ Possibly from the same data set, so cheap to create
 ## Higher or lower
 GE price, High Alch price or NPC Shop price
 
-## Alch or trash
-is the high alch value above or below the GE price.
-
 ## Guess the examine
 show the examine text, name the item or NPC
 

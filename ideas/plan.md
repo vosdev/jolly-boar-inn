@@ -191,7 +191,7 @@ Phase 0. Make decisions on architecture. Client language Svelte. Server language
 
 Phase 1. Core plus one mode. Rooms, join, admin token, websockets, scoring, scoreboard, higher or lower. No asset pipeline needed. This is already a playable night.
 
-Phase 2. Custom room questions and the three remaining price modes (alch or trash, guess the examine, the price is right). Same dataset, different question shapes. Custom questions land here because they need nothing beyond the schema and an editor, and they add the most fun per hour of work.
+Phase 2. Custom room questions plus guess the examine and the price is right. Same dataset, different question shapes. Custom questions land here because they need nothing beyond the schema and an editor, and they add the most fun per hour of work.
 
 Phase 3. Importer for MOID and Bucket. Then zoom quiz and name this NPC.
 
