@@ -1,0 +1,149 @@
+{
+  "pack": "sample",
+  "generated_at": "2026-09-18T00:00:00Z",
+  "questions": [
+    {
+      "type": "higher_lower",
+      "source": "pack",
+      "tags": [
+        "prices"
+      ],
+      "payload": {
+        "metric": "ge_price",
+        "anchor": {
+          "subject": {
+            "name": "Abyssal whip",
+            "asset": "item:4151"
+          },
+          "value": 1650000
+        },
+        "target": {
+          "subject": {
+            "name": "Dragon scimitar",
+            "asset": "item:4587"
+          },
+          "value": 60000
+        },
+        "answer": "lower",
+        "as_of": "2026-09-01"
+      },
+      "difficulty": "easy",
+      "id": "q_f8142d0cd1924e44"
+    },
+    {
+      "type": "higher_lower",
+      "source": "pack",
+      "tags": [
+        "prices"
+      ],
+      "payload": {
+        "metric": "ge_price",
+        "anchor": {
+          "subject": {
+            "name": "Rune scimitar",
+            "asset": "item:1333"
+          },
+          "value": 15000
+        },
+        "target": {
+          "subject": {
+            "name": "Dragon dagger",
+            "asset": "item:1215"
+          },
+          "value": 17000
+        },
+        "answer": "higher",
+        "as_of": "2026-09-01"
+      },
+      "difficulty": "medium",
+      "id": "q_3f739a2bcdcdca40"
+    },
+    {
+      "type": "higher_lower",
+      "source": "pack",
+      "tags": [
+        "prices"
+      ],
+      "payload": {
+        "metric": "ge_price",
+        "anchor": {
+          "subject": {
+            "name": "Twisted bow",
+            "asset": "item:20997"
+          },
+          "value": 1500000000
+        },
+        "target": {
+          "subject": {
+            "name": "Scythe of vitur",
+            "asset": "item:22325"
+          },
+          "value": 1200000000
+        },
+        "answer": "lower",
+        "as_of": "2026-09-01"
+      },
+      "difficulty": "hard",
+      "id": "q_f524d64daf12f250"
+    },
+    {
+      "type": "higher_lower",
+      "source": "pack",
+      "tags": [
+        "prices"
+      ],
+      "payload": {
+        "metric": "high_alch",
+        "anchor": {
+          "subject": {
+            "name": "Rune platebody",
+            "asset": "item:1127"
+          },
+          "value": 39000
+        },
+        "target": {
+          "subject": {
+            "name": "Dragon longsword",
+            "asset": "item:1305"
+          },
+          "value": 60000
+        },
+        "answer": "higher",
+        "as_of": "2026-09-01"
+      },
+      "difficulty": "medium",
+      "added_at": "2026-09-01",
+      "id": "q_3be17a39eed81a97"
+    },
+    {
+      "type": "higher_lower",
+      "source": "pack",
+      "tags": [
+        "prices"
+      ],
+      "payload": {
+        "metric": "shop_price",
+        "anchor": {
+          "subject": {
+            "name": "Bronze pickaxe",
+            "asset": "item:1265"
+          },
+          "value": 1
+        },
+        "target": {
+          "subject": {
+            "name": "Iron pickaxe",
+            "asset": "item:1267"
+          },
+          "value": 140
+        },
+        "answer": "higher",
+        "as_of": "2026-09-01"
+      },
+      "difficulty": "easy",
+      "author": "Jolly Boar Inn",
+      "host_only": false,
+      "id": "q_121a74de49555b4c"
+    }
+  ]
+}
