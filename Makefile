@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs gen-price-questions
 
 # Dev Postgres: own compose project so it never collides with `docker compose up`.
 DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
@@ -54,3 +54,9 @@ validate-packs:
 lint:
 	cd server && uv run ruff check . && uv run ruff format --check .
 	cd client && pnpm check
+
+# Regenerate data/packs/prices.json from the roster and the wiki price API (two requests,
+# /mapping and /latest). Never part of test, CI or app startup: run it about monthly and
+# commit the result. Idempotent, so a re-run against unchanged prices is a no-op.
+gen-price-questions:
+	cd server && uv run python scripts/gen_price_questions.py
