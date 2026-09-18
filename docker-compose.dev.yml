@@ -1,0 +1,32 @@
+# Development database only. `make dev` starts this; the server and client run on
+# the host. Self-hosting uses docker-compose.yml instead, which bundles its own
+# Postgres and never publishes it.
+#
+# Run under its own project name so it cannot collide with `docker compose up`:
+#   docker compose -p jbi-dev -f docker-compose.dev.yml up -d --wait
+#
+# Credentials default to the same jbi/jbi/jbi as DATABASE_URL in .env.example, so
+# a fresh checkout needs no configuration. Overrides come from .env (see below).
+
+services:
+  postgres:
+    image: postgres:18
+    ports:
+      # Set DEV_POSTGRES_PORT in .env if 5432 is taken by a local Postgres.
+      - "127.0.0.1:${DEV_POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jbi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jbi}
+      POSTGRES_DB: ${POSTGRES_DB:-jbi}
+    volumes:
+      - pgdata-dev:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jbi} -d ${POSTGRES_DB:-jbi}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  pgdata-dev:
