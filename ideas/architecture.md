@@ -688,7 +688,7 @@ Accept: integration tests cover: create returns a fragment URL; claim succeeds o
 DONE: **T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules: trimmed, 1–24 chars, unique per room case-insensitively, no HTML (escaped on render anyway).
 Accept: join before claim → `409`; duplicate name → `409`; over `max_players` → `409`; success returns a session; player appears in `GET /api/rooms/{code}`.
 
-**T8. RoomManager core and websocket handshake.** `rooms/state.py` with `Room`, lock, `get` with rehydrate, `connect`/`disconnect`; `ws/protocol.py` models; `ws/handler.py` with `hello`/`welcome`/`ping`/`pong`/`room_updated`/`error`.
+DONE: **T8. RoomManager core and websocket handshake.** `rooms/state.py` with `Room`, lock, `get` with rehydrate, `connect`/`disconnect`; `ws/protocol.py` models; `ws/handler.py` with `hello`/`welcome`/`ping`/`pong`/`room_updated`/`error`.
 Accept: test client connects, sends `hello`, gets `welcome` with `players` and `you`; second socket for the same player closes the first with `4000`; bad session → `4001`; disconnect flips `connected` in a broadcast to the remaining socket; a room evicted from memory (test hook) rehydrates identically.
 
 **T9. Game loop.** `start_game`, the timer task, `question_open`, `submit_answer` with DB write before `answer_ack`, `question_closed`, auto-advance, `game_finished`, `skip`, `end_game`, `promote`, `kick`.

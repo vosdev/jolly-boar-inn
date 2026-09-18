@@ -20,6 +20,7 @@ from app.questions.packs import load_packs
 from app.rooms.codes import load_words
 from app.rooms.state import RoomManager
 from app.static import CLIENT_DIST, mount_client
+from app.ws import handler as ws_handler
 
 log = logging.getLogger("app")
 
@@ -118,6 +119,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
 
     app.include_router(rooms.router)
     app.include_router(players.router)
+    app.include_router(ws_handler.router)
     mount_client(app, client_dist)
     return app
 

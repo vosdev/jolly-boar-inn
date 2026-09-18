@@ -1,14 +1,21 @@
 import asyncio
 import secrets
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
 import asyncpg
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.config import REPO_ROOT, Settings
+from app.db import _init_connection
+from app.main import create_app
+
+BASE = "https://quiz.example"
 
 
 @pytest.fixture
@@ -64,3 +71,54 @@ def test_db_dsn() -> Iterator[str]:
         yield dsn
     finally:
         _run(server_dsn, f'drop database "{name}" with (force)')
+
+
+@pytest.fixture
+def app(test_db_dsn: str, dist: Path) -> FastAPI:
+    """The app on a throwaway database with the shipped packs."""
+    settings = Settings(
+        _env_file=None,
+        database_url=test_db_dsn,
+        packs_dir=REPO_ROOT / "data" / "packs",
+        public_base_url=BASE,
+    )
+    return create_app(settings, dist)
+
+
+@pytest.fixture
+def client(app: FastAPI) -> Iterator[TestClient]:
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture
+def db(test_db_dsn: str) -> Callable[..., list[asyncpg.Record]]:
+    """``db(sql, *args)`` runs a query on the test database from the test thread."""
+
+    def run(sql: str, *args: Any) -> list[asyncpg.Record]:
+        async def go() -> list[asyncpg.Record]:
+            conn = await asyncpg.connect(test_db_dsn)
+            try:
+                await _init_connection(conn)  # jsonb as Python values, like the app's pool
+                return await conn.fetch(sql, *args)
+            finally:
+                await conn.close()
+
+        return asyncio.run(go())
+
+    return run
+
+
+@pytest.fixture
+def evict(app: FastAPI, client: TestClient) -> Callable[[str], bool]:
+    """``evict(code)`` drops the room from the manager's memory, like a process restart.
+
+    Tests that edit a room row behind the app's back call this so the next request
+    rehydrates and sees the edit.
+    """
+
+    def run(code: str) -> bool:
+        assert client.portal is not None
+        return client.portal.call(app.state.rooms.evict, code)
+
+    return run
