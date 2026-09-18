@@ -674,7 +674,7 @@ Accept: fresh DB gets all tables; second start is a no-op; a test applies migrat
 DONE: **T4. Question schema and packs.** `schema/question.schema.json` from section 2; `questions/schema.py` with `validate()` and `content_id()`; `packs.py` loader; `scripts/validate_packs.py` wired into CI; `questions/types/higher_lower.py` with all four functions.
 Accept: a hand-written `data/packs/sample.json` with 5 higher/lower questions validates; a mutated `answer` fails the consistency check; `content_id` is stable across key order; unit tests for `client_view` (no `answer` key) and `grade`.
 
-**T5. Price question generator.** `scripts/gen_price_questions.py` → `data/packs/prices.json`. `make gen-price-questions`.
+DONE: **T5. Price question generator.** `scripts/gen_price_questions.py` → `data/packs/prices.json`. `make gen-price-questions`.
 
 `data/popular-items.json` is the pool, and it is not only T5's. It is the project's curated roster of items a player recognises by name, and later modes in `games.md` draw on the same file: guess-the-examine wants the examine text, zoom quiz wants the render, the answer autocomplete is built from it. T5 is just the first consumer.
 
