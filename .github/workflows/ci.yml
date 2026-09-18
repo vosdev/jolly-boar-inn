@@ -42,3 +42,31 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm build
+
+  containers:
+    name: Containers (build, compose smoke test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: jolly-boar-inn:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Compose up and check health
+        run: |
+          docker compose up -d --wait --wait-timeout 120
+          body=$(curl -fsS http://localhost:8000/api/health)
+          echo "health: $body"
+          test "$body" = '{"ok":true,"db":true}'
+          curl -fsS http://localhost:8000/ | grep -q '<title>Jolly Boar Inn</title>'
+      - name: Compose logs
+        if: always()
+        run: docker compose logs
+      - name: Compose down
+        if: always()
+        run: docker compose down -v
