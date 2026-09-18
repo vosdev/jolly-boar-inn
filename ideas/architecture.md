@@ -667,10 +667,10 @@ Accept: `make lint test` passes locally and in CI; `make dev` runs server on :80
 DONE: **T2. Containers.** Multi-stage `Dockerfile`, `docker-compose.yml` with `app` and `postgres:18` and a named volume, healthcheck on Postgres, `config.py` reading all env vars from section 1.
 Accept: `docker compose up` on a clean checkout serves the client at `http://localhost:8000` and `/api/health` returns `{"ok": true, "db": true}`.
 
-**T3. Migrations.** `db.py` pool + runner, `0001_init.sql` from section 5, run at startup in `lifespan`.
+DONE: **T3. Migrations.** `db.py` pool + runner, `0001_init.sql` from section 5, run at startup in `lifespan`.
 Accept: fresh DB gets all tables; second start is a no-op; a test applies migrations against a throwaway database (`pytest` fixture using `DATABASE_URL_TEST`).
 
-**T4. Question schema and packs.** `schema/question.schema.json` from section 2; `questions/schema.py` with `validate()` and `content_id()`; `packs.py` loader; `scripts/validate_packs.py` wired into CI; `questions/types/higher_lower.py` with all four functions.
+DONE: **T4. Question schema and packs.** `schema/question.schema.json` from section 2; `questions/schema.py` with `validate()` and `content_id()`; `packs.py` loader; `scripts/validate_packs.py` wired into CI; `questions/types/higher_lower.py` with all four functions.
 Accept: a hand-written `data/packs/sample.json` with 5 higher/lower questions validates; a mutated `answer` fails the consistency check; `content_id` is stable across key order; unit tests for `client_view` (no `answer` key) and `grade`.
 
 **T5. Price question generator.** `scripts/gen_price_questions.py`: fetch `/mapping` and `/latest` once with the descriptive User-Agent, keep items with buy limit and price ≥ 100 gp, generate N random pairs with distinct prices (ratio between 1.2 and 50 so it is not trivial or absurd), write `data/packs/prices.json`. `make gen-price-questions`.
