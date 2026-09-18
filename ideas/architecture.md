@@ -385,7 +385,7 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `question_closed` | `question_id`, `reveal: object`, `results: {player_id: {value, correct: bool, points: int}}`, `standings: Standing[]`, `next_at: iso \| null` | Question closed. `next_at` is when the next opens; null on the last. |
 | `game_finished` | `standings: Standing[]` | Final. |
 | `pong` | `server_time: iso` | Reply to `ping`. |
-| `error` | `code: string`, `message: string` | Any rejected message. Codes: `bad_hello`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`. |
+| `error` | `code: string`, `message: string` | Any rejected message. Codes: `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`. |
 
 Shared shapes:
 

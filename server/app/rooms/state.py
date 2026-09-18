@@ -32,7 +32,7 @@ from typing import Any
 from uuid import UUID
 
 import asyncpg
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from app.config import Settings
 from app.errors import ApiError
@@ -378,6 +378,9 @@ class RoomManager:
 
         Last device wins: a socket already attached for that player is closed with 4000.
         Everyone else gets ``room_updated`` with the player connected.
+
+        A ``welcome`` that cannot be delivered detaches the new socket again and raises
+        ``WebSocketDisconnect``; the handler treats that as the client having left.
         """
         code = code.upper()
         async with self._lock(code):
@@ -400,13 +403,16 @@ class RoomManager:
             update = self._room_updated(room, exclude=player.id)
         # Sent first, straight after the lock is released, so no later broadcast can
         # reach this socket before its snapshot does.
-        try:
-            await ws.send_json(welcome)
-        except Exception:
-            await self.disconnect(code, player.id, ws)
-            raise
+        delivered = await self._send(ws, welcome)
+        # The replaced socket goes either way: it left ``room.sockets`` under the lock
+        # and can never be reattached, so leaving it open would strand that device.
         if previous is not None:
             await _close(previous, CLOSE_REPLACED, "connected from another device")
+        if not delivered:
+            reason = "welcome could not be delivered"
+            await _close(ws, CLOSE_SEND_FAILED, reason)
+            await self.disconnect(code, player.id, ws)
+            raise WebSocketDisconnect(CLOSE_SEND_FAILED, reason)
         await self._broadcast(update)
         return player
 

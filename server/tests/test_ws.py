@@ -18,6 +18,8 @@ from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
 from app.rooms.state import Room, RoomManager
+from app.ws import handler as ws_handler
+from app.ws import protocol
 from tests.rooms_api import claim, create, join
 
 
@@ -338,6 +340,56 @@ def test_failed_send_removes_socket_and_tells_the_others(
         ws_alive = admin_ws
         ws_alive.send_json({"t": "ping"})
         assert ws_alive.receive_json()["t"] == "pong"
+
+
+class DeadSocket:
+    """A socket whose client is already gone.
+
+    Uvicorn signals this with ``ClientDisconnected``, an ``OSError`` subclass, from both
+    ``send`` and ``close``; Starlette does not wrap it.
+    """
+
+    async def send_json(self, data: dict[str, Any]) -> None:
+        raise OSError("client is gone")
+
+    async def close(self, code: int = 1000, reason: str | None = None) -> None:
+        raise OSError("client is gone")
+
+
+async def test_handler_send_and_close_survive_a_vanished_client() -> None:
+    """A dropped client must not escape the handler's helpers as an exception."""
+    ws = DeadSocket()
+    pong = protocol.Pong(server_time=datetime.now(UTC))
+    assert await ws_handler._send(ws, pong) is False  # type: ignore[arg-type]
+    await ws_handler._close(ws, 4008, "protocol error")  # type: ignore[arg-type]
+
+
+def test_failed_welcome_still_closes_the_replaced_socket(
+    app: FastAPI, client: TestClient, lobby
+) -> None:
+    """A new socket that dies before ``welcome`` lands must not strand the old one."""
+    manager: RoomManager = app.state.rooms
+    code, session = lobby["code"], lobby["player"]["session"]
+    with client.websocket_connect(f"/ws/{code}") as admin_ws:
+        hello(admin_ws, lobby["admin"]["session"])
+        first = FlakySocket()
+        player = call(client, manager.connect, code, session, first)
+        assert first.sent[0]["t"] == "welcome"
+        assert admin_ws.receive_json()["players"][1]["connected"] is True
+
+        second = FlakySocket()
+        second.alive = False  # the new device is gone before the welcome is written
+        with pytest.raises(WebSocketDisconnect):
+            call(client, manager.connect, code, session, second)
+
+        assert first.closed_with == 4000  # replaced, not orphaned
+        assert second.closed_with == 1011
+        room = call(client, manager.get, code)
+        assert player.id not in room.sockets
+        assert room.players[player.id].connected is False
+        update = admin_ws.receive_json()
+        assert update["t"] == "room_updated"
+        assert [p["connected"] for p in update["players"]] == [True, False]
 
 
 # --- rehydrate ----------------------------------------------------------------------

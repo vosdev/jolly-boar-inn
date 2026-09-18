@@ -9,6 +9,7 @@ T8 handles ``hello``, ``ping`` and the closes. The other client messages parse b
 answered with ``error bad_state`` until T9 wires them to the manager.
 """
 
+import asyncio
 import json
 import logging
 from datetime import UTC, datetime
@@ -18,7 +19,14 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
 from app.errors import ApiError
-from app.rooms.state import BadSession, Player, RoomExpired, RoomManager, RoomNotFound
+from app.rooms.state import (
+    SEND_TIMEOUT,
+    BadSession,
+    Player,
+    RoomExpired,
+    RoomManager,
+    RoomNotFound,
+)
 from app.ws import protocol
 from app.ws.protocol import ErrorCode
 
@@ -54,10 +62,18 @@ async def _next_frame(ws: WebSocket) -> Any:
 
 
 async def _send(ws: WebSocket, message: protocol.ServerMessage) -> bool:
-    """Send to this socket; ``False`` if it is gone (the loop then ends)."""
+    """Send to this socket; ``False`` if it is gone (the loop then ends).
+
+    Every failure is the same failure: the socket state machine refusing us
+    (``RuntimeError``), the server reporting the client gone (uvicorn raises
+    ``ClientDisconnected``, an ``OSError``), a transport error, or a client that has
+    stopped reading and blows ``SEND_TIMEOUT``. The manager treats sends the same way.
+    """
     try:
-        await ws.send_json(message.model_dump(mode="json"))
-    except WebSocketDisconnect, RuntimeError:
+        async with asyncio.timeout(SEND_TIMEOUT):
+            await ws.send_json(message.model_dump(mode="json"))
+    except Exception as exc:
+        log.info("dropping socket after failed send: %r", exc)
         return False
     return True
 
@@ -65,9 +81,10 @@ async def _send(ws: WebSocket, message: protocol.ServerMessage) -> bool:
 async def _close(ws: WebSocket, code: int, reason: str) -> None:
     """Close from our side; a client that is already gone is not an error."""
     try:
-        await ws.close(code=code, reason=reason[:120])
-    except WebSocketDisconnect, RuntimeError:
-        pass
+        async with asyncio.timeout(SEND_TIMEOUT):
+            await ws.close(code=code, reason=reason[:120])
+    except Exception as exc:
+        log.debug("closing socket with %d failed: %r", code, exc)
 
 
 async def _reject(ws: WebSocket, code: ErrorCode, message: str, close_code: int) -> None:
