@@ -205,10 +205,10 @@ Phase 7. Maybe. Minimap geoguessr, then screenshot geoguessr and music.
 
 Do not build a generic game mode framework first. Build two modes concretely, then extract the abstraction.
 
-## Open questions
+## Misc decisions.
 
-- Rooms run on a timer. Configurable between 30 and 60 seconds at start.
-- Individuals only
+- Rooms run on a timer. Probably configurable between 30 and 60 seconds by admin at room creation
+- Individuals only, no teams
 - Interface language: English
-- Admins can create max 5 rooms per hour. Rooms stored in cookies. Rooms need to be deleted before you can continue.
+- Admins can create max 5 rooms per hour. Rooms stored in cookies. Rooms need to be deleted before you can continue after 5.
 - Version 1 requires image support
