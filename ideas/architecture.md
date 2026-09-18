@@ -682,10 +682,10 @@ Endpoints `/mapping` and `/latest`, one request each, descriptive User-Agent. `/
 
 Accept: produces +- 100 valid questions; `validate_packs.py` passes on the output; the script is idempotent and never runs at app startup or ci.
 
-**T6. Room creation and admin claim.** `rooms/codes.py`, `data/room-words.json` (see Needs decision), `http/rooms.py` with `POST /api/rooms`, `POST /api/rooms/{code}/claim`, `GET /api/rooms/{code}`; `ratelimit.py`; `rooms/selection.py`; the `create` and `claim_admin` methods of `RoomManager` with questions inserted at creation.
+DONE: **T6. Room creation and admin claim.** `rooms/codes.py`, `data/room-words.json` (see Needs decision), `http/rooms.py` with `POST /api/rooms`, `POST /api/rooms/{code}/claim`, `GET /api/rooms/{code}`; `ratelimit.py`; `rooms/selection.py`; the `create` and `claim_admin` methods of `RoomManager` with questions inserted at creation.
 Accept: integration tests cover: create returns a fragment URL; claim succeeds once and returns `410` the second time; wrong token is `410`; sixth create from one IP in an hour is `429`; `questions` rows equal `question_count`; code collision retry is unit-tested with a stubbed word list.
 
-**T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules: trimmed, 1–24 chars, unique per room case-insensitively, no HTML (escaped on render anyway).
+DONE: **T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules: trimmed, 1–24 chars, unique per room case-insensitively, no HTML (escaped on render anyway).
 Accept: join before claim → `409`; duplicate name → `409`; over `max_players` → `409`; success returns a session; player appears in `GET /api/rooms/{code}`.
 
 **T8. RoomManager core and websocket handshake.** `rooms/state.py` with `Room`, lock, `get` with rehydrate, `connect`/`disconnect`; `ws/protocol.py` models; `ws/handler.py` with `hello`/`welcome`/`ping`/`pong`/`room_updated`/`error`.

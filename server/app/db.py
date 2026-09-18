@@ -6,6 +6,7 @@ transaction per file. A version recorded in the database whose file is gone mean
 code and the database disagree, and the runner refuses to continue.
 """
 
+import json
 import logging
 import re
 from pathlib import Path
@@ -22,8 +23,17 @@ class MigrationError(RuntimeError):
     """The migrations on disk cannot be applied or do not match the database."""
 
 
+async def _init_connection(conn: asyncpg.Connection) -> None:
+    """``jsonb`` columns read and write as Python values."""
+    await conn.set_type_codec(
+        "jsonb", encoder=json.dumps, decoder=json.loads, schema="pg_catalog", format="text"
+    )
+
+
 async def create_pool(dsn: str) -> asyncpg.Pool:
-    pool = await asyncpg.create_pool(dsn, min_size=1, max_size=10, command_timeout=30)
+    pool = await asyncpg.create_pool(
+        dsn, min_size=1, max_size=10, command_timeout=30, init=_init_connection
+    )
     assert pool is not None
     return pool
 
