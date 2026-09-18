@@ -1,7 +1,11 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs
 
 # Dev Postgres: own compose project so it never collides with `docker compose up`.
 DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
+
+# Postgres server the test suite creates throwaway databases on. Defaults to the dev
+# database above; override with `make test DATABASE_URL_TEST=...`.
+DATABASE_URL_TEST ?= postgresql://jbi:jbi@localhost:5432/jbi
 
 # Install all dependencies (server via uv, client via pnpm).
 setup:
@@ -38,9 +42,14 @@ db-logs:
 db-shell:
 	$(DEV_COMPOSE) exec postgres psql -U $${POSTGRES_USER:-jbi} -d $${POSTGRES_DB:-jbi}
 
-test:
-	cd server && uv run pytest
+# Migration tests need Postgres, so start the dev database first.
+test: db-up validate-packs
+	cd server && DATABASE_URL_TEST=$(DATABASE_URL_TEST) uv run pytest
 	cd client && pnpm build
+
+# Every shipped question pack: schema, content ids, answer consistency, unique ids.
+validate-packs:
+	cd server && uv run python scripts/validate_packs.py
 
 lint:
 	cd server && uv run ruff check . && uv run ruff format --check .

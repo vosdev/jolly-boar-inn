@@ -28,8 +28,10 @@ COPY server/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
-# Layout mirrors the repo so ../client/dist and ../data/packs resolve unchanged.
+# Layout mirrors the repo so ../client/dist, ../data/packs and ../schema resolve unchanged.
 COPY --from=client /build/client/dist /app/client/dist
+COPY schema/ /app/schema/
+COPY data/ /app/data/
 
 RUN useradd --system --create-home --uid 10001 app && chown -R app:app /app
 USER app
