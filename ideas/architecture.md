@@ -15,7 +15,7 @@ Every choice below is final unless it appears in "Needs decision" at the end.
 | Python tooling | `uv`, `ruff`, `pytest`, `pytest-asyncio` | Fast, single lockfile, no extra config. |
 | Client | Svelte 5 + Vite SPA, TypeScript, `pnpm` | Decided in plan.md; no SSR needed, so no SvelteKit. |
 | Serving | FastAPI serves `client/dist` as static files, SPA fallback to `index.html` | One container, one origin, no CORS. |
-| Containers | One multi-stage `Dockerfile`, `docker-compose.yml` with `app` + `postgres:18` | Works out of the box for selfhosters. |
+| Containers | One three-stage `Dockerfile` (client build, uv venv build, slim runtime), `docker-compose.yml` with `app` + `postgres:18` | Works out of the box for selfhosters. Build tooling never reaches the runtime image. |
 | Postgres | 18, `pgcrypto` not needed (`gen_random_uuid()` is built in) | Current stable. |
 | Time | Server-side `datetime.now(UTC)` everywhere, `timestamptz` columns, ISO 8601 strings on the wire | The client never sends a timestamp. |
 | IDs | `uuid` for rows, short text `code` for rooms, content hash for questions | Room codes are for humans, uuids for joins. |
@@ -680,7 +680,11 @@ Follow-ups covered by the same mechanism:
 - A further admin: an existing admin sends `promote`. A second device for the host is an ordinary `join` from that device followed by a `promote` from the first. There is no admin link, and no way to become an admin except creating the room or being promoted.
 - Lost admin session (cleared storage): any remaining admin promotes them again. If the only admin is gone, the room is stuck; Phase 4 adds a recovery path, Phase 1 accepts this. It is a narrower window than it was, since the host's session is written the moment the room exists rather than one navigation later.
 
-Headers on every response (`main.py` middleware): `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `Cache-Control: no-store` on `/api/*`. Uvicorn access log format is overridden to log path without query string.
+Headers on every response (`main.py` middleware): `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, a `Content-Security-Policy` of `default-src 'none'` widened only to `'self'` per directive (plus `img-src data:`), and `Cache-Control: no-store` on `/api/*`. The built client has no inline script or style, so the policy needs no `unsafe-inline`; `connect-src 'self'` covers the same-origin websocket. Uvicorn access log format is overridden to log path without query string.
+
+No HSTS from the app: TLS terminates at the reverse proxy, and a self-hoster serving plain HTTP on a LAN would lock themselves out. It belongs in the proxy config.
+
+The container runs read-only with `cap_drop: ALL` and `no-new-privileges`, as uid 10001 against root-owned application files -- nothing under `server/app/` writes to disk, and the process cannot rewrite the code it runs. Trusted reverse proxies come from `FORWARDED_ALLOW_IPS`, which uvicorn reads directly; it defaults to loopback, so `X-Forwarded-For` is believed only from an address the operator names. `ROOMS_PER_IP_PER_HOUR` keys on the resulting client address.
 
 Deviation from plan.md: created rooms are tracked in localStorage instead of a cookie. Reason: the server needs no cookie, and one storage mechanism on the client is enough.
 

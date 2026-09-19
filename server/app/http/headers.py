@@ -3,10 +3,31 @@
 ``Referrer-Policy: no-referrer`` and ``X-Content-Type-Options: nosniff`` everywhere;
 ``Cache-Control: no-store`` on ``/api/*`` (static responses keep their own caching).
 Pure ASGI so it wraps every route, exception handler and the static fallback alike.
+
+No HSTS: TLS terminates at the reverse proxy, and a self-hoster serving plain HTTP on
+a LAN would lock themselves out. It belongs in the proxy config.
 """
 
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+# The built client loads only hashed files from its own origin and has no inline
+# script or style, so nothing here needs 'unsafe-inline'. ``img-src data:`` covers
+# Vite inlining small assets. ``connect-src 'self'`` also covers the same-origin
+# websocket; CSP Level 3 made that explicit.
+CSP = "; ".join(
+    (
+        "default-src 'none'",
+        "script-src 'self'",
+        "style-src 'self'",
+        "img-src 'self' data:",
+        "connect-src 'self'",
+        "font-src 'self'",
+        "base-uri 'none'",
+        "form-action 'none'",
+        "frame-ancestors 'none'",
+    )
+)
 
 
 class SecurityHeaders:
@@ -24,6 +45,9 @@ class SecurityHeaders:
                 headers = MutableHeaders(scope=message)
                 headers["Referrer-Policy"] = "no-referrer"
                 headers["X-Content-Type-Options"] = "nosniff"
+                headers["Content-Security-Policy"] = CSP
+                # frame-ancestors covers this for current browsers; keep it for old ones.
+                headers["X-Frame-Options"] = "DENY"
                 if is_api:
                     headers["Cache-Control"] = "no-store"
             await send(message)
