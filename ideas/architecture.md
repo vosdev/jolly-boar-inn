@@ -390,7 +390,8 @@ Authentication happens in the first frame, never in the URL. The session token i
 Shared shapes:
 
 ```
-RoomView      { code, status, settings, current_index: int|null, total: int, phase }
+RoomView      { code, status, settings, current_index: int|null, total: int, phase,
+                next_at: iso|null }
 PlayerView    { id, display_name, role, connected: bool }
 Standing      { player_id, display_name, points: int, rank: int }
 OpenQuestion  { question_id, index, total, type, view: object, opened_at: iso, ends_at: iso,

@@ -800,6 +800,9 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
         assert welcome["room"]["phase"] == "reveal"
         assert welcome["room"]["status"] == "playing"
         assert welcome["room"]["current_index"] == 0
+        # The reveal a reconnect arrives into has no ``question_closed`` to carry its
+        # deadline, so ``welcome`` is the only place the countdown can come from.
+        assert datetime.fromisoformat(welcome["room"]["next_at"]) == next_at
         assert [s["points"] for s in welcome["standings"]] == [0, 0]  # the void scored nobody
 
         (stored,) = db("select voided, closed_at from questions where position = 0")

@@ -221,6 +221,7 @@ def test_get_room_view_and_case_insensitive_code(client: TestClient) -> None:
             "current_index": None,
             "total": 3,
             "phase": "idle",
+            "next_at": None,
         },
         "players": [],
     }

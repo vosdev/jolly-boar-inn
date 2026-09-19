@@ -46,6 +46,10 @@ class RoomView(_Message):
     current_index: int | None
     total: int
     phase: Phase
+    # When the reveal ends and the next question opens; null outside a reveal. Also on
+    # ``question_closed``, but a reveal a client arrives into (a reconnect, or a room that
+    # just came back from a restart) has no ``question_closed`` of its own to carry it.
+    next_at: datetime | None
 
 
 class PlayerView(_Message):

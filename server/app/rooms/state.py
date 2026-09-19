@@ -312,6 +312,7 @@ class Room:
             current_index=self.current_index,
             total=self.total,
             phase=self.phase,  # type: ignore[arg-type]
+            next_at=self.next_at,
         )
 
     def player_views(self) -> list[PlayerView]:
@@ -476,7 +477,15 @@ class RoomManager:
             # Registered before the recovery, which starts a timer task that checks it.
             self.rooms[code] = room
             if room.status == "playing":
-                await self._recover(room)
+                try:
+                    await self._recover(room)
+                except Exception:
+                    # An unrecovered room left in memory would stay that way: every later
+                    # call finds it here and skips this branch, so the game would sit in
+                    # ``idle`` with no timer until it expired. Drop it and let the caller's
+                    # retry rehydrate from scratch.
+                    self.rooms.pop(code, None)
+                    raise
         elif room.expires_at <= datetime.now(UTC):
             raise RoomExpired(f"room {code} has expired")
         return room
