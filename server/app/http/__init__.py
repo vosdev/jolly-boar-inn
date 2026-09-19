@@ -1,1 +1,1 @@
-"""HTTP API: room creation, admin claim, join. Everything else goes over the websocket."""
+"""HTTP API: room creation and join. Everything else goes over the websocket."""

@@ -38,7 +38,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from app.questions.types import higher_lower
 from app.rooms.state import BadState, Room, RoomQuestion
-from tests.rooms_api import call, claim, create_fast, join
+from tests.rooms_api import call, create_fast, join
 
 
 @dataclass
@@ -127,8 +127,9 @@ def table(app: FastAPI, client: TestClient) -> Iterator[Callable[..., Game]]:
     with ExitStack() as stack:
 
         def build(*names: str, **settings: Any) -> Game:
-            room, token = create_fast(app, client, **settings)
-            bodies = [claim(client, room.code, token, "Admin").json()]
+            room, admin, session = create_fast(app, client, **settings)
+            # The admin comes back from ``create`` itself, in the shape ``join`` returns.
+            bodies = [{"session": session, "player": admin.view().model_dump(mode="json")}]
             bodies += [join(client, room.code, name).json() for name in names]
             seats = []
             for body in bodies:
@@ -268,10 +269,9 @@ def test_non_admin_cannot_start_the_game(game) -> None:
 def test_room_updated_reaches_everyone_before_the_first_question(app, client) -> None:
     """Nobody may see ``question_open`` before they know the game started, and a second
     ``start_game`` finds the room already playing."""
-    room, token = create_fast(app, client)
-    admin = claim(client, room.code, token, "Admin").json()
+    room, _, session = create_fast(app, client)
     with client.websocket_connect(f"/ws/{room.code}") as ws:
-        ws.send_json({"t": "hello", "session": admin["session"]})
+        ws.send_json({"t": "hello", "session": session})
         assert ws.receive_json()["t"] == "welcome"
         ws.send_json({"t": "start_game"})
         update = ws.receive_json()
@@ -284,30 +284,27 @@ def test_room_updated_reaches_everyone_before_the_first_question(app, client) ->
         assert error["t"] == "error" and error["code"] == "bad_state"
 
 
-def admin_player(client: TestClient, manager, code: str):
-    room = call(client, manager.get, code)
-    return next(player for player in room.players.values() if player.role == "admin")
-
-
 def test_start_game_needs_somebody_connected(app, client) -> None:
-    """Section 4's guard: at least one connected player."""
-    room, token = create_fast(app, client)
-    claim(client, room.code, token, "Admin")
+    """Section 4's guard: at least one connected player.
+
+    ``create`` hands back the admin directly, so this never launders them through
+    ``room.players`` -- a ``create`` that failed to cache its admin fails here.
+    """
+    room, admin, _ = create_fast(app, client)
     manager = app.state.rooms
     with pytest.raises(BadState) as info:
-        call(client, manager.start_game, room.code, admin_player(client, manager, room.code))
+        call(client, manager.start_game, room.code, admin)
     assert info.value.message == "nobody is connected to play"
     assert call(client, manager.get, room.code).status == "lobby"
 
 
 def test_start_game_needs_questions(app, client) -> None:
     """Section 4's other guard. Only reachable with a room built behind the API's back."""
-    room, token = create_fast(app, client, question_count=0)
-    admin = claim(client, room.code, token, "Admin").json()
+    room, _, session = create_fast(app, client, question_count=0)
     manager = app.state.rooms
     assert call(client, manager.get, room.code).questions == []
     with client.websocket_connect(f"/ws/{room.code}") as ws:
-        ws.send_json({"t": "hello", "session": admin["session"]})
+        ws.send_json({"t": "hello", "session": session})
         assert ws.receive_json()["t"] == "welcome"
         ws.send_json({"t": "start_game"})
         error = ws.receive_json()

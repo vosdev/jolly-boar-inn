@@ -20,14 +20,13 @@ from starlette.websockets import WebSocketDisconnect
 from app.rooms.state import Room, RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
-from tests.rooms_api import call, claim, create, join
+from tests.rooms_api import call, create, join
 
 
 @pytest.fixture
 def lobby(client: TestClient) -> dict[str, Any]:
-    """A claimed room with one joined player: ``code``, ``admin``, ``player`` (session + view)."""
-    code, token = create(client, question_count=3)
-    admin = claim(client, code, token, "Admin").json()
+    """A room with its admin and one joined player: ``code``, ``admin``, ``player``."""
+    code, admin = create(client, question_count=3)
     player = join(client, code, "Zezima").json()
     return {"code": code, "admin": admin, "player": player}
 
@@ -457,13 +456,16 @@ def test_evict_closes_sockets_with_1012_and_they_reconnect(
             assert [p["connected"] for p in welcome["players"]] == [False, True]
 
 
-def test_rehydrate_covers_created_rooms(app: FastAPI, client: TestClient) -> None:
+def test_rehydrate_covers_a_room_nobody_has_connected_to(app: FastAPI, client: TestClient) -> None:
+    """No sockets, no answers -- and an admin who is a database row, not a live object."""
     manager: RoomManager = app.state.rooms
-    code, token = create(client, question_count=5)
+    code, admin = create(client, question_count=5)
     expected = snapshot(call(client, manager.get, code))
-    assert expected["view"]["status"] == "created"
-    assert expected["players"] == []
+    assert expected["view"]["status"] == "lobby"
+    assert [p["display_name"] for p in expected["players"]] == ["Admin"]
+    assert expected["players"][0]["role"] == "admin"
     call(client, manager.evict, code)
-    assert snapshot(call(client, manager.get, code)) == expected
-    assert claim(client, code, token).status_code == 200
-    assert manager.rooms[code].status == "lobby"
+    after = call(client, manager.get, code)
+    assert snapshot(after) == expected
+    # The session the host was handed still finds them after the room was rebuilt.
+    assert after.find_by_session(admin["session"]) is not None
