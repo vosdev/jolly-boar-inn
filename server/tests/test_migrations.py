@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from app.config import Settings
 from app.db import MIGRATIONS_DIR, MigrationError, create_pool, migration_files, run_migrations
 from app.main import create_app
+from app.rooms.settings import NewRoomSettings, RoomSettings
 
 # Section 5 of ideas/architecture.md.
 TABLES = {
@@ -88,21 +89,22 @@ async def pool(test_db_dsn: str):
 
 def test_migration_files_are_numbered_and_ordered() -> None:
     files = migration_files(MIGRATIONS_DIR)
-    assert [version for version, _ in files] == [1, 2, 3]
+    assert [version for version, _ in files] == [1, 2, 3, 4]
     assert [path.name for _, path in files] == [
         "0001_init.sql",
         "0002_drop_admin_tokens.sql",
         "0003_question_rounds.sql",
+        "0004_per_mode_rounds.sql",
     ]
 
 
 async def test_fresh_db_gets_all_tables(pool: asyncpg.Pool) -> None:
     """T3: fresh DB gets all tables (and indexes) from section 5."""
-    assert await run_migrations(pool) == [1, 2, 3]
+    assert await run_migrations(pool) == [1, 2, 3, 4]
     assert await _columns(pool) == TABLES
     rows = await pool.fetch("select indexname from pg_indexes where schemaname = 'public'")
     assert INDEXES <= {row["indexname"] for row in rows}
-    assert await _versions(pool) == [1, 2, 3]
+    assert await _versions(pool) == [1, 2, 3, 4]
 
 
 async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
@@ -151,7 +153,7 @@ async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
 
 async def test_second_start_is_noop(pool: asyncpg.Pool) -> None:
     """T3: second start is a no-op."""
-    assert await run_migrations(pool) == [1, 2, 3]
+    assert await run_migrations(pool) == [1, 2, 3, 4]
     before = await pool.fetch("select version, applied_at from schema_migrations")
     assert await run_migrations(pool) == []
     after = await pool.fetch("select version, applied_at from schema_migrations")
@@ -164,7 +166,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
 ) -> None:
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
-    with pytest.raises(MigrationError, match=r"\[1, 2, 3\]"):
+    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4\]"):
         await run_migrations(pool, tmp_path)
 
 
@@ -195,3 +197,68 @@ def test_lifespan_runs_migrations(test_db_dsn: str, dist: Path) -> None:
             await pool.close()
 
     assert asyncio.run(columns()) == TABLES
+
+
+async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
+    pool: asyncpg.Pool, tmp_path: Path
+) -> None:
+    """0004: an existing room's global settings become per-mode ones, and it still loads.
+
+    The room is inserted with only 0001..0003 applied, which is what a room created by
+    the previous release looks like, and then 0004 runs on top of it.
+    """
+    for _, path in migration_files(MIGRATIONS_DIR)[:3]:
+        (tmp_path / path.name).write_text(path.read_text())
+    assert await run_migrations(pool, tmp_path) == [1, 2, 3]
+    old = {
+        "question_seconds": 45,
+        "question_count": 20,
+        "questions_per_round": 5,
+        "modes": ["more_less"],
+        "order": "shuffle",
+        "reveal_seconds": 8,
+        "splash_seconds": 8,
+        "close_when_all_answered": True,
+        "max_players": 50,
+    }
+    await pool.execute(
+        "insert into rooms (code, status, settings, expires_at)"
+        " values ('ABYSSAL', 'playing', $1, now() + interval '1 day')",
+        old,
+    )
+
+    fourth = migration_files(MIGRATIONS_DIR)[3][1]
+    (tmp_path / fourth.name).write_text(fourth.read_text())
+    assert await run_migrations(pool, tmp_path) == [4]
+
+    settings = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
+    assert settings == {
+        # The old globals, now carried by the one mode that was playing. 45 seconds is
+        # more than ``more_less`` allows today, which is what ``seconds_for`` clamps.
+        "modes": [{"mode": "more_less", "questions": 5, "seconds": 45}],
+        "mode_order": "listed",
+        "order": "shuffle",
+        "reveal_seconds": 8,
+        "splash_seconds": 8,
+        "close_when_all_answered": True,
+        "max_players": 50,
+    }
+    loaded = RoomSettings.model_validate(settings)
+    assert loaded.mode_ids == ["more_less"]
+    assert loaded.question_count == 5
+    assert loaded.seconds_for("more_less") == 20  # the type's maximum, not the stored 45
+
+
+async def test_0004_leaves_a_room_created_after_it_alone(pool: asyncpg.Pool) -> None:
+    """The rewrite is keyed on the old fields, so running it twice changes nothing."""
+    await run_migrations(pool)
+    settings = NewRoomSettings().model_dump()
+    await pool.execute(
+        "insert into rooms (code, status, settings, expires_at)"
+        " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
+        settings,
+    )
+    await pool.execute("delete from schema_migrations where version = 4")
+    assert await run_migrations(pool) == [4]
+    stored = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
+    assert stored == settings

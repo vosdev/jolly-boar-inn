@@ -1,4 +1,4 @@
-"""``rooms/selection.py`` contract: pure, seeded, without replacement, in rounds."""
+"""``rooms/selection.py`` contract: pure, seeded, without replacement, one round per mode."""
 
 import random
 from collections.abc import Iterator
@@ -28,30 +28,14 @@ PACKS = [
 CUSTOM: list[dict[str, Any]] = [{"id": "q_custom_1", "type": "more_less", "payload": {}}]
 
 
+def _settings(*modes: tuple[str, int], **overrides: Any) -> RoomSettings:
+    """``_settings(("more_less", 5))`` -> a room of one five-question ``more_less`` round."""
+    entries = [{"mode": mode, "questions": questions} for mode, questions in modes]
+    return RoomSettings(modes=entries, **overrides)
+
+
 def _questions(rounds: list[Round]) -> list[dict[str, Any]]:
     return [q for round_ in rounds for q in round_.questions]
-
-
-def test_count_without_replacement_and_only_chosen_modes() -> None:
-    settings = RoomSettings(question_count=50, questions_per_round=5, modes=["more_less"])
-    rounds = select(PACKS, [], settings, random.Random(1))
-    got = _questions(rounds)
-    assert len(got) == 50
-    assert len({q["id"] for q in got}) == 50
-    assert {q["type"] for q in got} == {"more_less"}
-
-
-def test_rounds_are_questions_per_round_long() -> None:
-    settings = RoomSettings(question_count=20, questions_per_round=5, modes=["more_less"])
-    rounds = select(PACKS, [], settings, random.Random(1))
-    assert [len(r.questions) for r in rounds] == [5, 5, 5, 5]
-
-
-def test_a_count_that_does_not_divide_leaves_a_short_last_round() -> None:
-    settings = RoomSettings(question_count=13, questions_per_round=5, modes=["more_less"])
-    rounds = select(PACKS, [], settings, random.Random(1))
-    assert [len(r.questions) for r in rounds] == [5, 5, 3]
-    assert len(_questions(rounds)) == 13
 
 
 @pytest.fixture
@@ -67,30 +51,55 @@ def second_mode() -> Iterator[str]:
     del TYPES["free_text"]
 
 
-def test_modes_take_turns_and_never_repeat_next_to_each_other(second_mode: str) -> None:
-    settings = RoomSettings(
-        question_count=24, questions_per_round=4, modes=["more_less", "free_text"]
-    )
-    rounds = select(PACKS, [], settings, random.Random(3))
-    modes = [r.mode for r in rounds]
-    assert len(modes) == 6
-    assert set(modes) == {"more_less", "free_text"}
-    assert all(a != b for a, b in zip(modes, modes[1:], strict=False))
+def test_count_without_replacement_and_only_chosen_modes() -> None:
+    rounds = select(PACKS, [], _settings(("more_less", 50)), random.Random(1))
+    got = _questions(rounds)
+    assert len(got) == 50
+    assert len({q["id"] for q in got}) == 50
+    assert {q["type"] for q in got} == {"more_less"}
+
+
+def test_a_mode_is_a_round(second_mode: str) -> None:
+    """The whole rule: one round per mode, as long as that mode asked to be."""
+    settings = _settings(("more_less", 8), ("free_text", 3))
+    rounds = select(PACKS, [], settings, random.Random(1))
+    assert [(r.mode, len(r.questions)) for r in rounds] == [("more_less", 8), ("free_text", 3)]
     # Every question in a round is that round's mode: what makes a round introducible.
     assert all({q["type"] for q in r.questions} == {r.mode} for r in rounds)
 
 
-def test_fewer_available_than_asked_shortens_and_then_drops_rounds() -> None:
-    """A mode that runs out gives a short round, then none: never an empty one."""
-    settings = RoomSettings(question_count=100, questions_per_round=20, modes=["more_less"])
-    rounds = select(PACKS[:1], [], settings, random.Random(1))
-    assert [len(r.questions) for r in rounds] == [20, 10]
-    assert len(_questions(rounds)) == 30
+def test_one_mode_is_one_round() -> None:
+    rounds = select(PACKS, [], _settings(("more_less", 20)), random.Random(1))
+    assert [len(r.questions) for r in rounds] == [20]
+
+
+def test_listed_order_plays_the_rounds_in_the_order_the_host_arranged(second_mode: str) -> None:
+    """``mode_order = "listed"``, the default: what the host listed is what plays."""
+    for seed in range(10):
+        settings = _settings(("free_text", 2), ("more_less", 2))
+        rounds = select(PACKS, [], settings, random.Random(seed))
+        assert [r.mode for r in rounds] == ["free_text", "more_less"]
+
+
+def test_random_order_shuffles_the_rounds(second_mode: str) -> None:
+    settings = _settings(("more_less", 2), ("free_text", 2), mode_order="random")
+    orders = {
+        tuple(r.mode for r in select(PACKS, [], settings, random.Random(seed)))
+        for seed in range(20)
+    }
+    assert orders == {("more_less", "free_text"), ("free_text", "more_less")}
+
+
+def test_fewer_available_than_asked_shortens_and_then_drops_rounds(second_mode: str) -> None:
+    """A mode that has nothing to play gives no round: never an empty one."""
+    settings = _settings(("more_less", 40), ("free_text", 5))
+    rounds = select(PACKS[:1], [], settings, random.Random(1))  # 30 more_less, no free_text
+    assert [(r.mode, len(r.questions)) for r in rounds] == [("more_less", 30)]
     assert all(r.questions for r in rounds)
 
 
 def test_seeded_and_deterministic() -> None:
-    settings = RoomSettings(question_count=10, questions_per_round=5)
+    settings = _settings(("more_less", 10))
     a = select(PACKS, CUSTOM, settings, random.Random(7))
     b = select(PACKS, CUSTOM, settings, random.Random(7))
     c = select(PACKS, CUSTOM, settings, random.Random(8))
@@ -99,7 +108,7 @@ def test_seeded_and_deterministic() -> None:
 
 
 def test_custom_last_keeps_custom_at_the_end() -> None:
-    settings = RoomSettings(question_count=5, questions_per_round=5, order="custom_last")
+    settings = _settings(("more_less", 5), order="custom_last")
     rounds = select(PACKS, CUSTOM, settings, random.Random(1))
     got = _questions(rounds)
     assert len(got) == 6
@@ -108,14 +117,14 @@ def test_custom_last_keeps_custom_at_the_end() -> None:
 
 
 def test_shuffle_mixes_custom_into_a_round_of_its_own_mode() -> None:
-    settings = RoomSettings(question_count=20, questions_per_round=5, order="shuffle")
+    settings = _settings(("more_less", 20), order="shuffle")
     positions = set()
     for seed in range(20):
         rounds = select(PACKS, CUSTOM, settings, random.Random(seed))
         got = _questions(rounds)
         assert len(got) == 21
         # It joined an existing round rather than adding one of its own.
-        assert len(rounds) == 4
+        assert len(rounds) == 1
         home = next(r for r in rounds if CUSTOM[0] in r.questions)
         assert home.mode == "more_less"
         positions.add(got.index(CUSTOM[0]))
@@ -124,18 +133,18 @@ def test_shuffle_mixes_custom_into_a_round_of_its_own_mode() -> None:
 
 @pytest.mark.parametrize("order", ["shuffle", "custom_last"])
 def test_every_round_is_one_mode(order: str) -> None:
+    """A custom question of a mode nobody picked trails the game in a round of its own."""
     custom = CUSTOM + [{"id": "q_custom_2", "type": "free_text", "payload": {}}]
-    settings = RoomSettings(
-        question_count=10, questions_per_round=5, order=order, modes=["more_less"]
-    )
+    settings = _settings(("more_less", 10), order=order)
     rounds = select(PACKS, custom, settings, random.Random(2))
     for round_ in rounds:
         assert {q["type"] for q in round_.questions} == {round_.mode}
+    assert rounds[-1].mode == "free_text"
 
 
-def test_flatten_numbers_questions_by_round_in_play_order() -> None:
-    settings = RoomSettings(question_count=7, questions_per_round=3, modes=["more_less"])
+def test_flatten_numbers_questions_by_round_in_play_order(second_mode: str) -> None:
+    settings = _settings(("more_less", 3), ("free_text", 4))
     rounds = select(PACKS, [], settings, random.Random(1))
     flat = flatten(rounds)
-    assert [number for number, _ in flat] == [0, 0, 0, 1, 1, 1, 2]
+    assert [number for number, _ in flat] == [0, 0, 0, 1, 1, 1, 1]
     assert [q for _, q in flat] == _questions(rounds)

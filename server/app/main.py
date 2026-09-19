@@ -13,7 +13,7 @@ from app import accesslog
 from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
-from app.http import players, rooms
+from app.http import modes, players, rooms
 from app.http.headers import SecurityHeaders
 from app.http.ratelimit import RateLimiter
 from app.questions.packs import load_packs
@@ -120,6 +120,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
 
     app.include_router(rooms.router)
     app.include_router(players.router)
+    app.include_router(modes.router)
     app.include_router(ws_handler.router)
     mount_client(app, client_dist)
     return app

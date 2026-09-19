@@ -52,7 +52,7 @@ from app.config import Settings
 from app.errors import ApiError
 from app.questions.packs import Pack
 from app.questions.submission import Submission
-from app.questions.types import TYPES, max_seconds
+from app.questions.types import TYPES
 from app.rooms import codes, scoring, segments, selection
 from app.rooms.settings import RoomSettings
 from app.ws.protocol import (
@@ -215,10 +215,10 @@ class RoomQuestion:
     for and leaves in the database.
 
     ``seconds`` and ``ends_at`` are not columns either: they are recomputed whenever the
-    question opens, from the room's ``question_seconds`` and the type's own cap on it, and
-    ``ends_at`` is what the timer and the clients count down to. ``seconds`` is also what
-    the speed bucket is a fraction of, so a ten-second type scores on ten seconds however
-    long the room's questions are set to.
+    question opens, from the setting its own mode carries, and ``ends_at`` is what the
+    timer and the clients count down to. ``seconds`` is also what the speed bucket is a
+    fraction of, so a ten-second mode scores on ten seconds in a room whose other rounds
+    run to a minute.
     """
 
     id: UUID
@@ -305,10 +305,8 @@ class Room:
         return None if self.current_index is None else self.segment_at(self.current_index)
 
     def question_seconds(self, type_: str) -> int:
-        """How long a question of this type stays open, the type's own cap included."""
-        cap = max_seconds(type_)
-        seconds = self.settings.question_seconds
-        return seconds if cap is None else min(seconds, cap)
+        """How long a question of this type stays open: its mode's own setting."""
+        return self.settings.seconds_for(type_)
 
     @property
     def current(self) -> RoomQuestion | None:

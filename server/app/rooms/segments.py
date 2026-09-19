@@ -5,11 +5,11 @@ A round is a run of consecutive questions carrying the same ``round`` number, wh
 storing a second copy means the two can never disagree.
 
 The round number is stored rather than derived because neither cheap derivation holds.
-Runs of equal question ``type`` fail as soon as one mode plays two rounds — with a single
-registered mode that is every game. ``position // questions_per_round`` fails as soon as a
-round is short, which happens when a mode runs out of pack questions and will happen again
-when Phase 2 lets a room carry custom questions. Both failures are silent, and both show
-players the wrong mode on the splash.
+Counting questions off the settings — a mode is a round, so a round is that mode's
+``questions`` — fails as soon as a round is short, which happens when a mode runs out of
+pack questions and will happen again when Phase 2 lets a room carry custom questions. Runs
+of equal question ``type`` fail on the trailing rounds those custom questions get. Both
+failures are silent, and both show players the wrong mode on the splash.
 """
 
 from collections.abc import Sequence

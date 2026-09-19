@@ -1,4 +1,4 @@
-"""T9 Accept: with ``question_seconds = 1`` and ``reveal_seconds = 1`` a 3-question room
+"""T9 Accept: with one-second questions and ``reveal_seconds = 1`` a 3-question room
 runs to ``finished`` unattended; an answer after the close is ``not_open``; a second
 answer is ``already_answered``; all-answered closes early; ``start_game`` from a
 non-admin is ``not_admin``; ``skip`` during a question closes within 100 ms.
@@ -17,7 +17,7 @@ Plus the rest of the section 3 and 4 surface these two tasks own: ``question_ope
 what it withholds), ``answer_ack``, auto-advance, ``game_finished``, reconnecting
 mid-question, ``skip`` during a reveal, ``end_game``, ``promote`` and ``kick``.
 
-Most tests run with 30-second questions and drive the closes themselves with ``skip``,
+Most tests run with ten-second questions and drive the closes themselves with ``skip``,
 so what they assert is the state machine and not the wall clock. The ones that are about
 time say so.
 """
@@ -133,7 +133,7 @@ class Game:
 
 @pytest.fixture
 def table(app: FastAPI, client: TestClient) -> Iterator[Callable[..., Game]]:
-    """``table("Zezima", "Woox", question_seconds=1)`` → a lobby with everyone connected.
+    """``table("Zezima", "Woox", seconds=1)`` → a lobby with everyone connected.
 
     Seat 0 is always the admin. Sockets close when the test ends, before the app does.
     """
@@ -166,8 +166,8 @@ def table(app: FastAPI, client: TestClient) -> Iterator[Callable[..., Game]]:
 
 @pytest.fixture
 def game(table) -> Game:
-    """Three 30-second questions, an admin and two players, all connected."""
-    return table("Zezima", "Woox", question_seconds=30, reveal_seconds=1)
+    """One round of three ten-second questions, an admin and two players, connected."""
+    return table("Zezima", "Woox", seconds=10, reveal_seconds=1)
 
 
 def db_totals(db, code: str) -> dict[UUID, int]:
@@ -206,7 +206,7 @@ def closed_with(ws: WebSocketTestSession) -> int:
 
 def test_a_three_question_game_runs_to_finished_unattended(table, db) -> None:
     """T9: one-second questions and reveals, three questions, nobody touching anything."""
-    game = table("Zezima", "Woox", question_seconds=1, reveal_seconds=1)
+    game = table("Zezima", "Woox", seconds=1, reveal_seconds=1)
     game.start()
     started = time.monotonic()
     for index in range(3):
@@ -233,7 +233,7 @@ def test_a_three_question_game_runs_to_finished_unattended(table, db) -> None:
 
 
 def test_the_next_question_opens_when_question_closed_said_it_would(table) -> None:
-    game = table("Zezima", question_seconds=1, reveal_seconds=1)
+    game = table("Zezima", seconds=1, reveal_seconds=1)
     game.start()
     game.opened(0)
     closed = game.admin.take("question_closed")
@@ -262,7 +262,7 @@ def test_question_open_is_the_same_frame_for_everyone_and_withholds_the_answer(g
         assert str(option["value"]) not in str(opened[0])
     ends_at = datetime.fromisoformat(view["ends_at"])
     opened_at = datetime.fromisoformat(view["opened_at"])
-    # 30 is the room's ``question_seconds``; ``more_less`` caps itself at ten.
+    # Ten seconds: the ``more_less`` round's own ``seconds``, not a number the room set.
     assert (ends_at - opened_at).total_seconds() == 10
     assert game.room.phase == "open"
     assert game.client.get(f"/api/rooms/{game.code}").json()["room"]["phase"] == "open"
@@ -315,7 +315,7 @@ def test_start_game_needs_somebody_connected(app, client) -> None:
 
 def test_start_game_needs_questions(app, client) -> None:
     """Section 4's other guard. Only reachable with a room built behind the API's back."""
-    room, _, session = create_fast(app, client, question_count=0)
+    room, _, session = create_fast(app, client, questions=0)
     manager = app.state.rooms
     assert call(client, manager.get, room.code).questions == []
     with client.websocket_connect(f"/ws/{room.code}") as ws:
@@ -361,7 +361,7 @@ def test_a_second_answer_is_already_answered(game) -> None:
 
 def test_an_answer_after_the_close_is_not_open(table) -> None:
     """T9: answering a question that has closed is ``not_open``, never scored."""
-    game = table("Zezima", question_seconds=1, reveal_seconds=30)
+    game = table("Zezima", seconds=1, reveal_seconds=30)
     game.start()
     game.opened(0)
     player = game.players[0]
@@ -453,7 +453,7 @@ def test_skip_closes_the_open_question_within_100ms(game) -> None:
 
 
 def test_skip_during_the_reveal_opens_the_next_question(table) -> None:
-    game = table("Zezima", question_seconds=30, reveal_seconds=30)
+    game = table("Zezima", seconds=10, reveal_seconds=30)
     game.start()
     game.opened(0)
     game.admin.send(t="skip")
@@ -475,7 +475,7 @@ def test_a_player_cannot_skip(game) -> None:
 
 def test_skips_during_a_close_never_deadlock_the_room(table) -> None:
     """Section 4: ``skip`` cancels a sleep, it does not fight the timer for the lock."""
-    game = table("Zezima", question_seconds=1, reveal_seconds=1)
+    game = table("Zezima", seconds=1, reveal_seconds=1)
     game.start()
     for _ in range(12):  # land on opens, closes and reveals alike
         game.admin.send(t="skip")
@@ -506,7 +506,7 @@ def test_welcome_mid_question_carries_the_question_and_your_answer(game, client)
 
 
 def test_welcome_after_the_game_still_serves_the_final_standings(table, client) -> None:
-    game = table("Zezima", question_seconds=1, reveal_seconds=1)
+    game = table("Zezima", seconds=1, reveal_seconds=1)
     game.start()
     game.opened(0)
     game.answer(game.players[0], 0, game.right(0))
@@ -603,7 +603,7 @@ def test_a_voided_question_is_never_graded(game, db) -> None:
 
 
 def test_end_game_between_questions_finishes_without_voiding(table, db) -> None:
-    game = table("Zezima", question_seconds=30, reveal_seconds=30)
+    game = table("Zezima", seconds=10, reveal_seconds=30)
     game.start()
     game.opened(0)
     game.admin.send(t="skip")
@@ -778,7 +778,7 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
     ``evict`` is the crash: the room leaves memory and its timer task is cancelled, so the
     next ``get`` rehydrates from Postgres exactly as a fresh process would.
     """
-    game = table("Zezima", question_seconds=30, reveal_seconds=3)
+    game = table("Zezima", seconds=10, reveal_seconds=3)
     game.start()
     game.opened(0)
     player = game.players[0]
@@ -838,7 +838,7 @@ def test_a_restart_between_questions_voids_nothing_and_still_reveals(
 ) -> None:
     """T11: no question was open at the restart, so there is nothing to void, and nobody
     has a question opened on them the instant they reconnect either."""
-    game = table("Zezima", question_seconds=30, reveal_seconds=30)
+    game = table("Zezima", seconds=10, reveal_seconds=30)
     game.start()
     game.opened(0)
     player = game.players[0]
@@ -882,7 +882,7 @@ def test_a_restart_before_the_first_question_opened_still_plays_it(
     ends by opening it rather than skipping past it. The row is edited behind the app's
     back because the window itself is too narrow to hit on purpose.
     """
-    game = table("Zezima", question_seconds=30, reveal_seconds=30)
+    game = table("Zezima", seconds=10, reveal_seconds=30)
     db("update rooms set status = 'playing', current_index = 0 where code = $1", game.code)
     assert evict(game.code) is True
     for seat in game.seats:
@@ -921,7 +921,7 @@ def test_no_splash_when_splash_seconds_is_zero(game) -> None:
 
 def test_the_first_round_is_introduced_before_its_first_question(table) -> None:
     """The splash holds the room for ``splash_seconds``, then the question opens."""
-    game = table("Zezima", question_seconds=30, splash_seconds=1)
+    game = table("Zezima", seconds=10, splash_seconds=1)
     before = datetime.now(UTC)
     game.start()
     update = game.splash()
@@ -945,14 +945,22 @@ def test_the_first_round_is_introduced_before_its_first_question(table) -> None:
     )
 
 
-def test_every_question_carries_the_round_it_belongs_to(table) -> None:
-    game = table("Zezima", question_seconds=30, reveal_seconds=1, questions_per_round=2)
+def test_every_question_carries_the_round_it_belongs_to(table, second_mode) -> None:
+    game = table(
+        "Zezima",
+        seconds=10,
+        reveal_seconds=1,
+        modes=[
+            {"mode": "more_less", "questions": 2, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
     game.start()
     first = game.opened(0)[0]["question"]
     assert first["segment"] == {
         "mode": "more_less",
         "index": 0,
-        "total": 2,  # three questions, two to a round
+        "total": 2,  # two modes, so two rounds
         "start": 0,
         "count": 2,
     }
@@ -963,35 +971,45 @@ def test_every_question_carries_the_round_it_belongs_to(table) -> None:
     assert second["segment"] == first["segment"]  # same round, second question
 
 
-def test_a_second_round_of_the_same_mode_is_not_introduced_again(table) -> None:
-    """The splash introduces a mode, not a round: one mode, one card, however many rounds."""
+def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> None:
+    """The headline: two modes are two rounds, in the order the host listed them, each
+    with a splash of its own because each plays something the one before it did not."""
     game = table(
-        "Zezima", question_seconds=30, reveal_seconds=1, questions_per_round=2, splash_seconds=1
+        "Zezima",
+        reveal_seconds=1,
+        splash_seconds=1,
+        modes=[
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+        ],
     )
+    assert [q.type for q in game.room.questions] == [second_mode, "more_less"]
     game.start()
-    game.splash()  # the one and only
+    assert game.splash()["room"]["segment"]["mode"] == second_mode
     game.opened(0)
     game.admin.send(t="skip")
     game.admin.take("question_closed")
     game.admin.send(t="skip")
-    game.admin.take("question_open")
-    game.admin.send(t="skip")
-    game.admin.take("question_closed")
-    game.admin.send(t="skip")
-    # Question 2 starts round 1, but of the same mode, so it opens without another splash.
-    opened = game.admin.take("question_open")
-    assert opened["question"]["index"] == 2
-    assert opened["question"]["segment"]["index"] == 1
+    assert game.splash()["room"]["segment"]["mode"] == "more_less"
+    opened = game.admin.take("question_open")["question"]
+    assert opened["index"] == 1
+    assert opened["segment"] == {
+        "mode": "more_less",
+        "index": 1,
+        "total": 2,
+        "start": 1,
+        "count": 1,
+    }
     splashes = [
-        message
+        message["room"]["segment"]["mode"]
         for message in game.admin.seen
         if message["t"] == "room_updated" and message["room"]["phase"] == "splash"
     ]
-    assert len(splashes) == 1, splashes
+    assert splashes == [second_mode, "more_less"]
 
 
 def test_skip_cuts_the_splash_short(table) -> None:
-    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game = table("Zezima", seconds=10, splash_seconds=30)
     game.start()
     game.splash()
     started = time.monotonic()
@@ -1002,7 +1020,7 @@ def test_skip_cuts_the_splash_short(table) -> None:
 
 
 def test_a_player_cannot_skip_the_splash(table) -> None:
-    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game = table("Zezima", seconds=10, splash_seconds=30)
     game.start()
     game.splash(game.players[0])
     game.players[0].send(t="skip")
@@ -1012,7 +1030,7 @@ def test_a_player_cannot_skip_the_splash(table) -> None:
 
 def test_welcome_during_a_splash_says_so(table, client) -> None:
     """A socket arriving mid-splash is told the same thing a live one was broadcast."""
-    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game = table("Zezima", seconds=10, splash_seconds=30)
     game.start()
     game.splash()
     body = join(client, game.code, "Latecomer").json()
@@ -1028,7 +1046,7 @@ def test_welcome_during_a_splash_says_so(table, client) -> None:
 
 
 def test_end_game_during_a_splash_voids_nothing(table, db) -> None:
-    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game = table("Zezima", seconds=10, splash_seconds=30)
     game.start()
     game.splash()
     game.admin.send(t="end_game")
@@ -1040,7 +1058,7 @@ def test_end_game_during_a_splash_voids_nothing(table, db) -> None:
 
 def test_a_restart_during_a_splash_replays_it(table, client, db, evict) -> None:
     """A splash is a question that has not opened, which recovery already handles."""
-    game = table("Zezima", question_seconds=30, reveal_seconds=1, splash_seconds=1)
+    game = table("Zezima", seconds=10, reveal_seconds=1, splash_seconds=1)
     game.start()
     for seat in game.seats:  # every socket, so none has a frame left to read at the close
         game.splash(seat)
@@ -1065,9 +1083,9 @@ def test_a_restart_during_a_splash_replays_it(table, client, db, evict) -> None:
 # --- a mode's own question length ---------------------------------------------------
 
 
-def test_a_modes_cap_beats_a_longer_room_setting(game) -> None:
-    """``more_less`` caps itself at ten seconds however long the room asked for."""
-    assert game.room.settings.question_seconds == 30
+def test_a_question_lasts_what_its_own_mode_says(game) -> None:
+    """The room has no question length: the round does, and this one is ten seconds."""
+    assert game.room.settings.seconds_for("more_less") == 10
     game.start()
     view = game.opened(0)[0]["question"]
     opened_at = datetime.fromisoformat(view["opened_at"])
@@ -1076,8 +1094,8 @@ def test_a_modes_cap_beats_a_longer_room_setting(game) -> None:
     assert game.question(0).seconds == 10
 
 
-def test_a_shorter_room_setting_beats_the_cap(table) -> None:
-    game = table("Zezima", question_seconds=5)
+def test_a_mode_set_quicker_stays_quick(table) -> None:
+    game = table("Zezima", seconds=5)
     game.start()
     view = game.opened(0)[0]["question"]
     opened_at = datetime.fromisoformat(view["opened_at"])
@@ -1085,8 +1103,20 @@ def test_a_shorter_room_setting_beats_the_cap(table) -> None:
     assert (ends_at - opened_at).total_seconds() == 5
 
 
+def test_a_stored_room_outside_the_types_range_is_clamped(table) -> None:
+    """``NewRoomSettings`` refuses 30 seconds of ``more_less``; a room stored before the
+    type said so still plays, at the longest the type allows."""
+    game = table("Zezima", seconds=30)
+    game.start()
+    view = game.opened(0)[0]["question"]
+    opened_at = datetime.fromisoformat(view["opened_at"])
+    ends_at = datetime.fromisoformat(view["ends_at"])
+    assert (ends_at - opened_at).total_seconds() == 20
+    assert game.question(0).seconds == 20
+
+
 def test_speed_buckets_scale_to_the_questions_own_length(game) -> None:
-    """A ten-second question buckets on ten seconds, not on the room's thirty."""
+    """A ten-second question buckets on ten seconds, not on the length of a slower round."""
     game.start()
     game.opened(0)
     player = game.players[0]
