@@ -77,6 +77,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except DatabaseUnavailable:
         log.warning("will retry the database connection on demand")
     yield
+    await app.state.rooms.shutdown()  # every room's timer task, before the pool goes
     if app.state.pool is not None:
         await app.state.pool.close()
 

@@ -5,15 +5,20 @@ any protocol error after the handshake, each after a single ``error`` message wh
 protocol has a code for it. ``4000`` (replaced by a newer socket) and ``1012`` (room left
 memory) come from the manager.
 
-T8 handles ``hello``, ``ping`` and the closes. The other client messages parse but are
-answered with ``error bad_state`` until T9 wires them to the manager.
+Every message after the handshake is one ``RoomManager`` call. A call that raises
+``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
+message (``not_admin``, ``not_open``, ``already_answered``) is not a protocol error.
+Only a frame we cannot parse closes the socket.
+
+Commands other than ``answer`` have no direct reply. What they did reaches every client,
+the sender included, through the broadcasts the manager sends.
 """
 
 import asyncio
 import json
 import logging
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, get_args
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
@@ -37,6 +42,9 @@ CLOSE_BAD_HELLO = 4001
 CLOSE_UNKNOWN_ROOM = 4004
 CLOSE_PROTOCOL_ERROR = 4008
 CLOSE_INTERNAL = 1011
+# The ``ApiError.code`` values that are also websocket error codes (section 3). Anything
+# else a manager call raises is a room that cannot take the message: ``bad_state``.
+_ERROR_CODES: frozenset[str] = frozenset(get_args(ErrorCode))
 
 
 class BadFrame(Exception):
@@ -119,7 +127,7 @@ async def room_socket(ws: WebSocket, code: str) -> None:
             log.warning("connect to room %s failed: %s", code, exc.message)
             await _close(ws, CLOSE_INTERNAL, exc.code)
             return
-        await _serve(ws, player)
+        await _serve(ws, manager, code, player)
     except WebSocketDisconnect:
         pass
     finally:
@@ -144,7 +152,7 @@ async def _handshake(ws: WebSocket) -> protocol.Hello | None:
     return message
 
 
-async def _serve(ws: WebSocket, player: Player) -> None:
+async def _serve(ws: WebSocket, manager: RoomManager, code: str, player: Player) -> None:
     """Every frame after a successful ``hello`` until the client leaves."""
     while True:
         try:
@@ -156,17 +164,40 @@ async def _serve(ws: WebSocket, player: Player) -> None:
         except ValidationError as exc:
             await _reject(ws, "bad_message", _describe(exc), CLOSE_PROTOCOL_ERROR)
             return
-        match message:
-            case protocol.Hello():
-                reason = "hello is only valid as the first message"
-                await _reject(ws, "bad_hello", reason, CLOSE_PROTOCOL_ERROR)
-                return
-            case protocol.Ping():
-                reply: protocol.ServerMessage = protocol.Pong(server_time=datetime.now(UTC))
-            case _:
-                # T9 dispatches answer / start_game / skip / promote / kick / end_game.
-                reply = protocol.Error(
-                    code="bad_state", message=f"{message.t} is not available in this room yet"
-                )
-        if not await _send(ws, reply):
+        if isinstance(message, protocol.Hello):
+            reason = "hello is only valid as the first message"
+            await _reject(ws, "bad_hello", reason, CLOSE_PROTOCOL_ERROR)
             return
+        try:
+            reply = await _dispatch(manager, code, player, message)
+        except ApiError as exc:
+            reply = protocol.Error(code=_error_code(exc), message=exc.message)
+        if reply is not None and not await _send(ws, reply):
+            return
+
+
+async def _dispatch(
+    manager: RoomManager, code: str, player: Player, message: protocol.ClientMessage
+) -> protocol.ServerMessage | None:
+    """Run one client message. ``None`` when the broadcasts say everything there is."""
+    match message:
+        case protocol.Ping():
+            return protocol.Pong(server_time=datetime.now(UTC))
+        case protocol.Answer():
+            bucket = await manager.submit_answer(code, player, message.question_id, message.value)
+            return protocol.AnswerAck(question_id=message.question_id, bucket=bucket)
+        case protocol.StartGame():
+            await manager.start_game(code, player)
+        case protocol.Skip():
+            await manager.skip(code, player)
+        case protocol.Promote():
+            await manager.promote(code, player, message.player_id)
+        case protocol.Kick():
+            await manager.kick(code, player, message.player_id)
+        case protocol.EndGame():
+            await manager.end_game(code, player)
+    return None
+
+
+def _error_code(exc: ApiError) -> ErrorCode:
+    return exc.code if exc.code in _ERROR_CODES else "bad_state"  # type: ignore[return-value]

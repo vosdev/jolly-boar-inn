@@ -494,6 +494,11 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
 
 Settings are fixed at creation. Editing settings in the lobby is not in Phase 1.
 
+The ranges above are what a host may ask for, and they are checked where the request
+arrives (`NewRoomSettings` in `rooms/settings.py`). The stored model keeps only what the
+game loop cannot work without, so a room created under one set of bounds still loads
+after the bounds change, and the tests can run a whole game on one-second questions.
+
 ## 5. SQL schema
 
 `server/app/migrations/0001_init.sql`:
@@ -691,10 +696,10 @@ Accept: join before claim → `409`; duplicate name → `409`; over `max_players
 DONE: **T8. RoomManager core and websocket handshake.** `rooms/state.py` with `Room`, lock, `get` with rehydrate, `connect`/`disconnect`; `ws/protocol.py` models; `ws/handler.py` with `hello`/`welcome`/`ping`/`pong`/`room_updated`/`error`.
 Accept: test client connects, sends `hello`, gets `welcome` with `players` and `you`; second socket for the same player closes the first with `4000`; bad session → `4001`; disconnect flips `connected` in a broadcast to the remaining socket; a room evicted from memory (test hook) rehydrates identically.
 
-**T9. Game loop.** `start_game`, the timer task, `question_open`, `submit_answer` with DB write before `answer_ack`, `question_closed`, auto-advance, `game_finished`, `skip`, `end_game`, `promote`, `kick`.
+DONE: **T9. Game loop.** `start_game`, the timer task, `question_open`, `submit_answer` with DB write before `answer_ack`, `question_closed`, auto-advance, `game_finished`, `skip`, `end_game`, `promote`, `kick`.
 Accept: with `question_seconds = 1` and `reveal_seconds = 1`, a 3-question room runs to `finished` unattended in a test; answer after close → `not_open`; second answer → `already_answered`; all-answered closes early; non-admin `start_game` → `not_admin`; `skip` during open closes within 100 ms.
 
-**T10. Scoring and standings.** `rooms/scoring.py` from section 6; grading at close writes `correct` and `points`; standings computed from the answers sum; `results` in `question_closed`; `host_only` and author exclusion enforced (author exclusion has no callers until Phase 2 but is tested now).
+DONE: **T10. Scoring and standings.** `rooms/scoring.py` from section 6; grading at close writes `correct` and `points`; standings computed from the answers sum; `results` in `question_closed`; `host_only` and author exclusion enforced (author exclusion has no callers until Phase 2 but is tested now).
 Accept: table-driven tests for every bucket edge (exactly 0.10, 0.1001, > 1.0 clamps to bucket 5); standings tie-break order tested; sum in memory equals `SUM(points)` from the DB after each close.
 
 **T11. Restart recovery.** Rehydrate path for `playing` rooms: void the open question, resume in `reveal`, timer task restarts.
