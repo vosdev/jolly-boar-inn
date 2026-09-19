@@ -1,4 +1,4 @@
-"""Generate ``data/packs/prices.json``: higher/lower questions on GE price and high alch.
+"""Generate ``data/packs/prices.json``: more/less questions on GE price and high alch.
 
 Inputs: ``data/popular-items.json`` (the curated roster) and the wiki price API, one
 request each to ``/mapping`` (names, high alch) and ``/latest`` (current prices), sent
@@ -48,20 +48,21 @@ USER_AGENT = "jolly-boar-inn gen_price_questions (https://github.com/vosdev/joll
 TIMEOUT_SECONDS = 30
 
 PACK_NAME = "prices"
-DEFAULT_COUNT = 100
+DEFAULT_COUNT = 150
 SEED = 20260901
 # Share of the total per metric; the remainder after rounding goes to the last entry. A
-# metric with too few close pairs is topped up from the others, in this order.
+# metric with too few usable pairs is topped up from the others, in this order.
 METRIC_SHARE = {"ge_price": 0.7, "high_alch": 0.3}
 TAGS = {"ge_price": ["prices", "ge-price"], "high_alch": ["prices", "high-alch"]}
-# Only items of similar value make a question: everyone knows a 3rd age platebody beats a
-# ring of dueling. A pair closer than MIN_RATIO is a coin flip, one further apart than
-# MAX_RATIO (30%) is common knowledge.
-MIN_RATIO = 1.1
-MAX_RATIO = 1.3
+# The question shows two names and no values at all, so a wide gap is still a real
+# question about what things cost -- unlike the mode this replaced, which showed one
+# price and so needed the pair to be close. What stays out is the coin flip: a pair
+# within MIN_RATIO of each other is guesswork however well you know the game.
+MIN_RATIO = 1.25
+MAX_RATIO = 4.0
 # Value ratio at or above which a pair counts as easy / medium; below is hard.
-EASY_RATIO = 1.23
-MEDIUM_RATIO = 1.17
+EASY_RATIO = 2.5
+MEDIUM_RATIO = 1.6
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,26 +221,27 @@ def difficulty(anchor_value: int, target_value: int) -> str:
     return "hard"
 
 
-def make_question(metric: str, anchor: Item, target: Item, as_of: str) -> dict[str, Any]:
-    anchor_value, target_value = anchor.value(metric), target.value(metric)
-    assert anchor_value is not None and target_value is not None
+def make_question(
+    metric: str, first: Item, second: Item, direction: str, as_of: str
+) -> dict[str, Any]:
+    """One ``more_less`` envelope. ``direction`` decides which option is the answer."""
+    values = [first.value(metric), second.value(metric)]
+    assert values[0] is not None and values[1] is not None
+    wanted = max(values) if direction == "more" else min(values)
     question: dict[str, Any] = {
         "id": "",
-        "type": "higher_lower",
+        "type": "more_less",
         "source": "pack",
         "tags": list(TAGS[metric]),
-        "difficulty": difficulty(anchor_value, target_value),
+        "difficulty": difficulty(values[0], values[1]),
         "payload": {
             "metric": metric,
-            "anchor": {
-                "subject": {"name": anchor.name, "asset": f"item:{anchor.id}"},
-                "value": anchor_value,
-            },
-            "target": {
-                "subject": {"name": target.name, "asset": f"item:{target.id}"},
-                "value": target_value,
-            },
-            "answer": "higher" if target_value > anchor_value else "lower",
+            "direction": direction,
+            "options": [
+                {"subject": {"name": item.name, "asset": f"item:{item.id}"}, "value": value}
+                for item, value in ((first, values[0]), (second, values[1]))
+            ],
+            "answer_index": values.index(wanted),
             "as_of": as_of,
         },
     }
@@ -288,13 +290,14 @@ def generate(
     for metric, want in counts.items():
         if want != ideal[metric]:
             notes.append(
-                f"{metric}: {len(pairs[metric])} pair(s) within {MAX_RATIO - 1:.0%} of each other,"
-                f" wanted {ideal[metric]}, using {want}"
+                f"{metric}: {len(pairs[metric])} pair(s) between {MIN_RATIO:g}x and"
+                f" {MAX_RATIO:g}x apart, wanted {ideal[metric]}, using {want}"
             )
         chosen = pick_pairs(pairs[metric], want, rng)
         for a, b in chosen:
-            anchor, target = (b, a) if rng.random() < 0.5 else (a, b)
-            questions.append(make_question(metric, anchor, target, as_of))
+            first, second = (b, a) if rng.random() < 0.5 else (a, b)
+            direction = "more" if rng.random() < 0.5 else "less"
+            questions.append(make_question(metric, first, second, direction, as_of))
     if len(questions) < count:
         notes.append(
             f"only {len(questions)} of {count} questions possible; add items of similar value"

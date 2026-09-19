@@ -21,20 +21,23 @@ from app.main import create_app
 from app.questions import schema
 from app.questions.packs import PackError, load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, higher_lower
+from app.questions.types import TYPES, max_seconds, more_less
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
 
 EXAMPLE: dict[str, Any] = {
-    "type": "higher_lower",
+    "type": "more_less",
     "source": "pack",
     "tags": ["prices"],
     "payload": {
         "metric": "ge_price",
-        "anchor": {"subject": {"name": "Abyssal whip", "asset": "item:4151"}, "value": 1650000},
-        "target": {"subject": {"name": "Dragon scimitar", "asset": "item:4587"}, "value": 60000},
-        "answer": "lower",
+        "direction": "more",
+        "options": [
+            {"subject": {"name": "Abyssal whip", "asset": "item:4151"}, "value": 1650000},
+            {"subject": {"name": "Dragon scimitar", "asset": "item:4587"}, "value": 60000},
+        ],
+        "answer_index": 0,
         "as_of": "2026-09-01",
     },
 }
@@ -47,11 +50,11 @@ def question(**changes: Any) -> dict[str, Any]:
     return q
 
 
-def variant(target_value: int) -> dict[str, Any]:
+def variant(second_value: int) -> dict[str, Any]:
     """A valid question with its own content id."""
     q = question()
-    q["payload"]["target"]["value"] = target_value
-    q["payload"]["answer"] = "higher" if target_value > 1650000 else "lower"
+    q["payload"]["options"][1]["value"] = second_value
+    q["payload"]["answer_index"] = 1 if second_value > 1650000 else 0
     q["id"] = schema.content_id(q)
     return q
 
@@ -70,7 +73,7 @@ def test_sample_pack_validates() -> None:
     sample = next(pack for pack in packs if pack.path.name == "sample.json")
     assert sample.name == "sample"
     assert len(sample.questions) == 5
-    assert {q["type"] for q in sample.questions} == {"higher_lower"}
+    assert {q["type"] for q in sample.questions} == {"more_less"}
     for q in sample.questions:
         schema.validate(q)
         assert q["id"] == schema.content_id(q)
@@ -96,11 +99,11 @@ def _validate_packs(directory: Path) -> subprocess.CompletedProcess[str]:
 
 def test_validate_packs_script_fails_on_broken_pack(tmp_path: Path) -> None:
     bad = question()
-    bad["payload"]["answer"] = "higher"  # contradicts the values, and the id no longer matches
+    bad["payload"]["answer_index"] = 1  # contradicts the values, and the id no longer matches
     _write_pack(tmp_path / "bad.json", [bad])
     result = _validate_packs(tmp_path)
     assert result.returncode == 1
-    assert "bad.json: questions[0] $.payload.answer" in result.stderr
+    assert "bad.json: questions[0] $.payload.answer_index" in result.stderr
     assert "FAILED" in result.stderr
 
 
@@ -108,23 +111,38 @@ def test_validate_packs_script_fails_on_broken_pack(tmp_path: Path) -> None:
 
 
 def test_mutated_answer_fails_consistency_check() -> None:
-    """T4: a mutated ``answer`` fails the consistency check."""
+    """T4: a mutated ``answer_index`` fails the consistency check."""
     mutated = question()
-    mutated["payload"]["answer"] = "higher"
+    mutated["payload"]["answer_index"] = 1
     assert schema.schema_errors(mutated) == []  # still a well-formed question
     problems = schema.consistency_errors(mutated)
-    assert any(p.startswith("$.payload.answer") for p in problems), problems
+    assert any(p.startswith("$.payload.answer_index") for p in problems), problems
     assert any(p.startswith("$.id") for p in problems), problems  # content changed, id did not
     with pytest.raises(schema.QuestionError):
         schema.validate(mutated)
-    assert higher_lower.check(mutated["payload"]) != []
-    assert higher_lower.check(EXAMPLE["payload"]) == []
+    assert more_less.check(mutated["payload"]) != []
+    assert more_less.check(EXAMPLE["payload"]) == []
+
+
+def test_direction_decides_the_answer() -> None:
+    payload = copy.deepcopy(EXAMPLE["payload"])
+    payload["direction"] = "less"
+    assert more_less.check(payload) != []  # answer_index 0 is the dearer one
+    payload["answer_index"] = 1
+    assert more_less.check(payload) == []
 
 
 def test_equal_values_are_inconsistent() -> None:
     payload = copy.deepcopy(EXAMPLE["payload"])
-    payload["target"]["value"] = payload["anchor"]["value"]
-    assert higher_lower.check(payload) != []
+    payload["options"][1]["value"] = payload["options"][0]["value"]
+    assert more_less.check(payload) != []
+
+
+def test_duplicate_options_are_inconsistent() -> None:
+    """Two of the same item is a generator bug; catch it at pack load, not in a room."""
+    payload = copy.deepcopy(EXAMPLE["payload"])
+    payload["options"][1]["subject"] = dict(payload["options"][0]["subject"])
+    assert more_less.check(payload) != []
 
 
 def test_wrong_id_fails_consistency_check() -> None:
@@ -156,20 +174,23 @@ def test_content_id_is_stable_across_key_order() -> None:
             {
                 "payload": {
                     "as_of": "2026-09-01",
-                    "answer": "lower",
-                    "target": {
-                        "value": 60000,
-                        "subject": {"asset": "item:4587", "name": "Dragon scimitar"},
-                    },
-                    "anchor": {
-                        "value": 1650000,
-                        "subject": {"asset": "item:4151", "name": "Abyssal whip"},
-                    },
+                    "answer_index": 0,
+                    "options": [
+                        {
+                            "value": 1650000,
+                            "subject": {"asset": "item:4151", "name": "Abyssal whip"},
+                        },
+                        {
+                            "value": 60000,
+                            "subject": {"asset": "item:4587", "name": "Dragon scimitar"},
+                        },
+                    ],
+                    "direction": "more",
                     "metric": "ge_price",
                 },
                 "tags": ["prices"],
                 "source": "pack",
-                "type": "higher_lower",
+                "type": "more_less",
             }
         )
     )
@@ -181,7 +202,7 @@ def test_content_id_ignores_envelope_and_tracks_type_and_payload() -> None:
     assert schema.content_id(question(tags=["other"], difficulty="hard")) == EXAMPLE["id"]
     assert schema.content_id(question(type="closest_number")) != EXAMPLE["id"]
     changed = question()
-    changed["payload"]["target"]["value"] += 1
+    changed["payload"]["options"][1]["value"] += 1
     assert schema.content_id(changed) != EXAMPLE["id"]
 
 
@@ -189,68 +210,75 @@ def test_content_id_follows_documented_algorithm() -> None:
     canonical = json.dumps(
         EXAMPLE["payload"], sort_keys=True, separators=(",", ":"), ensure_ascii=False
     )
-    digest = hashlib.sha256(("higher_lower\n" + canonical).encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(("more_less\n" + canonical).encode("utf-8")).hexdigest()
     assert schema.content_id(EXAMPLE) == "q_" + digest[:16]
     assert schema.canonical_json({"b": "ü", "a": [1, {"d": 2, "c": 3}]}) == (
         '{"a":[1,{"c":3,"d":2}],"b":"ü"}'.encode()
     )
 
 
-# --- higher_lower type module ---------------------------------------------------------
+# --- more_less type module ------------------------------------------------------------
 
 
-def test_registry_has_only_higher_lower() -> None:
-    assert TYPES == {"higher_lower": higher_lower}
+def test_registry_has_only_more_less() -> None:
+    assert TYPES == {"more_less": more_less}
     for name in ("client_view", "reveal", "grade", "validate_value", "check"):
-        assert callable(getattr(higher_lower, name))
+        assert callable(getattr(more_less, name))
+
+
+def test_more_less_caps_its_own_question_length() -> None:
+    """The mode is meant to be quick, whatever the room asked for."""
+    assert max_seconds("more_less") == 10
 
 
 def test_client_view_has_no_answer() -> None:
-    """T4: unit test for ``client_view`` (no ``answer`` key)."""
+    """T4: unit test for ``client_view`` (no ``answer_index``, and no values at all)."""
     payload = EXAMPLE["payload"]
-    view = higher_lower.client_view(payload)
-    assert "answer" not in view
-    assert "value" not in view["target"]
-    assert view["anchor"] == payload["anchor"]
-    assert view["target"]["subject"] == payload["target"]["subject"]
+    view = more_less.client_view(payload)
+    assert "answer_index" not in view
+    assert all("value" not in option for option in view["options"])
+    assert [o["subject"] for o in view["options"]] == [o["subject"] for o in payload["options"]]
     assert view["metric"] == "ge_price"
+    assert view["direction"] == "more"
     encoded = json.dumps(view)
-    assert "lower" not in encoded
-    assert str(payload["target"]["value"]) not in encoded
-    view["anchor"]["subject"]["name"] = "changed"  # a copy, not an alias of the payload
-    assert payload["anchor"]["subject"]["name"] == "Abyssal whip"
+    for option in payload["options"]:
+        assert str(option["value"]) not in encoded
+    view["options"][0]["subject"]["name"] = "changed"  # a copy, not an alias of the payload
+    assert payload["options"][0]["subject"]["name"] == "Abyssal whip"
 
 
 def test_reveal_has_answer_and_both_values() -> None:
     payload = EXAMPLE["payload"]
-    revealed = higher_lower.reveal(payload)
-    assert revealed["answer"] == "lower"
-    assert revealed["anchor"] == payload["anchor"]
-    assert revealed["target"] == payload["target"]
+    revealed = more_less.reveal(payload)
+    assert revealed["answer_index"] == 0
+    assert revealed["options"] == payload["options"]
+    assert revealed["direction"] == "more"
 
 
 def test_grade() -> None:
     """T4: unit test for ``grade``."""
     right, wrong, odd = uuid4(), uuid4(), uuid4()
-    submissions = [
-        Submission(right, "lower"),
-        Submission(wrong, "higher"),
-        Submission(odd, "LOWER"),
-    ]
-    assert higher_lower.grade(EXAMPLE["payload"], submissions) == {
+    submissions = [Submission(right, 0), Submission(wrong, 1), Submission(odd, "0")]
+    assert more_less.grade(EXAMPLE["payload"], submissions) == {
         right: True,
         wrong: False,
         odd: False,
     }
-    assert higher_lower.grade(EXAMPLE["payload"], []) == {}
+    assert more_less.grade(EXAMPLE["payload"], []) == {}
 
 
 @pytest.mark.parametrize(
     ("value", "ok"),
-    [("higher", True), ("lower", True), ("Higher", False), ("", False), (1, False), (None, False)],
+    [(0, True), (1, True), (2, False), (-1, False), ("0", False), (None, False), (0.0, False)],
 )
 def test_validate_value(value: Any, ok: bool) -> None:
-    assert higher_lower.validate_value(EXAMPLE["payload"], value) is ok
+    assert more_less.validate_value(EXAMPLE["payload"], value) is ok
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_validate_value_rejects_booleans(value: bool) -> None:
+    """``bool`` is an ``int`` and ``True == 1``: ``true`` must not answer option 1."""
+    assert more_less.validate_value(EXAMPLE["payload"], value) is False
 
 
 # --- JSON Schema ------------------------------------------------------------------------
@@ -260,7 +288,7 @@ def test_schema_file_is_draft_2020_12_and_loads() -> None:
     loaded = schema.load_schema()
     assert loaded["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert set(loaded["$defs"]) >= {
-        "higher_lower",
+        "more_less",
         "guess_examine",
         "price_is_right",
         "multiple_choice",
@@ -288,20 +316,22 @@ def test_schema_accepts_optional_envelope_fields() -> None:
         (lambda q: q.update(tags=["a", "a"]), "$.tags"),
         (lambda q: q.update(tags=[str(i) for i in range(11)]), "$.tags"),
         (lambda q: q.update(added_at="2026-13-40"), "$.added_at"),
-        (lambda q: q["payload"].update(answer="same"), "$.payload.answer"),
+        (lambda q: q["payload"].update(answer_index=2), "$.payload.answer_index"),
+        (lambda q: q["payload"].update(direction="dearer"), "$.payload.direction"),
         (lambda q: q["payload"].update(metric="weight"), "$.payload.metric"),
         (lambda q: q["payload"].update(as_of="yesterday"), "$.payload.as_of"),
         (lambda q: q["payload"].pop("as_of"), "$.payload"),
         (lambda q: q["payload"].update(bonus=1), "$.payload"),
-        (lambda q: q["payload"]["anchor"].update(value=-1), "$.payload.anchor.value"),
-        (lambda q: q["payload"]["anchor"].update(value=1.5), "$.payload.anchor.value"),
+        (lambda q: q["payload"]["options"][0].update(value=-1), "$.payload.options[0].value"),
+        (lambda q: q["payload"]["options"][0].update(value=1.5), "$.payload.options[0].value"),
+        (lambda q: q["payload"]["options"].pop(), "$.payload.options"),
         (
-            lambda q: q["payload"]["target"]["subject"].update(asset="4587"),
-            "$.payload.target.subject.asset",
+            lambda q: q["payload"]["options"][1]["subject"].update(asset="4587"),
+            "$.payload.options[1].subject.asset",
         ),
         (
-            lambda q: q["payload"]["target"]["subject"].update(name=""),
-            "$.payload.target.subject.name",
+            lambda q: q["payload"]["options"][1]["subject"].update(name=""),
+            "$.payload.options[1].subject.name",
         ),
     ],
 )
@@ -361,7 +391,7 @@ def test_load_packs_reports_every_problem(tmp_path: Path) -> None:
     bad_schema = variant(1)
     bad_schema["tags"] = ["Bad"]
     bad_answer = variant(2)
-    bad_answer["payload"]["answer"] = "higher"
+    bad_answer["payload"]["answer_index"] = 1
     _write_pack(tmp_path / "p.json", [bad_schema, bad_answer, question()])
     with pytest.raises(PackError) as info:
         load_packs(tmp_path)

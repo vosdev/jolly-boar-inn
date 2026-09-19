@@ -128,20 +128,22 @@ def test_questions_rows_equal_question_count(client: TestClient, db) -> None:
     code, _ = create(client, question_count=7)
     (room,) = db("select id from rooms where code = $1", code)
     rows = db(
-        "select position, question_id, type, source, payload, host_only from questions"
+        "select position, question_id, type, source, payload, host_only, round from questions"
         " where room_id = $1 order by position",
         room["id"],
     )
     assert len(rows) == 7
     assert [r["position"] for r in rows] == list(range(7))
     assert len({r["question_id"] for r in rows}) == 7
+    # Seven questions in rounds of five: two rounds, the second one short.
+    assert [r["round"] for r in rows] == [0, 0, 0, 0, 0, 1, 1]
     for row in rows:
-        assert row["type"] == "higher_lower"
+        assert row["type"] == "more_less"
         assert row["source"] == "pack"
         assert row["host_only"] is False
         assert set(row["payload"]) >= {"payload", "tags"}
         assert not set(row["payload"]) & {"id", "type", "source", "host_only"}
-        assert row["payload"]["payload"]["answer"] in ("higher", "lower")
+        assert row["payload"]["payload"]["answer_index"] in (0, 1)
 
     code, _ = create(client, question_count=100)
     (n,) = db(
@@ -166,9 +168,11 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
     assert row["settings"] == {
         "question_seconds": 45,
         "question_count": 20,
-        "modes": ["higher_lower"],
+        "questions_per_round": 5,
+        "modes": ["more_less"],
         "order": "shuffle",
         "reveal_seconds": 5,
+        "splash_seconds": 8,
         "close_when_all_answered": True,
         "max_players": 50,
     }
@@ -180,9 +184,13 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"question_count": 0},
         {"modes": []},
         {"modes": ["closest_number"]},
-        {"modes": ["higher_lower", "higher_lower"]},
+        {"modes": ["more_less", "more_less"]},
         {"order": "random"},
         {"reveal_seconds": 60},
+        {"questions_per_round": 0},
+        {"questions_per_round": 21},
+        {"splash_seconds": -1},
+        {"splash_seconds": 31},
         {"max_players": 0},
         {"bogus": 1},
     ]
@@ -196,7 +204,7 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
     assert response.json()["code"] == "bad_settings"
     response = client.post(
         "/api/rooms",
-        json={"display_name": "Zezima", "custom_questions": [{"type": "higher_lower"}]},
+        json={"display_name": "Zezima", "custom_questions": [{"type": "more_less"}]},
     )
     assert response.status_code == 422
 
@@ -224,6 +232,7 @@ def test_get_room_view_and_case_insensitive_code(client: TestClient) -> None:
             "total": 3,
             "phase": "idle",
             "next_at": None,
+            "segment": None,  # no round until the game starts
         },
         "players": [admin["player"]],
     }

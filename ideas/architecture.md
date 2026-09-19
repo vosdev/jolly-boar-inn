@@ -47,15 +47,16 @@ jolly-boar-inn/
 │   │   ├── rooms/
 │   │   │   ├── state.py       # THE room-state module (see below)
 │   │   │   ├── scoring.py     # pure functions: bucket(), points_for()
-│   │   │   ├── selection.py   # pure function: pick questions for a room from packs + custom
+│   │   │   ├── selection.py   # pure function: pick a room's rounds from packs + custom
+│   │   │   ├── segments.py    # pure function: group questions back into rounds
 │   │   │   └── codes.py       # room code generation
 │   │   ├── questions/
 │   │   │   ├── schema.py      # load schema, validate(question), content_id(question)
 │   │   │   ├── packs.py       # load data/packs/*.json at startup into memory
 │   │   │   ├── normalize.py   # free-text normalisation + Levenshtein
 │   │   │   └── types/         # one module per question type
-│   │   │       ├── __init__.py    # registry: TYPES = {"higher_lower": higher_lower, ...}
-│   │   │       ├── higher_lower.py
+│   │   │       ├── __init__.py    # registry: TYPES = {"more_less": more_less, ...}
+│   │   │       ├── more_less.py
 │   │   │       ├── guess_examine.py      # Phase 2
 │   │   │       ├── price_is_right.py     # Phase 2
 │   │   │       ├── multiple_choice.py    # Phase 2
@@ -82,6 +83,7 @@ jolly-boar-inn/
 │       ├── lib/
 │       │   ├── api.ts         # fetch wrappers for /api
 │       │   ├── ws.ts          # RoomSocket: connect, hello, backoff reconnect, ping, typed events
+│       │   ├── modes.ts       # per-mode copy: label, hint, splash blurb
 │       │   ├── session.ts     # localStorage: session per room, list of created rooms
 │       │   ├── protocol.ts    # TS types mirroring server/app/ws/protocol.py
 │       │   └── stores.ts      # room, players, question, standings (Svelte runes/stores)
@@ -93,9 +95,12 @@ jolly-boar-inn/
 │       └── components/
 │           ├── Lobby.svelte
 │           ├── Scoreboard.svelte
+│           ├── Splash.svelte            # introduces a round's mode, on a timer
 │           ├── Timer.svelte
 │           └── questions/
-│               └── HigherLower.svelte   # one component per question type
+│               ├── index.ts             # registry: question type -> component
+│               ├── props.ts             # the props every question component takes
+│               └── MoreLess.svelte      # one component per question type
 └── ideas/
 ```
 
@@ -121,7 +126,7 @@ class RoomManager:
 class Room:
     code, status, settings, players: dict[uuid, Player], questions: list[RoomQuestion]
     current: int | None                         # index into questions
-    phase: "idle" | "open" | "reveal"
+    phase: "idle" | "splash" | "open" | "reveal"
     open_since: datetime | None, ends_at: datetime | None
     sockets: dict[uuid, WebSocket]              # connected players
     timer: asyncio.Task | None                  # the one task driving open→closed→reveal→next
@@ -143,11 +148,18 @@ def reveal(payload: dict) -> dict          # shown after close: answer, reveal b
 def grade(payload: dict, submissions: list[Submission]) -> dict[player_id, bool | float]
                                            # correctness per player; float only for closest_number rank
 def validate_value(payload: dict, value) -> bool   # shape check of a submitted answer before storing
+def check(payload: dict) -> list[str]      # consistency: the stored answer follows from the stored facts
+
+MAX_SECONDS: int | None                    # optional: this type's own cap on question_seconds
 ```
 
 `grade` takes all submissions at once because `closest_number` ranks them. `scoring.py` turns grade results plus timing into points.
 
-**`rooms/selection.py`.** `select(packs, custom, settings, rng) -> list[Question]`: filter packs by `settings.modes`, take `settings.question_count` at random without replacement, append custom questions, then shuffle the whole list or keep custom questions at the end depending on `settings.order`. Pure, seeded, tested.
+`MAX_SECONDS` exists because modes differ in how long they are worth playing: `more_less` is two names and one word, and a minute of it is forty-five seconds of waiting. `_open_question` uses `min(question_seconds, MAX_SECONDS)`, and the speed bucket is a fraction of that same number, so a ten-second question scores on ten seconds in a room set to sixty.
+
+**`rooms/selection.py`.** `select(packs, custom, settings, rng) -> list[Round]`: a room plays `ceil(question_count / questions_per_round)` rounds of one mode each, the last one short if the two do not divide. The modes are shuffled once and then taken in turn, so with two or more modes no two neighbouring rounds share one. Questions are drawn without replacement from a pool per mode; a mode whose pool runs dry gives a short round, or none at all — an empty round is dropped rather than played. `settings.order` now decides only where custom questions go: `"custom_last"` gives them trailing rounds of their own, `"shuffle"` mixes each into the round of its own mode where there is one. Either way a custom question never splits a round. `flatten(rounds)` gives `(round number, question)` in play order, which is what `create` stores. Pure, seeded, tested.
+
+**`rooms/segments.py`.** `segments_of(questions) -> list[Segment]`: the rounds a room is playing, grouped back out of the `questions.round` column. The round number is stored rather than derived because neither cheap derivation holds — runs of equal `type` merge two rounds of one mode, and `position // questions_per_round` breaks on a short round — and both failures are silent.
 
 **`db.py`.** `create_pool()`, `run_migrations(pool)`: creates `schema_migrations` if missing, applies every `NNNN_*.sql` not yet recorded, each file in one transaction, in lexical order. Refuses to start if a file recorded as applied is missing.
 
@@ -187,7 +199,7 @@ Design rules:
   "properties": {
     "id": { "type": "string", "pattern": "^q_[0-9a-f]{16}$" },
     "type": {
-      "enum": ["higher_lower", "guess_examine", "price_is_right",
+      "enum": ["more_less", "guess_examine", "price_is_right",
                "multiple_choice", "free_text", "closest_number"]
     },
     "payload": { "type": "object" },
@@ -202,8 +214,8 @@ Design rules:
     "host_only": { "type": "boolean", "default": false }
   },
   "allOf": [
-    { "if": { "properties": { "type": { "const": "higher_lower" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/higher_lower" } } } },
+    { "if": { "properties": { "type": { "const": "more_less" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/more_less" } } } },
     { "if": { "properties": { "type": { "const": "guess_examine" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/guess_examine" } } } },
     { "if": { "properties": { "type": { "const": "price_is_right" } } },
@@ -234,21 +246,23 @@ Design rules:
       "items": { "type": "string", "minLength": 1, "maxLength": 80 }
     },
 
-    "higher_lower": {
+    "metric": { "enum": ["ge_price", "high_alch", "shop_price"] },
+    "priced": {
+      "type": "object", "required": ["subject", "value"], "additionalProperties": false,
+      "properties": { "subject": { "$ref": "#/$defs/subject" }, "value": { "type": "integer", "minimum": 0 } }
+    },
+
+    "more_less": {
       "type": "object",
-      "required": ["metric", "anchor", "target", "answer", "as_of"],
+      "required": ["metric", "direction", "options", "answer_index", "as_of"],
       "additionalProperties": false,
       "properties": {
-        "metric": { "enum": ["ge_price", "high_alch", "shop_price"] },
-        "anchor": {
-          "type": "object", "required": ["subject", "value"], "additionalProperties": false,
-          "properties": { "subject": { "$ref": "#/$defs/subject" }, "value": { "type": "integer", "minimum": 0 } }
+        "metric": { "$ref": "#/$defs/metric" },
+        "direction": { "enum": ["more", "less"] },
+        "options": {
+          "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/priced" }
         },
-        "target": {
-          "type": "object", "required": ["subject", "value"], "additionalProperties": false,
-          "properties": { "subject": { "$ref": "#/$defs/subject" }, "value": { "type": "integer", "minimum": 0 } }
-        },
-        "answer": { "enum": ["higher", "lower"] },
+        "answer_index": { "type": "integer", "minimum": 0, "maximum": 1 },
         "as_of": { "$ref": "#/$defs/date" }
       }
     },
@@ -324,15 +338,18 @@ Example Phase 1 pack entry:
 
 ```json
 {
-  "id": "q_3f9c2a71b0e4d5c8",
-  "type": "higher_lower",
+  "id": "q_60ccaf19df3daa78",
+  "type": "more_less",
   "source": "pack",
   "tags": ["prices"],
   "payload": {
     "metric": "ge_price",
-    "anchor": { "subject": { "name": "Abyssal whip", "asset": "item:4151" }, "value": 1650000 },
-    "target": { "subject": { "name": "Dragon scimitar", "asset": "item:4587" }, "value": 60000 },
-    "answer": "lower",
+    "direction": "more",
+    "options": [
+      { "subject": { "name": "Abyssal whip", "asset": "item:4151" }, "value": 1650000 },
+      { "subject": { "name": "Dragon scimitar", "asset": "item:4587" }, "value": 60000 }
+    ],
+    "answer_index": 0,
     "as_of": "2026-09-01"
   }
 }
@@ -342,7 +359,7 @@ Submitted answer values on the wire, per type (validated by `validate_value`):
 
 | Type | `value` |
 |---|---|
-| `higher_lower` | `"higher"` or `"lower"` |
+| `more_less` | integer option index |
 | `price_is_right`, `multiple_choice` | integer option index |
 | `guess_examine`, `free_text` | string, max 80 chars |
 | `closest_number` | number |
@@ -377,7 +394,7 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. |
-| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, status change. |
+| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, status change, and the start of a splash. |
 | `question_open` | `question: OpenQuestion` | A question opens. |
 | `answer_ack` | `question_id`, `bucket: 1..5` | Answer committed. Bucket only, not correctness. |
 | `question_closed` | `question_id`, `reveal: object`, `results: {player_id: {value, correct: bool, points: int}}`, `standings: Standing[]`, `next_at: iso \| null` | Question closed. `next_at` is when the next opens; null on the last. |
@@ -389,12 +406,17 @@ Shared shapes:
 
 ```
 RoomView      { code, status, settings, current_index: int|null, total: int, phase,
-                next_at: iso|null }
+                next_at: iso|null, segment: Segment|null }
 PlayerView    { id, display_name, role, connected: bool }
 Standing      { player_id, display_name, points: int, rank: int }
-OpenQuestion  { question_id, index, total, type, view: object, opened_at: iso, ends_at: iso,
-                you_can_answer: bool }
+Segment       { mode, index: int, total: int, start: int, count: int }
+OpenQuestion  { question_id, index, total, type, segment: Segment, view: object,
+                opened_at: iso, ends_at: iso, you_can_answer: bool }
 ```
+
+`Segment` is the round in progress: which mode it plays, which round of how many it is, and the positions it spans. It is grouped from the `questions.round` column, never sent from a second store of it. It rides on `OpenQuestion` as well as `RoomView` because clients patch their room from `question_open` rather than replacing it, and a round can change with no splash to announce it.
+
+`next_at` is when the current timed phase ends — a splash gives way to its first question, a reveal to the next question — and is null while a question is open.
 
 `view` is exactly `types.<type>.client_view(payload)`. `you_can_answer` is false for the author of a room question and for `host_only` questions.
 
@@ -455,23 +477,28 @@ Transitions:
 | From | Trigger | Guard | Side effects |
 |---|---|---|---|
 | — → `lobby` | `POST /api/rooms` | valid display name and settings, under the per-IP rate limit | allocate a code, insert the room, its questions and the admin player in one transaction |
-| `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, open question 0, persist status |
+| `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, introduce round 0, open question 0, persist status |
 | `playing` → `finished` | last question's reveal ends, or `end_game` | admin for `end_game` | void open question if any, persist status, broadcast `game_finished` |
 | any → deleted | cleanup job | `expires_at < now` | `DELETE FROM rooms` cascades |
 
 ### Question sub-machine (inside `playing`)
 
 ```
+(a new mode) ──▶ splash ──splash_seconds / skip──┐
+                                                 ▼
 pending ──open──▶ open ──timer / all answered / skip──▶ closed ──reveal_seconds / skip──▶ (next pending)
                     │
                     └── crash recovered / end_game ──▶ voided
 ```
 
-Room `phase` mirrors this: `idle` (lobby/finished), `open`, `reveal`.
+Room `phase` mirrors this: `idle` (lobby/finished), `splash`, `open`, `reveal`.
+
+The splash introduces a *mode*, not a round: it runs before a round's first question only when that round plays a different mode from the one before it, so a game of one mode shows it once. It writes nothing — `current_index` was persisted before it ran and `phase` has never been a column — which is why a crash during one is a crash before a question that never opened, the case recovery already handles.
 
 | Transition | Trigger | Side effects |
 |---|---|---|
-| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `ends_at = shown_at + question_seconds`, broadcast `question_open`, schedule close |
+| `(new mode) → splash` | timer task, before a round's first question | `next_at = now + splash_seconds`, broadcast `room_updated`; no write |
+| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `ends_at = shown_at + min(question_seconds, the type's MAX_SECONDS)`, broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or every connected player who can answer has answered and `close_when_all_answered`; or admin `skip` | `UPDATE questions SET closed_at = now`, grade all answers, `UPDATE answers SET correct, points`, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
 | `open → voided` | restart recovery, `end_game` | `closed_at = now, voided = true`, no grading |
@@ -483,14 +510,18 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
 ```json
 {
   "question_seconds": 30,          // 10..120, plan.md says 30..60 in the UI
-  "question_count": 20,            // 1..100 questions picked from packs
-  "modes": ["higher_lower"],       // subset of question types
-  "order": "shuffle",              // "shuffle" | "custom_last"
+  "question_count": 20,            // 1..100 questions picked from packs; rounds x length
+  "questions_per_round": 5,        // 1..20
+  "modes": ["more_less"],          // subset of question types
+  "order": "shuffle",              // where custom questions go: "shuffle" | "custom_last"
   "reveal_seconds": 8,             // 3..30
+  "splash_seconds": 8,             // 0..30, 0 turns the round intro off
   "close_when_all_answered": true,
   "max_players": 50
 }
 ```
+
+The create form asks for rounds and a round length and posts their product as `question_count`, so the number of rounds is `ceil(question_count / questions_per_round)` and is never stored.
 
 Settings are fixed at creation. Editing settings in the lobby is not in Phase 1.
 
@@ -543,6 +574,7 @@ create table questions (
     source           text not null check (source in ('pack', 'community', 'room')),
     payload          jsonb not null,                   -- full envelope minus id/type/source
     host_only        boolean not null default false,
+    round            integer not null default 0,       -- 0003: which round this belongs to
     author_player_id uuid references players (id) on delete set null,
     shown_at         timestamptz,
     closed_at        timestamptz,
@@ -569,6 +601,7 @@ Notes:
 - `points` is written once at close and is the only thing standings read: `SELECT player_id, coalesce(sum(points), 0) FROM answers ... GROUP BY player_id`. In memory the same sum is kept per room and rebuilt from this query on rehydrate, so the table stays the source of truth.
 - `questions.payload` stores the type-specific payload and the envelope extras (`tags`, `difficulty`, `author`, `added_at`); `type`, `source`, `host_only`, `question_id` are columns because queries and grading need them.
 - `0002_drop_admin_tokens.sql` removes `admin_token_hash`, `admin_token_consumed_at` and the `created` status: the creator is the admin, so there is nothing to claim.
+- `0003_question_rounds.sql` adds `questions.round`. A room's rounds are grouped back out of it by `rooms/segments.py`; the default of 0 makes every room that predates it a single round, which is what it was.
 - `suggestions` (Phase 6) is not created now. It will be `0003_suggestions.sql` when needed.
 - Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every 10 minutes. No external cron.
 
@@ -666,10 +699,12 @@ Accept: `docker compose up` on a clean checkout serves the client at `http://loc
 DONE: **T3. Migrations.** `db.py` pool + runner, `0001_init.sql` from section 5, run at startup in `lifespan`.
 Accept: fresh DB gets all tables; second start is a no-op; a test applies migrations against a throwaway database (`pytest` fixture using `DATABASE_URL_TEST`).
 
-DONE: **T4. Question schema and packs.** `schema/question.schema.json` from section 2; `questions/schema.py` with `validate()` and `content_id()`; `packs.py` loader; `scripts/validate_packs.py` wired into CI; `questions/types/higher_lower.py` with all four functions.
-Accept: a hand-written `data/packs/sample.json` with 5 higher/lower questions validates; a mutated `answer` fails the consistency check; `content_id` is stable across key order; unit tests for `client_view` (no `answer` key) and `grade`.
+DONE: **T4. Question schema and packs.** `schema/question.schema.json` from section 2; `questions/schema.py` with `validate()` and `content_id()`; `packs.py` loader; `scripts/validate_packs.py` wired into CI; `questions/types/more_less.py` with all four functions.
+Accept: a hand-written `data/packs/sample.json` with 5 more/less questions validates; a mutated `answer_index` fails the consistency check; `content_id` is stable across key order; unit tests for `client_view` (no `answer` key) and `grade`.
 
 DONE: **T5. Price question generator.** `scripts/gen_price_questions.py` → `data/packs/prices.json`. `make gen-price-questions`.
+
+The pair window is 1.25x..4x: `more_less` shows no values at all, so a wide gap is still a real question about what things cost, while a pair inside 1.25x is a coin flip however well you know the game.
 
 `data/popular-items.json` is the pool, and it is not only T5's. It is the project's curated roster of items a player recognises by name, and later modes in `games.md` draw on the same file: guess-the-examine wants the examine text, zoom quiz wants the render, the answer autocomplete is built from it. T5 is just the first consumer.
 
@@ -698,7 +733,7 @@ Accept: test starts a game, kills the manager mid-question (drop the in-memory r
 **T12. Client: create, join, lobby.** `api.ts`, `session.ts`, `ws.ts` with reconnect and ping per section 3, `Home`, `Create` (name field, settings form, modes checkboxes, no custom editor), `Join`, `Lobby` with the player list, the copyable link for players and admin controls (start, promote, kick).
 Accept: manual run-through in two browsers: create → the creator lands in the lobby as host → join from the second → both see each other → refresh either → still in lobby with the same identity; DevTools shows no token in any request URL or the address bar.
 
-**T13. Client: play screen.** `Room.svelte` state machine on `phase`, `Timer` driven by `ends_at` and `server_time`, `HigherLower.svelte`, answered state with buttons disabled, reveal with the correct answer highlighted and per-player result, `Scoreboard` between questions, final standings screen.
+**T13. Client: play screen.** `Room.svelte` state machine on `phase`, `Timer` driven by `ends_at` and `server_time`, `Splash.svelte` and one component per question type behind `questions/index.ts`, answered state with buttons disabled, reveal with the correct answer highlighted and per-player result, `Scoreboard` between questions, final standings screen.
 Accept: a full 10-question game with 3 browsers finishes and shows identical standings on all three; locking a phone for 20 s and unlocking mid-question shows the running question with the right remaining time; wrong answers show 0, correct show the bucketed points.
 
 **T14. End-to-end in containers.** Run T12/T13's manual flow against `docker compose up` from a clean clone; fix anything environment-specific (base URL, proxy headers, websocket upgrade through uvicorn); write `README.md` quick start.

@@ -44,6 +44,7 @@ TABLES = {
         "source",
         "payload",
         "host_only",
+        "round",
         "author_player_id",
         "shown_at",
         "closed_at",
@@ -87,20 +88,21 @@ async def pool(test_db_dsn: str):
 
 def test_migration_files_are_numbered_and_ordered() -> None:
     files = migration_files(MIGRATIONS_DIR)
-    assert [version for version, _ in files] == [1, 2]
+    assert [version for version, _ in files] == [1, 2, 3]
     assert [path.name for _, path in files] == [
         "0001_init.sql",
         "0002_drop_admin_tokens.sql",
+        "0003_question_rounds.sql",
     ]
 
 
 async def test_fresh_db_gets_all_tables(pool: asyncpg.Pool) -> None:
     """T3: fresh DB gets all tables (and indexes) from section 5."""
-    assert await run_migrations(pool) == [1, 2]
+    assert await run_migrations(pool) == [1, 2, 3]
     assert await _columns(pool) == TABLES
     rows = await pool.fetch("select indexname from pg_indexes where schemaname = 'public'")
     assert INDEXES <= {row["indexname"] for row in rows}
-    assert await _versions(pool) == [1, 2]
+    assert await _versions(pool) == [1, 2, 3]
 
 
 async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
@@ -149,7 +151,7 @@ async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
 
 async def test_second_start_is_noop(pool: asyncpg.Pool) -> None:
     """T3: second start is a no-op."""
-    assert await run_migrations(pool) == [1, 2]
+    assert await run_migrations(pool) == [1, 2, 3]
     before = await pool.fetch("select version, applied_at from schema_migrations")
     assert await run_migrations(pool) == []
     after = await pool.fetch("select version, applied_at from schema_migrations")
@@ -162,7 +164,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
 ) -> None:
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
-    with pytest.raises(MigrationError, match=r"\[1, 2\]"):
+    with pytest.raises(MigrationError, match=r"\[1, 2, 3\]"):
         await run_migrations(pool, tmp_path)
 
 

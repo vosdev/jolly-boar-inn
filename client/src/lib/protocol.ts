@@ -15,7 +15,7 @@
  */
 
 export type RoomStatus = 'lobby' | 'playing' | 'finished'
-export type Phase = 'idle' | 'open' | 'reveal'
+export type Phase = 'idle' | 'splash' | 'open' | 'reveal'
 export type Role = 'player' | 'admin'
 
 export type ErrorCode =
@@ -31,15 +31,38 @@ export type ErrorCode =
 /** `app/rooms/settings.py`. `max_players` is null only before the server resolves it. */
 export interface RoomSettings {
   question_seconds: number
+  /** The total. The create form asks for rounds and a length, and posts their product. */
   question_count: number
+  questions_per_round: number
   modes: string[]
   order: 'shuffle' | 'custom_last'
   reveal_seconds: number
+  /** How long a round's mode is introduced for. Zero means no splash at all. */
+  splash_seconds: number
   close_when_all_answered: boolean
   max_players: number | null
 }
 
 // --- Shared shapes ----------------------------------------------------------------
+
+/**
+ * The round the room is in: one mode, a run of consecutive questions.
+ *
+ * `start` is a position in the room's question list, which is what `OpenQuestion.index`
+ * counts in too, so the question number within the round is `index - start + 1`.
+ */
+export interface Segment {
+  /** The question type the round plays; the key into `lib/modes.ts`. */
+  mode: string
+  /** 0-based round number. */
+  index: number
+  /** Rounds in this room. */
+  total: number
+  /** Position of the round's first question. */
+  start: number
+  /** Questions in the round. */
+  count: number
+}
 
 export interface RoomView {
   code: string
@@ -48,7 +71,10 @@ export interface RoomView {
   current_index: number | null
   total: number
   phase: Phase
+  /** When the current timed phase ends: a splash's first question, or the next question. */
   next_at: string | null
+  /** The round in progress; null before the first question and once the game is over. */
+  segment: Segment | null
 }
 
 export interface PlayerView {
@@ -70,6 +96,12 @@ export interface OpenQuestion {
   index: number
   total: number
   type: string
+  /**
+   * Repeated from `RoomView` because `stores.ts` patches its room from this frame rather
+   * than replacing it, and a round can change with no splash to announce it
+   * (`splash_seconds` at zero, or two consecutive rounds of the same mode).
+   */
+  segment: Segment
   view: Record<string, unknown>
   opened_at: string
   ends_at: string
