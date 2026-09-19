@@ -26,8 +26,7 @@ export const MODES: Record<string, Mode> = {
     label: 'More or Less',
     hint: 'Which of two items is worth more — or less',
     blurb:
-      'Two items, one question: which one costs more? Watch the word — half the time it' +
-      ' asks for less.',
+      'Two items, one question: which one is worth more or less?',
   },
 }
 
