@@ -2,11 +2,12 @@
   /**
    * `more_less`: of two items, which one costs more — or less?
    *
-   * The screen while a question is open is three words and two names, and that is the
-   * whole point of it. The mode was explained on the splash before the round started,
-   * so repeating "the Grand Exchange price of" twenty times only costs reading time
-   * that players would rather spend answering. The metric and the date the prices come
-   * from move to the reveal, where there is time to read them.
+   * The screen while a question is open is one line and two names, and that is the whole
+   * point of it. The one thing that line cannot leave out is the metric: a pack mixes
+   * `ge_price` and `high_alch` questions, and the two disagree wildly for the same item
+   * — often enough to flip which of the pair is the answer — so "which costs more?" on
+   * its own is a question nobody can answer. Each metric names its own source instead.
+   * The date the values come from is not needed to answer, so it stays on the reveal.
    *
    * `data` is whatever the server sent, and it arrives in two shapes from the same
    * module in `questions/types/more_less.py`:
@@ -58,13 +59,40 @@
   // what the keys mean, which is why the type map lives one level up and not in here.
   const q = $derived(data as unknown as Data)
 
-  const METRICS: Record<string, string> = {
-    ge_price: 'Grand Exchange price',
-    high_alch: 'high alchemy value',
-    shop_price: 'shop price',
+  /** How one metric reads: in the question while it is open, and on the reveal after. */
+  interface Phrasing {
+    /** Verb for "Which … MORE": a price is something an item costs, alchemy is worth. */
+    verb: string
+    /** Where the value comes from, e.g. `on the Grand Exchange`. Empty reads as before. */
+    source: string
+    /** The noun the reveal footnote names it by. */
+    label: string
   }
 
-  const metric = $derived(METRICS[q.metric] ?? q.metric)
+  // One table and not two: a metric added later cannot end up phrased in the question and
+  // nameless on the reveal, or the other way round.
+  const METRICS: Record<string, Phrasing> = {
+    ge_price: {
+      verb: 'costs',
+      source: 'on the Grand Exchange',
+      label: 'Grand Exchange price',
+    },
+    high_alch: {
+      verb: 'is worth',
+      source: 'through High Alchemy',
+      label: 'high alchemy value',
+    },
+    shop_price: { verb: 'costs', source: 'in a shop', label: 'shop price' },
+  }
+
+  // A room can be playing a pack written against a newer schema than this client knows,
+  // so an unknown metric still has to ask something: the bare question it asked before
+  // any of this, and the raw id on the reveal.
+  const phrasing = $derived(
+    METRICS[q.metric] ?? { verb: 'costs', source: '', label: q.metric },
+  )
+  const metric = $derived(phrasing.label)
+  const source = $derived(phrasing.source ? ` ${phrasing.source}` : '')
   const answer = $derived(revealed ? (q.answer_index ?? null) : null)
   const picked = $derived(yourValue === 0 || yourValue === 1 ? (yourValue as Index) : null)
 
@@ -89,7 +117,7 @@
 </script>
 
 <p class="ask">
-  Which costs <span class="word {q.direction}">{q.direction}</span>?
+  Which {phrasing.verb} <span class="word {q.direction}">{q.direction}</span>{source}?
 </p>
 
 <div class="choices">
