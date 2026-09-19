@@ -1,17 +1,45 @@
 <script lang="ts">
   /**
    * `/r/:code` for a browser that has a session: open the socket, let `stores.ts` hold
-   * what comes back, and pick a screen from `room.status`.
+   * what comes back, and pick a screen from it.
    *
-   * T13 replaces the "game in progress" panel with the play screen (`phase` state
-   * machine, timer, question components, scoreboard). Everything it needs is already in
-   * the stores.
+   * The screen is a state machine over `room.status` and, inside `playing`,
+   * `room.phase` — the same two fields the server's own `Room` carries, kept in step by
+   * `stores.ts` as frames arrive:
+   *
+   *   lobby ─ start_game ─▶ playing/open ─ question_closed ─▶ playing/reveal ─┐
+   *                              ▲                                            │
+   *                              └──────────── question_open ─────────────────┘
+   *                                                                           │
+   *   finished ◀───────────────── game_finished ──────────────────────────────┘
+   *
+   * `playing` with no question and nothing revealed is the gap between a reveal ending
+   * and the next question opening. It is a frame or two wide in practice, and after a
+   * restart (T11) it is however long the recovery reveal has left, so it gets a screen
+   * of its own rather than a blank panel.
    */
   import { onMount } from 'svelte'
 
   import Lobby from '../components/Lobby.svelte'
+  import Scoreboard from '../components/Scoreboard.svelte'
+  import Timer from '../components/Timer.svelte'
+  import HigherLower from '../components/questions/HigherLower.svelte'
   import { clearSession, getSession } from '../lib/session'
-  import { applyServerMessage, connection, players, resetRoom, room, standings } from '../lib/stores'
+  import {
+    answerBucket,
+    applyServerMessage,
+    connection,
+    lastClosed,
+    lastError,
+    noteAnswerSent,
+    players,
+    question,
+    resetRoom,
+    room,
+    standings,
+    you,
+    yourAnswer,
+  } from '../lib/stores'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
 
   let { code, navigate }: { code: string; navigate: (to: string) => void } = $props()
@@ -63,6 +91,34 @@
         : 'Reconnect',
   )
 
+  const isAdmin = $derived($you?.role === 'admin')
+  /** 1-based, for people. `index` is the position and `current_index` survives a close. */
+  const number = $derived(($question?.index ?? $room?.current_index ?? 0) + 1)
+  const total = $derived($question?.total ?? $room?.total ?? 0)
+  /** Our own row in the reveal, if we answered. */
+  const yourResult = $derived(
+    $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
+  )
+  const winners = $derived($standings.filter((standing) => standing.rank === 1))
+  /** Same grouping as the scoreboard, so the headline and the table agree. */
+  const numbers = new Intl.NumberFormat()
+
+  /**
+   * What `answer_ack` told us, which is how fast we were and nothing else. Built here
+   * rather than in the markup because Svelte trims the leading space off an `{#if}`
+   * block's first text node, and this clause needs one.
+   */
+  const speed = $derived(
+    $answerBucket === null ? '' : ` — speed bucket ${$answerBucket} of 5, 1 being the fastest`,
+  )
+
+  function answer(value: unknown): void {
+    const open = $question
+    if (open === null || socket === null) return
+    if (!socket.send({ t: 'answer', question_id: open.question_id, value })) return
+    noteAnswerSent(value)
+  }
+
   function leave(): void {
     navigate('/')
   }
@@ -92,20 +148,149 @@
     {#if socket !== null}
       <Lobby {socket} />
     {/if}
-  {:else}
-    <!-- T13: the play screen. Until then the room is still live, just not drawn. -->
-    <h1>{$room.status === 'finished' ? 'Game finished' : 'Game in progress'}</h1>
+  {:else if $room.status === 'finished'}
+    <h1>Final standings</h1>
+    {#if winners.length > 0}
+      <p class="tagline">
+        {winners.map((w) => w.display_name).join(' and ')}
+        {winners.length === 1 ? 'wins' : 'tie for first'} with {numbers.format(winners[0].points)}
+        points.
+      </p>
+    {:else}
+      <p class="tagline">Nobody scored. A quiet night at the inn.</p>
+    {/if}
+    <Scoreboard standings={$standings} youId={$you?.id ?? null} title="Room {$room.code}" />
     <section class="panel">
+      <!-- Rank is dense (section 6), so level scores genuinely share a place; what the
+           sort settles is the order they are listed in, not the rank. -->
       <p class="note">
-        {#if $room.status === 'playing'}
-          Question {($room.current_index ?? 0) + 1} of {$room.total}, with {$players.length}
-          {$players.length === 1 ? 'player' : 'players'} in the room. The play screen lands in T13.
-        {:else}
-          {$standings.length}
-          {$standings.length === 1 ? 'player' : 'players'} finished. The final scoreboard lands in T13.
-        {/if}
+        Level scores share a place. Between them, more correct answers comes first, and
+        after that the earliest to join.
       </p>
       <button type="button" onclick={leave}>Home</button>
     </section>
+  {:else}
+    <!-- playing -->
+    <div class="spread head">
+      <h1>Question {number} of {total}</h1>
+      {#if $room.phase === 'open' && $question !== null}
+        <Timer
+          endsAt={$question.ends_at}
+          totalSeconds={$room.settings.question_seconds}
+          label="to answer"
+        />
+      {:else if $room.next_at !== null}
+        <Timer
+          endsAt={$room.next_at}
+          totalSeconds={$room.settings.reveal_seconds}
+          label="to the next"
+        />
+      {/if}
+    </div>
+
+    {#if $lastError !== null}
+      <div class="banner bad">
+        {$lastError.message}
+        <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
+      </div>
+    {/if}
+
+    {#if $room.phase === 'open' && $question !== null}
+      <section class="panel">
+        {#if $question.type === 'higher_lower'}
+          <HigherLower
+            data={$question.view}
+            revealed={false}
+            yourValue={$yourAnswer}
+            canAnswer={$question.you_can_answer}
+            onAnswer={answer}
+          />
+        {:else}
+          <!-- Phase 1 ships one type. A pack with another would otherwise show nothing
+               at all, which reads as a broken room rather than a missing component. -->
+          <p>This question is a <code>{$question.type}</code>, which this version cannot show.</p>
+          <p class="note">Sit this one out — the game carries on.</p>
+        {/if}
+      </section>
+
+      {#if $yourAnswer !== null}
+        <!-- The bucket is all `answer_ack` carries: how fast, never whether it was
+             right. Correctness is nobody's until `question_closed`. -->
+        <p class="note waiting">Answer in{speed}. Waiting for the rest of the room.</p>
+      {/if}
+    {:else if $lastClosed !== null}
+      <section class="panel">
+        {#if $lastClosed.was?.type === 'higher_lower'}
+          <HigherLower
+            data={$lastClosed.reveal}
+            revealed={true}
+            yourValue={$yourAnswer}
+            canAnswer={$lastClosed.was.you_can_answer}
+            result={yourResult}
+            onAnswer={() => {}}
+          />
+        {:else}
+          <p class="note">That question is closed.</p>
+        {/if}
+      </section>
+      <Scoreboard
+        standings={$standings}
+        youId={$you?.id ?? null}
+        results={$lastClosed.results}
+        title="Standings"
+      />
+    {:else}
+      <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
+           back from a restart. No `question_closed` reached this client, so there is
+           nothing to reveal — only where everyone stands. -->
+      <section class="panel">
+        <p class="note">
+          {$room.phase === 'reveal'
+            ? 'Between questions — the next one opens shortly.'
+            : 'Waiting for the next question…'}
+        </p>
+      </section>
+      <Scoreboard standings={$standings} youId={$you?.id ?? null} />
+    {/if}
+
+    {#if isAdmin && socket !== null}
+      <section class="panel">
+        <h2>Host</h2>
+        <div class="row">
+          <button type="button" onclick={() => socket?.send({ t: 'skip' })}>
+            {$room.phase === 'open' ? 'Close this question now' : 'Skip to the next question'}
+          </button>
+          <button
+            type="button"
+            onclick={() => {
+              if (confirm('End the game now and show the final standings?')) {
+                socket?.send({ t: 'end_game' })
+              }
+            }}
+          >
+            End the game
+          </button>
+        </div>
+        <p class="note">
+          {$players.length}
+          {$players.length === 1 ? 'player' : 'players'} in the room.
+        </p>
+      </section>
+    {/if}
   {/if}
 {/if}
+
+<style>
+  .head {
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+
+  .head h1 {
+    margin: 0;
+  }
+
+  .waiting {
+    margin: -0.5rem 0 1.25rem;
+  }
+</style>
