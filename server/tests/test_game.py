@@ -8,6 +8,11 @@ grading writes ``correct`` and ``points``, ``question_closed`` carries the per-p
 results, the sum held in memory equals ``sum(points)`` from the database after every
 close, and ``host_only`` and the author of a room question cannot answer.
 
+T11 Accept: a game is killed mid-question (the room dropped from memory and its timer
+cancelled, which is what the next ``get`` sees after a process restart); the question comes
+back voided, a reconnecting player's ``welcome`` has ``question = null`` and
+``phase = reveal``, and the next question opens ``reveal_seconds`` later.
+
 Plus the rest of the section 3 and 4 surface these two tasks own: ``question_open`` (and
 what it withholds), ``answer_ack``, auto-advance, ``game_finished``, reconnecting
 mid-question, ``skip`` during a reveal, ``end_game``, ``promote`` and ``kick``.
@@ -21,7 +26,7 @@ import time
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -743,3 +748,142 @@ def test_a_player_cannot_kick(game) -> None:
     player.send(t="kick", player_id=other.id)
     assert player.take("error")["code"] == "not_admin"
     assert len(game.room.players) == 3
+
+
+# --- T11: restart recovery -----------------------------------------------------------
+
+
+def reseat(seat: Seat, ws: WebSocketTestSession) -> Seat:
+    """The same player on a new socket, the way their client reconnects after a restart."""
+    again = Seat(seat.name, seat.session, seat.player, ws)
+    again.send(t="hello", session=again.session)
+    return again
+
+
+def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db, evict) -> None:
+    """T11 Accept: the process dies with a question open.
+
+    ``evict`` is the crash: the room leaves memory and its timer task is cancelled, so the
+    next ``get`` rehydrates from Postgres exactly as a fresh process would.
+    """
+    game = table("Zezima", question_seconds=30, reveal_seconds=3)
+    game.start()
+    game.opened(0)
+    player = game.players[0]
+    game.answer(player, 0, game.right(0))
+    player.take("answer_ack")
+    question_id = game.question(0).question_id
+
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_with(seat.ws) == 1012
+
+    before = datetime.now(UTC)
+    room = game.room  # the rehydrate, and with it the recovery
+    assert room.questions[0].voided is True
+    assert room.questions[0].closed_at is not None
+    assert room.phase == "reveal"
+    assert room.current_index == 0  # still the voided question's; the reveal is its
+    assert room.timer is not None
+    # A whole fresh reveal, measured from the restart rather than from the old open. Held
+    # in a local: ``room`` is the live object, and opening the next question clears it.
+    next_at = room.next_at
+    assert next_at is not None
+    reveal = (next_at - before).total_seconds()
+    assert room.settings.reveal_seconds <= reveal < room.settings.reveal_seconds + 2
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        again = reseat(player, ws)
+        welcome = again.take("welcome")
+        assert welcome["question"] is None  # nothing is open, so nothing to answer
+        assert welcome["your_answer"] is None
+        assert welcome["room"]["phase"] == "reveal"
+        assert welcome["room"]["status"] == "playing"
+        assert welcome["room"]["current_index"] == 0
+        assert [s["points"] for s in welcome["standings"]] == [0, 0]  # the void scored nobody
+
+        (stored,) = db("select voided, closed_at from questions where position = 0")
+        assert stored["voided"] is True
+        assert stored["closed_at"] is not None
+        (answer,) = db("select correct, points from answers")
+        assert (answer["correct"], answer["points"]) == (None, None)  # voided, never graded
+
+        # And the game carries on: the next question opens when the reveal said it would.
+        opened = again.take("question_open")
+        assert opened["question"]["index"] == 1
+        assert opened["question"]["question_id"] != question_id
+        opened_at = datetime.fromisoformat(opened["question"]["opened_at"])
+        assert abs((opened_at - next_at).total_seconds()) < 0.5
+        assert "question_closed" not in again.kinds  # a voided question never reveals results
+    assert db("select current_index from rooms")[0]["current_index"] == 1
+
+
+def test_a_restart_between_questions_voids_nothing_and_still_reveals(
+    table, client, db, evict
+) -> None:
+    """T11: no question was open at the restart, so there is nothing to void, and nobody
+    has a question opened on them the instant they reconnect either."""
+    game = table("Zezima", question_seconds=30, reveal_seconds=30)
+    game.start()
+    game.opened(0)
+    player = game.players[0]
+    game.answer(player, 0, game.right(0))
+    player.take("answer_ack")
+    game.admin.send(t="skip")
+    for seat in game.seats:
+        seat.take("question_closed")
+    assert game.room.phase == "reveal"
+
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_with(seat.ws) == 1012
+
+    room = game.room
+    assert not any(question.voided for question in room.questions)
+    assert room.questions[0].closed_at is not None
+    assert room.phase == "reveal"
+    assert room.current_index == 0
+    assert room.score(UUID(player.id)).points == 1000  # what was graded stays graded
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        welcome = admin.take("welcome")
+        assert welcome["question"] is None
+        assert welcome["room"]["phase"] == "reveal"
+        assert [s["points"] for s in welcome["standings"]] == [1000, 0]
+        # The resumed timer is a running timer: ``skip`` cuts its reveal short.
+        admin.send(t="skip")
+        assert admin.take("question_open")["question"]["index"] == 1
+    assert db("select voided from questions where position = 0")[0]["voided"] is False
+
+
+def test_a_restart_before_the_first_question_opened_still_plays_it(
+    table, client, db, evict
+) -> None:
+    """T11: the gap inside ``start_game``, where ``playing`` and ``current_index = 0`` are
+    in the database before question 0 is stamped ``shown_at``.
+
+    A restart in there has nothing to void and is still owed that question, so the reveal
+    ends by opening it rather than skipping past it. The row is edited behind the app's
+    back because the window itself is too narrow to hit on purpose.
+    """
+    game = table("Zezima", question_seconds=30, reveal_seconds=30)
+    db("update rooms set status = 'playing', current_index = 0 where code = $1", game.code)
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_with(seat.ws) == 1012
+
+    room = game.room
+    assert room.status == "playing"
+    assert room.phase == "reveal"
+    assert room.current_index == 0
+    assert room.questions[0].shown_at is None
+    assert not any(question.voided for question in room.questions)
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        assert admin.take("welcome")["question"] is None
+        admin.send(t="skip")
+        opened = admin.take("question_open")
+        assert opened["question"]["index"] == 0  # the question the restart owed
+    assert db("select current_index from rooms")[0]["current_index"] == 0

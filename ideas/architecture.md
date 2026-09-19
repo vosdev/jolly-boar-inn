@@ -430,7 +430,7 @@ Process restart (`RoomManager.get` rehydrate):
 
 1. Room not in memory → load `rooms` row, `players`, `questions` ordered by position, and `answers` for those questions.
 2. If status is `playing` and a question has `shown_at` set and `closed_at` null, it was open at crash time: set `closed_at = now`, `voided = true`, no points. That is the "a crash costs the open question at most" guarantee.
-3. Phase becomes `reveal` for the voided question with `next_at = now + reveal_seconds`, then the timer task advances normally. If no question was open, the phase is `reveal` for `current_index` with the same delay, so nobody gets a question opened on them without warning.
+3. Phase becomes `reveal` for the voided question with `next_at = now + reveal_seconds`, then the timer task advances normally. If no question was open, the phase is `reveal` for `current_index` with the same delay, so nobody gets a question opened on them without warning. The one question that is not behind us is one that never opened — the process died in the gap between persisting `current_index` and stamping `shown_at` — and the room is still owed it, so that reveal ends by opening it rather than advancing past it.
 4. Players reconnect on their own through the client flow above.
 
 ## 4. Room lifecycle
@@ -702,7 +702,7 @@ Accept: with `question_seconds = 1` and `reveal_seconds = 1`, a 3-question room 
 DONE: **T10. Scoring and standings.** `rooms/scoring.py` from section 6; grading at close writes `correct` and `points`; standings computed from the answers sum; `results` in `question_closed`; `host_only` and author exclusion enforced (author exclusion has no callers until Phase 2 but is tested now).
 Accept: table-driven tests for every bucket edge (exactly 0.10, 0.1001, > 1.0 clamps to bucket 5); standings tie-break order tested; sum in memory equals `SUM(points)` from the DB after each close.
 
-**T11. Restart recovery.** Rehydrate path for `playing` rooms: void the open question, resume in `reveal`, timer task restarts.
+DONE: **T11. Restart recovery.** Rehydrate path for `playing` rooms: void the open question, resume in `reveal`, timer task restarts.
 Accept: test starts a game, kills the manager mid-question (drop the in-memory room, cancel its task), calls `get`, and asserts the question is `voided`, players reconnecting receive `welcome` with `question = null` and `phase = reveal`, and the next question opens after `reveal_seconds`.
 
 **T12. Client: create, claim, join, lobby.** `api.ts`, `session.ts`, `ws.ts` with reconnect and ping per section 3, `Home`, `Create` (settings form, modes checkboxes, no custom editor), `AdminClaim` with fragment handling and `replaceState`, `Join`, `Lobby` with the player list and admin controls (start, promote, kick), copyable admin link.

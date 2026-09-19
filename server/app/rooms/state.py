@@ -20,8 +20,10 @@ Scoring (T10) is ``rooms/scoring.py``. The answers table is the source of truth 
 standings: close writes ``correct`` and ``points``, then re-reads ``sum(points)`` per
 player into ``Room.totals``. Nothing adds to a running total in memory.
 
-Rehydrating a ``playing`` room, which voids its open question and resumes the timer, is
-T11; ``_load`` brings back the questions and the standings sum, but not a running game.
+Restart recovery (T11) is the rest of the rehydrate: ``_load`` brings back the room, its
+players, its questions and the standings sum, and ``_recover`` voids whatever question was
+open when the process died, puts the room in ``reveal`` and hands it to a timer task that
+starts there, so a crash costs one question and nobody is asked another one on arrival.
 
 Token flow (section 7 of ideas/architecture.md): the admin token and every session
 token are ``secrets.token_urlsafe(32)``; only their sha256 hex is stored. The plaintext
@@ -471,7 +473,10 @@ class RoomManager:
         room = self.rooms.get(code)
         if room is None:
             room = await self._load(code)
+            # Registered before the recovery, which starts a timer task that checks it.
             self.rooms[code] = room
+            if room.status == "playing":
+                await self._recover(room)
         elif room.expires_at <= datetime.now(UTC):
             raise RoomExpired(f"room {code} has expired")
         return room
@@ -480,12 +485,12 @@ class RoomManager:
         """Rehydrate: the room row, its players, its questions and the standings sum.
 
         Individual answer rows are not read back. The only ones that could still matter
-        are the answers to a question that was open when the process died, and T11's
-        recovery voids that question ungraded; everything already scored is in ``totals``,
-        which is the ``answers`` table's own sum.
+        are the answers to a question that was open when the process died, and
+        ``_recover`` voids that question ungraded; everything already scored is in
+        ``totals``, which is the ``answers`` table's own sum.
 
-        T11 adds the rest of the ``playing`` case: voiding the open question and
-        restarting the timer in ``reveal``.
+        A room that comes back ``playing`` is not running yet when this returns:
+        ``_room`` hands it to ``_recover`` once it is in ``self.rooms``.
         """
         pool = await self._pool()
         async with pool.acquire() as conn:
@@ -507,9 +512,49 @@ class RoomManager:
             len(room.players),
             len(questions),
         )
-        if room.status == "playing":
-            log.warning("room %s was playing when it left memory; recovery is T11", code)
         return room
+
+    async def _recover(self, room: Room) -> None:
+        """T11: pick a ``playing`` room that left memory mid-game back up, in ``reveal``.
+
+        Section 3's restart rules. A question with ``shown_at`` set and ``closed_at`` null
+        was open when the process died, so it is closed now and voided, ungraded: that is
+        the "a crash costs the open question at most" guarantee. Its answers keep their
+        null ``points`` and are worth nothing to anybody.
+
+        The room then resumes in ``reveal`` for ``reveal_seconds`` whether or not anything
+        was voided, so the players reconnecting into a room that has just come back are
+        not answering a question a moment later.
+
+        ``resume_from`` is the index the timer task advances *out of* when that reveal
+        ends. Normally it is ``current_index``, whose question is behind us either way,
+        closed or voided. A question that never opened is the exception: the process died
+        in the gap between ``start_game`` or ``_advance`` persisting ``current_index`` and
+        ``_open_question`` stamping ``shown_at``, so the room is still owed that question
+        and advancing out of the one before it opens it.
+
+        Call with the room lock held, once the room is in ``self.rooms``.
+        """
+        question = room.current
+        resume_from = room.current_index or 0
+        if question is None or question.shown_at is None:
+            resume_from -= 1
+        elif question.closed_at is None:
+            pool = await self._pool()
+            async with pool.acquire() as conn:
+                await _void_question(conn, question)
+            log.warning(
+                "room %s: question %d was open at the restart, voided", room.code, question.position
+            )
+        room.phase = "reveal"
+        room.next_at = datetime.now(UTC) + timedelta(seconds=room.settings.reveal_seconds)
+        log.info(
+            "room %s resumes in reveal until %s, then question %d",
+            room.code,
+            room.next_at.isoformat(),
+            resume_from + 1,
+        )
+        self._start_timer(room, resume_from, resume_at=room.next_at)
 
     async def evict(self, code: str) -> bool:
         """Drop a room from memory the way a process restart would; the next ``get``
@@ -924,39 +969,47 @@ class RoomManager:
             async with pool.acquire() as conn, conn.transaction():
                 question = room.open_question()
                 if question is not None and question.closed_at is None:
-                    question.closed_at = datetime.now(UTC)
-                    question.voided = True
-                    await conn.execute(
-                        "update questions set closed_at = $1, voided = true where id = $2",
-                        question.closed_at,
-                        question.id,
-                    )
+                    await _void_question(conn, question)
                 broadcasts = await self._finish(room, conn)
         for broadcast in broadcasts:
             await self._broadcast(broadcast)
 
     # --- The timer task --------------------------------------------------------------
 
-    def _start_timer(self, room: Room, index: int) -> None:
+    def _start_timer(self, room: Room, index: int, resume_at: datetime | None = None) -> None:
         """Hand the room to its one timer task, starting at ``index``.
 
-        Called with the lock released, right after the caller's own broadcast, so the
-        first thing the task does cannot overtake it.
+        ``start_game`` calls this with the lock released, right after its own broadcast,
+        so the first thing the task does cannot overtake it. T11's ``_recover`` calls it
+        under the lock instead, passing the ``resume_at`` that starts the task in a reveal
+        rather than on an open: there is nothing to overtake in a room that has no sockets
+        yet, and the task's first move is to sleep anyway.
         """
         if self.rooms.get(room.code) is not room or room.status != "playing":
             return
         room.timer = asyncio.create_task(
-            self._run_questions(room, index), name=f"room-{room.code}-timer"
+            self._run_questions(room, index, resume_at), name=f"room-{room.code}-timer"
         )
 
-    async def _run_questions(self, room: Room, index: int) -> None:
+    async def _run_questions(
+        self, room: Room, index: int, resume_at: datetime | None = None
+    ) -> None:
         """The one task per room: open → close → reveal → next, until the game ends.
 
         Every step takes the room lock again and re-checks that this room is still the
         live one and still playing, so a game that ends underneath the task (``end_game``,
         eviction) stops it at the next step whether or not the cancellation lands first.
+
+        ``resume_at`` (T11) enters the loop one step in, in a reveal that ends then, and
+        ``index`` is the question that reveal belongs to rather than one to open.
         """
         try:
+            if resume_at is not None:
+                await self._sleep_until(room, resume_at)
+                following = await self._advance(room, index)
+                if following is None:
+                    return
+                index = following
             while True:
                 question = await self._open_question(room, index)
                 if question is None or question.ends_at is None:
@@ -1162,6 +1215,22 @@ def _stop_timer(room: Room) -> None:
     timer, room.timer = room.timer, None
     if timer is not None and timer is not asyncio.current_task():
         timer.cancel()
+
+
+async def _void_question(conn: asyncpg.Connection, question: RoomQuestion) -> None:
+    """``open → voided`` (section 4): close a question now and grade nothing.
+
+    Both ways in are a question nobody gets to score: ``end_game``, and a restart that
+    found it open (T11). Answers already in the table stay exactly as they arrived, with
+    ``correct`` and ``points`` null, which is what ``_fetch_totals`` sums as nothing.
+    """
+    question.closed_at = datetime.now(UTC)
+    question.voided = True
+    await conn.execute(
+        "update questions set closed_at = $1, voided = true where id = $2",
+        question.closed_at,
+        question.id,
+    )
 
 
 async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[RoomQuestion]:
