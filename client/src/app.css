@@ -9,6 +9,11 @@
   --ok: #2f6b3a;
   --warn: #8a5a10;
   --bad: #97281f;
+  /* "more" and "less" in a question prompt. Separate from --ok/--bad, which mean right
+     and wrong: the two appear on the same screen during a reveal, and a red prompt word
+     next to a red wrong answer reads as a verdict rather than as the question. */
+  --more: #2f6b3a;
+  --less: #97281f;
   --radius: 10px;
 
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -29,6 +34,8 @@
     --ok: #7dc08a;
     --warn: #d9ab5b;
     --bad: #e3776c;
+    --more: #7dc08a;
+    --less: #e3776c;
   }
 }
 

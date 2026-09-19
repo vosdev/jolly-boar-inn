@@ -39,9 +39,18 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     ``question_seconds >= 10`` and ``reveal_seconds >= 3``, which is the shortest question
     worth playing but far too long for a test suite to sit through. The stored model has
     no such opinion, so these rooms are made through the manager directly.
+
+    ``splash_seconds`` is zero by default too: a test that is not about the splash should
+    see the frames it always saw, and the ones that are about it pass their own.
     """
     return RoomSettings(
-        **{"question_seconds": 1, "reveal_seconds": 1, "question_count": 3, **overrides}
+        **{
+            "question_seconds": 1,
+            "reveal_seconds": 1,
+            "question_count": 3,
+            "splash_seconds": 0,
+            **overrides,
+        }
     )
 
 

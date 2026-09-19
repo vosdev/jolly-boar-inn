@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from app.rooms.settings import RoomSettings
 
 RoomStatus = Literal["lobby", "playing", "finished"]
-Phase = Literal["idle", "open", "reveal"]
+Phase = Literal["idle", "splash", "open", "reveal"]
 Role = Literal["player", "admin"]
 ErrorCode = Literal[
     "bad_hello",
@@ -39,6 +39,22 @@ class _Message(BaseModel):
 # --- Shared shapes ----------------------------------------------------------------
 
 
+class Segment(_Message):
+    """The round the room is in: one mode, a run of consecutive questions.
+
+    Grouped from the ``questions.round`` column rather than stored a second time, so it
+    cannot drift from the questions it describes. ``start`` is a position in the room's
+    question list, which is what ``OpenQuestion.index`` counts in too, so the question
+    number within the round is ``index - start + 1``.
+    """
+
+    mode: str  # the question type the round plays; the client's mode registry key
+    index: int  # 0-based round number
+    total: int  # rounds in this room
+    start: int  # position of the round's first question
+    count: int  # questions in the round
+
+
 class RoomView(_Message):
     code: str
     status: RoomStatus
@@ -46,10 +62,14 @@ class RoomView(_Message):
     current_index: int | None
     total: int
     phase: Phase
-    # When the reveal ends and the next question opens; null outside a reveal. Also on
-    # ``question_closed``, but a reveal a client arrives into (a reconnect, or a room that
-    # just came back from a restart) has no ``question_closed`` of its own to carry it.
+    # When the current timed phase ends: a splash gives way to its first question, a
+    # reveal to the next question. Null while a question is open, and in a room that is
+    # not playing. Also on ``question_closed``, but a splash or a reveal a client arrives
+    # into (a reconnect, or a room that just came back from a restart) has no frame of its
+    # own to carry it.
     next_at: datetime | None
+    # The round in progress, null before the first question and once the game is over.
+    segment: Segment | None
 
 
 class PlayerView(_Message):
@@ -74,6 +94,10 @@ class OpenQuestion(_Message):
     index: int
     total: int
     type: str
+    # Repeated from ``RoomView`` because the client patches its room from this frame
+    # rather than replacing it, and a round can change without a splash to announce it
+    # (``splash_seconds`` at zero, or two consecutive rounds of the same mode).
+    segment: Segment
     view: dict[str, Any]
     opened_at: datetime
     ends_at: datetime

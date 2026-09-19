@@ -9,31 +9,36 @@
    * list `api.createRoom` sends.
    */
   import { ApiFailure, createRoom, type NewRoomSettings } from '../lib/api'
+  import { MODE_LIST } from '../lib/modes'
   import { rememberCreated, setSession } from '../lib/session'
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
-  // Phase 1 ships one question type (`app/questions/types/__init__.py`). The rest of
-  // the list arrives with the modules, and the checkboxes come along for free.
-  const MODES: { id: string; label: string; hint: string }[] = [
-    { id: 'higher_lower', label: 'Higher or lower', hint: 'Which of two items is worth more' },
-  ]
-
   let displayName = $state('')
-  let questionCount = $state(20)
+  let rounds = $state(4)
+  let perRound = $state(5)
   let questionSeconds = $state(30)
   let revealSeconds = $state(8)
+  let splashSeconds = $state(8)
   let order = $state<'shuffle' | 'custom_last'>('shuffle')
   let closeWhenAllAnswered = $state(true)
-  let modes = $state<string[]>(['higher_lower'])
+  let modes = $state<string[]>([MODE_LIST[0].id])
 
   let busy = $state(false)
   let failure = $state<string | null>(null)
 
-  const ready = $derived(displayName.trim() !== '' && modes.length > 0)
+  /** The server takes a total and a round length; the form asks for the two factors. */
+  const questionCount = $derived(rounds * perRound)
+  const ready = $derived(
+    displayName.trim() !== '' && modes.length > 0 && questionCount >= 1 && questionCount <= 100,
+  )
 
   function toggle(id: string, on: boolean): void {
-    modes = on ? [...modes.filter((m) => m !== id), id] : modes.filter((m) => m !== id)
+    // Registry order, not click order: the rounds are dealt out in the order the modes
+    // are given, so "most recently ticked" would make the running order an artefact of
+    // which box was clicked last.
+    const wanted = new Set(on ? [...modes, id] : modes.filter((m) => m !== id))
+    modes = MODE_LIST.map((mode) => mode.id).filter((mode) => wanted.has(mode))
   }
 
   async function submit(event: SubmitEvent): Promise<void> {
@@ -44,9 +49,11 @@
     const settings: NewRoomSettings = {
       question_seconds: questionSeconds,
       question_count: questionCount,
+      questions_per_round: perRound,
       modes,
       order,
       reveal_seconds: revealSeconds,
+      splash_seconds: splashSeconds,
       close_when_all_answered: closeWhenAllAnswered,
     }
     try {
@@ -85,16 +92,32 @@
 
   <section class="panel">
     <h2>Rounds</h2>
+    <p class="note">
+      Each round plays one question type and opens with a screen introducing it. With
+      more than one type picked, the rounds take turns.
+    </p>
     <div class="grid">
       <div>
-        <label for="count">Questions</label>
-        <input id="count" type="number" min="1" max="100" bind:value={questionCount} />
-        <p class="note">1–100</p>
+        <label for="rounds">Rounds</label>
+        <input id="rounds" type="number" min="1" max="20" bind:value={rounds} />
+        <p class="note">1–20</p>
+      </div>
+      <div>
+        <label for="per-round">Questions per round</label>
+        <input id="per-round" type="number" min="1" max="20" bind:value={perRound} />
+        <p class="note" class:error={questionCount > 100}>
+          1–20 · {questionCount} questions in total{questionCount > 100 ? ', over the 100 cap' : ''}
+        </p>
       </div>
       <div>
         <label for="seconds">Seconds per question</label>
         <input id="seconds" type="number" min="10" max="120" bind:value={questionSeconds} />
-        <p class="note">10–120, 30–60 plays well</p>
+        <p class="note">10–120. Quick types cap themselves lower.</p>
+      </div>
+      <div>
+        <label for="splash">Round intro seconds</label>
+        <input id="splash" type="number" min="0" max="30" bind:value={splashSeconds} />
+        <p class="note">0–30, 0 skips it</p>
       </div>
       <div>
         <label for="reveal">Reveal seconds</label>
@@ -102,10 +125,10 @@
         <p class="note">3–30</p>
       </div>
       <div>
-        <label for="order">Order</label>
+        <label for="order">Your own questions</label>
         <select id="order" bind:value={order}>
-          <option value="shuffle">Shuffle everything</option>
-          <option value="custom_last">Custom questions last</option>
+          <option value="shuffle">Mixed into their round</option>
+          <option value="custom_last">All at the end</option>
         </select>
       </div>
     </div>
@@ -117,7 +140,7 @@
 
   <section class="panel">
     <h2>Question types</h2>
-    {#each MODES as mode (mode.id)}
+    {#each MODE_LIST as mode (mode.id)}
       <label class="check">
         <input
           type="checkbox"

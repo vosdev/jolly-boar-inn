@@ -22,9 +22,10 @@ sys.path.insert(0, str(SERVER_DIR / "scripts"))
 
 import gen_price_questions as gen  # noqa: E402
 
-# A ladder of 12 tradeables 12% apart: neighbours and next-but-one neighbours are within
-# 30% of each other (21 pairs per metric), anything further apart is not. Plus an isolated
-# expensive item, an untradeable, and a bond with a price but no high alch.
+# A ladder of 12 tradeables 12% apart. The window is 1.25x..4x, so neighbours are too
+# close to make a question and everything two or more rungs apart is in: 55 pairs per
+# metric. Plus an isolated expensive item, an untradeable, and a bond with a price but no
+# high alch.
 LADDER = [
     (9000 + k, f"Ladder {k:02d}", round(1000 * 1.12**k), round(500 * 1.12**k)) for k in range(12)
 ]
@@ -52,8 +53,8 @@ LATEST = {
     }
 }
 NEWEST = "2026-09-18T22:47:24Z"  # 1789771644 in UTC
-GE_PAIRS = 21 + 1  # ladder pairs, plus the bond (1060 gp) with Ladder 02 (1254 gp)
-HIGH_ALCH_PAIRS = 21
+GE_PAIRS = 55 + 9  # ladder pairs, plus the bond (1060 gp) with Ladder 03 and up
+HIGH_ALCH_PAIRS = 55  # the bond has no high alch, and nothing is near the whip's 72k
 
 
 def _write_inputs(directory: Path) -> dict[str, Path]:
@@ -80,16 +81,15 @@ def _run_script(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def _ratio(question: dict[str, Any]) -> float:
-    payload = question["payload"]
-    lo, hi = sorted((payload["anchor"]["value"], payload["target"]["value"]))
+    lo, hi = sorted(option["value"] for option in question["payload"]["options"])
     return hi / lo
 
 
 def _names(pack: dict[str, Any]) -> set[tuple[str, str]]:
     return {
-        (q["payload"]["metric"], side["subject"]["name"])
+        (q["payload"]["metric"], option["subject"]["name"])
         for q in pack["questions"]
-        for side in (q["payload"]["anchor"], q["payload"]["target"])
+        for option in q["payload"]["options"]
     }
 
 
@@ -104,16 +104,18 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
 # --- shipped pack ----------------------------------------------------------------------
 
 
-def test_shipped_prices_pack_has_about_100_valid_questions() -> None:
-    """T5: produces about 100 valid questions; validate_packs.py passes on the output."""
+def test_shipped_prices_pack_is_full_of_valid_questions() -> None:
+    """T5: produces the asked-for count of valid questions; validate_packs.py passes."""
     packs = load_packs(PACKS_DIR)
     prices = next(pack for pack in packs if pack.path.name == "prices.json")
     assert prices.name == gen.PACK_NAME
-    assert 90 <= len(prices.questions) <= 110
+    assert len(prices.questions) == gen.DEFAULT_COUNT
     metrics = {q["payload"]["metric"] for q in prices.questions}
     assert metrics == set(gen.METRIC_SHARE)
+    directions = {q["payload"]["direction"] for q in prices.questions}
+    assert directions == {"more", "less"}, "both directions have to turn up"
     for q in prices.questions:
-        assert q["type"] == "higher_lower"
+        assert q["type"] == "more_less"
         assert q["source"] == "pack"
         assert "prices" in q["tags"]
         assert q["id"] == schema.content_id(q)
@@ -141,7 +143,7 @@ def test_generate_is_valid_and_deterministic() -> None:
 
 
 def test_generate_only_pairs_items_of_similar_value() -> None:
-    """Every question compares values within 30% of each other, and not a coin flip."""
+    """Every question compares values inside the window, so neither end is a coin flip."""
     pack, _ = gen.generate(ROSTER, MAPPING, LATEST, count=GE_PAIRS + HIGH_ALCH_PAIRS)
     assert len(pack["questions"]) == GE_PAIRS + HIGH_ALCH_PAIRS
     for q in pack["questions"]:
@@ -161,13 +163,13 @@ def test_generate_skips_untradeable_and_missing_metrics() -> None:
 
 
 def test_generate_tops_up_a_short_metric_from_the_others() -> None:
-    """70/30 wants 28 ge_price of 40, only 22 exist: high_alch fills the gap."""
-    pack, notes = gen.generate(ROSTER, MAPPING, LATEST, count=40)
+    """70/30 wants 70 ge_price of 100, only 64 exist: high_alch fills the gap."""
+    pack, notes = gen.generate(ROSTER, MAPPING, LATEST, count=100)
     metrics = [q["payload"]["metric"] for q in pack["questions"]]
     assert metrics.count("ge_price") == GE_PAIRS
-    assert metrics.count("high_alch") == 40 - GE_PAIRS
-    assert any(n.startswith("ge_price: 22 pair(s) within 30%") and "using 22" in n for n in notes)
-    assert any(n.startswith("high_alch: 21 pair(s)") and "using 18" in n for n in notes)
+    assert metrics.count("high_alch") == 100 - GE_PAIRS
+    assert any(n.startswith("ge_price: 64 pair(s)") and "using 64" in n for n in notes)
+    assert any(n.startswith("high_alch: 55 pair(s)") and "using 36" in n for n in notes)
     assert not any("questions possible" in n for n in notes)
 
 
@@ -180,7 +182,7 @@ def test_generate_seed_changes_selection() -> None:
 def test_generate_reports_shortfall_without_failing() -> None:
     pack, notes = gen.generate(ROSTER, MAPPING, LATEST, count=1000)
     assert len(pack["questions"]) == GE_PAIRS + HIGH_ALCH_PAIRS
-    assert any(n.startswith("only 43 of 1000 questions possible") for n in notes)
+    assert any(n.startswith("only 119 of 1000 questions possible") for n in notes)
     assert pack_errors(pack, "prices") == []
     ids = [q["id"] for q in pack["questions"]]
     assert len(ids) == len(set(ids))
@@ -219,11 +221,12 @@ def test_candidate_pairs_keep_only_similar_values() -> None:
     by_name = {item.name: item for item in items}
     pairs = gen.candidate_pairs(items, "ge_price")
     assert len(pairs) == GE_PAIRS
-    assert (by_name["Ladder 00"], by_name["Ladder 01"]) in pairs  # 12% apart
+    assert (by_name["Ladder 00"], by_name["Ladder 01"]) not in pairs  # 12%: a coin flip
     assert (by_name["Ladder 00"], by_name["Ladder 02"]) in pairs  # 25% apart
-    assert (by_name["Ladder 00"], by_name["Ladder 03"]) not in pairs  # 40% apart
+    assert (by_name["Ladder 00"], by_name["Ladder 03"]) in pairs  # 40% apart
+    assert (by_name["Ladder 00"], by_name["Ladder 11"]) in pairs  # 3.5x, still inside
     assert (by_name["Ladder 00"], by_name["Old school bond"]) not in pairs  # 6%: coin flip
-    assert (by_name["Ladder 02"], by_name["Old school bond"]) in pairs  # 18% apart
+    assert (by_name["Ladder 03"], by_name["Old school bond"]) in pairs  # 33% apart
     assert not any(by_name["Abyssal whip"] in pair for pair in pairs)
     assert len(gen.candidate_pairs(items, "high_alch")) == HIGH_ALCH_PAIRS
 
@@ -241,7 +244,7 @@ def test_pick_pairs_spreads_items_and_fills_up() -> None:
 
 @pytest.mark.parametrize(
     ("a", "b", "expected"),
-    [(100, 123, "easy"), (123, 100, "easy"), (100, 117, "medium"), (100, 116, "hard")],
+    [(100, 250, "easy"), (250, 100, "easy"), (100, 160, "medium"), (100, 159, "hard")],
 )
 def test_difficulty(a: int, b: int, expected: str) -> None:
     assert gen.difficulty(a, b) == expected
@@ -263,15 +266,21 @@ def test_allocate() -> None:
     assert gen.allocate(100, {"ge_price": 0, "high_alch": 0}) == {"ge_price": 0, "high_alch": 0}
 
 
-def test_make_question_matches_higher_lower_contract() -> None:
+def test_make_question_matches_more_less_contract() -> None:
     whip = gen.Item(4151, "Abyssal whip", 1650000, 72000)
     scim = gen.Item(4587, "Dragon scimitar", 60000, 60000)
-    q = gen.make_question("ge_price", whip, scim, "2026-09-01")
+    q = gen.make_question("ge_price", whip, scim, "more", "2026-09-01")
     schema.validate(q)
-    assert q["payload"]["answer"] == "lower"
-    assert q["payload"]["anchor"]["subject"] == {"name": "Abyssal whip", "asset": "item:4151"}
-    assert gen.make_question("high_alch", scim, whip, "2026-09-01")["payload"]["answer"] == (
-        "higher"
+    assert q["payload"]["answer_index"] == 0  # the whip is the dearer of the two
+    assert q["payload"]["direction"] == "more"
+    assert q["payload"]["options"][0]["subject"] == {"name": "Abyssal whip", "asset": "item:4151"}
+    # The direction is the only thing that moves the answer; the order is unchanged.
+    less = gen.make_question("ge_price", whip, scim, "less", "2026-09-01")
+    schema.validate(less)
+    assert less["payload"]["answer_index"] == 1
+    assert (
+        gen.make_question("high_alch", scim, whip, "more", "2026-09-01")["payload"]["answer_index"]
+        == 1
     )
 
 

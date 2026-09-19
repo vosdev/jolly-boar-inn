@@ -25,10 +25,17 @@ class RoomSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     question_seconds: int = Field(default=30, gt=0)  # a zero would divide by zero in scoring
+    # The total. The create form asks for rounds and a round length and posts their
+    # product, so the number of rounds is ``ceil(question_count / questions_per_round)``
+    # and is never stored: one authoritative total, no second field to disagree with it.
     question_count: int = Field(default=20, ge=0)
-    modes: list[str] = Field(default=["higher_lower"], min_length=1)
+    questions_per_round: int = Field(default=5, ge=1)
+    modes: list[str] = Field(default=["more_less"], min_length=1)
     order: Literal["shuffle", "custom_last"] = "shuffle"
     reveal_seconds: int = Field(default=8, ge=0)
+    # How long a round's mode is introduced for before its first question. Zero turns the
+    # splash off, which is what the test suite runs with.
+    splash_seconds: int = Field(default=8, ge=0)
     close_when_all_answered: bool = True
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
     # so a stored room always has a number here.
@@ -54,4 +61,6 @@ class NewRoomSettings(RoomSettings):
 
     question_seconds: int = Field(default=30, ge=10, le=120)
     question_count: int = Field(default=20, ge=1, le=100)
+    questions_per_round: int = Field(default=5, ge=1, le=20)
     reveal_seconds: int = Field(default=8, ge=3, le=30)
+    splash_seconds: int = Field(default=8, ge=0, le=30)

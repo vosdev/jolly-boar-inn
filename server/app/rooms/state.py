@@ -52,8 +52,8 @@ from app.config import Settings
 from app.errors import ApiError
 from app.questions.packs import Pack
 from app.questions.submission import Submission
-from app.questions.types import TYPES
-from app.rooms import codes, scoring, selection
+from app.questions.types import TYPES, max_seconds
+from app.rooms import codes, scoring, segments, selection
 from app.rooms.settings import RoomSettings
 from app.ws.protocol import (
     GameFinished,
@@ -64,6 +64,7 @@ from app.ws.protocol import (
     QuestionOpen,
     RoomUpdated,
     RoomView,
+    Segment,
     Standing,
     Welcome,
 )
@@ -213,8 +214,11 @@ class RoomQuestion:
     (``tags``, ``difficulty``, ``author``, ``added_at``), which the game loop has no use
     for and leaves in the database.
 
-    ``ends_at`` is not a column either: it is ``shown_at + question_seconds``, recomputed
-    whenever the question opens, and it is what the timer and the clients count down to.
+    ``seconds`` and ``ends_at`` are not columns either: they are recomputed whenever the
+    question opens, from the room's ``question_seconds`` and the type's own cap on it, and
+    ``ends_at`` is what the timer and the clients count down to. ``seconds`` is also what
+    the speed bucket is a fraction of, so a ten-second type scores on ten seconds however
+    long the room's questions are set to.
     """
 
     id: UUID
@@ -225,9 +229,11 @@ class RoomQuestion:
     payload: dict[str, Any]
     host_only: bool
     author_player_id: UUID | None
+    round: int = 0
     shown_at: datetime | None = None
     closed_at: datetime | None = None
     voided: bool = False
+    seconds: int | None = None
     ends_at: datetime | None = None
     answers: dict[UUID, Submitted] = field(default_factory=dict)
 
@@ -238,13 +244,14 @@ class RoomQuestion:
             return False
         return self.source != "room" or self.author_player_id != player_id
 
-    def view(self, total: int, player_id: UUID) -> OpenQuestion:
+    def view(self, total: int, player_id: UUID, segment: Segment) -> OpenQuestion:
         assert self.shown_at is not None and self.ends_at is not None
         return OpenQuestion(
             question_id=self.question_id,
             index=self.position,
             total=total,
             type=self.type,
+            segment=segment,
             view=TYPES[self.type].client_view(self.payload),
             opened_at=self.shown_at,
             ends_at=self.ends_at,
@@ -277,12 +284,31 @@ class Room:
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.
     totals: dict[UUID, Totals] = field(default_factory=dict, repr=False)
     phase: str = "idle"
-    # When the reveal ends and the next question opens; ``None`` outside a reveal.
+    # When the current timed phase ends: a splash gives way to its first question, a
+    # reveal to the next question. ``None`` while a question is open.
     next_at: datetime | None = None
     # The one task driving open → closed → reveal → next.
     timer: asyncio.Task[None] | None = field(default=None, repr=False)
     # Set to cut the current sleep short: ``skip``, or everyone has answered.
     advance: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
+
+    @property
+    def segments(self) -> list[Segment]:
+        """The room's rounds. Grouped on demand so they cannot drift from the questions."""
+        return segments.segments_of(self.questions)
+
+    def segment_at(self, position: int) -> Segment | None:
+        return segments.segment_at(self.segments, position)
+
+    @property
+    def current_segment(self) -> Segment | None:
+        return None if self.current_index is None else self.segment_at(self.current_index)
+
+    def question_seconds(self, type_: str) -> int:
+        """How long a question of this type stays open, the type's own cap included."""
+        cap = max_seconds(type_)
+        seconds = self.settings.question_seconds
+        return seconds if cap is None else min(seconds, cap)
 
     @property
     def current(self) -> RoomQuestion | None:
@@ -309,6 +335,7 @@ class Room:
             total=self.total,
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
+            segment=self.current_segment,
         )
 
     def player_views(self) -> list[PlayerView]:
@@ -408,7 +435,10 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
     )
 
 
-def _question_rows(room_id: UUID, questions: Sequence[dict[str, Any]]) -> list[tuple[Any, ...]]:
+def _question_rows(
+    room_id: UUID, questions: Sequence[tuple[int, dict[str, Any]]]
+) -> list[tuple[Any, ...]]:
+    """Rows for ``selection.flatten``'s ``(round, question)`` pairs, position by position."""
     return [
         (
             room_id,
@@ -418,8 +448,9 @@ def _question_rows(room_id: UUID, questions: Sequence[dict[str, Any]]) -> list[t
             q["source"],
             {k: v for k, v in q.items() if k not in _QUESTION_COLUMNS},
             bool(q.get("host_only", False)),
+            round_,
         )
-        for position, q in enumerate(questions)
+        for position, (round_, q) in enumerate(questions)
     ]
 
 
@@ -529,7 +560,9 @@ class RoomManager:
 
         The room then resumes in ``reveal`` for ``reveal_seconds`` whether or not anything
         was voided, so the players reconnecting into a room that has just come back are
-        not answering a question a moment later.
+        not answering a question a moment later. A room that died during a splash is this
+        same case -- its question has no ``shown_at`` -- and the splash replays when the
+        reveal ends, which is the right thing for players who have just reconnected.
 
         ``resume_from`` is the index the timer task advances *out of* when that reveal
         ends. Normally it is ``current_index``, whose question is behind us either way,
@@ -586,7 +619,12 @@ class RoomManager:
     # --- Broadcasting ---------------------------------------------------------------
 
     def _room_updated(self, room: Room, exclude: UUID | None = None) -> Broadcast:
-        """Snapshot ``room_updated`` and its recipients. Call with the room lock held."""
+        """Snapshot ``room_updated`` and its recipients. Call with the room lock held.
+
+        Join, leave, connect, disconnect, promote, kick, status change -- and the start
+        of a splash, which has no frame of its own because the ``RoomView`` in here says
+        everything a client needs: the phase, the round, and when it ends.
+        """
         message = RoomUpdated(room=room.view(), players=room.player_views())
         return Broadcast.to_all(room, message.model_dump(mode="json"), exclude)
 
@@ -637,11 +675,19 @@ class RoomManager:
             player.connected = True
             question = room.open_question()
             answered = question.answers.get(player.id) if question is not None else None
+            # ``room.view()`` carries the round, so a socket arriving during a splash
+            # gets the same phase, round and ``next_at`` a live one was broadcast.
+            segment = room.current_segment
+            open_view = (
+                question.view(room.total, player.id, segment)
+                if question is not None and segment is not None
+                else None
+            )
             welcome = Welcome(
                 room=room.view(),
                 you=player.view(),
                 players=room.player_views(),
-                question=question.view(room.total, player.id) if question is not None else None,
+                question=open_view,
                 your_answer=answered.value if answered is not None else None,
                 standings=room.standings(),
                 server_time=datetime.now(UTC),
@@ -701,7 +747,9 @@ class RoomManager:
             settings = settings.model_copy(update={"max_players": cap})
         elif settings.max_players > cap:
             raise BadSettings(f"max_players may not exceed {cap}")
-        questions = selection.select(self.packs, custom_questions, settings, self.rng)
+        questions = selection.flatten(
+            selection.select(self.packs, custom_questions, settings, self.rng)
+        )
         session = new_token()
         now = datetime.now(UTC)
         expires_at = now + timedelta(days=self.settings.room_ttl_days)
@@ -748,8 +796,8 @@ class RoomManager:
             )
             await conn.executemany(
                 "insert into questions"
-                " (room_id, position, question_id, type, source, payload, host_only)"
-                " values ($1, $2, $3, $4, $5, $6, $7)",
+                " (room_id, position, question_id, type, source, payload, host_only, round)"
+                " values ($1, $2, $3, $4, $5, $6, $7, $8)",
                 _question_rows(room_row["id"], questions),
             )
             # Read them back so a freshly created room holds exactly what a rehydrated
@@ -863,7 +911,11 @@ class RoomManager:
             now = datetime.now(UTC)
             assert question.shown_at is not None  # set when the question opened
             elapsed = (now - question.shown_at).total_seconds()
-            bucket = scoring.bucket(elapsed, room.settings.question_seconds)
+            # The question's own length, not the room's setting: a type that caps itself
+            # at ten seconds must score on ten seconds, or every answer to it lands in
+            # the fastest bucket of a room set to a minute.
+            assert question.seconds is not None  # set when the question opened
+            bucket = scoring.bucket(elapsed, question.seconds)
             async with pool.acquire() as conn:
                 try:
                     await conn.execute(
@@ -882,7 +934,7 @@ class RoomManager:
         return bucket
 
     async def skip(self, code: str, by: Player) -> None:
-        """Admin: close the open question now, or cut the reveal short (section 3).
+        """Admin: cut the splash, the open question or the reveal short (section 3).
 
         Nothing is broadcast and nothing is awaited here: setting ``advance`` wakes the
         timer task, which owns every state change either way. A skip that arrives while
@@ -893,7 +945,7 @@ class RoomManager:
         async with self._lock(code):
             room = await self._room(code)
             _require_admin(by)
-            if room.status != "playing" or room.phase not in ("open", "reveal"):
+            if room.status != "playing" or room.phase not in ("splash", "open", "reveal"):
                 raise BadState("there is nothing to skip")
             room.advance.set()
 
@@ -992,7 +1044,9 @@ class RoomManager:
         eviction) stops it at the next step whether or not the cancellation lands first.
 
         ``resume_at`` (T11) enters the loop one step in, in a reveal that ends then, and
-        ``index`` is the question that reveal belongs to rather than one to open.
+        ``index`` is the question that reveal belongs to rather than one to open. It
+        rejoins at the top of the loop, so a recovered room that owes the first question
+        of a round introduces that round again before opening it.
         """
         try:
             if resume_at is not None:
@@ -1002,6 +1056,8 @@ class RoomManager:
                     return
                 index = following
             while True:
+                if not await self._splash(room, index):
+                    return
                 question = await self._open_question(room, index)
                 if question is None or question.ends_at is None:
                     return
@@ -1036,6 +1092,41 @@ class RoomManager:
         except TimeoutError:
             pass
 
+    async def _splash(self, room: Room, index: int) -> bool:
+        """Introduce the round ``index`` starts, if it starts one. False: the room is gone.
+
+        The splash introduces a *mode*, not a round: a game whose rounds are all the same
+        mode gets one card at the start rather than the same card between every round.
+        Nothing is written to the database -- ``current_index`` was persisted by
+        ``start_game`` or ``_advance`` before this ran, and ``phase`` has never been a
+        column, so a restart mid-splash is a restart before a question that never opened,
+        which ``_recover`` already knows how to resume.
+        """
+        async with room.lock:
+            if self.rooms.get(room.code) is not room or room.status != "playing":
+                return False
+            segment = room.segment_at(index)
+            previous = room.segment_at(index - 1) if index > 0 else None
+            introduces_a_mode = segment is not None and (
+                previous is None or previous.mode != segment.mode
+            )
+            if (
+                room.settings.splash_seconds <= 0
+                or segment is None
+                or segment.start != index
+                or not introduces_a_mode
+            ):
+                return True
+            room.current_index = index
+            room.phase = "splash"
+            room.next_at = datetime.now(UTC) + timedelta(seconds=room.settings.splash_seconds)
+            room.advance.clear()
+            update = self._room_updated(room)
+            ends_at = room.next_at
+        await self._broadcast(update)
+        await self._sleep_until(room, ends_at)
+        return True
+
     async def _open_question(self, room: Room, index: int) -> RoomQuestion | None:
         """``pending → open``: stamp ``shown_at``, broadcast ``question_open``."""
         pool = await self._pool()
@@ -1047,7 +1138,8 @@ class RoomManager:
             question = room.questions[index]
             now = datetime.now(UTC)
             question.shown_at = now
-            question.ends_at = now + timedelta(seconds=room.settings.question_seconds)
+            question.seconds = room.question_seconds(question.type)
+            question.ends_at = now + timedelta(seconds=question.seconds)
             room.current_index = index
             room.phase = "open"
             room.next_at = None
@@ -1056,11 +1148,13 @@ class RoomManager:
                 await conn.execute(
                     "update questions set shown_at = $1 where id = $2", now, question.id
                 )
+            segment = room.segment_at(index)
+            assert segment is not None  # every question belongs to a round
             opened = Broadcast.per_player(
                 room,
-                lambda pid: QuestionOpen(question=question.view(room.total, pid)).model_dump(
-                    mode="json"
-                ),
+                lambda pid: QuestionOpen(
+                    question=question.view(room.total, pid, segment)
+                ).model_dump(mode="json"),
             )
         await self._broadcast(opened)
         return question
@@ -1226,7 +1320,7 @@ async def _void_question(conn: asyncpg.Connection, question: RoomQuestion) -> No
 
 async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[RoomQuestion]:
     rows = await conn.fetch(
-        "select id, position, question_id, type, source, payload, host_only,"
+        "select id, position, question_id, type, source, payload, host_only, round,"
         " author_player_id, shown_at, closed_at, voided"
         " from questions where room_id = $1 order by position",
         room_id,
@@ -1240,6 +1334,7 @@ async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[Room
             source=row["source"],
             payload=row["payload"]["payload"],
             host_only=row["host_only"],
+            round=row["round"],
             author_player_id=row["author_player_id"],
             shown_at=row["shown_at"],
             closed_at=row["closed_at"],

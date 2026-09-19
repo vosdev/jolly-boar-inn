@@ -72,9 +72,9 @@ function noteServerTime(serverTime: string): void {
  * Fields the server changes on its own `Room` when it sends a frame that is not
  * `room_updated`.
  *
- * The server broadcasts `room_updated` for membership and status changes only, so
- * `question_open` and `question_closed` move the room between `open` and `reveal`
- * without one. Applying that here is what lets the screen switch on `room.phase`
+ * The server broadcasts `room_updated` for membership and status changes, and for the
+ * start of a splash; `question_open` and `question_closed` move the room between `open`
+ * and `reveal` without one. Applying that here is what lets the screen switch on `room.phase`
  * instead of second-guessing it: the client's `RoomView` stays the same view of the
  * room the server has, and a `welcome` replaces it outright if it ever drifts.
  */
@@ -156,7 +156,15 @@ export function applyServerMessage(message: ServerMessage): void {
     case 'question_open':
       question.set(message.question)
       forgetQuestion()
-      patchRoom({ phase: 'open', current_index: message.question.index, next_at: null })
+      // The segment comes along because a round can change with no splash to announce
+      // it — `splash_seconds` at zero, or a new round of the mode already playing — and
+      // this frame is then the only thing carrying the change.
+      patchRoom({
+        phase: 'open',
+        current_index: message.question.index,
+        segment: message.question.segment,
+        next_at: null,
+      })
       break
 
     case 'question_closed':

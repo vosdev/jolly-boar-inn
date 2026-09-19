@@ -7,11 +7,17 @@
    * `room.phase` — the same two fields the server's own `Room` carries, kept in step by
    * `stores.ts` as frames arrive:
    *
-   *   lobby ─ start_game ─▶ playing/open ─ question_closed ─▶ playing/reveal ─┐
-   *                              ▲                                            │
-   *                              └──────────── question_open ─────────────────┘
-   *                                                                           │
-   *   finished ◀───────────────── game_finished ──────────────────────────────┘
+   *   lobby ─ start_game ─▶ playing/splash ─ question_open ─▶ playing/open ─┐
+   *                              ▲                 ▲                        │
+   *                              │                 │        question_closed │
+   *                              │                 │                        ▼
+   *                              └── room_updated ─┴─── question_open ── playing/reveal
+   *                                  (a new mode)                            │
+   *                                                                          │
+   *   finished ◀───────────────── game_finished ─────────────────────────────┘
+   *
+   * The splash only comes round again when the next round plays a different mode: it
+   * introduces a mode, not a round, so a game of one mode shows it once.
    *
    * `playing` with no question and nothing revealed is the gap between a reveal ending
    * and the next question opening. It is a frame or two wide in practice, and after a
@@ -22,8 +28,9 @@
 
   import Lobby from '../components/Lobby.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
+  import Splash from '../components/Splash.svelte'
   import Timer from '../components/Timer.svelte'
-  import HigherLower from '../components/questions/HigherLower.svelte'
+  import { QUESTION_VIEWS } from '../components/questions'
   import { clearSession, getSession } from '../lib/session'
   import {
     answerBucket,
@@ -92,9 +99,31 @@
   )
 
   const isAdmin = $derived($you?.role === 'admin')
-  /** 1-based, for people. `index` is the position and `current_index` survives a close. */
-  const number = $derived(($question?.index ?? $room?.current_index ?? 0) + 1)
-  const total = $derived($question?.total ?? $room?.total ?? 0)
+  /** The position, 0-based. `index` is it while open; `current_index` survives a close. */
+  const position = $derived($question?.index ?? $room?.current_index ?? 0)
+  /**
+   * The round in progress. `question_open` carries its own, which is the one to trust
+   * while a question is up: a round can change with no splash to announce it.
+   */
+  const segment = $derived($question?.segment ?? $room?.segment ?? null)
+  /** 1-based within the round, for people, with the whole game as the fallback. */
+  const number = $derived(segment === null ? position + 1 : position - segment.start + 1)
+  const total = $derived(segment?.count ?? $question?.total ?? $room?.total ?? 0)
+  /**
+   * How long this question is open for, from the question rather than from the settings:
+   * a mode may cap itself below the room's `question_seconds`, and the timer has to
+   * count down the seconds players actually have.
+   */
+  const questionSeconds = $derived(
+    $question === null
+      ? ($room?.settings.question_seconds ?? 0)
+      : (Date.parse($question.ends_at) - Date.parse($question.opened_at)) / 1000,
+  )
+  /** The component for the open question's type, or null for a mode this build lacks. */
+  const OpenView = $derived($question === null ? null : (QUESTION_VIEWS[$question.type] ?? null))
+  const ClosedView = $derived(
+    $lastClosed?.was == null ? null : (QUESTION_VIEWS[$lastClosed.was.type] ?? null),
+  )
   /** Our own row in the reveal, if we answered. */
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
@@ -109,7 +138,7 @@
    * block's first text node, and this clause needs one.
    */
   const speed = $derived(
-    $answerBucket === null ? '' : ` — speed bucket ${$answerBucket} of 5, 1 being the fastest`,
+    $answerBucket === null ? null : `speed bucket ${$answerBucket} of 5, 1 being the fastest`,
   )
 
   function answer(value: unknown): void {
@@ -169,16 +198,24 @@
       </p>
       <button type="button" onclick={leave}>Home</button>
     </section>
+  {:else if $room.phase === 'splash' && $room.segment !== null}
+    <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past. -->
+    <Splash
+      segment={$room.segment}
+      endsAt={$room.next_at}
+      totalSeconds={$room.settings.splash_seconds}
+    />
   {:else}
     <!-- playing -->
     <div class="spread head">
-      <h1>Question {number} of {total}</h1>
+      <h1>
+        {#if segment !== null && segment.total > 1}
+          <span class="round">Round {segment.index + 1} of {segment.total}</span>
+        {/if}
+        Question {number} of {total}
+      </h1>
       {#if $room.phase === 'open' && $question !== null}
-        <Timer
-          endsAt={$question.ends_at}
-          totalSeconds={$room.settings.question_seconds}
-          label="to answer"
-        />
+        <Timer endsAt={$question.ends_at} totalSeconds={questionSeconds} label="to answer" />
       {:else if $room.next_at !== null}
         <Timer
           endsAt={$room.next_at}
@@ -197,8 +234,8 @@
 
     {#if $room.phase === 'open' && $question !== null}
       <section class="panel">
-        {#if $question.type === 'higher_lower'}
-          <HigherLower
+        {#if OpenView !== null}
+          <OpenView
             data={$question.view}
             revealed={false}
             yourValue={$yourAnswer}
@@ -206,8 +243,9 @@
             onAnswer={answer}
           />
         {:else}
-          <!-- Phase 1 ships one type. A pack with another would otherwise show nothing
-               at all, which reads as a broken room rather than a missing component. -->
+          <!-- A pack from a newer server than this build knows would otherwise show
+               nothing at all, which reads as a broken room rather than a missing
+               component. -->
           <p>This question is a <code>{$question.type}</code>, which this version cannot show.</p>
           <p class="note">Sit this one out — the game carries on.</p>
         {/if}
@@ -215,13 +253,20 @@
 
       {#if $yourAnswer !== null}
         <!-- The bucket is all `answer_ack` carries: how fast, never whether it was
-             right. Correctness is nobody's until `question_closed`. -->
-        <p class="note waiting">Answer in{speed}. Waiting for the rest of the room.</p>
+             right. Correctness is nobody's until `question_closed`. The badge keeps it
+             to two characters; the sentence is in the tooltip for anyone who wants it. -->
+        <p class="note waiting">
+          Answer in.
+          {#if speed !== null}<span class="bucket" title={speed} aria-label={speed}>
+              {$answerBucket}/5
+            </span>{/if}
+          Waiting for the rest of the room.
+        </p>
       {/if}
     {:else if $lastClosed !== null}
       <section class="panel">
-        {#if $lastClosed.was?.type === 'higher_lower'}
-          <HigherLower
+        {#if ClosedView !== null && $lastClosed.was !== null}
+          <ClosedView
             data={$lastClosed.reveal}
             revealed={true}
             yourValue={$yourAnswer}
@@ -292,5 +337,22 @@
 
   .waiting {
     margin: -0.5rem 0 1.25rem;
+  }
+
+  .round {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .bucket {
+    padding: 0.05rem 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-variant-numeric: tabular-nums;
+    cursor: help;
   }
 </style>

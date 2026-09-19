@@ -8,7 +8,7 @@
   "properties": {
     "id": { "type": "string", "pattern": "^q_[0-9a-f]{16}$" },
     "type": {
-      "enum": ["higher_lower", "guess_examine", "price_is_right",
+      "enum": ["more_less", "guess_examine", "price_is_right",
                "multiple_choice", "free_text", "closest_number"]
     },
     "payload": { "type": "object" },
@@ -23,8 +23,8 @@
     "host_only": { "type": "boolean", "default": false }
   },
   "allOf": [
-    { "if": { "properties": { "type": { "const": "higher_lower" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/higher_lower" } } } },
+    { "if": { "properties": { "type": { "const": "more_less" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/more_less" } } } },
     { "if": { "properties": { "type": { "const": "guess_examine" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/guess_examine" } } } },
     { "if": { "properties": { "type": { "const": "price_is_right" } } },
@@ -55,21 +55,23 @@
       "items": { "type": "string", "minLength": 1, "maxLength": 80 }
     },
 
-    "higher_lower": {
+    "metric": { "enum": ["ge_price", "high_alch", "shop_price"] },
+    "priced": {
+      "type": "object", "required": ["subject", "value"], "additionalProperties": false,
+      "properties": { "subject": { "$ref": "#/$defs/subject" }, "value": { "type": "integer", "minimum": 0 } }
+    },
+
+    "more_less": {
       "type": "object",
-      "required": ["metric", "anchor", "target", "answer", "as_of"],
+      "required": ["metric", "direction", "options", "answer_index", "as_of"],
       "additionalProperties": false,
       "properties": {
-        "metric": { "enum": ["ge_price", "high_alch", "shop_price"] },
-        "anchor": {
-          "type": "object", "required": ["subject", "value"], "additionalProperties": false,
-          "properties": { "subject": { "$ref": "#/$defs/subject" }, "value": { "type": "integer", "minimum": 0 } }
+        "metric": { "$ref": "#/$defs/metric" },
+        "direction": { "enum": ["more", "less"] },
+        "options": {
+          "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/priced" }
         },
-        "target": {
-          "type": "object", "required": ["subject", "value"], "additionalProperties": false,
-          "properties": { "subject": { "$ref": "#/$defs/subject" }, "value": { "type": "integer", "minimum": 0 } }
-        },
-        "answer": { "enum": ["higher", "lower"] },
+        "answer_index": { "type": "integer", "minimum": 0, "maximum": 1 },
         "as_of": { "$ref": "#/$defs/date" }
       }
     },

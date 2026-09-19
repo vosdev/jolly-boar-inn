@@ -16,6 +16,10 @@
   const isAdmin = $derived($you?.role === 'admin')
   const canStart = $derived(isAdmin && $room?.status === 'lobby' && $players.length > 0)
   const settings = $derived($room?.settings ?? null)
+  /** Rounds are not stored: the total and the round length are, and this is their ratio. */
+  const rounds = $derived(
+    settings === null ? 0 : Math.ceil(settings.question_count / settings.questions_per_round),
+  )
 
   function kick(player: PlayerView): void {
     if (confirm(`Remove ${player.display_name} from the room?`)) {
@@ -39,9 +43,9 @@
     </div>
     {#if settings !== null}
       <p class="note">
-        {settings.question_count}
-        {settings.question_count === 1 ? 'question' : 'questions'} ·
-        {settings.question_seconds}s each · {settings.reveal_seconds}s reveal
+        {rounds}
+        {rounds === 1 ? 'round' : 'rounds'} of {settings.questions_per_round} ·
+        up to {settings.question_seconds}s a question · {settings.reveal_seconds}s reveal
       </p>
     {/if}
   </div>

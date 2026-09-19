@@ -26,7 +26,7 @@ import time
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -36,7 +36,7 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
-from app.questions.types import higher_lower
+from app.questions.types import more_less
 from app.rooms.state import BadState, Room, RoomQuestion
 from tests.rooms_api import call, create_fast, join
 
@@ -99,17 +99,30 @@ class Game:
     def question(self, index: int) -> RoomQuestion:
         return self.room.questions[index]
 
-    def right(self, index: int) -> str:
-        return self.question(index).payload["answer"]
+    def right(self, index: int) -> int:
+        return self.question(index).payload["answer_index"]
 
-    def wrong(self, index: int) -> str:
-        return "higher" if self.right(index) == "lower" else "lower"
+    def wrong(self, index: int) -> int:
+        return 1 - self.right(index)
 
     def start(self) -> None:
         self.admin.send(t="start_game")
 
     def answer(self, seat: Seat, index: int, value: Any) -> None:
         seat.send(t="answer", question_id=self.question(index).question_id, value=value)
+
+    def splash(self, seat: Seat | None = None) -> dict[str, Any]:
+        """The next ``room_updated`` that is a splash.
+
+        ``start_game`` broadcasts its own ``room_updated`` for ``lobby -> playing``, and
+        that one is still ``idle``: the timer task has not run a step yet.
+        """
+        seat = seat or self.admin
+        for _ in range(10):
+            message = seat.take("room_updated")
+            if message["room"]["phase"] == "splash":
+                return message
+        raise AssertionError(f"{seat.name} never got a splash; saw {seat.kinds}")
 
     def opened(self, index: int) -> list[dict[str, Any]]:
         """Everyone's ``question_open`` for question ``index``."""
@@ -239,16 +252,18 @@ def test_question_open_is_the_same_frame_for_everyone_and_withholds_the_answer(g
     question = game.question(0)
     view = opened[0]["question"]
     assert view["question_id"] == question.question_id
-    assert view["type"] == "higher_lower"
+    assert view["type"] == "more_less"
     assert view["total"] == 3
     assert view["you_can_answer"] is True
-    assert view["view"] == higher_lower.client_view(question.payload)
-    assert "answer" not in view["view"]
-    assert "value" not in view["view"]["target"]
-    assert str(question.payload["target"]["value"]) not in str(opened[0])
+    assert view["view"] == more_less.client_view(question.payload)
+    assert "answer_index" not in view["view"]
+    assert all("value" not in option for option in view["view"]["options"])
+    for option in question.payload["options"]:
+        assert str(option["value"]) not in str(opened[0])
     ends_at = datetime.fromisoformat(view["ends_at"])
     opened_at = datetime.fromisoformat(view["opened_at"])
-    assert (ends_at - opened_at).total_seconds() == 30  # the room's question_seconds
+    # 30 is the room's ``question_seconds``; ``more_less`` caps itself at ten.
+    assert (ends_at - opened_at).total_seconds() == 10
     assert game.room.phase == "open"
     assert game.client.get(f"/api/rooms/{game.code}").json()["room"]["phase"] == "open"
 
@@ -522,7 +537,7 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
     game.admin.send(t="skip")
     closed = game.admin.take("question_closed")
 
-    assert closed["reveal"] == higher_lower.reveal(game.question(0).payload)
+    assert closed["reveal"] == more_less.reveal(game.question(0).payload)
     assert closed["results"] == {
         right.id: {"value": game.right(0), "correct": True, "points": 1000},
         wrong.id: {"value": game.wrong(0), "correct": False, "points": 0},
@@ -631,7 +646,7 @@ def test_can_answer(host_only: bool, source: str, is_author: bool, expected: boo
         id=uuid4(),
         position=0,
         question_id="q_x",
-        type="higher_lower",
+        type="more_less",
         source=source,
         payload={},
         host_only=host_only,
@@ -653,7 +668,7 @@ def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
     game.admin.send(t="skip")
     closed = game.admin.take("question_closed")
     assert closed["results"] == {}
-    assert closed["reveal"] == higher_lower.reveal(game.question(0).payload)
+    assert closed["reveal"] == more_less.reveal(game.question(0).payload)
     assert db("select * from answers") == []
     assert_memory_matches_db(game, db)
 
@@ -887,3 +902,194 @@ def test_a_restart_before_the_first_question_opened_still_plays_it(
         opened = admin.take("question_open")
         assert opened["question"]["index"] == 0  # the question the restart owed
     assert db("select current_index from rooms")[0]["current_index"] == 0
+
+
+# --- the splash: a round's mode, introduced once ------------------------------------
+
+
+def test_no_splash_when_splash_seconds_is_zero(game) -> None:
+    """The default for every other test in this file: the frames are as they always were."""
+    game.start()
+    opened = game.opened(0)
+    assert opened[0]["question"]["index"] == 0
+    assert "splash" not in game.admin.kinds
+    assert not any(
+        message["t"] == "room_updated" and message["room"]["phase"] == "splash"
+        for message in game.admin.seen
+    )
+
+
+def test_the_first_round_is_introduced_before_its_first_question(table) -> None:
+    """The splash holds the room for ``splash_seconds``, then the question opens."""
+    game = table("Zezima", question_seconds=30, splash_seconds=1)
+    before = datetime.now(UTC)
+    game.start()
+    update = game.splash()
+    room = update["room"]
+    assert room["phase"] == "splash"
+    assert room["status"] == "playing"
+    assert room["current_index"] == 0
+    assert room["segment"] == {
+        "mode": "more_less",
+        "index": 0,
+        "total": 1,  # three questions, five to a round
+        "start": 0,
+        "count": 3,
+    }
+    ends_at = datetime.fromisoformat(room["next_at"])
+    assert 0 < (ends_at - before).total_seconds() <= 2
+    opened = game.admin.take("question_open")
+    assert opened["question"]["index"] == 0
+    assert datetime.fromisoformat(opened["question"]["opened_at"]) >= ends_at - timedelta(
+        milliseconds=200
+    )
+
+
+def test_every_question_carries_the_round_it_belongs_to(table) -> None:
+    game = table("Zezima", question_seconds=30, reveal_seconds=1, questions_per_round=2)
+    game.start()
+    first = game.opened(0)[0]["question"]
+    assert first["segment"] == {
+        "mode": "more_less",
+        "index": 0,
+        "total": 2,  # three questions, two to a round
+        "start": 0,
+        "count": 2,
+    }
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    second = game.admin.take("question_open")["question"]
+    assert second["segment"] == first["segment"]  # same round, second question
+
+
+def test_a_second_round_of_the_same_mode_is_not_introduced_again(table) -> None:
+    """The splash introduces a mode, not a round: one mode, one card, however many rounds."""
+    game = table(
+        "Zezima", question_seconds=30, reveal_seconds=1, questions_per_round=2, splash_seconds=1
+    )
+    game.start()
+    game.splash()  # the one and only
+    game.opened(0)
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    game.admin.take("question_open")
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    # Question 2 starts round 1, but of the same mode, so it opens without another splash.
+    opened = game.admin.take("question_open")
+    assert opened["question"]["index"] == 2
+    assert opened["question"]["segment"]["index"] == 1
+    splashes = [
+        message
+        for message in game.admin.seen
+        if message["t"] == "room_updated" and message["room"]["phase"] == "splash"
+    ]
+    assert len(splashes) == 1, splashes
+
+
+def test_skip_cuts_the_splash_short(table) -> None:
+    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game.start()
+    game.splash()
+    started = time.monotonic()
+    game.admin.send(t="skip")
+    opened = game.admin.take("question_open")
+    assert time.monotonic() - started < 1
+    assert opened["question"]["index"] == 0
+
+
+def test_a_player_cannot_skip_the_splash(table) -> None:
+    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game.start()
+    game.splash(game.players[0])
+    game.players[0].send(t="skip")
+    assert game.players[0].take("error")["code"] == "not_admin"
+    assert game.room.phase == "splash"
+
+
+def test_welcome_during_a_splash_says_so(table, client) -> None:
+    """A socket arriving mid-splash is told the same thing a live one was broadcast."""
+    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game.start()
+    game.splash()
+    body = join(client, game.code, "Latecomer").json()
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        ws.send_json({"t": "hello", "session": body["session"]})
+        welcome = ws.receive_json()
+        assert welcome["t"] == "welcome"
+        assert welcome["question"] is None  # nothing to answer yet
+        assert welcome["room"]["phase"] == "splash"
+        assert welcome["room"]["next_at"] is not None
+        assert welcome["room"]["segment"]["mode"] == "more_less"
+        assert welcome["room"]["segment"]["index"] == 0
+
+
+def test_end_game_during_a_splash_voids_nothing(table, db) -> None:
+    game = table("Zezima", question_seconds=30, splash_seconds=30)
+    game.start()
+    game.splash()
+    game.admin.send(t="end_game")
+    game.admin.take("game_finished")
+    assert game.room.status == "finished"
+    assert game.room.phase == "idle"
+    assert not any(row["voided"] for row in db("select voided from questions"))
+
+
+def test_a_restart_during_a_splash_replays_it(table, client, db, evict) -> None:
+    """A splash is a question that has not opened, which recovery already handles."""
+    game = table("Zezima", question_seconds=30, reveal_seconds=1, splash_seconds=1)
+    game.start()
+    for seat in game.seats:  # every socket, so none has a frame left to read at the close
+        game.splash(seat)
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_with(seat.ws) == 1012
+
+    room = game.room  # the rehydrate, and with it the recovery
+    assert room.phase == "reveal"
+    assert room.current_index == 0
+    assert room.questions[0].shown_at is None
+    assert not any(question.voided for question in room.questions)
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        assert admin.take("welcome")["room"]["phase"] == "reveal"
+        # The reveal ends, and the round is introduced again before the question it owes.
+        assert game.splash(admin)["room"]["phase"] == "splash"
+        assert admin.take("question_open")["question"]["index"] == 0
+
+
+# --- a mode's own question length ---------------------------------------------------
+
+
+def test_a_modes_cap_beats_a_longer_room_setting(game) -> None:
+    """``more_less`` caps itself at ten seconds however long the room asked for."""
+    assert game.room.settings.question_seconds == 30
+    game.start()
+    view = game.opened(0)[0]["question"]
+    opened_at = datetime.fromisoformat(view["opened_at"])
+    ends_at = datetime.fromisoformat(view["ends_at"])
+    assert (ends_at - opened_at).total_seconds() == 10
+    assert game.question(0).seconds == 10
+
+
+def test_a_shorter_room_setting_beats_the_cap(table) -> None:
+    game = table("Zezima", question_seconds=5)
+    game.start()
+    view = game.opened(0)[0]["question"]
+    opened_at = datetime.fromisoformat(view["opened_at"])
+    ends_at = datetime.fromisoformat(view["ends_at"])
+    assert (ends_at - opened_at).total_seconds() == 5
+
+
+def test_speed_buckets_scale_to_the_questions_own_length(game) -> None:
+    """A ten-second question buckets on ten seconds, not on the room's thirty."""
+    game.start()
+    game.opened(0)
+    player = game.players[0]
+    time.sleep(1.2)  # 12% of ten seconds is bucket 2; of thirty it would be bucket 1
+    game.answer(player, 0, game.right(0))
+    assert player.take("answer_ack")["bucket"] == 2
