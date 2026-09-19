@@ -10,12 +10,12 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 COPY client/ ./
 RUN pnpm build
 
-# ---- Stage 2: server with uv, plus the built client -------------------------
-FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS server
+# ---- Stage 2: build the server venv with uv --------------------------------
+# Builds nothing but /app/server; uv and its caches stay out of the final image.
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    UV_PYTHON_DOWNLOADS=never \
-    PYTHONUNBUFFERED=1
+    UV_PYTHON_DOWNLOADS=never
 
 WORKDIR /app/server
 
@@ -28,14 +28,35 @@ COPY server/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
+# ---- Stage 3: runtime ------------------------------------------------------
+# Same image the uv base is built from, so the venv's interpreter symlink into
+# /usr/local and the absolute shebang in .venv/bin/uvicorn still resolve.
+FROM python:3.14.2-slim-bookworm AS runtime
+
+# HOME points at the tmpfs so a stray cache write cannot fail on a read-only root.
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HOME=/tmp \
+    PATH="/app/server/.venv/bin:$PATH"
+
+RUN useradd --system --no-create-home --uid 10001 app
+
 # Layout mirrors the repo so ../client/dist, ../data/packs and ../schema resolve unchanged.
+# Everything stays root-owned: the app user needs to read it, never to write it.
+COPY --from=builder /app/server /app/server
 COPY --from=client /build/client/dist /app/client/dist
 COPY schema/ /app/schema/
 COPY data/ /app/data/
 
-RUN useradd --system --create-home --uid 10001 app && chown -R app:app /app
-USER app
+# packs_dir defaults to ../data/packs, resolved against the working directory.
+WORKDIR /app/server
+USER 10001
 
-ENV PATH="/app/server/.venv/bin:$PATH"
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+HEALTHCHECK --interval=10s --timeout=3s --retries=5 --start-period=5s \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+
+# Trusted proxies come from $FORWARDED_ALLOW_IPS, which uvicorn reads itself and
+# which defaults to 127.0.0.1,::1. Set it to your reverse proxy's address, or
+# X-Forwarded-For is ignored and every client shares one rate-limit bucket.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

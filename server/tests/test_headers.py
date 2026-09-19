@@ -20,6 +20,15 @@ def test_headers_on_every_response(settings: Settings, dist: Path) -> None:
     for response in (api, missing, page, asset):
         assert response.headers["referrer-policy"] == "no-referrer"
         assert response.headers["x-content-type-options"] == "nosniff"
+        assert response.headers["x-frame-options"] == "DENY"
+        csp = response.headers["content-security-policy"]
+        assert "default-src 'none'" in csp
+        assert "frame-ancestors 'none'" in csp
+        # The built client has no inline script or style, so nothing needs a bypass.
+        assert "unsafe-inline" not in csp
+        assert "unsafe-eval" not in csp
+    # HSTS belongs to the reverse proxy; the app must not send it.
+    assert "strict-transport-security" not in api.headers
     assert api.headers["cache-control"] == "no-store"
     assert missing.headers["cache-control"] == "no-store"
     assert page.headers["cache-control"] == "no-cache"  # static keeps its own policy

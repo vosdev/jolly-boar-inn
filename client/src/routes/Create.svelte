@@ -18,7 +18,7 @@
   let rounds = $state(4)
   let perRound = $state(5)
   let questionSeconds = $state(30)
-  let revealSeconds = $state(8)
+  let revealSeconds = $state(4)
   let splashSeconds = $state(8)
   let order = $state<'shuffle' | 'custom_last'>('shuffle')
   let closeWhenAllAnswered = $state(true)
@@ -120,7 +120,7 @@
         <p class="note">0–30, 0 skips it</p>
       </div>
       <div>
-        <label for="reveal">Reveal seconds</label>
+        <label for="reveal">Reveal answers seconds</label>
         <input id="reveal" type="number" min="3" max="30" bind:value={revealSeconds} />
         <p class="note">3–30</p>
       </div>

@@ -1,21 +1,38 @@
-# Self-hosting: `docker compose up` serves the app at http://localhost:8000.
+# Self-hosting: `docker compose up` serves the app at http://127.0.0.1:8000.
 # Optional overrides come from a `.env` file next to this file (see .env.example).
+#
+# The published port binds to loopback by default, on the assumption that a reverse
+# proxy fronts it. Set APP_BIND=0.0.0.0 if your proxy lives on another host.
 
 services:
   app:
     build: .
     ports:
-      - "${APP_PORT:-8000}:8000"
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8000}:8000"
     env_file:
       - path: .env
         required: false
     environment:
       # Always talk to the bundled Postgres, whatever DATABASE_URL says in .env.
-      DATABASE_URL: postgresql://${POSTGRES_USER:-jbi}:${POSTGRES_PASSWORD:-jbi}@postgres:5432/${POSTGRES_DB:-jbi}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-jbi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-jbi}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
+      # Reverse proxies whose X-Forwarded-For is trusted, as addresses or CIDR
+      # ranges. Unset means uvicorn's 127.0.0.1,::1, which trusts nothing arriving
+      # over the bridge network -- so set it, or all players share one rate-limit
+      # bucket. See .env.example.
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-}
     depends_on:
       postgres:
         condition: service_healthy
+    # Nothing under server/app writes to disk, so the root filesystem stays read-only.
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 512m
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
       interval: 10s
@@ -28,10 +45,16 @@ services:
     image: postgres:18
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-jbi}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jbi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-jbi}
     volumes:
       - pgdata:/var/lib/postgresql
+    # The entrypoint starts as root to prepare the data directory, then drops to
+    # the postgres user, which needs exactly these five.
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jbi} -d ${POSTGRES_DB:-jbi}"]
       interval: 5s
