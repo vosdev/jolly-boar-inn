@@ -65,7 +65,7 @@ jolly-boar-inn/
 │   │   │   ├── protocol.py    # pydantic models for every message, both directions
 │   │   │   └── handler.py     # /ws/{code} endpoint; parses, authenticates, dispatches to RoomManager
 │   │   ├── http/
-│   │   │   ├── rooms.py       # POST /api/rooms, POST /api/rooms/{code}/claim, GET /api/rooms/{code}
+│   │   │   ├── rooms.py       # POST /api/rooms, GET /api/rooms/{code}
 │   │   │   ├── players.py     # POST /api/rooms/{code}/join
 │   │   │   └── ratelimit.py   # in-memory per-IP limiter
 │   │   └── static.py          # mount client/dist with SPA fallback
@@ -78,7 +78,7 @@ jolly-boar-inn/
 │   ├── package.json
 │   ├── vite.config.ts         # dev proxy /api and /ws to :8000
 │   └── src/
-│       ├── App.svelte         # tiny hash-free router: /, /r/:code, /r/:code/admin, /r/:code/create
+│       ├── App.svelte         # tiny hash-free router: /, /create, /r/:code, /r/:code/create
 │       ├── lib/
 │       │   ├── api.ts         # fetch wrappers for /api
 │       │   ├── ws.ts          # RoomSocket: connect, hello, backoff reconnect, ping, typed events
@@ -87,8 +87,7 @@ jolly-boar-inn/
 │       │   └── stores.ts      # room, players, question, standings (Svelte runes/stores)
 │       ├── routes/
 │       │   ├── Home.svelte          # create or join
-│       │   ├── Create.svelte        # settings + custom questions editor (editor is Phase 2)
-│       │   ├── AdminClaim.svelte    # reads fragment token, claims, redirects
+│       │   ├── Create.svelte        # name + settings; creates and lands in the lobby as host
 │       │   ├── Join.svelte
 │       │   └── Room.svelte          # lobby / question / reveal / final, driven by stores
 │       └── components/
@@ -108,8 +107,7 @@ jolly-boar-inn/
 class RoomManager:
     rooms: dict[str, Room]                      # code -> Room, loaded lazily
     async def get(code) -> Room                 # load from Postgres if not in memory (rehydrate)
-    async def create(settings, custom_questions, creator_ip) -> tuple[Room, admin_token]
-    async def claim_admin(code, token, display_name) -> Player
+    async def create(display_name, settings, custom_questions, creator_ip) -> tuple[Room, Player, session_token]
     async def join(code, display_name) -> Player
     async def connect(code, session_token, ws) -> Player     # attaches socket, sends welcome
     async def disconnect(code, player_id)
@@ -158,7 +156,7 @@ def validate_value(payload: dict, value) -> bool   # shape check of a submitted 
 | Var | Default | Notes |
 |---|---|---|
 | `DATABASE_URL` | `postgresql://jbi:jbi@localhost:5432/jbi` | |
-| `PUBLIC_BASE_URL` | `http://localhost:5173` | Used to build `admin_url`. |
+| `PUBLIC_BASE_URL` | `http://localhost:5173` | Absolute base for this deployment. No consumer in Phase 1: the client builds every link from `location.origin`. |
 | `ROOM_TTL_DAYS` | `30` | Sets `expires_at`. |
 | `ROOMS_PER_IP_PER_HOUR` | `5` | |
 | `MAX_PLAYERS_PER_ROOM` | `50` | |
@@ -359,7 +357,7 @@ Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`
 
 Endpoint: `GET /ws/{code}`. Plain JSON text frames. Every message is `{"t": "<type>", ...fields}`. The server closes with code `4001` on a bad `hello`, `4004` unknown room, `4008` on any protocol error after a single `error` message.
 
-Authentication happens in the first frame, never in the URL. The session token is the one returned by join or claim, kept in `localStorage["jbi:session:" + code]`.
+Authentication happens in the first frame, never in the URL. The session token is the one returned by create or join, kept in `localStorage["jbi:session:" + code]`.
 
 ### Client → server
 
@@ -439,15 +437,16 @@ Process restart (`RoomManager.get` rehydrate):
 ### Room states
 
 ```
-created ──claim_admin──▶ lobby ──start_game──▶ playing ──last question closed / end_game──▶ finished
-   │                       │                       │                                            │
-   └───────────────────────┴───────── expires_at passes: cleanup job deletes the row ───────────┘
+POST /api/rooms ──▶ lobby ──start_game──▶ playing ──last question closed / end_game──▶ finished
+                      │                       │                                            │
+                      └───── expires_at passes: cleanup job deletes the row ───────────────┘
 ```
+
+A room is never without a host: there is no state between "does not exist" and `lobby`.
 
 | State | Joinable | Notes |
 |---|---|---|
-| `created` | no | Room row exists, admin token not consumed. Joins return `409 not_open`. Rooms not claimed within 1 hour are deleted by the cleanup job. |
-| `lobby` | yes | Admin claimed. Players join, admin can promote/kick. |
+| `lobby` | yes | Created with the room; its creator is the first admin. Players join, admins promote/kick. |
 | `playing` | yes | Late joiners get `welcome` with the current question and can answer it. |
 | `finished` | no | Final standings served via `welcome` for the room's lifetime. |
 
@@ -455,10 +454,10 @@ Transitions:
 
 | From | Trigger | Guard | Side effects |
 |---|---|---|---|
-| `created` → `lobby` | `POST claim` | token hash matches, not consumed, not expired | consume token, create admin player, persist status |
+| — → `lobby` | `POST /api/rooms` | valid display name and settings, under the per-IP rate limit | allocate a code, insert the room, its questions and the admin player in one transaction |
 | `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, open question 0, persist status |
 | `playing` → `finished` | last question's reveal ends, or `end_game` | admin for `end_game` | void open question if any, persist status, broadcast `game_finished` |
-| any → deleted | cleanup job | `expires_at < now`, or `created` older than 1 h | `DELETE FROM rooms` cascades |
+| any → deleted | cleanup job | `expires_at < now` | `DELETE FROM rooms` cascades |
 
 ### Question sub-machine (inside `playing`)
 
@@ -513,10 +512,8 @@ create table schema_migrations (
 create table rooms (
     id                     uuid primary key default gen_random_uuid(),
     code                   text not null,
-    status                 text not null check (status in ('created', 'lobby', 'playing', 'finished')),
+    status                 text not null check (status in ('lobby', 'playing', 'finished')),
     settings               jsonb not null,
-    admin_token_hash       text,                       -- sha256 hex of the single-use token; null once consumed
-    admin_token_consumed_at timestamptz,
     current_index          integer,                    -- index into questions.position, null before start
     creator_ip             inet,
     created_at             timestamptz not null default now(),
@@ -568,11 +565,12 @@ create index answers_player_idx on answers (player_id);
 
 Notes:
 
-- Tokens are stored hashed. A DB dump never yields a usable session or admin link.
+- Session tokens are stored hashed. A DB dump never yields a usable session.
 - `points` is written once at close and is the only thing standings read: `SELECT player_id, coalesce(sum(points), 0) FROM answers ... GROUP BY player_id`. In memory the same sum is kept per room and rebuilt from this query on rehydrate, so the table stays the source of truth.
 - `questions.payload` stores the type-specific payload and the envelope extras (`tags`, `difficulty`, `author`, `added_at`); `type`, `source`, `host_only`, `question_id` are columns because queries and grading need them.
-- `suggestions` (Phase 6) is not created now. It will be `0002_suggestions.sql` when needed.
-- Cleanup: `DELETE FROM rooms WHERE expires_at < now() OR (status = 'created' AND created_at < now() - interval '1 hour')`, run by an `asyncio` task in the app every 10 minutes. No external cron.
+- `0002_drop_admin_tokens.sql` removes `admin_token_hash`, `admin_token_consumed_at` and the `created` status: the creator is the admin, so there is nothing to claim.
+- `suggestions` (Phase 6) is not created now. It will be `0003_suggestions.sql` when needed.
+- Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every 10 minutes. No external cron.
 
 ## 6. Scoring
 
@@ -626,43 +624,34 @@ def points_for(correct: bool, bucket: int) -> int
 def points_closest(distances: dict[player_id, float]) -> dict[player_id, int]
 ```
 
-## 7. Admin token → session exchange
+## 7. Identity: who you are, and what never goes in a URL
 
-Goal: the room creator becomes admin via a link, the link is single-use, and the token never sits in a shareable address bar, a log, or a Referer header.
+Goal: the creator of a room is its first admin; every identity is a session token that only travels in a POST response body and the first websocket frame; and there is no second kind of token to lose.
 
-1. **Create.** Client `POST /api/rooms` with `{settings, custom_questions: []}`. No display name yet.
+1. **Create.** Client `POST /api/rooms` with `{display_name, settings, custom_questions: []}`.
 2. **Server** (`RoomManager.create`), one transaction:
+   - Normalise the display name first — trimmed, 1–24 characters, no `<`/`>`, no control characters → `422 bad_name` before a single row exists, and before the rate limiter is consulted. The limiter records a hit on every call it allows, so validating afterwards would let a handful of typos cost a host their hourly quota.
    - Rate limit: `ratelimit.py` keeps `{ip: deque[timestamps]}` in memory; more than `ROOMS_PER_IP_PER_HOUR` → `429`.
-   - Generate `code`: random entry from `data/room-words.json`, uppercase, retry on unique violation up to 5 times, then append two random digits.
-   - Generate `token = secrets.token_urlsafe(32)`, store `admin_token_hash = sha256(token)`.
-   - Insert room with `status = 'created'`, `expires_at = now + ROOM_TTL_DAYS`.
+   - Generate `code`: random entry from `data/room-words.json`, uppercase, retry on unique violation up to 5 times (a savepoint per attempt), then append two random digits.
+   - Insert the room with `status = 'lobby'` and `expires_at = now + ROOM_TTL_DAYS`. There is no `created` state: a room and its host are born together.
+   - Insert the creator as a player with `role = 'admin'` and `session_token = secrets.token_urlsafe(32)`, storing only its sha256. This insert sits outside the code-allocation savepoint on purpose — that savepoint reads a unique violation as "code taken, try another", and `players_session_idx` is unique across every room, so a collision there would otherwise be retried as a code collision until the allocator gave up.
    - Select questions (`selection.py`) and insert `questions` rows now, so the set is fixed at creation.
-   - Respond `201 {code, admin_url}` where `admin_url = PUBLIC_BASE_URL + "/r/" + code + "/admin#t=" + token`.
-   The token lives in the URL fragment. Browsers never send fragments to the server, so it cannot appear in access logs or Referer headers even before `replaceState` runs.
-3. **Client** shows the link once with a copy button, stores `code` in `localStorage["jbi:created"]` (list, for the "your rooms" view), and navigates to `admin_url` itself. The creator and any other device go through the same path; there is exactly one way to become the first admin.
-4. **Claim page** (`AdminClaim.svelte`) on load:
-   - Read `location.hash`, extract `t`.
-   - Immediately `history.replaceState(null, "", "/r/" + code + "/admin")` so the token leaves the address bar before anything else renders.
-   - If a session for this room already exists in localStorage, skip to step 7 (refresh after claim).
-   - Prompt for a display name, then `POST /api/rooms/{code}/claim` with `{token, display_name}` in the JSON body.
-5. **Server** (`RoomManager.claim_admin`), one transaction under the room lock:
-   - Load room; `404` if missing, `410 expired` if past `expires_at`.
-   - `hmac.compare_digest(sha256(token), admin_token_hash)`; mismatch or `admin_token_hash is null` → `410 token_used` (same response for both, no oracle).
-   - `UPDATE rooms SET admin_token_hash = null, admin_token_consumed_at = now(), status = 'lobby'`.
-   - Insert player with `role = 'admin'`, `session_token = secrets.token_urlsafe(32)`, store its sha256.
-   - Respond `200 {session, player}`. The plaintext session token is returned exactly once.
-6. **Client** stores `localStorage["jbi:session:" + code] = session` and navigates to `/r/{code}`.
-7. **Room page** opens the websocket and sends `hello {session}`. Admin capabilities are decided per message from `player.role`, never from the URL.
+   - Respond `201 {code, session, player}`. The plaintext session is returned exactly once and never logged. Anything that fails rolls all of it back: no room without a host, and no half-built room to garbage-collect.
+3. **Client** stores `localStorage["jbi:session:" + code] = session`, appends `code` to `localStorage["jbi:created"]` (list, for the "your rooms" view), and navigates to `/r/{code}`.
+4. **Room page** opens the websocket and sends `hello {session}`. Admin capabilities are decided per message from `player.role`, never from the URL and never from anything the client asserts about itself.
+
+Join is the same shape with a narrower result: `POST /api/rooms/{code}/join {display_name}` → `200 {session, player}` with `role = 'player'`, stored and used identically.
 
 Follow-ups covered by the same mechanism:
 
-- A second device for the admin: another admin promotes the second device's player, or the admin joins from the second device and promotes themselves from the first. No second token.
-- Lost admin session (cleared storage): any remaining admin promotes them again. If the only admin is gone, the room is stuck; Phase 4 adds a recovery path, Phase 1 accepts this.
-- Reuse of the link after consumption: `410` and a page saying "this link was already used, ask an admin to promote you".
+- A further admin: an existing admin sends `promote`. A second device for the host is an ordinary `join` from that device followed by a `promote` from the first. There is no admin link, and no way to become an admin except creating the room or being promoted.
+- Lost admin session (cleared storage): any remaining admin promotes them again. If the only admin is gone, the room is stuck; Phase 4 adds a recovery path, Phase 1 accepts this. It is a narrower window than it was, since the host's session is written the moment the room exists rather than one navigation later.
 
 Headers on every response (`main.py` middleware): `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`, `Cache-Control: no-store` on `/api/*`. Uvicorn access log format is overridden to log path without query string.
 
 Deviation from plan.md: created rooms are tracked in localStorage instead of a cookie. Reason: the server needs no cookie, and one storage mechanism on the client is enough.
+
+**Why the admin link is gone.** It existed to defer "what is your name?" until after the room was made, and it cost a `created` state, two token columns, a single-use secret in a URL fragment, a claim endpoint, a screen, and a `PUBLIC_BASE_URL` that had to be reachable from the host's own browser. Asking for the name on the create form removes all of that for one extra field. Nothing that was secret before is less secret now: a session token has always travelled in a POST response body and a websocket frame, never in a URL.
 
 ## 8. Phase 1 task list
 
@@ -688,11 +677,11 @@ Endpoints `/mapping` and `/latest`, one request each, descriptive User-Agent. `/
 
 Accept: produces +- 100 valid questions; `validate_packs.py` passes on the output; the script is idempotent and never runs at app startup or ci.
 
-DONE: **T6. Room creation and admin claim.** `rooms/codes.py`, `data/room-words.json` (see Needs decision), `http/rooms.py` with `POST /api/rooms`, `POST /api/rooms/{code}/claim`, `GET /api/rooms/{code}`; `ratelimit.py`; `rooms/selection.py`; the `create` and `claim_admin` methods of `RoomManager` with questions inserted at creation.
-Accept: integration tests cover: create returns a fragment URL; claim succeeds once and returns `410` the second time; wrong token is `410`; sixth create from one IP in an hour is `429`; `questions` rows equal `question_count`; code collision retry is unit-tested with a stubbed word list.
+DONE: **T6. Room creation.** `rooms/codes.py`, `data/room-words.json` (see Needs decision), `http/rooms.py` with `POST /api/rooms`, `GET /api/rooms/{code}`; `ratelimit.py`; `rooms/selection.py`; the `create` method of `RoomManager`, inserting the room, its questions and its admin player at creation.
+Accept: integration tests cover: create returns `{code, session, player}` and the creator is the room's admin; a bad display name creates no room row and costs no rate-limit quota; a failed admin insert leaves no room; sixth create from one IP in an hour is `429`; `questions` rows equal `question_count`; code collision retry is unit-tested with a stubbed word list.
 
 DONE: **T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules: trimmed, 1–24 chars, unique per room case-insensitively, no HTML (escaped on render anyway).
-Accept: join before claim → `409`; duplicate name → `409`; over `max_players` → `409`; success returns a session; player appears in `GET /api/rooms/{code}`.
+Accept: join a `finished` room → `409 not_open`; duplicate name → `409`; over `max_players` → `409`; success returns a session; player appears in `GET /api/rooms/{code}`.
 
 DONE: **T8. RoomManager core and websocket handshake.** `rooms/state.py` with `Room`, lock, `get` with rehydrate, `connect`/`disconnect`; `ws/protocol.py` models; `ws/handler.py` with `hello`/`welcome`/`ping`/`pong`/`room_updated`/`error`.
 Accept: test client connects, sends `hello`, gets `welcome` with `players` and `you`; second socket for the same player closes the first with `4000`; bad session → `4001`; disconnect flips `connected` in a broadcast to the remaining socket; a room evicted from memory (test hook) rehydrates identically.
@@ -706,8 +695,8 @@ Accept: table-driven tests for every bucket edge (exactly 0.10, 0.1001, > 1.0 cl
 DONE: **T11. Restart recovery.** Rehydrate path for `playing` rooms: void the open question, resume in `reveal`, timer task restarts.
 Accept: test starts a game, kills the manager mid-question (drop the in-memory room, cancel its task), calls `get`, and asserts the question is `voided`, players reconnecting receive `welcome` with `question = null` and `phase = reveal`, and the next question opens after `reveal_seconds`.
 
-**T12. Client: create, claim, join, lobby.** `api.ts`, `session.ts`, `ws.ts` with reconnect and ping per section 3, `Home`, `Create` (settings form, modes checkboxes, no custom editor), `AdminClaim` with fragment handling and `replaceState`, `Join`, `Lobby` with the player list and admin controls (start, promote, kick), copyable admin link.
-Accept: manual run-through in two browsers: create → claim → join from the second → both see each other → refresh either → still in lobby with the same identity; the address bar never shows `#t=` after load; DevTools shows no token in any request URL.
+**T12. Client: create, join, lobby.** `api.ts`, `session.ts`, `ws.ts` with reconnect and ping per section 3, `Home`, `Create` (name field, settings form, modes checkboxes, no custom editor), `Join`, `Lobby` with the player list, the copyable link for players and admin controls (start, promote, kick).
+Accept: manual run-through in two browsers: create → the creator lands in the lobby as host → join from the second → both see each other → refresh either → still in lobby with the same identity; DevTools shows no token in any request URL or the address bar.
 
 **T13. Client: play screen.** `Room.svelte` state machine on `phase`, `Timer` driven by `ends_at` and `server_time`, `HigherLower.svelte`, answered state with buttons disabled, reveal with the correct answer highlighted and per-player result, `Scoreboard` between questions, final standings screen.
 Accept: a full 10-question game with 3 browsers finishes and shows identical standings on all three; locking a phone for 20 s and unlocking mid-question shows the running question with the right remaining time; wrong answers show 0, correct show the bucketed points.
