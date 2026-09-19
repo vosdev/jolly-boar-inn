@@ -20,7 +20,7 @@ from starlette.websockets import WebSocketDisconnect
 from app.rooms.state import Room, RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
-from tests.rooms_api import claim, create, join
+from tests.rooms_api import call, claim, create, join
 
 
 @pytest.fixture
@@ -49,12 +49,6 @@ def get_room(client: TestClient, code: str) -> dict[str, Any]:
     response = client.get(f"/api/rooms/{code}")
     assert response.status_code == 200
     return response.json()
-
-
-def call(client: TestClient, fn: Any, *args: Any) -> Any:
-    """Run a manager coroutine on the app's loop from the test thread."""
-    assert client.portal is not None
-    return client.portal.call(fn, *args)
 
 
 def snapshot(room: Room) -> dict[str, Any]:
@@ -239,21 +233,39 @@ def test_join_over_http_broadcasts_room_updated(client: TestClient, lobby) -> No
         assert ws.receive_json()["t"] == "pong"
 
 
-def test_rejected_and_unimplemented_messages(client: TestClient, lobby) -> None:
-    """Well-formed messages T9 owns get ``error bad_state`` and the socket stays open."""
-    with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
-        hello(ws, lobby["admin"]["session"])
-        for frame in (
-            {"t": "start_game"},
-            {"t": "answer", "question_id": "q_x", "value": "higher"},
-            {"t": "promote", "player_id": lobby["player"]["player"]["id"]},
+def test_rejected_messages_keep_the_socket_open(client: TestClient, lobby) -> None:
+    """A message the room will not act on is one ``error`` frame, not a disconnect.
+
+    Only a frame we cannot parse is a protocol error (4008); being in the wrong state or
+    the wrong role is an ordinary refusal.
+    """
+    code = lobby["code"]
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, lobby["player"]["session"])
+        for frame, expected in (
+            ({"t": "answer", "question_id": "q_x", "value": "higher"}, "not_open"),
+            ({"t": "start_game"}, "not_admin"),  # the lobby fixture's player is not admin
+            ({"t": "skip"}, "not_admin"),
+            ({"t": "end_game"}, "not_admin"),
+            ({"t": "kick", "player_id": lobby["admin"]["player"]["id"]}, "not_admin"),
         ):
             ws.send_json(frame)
             error = ws.receive_json()
-            assert error["t"] == "error"
-            assert error["code"] == "bad_state"
+            assert error["t"] == "error", error
+            assert error["code"] == expected, (frame, error)
         ws.send_json({"t": "ping"})
         assert ws.receive_json()["t"] == "pong"
+    with client.websocket_connect(f"/ws/{code}") as admin_ws:
+        hello(admin_ws, lobby["admin"]["session"])
+        for frame, expected in (
+            ({"t": "skip"}, "bad_state"),  # nothing is running to skip
+            ({"t": "end_game"}, "bad_state"),
+            ({"t": "answer", "question_id": "q_x", "value": "higher"}, "not_open"),
+        ):
+            admin_ws.send_json(frame)
+            error = admin_ws.receive_json()
+            assert error["t"] == "error", error
+            assert error["code"] == expected, (frame, error)
 
 
 @pytest.mark.parametrize(

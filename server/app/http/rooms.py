@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.errors import ApiError
-from app.rooms.settings import RoomSettings
+from app.rooms.settings import NewRoomSettings
 from app.rooms.state import RoomManager
 
 router = APIRouter(prefix="/api/rooms")
@@ -20,7 +20,7 @@ class RateLimited(ApiError):
 class CreateRoom(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    settings: RoomSettings = Field(default_factory=RoomSettings)
+    settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
     # The custom-question editor is Phase 2; until then only an empty list is accepted.
     custom_questions: list[dict[str, Any]] = Field(default_factory=list, max_length=0)
 
