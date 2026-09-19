@@ -111,12 +111,12 @@
   const total = $derived(segment?.count ?? $question?.total ?? $room?.total ?? 0)
   /**
    * How long this question is open for, from the question rather than from the settings:
-   * a mode may cap itself below the room's `question_seconds`, and the timer has to
-   * count down the seconds players actually have.
+   * the two agree, but only the frame knows what a room stored under older rules was
+   * clamped to. With nothing open it falls back to the round's own `seconds`.
    */
   const questionSeconds = $derived(
     $question === null
-      ? ($room?.settings.question_seconds ?? 0)
+      ? ($room?.settings.modes.find((round) => round.mode === segment?.mode)?.seconds ?? 0)
       : (Date.parse($question.ends_at) - Date.parse($question.opened_at)) / 1000,
   )
   /** The component for the open question's type, or null for a mode this build lacks. */

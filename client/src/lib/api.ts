@@ -49,6 +49,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 /** What a host may ask for. The server's `NewRoomSettings` checks the same ranges. */
 export type NewRoomSettings = Omit<RoomSettings, 'max_players'> & { max_players?: number | null }
 
+/** One number a mode's round is set with: what to offer, and what the server accepts. */
+export interface ModeBounds {
+  default: number
+  min: number
+  max: number
+}
+
+/**
+ * How a round of one mode is paced, from the server's own type registry.
+ *
+ * The create form draws its number fields from these rather than from constants of its
+ * own: the defaults and the ranges are the server's policy (`questions/types/*.py`), and
+ * a second copy here would be a form that offers what the server then refuses. The copy
+ * for a mode -- its name and its blurb -- is the client's, and lives in `lib/modes.ts`.
+ */
+export interface ModePacing {
+  id: string
+  questions: ModeBounds
+  seconds: ModeBounds
+}
+
+/** Registry order, which is the order the create form lists them in. */
+export function getModes(): Promise<ModePacing[]> {
+  return request<ModePacing[]>('/api/modes')
+}
+
 export interface Credentials {
   session: string
   player: PlayerView

@@ -1,44 +1,97 @@
 <script lang="ts">
   /**
-   * Name first, then settings. One POST creates the room, its questions and you as its
+   * Name first, then the rounds. One POST creates the room, its questions and you as its
    * admin, and the response carries your session — so this screen navigates straight
    * into the lobby, which is already the best "room created" screen there is: the code
    * to read out, the link to share, and the players arriving.
    *
+   * A game mode is a round. Ticking three types makes a three-round game, and each one
+   * carries its own length and its own question count, because the modes differ in pace:
+   * `more_less` is two names and one word to read, so its round runs long and quick,
+   * where a release-date round is short and slow. The defaults and the ranges those
+   * numbers are held to come from `GET /api/modes`, which is the server's own type
+   * registry — the form never invents a number the server would refuse.
+   *
    * The custom-question editor is Phase 2, so `custom_questions` is always the empty
    * list `api.createRoom` sends.
    */
-  import { ApiFailure, createRoom, type NewRoomSettings } from '../lib/api'
-  import { MODE_LIST } from '../lib/modes'
+  import { onMount } from 'svelte'
+
+  import {
+    ApiFailure,
+    createRoom,
+    getModes,
+    type ModePacing,
+    type NewRoomSettings,
+  } from '../lib/api'
+  import { MODES, modeLabel } from '../lib/modes'
+  import type { ModeSettings } from '../lib/protocol'
   import { rememberCreated, setSession } from '../lib/session'
+
+  /** The server's cap on a room, over every round. `NewRoomSettings` checks the same. */
+  const MAX_QUESTIONS = 100
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   let displayName = $state('')
-  let rounds = $state(4)
-  let perRound = $state(5)
-  let questionSeconds = $state(30)
   let revealSeconds = $state(4)
   let splashSeconds = $state(8)
   let order = $state<'shuffle' | 'custom_last'>('shuffle')
+  let modeOrder = $state<'listed' | 'random'>('listed')
   let closeWhenAllAnswered = $state(true)
-  let modes = $state<string[]>([MODE_LIST[0].id])
+  /** The rounds, in the order they will play: one per mode, and the list is the order. */
+  let rounds = $state<ModeSettings[]>([])
 
+  /** What the server will play and what it will accept for each, or null until it says. */
+  let pacing = $state<ModePacing[] | null>(null)
+  let pacingFailure = $state<string | null>(null)
   let busy = $state(false)
   let failure = $state<string | null>(null)
 
-  /** The server takes a total and a round length; the form asks for the two factors. */
-  const questionCount = $derived(rounds * perRound)
+  const questionCount = $derived(rounds.reduce((total, round) => total + round.questions, 0))
   const ready = $derived(
-    displayName.trim() !== '' && modes.length > 0 && questionCount >= 1 && questionCount <= 100,
+    displayName.trim() !== '' &&
+      rounds.length > 0 &&
+      questionCount >= 1 &&
+      questionCount <= MAX_QUESTIONS,
   )
 
-  function toggle(id: string, on: boolean): void {
-    // Registry order, not click order: the rounds are dealt out in the order the modes
-    // are given, so "most recently ticked" would make the running order an artefact of
-    // which box was clicked last.
-    const wanted = new Set(on ? [...modes, id] : modes.filter((m) => m !== id))
-    modes = MODE_LIST.map((mode) => mode.id).filter((mode) => wanted.has(mode))
+  onMount(async () => {
+    try {
+      pacing = await getModes()
+      const first = pacing[0]
+      if (first !== undefined) rounds = [roundFor(first)]
+    } catch (error) {
+      pacingFailure =
+        error instanceof ApiFailure ? error.message : 'could not reach the server'
+    }
+  })
+
+  /** A round of `mode` at that mode's own pace, which is what ticking it gives you. */
+  function roundFor(mode: ModePacing): ModeSettings {
+    return { mode: mode.id, questions: mode.questions.default, seconds: mode.seconds.default }
+  }
+
+  function bounds(mode: string): ModePacing | null {
+    return pacing?.find((entry) => entry.id === mode) ?? null
+  }
+
+  function toggle(mode: ModePacing, on: boolean): void {
+    // Click order, deliberately: the list is the running order now, so a mode ticked
+    // last plays last — until the host moves it, or hands the order to `random`.
+    rounds = on
+      ? [...rounds, roundFor(mode)]
+      : rounds.filter((round) => round.mode !== mode.id)
+  }
+
+  /** Move round `index` one place `by` (-1 up, 1 down); the ends stay put. */
+  function move(index: number, by: number): void {
+    const to = index + by
+    if (to < 0 || to >= rounds.length) return
+    const moved = [...rounds]
+    const [round] = moved.splice(index, 1)
+    moved.splice(to, 0, round)
+    rounds = moved
   }
 
   async function submit(event: SubmitEvent): Promise<void> {
@@ -47,10 +100,8 @@
     busy = true
     failure = null
     const settings: NewRoomSettings = {
-      question_seconds: questionSeconds,
-      question_count: questionCount,
-      questions_per_round: perRound,
-      modes,
+      modes: rounds,
+      mode_order: modeOrder,
       order,
       reveal_seconds: revealSeconds,
       splash_seconds: splashSeconds,
@@ -91,29 +142,114 @@
   </section>
 
   <section class="panel">
-    <h2>Rounds</h2>
-    <p class="note">
-      Each round plays one question type and opens with a screen introducing it. With
-      more than one type picked, the rounds take turns.
-    </p>
+    <h2>Question types</h2>
+    <p class="note">Each type you pick is one round, opening with a screen introducing it.</p>
+    {#if pacingFailure !== null}
+      <p class="error">{pacingFailure}</p>
+    {:else if pacing === null}
+      <p class="note">Loading the question types…</p>
+    {:else}
+      {#each pacing as mode (mode.id)}
+        <label class="check">
+          <input
+            type="checkbox"
+            checked={rounds.some((round) => round.mode === mode.id)}
+            onchange={(event) => toggle(mode, event.currentTarget.checked)}
+          />
+          {modeLabel(mode.id)}
+          {#if MODES[mode.id]}<span class="note">— {MODES[mode.id].hint}</span>{/if}
+        </label>
+      {/each}
+      {#if rounds.length === 0}
+        <p class="error">Pick at least one type; a room with no rounds is no game.</p>
+      {/if}
+    {/if}
+  </section>
+
+  {#if rounds.length > 0}
+    <section class="panel">
+      <h2>Rounds ({rounds.length})</h2>
+      <div class="field">
+        <label for="mode-order">Round order</label>
+        <select id="mode-order" bind:value={modeOrder}>
+          <option value="listed">The order below</option>
+          <option value="random">Random</option>
+        </select>
+      </div>
+      <ul class="rounds">
+        {#each rounds as round, index (round.mode)}
+          <li>
+            <div class="spread">
+              <span class="name">
+                {#if modeOrder === 'listed'}<span class="tag">{index + 1}</span>{/if}
+                {modeLabel(round.mode)}
+              </span>
+              {#if modeOrder === 'listed' && rounds.length > 1}
+                <span class="row">
+                  <button
+                    type="button"
+                    class="small"
+                    disabled={index === 0}
+                    aria-label="Move {modeLabel(round.mode)} earlier"
+                    onclick={() => move(index, -1)}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    class="small"
+                    disabled={index === rounds.length - 1}
+                    aria-label="Move {modeLabel(round.mode)} later"
+                    onclick={() => move(index, 1)}
+                  >
+                    ↓
+                  </button>
+                </span>
+              {/if}
+            </div>
+            <div class="grid">
+              <div>
+                <label for="questions-{round.mode}">Questions</label>
+                <input
+                  id="questions-{round.mode}"
+                  type="number"
+                  min={bounds(round.mode)?.questions.min ?? 1}
+                  max={bounds(round.mode)?.questions.max ?? 30}
+                  bind:value={round.questions}
+                />
+                <p class="note">
+                  {bounds(round.mode)?.questions.min}–{bounds(round.mode)?.questions.max}
+                </p>
+              </div>
+              <div>
+                <label for="seconds-{round.mode}">Seconds per question</label>
+                <input
+                  id="seconds-{round.mode}"
+                  type="number"
+                  min={bounds(round.mode)?.seconds.min ?? 5}
+                  max={bounds(round.mode)?.seconds.max ?? 120}
+                  bind:value={round.seconds}
+                />
+                <p class="note">
+                  {bounds(round.mode)?.seconds.min}–{bounds(round.mode)?.seconds.max}
+                </p>
+              </div>
+            </div>
+          </li>
+        {/each}
+      </ul>
+      <p class="note" class:error={questionCount > MAX_QUESTIONS}>
+        {questionCount} question{questionCount === 1 ? '' : 's'} in total{questionCount >
+        MAX_QUESTIONS
+          ? `, over the ${MAX_QUESTIONS} cap`
+          : ''}
+      </p>
+    </section>
+  {/if}
+
+  <section class="panel">
+    <h2>The rest of the game</h2>
     <div class="grid">
-      <div>
-        <label for="rounds">Rounds</label>
-        <input id="rounds" type="number" min="1" max="20" bind:value={rounds} />
-        <p class="note">1–20</p>
-      </div>
-      <div>
-        <label for="per-round">Questions per round</label>
-        <input id="per-round" type="number" min="1" max="20" bind:value={perRound} />
-        <p class="note" class:error={questionCount > 100}>
-          1–20 · {questionCount} questions in total{questionCount > 100 ? ', over the 100 cap' : ''}
-        </p>
-      </div>
-      <div>
-        <label for="seconds">Seconds per question</label>
-        <input id="seconds" type="number" min="10" max="120" bind:value={questionSeconds} />
-        <p class="note">10–120. Quick types cap themselves lower.</p>
-      </div>
       <div>
         <label for="splash">Round intro seconds</label>
         <input id="splash" type="number" min="0" max="30" bind:value={splashSeconds} />
@@ -136,23 +272,6 @@
       <input type="checkbox" bind:checked={closeWhenAllAnswered} />
       Close a question as soon as everyone has answered
     </label>
-  </section>
-
-  <section class="panel">
-    <h2>Question types</h2>
-    {#each MODE_LIST as mode (mode.id)}
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={modes.includes(mode.id)}
-          onchange={(event) => toggle(mode.id, event.currentTarget.checked)}
-        />
-        {mode.label} <span class="note">— {mode.hint}</span>
-      </label>
-    {/each}
-    {#if modes.length === 0}
-      <p class="error">Pick at least one type.</p>
-    {/if}
   </section>
 
   <div class="row">

@@ -6,6 +6,7 @@
    * That is a convenience, not a check: the server decides per message (section 7
    * step 7), so a player who forges the flag gets `not_admin` back and nothing else.
    */
+  import { modeLabel } from '../lib/modes'
   import type { PlayerView } from '../lib/protocol'
   import { lastError, players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
@@ -16,9 +17,21 @@
   const isAdmin = $derived($you?.role === 'admin')
   const canStart = $derived(isAdmin && $room?.status === 'lobby' && $players.length > 0)
   const settings = $derived($room?.settings ?? null)
-  /** Rounds are not stored: the total and the round length are, and this is their ratio. */
-  const rounds = $derived(
-    settings === null ? 0 : Math.ceil(settings.question_count / settings.questions_per_round),
+  /** A mode is a round, so the modes picked are the rounds the room will play. */
+  const rounds = $derived(settings?.modes.length ?? 0)
+  /**
+   * The rounds A–Z by name, which is deliberately not the order they play in: what is
+   * coming is the game's to reveal, one splash at a time, and the host arranged that
+   * order (or handed it to `random`) on the way in.
+   */
+  /** Every question in the room, which is every round's own count added up. */
+  const questions = $derived(
+    (settings?.modes ?? []).reduce((total, round) => total + round.questions, 0),
+  )
+  const listed = $derived(
+    [...(settings?.modes ?? [])].sort((a, b) =>
+      modeLabel(a.mode).localeCompare(modeLabel(b.mode)),
+    ),
   )
 
   function kick(player: PlayerView): void {
@@ -44,13 +57,33 @@
     {#if settings !== null}
       <p class="note">
         {rounds}
-        {rounds === 1 ? 'round' : 'rounds'} of {settings.questions_per_round} ·
-        up to {settings.question_seconds}s a question · {settings.reveal_seconds}s reveal
+        {rounds === 1 ? 'round' : 'rounds'} · {questions}
+        {questions === 1 ? 'question' : 'questions'} · {settings.reveal_seconds}s reveal
       </p>
     {/if}
   </div>
   <CopyLink label="Link for players" value={`${location.origin}/r/${$room?.code ?? ''}`} />
 </section>
+
+{#if settings !== null}
+  <section class="panel">
+    <h2>Tonight's rounds</h2>
+    <ul class="modes">
+      {#each listed as round (round.mode)}
+        <li>
+          <span class="name">{modeLabel(round.mode)}</span>
+          <span class="note">
+            {round.questions}
+            {round.questions === 1 ? 'question' : 'questions'} · {round.seconds}s each
+          </span>
+        </li>
+      {/each}
+    </ul>
+    {#if rounds > 1}
+      <p class="note">One round each, listed A–Z rather than in the order they play.</p>
+    {/if}
+  </section>
+{/if}
 
 <section class="panel">
   <h2>

@@ -28,13 +28,21 @@ export type ErrorCode =
   | 'bad_value'
   | 'bad_state'
 
+/** One mode's round: how many questions it holds, and how long each one is open. */
+export interface ModeSettings {
+  /** The question type this round plays; the key into `lib/modes.ts`. */
+  mode: string
+  questions: number
+  seconds: number
+}
+
 /** `app/rooms/settings.py`. `max_players` is null only before the server resolves it. */
 export interface RoomSettings {
-  question_seconds: number
-  /** The total. The create form asks for rounds and a length, and posts their product. */
-  question_count: number
-  questions_per_round: number
-  modes: string[]
+  /** A mode is a round: this list *is* the rounds, one each, in the order they play. */
+  modes: ModeSettings[]
+  /** `listed`: the order the host arranged. `random`: shuffled once, at creation. */
+  mode_order: 'listed' | 'random'
+  /** Where the room's own questions go; nothing to do with `mode_order`. Phase 2. */
   order: 'shuffle' | 'custom_last'
   reveal_seconds: number
   /** How long a round's mode is introduced for. Zero means no splash at all. */
