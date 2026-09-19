@@ -1,12 +1,6 @@
 /**
  * localStorage: one session token per room, plus the list of rooms created here.
  *
- * Also the home of the admin-token capture (section 7 step 4). `captureAdminToken` runs
- * from `main.ts` before the app is mounted, not from a component's `onMount`: by the
- * time a component's effects run the browser has already painted a frame with the token
- * in the address bar, and anything that navigates or opens a window in between leaks it
- * through the URL. Reading and stripping it before the first render closes that window.
- *
  * Every accessor tolerates localStorage throwing. Safari in private mode and a browser
  * with site data blocked both raise on `getItem`, and a quiz that cannot be played
  * without storage is worse than one that forgets you.
@@ -73,32 +67,4 @@ export function rememberCreated(code: string): void {
   const normalized = normalizeCode(code)
   const rooms = [normalized, ...createdRooms().filter((c) => c !== normalized)].slice(0, 20)
   write(CREATED_KEY, JSON.stringify(rooms))
-}
-
-// --- The admin token in the URL fragment -------------------------------------------
-
-let pendingToken: string | null = null
-
-/**
- * Take `#t=<token>` out of the address bar and hold it in memory for `AdminClaim`.
- *
- * Call once, from `main.ts`, before mounting. Browsers never send a fragment to a
- * server, so the token cannot reach an access log or a Referer header even before this
- * runs; `replaceState` is about what is left on screen, in the back/forward history and
- * in whatever the user pastes next.
- */
-export function captureAdminToken(): void {
-  const hash = location.hash.startsWith('#') ? location.hash.slice(1) : location.hash
-  if (hash === '') return
-  const token = new URLSearchParams(hash).get('t')
-  if (token !== null && token !== '') pendingToken = token
-  // Strip the whole fragment either way: whatever else is in there, it is not ours.
-  history.replaceState(null, '', location.pathname + location.search)
-}
-
-/** The captured token, once. A second read returns null, so a claim is never retried. */
-export function takeAdminToken(): string | null {
-  const token = pendingToken
-  pendingToken = null
-  return token
 }

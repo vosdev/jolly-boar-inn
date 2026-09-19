@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from app.rooms.settings import RoomSettings
 
-RoomStatus = Literal["created", "lobby", "playing", "finished"]
+RoomStatus = Literal["lobby", "playing", "finished"]
 Phase = Literal["idle", "open", "reveal"]
 Role = Literal["player", "admin"]
 ErrorCode = Literal[

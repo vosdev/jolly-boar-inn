@@ -1,28 +1,25 @@
 """Helpers shared by the room, websocket and game tests."""
 
 from typing import Any
-from urllib.parse import urlsplit
 
 import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.rooms.settings import RoomSettings
-from app.rooms.state import Room
+from app.rooms.state import Player, Room
 
 
-def create(client: TestClient, **settings: Any) -> tuple[str, str]:
-    """Create a room, return ``(code, token)``."""
-    response = client.post("/api/rooms", json={"settings": settings})
+def create(client: TestClient, name: str = "Admin", **settings: Any) -> tuple[str, dict[str, Any]]:
+    """Create a room; its creator is its admin. Returns ``(code, {session, player})``.
+
+    The second element is shaped exactly like ``join(...).json()``, so a fixture can
+    hold admins and players in the same list.
+    """
+    response = client.post("/api/rooms", json={"display_name": name, "settings": settings})
     assert response.status_code == 201, response.text
     body = response.json()
-    fragment = urlsplit(body["admin_url"]).fragment
-    assert fragment.startswith("t=")
-    return body["code"], fragment[2:]
-
-
-def claim(client: TestClient, code: str, token: str, name: str = "Admin") -> httpx.Response:
-    return client.post(f"/api/rooms/{code}/claim", json={"token": token, "display_name": name})
+    return body["code"], {"session": body["session"], "player": body["player"]}
 
 
 def join(client: TestClient, code: str, name: str) -> httpx.Response:
@@ -48,6 +45,8 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     )
 
 
-def create_fast(app: FastAPI, client: TestClient, **overrides: Any) -> tuple[Room, str]:
-    """A room with one-second questions. Returns the room and its admin token."""
-    return call(client, app.state.rooms.create, fast_settings(**overrides), [], "127.0.0.1")
+def create_fast(
+    app: FastAPI, client: TestClient, name: str = "Admin", **overrides: Any
+) -> tuple[Room, Player, str]:
+    """A room with one-second questions, its admin player and their session token."""
+    return call(client, app.state.rooms.create, name, fast_settings(**overrides), [], "127.0.0.1")

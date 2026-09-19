@@ -25,9 +25,11 @@ players, its questions and the standings sum, and ``_recover`` voids whatever qu
 open when the process died, puts the room in ``reveal`` and hands it to a timer task that
 starts there, so a crash costs one question and nobody is asked another one on arrival.
 
-Token flow (section 7 of ideas/architecture.md): the admin token and every session
-token are ``secrets.token_urlsafe(32)``; only their sha256 hex is stored. The plaintext
-is returned to the caller exactly once and never logged.
+Token flow (section 7 of ideas/architecture.md): a session token is
+``secrets.token_urlsafe(32)`` and only its sha256 hex is stored. The plaintext is
+returned to its owner exactly once, by ``create`` or ``join``, and never logged. There
+is no second kind of token: a room's creator is its first admin, and further admins are
+made with ``promote``.
 """
 
 import asyncio
@@ -86,12 +88,6 @@ class RoomNotFound(ApiError):
 
 class RoomExpired(ApiError):
     status, code = 410, "expired"
-
-
-class TokenUsed(ApiError):
-    """Wrong token or already-consumed token: one response for both, no oracle."""
-
-    status, code = 410, "token_used"
 
 
 class NotOpen(ApiError):
@@ -689,18 +685,24 @@ class RoomManager:
 
     async def create(
         self,
+        display_name: str,
         settings: RoomSettings,
         custom_questions: Sequence[dict[str, Any]],
         creator_ip: str | None,
-    ) -> tuple[Room, str]:
-        """Insert the room and its fixed question set. Returns the room and the admin token."""
+    ) -> tuple[Room, Player, str]:
+        """Insert the room, its fixed question set and its admin, in one transaction.
+
+        Returns the room, the admin player and their plaintext session token, once.
+        """
+        # First, before the pool is even touched: a bad name leaves no room behind.
+        name = normalize_name(display_name)
         cap = self.settings.max_players_per_room
         if settings.max_players is None:
             settings = settings.model_copy(update={"max_players": cap})
         elif settings.max_players > cap:
             raise BadSettings(f"max_players may not exceed {cap}")
         questions = selection.select(self.packs, custom_questions, settings, self.rng)
-        token = new_token()
+        session = new_token()
         now = datetime.now(UTC)
         expires_at = now + timedelta(days=self.settings.room_ttl_days)
 
@@ -713,14 +715,12 @@ class RoomManager:
                 try:
                     async with conn.transaction():  # savepoint, so a collision is retryable
                         room_row = await conn.fetchrow(
-                            "insert into rooms"
-                            " (code, status, settings, admin_token_hash, creator_ip, expires_at)"
-                            " values ($1, 'created', $2, $3, $4, $5)"
+                            "insert into rooms (code, status, settings, creator_ip, expires_at)"
+                            " values ($1, 'lobby', $2, $3, $4)"
                             " returning id, code, status, settings, current_index,"
                             " created_at, expires_at",
                             code,
                             settings.model_dump(),
-                            hash_token(token),
                             parse_ip(creator_ip),
                             expires_at,
                         )
@@ -730,6 +730,22 @@ class RoomManager:
 
             await codes.allocate(self.words, self.rng, try_insert)
             assert room_row is not None
+            # Outside the savepoint above and inside this transaction, deliberately.
+            # ``try_insert`` reads a unique violation as "that code was taken, try
+            # another", and ``players_session_idx`` is unique across every room: a
+            # collision there would be retried as a code collision until the allocator
+            # gave up. Out here it aborts the transaction and takes the room row with
+            # it, which is the property worth having -- no room without a host, ever.
+            # No ``NameTaken`` guard: the room is one statement old and has no players,
+            # so a violation here is a bug and should read as one.
+            player_row = await conn.fetchrow(
+                "insert into players (room_id, display_name, session_token_hash, role)"
+                " values ($1, $2, $3, 'admin')"
+                " returning id, display_name, role, joined_at, session_token_hash",
+                room_row["id"],
+                name,
+                hash_token(session),
+            )
             await conn.executemany(
                 "insert into questions"
                 " (room_id, position, question_id, type, source, payload, host_only)"
@@ -739,54 +755,20 @@ class RoomManager:
             # Read them back so a freshly created room holds exactly what a rehydrated
             # one would, ids included.
             inserted = await _fetch_questions(conn, room_row["id"])
+        assert player_row is not None
         code = room_row["code"]
+        player = _player_from_row(player_row)
         room = _room_from_row(room_row, total=len(inserted), lock=self._lock(code))
         room.questions = inserted
+        # Before ``setdefault``: the copy that lands in ``self.rooms`` is never re-read,
+        # so a room cached without its admin would reject the host's own ``hello``.
+        room.players[player.id] = player
         async with room.lock:
-            # A ``get`` racing the commit may have loaded it first; that copy wins.
+            # A ``get`` racing the commit may have loaded it first; that copy wins, and
+            # it read the admin back from the same committed row.
             room = self.rooms.setdefault(code, room)
-        return room, token
-
-    async def claim_admin(self, code: str, token: str, display_name: str) -> tuple[Player, str]:
-        """Consume the admin token, open the lobby, create the admin player.
-
-        Returns the player and their plaintext session token, once.
-        """
-        code = code.upper()
-        name = normalize_name(display_name)
-        session = new_token()
-        pool = await self._pool()
-        async with self._lock(code):
-            room = await self._room(code)
-            async with pool.acquire() as conn, conn.transaction():
-                stored = await conn.fetchval(
-                    "select admin_token_hash from rooms where id = $1", room.id
-                )
-                # Compare against a dummy when consumed so both failures take the same path.
-                if not hmac.compare_digest(hash_token(token), stored or "0" * 64) or stored is None:
-                    raise TokenUsed("this admin link was already used or is not valid")
-                await conn.execute(
-                    "update rooms set admin_token_hash = null,"
-                    " admin_token_consumed_at = now(), status = 'lobby'"
-                    " where id = $1 and admin_token_hash = $2",
-                    room.id,
-                    stored,
-                )
-                row = await conn.fetchrow(
-                    "insert into players (room_id, display_name, session_token_hash, role)"
-                    " values ($1, $2, $3, 'admin')"
-                    " returning id, display_name, role, joined_at, session_token_hash",
-                    room.id,
-                    name,
-                    hash_token(session),
-                )
-            assert row is not None
-            player = _player_from_row(row)
-            room.status = "lobby"
-            room.players[player.id] = player
-            update = self._room_updated(room)
-        await self._broadcast(update)  # nobody can be connected before the claim, but cheap
-        return player, session
+            player = room.players.get(player.id, player)
+        return room, player, session
 
     async def join(self, code: str, display_name: str) -> tuple[Player, str]:
         """Add a player to a joinable room. Returns the player and their session token, once.
@@ -800,7 +782,7 @@ class RoomManager:
         async with self._lock(code):
             room = await self._room(code)
             if room.status not in ("lobby", "playing"):
-                raise NotOpen(f"room {code} is not open for joining")
+                raise NotOpen(f"room {code} has finished")
             if len(room.players) >= room.max_players:
                 raise RoomFull(f"room {code} is full")
             async with pool.acquire() as conn, conn.transaction():

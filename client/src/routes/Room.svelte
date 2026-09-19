@@ -87,7 +87,7 @@
   {#if $room === null}
     <h1>Room {code}</h1>
     <p class="note">Connecting…</p>
-  {:else if $room.status === 'created' || $room.status === 'lobby'}
+  {:else if $room.status === 'lobby'}
     <h1>Lobby</h1>
     {#if socket !== null}
       <Lobby {socket} />

@@ -14,7 +14,7 @@
  *   and an `import type { Error }` would shadow it in the importing module.
  */
 
-export type RoomStatus = 'created' | 'lobby' | 'playing' | 'finished'
+export type RoomStatus = 'lobby' | 'playing' | 'finished'
 export type Phase = 'idle' | 'open' | 'reveal'
 export type Role = 'player' | 'admin'
 
