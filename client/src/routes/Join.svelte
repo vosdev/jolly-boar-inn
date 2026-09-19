@@ -64,13 +64,7 @@
   <p class="note">Looking for the room…</p>
 {:else if !joinable}
   <section class="panel">
-    <p>
-      {#if status === 'created'}
-        Nobody has taken the host seat yet. Try again once the host is in.
-      {:else}
-        This game has finished.
-      {/if}
-    </p>
+    <p>This game has finished.</p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
 {:else}

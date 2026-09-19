@@ -3,12 +3,12 @@
  *
  * The server renders every `ApiError` as `{code, message}` with a meaningful status
  * (`app/main.py`), so failures arrive as data. `request` turns them back into a thrown
- * `ApiFailure` carrying that code, which is what the screens branch on: `token_used`
- * means the claim link is spent, `name_taken` means try another name.
+ * `ApiFailure` carrying that code, which is what the screens branch on: `name_taken`
+ * means try another name, `room_full` means the room is at capacity.
  *
- * Nothing here ever puts a secret in a URL. The admin token and the display name go in
- * the JSON body of a POST; the session token never touches HTTP at all, only the first
- * websocket frame.
+ * Nothing here ever puts a secret in a URL. A display name goes in the JSON body of a
+ * POST, and a session token is only ever *returned* by one -- from there it travels in
+ * the first websocket frame and nowhere else.
  */
 
 import type { PlayerView, RoomSettings, RoomView } from './protocol'
@@ -49,15 +49,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 /** What a host may ask for. The server's `NewRoomSettings` checks the same ranges. */
 export type NewRoomSettings = Omit<RoomSettings, 'max_players'> & { max_players?: number | null }
 
-export interface CreatedRoom {
-  code: string
-  /** Absolute, and carrying the admin token in its fragment. Single use. */
-  admin_url: string
-}
-
 export interface Credentials {
   session: string
   player: PlayerView
+}
+
+/** The creator is the room's admin, so creating one signs you in as its host. */
+export interface CreatedRoom extends Credentials {
+  code: string
 }
 
 export interface RoomSnapshot {
@@ -65,22 +64,13 @@ export interface RoomSnapshot {
   players: PlayerView[]
 }
 
-export function createRoom(settings: NewRoomSettings): Promise<CreatedRoom> {
+export function createRoom(
+  displayName: string,
+  settings: NewRoomSettings,
+): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
-    body: JSON.stringify({ settings, custom_questions: [] }),
-  })
-}
-
-/** The token goes in the body. Putting it in the path would log it. */
-export function claimAdmin(
-  code: string,
-  token: string,
-  displayName: string,
-): Promise<Credentials> {
-  return request<Credentials>(`/api/rooms/${encodeURIComponent(code)}/claim`, {
-    method: 'POST',
-    body: JSON.stringify({ token, display_name: displayName }),
+    body: JSON.stringify({ display_name: displayName, settings, custom_questions: [] }),
   })
 }
 

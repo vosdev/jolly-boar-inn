@@ -39,7 +39,7 @@
 <section class="panel">
   <h2>Host a room</h2>
   <p class="note">
-    Pick the settings, get a room code to read out, and claim the host seat on this device.
+    Pick your name and the settings. You are the host, and you get a room code to read out.
   </p>
   <button type="button" onclick={() => navigate('/create')}>Create a room</button>
 </section>
