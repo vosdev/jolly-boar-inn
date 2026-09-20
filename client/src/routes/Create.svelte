@@ -49,9 +49,18 @@
   let failure = $state<string | null>(null)
 
   const questionCount = $derived(rounds.reduce((total, round) => total + round.questions, 0))
+  /** Every round's two numbers inside what `/api/modes` said the server would take. */
+  const roundsInRange = $derived(
+    rounds.every(
+      (round) =>
+        inRange(round.mode, 'questions', round.questions) &&
+        inRange(round.mode, 'seconds', round.seconds),
+    ),
+  )
   const ready = $derived(
     displayName.trim() !== '' &&
       rounds.length > 0 &&
+      roundsInRange &&
       questionCount >= 1 &&
       questionCount <= MAX_QUESTIONS,
   )
@@ -74,6 +83,22 @@
 
   function bounds(mode: string): ModePacing | null {
     return pacing?.find((entry) => entry.id === mode) ?? null
+  }
+
+  /**
+   * Would the server take this number for this round? The `min` and `max` attributes are
+   * a nudge, not a gate — a host may type 45 into a field that says 5–20 — so the same
+   * bounds gate the submit button and colour the hint under the field.
+   *
+   * A mode `/api/modes` did not list answers no rather than yes: without its bounds there
+   * is nothing to check against, and the server is the one holding the opinion. A field
+   * the host cleared answers no too, because `bind:value` writes `null` into an empty
+   * number input and posting that earns a complaint about integers instead of a range.
+   */
+  function inRange(mode: string, field: 'questions' | 'seconds', value: number): boolean {
+    const limits = bounds(mode)?.[field]
+    if (limits === undefined || !Number.isInteger(value)) return false
+    return limits.min <= value && value <= limits.max
   }
 
   function toggle(mode: ModePacing, on: boolean): void {
@@ -217,7 +242,7 @@
                   max={bounds(round.mode)?.questions.max ?? 30}
                   bind:value={round.questions}
                 />
-                <p class="note">
+                <p class="note" class:error={!inRange(round.mode, 'questions', round.questions)}>
                   {bounds(round.mode)?.questions.min}–{bounds(round.mode)?.questions.max}
                 </p>
               </div>
@@ -230,7 +255,7 @@
                   max={bounds(round.mode)?.seconds.max ?? 120}
                   bind:value={round.seconds}
                 />
-                <p class="note">
+                <p class="note" class:error={!inRange(round.mode, 'seconds', round.seconds)}>
                   {bounds(round.mode)?.seconds.min}–{bounds(round.mode)?.seconds.max}
                 </p>
               </div>
