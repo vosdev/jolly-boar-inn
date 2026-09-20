@@ -258,9 +258,9 @@ A room's own questions are a round like any other: they carry `mode = "custom"` 
 |---|---|---|
 | `DATABASE_URL` | `postgresql://jbi:jbi@localhost:5432/jbi` | |
 | `PUBLIC_BASE_URL` | `http://localhost:5173` | Absolute base for this deployment. No consumer in Phase 1: the client builds every link from `location.origin`. |
-| `ROOM_TTL_DAYS` | `30` | Sets `expires_at`. |
-| `ROOM_CLEANUP_INTERVAL_SECONDS` | `3600` | How often the cleanup task deletes rooms past `expires_at`. |
-| `ROOMS_PER_IP_PER_HOUR` | `5` | |
+| `ROOM_TTL_DAYS` | `3` | Sets `expires_at`. |
+| `ROOM_CLEANUP_INTERVAL_SECONDS` | `3600` | How often the cleanup task deletes rooms past `expires_at`. Must be positive; the app refuses to start otherwise. |
+| `ROOMS_PER_IP_PER_HOUR` | `10` | |
 | `MAX_PLAYERS_PER_ROOM` | `50` | |
 | `PACKS_DIR` | `../data/packs` | |
 | `LOG_LEVEL` | `info` | Query strings are never logged. |

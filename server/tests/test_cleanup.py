@@ -22,7 +22,6 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
-from app.config import Settings
 from app.main import cleanup_expired_rooms
 from tests.rooms_api import call, create, create_fast, join
 
@@ -170,7 +169,12 @@ def test_the_first_pass_runs_at_startup(app: FastAPI, db) -> None:
 
 
 async def test_a_failed_pass_does_not_stop_the_loop(caplog) -> None:
-    """A database error is logged and the next pass runs; the task survives it."""
+    """A database error is logged and the next pass runs; the task survives it.
+
+    The whole ``app`` is a stand-in, settings included, so that the second pass follows
+    the first without a real wait: how long the loop sleeps is not what this checks.
+    ``Settings`` itself refuses the ``0`` used here -- ``test_config`` covers that.
+    """
     passes = 0
     second = asyncio.Event()
 
@@ -184,7 +188,7 @@ async def test_a_failed_pass_does_not_stop_the_loop(caplog) -> None:
 
     app = SimpleNamespace(
         state=SimpleNamespace(
-            settings=Settings(_env_file=None, room_cleanup_interval_seconds=0),
+            settings=SimpleNamespace(room_cleanup_interval_seconds=0),
             rooms=SimpleNamespace(purge_expired=purge_expired),
         )
     )
