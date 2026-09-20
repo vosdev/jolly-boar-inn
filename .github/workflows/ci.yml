@@ -7,7 +7,7 @@ on:
 
 jobs:
   server:
-    name: Server (ruff, pytest, validate-packs)
+    name: Server (ruff, pytest, packs, contrast)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,6 +39,7 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run pytest
       - run: uv run python scripts/validate_packs.py
+      - run: uv run python scripts/check_contrast.py
 
   client:
     name: Client (svelte-check, build)
