@@ -30,3 +30,18 @@ Similar to a splash page, we can have an NPC show up and 1 second later ask the 
 
 Ideally, the question that is asked is a different type and/or gamemode. To make it truly a random event.
 
+# Custom font?
+
+If we want a custom font, we should find one.
+
+
+# Fetch assets task
+
+We need to create a script that will fetch assets like chat heads and other images.
+
+# Logo
+
+We need to create our own logo/favicon for the website
+# Limit answers to 7
+
+We only have 7 gems (Sapphire <-> Zenyte) so we need to limit the amount of answers that any type of question can have to 7.
