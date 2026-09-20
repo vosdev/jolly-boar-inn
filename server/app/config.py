@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://jbi:jbi@localhost:5432/jbi"
     public_base_url: str = "http://localhost:5173"
     room_ttl_days: int = 30
+    # How often the cleanup task deletes rooms past their ``expires_at`` (section 4's
+    # ``any -> deleted``). Hourly is far finer than a 30-day TTL needs; it is the
+    # interval a self-hoster can lower when they want the rows gone sooner.
+    room_cleanup_interval_seconds: int = 3600
     rooms_per_ip_per_hour: int = 5
     max_players_per_room: int = 50
     packs_dir: Path = Path("../data/packs")

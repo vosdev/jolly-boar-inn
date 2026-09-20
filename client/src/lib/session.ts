@@ -63,6 +63,13 @@ export function createdRooms(): string[] {
   }
 }
 
+/** Drop a room from the created list and forget its session; used after deleting it. */
+export function forgetCreated(code: string): void {
+  const normalized = normalizeCode(code)
+  write(CREATED_KEY, JSON.stringify(createdRooms().filter((c) => c !== normalized)))
+  clearSession(normalized)
+}
+
 export function rememberCreated(code: string): void {
   const normalized = normalizeCode(code)
   const rooms = [normalized, ...createdRooms().filter((c) => c !== normalized)].slice(0, 20)
