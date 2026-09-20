@@ -419,6 +419,8 @@ OpenQuestion  { question_id, index, total, type, segment: Segment, view: object,
 
 `Segment` is the round in progress: which mode it plays, which round of how many it is, and the positions it spans. It is grouped from the `questions.round` column, never sent from a second store of it. It rides on `OpenQuestion` as well as `RoomView` because clients patch their room from `question_open` rather than replacing it, and a round can change with no splash to announce it.
 
+`total` is how many questions the room holds, counted from the rows `create` stored rather than added up off `settings.modes`. The two disagree whenever the plan and the stored set do: a mode whose pack pool ran short gives a round briefer than it asked for, and a room created before per-mode rounds carries settings that cannot describe the questions it already has. The lobby reads `total` for its summary for the same reason the progress counter does — the questions a room has are the ones it will play, and the settings are only what was asked for.
+
 `next_at` is when the current timed phase ends — a splash gives way to its first question, a reveal to the next question — and is null while a question is open.
 
 `view` is exactly `types.<type>.client_view(payload)`. `you_can_answer` is false for the author of a room question and for `host_only` questions.
@@ -524,7 +526,7 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
 }
 ```
 
-There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's type module says (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form so it cannot offer what the server would refuse. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds.
+There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's type module says (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form, which offers each mode's default and gates its own submit button on the same bounds — `min` and `max` on a number input are a nudge a host can type past, so the form checks every round's two numbers itself and marks the one out of range under the field where its range is already written. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds.
 
 Settings are fixed at creation. Editing settings in the lobby is not in Phase 1.
 
