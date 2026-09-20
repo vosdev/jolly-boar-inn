@@ -1,8 +1,8 @@
-"""``POST /api/rooms``, ``GET /api/rooms/{code}``."""
+"""``POST /api/rooms``, ``GET /api/rooms/{code}``, ``DELETE /api/rooms/{code}``."""
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.errors import ApiError
@@ -25,6 +25,14 @@ class CreateRoom(BaseModel):
     settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
     # The custom-question editor is Phase 2; until then only an empty list is accepted.
     custom_questions: list[dict[str, Any]] = Field(default_factory=list, max_length=0)
+
+
+class DeleteRoom(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # A session token is 32 random bytes urlsafe-encoded; the bound is only there so an
+    # oversized body is refused before it is compared against anything.
+    session: str = Field(max_length=200)
 
 
 def manager(request: Request) -> RoomManager:
@@ -53,3 +61,17 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
 async def get_room(code: str, request: Request) -> dict[str, Any]:
     room = await manager(request).get(code)
     return {"room": room.view(), "players": [p.view() for p in room.players.values()]}
+
+
+@router.delete("/{code}", status_code=204, response_class=Response)
+async def delete_room(code: str, body: DeleteRoom, request: Request) -> Response:
+    """Remove a room at its host's request; the code is free again immediately.
+
+    The session goes in the body, never in the URL (section 7): a ``DELETE`` with a JSON
+    body is the same shape as the ``POST``s around it, and the only other place a token
+    ever travels is the first websocket frame. ``bad_session`` and ``not_admin`` are what
+    a caller who is not an admin of this room gets, so the room's existence is the only
+    thing an unauthenticated request can learn -- and its code was already in their hands.
+    """
+    await manager(request).delete(code, body.session)
+    return Response(status_code=204)

@@ -111,3 +111,19 @@ export function joinRoom(code: string, displayName: string): Promise<Credentials
 export function getRoom(code: string): Promise<RoomSnapshot> {
   return request<RoomSnapshot>(`/api/rooms/${encodeURIComponent(code)}`)
 }
+
+/**
+ * Remove a room, which the server does there and then: the row goes, players and
+ * answers with it, and anybody still connected is closed out.
+ *
+ * Only an admin of the room may, so the stored session travels in the body -- the one
+ * request that sends a token rather than receiving one, and still not in the URL. The
+ * server answers `204` with no body; a caller who is not the host gets `not_admin`, and
+ * a room that is already gone `not_found` or `expired`.
+ */
+export function deleteRoom(code: string, session: string): Promise<void> {
+  return request<void>(`/api/rooms/${encodeURIComponent(code)}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ session }),
+  })
+}

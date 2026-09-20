@@ -79,6 +79,9 @@ CLOSE_REPLACED = 4000  # a newer socket for the same player took over
 CLOSE_RESTART = 1012  # the room left memory; reconnect and you get a fresh welcome
 CLOSE_SEND_FAILED = 1011
 CLOSE_KICKED = 4003
+# The room is gone for good -- expired and cleaned up, or removed by its host. The same
+# code the handler closes an unknown room with, because that is what a reconnect finds.
+CLOSE_GONE = 4004
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
 _QUESTION_COLUMNS = frozenset({"id", "type", "source", "host_only"})
 
@@ -592,27 +595,111 @@ class RoomManager:
         )
         self._start_timer(room, resume_from, resume_at=room.next_at)
 
+    def _forget(self, room: Room) -> list[WebSocket]:
+        """Take a room out of memory and detach its sockets, returning them to close.
+
+        Call with the room lock held. Closing a socket is a send, and sends never happen
+        under the lock, so that is the caller's job once it has released it.
+        """
+        if self.rooms.get(room.code) is room:
+            del self.rooms[room.code]
+        _stop_timer(room)
+        sockets = list(room.sockets.values())
+        room.sockets.clear()
+        for player in room.players.values():
+            player.connected = False
+        return sockets
+
     async def evict(self, code: str) -> bool:
         """Drop a room from memory the way a process restart would; the next ``get``
         rehydrates it. Attached sockets are closed with 1012 so clients reconnect and
         receive a fresh ``welcome``. Returns whether the room was in memory.
 
         This exists for the rehydrate tests (T8 accept, T11 accept); nothing in the app
-        calls it.
+        calls it. The room rows stay: ``purge_expired`` and ``delete`` are the two ways
+        a room really goes away.
         """
         code = code.upper()
         async with self._lock(code):
-            room = self.rooms.pop(code, None)
+            room = self.rooms.get(code)
             if room is None:
                 return False
-            _stop_timer(room)
-            sockets = list(room.sockets.values())
-            room.sockets.clear()
-            for player in room.players.values():
-                player.connected = False
+            sockets = self._forget(room)
         for ws in sockets:
             await _close(ws, CLOSE_RESTART, "room restarted, reconnect")
         return True
+
+    # --- Removal --------------------------------------------------------------------
+
+    async def purge_expired(self) -> int:
+        """Section 4's ``any → deleted``: delete every room past its ``expires_at``.
+
+        One statement; ``on delete cascade`` takes the players, questions and answers
+        with it. Then the same rooms go from memory, so the process does not hold what
+        the database has dropped. Returns the number of rows deleted.
+
+        The order is deliberate. Between the delete and the eviction an expired room is
+        still in ``self.rooms``, and every way in refuses it anyway: ``_room`` checks
+        ``expires_at`` on a cached room and ``_fetch_room`` checks it on a loaded one, so
+        there is no window in which a purged room can still be joined or played.
+
+        The caller is the cleanup task in ``main.py``; the tests run a pass directly.
+        """
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            status = await conn.execute("delete from rooms where expires_at < now()")
+        deleted = _rows_affected(status)
+        log.info("cleanup deleted %d expired room%s", deleted, "" if deleted == 1 else "s")
+        await self._evict_expired()
+        return deleted
+
+    async def _evict_expired(self) -> None:
+        """Drop the rooms in memory that have expired, closing their sockets with 4004.
+
+        Each room is re-checked under its own lock, because the snapshot of codes was
+        taken before the first ``await``. Reconnecting will not find these rooms, which
+        is what 4004 tells the client: the room is gone, not restarting.
+        """
+        now = datetime.now(UTC)
+        for code in [c for c, room in self.rooms.items() if room.expires_at <= now]:
+            async with self._lock(code):
+                room = self.rooms.get(code)
+                if room is None or room.expires_at > now:
+                    continue
+                sockets = self._forget(room)
+                log.info("room %s expired and left memory", code)
+            for ws in sockets:
+                await _close(ws, CLOSE_GONE, "this room has expired")
+
+    async def delete(self, code: str, session: str) -> None:
+        """An admin removes their room: the row goes now, cascade and all.
+
+        Authenticated by the session token in the request body, exactly as a websocket
+        ``hello`` is (section 7): the caller has to be a player in this room, and an
+        admin of it. The creator is the room's first admin, so their own session opens
+        this door the moment the room exists; a promoted admin has the same reach as
+        they do over everything else, and so over this too.
+
+        The room is invalid immediately: the row is gone, so nothing rehydrates, and
+        anybody still connected is closed with 4004 rather than being left in a lobby
+        the database has forgotten. An already-expired room raises ``RoomExpired`` and
+        stays for ``purge_expired`` to collect; there is nothing left to remove that the
+        cleanup job will not take within the hour.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._lock(code):
+            room = await self._room(code)
+            player = room.find_by_session(session)
+            if player is None:
+                raise BadSession(f"that session is not a player in room {code}")
+            _require_admin(player)
+            async with pool.acquire() as conn:
+                await conn.execute("delete from rooms where id = $1", room.id)
+            sockets = self._forget(room)
+            log.info("room %s deleted by %s", code, player.display_name)
+        for ws in sockets:
+            await _close(ws, CLOSE_GONE, "the host removed this room")
 
     # --- Broadcasting ---------------------------------------------------------------
 
@@ -1267,6 +1354,12 @@ class RoomManager:
         for room in self.rooms.values():
             _stop_timer(room)
         await asyncio.gather(*timers, return_exceptions=True)
+
+
+def _rows_affected(status: str) -> int:
+    """The row count out of an asyncpg command tag, which for a delete is ``DELETE 3``."""
+    _, _, count = status.rpartition(" ")
+    return int(count) if count.isdigit() else 0
 
 
 def _require_admin(player: Player) -> None:

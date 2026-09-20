@@ -85,7 +85,7 @@ jolly-boar-inn/
 │   │   │   ├── protocol.py    # pydantic models for every message, both directions
 │   │   │   └── handler.py     # /ws/{code} endpoint; parses, authenticates, dispatches to RoomManager
 │   │   ├── http/
-│   │   │   ├── rooms.py       # POST /api/rooms, GET /api/rooms/{code}
+│   │   │   ├── rooms.py       # POST /api/rooms, GET+DELETE /api/rooms/{code}
 │   │   │   ├── players.py     # POST /api/rooms/{code}/join
 │   │   │   ├── modes.py       # GET /api/modes: the modes, their type, and their pacing
 │   │   │   ├── vocab.py       # GET /api/vocab/{name}: the autocomplete lists
@@ -258,8 +258,9 @@ A room's own questions are a round like any other: they carry `mode = "custom"` 
 |---|---|---|
 | `DATABASE_URL` | `postgresql://jbi:jbi@localhost:5432/jbi` | |
 | `PUBLIC_BASE_URL` | `http://localhost:5173` | Absolute base for this deployment. No consumer in Phase 1: the client builds every link from `location.origin`. |
-| `ROOM_TTL_DAYS` | `30` | Sets `expires_at`. |
-| `ROOMS_PER_IP_PER_HOUR` | `5` | |
+| `ROOM_TTL_DAYS` | `3` | Sets `expires_at`. |
+| `ROOM_CLEANUP_INTERVAL_SECONDS` | `3600` | How often the cleanup task deletes rooms past `expires_at`. Must be positive; the app refuses to start otherwise. |
+| `ROOMS_PER_IP_PER_HOUR` | `10` | |
 | `MAX_PLAYERS_PER_ROOM` | `50` | |
 | `PACKS_DIR` | `../data/packs` | |
 | `LOG_LEVEL` | `info` | Query strings are never logged. |
@@ -562,7 +563,7 @@ Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`
 
 ## 3. Websocket protocol
 
-Endpoint: `GET /ws/{code}`. Plain JSON text frames. Every message is `{"t": "<type>", ...fields}`. The server closes with code `4001` on a bad `hello`, `4004` unknown room, `4008` on any protocol error after a single `error` message.
+Endpoint: `GET /ws/{code}`. Plain JSON text frames. Every message is `{"t": "<type>", ...fields}`. The server closes with code `4001` on a bad `hello`, `4004` unknown room -- which a room that has just been expired or deleted underneath its sockets becomes -- `4008` on any protocol error after a single `error` message.
 
 Authentication happens in the first frame, never in the URL. The session token is the one returned by create or join, kept in `localStorage["jbi:session:" + code]`.
 
@@ -675,7 +676,8 @@ Process restart (`RoomManager.get` rehydrate):
 ```
 POST /api/rooms ──▶ lobby ──start_game──▶ playing ──last question closed / end_game──▶ finished
                       │                       │                                            │
-                      └───── expires_at passes: cleanup job deletes the row ───────────────┘
+                      ├───── expires_at passes: cleanup job deletes the row ───────────────┤
+                      └───── the host removes it: DELETE /api/rooms/{code} ────────────────┘
 ```
 
 A room is never without a host: there is no state between "does not exist" and `lobby`.
@@ -694,6 +696,7 @@ Transitions:
 | `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, introduce round 0, open question 0, persist status |
 | `playing` → `finished` | last question's reveal ends, or `end_game` | admin for `end_game` | void open question if any, persist status, broadcast `game_finished` |
 | any → deleted | cleanup job | `expires_at < now` | `DELETE FROM rooms` cascades |
+| any → deleted | `DELETE /api/rooms/{code}` | the session in the body belongs to an admin of the room | the same delete, now: sockets close with 4004 and the code is free again |
 
 ### Question sub-machine (inside `playing`)
 
@@ -832,7 +835,8 @@ Notes:
 - `0004_per_mode_rounds.sql` rewrites `rooms.settings` in place: out go `question_seconds`, `question_count` and `questions_per_round`, and `modes` stops being a list of names and becomes a list of `{mode, questions, seconds}` carrying the old globals. A room created by the previous release keeps playing — its rounds are already in `questions.round` — and `mode_order` is `listed` for it, because there is nothing left to shuffle.
 - `0005_question_mode.sql` adds `questions.mode text not null`, backfilled from `type`. That backfill is exact rather than a best guess: every room that predates it plays `more_less` only, where the mode id and the type id are the same string. After it, `type` answers "how is this answered" and `mode` answers "what is this round", and `segments.py` groups on `mode` — it cannot derive one from the other any more, which is the point.
 - `suggestions` (Phase 6) is not created now. It will be `0003_suggestions.sql` when needed.
-- Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every 10 minutes. No external cron.
+- Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every `ROOM_CLEANUP_INTERVAL_SECONDS` (default hourly, which is fine grain against a 30-day TTL), starting with one pass at startup so a deployment that restarts often still cleans up. No external cron. The task never dies: a failed pass is logged and the next one runs on schedule. `RoomManager.purge_expired` runs it and then drops the same rooms from memory, so the process does not hold rooms the database no longer has.
+- A host does not have to wait for that. `DELETE /api/rooms/{code}` with `{session}` in the body -- never in the URL, section 7 -- deletes the room on the spot when that session belongs to an admin of it: the front page lists the rooms this browser created and each one has a Remove button. Anybody still connected is closed with 4004, and the code is back in circulation.
 
 ## 6. Scoring
 
