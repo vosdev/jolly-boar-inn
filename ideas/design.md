@@ -5,7 +5,7 @@ The frontend design task list. The architecture it sits on lives in
 `ideas/phase2.md`. This file does not repeat any of them — it says what the app should look
 like, why, and in what order to build it.
 
-Tasks are numbered **D1–D11** rather than continuing the T-numbers, because design work and
+Tasks are numbered **D1–D12** rather than continuing the T-numbers, because design work and
 mode work touch almost disjoint sets of files and can land in either order. D1 is the only
 task everything else waits on.
 
@@ -20,16 +20,19 @@ task everything else waits on.
    in localStorage the way the theme does.
 5. **Two sound switches, not one**, because one of them can make a round unplayable.
 6. **A quiet footer**, carrying the trademark line, the GitHub link and the licence.
+7. **Seven gems, and the reveal never recolours one.** Position is identity. The verdict
+   lives in the points slot, where it is the same shape in every mode.
 
-Open questions are collected at the end rather than scattered through, and none of them
-block D1.
+Every question this document once left open has been answered. The answers are folded into
+the sections below and listed, one line each, under "Decided" at the end; new questions go
+back into "Needs decision" as they turn up.
 
 ---
 
 ## 1. One theme or many?
 
-You asked whether to go with one Jolly Boar Inn look or a set of themes. Three ways to
-answer it:
+You asked whether to go with one Jolly Boar Inn look or a set of themes. Two ways to
+go forward:
 
 **A. One theme, light and dark.** A single warm-tavern palette in two brightnesses. Cheapest
 to build, cheapest to keep good, and it makes the app recognisable in a screenshot — every
@@ -42,14 +45,6 @@ becomes a block of thirty custom properties and nothing else. It is also the sin
 feature for the selfhosting audience: "The Dancing Donkey Inn" wants to look different from
 your instance, and a theme file is how they do that without forking CSS.
 
-**C. A random theme per round.** Rejected, and worth saying why properly: you picked
-per-player themes, so a random per-round theme is not even a shared moment — everyone's
-screen changes to a *different* thing at the same time, which is the cost of the idea
-without the payoff. Worse, the one thing a quiz UI must do reliably is make "which one did I
-press" and "was I right" legible in half a second, and it can only do that if green means
-right on every screen in the game. Moving the palette every ninety seconds moves that
-anchor.
-
 **Recommended: B, with the variety per round coming from art rather than colour.** The
 theme stays where the player put it. What changes between rounds is the splash artwork and
 one decorative accent used *only* on the splash card and the round chrome — never on an
@@ -61,18 +56,22 @@ without the palette shifting under a question.
 | id | Name | Mood | Base | Accent |
 |---|---|---|---|---|
 | `jolly` | Jolly Boar Inn | Default. Oak, candlelight, spilled ale. | Warm mid-brown, cream panels | Ale amber / hearth orange |
-| `polnivneach` | Pollnivneach | Bright desert noon. Bleached, high-contrast, dusty. | Sandstone, off-white panels | Terracotta, indigo shade |
+| `pollnivneach` | Pollnivneach | Bright desert noon. Bleached, high-contrast, dusty. | Sandstone, off-white panels | Terracotta, indigo shade |
 | `wilderness` | Wilderness | Dark. Cold ash and ember, nothing cosy. | Near-black slate | Ember red, bone white |
 | `party_room` | Party Room | Loud. Balloons, partyhats, a drop party. | Deep purple | Gold, partyhat cyan/pink |
-| `auto` | Follow my device | Not a palette. Maps `prefers-color-scheme` to `jolly` / `wilderness`. | | |
 
-`auto` is the default for a browser that has never chosen, which preserves today's
-behaviour for anyone who has their phone in dark mode at a pub table.
+`jolly` is the default for a browser that has never chosen — always, and **there is no
+`auto` theme and nothing follows `prefers-color-scheme`.** Jolly sits between a light and a
+dark palette, so it is a defensible first thing to see on any device, and a player who wants
+brighter or darker picks `pollnivneach` or `wilderness` from the menu. That keeps the default
+one branch instead of two, and it means a first-time visitor whose phone is in dark mode is
+never dropped into the Wilderness before they have seen the inn.
 
 Two warnings on `party_room`: it is the theme people will pick first and the theme most
 likely to fail contrast, and it is the one theme whose accent wants to be used on everything
-— which is exactly what the token contract below forbids. Build it last, after the contract
-has teeth.
+— which is exactly what the token contract below forbids. So it is **not part of D5.** It is
+D12, built last against a contract that already has teeth, and cut without ceremony if it
+cannot pass the check.
 
 ---
 
@@ -92,7 +91,7 @@ that runs in CI.
 | 2. Brand | `--accent` `--accent-ink` `--accent-hover` | Freely |
 | 3. Verdict | `--ok` `--ok-ink` `--bad` `--bad-ink` `--warn` `--warn-ink` | Must pass contrast + hue check |
 | 4. Semantic | `--more` `--less` | Must pass; must differ from layer 3 by hue or shape cue |
-| 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-diamond` `--gem-dragonstone` `--gem-ink` | Freely |
+| 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-diamond` `--gem-dragonstone` `--gem-onyx` `--gem-zenyte` `--gem-ink` | Freely, but `--ok` must stay visible against each |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
 
@@ -108,6 +107,14 @@ and `--bad` are at least 60° apart in hue so they stay distinguishable to the ~
 who will not see them as green and red. That last one is why "wrong" is drawn with a border
 and a glyph as well as a colour, everywhere, without exception.
 
+One assertion is there for the reveal specifically. The correct answer keeps its gem fill and
+gains an `--ok` ring, so `--ok` lands on top of a gem rather than on `--panel` — and an `--ok`
+green ringing an emerald button is a ring nobody can see. The script therefore also asserts
+**`--ok` reaches 3:1 against every `--gem-*` in the theme**, the non-text threshold for a UI
+boundary. A neutral ring would have avoided the check; it would also have thrown away the one
+moment in the game where `--ok` is doing its actual job, so the check is the cheaper of the
+two. A theme that cannot satisfy it moves its gem, not the ring.
+
 ### The gem buttons and the reveal problem
 
 Sapphire / emerald / ruby / diamond / dragonstone for multiple-choice answers is a good
@@ -115,15 +122,35 @@ idea and it has one sharp edge: **a ruby button that turns out to be the correct
 an emerald button that turns out to be wrong.** If the verdict is painted as a green or red
 fill, the emerald button quietly lies for the half-second before anyone reads it.
 
-The rule that fixes it: on reveal, gem colour stops being a fill and becomes a 4px left
-edge. The button's fill goes to `--panel`, the verdict goes on as a full border plus a
-leading glyph (✓ / ✗) plus the points. The gem stays as identity — "I pressed the red one"
-— and never competes with the verdict. Four states per button, all of which need drawing in
-D8: idle, pressed-by-you-and-waiting, revealed-correct, revealed-wrong.
+The rule that fixes it: **on reveal, no button changes colour.** The correct button keeps its
+gem fill and gains a `--ok` ring plus a leading ✓. Every other button fades — the fill loses
+saturation, the answer text stays at 4.5:1 or better, because people want to read what the
+other options said. It does not matter which gem is correct: if Sapphire is right, ruby,
+emerald and diamond fade and sapphire stays lit. The gem stays as identity, and green and red
+never land on a gem.
 
-Gems are also ordering, not decoration: sapphire, emerald, ruby, diamond, dragonstone is
-the in-game value order, so option 1 is always sapphire. Players learn the position, which
-is worth more than variety.
+Your own pick is the one exception to "faded means nothing". If you pressed Ruby and it was
+wrong, Ruby is faded like the rest but carries a ✗ and a small "you" marker, so you can still
+see what you chose. Five states per button, all of which need drawing in D8: idle,
+pressed-by-you-and-waiting, revealed-correct, revealed-faded, revealed-your-wrong-pick.
+
+Fading on its own does not say whether *you* were right — you would have to compare your
+button with the lit one. The verdict is the points slot in §7.2.
+
+Gems are also ordering, not decoration: **sapphire, emerald, ruby, diamond, dragonstone,
+onyx, zenyte** is the in-game value order, so position 1 is always sapphire, position 2
+always emerald, and so on down. That holds however many options are on screen — a two-option
+question shows sapphire and emerald, never sapphire and zenyte — because the whole value of
+the scheme is that a player learns the position, which is worth more than variety.
+
+Seven gems is therefore also a cap: **no mode may offer more than seven options.** That is a
+constraint on question generation rather than on this document, and it is tracked as its own
+task outside the D-tasks.
+
+Which modes get gems: `multiple_choice`, `price_is_right` and `ordering` — every mode whose
+answer is "pick one of these". That leaves only `more_less`, which keeps `--more` / `--less`
+and the reasoning in §7.2, and which would not want a gem fill anyway: its two buttons carry
+the item picture, and a picture on a gem fill is a picture nobody can read.
 
 ---
 
@@ -146,6 +173,13 @@ body for things you read" gets 90% of the flavour for none of the cost.
   and one that twitches.
 
 Fonts must be **self-hosted** — `font-src 'self'`, no Google Fonts, see §8.
+
+**No display face has been chosen yet**, and finding one whose licence survives being
+committed to this repo is the owner's, tracked in `ideas/TODO.md` rather than in any D-task.
+Until it lands, `--font-display` falls back to the browser default and the app renders in
+body type throughout. Everything above is written so that this costs flavour and nothing
+else: no layout, no contrast check and no accept criterion depends on the pixel face
+existing, and dropping the file in later is a change to one token.
 
 ---
 
@@ -325,11 +359,22 @@ shipped the column yet, and an old room rehydrated after the migration still has
 lets D4 ship the visuals against derived heads on day one and add the column in the same
 task or a later one without a second design pass.
 
-Practical notes: **40–60 heads is the right number** — enough that a table of eight rarely
-collides, few enough to curate so none of them are ugly at 32px. Render at 32px in the top
-bar and lobby list, 48px on standings, and ship them as a single sprite sheet or an SVG
-symbol sprite rather than 60 requests. Heads in-game are drawn at low resolution, so
-`image-rendering: pixelated` and integer scaling, or they turn to mush.
+Practical notes: **there are exactly 50 heads.** `max_players_per_room` is 50
+(`server/app/config.py`), so 50 is the number at which a full room can still give everyone a
+different face, and the fifty-first buys nothing. The owner picks them by hand — from the
+wiki, or drawn — which is also why they are the one asset class with no fetch step (§9.1).
+
+They live in **`data/heads/`**, committed: `data/heads/NNN-<slug>.png` for the art, and
+`data/heads/heads.json` as the manifest, an array of
+`{"id": 0, "file": "000-guard.png", "name": "Guard"}` in the style of the repo's other
+`data/*.json`. **The index is the contract.** `players.avatar` is a `smallint` holding that
+`id`, so a head may be replaced in place and the list may grow, but an existing id must never
+be repointed at a different face: an old room rehydrated afterwards would silently repaint
+its players. The build packs the manifest into one sprite sheet — the client never fetches
+fifty files — and `derivedFrom(player.id)` takes the id hash modulo the manifest length.
+
+Render at 32px in the top bar and lobby list, 48px on standings. Heads in-game are drawn at
+low resolution, so `image-rendering: pixelated` and integer scaling, or they turn to mush.
 
 ---
 
@@ -355,9 +400,18 @@ Three implementation facts that need to be in the task, not discovered during it
    no `media-src` directive, so every `<audio>` load fails. D6 adds `media-src 'self'` and
    nothing else.
 2. **Browsers block autoplay until a user gesture.** A phone that has joined and not been
-   touched since cannot play the round-start sting. The fix is free: `ideas/TODO.md` already
-   wants the splash countdown replaced with a per-player **ready check**, and that tap is
-   the audio unlock. Build them in the same task and the problem never exists.
+   touched since cannot play the round-start sting. The fix is mostly free: `ideas/TODO.md`
+   already wants the splash countdown replaced with a per-player **ready check**, and that
+   tap is the audio unlock. Build them in the same task and the problem never exists on the
+   ordinary path.
+
+   Two players never see that splash: one in a room with `splash_seconds: 0`, and one who
+   joins mid-game. For them the unlock is **the first answer tap** — the next question they
+   touch. The cost is small and worth stating plainly: that one question plays no audio, and
+   every question after it does. The case where it bites is a player whose very first
+   question is an audio-only one, who would get silence on a question they cannot answer
+   without sound. Handle it the way a muted question-audio switch is handled (the table
+   above): say so on the question rather than letting them work it out from the silence.
 3. **`prefers-reduced-motion` is the sibling setting.** Anything that pulses, counts, or
    slides gets a static fallback. It is also the honest answer to "no super splashy
    animations": pick animations that are *removable*, and the reduced-motion version is
@@ -398,6 +452,12 @@ scroll for Guess the Examine). Modes can share a scene without looking lazy, a n
 costs one small silhouette instead of one full illustration, and the pub-crawl theme lands
 harder with six pubs than with thirteen unrelated pictures.
 
+**None of that art exists yet, and D7 does not wait for it.** The scenes ship as placeholder
+blocks — a flat `--panel` rectangle carrying the mode name — and the real images are dropped
+in later without a second task, because the deliverable here is the slot, its aspect ratio
+and the mode-to-scene table; the image is a file sitting behind them. Same for the sign in
+§9.1.
+
 This is also where the per-round variety from §1 goes: the scene changes, the palette does
 not.
 
@@ -427,14 +487,20 @@ light version keeps everything the mechanism is actually for:
 - "We are waiting on two people" is legible at a glance without anyone being named and
   shamed between every round.
 
-**The 80% rule, specified.** Your instinct is right and it needs floors, or it misbehaves in
+**The 80% rule, specified.** The instinct is right and it needs a cap, or it misbehaves in
 small rooms:
 
 - **Eligible** = connected players who can answer. A disconnected player never holds up a
   round, which matters because a locked phone is the common case, not an edge case.
-- **Threshold** = `ceil(0.8 × eligible)`, with a floor of `eligible - 1` for rooms of four
-  or fewer. In a room of three, 80% rounds to three, and one person in the kitchen stalls
-  the game; `eligible - 1` means two of three is enough.
+- **Threshold** = `min(ceil(0.8 × eligible), eligible - 1)`. That is a **cap**, not a floor
+  — which is what the earlier wording of this rule had backwards. In a room of three, 80%
+  rounds up to three and one person in the kitchen stalls the game; capping at
+  `eligible - 1` means two of three is enough. Above four the cap is never binding and the
+  rule is plain 80%, so it needs no separate small-room branch.
+- **A room of one is exempt.** The cap would give it a threshold of zero, which starts the
+  round before the only player has looked at it. With `eligible == 1` the threshold is 1:
+  that player taps ready like everyone else, and the tap is also the audio unlock (§6) a
+  solo player would otherwise never perform.
 - **Everyone ready → 3 seconds.** Enough to register that it is about to start.
 - **Threshold reached → `min(10s, time left on splash_seconds)`.**
 
@@ -462,6 +528,36 @@ only thing with any visual weight:
   of `.note`. It should show your answer held, dimmed, with a quiet "waiting for the room"
   and the count of who has answered — it is dead time and it is where people look up at each
   other, so it should reward the glance rather than punish it.
+
+#### The reveal
+
+The same rule applies to every question type, not only multiple choice: **on reveal,
+everything recedes except the correct answer and your points.** For buttons that is §2's
+fade. For a typed or numeric answer it is your answer card fading beside the correct value.
+
+Points earned sit in one fixed slot, in the same place in every mode, in the display face
+with tabular numerals. The player learns where to look once.
+
+| Outcome | Slot shows |
+|---|---|
+| Right | `+850`, with `--ok` and a ✓ |
+| Wrong | `+0`, with `--bad` and a ✗ |
+| No answer | `No answer · +0`, muted, no ✗ |
+| Graded (closest guess) | `+340`, the number carries the verdict |
+
+A timeout is not the same as a wrong answer, and the slot has to say so. `--ok` and `--bad`
+now live here and on the ✓ / ✗ glyphs rather than on buttons, so the layer-3 contract in §2
+still applies to them.
+
+The slot carries **one** other thing: the running total, set under the points earned in
+`--muted` and the same tabular numerals — `+850` over `9,270`. It is the number the standings
+are about to show anyway, it answers "where am I" without a screen change, and it costs one
+line in a slot that already exists.
+
+What it does **not** carry is the reason for the number. A speed bonus explained mid-reveal
+is a second thing to read in a beat that is already short, and a player who wants to know why
+they got 850 rather than 1000 will work it out over a round or two by watching the timer.
+Points earned, running total, nothing else.
 
 ### 7.3 Standings, styled as the hiscores
 
@@ -506,6 +602,10 @@ import with a side effect; keep `color-scheme` on `:root` so the browser paints 
 canvas colour during the gap; and accept that the gap is one frame on a local server. Worth
 one line in the D1 accept criteria so nobody ships a flash.
 
+Dropping `auto` (§1) helps here as well: the value to write is a string out of `localStorage`
+or the literal `jolly`, with no media query to consult and no second code path to get wrong
+before the first paint.
+
 ---
 
 ## 9. Assets, branding and the footer
@@ -515,8 +615,8 @@ one line in the D1 accept criteria so nobody ships a flash.
 | | Source | Committed? |
 |---|---|---|
 | Item and NPC renders | Game assets. Phase 3's importer fetches these anyway. | Fetched |
-| NPC chat heads | Game assets, 40–60 curated. | Fetched |
-| Fonts | The OSRS-style face, self-hosted. | Fetched |
+| NPC chat heads | 50, picked by hand, in `data/heads/` (§5.2). | **Committed** |
+| Fonts | A self-hosted display face, once one is chosen (§3). | Fetched |
 | Prices, combat levels, release dates | Facts. | Committed, as `prices.json` already is |
 | Logo, splash art, palettes, icons | **Original.** | Committed |
 
@@ -526,12 +626,26 @@ small, and Phase 3's importer needs a fetch step regardless. It also answers the
 `ideas/architecture.md` question about where assets live under a read-only container — one
 mount, one decision.
 
+**The heads are the exception, and deliberately so.** They are fifty small files, each
+chosen by a person for how it reads at 32px, and a script cannot make that judgement — it
+would either pull a whole wiki category or hard-code the same fifty names the manifest
+already holds. Committing them keeps the curation in review where it belongs, and it costs
+some tens of kilobytes. Renders and the font stay fetched: there are thousands of the former,
+and open licence questions around the latter.
+
 **The logo and splash art are original** because that is what makes this the Jolly Boar Inn
 rather than a RuneScape skin. A sign somebody drew for this app is a better mark than a game
 asset with the text swapped, and it is what gives the selfhoster branding below something to
 swap.
 
 Download scripts would need to enforce a custom User Agent env variable before they can continue, according to the Wiki Terms of Use.
+
+**Neither `make fetch-assets` nor the logo is owned by a D-task.** Both are the owner's, both
+are tracked in `ideas/TODO.md`, and nothing in D1–D12 blocks on either: the heads D4 needs
+are committed, the display face §3 wants falls back, **D2 ships a placeholder mark** — the
+wordmark set in whatever type is loaded, over a plain sign shape — and D7 ships placeholder
+scenes. Every one of those slots is built to be replaced by a file, so no task reopens when
+the art arrives.
 
 ### 9.2 The footer
 
@@ -566,6 +680,19 @@ Three env vars, read at build time into the client: `PUBLIC_SITE_NAME` (default
 `PUBLIC_DEFAULT_THEME`. Someone's instance is *The Dancing Donkey* without a fork — which is
 also the honest reason the themes are named after places rather than after this inn.
 
+`PUBLIC_DEFAULT_THEME` takes a theme id and nothing else — there is no `auto` to pass (§1) —
+and it changes only what a browser that has never chosen sees. A player's own pick still
+wins, on every instance.
+
+**A host cannot pin a theme for a room.** It was considered, in the mildest form available:
+the host picks one at creation, it arrives in the welcome frame as a *suggestion*, and it
+applies only to players who have not chosen for themselves. One settings field, one client
+branch. It is dropped anyway. The theme is the one thing in this app that is purely the
+player's, it is the setting most likely to answer a real need rather than a taste — a dark
+pub, a bright garden, tired eyes — and a "suggestion" that repaints someone's screen is not a
+suggestion to the person holding it. Everyone picks their own or keeps `jolly`. This is a
+decision not to build a feature and it stays decided: no room setting, no protocol field.
+
 The GitHub link is **not** configurable: a fork's footer should still point at the upstream
 project, and anyone who wants it to point elsewhere is editing one line.
 
@@ -576,7 +703,7 @@ project, and anyone who wants it to point elsewhere is editing one line.
 ```
 D1 tokens + theme engine
  ├─▶ D2 app shell / top bar ──┬─▶ D3 names + profile popover ──▶ D4 heads + set_profile
- │                            ├─▶ D5 the four themes + picker
+ │                            ├─▶ D5 the three themes + picker ──▶ D12 party_room
  │                            └─▶ D6 sound switches
  ├─▶ D7 splash + ready check
  ├─▶ D8 question screens + gem buttons
@@ -592,16 +719,19 @@ D6–D9 are refinements on something that already has a face.
 ### D1. Tokens and the theme engine
 
 The layered token set from §2 in `app.css`, the `[data-theme]` mechanism, and
-`lib/theme.ts` (read, set, persist to `jbi:theme`, resolve `auto` against
-`prefers-color-scheme`). No new palette: today's colours become `jolly` and today's dark
-block becomes `wilderness`, unchanged, so the diff is a rename and a restructure.
-`scripts/check_contrast.py` and a CI step.
+`lib/theme.ts` (read, set, persist to `jbi:theme`, fall back to `jolly` — there is no
+`prefers-color-scheme` branch, §1). No new palette: today's colours become `jolly` and
+today's dark block becomes `wilderness`, unchanged, so the diff is a rename and a
+restructure. `scripts/check_contrast.py` and a CI step. All seven gem tokens are defined here
+even though no button uses them yet, so the `--ok`-against-`--gem-*` assertion has something
+to check from day one.
 
-**Accept:** `jolly` and `wilderness` render byte-identically to today's light and dark;
-setting `data-theme` on `<html>` from DevTools repaints everything with no reload; nothing
-in `client/src` sets a colour through an inline style or a `style:` directive (grep is in
-the test); the contrast script fails a deliberately broken `--bad` and passes both themes;
-first paint is not a flash of the wrong palette.
+**Accept:** `jolly` and `wilderness` render byte-identically to today's light and dark; a
+browser with no `jbi:theme` and an OS in dark mode gets `jolly`; setting `data-theme` on
+`<html>` from DevTools repaints everything with no reload; nothing in `client/src` sets a
+colour through an inline style or a `style:` directive (grep is in the test); the contrast
+script fails a deliberately broken `--bad`, fails an `--ok` that cannot be seen against
+`--gem-emerald`, and passes both themes; first paint is not a flash of the wrong palette.
 
 ### D2. The app shell
 
@@ -636,8 +766,9 @@ name; localStorage throwing leaves the app usable for that session.
 `0006_player_avatar.sql`; `avatar` through create/join and `PlayerView`; one
 `set_profile {display_name?, avatar?}` websocket message covering **both** the head re-roll
 and the rename, validated and uniqueness-checked exactly like join, broadcast as
-`room_updated`; the sprite sheet; `player.avatar ?? derivedFrom(player.id)` on the client.
-Heads in the top bar, the lobby list and the standings.
+`room_updated`; the fifty committed heads in `data/heads/` and the sprite sheet built from
+`heads.json` (§5.2); `player.avatar ?? derivedFrom(player.id)` on the client. Heads in the
+top bar, the lobby list and the standings.
 
 With `set_profile` in place, Join switches from the blocking popup to **join-first**
 (§5.1.1 option B): the player lands in the lobby as a random name and the top bar chip
@@ -648,55 +779,73 @@ updates the other within a frame of `room_updated`; a rename to a name already t
 room is rejected and the old name survives unchanged; a rename mid-game does not disturb
 standings or an open answer; a room created before the migration shows heads for its
 players; a client built before this task still plays against a server that has it; heads are
-crisp, not blurred, at 32px and 48px.
+crisp, not blurred, at 32px and 48px; a full room of 50 can be given 50 different heads; an
+`avatar` outside the manifest is rejected at the edge rather than stored and rendered as a
+gap.
 
-### D5. The four themes and the picker
+### D5. The three themes and the picker
 
-`polnivneach` and `party_room` written; `jolly` and `wilderness` extended into layers 5–7
-(radius, borders, texture); the picker popover in the top bar with a live swatch per theme.
+`pollnivneach` written; `jolly` and `wilderness` extended into layers 5–7 (radius, borders,
+texture); the picker popover in the top bar with a live swatch per theme. `party_room` is not
+in this task — it is D12.
 
-**Accept:** all four pass the D1 contrast script, `party_room` included; switching theme
-mid-question does not disturb the layout or the timer; `auto` follows the OS and stops as
-soon as a theme is chosen explicitly; a theme is a single contiguous block in `app.css` that
-a selfhoster can copy and edit.
+**Accept:** all three pass the D1 contrast script; switching theme mid-question does not
+disturb the layout or the timer; the picker offers exactly the themes present in `app.css`
+and no "follow my device" entry; a player who has never chosen sees `jolly` as the selected
+swatch rather than nothing selected; a theme is a single contiguous block in `app.css` that a
+selfhoster can copy and edit.
 
 ### D6. Sound
 
 `media-src 'self'` in the CSP; the two switches, the volume slider, the three-state icon; the
-unlock gesture wired to the ready-check tap; `lib/audio.ts` with a null implementation so the
-switches work before any audio file exists.
+unlock gesture wired to the ready-check tap **and to the first answer tap**, for the players
+who never see a splash (§6); `lib/audio.ts` with a null implementation so the switches work
+before any audio file exists.
 
 **Accept:** with no audio assets present, both switches persist and no console error appears;
 muting question audio shows the warning copy; a fresh tab that has not been tapped does not
-throw an autoplay error; the CSP change is covered by the existing headers test.
+throw an autoplay error; a player who joined mid-game, or who is in a room with
+`splash_seconds: 0`, has working audio from their second question onwards; an audio-only
+question that cannot play its audio says so instead of showing a silent prompt; the CSP
+change is covered by the existing headers test.
 
 ### D7. Splash and the ready check
 
-Artwork slot, the layout from §7.1, the six-scene assignment table in `lib/modes.ts`, and
-the two ready widgets: the **named list in the lobby**, and the **heads row on the splash**
-with the 80% rule from §7.1.
+Artwork slot — **placeholder scenes now, real art dropped in later** (§7.1) — the layout from
+§7.1, the six-scene assignment table in `lib/modes.ts`, and the two ready widgets: the
+**named list in the lobby**, and the **heads row on the splash** with the 80% rule from §7.1.
 
-The threshold maths (`ceil(0.8 × eligible)`, floored at `eligible - 1` for rooms of four or
-fewer, eligible = connected players who can answer) lives on the server next to the timer
-task, and only ever moves `next_at` earlier.
+The threshold maths (`min(ceil(0.8 × eligible), eligible - 1)`, eligible = connected players
+who can answer, a room of one exempt at a threshold of 1) lives on the server next to the
+timer task, and only ever moves `next_at` earlier.
 
 **Accept:** the splash shows the scene for its mode and falls back to a default scene for a
-mode this build has no entry for; the ready check never lengthens a splash beyond
+mode this build has no entry for; a placeholder scene reads as deliberate rather than as a
+broken image, and swapping in a real file needs no code change; the ready check never
+lengthens a splash beyond
 `splash_seconds`; everyone ready gives 3 seconds, threshold-reached gives
-`min(10s, remaining)`; a room of three with one player in the kitchen still starts; a
+`min(10s, remaining)`; a room of three with one player in the kitchen still starts; a room of
+one does not start until that player taps ready or `splash_seconds` runs out; a
 disconnecting player lowers the threshold rather than stalling the round; the host can still
 skip; a player who joins mid-splash sees the right ready state; `splash_seconds: 0` still
 skips the splash entirely; the lobby list names who is not ready and the splash does not.
 
 ### D8. Question screens
 
-Timer as a bar under the top bar; the gem button component with its four states and the
-reveal rule from §2; the waiting state; touch targets at 56px. Fixes the `ideas/TODO.md` bug
-where an unanswered `more_less` question highlights a button as if it had been pressed.
+Timer as a bar under the top bar; the gem button component with its five states and the
+reveal rule from §2, used by `multiple_choice`, `price_is_right` and `ordering` and sized for
+up to seven options; the points slot from §7.2, earned points over the running total; the
+waiting state; touch targets at 56px. `more_less` keeps its own two buttons and its own two
+tokens. Fixes the `ideas/TODO.md` bug where an unanswered `more_less` question highlights a
+button as if it had been pressed.
 
 **Accept:** a colour-blind simulation of the reveal is unambiguous with colour removed
-entirely; a ruby button revealed correct and an emerald button revealed wrong are both
-read correctly at a glance; no answer submitted shows no button as pressed; the timer bar
+entirely; whichever gem is correct, it is the only one not faded, and no button changes
+colour on reveal; your own wrong pick is still identifiable; faded answer text is still
+readable at 4.5:1; a timeout shows `No answer · +0` and is distinguishable from a wrong
+answer; the points slot is in the same place in every mode and its running total agrees with
+the standings that follow; seven gem buttons at 56px fit a 375px screen without pushing the
+prompt off it; no answer submitted shows no button as pressed; the timer bar
 is accurate against `ends_at` after a 20-second phone lock; every button is reachable and
 operable by keyboard with a visible focus ring.
 
@@ -717,7 +866,8 @@ trademark line, the GitHub link, the licence link) and the GitHub icon in the to
 (§9.3).
 
 **Accept:** an instance with all three set shows its own name, logo and default theme with no
-code change; an instance with none set is identical to today; a missing logo file falls back
+code change; an instance with none set is identical to today; a `PUBLIC_DEFAULT_THEME` naming
+a theme that does not exist falls back to `jolly` rather than rendering untokenised; a missing logo file falls back
 to the bundled sign rather than a broken image; the footer is present on every screen
 including mid-question and never overlaps an answer button on a 375px screen; the GitHub
 link works from both the footer and the top bar, and is the first bar item to collapse on a
@@ -732,29 +882,26 @@ budget written down so it stays small.
 changing width without easing; no animation exceeds 250ms; no animation runs while a
 question is open except the timer.
 
+### D12. The Party Room theme
+
+`party_room` on its own, after D5 and against a contract that already has teeth: deep purple
+base, gold and partyhat accents, a wide radius, no border. It is a separate task because it
+is the theme most likely to fail the D1 check and the one whose accent most wants to be used
+everywhere — which is exactly what §2 forbids — so it needs to be able to fail, or be cut,
+without taking a release of D5 with it.
+
+**Accept:** it passes the D1 contrast script unmodified, `--ok` against every `--gem-*`
+included; no `party_room` rule touches a layer-3 or layer-4 token outside its own
+`[data-theme='party_room']` block; a reveal is readable on a phone at low brightness in a
+dark room; if it cannot do those things it is deleted rather than exempted, and D5's three
+themes are unaffected either way.
+
 ---
 
 ## Needs decision
 
-[ ] **How many chat heads, and who picks them.** §5.2 says 40–60. Curating them is a
-half-day of looking at a wiki category and it is the kind of thing that is more fun than it
-sounds. It blocks the sprite sheet in D4, nothing else.
-
-[ ] **Splash artwork: commissioned, or drawn in-house.** §7.1 asks for six scenes plus
-thirteen small silhouettes. D7 can ship against placeholder blocks and have the art dropped
-in later without another task, so this does not block the build — but the sooner the six
-scenes exist, the sooner the modes can be assigned to them deliberately rather than
-alphabetically.
-
-[ ] **Whether the host may pin a theme for the room.** §1 chose per-player, which is the
-right default. A later, small addition: the host picks a theme at creation that arrives as a
-*suggestion* in the welcome frame, applied only to players who have not chosen one
-themselves. That is one settings field and one client branch, and it buys back "the
-Wilderness round" as a shared thing for a host who wants it. Deliberately not in D1–D11.
-
-[ ] **Whether `party_room` should exist.** It is the most fun idea here and the most likely
-to be unreadable in a dark pub. Build it last, behind the contrast check, and be willing to
-cut it.
+Nothing. Every question this document raised has been answered and folded into the sections
+above. New ones go here as they turn up.
 
 ## Decided
 
@@ -762,6 +909,16 @@ cut it.
 change, no migration.
 
 [x] **Random theme per round: no.** §1. The variety comes from splash artwork instead.
+
+[x] **`jolly` is always the default, and there is no `auto` theme.** Nothing consults
+`prefers-color-scheme`: jolly sits between light and dark, and a player who wants brighter or
+darker picks a theme. §1.
+
+[x] **No host-pinned room theme**, not even as a suggestion applied only to players who have
+not chosen. The theme stays the one thing that is purely the player's. §9.4.
+
+[x] **`party_room` is built, as D12**, separately from D5 and cut without ceremony if it
+cannot pass the contrast check. §1.
 
 [x] **The profile is local and permanent; the player is per-room and temporary.** No
 accounts. `jbi:profile` holds the name and head; the server never sees a returning player as
@@ -780,14 +937,45 @@ not change. §5.1.2.
 [x] **Chat heads need a server field**, with a derived-from-id fallback so the client works
 either way. §5.2.
 
+[x] **Fifty chat heads, picked by hand and committed** to `data/heads/` behind an index
+manifest, because `max_players_per_room` is 50 and a full room should be able to have fifty
+different faces. The index is a contract: `players.avatar` stores it, so an id is never
+repointed at a different head. §5.2.
+
+[x] **Seven gems, seven options, three modes.** Sapphire, emerald, ruby, diamond,
+dragonstone, onyx, zenyte, in that order and position-stable however many are shown.
+`multiple_choice`, `price_is_right` and `ordering` use them; `more_less` keeps `--more` /
+`--less` and its item pictures. No mode offers more than seven options, which is tracked as
+its own task outside this document. §2.
+
+[x] **The `--ok` ring stays on the winning gem**, and the contrast script grows an assertion
+of `--ok` at 3:1 against every `--gem-*` rather than the ring going neutral. §2.
+
+[x] **The points slot shows earned points over the running total**, and never the reason for
+a bonus. §7.2.
+
 [x] **Two ready widgets, not one.** A named list in the lobby, a heads row on the splash. The
 ready check can only ever shorten a splash, never lengthen it. §7.1.
 
+[x] **The ready threshold is a cap, not a floor** — `min(ceil(0.8 × eligible), eligible - 1)`
+— and a room of one is exempt at a threshold of 1 rather than starting instantly. §7.1.
+
 [x] **Two sound switches**, because muting question audio can make a round unplayable. §6.
+
+[x] **Audio unlocks on the first answer tap** for the players who never see a splash: a room
+with `splash_seconds: 0`, or a player who joined mid-game. One question of silence, once. §6.
 
 [x] **One-line trademark notice in the footer, next to the GitHub and licence links.** §9.2.
 
-[x] **The logo, splash art, palettes and icons are original work**; game renders and heads
-are fetched by `make fetch-assets` rather than committed. §9.1.
+[x] **The logo, splash art, palettes and icons are original work**; game renders and the
+display face are fetched by `make fetch-assets`; the fifty chat heads are committed, because
+curation is not something a script can do. §5.2, §9.1.
 
-[x] **Design work is D1–D11**, independent of the T-numbers, and can interleave with Phase 2.
+[x] **Splash art and the logo ship as placeholders.** The slots are the deliverable and the
+files arrive later, so neither D2 nor D7 reopens when the art lands. §7.1, §9.1.
+
+[x] **The display face, `make fetch-assets` and the logo are owned outside the D-tasks.**
+Nothing in D1–D12 blocks on any of them: `--font-display` falls back to the browser default,
+D4's heads are committed, and D2 draws a placeholder mark. §3, §9.1.
+
+[x] **Design work is D1–D12**, independent of the T-numbers, and can interleave with Phase 2.
