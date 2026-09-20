@@ -24,39 +24,40 @@ We would need money displayed like it is ingame. over 100,000 it becomes 100k. O
 # Medium
 (renders from MOID or structured data from Bucket):
 
-## Zoom quiz
+## Pixel Hunt
 item render at 800 percent, zooming out in steps, guessing earlier scores more.
 People can use a typebox with autocomplete of all items in our database. Only autocompleted options can be submitted. We would probably need at least 300 items in popular-items.json to make this work.
 
 ## Who is that NPC?
 show the render or a shadow of the render for the obvious like Jad/Elvarg, four names as answers. Or maybe an open textfield with autocompletion/dropdown type of thing.
 
-## Which boss drops this
+## Drop Table
 item render plus four bosses. We would need either all fake bosses included in the data, or randomize it from all available bosses. The latter is more fun, but would have the risk of running into second bosses that drop an item. Unless we accept multiple entries for the right answer.
 
 ## Odd one out
 four items or NPCs where three share an infobox property.
 
-## Timeline sort
+## Release Order
 four/five quests by release date, points per correct location.
 four/five NPCs by release date
 
-## Knowledge sort (We need a better name for this)
+## Sort it out
 data probably in the same structure as timeline sort, perhaps we should even combine this gamemode with timeline sort.
 give 4-5 random items or NPCs. And then we have to sort them in logical order (sapphire, emerald, ruby, diamond.. or bronze iron steel silver mithril gold etc). Or by combat level. The right order would have to be stored in the data itself. Give the data a tag so that we can accompany them with the right type of question (sort_type: quest, "Put the quests in order of release date", or "Put the quests in order of completion". The latter is fun, but can also have 2 out of 5 quests that could be in spot 3 and 4 because it don't matter. We have to think this through.)
 
 
-## NPC questions
+## Bestiary
 year of introduction, quest, location, combat level, weakness
 
-# Iconic (Quest) Dialogue
+# Who said that?
 Popular NPC quotes, like:
 Are you mentally deficient?
 Thugo wanting Redberry Pie
 Seriously, you'll be a monkey's uncle before you'll ever hold a dragon scimitar.
 Tell me... a story...
 
-# Famous streamer quotes
+# Clipped
+Famous streamer quotes
 B0aty's 73
 C Engineer: Dying on my HCIM: Completed
 
