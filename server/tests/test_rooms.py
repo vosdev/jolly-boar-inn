@@ -153,9 +153,9 @@ def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -
     assert n["n"] == 30
 
 
-def test_sixth_create_from_one_ip_is_429(client: TestClient) -> None:
+def test_eleventh_create_from_one_ip_is_429(client: TestClient) -> None:
     """T6: sixth create from one IP in an hour is 429."""
-    for _ in range(5):
+    for _ in range(10):
         create(client)
     response = client.post("/api/rooms", json={"display_name": "Zezima"})
     assert response.status_code == 429
