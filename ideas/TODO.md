@@ -3,26 +3,9 @@
 Instead of a splash countdown (default 8 seconds), have every player click ready. When every player is ready, count down from 3. Then the round begins.
 
 
-# Rounds and global options
-Instead of a global Rounds and Questions per round option, the amount of rounds should equal the amount of game modes chosen.
-
-so 1 game mode = 1 round, and 6 game modes = 6 rounds
-
-Amount of questions per round can be configured for each game mode type. Seconds per question can also be configured per game mode. We will configure sane defaults for each.
-
-The quick more_less gamemode will have a bit more questions and a short time to answer. A Quest release date gamemode will have fewer questions with more time to answer.
-
 # Leaderboard
 
 Only show the standing on the leaderboard after a round is complete. Not after every question.
-
-# Game creation
-
-Game modes are currently only either enabled or disabled, and then injected at a random order.
-
-Lets add the possibility to create our own order (default) with the option to make it random.
-
-List the enabled game modes in the lobby (In alphabetical order)
 
 # Design
 

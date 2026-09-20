@@ -26,7 +26,7 @@ from tests.rooms_api import call, create, join
 @pytest.fixture
 def lobby(client: TestClient) -> dict[str, Any]:
     """A room with its admin and one joined player: ``code``, ``admin``, ``player``."""
-    code, admin = create(client, question_count=3)
+    code, admin = create(client, modes=[{"mode": "more_less", "questions": 3}])
     player = join(client, code, "Zezima").json()
     return {"code": code, "admin": admin, "player": player}
 
@@ -459,7 +459,7 @@ def test_evict_closes_sockets_with_1012_and_they_reconnect(
 def test_rehydrate_covers_a_room_nobody_has_connected_to(app: FastAPI, client: TestClient) -> None:
     """No sockets, no answers -- and an admin who is a database row, not a live object."""
     manager: RoomManager = app.state.rooms
-    code, admin = create(client, question_count=5)
+    code, admin = create(client, modes=[{"mode": "more_less", "questions": 5}])
     expected = snapshot(call(client, manager.get, code))
     assert expected["view"]["status"] == "lobby"
     assert [p["display_name"] for p in expected["players"]] == ["Admin"]

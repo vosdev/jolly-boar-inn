@@ -23,44 +23,47 @@ def select(
     settings: RoomSettings,
     rng: random.Random,
 ) -> list[Round]:
-    """The room's rounds: ``question_count`` pack questions in blocks of one mode.
+    """The room's rounds: one per mode picked, as long as that mode asked to be.
 
-    A room plays ``ceil(question_count / questions_per_round)`` rounds, each of one mode,
-    the last one short if the two do not divide. The modes are shuffled once and then
-    taken in turn, so with two or more modes no two neighbouring rounds share one and the
-    splash between them always has something to say.
+    A mode is a round. Six modes are six rounds, one mode is one round, and how many
+    questions each holds is that mode's own ``questions`` setting -- so the quick modes
+    can run long and the slow ones short in the same game.
+
+    ``settings.mode_order`` decides the running order: ``"listed"`` plays the rounds in
+    the order the host arranged the modes in, ``"random"`` shuffles them once, here, at
+    creation. Either way the order is fixed before the first question is stored, because
+    the stored questions *are* the running order.
 
     Pack questions are drawn without replacement from a pool per mode, so no question
     appears twice in a room. A mode whose pool runs dry gives a short round, or none at
     all -- an empty round is dropped rather than played, because a splash for a round
     with no questions is a screen that introduces nothing.
 
-    ``settings.order`` now decides only where the room's own questions go.
-    ``"custom_last"`` gives them trailing rounds of their own; ``"shuffle"`` mixes each
-    into the round of its own mode where there is one, and gives the rest trailing rounds.
-    Either way a custom question never splits a round, which is what lets the round a
-    question belongs to be the record of what a room is playing.
+    ``settings.order`` decides only where the room's own questions go. ``"custom_last"``
+    gives them trailing rounds of their own; ``"shuffle"`` mixes each into the round of
+    its own mode where there is one, and gives the rest trailing rounds. Either way a
+    custom question never splits a round, which is what lets the round a question belongs
+    to be the record of what a room is playing.
     """
     pools = {
-        mode: [q for pack in packs for q in pack.questions if q["type"] == mode]
-        for mode in settings.modes
+        entry.mode: [q for pack in packs for q in pack.questions if q["type"] == entry.mode]
+        for entry in settings.modes
     }
     for pool in pools.values():
         rng.shuffle(pool)
     order = list(settings.modes)
-    rng.shuffle(order)
+    if settings.mode_order == "random":
+        rng.shuffle(order)
 
-    per_round = settings.questions_per_round
-    wanted = settings.question_count
     rounds: list[Round] = []
-    for number in range((wanted + per_round - 1) // per_round):
-        mode = order[number % len(order)]
-        take = min(per_round, wanted - number * per_round, len(pools[mode]))
+    for entry in order:
+        pool = pools[entry.mode]
+        take = min(entry.questions, len(pool))
         if take <= 0:
-            continue  # this mode is spent; a round with no questions is not a round
-        rounds.append(Round(mode=mode, questions=[pools[mode].pop() for _ in range(take)]))
+            continue  # this mode has nothing to play; a round with no questions is not a round
+        rounds.append(Round(mode=entry.mode, questions=[pool.pop() for _ in range(take)]))
 
-    return _with_custom(rounds, list(custom), settings, rng, per_round)
+    return _with_custom(rounds, list(custom), settings, rng)
 
 
 def _with_custom(
@@ -68,7 +71,6 @@ def _with_custom(
     custom: list[dict[str, Any]],
     settings: RoomSettings,
     rng: random.Random,
-    per_round: int,
 ) -> list[Round]:
     """Place the room's own questions, per ``settings.order``. See ``select``."""
     if not custom:
@@ -85,12 +87,13 @@ def _with_custom(
             continue
         home.questions.insert(rng.randrange(len(home.questions) + 1), question)
     # Whatever is left trails the game in the order given, grouped by mode first and then
-    # split into rounds of the same length as the rest, so every round is still one mode
-    # and the splash and the progress counter read the same everywhere.
+    # split into rounds as long as that mode's rounds are, so every round is still one
+    # mode and the splash and the progress counter read the same everywhere.
     by_mode: dict[str, list[dict[str, Any]]] = {}
     for question in leftover:
         by_mode.setdefault(question["type"], []).append(question)
     for mode, block in by_mode.items():
+        per_round = max(1, settings.questions_for(mode))
         for start in range(0, len(block), per_round):
             rounds.append(Round(mode=mode, questions=block[start : start + per_round]))
     return rounds

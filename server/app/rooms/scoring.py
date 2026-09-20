@@ -1,10 +1,10 @@
 """Points for one graded answer: section 6 of ideas/architecture.md.
 
 Pure functions, no room state and no I/O, so this table is the only thing to read when
-the numbers are argued about. The bucket edges are fractions of the room's
-``question_seconds`` rather than absolute seconds, so changing the question length keeps
-the shape: a 30-second question buckets at 3 / 7.5 / 15 / 22.5 / 30 s, a 10-second one at
-1 / 2.5 / 5 / 7.5 / 10 s.
+the numbers are argued about. The bucket edges are fractions of the question's own length
+-- its mode's ``seconds`` -- rather than absolute seconds, so a slow round and a quick one
+in the same game are both scored on how fast you were for that round: a 30-second question
+buckets at 3 / 7.5 / 15 / 22.5 / 30 s, a 10-second one at 1 / 2.5 / 5 / 7.5 / 10 s.
 
 ``closest_number`` ranks answers by distance instead of speed; its ``points_closest``
 lands in Phase 2 together with that type module.

@@ -1,6 +1,6 @@
 """T6 Accept: create returns ``{code, session, player}`` and the creator is the room's
 admin; a bad display name creates no room row; the sixth create from one IP in an hour is
-429; ``questions`` rows equal ``question_count`` (the code collision retry is in
+429; ``questions`` rows equal what the modes asked for (the code collision retry is in
 test_codes.py plus an end-to-end check here).
 
 T7 Accept: join a finished room is 409; duplicate name is 409; over ``max_players`` is
@@ -123,9 +123,9 @@ def test_code_collision_retries_then_appends_digits(app: FastAPI, client: TestCl
     assert re.fullmatch(r"CABBAGE\d\d", second)
 
 
-def test_questions_rows_equal_question_count(client: TestClient, db) -> None:
-    """T6: ``questions`` rows equal ``question_count``, fixed at creation."""
-    code, _ = create(client, question_count=7)
+def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -> None:
+    """T6: a mode is a round, and its ``questions`` is how long that round is."""
+    code, _ = create(client, modes=[{"mode": "more_less", "questions": 7}])
     (room,) = db("select id from rooms where code = $1", code)
     rows = db(
         "select position, question_id, type, source, payload, host_only, round from questions"
@@ -135,8 +135,8 @@ def test_questions_rows_equal_question_count(client: TestClient, db) -> None:
     assert len(rows) == 7
     assert [r["position"] for r in rows] == list(range(7))
     assert len({r["question_id"] for r in rows}) == 7
-    # Seven questions in rounds of five: two rounds, the second one short.
-    assert [r["round"] for r in rows] == [0, 0, 0, 0, 0, 1, 1]
+    # One mode, so one round, however many questions it holds.
+    assert [r["round"] for r in rows] == [0] * 7
     for row in rows:
         assert row["type"] == "more_less"
         assert row["source"] == "pack"
@@ -145,12 +145,12 @@ def test_questions_rows_equal_question_count(client: TestClient, db) -> None:
         assert not set(row["payload"]) & {"id", "type", "source", "host_only"}
         assert row["payload"]["payload"]["answer_index"] in (0, 1)
 
-    code, _ = create(client, question_count=100)
+    code, _ = create(client, modes=[{"mode": "more_less", "questions": 30}])
     (n,) = db(
         "select count(*) as n from questions q join rooms r on r.id = q.room_id where r.code = $1",
         code,
     )
-    assert n["n"] == 100
+    assert n["n"] == 30
 
 
 def test_sixth_create_from_one_ip_is_429(client: TestClient) -> None:
@@ -163,13 +163,12 @@ def test_sixth_create_from_one_ip_is_429(client: TestClient) -> None:
 
 
 def test_create_stores_settings_with_resolved_max_players(client: TestClient, db) -> None:
-    code, _ = create(client, question_seconds=45, reveal_seconds=5)
+    code, _ = create(client, modes=[{"mode": "more_less", "seconds": 15}], reveal_seconds=5)
     (row,) = db("select settings from rooms where code = $1", code)
     assert row["settings"] == {
-        "question_seconds": 45,
-        "question_count": 20,
-        "questions_per_round": 5,
-        "modes": ["more_less"],
+        # ``questions`` was left out, so the mode's own default filled it in.
+        "modes": [{"mode": "more_less", "questions": 10, "seconds": 15}],
+        "mode_order": "listed",
         "order": "shuffle",
         "reveal_seconds": 5,
         "splash_seconds": 8,
@@ -180,15 +179,18 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
 
 def test_create_rejects_bad_settings(client: TestClient) -> None:
     bad = [
-        {"question_seconds": 5},
-        {"question_count": 0},
         {"modes": []},
-        {"modes": ["closest_number"]},
-        {"modes": ["more_less", "more_less"]},
+        {"modes": [{"mode": "closest_number"}]},  # not a type this build plays
+        {"modes": [{"mode": "more_less"}, {"mode": "more_less"}]},  # a mode is one round
+        {"modes": [{"mode": "more_less", "questions": 0}]},  # under the type's minimum
+        {"modes": [{"mode": "more_less", "questions": 31}]},  # over it
+        {"modes": [{"mode": "more_less", "seconds": 4}]},  # quicker than the type allows
+        {"modes": [{"mode": "more_less", "seconds": 21}]},  # slower than it allows
+        {"modes": [{"mode": "more_less", "rounds": 2}]},  # not a field
+        {"modes": ["more_less"]},  # the old shape: a name, not a round
+        {"mode_order": "listed_or_not"},
         {"order": "random"},
         {"reveal_seconds": 60},
-        {"questions_per_round": 0},
-        {"questions_per_round": 21},
         {"splash_seconds": -1},
         {"splash_seconds": 31},
         {"max_players": 0},
@@ -220,7 +222,7 @@ def test_create_survives_unparseable_client_address(client: TestClient, db) -> N
 
 
 def test_get_room_view_and_case_insensitive_code(client: TestClient) -> None:
-    code, admin = create(client, question_count=3)
+    code, admin = create(client, modes=[{"mode": "more_less", "questions": 3}])
     response = client.get(f"/api/rooms/{code}")
     assert response.status_code == 200
     assert response.json() == {

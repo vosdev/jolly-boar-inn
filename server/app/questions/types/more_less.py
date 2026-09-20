@@ -18,12 +18,15 @@ from typing import Any
 from uuid import UUID
 
 from app.questions.submission import Submission
+from app.questions.types.bounds import Bounds
 
 DIRECTIONS = ("more", "less")
-# This mode is meant to be quick: two names, one word to read. Ten seconds is plenty, and
-# a room set to a minute a question would otherwise drag it out to no purpose. The game
-# loop clamps ``question_seconds`` to this.
-MAX_SECONDS = 10
+# This mode is meant to be quick: two names, one word to read. So its round is a long one
+# and its questions are short -- ten seconds is plenty, and a minute of it would be
+# forty-five seconds of waiting. Twenty is as far as a host may stretch one question
+# before that is all it is.
+QUESTIONS = Bounds(default=10, minimum=1, maximum=30)
+SECONDS = Bounds(default=10, minimum=5, maximum=20)
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

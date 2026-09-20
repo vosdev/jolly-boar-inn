@@ -18,10 +18,10 @@ from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT, Settings
 from app.main import create_app
-from app.questions import schema
+from app.questions import schema, types
 from app.questions.packs import PackError, load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, max_seconds, more_less
+from app.questions.types import TYPES, more_less, questions_bounds, seconds_bounds
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
@@ -226,9 +226,17 @@ def test_registry_has_only_more_less() -> None:
         assert callable(getattr(more_less, name))
 
 
-def test_more_less_caps_its_own_question_length() -> None:
-    """The mode is meant to be quick, whatever the room asked for."""
-    assert max_seconds("more_less") == 10
+def test_more_less_sets_its_own_pace() -> None:
+    """A long round of short questions: the mode is two names and one word to read."""
+    questions, seconds = questions_bounds("more_less"), seconds_bounds("more_less")
+    assert (questions.default, questions.minimum, questions.maximum) == (10, 1, 30)
+    assert (seconds.default, seconds.minimum, seconds.maximum) == (10, 5, 20)
+
+
+def test_a_type_without_a_pace_of_its_own_gets_the_fallbacks() -> None:
+    """``questions/types/__init__.py``: declaring neither is allowed, and unremarkable."""
+    assert questions_bounds("not_a_type") is types.QUESTIONS
+    assert seconds_bounds("not_a_type") is types.SECONDS
 
 
 def test_client_view_has_no_answer() -> None:

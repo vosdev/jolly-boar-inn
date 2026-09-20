@@ -6,6 +6,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.questions.types import TYPES
 from app.rooms.settings import RoomSettings
 from app.rooms.state import Player, Room
 
@@ -35,23 +36,29 @@ def call(client: TestClient, fn: Any, *args: Any) -> Any:
 def fast_settings(**overrides: Any) -> RoomSettings:
     """Settings for a game that is over in seconds rather than minutes.
 
-    ``POST /api/rooms`` will not take these: ``NewRoomSettings`` holds hosts to
-    ``question_seconds >= 10`` and ``reveal_seconds >= 3``, which is the shortest question
-    worth playing but far too long for a test suite to sit through. The stored model has
-    no such opinion, so these rooms are made through the manager directly.
+    ``POST /api/rooms`` will not take these: ``NewRoomSettings`` holds hosts to what each
+    type says a round of it is worth (``more_less`` is 5..20 seconds a question), and
+    ``reveal_seconds >= 3``, which is the shortest game worth playing but far too long for
+    a test suite to sit through. The stored model has no such opinion, so these rooms are
+    made through the manager directly.
+
+    ``seconds`` and ``questions`` belong to a mode now, so this spreads them over the
+    modes asked for: ``fast_settings()`` is one round of three one-second questions.
+    ``modes`` takes names, or whole ``{"mode": ..., "questions": ..., "seconds": ...}``
+    dicts for a game whose rounds are deliberately different lengths.
 
     ``splash_seconds`` is zero by default too: a test that is not about the splash should
     see the frames it always saw, and the ones that are about it pass their own.
     """
-    return RoomSettings(
-        **{
-            "question_seconds": 1,
-            "reveal_seconds": 1,
-            "question_count": 3,
-            "splash_seconds": 0,
-            **overrides,
-        }
-    )
+    seconds = overrides.pop("seconds", 1)
+    questions = overrides.pop("questions", 3)
+    modes = [
+        mode
+        if isinstance(mode, dict)
+        else {"mode": mode, "questions": questions, "seconds": seconds}
+        for mode in overrides.pop("modes", [next(iter(TYPES))])
+    ]
+    return RoomSettings(**{"modes": modes, "reveal_seconds": 1, "splash_seconds": 0, **overrides})
 
 
 def create_fast(

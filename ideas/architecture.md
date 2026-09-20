@@ -56,6 +56,7 @@ jolly-boar-inn/
 │   │   │   ├── normalize.py   # free-text normalisation + Levenshtein
 │   │   │   └── types/         # one module per question type
 │   │   │       ├── __init__.py    # registry: TYPES = {"more_less": more_less, ...}
+│   │   │       ├── bounds.py      # Bounds: a per-mode number, its default and its range
 │   │   │       ├── more_less.py
 │   │   │       ├── guess_examine.py      # Phase 2
 │   │   │       ├── price_is_right.py     # Phase 2
@@ -68,6 +69,7 @@ jolly-boar-inn/
 │   │   ├── http/
 │   │   │   ├── rooms.py       # POST /api/rooms, GET /api/rooms/{code}
 │   │   │   ├── players.py     # POST /api/rooms/{code}/join
+│   │   │   ├── modes.py       # GET /api/modes: the types, and how a round of each is paced
 │   │   │   └── ratelimit.py   # in-memory per-IP limiter
 │   │   └── static.py          # mount client/dist with SPA fallback
 │   ├── scripts/
@@ -150,16 +152,17 @@ def grade(payload: dict, submissions: list[Submission]) -> dict[player_id, bool 
 def validate_value(payload: dict, value) -> bool   # shape check of a submitted answer before storing
 def check(payload: dict) -> list[str]      # consistency: the stored answer follows from the stored facts
 
-MAX_SECONDS: int | None                    # optional: this type's own cap on question_seconds
+QUESTIONS: Bounds                          # optional: how long a round of this type is
+SECONDS: Bounds                            # optional: how long one of its questions is open
 ```
 
 `grade` takes all submissions at once because `closest_number` ranks them. `scoring.py` turns grade results plus timing into points.
 
-`MAX_SECONDS` exists because modes differ in how long they are worth playing: `more_less` is two names and one word, and a minute of it is forty-five seconds of waiting. `_open_question` uses `min(question_seconds, MAX_SECONDS)`, and the speed bucket is a fraction of that same number, so a ten-second question scores on ten seconds in a room set to sixty.
+`QUESTIONS` and `SECONDS` exist because modes differ in pace, and a room has no question length of its own to fall back on any more. Each is a `Bounds(default, minimum, maximum)`: the default the create form offers, and the range `NewRoomSettings` holds a host to. `more_less` is two names and one word, so it is a long round of short questions — ten of them at ten seconds, stretchable to twenty, because a minute of it would be forty-five seconds of waiting. A module that declares neither gets the registry's fallbacks. `questions_bounds(type)` and `seconds_bounds(type)` read them, `GET /api/modes` serves them to the create form, and `RoomSettings.seconds_for` clamps a stored room into them, so a room created before a type changed its mind still plays. The speed bucket is a fraction of that same number, so a ten-second round scores on ten seconds in a game whose other rounds run to a minute.
 
-**`rooms/selection.py`.** `select(packs, custom, settings, rng) -> list[Round]`: a room plays `ceil(question_count / questions_per_round)` rounds of one mode each, the last one short if the two do not divide. The modes are shuffled once and then taken in turn, so with two or more modes no two neighbouring rounds share one. Questions are drawn without replacement from a pool per mode; a mode whose pool runs dry gives a short round, or none at all — an empty round is dropped rather than played. `settings.order` now decides only where custom questions go: `"custom_last"` gives them trailing rounds of their own, `"shuffle"` mixes each into the round of its own mode where there is one. Either way a custom question never splits a round. `flatten(rounds)` gives `(round number, question)` in play order, which is what `create` stores. Pure, seeded, tested.
+**`rooms/selection.py`.** `select(packs, custom, settings, rng) -> list[Round]`: a mode is a round. A room plays one round per mode picked, as long as that mode's own `questions` setting asks for — six modes are six rounds, one mode is one round. `settings.mode_order` decides the running order: `"listed"` plays them in the order the host arranged them in, `"random"` shuffles them once, here, at creation, because the stored questions *are* the running order. Questions are drawn without replacement from a pool per mode; a mode whose pool runs dry gives a short round, or none at all — an empty round is dropped rather than played. `settings.order` is a different thing entirely, and decides only where custom questions go: `"custom_last"` gives them trailing rounds of their own, `"shuffle"` mixes each into the round of its own mode where there is one. Either way a custom question never splits a round. `flatten(rounds)` gives `(round number, question)` in play order, which is what `create` stores. Pure, seeded, tested.
 
-**`rooms/segments.py`.** `segments_of(questions) -> list[Segment]`: the rounds a room is playing, grouped back out of the `questions.round` column. The round number is stored rather than derived because neither cheap derivation holds — runs of equal `type` merge two rounds of one mode, and `position // questions_per_round` breaks on a short round — and both failures are silent.
+**`rooms/segments.py`.** `segments_of(questions) -> list[Segment]`: the rounds a room is playing, grouped back out of the `questions.round` column. The round number is stored rather than derived because neither cheap derivation holds — counting questions off `settings.modes` breaks on a short round, and runs of equal `type` merge the trailing rounds that a custom question of an unpicked mode gets — and both failures are silent.
 
 **`db.py`.** `create_pool()`, `run_migrations(pool)`: creates `schema_migrations` if missing, applies every `NNNN_*.sql` not yet recorded, each file in one transaction, in lexical order. Refuses to start if a file recorded as applied is missing.
 
@@ -416,6 +419,8 @@ OpenQuestion  { question_id, index, total, type, segment: Segment, view: object,
 
 `Segment` is the round in progress: which mode it plays, which round of how many it is, and the positions it spans. It is grouped from the `questions.round` column, never sent from a second store of it. It rides on `OpenQuestion` as well as `RoomView` because clients patch their room from `question_open` rather than replacing it, and a round can change with no splash to announce it.
 
+`total` is how many questions the room holds, counted from the rows `create` stored rather than added up off `settings.modes`. The two disagree whenever the plan and the stored set do: a mode whose pack pool ran short gives a round briefer than it asked for, and a room created before per-mode rounds carries settings that cannot describe the questions it already has. The lobby reads `total` for its summary for the same reason the progress counter does — the questions a room has are the ones it will play, and the settings are only what was asked for.
+
 `next_at` is when the current timed phase ends — a splash gives way to its first question, a reveal to the next question — and is null while a question is open.
 
 `view` is exactly `types.<type>.client_view(payload)`. `you_can_answer` is false for the author of a room question and for `host_only` questions.
@@ -493,12 +498,12 @@ pending ──open──▶ open ──timer / all answered / skip──▶ clos
 
 Room `phase` mirrors this: `idle` (lobby/finished), `splash`, `open`, `reveal`.
 
-The splash introduces a *mode*, not a round: it runs before a round's first question only when that round plays a different mode from the one before it, so a game of one mode shows it once. It writes nothing — `current_index` was persisted before it ran and `phase` has never been a column — which is why a crash during one is a crash before a question that never opened, the case recovery already handles.
+The splash introduces a *mode*, not a round: it runs before a round's first question only when that round plays a different mode from the one before it. A mode is a round, so in practice every round is introduced; the guard earns its keep on the trailing rounds a custom question of an unpicked mode gets (Phase 2), where the same mode can run twice in a row. It writes nothing — `current_index` was persisted before it ran and `phase` has never been a column — which is why a crash during one is a crash before a question that never opened, the case recovery already handles.
 
 | Transition | Trigger | Side effects |
 |---|---|---|
 | `(new mode) → splash` | timer task, before a round's first question | `next_at = now + splash_seconds`, broadcast `room_updated`; no write |
-| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `ends_at = shown_at + min(question_seconds, the type's MAX_SECONDS)`, broadcast `question_open`, schedule close |
+| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `ends_at` = `shown_at` plus the round's own `seconds` (clamped to the type's `SECONDS`), broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or every connected player who can answer has answered and `close_when_all_answered`; or admin `skip` | `UPDATE questions SET closed_at = now`, grade all answers, `UPDATE answers SET correct, points`, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
 | `open → voided` | restart recovery, `end_game` | `closed_at = now, voided = true`, no grading |
@@ -509,10 +514,10 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
 
 ```json
 {
-  "question_seconds": 30,          // 10..120, plan.md says 30..60 in the UI
-  "question_count": 20,            // 1..100 questions picked from packs; rounds x length
-  "questions_per_round": 5,        // 1..20
-  "modes": ["more_less"],          // subset of question types
+  "modes": [                       // a mode is a round: this list is the rounds, one each
+    {"mode": "more_less", "questions": 10, "seconds": 10}
+  ],
+  "mode_order": "listed",          // "listed": the order above; "random": shuffled at creation
   "order": "shuffle",              // where custom questions go: "shuffle" | "custom_last"
   "reveal_seconds": 8,             // 3..30
   "splash_seconds": 8,             // 0..30, 0 turns the round intro off
@@ -521,14 +526,15 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
 }
 ```
 
-The create form asks for rounds and a round length and posts their product as `question_count`, so the number of rounds is `ceil(question_count / questions_per_round)` and is never stored.
+There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's type module says (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form, which offers each mode's default and gates its own submit button on the same bounds — `min` and `max` on a number input are a nudge a host can type past, so the form checks every round's two numbers itself and marks the one out of range under the field where its range is already written. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds.
 
 Settings are fixed at creation. Editing settings in the lobby is not in Phase 1.
 
 The ranges above are what a host may ask for, and they are checked where the request
 arrives (`NewRoomSettings` in `rooms/settings.py`). The stored model keeps only what the
 game loop cannot work without, so a room created under one set of bounds still loads
-after the bounds change, and the tests can run a whole game on one-second questions.
+after the bounds change — `seconds_for` clamps it into today's range rather than refusing
+it — and the tests can run a whole game on one-second questions.
 
 ## 5. SQL schema
 
@@ -602,6 +608,7 @@ Notes:
 - `questions.payload` stores the type-specific payload and the envelope extras (`tags`, `difficulty`, `author`, `added_at`); `type`, `source`, `host_only`, `question_id` are columns because queries and grading need them.
 - `0002_drop_admin_tokens.sql` removes `admin_token_hash`, `admin_token_consumed_at` and the `created` status: the creator is the admin, so there is nothing to claim.
 - `0003_question_rounds.sql` adds `questions.round`. A room's rounds are grouped back out of it by `rooms/segments.py`; the default of 0 makes every room that predates it a single round, which is what it was.
+- `0004_per_mode_rounds.sql` rewrites `rooms.settings` in place: out go `question_seconds`, `question_count` and `questions_per_round`, and `modes` stops being a list of names and becomes a list of `{mode, questions, seconds}` carrying the old globals. A room created by the previous release keeps playing — its rounds are already in `questions.round` — and `mode_order` is `listed` for it, because there is nothing left to shuffle.
 - `suggestions` (Phase 6) is not created now. It will be `0003_suggestions.sql` when needed.
 - Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every 10 minutes. No external cron.
 
@@ -611,7 +618,7 @@ All timing is server-side: `elapsed = received_at - shown_at`. The client never 
 
 ### Speed buckets (all types except `closest_number`)
 
-`fraction = elapsed / question_seconds`, computed once at receive time and stored in memory with the answer; the bucket is sent back in `answer_ack`.
+`fraction = elapsed / the question's own seconds`, computed once at receive time and stored in memory with the answer; the bucket is sent back in `answer_ack`.
 
 | Bucket | Fraction of question time | Points if correct |
 |---|---|---|
@@ -623,7 +630,7 @@ All timing is server-side: `elapsed = received_at - shown_at`. The client never 
 
 For a 30-second question: 0–3 s, 3–7.5 s, 7.5–15 s, 15–22.5 s, 22.5–30 s. Wrong answer or no answer: 0. An answer arriving after `closed_at` is rejected with `not_open`, never scored.
 
-The bucket boundaries are fractions so changing `question_seconds` keeps the shape. No RTT compensation; the coarse first bucket makes 50–150 ms irrelevant.
+The bucket boundaries are fractions, so a quick round and a slow one in the same game are each scored on how fast you were for that round. No RTT compensation; the coarse first bucket makes 50–150 ms irrelevant.
 
 ### `closest_number` (Phase 2)
 
@@ -717,7 +724,7 @@ Endpoints `/mapping` and `/latest`, one request each, descriptive User-Agent. `/
 Accept: produces +- 100 valid questions; `validate_packs.py` passes on the output; the script is idempotent and never runs at app startup or ci.
 
 DONE: **T6. Room creation.** `rooms/codes.py`, `data/room-words.json` (see Needs decision), `http/rooms.py` with `POST /api/rooms`, `GET /api/rooms/{code}`; `ratelimit.py`; `rooms/selection.py`; the `create` method of `RoomManager`, inserting the room, its questions and its admin player at creation.
-Accept: integration tests cover: create returns `{code, session, player}` and the creator is the room's admin; a bad display name creates no room row and costs no rate-limit quota; a failed admin insert leaves no room; sixth create from one IP in an hour is `429`; `questions` rows equal `question_count`; code collision retry is unit-tested with a stubbed word list.
+Accept: integration tests cover: create returns `{code, session, player}` and the creator is the room's admin; a bad display name creates no room row and costs no rate-limit quota; a failed admin insert leaves no room; sixth create from one IP in an hour is `429`; `questions` rows equal what the picked modes asked for; code collision retry is unit-tested with a stubbed word list.
 
 DONE: **T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules: trimmed, 1–24 chars, unique per room case-insensitively, no HTML (escaped on render anyway).
 Accept: join a `finished` room → `409 not_open`; duplicate name → `409`; over `max_players` → `409`; success returns a session; player appears in `GET /api/rooms/{code}`.
@@ -726,7 +733,7 @@ DONE: **T8. RoomManager core and websocket handshake.** `rooms/state.py` with `R
 Accept: test client connects, sends `hello`, gets `welcome` with `players` and `you`; second socket for the same player closes the first with `4000`; bad session → `4001`; disconnect flips `connected` in a broadcast to the remaining socket; a room evicted from memory (test hook) rehydrates identically.
 
 DONE: **T9. Game loop.** `start_game`, the timer task, `question_open`, `submit_answer` with DB write before `answer_ack`, `question_closed`, auto-advance, `game_finished`, `skip`, `end_game`, `promote`, `kick`.
-Accept: with `question_seconds = 1` and `reveal_seconds = 1`, a 3-question room runs to `finished` unattended in a test; answer after close → `not_open`; second answer → `already_answered`; all-answered closes early; non-admin `start_game` → `not_admin`; `skip` during open closes within 100 ms.
+Accept: with one-second questions and `reveal_seconds = 1`, a 3-question room runs to `finished` unattended in a test; answer after close → `not_open`; second answer → `already_answered`; all-answered closes early; non-admin `start_game` → `not_admin`; `skip` during open closes within 100 ms.
 
 DONE: **T10. Scoring and standings.** `rooms/scoring.py` from section 6; grading at close writes `correct` and `points`; standings computed from the answers sum; `results` in `question_closed`; `host_only` and author exclusion enforced (author exclusion has no callers until Phase 2 but is tested now).
 Accept: table-driven tests for every bucket edge (exactly 0.10, 0.1001, > 1.0 clamps to bucket 5); standings tie-break order tested; sum in memory equals `SUM(points)` from the DB after each close.
@@ -744,7 +751,7 @@ Accept: a full 10-question game with 3 browsers finishes and shows identical sta
 Accept: a clean machine following only the README reaches a finished game; `docker compose down && up` mid-game recovers per T11.
 
 **T15. Load test.** `scripts/loadtest.py`: 30 bot players join one room, answer every question at random times, one bot reconnects every question.
-Accept: 30 questions at `question_seconds = 10` complete with zero `error` messages, p99 `answer` → `answer_ack` under 200 ms on localhost, no lock contention warnings, and the answers table has exactly the expected row count.
+Accept: 30 questions at ten seconds each complete with zero `error` messages, p99 `answer` → `answer_ack` under 200 ms on localhost, no lock contention warnings, and the answers table has exactly the expected row count.
 
 After T15, Phase 1 is a playable night. Phase 2 starts with the custom-question editor and the remaining Phase 2 types, which only add `types/*.py` modules, Svelte components, and the editor UI; no protocol or schema changes.
 

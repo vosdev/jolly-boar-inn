@@ -263,3 +263,30 @@ ul.players li:first-child {
   border-color: var(--bad);
   color: var(--bad);
 }
+
+/* The lobby's rounds, and the create form's. One row a round: what it is, then its
+   numbers, which wrap under the name on a narrow screen. */
+ul.modes,
+ul.rounds {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+ul.modes li,
+ul.rounds li {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--line);
+}
+
+ul.modes li:first-child,
+ul.rounds li:first-child {
+  border-top: none;
+}
+
+ul.modes li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}

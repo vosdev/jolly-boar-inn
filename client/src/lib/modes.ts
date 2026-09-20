@@ -2,9 +2,13 @@
  * What each game mode is called and how it is explained, in one place.
  *
  * The server sends a mode id and nothing else — no label, no blurb. Copy is a client
- * concern: it is what the create form's checkboxes read, what the splash screen says
- * before a round, and where the artwork will hang when there is some. Keeping all three
- * on one object is what stops them drifting apart as modes are added.
+ * concern: it is what the create form's checkboxes read, what the lobby lists, what the
+ * splash screen says before a round, and where the artwork will hang when there is some.
+ * Keeping all of it on one object is what stops them drifting apart as modes are added.
+ *
+ * Which modes exist, and how a round of each is paced, is the server's to say:
+ * `GET /api/modes` (see `lib/api.ts`) is what the create form lists, so a build that
+ * plays a mode this file has no copy for still offers it, under its id.
  *
  * Plain TypeScript with no `.svelte` imports, so every screen can use it. The components
  * that *draw* a question live in `components/questions/index.ts` instead.
@@ -29,9 +33,6 @@ export const MODES: Record<string, Mode> = {
       'Two items, one question: which one is worth more or less?',
   },
 }
-
-/** Registry order, which is the order the create form lists them in. */
-export const MODE_LIST: Mode[] = Object.values(MODES)
 
 /**
  * A mode's name, or the raw id for one this build does not know.
