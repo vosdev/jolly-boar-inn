@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs gen-price-questions
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs gen-price-questions loadtest
 
 # Dev Postgres: own compose project so it never collides with `docker compose up`.
 DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
@@ -54,6 +54,17 @@ validate-packs:
 lint:
 	cd server && uv run ruff check . && uv run ruff format --check .
 	cd client && pnpm check
+
+# T15: 30 bot players through one room over websockets, asserting no error frames, a p99
+# answer -> answer_ack under 200 ms, an exact answers row count and identical standings.
+# Needs a live server and its database, so it is never part of `test` or CI: run `make dev`
+# in another terminal first. For the compose stack the bundled Postgres is not published to
+# the host, so run the script in the app container instead:
+#   docker compose exec app python scripts/loadtest.py
+# Takes about six and a half minutes. Pass flags through with LOADTEST_ARGS, e.g.
+#   make loadtest LOADTEST_ARGS="--questions 5 --question-seconds 5"
+loadtest:
+	cd server && uv run python scripts/loadtest.py $(LOADTEST_ARGS)
 
 # Regenerate data/packs/prices.json from the roster and the wiki price API (two requests,
 # /mapping and /latest). Never part of test, CI or app startup: run it about monthly and
