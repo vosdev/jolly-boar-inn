@@ -18,7 +18,7 @@ HEAD /api/modes 404s while GET 200s;
 
 # Custom Questions
 
-Custom questions can be displayed as random events. They can be shown at a random time during any game mode, as an additional question. With a special popup/splash type page which will show the NPC. We can create a bunch of random events and have them ask the question that is configured as custom.
+Custom questions can be displayed as random events. They can be shown at a random time during any game mode, as an additional question. With a special popup/splash type page which will show the random event NPC. We can create a bunch of random events and have them ask the question that is configured as custom.
 
 Additionally, we could introduce random events anyways. Also when no custom questions are configured. It's very in line with OSRS.
 
@@ -26,7 +26,7 @@ Random events will never be in the first round, and never the first question of 
 
 We should probably keep to a max of 1 random event/custom question per round. If people want 5 custom questions, they will have to enable at least 6 game modes. That also prevents people from abusing the custom question system to host their own non-osrs trivia game via our application.
 
-Similar to a splash page, we can have an NPC show up and ask the question. With the buttons showing up 2 seconds later.
+Similar to a splash page, we can have an NPC show up and 1 second later ask the question. With the buttons showing up 2 seconds later.
 
 Ideally, the question that is asked is a different type and/or gamemode. To make it truly a random event.
 
