@@ -1,297 +1,9 @@
 {
   "pack": "prices",
-  "generated_at": "2026-09-19T12:36:54Z",
+  "generated_at": "2026-09-20T08:03:54Z",
   "questions": [
     {
-      "id": "q_a67da446e1decf10",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Rune platebody",
-              "asset": "item:1127"
-            },
-            "value": 38265
-          },
-          {
-            "subject": {
-              "name": "Prayer potion(4)",
-              "asset": "item:2434"
-            },
-            "value": 9590
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_938041553c955b8f",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Archers ring",
-              "asset": "item:6733"
-            },
-            "value": 2149518
-          },
-          {
-            "subject": {
-              "name": "Abyssal whip",
-              "asset": "item:4151"
-            },
-            "value": 817632
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_5abff1be8ada46fd",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Monkfish",
-              "asset": "item:7946"
-            },
-            "value": 166
-          },
-          {
-            "subject": {
-              "name": "Redberry pie",
-              "asset": "item:2325"
-            },
-            "value": 71
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_b9fafc2c5583c100",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Prayer potion(4)",
-              "asset": "item:2434"
-            },
-            "value": 9590
-          },
-          {
-            "subject": {
-              "name": "Rune pickaxe",
-              "asset": "item:1275"
-            },
-            "value": 18452
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_92222792a9db5e65",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Gold bar",
-              "asset": "item:2357"
-            },
-            "value": 64
-          },
-          {
-            "subject": {
-              "name": "Law rune",
-              "asset": "item:563"
-            },
-            "value": 119
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_a054762c69769640",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Helm of Neitiznot",
-              "asset": "item:10828"
-            },
-            "value": 49753
-          },
-          {
-            "subject": {
-              "name": "Granite maul",
-              "asset": "item:4153"
-            },
-            "value": 110000
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_696c355b872b7a3d",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Bandos tassets",
-              "asset": "item:11834"
-            },
-            "value": 15466066
-          },
-          {
-            "subject": {
-              "name": "Dragon claws",
-              "asset": "item:13652"
-            },
-            "value": 38209168
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_93791372515475d2",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon pickaxe",
-              "asset": "item:11920"
-            },
-            "value": 606638
-          },
-          {
-            "subject": {
-              "name": "Dragon platebody",
-              "asset": "item:21892"
-            },
-            "value": 2194562
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_817e9c1b79a6c201",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Ring of dueling(8)",
-              "asset": "item:2552"
-            },
-            "value": 891
-          },
-          {
-            "subject": {
-              "name": "Dragon arrow",
-              "asset": "item:11212"
-            },
-            "value": 1877
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_42d15d2a21b2ad4f",
+      "id": "q_ec32f4dffdfe3965",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -301,317 +13,29 @@
       "difficulty": "hard",
       "payload": {
         "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Lobster",
-              "asset": "item:379"
-            },
-            "value": 97
-          },
-          {
-            "subject": {
-              "name": "Nature rune",
-              "asset": "item:561"
-            },
-            "value": 138
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_0fa455b730b0b51c",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
         "direction": "more",
         "options": [
-          {
-            "subject": {
-              "name": "Ancestral robe top",
-              "asset": "item:21021"
-            },
-            "value": 90481425
-          },
-          {
-            "subject": {
-              "name": "Armadyl chestplate",
-              "asset": "item:11828"
-            },
-            "value": 35677500
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_0e1d6b478f355d8f",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Blood rune",
-              "asset": "item:565"
-            },
-            "value": 333
-          },
-          {
-            "subject": {
-              "name": "Bow string",
-              "asset": "item:1777"
-            },
-            "value": 190
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_94d09c0323863235",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon claws",
-              "asset": "item:13652"
-            },
-            "value": 38209168
-          },
-          {
-            "subject": {
-              "name": "Primordial boots",
-              "asset": "item:13239"
-            },
-            "value": 18784315
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d2dcf9ee87365582",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Death rune",
-              "asset": "item:560"
-            },
-            "value": 190
-          },
-          {
-            "subject": {
-              "name": "Coal",
-              "asset": "item:453"
-            },
-            "value": 144
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_923c5aed6fbdc66a",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Ancestral robe top",
-              "asset": "item:21021"
-            },
-            "value": 90481425
-          },
-          {
-            "subject": {
-              "name": "Bandos chestplate",
-              "asset": "item:11832"
-            },
-            "value": 22748169
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_9aa29b03ce957893",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon axe",
-              "asset": "item:6739"
-            },
-            "value": 74224
-          },
           {
             "subject": {
               "name": "Santa hat",
               "asset": "item:1050"
             },
-            "value": 26428
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_8a200d69d2ea5315",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Swordfish",
-              "asset": "item:373"
-            },
-            "value": 196
-          },
-          {
-            "subject": {
-              "name": "Gold bar",
-              "asset": "item:2357"
-            },
-            "value": 64
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_dd6946362e0d2233",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Nature rune",
-              "asset": "item:561"
-            },
-            "value": 138
-          },
-          {
-            "subject": {
-              "name": "Big bones",
-              "asset": "item:532"
-            },
-            "value": 288
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_bad921d994e42bb5",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Red halloween mask",
-              "asset": "item:1057"
-            },
-            "value": 11663
+            "value": 25971
           },
           {
             "subject": {
               "name": "Rune pickaxe",
               "asset": "item:1275"
             },
-            "value": 18452
+            "value": 18444
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_686e125050a2cd1b",
+      "id": "q_56e60f1da45f0992",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -619,134 +43,6 @@
         "ge-price"
       ],
       "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Prayer potion(4)",
-              "asset": "item:2434"
-            },
-            "value": 9590
-          },
-          {
-            "subject": {
-              "name": "Dragon dagger",
-              "asset": "item:1215"
-            },
-            "value": 17330
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_e5e07de328b45706",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dharok's greataxe",
-              "asset": "item:4718"
-            },
-            "value": 1898462
-          },
-          {
-            "subject": {
-              "name": "Berserker ring",
-              "asset": "item:6737"
-            },
-            "value": 3961580
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_5a7861688b6e361e",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Old school bond",
-              "asset": "item:13190"
-            },
-            "value": 12182553
-          },
-          {
-            "subject": {
-              "name": "Bandos chestplate",
-              "asset": "item:11832"
-            },
-            "value": 22748169
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d637cd75e9a62c30",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Nature rune",
-              "asset": "item:561"
-            },
-            "value": 138
-          },
-          {
-            "subject": {
-              "name": "Death rune",
-              "asset": "item:560"
-            },
-            "value": 190
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d42480dcd267b3b0",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
       "payload": {
         "metric": "ge_price",
         "direction": "more",
@@ -756,22 +52,54 @@
               "name": "Bandos godsword",
               "asset": "item:11804"
             },
-            "value": 18093791
+            "value": 17935819
           },
           {
             "subject": {
-              "name": "Bandos chestplate",
-              "asset": "item:11832"
+              "name": "Armadyl chestplate",
+              "asset": "item:11828"
             },
-            "value": 22748169
+            "value": 35065494
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_a8e8e378dad55b2b",
+      "id": "q_970a66e6a1935c16",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Voidwaker",
+              "asset": "item:27690"
+            },
+            "value": 38910016
+          },
+          {
+            "subject": {
+              "name": "Kodai wand",
+              "asset": "item:21006"
+            },
+            "value": 58324146
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1c4f1706b81f8265",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -785,25 +113,89 @@
         "options": [
           {
             "subject": {
-              "name": "Redberry pie",
-              "asset": "item:2325"
+              "name": "Bow string",
+              "asset": "item:1777"
             },
-            "value": 71
+            "value": 180
           },
           {
             "subject": {
-              "name": "Rune arrow",
-              "asset": "item:892"
+              "name": "Soul rune",
+              "asset": "item:566"
             },
-            "value": 41
+            "value": 380
           }
         ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
+        "answer_index": 0,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_673e01f119af9122",
+      "id": "q_2cde34fcd9967d99",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Occult necklace",
+              "asset": "item:12002"
+            },
+            "value": 409757
+          },
+          {
+            "subject": {
+              "name": "Dragon 2h sword",
+              "asset": "item:7158"
+            },
+            "value": 131221
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_19e446fa20f87d3c",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral robe top",
+              "asset": "item:21021"
+            },
+            "value": 89891603
+          },
+          {
+            "subject": {
+              "name": "Saradomin godsword",
+              "asset": "item:11806"
+            },
+            "value": 24743988
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_0ebfe6c4ccb9267a",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -817,89 +209,153 @@
         "options": [
           {
             "subject": {
-              "name": "Saradomin brew(4)",
-              "asset": "item:6685"
+              "name": "Dharok's greataxe",
+              "asset": "item:4718"
             },
-            "value": 6945
+            "value": 1814334
           },
           {
             "subject": {
-              "name": "Amulet of glory(6)",
-              "asset": "item:11978"
+              "name": "Abyssal dagger",
+              "asset": "item:13265"
             },
-            "value": 10277
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_b9ac43feed30481a",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Coal",
-              "asset": "item:453"
-            },
-            "value": 144
-          },
-          {
-            "subject": {
-              "name": "Lobster",
-              "asset": "item:379"
-            },
-            "value": 97
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_da38b9ebb875115e",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Bandos tassets",
-              "asset": "item:11834"
-            },
-            "value": 15466066
-          },
-          {
-            "subject": {
-              "name": "Bandos chestplate",
-              "asset": "item:11832"
-            },
-            "value": 22748169
+            "value": 1335883
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_5e2e69429c9ce56d",
+      "id": "q_576fdea3a089cf43",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Gold bar",
+              "asset": "item:2357"
+            },
+            "value": 65
+          },
+          {
+            "subject": {
+              "name": "Bones",
+              "asset": "item:526"
+            },
+            "value": 37
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_01877fec40fd6212",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Staff of the Dead",
+              "asset": "item:11791"
+            },
+            "value": 4728935
+          },
+          {
+            "subject": {
+              "name": "Toxic blowpipe (empty)",
+              "asset": "item:12924"
+            },
+            "value": 10085012
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_b45a1a2cbc1acc0d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Heavy ballista",
+              "asset": "item:19481"
+            },
+            "value": 1032421
+          },
+          {
+            "subject": {
+              "name": "Dark bow",
+              "asset": "item:11235"
+            },
+            "value": 597857
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_862dd7a213235f0a",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune arrow",
+              "asset": "item:892"
+            },
+            "value": 44
+          },
+          {
+            "subject": {
+              "name": "Beer",
+              "asset": "item:1917"
+            },
+            "value": 93
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_87455f94946134d5",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -907,6 +363,230 @@
         "ge-price"
       ],
       "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Kraken tentacle",
+              "asset": "item:12004"
+            },
+            "value": 233153
+          },
+          {
+            "subject": {
+              "name": "Dragon med helm",
+              "asset": "item:1149"
+            },
+            "value": 58468
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1456316c5c67609f",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Magic logs",
+              "asset": "item:1513"
+            },
+            "value": 705
+          },
+          {
+            "subject": {
+              "name": "Soul rune",
+              "asset": "item:566"
+            },
+            "value": 380
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_c9af8b983baa1391",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Jug of wine",
+              "asset": "item:1993"
+            },
+            "value": 4
+          },
+          {
+            "subject": {
+              "name": "Mind rune",
+              "asset": "item:558"
+            },
+            "value": 2
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_9f383f48d3f8030b",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Ahrim's robetop",
+              "asset": "item:4712"
+            },
+            "value": 1470120
+          },
+          {
+            "subject": {
+              "name": "Eternal boots",
+              "asset": "item:13235"
+            },
+            "value": 4211406
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_eaeca056d7fdce7c",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Black chinchompa",
+              "asset": "item:11959"
+            },
+            "value": 3361
+          },
+          {
+            "subject": {
+              "name": "Ring of dueling(8)",
+              "asset": "item:2552"
+            },
+            "value": 886
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_094e4a43d6009bda",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Dinh's bulwark",
+              "asset": "item:21015"
+            },
+            "value": 11841345
+          },
+          {
+            "subject": {
+              "name": "Voidwaker",
+              "asset": "item:27690"
+            },
+            "value": 38910016
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_18cd5200eddabba0",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral hat",
+              "asset": "item:21018"
+            },
+            "value": 46320633
+          },
+          {
+            "subject": {
+              "name": "3rd Age platebody",
+              "asset": "item:10348"
+            },
+            "value": 144673500
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_0a91a539349a3231",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
       "payload": {
         "metric": "ge_price",
         "direction": "less",
@@ -916,86 +596,22 @@
               "name": "Rune pickaxe",
               "asset": "item:1275"
             },
-            "value": 18452
-          },
-          {
-            "subject": {
-              "name": "Saradomin brew(4)",
-              "asset": "item:6685"
-            },
-            "value": 6945
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_a9e02fd253830770",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Yew logs",
-              "asset": "item:1515"
-            },
-            "value": 107
-          },
-          {
-            "subject": {
-              "name": "Cabbage",
-              "asset": "item:1965"
-            },
-            "value": 32
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d1f4c9013609f5aa",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon scimitar",
-              "asset": "item:4587"
-            },
-            "value": 59476
+            "value": 18444
           },
           {
             "subject": {
               "name": "Blue partyhat",
               "asset": "item:1042"
             },
-            "value": 23086
+            "value": 25159
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_ff7f26d28964d97c",
+      "id": "q_1065ab2d0a19f02f",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1009,25 +625,25 @@
         "options": [
           {
             "subject": {
-              "name": "Lobster",
-              "asset": "item:379"
+              "name": "Armadyl crossbow",
+              "asset": "item:11785"
             },
-            "value": 97
+            "value": 34080855
           },
           {
             "subject": {
-              "name": "Death rune",
-              "asset": "item:560"
+              "name": "Ring of suffering",
+              "asset": "item:19550"
             },
-            "value": 190
+            "value": 19795429
           }
         ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
+        "answer_index": 0,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_3e98718e8a2d7ec1",
+      "id": "q_d8e29d3e5282fc6f",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1041,89 +657,25 @@
         "options": [
           {
             "subject": {
-              "name": "Magic logs",
-              "asset": "item:1513"
+              "name": "Rune platebody",
+              "asset": "item:1127"
             },
-            "value": 703
+            "value": 38224
           },
           {
             "subject": {
-              "name": "Ring of dueling(8)",
-              "asset": "item:2552"
+              "name": "Dragon longsword",
+              "asset": "item:1305"
             },
-            "value": 891
+            "value": 59503
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_e353ffb3d0d45857",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Ring of dueling(8)",
-              "asset": "item:2552"
-            },
-            "value": 891
-          },
-          {
-            "subject": {
-              "name": "Blood rune",
-              "asset": "item:565"
-            },
-            "value": 333
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_c745e8f45c1cb5d4",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Prayer potion(4)",
-              "asset": "item:2434"
-            },
-            "value": 9590
-          },
-          {
-            "subject": {
-              "name": "Stamina potion(4)",
-              "asset": "item:12625"
-            },
-            "value": 3671
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_0db4df3d1d4d89de",
+      "id": "q_bea4a7689f3530b9",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1131,6 +683,70 @@
         "ge-price"
       ],
       "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral robe top",
+              "asset": "item:21021"
+            },
+            "value": 89891603
+          },
+          {
+            "subject": {
+              "name": "Dragon claws",
+              "asset": "item:13652"
+            },
+            "value": 38707822
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_444d58cfe9d51a1d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Ring of suffering",
+              "asset": "item:19550"
+            },
+            "value": 19795429
+          },
+          {
+            "subject": {
+              "name": "Old school bond",
+              "asset": "item:13190"
+            },
+            "value": 11550000
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_4e4167b8b312a181",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
       "payload": {
         "metric": "ge_price",
         "direction": "less",
@@ -1140,150 +756,22 @@
               "name": "Berserker ring",
               "asset": "item:6737"
             },
-            "value": 3961580
+            "value": 3814045
           },
           {
             "subject": {
-              "name": "Archers ring",
-              "asset": "item:6733"
+              "name": "Amulet of fury",
+              "asset": "item:6585"
             },
-            "value": 2149518
+            "value": 2777850
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_d7b24b9c08de0aaa",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Death rune",
-              "asset": "item:560"
-            },
-            "value": 190
-          },
-          {
-            "subject": {
-              "name": "Big bones",
-              "asset": "item:532"
-            },
-            "value": 288
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_5ebf39adcfec35d5",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon arrow",
-              "asset": "item:11212"
-            },
-            "value": 1877
-          },
-          {
-            "subject": {
-              "name": "Shark",
-              "asset": "item:385"
-            },
-            "value": 1044
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_97e8a73e89f505f2",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon pickaxe",
-              "asset": "item:11920"
-            },
-            "value": 606638
-          },
-          {
-            "subject": {
-              "name": "Occult necklace",
-              "asset": "item:12002"
-            },
-            "value": 417288
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_764c691d16eddb2b",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Monkfish",
-              "asset": "item:7946"
-            },
-            "value": 166
-          },
-          {
-            "subject": {
-              "name": "Lobster",
-              "asset": "item:379"
-            },
-            "value": 97
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_7ce7c7c9d8361687",
+      "id": "q_66de4e3b7fd6ae75",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1295,379 +783,27 @@
         "metric": "ge_price",
         "direction": "more",
         "options": [
-          {
-            "subject": {
-              "name": "Dragon boots",
-              "asset": "item:11840"
-            },
-            "value": 215272
-          },
-          {
-            "subject": {
-              "name": "Dragon axe",
-              "asset": "item:6739"
-            },
-            "value": 74224
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_4ed441625dc90d67",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Saradomin brew(4)",
-              "asset": "item:6685"
-            },
-            "value": 6945
-          },
-          {
-            "subject": {
-              "name": "Blue partyhat",
-              "asset": "item:1042"
-            },
-            "value": 23086
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_6f772b22ffbfbc33",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Big bones",
-              "asset": "item:532"
-            },
-            "value": 288
-          },
-          {
-            "subject": {
-              "name": "Cooked karambwan",
-              "asset": "item:3144"
-            },
-            "value": 411
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_c543d7fe2c499ccf",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon claws",
-              "asset": "item:13652"
-            },
-            "value": 38209168
-          },
-          {
-            "subject": {
-              "name": "Old school bond",
-              "asset": "item:13190"
-            },
-            "value": 12182553
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_9cb282fc2858e1dc",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Armadyl chestplate",
-              "asset": "item:11828"
-            },
-            "value": 35677500
-          },
-          {
-            "subject": {
-              "name": "Primordial boots",
-              "asset": "item:13239"
-            },
-            "value": 18784315
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_c5e36de4f4e21b8f",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Abyssal whip",
-              "asset": "item:4151"
-            },
-            "value": 817632
-          },
-          {
-            "subject": {
-              "name": "Dharok's greataxe",
-              "asset": "item:4718"
-            },
-            "value": 1898462
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_3e581e032efe9861",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Yew logs",
-              "asset": "item:1515"
-            },
-            "value": 107
-          },
-          {
-            "subject": {
-              "name": "Blood rune",
-              "asset": "item:565"
-            },
-            "value": 333
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_779f10c5fd4529a2",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Old school bond",
-              "asset": "item:13190"
-            },
-            "value": 12182553
-          },
-          {
-            "subject": {
-              "name": "Dragonfire shield",
-              "asset": "item:11284"
-            },
-            "value": 3360347
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_42e1cb89098876db",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Toxic blowpipe (empty)",
-              "asset": "item:12924"
-            },
-            "value": 10002152
-          },
-          {
-            "subject": {
-              "name": "Serpentine helm (uncharged)",
-              "asset": "item:12929"
-            },
-            "value": 3266950
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_e724887db5154002",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Amulet of glory(6)",
-              "asset": "item:11978"
-            },
-            "value": 10277
-          },
           {
             "subject": {
               "name": "Rune platebody",
               "asset": "item:1127"
             },
-            "value": 38265
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_559b52f061e60eb9",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Archers ring",
-              "asset": "item:6733"
-            },
-            "value": 2149518
+            "value": 38224
           },
           {
             "subject": {
-              "name": "Dragonfire shield",
-              "asset": "item:11284"
+              "name": "Dragon halberd",
+              "asset": "item:3204"
             },
-            "value": 3360347
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_e8a080316fe833bd",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "3rd Age platebody",
-              "asset": "item:10348"
-            },
-            "value": 143476932
-          },
-          {
-            "subject": {
-              "name": "Elysian spirit shield",
-              "asset": "item:12817"
-            },
-            "value": 503911125
+            "value": 151394
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_f8210d6f2ea9cdae",
+      "id": "q_4a17b1d55d5e0ae1",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1681,121 +817,153 @@
         "options": [
           {
             "subject": {
-              "name": "Rune scimitar",
-              "asset": "item:1333"
+              "name": "Zulrah's scales",
+              "asset": "item:12934"
             },
-            "value": 14997
-          },
-          {
-            "subject": {
-              "name": "Blue partyhat",
-              "asset": "item:1042"
-            },
-            "value": 23086
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_8b52e18be076c679",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Archers ring",
-              "asset": "item:6733"
-            },
-            "value": 2149518
-          },
-          {
-            "subject": {
-              "name": "Armadyl godsword",
-              "asset": "item:11802"
-            },
-            "value": 7777325
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_188957f9b3963c23",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Santa hat",
-              "asset": "item:1050"
-            },
-            "value": 26428
-          },
-          {
-            "subject": {
-              "name": "Rune platebody",
-              "asset": "item:1127"
-            },
-            "value": 38265
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_7049febff0dc21f3",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Blood rune",
-              "asset": "item:565"
-            },
-            "value": 333
+            "value": 157
           },
           {
             "subject": {
               "name": "Law rune",
               "asset": "item:563"
             },
-            "value": 119
+            "value": 120
           }
         ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
+        "answer_index": 0,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_b61a945a35dac93a",
+      "id": "q_8bc405209e817b5a",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Chaos rune",
+              "asset": "item:562"
+            },
+            "value": 104
+          },
+          {
+            "subject": {
+              "name": "Death rune",
+              "asset": "item:560"
+            },
+            "value": 188
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_8489e925e18e715e",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Lobster",
+              "asset": "item:379"
+            },
+            "value": 96
+          },
+          {
+            "subject": {
+              "name": "Shrimps",
+              "asset": "item:315"
+            },
+            "value": 31
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_168641a545456536",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Voidwaker",
+              "asset": "item:27690"
+            },
+            "value": 38910016
+          },
+          {
+            "subject": {
+              "name": "Enhanced crystal weapon seed",
+              "asset": "item:25859"
+            },
+            "value": 110973789
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ff40c41badd632aa",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Red halloween mask",
+              "asset": "item:1057"
+            },
+            "value": 11000
+          },
+          {
+            "subject": {
+              "name": "Dragon dagger",
+              "asset": "item:1215"
+            },
+            "value": 17600
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_583f43e67473c23a",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1809,25 +977,25 @@
         "options": [
           {
             "subject": {
-              "name": "Shark",
-              "asset": "item:385"
+              "name": "Blade of Saeldor (inactive)",
+              "asset": "item:23997"
             },
-            "value": 1044
+            "value": 108838508
           },
           {
             "subject": {
-              "name": "Magic logs",
-              "asset": "item:1513"
+              "name": "3rd Age platebody",
+              "asset": "item:10348"
             },
-            "value": 703
+            "value": 144673500
           }
         ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
+        "answer_index": 0,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_6566deb510e73025",
+      "id": "q_6d4c6a9e7564e978",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1837,29 +1005,253 @@
       "difficulty": "easy",
       "payload": {
         "metric": "ge_price",
-        "direction": "less",
+        "direction": "more",
         "options": [
           {
             "subject": {
               "name": "Dragon dagger",
               "asset": "item:1215"
             },
-            "value": 17330
+            "value": 17600
           },
           {
             "subject": {
-              "name": "Dragon scimitar",
-              "asset": "item:4587"
+              "name": "Dragon longsword",
+              "asset": "item:1305"
             },
-            "value": 59476
+            "value": 59503
           }
         ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
+        "answer_index": 1,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_8b6ccf752f46a57f",
+      "id": "q_498d646ee0706a52",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune kiteshield",
+              "asset": "item:1201"
+            },
+            "value": 31915
+          },
+          {
+            "subject": {
+              "name": "Combat bracelet(4)",
+              "asset": "item:11118"
+            },
+            "value": 12125
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_915f5cf394f885ab",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Kodai wand",
+              "asset": "item:21006"
+            },
+            "value": 58324146
+          },
+          {
+            "subject": {
+              "name": "Bandos chestplate",
+              "asset": "item:11832"
+            },
+            "value": 22375661
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_de3103f20951ac23",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Swordfish",
+              "asset": "item:373"
+            },
+            "value": 198
+          },
+          {
+            "subject": {
+              "name": "Monkey nuts",
+              "asset": "item:4012"
+            },
+            "value": 131
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_7f376841543b870a",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Old school bond",
+              "asset": "item:13190"
+            },
+            "value": 11550000
+          },
+          {
+            "subject": {
+              "name": "Dragonfire shield",
+              "asset": "item:11284"
+            },
+            "value": 3616266
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_beab7865e5b6e584",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Purple sweets",
+              "asset": "item:10476"
+            },
+            "value": 5124
+          },
+          {
+            "subject": {
+              "name": "Amulet of glory(6)",
+              "asset": "item:11978"
+            },
+            "value": 10316
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a792a18ca2f7a948",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon halberd",
+              "asset": "item:3204"
+            },
+            "value": 151394
+          },
+          {
+            "subject": {
+              "name": "Occult necklace",
+              "asset": "item:12002"
+            },
+            "value": 409757
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_cd123de74a3bc919",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Kraken tentacle",
+              "asset": "item:12004"
+            },
+            "value": 233153
+          },
+          {
+            "subject": {
+              "name": "Karil's leathertop",
+              "asset": "item:4736"
+            },
+            "value": 890133
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_020975a3c7f50c5d",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1873,25 +1265,249 @@
         "options": [
           {
             "subject": {
-              "name": "Berserker ring",
-              "asset": "item:6737"
-            },
-            "value": 3961580
-          },
-          {
-            "subject": {
               "name": "Toxic blowpipe (empty)",
               "asset": "item:12924"
             },
-            "value": 10002152
+            "value": 10085012
+          },
+          {
+            "subject": {
+              "name": "Dragon hunter crossbow",
+              "asset": "item:21012"
+            },
+            "value": 31008938
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_631142fae26eab63",
+      "id": "q_bd39a89b568697c6",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Shark",
+              "asset": "item:385"
+            },
+            "value": 1035
+          },
+          {
+            "subject": {
+              "name": "Magic shortbow",
+              "asset": "item:861"
+            },
+            "value": 740
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_4ce18926db0dcca8",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Zamorakian spear",
+              "asset": "item:11824"
+            },
+            "value": 1157139
+          },
+          {
+            "subject": {
+              "name": "Seers ring",
+              "asset": "item:6731"
+            },
+            "value": 830123
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_9cfdafc2d7b1f280",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon hunter crossbow",
+              "asset": "item:21012"
+            },
+            "value": 31008938
+          },
+          {
+            "subject": {
+              "name": "Bandos tassets",
+              "asset": "item:11834"
+            },
+            "value": 15247726
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_41353171463d14b5",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Osmumten's fang",
+              "asset": "item:26219"
+            },
+            "value": 17345957
+          },
+          {
+            "subject": {
+              "name": "Saradomin godsword",
+              "asset": "item:11806"
+            },
+            "value": 24743988
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a6ff203be5bb5f72",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Monkey nuts",
+              "asset": "item:4012"
+            },
+            "value": 131
+          },
+          {
+            "subject": {
+              "name": "Tinderbox",
+              "asset": "item:590"
+            },
+            "value": 325
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_39f5fbbe7c070d0a",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Zamorakian hasta",
+              "asset": "item:11889"
+            },
+            "value": 1391472
+          },
+          {
+            "subject": {
+              "name": "Dark bow",
+              "asset": "item:11235"
+            },
+            "value": 597857
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_14b62b18e6792c11",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral robe bottom",
+              "asset": "item:21024"
+            },
+            "value": 67288600
+          },
+          {
+            "subject": {
+              "name": "Armadyl chestplate",
+              "asset": "item:11828"
+            },
+            "value": 35065494
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f8f51421ea3d9cf9",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1899,6 +1515,70 @@
         "ge-price"
       ],
       "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Serpentine helm (uncharged)",
+              "asset": "item:12929"
+            },
+            "value": 3244841
+          },
+          {
+            "subject": {
+              "name": "Heavy ballista",
+              "asset": "item:19481"
+            },
+            "value": 1032421
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_afb22709ebab84e2",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Old school bond",
+              "asset": "item:13190"
+            },
+            "value": 11550000
+          },
+          {
+            "subject": {
+              "name": "Necklace of anguish",
+              "asset": "item:19547"
+            },
+            "value": 19594068
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_0f3afd15a32bd9bb",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
       "payload": {
         "metric": "ge_price",
         "direction": "less",
@@ -1908,54 +1588,22 @@
               "name": "Stamina potion(4)",
               "asset": "item:12625"
             },
-            "value": 3671
+            "value": 3603
           },
           {
             "subject": {
-              "name": "Amulet of glory(6)",
-              "asset": "item:11978"
+              "name": "Purple sweets",
+              "asset": "item:10476"
             },
-            "value": 10277
+            "value": 5124
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_ff9f7aca303f5566",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Bandos tassets",
-              "asset": "item:11834"
-            },
-            "value": 15466066
-          },
-          {
-            "subject": {
-              "name": "Old school bond",
-              "asset": "item:13190"
-            },
-            "value": 12182553
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d98b03243e7fa8e0",
+      "id": "q_0524e6cf59cc1bf5",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1965,29 +1613,61 @@
       "difficulty": "medium",
       "payload": {
         "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune pickaxe",
+              "asset": "item:1275"
+            },
+            "value": 18444
+          },
+          {
+            "subject": {
+              "name": "Red halloween mask",
+              "asset": "item:1057"
+            },
+            "value": 11000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f2d957b4381163fc",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
         "direction": "more",
         "options": [
           {
             "subject": {
-              "name": "Anglerfish",
-              "asset": "item:13441"
+              "name": "Swordfish",
+              "asset": "item:373"
             },
-            "value": 1688
+            "value": 198
           },
           {
             "subject": {
               "name": "Magic shortbow",
               "asset": "item:861"
             },
-            "value": 738
+            "value": 740
           }
         ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
+        "answer_index": 1,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_6fdf94808fd21ed7",
+      "id": "q_be91eb5d9ec99aa1",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -1997,61 +1677,29 @@
       "difficulty": "medium",
       "payload": {
         "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Primordial boots",
-              "asset": "item:13239"
-            },
-            "value": 18784315
-          },
-          {
-            "subject": {
-              "name": "Toxic blowpipe (empty)",
-              "asset": "item:12924"
-            },
-            "value": 10002152
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_eeb7bf4188095419",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
         "direction": "less",
         "options": [
           {
             "subject": {
-              "name": "Magic shortbow",
-              "asset": "item:861"
+              "name": "Dragon halberd",
+              "asset": "item:3204"
             },
-            "value": 738
+            "value": 151394
           },
           {
             "subject": {
-              "name": "Bow string",
-              "asset": "item:1777"
+              "name": "Guthan's warspear",
+              "asset": "item:4726"
             },
-            "value": 190
+            "value": 80089
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_1a2a41f9cf5812fc",
+      "id": "q_b6db53356367e2fa",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -2059,358 +1707,6 @@
         "ge-price"
       ],
       "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Magic shortbow",
-              "asset": "item:861"
-            },
-            "value": 738
-          },
-          {
-            "subject": {
-              "name": "Cooked karambwan",
-              "asset": "item:3144"
-            },
-            "value": 411
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_4cfe4571a6d00cb8",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Law rune",
-              "asset": "item:563"
-            },
-            "value": 119
-          },
-          {
-            "subject": {
-              "name": "Cooked karambwan",
-              "asset": "item:3144"
-            },
-            "value": 411
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_c3f362cef63c7015",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Amulet of glory(6)",
-              "asset": "item:11978"
-            },
-            "value": 10277
-          },
-          {
-            "subject": {
-              "name": "Santa hat",
-              "asset": "item:1050"
-            },
-            "value": 26428
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_0f8cf04319694e7d",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon warhammer",
-              "asset": "item:13576"
-            },
-            "value": 16156281
-          },
-          {
-            "subject": {
-              "name": "Armadyl godsword",
-              "asset": "item:11802"
-            },
-            "value": 7777325
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_6e6f7ddf9835bdc0",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Toxic blowpipe (empty)",
-              "asset": "item:12924"
-            },
-            "value": 10002152
-          },
-          {
-            "subject": {
-              "name": "Armadyl chestplate",
-              "asset": "item:11828"
-            },
-            "value": 35677500
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_a8ebe8aec6906fa8",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Saradomin brew(4)",
-              "asset": "item:6685"
-            },
-            "value": 6945
-          },
-          {
-            "subject": {
-              "name": "Santa hat",
-              "asset": "item:1050"
-            },
-            "value": 26428
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_13dc2489b9b7f5ef",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Big bones",
-              "asset": "item:532"
-            },
-            "value": 288
-          },
-          {
-            "subject": {
-              "name": "Law rune",
-              "asset": "item:563"
-            },
-            "value": 119
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_2a66f7a6c3c51a46",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon pickaxe",
-              "asset": "item:11920"
-            },
-            "value": 606638
-          },
-          {
-            "subject": {
-              "name": "Dragon boots",
-              "asset": "item:11840"
-            },
-            "value": 215272
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_3ac43ed88f654683",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Shark",
-              "asset": "item:385"
-            },
-            "value": 1044
-          },
-          {
-            "subject": {
-              "name": "Dragon bones",
-              "asset": "item:536"
-            },
-            "value": 3659
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d5ca0acf143a8263",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Magic shortbow",
-              "asset": "item:861"
-            },
-            "value": 738
-          },
-          {
-            "subject": {
-              "name": "Shark",
-              "asset": "item:385"
-            },
-            "value": 1044
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_dd581680d93ec865",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Ring of wealth",
-              "asset": "item:2572"
-            },
-            "value": 11396
-          },
-          {
-            "subject": {
-              "name": "Rune scimitar",
-              "asset": "item:1333"
-            },
-            "value": 14997
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_5a422d08b6707992",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
       "payload": {
         "metric": "ge_price",
         "direction": "more",
@@ -2420,54 +1716,22 @@
               "name": "Nature rune",
               "asset": "item:561"
             },
-            "value": 138
+            "value": 139
           },
           {
             "subject": {
-              "name": "Swordfish",
-              "asset": "item:373"
+              "name": "Redberry pie",
+              "asset": "item:2325"
             },
-            "value": 196
+            "value": 65
           }
         ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
+        "answer_index": 0,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_a65f5797fec82870",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Fire rune",
-              "asset": "item:554"
-            },
-            "value": 5
-          },
-          {
-            "subject": {
-              "name": "Bucket",
-              "asset": "item:1925"
-            },
-            "value": 8
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_e260b7acab153baf",
+      "id": "q_9a2416f85650e818",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -2481,25 +1745,25 @@
         "options": [
           {
             "subject": {
-              "name": "Rune pickaxe",
-              "asset": "item:1275"
+              "name": "Guthan's warspear",
+              "asset": "item:4726"
             },
-            "value": 18452
+            "value": 80089
           },
           {
             "subject": {
-              "name": "Blue partyhat",
-              "asset": "item:1042"
+              "name": "Granite maul",
+              "asset": "item:4153"
             },
-            "value": 23086
+            "value": 109362
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_33e48105e9bb79bd",
+      "id": "q_007301c7a4189b6c",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -2507,646 +1771,6 @@
         "ge-price"
       ],
       "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Rune platebody",
-              "asset": "item:1127"
-            },
-            "value": 38265
-          },
-          {
-            "subject": {
-              "name": "Rune scimitar",
-              "asset": "item:1333"
-            },
-            "value": 14997
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_5003e825ad937f37",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Elder maul",
-              "asset": "item:21003"
-            },
-            "value": 92734560
-          },
-          {
-            "subject": {
-              "name": "Dragon claws",
-              "asset": "item:13652"
-            },
-            "value": 38209168
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_57665d662d0bfd75",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Stamina potion(4)",
-              "asset": "item:12625"
-            },
-            "value": 3671
-          },
-          {
-            "subject": {
-              "name": "Red halloween mask",
-              "asset": "item:1057"
-            },
-            "value": 11663
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_5482bf3d2e82cc3d",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Magic logs",
-              "asset": "item:1513"
-            },
-            "value": 703
-          },
-          {
-            "subject": {
-              "name": "Anglerfish",
-              "asset": "item:13441"
-            },
-            "value": 1688
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_83dbef41f53026da",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Berserker ring",
-              "asset": "item:6737"
-            },
-            "value": 3961580
-          },
-          {
-            "subject": {
-              "name": "Armadyl godsword",
-              "asset": "item:11802"
-            },
-            "value": 7777325
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_7e4380a397e02841",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dharok's greataxe",
-              "asset": "item:4718"
-            },
-            "value": 1898462
-          },
-          {
-            "subject": {
-              "name": "Serpentine helm (uncharged)",
-              "asset": "item:12929"
-            },
-            "value": 3266950
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_27f7bdfe1332667b",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Armadyl godsword",
-              "asset": "item:11802"
-            },
-            "value": 7777325
-          },
-          {
-            "subject": {
-              "name": "Dragonfire shield",
-              "asset": "item:11284"
-            },
-            "value": 3360347
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_7b45c3605db97c85",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Coal",
-              "asset": "item:453"
-            },
-            "value": 144
-          },
-          {
-            "subject": {
-              "name": "Gold bar",
-              "asset": "item:2357"
-            },
-            "value": 64
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d44fd56f3dda174b",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Rune scimitar",
-              "asset": "item:1333"
-            },
-            "value": 14997
-          },
-          {
-            "subject": {
-              "name": "Helm of Neitiznot",
-              "asset": "item:10828"
-            },
-            "value": 49753
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_b9f8da54f36a5753",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Cooked karambwan",
-              "asset": "item:3144"
-            },
-            "value": 411
-          },
-          {
-            "subject": {
-              "name": "Bow string",
-              "asset": "item:1777"
-            },
-            "value": 190
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_35b6fd8ec76e942c",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Ring of dueling(8)",
-              "asset": "item:2552"
-            },
-            "value": 891
-          },
-          {
-            "subject": {
-              "name": "Anglerfish",
-              "asset": "item:13441"
-            },
-            "value": 1688
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_d2a8641b29cd09eb",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Amulet of fury",
-              "asset": "item:6585"
-            },
-            "value": 2765846
-          },
-          {
-            "subject": {
-              "name": "Abyssal whip",
-              "asset": "item:4151"
-            },
-            "value": 817632
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_460be051e23730ff",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Feather",
-              "asset": "item:314"
-            },
-            "value": 2
-          },
-          {
-            "subject": {
-              "name": "Pure essence",
-              "asset": "item:7936"
-            },
-            "value": 1
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_aceff051ad61b708",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Yew logs",
-              "asset": "item:1515"
-            },
-            "value": 107
-          },
-          {
-            "subject": {
-              "name": "Swordfish",
-              "asset": "item:373"
-            },
-            "value": 196
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_2898ec8e6ffe2bc6",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Coal",
-              "asset": "item:453"
-            },
-            "value": 144
-          },
-          {
-            "subject": {
-              "name": "Swordfish",
-              "asset": "item:373"
-            },
-            "value": 196
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_86aebbec1f9ffa4d",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Armadyl chestplate",
-              "asset": "item:11828"
-            },
-            "value": 35677500
-          },
-          {
-            "subject": {
-              "name": "Dragon warhammer",
-              "asset": "item:13576"
-            },
-            "value": 16156281
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_985e5935d2e80b27",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Occult necklace",
-              "asset": "item:12002"
-            },
-            "value": 417288
-          },
-          {
-            "subject": {
-              "name": "Dragon boots",
-              "asset": "item:11840"
-            },
-            "value": 215272
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_92d6844521933aea",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Cabbage",
-              "asset": "item:1965"
-            },
-            "value": 32
-          },
-          {
-            "subject": {
-              "name": "Bucket",
-              "asset": "item:1925"
-            },
-            "value": 8
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_6891bbf198d539f3",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Abyssal whip",
-              "asset": "item:4151"
-            },
-            "value": 817632
-          },
-          {
-            "subject": {
-              "name": "Dragon pickaxe",
-              "asset": "item:11920"
-            },
-            "value": 606638
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_a662716a449bbcfc",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Amulet of fury",
-              "asset": "item:6585"
-            },
-            "value": 2765846
-          },
-          {
-            "subject": {
-              "name": "Dharok's greataxe",
-              "asset": "item:4718"
-            },
-            "value": 1898462
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_36ebef979d7aee82",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "medium",
       "payload": {
         "metric": "ge_price",
         "direction": "less",
@@ -3156,22 +1780,54 @@
               "name": "Dragon bones",
               "asset": "item:536"
             },
-            "value": 3659
+            "value": 3627
           },
           {
             "subject": {
-              "name": "Anglerfish",
-              "asset": "item:13441"
+              "name": "Shark",
+              "asset": "item:385"
             },
-            "value": 1688
+            "value": 1035
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_13afddedd51aafe5",
+      "id": "q_a999ea089280cc56",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral robe bottom",
+              "asset": "item:21024"
+            },
+            "value": 67288600
+          },
+          {
+            "subject": {
+              "name": "Ancestral hat",
+              "asset": "item:21018"
+            },
+            "value": 46320633
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_43f04a1ba948d48d",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3185,25 +1841,89 @@
         "options": [
           {
             "subject": {
-              "name": "Redberry pie",
-              "asset": "item:2325"
+              "name": "Ranarr weed",
+              "asset": "item:257"
             },
-            "value": 71
+            "value": 5885
           },
           {
             "subject": {
-              "name": "Cabbage",
-              "asset": "item:1965"
+              "name": "Prayer potion(4)",
+              "asset": "item:2434"
             },
-            "value": 32
+            "value": 9619
           }
         ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
+        "answer_index": 1,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_26fbe14748b641cc",
+      "id": "q_25a92a7c5a37db25",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Abyssal dagger",
+              "asset": "item:13265"
+            },
+            "value": 1335883
+          },
+          {
+            "subject": {
+              "name": "Eternal boots",
+              "asset": "item:13235"
+            },
+            "value": 4211406
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_31d6eaaef8d78ec4",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Blood rune",
+              "asset": "item:565"
+            },
+            "value": 335
+          },
+          {
+            "subject": {
+              "name": "Cosmic rune",
+              "asset": "item:564"
+            },
+            "value": 121
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_fde2682a38fec527",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3217,57 +1937,665 @@
         "options": [
           {
             "subject": {
-              "name": "Monkfish",
-              "asset": "item:7946"
+              "name": "Armadyl crossbow",
+              "asset": "item:11785"
             },
-            "value": 166
+            "value": 34080855
+          },
+          {
+            "subject": {
+              "name": "Saradomin godsword",
+              "asset": "item:11806"
+            },
+            "value": 24743988
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_52304a535ded6195",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Guthan's warspear",
+              "asset": "item:4726"
+            },
+            "value": 80089
+          },
+          {
+            "subject": {
+              "name": "Rune kiteshield",
+              "asset": "item:1201"
+            },
+            "value": 31915
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e5b7cf7f3ab548bb",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Cooked karambwan",
+              "asset": "item:3144"
+            },
+            "value": 409
+          },
+          {
+            "subject": {
+              "name": "Magic shortbow",
+              "asset": "item:861"
+            },
+            "value": 740
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_11db06cbeec9b1ee",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dharok's helm",
+              "asset": "item:4716"
+            },
+            "value": 374625
+          },
+          {
+            "subject": {
+              "name": "Abyssal dagger",
+              "asset": "item:13265"
+            },
+            "value": 1335883
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e3fb23ba236278b2",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Hammer",
+              "asset": "item:2347"
+            },
+            "value": 103
+          },
+          {
+            "subject": {
+              "name": "Rune arrow",
+              "asset": "item:892"
+            },
+            "value": 44
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_d1f1a3aa84e4357a",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dharok's greataxe",
+              "asset": "item:4718"
+            },
+            "value": 1814334
+          },
+          {
+            "subject": {
+              "name": "Seers ring",
+              "asset": "item:6731"
+            },
+            "value": 830123
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_debd151fee2b9e79",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune 2h sword",
+              "asset": "item:1319"
+            },
+            "value": 37865
+          },
+          {
+            "subject": {
+              "name": "Amulet of glory(6)",
+              "asset": "item:11978"
+            },
+            "value": 10316
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f26ed98a4150fd11",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon scimitar",
+              "asset": "item:4587"
+            },
+            "value": 59538
+          },
+          {
+            "subject": {
+              "name": "Rune kiteshield",
+              "asset": "item:1201"
+            },
+            "value": 31915
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_12e5aa01b72d159d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon med helm",
+              "asset": "item:1149"
+            },
+            "value": 58468
+          },
+          {
+            "subject": {
+              "name": "Rune full helm",
+              "asset": "item:1163"
+            },
+            "value": 20675
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_9498dd930fdcd3dc",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Staff of the Dead",
+              "asset": "item:11791"
+            },
+            "value": 4728935
+          },
+          {
+            "subject": {
+              "name": "Zamorakian hasta",
+              "asset": "item:11889"
+            },
+            "value": 1391472
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ff1602cdc3288d74",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Helm of Neitiznot",
+              "asset": "item:10828"
+            },
+            "value": 48294
+          },
+          {
+            "subject": {
+              "name": "Dragon axe",
+              "asset": "item:6739"
+            },
+            "value": 71662
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a12cbcabe89d01d0",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Gold bar",
+              "asset": "item:2357"
+            },
+            "value": 65
           },
           {
             "subject": {
               "name": "Yew logs",
               "asset": "item:1515"
             },
-            "value": 107
+            "value": 104
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_294f563614447ab1",
+      "id": "q_bdb32bbb1a33e785",
       "type": "more_less",
       "source": "pack",
       "tags": [
         "prices",
         "ge-price"
       ],
-      "difficulty": "hard",
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Shrimps",
+              "asset": "item:315"
+            },
+            "value": 31
+          },
+          {
+            "subject": {
+              "name": "Iron scimitar",
+              "asset": "item:1323"
+            },
+            "value": 59
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_71a7d95444594383",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Red halloween mask",
+              "asset": "item:1057"
+            },
+            "value": 11000
+          },
+          {
+            "subject": {
+              "name": "Blue partyhat",
+              "asset": "item:1042"
+            },
+            "value": 25159
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_61f30f289032de86",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
       "payload": {
         "metric": "ge_price",
         "direction": "less",
         "options": [
           {
             "subject": {
-              "name": "Serpentine helm (uncharged)",
-              "asset": "item:12929"
+              "name": "Dinh's bulwark",
+              "asset": "item:21015"
             },
-            "value": 3266950
+            "value": 11841345
           },
           {
             "subject": {
-              "name": "Dragon platebody",
-              "asset": "item:21892"
+              "name": "Berserker ring",
+              "asset": "item:6737"
             },
-            "value": 2194562
+            "value": 3814045
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_0dc1ea1ae63bcb7d",
+      "id": "q_ad593d3097b37f7c",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon pickaxe",
+              "asset": "item:11920"
+            },
+            "value": 600208
+          },
+          {
+            "subject": {
+              "name": "Dragon sq shield",
+              "asset": "item:1187"
+            },
+            "value": 301276
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_3aceb8d81a020614",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Cooked karambwan",
+              "asset": "item:3144"
+            },
+            "value": 409
+          },
+          {
+            "subject": {
+              "name": "Ring of recoil",
+              "asset": "item:2550"
+            },
+            "value": 939
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_bd936869ad46dc12",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Super combat potion(4)",
+              "asset": "item:12695"
+            },
+            "value": 12193
+          },
+          {
+            "subject": {
+              "name": "Ranarr weed",
+              "asset": "item:257"
+            },
+            "value": 5885
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_d3b237add38c220c",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dharok's helm",
+              "asset": "item:4716"
+            },
+            "value": 374625
+          },
+          {
+            "subject": {
+              "name": "Granite maul",
+              "asset": "item:4153"
+            },
+            "value": 109362
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ad1dd37f4106811e",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Astral rune",
+              "asset": "item:9075"
+            },
+            "value": 119
+          },
+          {
+            "subject": {
+              "name": "Redberry pie",
+              "asset": "item:2325"
+            },
+            "value": 65
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_86e2015745c37a17",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Berserker ring",
+              "asset": "item:6737"
+            },
+            "value": 3814045
+          },
+          {
+            "subject": {
+              "name": "Toxic blowpipe (empty)",
+              "asset": "item:12924"
+            },
+            "value": 10085012
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f15ba751d17933ef",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3281,89 +2609,889 @@
         "options": [
           {
             "subject": {
-              "name": "Gold bar",
-              "asset": "item:2357"
+              "name": "Zamorak godsword",
+              "asset": "item:11808"
             },
-            "value": 64
+            "value": 19595561
           },
           {
             "subject": {
-              "name": "Cabbage",
-              "asset": "item:1965"
+              "name": "Dinh's bulwark",
+              "asset": "item:21015"
             },
-            "value": 32
+            "value": 11841345
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_342b1a5d0c1c5855",
+      "id": "q_5368955764c510fe",
       "type": "more_less",
       "source": "pack",
       "tags": [
         "prices",
         "ge-price"
       ],
-      "difficulty": "easy",
+      "difficulty": "medium",
       "payload": {
         "metric": "ge_price",
         "direction": "less",
         "options": [
           {
             "subject": {
-              "name": "Twisted bow",
-              "asset": "item:20997"
+              "name": "Verac's plateskirt",
+              "asset": "item:4759"
             },
-            "value": 1398177777
+            "value": 347498
           },
-          {
-            "subject": {
-              "name": "Elysian spirit shield",
-              "asset": "item:12817"
-            },
-            "value": 503911125
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_24b9509e489330f6",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "ge-price"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "ge_price",
-        "direction": "less",
-        "options": [
           {
             "subject": {
               "name": "Dragon boots",
               "asset": "item:11840"
             },
-            "value": 215272
-          },
-          {
-            "subject": {
-              "name": "Dragon scimitar",
-              "asset": "item:4587"
-            },
-            "value": 59476
+            "value": 207887
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_2e8eda7352187dca",
+      "id": "q_2eac6aacb15b48e5",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon bones",
+              "asset": "item:536"
+            },
+            "value": 3627
+          },
+          {
+            "subject": {
+              "name": "Yellow partyhat",
+              "asset": "item:1040"
+            },
+            "value": 11380
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_6015bfb79a737948",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon dagger",
+              "asset": "item:1215"
+            },
+            "value": 17600
+          },
+          {
+            "subject": {
+              "name": "Grimy ranarr weed",
+              "asset": "item:207"
+            },
+            "value": 5747
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_7763ac407eb8c84d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Spade",
+              "asset": "item:952"
+            },
+            "value": 150
+          },
+          {
+            "subject": {
+              "name": "Teleport to house (tablet)",
+              "asset": "item:8013"
+            },
+            "value": 582
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_eeb7c72cd08984ac",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Karil's leathertop",
+              "asset": "item:4736"
+            },
+            "value": 890133
+          },
+          {
+            "subject": {
+              "name": "Archers ring",
+              "asset": "item:6733"
+            },
+            "value": 2143792
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_af6bf7488db5b97e",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Nature rune",
+              "asset": "item:561"
+            },
+            "value": 139
+          },
+          {
+            "subject": {
+              "name": "Bones",
+              "asset": "item:526"
+            },
+            "value": 37
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ed41320e9cb462ac",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral robe bottom",
+              "asset": "item:21024"
+            },
+            "value": 67288600
+          },
+          {
+            "subject": {
+              "name": "Osmumten's fang",
+              "asset": "item:26219"
+            },
+            "value": 17345957
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f47ca3ae7a06a5b6",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Soul rune",
+              "asset": "item:566"
+            },
+            "value": 380
+          },
+          {
+            "subject": {
+              "name": "Nature rune",
+              "asset": "item:561"
+            },
+            "value": 139
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_044d574af79fe744",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Coal",
+              "asset": "item:453"
+            },
+            "value": 145
+          },
+          {
+            "subject": {
+              "name": "Blood rune",
+              "asset": "item:565"
+            },
+            "value": 335
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_76247141483f5e48",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Kodai wand",
+              "asset": "item:21006"
+            },
+            "value": 58324146
+          },
+          {
+            "subject": {
+              "name": "Elder maul",
+              "asset": "item:21003"
+            },
+            "value": 92730114
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1f28d734f44ced9b",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Necklace of anguish",
+              "asset": "item:19547"
+            },
+            "value": 19594068
+          },
+          {
+            "subject": {
+              "name": "Masori body",
+              "asset": "item:27229"
+            },
+            "value": 40979017
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a9450c5358cd0658",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Bucket",
+              "asset": "item:1925"
+            },
+            "value": 9
+          },
+          {
+            "subject": {
+              "name": "Vial of water",
+              "asset": "item:227"
+            },
+            "value": 6
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_70d3f1aee3321ac5",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Lobster",
+              "asset": "item:379"
+            },
+            "value": 96
+          },
+          {
+            "subject": {
+              "name": "Bones",
+              "asset": "item:526"
+            },
+            "value": 37
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ca488162dcfd1f4e",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Bandos tassets",
+              "asset": "item:11834"
+            },
+            "value": 15247726
+          },
+          {
+            "subject": {
+              "name": "Pegasian boots",
+              "asset": "item:13237"
+            },
+            "value": 37801519
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_718531503d53ed9d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Wrath rune",
+              "asset": "item:21880"
+            },
+            "value": 322
+          },
+          {
+            "subject": {
+              "name": "Teleport to house (tablet)",
+              "asset": "item:8013"
+            },
+            "value": 582
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ec40232f732818b7",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune 2h sword",
+              "asset": "item:1319"
+            },
+            "value": 37865
+          },
+          {
+            "subject": {
+              "name": "Dragon battleaxe",
+              "asset": "item:1377"
+            },
+            "value": 119209
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_35304fe1fce256f1",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Magic logs",
+              "asset": "item:1513"
+            },
+            "value": 705
+          },
+          {
+            "subject": {
+              "name": "Ring of recoil",
+              "asset": "item:2550"
+            },
+            "value": 939
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_db7050af42297cf6",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Draconic visage",
+              "asset": "item:11286"
+            },
+            "value": 3265502
+          },
+          {
+            "subject": {
+              "name": "Abyssal whip",
+              "asset": "item:4151"
+            },
+            "value": 818882
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_2101058ff6909be2",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune platebody",
+              "asset": "item:1127"
+            },
+            "value": 38224
+          },
+          {
+            "subject": {
+              "name": "Yellow partyhat",
+              "asset": "item:1040"
+            },
+            "value": 11380
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_91dacc021e314aa5",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Purple sweets",
+              "asset": "item:10476"
+            },
+            "value": 5124
+          },
+          {
+            "subject": {
+              "name": "Combat bracelet(4)",
+              "asset": "item:11118"
+            },
+            "value": 12125
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_95e00ce75a7c208f",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Spade",
+              "asset": "item:952"
+            },
+            "value": 150
+          },
+          {
+            "subject": {
+              "name": "Chaos rune",
+              "asset": "item:562"
+            },
+            "value": 104
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_6374ab0819a4f098",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon platebody",
+              "asset": "item:21892"
+            },
+            "value": 2229208
+          },
+          {
+            "subject": {
+              "name": "Heavy ballista",
+              "asset": "item:19481"
+            },
+            "value": 1032421
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e5b4f63e80b65e0d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "ge_price",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Magic logs",
+              "asset": "item:1513"
+            },
+            "value": 705
+          },
+          {
+            "subject": {
+              "name": "Bow string",
+              "asset": "item:1777"
+            },
+            "value": 180
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_2fbd766736498bd8",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Ring of suffering",
+              "asset": "item:19550"
+            },
+            "value": 120600
+          },
+          {
+            "subject": {
+              "name": "Abyssal whip",
+              "asset": "item:4151"
+            },
+            "value": 72000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_c61b3d3d59621af6",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "3rd Age platebody",
+              "asset": "item:10348"
+            },
+            "value": 120000
+          },
+          {
+            "subject": {
+              "name": "Dragon hunter lance",
+              "asset": "item:22978"
+            },
+            "value": 180000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_406939c6258380a1",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Magic shortbow",
+              "asset": "item:861"
+            },
+            "value": 960
+          },
+          {
+            "subject": {
+              "name": "Anglerfish",
+              "asset": "item:13441"
+            },
+            "value": 270
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_91255e3c605dd49a",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Eternal boots",
+              "asset": "item:13235"
+            },
+            "value": 45000
+          },
+          {
+            "subject": {
+              "name": "3rd Age platebody",
+              "asset": "item:10348"
+            },
+            "value": 120000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_fe2369bda2992547",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3377,8 +3505,456 @@
         "options": [
           {
             "subject": {
-              "name": "Primordial boots",
-              "asset": "item:13239"
+              "name": "Black chinchompa",
+              "asset": "item:11959"
+            },
+            "value": 144
+          },
+          {
+            "subject": {
+              "name": "Ring of recoil",
+              "asset": "item:2550"
+            },
+            "value": 540
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_079c78db93760433",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Raw shrimps",
+              "asset": "item:317"
+            },
+            "value": 3
+          },
+          {
+            "subject": {
+              "name": "Vial of water",
+              "asset": "item:227"
+            },
+            "value": 1
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_09c8cc05adff8aad",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral robe top",
+              "asset": "item:21021"
+            },
+            "value": 72000
+          },
+          {
+            "subject": {
+              "name": "Bandos chestplate",
+              "asset": "item:11832"
+            },
+            "value": 174006
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_35c7224061b4fe5d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Amulet of torture",
+              "asset": "item:19553"
+            },
+            "value": 121200
+          },
+          {
+            "subject": {
+              "name": "Serpentine helm (uncharged)",
+              "asset": "item:12929"
+            },
+            "value": 66000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_adbb4c03790aff9e",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Tormented bracelet",
+              "asset": "item:19544"
+            },
+            "value": 120600
+          },
+          {
+            "subject": {
+              "name": "Bandos chestplate",
+              "asset": "item:11832"
+            },
+            "value": 174006
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_92bb08599e880117",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Bow of Faerdhinen (inactive)",
+              "asset": "item:25862"
+            },
+            "value": 3000000
+          },
+          {
+            "subject": {
+              "name": "Dragonfire shield",
+              "asset": "item:11284"
+            },
+            "value": 1200000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_33ae34d7a105c3dd",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dinh's bulwark",
+              "asset": "item:21015"
+            },
+            "value": 336000
+          },
+          {
+            "subject": {
+              "name": "Armadyl chestplate",
+              "asset": "item:11828"
+            },
+            "value": 174000
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_6fd6df3261bc9dce",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Super combat potion(4)",
+              "asset": "item:12695"
+            },
+            "value": 150
+          },
+          {
+            "subject": {
+              "name": "Dragon arrow",
+              "asset": "item:11212"
+            },
+            "value": 480
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_dc7811b34347434e",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Coal",
+              "asset": "item:453"
+            },
+            "value": 27
+          },
+          {
+            "subject": {
+              "name": "Nature rune",
+              "asset": "item:561"
+            },
+            "value": 108
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_3683dadc9a1ef035",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Shrimps",
+              "asset": "item:315"
+            },
+            "value": 3
+          },
+          {
+            "subject": {
+              "name": "Teleport to house (tablet)",
+              "asset": "item:8013"
+            },
+            "value": 1
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_4811c33708ce005f",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Ancestral robe bottom",
+              "asset": "item:21024"
+            },
+            "value": 48000
+          },
+          {
+            "subject": {
+              "name": "Dragon longsword",
+              "asset": "item:1305"
+            },
+            "value": 60000
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ba5494652bea5e85",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Gold bar",
+              "asset": "item:2357"
+            },
+            "value": 180
+          },
+          {
+            "subject": {
+              "name": "Games necklace(8)",
+              "asset": "item:3853"
+            },
+            "value": 630
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_20ae86c267d534e5",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Armadyl chestplate",
+              "asset": "item:11828"
+            },
+            "value": 174000
+          },
+          {
+            "subject": {
+              "name": "Elder maul",
+              "asset": "item:21003"
+            },
+            "value": 300006
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_af12b6fc87a6c235",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Red halloween mask",
+              "asset": "item:1057"
+            },
+            "value": 9
+          },
+          {
+            "subject": {
+              "name": "Grimy ranarr weed",
+              "asset": "item:207"
+            },
+            "value": 18
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_d712d4bd9c9eec31",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Pegasian boots",
+              "asset": "item:13237"
             },
             "value": 45000
           },
@@ -3390,12 +3966,12 @@
             "value": 173946
           }
         ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
+        "answer_index": 1,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_6690d1b8eb8d1689",
+      "id": "q_2f94ae482a5f667d",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3405,29 +3981,29 @@
       "difficulty": "easy",
       "payload": {
         "metric": "high_alch",
-        "direction": "less",
+        "direction": "more",
         "options": [
           {
             "subject": {
-              "name": "Dragon dagger",
-              "asset": "item:1215"
+              "name": "Dragon chainbody",
+              "asset": "item:3140"
             },
-            "value": 18000
+            "value": 150000
           },
           {
             "subject": {
-              "name": "Berserker ring",
-              "asset": "item:6737"
+              "name": "Primordial boots",
+              "asset": "item:13239"
             },
-            "value": 6000
+            "value": 45000
           }
         ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
+        "answer_index": 0,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_00b33b301e72217a",
+      "id": "q_19f1b2ee1a51bb70",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3441,25 +4017,505 @@
         "options": [
           {
             "subject": {
-              "name": "Dragon warhammer",
-              "asset": "item:13576"
+              "name": "Dharok's helm",
+              "asset": "item:4716"
             },
-            "value": 72000
+            "value": 61800
           },
           {
             "subject": {
-              "name": "Primordial boots",
-              "asset": "item:13239"
+              "name": "Dharok's greataxe",
+              "asset": "item:4718"
             },
-            "value": 45000
+            "value": 124800
           }
         ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
+        "answer_index": 1,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_169a6bade5fc81fa",
+      "id": "q_4ad26f88cf20f463",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune pickaxe",
+              "asset": "item:1275"
+            },
+            "value": 19200
+          },
+          {
+            "subject": {
+              "name": "Dragon pickaxe",
+              "asset": "item:11920"
+            },
+            "value": 58770
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f176ddae0000c685",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Bandos tassets",
+              "asset": "item:11834"
+            },
+            "value": 173946
+          },
+          {
+            "subject": {
+              "name": "Dharok's helm",
+              "asset": "item:4716"
+            },
+            "value": 61800
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_058f6c2a32bc2a67",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Shrimps",
+              "asset": "item:315"
+            },
+            "value": 3
+          },
+          {
+            "subject": {
+              "name": "Bucket",
+              "asset": "item:1925"
+            },
+            "value": 1
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_8914ac5b39c7ecaf",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Eternal boots",
+              "asset": "item:13235"
+            },
+            "value": 45000
+          },
+          {
+            "subject": {
+              "name": "Dark bow",
+              "asset": "item:11235"
+            },
+            "value": 72001
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_22278eddebc31742",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Rune platebody",
+              "asset": "item:1127"
+            },
+            "value": 39000
+          },
+          {
+            "subject": {
+              "name": "Dragon claws",
+              "asset": "item:13652"
+            },
+            "value": 123000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_bdc33aa82a023dac",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Elysian spirit shield",
+              "asset": "item:12817"
+            },
+            "value": 1200000
+          },
+          {
+            "subject": {
+              "name": "Scythe of Vitur (uncharged)",
+              "asset": "item:22486"
+            },
+            "value": 2400000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ce070e2137b0fad0",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Sanguinesti staff (uncharged)",
+              "asset": "item:22481"
+            },
+            "value": 3000000
+          },
+          {
+            "subject": {
+              "name": "Voidwaker",
+              "asset": "item:27690"
+            },
+            "value": 1200000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_300e403b229707d9",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon med helm",
+              "asset": "item:1149"
+            },
+            "value": 60000
+          },
+          {
+            "subject": {
+              "name": "Rune platebody",
+              "asset": "item:1127"
+            },
+            "value": 39000
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a32f0bc7c6ffe49b",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Armadyl crossbow",
+              "asset": "item:11785"
+            },
+            "value": 594000
+          },
+          {
+            "subject": {
+              "name": "Dragon chainbody",
+              "asset": "item:3140"
+            },
+            "value": 150000
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f95ebe40d40b1ba9",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Dragon sq shield",
+              "asset": "item:1187"
+            },
+            "value": 300000
+          },
+          {
+            "subject": {
+              "name": "Amulet of torture",
+              "asset": "item:19553"
+            },
+            "value": 121200
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_6b4b1d05ad511015",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Prayer potion(4)",
+              "asset": "item:2434"
+            },
+            "value": 114
+          },
+          {
+            "subject": {
+              "name": "Soul rune",
+              "asset": "item:566"
+            },
+            "value": 180
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_7f14f00174d66f83",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Blood rune",
+              "asset": "item:565"
+            },
+            "value": 240
+          },
+          {
+            "subject": {
+              "name": "Saradomin brew(4)",
+              "asset": "item:6685"
+            },
+            "value": 120
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_413b6b55f543a719",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Ahrim's robetop",
+              "asset": "item:4712"
+            },
+            "value": 30000
+          },
+          {
+            "subject": {
+              "name": "Rune 2h sword",
+              "asset": "item:1319"
+            },
+            "value": 38400
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_86e1732bb92dc7d3",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "less",
+        "options": [
+          {
+            "subject": {
+              "name": "Kraken tentacle",
+              "asset": "item:12004"
+            },
+            "value": 50004
+          },
+          {
+            "subject": {
+              "name": "Ancestral hat",
+              "asset": "item:21018"
+            },
+            "value": 27000
+          }
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e28853a2bde1524d",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Staff of the Dead",
+              "asset": "item:11791"
+            },
+            "value": 600003
+          },
+          {
+            "subject": {
+              "name": "Draconic visage",
+              "asset": "item:11286"
+            },
+            "value": 450000
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_aa39b26ff8899ab1",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3480,50 +4536,18 @@
           },
           {
             "subject": {
-              "name": "Magic logs",
-              "asset": "item:1513"
+              "name": "Dragon bones",
+              "asset": "item:536"
             },
-            "value": 192
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_eecdb449ebfd82cd",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Big bones",
-              "asset": "item:532"
-            },
-            "value": 1
-          },
-          {
-            "subject": {
-              "name": "Pure essence",
-              "asset": "item:7936"
-            },
-            "value": 2
+            "value": 96
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_a0f81a60bcda4187",
+      "id": "q_0c8c2d1b73eedd86",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3533,93 +4557,29 @@
       "difficulty": "easy",
       "payload": {
         "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon axe",
-              "asset": "item:6739"
-            },
-            "value": 33000
-          },
-          {
-            "subject": {
-              "name": "Amulet of fury",
-              "asset": "item:6585"
-            },
-            "value": 121200
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_3eed24cff76e0bf5",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Rune platebody",
-              "asset": "item:1127"
-            },
-            "value": 39000
-          },
-          {
-            "subject": {
-              "name": "Ancestral robe top",
-              "asset": "item:21021"
-            },
-            "value": 72000
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_557c1a4150a248f3",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
         "direction": "less",
         "options": [
-          {
-            "subject": {
-              "name": "Prayer potion(4)",
-              "asset": "item:2434"
-            },
-            "value": 114
-          },
           {
             "subject": {
               "name": "Anglerfish",
               "asset": "item:13441"
             },
             "value": 270
+          },
+          {
+            "subject": {
+              "name": "Death rune",
+              "asset": "item:560"
+            },
+            "value": 108
           }
         ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
+        "answer_index": 1,
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_f1f196e221f8de6e",
+      "id": "q_27082385e6ac577a",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3633,57 +4593,25 @@
         "options": [
           {
             "subject": {
-              "name": "Primordial boots",
-              "asset": "item:13239"
+              "name": "Dragon dagger",
+              "asset": "item:1215"
             },
-            "value": 45000
+            "value": 18000
           },
           {
             "subject": {
-              "name": "3rd Age platebody",
-              "asset": "item:10348"
+              "name": "Dragon longsword",
+              "asset": "item:1305"
             },
-            "value": 120000
+            "value": 60000
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_35fbf407bded3e4c",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Monkfish",
-              "asset": "item:7946"
-            },
-            "value": 138
-          },
-          {
-            "subject": {
-              "name": "Gold bar",
-              "asset": "item:2357"
-            },
-            "value": 180
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_28e107dc81a30bd4",
+      "id": "q_9dd8606266551368",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -3693,605 +4621,29 @@
       "difficulty": "easy",
       "payload": {
         "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Blood rune",
-              "asset": "item:565"
-            },
-            "value": 240
-          },
-          {
-            "subject": {
-              "name": "Magic shortbow",
-              "asset": "item:861"
-            },
-            "value": 960
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_0cf8db92f5e1da4d",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
         "direction": "less",
         "options": [
+          {
+            "subject": {
+              "name": "Draconic visage",
+              "asset": "item:11286"
+            },
+            "value": 450000
+          },
           {
             "subject": {
               "name": "Dragon claws",
               "asset": "item:13652"
             },
             "value": 123000
-          },
-          {
-            "subject": {
-              "name": "Elder maul",
-              "asset": "item:21003"
-            },
-            "value": 300006
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_00dd5aeb0e61a757",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Granite maul",
-              "asset": "item:4153"
-            },
-            "value": 30000
-          },
-          {
-            "subject": {
-              "name": "Dragon pickaxe",
-              "asset": "item:11920"
-            },
-            "value": 58770
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_c26841e62690624c",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Gold bar",
-              "asset": "item:2357"
-            },
-            "value": 180
-          },
-          {
-            "subject": {
-              "name": "Anglerfish",
-              "asset": "item:13441"
-            },
-            "value": 270
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_6e455c2d42d24791",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Magic logs",
-              "asset": "item:1513"
-            },
-            "value": 192
-          },
-          {
-            "subject": {
-              "name": "Saradomin brew(4)",
-              "asset": "item:6685"
-            },
-            "value": 120
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_88fb4bae2e46b038",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Serpentine helm (uncharged)",
-              "asset": "item:12929"
-            },
-            "value": 66000
-          },
-          {
-            "subject": {
-              "name": "Dragon dagger",
-              "asset": "item:1215"
-            },
-            "value": 18000
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_2ccb3bb8543c1833",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Bandos chestplate",
-              "asset": "item:11832"
-            },
-            "value": 174006
-          },
-          {
-            "subject": {
-              "name": "Dragon warhammer",
-              "asset": "item:13576"
-            },
-            "value": 72000
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_b8b4e0e840896751",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Amulet of glory(6)",
-              "asset": "item:11978"
-            },
-            "value": 10575
-          },
-          {
-            "subject": {
-              "name": "Occult necklace",
-              "asset": "item:12002"
-            },
-            "value": 27000
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_cb788395976ccc0f",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Prayer potion(4)",
-              "asset": "item:2434"
-            },
-            "value": 114
-          },
-          {
-            "subject": {
-              "name": "Cooked karambwan",
-              "asset": "item:3144"
-            },
-            "value": 150
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_38acb7974a1f3347",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Archers ring",
-              "asset": "item:6733"
-            },
-            "value": 6000
-          },
-          {
-            "subject": {
-              "name": "Ring of wealth",
-              "asset": "item:2572"
-            },
-            "value": 10575
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_b87da0e34c715cd7",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Coal",
-              "asset": "item:453"
-            },
-            "value": 27
-          },
-          {
-            "subject": {
-              "name": "Lobster",
-              "asset": "item:379"
-            },
-            "value": 42
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_44b5c6b76f871242",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Rune platebody",
-              "asset": "item:1127"
-            },
-            "value": 39000
-          },
-          {
-            "subject": {
-              "name": "Amulet of glory(6)",
-              "asset": "item:11978"
-            },
-            "value": 10575
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_b4ecce2c9eb8918a",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Stamina potion(4)",
-              "asset": "item:12625"
-            },
-            "value": 240
-          },
-          {
-            "subject": {
-              "name": "Cooked karambwan",
-              "asset": "item:3144"
-            },
-            "value": 150
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_5fa6a460af29a963",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon dagger",
-              "asset": "item:1215"
-            },
-            "value": 18000
-          },
-          {
-            "subject": {
-              "name": "Dragon warhammer",
-              "asset": "item:13576"
-            },
-            "value": 72000
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_b361a655fca698cb",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Yew logs",
-              "asset": "item:1515"
-            },
-            "value": 96
-          },
-          {
-            "subject": {
-              "name": "Lobster",
-              "asset": "item:379"
-            },
-            "value": 42
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_7e72d44da3f1f864",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Rune scimitar",
-              "asset": "item:1333"
-            },
-            "value": 15360
-          },
-          {
-            "subject": {
-              "name": "Rune pickaxe",
-              "asset": "item:1275"
-            },
-            "value": 19200
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_fd5576a610d43af9",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Bandos chestplate",
-              "asset": "item:11832"
-            },
-            "value": 174006
-          },
-          {
-            "subject": {
-              "name": "Amulet of fury",
-              "asset": "item:6585"
-            },
-            "value": 121200
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_34618fc0e16dfb1b",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Elder maul",
-              "asset": "item:21003"
-            },
-            "value": 300006
-          },
-          {
-            "subject": {
-              "name": "Elysian spirit shield",
-              "asset": "item:12817"
-            },
-            "value": 1200000
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_4bc47e8059c7492f",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Stamina potion(4)",
-              "asset": "item:12625"
-            },
-            "value": 240
-          },
-          {
-            "subject": {
-              "name": "Magic shortbow",
-              "asset": "item:861"
-            },
-            "value": 960
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_a0cac4a1722d7799",
+      "id": "q_37adb96e0bf06659",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -4312,35 +4664,67 @@
           },
           {
             "subject": {
-              "name": "Shark",
-              "asset": "item:385"
+              "name": "Nature rune",
+              "asset": "item:561"
             },
-            "value": 102
+            "value": 108
           }
         ],
         "answer_index": 0,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_6a95b20d242115da",
+      "id": "q_f9a719fe211c6ea0",
       "type": "more_less",
       "source": "pack",
       "tags": [
         "prices",
         "high-alch"
       ],
-      "difficulty": "hard",
+      "difficulty": "medium",
       "payload": {
         "metric": "high_alch",
-        "direction": "less",
+        "direction": "more",
         "options": [
           {
             "subject": {
-              "name": "Anglerfish",
-              "asset": "item:13441"
+              "name": "Necklace of anguish",
+              "asset": "item:19547"
             },
-            "value": 270
+            "value": 121200
+          },
+          {
+            "subject": {
+              "name": "Abyssal dagger",
+              "asset": "item:13265"
+            },
+            "value": 69000
+          }
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_bc1e01e84e5c5db6",
+      "type": "more_less",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "high-alch"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "metric": "high_alch",
+        "direction": "more",
+        "options": [
+          {
+            "subject": {
+              "name": "Saradomin brew(4)",
+              "asset": "item:6685"
+            },
+            "value": 120
           },
           {
             "subject": {
@@ -4351,203 +4735,11 @@
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_ca5712698e06604c",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragonfire shield",
-              "asset": "item:11284"
-            },
-            "value": 1200000
-          },
-          {
-            "subject": {
-              "name": "Armadyl godsword",
-              "asset": "item:11802"
-            },
-            "value": 750000
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_2d0723284ba27c45",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Toxic blowpipe (empty)",
-              "asset": "item:12924"
-            },
-            "value": 72000
-          },
-          {
-            "subject": {
-              "name": "Helm of Neitiznot",
-              "asset": "item:10828"
-            },
-            "value": 30000
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_e1d675cf6c383574",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon platebody",
-              "asset": "item:21892"
-            },
-            "value": 1200000
-          },
-          {
-            "subject": {
-              "name": "Elder maul",
-              "asset": "item:21003"
-            },
-            "value": 300006
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_fb6bd3182c8fa272",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Bandos tassets",
-              "asset": "item:11834"
-            },
-            "value": 173946
-          },
-          {
-            "subject": {
-              "name": "Necklace of anguish",
-              "asset": "item:19547"
-            },
-            "value": 121200
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_8c7cfcf47d27531f",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Necklace of anguish",
-              "asset": "item:19547"
-            },
-            "value": 121200
-          },
-          {
-            "subject": {
-              "name": "Dragon pickaxe",
-              "asset": "item:11920"
-            },
-            "value": 58770
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_f04da75c45633115",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "more",
-        "options": [
-          {
-            "subject": {
-              "name": "Gold bar",
-              "asset": "item:2357"
-            },
-            "value": 180
-          },
-          {
-            "subject": {
-              "name": "Yew logs",
-              "asset": "item:1515"
-            },
-            "value": 96
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_c07cfc23d519088f",
+      "id": "q_19dfef06c1751d75",
       "type": "more_less",
       "source": "pack",
       "tags": [
@@ -4561,245 +4753,53 @@
         "options": [
           {
             "subject": {
-              "name": "Dragon axe",
-              "asset": "item:6739"
+              "name": "Ring of dueling(8)",
+              "asset": "item:2552"
             },
-            "value": 33000
+            "value": 765
           },
-          {
-            "subject": {
-              "name": "Dragon claws",
-              "asset": "item:13652"
-            },
-            "value": 123000
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_03cc4e1170a14f2e",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Super combat potion(4)",
-              "asset": "item:12695"
-            },
-            "value": 150
-          },
-          {
-            "subject": {
-              "name": "Santa hat",
-              "asset": "item:1050"
-            },
-            "value": 96
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_35fc5a49ca52f188",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Dharok's greataxe",
-              "asset": "item:4718"
-            },
-            "value": 124800
-          },
-          {
-            "subject": {
-              "name": "Armadyl chestplate",
-              "asset": "item:11828"
-            },
-            "value": 174000
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_a0616b8def80daf7",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "hard",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Dragon scimitar",
-              "asset": "item:4587"
-            },
-            "value": 60000
-          },
-          {
-            "subject": {
-              "name": "Rune platebody",
-              "asset": "item:1127"
-            },
-            "value": 39000
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_3c4f7a12da75d48e",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Rune pickaxe",
-              "asset": "item:1275"
-            },
-            "value": 19200
-          },
-          {
-            "subject": {
-              "name": "Dragon axe",
-              "asset": "item:6739"
-            },
-            "value": 33000
-          }
-        ],
-        "answer_index": 0,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_84a55672716b3481",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
           {
             "subject": {
               "name": "Rune arrow",
               "asset": "item:892"
             },
             "value": 240
-          },
-          {
-            "subject": {
-              "name": "Saradomin brew(4)",
-              "asset": "item:6685"
-            },
-            "value": 120
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     },
     {
-      "id": "q_f0d2cfb6356bc461",
+      "id": "q_c88ca11d4a12f29d",
       "type": "more_less",
       "source": "pack",
       "tags": [
         "prices",
         "high-alch"
       ],
-      "difficulty": "easy",
-      "payload": {
-        "metric": "high_alch",
-        "direction": "less",
-        "options": [
-          {
-            "subject": {
-              "name": "Helm of Neitiznot",
-              "asset": "item:10828"
-            },
-            "value": 30000
-          },
-          {
-            "subject": {
-              "name": "Amulet of glory(6)",
-              "asset": "item:11978"
-            },
-            "value": 10575
-          }
-        ],
-        "answer_index": 1,
-        "as_of": "2026-09-19"
-      }
-    },
-    {
-      "id": "q_f18ade4f30133ebb",
-      "type": "more_less",
-      "source": "pack",
-      "tags": [
-        "prices",
-        "high-alch"
-      ],
-      "difficulty": "medium",
+      "difficulty": "hard",
       "payload": {
         "metric": "high_alch",
         "direction": "more",
         "options": [
           {
             "subject": {
-              "name": "Dragon platebody",
-              "asset": "item:21892"
+              "name": "Fire rune",
+              "asset": "item:554"
             },
-            "value": 1200000
+            "value": 2
           },
           {
             "subject": {
-              "name": "Twisted bow",
-              "asset": "item:20997"
+              "name": "Raw shrimps",
+              "asset": "item:317"
             },
-            "value": 2400000
+            "value": 3
           }
         ],
         "answer_index": 1,
-        "as_of": "2026-09-19"
+        "as_of": "2026-09-20"
       }
     }
   ]
