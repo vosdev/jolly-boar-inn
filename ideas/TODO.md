@@ -35,9 +35,9 @@ Ideally, the question that is asked is a different type and/or gamemode. To make
 If we want a custom font, we should find one.
 
 
-# Fetch assets task
+# chat heads
 
-We need to create a script that will fetch assets like chat heads and other images.
+We need to include ~50 chat heads.
 
 # Logo
 
