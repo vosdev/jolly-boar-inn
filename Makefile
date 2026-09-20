@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs gen-price-questions loadtest
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions loadtest
 
 # Dev Postgres: own compose project so it never collides with `docker compose up`.
 DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
@@ -43,13 +43,17 @@ db-shell:
 	$(DEV_COMPOSE) exec postgres psql -U $${POSTGRES_USER:-jbi} -d $${POSTGRES_DB:-jbi}
 
 # Migration tests need Postgres, so start the dev database first.
-test: db-up validate-packs
+test: db-up validate-packs check-contrast
 	cd server && DATABASE_URL_TEST=$(DATABASE_URL_TEST) uv run pytest
 	cd client && pnpm build
 
 # Every shipped question pack: schema, content ids, answer consistency, unique ids.
 validate-packs:
 	cd server && uv run python scripts/validate_packs.py
+
+# D1: every theme in client/src/app.css against the token contract in ideas/design.md.
+check-contrast:
+	cd server && uv run python scripts/check_contrast.py
 
 lint:
 	cd server && uv run ruff check . && uv run ruff format --check .
