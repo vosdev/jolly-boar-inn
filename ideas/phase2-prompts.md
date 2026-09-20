@@ -223,39 +223,59 @@ Accept:
 
 ---
 
-## T21. Multiple choice, closest number, and the host's own round
+## T21. Multiple choice, closest number, and where the host's questions land
 
 ```text
-Task T21 in ideas/phase2.md: the last two simple types, and custom questions server-side.
+Task T21 in ideas/phase2.md: the last two simple types, and random events server-side.
 
-Read ideas/architecture.md section 2 (payloads, and the custom-question storage paragraph),
-section 4 (settings.order, whose meaning changed), and section 6 (exclusions).
+Read ideas/architecture.md section 1 (selection.py's "Random events", and segments.py),
+section 2 ("A random event is not a mode", and the payloads), section 4 (the settings
+block and the custom paragraph under it), and section 6 (exclusions).
 
 Do:
 - questions/types/multiple_choice.py and closest_number.py. closest_number is SCORING =
   RANK and returns the credit ladder from section 6 (1.0/0.8/0.6/0.4/0.2), ties sharing the
   better rank.
 - MODES gains "custom" with type = None — the one mode whose questions carry their own
-  types, because a host's round may mix a multiple-choice question with a number one.
+  types, because a host may write a multiple-choice question and a number one. It is also
+  the one mode that is never a round, so it declares seconds and no questions bounds.
 - POST /api/rooms accepts custom_questions: validate each against the schema, store with
   source='room', mode='custom', author_player_id set. All of it in the existing creation
   transaction — a bad custom question must leave no room behind.
-- selection.py: the custom questions are a round like any other. settings.order now decides
-  only where that round lands ("custom_last" at the end, "shuffle" at a random position
-  among the pack rounds). Delete the old per-question mixing; architecture section 1 says
-  why it went.
+- 0006_random_events.sql: questions.random_event text, and rewrite rooms.settings — drop
+  order, add random_events and random_event_seconds.
+- selection.py: place_random_events(). The host's questions are not a round any more;
+  each one interrupts a round it does not belong to. Never the first round, never a
+  round's first question, one per round, a distinct NPC each time. Delete settings.order
+  and the custom round with it; architecture section 1 says why both went.
+- Pack events: with random_events true, a slot no custom question took gets a pack question
+  with probability PACK_EVENT_CHANCE, drawn from a mode the host did not pick and never from
+  the mode of the round it interrupts.
+- NewRoomSettings: more custom questions than len(modes) - 1 is a 422 naming the limit and
+  the count. Do not truncate.
+- segments.py: an event is grouped into the round it interrupts, not a segment of its own.
+- app/random_events.py: the NPC ids, and nothing else. Names and lines are client copy
+  in T30, the way mode copy already lives in lib/modes.ts.
 - Author exclusion gets its first real caller (T10 built and tested it).
 - types/MultipleChoice.svelte and ClosestNumber.svelte.
 
-Do not: build the editor UI. That is T22 and it is separate on purpose.
+Do not: build the editor UI (T22), and do not build the event presentation — the NPC card
+and the held-back buttons are T30. Until then an event plays as an ordinary question in the
+middle of a round. That is deliberate; do not paper over it with a half client change.
 
 Accept:
-- Creating with three custom questions gives three source='room' rows in one custom round.
+- Three custom questions in a four-mode room land in three different rounds, none of them
+  the first round and none at a round's first position. Seeded, asserted.
+- Five custom questions in a three-mode room give 422 naming the limit and the count, and
+  create no room row.
+- random_events true with no custom questions still produces pack events, and no pack event
+  shares the mode of the round it interrupts.
+- segments_of reports four rounds, not seven, for a four-mode room holding three events.
 - The author gets `excluded` on their own question and scores 0; everyone else scores
   normally on it.
 - host_only scores nobody and still shows and closes.
 - A custom question failing the schema gives 422 naming the field, and creates no room row.
-- order="shuffle" places the custom round somewhere other than last, seeded and asserted.
+- A room created before 0006 rehydrates and plays its custom round unchanged.
 - closest_number ties: two players equidistant share the better rank; exact match beats a
   1-off; an unanswered player scores 0, not 200.
 ```
@@ -276,6 +296,10 @@ Do:
 - Client-side validation mirroring the schema's limits, so the form never submits something
   the server will 422. The schema is the source of truth for the caps — read them from
   schema/question.schema.json rather than retyping the numbers.
+- The room's event cap: a host may write one question fewer than the number of modes they
+  picked, because each one interrupts a round and never the first (architecture section 1).
+  The form knows the selected modes, so it can say "four modes, three questions" before the
+  server has to.
 
 Accept:
 - Add, edit, remove, reorder for all three types.
@@ -283,6 +307,9 @@ Accept:
 - Import of a malformed file shows a readable message and changes nothing already entered.
 - Every schema limit (option counts, string lengths, accepted-answer counts) is enforced in
   the form, with the message next to the field.
+- The event cap is enforced and explained: adding a fourth question to a four-mode room says
+  why it cannot, and deselecting a mode that drops the cap below what is already written says
+  so rather than waiting for submit.
 - pnpm check clean. Manual: create a room with two custom questions and play it.
 ```
 
@@ -519,14 +546,68 @@ Accept:
 
 ---
 
-## After T29
+## T30. Random events
 
-Phase 2 is eleven playable modes. What is left, in `ideas/plan.md`'s order:
+```text
+Task T30 in ideas/phase2.md: make the host's questions, and some of ours, arrive as random
+events.
+
+Read ideas/TODO.md "Custom Questions" for the idea in the words it was written in, then
+ideas/architecture.md section 3 (OpenQuestion.random_event and answerable_at, and the
+paragraphs under the shapes) and section 4 (the splash rule, and the pending → open
+row). T21 already placed the events and stored questions.random_event; this task is the
+two seconds and the NPC.
+
+Do:
+- OpenQuestion gains random_event (the NPC id, null for an ordinary question) and
+  answerable_at. answerable_at is shown_at for an ordinary question and shown_at +
+  random_event_seconds for an event; ends_at becomes answerable_at + the round's
+  seconds; elapsed is measured from answerable_at; an answer received before it is
+  rejected with not_open. Nothing new is stored — answerable_at is derived, so rehydrate
+  does not change.
+- The splash rule moves from "a new mode" to "a new segment" (segments.py already groups an
+  event into the round it interrupts). An event gets no splash, and neither does the question
+  after it.
+- lib/random_events.ts: the roster's copy — id, NPC name, the line they open with, the
+  asset ref. A dozen of them. This is the one place in the project that gets to be
+  funny, so write them like the game writes them; the ids must match
+  app/random_events.py.
+- components/RandomEvent.svelte: the NPC and the question stem, with the answer
+  affordance held back until answerable_at, counted off server_time and not the local
+  clock. An unknown random_event id draws a generic card, the way viewFor already falls
+  back for a mode it cannot draw.
+
+Do not: add a phase to the room state machine, add a column, or send a second message when
+the buttons appear. All three are avoidable and section 4 says how.
+
+Accept:
+- An answer before answerable_at is rejected with not_open, asserted on the server.
+- A player answering the instant the buttons appear lands in bucket 1: the wait costs nobody
+  a point.
+- ends_at - answerable_at equals the round's own seconds.
+- No splash runs for an event, and none runs for the question following one.
+- A reconnect inside the held-back window lands on the NPC card with the right remaining
+  delay, computed from the welcome snapshot.
+- random_event_seconds: 0 plays an event as a plain question — that is what the rest of
+  the tests run on.
+- An unknown random_event id renders the generic card and logs nothing alarming.
+- pnpm check clean. Manual: play a four-mode room with two custom questions, and say where
+  the events turned up.
+```
+
+---
+
+## After T30
+
+Phase 2 is eleven playable modes and a game that interrupts itself. What is left, in
+`ideas/plan.md`'s order:
 
 - **Phase 3** is the asset pipeline (MOID renders, webp, zoom frames), then Who's That NPC?
   and Pixel Hunt — which are two components and a generator each, because the
   `pick_from_list` type, `GET /api/vocab` and `steps` are all specced in
   `ideas/architecture.md` already. Settle the open decision at the end of that file first:
-  where asset files live given a read-only container.
-- **Design**, from `ideas/TODO.md`. Independent of all of the above, and the thing that
-  makes a playtest feel like a real game rather than a form.
+  where asset files live given a read-only container. The random-event NPCs want renders
+  too, and they are the same pipeline.
+- **Design**, from `ideas/TODO.md`: the OSRS theme, the ready-check instead of the splash
+  countdown, and the round-only leaderboard. Independent of all of the above, and the thing
+  that makes a playtest feel like a real game rather than a form.
