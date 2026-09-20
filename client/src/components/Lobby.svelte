@@ -20,14 +20,19 @@
   /** A mode is a round, so the modes picked are the rounds the room will play. */
   const rounds = $derived(settings?.modes.length ?? 0)
   /**
+   * Every question the room actually holds, which the server counted off the questions it
+   * stored rather than off the settings. The two disagree whenever the plan and the
+   * stored set do: a mode whose pack pool ran short gives a round briefer than it asked
+   * for, and a room created before per-mode rounds carries settings that cannot describe
+   * the questions it already has. `total` is what the progress counter reads once the
+   * game starts, so it is what the lobby reads too.
+   */
+  const questions = $derived($room?.total ?? 0)
+  /**
    * The rounds A–Z by name, which is deliberately not the order they play in: what is
    * coming is the game's to reveal, one splash at a time, and the host arranged that
    * order (or handed it to `random`) on the way in.
    */
-  /** Every question in the room, which is every round's own count added up. */
-  const questions = $derived(
-    (settings?.modes ?? []).reduce((total, round) => total + round.questions, 0),
-  )
   const listed = $derived(
     [...(settings?.modes ?? [])].sort((a, b) =>
       modeLabel(a.mode).localeCompare(modeLabel(b.mode)),
