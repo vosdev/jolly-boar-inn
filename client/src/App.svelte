@@ -49,13 +49,6 @@
 
   let route = $state<Route>(resolve(currentPath()))
 
-  /**
-   * What the top bar appends to the wordmark (D2, section 4). Join gets it as well as
-   * Room: it is the same room either way, the screen no longer says which one it is, and
-   * a player who mistyped a code should be able to see that before they type a name.
-   */
-  const roomCode = $derived(route.name === 'join' || route.name === 'room' ? route.code : null)
-
   function navigate(to: string): void {
     if (to !== location.pathname) history.pushState(null, '', to)
     route = resolve(currentPath())
@@ -76,7 +69,7 @@
   })
 </script>
 
-<TopBar code={roomCode} />
+<TopBar />
 
 <main id="content" tabindex="-1">
   {#if route.name === 'home'}

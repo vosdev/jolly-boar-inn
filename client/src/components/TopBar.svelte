@@ -4,13 +4,14 @@
    * screen, 56px and sticky:
    *
    *     ┌────────────────────────────────────────────────────────┐
-   *     │ [sign] The Jolly Boar Inn · DRAGON    [♪] [◑]  [◍] Name │
+   *     │ [sign] The Jolly Boar Inn             [♪] [◑]  [◍] Name │
    *     └────────────────────────────────────────────────────────┘
    *
-   * **The room code lives here**, appended to the wordmark, which is what retires the
-   * `<h1>Room {code}</h1>` that used to cost a line on every screen. It also means a
-   * latecomer can read the code off somebody's phone at any moment of the night, which
-   * is the reason it is in the shell rather than on the lobby screen alone.
+   * **No room code up here**, and section 4 says why: a code in this app is a word —
+   * `SaradominGodsword`, `ThermonuclearSmokeDevil` — and one of those in 56px beside four
+   * controls either truncates to something worse than useless or pushes the controls off
+   * a phone. The lobby shows the code big with the link to share it, and Join keeps its
+   * own heading. The bar is therefore the same width in every room.
    *
    * **Three named slots**, in the order section 4 puts them: sound (D6), theme (D5) and
    * identity (D3, then D4). Each falls back to a placeholder control, because the shell
@@ -40,13 +41,10 @@
   const NARROW = '(max-width: 26rem)'
 
   let {
-    code = null,
     sound,
     theme,
     identity,
   }: {
-    /** The room this browser is looking at, appended to the wordmark. */
-    code?: string | null
     sound?: Snippet
     theme?: Snippet
     identity?: Snippet<[{ narrow: boolean }]>
@@ -143,12 +141,7 @@
       </svg>
       <!-- Not a heading and not a link: the screen below owns the page title, and a logo
            that navigates home is a way to drop out of a question by accident. -->
-      <p class="wordmark">
-        <span class="site">{SITE_NAME}</span>
-        {#if code !== null}<span class="sep" aria-hidden="true">·</span><span class="code"
-            >{code}</span
-          >{/if}
-      </p>
+      <p class="wordmark">{SITE_NAME}</p>
     </div>
 
     <div class="controls">
@@ -247,35 +240,13 @@
 
   .wordmark {
     margin: 0;
-    display: flex;
-    align-items: baseline;
     min-width: 0;
     font-family: var(--font-display);
     font-weight: 600;
-    white-space: nowrap;
-  }
-
-  /* The name is what gives way. A room code shortened to ABYSSA… is worse than no room
-     code at all, so the name takes the whole shrink and loses its tail first; the code
-     only ever ellipsises if it would otherwise push the controls off the screen. */
-  .site {
-    flex-shrink: 999;
     letter-spacing: -0.01em;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .sep {
-    color: var(--muted);
-    margin-inline: 0.3rem;
-  }
-
-  .code {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.08em;
   }
 
   .controls {
@@ -360,20 +331,10 @@
     width: 100%;
   }
 
-  /* Section 4: the wordmark gives way under 26rem, the sign never does. The room code is
-     the exception inside the wordmark — it is the one thing in the bar a latecomer needs
-     to read off a phone, and a phone is exactly the screen this rule is about. */
+  /* Section 4: the wordmark gives way under 26rem, the sign never does. */
   @media (max-width: 26rem) {
-    .site,
-    .sep {
+    .wordmark {
       display: none;
-    }
-
-    /* Room codes are words — AbyssalBludgeon, not DRAGON — so on a phone the code takes
-       the smaller type rather than the ellipsis. */
-    .code {
-      font-size: 0.85rem;
-      letter-spacing: 0.04em;
     }
   }
 

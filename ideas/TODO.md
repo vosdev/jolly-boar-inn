@@ -45,3 +45,7 @@ We need to create our own logo/favicon for the website
 # Limit answers to 7
 
 We only have 7 gems (Sapphire <-> Zenyte) so we need to limit the amount of answers that any type of question can have to 7.
+
+# Store rooms in LocalStorage when done
+
+When a game is done, the leaderboards of the room can be stored in LocalStorage, the room can then be moved to a list of completed games in every player's localstorage. Afterwards the room can be deleted from the database to immediately clean up and also free up the room name again. Or we can have the hourly task clean up completed games immediately. That's probably better.

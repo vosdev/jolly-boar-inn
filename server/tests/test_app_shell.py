@@ -6,9 +6,9 @@ the bar and nowhere else, the 56px sticky measurement in one place, and a single
 breakpoint that the script and the stylesheet agree on. The same approach as
 ``test_check_contrast.py``, which reads the stylesheet rather than rendering it.
 
-What a browser confirmed, and a test here cannot: at 320px the bar is exactly 56px, holds
-a full ``ABYSSALDEMON``, and leaves ``scrollWidth == clientWidth`` on Home, Join, the
-lobby, a question and a reveal; an input sitting under the bar scrolls clear of it.
+What a browser confirmed, and a test here cannot: at 320px the bar is exactly 56px and
+leaves ``scrollWidth == clientWidth`` on Home, Create, Join, the lobby, a question, a
+reveal and the final standings; an input sitting under the bar scrolls clear of it.
 """
 
 import re
@@ -57,24 +57,35 @@ def test_the_bar_is_rendered_once_and_outside_the_router() -> None:
     assert app.index("<TopBar") < app.index("{#if route.name")
 
 
-def test_the_room_code_reaches_the_bar() -> None:
-    """Join as well as Room: the screen no longer says which room this is."""
-    app = read(APP_SVELTE)
-    assert re.search(r"<TopBar code=\{roomCode\}", app)
-    assert re.search(
-        r"roomCode = \$derived\(\s*route\.name === 'join' \|\| route\.name === 'room'", app
+def test_the_bar_carries_no_room_code() -> None:
+    """Section 4: a code here is a word, and a word does not fit 56px beside four controls.
+
+    The bar takes no code at all rather than taking one and hiding it, so there is no
+    width a `ThermonuclearSmokeDevil` can arrive at and break.
+    """
+    bar = read(TOP_BAR)
+    assert "code" not in re.search(r"let \{(.*?)\}: \{", bar, re.DOTALL).group(1)
+    assert not re.search(r"<TopBar[^>]*code=", read(APP_SVELTE))
+    markup = bar[bar.index("<header") : bar.index("</header>")]
+    assert "code" not in markup, "the bar draws something it calls a code"
+
+
+def test_join_still_says_which_room_it_is() -> None:
+    """Nothing else on that screen does, now that the bar does not."""
+    join = read(CLIENT_SRC / "routes" / "Join.svelte")
+    assert any(
+        "Room {code}" in heading for heading in re.findall(r"<h1>(.*?)</h1>", join, re.DOTALL)
     )
 
 
-def test_no_screen_still_titles_itself_with_the_room_code() -> None:
-    """The `<h1>Room {code}</h1>` section 4 retires, in any of its spellings."""
+def test_a_room_you_are_in_does_not_title_itself_with_its_code() -> None:
+    """Room's connecting and disconnected states: the code said nothing the screen did not."""
     offenders = [
-        f"{path.relative_to(REPO_ROOT)}: {match.strip()}"
-        for path in sorted((CLIENT_SRC / "routes").rglob("*.svelte"))
-        for match in re.findall(r"<h1>(.*?)</h1>", read(path), re.DOTALL)
+        match.strip()
+        for match in re.findall(r"<h1>(.*?)</h1>", read(CLIENT_SRC / "routes" / "Room.svelte"))
         if "Room {" in match
     ]
-    assert offenders == [], "the code lives in the top bar now: " + "; ".join(offenders)
+    assert offenders == [], "the lobby and the host carry the code: " + "; ".join(offenders)
 
 
 def test_the_front_page_does_not_repeat_the_wordmark() -> None:
@@ -120,17 +131,8 @@ def test_the_script_and_the_stylesheet_collapse_at_the_same_width() -> None:
 
 def test_the_wordmark_gives_way_and_the_sign_does_not() -> None:
     narrow = block_after(read(TOP_BAR), f"@media (max-width: {BREAKPOINT})")
-    assert re.search(r"\.site,\s*\n\s*\.sep\s*\{\s*display: none;", narrow)
+    assert re.search(r"\.wordmark\s*\{\s*display: none;", narrow)
     assert ".sign" not in narrow, "the sign is the one thing that never hides"
-
-
-def test_a_long_room_code_is_not_the_thing_that_shrinks() -> None:
-    """Room codes are words — AbyssalBludgeon, not DRAGON — and half of one is useless."""
-    bar = read(TOP_BAR)
-    assert "flex-shrink: 999" in block_after(bar, ".site")
-    assert "font-size: 0.85rem" in block_after(
-        block_after(bar, f"@media (max-width: {BREAKPOINT})"), ".code"
-    )
 
 
 # --- three slots, and a placeholder in each until its task lands ----------------------
