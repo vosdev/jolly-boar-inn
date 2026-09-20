@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # ``any -> deleted``). Hourly is far finer than a 30-day TTL needs; it is the
     # interval a self-hoster can lower when they want the rows gone sooner.
     room_cleanup_interval_seconds: int = 3600
-    rooms_per_ip_per_hour: int = 5
+    rooms_per_ip_per_hour: int = 10
     max_players_per_room: int = 50
     packs_dir: Path = Path("../data/packs")
     log_level: Literal["debug", "info", "warning", "error"] = "info"
