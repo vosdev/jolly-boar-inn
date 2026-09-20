@@ -5,15 +5,16 @@ mode sketches live in `ideas/games.md`. This file does not repeat either — it 
 build, in what order, and what "done" means. The prompt to hand each task to is
 `ideas/phase2-prompts.md`, one per task, in the same numbering.
 
-Phase 2 ships **ten new game modes and the framework that makes an eleventh cheap.** It
-assumes T1–T15 are done and does not depend on anything they left open.
+Phase 2 ships **ten new game modes, the framework that makes an eleventh cheap, and the
+random events that carry the host's own questions.** It assumes T1–T15 are done and does
+not depend on anything they left open.
 
 Each task is one working session, ends with `make lint test` green, and leaves the app
 playable. Nothing here is a refactor you cannot stop after.
 
 ## What Phase 2 is actually about
 
-Three things, in this order, and the order is not negotiable:
+Four things, and the first three are in an order that is not negotiable:
 
 1. **T16–T18, the framework.** A mode stops being a question type. Scoring stops being
    "right or wrong, times how fast". The client stops having one component per type. No new
@@ -24,6 +25,11 @@ Three things, in this order, and the order is not negotiable:
    Four modes, zero crawling.
 3. **T23–T29, data, then the modes that need it.** The importer, then six modes generated
    from what it fetches.
+4. **T30, random events.** The presentation the host's questions have been waiting for
+   since T21, and the reason a pack question may interrupt a round it does not belong
+   to. It only needs T21, and it is written last because an event drawing from one
+   unpicked mode is a thinner thing to test and a duller thing to play than one drawing
+   from ten.
 
 Images stay in Phase 3. Every mode below is playable on text alone; Who's That NPC? and
 Pixel Hunt are the two that are not, and they wait.
@@ -45,7 +51,8 @@ T16 mode/type split
           ├────────┴─▶ T19 price_is_right ─┐
           │            T20 free_text ──────┤
           │            T21 mc + number ────┼─▶ T22 custom editor
-          │                                │
+          │                                └─▶ T30 random events
+          │
           └──────────────────────▶ T23 importer
                                       │
                                       ├─▶ T24 gen-packs umbrella
@@ -58,7 +65,9 @@ T16 mode/type split
 
 T16 is the only task everything waits on. T23 can start any time after T16 and is the long
 pole, because it is the one task with a network dependency and an unknown — run it early if
-two people are working.
+two people are working. T30 is last in the file but free after T21; it is the other one to
+pull forward if there is a second pair of hands, because it is the only task in Phase 2 that
+changes how the game feels rather than what it knows.
 
 ## The tasks
 
@@ -155,28 +164,44 @@ full-name typo one character out is accepted and a different item's name is not;
 generator prints how many roster items it used, how many it rejected and why, and the
 rejection rate is under a third.
 
-### T21. Multiple choice, closest number, and the host's own round
+### T21. Multiple choice, closest number, and where the host's questions land
 
-The two remaining simple types, plus everything custom questions need on the server.
+The two remaining simple types, plus everything random events need on the server. The
+*presentation* is T30. Until that lands an event plays as an ordinary question that happens
+to interrupt a round, which is odd to look at and not broken — the same deal T16–T18 made.
 
-`multiple_choice` and `closest_number` type modules. Mode `custom` with `type = None`.
-`POST /api/rooms` accepts `custom_questions`, validates each against the schema, stores them
-with `source = 'room'`, `mode = 'custom'` and `author_player_id`. `settings.order` becomes
-where the custom *round* goes rather than where custom questions go (architecture section 1,
-`selection.py`). Author exclusion, which T10 built and nothing has called yet, gets its first
-caller.
+`multiple_choice` and `closest_number` type modules. Mode `custom` with `type = None`,
+and it is never a round. `POST /api/rooms` accepts `custom_questions`, validates each
+against the schema, stores them with `source = 'room'`, `mode = 'custom'` and
+`author_player_id`. `0006_random_events.sql` adds `questions.random_event` and swaps
+`settings.order` for `random_events` and `random_event_seconds`. `selection.py` gains
+`place_random_events()`: never the first round, never a round's first question, one per
+round, a distinct NPC each time — four rules that between them cap the host at one fewer
+question than they picked modes, which `NewRoomSettings` enforces rather than
+truncating. `segments.py` groups an event into the round it interrupts instead of
+splitting that round in three. `app/random_events.py` holds the NPC ids; their names and
+lines are client copy, as mode copy already is. Author exclusion, which T10 built and
+nothing has called yet, gets its first caller.
 
-**Accept:** creating with three custom questions gives three `source = 'room'` rows in one
-`custom` round; the author gets `excluded` on their own question and scores 0 while everyone
-else scores normally; `host_only` scores nobody and still shows; a payload that fails the
-schema gives 422 naming the field and creates no room; `order: "shuffle"` puts the custom
-round somewhere other than last, seeded and tested; `closest_number` ranks correctly with
-ties.
+**Accept:** three custom questions in a four-mode room land in three different rounds,
+none of them the first round and none at a round's first position, seeded and asserted;
+five custom questions in a three-mode room give 422 naming the limit and the count, and
+create no room; `random_events: true` with no custom questions still draws pack events,
+never from the mode of the round they interrupt; `segments_of` reports four rounds and
+not seven for a four-mode room holding three events; the author gets `excluded` on their
+own question and scores 0 while everyone else scores normally; `host_only` scores nobody
+and still shows; a payload that fails the schema gives 422 naming the field and creates
+no room; a room created before `0006` rehydrates and plays its custom round unchanged;
+`closest_number` ranks correctly with ties.
 
 ### T22. The custom-question editor
 
 Client only. `/r/:code/create` gets a form per custom type, a list of what has been added,
 edit and remove, and JSON export/import of the room's own questions.
+
+It also enforces the room's event cap — a host with four modes may write three questions —
+because a 422 after filling in a fifth question is the wrong place to learn the rule, and the
+form knows how many modes are selected.
 
 This is the one task in Phase 2 that blocks nothing. If Phase 2 has to be cut short, cut it
 here: T21 means a host can already post custom questions with `curl`, and every later task
@@ -184,7 +209,8 @@ ignores this one.
 
 **Accept:** add, edit, remove and reorder for all three custom types; export then import
 round-trips to a byte-identical file; import rejects a bad file with a readable message and
-changes nothing; the editor refuses to submit what the server would 422; `pnpm check` clean.
+changes nothing; the editor refuses to submit what the server would 422, the event cap
+included, and says which of the two limits it hit; `pnpm check` clean.
 
 ### T23. The facts importer
 
@@ -307,6 +333,36 @@ gives a short round, which `selection.py` already handles.
 (quest name, or the clip); ≥20 `who_said_that` and ≥15 `clipped`; `make validate-packs`
 green; `AUTHORING.md` walks someone from a blank file to a passing validation.
 
+### T30. Random events
+
+The task that makes T21's storage look like something. `ideas/TODO.md` has the
+idea; architecture sections 3 and 4 have the mechanism.
+
+Server: `OpenQuestion` gains `random_event` — the NPC id, null for a question nobody is
+interrupting — and `answerable_at`, when the buttons appear. `ends_at` becomes
+`answerable_at + seconds`, `elapsed` is measured from `answerable_at`, and an answer
+arriving before it is `not_open`. The splash rule moves from "a new mode" to "a new
+segment", so an event gets no splash and the question after it gets no second one.
+
+Client: `lib/random_events.ts` carries the roster's copy — the NPC, the line they open
+with, the asset — and `RandomEvent.svelte` draws the NPC and the question stem, holding
+the answer affordance back until `answerable_at` and counting to it off `server_time`
+rather than the local clock.
+
+Write a dozen events. They are the cheapest content in this project and the one place it gets
+to be funny: a Sandwich Lady who wants to know the high alch of a dragon scimitar is the whole
+joke, and it costs three lines of TypeScript. The roster is also the thing a selfhoster will
+want to add to first, so keep it one flat array with no cleverness in it.
+
+**Accept:** an event is not answerable before `answerable_at` and the server says
+`not_open`; a player who answers the instant the buttons appear gets bucket 1, so the
+wait costs nobody a point; `ends_at - answerable_at` equals the round's own `seconds`;
+no splash runs for an event and none runs for the question after it; a reconnect inside
+the held-back window lands on the NPC card with the right remaining delay;
+`random_event_seconds: 0` plays an event as a plain question, which is what most tests
+run; an unknown random_event id renders the generic card instead of erroring. Manual:
+play a four-mode room with two custom questions and watch where they turn up.
+
 ## Deliberately not in Phase 2
 
 - **Images, and the two modes that need them.** Who's That NPC? and Pixel Hunt are Phase 3,
@@ -316,6 +372,8 @@ green; `AUTHORING.md` walks someone from a blank file to a passing validation.
   is a pipeline and two components, not another framework change.
 - **Design.** The OSRS theme, the ready-check replacing the splash countdown, and the
   round-only leaderboard are all in `ideas/TODO.md`. The last two are state-machine changes
-  rather than styling, and want their own tasks.
+  rather than styling, and want their own tasks. Random events were the fourth item on that
+  list and turned out to be cheap enough to pull in as T30, because the custom questions it
+  carries had to land somewhere in T21 either way.
 - **The `more_less` reveal bug** in `ideas/TODO.md`, where a player who did not answer sees
   a green-outlined button. It is a Phase 1 bug in T13's work; fix it there, not here.

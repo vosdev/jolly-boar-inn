@@ -65,6 +65,7 @@ jolly-boar-inn/
 │   │   ├── modes/             # what a round is: see section 2
 │   │   │   ├── __init__.py    # registry: MODES = {"more_less": Mode(...), ...}
 │   │   │   └── mode.py        # the Mode dataclass
+│   │   ├── random_events.py   # the random-event roster: NPC ids; copy is client-side
 │   │   ├── questions/
 │   │   │   ├── schema.py      # load schema, validate(question), content_id(question)
 │   │   │   ├── packs.py       # load data/packs/*.json at startup into memory
@@ -109,14 +110,15 @@ jolly-boar-inn/
 │   └── src/
 │       ├── App.svelte         # tiny hash-free router: /, /create, /r/:code, /r/:code/create
 │       ├── lib/
-│       │   ├── api.ts         # fetch wrappers for /api
-│       │   ├── ws.ts          # RoomSocket: connect, hello, backoff reconnect, ping, typed events
-│       │   ├── modes.ts       # per-mode copy and presentation: label, hint, blurb, stem
-│       │   ├── gp.ts          # format a coin amount the way the game writes it
-│       │   ├── vocab.ts       # fetch and cache /api/vocab/{name}, prefix search
-│       │   ├── session.ts     # localStorage: session per room, list of created rooms
-│       │   ├── protocol.ts    # TS types mirroring server/app/ws/protocol.py
-│       │   └── stores.ts      # room, players, question, standings (Svelte runes/stores)
+│       │   ├── api.ts          # fetch wrappers for /api
+│       │   ├── ws.ts           # RoomSocket: connect, hello, backoff reconnect, ping, typed events
+│       │   ├── modes.ts        # per-mode copy and presentation: label, hint, blurb, stem
+│       │   ├── randomEvents.ts # per-random-event copy: the NPC, the line, the asset
+│       │   ├── gp.ts           # format a coin amount the way the game writes it
+│       │   ├── vocab.ts        # fetch and cache /api/vocab/{name}, prefix search
+│       │   ├── session.ts      # localStorage: session per room, list of created rooms
+│       │   ├── protocol.ts     # TS types mirroring server/app/ws/protocol.py
+│       │   └── stores.ts       # room, players, question, standings (Svelte runes/stores)
 │       ├── routes/
 │       │   ├── Home.svelte          # create or join
 │       │   ├── Create.svelte        # name + settings; creates and lands in the lobby as host
@@ -126,6 +128,7 @@ jolly-boar-inn/
 │           ├── Lobby.svelte
 │           ├── Scoreboard.svelte
 │           ├── Splash.svelte            # introduces a round's mode, on a timer
+│           ├── RandomEvent.svelte       # the NPC who interrupts a round with one question
 │           ├── Timer.svelte
 │           └── questions/
 │               ├── index.ts             # viewFor(type, mode): which pair draws a question
@@ -217,7 +220,7 @@ about; the type is only how you answer it.
 class Mode:
     id: str                       # "drop_table"; the questions.mode column and the settings key
     type: str | None              # the question type it plays as; None only for "custom"
-    questions: Bounds             # how many questions its round holds
+    questions: Bounds | None      # how many questions its round holds; None only for "custom"
     seconds: Bounds               # how long one of them stays open
 ```
 
@@ -233,22 +236,39 @@ index; keeping them as five types would be five copies of one `grade`, and would
 *modes* over one type gives each its own pool, its own pacing, its own splash and its own
 presentation, and costs one dataclass entry each.
 
-`Mode.type` is `None` for exactly one mode, `custom`: a host's own round may mix a
-multiple-choice question with a closest-number one, and its questions carry their own types.
-Every other mode has a type, and `validate_packs.py` rejects a pack question whose `type`
-disagrees with its `mode`'s.
+`Mode.type` is `None` for exactly one mode, `custom`: a host may write a multiple-choice
+question and a closest-number one, and each carries its own type. `custom` is also the one
+mode that is never a round — its questions arrive one at a time as random events
+(`selection.py` below) — so it declares only `seconds`, the length of one such question, and
+has no `questions` bounds because it has no round to size. Every other mode has a type, and
+`validate_packs.py` rejects a pack question whose `type` disagrees with its `mode`'s.
 
 `grade` takes all submissions at once because `closest_number` ranks them. `scoring.py` turns grade results plus timing into points.
 
 `QUESTIONS` and `SECONDS` exist because modes differ in pace, and a room has no question length of its own to fall back on any more. Each is a `Bounds(default, minimum, maximum)`: the default the create form offers, and the range `NewRoomSettings` holds a host to. `more_less` is two names and one word, so it is a long round of short questions — ten of them at ten seconds, stretchable to twenty, because a minute of it would be forty-five seconds of waiting. A module that declares neither gets the registry's fallbacks. `questions_bounds(type)` and `seconds_bounds(type)` read them, `GET /api/modes` serves them to the create form, and `RoomSettings.seconds_for` clamps a stored room into them, so a room created before a type changed its mind still plays. The speed bucket is a fraction of that same number, so a ten-second round scores on ten seconds in a game whose other rounds run to a minute.
 
-**`rooms/selection.py`.** `select(packs, custom, settings, rng) -> list[Round]`: a mode is a round. A room plays one round per mode picked, as long as that mode's own `questions` setting asks for — six modes are six rounds, one mode is one round. A mode's pool is every pack question carrying that `mode`, which is why the envelope stores it: pools are looked up by mode, never by type, or the five modes that share `multiple_choice` would draw from each other. `settings.mode_order` decides the running order: `"listed"` plays them in the order the host arranged them in, `"random"` shuffles them once, here, at creation, because the stored questions *are* the running order. Questions are drawn without replacement per mode; a mode whose pool runs dry gives a short round, or none at all — an empty round is dropped rather than played.
+**`rooms/selection.py`.** `select(packs, settings, rng) -> list[Round]`: a mode is a round. A room plays one round per mode picked, as long as that mode's own `questions` setting asks for — six modes are six rounds, one mode is one round. A mode's pool is every pack question carrying that `mode`, which is why the envelope stores it: pools are looked up by mode, never by type, or the five modes that share `multiple_choice` would draw from each other. `settings.mode_order` decides the running order: `"listed"` plays them in the order the host arranged them in, `"random"` shuffles them once, here, at creation, because the stored questions *are* the running order. Questions are drawn without replacement per mode; a mode whose pool runs dry gives a short round, or none at all — an empty round is dropped rather than played.
 
-A room's own questions are a round like any other: they carry `mode = "custom"` and form the `custom` round, split into as many rounds as `custom`'s own `questions` setting asks for. `settings.order` decides only where that round lands: `"custom_last"` puts it at the end, `"shuffle"` drops it at a random position among the pack rounds. `flatten(rounds)` gives `(round number, question)` in play order, which is what `create` stores. Pure, seeded, tested.
+`flatten(rounds)` gives `(round number, question)` in play order, which is what `create` stores. Pure, seeded, tested.
 
-`order` used to mean "mix each custom question into the pack round of its own type". That died with the split, and it is no loss: the type a host wrote their question in was never a statement about what it was *about*, so scattering "who got a pet at 7k KC" through the Drop Table round only made the splash a lie. A host's questions are their own round, and the only question left is where it goes.
+**Random events.** A room's own questions are not a round. They arrive the way a random event arrives in the game this one is about: someone interrupts what you were doing, asks you one thing, and leaves. `place_random_events(rounds, custom, settings, rng) -> list[Round]` is the second half of selection, and it holds to four rules:
 
-**`rooms/segments.py`.** `segments_of(questions) -> list[Segment]`: the rounds a room is playing, grouped back out of the `questions.round` column. The round number is stored rather than derived because neither cheap derivation holds — counting questions off `settings.modes` breaks on a short round, and runs of equal `type` merge the trailing rounds that a custom question of an unpicked mode gets — and both failures are silent.
+- **Never in the first round.** A player who has seen one mode and nothing else has no routine to interrupt yet.
+- **Never a round's first question.** That position belongs to the splash that just introduced the mode.
+- **At most one per round**, so the surprise stays a surprise.
+- **A distinct NPC each time**, drawn from `app/random_events.py`, so no room sees the same face twice.
+
+Three of those are about rarity and the fourth is the abuse guard. One per round and none in the first means a room has exactly `len(modes) - 1` slots, so a host who wants five questions of their own picks six modes — and cannot turn the room into their own trivia night with eleven of their questions and one round of ours. `NewRoomSettings` rejects more custom questions than there are slots, naming the count and the limit, rather than silently dropping the overflow.
+
+Custom questions fill the slots first, in the order the host wrote them, at a position drawn inside each round they land in. `settings.random_events` decides what happens to the slots left over: true (the default) gives each one a pack question with probability `PACK_RANDOM_EVENT_CHANCE`, false leaves them empty. It is a boolean rather than a three-way choice because a host's own questions are always events — there is nowhere else left to put them — so the only thing left to decide is whether the packs may interrupt as well. A host who wants a game with no surprises in it writes no custom questions and sets it false.
+
+A pack event draws from a mode the host did **not** pick, and failing that from any mode other than the one it is interrupting: an event that asks another Drop Table question in the middle of the Drop Table round is not an event, it is a long round. The drawn question keeps its own `mode`, its own `type` and its own pool; `questions.random_event` is the only thing that marks it as an interruption.
+
+`order` is gone. It first meant "mix each custom question into the pack round of its own type", the mode/type split turned it into "where the custom round goes", and random events leave it nothing to decide. Both earlier meanings were answers to "where do the host's questions belong", and the honest answer turned out to be "nowhere in particular, which is the point".
+
+**`rooms/segments.py`.** `segments_of(questions) -> list[Segment]`: the rounds a room is playing, grouped back out of the `questions.round` column. The round number is stored rather than derived because neither cheap derivation holds — counting questions off `settings.modes` breaks on a short round, and reading runs of equal `mode` breaks on a random event, which is a question of one mode sitting inside a round of another — and both failures are silent.
+
+A random event carries the `round` of the round it interrupts and is grouped into it, so a `custom` question at position 5 of a `more_less` round does not split that round into three. The segment's `mode` comes from the rows that are not events, and a segment made only of events cannot happen, because an event is never a round's first question. This is the one place where grouping on `mode` is not the whole rule, and it is why the rule lives in a module instead of in a `GROUP BY`.
 
 **`db.py`.** `create_pool()`, `run_migrations(pool)`: creates `schema_migrations` if missing, applies every `NNNN_*.sql` not yet recorded, each file in one transaction, in lexical order. Refuses to start if a file recorded as applied is missing.
 
@@ -277,7 +297,7 @@ round. Names are final — `ideas/games.md` holds the sketches they came from.
 | `more_less` | More or Less | `more_less` | `/mapping` + `/latest` | done (T5) |
 | `price_is_right` | The Price is Right | `price_is_right` | `/mapping` + `/latest` | T19 |
 | `guess_examine` | Guess the Examine | `free_text` | `/mapping` examine | T20 |
-| `custom` | Host's Questions | *per question* | the host | T21 |
+| `custom` | Host's Questions | *per question* | the host | T21 (as a random event) |
 | `bestiary` | Bestiary | `multiple_choice` | `facts/npcs.json` | T25 |
 | `drop_table` | Drop Table | `multiple_choice` | `facts/npcs.json` drops | T25 |
 | `odd_one_out` | Odd One Out | `multiple_choice` | `facts/items.json` properties | T26 |
@@ -306,6 +326,16 @@ pre-formatted strings. Its options are integers, so `check()` can assert that
 `options[answer_index]` is the price actually stored for the subject — the consistency
 guarantee in the design rules below. Formatting them the way the game writes coins is the
 client's job (`lib/gp.ts`), not something baked into the pack.
+
+**A random event is not a mode.** `custom` is a mode because its questions need a `mode`
+value and a pool of their own. A random event is a *placement*: any question, of any
+mode, asked outside the round it belongs to, by an NPC who appears for it and then
+leaves. The room-question row carries `random_event`, the id of that NPC; the question's
+`mode`, `type` and payload are untouched. That is why `random_event` is neither in the
+schema nor in the content hash — the same question is the same question whether the
+Sandwich Lady asks it or the Drop Table round does. Section 1 (`selection.py`) has where
+events land, section 4 has how the splash rule changed to accommodate them, and section
+3 has what the client is told.
 
 ### The schema
 
@@ -602,15 +632,40 @@ PlayerView    { id, display_name, role, connected: bool }
 Standing      { player_id, display_name, points: int, rank: int }
 Segment       { mode, index: int, total: int, start: int, count: int }
 OpenQuestion  { question_id, index, total, type, mode, segment: Segment, view: object,
-                opened_at: iso, ends_at: iso, you_can_answer: bool }
+                random_event: string|null, opened_at: iso, answerable_at: iso,
+                ends_at: iso, you_can_answer: bool }
 PlayerResult  { value, correct: bool, credit: float, points: int }
 ```
 
 `Segment` is the round in progress: which mode it plays, which round of how many it is, and the positions it spans. It is grouped from the `questions.round` column, never sent from a second store of it. It rides on `OpenQuestion` as well as `RoomView` because clients patch their room from `question_open` rather than replacing it, and a round can change with no splash to announce it.
 
-`Segment.mode` is a **mode** id, not a type id. Until Phase 2 the two were the same string; they are not any more, and the client's registry is keyed on the mode. `OpenQuestion` carries `mode` next to `type` rather than making the client reach into `segment`, because both are what picks the pair of components that draw it (`viewFor(type, mode)`), and a round carries one mode only by construction — a fact worth not depending on twice.
+`Segment.mode` is a **mode** id, not a type id. Until Phase 2 the two were the same string; they are not any more, and the client's registry is keyed on the mode. `OpenQuestion` carries `mode` next to `type` rather than making the client reach into `segment`, because both are what picks the pair of components that draw it (`viewFor(type, mode)`), and because a round no longer carries one mode only: a random event is a question of one mode asked inside a round of another, and `OpenQuestion.mode` against `segment.mode` is the only place that difference is stated.
 
 `PlayerResult.credit` is what `grade` returned, 0.0 to 1.0. It is on the wire for one reason: `ordering` needs to say "three of five in the right place", and the reveal is the only place that can be said. `correct` stays the boolean the scoreboard tie-break counts, and is `credit >= 1.0`.
+
+`random_event` is the id of the NPC interrupting the round, and null for every question
+nobody is interrupting. The client looks it up in `lib/random_events.ts` for the name,
+the opening line and the asset, and draws a generic event card for an id it does not
+know — the same honest fallback `viewFor` already makes for a mode this build cannot
+draw. The id is on the wire rather than the copy because copy is a client concern here,
+exactly as it is for modes.
+
+`answerable_at` is when the answer affordance appears and the clock starts. It equals
+`opened_at` for an ordinary question, and `opened_at + random_event_seconds` for an
+event, where the NPC holds the floor with the question but without the buttons. Three
+consequences, all of them the point of having the field rather than a client-side
+animation:
+
+- `ends_at` is `answerable_at` plus the question's own seconds, so an event is not two
+  seconds shorter than the round it interrupts.
+- `elapsed` is measured from `answerable_at` (section 6), so the theatre costs nobody a
+  speed bucket.
+- An answer received before `answerable_at` is rejected with `not_open`. A client that
+  draws its buttons early gets nothing for it.
+
+A reconnect during the held-back window needs no extra message: `answerable_at` is in the
+`welcome` snapshot like `ends_at`, and the client counts down to it against `server_time` the
+way `Timer.svelte` already counts down to the close.
 
 ### Autocomplete vocabularies
 
@@ -701,21 +756,21 @@ Transitions:
 ### Question sub-machine (inside `playing`)
 
 ```
-(a new mode) ──▶ splash ──splash_seconds / skip──┐
-                                                 ▼
+(a new segment) ──▶ splash ──splash_seconds / skip──┐
+                                                    ▼
 pending ──open──▶ open ──timer / all answered / skip──▶ closed ──reveal_seconds / skip──▶ (next pending)
-                    │
+                    │  └── an event opens muted: no answer taken before answerable_at
                     └── crash recovered / end_game ──▶ voided
 ```
 
 Room `phase` mirrors this: `idle` (lobby/finished), `splash`, `open`, `reveal`.
 
-The splash introduces a *mode*, not a round: it runs before a round's first question only when that round plays a different mode from the one before it. A mode is a round, so in practice every round is introduced; the guard earns its keep when a host writes more custom questions than one `custom` round holds and gets two of them in a row. It writes nothing — `current_index` was persisted before it ran and `phase` has never been a column — which is why a crash during one is a crash before a question that never opened, the case recovery already handles.
+The splash introduces a *segment*: it runs before a segment's first question and before no other question. It used to be phrased as "before a question whose mode differs from the one before it", which was the same rule until random events existed and is now wrong twice over — an event would get a splash it must not have, and the question after the event would get a second splash for a mode already introduced. Segments come from `segments.py`, which groups an event into the round it interrupts, so "the first question of a segment" is the phrasing that survives contact with them. An event gets no introduction at all: that is what makes it an interruption, and the NPC card is its own announcement. It writes nothing — `current_index` was persisted before it ran and `phase` has never been a column — which is why a crash during one is a crash before a question that never opened, the case recovery already handles.
 
 | Transition | Trigger | Side effects |
 |---|---|---|
-| `(new mode) → splash` | timer task, before a round's first question | `next_at = now + splash_seconds`, broadcast `room_updated`; no write |
-| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `ends_at` = `shown_at` plus the round's own `seconds` (clamped to the type's `SECONDS`), broadcast `question_open`, schedule close |
+| `(new segment) → splash` | timer task, before a segment's first question | `next_at = now + splash_seconds`, broadcast `room_updated`; no write |
+| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the type's `SECONDS`), broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or every connected player who can answer has answered and `close_when_all_answered`; or admin `skip` | `UPDATE questions SET closed_at = now`, grade all answers, `UPDATE answers SET correct, points`, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
 | `open → voided` | restart recovery, `end_game` | `closed_at = now, voided = true`, no grading |
@@ -730,9 +785,10 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
     {"mode": "more_less", "questions": 10, "seconds": 10}
   ],
   "mode_order": "listed",          // "listed": the order above; "random": shuffled at creation
-  "order": "custom_last",          // where the host's own round goes: "shuffle" | "custom_last"
+  "random_events": true,           // may a pack question interrupt a round? the host's always do
   "reveal_seconds": 8,             // 3..30
   "splash_seconds": 8,             // 0..30, 0 turns the round intro off
+  "random_event_seconds": 2,       // 0..10, the NPC holds the floor this long before the buttons
   "close_when_all_answered": true,
   "max_players": 50
 }
@@ -743,13 +799,17 @@ Bestiary is picking two rounds that happen to share the `multiple_choice` type, 
 settings never mention that type: the create form lists modes, the splash introduces
 modes, and the only place the type shows up is inside the question.
 
-`custom` never appears in `modes`. It is a round a room has because the host wrote
-questions for it, not one they picked, so `RoomManager.create` appends it when
-`custom_questions` is non-empty and `order` says where it lands. Its `questions` and
-`seconds` come from `MODES["custom"]`'s bounds, and a host may override `seconds` on the
-create form the same way as for any other round.
+`custom` never appears in `modes`, and it is not a round. The host's own questions are
+random events: `selection.py` drops each of them inside a round it does not belong to, one
+per round and never in the first round, which caps them at one fewer than the number of
+modes picked. A host who wants five questions of their own picks six modes, and a room
+asking for more than its slots is refused at creation — `NewRoomSettings` names the limit
+and the count it was given, because a host who loses two of their five questions to a
+silent truncation finds out during the game. `MODES["custom"]` keeps only `seconds`, the
+length of one such question, and a host may override it on the create form the way they
+may for any round.
 
-There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's type module says (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form, which offers each mode's default and gates its own submit button on the same bounds — `min` and `max` on a number input are a nudge a host can type past, so the form checks every round's two numbers itself and marks the one out of range under the field where its range is already written. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds.
+There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's type module says (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form, which offers each mode's default and gates its own submit button on the same bounds — `min` and `max` on a number input are a nudge a host can type past, so the form checks every round's two numbers itself and marks the one out of range under the field where its range is already written. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds — random events included, since they are questions the room will play.
 
 Settings are fixed at creation. Editing settings in the lobby is not in Phase 1.
 
@@ -805,6 +865,7 @@ create table questions (
     payload          jsonb not null,                   -- full envelope minus id/type/source
     host_only        boolean not null default false,
     round            integer not null default 0,       -- 0003: which round this belongs to
+    random_event     text,                             -- 0006: the NPC asking it; null if not one
     author_player_id uuid references players (id) on delete set null,
     shown_at         timestamptz,
     closed_at        timestamptz,
@@ -834,13 +895,21 @@ Notes:
 - `0003_question_rounds.sql` adds `questions.round`. A room's rounds are grouped back out of it by `rooms/segments.py`; the default of 0 makes every room that predates it a single round, which is what it was.
 - `0004_per_mode_rounds.sql` rewrites `rooms.settings` in place: out go `question_seconds`, `question_count` and `questions_per_round`, and `modes` stops being a list of names and becomes a list of `{mode, questions, seconds}` carrying the old globals. A room created by the previous release keeps playing — its rounds are already in `questions.round` — and `mode_order` is `listed` for it, because there is nothing left to shuffle.
 - `0005_question_mode.sql` adds `questions.mode text not null`, backfilled from `type`. That backfill is exact rather than a best guess: every room that predates it plays `more_less` only, where the mode id and the type id are the same string. After it, `type` answers "how is this answered" and `mode` answers "what is this round", and `segments.py` groups on `mode` — it cannot derive one from the other any more, which is the point.
+- `0006_random_events.sql` adds `questions.random_event text` and rewrites
+  `rooms.settings` once more: out goes `order`, in go `random_events` and
+  `random_event_seconds`. A room created by the previous release keeps its custom round
+  exactly as it is — those rows carry their positions and their `round` already, and
+  selection never runs twice — so the migration can drop `order` without caring what it
+  said.
 - `suggestions` (Phase 6) is not created now. It will be `0003_suggestions.sql` when needed.
 - Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every `ROOM_CLEANUP_INTERVAL_SECONDS` (default hourly, which is fine grain against a 30-day TTL), starting with one pass at startup so a deployment that restarts often still cleans up. No external cron. The task never dies: a failed pass is logged and the next one runs on schedule. `RoomManager.purge_expired` runs it and then drops the same rooms from memory, so the process does not hold rooms the database no longer has.
 - A host does not have to wait for that. `DELETE /api/rooms/{code}` with `{session}` in the body -- never in the URL, section 7 -- deletes the room on the spot when that session belongs to an admin of it: the front page lists the rooms this browser created and each one has a Remove button. Anybody still connected is closed with 4004, and the code is back in circulation.
 
 ## 6. Scoring
 
-All timing is server-side: `elapsed = received_at - shown_at`. The client never sends a time.
+All timing is server-side: `elapsed = received_at - answerable_at`, which is `shown_at`
+for every question but a random event, where the NPC holds the floor for
+`random_event_seconds` first (section 3). The client never sends a time.
 
 ### Credit, then points
 
@@ -940,6 +1009,9 @@ because the scoring never looked at what the client was showing.
 - `host_only` question: nobody scores; the question still shows and closes normally.
 - `source: room` question: `author_player_id` cannot answer (`excluded` error) and scores 0.
 - Kicked players: rows deleted, so they vanish from standings.
+- A random event is graded like anything else: the author of a custom one still cannot answer
+  it, a pack-drawn one scores for everybody, and the two seconds before the buttons appear
+  are outside `elapsed` for all of them.
 
 ### Standings
 
@@ -1074,17 +1146,26 @@ the modes in `ideas/games.md` as they stand now, and three of them are why:
   explains why it turned out not to need one).
 - **Who's That NPC?** and Pixel Hunt answer from a closed vocabulary of a few hundred
   entries, which is not something to put on the wire per question.
+- **Random events** (`ideas/TODO.md`, and T30) put a question of one mode inside a round of
+  another, which "a round is a mode" could not express, and hold the answer affordance back
+  behind the NPC asking it, which nothing on the wire could say. They also retired
+  `settings.order` and the custom round it placed.
 
 So Phase 2 changes: the schema (`mode`, `ordering`, `pick_from_list`, `guess_examine`
 folded into `free_text`), the protocol (`answer_ack`, `OpenQuestion.mode`,
-`PlayerResult.credit`, `GET /api/vocab`), the SQL (`0005_question_mode.sql`), and the
-scoring model (credit, then points). All of it is in the sections above. T16–T18 land
-exactly that much and add no modes, which is what makes T19 onwards a mode each.
+`PlayerResult.credit`, `OpenQuestion.random_event`, `answerable_at`, `GET /api/vocab`),
+the SQL (`0005_question_mode.sql`, `0006_random_events.sql`), and the scoring model
+(credit, then points). All of it is in the sections above. T16–T18 land exactly that
+much and add no modes, which is what makes T19 onwards a mode each.
 
-**What Phase 2 does not touch**, and should not: the room lifecycle and its state machine
-(section 4), identity and sessions (section 7), the reconnect and rehydrate flows
-(section 3), and the one-lock-per-room rule. Every new mode is a pack, a generator, a
-registry entry and at most two components.
+**What Phase 2 does not touch**, and should not: the room state machine (section 4's
+first half), identity and sessions (section 7), the reconnect and rehydrate flows
+(section 3), and the one-lock-per-room rule. Random events reach into the question
+sub-machine for two things — which question gets a splash, and when the buttons appear —
+and nothing else: no new phase, no new column beyond `questions.random_event`, and
+`answerable_at` derived from `shown_at` rather than stored, so rehydrate is exactly what
+it was. Every new mode is still a pack, a generator, a registry entry and at most two
+components.
 
 ### Data pipeline
 
