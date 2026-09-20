@@ -17,6 +17,7 @@
    */
   import { onMount } from 'svelte'
 
+  import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
@@ -48,6 +49,13 @@
 
   let route = $state<Route>(resolve(currentPath()))
 
+  /**
+   * What the top bar appends to the wordmark (D2, section 4). Join gets it as well as
+   * Room: it is the same room either way, the screen no longer says which one it is, and
+   * a player who mistyped a code should be able to see that before they type a name.
+   */
+  const roomCode = $derived(route.name === 'join' || route.name === 'room' ? route.code : null)
+
   function navigate(to: string): void {
     if (to !== location.pathname) history.pushState(null, '', to)
     route = resolve(currentPath())
@@ -68,7 +76,9 @@
   })
 </script>
 
-<main>
+<TopBar code={roomCode} />
+
+<main id="content" tabindex="-1">
   {#if route.name === 'home'}
     <Home {navigate} />
   {:else if route.name === 'create'}

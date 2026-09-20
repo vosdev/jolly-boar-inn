@@ -125,6 +125,15 @@
   font-family: var(--font-body);
   color: var(--ink);
   background: var(--bg);
+
+  /* D2, section 4. Shell measurement rather than a theme token: a theme repaints the
+     bar, it does not get to decide how tall it is. */
+  --topbar-height: 56px;
+
+  /* The bar is sticky, so anything the browser scrolls to — a field a mobile keyboard
+     just pushed up, an element that took focus — has to stop below it rather than
+     under it. */
+  scroll-padding-top: calc(var(--topbar-height) + 0.75rem);
 }
 
 * {
@@ -263,6 +272,9 @@ button.small {
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
+  /* Like .row: at 320px the pair either wraps or pushes the page sideways, and the top
+     bar (D2) is not the only thing that has to survive a narrow screen. */
+  flex-wrap: wrap;
 }
 
 .note {
@@ -276,11 +288,15 @@ button.small {
   margin: 0.6rem 0 0;
 }
 
+/* The code to read out. Room codes are words rather than six letters — AbyssalBludgeon,
+   not DRAGON — so the size gives way on a narrow screen rather than the code running off
+   the panel. */
 .code {
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 7vw, 2rem);
   font-weight: 700;
   letter-spacing: 0.12em;
+  overflow-wrap: anywhere;
 }
 
 .link {

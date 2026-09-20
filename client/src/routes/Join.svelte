@@ -53,7 +53,9 @@
   }
 </script>
 
-<h1>Room {code}</h1>
+<!-- The code is in the top bar (D2, section 4), so the heading says what this screen
+     is for rather than repeating it. -->
+<h1>Join the room</h1>
 
 {#if lookupError !== null}
   <section class="panel">
