@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "server", "runtimeExecutable": "make", "runtimeArgs": ["dev-server"], "port": 8000 },
+    { "name": "client", "runtimeExecutable": "make", "runtimeArgs": ["dev-client"], "port": 5173 }
+  ]
+}

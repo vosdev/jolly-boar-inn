@@ -4,7 +4,7 @@
    * screen, 56px and sticky:
    *
    *     ┌────────────────────────────────────────────────────────┐
-   *     │ [sign] The Jolly Boar Inn             [♪] [◑]  [◍] Name │
+   *     │ [sign] The Jolly Boar Inn             [◍] Name  [♪] [◑] │
    *     └────────────────────────────────────────────────────────┘
    *
    * **No room code up here**, and section 4 says why: a code in this app is a word —
@@ -13,22 +13,22 @@
    * a phone. The lobby shows the code big with the link to share it, and Join keeps its
    * own heading. The bar is therefore the same width in every room.
    *
-   * **Three named slots**, in the order section 4 puts them: sound (D6), theme (D5) and
-   * identity (D3, then D4). Each falls back to a placeholder control, because the shell
-   * is what D2 delivers and the controls are other tasks — a placeholder holds the exact
+   * **Three named slots**, in the order section 4 puts them: identity (D3, then D4), sound
+   * (D6) and theme (D5). Each falls back to a placeholder control, because the shell is
+   * what D2 delivers and the controls are other tasks — a placeholder holds the exact
    * space the real one will take, so neither of those tasks has to come back and rework
    * the bar. GitHub is deliberately not a slot here: it is D10's, along with the footer
    * it really belongs to (section 9.3).
    *
-   * **Identity is the only slot that is told how wide the bar is.** Section 4 says the
-   * chip drops to just the head under 26rem, and only the chip's own component can do
-   * that to itself, so it gets `{ narrow }`. Sound and theme need nothing: they collapse
-   * whole, into the `⋯` popover, which the shell does around them.
+   * **The player's name is the bar's priority.** Nothing collapses into a popover: under
+   * 26rem the wordmark goes, and whatever width is left belongs to the name, which
+   * ellipsises rather than disappearing. Sound, theme and the sign keep their size.
    *
-   * The mark is a placeholder shape (section 9.1): D10 swaps it for `PUBLIC_SITE_LOGO`
-   * and the wordmark for `PUBLIC_SITE_NAME`, and neither needs a change here to do it.
+   * The sign links home. The mark is a placeholder shape (section 9.1): D10 swaps it for
+   * `PUBLIC_SITE_LOGO` and the wordmark for `PUBLIC_SITE_NAME`, and neither needs a change
+   * here to do it.
    */
-  import { onMount, type Snippet } from 'svelte'
+  import type { Snippet } from 'svelte'
 
   const SITE_NAME = 'The Jolly Boar Inn'
 
@@ -36,51 +36,27 @@
       so the Jolly Boar Inn gets a J and the Dancing Donkey a D. */
   const INITIAL = SITE_NAME.replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase()
 
-  /** Section 4's breakpoint. In JS rather than only in CSS, because the collapse changes
-      what is rendered — a control cannot be in the bar and in the popover at once. */
-  const NARROW = '(max-width: 26rem)'
-
   let {
+    navigate,
+    identity,
     sound,
     theme,
-    identity,
   }: {
+    navigate: (to: string) => void
+    identity?: Snippet
     sound?: Snippet
     theme?: Snippet
-    identity?: Snippet<[{ narrow: boolean }]>
   } = $props()
 
-  // Read once at init so the first paint is already the right shape on a phone; the
-  // listener below keeps it honest through a rotation or a resized window.
-  let narrow = $state(matchMedia(NARROW).matches)
-  let overflowOpen = $state(false)
-  let overflow = $state<HTMLElement | null>(null)
-
-  onMount(() => {
-    const query = matchMedia(NARROW)
-    const onChange = (event: MediaQueryListEvent): void => {
-      narrow = event.matches
-      // Widening while the popover is open would leave it floating over a bar that has
-      // its controls back.
-      if (!narrow) overflowOpen = false
+  function goHome(event: MouseEvent): void {
+    // A modified click is somebody asking for a new tab; let the browser have it.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return
     }
-    query.addEventListener('change', onChange)
-    return () => query.removeEventListener('change', onChange)
-  })
-
-  function onWindowPointerDown(event: MouseEvent): void {
-    if (!overflowOpen) return
-    const target = event.target
-    if (target instanceof Node && overflow?.contains(target)) return
-    overflowOpen = false
-  }
-
-  function onWindowKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') overflowOpen = false
+    event.preventDefault()
+    navigate('/')
   }
 </script>
-
-<svelte:window onpointerdown={onWindowPointerDown} onkeydown={onWindowKeyDown} />
 
 {#snippet soundPlaceholder()}
   <!-- Placeholders, not controls: D6 and D5 pass the real ones in as slots. Disabled
@@ -114,14 +90,14 @@
   </button>
 {/snippet}
 
-{#snippet identityPlaceholder(state: { narrow: boolean })}
+{#snippet identityPlaceholder()}
   <span class="control chip" aria-label="You">
     <svg class="head" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <circle class="head-face" cx="12" cy="12" r="11" />
       <circle cx="12" cy="9.5" r="3.5" fill="currentColor" />
       <path d="M5 21a7 7 0 0 1 14 0z" fill="currentColor" />
     </svg>
-    {#if !state.narrow}<span class="chip-name">Guest</span>{/if}
+    <span class="chip-name">Guest</span>
   </span>
 {/snippet}
 
@@ -130,51 +106,28 @@
     <a class="skip" href="#content">Skip to the game</a>
 
     <div class="mark">
-      <!-- The placeholder sign (section 9.1): a shape, drawn in tokens, sized for the
-           file that replaces it. It never hides, however narrow the screen gets. -->
-      <svg class="sign" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-        <path class="sign-hanger" d="M16 2v5" />
-        <rect class="sign-board" x="3" y="7" width="26" height="20" rx="4" />
-        <text class="sign-letter" x="16" y="18" text-anchor="middle" dominant-baseline="central">
-          {INITIAL}
-        </text>
-      </svg>
-      <!-- Not a heading and not a link: the screen below owns the page title, and a logo
-           that navigates home is a way to drop out of a question by accident. -->
-      <p class="wordmark">{SITE_NAME}</p>
+      <!-- The sign is the way home, and never hides however narrow the screen gets. The
+           room is not lost by following it: the session stays in this browser, and the
+           room's link brings you straight back in. -->
+      <a class="home" href="/" aria-label="{SITE_NAME}, home" onclick={goHome}>
+        <!-- The placeholder sign (section 9.1): a shape, drawn in tokens, sized for the
+             file that replaces it. -->
+        <svg class="sign" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <path class="sign-hanger" d="M16 2v5" />
+          <rect class="sign-board" x="3" y="7" width="26" height="20" rx="4" />
+          <text class="sign-letter" x="16" y="18" text-anchor="middle" dominant-baseline="central">
+            {INITIAL}
+          </text>
+        </svg>
+      </a>
+      <!-- Not a heading: the screen below owns the page title. -->
+      <p class="wordmark" aria-hidden="true">{SITE_NAME}</p>
     </div>
 
     <div class="controls">
-      {#if narrow}
-        <!-- Section 4: under 26rem sound and theme fold into one popover, and the chip
-             keeps its place outside it, because it is the one a thumb reaches for. -->
-        <div class="overflow" bind:this={overflow}>
-          <button
-            type="button"
-            class="control"
-            aria-label="More"
-            aria-haspopup="true"
-            aria-expanded={overflowOpen}
-            onclick={() => (overflowOpen = !overflowOpen)}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <circle cx="5" cy="12" r="1.8" fill="currentColor" />
-              <circle cx="12" cy="12" r="1.8" fill="currentColor" />
-              <circle cx="19" cy="12" r="1.8" fill="currentColor" />
-            </svg>
-          </button>
-          {#if overflowOpen}
-            <div class="popover">
-              {@render (sound ?? soundPlaceholder)()}
-              {@render (theme ?? themePlaceholder)()}
-            </div>
-          {/if}
-        </div>
-      {:else}
-        {@render (sound ?? soundPlaceholder)()}
-        {@render (theme ?? themePlaceholder)()}
-      {/if}
-      {@render (identity ?? identityPlaceholder)({ narrow })}
+      <div class="identity-slot">{@render (identity ?? identityPlaceholder)()}</div>
+      {@render (sound ?? soundPlaceholder)()}
+      {@render (theme ?? themePlaceholder)()}
     </div>
   </div>
 </header>
@@ -198,16 +151,25 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    /* The identity popover's anchor, so it opens flush with the column's right edge
+       wherever the chip itself sits. */
+    position: relative;
   }
 
   .mark {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    /* min-width lets the wordmark be the thing that gives way, which is what keeps a
-       320px screen from scrolling sideways. */
-    flex: 1;
-    min-width: 0;
+    /* The wordmark gives way before the name does: the huge shrink factor means the
+       mark gives up its width first, down to the sign, which never gives way. */
+    flex: 0 1000 auto;
+    min-width: 32px;
+  }
+
+  .home {
+    display: flex;
+    flex: none;
+    border-radius: var(--radius);
   }
 
   .sign {
@@ -249,10 +211,24 @@
     text-overflow: ellipsis;
   }
 
+  /* Takes whatever the mark leaves, right-aligned. min-width lets the name inside be the
+     one thing here that shrinks, which is what keeps a 320px screen from scrolling
+     sideways; sound and theme never do. */
   .controls {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.35rem;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .identity-slot {
+    display: flex;
+    min-width: 0;
+  }
+
+  .controls > :global(.control) {
     flex: none;
   }
 
@@ -286,7 +262,8 @@
   }
 
   .chip {
-    max-width: 10rem;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .chip-name {
@@ -308,29 +285,6 @@
     stroke: currentColor;
   }
 
-  .overflow {
-    position: relative;
-  }
-
-  .popover {
-    position: absolute;
-    top: calc(100% + 0.35rem);
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.35rem;
-    background: var(--panel-raised);
-    border: var(--border-width) solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-  }
-
-  .popover :global(.control) {
-    justify-content: flex-start;
-    width: 100%;
-  }
-
   /* Section 4: the wordmark gives way under 26rem, the sign never does. */
   @media (max-width: 26rem) {
     .wordmark {
@@ -338,7 +292,7 @@
     }
   }
 
-  /* The bar puts three or four controls in front of the screen for anyone on a keyboard,
+  /* The bar puts four controls in front of the screen for anyone on a keyboard,
      on every screen. This jumps them. */
   .skip {
     position: absolute;

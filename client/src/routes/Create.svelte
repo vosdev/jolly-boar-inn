@@ -12,10 +12,16 @@
    * numbers are held to come from `GET /api/modes`, which is the server's own type
    * registry — the form never invents a number the server would refuse.
    *
+   * The name comes from the profile (D3). A browser with none is stopped by the popup
+   * before the form, which then arrives filled in: the host's name is the one read aloud
+   * and put at the top of the standings, so a beat to choose it is well spent, and here it
+   * is free — no room exists yet, so there is nothing to check it against or undo. What
+   * the host creates with becomes the profile, so the next room starts from it.
+   *
    * The custom-question editor is Phase 2, so `custom_questions` is always the empty
    * list `api.createRoom` sends.
    */
-  import { onMount } from 'svelte'
+  import { onMount, untrack } from 'svelte'
 
   import {
     ApiFailure,
@@ -24,7 +30,11 @@
     type ModePacing,
     type NewRoomSettings,
   } from '../lib/api'
+  import NameField from '../components/NameField.svelte'
+  import NamePrompt from '../components/NamePrompt.svelte'
   import { MODES, modeLabel } from '../lib/modes'
+  import { nameProblem } from '../lib/names'
+  import { profile, saveProfile } from '../lib/profile'
   import type { ModeSettings } from '../lib/protocol'
   import { rememberCreated, setSession } from '../lib/session'
 
@@ -33,7 +43,7 @@
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
-  let displayName = $state('')
+  let displayName = $state($profile?.name ?? '')
   let revealSeconds = $state(4)
   let splashSeconds = $state(8)
   let order = $state<'shuffle' | 'custom_last'>('shuffle')
@@ -58,12 +68,21 @@
     ),
   )
   const ready = $derived(
-    displayName.trim() !== '' &&
+    nameProblem(displayName) === null &&
       rounds.length > 0 &&
       roundsInRange &&
       questionCount >= 1 &&
       questionCount <= MAX_QUESTIONS,
   )
+
+  // Filled in the moment the popup saves one. Only ever from empty, so a name the host
+  // is typing is never pulled out from under them.
+  $effect(() => {
+    const saved = $profile
+    untrack(() => {
+      if (displayName === '' && saved !== null) displayName = saved.name
+    })
+  })
 
   onMount(async () => {
     try {
@@ -135,6 +154,7 @@
     try {
       const created = await createRoom(displayName.trim(), settings)
       setSession(created.code, created.session)
+      saveProfile(displayName)
       rememberCreated(created.code)
       navigate(`/r/${created.code}`)
     } catch (error) {
@@ -146,24 +166,17 @@
   }
 </script>
 
+{#if $profile === null}
+  <NamePrompt action="Host" onBack={() => navigate('/')} />
+{/if}
+
 <h1>Create a room</h1>
 <p class="tagline">You are the host. Settings are fixed once the room exists.</p>
 
 <form onsubmit={submit}>
   <section class="panel">
     <h2>You</h2>
-    <div class="field">
-      <label for="name">Your name</label>
-      <input
-        id="name"
-        type="text"
-        bind:value={displayName}
-        maxlength="24"
-        autocomplete="off"
-        spellcheck="false"
-      />
-      <p class="note">1–24 characters. This is what the room sees.</p>
-    </div>
+    <NameField id="name" bind:value={displayName} />
   </section>
 
   <section class="panel">

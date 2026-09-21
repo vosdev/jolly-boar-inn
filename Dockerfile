@@ -8,6 +8,8 @@ COPY client/package.json client/pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY client/ ./
+# The one file the client imports from outside client/: the random-name corpus (D3).
+COPY data/player-names.json ../data/player-names.json
 RUN pnpm build
 
 # ---- Stage 2: build the server venv with uv --------------------------------
