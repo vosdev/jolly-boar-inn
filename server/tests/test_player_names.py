@@ -110,11 +110,11 @@ def test_the_profile_lives_under_the_jbi_prefix() -> None:
     assert "'jbi:profile'" in read("lib/profile.ts")
 
 
-def test_create_and_join_both_stop_an_empty_profile() -> None:
-    """Section 5.1: no name, no room. Both screens gate on the same store."""
-    for screen in ("routes/Create.svelte", "routes/Join.svelte"):
-        source = read(screen)
-        assert re.search(r"\{#if \$profile === null\}\s*<NamePrompt", source), screen
+def test_create_stops_an_empty_profile() -> None:
+    """Section 5.1: no name, no room to host. Join stopped too until D4 made it join-first,
+    which ``test_heads.py`` holds it to."""
+    source = read("routes/Create.svelte")
+    assert re.search(r"\{#if \$profile === null\}\s*<NamePrompt", source)
 
 
 def test_every_name_field_is_the_re_rollable_one() -> None:

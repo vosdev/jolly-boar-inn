@@ -87,7 +87,13 @@ def test_hello_gets_welcome_with_players_and_you(client: TestClient, lobby) -> N
         assert welcome["question"] is None
         assert welcome["your_answer"] is None
         assert welcome["standings"] == [
-            {"player_id": p["id"], "display_name": p["display_name"], "points": 0, "rank": 1}
+            {
+                "player_id": p["id"],
+                "display_name": p["display_name"],
+                "avatar": None,
+                "points": 0,
+                "rank": 1,
+            }
             for p in welcome["players"]
         ]
         served = datetime.fromisoformat(welcome["server_time"])

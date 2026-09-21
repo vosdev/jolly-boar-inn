@@ -196,6 +196,8 @@ async def _dispatch(
             await manager.kick(code, player, message.player_id)
         case protocol.EndGame():
             await manager.end_game(code, player)
+        case protocol.SetProfile():
+            await manager.set_profile(code, player, message.display_name, message.avatar)
     return None
 
 

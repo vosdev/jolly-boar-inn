@@ -51,7 +51,7 @@ Do:
   here from questions/types/__init__.py and fall back mode -> type -> registry default.
 - schema/question.schema.json : "mode" required, pattern ^[a-z0-9_]{1,32}$. It is NOT part
   of the content id hash — architecture section 2 says why, keep that true.
-- 0005_question_mode.sql : questions.mode text not null, backfilled from type.
+- 0006_question_mode.sql : questions.mode text not null, backfilled from type.
 - selection.py pools by mode, not by type. segments.py groups on mode. settings.py
   validates modes[].mode against MODES. GET /api/modes serves id + type + bounds.
 - Segment.mode is a mode id; OpenQuestion gains mode alongside type.
@@ -66,7 +66,7 @@ must play identically before and after. This task is the axis change and nothing
 Accept:
 - Every existing test passes. Update them mechanically where the shape moved; delete none.
   If a test cannot be made to pass mechanically, stop and tell me which and why.
-- A migration test asserts a pre-0005 room rehydrates with mode = type on its rows and
+- A migration test asserts a pre-0006 room rehydrates with mode = type on its rows and
   plays to finished.
 - validate_packs.py fails {"mode": "drop_table", "type": "more_less"} and says so clearly.
 - GET /api/modes returns [{"id","type","questions","seconds"}].
@@ -242,7 +242,7 @@ Do:
 - POST /api/rooms accepts custom_questions: validate each against the schema, store with
   source='room', mode='custom', author_player_id set. All of it in the existing creation
   transaction — a bad custom question must leave no room behind.
-- 0006_random_events.sql: questions.random_event text, and rewrite rooms.settings — drop
+- 0007_random_events.sql: questions.random_event text, and rewrite rooms.settings — drop
   order, add random_events and random_event_seconds.
 - selection.py: place_random_events(). The host's questions are not a round any more;
   each one interrupts a round it does not belong to. Never the first round, never a
@@ -275,7 +275,7 @@ Accept:
   normally on it.
 - host_only scores nobody and still shows and closes.
 - A custom question failing the schema gives 422 naming the field, and creates no room row.
-- A room created before 0006 rehydrates and plays its custom round unchanged.
+- A room created before 0007 rehydrates and plays its custom round unchanged.
 - closest_number ties: two players equidistant share the better rank; exact match beats a
   1-off; an unanswered player scores 0, not 200.
 ```

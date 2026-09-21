@@ -4,50 +4,123 @@
    *
    * The chip means two different things in two places, and both are right:
    *
-   * - **Outside a room** (Home, Create, Join) it is the local profile — the name this
-   *   browser will bring to the next room — and "Set your name" until there is one.
+   * - **Outside a room** (Home, Create, Join) it is the local profile — the name and head
+   *   this browser will bring to the next room — and "Set your name" until there is one.
    * - **Inside a room** it is the live `PlayerView` the server sent, which is who the
    *   room actually sees. A join that had to turn the suffix over (`AFKFisher42` was
    *   taken, so you are `AFKFisher517`) shows here, not in the profile.
    *
-   * The popover edits the profile in both. Changing the live player's name needs a
-   * websocket message that does not exist yet — `set_profile`, which is D4's — so inside
-   * a room it says who you are there and what you will be next time, rather than
-   * offering a rename it cannot send.
+   * The popover edits whichever one the chip is showing (D4). Outside a room that is the
+   * profile, saved on the spot. Inside one it is `set_profile` on the room's socket: the
+   * change is the room's to accept, so nothing is saved until the `room_updated` that
+   * carries it comes back, and a name somebody else in the room already has is answered
+   * in the popover, under the field, with the old name still in place. What the room
+   * accepts becomes the profile too, so the next room starts from it.
+   *
+   * A player who joined first and never chose a name (section 5.1.1, option B) is nudged
+   * here, once: the chip pulses and says who they are and that a tap changes it. It stays
+   * for as long as the lobby does, until they tap the chip or dismiss it.
    */
+  import { headOf, randomHead } from '../lib/heads'
   import { nameProblem } from '../lib/names'
-  import { profile, saveProfile } from '../lib/profile'
+  import { nudge, profile, saveProfile } from '../lib/profile'
+  import type { PlayerView } from '../lib/protocol'
+  import { players, profileError, room, roomSend } from '../lib/stores'
+  import Die from './Die.svelte'
+  import Head from './Head.svelte'
   import NameField from './NameField.svelte'
 
   let {
-    liveName = null,
+    live = null,
   }: {
-    /** Your name in the room you are in, or null outside one. */
-    liveName?: string | null
+    /** You, in the room you are in; null outside one. */
+    live?: PlayerView | null
   } = $props()
 
   let open = $state(false)
   let draft = $state('')
-  let saved = $state(false)
+  let saved = $state<string | null>(null)
   let root = $state<HTMLElement | null>(null)
+  /** What was sent in `set_profile` and has not come back in a `room_updated` yet. */
+  let pending = $state<{ name?: string; head?: number } | null>(null)
 
-  const shown = $derived(liveName ?? $profile?.name ?? null)
-  const ok = $derived(nameProblem(draft) === null && draft.trim() !== $profile?.name)
+  const inRoom = $derived(live !== null)
+  const shownName = $derived(live?.display_name ?? $profile?.name ?? null)
+  const shownHead = $derived(live !== null ? headOf(live) : ($profile?.head ?? null))
+  const currentName = $derived(live?.display_name ?? $profile?.name ?? '')
+  const ok = $derived(nameProblem(draft) === null && draft.trim() !== currentName)
+  const nudging = $derived(
+    live !== null && $nudge !== null && $nudge === $room?.code && $room?.status === 'lobby',
+  )
+  /** The room's refusal, in words for the person holding the phone. */
+  const refusal = $derived(
+    $profileError === null
+      ? null
+      : $profileError.code === 'name_taken'
+        ? 'Somebody in this room already has that name.'
+        : $profileError.message,
+  )
+  /** Everybody else's face, so a re-roll leans toward one nobody is wearing. */
+  const taken = $derived(
+    live === null ? [] : $players.filter((p) => p.id !== live.id).map((p) => headOf(p)),
+  )
+
+  // The room said yes: the change is on `live` now, so it is the profile's too.
+  $effect(() => {
+    if (pending === null || live === null) return
+    const nameDone = pending.name === undefined || live.display_name === pending.name
+    const headDone = pending.head === undefined || live.avatar === pending.head
+    if (!nameDone || !headDone) return
+    saveProfile(live.display_name, headOf(live))
+    saved = pending.name !== undefined ? 'Renamed.' : 'New head on.'
+    pending = null
+  })
+
+  // The room said no. The error is the popover's to show; what was pending is not coming.
+  $effect(() => {
+    if ($profileError !== null) pending = null
+  })
 
   function toggle(): void {
     open = !open
+    nudge.set(null)
     if (open) {
-      draft = $profile?.name ?? ''
-      saved = false
+      draft = currentName
+      saved = null
+      profileError.set(null)
+    }
+  }
+
+  function send(change: { display_name?: string; avatar?: number }): void {
+    profileError.set(null)
+    saved = null
+    if ($roomSend?.({ t: 'set_profile', ...change })) {
+      pending = { name: change.display_name, head: change.avatar }
     }
   }
 
   function submit(event: SubmitEvent): void {
     event.preventDefault()
-    if (!ok) return
-    saveProfile(draft)
-    draft = draft.trim()
-    saved = true
+    if (!ok || pending !== null) return
+    const name = draft.trim()
+    if (inRoom) {
+      send({ display_name: name })
+    } else {
+      saveProfile(name)
+      draft = name
+      saved = 'Saved.'
+    }
+  }
+
+  function rerollHead(): void {
+    if (pending !== null) return
+    const next = randomHead(taken, shownHead)
+    if (inRoom) {
+      send({ avatar: next })
+    } else if ($profile !== null) {
+      saveProfile($profile.name, next)
+      saved = 'New head on.'
+    }
   }
 
   function onWindowPointerDown(event: PointerEvent): void {
@@ -68,40 +141,72 @@
   <button
     type="button"
     class="control chip"
-    class:unset={shown === null}
+    class:unset={shownName === null}
+    class:nudging
     aria-haspopup="dialog"
     aria-expanded={open}
-    aria-label={shown === null ? 'Set your name' : `You are ${shown}. Change your name`}
+    aria-label={shownName === null ? 'Set your name' : `You are ${shownName}. Change your name or head`}
     onclick={toggle}
   >
-    <!-- The placeholder head: D4 swaps in the real ones, drawn at this size. -->
-    <svg class="head" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <circle class="head-face" cx="12" cy="12" r="11" />
-      <circle cx="12" cy="9.5" r="3.5" fill="currentColor" />
-      <path d="M5 21a7 7 0 0 1 14 0z" fill="currentColor" />
-    </svg>
+    {#if shownHead === null}
+      <!-- Nobody yet: a blank silhouette until the profile has a head to show. -->
+      <svg class="blank" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle class="blank-face" cx="12" cy="12" r="11" />
+        <circle cx="12" cy="9.5" r="3.5" fill="currentColor" />
+        <path d="M5 21a7 7 0 0 1 14 0z" fill="currentColor" />
+      </svg>
+    {:else}
+      <Head head={shownHead} size={32} label="" />
+    {/if}
     <!-- Always shown, at every width (section 4): on a phone it ellipsises rather than
          collapsing to the head, because who you are is the one thing the bar is for. -->
-    <span class="chip-name">{shown ?? 'Set your name'}</span>
+    <span class="chip-name">{shownName ?? 'Set your name'}</span>
   </button>
 
+  {#if nudging && !open}
+    <p class="nudge" role="status">
+      <span>You're <strong>{shownName}</strong> — tap to change.</span>
+      <button type="button" class="link" aria-label="Dismiss" onclick={() => nudge.set(null)}>
+        ✕
+      </button>
+    </p>
+  {/if}
+
   {#if open}
-    <div class="popover" role="dialog" aria-label="Your name">
-      {#if liveName !== null}
-        <p class="here">In this room you are <strong>{liveName}</strong>.</p>
+    <div class="popover" role="dialog" aria-label="Your name and head">
+      {#if shownHead !== null}
+        <div class="face">
+          <Head head={shownHead} size={48} />
+          <button
+            type="button"
+            class="small reroll-head"
+            disabled={pending !== null}
+            onclick={rerollHead}
+          >
+            <Die /> New head
+          </button>
+        </div>
       {/if}
       <form onsubmit={submit}>
         <NameField
           id="profile-name"
           bind:value={draft}
-          label={liveName === null ? 'Your name' : 'Your name in the next room'}
-          hint={liveName === null
-            ? 'Filled in whenever you create or join a room.'
-            : 'Renaming inside a room is coming. This is the name you bring next time.'}
+          avoid={$room?.code ?? ''}
+          hint={inRoom
+            ? 'Everyone in the room sees the change, and the next room gets it too.'
+            : 'Filled in whenever you create or join a room.'}
         />
         <div class="row">
-          <button class="primary small" type="submit" disabled={!ok}>Save</button>
-          {#if saved}<span class="note" role="status">Saved.</span>{/if}
+          <button class="primary small" type="submit" disabled={!ok || pending !== null}>
+            {inRoom ? 'Rename' : 'Save'}
+          </button>
+          {#if pending !== null}
+            <span class="note" role="status">Asking the room…</span>
+          {:else if refusal !== null}
+            <span class="error" role="alert">{refusal}</span>
+          {:else if saved !== null}
+            <span class="note" role="status">{saved}</span>
+          {/if}
         </div>
       </form>
     </div>
@@ -118,10 +223,12 @@
   }
 
   /* As wide as a 24-character name wants on a desktop; on a phone, as wide as the bar
-     leaves once the sign, sound and theme have theirs. */
+     leaves once the sign, sound and theme have theirs. The head is 32px (section 5.2),
+     which a 36px control holds with the padding it already has. */
   .chip {
     min-width: 0;
     max-width: 100%;
+    padding-left: 0.15rem;
   }
 
   .chip.unset .chip-name {
@@ -135,16 +242,51 @@
     font-size: 0.9rem;
   }
 
-  /* Wins over the 20px every other control glyph gets: a face wants the extra pixels,
-     and D4's real heads are drawn at this size. */
-  .chip .head {
-    width: 24px;
-    height: 24px;
+  /* Wins over the 20px every other control glyph gets: the same size the real heads are. */
+  .chip .blank {
+    width: 32px;
+    height: 32px;
   }
 
-  .head-face {
+  .blank-face {
     fill: var(--panel-raised);
     stroke: currentColor;
+  }
+
+  /* Once, and only for somebody who has not said they mind (D11 owns motion as a whole). */
+  .chip.nudging {
+    border-color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chip.nudging {
+      animation: nudge 0.9s ease-in-out 2;
+    }
+  }
+
+  @keyframes nudge {
+    50% {
+      transform: scale(1.06);
+    }
+  }
+
+  .nudge {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: max-content;
+    max-width: min(20rem, 100vw - 2rem);
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    background: var(--panel-raised);
+    border: var(--border-width) solid var(--accent);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow-wrap: anywhere;
   }
 
   .popover {
@@ -161,8 +303,16 @@
     box-shadow: var(--shadow);
   }
 
-  .here {
-    margin: 0 0 0.75rem;
-    overflow-wrap: anywhere;
+  .face {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .reroll-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
   }
 </style>

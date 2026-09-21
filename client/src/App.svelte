@@ -76,7 +76,7 @@
      decides which, not the store. -->
 <TopBar {navigate}>
   {#snippet identity()}
-    <IdentityChip liveName={route.name === 'room' ? ($you?.display_name ?? null) : null} />
+    <IdentityChip live={route.name === 'room' ? $you : null} />
   {/snippet}
 </TopBar>
 

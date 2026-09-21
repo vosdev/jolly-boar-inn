@@ -43,6 +43,7 @@
     question,
     resetRoom,
     room,
+    roomSend,
     standings,
     you,
     yourAnswer,
@@ -72,8 +73,11 @@
       },
     })
     socket = live
+    // The identity chip in the top bar renames and re-rolls through this socket (D4).
+    roomSend.set((message) => live.send(message))
     live.open()
     return () => {
+      roomSend.set(null)
       live.close()
       socket = null
     }

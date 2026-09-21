@@ -13,6 +13,7 @@
 import { get, writable } from 'svelte/store'
 
 import type {
+  ClientMessage,
   OpenQuestion,
   PlayerView,
   ProtocolError,
@@ -53,6 +54,20 @@ export const answerBucket = writable<number | null>(null)
 export const connection = writable<ConnectionState>('connecting')
 /** The last rejected message. Screens show it and clear it; nothing else depends on it. */
 export const lastError = writable<ProtocolError | null>(null)
+/**
+ * The last rejected `set_profile` (D4). Kept apart from `lastError` because the answer
+ * belongs in the popover that sent it — "that name is taken" under the name field — not
+ * in a banner across the lobby.
+ */
+export const profileError = writable<ProtocolError | null>(null)
+const PROFILE_ERRORS: ReadonlySet<string> = new Set(['bad_name', 'name_taken', 'bad_avatar'])
+
+/**
+ * Send on the room's socket, from outside the Room screen: the top bar's identity chip
+ * renames and re-rolls with `set_profile` (D4). Room sets this while its socket is open
+ * and clears it on the way out; null means there is no room to send to.
+ */
+export const roomSend = writable<((message: ClientMessage) => boolean) | null>(null)
 
 /**
  * `server_time` minus this browser's clock, in ms, as of the last frame that carried one.
@@ -117,6 +132,7 @@ export function resetRoom(): void {
   standings.set([])
   forgetQuestion()
   lastError.set(null)
+  profileError.set(null)
   connection.set('connecting')
   serverOffsetMs.set(0)
 }
@@ -200,6 +216,10 @@ export function applyServerMessage(message: ServerMessage): void {
       break
 
     case 'error':
+      if (PROFILE_ERRORS.has(message.code)) {
+        profileError.set(message)
+        break
+      }
       lastError.set(message)
       if (ANSWER_REJECTED.has(message.code)) yourAnswer.set(null)
       break

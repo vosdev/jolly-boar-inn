@@ -27,6 +27,10 @@ export type ErrorCode =
   | 'excluded'
   | 'bad_value'
   | 'bad_state'
+  // `set_profile` (D4), validated like a join and refused with the codes join uses.
+  | 'bad_name'
+  | 'name_taken'
+  | 'bad_avatar'
 
 /** One mode's round: how many questions it holds, and how long each one is open. */
 export interface ModeSettings {
@@ -88,6 +92,12 @@ export interface RoomView {
 export interface PlayerView {
   id: string
   display_name: string
+  /**
+   * A head id in `data/heads/heads.json`, or null for a player who never chose one.
+   * Optional because a server from before D4 does not send it; `lib/heads.ts` draws the
+   * head derived from `id` for both.
+   */
+  avatar?: number | null
   role: Role
   connected: boolean
 }
@@ -95,6 +105,8 @@ export interface PlayerView {
 export interface Standing {
   player_id: string
   display_name: string
+  /** As on `PlayerView`. */
+  avatar?: number | null
   points: number
   rank: number
 }
@@ -155,6 +167,13 @@ export interface EndGame {
   t: 'end_game'
 }
 
+/** Rename, re-roll the head, or both. An omitted field is left alone (D4). */
+export interface SetProfile {
+  t: 'set_profile'
+  display_name?: string
+  avatar?: number
+}
+
 export type ClientMessage =
   | Hello
   | Ping
@@ -164,6 +183,7 @@ export type ClientMessage =
   | Promote
   | Kick
   | EndGame
+  | SetProfile
 
 // --- Server → client --------------------------------------------------------------
 

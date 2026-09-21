@@ -8,8 +8,10 @@ COPY client/package.json client/pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY client/ ./
-# The one file the client imports from outside client/: the random-name corpus (D3).
+# What the client reads from outside client/: the random-name corpus (D3), and the chat
+# heads, which the build packs into one sprite sheet (D4).
 COPY data/player-names.json ../data/player-names.json
+COPY data/heads/ ../data/heads/
 RUN pnpm build
 
 # ---- Stage 2: build the server venv with uv --------------------------------

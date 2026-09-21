@@ -543,11 +543,14 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
         wrong.id: {"value": game.wrong(0), "correct": False, "points": 0},
     }
     assert game.admin.id not in closed["results"]  # the admin never answered
-    assert closed["standings"] == [
+    assert [
+        {k: v for k, v in standing.items() if k != "avatar"} for standing in closed["standings"]
+    ] == [
         {"player_id": right.id, "display_name": right.name, "points": 1000, "rank": 1},
         {"player_id": game.admin.id, "display_name": "Admin", "points": 0, "rank": 2},
         {"player_id": wrong.id, "display_name": wrong.name, "points": 0, "rank": 2},
     ]
+    assert all(standing["avatar"] is None for standing in closed["standings"])
     rows = db("select player_id, correct, points from answers order by points desc")
     assert [(row["player_id"], row["correct"], row["points"]) for row in rows] == [
         (UUID(right.id), True, 1000),
@@ -760,6 +763,40 @@ def test_a_player_cannot_kick(game) -> None:
     player.send(t="kick", player_id=other.id)
     assert player.take("error")["code"] == "not_admin"
     assert len(game.room.players) == 3
+
+
+# --- D4: set_profile mid-game ---------------------------------------------------------
+
+
+def test_a_rename_mid_game_disturbs_neither_the_standings_nor_an_open_answer(game, db) -> None:
+    """D4 Accept: a rename mid-game does not disturb standings or an open answer."""
+    game.start()
+    game.opened(0)
+    player, other = game.players
+    game.answer(player, 0, game.right(0))
+    player.take("answer_ack")
+
+    player.send(t="set_profile", display_name="RenamedMidGame", avatar=7)
+    update = other.take("room_updated")
+    assert update["room"]["phase"] == "open"  # the question is still up
+    renamed = next(p for p in update["players"] if p["id"] == player.id)
+    assert (renamed["display_name"], renamed["avatar"]) == ("RenamedMidGame", 7)
+    # The answer given under the old name is still this player's, and still counts.
+    assert game.question(0).answers[UUID(player.id)].value == game.right(0)
+    player.send(t="answer", question_id=game.question(0).question_id, value=game.right(0))
+    assert player.take("error")["code"] == "already_answered"
+
+    game.admin.send(t="skip")
+    closed = other.take("question_closed")
+    assert closed["results"][player.id]["points"] == 1000
+    top = closed["standings"][0]
+    assert (top["player_id"], top["display_name"], top["avatar"], top["points"]) == (
+        player.id,
+        "RenamedMidGame",
+        7,
+        1000,
+    )
+    assert_memory_matches_db(game, db)
 
 
 # --- T11: restart recovery -----------------------------------------------------------

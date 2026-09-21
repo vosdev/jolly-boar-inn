@@ -152,7 +152,7 @@
       close_when_all_answered: closeWhenAllAnswered,
     }
     try {
-      const created = await createRoom(displayName.trim(), settings)
+      const created = await createRoom(displayName.trim(), settings, $profile?.head)
       setSession(created.code, created.session)
       saveProfile(displayName)
       rememberCreated(created.code)
