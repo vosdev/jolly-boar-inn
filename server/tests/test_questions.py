@@ -282,7 +282,7 @@ def test_registry_has_every_shipped_type() -> None:
 def test_more_less_sets_its_own_pace() -> None:
     """A long round of short questions: the mode is two names and one word to read."""
     questions, seconds = questions_bounds("more_less"), seconds_bounds("more_less")
-    assert (questions.default, questions.minimum, questions.maximum) == (10, 1, 30)
+    assert (questions.default, questions.minimum, questions.maximum) == (5, 1, 30)
     assert (seconds.default, seconds.minimum, seconds.maximum) == (10, 5, 20)
 
 

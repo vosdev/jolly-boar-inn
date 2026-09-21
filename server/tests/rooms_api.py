@@ -38,7 +38,7 @@ def fast_settings(**overrides: Any) -> RoomSettings:
 
     ``POST /api/rooms`` will not take these: ``NewRoomSettings`` holds hosts to what each
     mode says a round of it is worth (``more_less`` is 5..20 seconds a question), and
-    ``reveal_seconds >= 3``, which is the shortest game worth playing but far too long for
+    ``reveal_seconds >= 2``, which is the shortest game worth playing but far too long for
     a test suite to sit through. The stored model has no such opinion, so these rooms are
     made through the manager directly.
 

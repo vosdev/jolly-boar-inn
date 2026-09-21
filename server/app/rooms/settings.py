@@ -144,7 +144,7 @@ class RoomSettings(BaseModel):
 class NewRoomSettings(RoomSettings):
     """What ``POST /api/rooms`` accepts: section 4's ranges, checked on the way in."""
 
-    reveal_seconds: int = Field(default=8, ge=3, le=30)
+    reveal_seconds: int = Field(default=8, ge=2, le=30)
     splash_seconds: int = Field(default=8, ge=0, le=30)
 
     @field_validator("modes")

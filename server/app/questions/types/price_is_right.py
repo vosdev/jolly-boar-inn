@@ -31,11 +31,11 @@ from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 
 SCORING = Scoring.SPEED
-# Slower than ``more_less``: four numbers to read and weigh against what you remember
-# paying, not two names and a word. Fifteen seconds lets someone read all four before
-# the fastest bucket has gone; thirty is as long as it stays a question about knowing.
-QUESTIONS = Bounds(default=10, minimum=1, maximum=30)
-SECONDS = Bounds(default=15, minimum=5, maximum=30)
+# Four numbers to read and weigh against what you remember paying, not two names and a
+# word, so a host may stretch it further than ``more_less``. Ten seconds is enough to
+# read all four; thirty is as long as it stays a question about knowing.
+QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
+SECONDS = Bounds(default=10, minimum=5, maximum=30)
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

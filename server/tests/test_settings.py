@@ -33,8 +33,8 @@ def more_modes() -> Iterator[list[str]]:
 def test_a_mode_takes_its_numbers_from_its_own_type() -> None:
     """``{"mode": "more_less"}`` is a whole round: the type says how long and how many."""
     entry = ModeSettings(mode="more_less")
-    assert (entry.questions, entry.seconds) == (10, 10)
-    assert ModeSettings(mode="more_less", seconds=6).questions == 10  # only what was left out
+    assert (entry.questions, entry.seconds) == (5, 10)
+    assert ModeSettings(mode="more_less", seconds=6).questions == 5  # only what was left out
 
 
 def test_the_default_room_is_one_round_of_the_first_type() -> None:
@@ -113,13 +113,13 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
         {
             "id": "more_less",
             "type": "more_less",
-            "questions": {"default": 10, "min": 1, "max": 30},
+            "questions": {"default": 5, "min": 1, "max": 30},
             "seconds": {"default": 10, "min": 5, "max": 20},
         },
         {
             "id": "price_is_right",
             "type": "price_is_right",
-            "questions": {"default": 10, "min": 1, "max": 30},
-            "seconds": {"default": 15, "min": 5, "max": 30},
+            "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 10, "min": 5, "max": 30},
         },
     ]

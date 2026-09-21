@@ -25,7 +25,7 @@ DIRECTIONS = ("more", "less")
 # and its questions are short -- ten seconds is plenty, and a minute of it would be
 # forty-five seconds of waiting. Twenty is as far as a host may stretch one question
 # before that is all it is.
-QUESTIONS = Bounds(default=10, minimum=1, maximum=30)
+QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=10, minimum=5, maximum=20)
 
 

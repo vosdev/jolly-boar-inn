@@ -153,7 +153,7 @@
     class:nudging
     aria-haspopup="dialog"
     aria-expanded={open}
-    aria-label={shownName === null ? 'Set your name' : `You are ${shownName}. Change your name or head`}
+    aria-label={shownName === null ? 'Set your display name' : `You are ${shownName}. Change your name or head`}
     onclick={toggle}
   >
     {#if shownHead === null}
@@ -168,7 +168,7 @@
     {/if}
     <!-- Always shown, at every width (section 4): on a phone it ellipsises rather than
          collapsing to the head, because who you are is the one thing the bar is for. -->
-    <span class="chip-name">{shownName ?? 'Set your name'}</span>
+    <span class="chip-name">{shownName ?? 'Set your display name'}</span>
   </button>
 
   {#if nudging && !open}
@@ -181,7 +181,7 @@
   {/if}
 
   {#if open}
-    <div class="popover" role="dialog" aria-label="Your name and head">
+    <div class="popover" role="dialog" aria-label="Your display name and head">
       {#if draftHead !== null}
         <div class="face">
           <Head head={draftHead} size={48} />

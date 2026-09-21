@@ -171,7 +171,7 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
     (row,) = db("select settings from rooms where code = $1", code)
     assert row["settings"] == {
         # ``questions`` was left out, so the mode's own default filled it in.
-        "modes": [{"mode": "more_less", "questions": 10, "seconds": 15}],
+        "modes": [{"mode": "more_less", "questions": 5, "seconds": 15}],
         "mode_order": "listed",
         "order": "shuffle",
         "reveal_seconds": 5,

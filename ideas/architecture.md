@@ -798,7 +798,7 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
   ],
   "mode_order": "listed",          // "listed": the order above; "random": shuffled at creation
   "random_events": true,           // may a pack question interrupt a round? the host's always do
-  "reveal_seconds": 8,             // 3..30
+  "reveal_seconds": 8,             // 2..30
   "splash_seconds": 8,             // 0..30: 0 turns the round intro off, anything else on (D7: not a length)
   "random_event_seconds": 2,       // 0..10, the NPC holds the floor this long before the buttons
   "close_when_all_answered": true,

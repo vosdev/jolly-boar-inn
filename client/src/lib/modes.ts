@@ -79,7 +79,7 @@ export const MODES: Record<string, Mode> = {
     id: 'more_less',
     type: 'more_less',
     label: 'More or Less',
-    hint: 'Which of two items is worth more — or less',
+    hint: 'A mix of Grand Exchange, High Alchemy and NPC prices.',
     blurb:
       'Two items, one question: which one is worth more or less?',
     // Varrock's pub, a short walk from the Grand Exchange whose prices this round is about.
@@ -91,7 +91,7 @@ export const MODES: Record<string, Mode> = {
     id: 'price_is_right',
     type: 'price_is_right',
     label: 'The Price is Right',
-    hint: 'Four prices for one item — pick the real one',
+    hint: 'Test your Grand Exchange knowledge.',
     blurb: 'One item, four prices. Which one does it really go for on the Grand Exchange?',
     // Mos Le'Harmless, where a chest of coins is the thing everyone is pricing up.
     scene: 'dead_mans_chest',
