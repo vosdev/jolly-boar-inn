@@ -22,6 +22,8 @@ task everything else waits on.
 6. **A quiet footer**, carrying the trademark line, the GitHub link and the licence.
 7. **Seven gems, and the reveal never recolours one.** Position is identity. The verdict
    lives in the points slot, where it is the same shape in every mode.
+8. **Standings between rounds, on a podium.** Never between questions. The top five stand on
+   the Quest Speedrunning trophies, and everyone else is on the hiscores table below them.
 
 Every question this document once left open has been answered. The answers are folded into
 the sections below and listed, one line each, under "Decided" at the end; new questions go
@@ -590,23 +592,94 @@ is a second thing to read in a beat that is already short, and a player who want
 they got 850 rather than 1000 will work it out over a round or two by watching the timer.
 Points earned, running total, nothing else.
 
-### 7.3 Standings, styled as the hiscores
+And there is **no standings table under the reveal.** A board after every question makes the
+game a spreadsheet that updates every twenty seconds. Inside a round, the running total in the
+slot is the only answer to "where am I", and the whole room's picture waits for the end of the
+round (§7.3).
 
-The OSRS hiscores are a strong, instantly recognisable table, and the standings are the
-screen everyone looks at longest.
+### 7.3 Standings: a podium, then the hiscores
+
+The standings are the screen everyone looks at longest, and a plain list is the least fun
+way to show them. So the top of the board is a podium, and the rest is the OSRS hiscores.
+
+#### When: between rounds, in a phase of their own
+
+Standings appear **between rounds and at the end of the game, never between questions.**
+They get their own server phase, `standings`, rather than borrowing the splash. The splash
+only runs when a round introduces a new mode, and a room can turn it off with
+`splash_seconds: 0`. Standings need to follow every round whatever happens to the splash.
+
+The loop becomes `… reveal → standings → splash / open …`:
+
+- The phase follows the reveal of **each round's last question**, except the game's last
+  question. That one goes straight to `finished` and the final screen, which uses the same
+  component.
+- It lasts `standings_seconds`, a new room setting: default 10, 0–30 at creation, and 0
+  turns the phase off, as `splash_seconds: 0` does for the splash. `next_at` carries its
+  end, and the host's skip ends it early, as it ends every other phase.
+- A single-round game never enters it. Its only standings are the final ones.
+- `phase` is not a column, so a room that restarts mid-standings resumes in the reveal
+  (`_recover`) and moves straight on. That round's standings are lost, which is accepted
+  rather than fixed: it costs one screen after a crash.
+
+#### The podium: ranks 1–5 on the speedrunning trophies
+
+The Quest Speedrunning trophies come in exactly five tiers, which map onto ranks 1–5:
+**Diamond, Platinum, Gold, Silver, Bronze**. The podium puts first in the middle, Olympic
+style:
+
+```
+                    ┌─────────┐
+                    │ DIAMOND │
+          ┌─────────┤ [head]  ├─────────┐
+          │PLATINUM │ Cow313… │  GOLD   │
+┌─────────┤ [head]  │  8,420  │ [head]  ├─────────┐
+│ SILVER  │ ScapeR… │         │ AlchAd… │ BRONZE  │
+│ [head]  │  7,115  │         │  6,980  │ [head]  │
+│ xX_Lu…  │         │         │         │ NoobS…  │
+│  5,210  │         │         │         │  4,870  │
+│    4    │    2    │    1    │    3    │    5    │
+└─────────┴─────────┴─────────┴─────────┴─────────┘
+```
+
+- **Left to right the ranks are 4 · 2 · 1 · 3 · 5**, and the steps get lower from the
+  centre. Each step shows its trophy, the head at 48px, the name, and the points in tabular
+  numerals.
+- **Ranks are dense** (the existing tie-break), so players who tie share a step. A step
+  holds up to three heads, then `+N`.
+- **Nobody with 0 points stands on the podium.** A trophy nobody earned is shown dimmed on
+  an empty step. This also stops the first standings of a quiet room from being five
+  zero-point "winners".
+- **Names wrap to two lines, then ellipsise.** Five steps on a 375px screen gives each one
+  about 64px, which a 24-character name will never fit. The full name is in the step's
+  accessible label, and in full on the final screen's table (below).
+
+#### The hiscores table: rank 6 down
+
+Below the podium, the OSRS hiscores, which are a strong, instantly recognisable table:
 
 ```
  RANK          NAME                        POINTS
  ─────────────────────────────────────────────────
-  1   [head]  Cow31337Killer42              8,420
-  2   [head]  Zezima                        7,115
-  3   [head]  BurntLobster                  6,980
+  6   [head]  PurePkr2006                   4,410
+  7   [head]  BankStander                   3,905
+  8   [head]  Cow31337Killer42              3,120
 ```
 
-Tabular numerals, right-aligned points, gold/silver/bronze on the top three rank numbers
-only — never on the row background, which makes the rest of the table look like an error
-state. `ideas/TODO.md` wants standings shown only between rounds rather than between
-questions, which this screen assumes.
+Tabular numerals, right-aligned points, and rank numbers in plain `--ink`. **The
+gold/silver/bronze medals on the top three are gone.** The trophies do that job now, and a
+"Gold" third place beside a gold first-place medal would contradict itself. Your own row is
+highlighted. Between rounds, if your row is below the fold, a copy is pinned to the bottom
+of the panel, so the one row you are looking for never needs a scroll.
+
+On the final screen the table lists everyone, ranks 1–5 included, below the podium. That is
+the one place a long name on the podium is guaranteed to be read in full.
+
+**Motion:** the steps rise once when the phase opens, and nothing else moves. Under
+`prefers-reduced-motion` the podium is simply there (§6, D11).
+
+**Colour:** the trophy tiers are art, not tokens. They add no token layer and never touch
+layers 3 or 4.
 
 ---
 
@@ -647,6 +720,7 @@ before the first paint.
 |---|---|---|
 | Item and NPC renders | Game assets. Phase 3's importer fetches these anyway. | Fetched |
 | NPC chat heads | 50, picked by hand, in `data/heads/` (§5.2). | **Committed** |
+| Speedrunning trophies | The five Quest Speedrunning trophy renders for the podium (§7.3). | Fetched |
 | Fonts | A self-hosted display face, once one is chosen (§3). | Fetched |
 | Prices, combat levels, release dates | Facts. | Committed, as `prices.json` already is |
 | Logo, splash art, palettes, icons | **Original.** | Committed |
@@ -674,8 +748,8 @@ Download scripts would need to enforce a custom User Agent env variable before t
 **Neither `make fetch-assets` nor the logo is owned by a D-task.** Both are the owner's, both
 are tracked in `ideas/TODO.md`, and nothing in D1–D12 blocks on either: the heads D4 needs
 are committed, the display face §3 wants falls back, **D2 ships a placeholder mark** — the
-wordmark set in whatever type is loaded, over a plain sign shape — and D7 ships placeholder
-scenes. Every one of those slots is built to be replaced by a file, so no task reopens when
+wordmark set in whatever type is loaded, over a plain sign shape — D7 ships placeholder
+scenes, and D9 ships placeholder trophies, one plain cup shape tinted per tier. Every one of those slots is built to be replaced by a file, so no task reopens when
 the art arrives.
 
 ### 9.2 The footer
@@ -881,19 +955,39 @@ entirely; whichever gem is correct, it is the only one not faded, and no button 
 colour on reveal; your own wrong pick is still identifiable; faded answer text is still
 readable at 4.5:1; a timeout shows `No answer · +0` and is distinguishable from a wrong
 answer; the points slot is in the same place in every mode and its running total agrees with
-the standings that follow; seven gem buttons at 56px fit a 375px screen without pushing the
+the next standings screen; seven gem buttons at 56px fit a 375px screen without pushing the
 prompt off it; no answer submitted shows no button as pressed; the timer bar
 is accurate against `ends_at` after a 20-second phone lock; every button is reachable and
 operable by keyboard with a visible focus ring.
 
-### D9. Standings
+### D9. Standings: the podium and the `standings` phase
 
-The hiscores table from §7.3, tabular numerals, top-three treatment, heads, and the
-between-rounds-only rule from `ideas/TODO.md`.
+Everything in §7.3, which is the first D-task since D7 with server work in it.
 
-**Accept:** eight players fit on a 375px screen without truncating a 24-character name;
-points do not shift horizontally as they change; ranks tie correctly per the existing
-tie-break; the final standings screen and the between-rounds scoreboard share one component.
+**Server:** `standings` joins the phase set (`rooms/state.py`, `ws/protocol.py`);
+`standings_seconds` in `RoomSettings` and `NewRoomSettings` (`rooms/settings.py`), defaulted
+so a stored room still reads; the timer loop enters the phase after a round's last reveal,
+except the game's last; `skip` accepts it.
+
+**Client:** `standings` in `Phase` (`lib/protocol.ts`); the per-question `<Scoreboard>`
+comes out of the reveal in `Room.svelte`; a standings screen with a timer to the next round;
+the podium and the hiscores table as **one component**, shared by that screen and the final
+one (`Scoreboard.svelte` grows into it); placeholder trophies (§9.1); a `standings_seconds`
+field on Create next to the reveal and splash lengths.
+
+**Accept:** no standings appear between two questions of the same round; every round but the
+last ends in a `standings` phase of `standings_seconds` that the host can skip, and with 0
+the rounds run straight on; the last round goes straight to the final screen, which uses the
+same component; a single-round game shows standings only at the end; the podium reads ranks
+4 · 2 · 1 · 3 · 5 from left to right, with Diamond to Bronze on ranks 1–5; tied players share
+a step, and a step with more than three shows `+N`; nobody with 0 points stands on the
+podium; five steps and eight table rows fit a 375px screen with no horizontal scroll; a
+24-character name is whole in the table and in the podium's accessible label; points do not
+shift horizontally as they change; ranks tie correctly per the existing tie-break; a player
+who joins or reconnects during `standings` sees the podium and the right `next_at`; a room
+created before this task still plays; a client built before this task survives the new phase
+value by falling through to its "waiting for the next question" state; a placeholder trophy
+reads as deliberate, and a real render drops in with no code change.
 
 ### D10. Selfhoster branding
 
@@ -998,6 +1092,16 @@ waits on the same threshold, with "Start anyway" as the override. §7.1.
 
 [x] **The ready threshold is a cap, not a floor** — `min(ceil(0.8 × eligible), eligible - 1)`
 — and a room of one is exempt at a threshold of 1 rather than starting instantly. §7.1.
+
+[x] **Standings only between rounds, in their own `standings` phase**, never between
+questions and not on the splash, which only runs when the mode changes and can be switched
+off. `standings_seconds` sets its length, and the host can skip it. §7.3.
+
+[x] **The top five stand on a podium with the Quest Speedrunning trophies**, Diamond to
+Bronze, ordered 4 · 2 · 1 · 3 · 5, with the hiscores table from sixth down. The
+gold/silver/bronze rank medals are gone. §7.3.
+
+[x] **Trophy art is fetched game renders, and D9 ships placeholders.** §9.1.
 
 [x] **Two sound switches**, because muting question audio can make a round unplayable. §6.
 

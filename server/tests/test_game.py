@@ -249,6 +249,18 @@ def test_the_next_question_opens_when_question_closed_said_it_would(table) -> No
     assert abs((opened_at - next_at).total_seconds()) < 0.5
 
 
+def _leaves(node: Any) -> Iterator[Any]:
+    """Every scalar in a decoded JSON frame, however deep."""
+    if isinstance(node, dict):
+        for child in node.values():
+            yield from _leaves(child)
+    elif isinstance(node, list):
+        for child in node:
+            yield from _leaves(child)
+    else:
+        yield node
+
+
 def test_question_open_is_the_same_frame_for_everyone_and_withholds_the_answer(game) -> None:
     """Section 3: the admin's ``question_open`` is the players', and neither has the answer."""
     game.start()
@@ -263,8 +275,11 @@ def test_question_open_is_the_same_frame_for_everyone_and_withholds_the_answer(g
     assert view["view"] == more_less.client_view(question.payload)
     assert "answer_index" not in view["view"]
     assert all("value" not in option for option in view["view"]["options"])
+    # Compared as values, not as text: a substring check finds a 2 gp Fire rune in the
+    # year of every timestamp, and the room draws its questions unseeded.
+    shown = set(_leaves(view["view"]))
     for option in question.payload["options"]:
-        assert str(option["value"]) not in str(opened[0])
+        assert option["value"] not in shown
     ends_at = datetime.fromisoformat(view["ends_at"])
     opened_at = datetime.fromisoformat(view["opened_at"])
     # Ten seconds: the ``more_less`` round's own ``seconds``, not a number the room set.

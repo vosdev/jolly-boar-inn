@@ -20,7 +20,7 @@
    * `revealed` says which one it is, so the cast below only reads the values and the
    * answer once the server has actually sent them.
    */
-  import type { QuestionProps } from './props'
+  import type { TypeViewProps } from '../props'
 
   /** An option index: the two buttons are `options[0]` and `options[1]`. */
   type Index = 0 | 1
@@ -53,7 +53,7 @@
     canAnswer,
     result = null,
     onAnswer,
-  }: QuestionProps<Index> = $props()
+  }: TypeViewProps<Index> = $props()
 
   // The wire type is `Record<string, unknown>`; this component is the thing that knows
   // what the keys mean, which is why the type map lives one level up and not in here.

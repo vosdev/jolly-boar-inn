@@ -39,7 +39,21 @@ export interface Mode {
   blurb: string
   /** Which of the six scenes the splash hangs behind this mode's name. */
   scene: SceneId
+  /**
+   * What sits above the answer buttons, or null for a mode whose type view draws the
+   * whole question itself. Named here and drawn in `components/questions/index.ts`, so
+   * this file stays free of `.svelte` imports.
+   */
+  stem: StemId | null
 }
+
+/**
+ * The stems a mode can name. Five modes answer on the same four buttons, and this is
+ * what keeps them from looking alike: Bestiary asks in a sentence, Drop Table shows an
+ * item, Who Said That? a line in a chatbox. Each id is one component under
+ * `components/questions/stems/`, and a new one lands with the first mode that needs it.
+ */
+export type StemId = 'text'
 
 /**
  * The six pubs of the crawl. Each is one scene, drawn once and shared by every mode
@@ -70,6 +84,8 @@ export const MODES: Record<string, Mode> = {
       'Two items, one question: which one is worth more or less?',
     // Varrock's pub, a short walk from the Grand Exchange whose prices this round is about.
     scene: 'blue_moon',
+    // The question is the two buttons: a stem above them would say the names twice.
+    stem: null,
   },
 }
 

@@ -14,6 +14,7 @@ Every choice below is final unless it appears in "Needs decision" at the end.
 | Validation | Pydantic v2 for WS/HTTP messages, `jsonschema` for questions | Questions need a language-neutral schema shared with CI and the client editor. |
 | Python tooling | `uv`, `ruff`, `pytest`, `pytest-asyncio` | Fast, single lockfile, no extra config. |
 | Client | Svelte 5 + Vite SPA, TypeScript, `pnpm` | Decided in plan.md; no SSR needed, so no SvelteKit. |
+| Client tooling | `svelte-check`, `vitest` + `@testing-library/svelte` in jsdom | Vitest reuses the Vite config, so a component test compiles exactly what the build does. |
 | Serving | FastAPI serves `client/dist` as static files, SPA fallback to `index.html` | One container, one origin, no CORS. |
 | Containers | One three-stage `Dockerfile` (client build, uv venv build, slim runtime), `docker-compose.yml` with `app` + `postgres:18` | Works out of the box for selfhosters. Build tooling never reaches the runtime image. |
 | Postgres | 18, `pgcrypto` not needed (`gen_random_uuid()` is built in) | Current stable. |
@@ -28,7 +29,7 @@ jolly-boar-inn/
 ├── docker-compose.yml         # app + postgres, .env driven
 ├── Makefile                   # dev, test, lint, migrate, fetch-facts, gen-packs, validate-packs
 ├── .env.example
-├── .github/workflows/ci.yml   # ruff, pytest, validate-packs, svelte-check, docker build
+├── .github/workflows/ci.yml   # ruff, pytest, validate-packs, svelte-check, vitest, docker build
 ├── schema/
 │   └── question.schema.json   # canonical question schema (section 2)
 ├── data/
