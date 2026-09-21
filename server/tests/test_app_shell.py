@@ -1,14 +1,15 @@
 """D2 Accept: the shell is above every screen, and no screen is titled twice.
 
 There is no browser in this suite, so what a test can hold is the shape the criteria are
-made of: one ``<TopBar>`` outside the router rather than one per screen, the room code in
-the bar and nowhere else, the 56px sticky measurement in one place, and a single
-breakpoint that the script and the stylesheet agree on. The same approach as
+made of: one ``<TopBar>`` outside the router rather than one per screen, no room code in
+the bar, the 56px sticky measurement in one place, and a single breakpoint that hides the
+wordmark and nothing else. The same approach as
 ``test_check_contrast.py``, which reads the stylesheet rather than rendering it.
 
 What a browser confirmed, and a test here cannot: at 320px the bar is exactly 56px and
 leaves ``scrollWidth == clientWidth`` on Home, Create, Join, the lobby, a question, a
-reveal and the final standings; an input sitting under the bar scrolls clear of it.
+reveal and the final standings; an input sitting under the bar scrolls clear of it; a
+24-character name ellipsises beside sound and theme without running over the sign.
 """
 
 import re
@@ -21,7 +22,7 @@ APP_CSS = CLIENT_SRC / "app.css"
 APP_SVELTE = CLIENT_SRC / "App.svelte"
 TOP_BAR = CLIENT_SRC / "components" / "TopBar.svelte"
 
-# Section 4: the bar collapses at one width, and it is this one.
+# Section 4: the wordmark hides at one width, and it is this one.
 BREAKPOINT = "26rem"
 
 
@@ -121,18 +122,31 @@ def test_the_bar_cannot_be_tabbed_through_on_every_screen() -> None:
 # --- one breakpoint, and the sign never goes -----------------------------------------
 
 
-def test_the_script_and_the_stylesheet_collapse_at_the_same_width() -> None:
+def test_the_bar_has_one_breakpoint_and_it_is_stylesheet_only() -> None:
+    """Nothing is rendered differently on a phone, so the script needs no media query."""
     bar = read(TOP_BAR)
-    assert f"const NARROW = '(max-width: {BREAKPOINT})'" in bar
+    assert "matchMedia" not in bar
     assert f"@media (max-width: {BREAKPOINT})" in bar
     widths = set(re.findall(r"\(max-width:\s*([\w.]+)\)", bar))
     assert widths == {BREAKPOINT}, f"more than one breakpoint in the bar: {widths}"
 
 
-def test_the_wordmark_gives_way_and_the_sign_does_not() -> None:
+def test_the_wordmark_gives_way_and_nothing_else_does() -> None:
+    """Section 4: under 26rem the wordmark hides; sign, name, sound and theme all stay."""
     narrow = block_after(read(TOP_BAR), f"@media (max-width: {BREAKPOINT})")
-    assert re.search(r"\.wordmark\s*\{\s*display: none;", narrow)
-    assert ".sign" not in narrow, "the sign is the one thing that never hides"
+    hidden = [selector.strip() for selector in re.findall(r"([^{}]+)\{[^{}]*display: none", narrow)]
+    assert hidden == [".wordmark"], f"hidden under {BREAKPOINT}: {hidden}"
+
+
+def test_the_sign_links_home() -> None:
+    """A real href, so a modified click still opens a tab; the router handles the rest."""
+    bar = read(TOP_BAR)
+    link = re.search(r'<a class="home"[^>]*>(.*?)</a>', bar, re.DOTALL)
+    assert link is not None, "the sign is not a link"
+    assert 'href="/"' in link.group(0)
+    assert 'class="sign"' in link.group(1)
+    assert "navigate('/')" in bar
+    assert "<TopBar {navigate}>" in read(APP_SVELTE)
 
 
 # --- three slots, and a placeholder in each until its task lands ----------------------
@@ -151,11 +165,23 @@ def test_the_three_named_slots_are_declared_and_filled() -> None:
         )
 
 
-def test_the_identity_slot_is_told_how_wide_the_bar_is() -> None:
-    """Section 4: under 26rem the chip drops to the head, which only the chip can do."""
+def test_identity_comes_first_then_sound_then_theme() -> None:
+    """Section 4: the name leads the right-hand group; sound and theme sit outermost."""
     bar = read(TOP_BAR)
-    assert "identity?: Snippet<[{ narrow: boolean }]>" in bar
-    assert re.search(r"identity \?\? identityPlaceholder\)\(\{ narrow \}\)", bar)
+    controls = bar[bar.index('<div class="controls">') : bar.index("</header>")]
+    order = [
+        controls.index(f"({slot} ?? {slot}Placeholder)") for slot in ("identity", "sound", "theme")
+    ]
+    assert order == sorted(order), "the right-hand group is out of order"
+
+
+def test_the_name_is_shown_at_every_width() -> None:
+    """Section 4: the name ellipsises on a phone; it never drops to just the head."""
+    chip = read(CLIENT_SRC / "components" / "IdentityChip.svelte")
+    assert "narrow" not in chip, "the chip still changes shape with the bar's width"
+    assert '<span class="chip-name">' in chip
+    # And the bar tells the slot nothing about its width.
+    assert re.search(r"^\s*identity\?: Snippet$", read(TOP_BAR), re.MULTILINE)
 
 
 def test_the_placeholder_controls_cannot_be_pressed() -> None:
