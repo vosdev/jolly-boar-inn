@@ -40,13 +40,13 @@ def _swap(css: str, theme: str, token: str, value: str) -> str:
 # --- the palette we ship -------------------------------------------------------------
 
 
-def test_both_themes_pass(css: str) -> None:
+def test_every_shipped_theme_passes(css: str) -> None:
     assert check.check(css) == []
 
 
 def test_every_theme_defines_every_token(css: str) -> None:
     themes = check.parse_themes(css)
-    assert set(themes) == {"jolly", "wilderness"}
+    assert set(themes) == {"jolly", "pollnivneach", "wilderness"}
     for name, tokens in themes.items():
         missing = [token for token in check.REQUIRED_TOKENS if token not in tokens]
         assert missing == [], f"{name} is missing {missing}"
@@ -105,6 +105,23 @@ def test_a_missing_token_fails(css: str) -> None:
 def test_a_token_that_is_not_a_colour_fails(css: str) -> None:
     broken = _swap(css, "wilderness", "--ok", "rebeccapurple")
     assert any("not a hex colour" in line for line in check.check(broken))
+
+
+def test_page_ink_that_cannot_be_read_on_the_page_fails(css: str) -> None:
+    """The panel ink passing says nothing about the page: jolly's page is a dark floor."""
+    broken = _swap(css, "wilderness", "--bg-ink", "#3a3534")
+    assert any("--bg-ink" in line and "--bg" in line for line in check.check(broken))
+
+
+def test_a_remote_texture_fails(css: str) -> None:
+    """The CSP would refuse it; the check refuses it first."""
+    broken = _swap(css, "wilderness", "--texture-bg", "url('https://example.com/ash.png')")
+    assert any("--texture-bg points off this server" in line for line in check.check(broken))
+
+
+def test_a_texture_that_is_not_a_url_fails(css: str) -> None:
+    broken = _swap(css, "wilderness", "--texture-bg", "linear-gradient(red, blue)")
+    assert any("neither none nor a url()" in line for line in check.check(broken))
 
 
 def test_a_stylesheet_with_no_theme_is_an_error() -> None:

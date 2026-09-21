@@ -18,6 +18,7 @@
   import { onMount } from 'svelte'
 
   import IdentityChip from './components/IdentityChip.svelte'
+  import ThemePicker from './components/ThemePicker.svelte'
   import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
   import Home from './routes/Home.svelte'
@@ -77,6 +78,9 @@
 <TopBar {navigate}>
   {#snippet identity()}
     <IdentityChip live={route.name === 'room' ? $you : null} />
+  {/snippet}
+  {#snippet theme()}
+    <ThemePicker />
   {/snippet}
 </TopBar>
 

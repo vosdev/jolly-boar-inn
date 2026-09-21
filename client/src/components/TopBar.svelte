@@ -14,7 +14,7 @@
    * own heading. The bar is therefore the same width in every room.
    *
    * **Three named slots**, in the order section 4 puts them: identity (D3, then D4), sound
-   * (D6) and theme (D5). Each falls back to a placeholder control, because the shell is
+   * (D6) and theme (D5, `ThemePicker`). Each falls back to a placeholder control, because the shell is
    * what D2 delivers and the controls are other tasks — a placeholder holds the exact
    * space the real one will take, so neither of those tasks has to come back and rework
    * the bar. GitHub is deliberately not a slot here: it is D10's, along with the footer
@@ -139,7 +139,10 @@
     z-index: 20;
     height: var(--topbar-height);
     background: var(--panel);
-    border-bottom: var(--border-width) solid var(--line);
+    /* Drawn as a shadow rather than a border, so a theme with a thicker edge thickens
+       the line without taking height from the controls: they sit at the same y in every
+       theme, and a switch mid-question does not nudge them. */
+    box-shadow: 0 var(--border-width) 0 var(--line);
   }
 
   /* The same column the screens use, so the bar's ends line up with the panels under it
@@ -241,7 +244,7 @@
     gap: 0.35rem;
     height: 36px;
     min-width: 36px;
-    padding: 0 0.4rem;
+    padding: 0 calc(0.4rem - var(--border-give));
     border: var(--border-width) solid transparent;
     border-radius: var(--radius);
     background: none;

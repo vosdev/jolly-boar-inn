@@ -66,7 +66,7 @@
   })
 </script>
 
-<div class="timer" class:urgent role="timer" aria-label="{seconds} seconds {label}">
+<div class="timer surface" class:urgent role="timer" aria-label="{seconds} seconds {label}">
   <div class="count">
     <span class="seconds">{seconds}</span><span class="unit">s {label}</span>
   </div>
@@ -77,8 +77,14 @@
 </div>
 
 <style>
+  /* A small plaque of its own (D5): the timer sits on the page, and a theme's page may be
+     a dark floor that neither the accent bar nor an urgent --bad would read against. */
   .timer {
     margin-bottom: 1rem;
+    padding: calc(0.4rem - var(--border-give)) calc(0.65rem - var(--border-give));
+    background: var(--panel);
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
   }
 
   .count {

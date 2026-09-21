@@ -10,14 +10,17 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 
 * every token of every layer is defined, so a theme cannot half-exist;
 * ``--ok`` and ``--bad`` reach 4.5:1 against ``--panel``;
-* ``--ink`` reaches 7:1 against both ``--bg`` and ``--panel``;
-* ``--muted`` reaches 4.5:1 against ``--panel``;
+* ``--ink`` reaches 7:1 against ``--panel`` and ``--panel-raised``, and ``--bg-ink`` 7:1
+  against ``--bg`` — two inks, because a theme may put light panels on a dark page (D5);
+* ``--muted`` reaches 4.5:1 against ``--panel``, and ``--bg-muted`` 4.5:1 against ``--bg``;
 * ``--more`` and ``--less`` reach 4.5:1 against ``--panel``;
 * ``--ok`` and ``--bad`` are at least 60 degrees apart in hue, and so are ``--more`` and
   ``--less``, so neither pair collapses for a player who does not see red and green;
 * ``--ok`` reaches 3:1 — the non-text threshold for a UI boundary — against every
   ``--gem-*``, because the reveal rings the winning gem in ``--ok`` and an ``--ok`` green
-  ringing an emerald button is a ring nobody can see.
+  ringing an emerald button is a ring nobody can see;
+* each ``--texture-*`` is ``none`` or a local ``url()`` (D5): the CSP would block a remote
+  one anyway, and this says so at build time rather than as a blank page background.
 
 Layer 4 is allowed to reuse layer 3's colours: ``--more`` is not "right" and ``--less`` is
 not "wrong", and what keeps them apart on screen is a shape cue rather than a hue. The
@@ -37,7 +40,16 @@ DEFAULT_CSS = Path(__file__).resolve().parents[2] / "client" / "src" / "app.css"
 
 # The seven layers of section 2. Everything here has to resolve for every theme; the
 # colour tokens additionally have to parse as a colour.
-SURFACE = ("--bg", "--panel", "--panel-raised", "--line", "--ink", "--muted")
+SURFACE = (
+    "--bg",
+    "--panel",
+    "--panel-raised",
+    "--line",
+    "--ink",
+    "--muted",
+    "--bg-ink",
+    "--bg-muted",
+)
 BRAND = ("--accent", "--accent-ink", "--accent-hover")
 VERDICT = ("--ok", "--ok-ink", "--bad", "--bad-ink", "--warn", "--warn-ink")
 SEMANTIC = ("--more", "--less")
@@ -74,6 +86,7 @@ _RULES = re.compile(r"([^{}]+)\{([^{}]*)\}", re.DOTALL)
 _DECLARATION = re.compile(r"(--[\w-]+)\s*:\s*([^;]+)")
 _THEME_SELECTOR = re.compile(r"\[data-theme=['\"]?([\w-]+)['\"]?\]")
 _HEX = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
+_URL = re.compile(r"^url\(\s*(['\"]?)([^'\")]+)\1\s*\)$")
 
 
 class CssError(Exception):
@@ -202,11 +215,23 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
                 f"needs {MIN_HUE_GAP:.0f}"
             )
 
+    for token in TEXTURE:
+        value = tokens.get(token)
+        if value is None or value == "none":
+            continue
+        url = _URL.match(value)
+        if url is None:
+            problems.append(f"{name}: {token} is {value!r}, which is neither none nor a url()")
+        elif re.match(r"^(?:[a-z][a-z0-9+.-]*:|//)", url.group(2), re.IGNORECASE):
+            problems.append(f"{name}: {token} points off this server, at {url.group(2)!r}")
+
     ratio("--ok", "--panel", TEXT_RATIO)
     ratio("--bad", "--panel", TEXT_RATIO)
-    ratio("--ink", "--bg", BODY_TEXT_RATIO)
     ratio("--ink", "--panel", BODY_TEXT_RATIO)
+    ratio("--ink", "--panel-raised", BODY_TEXT_RATIO)
+    ratio("--bg-ink", "--bg", BODY_TEXT_RATIO)
     ratio("--muted", "--panel", TEXT_RATIO)
+    ratio("--bg-muted", "--bg", TEXT_RATIO)
     ratio("--more", "--panel", TEXT_RATIO)
     ratio("--less", "--panel", TEXT_RATIO)
     apart("--ok", "--bad")

@@ -319,6 +319,8 @@
     <button type="button" onclick={() => navigate('/')}>Back</button>
   </div>
   {#if failure !== null}
-    <p class="error">{failure}</p>
+    <!-- A banner rather than a bare .error: this sits on the page, under the buttons,
+         and a theme's page may be a floor --bad does not read against. -->
+    <p class="banner bad" role="alert">{failure}</p>
   {/if}
 </form>
