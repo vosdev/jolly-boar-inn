@@ -21,17 +21,21 @@ import type { Component } from 'svelte'
 
 import { MODES, type StemId } from '../../lib/modes'
 import type { StemProps, TypeViewProps } from './props'
+import AssetStem from './stems/AssetStem.svelte'
 import TextStem from './stems/TextStem.svelte'
 import MoreLess from './types/MoreLess.svelte'
+import PriceIsRight from './types/PriceIsRight.svelte'
 
 export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
   more_less: MoreLess,
+  price_is_right: PriceIsRight,
 }
 
 // Keyed on `StemId` rather than `string`, so naming a stem in `lib/modes.ts` that has no
 // component here fails `pnpm check` instead of quietly drawing nothing.
 export const STEMS: Record<StemId, Component<StemProps>> = {
   text: TextStem,
+  asset: AssetStem,
 }
 
 export interface QuestionPair {

@@ -115,5 +115,11 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "type": "more_less",
             "questions": {"default": 10, "min": 1, "max": 30},
             "seconds": {"default": 10, "min": 5, "max": 20},
-        }
+        },
+        {
+            "id": "price_is_right",
+            "type": "price_is_right",
+            "questions": {"default": 10, "min": 1, "max": 30},
+            "seconds": {"default": 15, "min": 5, "max": 30},
+        },
     ]

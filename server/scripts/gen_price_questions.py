@@ -1,4 +1,5 @@
-"""Generate ``data/packs/prices.json``: more/less questions on GE price and high alch.
+"""Generate ``data/packs/prices.json``: more/less on GE price and high alch, and The Price is
+Right on GE price.
 
 Inputs: ``data/popular-items.json`` (the curated roster) and the wiki price API, one
 request each to ``/mapping`` (names, high alch) and ``/latest`` (current prices), sent
@@ -6,18 +7,24 @@ with a descriptive User-Agent. Untradeable roster items are absent from ``/mappi
 are skipped; a roster name that disagrees with ``/mapping`` is an error, because it means
 the id is wrong.
 
+Both modes come out of the one fetch because they are about the same numbers, and a pack
+whose two halves disagreed about what a whip costs would be caught out by anyone who
+played both rounds in one evening.
+
 The script never runs at app startup or in CI. Run ``make gen-price-questions`` about
 monthly and commit the result.
 
 Output is a pure function of the inputs. Pairs are picked with a fixed-seed shuffle, and
 ``as_of`` and ``generated_at`` come from the newest trade timestamp in ``/latest`` rather
 than the wall clock, so re-running against unchanged data reproduces the file byte for
-byte and an unchanged file is left untouched.
+byte and an unchanged file is left untouched. Each mode draws from its own seeded stream,
+so a change to how one is generated leaves the other's questions exactly as they were.
 
 Usage (from ``server/``)::
 
-    uv run python scripts/gen_price_questions.py [--count 100] [--out PATH]
-        [--roster PATH] [--mapping-file PATH --latest-file PATH] [--user-agent UA]
+    uv run python scripts/gen_price_questions.py [--count 150] [--price-is-right-count 100]
+        [--out PATH] [--roster PATH] [--mapping-file PATH --latest-file PATH]
+        [--user-agent UA]
 
 ``--mapping-file`` / ``--latest-file`` read saved API responses instead of fetching, for
 tests and offline runs.
@@ -63,6 +70,30 @@ MAX_RATIO = 4.0
 # Value ratio at or above which a pair counts as easy / medium; below is hard.
 EASY_RATIO = 2.5
 MEDIUM_RATIO = 1.6
+
+# The Price is Right. One question per item, so the count is bounded by the roster.
+PIR_COUNT = 100
+PIR_TAGS = ["prices", "ge-price"]
+# Below this an item's four prices are a handful of coins apart, and "3 gp or 8 gp?" is a
+# question about rounding, not about what things cost.
+PIR_MIN_PRICE = 100
+# How many of the three wrong prices sit below the right one. With the options shown in
+# ascending order that count *is* the answer's slot, so dealing the four shapes evenly is
+# what keeps a player from learning that the answer is usually second. ``ideas/games.md``
+# sketched these four; three wrong prices split above and below admit no fifth.
+PIR_SHAPES = (0, 1, 2, 3)
+# Each option is this much dearer than the one below it, drawn per step. The floor keeps
+# neighbours apart after rounding (see ``round_price``); the ceiling keeps the spread of
+# four from reaching the point where the wild guesses give themselves away.
+PIR_STEP = (1.15, 1.5)
+# Two options closer than this read as the same answer, whichever is right.
+PIR_MIN_GAP = 1.05
+# The most coins a stack can hold: a price above it is one nobody could ever have paid.
+MAX_CASH = 2_147_483_647
+# Smallest gap between the answer and a neighbour at or above which it counts as easy /
+# medium; below is hard.
+PIR_EASY_GAP = 1.4
+PIR_MEDIUM_GAP = 1.25
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,6 +281,128 @@ def make_question(
     return question
 
 
+# --- the price is right ---------------------------------------------------------------
+
+
+def round_price(value: int) -> int:
+    """``value`` to two significant figures, half up; anything under 100 is already there.
+
+    Two figures is the grid the game's own coin notation lands on exactly -- ``1.6M``,
+    ``130k``, ``12,000`` -- so no two rounded prices read the same on screen, which a
+    third figure would break (``1.62M`` and ``1.65M`` are both ``1.6M``). It moves a price
+    by at most 5%, which is also why ``PIR_STEP`` starts above ``PIR_MIN_GAP`` by more
+    than that.
+    """
+    if value < 100:
+        return value
+    step = 10 ** (len(str(value)) - 2)
+    return (value + step // 2) // step * step
+
+
+def price_options(price: int, below: int, rng: random.Random) -> tuple[list[int], int] | None:
+    """Four ascending prices, ``below`` of them under ``price``, and the answer's index.
+
+    ``price`` must already be on the ``round_price`` grid. Each wrong price is a step off
+    its neighbour rather than off the answer, so the four spread out like a ladder instead
+    of bunching on one side. ``None`` when the shape does not fit the item: a price near
+    the top of a cash stack has no room for three dearer ones.
+    """
+    lower, higher = [price], [price]
+    for _ in range(below):
+        lower.append(round_price(round(lower[-1] / rng.uniform(*PIR_STEP))))
+    for _ in range(len(PIR_SHAPES) - 1 - below):
+        higher.append(round_price(round(higher[-1] * rng.uniform(*PIR_STEP))))
+    options = sorted(lower[1:]) + higher
+    if options[-1] > MAX_CASH or options[0] < 1:
+        return None
+    gaps = [b / a for a, b in itertools.pairwise(options)]
+    if min(gaps) < PIR_MIN_GAP:  # PIR_STEP and round_price together rule this out
+        raise AssertionError(f"options {options} for {price} are closer than {PIR_MIN_GAP}")
+    return options, below
+
+
+def pir_difficulty(options: list[int], answer_index: int) -> str:
+    """By the closest wrong price to the right one: that is the one a player must rule out."""
+    answer = options[answer_index]
+    neighbours = options[max(0, answer_index - 1) : answer_index + 2]
+    gap = min(max(answer, other) / min(answer, other) for other in neighbours if other != answer)
+    if gap >= PIR_EASY_GAP:
+        return "easy"
+    if gap >= PIR_MEDIUM_GAP:
+        return "medium"
+    return "hard"
+
+
+def make_price_is_right(
+    item: Item, options: list[int], answer_index: int, as_of: str
+) -> dict[str, Any]:
+    """One ``price_is_right`` envelope. ``options[answer_index]`` is the rounded price."""
+    question: dict[str, Any] = {
+        "id": "",
+        "type": "price_is_right",
+        "mode": "price_is_right",
+        "source": "pack",
+        "tags": list(PIR_TAGS),
+        "difficulty": pir_difficulty(options, answer_index),
+        "payload": {
+            "subject": {"name": item.name, "asset": f"item:{item.id}"},
+            "value": options[answer_index],
+            "options": options,
+            "answer_index": answer_index,
+            "as_of": as_of,
+        },
+    }
+    question["id"] = schema.content_id(question)
+    return question
+
+
+def price_is_right_questions(
+    items: list[Item], want: int, as_of: str, rng: random.Random
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Up to ``want`` questions, one per item, each on a shape dealt from an even deck.
+
+    The deck holds every shape equally often and is shuffled, so each question's slot is
+    a surprise and the pack as a whole still puts the answer in every slot about as often.
+    An item that cannot take the shape it was dealt takes the nearest one with more of its
+    wrong prices below, which only an item worth hundreds of millions ever needs.
+    """
+    notes: list[str] = []
+    eligible = [item for item in items if (item.ge_price or 0) >= PIR_MIN_PRICE]
+    cheap = [
+        item.name for item in items if item.ge_price is not None and item.ge_price < PIR_MIN_PRICE
+    ]
+    if cheap:
+        notes.append(f"price_is_right: {len(cheap)} item(s) under {PIR_MIN_PRICE} gp skipped")
+    chosen = rng.sample(eligible, min(want, len(eligible)))
+    deck = list(PIR_SHAPES) * math.ceil(len(chosen) / len(PIR_SHAPES))
+    rng.shuffle(deck)
+    questions: list[dict[str, Any]] = []
+    for item, dealt in zip(chosen, deck, strict=False):
+        assert item.ge_price is not None
+        price = round_price(item.ge_price)
+        for below in range(dealt, len(PIR_SHAPES)):
+            fitted = price_options(price, below, rng)
+            if fitted is not None:
+                break
+        else:
+            notes.append(f"price_is_right: no shape fits {item.name} at {price} gp, skipped")
+            continue
+        if below != dealt:
+            notes.append(
+                f"price_is_right: {item.name} at {price} gp took shape {below}, not {dealt}"
+            )
+        questions.append(make_price_is_right(item, *fitted, as_of))
+    if len(questions) < want:
+        notes.append(
+            f"price_is_right: only {len(questions)} of {want} questions possible, one per"
+            f" roster item priced at {PIR_MIN_PRICE} gp or more"
+        )
+    return questions, notes
+
+
+# --- assembly -------------------------------------------------------------------------
+
+
 def metric_counts(count: int) -> dict[str, int]:
     """The ideal split of ``count`` over the metrics, before availability is known."""
     counts = {metric: round(count * share) for metric, share in METRIC_SHARE.items()}
@@ -278,8 +431,15 @@ def generate(
     latest: dict[str, Any],
     count: int = DEFAULT_COUNT,
     seed: int = SEED,
+    pir_count: int = PIR_COUNT,
 ) -> tuple[dict[str, Any], list[str]]:
-    """The pack and human-readable notes (skipped items, shortfalls). Pure and seeded."""
+    """The pack and human-readable notes (skipped items, shortfalls). Pure and seeded.
+
+    ``count`` is the number of ``more_less`` questions and ``pir_count`` the number of
+    ``price_is_right`` ones. The second draws from a stream of its own, seeded off the
+    first's seed, so the ``more_less`` half is what it would be with no Price is Right at
+    all -- and was, byte for byte, before there was one.
+    """
     items, notes = build_items(roster, mapping, latest)
     stamp = snapshot_time(latest, items)
     as_of = stamp.date().isoformat()
@@ -304,6 +464,10 @@ def generate(
             f"only {len(questions)} of {count} questions possible; add items of similar value"
             " to the roster"
         )
+    pir_rng = random.Random(f"{seed}/price_is_right")
+    pir, pir_notes = price_is_right_questions(items, pir_count, as_of, pir_rng)
+    questions.extend(pir)
+    notes.extend(pir_notes)
     pack = {
         "pack": PACK_NAME,
         "generated_at": stamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -324,7 +488,15 @@ def render(pack: dict[str, Any]) -> str:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--count", type=int, default=DEFAULT_COUNT, help="questions to generate")
+    parser.add_argument(
+        "--count", type=int, default=DEFAULT_COUNT, help="more_less questions to generate"
+    )
+    parser.add_argument(
+        "--price-is-right-count",
+        type=int,
+        default=PIR_COUNT,
+        help="price_is_right questions to generate, at most one per roster item",
+    )
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="pack file to write")
     parser.add_argument("--roster", type=Path, default=DEFAULT_ROSTER)
     parser.add_argument("--mapping-file", type=Path, help="saved /mapping response")
@@ -336,6 +508,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         parser.error("--mapping-file and --latest-file go together")
     if args.count < 1:
         parser.error("--count must be at least 1")
+    if args.price_is_right_count < 0:
+        parser.error("--price-is-right-count must not be negative")
     return args
 
 
@@ -349,7 +523,14 @@ def main(argv: list[str]) -> int:
         else:
             mapping = fetch_json(f"{API_BASE}/mapping", args.user_agent)
             latest = fetch_json(f"{API_BASE}/latest", args.user_agent)
-        pack, notes = generate(roster, mapping, latest, count=args.count, seed=args.seed)
+        pack, notes = generate(
+            roster,
+            mapping,
+            latest,
+            count=args.count,
+            seed=args.seed,
+            pir_count=args.price_is_right_count,
+        )
     except RosterError as exc:
         for line in exc.errors:
             print(line, file=sys.stderr)
@@ -362,12 +543,15 @@ def main(argv: list[str]) -> int:
         print(line, file=sys.stderr)
     text = render(pack)
     out: Path = args.out
+    by_mode = Counter(q["mode"] for q in pack["questions"])
+    split = ", ".join(f"{n} {mode}" for mode, n in by_mode.items())
+    summary = f"{len(pack['questions'])} question(s) ({split})"
     if out.exists() and out.read_text(encoding="utf-8") == text:
-        print(f"{out}: unchanged, {len(pack['questions'])} question(s)")
+        print(f"{out}: unchanged, {summary}")
         return 0
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text, encoding="utf-8")
-    print(f"{out}: wrote {len(pack['questions'])} question(s), as of {pack['generated_at']}")
+    print(f"{out}: wrote {summary}, as of {pack['generated_at']}")
     return 0
 
 

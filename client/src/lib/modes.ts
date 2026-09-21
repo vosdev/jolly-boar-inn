@@ -53,7 +53,7 @@ export interface Mode {
  * item, Who Said That? a line in a chatbox. Each id is one component under
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
-export type StemId = 'text'
+export type StemId = 'text' | 'asset'
 
 /**
  * The six pubs of the crawl. Each is one scene, drawn once and shared by every mode
@@ -86,6 +86,17 @@ export const MODES: Record<string, Mode> = {
     scene: 'blue_moon',
     // The question is the two buttons: a stem above them would say the names twice.
     stem: null,
+  },
+  price_is_right: {
+    id: 'price_is_right',
+    type: 'price_is_right',
+    label: 'The Price is Right',
+    hint: 'Four prices for one item — pick the real one',
+    blurb: 'One item, four prices. Which one does it really go for on the Grand Exchange?',
+    // Mos Le'Harmless, where a chest of coins is the thing everyone is pricing up.
+    scene: 'dead_mans_chest',
+    // The item, above four prices that would otherwise not say what they are prices of.
+    stem: 'asset',
   },
 }
 

@@ -23,7 +23,7 @@ from app.modes import MODES, Mode, questions_bounds, seconds_bounds
 from app.questions import schema
 from app.questions.packs import PackError, load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, more_less
+from app.questions.types import TYPES, more_less, price_is_right
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
@@ -185,7 +185,7 @@ def test_an_unknown_mode_is_reported() -> None:
     q = question(mode="drop_table")
     assert schema.schema_errors(q) == []  # the schema holds a mode to a pattern, no more
     assert schema.consistency_errors(q) == [
-        "$.mode: 'drop_table' is not a mode this build plays (it plays more_less)"
+        "$.mode: 'drop_table' is not a mode this build plays (it plays more_less, price_is_right)"
     ]
 
 
@@ -272,10 +272,11 @@ def test_content_id_follows_documented_algorithm() -> None:
 # --- more_less type module ------------------------------------------------------------
 
 
-def test_registry_has_only_more_less() -> None:
-    assert TYPES == {"more_less": more_less}
-    for name in ("client_view", "reveal", "grade", "validate_value", "check"):
-        assert callable(getattr(more_less, name))
+def test_registry_has_every_shipped_type() -> None:
+    assert TYPES == {"more_less": more_less, "price_is_right": price_is_right}
+    for module in TYPES.values():
+        for name in ("client_view", "reveal", "grade", "validate_value", "check"):
+            assert callable(getattr(module, name))
 
 
 def test_more_less_sets_its_own_pace() -> None:
