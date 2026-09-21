@@ -17,6 +17,14 @@
  *
  * Plain TypeScript with no `.svelte` imports, so every screen can use it. The components
  * that *draw* a question live in `components/questions/index.ts` instead.
+ *
+ * The splash's artwork is here too (D7, section 7.1 of ideas/design.md): six tavern
+ * scenes, each mode assigned one, plus a small per-mode mark in the foreground that says
+ * what the round is. Modes share scenes; a new mode costs a mark, not an illustration.
+ * The art is a file, never code: `assets/scenes/<scene id>.<ext>` and
+ * `assets/scenes/marks/<mode id>.<ext>`, found by name at build time. A scene with no file
+ * yet is drawn as a placeholder by `Splash.svelte`, and dropping the file in replaces it
+ * with nothing else to change. `assets/scenes/README.md` has the sizes.
  */
 
 export interface Mode {
@@ -29,7 +37,28 @@ export interface Mode {
   hint: string
   /** One or two sentences, for the splash. Say what to do, not how it is scored. */
   blurb: string
+  /** Which of the six scenes the splash hangs behind this mode's name. */
+  scene: SceneId
 }
+
+/**
+ * The six pubs of the crawl. Each is one scene, drawn once and shared by every mode
+ * assigned to it; the variety between rounds comes from these rather than the palette,
+ * which stays the one the player picked (section 1).
+ */
+export const SCENES = {
+  jolly_boar: 'The Jolly Boar Inn',
+  blue_moon: 'The Blue Moon Inn',
+  rusty_anchor: 'The Rusty Anchor',
+  dead_mans_chest: "The Dead Man's Chest",
+  rising_sun: 'The Rising Sun',
+  dragon_inn: 'The Dragon Inn',
+} as const
+
+export type SceneId = keyof typeof SCENES
+
+/** The scene for a mode this build has no entry for: the inn the app is named after. */
+export const DEFAULT_SCENE: SceneId = 'jolly_boar'
 
 export const MODES: Record<string, Mode> = {
   more_less: {
@@ -39,6 +68,8 @@ export const MODES: Record<string, Mode> = {
     hint: 'Which of two items is worth more — or less',
     blurb:
       'Two items, one question: which one is worth more or less?',
+    // Varrock's pub, a short walk from the Grand Exchange whose prices this round is about.
+    scene: 'blue_moon',
   },
 }
 
@@ -51,4 +82,53 @@ export const MODES: Record<string, Mode> = {
  */
 export function modeLabel(id: string): string {
   return MODES[id]?.label ?? id
+}
+
+/** What the splash draws for a round: the scene, and the art for it where there is some. */
+export interface SplashArt {
+  scene: SceneId
+  /** The scene's name, which is what a placeholder carries below the mode's. */
+  sceneName: string
+  /** The scene's image, or null while it has not been drawn yet. */
+  sceneUrl: string | null
+  /** The mode's foreground mark, or null: a scene is a whole picture without one. */
+  markUrl: string | null
+}
+
+// Every art file present at build time, as URL by path. A folder with no files in it is
+// an empty object, which is today, and which is why a missing picture is never a request
+// that 404s: a scene with no file is known to have none before the page asks. Vite wants
+// the patterns as literals, so the extensions are spelled out twice.
+const sceneFiles = import.meta.glob<string>('../assets/scenes/*.{avif,webp,png,jpg,jpeg,svg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+const markFiles = import.meta.glob<string>('../assets/scenes/marks/*.{avif,webp,png,jpg,jpeg,svg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+
+/** The file named `id` in a glob, whatever its extension. */
+function fileNamed(files: Record<string, string>, id: string): string | null {
+  for (const [path, url] of Object.entries(files)) {
+    const base = path.slice(path.lastIndexOf('/') + 1)
+    if (base.slice(0, base.lastIndexOf('.')) === id) return url
+  }
+  return null
+}
+
+/**
+ * The splash art for a mode. A mode this build does not know gets the default scene and
+ * no mark, so a round from a newer server still has somewhere to be.
+ */
+export function splashArt(modeId: string): SplashArt {
+  const scene = MODES[modeId]?.scene ?? DEFAULT_SCENE
+  return {
+    scene,
+    sceneName: SCENES[scene],
+    sceneUrl: fileNamed(sceneFiles, scene),
+    markUrl: MODES[modeId] === undefined ? null : fileNamed(markFiles, modeId),
+  }
 }

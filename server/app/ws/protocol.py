@@ -86,6 +86,9 @@ class PlayerView(_Message):
     avatar: int | None
     role: Role
     connected: bool
+    # The ready check (D7): ready to start in the lobby, ready for this round on a splash.
+    # Every splash starts it false for everyone again.
+    ready: bool
 
 
 class Standing(_Message):
@@ -171,8 +174,15 @@ class SetProfile(_Message):
     avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
 
 
+class Ready(_Message):
+    """Tap ready, or take it back (D7). In the lobby and on a splash; nowhere else."""
+
+    t: Literal["ready"]
+    ready: bool = Field(strict=True)
+
+
 ClientMessage = Annotated[
-    Hello | Ping | Answer | StartGame | Skip | Promote | Kick | EndGame | SetProfile,
+    Hello | Ping | Answer | StartGame | Skip | Promote | Kick | EndGame | SetProfile | Ready,
     Field(discriminator="t"),
 ]
 _client_message = TypeAdapter[ClientMessage](ClientMessage)
@@ -200,7 +210,8 @@ class Welcome(_Message):
 
 
 class RoomUpdated(_Message):
-    """Join, leave, connect, disconnect, promote, kick, status change, ``set_profile``."""
+    """Join, leave, connect, disconnect, promote, kick, status change, ``set_profile``,
+    ``ready``, and the start of a splash."""
 
     t: Literal["room_updated"] = "room_updated"
     room: RoomView

@@ -123,6 +123,10 @@
       ? ($room?.settings.modes.find((round) => round.mode === segment?.mode)?.seconds ?? 0)
       : (Date.parse($question.ends_at) - Date.parse($question.opened_at)) / 1000,
   )
+  /** What the splash says each question of its round lasts; null for a round not in settings. */
+  const roundSeconds = $derived(
+    $room?.settings.modes.find((round) => round.mode === $room?.segment?.mode)?.seconds ?? null,
+  )
   /** The component for the open question's type, or null for a mode this build lacks. */
   const OpenView = $derived($question === null ? null : (QUESTION_VIEWS[$question.type] ?? null))
   const ClosedView = $derived(
@@ -218,11 +222,23 @@
       <button type="button" onclick={leave}>Home</button>
     </section>
   {:else if $room.phase === 'splash' && $room.segment !== null}
-    <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past. -->
+    <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past.
+         The host's skip is on the card, small, for the same reason. -->
+    {#if $lastError !== null}
+      <div class="banner bad">
+        {$lastError.message}
+        <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
+      </div>
+    {/if}
     <Splash
       segment={$room.segment}
       endsAt={$room.next_at}
       totalSeconds={$room.settings.splash_seconds}
+      questionSeconds={roundSeconds}
+      players={$players}
+      youId={$you?.id ?? null}
+      onReady={() => socket?.send({ t: 'ready', ready: true })}
+      onSkip={isAdmin ? () => socket?.send({ t: 'skip' }) : null}
     />
   {:else}
     <!-- playing -->

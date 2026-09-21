@@ -102,6 +102,12 @@ export interface PlayerView {
   avatar?: number | null
   role: Role
   connected: boolean
+  /**
+   * The ready check (D7): ready to start in the lobby, ready for this round on a splash.
+   * Every splash starts it false for everyone again. Optional because a server from
+   * before D7 does not send it, and a player it does not mention is not ready.
+   */
+  ready?: boolean
 }
 
 export interface Standing {
@@ -179,6 +185,12 @@ export interface SetProfile {
   avatar?: number
 }
 
+/** Tap ready, or take it back (D7). In the lobby and on a splash; nowhere else. */
+export interface Ready {
+  t: 'ready'
+  ready: boolean
+}
+
 export type ClientMessage =
   | Hello
   | Ping
@@ -189,6 +201,7 @@ export type ClientMessage =
   | Kick
   | EndGame
   | SetProfile
+  | Ready
 
 // --- Server → client --------------------------------------------------------------
 
