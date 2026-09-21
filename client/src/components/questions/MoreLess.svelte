@@ -192,7 +192,7 @@
     flex-direction: column;
     align-items: center;
     gap: 0.3rem;
-    padding: 1.5rem 0.75rem;
+    padding: calc(1.5rem - var(--border-give)) calc(0.75rem - var(--border-give));
     font-size: 1.1rem;
     font-weight: 600;
   }

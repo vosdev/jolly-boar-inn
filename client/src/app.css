@@ -1,5 +1,5 @@
 /*
- * Tokens (D1, section 2 of ideas/design.md).
+ * Tokens (D1, section 2 of ideas/design.md), and the themes built from them (D5).
  *
  * Seven layers, and a contract. A theme may repaint the furniture — surface, brand, gems,
  * shape, texture — freely. It may not repaint what "you got it wrong" looks like: the
@@ -13,8 +13,21 @@
  * `jolly` is the default and lives on :root, so a browser that has never chosen gets the
  * inn. Nothing here consults `prefers-color-scheme`: jolly sits between a light and a dark
  * palette, and a player who wants brighter or darker picks a theme.
+ *
+ * **Adding a theme.** Every theme is one block that sets every token, and inherits
+ * nothing from another. Copy a block whole, rename its `data-theme`, repaint it, add its
+ * id to `THEMES` in `lib/theme.ts`, and run `make check-contrast`. That self-containment
+ * is also what lets the picker draw each swatch in its own theme: a swatch is an element
+ * carrying `data-theme`, and a block that leaned on another for half its tokens would draw
+ * that half in whatever theme the page happens to be in.
+ *
+ * Textures (layer 7) are drawn under text, and the contrast check measures the flat
+ * colour, not the texture. So a texture here is grain, never a picture: a few percent of
+ * alpha, and nothing that moves a panel's colour far enough to matter to the check.
  */
 
+/* The inn. Oak, candlelight, spilled ale: warm, rounded, and a worn tabletop's soft
+   inner shadow. */
 :root,
 [data-theme='jolly'] {
   /* 1. Surface */
@@ -52,8 +65,7 @@
      Position is identity, so position 1 is always sapphire however many options a question
      shows. On reveal the winning button keeps its gem and gains an --ok ring, so every gem
      has to stay 3:1 clear of --ok — which is why onyx is a pale lilac here rather than the
-     black it is in the game. A theme moves its gem, never the ring. No button uses these
-     yet; they are defined so the check has something to hold a theme to from day one. */
+     black it is in the game. A theme moves its gem, never the ring. */
   --gem-sapphire: #a8cbef;
   --gem-emerald: #8fd3a4;
   --gem-ruby: #f4afa9;
@@ -70,21 +82,75 @@
      which are applied where they are used, so the timer does not twitch. */
   --radius: 10px;
   --border-width: 1px;
-  --shadow: 0 1px 2px rgb(36 29 21 / 0.08);
+  --shadow: inset 0 -2px 0 rgb(36 29 21 / 0.05), 0 1px 3px rgb(36 29 21 / 0.1);
   /* What a modal dims the page behind it with (D3's name popup). */
   --scrim: rgb(36 29 21 / 0.45);
   --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
 
-  /* 7. Texture: a local url() or none. */
+  /* 7. Texture: a local url() or none. Oak grain under the page; the panels stay clean,
+     because they are what the text sits on. */
   --texture-panel: none;
-  --texture-bg: none;
+  --texture-bg: url('./assets/textures/oak.svg');
 
   color-scheme: light;
 }
 
-/* Dark. Cold ash and ember, nothing cosy. */
+/* Bright desert noon. Bleached sandstone, a terracotta door, indigo shade — and a hard
+   sun, so shadows are offset and unblurred, corners are cut square-ish, and nothing is
+   soft. The lightest of the three, for a garden or a sunny window. */
+[data-theme='pollnivneach'] {
+  --bg: #eadbc0;
+  --panel: #fcf8ee;
+  --panel-raised: #ffffff;
+  --line: #c9b089;
+  --ink: #1d1a2c;
+  --muted: #5a5068;
+
+  --accent: #a8431f;
+  --accent-ink: #fffaf2;
+  --accent-hover: #86341a;
+
+  --ok: #1d6647;
+  --ok-ink: #fffaf2;
+  --bad: #a3241c;
+  --bad-ink: #fffaf2;
+  --warn: #855400;
+  --warn-ink: #fffaf2;
+
+  /* Indigo and terracotta, the two colours of the town, and neither of them the verdict
+     colours: here "more" and "less" differ from right and wrong by hue as well as by shape. */
+  --more: #34408c;
+  --less: #9a3b16;
+
+  /* Sun-bleached stones: pale, so the deep --ok ring reads on every one of them. */
+  --gem-sapphire: #a3c3ea;
+  --gem-emerald: #a4dbb3;
+  --gem-ruby: #f3ada2;
+  --gem-diamond: #eef3f3;
+  --gem-dragonstone: #dcb5e6;
+  --gem-onyx: #cdc6cf;
+  --gem-zenyte: #f2c47e;
+  --gem-ink: #1d1a2c;
+
+  --radius: 4px;
+  --border-width: 1px;
+  --shadow: 3px 3px 0 rgb(94 62 30 / 0.16);
+  --scrim: rgb(29 26 44 / 0.45);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* Blown sand under the page. */
+  --texture-panel: none;
+  --texture-bg: url('./assets/textures/sand.svg');
+
+  color-scheme: light;
+}
+
+/* Dark. Cold ash and ember, nothing cosy: square corners, a hard 2px edge on every
+   panel and control, and a shadow that drops rather than glows. */
 [data-theme='wilderness'] {
   --bg: #17140f;
   --panel: #201c16;
@@ -118,8 +184,17 @@
   --gem-zenyte: #7c4510;
   --gem-ink: #f0e8da;
 
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+  --radius: 2px;
+  --border-width: 2px;
+  --shadow: 0 3px 0 rgb(0 0 0 / 0.55);
   --scrim: rgb(0 0 0 / 0.6);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* Ash, drifting. */
+  --texture-panel: none;
+  --texture-bg: url('./assets/textures/ash.svg');
 
   color-scheme: dark;
 }
@@ -137,6 +212,12 @@
      just pushed up, an element that took focus — has to stop below it rather than
      under it. */
   scroll-padding-top: calc(var(--topbar-height) + 0.75rem);
+
+  /* D5. Themes draw their edges at different widths — wilderness at 2px, the others at
+     1px — and a player can switch mid-question. Anything with a themed border takes
+     this off its padding, so the border grows inward and a theme switch never moves a
+     button under somebody's thumb. */
+  --border-give: calc(var(--border-width) - 1px);
 }
 
 * {
@@ -146,7 +227,8 @@
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--texture-bg);
   color: var(--ink);
   line-height: 1.5;
 }
@@ -178,10 +260,12 @@ h2 {
 }
 
 .panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background-color: var(--panel);
+  background-image: var(--texture-panel);
+  border: var(--border-width) solid var(--line);
   border-radius: var(--radius);
-  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  padding: calc(1.25rem - var(--border-give));
   margin-bottom: 1.25rem;
 }
 
@@ -197,11 +281,13 @@ input[type='number'],
 select {
   width: 100%;
   font: inherit;
-  padding: 0.55rem 0.7rem;
+  padding: calc(0.55rem - var(--border-give)) calc(0.7rem - var(--border-give));
   color: var(--ink);
   background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: var(--border-width) solid var(--line);
+  /* A control is never rounder than 8px, so jolly's soft corners stay on the panels;
+     a squarer theme squares its controls with them. */
+  border-radius: min(var(--radius), 8px);
 }
 
 input:focus-visible,
@@ -238,9 +324,9 @@ button:focus-visible {
 
 button {
   font: inherit;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--line);
+  padding: calc(0.55rem - var(--border-give)) calc(1rem - var(--border-give));
+  border-radius: min(var(--radius), 8px);
+  border: var(--border-width) solid var(--line);
   background: var(--panel);
   color: var(--ink);
   cursor: pointer;
@@ -263,7 +349,7 @@ button.primary {
 }
 
 button.small {
-  padding: 0.3rem 0.6rem;
+  padding: calc(0.3rem - var(--border-give)) calc(0.6rem - var(--border-give));
   font-size: 0.85rem;
 }
 
@@ -363,10 +449,10 @@ ul.players li:first-child {
 
 .banner {
   border-radius: var(--radius);
-  padding: 0.6rem 0.9rem;
+  padding: calc(0.6rem - var(--border-give)) calc(0.9rem - var(--border-give));
   margin-bottom: 1rem;
   font-size: 0.9rem;
-  border: 1px solid var(--warn);
+  border: var(--border-width) solid var(--warn);
   color: var(--warn);
 }
 

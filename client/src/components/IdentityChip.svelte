@@ -236,7 +236,7 @@
   .chip {
     min-width: 0;
     max-width: 100%;
-    padding-left: 0.15rem;
+    padding-left: calc(0.15rem - var(--border-give));
   }
 
   .chip.unset .chip-name {

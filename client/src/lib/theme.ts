@@ -15,10 +15,17 @@
  * accessor tolerates it and the theme simply lasts for the page.
  */
 
-/** Every theme `app.css` defines, in menu order. D5 adds pollnivneach, D12 party_room. */
-export const THEMES = ['jolly', 'wilderness'] as const
+/** Every theme `app.css` defines, in menu order. D12 adds party_room. */
+export const THEMES = ['jolly', 'pollnivneach', 'wilderness'] as const
 
 export type Theme = (typeof THEMES)[number]
+
+/** What the picker calls each theme, and the one line that says what it is like. */
+export const THEME_LABELS: Record<Theme, { name: string; mood: string }> = {
+  jolly: { name: 'Jolly Boar Inn', mood: 'Oak, candlelight, spilled ale.' },
+  pollnivneach: { name: 'Pollnivneach', mood: 'Bright desert noon.' },
+  wilderness: { name: 'Wilderness', mood: 'Dark. Cold ash and ember.' },
+}
 
 export const DEFAULT_THEME: Theme = 'jolly'
 

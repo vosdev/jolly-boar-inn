@@ -55,11 +55,12 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    padding: 3rem 1.5rem;
+    padding: calc(3rem - var(--border-give)) calc(1.5rem - var(--border-give));
     text-align: center;
-    border: 1px solid var(--line);
+    border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
     background: var(--panel);
+    box-shadow: var(--shadow);
   }
 
   .round {
@@ -90,7 +91,7 @@
 
   @media (max-width: 30rem) {
     .splash {
-      padding: 2rem 1rem;
+      padding: calc(2rem - var(--border-give)) calc(1rem - var(--border-give));
     }
 
     h2 {
