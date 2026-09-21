@@ -31,6 +31,9 @@ This is jolly-boar-inn, a self-hosted multiplayer OSRS quiz. Before writing any 
   not add comments that restate the line below them.
 - Tests are not optional and not an afterthought. Every accept criterion below is a test
   unless it says "manual".
+- Bump VERSION, and its copies in server/pyproject.toml and client/package.json: the
+  minor number once for each T or D task you finish, the patch number for a fix. See
+  ideas/architecture.md section 10, Versioning.
 - Finish with `make lint test` green. Do not report done before it is.
 - Do not commit unless I ask. Do not touch ideas/*.md unless the task says to.
 - If a design decision is genuinely underdetermined, make the call, state it in one line at

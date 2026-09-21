@@ -1,4 +1,7 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions loadtest
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions loadtest image
+
+# The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
+VERSION := $(shell cat VERSION)
 
 # Dev Postgres: own compose project so it never collides with `docker compose up`.
 DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
@@ -75,3 +78,8 @@ loadtest:
 # commit the result. Idempotent, so a re-run against unchanged prices is a no-op.
 gen-price-questions:
 	cd server && uv run python scripts/gen_price_questions.py
+
+# Build the production image, tagged with the version and as latest. Releases themselves are
+# git tags, which CI creates on main when VERSION changes; this is the local image to match.
+image:
+	docker build --build-arg VERSION=$(VERSION) -t jolly-boar-inn:$(VERSION) -t jolly-boar-inn:latest .

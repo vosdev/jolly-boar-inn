@@ -12,7 +12,8 @@ not depend on anything they left open. Behind the modes, T31–T45 are what the 
 playtests and `ideas/TODO.md` asked for: loose ends, who gets into a room, a tidier top bar,
 and the tools for running an instance. None of them touch a mode.
 
-Each task is one working session, ends with `make lint test` green, and leaves the app
+Each task is one working session, ends with `make lint test` green, bumps the minor
+version in `VERSION` (`ideas/architecture.md` §10, Versioning), and leaves the app
 playable. Nothing here is a refactor you cannot stop after.
 
 ## What Phase 2 is actually about

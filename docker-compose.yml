@@ -7,6 +7,8 @@
 services:
   app:
     build: .
+    # A name for what `build` makes. `make image` tags the same build with the version.
+    image: jolly-boar-inn:${APP_VERSION:-latest}
     ports:
       - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8000}:8000"
     env_file:

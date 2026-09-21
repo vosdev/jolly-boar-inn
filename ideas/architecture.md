@@ -1219,6 +1219,44 @@ does not change. `data/facts/` is what the *generators* read, so that adding a m
 offline afternoon rather than another crawl of the wiki, and so that a generator's output can
 be reproduced — and diffed in CI — without a network call.
 
+## 10. Versioning
+
+The version counts the work. **0.1.0** is the first playable build: T1–T19 and D1–D5, D7 and
+D8.
+
+| Change | Bump | Example |
+|---|---|---|
+| A T task (`ideas/phase2.md`) or a D task (`ideas/design.md`) | minor | 0.1.0 → 0.2.0 |
+| A fix, a playtest follow-up, an item off `ideas/TODO.md` | patch | 0.2.0 → 0.2.1 |
+| Docs, CI, or anything else a player cannot see | none | |
+
+- **Semver, not decimals.** After 0.9.0 comes 0.10.0. About 35 tasks remain, and decimal
+  arithmetic would reach 1.0 partway through Phase 2 without anyone deciding it. **1.0 is a
+  decision the owner makes**, never the result of counting tasks.
+- **One bump per task, even when a session does several.** T31 + T32 + T34 is three minor
+  bumps, so the version keeps counting tasks. A patch bump resets to `.0` on the next
+  minor.
+- **Bump in the branch that does the work**, as part of the task, not afterwards. Two
+  branches that both bump will conflict on `VERSION`. That is on purpose: whichever merges
+  second rebases and takes the next number, so versions follow merge order.
+
+**Where it lives.** `/VERSION` at the repo root is the single source: one line, `X.Y.Z`, no
+`v`. `server/pyproject.toml` and `client/package.json` carry copies, and
+`server/tests/test_version.py` fails if either drifts. The client reads `/VERSION` at build
+time (`__APP_VERSION__`, `client/vite.config.ts`). Readers see `0.1` for `0.1.0` and `0.1.1`
+for a fix. The version goes in the footer (`ideas/design.md` §9.2) and, until D10 builds
+that footer, in the top bar beside the wordmark. It is never part of `PUBLIC_SITE_NAME`.
+
+**Releases.** On every push to main, CI's `release` job runs after the server, client and
+container jobs pass:
+- If `v<VERSION>` is already a tag, it does nothing.
+- If `VERSION` is below the latest tag, it fails.
+- Otherwise it creates tag `v<VERSION>` and a GitHub Release, with notes built from the
+  merged PRs.
+
+No registry receives an image. `make image` builds `jolly-boar-inn:<VERSION>` and `:latest`
+locally, with the version in the `org.opencontainers.image.version` label.
+
 ## Needs decision
 
 [ ] **Where the asset files live, given a read-only container.** Section 7 runs the app
