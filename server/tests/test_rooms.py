@@ -44,6 +44,7 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
         "avatar": None,  # none sent, so the client draws the head derived from the id
         "role": "admin",
         "connected": False,
+        "ready": False,
     }
 
     (room,) = db("select code, status from rooms")
@@ -273,6 +274,7 @@ def test_join_success_returns_session_and_appears_in_get(client: TestClient, db)
         "avatar": None,
         "role": "player",
         "connected": False,
+        "ready": False,
     }
     (player,) = db("select session_token_hash from players where display_name = 'Zezima'")
     assert player["session_token_hash"] == sha256(body["session"])

@@ -200,6 +200,8 @@ async def _dispatch(
             await manager.end_game(code, player)
         case protocol.SetProfile():
             await manager.set_profile(code, player, message.display_name, message.avatar)
+        case protocol.Ready():
+            await manager.set_ready(code, player, message.ready)
     return None
 
 

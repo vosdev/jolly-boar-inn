@@ -69,10 +69,10 @@ class RoomView(_Message):
     total: int
     phase: Phase
     # When the current timed phase ends: a splash gives way to its first question, a
-    # reveal to the next question. Null while a question is open, and in a room that is
-    # not playing. Also on ``question_closed``, but a splash or a reveal a client arrives
-    # into (a reconnect, or a room that just came back from a restart) has no frame of its
-    # own to carry it.
+    # reveal to the next question. Null while a question is open, during a splash still
+    # waiting for the room to be ready (D7), and in a room that is not playing. Also on
+    # ``question_closed``, but a splash or a reveal a client arrives into (a reconnect,
+    # or a room that just came back from a restart) has no frame of its own to carry it.
     next_at: datetime | None
     # The round in progress, null before the first question and once the game is over.
     segment: Segment | None
@@ -86,6 +86,9 @@ class PlayerView(_Message):
     avatar: int | None
     role: Role
     connected: bool
+    # The ready check (D7): ready to start in the lobby, ready for this round on a splash.
+    # Every splash starts it false for everyone again.
+    ready: bool
 
 
 class Standing(_Message):
@@ -171,8 +174,15 @@ class SetProfile(_Message):
     avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
 
 
+class Ready(_Message):
+    """Tap ready, or take it back (D7). In the lobby and on a splash; nowhere else."""
+
+    t: Literal["ready"]
+    ready: bool = Field(strict=True)
+
+
 ClientMessage = Annotated[
-    Hello | Ping | Answer | StartGame | Skip | Promote | Kick | EndGame | SetProfile,
+    Hello | Ping | Answer | StartGame | Skip | Promote | Kick | EndGame | SetProfile | Ready,
     Field(discriminator="t"),
 ]
 _client_message = TypeAdapter[ClientMessage](ClientMessage)
@@ -200,7 +210,8 @@ class Welcome(_Message):
 
 
 class RoomUpdated(_Message):
-    """Join, leave, connect, disconnect, promote, kick, status change, ``set_profile``."""
+    """Join, leave, connect, disconnect, promote, kick, status change, ``set_profile``,
+    ``ready``, and the start of a splash."""
 
     t: Literal["room_updated"] = "room_updated"
     room: RoomView

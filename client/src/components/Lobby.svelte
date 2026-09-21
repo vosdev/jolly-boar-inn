@@ -5,9 +5,17 @@
    * Admin controls are shown from `you.role`, which comes from the server's snapshot.
    * That is a convenience, not a check: the server decides per message (section 7
    * step 7), so a player who forges the flag gets `not_admin` back and nothing else.
+   *
+   * The ready check here is the named one (D7, section 7.1 of ideas/design.md): the host
+   * needs to know *who* is missing before pressing Start, because the answer is usually
+   * somebody at the bar, and a name is something you can shout. The host is a player like
+   * any other and taps too. Start is the plain button once the room reaches the same
+   * threshold a splash uses; short of it, it is "Start anyway", which asks first. The
+   * splash asks again with heads only.
    */
   import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
+  import { readyThreshold } from '../lib/ready'
   import type { PlayerView } from '../lib/protocol'
   import { lastError, players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
@@ -40,6 +48,35 @@
       modeLabel(a.mode).localeCompare(modeLabel(b.mode)),
     ),
   )
+
+  const youReady = $derived($players.some((p) => p.id === $you?.id && p.ready === true))
+  const readyCount = $derived($players.filter((p) => p.ready === true).length)
+  /**
+   * Who counts: the players connected right now, which is who the splash will count too.
+   * A player whose phone has locked is not someone the host can start without asking.
+   */
+  const present = $derived($players.filter((p) => p.connected))
+  const presentReady = $derived(present.filter((p) => p.ready === true).length)
+  const enoughReady = $derived(presentReady >= readyThreshold(present.length))
+  /** Who is not ready yet, by name, in join order — the host included, as "you". */
+  const waitingOn = $derived(
+    $players
+      .filter((p) => p.ready !== true)
+      .map((p) => (p.id === $you?.id ? 'you' : p.display_name)),
+  )
+  const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
+
+  function toggleReady(): void {
+    socket.send({ t: 'ready', ready: !youReady })
+  }
+
+  /** Start, asking first when the room is short of its threshold: the host's override. */
+  function start(): void {
+    if (!enoughReady && !confirm(`Start anyway? Still waiting on ${listFormat.format(waitingOn)}.`)) {
+      return
+    }
+    socket.send({ t: 'start_game' })
+  }
 
   function kick(player: PlayerView): void {
     if (confirm(`Remove ${player.display_name} from the room?`)) {
@@ -93,9 +130,21 @@
 {/if}
 
 <section class="panel">
-  <h2>
-    Players ({$players.length}{#if settings?.max_players}/{settings.max_players}{/if})
-  </h2>
+  <div class="spread ready-head">
+    <h2>
+      Players ({$players.length}{#if settings?.max_players}/{settings.max_players}{/if})
+    </h2>
+    <span class="note">{readyCount} of {$players.length} ready</span>
+  </div>
+  <button
+    type="button"
+    class="ready-toggle"
+    class:primary={!youReady}
+    aria-pressed={youReady}
+    onclick={toggleReady}
+  >
+    {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
+  </button>
   <ul class="players">
     {#each $players as player (player.id)}
       <li>
@@ -109,6 +158,7 @@
           {player.display_name}{#if player.id === $you?.id}<span class="note"> (you)</span>{/if}
         </span>
         {#if player.role === 'admin'}<span class="tag">host</span>{/if}
+        {#if player.ready === true}<span class="tag ready">✓ ready</span>{/if}
         {#if isAdmin && player.role !== 'admin'}
           <button
             type="button"
@@ -128,10 +178,44 @@
   <section class="panel">
     <h2>Host</h2>
     <p class="note">Everybody in the list is in. Starting opens the first question for all of them.</p>
-    <button class="primary" type="button" disabled={!canStart} onclick={() => socket.send({ t: 'start_game' })}>
-      Start the game
+    <p class="waiting" aria-live="polite">
+      {#if waitingOn.length === 0}
+        Everyone is ready.
+      {:else}
+        Waiting on {listFormat.format(waitingOn)}.
+      {/if}
+    </p>
+    <button class:primary={enoughReady} type="button" disabled={!canStart} onclick={start}>
+      {enoughReady ? 'Start the game' : 'Start anyway'}
     </button>
   </section>
 {:else}
   <p class="note">Waiting for the host to start…</p>
 {/if}
+
+<style>
+  .ready-head h2 {
+    margin: 0;
+  }
+
+  .ready-head {
+    margin-bottom: 0.75rem;
+  }
+
+  .ready-toggle {
+    min-height: 44px;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Ready is the room's word, not a verdict, so it borrows the accent for its edge and
+     keeps the panel's ink: --ok is what "you got it right" looks like, and nothing else. */
+  .tag.ready {
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+
+  .waiting {
+    margin: 0 0 0.9rem;
+    overflow-wrap: anywhere;
+  }
+</style>

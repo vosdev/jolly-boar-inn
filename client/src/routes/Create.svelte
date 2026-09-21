@@ -45,7 +45,8 @@
 
   let displayName = $state($profile?.name ?? '')
   let revealSeconds = $state(4)
-  let splashSeconds = $state(8)
+  /** `splash_seconds` on the wire: 0 is off, anything else on (D7: it is no longer a length). */
+  let introduceRounds = $state(true)
   let order = $state<'shuffle' | 'custom_last'>('shuffle')
   let modeOrder = $state<'listed' | 'random'>('listed')
   let closeWhenAllAnswered = $state(true)
@@ -148,7 +149,7 @@
       mode_order: modeOrder,
       order,
       reveal_seconds: revealSeconds,
-      splash_seconds: splashSeconds,
+      splash_seconds: introduceRounds ? 8 : 0,
       close_when_all_answered: closeWhenAllAnswered,
     }
     try {
@@ -289,11 +290,6 @@
     <h2>The rest of the game</h2>
     <div class="grid">
       <div>
-        <label for="splash">Round intro seconds</label>
-        <input id="splash" type="number" min="0" max="30" bind:value={splashSeconds} />
-        <p class="note">0–30, 0 skips it</p>
-      </div>
-      <div>
         <label for="reveal">Reveal answers seconds</label>
         <input id="reveal" type="number" min="3" max="30" bind:value={revealSeconds} />
         <p class="note">3–30</p>
@@ -306,6 +302,10 @@
         </select>
       </div>
     </div>
+    <label class="check">
+      <input type="checkbox" bind:checked={introduceRounds} />
+      Introduce each round, and start it when most of the room is ready
+    </label>
     <label class="check">
       <input type="checkbox" bind:checked={closeWhenAllAnswered} />
       Close a question as soon as everyone has answered

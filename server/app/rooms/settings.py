@@ -84,8 +84,10 @@ class RoomSettings(BaseModel):
     # Where the room's own questions go; nothing to do with ``mode_order``. Phase 2.
     order: Literal["shuffle", "custom_last"] = "shuffle"
     reveal_seconds: int = Field(default=8, ge=0)
-    # How long a round's mode is introduced for before its first question. Zero turns the
-    # splash off, which is what the test suite runs with.
+    # Whether a round's mode is introduced before its first question: zero turns the splash
+    # off, which is what the test suite runs with, and anything else turns it on. Since D7
+    # the number is no longer a length -- a splash ends when the room is ready or the host
+    # skips it (``rooms/ready.py``) -- but it stays an int so every stored room still reads.
     splash_seconds: int = Field(default=8, ge=0)
     close_when_all_answered: bool = True
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,

@@ -1,4 +1,4 @@
-"""Container smoke test: a room, a websocket, and the first question.
+"""Container smoke test: a room, a websocket, the splash's ready check, and the first question.
 
 What the `curl` checks in CI cannot reach. Everything here is specific to the built
 image rather than to the code: uvicorn serving `/ws/{code}` with `--proxy-headers`,
@@ -62,13 +62,22 @@ async def main() -> None:
         print(f"welcome: {welcome['room']['total']} questions, phase {welcome['room']['phase']}")
 
         # start_game proves the packs loaded: a room with no questions never opens one.
+        # The default settings introduce the round, and since D7 a splash has no clock:
+        # it waits for the room. The only player tapping ready is everyone ready, which
+        # opens the question three seconds later.
         await socket.send(json.dumps({"t": "start_game"}))
+        tapped = False
         while True:
             message = json.loads(await asyncio.wait_for(socket.recv(), timeout=TIMEOUT))
             if message["t"] == "question_open":
                 break
             if message["t"] == "error":
                 raise SystemExit(f"start_game refused: {message}")
+            if message["t"] == "room_updated" and message["room"]["phase"] == "splash":
+                if not tapped:
+                    await socket.send(json.dumps({"t": "ready", "ready": True}))
+                    print("splash: tapped ready")
+                    tapped = True
         question = message["question"]
         print(f"question {question['index'] + 1}/{question['total']} open, type {question['type']}")
 

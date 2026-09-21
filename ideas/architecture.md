@@ -610,6 +610,7 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `promote` | `player_id` | admin | Sets target role to `admin`. |
 | `kick` | `player_id` | admin | Deletes player row and their answers, closes their socket with `4003`. Not allowed on admins. |
 | `end_game` | | admin | Closes any open question (voided), `playing → finished`. |
+| `ready` | `ready: bool` | all | D7. Tap ready or take it back, in the lobby or during a splash; anywhere else is `bad_state`, and so is a second take-back on the same splash. On a splash it may bring `next_at` forward (section 4). Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
 | `set_profile` | `display_name?: string`, `avatar?: int` | all | D4. Renames the sender, re-rolls their head, or both; an omitted field is left alone. Validated exactly like a join (name rules, case-insensitive uniqueness in the room, a head id from `data/heads/heads.json`), so a rejection leaves the row as it was. Any status. Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
 
 ### Server → client
@@ -617,7 +618,7 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. |
-| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, `set_profile`, status change, and the start of a splash. |
+| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, `set_profile`, `ready`, status change, and the start of a splash. A splash the ready check hurries carries its new `next_at` here. |
 | `question_open` | `question: OpenQuestion` | A question opens. |
 | `answer_ack` | `question_id`, `scoring: "speed" \| "rank" \| "step"`, `band: int \| null` | Answer committed. Never correctness. `band` is the speed bucket (1..5) for `speed`, the step it landed on for `step`, and null for `rank`, where nothing is known until everyone has answered. |
 | `question_closed` | `question_id`, `reveal: object`, `results: {player_id: PlayerResult}`, `standings: Standing[]`, `next_at: iso \| null` | Question closed. `next_at` is when the next opens; null on the last. |
@@ -630,7 +631,7 @@ Shared shapes:
 ```
 RoomView      { code, status, settings, current_index: int|null, total: int, phase,
                 next_at: iso|null, segment: Segment|null }
-PlayerView    { id, display_name, avatar: int|null, role, connected: bool }
+PlayerView    { id, display_name, avatar: int|null, role, connected: bool, ready: bool }
 Standing      { player_id, display_name, avatar: int|null, points: int, rank: int }
 Segment       { mode, index: int, total: int, start: int, count: int }
 OpenQuestion  { question_id, index, total, type, mode, segment: Segment, view: object,
@@ -758,8 +759,8 @@ Transitions:
 ### Question sub-machine (inside `playing`)
 
 ```
-(a new segment) ──▶ splash ──splash_seconds / skip──┐
-                                                    ▼
+(a new segment) ──▶ splash ──ready check countdown / skip──┐
+                                                          ▼
 pending ──open──▶ open ──timer / all answered / skip──▶ closed ──reveal_seconds / skip──▶ (next pending)
                     │  └── an event opens muted: no answer taken before answerable_at
                     └── crash recovered / end_game ──▶ voided
@@ -771,11 +772,14 @@ The splash introduces a *segment*: it runs before a segment's first question and
 
 | Transition | Trigger | Side effects |
 |---|---|---|
-| `(new segment) → splash` | timer task, before a segment's first question | `next_at = now + splash_seconds`, broadcast `room_updated`; no write |
+| `(new segment) → splash` | timer task, before a segment's first question, unless `splash_seconds` is 0 | `next_at = null` (it waits for the room), every player's `ready` cleared, broadcast `room_updated`; no write |
+| `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`; no write |
 | `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the type's `SECONDS`), broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or every connected player who can answer has answered and `close_when_all_answered`; or admin `skip` | `UPDATE questions SET closed_at = now`, grade all answers, `UPDATE answers SET correct, points`, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
 | `open → voided` | restart recovery, `end_game` | `closed_at = now, voided = true`, no grading |
+
+**The ready check (D7).** Each player carries an in-memory `ready` flag, on `PlayerView`. In the lobby it is what the host's Start waits on — the client offers "Start anyway" short of the threshold, and the server does not refuse it, because that is the host's override. `start_game` clears it. On a splash it is the ready check from section 7.1 of `ideas/design.md`: *eligible* is every connected player who can answer the round's first question, the threshold is `min(ceil(0.8 × eligible), eligible - 1)` with a room of one at 1, and the splash has no clock until it is reached — then a countdown runs as in the table above. A running countdown is never pushed back; only an un-ready can stop it, and each player gets one un-ready per splash (a second is `bad_state`, so the button cannot be spammed), never a connect or a disconnect, and a disconnect lowers the threshold instead of stalling the round. The host's `skip` ends a splash whether it is waiting or counting. The timer task sleeps through a splash to whatever `next_at` currently says, or indefinitely while it is null: changing it sets `Room.rescheduled`, which wakes the task to sleep again to the new time. The flag is never persisted, so a restart costs one tap — the same as the splash it replays.
 
 Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_question(index)` which does open → sleep-until-close → close → sleep-until-advance → next. `skip` cancels the sleep via an `asyncio.Event`, not by cancelling the task. Early close on all-answered sets the same event. Timing uses `asyncio.sleep(max(0, (ends_at - now).total_seconds()))`, so a late wakeup closes immediately instead of drifting.
 
@@ -789,7 +793,7 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
   "mode_order": "listed",          // "listed": the order above; "random": shuffled at creation
   "random_events": true,           // may a pack question interrupt a round? the host's always do
   "reveal_seconds": 8,             // 3..30
-  "splash_seconds": 8,             // 0..30, 0 turns the round intro off
+  "splash_seconds": 8,             // 0..30: 0 turns the round intro off, anything else on (D7: not a length)
   "random_event_seconds": 2,       // 0..10, the NPC holds the floor this long before the buttons
   "close_when_all_answered": true,
   "max_players": 50
