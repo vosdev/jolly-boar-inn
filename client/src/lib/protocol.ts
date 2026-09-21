@@ -17,6 +17,8 @@
 export type RoomStatus = 'lobby' | 'playing' | 'finished'
 export type Phase = 'idle' | 'splash' | 'open' | 'reveal'
 export type Role = 'player' | 'admin'
+/** How a question's credit becomes points: `questions/types/scoring.py`'s `Scoring`. */
+export type Scoring = 'speed' | 'rank' | 'step'
 
 export type ErrorCode =
   | 'bad_hello'
@@ -212,15 +214,24 @@ export interface QuestionOpen {
   question: OpenQuestion
 }
 
+/**
+ * How the answer will be scored and where it landed, never whether it was right.
+ * `band` is the speed bucket (1–5) for `speed`, the step it arrived on for `step`, and
+ * null for `rank`, where nothing is known until everyone has answered.
+ */
 export interface AnswerAck {
   t: 'answer_ack'
   question_id: string
-  bucket: number
+  scoring: Scoring
+  band: number | null
 }
 
 export interface PlayerResult {
   value: unknown
+  /** Full credit. The standings tie-break counts these. */
   correct: boolean
+  /** What the type graded the answer, 0 to 1; between the two only for partial credit. */
+  credit: number
   points: number
 }
 

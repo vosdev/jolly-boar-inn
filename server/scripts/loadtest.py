@@ -128,7 +128,7 @@ class Ack:
     seconds: float
     bot: int
     question_index: int
-    bucket: int
+    band: int | None
 
 
 @dataclass
@@ -349,7 +349,7 @@ class Bot:
                 seconds=time.perf_counter() - sent_at,
                 bot=self.index,
                 question_index=index,
-                bucket=frame["bucket"],
+                band=frame["band"],
             )
         )
 

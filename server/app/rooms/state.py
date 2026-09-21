@@ -16,7 +16,9 @@ cancelling the task; every sleep is computed from the target timestamp, so a lat
 closes immediately instead of drifting. The task takes the same room lock as everything
 else and, like everything else, sends nothing while holding it.
 
-Scoring (T10) is ``rooms/scoring.py``. The answers table is the source of truth for
+Scoring (T10, T17) is ``rooms/scoring.py``. An answer's band -- its speed bucket, or its
+step -- is fixed when it arrives; at the close the type's ``grade`` gives credit, and
+``points_for`` pays out on the two. The answers table is the source of truth for
 standings: close writes ``correct`` and ``points``, then re-reads ``sum(points)`` per
 player into ``Room.totals``. Nothing adds to a running total in memory.
 
@@ -52,7 +54,8 @@ from app.config import Settings
 from app.errors import ApiError
 from app.questions.packs import Pack
 from app.questions.submission import Submission
-from app.questions.types import TYPES
+from app.questions.types import TYPES, scoring_of
+from app.questions.types.scoring import Scoring
 from app.rooms import codes, scoring, segments, selection
 from app.rooms.settings import RoomSettings
 from app.ws.protocol import (
@@ -206,14 +209,18 @@ class Player:
 class Submitted:
     """One player's answer to one question, in memory.
 
-    ``bucket`` is fixed at receive time from ``received_at - shown_at`` (section 6); the
-    client never sends a time. ``correct`` and ``points`` stay ``None`` until the question
-    closes and grading writes them here and to the ``answers`` row.
+    ``band`` is fixed at receive time from ``received_at - shown_at`` (section 6); the
+    client never sends a time. It is ``None`` for a question scored on ``RANK``, where
+    nothing is known until everyone has answered. ``credit``, ``correct`` and ``points``
+    stay ``None`` until the question closes and grading writes them here, and the last
+    two to the ``answers`` row. ``credit`` has no column: it goes out once with the
+    reveal, and the table keeps what the standings are built from.
     """
 
     value: Any
     received_at: datetime
-    bucket: int
+    band: int | None
+    credit: float | None = None
     correct: bool | None = None
     points: int | None = None
 
@@ -254,6 +261,21 @@ class RoomQuestion:
     seconds: int | None = None
     ends_at: datetime | None = None
     answers: dict[UUID, Submitted] = field(default_factory=dict)
+
+    @property
+    def steps(self) -> int | None:
+        """How many frames the question shows itself in, for ``STEP`` scoring (section 6).
+
+        Pixel Hunt's ``pick_from_list`` payloads will be the only ones to carry it (Phase
+        3). Every other question is ``None``, which is also what turns ``STEP`` into
+        ``SPEED``.
+        """
+        return self.payload.get("steps")
+
+    @property
+    def scoring(self) -> Scoring:
+        """How this question's credit becomes points, as its type and payload decide."""
+        return scoring.effective(scoring_of(self.type), self.steps)
 
     def can_answer(self, player_id: UUID) -> bool:
         """Section 6 exclusions: nobody answers a ``host_only`` question, and the author
@@ -1045,8 +1067,10 @@ class RoomManager:
         await self._broadcast(update)
         self._start_timer(room, 0)
 
-    async def submit_answer(self, code: str, player: Player, question_id: str, value: Any) -> int:
-        """Store one answer and return its speed bucket.
+    async def submit_answer(
+        self, code: str, player: Player, question_id: str, value: Any
+    ) -> tuple[Scoring, int | None]:
+        """Store one answer and return how the question is scored and its band there.
 
         The row is committed before this returns and the handler sends ``answer_ack``
         only after it returns, so an acknowledged answer is an answer that survived the
@@ -1078,7 +1102,8 @@ class RoomManager:
             # at ten seconds must score on ten seconds, or every answer to it lands in
             # the fastest bucket of a room set to a minute.
             assert question.seconds is not None  # set when the question opened
-            bucket = scoring.bucket(elapsed, question.seconds)
+            how = question.scoring
+            band = scoring.band(how, elapsed, question.seconds, question.steps)
             async with pool.acquire() as conn:
                 try:
                     await conn.execute(
@@ -1091,10 +1116,10 @@ class RoomManager:
                     )
                 except asyncpg.UniqueViolationError:  # a row this room never loaded
                     raise AlreadyAnswered("you have already answered this question") from None
-            question.answers[player.id] = Submitted(value=value, received_at=now, bucket=bucket)
+            question.answers[player.id] = Submitted(value=value, received_at=now, band=band)
             if room.settings.close_when_all_answered and _everyone_answered(room, question):
                 room.advance.set()
-        return bucket
+        return how, band
 
     async def skip(self, code: str, by: Player) -> None:
         """Admin: cut the splash, the open question or the reveal short (section 3).
@@ -1344,13 +1369,17 @@ class RoomManager:
             module = TYPES[question.type]
             # Everything in ``answers`` passed ``can_answer`` on the way in, so grading
             # never has to re-check the exclusions.
-            correct = module.grade(
+            credit = module.grade(
                 question.payload,
                 [Submission(pid, answer.value) for pid, answer in question.answers.items()],
             )
+            how = question.scoring
             for pid, answer in question.answers.items():
-                answer.correct = bool(correct.get(pid, False))
-                answer.points = scoring.points_for(answer.correct, answer.bucket)
+                answer.credit = credit.get(pid, 0.0)
+                # Full marks only. Three of five in the right order scores, and is not
+                # "correct" for the standings tie-break (section 6).
+                answer.correct = answer.credit >= 1.0
+                answer.points = scoring.points_for(how, answer.credit, answer.band, question.steps)
             async with pool.acquire() as conn, conn.transaction():
                 await conn.execute(
                     "update questions set closed_at = $1 where id = $2", now, question.id
@@ -1373,6 +1402,7 @@ class RoomManager:
                     pid: PlayerResult(
                         value=answer.value,
                         correct=bool(answer.correct),
+                        credit=answer.credit or 0.0,
                         points=answer.points or 0,
                     )
                     for pid, answer in question.answers.items()

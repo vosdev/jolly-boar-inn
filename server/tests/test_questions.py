@@ -316,14 +316,14 @@ def test_reveal_has_answer_and_both_values() -> None:
 
 
 def test_grade() -> None:
-    """T4: unit test for ``grade``."""
+    """T4: unit test for ``grade``. T17: it returns credit, and ``more_less`` has no
+    partial answers, so every credit is all or nothing."""
     right, wrong, odd = uuid4(), uuid4(), uuid4()
     submissions = [Submission(right, 0), Submission(wrong, 1), Submission(odd, "0")]
-    assert more_less.grade(EXAMPLE["payload"], submissions) == {
-        right: True,
-        wrong: False,
-        odd: False,
-    }
+    credit = more_less.grade(EXAMPLE["payload"], submissions)
+    assert credit == {right: 1.0, wrong: 0.0, odd: 0.0}
+    # ``True == 1.0``, so the equality above would pass on the old booleans too.
+    assert all(type(value) is float for value in credit.values())
     assert more_less.grade(EXAMPLE["payload"], []) == {}
 
 

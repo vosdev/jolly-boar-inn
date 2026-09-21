@@ -15,6 +15,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
+from app.questions.types.scoring import Scoring
 from app.rooms.settings import RoomSettings
 
 RoomStatus = Literal["lobby", "playing", "finished"]
@@ -212,16 +213,30 @@ class QuestionOpen(_Message):
 
 
 class AnswerAck(_Message):
-    """Bucket only, never correctness, for everyone."""
+    """How the answer will be scored and where it landed, never whether it was right.
+
+    ``band`` is the speed bucket (1..5) for ``speed``, the step the answer arrived on for
+    ``step``, and null for ``rank``: a guess ranked against everyone else's is worth
+    nothing anybody can know until they have all answered.
+    """
 
     t: Literal["answer_ack"] = "answer_ack"
     question_id: str
-    bucket: int = Field(ge=1, le=5)
+    scoring: Scoring
+    band: Annotated[int, Field(ge=1)] | None
 
 
 class PlayerResult(_Message):
+    """One player's row in the reveal.
+
+    ``credit`` is what the type's ``grade`` returned. It is here so a reveal can say
+    "three of five in the right place"; ``correct`` is the tie-break's boolean, and is
+    ``credit >= 1.0``.
+    """
+
     value: Any
     correct: bool
+    credit: float = Field(ge=0.0, le=1.0)
     points: int
 
 
