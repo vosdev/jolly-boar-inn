@@ -69,10 +69,10 @@ class RoomView(_Message):
     total: int
     phase: Phase
     # When the current timed phase ends: a splash gives way to its first question, a
-    # reveal to the next question. Null while a question is open, and in a room that is
-    # not playing. Also on ``question_closed``, but a splash or a reveal a client arrives
-    # into (a reconnect, or a room that just came back from a restart) has no frame of its
-    # own to carry it.
+    # reveal to the next question. Null while a question is open, during a splash still
+    # waiting for the room to be ready (D7), and in a room that is not playing. Also on
+    # ``question_closed``, but a splash or a reveal a client arrives into (a reconnect,
+    # or a room that just came back from a restart) has no frame of its own to carry it.
     next_at: datetime | None
     # The round in progress, null before the first question and once the game is over.
     segment: Segment | None

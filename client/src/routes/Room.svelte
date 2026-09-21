@@ -233,11 +233,10 @@
     <Splash
       segment={$room.segment}
       endsAt={$room.next_at}
-      totalSeconds={$room.settings.splash_seconds}
       questionSeconds={roundSeconds}
       players={$players}
       youId={$you?.id ?? null}
-      onReady={() => socket?.send({ t: 'ready', ready: true })}
+      onReady={(ready) => socket?.send({ t: 'ready', ready })}
       onSkip={isAdmin ? () => socket?.send({ t: 'skip' }) : null}
     />
   {:else}

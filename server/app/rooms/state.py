@@ -331,14 +331,15 @@ class Room:
     totals: dict[UUID, Totals] = field(default_factory=dict, repr=False)
     phase: str = "idle"
     # When the current timed phase ends: a splash gives way to its first question, a
-    # reveal to the next question. ``None`` while a question is open.
+    # reveal to the next question. ``None`` while a question is open, and during a splash
+    # that is still waiting for the room to be ready.
     next_at: datetime | None = None
     # The one task driving open → closed → reveal → next.
     timer: asyncio.Task[None] | None = field(default=None, repr=False)
     # Set to cut the current sleep short: ``skip``, or everyone has answered.
     advance: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
-    # Set when ``next_at`` moved earlier under a sleeping splash (the ready check, D7),
-    # so the timer task wakes and sleeps again to the new time rather than the old one.
+    # Set when the ready check (D7) starts, shortens or stops a splash's countdown, so the
+    # timer task wakes and sleeps to the new ``next_at`` rather than the old one.
     rescheduled: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
 
     @property
@@ -761,8 +762,8 @@ class RoomManager:
 
         Join, leave, connect, disconnect, promote, kick, status change, ``ready`` -- and
         the start of a splash, which has no frame of its own because the ``RoomView`` in
-        here says everything a client needs: the phase, the round, and when it ends. A
-        ready check that hurries the splash changes that ``next_at`` in the same frame.
+        here says everything a client needs: the phase, the round, and when it ends. The
+        ready check's countdown is that ``next_at``, so it travels in the same frame.
         """
         message = RoomUpdated(room=room.view(), players=room.player_views())
         return Broadcast.to_all(room, message.model_dump(mode="json"), exclude)
@@ -813,7 +814,7 @@ class RoomManager:
             room.sockets[player.id] = ws
             player.connected = True
             # A ready player coming back can be the last one a splash was waiting on.
-            _hurry_splash(room)
+            _recount_splash(room)
             question = room.open_question()
             answered = question.answers.get(player.id) if question is not None else None
             # ``room.view()`` carries the round, so a socket arriving during a splash
@@ -866,7 +867,7 @@ class RoomManager:
             if player is not None:
                 player.connected = False
             # Somebody leaving lowers the threshold rather than stalling the splash.
-            _hurry_splash(room)
+            _recount_splash(room)
             update = self._room_updated(room)
         await self._broadcast(update)
 
@@ -1053,11 +1054,10 @@ class RoomManager:
     async def set_ready(self, code: str, player: Player, is_ready: bool) -> None:
         """Tap ready, or take it back (D7, section 7.1 of ideas/design.md).
 
-        In the lobby it is information for the host, who still presses Start. On a splash
-        it can end the splash early (``rooms/ready.py``): the new ``next_at`` rides on the
-        same ``room_updated`` that says who is ready. Taking it back on a splash is allowed
-        and changes the count, but never the time -- a splash already hurried stays
-        hurried, because the ready check only ever moves ``next_at`` earlier.
+        In the lobby it is what the host's Start waits on. On a splash it is what ends the
+        splash (``rooms/ready.py``): the threshold starts a countdown, everyone ready
+        shortens it, and taking a tap back below the threshold stops it again. The
+        countdown rides as ``next_at`` on the same ``room_updated`` that says who is ready.
 
         Anywhere else there is nothing to be ready for. Nothing changed is nothing
         broadcast.
@@ -1074,7 +1074,7 @@ class RoomManager:
             if target.ready == is_ready:
                 return
             target.ready = is_ready
-            _hurry_splash(room)
+            _recount_splash(room, unready=not is_ready)
             update = self._room_updated(room)
         await self._broadcast(update)
 
@@ -1222,7 +1222,7 @@ class RoomManager:
             for question in room.questions:
                 question.answers.pop(player_id, None)
             socket = room.sockets.pop(player_id, None)
-            _hurry_splash(room)
+            _recount_splash(room)
             update = self._room_updated(room)
         if socket is not None:
             await _close(socket, CLOSE_KICKED, "removed from the room")
@@ -1352,7 +1352,8 @@ class RoomManager:
                 return True
             room.current_index = index
             room.phase = "splash"
-            room.next_at = datetime.now(UTC) + timedelta(seconds=room.settings.splash_seconds)
+            # No clock: the splash waits for the room (``rooms/ready.py``) or the host.
+            room.next_at = None
             room.advance.clear()
             # Each splash is its own ready check: being ready for the last round is not
             # being ready for this one.
@@ -1364,19 +1365,23 @@ class RoomManager:
         return True
 
     async def _sleep_through_splash(self, room: Room) -> None:
-        """``_sleep_until`` for a splash, whose end can move while it sleeps.
+        """Wait out a splash, which ends when the room is ready rather than on a clock.
 
-        The ready check pulls ``next_at`` earlier and sets ``rescheduled``; this wakes on
-        that, reads the new time and sleeps again. ``skip`` sets ``advance`` and ends it
-        at once, as it ends any other sleep. Reading ``next_at`` and clearing
-        ``rescheduled`` happen with no await between them, so a reschedule is never lost
-        between the read and the wait.
+        ``next_at`` is ``None`` until the ready check starts a countdown, and it can be
+        started, shortened or stopped while this sleeps: each change sets
+        ``rescheduled``, and this wakes, reads the new time and sleeps again. ``skip``
+        sets ``advance`` and ends it at once, as it ends any other sleep. Reading
+        ``next_at`` and clearing ``rescheduled`` happen with no await between them, so a
+        change is never lost between the read and the wait.
         """
         while True:
             target = room.next_at
             room.rescheduled.clear()
-            if target is None or room.phase != "splash" or room.advance.is_set():
+            if room.phase != "splash" or room.advance.is_set():
                 return
+            if target is None:
+                await _wait_for_either(room.advance, room.rescheduled, None)
+                continue
             delay = (target - datetime.now(UTC)).total_seconds()
             if delay <= 0:
                 return
@@ -1556,28 +1561,36 @@ def _everyone_answered(room: Room, question: RoomQuestion) -> bool:
     return bool(eligible) and all(pid in question.answers for pid in eligible)
 
 
-def _hurry_splash(room: Room) -> None:
-    """Pull a splash's ``next_at`` earlier if the room is ready enough. Lock held.
+def _recount_splash(room: Room, unready: bool = False) -> None:
+    """Start, shorten or stop a splash's countdown to match who is ready. Lock held.
 
     A no-op outside a splash. Eligible is every connected player who can answer the
     round's first question (``current_index`` points at it during a splash), and only
     their taps count: a player who cannot answer may tap, but holds nobody up either way.
+
+    Only an un-ready (``unready``) stops a running countdown; a connect, a disconnect or a
+    kick can start or shorten one but never stop it (``rooms/ready.py`` says why). Any
+    change sets ``rescheduled``, so the timer task sleeps to the new ``next_at``.
     """
-    if room.status != "playing" or room.phase != "splash" or room.next_at is None:
+    if room.status != "playing" or room.phase != "splash":
         return
     question = room.current
     if question is None:
         return
     eligible = [pid for pid in room.sockets if question.can_answer(pid)]
     tapped = sum(1 for pid in eligible if room.players[pid].ready)
-    target = ready.hurried(room.next_at, datetime.now(UTC), len(eligible), tapped)
-    if target < room.next_at:
+    target = ready.countdown(room.next_at, datetime.now(UTC), len(eligible), tapped)
+    if target is None and not unready:
+        return
+    if target != room.next_at:
         room.next_at = target
         room.rescheduled.set()
 
 
-async def _wait_for_either(first: asyncio.Event, second: asyncio.Event, delay: float) -> None:
-    """Wait up to ``delay`` seconds for either event to be set."""
+async def _wait_for_either(
+    first: asyncio.Event, second: asyncio.Event, delay: float | None
+) -> None:
+    """Wait up to ``delay`` seconds (``None``: for ever) for either event to be set."""
     waiters = [asyncio.ensure_future(first.wait()), asyncio.ensure_future(second.wait())]
     try:
         await asyncio.wait(waiters, timeout=delay, return_when=asyncio.FIRST_COMPLETED)

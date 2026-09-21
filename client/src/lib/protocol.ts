@@ -51,7 +51,10 @@ export interface RoomSettings {
   /** Where the room's own questions go; nothing to do with `mode_order`. Phase 2. */
   order: 'shuffle' | 'custom_last'
   reveal_seconds: number
-  /** How long a round's mode is introduced for. Zero means no splash at all. */
+  /**
+   * Zero means no splash at all; anything else, a splash that waits for the room to be
+   * ready (D7). No longer a length, but still a number so every stored room reads.
+   */
   splash_seconds: number
   close_when_all_answered: boolean
   max_players: number | null

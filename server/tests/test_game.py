@@ -968,9 +968,8 @@ def test_no_splash_when_splash_seconds_is_zero(game) -> None:
 
 
 def test_the_first_round_is_introduced_before_its_first_question(table) -> None:
-    """The splash holds the room for ``splash_seconds``, then the question opens."""
-    game = table("Zezima", seconds=10, splash_seconds=1)
-    before = datetime.now(UTC)
+    """The splash holds the room until it is ready, then the question opens."""
+    game = table("Zezima", seconds=10, splash_seconds=8)
     game.start()
     update = game.splash()
     room = update["room"]
@@ -984,8 +983,12 @@ def test_the_first_round_is_introduced_before_its_first_question(table) -> None:
         "start": 0,
         "count": 3,
     }
-    ends_at = datetime.fromisoformat(room["next_at"])
-    assert 0 < (ends_at - before).total_seconds() <= 2
+    assert room["next_at"] is None  # no clock: it waits for the room
+    for seat in game.seats:
+        seat.send(t="ready", ready=True)
+    ends_at = datetime.fromisoformat(
+        updated(game.admin, lambda m: all(ready_of(m).values()))["room"]["next_at"]
+    )
     opened = game.admin.take("question_open")
     assert opened["question"]["index"] == 0
     assert datetime.fromisoformat(opened["question"]["opened_at"]) >= ends_at - timedelta(
@@ -1025,7 +1028,7 @@ def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> 
     game = table(
         "Zezima",
         reveal_seconds=1,
-        splash_seconds=1,
+        splash_seconds=8,
         modes=[
             {"mode": second_mode, "questions": 1, "seconds": 10},
             {"mode": "more_less", "questions": 1, "seconds": 10},
@@ -1034,11 +1037,13 @@ def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> 
     assert [q.mode for q in game.room.questions] == [second_mode, "more_less"]
     game.start()
     assert game.splash()["room"]["segment"]["mode"] == second_mode
+    game.admin.send(t="skip")
     game.opened(0)
     game.admin.send(t="skip")
     game.admin.take("question_closed")
     game.admin.send(t="skip")
     assert game.splash()["room"]["segment"]["mode"] == "more_less"
+    game.admin.send(t="skip")
     opened = game.admin.take("question_open")["question"]
     assert opened["index"] == 1
     assert opened["segment"] == {
@@ -1111,7 +1116,7 @@ def test_welcome_during_a_splash_says_so(table, client) -> None:
         assert welcome["t"] == "welcome"
         assert welcome["question"] is None  # nothing to answer yet
         assert welcome["room"]["phase"] == "splash"
-        assert welcome["room"]["next_at"] is not None
+        assert welcome["room"]["next_at"] is None  # nobody has tapped ready yet
         assert welcome["room"]["segment"]["mode"] == "more_less"
         assert welcome["room"]["segment"]["index"] == 0
 
@@ -1129,7 +1134,7 @@ def test_end_game_during_a_splash_voids_nothing(table, db) -> None:
 
 def test_a_restart_during_a_splash_replays_it(table, client, db, evict) -> None:
     """A splash is a question that has not opened, which recovery already handles."""
-    game = table("Zezima", seconds=10, reveal_seconds=1, splash_seconds=1)
+    game = table("Zezima", seconds=10, reveal_seconds=1, splash_seconds=8)
     game.start()
     for seat in game.seats:  # every socket, so none has a frame left to read at the close
         game.splash(seat)
@@ -1148,6 +1153,7 @@ def test_a_restart_during_a_splash_replays_it(table, client, db, evict) -> None:
         assert admin.take("welcome")["room"]["phase"] == "reveal"
         # The reveal ends, and the round is introduced again before the question it owes.
         assert game.splash(admin)["room"]["phase"] == "splash"
+        admin.send(t="ready", ready=True)  # the only one connected: a room of one
         assert admin.take("question_open")["question"]["index"] == 0
 
 
@@ -1172,16 +1178,19 @@ def seconds_left(message: dict[str, Any]) -> float:
     return (ends_at - datetime.now(UTC)).total_seconds()
 
 
+def tap(game: Game, seat: Seat, is_ready: bool = True) -> dict[str, Any]:
+    """``seat`` taps ready (or takes it back); the admin's ``room_updated`` that shows it."""
+    seat.send(t="ready", ready=is_ready)
+    return updated(game.admin, lambda m: ready_of(m)[seat.name] is is_ready)
+
+
 def test_ready_in_the_lobby_is_broadcast_by_name(table) -> None:
     """The lobby list: who is ready is everyone's to see, and a tap can be taken back."""
     game = table("Zezima", "Woox")
-    player = game.players[0]
-    player.send(t="ready", ready=True)
-    message = updated(game.admin, lambda m: ready_of(m)["Zezima"])
+    message = tap(game, game.players[0])
     assert ready_of(message) == {game.admin.name: False, "Zezima": True, "Woox": False}
-    assert game.room.status == "lobby"  # the host still presses Start
-    player.send(t="ready", ready=False)
-    assert not ready_of(updated(game.admin, lambda m: not ready_of(m)["Zezima"]))["Zezima"]
+    assert game.room.status == "lobby"
+    assert not ready_of(tap(game, game.players[0], False))["Zezima"]
 
 
 def test_ready_is_refused_while_a_question_is_open(game) -> None:
@@ -1198,7 +1207,7 @@ def test_ready_must_be_a_boolean(game) -> None:
 
 def test_every_splash_starts_nobody_ready(table) -> None:
     """Ready to start is not ready for the round: the splash asks again."""
-    game = table("Zezima", seconds=10, splash_seconds=30)
+    game = table("Zezima", seconds=10, splash_seconds=8)
     for seat in game.seats:
         seat.send(t="ready", ready=True)
     updated(game.admin, lambda m: all(ready_of(m).values()))
@@ -1206,100 +1215,128 @@ def test_every_splash_starts_nobody_ready(table) -> None:
     assert not any(ready_of(game.splash()).values())
 
 
-def test_a_room_of_one_waits_for_its_player(table) -> None:
-    """Exempt from the cap: the threshold is 1, so nothing moves until the tap."""
-    game = table(seconds=10, splash_seconds=30)
+def test_a_splash_has_no_clock_of_its_own(table) -> None:
+    """Nobody ready, nothing running: the splash waits well past its old eight seconds."""
+    game = table("Zezima", seconds=10, splash_seconds=1)
     game.start()
-    splash = game.splash()
-    assert seconds_left(splash) > 25
-    game.admin.send(t="ready", ready=True)
-    hurried = updated(game.admin, lambda m: ready_of(m)[game.admin.name])
+    assert game.splash()["room"]["next_at"] is None
+    time.sleep(1.5)
+    room = game.room
+    assert (room.phase, room.next_at) == ("splash", None)
+    game.admin.send(t="skip")  # the host's override still works on a waiting splash
+    assert game.admin.take("question_open")["question"]["index"] == 0
+
+
+def test_a_room_of_one_waits_for_its_player(table) -> None:
+    """Exempt from the cap: the threshold is 1, and that one tap is everyone: 3 seconds."""
+    game = table(seconds=10, splash_seconds=8)
+    game.start()
+    game.splash()
+    hurried = tap(game, game.admin)
     assert 2 < seconds_left(hurried) <= 3
     started = time.monotonic()
     assert game.admin.take("question_open")["question"]["index"] == 0
     assert time.monotonic() - started < 4
 
 
-def test_everyone_ready_gives_three_seconds(table) -> None:
-    game = table("Zezima", "Woox", seconds=10, splash_seconds=30)
+def test_the_threshold_starts_ten_seconds_and_everyone_brings_it_to_three(table) -> None:
+    """A room of three with one in the kitchen: two taps start it, the third shortens it."""
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
     game.start()
     game.splash()
-    for seat in game.seats:
-        seat.send(t="ready", ready=True)
-    message = updated(game.admin, lambda m: all(ready_of(m).values()))
-    assert 2 < seconds_left(message) <= 3
+    assert tap(game, game.admin)["room"]["next_at"] is None  # one of three is short
+    two = tap(game, game.players[0])
+    assert 9 < seconds_left(two) <= 10
+    three = tap(game, game.players[1])
+    assert 2 < seconds_left(three) <= 3
     started = time.monotonic()
     game.admin.take("question_open")
     assert time.monotonic() - started < 4
 
 
-def test_a_room_of_three_with_one_in_the_kitchen_still_starts(table) -> None:
-    """Two of three is the threshold: ten seconds, and the third is not waited on."""
-    game = table("Zezima", "Woox", seconds=10, splash_seconds=30)
+def test_the_host_can_skip_a_counting_splash(table) -> None:
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
     game.start()
-    splash = game.splash()
-    before = seconds_left(splash)
-    game.admin.send(t="ready", ready=True)
-    one = updated(game.admin, lambda m: ready_of(m)[game.admin.name])
-    assert seconds_left(one) > 25  # one of three is short of the threshold
-    game.players[0].send(t="ready", ready=True)
-    two = updated(game.admin, lambda m: ready_of(m)["Zezima"])
-    assert 9 < seconds_left(two) <= 10 < before
+    game.splash()
+    tap(game, game.admin)
+    tap(game, game.players[0])
     assert game.room.phase == "splash"
-    game.admin.send(t="skip")  # and the host can still skip a hurried splash
+    game.admin.send(t="skip")
     assert game.admin.take("question_open")["question"]["index"] == 0
 
 
-def test_the_ready_check_never_lengthens_a_splash(table) -> None:
-    """``min(10s, remaining)``: a two-second splash that reaches the threshold keeps two."""
-    game = table("Zezima", "Woox", seconds=10, splash_seconds=2)
-    game.start()
-    splash = game.splash()
-    game.admin.send(t="ready", ready=True)
-    game.players[0].send(t="ready", ready=True)
-    message = updated(game.admin, lambda m: ready_of(m)["Zezima"])
-    assert message["room"]["next_at"] == splash["room"]["next_at"]
-
-
-def test_taking_ready_back_never_lengthens_a_splash(table) -> None:
-    game = table(seconds=10, splash_seconds=30)
+def test_an_un_ready_below_the_threshold_stops_the_countdown(table) -> None:
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
     game.start()
     game.splash()
-    game.admin.send(t="ready", ready=True)
-    hurried = updated(game.admin, lambda m: ready_of(m)[game.admin.name])
-    game.admin.send(t="ready", ready=False)
-    after = updated(game.admin, lambda m: not ready_of(m)[game.admin.name])
-    assert after["room"]["next_at"] == hurried["room"]["next_at"]
+    tap(game, game.admin)
+    assert tap(game, game.players[0])["room"]["next_at"] is not None
+    stopped = tap(game, game.players[0], False)
+    assert stopped["room"]["next_at"] is None
+    assert game.room.phase == "splash"
+    again = tap(game, game.players[0])  # and tapping again starts it afresh
+    assert 9 < seconds_left(again) <= 10
+
+
+def test_an_un_ready_that_keeps_the_threshold_keeps_the_countdown(table) -> None:
+    """Five players: everyone ready is three seconds, one taking it back is four of five
+    -- still the threshold -- and the countdown already running is not pushed back."""
+    game = table("Zezima", "Woox", "Lynx", "Hey Jase", seconds=10, splash_seconds=8)
+    game.start()
+    game.splash()
+    for seat in game.seats[:-1]:
+        tap(game, seat)
+    everyone = tap(game, game.seats[-1])
+    assert 2 < seconds_left(everyone) <= 3
+    back = tap(game, game.seats[-1], False)
+    assert back["room"]["next_at"] == everyone["room"]["next_at"]
 
 
 def test_a_disconnect_lowers_the_threshold_rather_than_stalling(table) -> None:
     """One of three is short; the third leaving makes it one of two, which is enough."""
-    game = table("Zezima", "Woox", seconds=10, splash_seconds=30)
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
     game.start()
     game.splash()
-    game.admin.send(t="ready", ready=True)
-    assert seconds_left(updated(game.admin, lambda m: ready_of(m)[game.admin.name])) > 25
+    assert tap(game, game.admin)["room"]["next_at"] is None
     game.players[1].ws.close()
 
     def woox_gone(message: dict[str, Any]) -> bool:
         return not {p["display_name"]: p["connected"] for p in message["players"]}["Woox"]
 
-    message = updated(game.admin, woox_gone)
-    assert 9 < seconds_left(message) <= 10
+    assert 9 < seconds_left(updated(game.admin, woox_gone)) <= 10
+
+
+def test_a_connect_never_stops_a_countdown(table, client) -> None:
+    """A phone waking up changes the threshold; it must not reset a running countdown."""
+    game = table("Zezima", seconds=10, splash_seconds=8)
+    game.start()
+    game.splash()
+    counting = tap(game, game.players[0])  # one of two is the threshold
+    assert counting["room"]["next_at"] is not None
+    body = join(client, game.code, "Latecomer").json()
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        ws.send_json({"t": "hello", "session": body["session"]})
+        welcome = ws.receive_json()
+        # One of three is short of the threshold now, and the countdown still runs.
+        assert welcome["room"]["next_at"] == counting["room"]["next_at"]
 
 
 def test_a_player_joining_mid_splash_sees_who_is_ready(table, client) -> None:
-    game = table("Zezima", seconds=10, splash_seconds=30)
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
     game.start()
     game.splash()
-    game.admin.send(t="ready", ready=True)
-    updated(game.admin, lambda m: ready_of(m)[game.admin.name])
+    tap(game, game.admin)
     body = join(client, game.code, "Latecomer").json()
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         ws.send_json({"t": "hello", "session": body["session"]})
         welcome = ws.receive_json()
         assert welcome["room"]["phase"] == "splash"
-        assert ready_of(welcome) == {game.admin.name: True, "Zezima": False, "Latecomer": False}
+        assert ready_of(welcome) == {
+            game.admin.name: True,
+            "Zezima": False,
+            "Woox": False,
+            "Latecomer": False,
+        }
         assert welcome["you"]["ready"] is False
 
 

@@ -1,33 +1,33 @@
 <script lang="ts">
   /**
-   * The card that introduces a round's mode, for up to `splash_seconds` before its first
-   * question opens.
+   * The card that introduces a round's mode before its first question opens.
    *
    * This screen is why the question screens can be as bare as they are: the mode is
    * explained once, here, with time to read it, instead of a sentence above every
    * question that players learn to skip past by question three.
    *
-   * The server drives the timing — `phase` is `splash` and `next_at` is when it ends —
-   * so everybody in the room sees the same countdown, and the host's skip button
-   * shortens it for everyone at once.
+   * It has no clock of its own. The server holds it until enough of the room is ready
+   * (`rooms/ready.py`), then counts down: `next_at` is null while it waits and the end of
+   * the countdown once one runs, so everybody sees the same number. The host's skip is
+   * the override, and ends it for everyone at once.
    *
    * The ready check (D7, section 7.1 of ideas/design.md) is a row of heads, dim until
    * their player taps ready, and never a list of names: a splash comes round up to
    * thirteen times a game, and naming who is holding things up each time turns an
-   * eight-second beat into a negotiation. The lobby is where names are listed. Enough
-   * taps pull `next_at` earlier on the server, and the countdown here follows it; they
-   * can never push it later.
+   * short beat into a negotiation. The lobby is where names are listed. A tap can be
+   * taken back; below the threshold that stops the countdown again.
    */
   import { headOf } from '../lib/heads'
   import { MODES, splashArt } from '../lib/modes'
   import type { PlayerView, Segment } from '../lib/protocol'
+  import { readyThreshold } from '../lib/ready'
+  import { serverOffsetMs } from '../lib/stores'
   import Head from './Head.svelte'
   import Timer from './Timer.svelte'
 
   let {
     segment,
     endsAt,
-    totalSeconds,
     questionSeconds,
     players,
     youId,
@@ -35,14 +35,14 @@
     onSkip = null,
   }: {
     segment: Segment
-    /** When the splash ends, from `room.next_at`. */
+    /** When the countdown ends, from `room.next_at`; null while the splash waits. */
     endsAt: string | null
-    totalSeconds: number
     /** How long each question of the round is open for, or null if the room has no entry. */
     questionSeconds: number | null
     players: PlayerView[]
     youId: string | null
-    onReady: () => void
+    /** Tap ready, or take it back. */
+    onReady: (ready: boolean) => void
     /** The host's skip; null for everyone else. */
     onSkip?: (() => void) | null
   } = $props()
@@ -61,6 +61,21 @@
   const readyCount = $derived(present.filter((player) => player.ready === true).length)
   const youReady = $derived(players.some((player) => player.id === youId && player.ready === true))
   const summary = $derived(`${readyCount} of ${present.length} ready`)
+  /** Taps still wanted before the countdown starts: a count, never a name. */
+  const short = $derived(Math.max(0, readyThreshold(present.length) - readyCount))
+
+  /**
+   * What a full timer bar means: however long the countdown had when it last started or
+   * moved. There are two lengths (ten seconds, three), and a tap arriving mid-countdown
+   * starts the bar again from full at the shorter one rather than from partway down.
+   */
+  let span = $state(0)
+  $effect(() => {
+    span =
+      endsAt === null
+        ? 0
+        : Math.max(1, (Date.parse(endsAt) - (Date.now() + $serverOffsetMs)) / 1000)
+  })
   // Built here rather than in the markup, where Svelte would trim the space before the dot.
   const pace = $derived(
     `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}` +
@@ -95,12 +110,11 @@
     <div class="ready">
       <button
         type="button"
-        class="primary"
+        class:primary={!youReady}
         aria-pressed={youReady}
-        disabled={youReady}
-        onclick={onReady}
+        onclick={() => onReady(!youReady)}
       >
-        {youReady ? '✓ Ready' : "✓ I'm ready"}
+        {youReady ? '✓ Ready — tap to undo' : "✓ I'm ready"}
       </button>
       <ul class="heads" aria-label={summary}>
         {#each present as player (player.id)}
@@ -113,7 +127,11 @@
     </div>
 
     {#if endsAt !== null}
-      <Timer {endsAt} {totalSeconds} label="until the round starts" />
+      <Timer {endsAt} totalSeconds={span} label="until the round starts" />
+    {:else}
+      <p class="waiting surface" aria-live="polite">
+        {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
+      </p>
     {/if}
     {#if onSkip !== null}
       <button type="button" class="small skip" onclick={onSkip}>Start the round now</button>
@@ -285,6 +303,18 @@
 
   .tally {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Where the timer will be once one runs, the same plaque, so nothing below moves. */
+  .waiting {
+    align-self: stretch;
+    margin: 0;
+    padding: calc(0.4rem - var(--border-give)) calc(0.65rem - var(--border-give));
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+    color: var(--muted);
+    text-align: right;
   }
 
   .skip {

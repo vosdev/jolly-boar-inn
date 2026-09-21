@@ -8,12 +8,14 @@
    *
    * The ready check here is the named one (D7, section 7.1 of ideas/design.md): the host
    * needs to know *who* is missing before pressing Start, because the answer is usually
-   * somebody at the bar, and a name is something you can shout. It is information for
-   * that decision and nothing more — no timer, and Start is still the host's to press.
-   * The splash asks again with heads only.
+   * somebody at the bar, and a name is something you can shout. The host is a player like
+   * any other and taps too. Start is the plain button once the room reaches the same
+   * threshold a splash uses; short of it, it is "Start anyway", which asks first. The
+   * splash asks again with heads only.
    */
   import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
+  import { readyThreshold } from '../lib/ready'
   import type { PlayerView } from '../lib/protocol'
   import { lastError, players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
@@ -50,16 +52,30 @@
   const youReady = $derived($players.some((p) => p.id === $you?.id && p.ready === true))
   const readyCount = $derived($players.filter((p) => p.ready === true).length)
   /**
-   * Who the host is waiting on, by name, in join order. Not the host: pressing Start is
-   * their answer, so their own name in the list would only be asking them the question.
+   * Who counts: the players connected right now, which is who the splash will count too.
+   * A player whose phone has locked is not someone the host can start without asking.
    */
+  const present = $derived($players.filter((p) => p.connected))
+  const presentReady = $derived(present.filter((p) => p.ready === true).length)
+  const enoughReady = $derived(presentReady >= readyThreshold(present.length))
+  /** Who is not ready yet, by name, in join order — the host included, as "you". */
   const waitingOn = $derived(
-    $players.filter((p) => p.ready !== true && p.id !== $you?.id).map((p) => p.display_name),
+    $players
+      .filter((p) => p.ready !== true)
+      .map((p) => (p.id === $you?.id ? 'you' : p.display_name)),
   )
   const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
 
   function toggleReady(): void {
     socket.send({ t: 'ready', ready: !youReady })
+  }
+
+  /** Start, asking first when the room is short of its threshold: the host's override. */
+  function start(): void {
+    if (!enoughReady && !confirm(`Start anyway? Still waiting on ${listFormat.format(waitingOn)}.`)) {
+      return
+    }
+    socket.send({ t: 'start_game' })
   }
 
   function kick(player: PlayerView): void {
@@ -169,8 +185,8 @@
         Waiting on {listFormat.format(waitingOn)}.
       {/if}
     </p>
-    <button class="primary" type="button" disabled={!canStart} onclick={() => socket.send({ t: 'start_game' })}>
-      Start the game
+    <button class:primary={enoughReady} type="button" disabled={!canStart} onclick={start}>
+      {enoughReady ? 'Start the game' : 'Start anyway'}
     </button>
   </section>
 {:else}

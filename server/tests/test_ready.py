@@ -1,4 +1,4 @@
-"""D7: the ready check's threshold and the time it hurries a splash to. Pure.
+"""D7: the ready check's threshold and the countdown it starts, shortens and stops. Pure.
 
 The game half -- taps over the socket, disconnects, the splash actually ending -- is in
 test_game.py beside the rest of the splash.
@@ -8,10 +8,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS, hurried, threshold
+from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS, countdown, threshold
 
 NOW = datetime(2026, 9, 21, 20, 0, tzinfo=UTC)
-LATE = NOW + timedelta(seconds=30)
+TEN = NOW + timedelta(seconds=THRESHOLD_SECONDS)
+THREE = NOW + timedelta(seconds=EVERYONE_READY_SECONDS)
 
 
 @pytest.mark.parametrize(
@@ -36,37 +37,42 @@ def test_a_threshold_needs_somebody_to_count() -> None:
         threshold(0)
 
 
-def test_everyone_ready_leaves_three_seconds() -> None:
-    assert hurried(LATE, NOW, eligible=5, ready=5) == NOW + timedelta(
-        seconds=EVERYONE_READY_SECONDS
-    )
+def test_short_of_the_threshold_there_is_no_countdown() -> None:
+    assert countdown(None, NOW, eligible=5, ready=3) is None
 
 
-def test_the_threshold_leaves_ten_seconds() -> None:
-    assert hurried(LATE, NOW, eligible=5, ready=4) == NOW + timedelta(seconds=THRESHOLD_SECONDS)
+def test_the_threshold_starts_ten_seconds() -> None:
+    assert countdown(None, NOW, eligible=5, ready=4) == TEN
 
 
-def test_short_of_the_threshold_changes_nothing() -> None:
-    assert hurried(LATE, NOW, eligible=5, ready=3) == LATE
+def test_the_threshold_again_keeps_the_countdown_running() -> None:
+    running = NOW + timedelta(seconds=4)
+    assert countdown(running, NOW, eligible=5, ready=4) == running
 
 
-def test_a_room_of_three_with_one_in_the_kitchen_still_hurries() -> None:
-    assert hurried(LATE, NOW, eligible=3, ready=2) == NOW + timedelta(seconds=THRESHOLD_SECONDS)
+def test_everyone_ready_is_three_seconds_from_nothing_or_from_ten() -> None:
+    assert countdown(None, NOW, eligible=5, ready=5) == THREE
+    assert countdown(TEN, NOW, eligible=5, ready=5) == THREE
+
+
+def test_everyone_ready_never_pushes_a_countdown_back() -> None:
+    soon = NOW + timedelta(seconds=1)
+    assert countdown(soon, NOW, eligible=5, ready=5) == soon
+
+
+def test_dropping_below_the_threshold_stops_it() -> None:
+    assert countdown(TEN, NOW, eligible=5, ready=3) is None
+
+
+def test_a_room_of_three_with_one_in_the_kitchen_still_counts() -> None:
+    assert countdown(None, NOW, eligible=3, ready=2) == TEN
 
 
 def test_a_room_of_one_waits_for_its_player() -> None:
-    assert hurried(LATE, NOW, eligible=1, ready=0) == LATE
-    assert hurried(LATE, NOW, eligible=1, ready=1) == NOW + timedelta(
-        seconds=EVERYONE_READY_SECONDS
-    )
+    assert countdown(None, NOW, eligible=1, ready=0) is None
+    assert countdown(None, NOW, eligible=1, ready=1) == THREE
 
 
-def test_nobody_eligible_changes_nothing() -> None:
-    assert hurried(LATE, NOW, eligible=0, ready=0) == LATE
-
-
-@pytest.mark.parametrize("ready", [0, 4, 5])
-def test_the_ready_check_never_lengthens_a_splash(ready) -> None:
-    """``min(10s, remaining)``: a splash with two seconds left keeps its two seconds."""
-    soon = NOW + timedelta(seconds=2)
-    assert hurried(soon, NOW, eligible=5, ready=ready) == soon
+def test_nobody_eligible_leaves_it_alone() -> None:
+    assert countdown(None, NOW, eligible=0, ready=0) is None
+    assert countdown(TEN, NOW, eligible=0, ready=0) == TEN

@@ -759,8 +759,8 @@ Transitions:
 ### Question sub-machine (inside `playing`)
 
 ```
-(a new segment) ──▶ splash ──splash_seconds / ready check / skip──┐
-                                                                  ▼
+(a new segment) ──▶ splash ──ready check countdown / skip──┐
+                                                          ▼
 pending ──open──▶ open ──timer / all answered / skip──▶ closed ──reveal_seconds / skip──▶ (next pending)
                     │  └── an event opens muted: no answer taken before answerable_at
                     └── crash recovered / end_game ──▶ voided
@@ -772,14 +772,14 @@ The splash introduces a *segment*: it runs before a segment's first question and
 
 | Transition | Trigger | Side effects |
 |---|---|---|
-| `(new segment) → splash` | timer task, before a segment's first question | `next_at = now + splash_seconds`, every player's `ready` cleared, broadcast `room_updated`; no write |
-| `splash → splash` (hurried) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: everyone eligible ready → `next_at = min(next_at, now + 3s)`; the threshold reached → `min(next_at, now + 10s)`; broadcast `room_updated`; no write |
+| `(new segment) → splash` | timer task, before a segment's first question, unless `splash_seconds` is 0 | `next_at = null` (it waits for the room), every player's `ready` cleared, broadcast `room_updated`; no write |
+| `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`; no write |
 | `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the type's `SECONDS`), broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or every connected player who can answer has answered and `close_when_all_answered`; or admin `skip` | `UPDATE questions SET closed_at = now`, grade all answers, `UPDATE answers SET correct, points`, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
 | `open → voided` | restart recovery, `end_game` | `closed_at = now, voided = true`, no grading |
 
-**The ready check (D7).** Each player carries an in-memory `ready` flag, on `PlayerView`. In the lobby it is information for the host, who still presses Start; `start_game` clears it. On a splash it is the ready check from section 7.1 of `ideas/design.md`: *eligible* is every connected player who can answer the round's first question, the threshold is `min(ceil(0.8 × eligible), eligible - 1)` with a room of one at 1, and reaching it or everyone being ready pulls `next_at` earlier as in the table above. It only ever moves `next_at` earlier, so `splash_seconds` stays the ceiling, and taking a tap back never lengthens a splash already hurried. A disconnect lowers the threshold instead of stalling the round. The timer task sleeps through a splash to whatever `next_at` currently says: moving it sets `Room.rescheduled`, which wakes the task to sleep again to the new time. The flag is never persisted, so a restart costs one tap — the same as the splash it replays.
+**The ready check (D7).** Each player carries an in-memory `ready` flag, on `PlayerView`. In the lobby it is what the host's Start waits on — the client offers "Start anyway" short of the threshold, and the server does not refuse it, because that is the host's override. `start_game` clears it. On a splash it is the ready check from section 7.1 of `ideas/design.md`: *eligible* is every connected player who can answer the round's first question, the threshold is `min(ceil(0.8 × eligible), eligible - 1)` with a room of one at 1, and the splash has no clock until it is reached — then a countdown runs as in the table above. A running countdown is never pushed back; only an un-ready can stop it, never a connect or a disconnect, and a disconnect lowers the threshold instead of stalling the round. The host's `skip` ends a splash whether it is waiting or counting. The timer task sleeps through a splash to whatever `next_at` currently says, or indefinitely while it is null: changing it sets `Room.rescheduled`, which wakes the task to sleep again to the new time. The flag is never persisted, so a restart costs one tap — the same as the splash it replays.
 
 Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_question(index)` which does open → sleep-until-close → close → sleep-until-advance → next. `skip` cancels the sleep via an `asyncio.Event`, not by cancelling the task. Early close on all-answered sets the same event. Timing uses `asyncio.sleep(max(0, (ends_at - now).total_seconds()))`, so a late wakeup closes immediately instead of drifting.
 
@@ -793,7 +793,7 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
   "mode_order": "listed",          // "listed": the order above; "random": shuffled at creation
   "random_events": true,           // may a pack question interrupt a round? the host's always do
   "reveal_seconds": 8,             // 3..30
-  "splash_seconds": 8,             // 0..30, 0 turns the round intro off
+  "splash_seconds": 8,             // 0..30: 0 turns the round intro off, anything else on (D7: not a length)
   "random_event_seconds": 2,       // 0..10, the NPC holds the floor this long before the buttons
   "close_when_all_answered": true,
   "max_players": 50

@@ -520,13 +520,24 @@ small rooms:
   round before the only player has looked at it. With `eligible == 1` the threshold is 1:
   that player taps ready like everyone else, and the tap is also the audio unlock (§6) a
   solo player would otherwise never perform.
-- **Everyone ready → 3 seconds.** Enough to register that it is about to start.
-- **Threshold reached → `min(10s, time left on splash_seconds)`.**
+- **No clock until the threshold.** The splash waits for the room; there is no fixed
+  splash length any more. `splash_seconds` survives only as the on/off switch for the
+  splash (0 is off), so every stored room still reads.
+- **Threshold reached → a 10-second countdown.** The one person at the bar has that long
+  to look up.
+- **Everyone ready → 3 seconds**, from nothing or from the ten. Enough to register that
+  it is about to start.
+- **A tap can be taken back.** Dropping below the threshold that way stops the countdown
+  again. A connect or disconnect never stops one — a room of phones locking and waking
+  would otherwise never finish counting — and a running countdown is never pushed back.
+- **The host's skip is the override**, whether the splash is waiting or counting.
 
-The invariant that keeps this sane: **the ready check can only ever shorten the splash,
-never lengthen it.** `splash_seconds` stays the host's hard ceiling and the server stays the
-single source of timing via `next_at`, exactly as §4 of `ideas/architecture.md` already has
-it. Nothing about the room state machine changes — only what `next_at` gets set to.
+The lobby uses the same threshold: the host taps ready like everyone else, and Start is
+the plain button once the connected room reaches it. Short of it, it is "Start anyway",
+which asks first.
+
+The server stays the single source of timing via `next_at`, which is null while a splash
+waits and the countdown's end once one runs.
 
 **Motion budget: one transition.** A 200ms cross-fade into the splash, and heads lighting up
 as people tap. Nothing else. The countdown is the animation.
@@ -845,14 +856,14 @@ timer task, and only ever moves `next_at` earlier.
 
 **Accept:** the splash shows the scene for its mode and falls back to a default scene for a
 mode this build has no entry for; a placeholder scene reads as deliberate rather than as a
-broken image, and swapping in a real file needs no code change; the ready check never
-lengthens a splash beyond
-`splash_seconds`; everyone ready gives 3 seconds, threshold-reached gives
-`min(10s, remaining)`; a room of three with one player in the kitchen still starts; a room of
-one does not start until that player taps ready or `splash_seconds` runs out; a
-disconnecting player lowers the threshold rather than stalling the round; the host can still
-skip; a player who joins mid-splash sees the right ready state; `splash_seconds: 0` still
-skips the splash entirely; the lobby list names who is not ready and the splash does not.
+broken image, and swapping in a real file needs no code change; a splash with nobody
+ready waits rather than timing out; threshold-reached starts 10 seconds and everyone ready
+gives 3; taking a tap back below the threshold stops the countdown; a room of three with one
+player in the kitchen still starts; a room of one does not start until that player taps
+ready; a disconnecting player lowers the threshold rather than stalling the round; the host
+can still skip; a player who joins mid-splash sees the right ready state; `splash_seconds: 0`
+still skips the splash entirely; the lobby list names who is not ready and the splash does
+not; the lobby's Start asks before starting a room short of its threshold.
 
 ### D8. Question screens
 
@@ -977,8 +988,11 @@ of `--ok` at 3:1 against every `--gem-*` rather than the ring going neutral. §2
 [x] **The points slot shows earned points over the running total**, and never the reason for
 a bonus. §7.2.
 
-[x] **Two ready widgets, not one.** A named list in the lobby, a heads row on the splash. The
-ready check can only ever shorten a splash, never lengthen it. §7.1.
+[x] **Two ready widgets, not one.** A named list in the lobby, a heads row on the splash. §7.1.
+
+[x] **The splash has no clock of its own.** It waits for the ready threshold, then counts
+down 10 seconds, 3 once everyone is ready; the host's skip overrides it. The lobby's Start
+waits on the same threshold, with "Start anyway" as the override. §7.1.
 
 [x] **The ready threshold is a cap, not a floor** — `min(ceil(0.8 × eligible), eligible - 1)`
 — and a room of one is exempt at a threshold of 1 rather than starting instantly. §7.1.

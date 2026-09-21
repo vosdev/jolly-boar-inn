@@ -1,20 +1,20 @@
 """The splash's ready check (D7, section 7.1 of ideas/design.md). Pure and testable.
 
-A splash runs for ``splash_seconds`` unless the room says it is ready sooner. Two things
-cut it short, and neither can ever lengthen it:
+A splash has no clock of its own. It waits for the room, and the room says when:
 
-- **Everyone ready** leaves ``EVERYONE_READY_SECONDS``, enough to register that the round
-  is about to start.
-- **The threshold reached** leaves ``THRESHOLD_SECONDS``, so one person at the bar does not
-  hold up the other seven, and has ten seconds to look up before it goes without them.
+- **The threshold reached** starts a countdown of ``THRESHOLD_SECONDS``, so one person at
+  the bar does not hold up the other seven, and has that long to look up before the round
+  goes without them.
+- **Everyone ready** brings it down to ``EVERYONE_READY_SECONDS``, enough to register that
+  the round is about to start.
+- **Dropping back below the threshold** by somebody taking their tap back stops the
+  countdown again. Only an un-ready does that: a phone locking or waking changes who is
+  eligible, and a countdown that stopped and started with every one of those would never
+  finish in a room of people with phones in their pockets.
 
-Eligible is the connected players who can answer the round's first question. A
-disconnected player never holds up a round -- a locked phone is the common case -- so
-somebody leaving lowers the threshold rather than stalling it.
-
-``hurried`` only ever returns the time it was given or an earlier one. The server stays the
-single source of timing through ``next_at``, and ``splash_seconds`` stays the host's hard
-ceiling, exactly as section 4 of ideas/architecture.md has it.
+The host's skip overrides all of it. Eligible is the connected players who can answer the
+round's first question: a disconnected player never holds up a round, so somebody leaving
+lowers the threshold rather than stalling it.
 """
 
 import math
@@ -25,7 +25,7 @@ THRESHOLD_SECONDS = 10
 
 
 def threshold(eligible: int) -> int:
-    """How many of ``eligible`` players must be ready before the splash hurries.
+    """How many of ``eligible`` players must be ready before the countdown starts.
 
     ``min(ceil(0.8 × eligible), eligible - 1)``: a cap, not a floor, so two of three is
     enough in a room of three rather than one person in the kitchen stalling it. Above four
@@ -42,17 +42,24 @@ def threshold(eligible: int) -> int:
     return min(math.ceil(0.8 * eligible), eligible - 1)
 
 
-def hurried(next_at: datetime, now: datetime, eligible: int, ready: int) -> datetime:
+def countdown(
+    next_at: datetime | None, now: datetime, eligible: int, ready: int
+) -> datetime | None:
     """When the splash should end, given ``ready`` of ``eligible`` players tapped ready.
 
-    ``next_at`` is when it ends as things stand; the answer is never later. Nobody eligible
-    leaves it alone: there is nobody to be waiting on, and nobody to have said they are
-    ready either, so the host's ceiling (or the host's skip) decides.
+    ``next_at`` is the countdown as it stands, ``None`` for none running. A running
+    countdown is never pushed later: reaching the threshold again keeps it, and everyone
+    being ready only ever brings it closer. ``None`` back means the room is short of the
+    threshold, which the caller only acts on for an un-ready (see the module docstring).
+
+    Nobody eligible leaves it as it is: there is nobody to wait on, and nobody who can
+    have said they are ready either, so the host's skip decides.
     """
     if eligible < 1:
         return next_at
     if ready >= eligible:
-        return min(next_at, now + timedelta(seconds=EVERYONE_READY_SECONDS))
+        soon = now + timedelta(seconds=EVERYONE_READY_SECONDS)
+        return soon if next_at is None else min(next_at, soon)
     if ready >= threshold(eligible):
-        return min(next_at, now + timedelta(seconds=THRESHOLD_SECONDS))
-    return next_at
+        return next_at if next_at is not None else now + timedelta(seconds=THRESHOLD_SECONDS)
+    return None
