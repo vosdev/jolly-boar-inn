@@ -27,10 +27,17 @@
    * The sign links home. The mark is a placeholder shape (section 9.1): D10 swaps it for
    * `PUBLIC_SITE_LOGO` and the wordmark for `PUBLIC_SITE_NAME`, and neither needs a change
    * here to do it.
+   *
+   * The version sits beside the wordmark, in its own element rather than in `SITE_NAME`,
+   * so a selfhoster's name never swallows it. It is here only until the footer of section
+   * 9.2 exists, which is where it belongs; D10 moves it. `0.1.0` reads as `0.1`, and a fix
+   * release shows its patch number: `0.1.1`.
    */
   import type { Snippet } from 'svelte'
 
   const SITE_NAME = 'The Jolly Boar Inn'
+
+  const VERSION = __APP_VERSION__.replace(/\.0$/, '')
 
   /** The letter on the placeholder sign. A leading article is not what an inn is called,
       so the Jolly Boar Inn gets a J and the Dancing Donkey a D. */
@@ -121,7 +128,9 @@
         </svg>
       </a>
       <!-- Not a heading: the screen below owns the page title. -->
-      <p class="wordmark" aria-hidden="true">{SITE_NAME}</p>
+      <p class="wordmark" aria-hidden="true">
+        {SITE_NAME} <span class="version">{VERSION}</span>
+      </p>
     </div>
 
     <div class="controls">
@@ -212,6 +221,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .version {
+    color: var(--muted);
+    font-size: 0.8em;
+    font-weight: 400;
   }
 
   /* Takes whatever the mark leaves, right-aligned. min-width lets the name inside be the

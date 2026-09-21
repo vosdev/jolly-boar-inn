@@ -12,6 +12,8 @@ COPY client/ ./
 # heads, which the build packs into one sprite sheet (D4).
 COPY data/player-names.json ../data/player-names.json
 COPY data/heads/ ../data/heads/
+# The app's version, which the top bar shows (ideas/architecture.md, Versioning).
+COPY VERSION ../VERSION
 RUN pnpm build
 
 # ---- Stage 2: build the server venv with uv --------------------------------
@@ -36,6 +38,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Same image the uv base is built from, so the venv's interpreter symlink into
 # /usr/local and the absolute shebang in .venv/bin/uvicorn still resolve.
 FROM python:3.14.2-slim-bookworm AS runtime
+
+# `make image` passes the contents of /VERSION; a plain `docker build` leaves it unset.
+ARG VERSION=dev
+LABEL org.opencontainers.image.version=$VERSION
 
 # HOME points at the tmpfs so a stray cache write cannot fail on a read-only root.
 ENV PYTHONUNBUFFERED=1 \

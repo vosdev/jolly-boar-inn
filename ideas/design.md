@@ -762,6 +762,10 @@ Next to it, two links: **GitHub** (`https://github.com/vosdev/jolly-boar-inn`) a
 licence. The AGPL wants a source link reachable from a network service anyway, so the footer
 is where that obligation is discharged.
 
+The footer also carries the version (`ideas/architecture.md` §10). Until the footer exists,
+the version sits in the top bar beside the wordmark, in its own element so it never becomes
+part of `PUBLIC_SITE_NAME`. **D10 moves it here** and takes it out of the bar.
+
 ### 9.3 The GitHub link
 
 - **Footer: always.** This is its real home, and it is where anyone looking for it will look.
@@ -816,6 +820,9 @@ D1 tokens + theme engine
         D10 selfhoster branding   (needs D2)
         D11 motion + reduced-motion pass  (last)
 ```
+
+Every D task, like every T task, bumps the minor version in `VERSION` when it lands
+(`ideas/architecture.md` §10, Versioning).
 
 Build order for the biggest visible change soonest: **D1, D2, D5, D3.** That is the tokens,
 the shell, the themes and the names — after which the app stops looking generic, and D4 and
@@ -993,15 +1000,16 @@ reads as deliberate, and a real render drops in with no code change.
 
 `PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO`, `PUBLIC_DEFAULT_THEME` through Vite into the client,
 documented in `.env.example` and the README. Plus the persistent footer from §9.2 (the
-trademark line, the GitHub link, the licence link) and the GitHub icon in the top bar
-(§9.3).
+trademark line, the GitHub link, the licence link, the version) and the GitHub icon in the
+top bar (§9.3). The version moves out of the top bar and into the footer.
 
 **Accept:** an instance with all three set shows its own name, logo and default theme with no
 code change; an instance with none set is identical to today; a `PUBLIC_DEFAULT_THEME` naming
 a theme that does not exist falls back to `jolly` rather than rendering untokenised; a missing logo file falls back
 to the bundled sign rather than a broken image; the footer is present on every screen
 including mid-question and never overlaps an answer button on a 375px screen; the GitHub
-link works from both the footer and the top bar, and the bar icon hides under 26rem.
+link works from both the footer and the top bar, and the bar icon hides under 26rem; the version shows in the footer on every screen, including under 26rem, and nowhere in
+the bar.
 
 ### D11. Motion and the reduced-motion pass
 

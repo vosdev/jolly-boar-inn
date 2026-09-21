@@ -76,7 +76,11 @@ jobs:
         with:
           context: .
           load: true
-          tags: jolly-boar-inn:ci
+          # :latest is the name docker-compose.yml gives the app, so compose runs this
+          # image rather than building its own.
+          tags: |
+            jolly-boar-inn:ci
+            jolly-boar-inn:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Compose up and check health
@@ -106,3 +110,35 @@ jobs:
       - name: Compose down
         if: always()
         run: docker compose down -v
+
+  # Every T or D task bumps VERSION (ideas/architecture.md, Versioning). A main commit that
+  # passed everything above and carries a version with no tag yet becomes a release: tag
+  # v<VERSION> and a GitHub Release, notes built from the merged PRs. A commit that did not
+  # bump is a no-op; one that moved the version backwards fails.
+  release:
+    name: Release (tag when VERSION changes)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [server, client, containers]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag and release a new version
+        run: |
+          version=$(cat VERSION)
+          tag="v$version"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "$tag already exists: nothing to release"
+            exit 0
+          fi
+          latest=$(git tag --list 'v*' | sort -V | tail -n 1)
+          if [ -n "$latest" ] && [ "$(printf '%s\n%s\n' "$latest" "$tag" | sort -V | tail -n 1)" != "$tag" ]; then
+            echo "::error::VERSION $version is below the latest release $latest"
+            exit 1
+          fi
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes

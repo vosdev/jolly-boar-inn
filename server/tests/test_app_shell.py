@@ -96,6 +96,15 @@ def test_the_front_page_does_not_repeat_the_wordmark() -> None:
     assert not any("Jolly Boar Inn" in heading for heading in home)
 
 
+def test_the_version_sits_beside_the_wordmark_not_inside_it() -> None:
+    """D10 makes the name a selfhoster's to change; the version must survive that."""
+    bar = read(TOP_BAR)
+    assert "__APP_VERSION__" in bar
+    assert "__APP_VERSION__" not in re.search(r"const SITE_NAME = .*", bar).group(0)
+    wordmark = re.search(r'<p class="wordmark"[^>]*>(.*?)</p>', bar, re.S).group(1)
+    assert re.search(r'<span class="version">\{VERSION\}</span>', wordmark)
+
+
 # --- 56px, sticky, and out of the way ------------------------------------------------
 
 
