@@ -15,7 +15,9 @@ sound, and this module is where it is held to that:
 importer does, so Guess the Examine does not wait for T23. ``npcs`` is
 ``data/facts/npcs.json``, which T23 writes; until then it is simply absent, and
 ``GET /api/vocab/npcs`` is a 404 rather than an empty list that would look like a
-vocabulary with nobody in it.
+vocabulary with nobody in it. ``examines`` is ``data/examines.json``, the hand-written lines
+Guess the Examine is played from: items, NPCs and scenery alike, so it is a list of its
+own rather than a slice of the other two, and its answers are exactly its entries.
 
 Both are read once and never change while the process runs. ``version`` is a hash of the
 entries, so a client holding a list from one build can tell it is not this build's. It is
@@ -36,6 +38,7 @@ from app.config import REPO_ROOT
 SOURCES: dict[str, Path] = {
     "items": REPO_ROOT / "data" / "popular-items.json",
     "npcs": REPO_ROOT / "data" / "facts" / "npcs.json",
+    "examines": REPO_ROOT / "data" / "examines.json",
 }
 
 
@@ -136,8 +139,9 @@ def build(name: str, records: Any, label: str) -> Vocab:
 def read(name: str, path: Path) -> Vocab | None:
     """The vocabulary in ``path``, or ``None`` if the file does not exist yet.
 
-    The roster keeps its entries under ``"items"``, next to a ``_comment``; the importer's
-    files under a key named after the vocabulary. A bare list is accepted too.
+    The roster keeps its entries under ``"items"`` and ``examines.json`` under
+    ``"examines"``, each next to a ``_comment``; the importer's files under a key named
+    after the vocabulary. A bare list is accepted too.
     """
     if not path.is_file():
         return None

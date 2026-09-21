@@ -108,13 +108,13 @@ export const MODES: Record<string, Mode> = {
     id: 'guess_examine',
     type: 'pick_from_list',
     label: 'Guess the Examine',
-    hint: 'Name the item from the line you get when you examine it.',
-    blurb: 'An examine line from the game. Search the list and pick the item it belongs to.',
+    hint: 'Name the thing from the line you get when you examine it.',
+    blurb: 'An examine line from the game. Search the list and pick what it belongs to.',
     // Falador's pub, where half the White Knights stand about waiting to be examined.
     scene: 'rising_sun',
     // The examine line is the question; the list below it is only how you answer.
     stem: 'examine',
-    vocab: 'items',
+    vocab: 'examines',
   },
 }
 

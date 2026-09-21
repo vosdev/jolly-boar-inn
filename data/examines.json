@@ -1,0 +1,117 @@
+{
+  "_comment": [
+    "",
+    "Guess the Examine: examine lines worth reading out at a quiz night. Items, NPCs and",
+    "scenery all belong here; what makes an entry is that the line is funny, not what it",
+    "is the examine of. Adding one is the easiest way to contribute to this game.",
+    "",
+    "  id       a number that identifies the entry for good: rooms store it as the",
+    "           answer. Take one more than the highest id here; never change or reuse an id,",
+    "           even after deleting its entry.",
+    "  name     what the thing is called, as the game writes it. It is the answer, so it",
+    "           must be distinct from every other name here, ignoring case and accents.",
+    "  examine  the examine text, exactly as the game shows it.",
+    "  wiki     the OSRS Wiki page for it, or null if there is none. Not shown to",
+    "           players; kept so assets can be fetched from it later.",
+    "",
+    "Keep the list sorted by name so appends land predictably and rarely conflict."
+  ],
+  "examines": [
+    {
+      "id": 10,
+      "name": "An ogre standard",
+      "examine": "Not very high.",
+      "wiki": "https://oldschool.runescape.wiki/w/An_ogre_standard"
+    },
+    {
+      "id": 15,
+      "name": "Ancient machinery",
+      "examine": "Some form of ancient terraforming device. Oh deere it looks broken.",
+      "wiki": "https://oldschool.runescape.wiki/w/Ancient_machinery_(Great_Kourend)"
+    },
+    {
+      "id": 7,
+      "name": "Bear droppings",
+      "examine": "Well now you know.",
+      "wiki": "https://oldschool.runescape.wiki/w/Bear_droppings"
+    },
+    {
+      "id": 6,
+      "name": "Big beer barrel",
+      "examine": "It's full of beer, a state to which many people aspire",
+      "wiki": "https://oldschool.runescape.wiki/w/Big_beer_barrel"
+    },
+    {
+      "id": 13,
+      "name": "Chicken",
+      "examine": "Yep. Definitely a chicken.",
+      "wiki": "https://oldschool.runescape.wiki/w/Chicken"
+    },
+    {
+      "id": 5,
+      "name": "Dead skeleton",
+      "examine": "I don't understand, why didn't he return to Lumby?",
+      "wiki": "https://oldschool.runescape.wiki/w/The_Depths_of_Despair"
+    },
+    {
+      "id": 3,
+      "name": "Ectophial",
+      "examine": "The ectophial.",
+      "wiki": "https://oldschool.runescape.wiki/w/Ectophial"
+    },
+    {
+      "id": 4,
+      "name": "Half a meat pie",
+      "examine": "Half of it is suitable for vegetarians",
+      "wiki": "https://oldschool.runescape.wiki/w/Meat_pie#Half"
+    },
+    {
+      "id": 14,
+      "name": "Marble gargoyle",
+      "examine": "Am I losing my marbles?",
+      "wiki": "https://oldschool.runescape.wiki/w/Marble_gargoyle"
+    },
+    {
+      "id": 1,
+      "name": "Pet rock",
+      "examine": "The lowest maintenance pet you will ever have.",
+      "wiki": "https://oldschool.runescape.wiki/w/Pet_rock"
+    },
+    {
+      "id": 12,
+      "name": "Pig",
+      "examine": "I shall call him, MINI PIG.",
+      "wiki": null
+    },
+    {
+      "id": 2,
+      "name": "Repugnant spectre",
+      "examine": "I'd smell better after completing 3145 laps of an agility course dressed as a monkey.",
+      "wiki": "https://oldschool.runescape.wiki/w/Repugnant_spectre"
+    },
+    {
+      "id": 8,
+      "name": "Ring of endurance",
+      "examine": "I wonder if this ring helps with...",
+      "wiki": "https://oldschool.runescape.wiki/w/Ring_of_endurance"
+    },
+    {
+      "id": 16,
+      "name": "Rock lobster",
+      "examine": "it wasnt a rock... It was a rock lobster!",
+      "wiki": "https://oldschool.runescape.wiki/w/Rock_lobster"
+    },
+    {
+      "id": 11,
+      "name": "Spider eggs",
+      "examine": "Future web developers.",
+      "wiki": "https://oldschool.runescape.wiki/w/Spider_eggs_(scenery)"
+    },
+    {
+      "id": 9,
+      "name": "Wilting wheat",
+      "examine": "Life is short and then we die.",
+      "wiki": "https://oldschool.runescape.wiki/w/Wilting_wheat"
+    }
+  ]
+}

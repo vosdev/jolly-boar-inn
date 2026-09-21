@@ -1,9 +1,9 @@
 {
   "pack": "examine",
-  "generated_at": "2026-09-21T14:42:54Z",
+  "generated_at": "2026-09-21T15:24:34Z",
   "questions": [
     {
-      "id": "q_16a84371a7340b1e",
+      "id": "q_6b7230aaa9df1eae",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -11,17 +11,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "Fabulously ancient armour beaten from magical silver.",
-        "vocab": "items",
-        "answer_id": 10348,
+        "prompt": "The lowest maintenance pet you will ever have.",
+        "vocab": "examines",
+        "answer_id": 1,
         "subject": {
-          "name": "3rd Age platebody",
-          "asset": "item:10348"
+          "name": "Pet rock"
         }
       }
     },
     {
-      "id": "q_3f37783dcfe9ff66",
+      "id": "q_670b8ddf64b3c3e0",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -29,17 +28,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "Elements of deceased Abyssal Sires have been fused together.",
-        "vocab": "items",
-        "answer_id": 13263,
+        "prompt": "I'd smell better after completing 3145 laps of an agility course dressed as a monkey.",
+        "vocab": "examines",
+        "answer_id": 2,
         "subject": {
-          "name": "Abyssal bludgeon",
-          "asset": "item:13263"
+          "name": "Repugnant spectre"
         }
       }
     },
     {
-      "id": "q_af442c05da586bc6",
+      "id": "q_58c5738024937c23",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -47,17 +45,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "Something sharp from the body of a defeated Abyssal Sire.",
-        "vocab": "items",
-        "answer_id": 13265,
+        "prompt": "The ectophial.",
+        "vocab": "examines",
+        "answer_id": 3,
         "subject": {
-          "name": "Abyssal dagger",
-          "asset": "item:13265"
+          "name": "Ectophial"
         }
       }
     },
     {
-      "id": "q_353905f12ffdba96",
+      "id": "q_9e7f1edc222f1e76",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -65,17 +62,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A weapon from the Abyss.",
-        "vocab": "items",
-        "answer_id": 4151,
+        "prompt": "Half of it is suitable for vegetarians",
+        "vocab": "examines",
+        "answer_id": 4,
         "subject": {
-          "name": "Abyssal whip",
-          "asset": "item:4151"
+          "name": "Half a meat pie"
         }
       }
     },
     {
-      "id": "q_593ddade90cee627",
+      "id": "q_499e313fd7091fe1",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -83,17 +79,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A very powerful onyx amulet.",
-        "vocab": "items",
-        "answer_id": 6585,
+        "prompt": "I don't understand, why didn't he return to Lumby?",
+        "vocab": "examines",
+        "answer_id": 5,
         "subject": {
-          "name": "Amulet of fury",
-          "asset": "item:6585"
+          "name": "Dead skeleton"
         }
       }
     },
     {
-      "id": "q_91d559b89ad23d06",
+      "id": "q_9c006321f23e23fc",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -101,17 +96,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A dragonstone amulet with 6 magic charges.",
-        "vocab": "items",
-        "answer_id": 11978,
+        "prompt": "It's full of beer, a state to which many people aspire",
+        "vocab": "examines",
+        "answer_id": 6,
         "subject": {
-          "name": "Amulet of glory(6)",
-          "asset": "item:11978"
+          "name": "Big beer barrel"
         }
       }
     },
     {
-      "id": "q_d55e96afbb1270fd",
+      "id": "q_4eaefc00e9604638",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -119,17 +113,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "The hat of a powerful sorceress from a bygone era.",
-        "vocab": "items",
-        "answer_id": 21018,
+        "prompt": "Well now you know.",
+        "vocab": "examines",
+        "answer_id": 7,
         "subject": {
-          "name": "Ancestral hat",
-          "asset": "item:21018"
+          "name": "Bear droppings"
         }
       }
     },
     {
-      "id": "q_473f2bded1e51b81",
+      "id": "q_90dd16f0e8b8c7af",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -137,17 +130,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "I hope this tastes better than it looks.",
-        "vocab": "items",
-        "answer_id": 13441,
+        "prompt": "I wonder if this ring helps with...",
+        "vocab": "examines",
+        "answer_id": 8,
         "subject": {
-          "name": "Anglerfish",
-          "asset": "item:13441"
+          "name": "Ring of endurance"
         }
       }
     },
     {
-      "id": "q_da6eb7aba46948fd",
+      "id": "q_a33aaa507beb19b4",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -155,17 +147,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A fabled ring that improves the wearer's skill with a bow...",
-        "vocab": "items",
-        "answer_id": 6733,
+        "prompt": "Life is short and then we die.",
+        "vocab": "examines",
+        "answer_id": 9,
         "subject": {
-          "name": "Archers ring",
-          "asset": "item:6733"
+          "name": "Wilting wheat"
         }
       }
     },
     {
-      "id": "q_ce7b9e7570cb4482",
+      "id": "q_c642f2efeaf7c03e",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -173,17 +164,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "Armour of great craftsmanship.",
-        "vocab": "items",
-        "answer_id": 11828,
+        "prompt": "Not very high.",
+        "vocab": "examines",
+        "answer_id": 10,
         "subject": {
-          "name": "Armadyl chestplate",
-          "asset": "item:11828"
+          "name": "An ogre standard"
         }
       }
     },
     {
-      "id": "q_eff5b4ad2da0d233",
+      "id": "q_ecdf5956348539be",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -191,17 +181,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A beautiful, heavy sword.",
-        "vocab": "items",
-        "answer_id": 11802,
+        "prompt": "Future web developers.",
+        "vocab": "examines",
+        "answer_id": 11,
         "subject": {
-          "name": "Armadyl godsword",
-          "asset": "item:11802"
+          "name": "Spider eggs"
         }
       }
     },
     {
-      "id": "q_96d666c4fdefb345",
+      "id": "q_af13f6c6a224e0a5",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -209,17 +198,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "Used for Lunar spells.",
-        "vocab": "items",
-        "answer_id": 9075,
+        "prompt": "I shall call him, MINI PIG.",
+        "vocab": "examines",
+        "answer_id": 12,
         "subject": {
-          "name": "Astral rune",
-          "asset": "item:9075"
+          "name": "Pig"
         }
       }
     },
     {
-      "id": "q_c6d4b7defa34d51e",
+      "id": "q_1092e8acb20d6c4f",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -227,17 +215,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A brutally heavy sword.",
-        "vocab": "items",
-        "answer_id": 11804,
+        "prompt": "Yep. Definitely a chicken.",
+        "vocab": "examines",
+        "answer_id": 13,
         "subject": {
-          "name": "Bandos godsword",
-          "asset": "item:11804"
+          "name": "Chicken"
         }
       }
     },
     {
-      "id": "q_597344a595e7235a",
+      "id": "q_47f444cde1e15c8f",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -245,17 +232,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A glass of frothy ale.",
-        "vocab": "items",
-        "answer_id": 1917,
+        "prompt": "Am I losing my marbles?",
+        "vocab": "examines",
+        "answer_id": 14,
         "subject": {
-          "name": "Beer",
-          "asset": "item:1917"
+          "name": "Marble gargoyle"
         }
       }
     },
     {
-      "id": "q_10c48be4af0436ff",
+      "id": "q_66094f7e95fe5f84",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -263,17 +249,16 @@
         "examine"
       ],
       "payload": {
-        "prompt": "A ring reputed to bring out a berserk fury in its wearer.",
-        "vocab": "items",
-        "answer_id": 6737,
+        "prompt": "Some form of ancient terraforming device. Oh deere it looks broken.",
+        "vocab": "examines",
+        "answer_id": 15,
         "subject": {
-          "name": "Berserker ring",
-          "asset": "item:6737"
+          "name": "Ancient machinery"
         }
       }
     },
     {
-      "id": "q_69f3551faa352a58",
+      "id": "q_2e99a6960e7ddb70",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -281,1308 +266,11 @@
         "examine"
       ],
       "payload": {
-        "prompt": "Just plain nasty.",
-        "vocab": "items",
-        "answer_id": 11959,
+        "prompt": "it wasnt a rock... It was a rock lobster!",
+        "vocab": "examines",
+        "answer_id": 16,
         "subject": {
-          "name": "Black chinchompa",
-          "asset": "item:11959"
-        }
-      }
-    },
-    {
-      "id": "q_bc25e1f48c38bcdc",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A magical elven sword.",
-        "vocab": "items",
-        "answer_id": 23997,
-        "subject": {
-          "name": "Blade of Saeldor (inactive)",
-          "asset": "item:23997"
-        }
-      }
-    },
-    {
-      "id": "q_2f79ef82ee2c06eb",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for high level missile spells.",
-        "vocab": "items",
-        "answer_id": 565,
-        "subject": {
-          "name": "Blood rune",
-          "asset": "item:565"
-        }
-      }
-    },
-    {
-      "id": "q_b7a95ef24dd1059f",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A magical elven bow.",
-        "vocab": "items",
-        "answer_id": 25862,
-        "subject": {
-          "name": "Bow of Faerdhinen (inactive)",
-          "asset": "item:25862"
-        }
-      }
-    },
-    {
-      "id": "q_108f214af522002e",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "I need a bow stave to attach this to.",
-        "vocab": "items",
-        "answer_id": 1777,
-        "subject": {
-          "name": "Bow string",
-          "asset": "item:1777"
-        }
-      }
-    },
-    {
-      "id": "q_ac1abf84bbe78c6e",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Short but pointy.",
-        "vocab": "items",
-        "answer_id": 1205,
-        "subject": {
-          "name": "Bronze dagger",
-          "asset": "item:1205"
-        }
-      }
-    },
-    {
-      "id": "q_62d4079cbb14fa28",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Yuck I don't like cabbage.",
-        "vocab": "items",
-        "answer_id": 1965,
-        "subject": {
-          "name": "Cabbage",
-          "asset": "item:1965"
-        }
-      }
-    },
-    {
-      "id": "q_aac7af49cbf93149",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for low level missile spells.",
-        "vocab": "items",
-        "answer_id": 562,
-        "subject": {
-          "name": "Chaos rune",
-          "asset": "item:562"
-        }
-      }
-    },
-    {
-      "id": "q_82fde62c833f6502",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Good for detailed Crafting.",
-        "vocab": "items",
-        "answer_id": 1755,
-        "subject": {
-          "name": "Chisel",
-          "asset": "item:1755"
-        }
-      }
-    },
-    {
-      "id": "q_dfd137a0851308b4",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "I need to pull this.",
-        "vocab": "items",
-        "answer_id": 962,
-        "subject": {
-          "name": "Christmas cracker",
-          "asset": "item:962"
-        }
-      }
-    },
-    {
-      "id": "q_f218ba16683f2414",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Hmm a non-renewable energy source!",
-        "vocab": "items",
-        "answer_id": 453,
-        "subject": {
-          "name": "Coal",
-          "asset": "item:453"
-        }
-      }
-    },
-    {
-      "id": "q_f0ea142189151527",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A handy way to get around.",
-        "vocab": "items",
-        "answer_id": 11118,
-        "subject": {
-          "name": "Combat bracelet(4)",
-          "asset": "item:11118"
-        }
-      }
-    },
-    {
-      "id": "q_495e41742bf2307b",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Cooked octopus. It looks very nutritious.",
-        "vocab": "items",
-        "answer_id": 3144,
-        "subject": {
-          "name": "Cooked karambwan",
-          "asset": "item:3144"
-        }
-      }
-    },
-    {
-      "id": "q_46c094ceb64ebd6c",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for enchant spells.",
-        "vocab": "items",
-        "answer_id": 564,
-        "subject": {
-          "name": "Cosmic rune",
-          "asset": "item:564"
-        }
-      }
-    },
-    {
-      "id": "q_0371fcdf696907cb",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A bow from a darker dimension.",
-        "vocab": "items",
-        "answer_id": 11235,
-        "subject": {
-          "name": "Dark bow",
-          "asset": "item:11235"
-        }
-      }
-    },
-    {
-      "id": "q_1edc7d1f910901cd",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for medium level missile spells.",
-        "vocab": "items",
-        "answer_id": 560,
-        "subject": {
-          "name": "Death rune",
-          "asset": "item:560"
-        }
-      }
-    },
-    {
-      "id": "q_2ad4d25b3943f9f6",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Is it... looking at me?",
-        "vocab": "items",
-        "answer_id": 21015,
-        "subject": {
-          "name": "Dinh's bulwark",
-          "asset": "item:21015"
-        }
-      }
-    },
-    {
-      "id": "q_0da32ca9a0348e80",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "It looks like this could be attached to a shield somehow.",
-        "vocab": "items",
-        "answer_id": 11286,
-        "subject": {
-          "name": "Draconic visage",
-          "asset": "item:11286"
-        }
-      }
-    },
-    {
-      "id": "q_68a8861e8d9d5f7d",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A very powerful axe.",
-        "vocab": "items",
-        "answer_id": 6739,
-        "subject": {
-          "name": "Dragon axe",
-          "asset": "item:6739"
-        }
-      }
-    },
-    {
-      "id": "q_ca6788602a0a7055",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A vicious looking axe.",
-        "vocab": "items",
-        "answer_id": 1377,
-        "subject": {
-          "name": "Dragon battleaxe",
-          "asset": "item:1377"
-        }
-      }
-    },
-    {
-      "id": "q_17e7f9ffeb4c2551",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "These would feed a dog for months!",
-        "vocab": "items",
-        "answer_id": 536,
-        "subject": {
-          "name": "Dragon bones",
-          "asset": "item:536"
-        }
-      }
-    },
-    {
-      "id": "q_b38cfaa1d18a49a5",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "These will protect my feet.",
-        "vocab": "items",
-        "answer_id": 11840,
-        "subject": {
-          "name": "Dragon boots",
-          "asset": "item:11840"
-        }
-      }
-    },
-    {
-      "id": "q_3fea68a76dc4b982",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A series of connected metal rings.",
-        "vocab": "items",
-        "answer_id": 3140,
-        "subject": {
-          "name": "Dragon chainbody",
-          "asset": "item:3140"
-        }
-      }
-    },
-    {
-      "id": "q_e034d4827e2084df",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A very powerful sword.",
-        "vocab": "items",
-        "answer_id": 1305,
-        "subject": {
-          "name": "Dragon longsword",
-          "asset": "item:1305"
-        }
-      }
-    },
-    {
-      "id": "q_010ff67a80486388",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Makes the wearer pretty intimidating.",
-        "vocab": "items",
-        "answer_id": 1149,
-        "subject": {
-          "name": "Dragon med helm",
-          "asset": "item:1149"
-        }
-      }
-    },
-    {
-      "id": "q_fbe9ec63dbf95236",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "If rocks could feel fear, they'd fear this.",
-        "vocab": "items",
-        "answer_id": 11920,
-        "subject": {
-          "name": "Dragon pickaxe",
-          "asset": "item:11920"
-        }
-      }
-    },
-    {
-      "id": "q_24a46c3ffc43d714",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Spikey, close combat weapon.",
-        "vocab": "items",
-        "answer_id": 13576,
-        "subject": {
-          "name": "Dragon warhammer",
-          "asset": "item:13576"
-        }
-      }
-    },
-    {
-      "id": "q_425832412393b257",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A heavy shield with a snarling, draconic visage.",
-        "vocab": "items",
-        "answer_id": 11284,
-        "subject": {
-          "name": "Dragonfire shield",
-          "asset": "item:11284"
-        }
-      }
-    },
-    {
-      "id": "q_69726f252aa1307f",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A maul crafted from the component parts of Tekton.",
-        "vocab": "items",
-        "answer_id": 21003,
-        "subject": {
-          "name": "Elder maul",
-          "asset": "item:21003"
-        }
-      }
-    },
-    {
-      "id": "q_ab64b45fece2d1b9",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A pair of upgraded infinity boots.",
-        "vocab": "items",
-        "answer_id": 13235,
-        "subject": {
-          "name": "Eternal boots",
-          "asset": "item:13235"
-        }
-      }
-    },
-    {
-      "id": "q_b6a76ea95d457f40",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for fly fishing.",
-        "vocab": "items",
-        "answer_id": 314,
-        "subject": {
-          "name": "Feather",
-          "asset": "item:314"
-        }
-      }
-    },
-    {
-      "id": "q_58599735fa4adfed",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Simplicity is the best weapon.",
-        "vocab": "items",
-        "answer_id": 4153,
-        "subject": {
-          "name": "Granite maul",
-          "asset": "item:4153"
-        }
-      }
-    },
-    {
-      "id": "q_99c6a402fe6e241e",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "It needs cleaning.",
-        "vocab": "items",
-        "answer_id": 207,
-        "subject": {
-          "name": "Grimy ranarr weed",
-          "asset": "item:207"
-        }
-      }
-    },
-    {
-      "id": "q_a3b76b6aaf79de73",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Good for hitting things!",
-        "vocab": "items",
-        "answer_id": 2347,
-        "subject": {
-          "name": "Hammer",
-          "asset": "item:2347"
-        }
-      }
-    },
-    {
-      "id": "q_c3554e08e3c9b2f0",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A powerful weapon forged from the wreckage of an airship.",
-        "vocab": "items",
-        "answer_id": 19481,
-        "subject": {
-          "name": "Heavy ballista",
-          "asset": "item:19481"
-        }
-      }
-    },
-    {
-      "id": "q_267c000536194fb0",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Ewwww... it's still sucky.",
-        "vocab": "items",
-        "answer_id": 12004,
-        "subject": {
-          "name": "Kraken tentacle",
-          "asset": "item:12004"
-        }
-      }
-    },
-    {
-      "id": "q_03b4f0d831d4dbab",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for teleport spells.",
-        "vocab": "items",
-        "answer_id": 563,
-        "subject": {
-          "name": "Law rune",
-          "asset": "item:563"
-        }
-      }
-    },
-    {
-      "id": "q_e31c155ce071a230",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "This looks tricky to eat.",
-        "vocab": "items",
-        "answer_id": 379,
-        "subject": {
-          "name": "Lobster",
-          "asset": "item:379"
-        }
-      }
-    },
-    {
-      "id": "q_76d0ef0c05fb4728",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Short and magical, but still effective.",
-        "vocab": "items",
-        "answer_id": 861,
-        "subject": {
-          "name": "Magic shortbow",
-          "asset": "item:861"
-        }
-      }
-    },
-    {
-      "id": "q_ae1375979e95597a",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Ancient armour once worn by a powerful ranger.",
-        "vocab": "items",
-        "answer_id": 27229,
-        "subject": {
-          "name": "Masori body",
-          "asset": "item:27229"
-        }
-      }
-    },
-    {
-      "id": "q_6224503e26b78552",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for basic level missile spells.",
-        "vocab": "items",
-        "answer_id": 558,
-        "subject": {
-          "name": "Mind rune",
-          "asset": "item:558"
-        }
-      }
-    },
-    {
-      "id": "q_c8b03f55b47f8230",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A tasty fish.",
-        "vocab": "items",
-        "answer_id": 7946,
-        "subject": {
-          "name": "Monkfish",
-          "asset": "item:7946"
-        }
-      }
-    },
-    {
-      "id": "q_3d9d7638ffe3af19",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for alchemy spells.",
-        "vocab": "items",
-        "answer_id": 561,
-        "subject": {
-          "name": "Nature rune",
-          "asset": "item:561"
-        }
-      }
-    },
-    {
-      "id": "q_f23eec5ff620fbf2",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A smokey evil embodies this amulet.",
-        "vocab": "items",
-        "answer_id": 12002,
-        "subject": {
-          "name": "Occult necklace",
-          "asset": "item:12002"
-        }
-      }
-    },
-    {
-      "id": "q_8192dbd38a0fb54d",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A deadly sword created long ago.",
-        "vocab": "items",
-        "answer_id": 26219,
-        "subject": {
-          "name": "Osmumten's fang",
-          "asset": "item:26219"
-        }
-      }
-    },
-    {
-      "id": "q_64fdf56e9952763c",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A pair of upgraded ranger boots.",
-        "vocab": "items",
-        "answer_id": 13237,
-        "subject": {
-          "name": "Pegasian boots",
-          "asset": "item:13237"
-        }
-      }
-    },
-    {
-      "id": "q_1cd1eb0b6507e8b7",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A pair of upgraded dragon boots.",
-        "vocab": "items",
-        "answer_id": 13239,
-        "subject": {
-          "name": "Primordial boots",
-          "asset": "item:13239"
-        }
-      }
-    },
-    {
-      "id": "q_cc51fab2ae7cb4e4",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "An unimbued rune of extra capability.",
-        "vocab": "items",
-        "answer_id": 7936,
-        "subject": {
-          "name": "Pure essence",
-          "asset": "item:7936"
-        }
-      }
-    },
-    {
-      "id": "q_d9b98106067b07b3",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Remember to brush after eating!",
-        "vocab": "items",
-        "answer_id": 10476,
-        "subject": {
-          "name": "Purple sweets",
-          "asset": "item:10476"
-        }
-      }
-    },
-    {
-      "id": "q_0de4d31b5dfa7cd5",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A useful herb.",
-        "vocab": "items",
-        "answer_id": 257,
-        "subject": {
-          "name": "Ranarr weed",
-          "asset": "item:257"
-        }
-      }
-    },
-    {
-      "id": "q_6660869a118530bd",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "I should try cooking this.",
-        "vocab": "items",
-        "answer_id": 317,
-        "subject": {
-          "name": "Raw shrimps",
-          "asset": "item:317"
-        }
-      }
-    },
-    {
-      "id": "q_b636c680e1972207",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Aaaarrrghhh ... I'm a monster.",
-        "vocab": "items",
-        "answer_id": 1057,
-        "subject": {
-          "name": "Red halloween mask",
-          "asset": "item:1057"
-        }
-      }
-    },
-    {
-      "id": "q_581da485c150c585",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Looks tasty.",
-        "vocab": "items",
-        "answer_id": 2325,
-        "subject": {
-          "name": "Redberry pie",
-          "asset": "item:2325"
-        }
-      }
-    },
-    {
-      "id": "q_5443cbd7ccda12dd",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "It can be charged at the Fountain of Rune.",
-        "vocab": "items",
-        "answer_id": 2572,
-        "subject": {
-          "name": "Ring of wealth",
-          "asset": "item:2572"
-        }
-      }
-    },
-    {
-      "id": "q_8944c242bae08896",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A large metal shield.",
-        "vocab": "items",
-        "answer_id": 1201,
-        "subject": {
-          "name": "Rune kiteshield",
-          "asset": "item:1201"
-        }
-      }
-    },
-    {
-      "id": "q_70cb8338f78b6b5c",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for mining.",
-        "vocab": "items",
-        "answer_id": 1275,
-        "subject": {
-          "name": "Rune pickaxe",
-          "asset": "item:1275"
-        }
-      }
-    },
-    {
-      "id": "q_52e028edde212423",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A gracious, heavy sword.",
-        "vocab": "items",
-        "answer_id": 11806,
-        "subject": {
-          "name": "Saradomin godsword",
-          "asset": "item:11806"
-        }
-      }
-    },
-    {
-      "id": "q_4a7eec19465714fc",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A mysterious ring that can fill the wearer with magical power...",
-        "vocab": "items",
-        "answer_id": 6731,
-        "subject": {
-          "name": "Seers ring",
-          "asset": "item:6731"
-        }
-      }
-    },
-    {
-      "id": "q_574fa57498c98016",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Needs to be charged with Zulrah's scales.",
-        "vocab": "items",
-        "answer_id": 12929,
-        "subject": {
-          "name": "Serpentine helm (uncharged)",
-          "asset": "item:12929"
-        }
-      }
-    },
-    {
-      "id": "q_f9cd8fd2c09b6ff2",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "I'd better be careful eating this.",
-        "vocab": "items",
-        "answer_id": 385,
-        "subject": {
-          "name": "Shark",
-          "asset": "item:385"
-        }
-      }
-    },
-    {
-      "id": "q_420e6491f299de65",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Some nicely cooked shrimp.",
-        "vocab": "items",
-        "answer_id": 315,
-        "subject": {
-          "name": "Shrimps",
-          "asset": "item:315"
-        }
-      }
-    },
-    {
-      "id": "q_ccdd58097e532d21",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for high level curse spells.",
-        "vocab": "items",
-        "answer_id": 566,
-        "subject": {
-          "name": "Soul rune",
-          "asset": "item:566"
-        }
-      }
-    },
-    {
-      "id": "q_1e9c4bf985e5bed6",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A ghastly weapon with evil origins.",
-        "vocab": "items",
-        "answer_id": 11791,
-        "subject": {
-          "name": "Staff of the Dead",
-          "asset": "item:11791"
-        }
-      }
-    },
-    {
-      "id": "q_42b9dee7f814f28a",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "I'd better be careful eating this!",
-        "vocab": "items",
-        "answer_id": 373,
-        "subject": {
-          "name": "Swordfish",
-          "asset": "item:373"
-        }
-      }
-    },
-    {
-      "id": "q_0fbd8d1314f34a96",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Useful for lighting a fire.",
-        "vocab": "items",
-        "answer_id": 590,
-        "subject": {
-          "name": "Tinderbox",
-          "asset": "item:590"
-        }
-      }
-    },
-    {
-      "id": "q_fb0e1278e98b6b0e",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Fires darts while coating them with venom.",
-        "vocab": "items",
-        "answer_id": 12924,
-        "subject": {
-          "name": "Toxic blowpipe (empty)",
-          "asset": "item:12924"
-        }
-      }
-    },
-    {
-      "id": "q_5806f005870f186b",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "An ancient staff created using a higher power.",
-        "vocab": "items",
-        "answer_id": 27277,
-        "subject": {
-          "name": "Tumeken's shadow (uncharged)",
-          "asset": "item:27277"
-        }
-      }
-    },
-    {
-      "id": "q_57b40c74677608ab",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A truly fearsome weapon.",
-        "vocab": "items",
-        "answer_id": 27690,
-        "subject": {
-          "name": "Voidwaker",
-          "asset": "item:27690"
-        }
-      }
-    },
-    {
-      "id": "q_898ca512886e7ba9",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Used for very high level missile spells.",
-        "vocab": "items",
-        "answer_id": 21880,
-        "subject": {
-          "name": "Wrath rune",
-          "asset": "item:21880"
-        }
-      }
-    },
-    {
-      "id": "q_1afcb87537a60e23",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "A terrifying, heavy sword.",
-        "vocab": "items",
-        "answer_id": 11808,
-        "subject": {
-          "name": "Zamorak godsword",
-          "asset": "item:11808"
-        }
-      }
-    },
-    {
-      "id": "q_de2331f93c671b3e",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "An evil one-handed spear.",
-        "vocab": "items",
-        "answer_id": 11889,
-        "subject": {
-          "name": "Zamorakian hasta",
-          "asset": "item:11889"
-        }
-      }
-    },
-    {
-      "id": "q_1c3468709bea8ce4",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "An evil spear.",
-        "vocab": "items",
-        "answer_id": 11824,
-        "subject": {
-          "name": "Zamorakian spear",
-          "asset": "item:11824"
-        }
-      }
-    },
-    {
-      "id": "q_0267555dc13a146f",
-      "type": "pick_from_list",
-      "mode": "guess_examine",
-      "source": "pack",
-      "tags": [
-        "examine"
-      ],
-      "payload": {
-        "prompt": "Flakes of toxic snakeskin.",
-        "vocab": "items",
-        "answer_id": 12934,
-        "subject": {
-          "name": "Zulrah's scales",
-          "asset": "item:12934"
+          "name": "Rock lobster"
         }
       }
     }

@@ -79,10 +79,8 @@ loadtest:
 gen-price-questions:
 	cd server && uv run python scripts/gen_price_questions.py
 
-# Regenerate data/packs/examine.json from the roster, data/examine-allowed.json and the wiki
-# price API's /mapping (one request). Prints what it used and what it rejected, and why.
-# Never part of test, CI or app startup: run it when the roster or the allow list changes,
-# or with gen-price-questions, and commit the result.
+# Regenerate data/packs/examine.json from data/examines.json, offline. Run it after adding an
+# examine and commit both files; the test suite fails when the two disagree.
 gen-examine-questions:
 	cd server && uv run python scripts/gen_examine_questions.py
 

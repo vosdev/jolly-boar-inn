@@ -5,8 +5,8 @@
    * The `prompt` of a `guess_examine` question *is* the examine text (architecture
    * section 2), so this stem is `TextStem` with one difference. It sets the line as a
    * quotation from the game — the words the chatbox shows when you examine the thing —
-   * rather than as a question of ours, because it is not one: "A very powerful onyx
-   * amulet." is a clue, and a player should read it as the game's voice, not the host's.
+   * rather than as a question of ours, because it is not one: "Future web developers."
+   * is a clue, and a player should read it as the game's voice, not the host's.
    * The line under it says what to do with it, which the examine itself never does.
    *
    * It reads `prompt` and nothing else. What the answer was is the list's to show at the
@@ -23,7 +23,7 @@
 {#if examine !== ''}
   <figure class="examine">
     <blockquote>{examine}</blockquote>
-    <figcaption>What item is this the examine of?</figcaption>
+    <figcaption>What is this the examine of?</figcaption>
   </figure>
 {/if}
 

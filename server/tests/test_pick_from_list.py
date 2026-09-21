@@ -1,7 +1,7 @@
 """T20 Accept, the type half: an answer that is not an id in the vocabulary is
 ``bad_value``, and so is a string; ``validate-packs`` fails a question whose ``answer_id``
 is not in its vocabulary. Plus the rest of the six exports, how it scores, and the
-shipped ``guess_examine`` pack. The generator is in ``test_gen_examine_questions.py``.
+shipped ``guess_examine`` pack.
 """
 
 import copy
@@ -220,12 +220,12 @@ def test_grade_is_all_or_nothing_credit_on_the_id() -> None:
 # --- the shipped pack -------------------------------------------------------------------
 
 
-def test_every_shipped_question_answers_from_the_roster_by_id() -> None:
+def test_every_shipped_question_answers_from_the_examines_list_by_id() -> None:
     """``load_packs`` ran ``check`` on each; this pins down the shape the generator ships."""
     questions = shipped()
     assert questions, "examine.json ships no questions"
-    items = vocab.get("items")
-    assert items is not None
+    examines = vocab.get("examines")
+    assert examines is not None
     answers = [q["payload"]["answer_id"] for q in questions]
     assert len(answers) == len(set(answers)), "one question per item"
     prompts = [q["payload"]["prompt"] for q in questions]
@@ -234,9 +234,9 @@ def test_every_shipped_question_answers_from_the_roster_by_id() -> None:
         assert (q["type"], q["mode"], q["payload"]["vocab"]) == (
             "pick_from_list",
             "guess_examine",
-            "items",
+            "examines",
         )
-        assert q["payload"]["subject"]["name"] == items.name_of(q["payload"]["answer_id"])
+        assert q["payload"]["subject"]["name"] == examines.name_of(q["payload"]["answer_id"])
 
 
 def test_no_shipped_answer_leaks_into_the_open_view() -> None:
