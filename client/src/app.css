@@ -71,6 +71,8 @@
   --radius: 10px;
   --border-width: 1px;
   --shadow: 0 1px 2px rgb(36 29 21 / 0.08);
+  /* What a modal dims the page behind it with (D3's name popup). */
+  --scrim: rgb(36 29 21 / 0.45);
   --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
@@ -117,6 +119,7 @@
   --gem-ink: #f0e8da;
 
   --shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+  --scrim: rgb(0 0 0 / 0.6);
 
   color-scheme: dark;
 }

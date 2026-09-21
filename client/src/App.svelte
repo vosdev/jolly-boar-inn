@@ -17,12 +17,14 @@
    */
   import { onMount } from 'svelte'
 
+  import IdentityChip from './components/IdentityChip.svelte'
   import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
   import Room from './routes/Room.svelte'
   import { getSession, normalizeCode } from './lib/session'
+  import { you } from './lib/stores'
 
   type Route =
     | { name: 'home' }
@@ -69,7 +71,14 @@
   })
 </script>
 
-<TopBar />
+<!-- Inside a room the chip is the player the server knows; anywhere else it is the
+     profile. `you` outlives the Room screen until the next one resets it, so the route
+     decides which, not the store. -->
+<TopBar>
+  {#snippet identity({ narrow }: { narrow: boolean })}
+    <IdentityChip {narrow} liveName={route.name === 'room' ? ($you?.display_name ?? null) : null} />
+  {/snippet}
+</TopBar>
 
 <main id="content" tabindex="-1">
   {#if route.name === 'home'}
