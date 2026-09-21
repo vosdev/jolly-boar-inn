@@ -5,11 +5,11 @@
    * into the lobby, which is already the best "room created" screen there is: the code
    * to read out, the link to share, and the players arriving.
    *
-   * A game mode is a round. Ticking three types makes a three-round game, and each one
+   * A game mode is a round. Ticking three modes makes a three-round game, and each one
    * carries its own length and its own question count, because the modes differ in pace:
    * `more_less` is two names and one word to read, so its round runs long and quick,
    * where a release-date round is short and slow. The defaults and the ranges those
-   * numbers are held to come from `GET /api/modes`, which is the server's own type
+   * numbers are held to come from `GET /api/modes`, which is the server's own mode
    * registry — the form never invents a number the server would refuse.
    *
    * The name comes from the profile (D3). A browser with none is stopped by the popup

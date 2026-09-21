@@ -16,18 +16,21 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
+from app import modes
 from app.config import REPO_ROOT, Settings
 from app.main import create_app
-from app.questions import schema, types
+from app.modes import MODES, Mode, questions_bounds, seconds_bounds
+from app.questions import schema
 from app.questions.packs import PackError, load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, more_less, questions_bounds, seconds_bounds
+from app.questions.types import TYPES, more_less
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
 
 EXAMPLE: dict[str, Any] = {
     "type": "more_less",
+    "mode": "more_less",
     "source": "pack",
     "tags": ["prices"],
     "payload": {
@@ -107,6 +110,19 @@ def test_validate_packs_script_fails_on_broken_pack(tmp_path: Path) -> None:
     assert "FAILED" in result.stderr
 
 
+def test_validate_packs_script_fails_on_a_mode_this_build_does_not_play(tmp_path: Path) -> None:
+    """T16: a ``more_less`` question claiming to be Drop Table is refused, by name.
+
+    Everything else about it is right, the id included, so the mode is the only thing
+    the script can be complaining about.
+    """
+    _write_pack(tmp_path / "drops.json", [question(mode="drop_table")])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    assert "drops.json: questions[0] $.mode: 'drop_table' is not a mode" in result.stderr
+    assert "FAILED: 1 problem(s)" in result.stderr
+
+
 # --- consistency -------------------------------------------------------------------
 
 
@@ -155,6 +171,7 @@ def test_unsupported_type_is_reported() -> None:
     """Schema allows Phase 2 types; nothing can play them yet, so packs must not ship them."""
     q = {
         "type": "closest_number",
+        "mode": "more_less",
         "source": "pack",
         "tags": [],
         "payload": {"prompt": "How many?", "answer": 3},
@@ -162,6 +179,30 @@ def test_unsupported_type_is_reported() -> None:
     q["id"] = schema.content_id(q)
     assert schema.schema_errors(q) == []
     assert schema.consistency_errors(q) == ["$.type: 'closest_number' is not supported yet"]
+
+
+def test_an_unknown_mode_is_reported() -> None:
+    q = question(mode="drop_table")
+    assert schema.schema_errors(q) == []  # the schema holds a mode to a pattern, no more
+    assert schema.consistency_errors(q) == [
+        "$.mode: 'drop_table' is not a mode this build plays (it plays more_less)"
+    ]
+
+
+def test_a_type_that_disagrees_with_its_mode_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The other half of T16's pack rule, once Drop Table exists and is multiple choice."""
+    monkeypatch.setitem(MODES, "drop_table", Mode(id="drop_table", type="multiple_choice"))
+    q = question(mode="drop_table")
+    assert schema.consistency_errors(q) == [
+        "$.type: 'more_less' disagrees with its mode: 'drop_table' plays as 'multiple_choice'"
+    ]
+    with pytest.raises(schema.QuestionError, match="disagrees with its mode"):
+        schema.validate(q)
+
+
+def test_two_modes_may_share_a_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setitem(MODES, "stub", Mode(id="stub", type="more_less"))
+    schema.validate(question(mode="stub"))
 
 
 # --- content id ---------------------------------------------------------------------
@@ -190,6 +231,7 @@ def test_content_id_is_stable_across_key_order() -> None:
                 },
                 "tags": ["prices"],
                 "source": "pack",
+                "mode": "more_less",
                 "type": "more_less",
             }
         )
@@ -204,6 +246,16 @@ def test_content_id_ignores_envelope_and_tracks_type_and_payload() -> None:
     changed = question()
     changed["payload"]["options"][1]["value"] += 1
     assert schema.content_id(changed) != EXAMPLE["id"]
+
+
+def test_content_id_ignores_mode() -> None:
+    """Section 2: the same payload in two modes is the same question, and renaming a mode
+    must not rewrite a pack's ids -- which is why the shipped packs took ``mode`` without
+    being regenerated."""
+    assert schema.content_id(question(mode="drop_table")) == EXAMPLE["id"]
+    for pack in load_packs(PACKS_DIR):
+        for q in pack.questions:
+            assert schema.content_id({k: v for k, v in q.items() if k != "mode"}) == q["id"]
 
 
 def test_content_id_follows_documented_algorithm() -> None:
@@ -234,9 +286,9 @@ def test_more_less_sets_its_own_pace() -> None:
 
 
 def test_a_type_without_a_pace_of_its_own_gets_the_fallbacks() -> None:
-    """``questions/types/__init__.py``: declaring neither is allowed, and unremarkable."""
-    assert questions_bounds("not_a_type") is types.QUESTIONS
-    assert seconds_bounds("not_a_type") is types.SECONDS
+    """``app/modes``: declaring neither is allowed, and unremarkable."""
+    assert questions_bounds("not_a_mode") is modes.QUESTIONS
+    assert seconds_bounds("not_a_mode") is modes.SECONDS
 
 
 def test_client_view_has_no_answer() -> None:
@@ -318,6 +370,10 @@ def test_schema_accepts_optional_envelope_fields() -> None:
         (lambda q: q.pop("tags"), "$"),
         (lambda q: q.update(id="q_xyz"), "$.id"),
         (lambda q: q.update(type="trivia"), "$.type"),
+        (lambda q: q.pop("mode"), "$"),
+        (lambda q: q.update(mode="Drop Table"), "$.mode"),
+        (lambda q: q.update(mode="m" * 33), "$.mode"),
+        (lambda q: q.update(mode=""), "$.mode"),
         (lambda q: q.update(source="wiki"), "$.source"),
         (lambda q: q.update(extra=1), "$"),
         (lambda q: q.update(tags=["Bad Tag"]), "$.tags[0]"),

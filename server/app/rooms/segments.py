@@ -8,8 +8,11 @@ The round number is stored rather than derived because neither cheap derivation 
 Counting questions off the settings — a mode is a round, so a round is that mode's
 ``questions`` — fails as soon as a round is short, which happens when a mode runs out of
 pack questions and will happen again when Phase 2 lets a room carry custom questions. Runs
-of equal question ``type`` fail on the trailing rounds those custom questions get. Both
-failures are silent, and both show players the wrong mode on the splash.
+of equal ``mode`` fail on the trailing rounds those custom questions get. Both failures are
+silent, and both show players the wrong mode on the splash.
+
+A segment is named for its questions' ``mode``, not their ``type``: two rounds may play
+the same answer shape, and it is the mode the splash introduces and the client looks up.
 """
 
 from collections.abc import Sequence
@@ -22,7 +25,7 @@ class _Grouped(Protocol):
     """The two fields grouping needs: ``RoomQuestion`` and anything shaped like it."""
 
     round: int
-    type: str
+    mode: str
 
 
 def segments_of(questions: Sequence[_Grouped]) -> list[Segment]:
@@ -39,7 +42,7 @@ def segments_of(questions: Sequence[_Grouped]) -> list[Segment]:
             continue
         segments.append(
             Segment(
-                mode=question.type,
+                mode=question.mode,
                 index=len(segments),
                 total=0,  # filled in below, once we know how many rounds there are
                 start=position,

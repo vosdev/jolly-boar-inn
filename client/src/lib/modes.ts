@@ -10,12 +10,19 @@
  * `GET /api/modes` (see `lib/api.ts`) is what the create form lists, so a build that
  * plays a mode this file has no copy for still offers it, under its id.
  *
+ * A mode is a round, not a question type: several modes may be answered the same way.
+ * Each entry names the type it plays as, which is the pairing `app/modes` holds on the
+ * server. A question on the wire carries its own `type` as well, and that one is what
+ * draws it.
+ *
  * Plain TypeScript with no `.svelte` imports, so every screen can use it. The components
  * that *draw* a question live in `components/questions/index.ts` instead.
  */
 
 export interface Mode {
   id: string
+  /** The question type a round of this mode is answered in, as `OpenQuestion.type` names it. */
+  type: string
   /** Two or three words. The splash headline and the checkbox label. */
   label: string
   /** One line, for the create form. */
@@ -27,6 +34,7 @@ export interface Mode {
 export const MODES: Record<string, Mode> = {
   more_less: {
     id: 'more_less',
+    type: 'more_less',
     label: 'More or Less',
     hint: 'Which of two items is worth more — or less',
     blurb:

@@ -3,13 +3,17 @@
 A room plays one round per game mode: pick three modes and the room is three rounds long.
 There is no global round count and no global question length, because the two numbers
 that used to be global are the two that differ most between modes. Each mode carries its
-own ``questions`` and ``seconds`` instead (``ModeSettings``), defaulting to what its type
-module says a round of it should feel like.
+own ``questions`` and ``seconds`` instead (``ModeSettings``), defaulting to what the mode
+registry (``app/modes``) says a round of it should feel like.
+
+``modes[].mode`` is a mode id, a key into ``MODES`` and never into ``TYPES``. A host picks
+rounds; which answer shape a round is played in is the mode's business, and nothing in
+the settings mentions it.
 
 Two models, one shape. ``RoomSettings`` is what a room *is*: the field types, the
 supported modes, and the little the game loop cannot work without (a question has to
 last a positive number of seconds). ``NewRoomSettings`` adds the ranges section 4 gives,
-which are the per-type ``Bounds`` plus a cap on the room as a whole, because those are a
+which are the per-mode ``Bounds`` plus a cap on the room as a whole, because those are a
 policy about what a host may ask for and the only place that policy belongs is where the
 request comes in.
 
@@ -23,7 +27,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.questions.types import TYPES, questions_bounds, seconds_bounds
+from app.modes import MODES, questions_bounds, seconds_bounds
 
 # The most questions one room may be created with, over all of its rounds. Nothing in the
 # game loop cares; it is there so a host cannot ask for an evening that never ends.
@@ -33,7 +37,7 @@ MAX_QUESTIONS_PER_ROOM = 100
 class ModeSettings(BaseModel):
     """One mode's round: how many questions it holds, and how long each one is open.
 
-    Both numbers are optional on the way in and filled from the type's own ``Bounds``, so
+    Both numbers are optional on the way in and filled from the mode's own ``Bounds``, so
     ``{"mode": "more_less"}`` is a complete round at that mode's own pace. After
     validation they are always present, which is what the game loop and the lobby read.
     """
@@ -46,7 +50,7 @@ class ModeSettings(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _defaults_from_the_type(cls, data: Any) -> Any:
+    def _defaults_from_the_mode(cls, data: Any) -> Any:
         """Fill what was left out from the mode's own bounds.
 
         A mode the registry does not know is filled from the fallbacks rather than left
@@ -63,8 +67,8 @@ class ModeSettings(BaseModel):
 
 
 def default_modes() -> list[ModeSettings]:
-    """One round of the first registered type: the smallest room that is still a game."""
-    return [ModeSettings(mode=next(iter(TYPES)))]
+    """One round of the first registered mode: the smallest room that is still a game."""
+    return [ModeSettings(mode=next(iter(MODES)))]
 
 
 class RoomSettings(BaseModel):
@@ -91,9 +95,9 @@ class RoomSettings(BaseModel):
     @field_validator("modes")
     @classmethod
     def _supported_and_unique(cls, modes: list[ModeSettings]) -> list[ModeSettings]:
-        unknown = [entry.mode for entry in modes if entry.mode not in TYPES]
+        unknown = [entry.mode for entry in modes if entry.mode not in MODES]
         if unknown:
-            raise ValueError(f"unsupported question type(s): {unknown}")
+            raise ValueError(f"unsupported mode(s): {unknown}")
         picked = [entry.mode for entry in modes]
         if len(set(picked)) != len(picked):
             # One round per mode is the whole rule; the same mode twice would be two
@@ -115,19 +119,19 @@ class RoomSettings(BaseModel):
         return next((entry for entry in self.modes if entry.mode == mode), None)
 
     def questions_for(self, mode: str) -> int:
-        """How many questions this mode's round holds; its type's default if unpicked.
+        """How many questions this mode's round holds; its own default if unpicked.
 
-        A mode can be unpicked and still play: a room's own question of a type nobody
+        A mode can be unpicked and still play: a room's own question of a mode nobody
         ticked trails the game in a round of its own (see ``selection``).
         """
         entry = self.entry_for(mode)
         return entry.questions if entry is not None else questions_bounds(mode).default
 
     def seconds_for(self, mode: str) -> int:
-        """How long one question of this mode stays open, the type's own range included.
+        """How long one question of this mode stays open, the mode's own range included.
 
         The clamp is for stored rooms, not for new ones: ``NewRoomSettings`` refuses
-        anything outside the type's ``Bounds`` on the way in, so the only way past it is a
+        anything outside the mode's ``Bounds`` on the way in, so the only way past it is a
         room created before the bounds moved.
         """
         entry = self.entry_for(mode)
@@ -143,9 +147,9 @@ class NewRoomSettings(RoomSettings):
 
     @field_validator("modes")
     @classmethod
-    def _within_the_types_own_bounds(cls, modes: list[ModeSettings]) -> list[ModeSettings]:
+    def _within_the_modes_own_bounds(cls, modes: list[ModeSettings]) -> list[ModeSettings]:
         for entry in modes:
-            if entry.mode not in TYPES:
+            if entry.mode not in MODES:
                 continue  # ``_supported_and_unique`` is the one that reports this
             questions, seconds = questions_bounds(entry.mode), seconds_bounds(entry.mode)
             if not questions.holds(entry.questions):

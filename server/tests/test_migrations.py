@@ -3,16 +3,22 @@ against a throwaway database (the ``test_db_dsn`` fixture, driven by ``DATABASE_
 """
 
 import asyncio
+import json
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import asyncpg
 import pytest
 from fastapi.testclient import TestClient
+from starlette.testclient import WebSocketTestSession
 
-from app.config import Settings
+from app.config import REPO_ROOT, Settings
 from app.db import MIGRATIONS_DIR, MigrationError, create_pool, migration_files, run_migrations
 from app.main import create_app
 from app.rooms.settings import NewRoomSettings, RoomSettings
+from app.rooms.state import hash_token
+from tests.rooms_api import fast_settings
 
 # Section 5 of ideas/architecture.md.
 TABLES = {
@@ -43,6 +49,7 @@ TABLES = {
         "position",
         "question_id",
         "type",
+        "mode",
         "source",
         "payload",
         "host_only",
@@ -90,23 +97,24 @@ async def pool(test_db_dsn: str):
 
 def test_migration_files_are_numbered_and_ordered() -> None:
     files = migration_files(MIGRATIONS_DIR)
-    assert [version for version, _ in files] == [1, 2, 3, 4, 5]
+    assert [version for version, _ in files] == [1, 2, 3, 4, 5, 6]
     assert [path.name for _, path in files] == [
         "0001_init.sql",
         "0002_drop_admin_tokens.sql",
         "0003_question_rounds.sql",
         "0004_per_mode_rounds.sql",
         "0005_player_avatar.sql",
+        "0006_question_mode.sql",
     ]
 
 
 async def test_fresh_db_gets_all_tables(pool: asyncpg.Pool) -> None:
     """T3: fresh DB gets all tables (and indexes) from section 5."""
-    assert await run_migrations(pool) == [1, 2, 3, 4, 5]
+    assert await run_migrations(pool) == [1, 2, 3, 4, 5, 6]
     assert await _columns(pool) == TABLES
     rows = await pool.fetch("select indexname from pg_indexes where schemaname = 'public'")
     assert INDEXES <= {row["indexname"] for row in rows}
-    assert await _versions(pool) == [1, 2, 3, 4, 5]
+    assert await _versions(pool) == [1, 2, 3, 4, 5, 6]
 
 
 async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
@@ -155,7 +163,7 @@ async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
 
 async def test_second_start_is_noop(pool: asyncpg.Pool) -> None:
     """T3: second start is a no-op."""
-    assert await run_migrations(pool) == [1, 2, 3, 4, 5]
+    assert await run_migrations(pool) == [1, 2, 3, 4, 5, 6]
     before = await pool.fetch("select version, applied_at from schema_migrations")
     assert await run_migrations(pool) == []
     after = await pool.fetch("select version, applied_at from schema_migrations")
@@ -168,7 +176,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
 ) -> None:
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
-    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5\]"):
+    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5, 6\]"):
         await run_migrations(pool, tmp_path)
 
 
@@ -289,9 +297,104 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
         room_id,
     )
 
-    assert await run_migrations(pool) == [5]
+    assert await run_migrations(pool) == [5, 6]
     rows = await pool.fetch("select display_name, avatar from players order by display_name")
     assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
     with pytest.raises(asyncpg.CheckViolationError):
         await pool.execute("update players set avatar = -1 where display_name = 'Woox'")
     await pool.execute("update players set avatar = 49 where display_name = 'Woox'")
+
+
+def _take(ws: WebSocketTestSession, kind: str) -> dict[str, Any]:
+    """The next message of type ``kind``, skipping whatever comes first."""
+    for _ in range(30):
+        message = ws.receive_json()
+        if message["t"] == kind:
+            return message
+    raise AssertionError(f"never got {kind}")
+
+
+def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
+    test_db_dsn: str, dist: Path, tmp_path: Path, db
+) -> None:
+    """0006 (T16): a room the previous release was mid-game in when the upgrade restarted it.
+
+    Its rows are written on 0001..0005 the way that release wrote them -- no ``mode``
+    anywhere, question 0 open when the process went down -- and then an app starts on the
+    database, which applies 0006 in its lifespan. Every row comes out ``mode = type``, the
+    rehydrate reads the new column, recovery voids the question that was open, and the
+    room plays the two it still owes through to ``finished``, grading both answers.
+    """
+    session = "a-session-from-the-previous-release"
+    pack = json.loads((REPO_ROOT / "data" / "packs" / "prices.json").read_text())
+    questions = pack["questions"][:3]
+    for _, path in migration_files(MIGRATIONS_DIR)[:5]:
+        (tmp_path / path.name).write_text(path.read_text())
+
+    async def previous_release() -> None:
+        pool = await create_pool(test_db_dsn)
+        try:
+            assert await run_migrations(pool, tmp_path) == [1, 2, 3, 4, 5]
+            room_id = await pool.fetchval(
+                "insert into rooms (code, status, settings, current_index, expires_at)"
+                " values ('ABYSSAL', 'playing', $1, 0, now() + interval '1 day') returning id",
+                fast_settings(seconds=10, max_players=50).model_dump(),
+            )
+            await pool.execute(
+                "insert into players (room_id, display_name, session_token_hash, role)"
+                " values ($1, 'Zezima', $2, 'admin')",
+                room_id,
+                hash_token(session),
+            )
+            await pool.executemany(
+                "insert into questions"
+                " (room_id, position, question_id, type, source, payload, round, shown_at)"
+                " values ($1, $2, $3, $4, 'pack', $5, 0, $6)",
+                [
+                    (
+                        room_id,
+                        position,
+                        q["id"],
+                        q["type"],
+                        {"payload": q["payload"], "tags": q["tags"]},
+                        datetime.now(UTC) if position == 0 else None,
+                    )
+                    for position, q in enumerate(questions)
+                ],
+            )
+        finally:
+            await pool.close()
+
+    asyncio.run(previous_release())
+    settings = Settings(
+        _env_file=None, database_url=test_db_dsn, packs_dir=REPO_ROOT / "data" / "packs"
+    )
+    with TestClient(create_app(settings, dist)) as client:
+        versions = db("select version from schema_migrations order by version")
+        assert [row["version"] for row in versions] == [1, 2, 3, 4, 5, 6]
+        rows = db("select type, mode from questions order by position")
+        assert [(row["type"], row["mode"]) for row in rows] == [("more_less", "more_less")] * 3
+
+        with client.websocket_connect("/ws/ABYSSAL") as ws:
+            ws.send_json({"t": "hello", "session": session})
+            welcome = _take(ws, "welcome")
+            assert welcome["room"]["phase"] == "reveal"
+            assert welcome["room"]["segment"]["mode"] == "more_less"
+            assert welcome["question"] is None
+            for index in (1, 2):
+                opened = _take(ws, "question_open")["question"]
+                assert opened["index"] == index
+                assert (opened["type"], opened["mode"]) == ("more_less", "more_less")
+                answer = questions[index]["payload"]["answer_index"]
+                ws.send_json({"t": "answer", "question_id": opened["question_id"], "value": answer})
+                _take(ws, "answer_ack")
+                assert _take(ws, "question_closed")["results"][welcome["you"]["id"]]["correct"]
+            finished = _take(ws, "game_finished")
+
+    assert finished["standings"][0]["points"] > 0
+    assert db("select status from rooms")[0]["status"] == "finished"
+    assert [row["voided"] for row in db("select voided from questions order by position")] == [
+        True,
+        False,
+        False,
+    ]

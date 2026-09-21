@@ -6,7 +6,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.questions.types import TYPES
+from app.modes import MODES
 from app.rooms.settings import RoomSettings
 from app.rooms.state import Player, Room
 
@@ -37,7 +37,7 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     """Settings for a game that is over in seconds rather than minutes.
 
     ``POST /api/rooms`` will not take these: ``NewRoomSettings`` holds hosts to what each
-    type says a round of it is worth (``more_less`` is 5..20 seconds a question), and
+    mode says a round of it is worth (``more_less`` is 5..20 seconds a question), and
     ``reveal_seconds >= 3``, which is the shortest game worth playing but far too long for
     a test suite to sit through. The stored model has no such opinion, so these rooms are
     made through the manager directly.
@@ -56,7 +56,7 @@ def fast_settings(**overrides: Any) -> RoomSettings:
         mode
         if isinstance(mode, dict)
         else {"mode": mode, "questions": questions, "seconds": seconds}
-        for mode in overrides.pop("modes", [next(iter(TYPES))])
+        for mode in overrides.pop("modes", [next(iter(MODES))])
     ]
     return RoomSettings(**{"modes": modes, "reveal_seconds": 1, "splash_seconds": 0, **overrides})
 

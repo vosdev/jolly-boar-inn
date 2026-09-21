@@ -1,4 +1,4 @@
-"""``rooms/settings.py``: a mode is a round, and a round is paced by its own type.
+"""``rooms/settings.py``: a mode is a round, and a round is paced by its own mode.
 
 The two models are one shape with two policies (see the module docstring there), so what
 is tested here is which of them holds which: ``RoomSettings`` loads anything a room was
@@ -15,19 +15,19 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app.questions.types import TYPES, more_less
+from app.modes import MODES, Mode
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, ModeSettings, NewRoomSettings, RoomSettings
 
 
 @pytest.fixture
 def more_modes() -> Iterator[list[str]]:
-    """Four more registered types, for the rules that need a room of several rounds."""
+    """Four more registered modes, for the rules that need a room of several rounds."""
     names = [f"stub_{index}" for index in range(4)]
     for name in names:
-        TYPES[name] = more_less
+        MODES[name] = Mode(id=name, type="more_less")
     yield names
     for name in names:
-        del TYPES[name]
+        del MODES[name]
 
 
 def test_a_mode_takes_its_numbers_from_its_own_type() -> None:
@@ -112,6 +112,7 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
     assert response.json() == [
         {
             "id": "more_less",
+            "type": "more_less",
             "questions": {"default": 10, "min": 1, "max": 30},
             "seconds": {"default": 10, "min": 5, "max": 20},
         }

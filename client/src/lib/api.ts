@@ -57,15 +57,18 @@ export interface ModeBounds {
 }
 
 /**
- * How a round of one mode is paced, from the server's own type registry.
+ * How a round of one mode is paced, from the server's own mode registry.
  *
  * The create form draws its number fields from these rather than from constants of its
- * own: the defaults and the ranges are the server's policy (`questions/types/*.py`), and
- * a second copy here would be a form that offers what the server then refuses. The copy
- * for a mode -- its name and its blurb -- is the client's, and lives in `lib/modes.ts`.
+ * own: the defaults and the ranges are the server's policy (`app/modes`, falling back to
+ * `questions/types/*.py`), and a second copy here would be a form that offers what the
+ * server then refuses. The copy for a mode -- its name and its blurb -- is the client's,
+ * and lives in `lib/modes.ts`.
  */
 export interface ModePacing {
   id: string
+  /** The question type the mode is answered in. */
+  type: string
   questions: ModeBounds
   seconds: ModeBounds
 }

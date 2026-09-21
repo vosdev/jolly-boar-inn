@@ -1,7 +1,8 @@
 """CI check: every shipped pack is valid.
 
 Fails on schema errors, an ``id`` that does not match the content, an ``answer`` that
-contradicts the stored facts, and duplicate ids within or across packs.
+contradicts the stored facts, a ``mode`` this build does not play or a ``type`` that
+disagrees with its mode's, and duplicate ids within or across packs.
 
 Usage (from ``server/``)::
 
