@@ -66,3 +66,11 @@ When a player is joining the game but has not picked a name yet, it would be coo
 # Player avatars
 
 We could go for pets inventory icons. There's over 70 of those.
+
+# Create README
+
+# Add mandatory custom User Agent for data collectors
+
+The wiki allows scraping, with a custom user agent and at most 1 visit per second. We need to enforce these rules with the scripts and via .env
+
+# Support IPv6
