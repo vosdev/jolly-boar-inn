@@ -1,7 +1,12 @@
 # Phase 2 prompts
 
-One ready-to-paste prompt per task in `ideas/phase2.md`, for Opus 5 on High or Extra in a
-fresh session at the repo root. Run them in order; each assumes the ones before it landed.
+One ready-to-paste prompt per session, for Opus 5 on High or Extra in a fresh session at
+the repo root. Most sessions are one task from `ideas/phase2.md`. The small ones are
+grouped, so a session is never spent on an afternoon's fix: T31 + T32 + T34, T35 + T37, T36 + T38,
+T41 + T42 and T44 + T45 each run as one prompt. It says the order to work in, and asks for
+each task to be finished, green and separable before the next starts. Run the sessions in
+the order they appear; each assumes the ones before it landed. T43 sits last because it
+documents what the others add.
 
 Paste **House rules** first in each new session, then the task prompt. House rules are the
 same every time — keep them in your clipboard manager.
@@ -123,7 +128,8 @@ all look like each other: Drop Table shows an item, Who Said That? shows a quote
 chatbox, Bestiary shows a sentence. Same buttons, different thing above them.
 
 Do:
-- components/questions/types/ : the answer affordance, one per question type. MoreLess.svelte
+- components/questions/types/ : the answer affordance, one per question type.
+MoreLess.svelte
   moves here unchanged in behaviour.
 - components/questions/stems/ : what sits above it, one per mode that needs one. Ship
   TextStem for now; the rest arrive with their modes.
@@ -192,7 +198,8 @@ Task T20 in ideas/phase2.md: the guess_examine mode on the free_text type.
 
 The examine text is already in the /mapping response the price generator fetches and
 throws away. Read ideas/architecture.md section 2 for the free_text payload (note the
-optional subject, used for the reveal — the old guess_examine type was folded into this one).
+optional subject, used for the reveal — the old guess_examine type was folded into this
+one).
 
 Do:
 - questions/normalize.py : lowercase, NFKC, trim, collapse whitespace, strip punctuation,
@@ -308,7 +315,8 @@ Accept:
 - Every schema limit (option counts, string lengths, accepted-answer counts) is enforced in
   the form, with the message next to the field.
 - The event cap is enforced and explained: adding a fourth question to a four-mode room says
-  why it cannot, and deselecting a mode that drops the cap below what is already written says
+  why it cannot, and deselecting a mode that drops the cap below what is already written
+says
   so rather than waiting for submit.
 - pnpm check clean. Manual: create a room with two custom questions and play it.
 ```
@@ -321,6 +329,8 @@ Accept:
 Task T23 in ideas/phase2.md: scripts/fetch_facts.py, the first thing in this project that
 talks to the wiki.
 
+T34 must have landed first; if scripts/wiki.py does not exist, stop and say so.
+
 Read ideas/plan.md "Wiki data" for the sources and the etiquette, and
 ideas/architecture.md section 9 for the two-stage pipeline and the output shape. Read
 scripts/gen_price_questions.py first: it already establishes the conventions for a script
@@ -332,8 +342,9 @@ Do:
   sha256 per file).
 - Sources: Bucket API (meta.weirdgloop.org) for infobox and drop data, /mapping for
   examine and high alch, MediaWiki generators for the rest at 50 titles per request.
-- One request per second. Descriptive User-Agent with contact details. If-Modified-Since.
-  Resumable across runs — an interrupted run must not start over.
+- Every request through scripts/wiki.py (T34): it owns the one-per-second throttle and the
+  operator's WIKI_USER_AGENT, so this script sets neither. If-Modified-Since. Resumable
+  across runs — an interrupted run must not start over.
 - --from-dir replays saved responses so tests and every later generator work offline.
 - make fetch-facts.
 - data/facts/README.md: OSRS Wiki attribution and the CC BY-NC-SA notice. Committing
@@ -566,7 +577,8 @@ Do:
   rejected with not_open. Nothing new is stored — answerable_at is derived, so rehydrate
   does not change.
 - The splash rule moves from "a new mode" to "a new segment" (segments.py already groups an
-  event into the round it interrupts). An event gets no splash, and neither does the question
+  event into the round it interrupts). An event gets no splash, and neither does the
+question
   after it.
 - lib/random_events.ts: the roster's copy — id, NPC name, the line they open with, the
   asset ref. A dozen of them. This is the one place in the project that gets to be
@@ -597,10 +609,524 @@ Accept:
 
 ---
 
-## After T30
+## T31 + T32 + T34. Loose ends, seven options, and the wiki's rules
 
-Phase 2 is eleven playable modes and a game that interrupts itself. What is left, in
-`ideas/plan.md`'s order:
+Three small tasks with no files worth fighting over. T34 is the one with a deadline (before
+T23), which is the reason to run this session early.
+
+```text
+Three tasks from ideas/phase2.md in one session: T31, T32 and T34. They share no files that
+matter, so do them in the order given.
+
+Work through them one at a time: meet one task's accept criteria and get `make lint test`
+green before starting the next, and keep each task's changes separate enough to commit
+on its own. If the session runs long, stop after a whole task and say which are left.
+Never leave one half done. Report per task at the end.
+
+=== T31. Loose ends ===
+
+Task T31 in ideas/phase2.md: three small fixes from ideas/TODO.md. Keep them as three
+separate commits so each can be reverted alone.
+
+1. HEAD on the API. HEAD /api/modes is a 404 while GET is a 200: FastAPI registers GET
+   alone, so HEAD falls through to the static catch-all in server/app/static.py, which
+   404s anything under /api. Make every GET route under /api answer HEAD, in ONE place
+   (the router setup or a small middleware), not by editing each decorator.
+
+2. Create stops asking for a name. Read ideas/design.md §5.1 and §5.1.1, then
+   client/src/routes/Join.svelte's docstring: Join already goes in under the profile name,
+   or a generated one that becomes the profile, and nudges once. Create does the same and
+   loses its NameField and its NamePrompt gate. §5.1.1 and the "Decided" list say an empty
+   profile blocks Create; update both lines, since this task reverses them.
+
+3. The unanswered more_less reveal: a player who did not answer sees a green-outlined
+   button over "No answer from you this round, so no points". Check git log for D8 first:
+   if D8 has landed, skip this item and say so. If not, fix it without redesigning
+   anything. D8 owns the reveal's look.
+
+Accept:
+- A test walks every GET route under /api and asserts HEAD gives the same status and
+  headers with an empty body. HEAD on an unknown /api path is 404; on a POST-only route 405.
+- Create has no name field; the created host carries the profile name; a browser with no
+  profile creates a room in one tap and is nudged once, exactly as a joiner is.
+- An unanswered more_less question shows no button as pressed, and still says nobody
+  answered.
+- ideas/design.md updated for item 2 in the same change.
+
+=== T32. Seven options, at most ===
+
+Task T32 in ideas/phase2.md: no question may offer more than seven choices, because there
+are seven gem buttons (ideas/design.md §2: sapphire, emerald, ruby, diamond, dragonstone,
+onyx, zenyte) and each choice is one of them.
+
+Do:
+- schema/question.schema.json: one shared $def for the cap, referenced by every array of
+  choices. multiple_choice.options goes 6 -> 7. price_is_right stays at exactly 4.
+- If T27's ordering or Phase 3's pick_from_list already exist, they reference it too. If
+  not, add a line to ideas/architecture.md section 2 saying they must.
+- The client editor (T22), if landed, already reads caps from the schema. Check that it
+  picks up 7 with no change of its own.
+
+Accept:
+- A test walks the schema and fails any choice array whose maxItems exceeds 7 or is unset.
+  Name how it recognises "an array of choices", so a future type cannot slip past by
+  naming its field differently.
+- An eight-option custom question is a 422 naming the field, and creates no room.
+- make validate-packs rejects an eight-option pack entry.
+- A seven-option multiple_choice question plays, and every button draws a different gem
+  (manual if D8 has not landed, and say which).
+
+=== T34. The wiki's rules, enforced ===
+
+Task T34 in ideas/phase2.md: every script that talks to the OSRS Wiki sends the operator's
+User-Agent and at most one request a second. It must land before T23.
+
+Today server/scripts/gen_price_questions.py hard-codes a User-Agent naming this repo, so
+every selfhoster who runs it reports as the upstream project. ideas/design.md §9.1 says the
+download scripts must refuse to run without a User-Agent of their own.
+
+Do:
+- server/scripts/wiki.py: the one module a script imports to fetch from the wiki. It reads
+  WIKI_USER_AGENT from the environment (and .env the way the app does), refuses to send a
+  request without it, and throttles to one request a second per process. Injectable clock
+  so the throttle can be tested without sleeping.
+- gen_price_questions.py moves onto it. Its offline file flags need no User-Agent and must
+  keep working without one.
+- .env.example documents WIKI_USER_AGENT with an example in the shape the wiki asks for
+  (project name plus contact, e.g. "jolly-boar-quiz-importer - yourname on Discord").
+- Makefile targets that fetch pass the environment through.
+
+Accept:
+- A network run with WIKI_USER_AGENT unset exits non-zero before its first request, and
+  the message says what to set, with an example.
+- Offline runs are unaffected and green in CI with the variable unset.
+- The throttle is asserted with a fake clock: N requests take at least N-1 seconds.
+- A grep test fails any file under server/scripts/ that opens a URL without going
+  through wiki.py.
+```
+---
+
+## T33. Limits that mean one client, and IPv6
+
+```text
+Task T33 in ideas/phase2.md. Read server/app/http/ratelimit.py, client_host() in
+server/app/http/rooms.py, the FORWARDED_ALLOW_IPS block in .env.example, the Dockerfile's
+CMD, and ideas/architecture.md section 7.
+
+The problem: ROOMS_PER_IP_PER_HOUR keys on request.client.host, and behind an untrusted
+proxy that is the proxy, so a whole deployment shares one bucket. It is documented, and
+nobody reads the documentation before the first 429 on a quiz night.
+
+Do:
+- A one-time warning: the first request that carries X-Forwarded-For from an address
+  uvicorn did not trust logs one line naming that address and FORWARDED_ALLOW_IPS. Once
+  per process. Do NOT start trusting the header yourself; that is a bypass, not a fix.
+- Default ROOMS_PER_IP_PER_HOUR to 30. It is the abuse backstop now, not the everyday limit.
+- The everyday limit goes client-side: Create refuses a sixth live room in jbi:created
+  (ideas/plan.md "Misc decisions" wants five) and points at Home, where each room already
+  has Remove. A room the server answers 410 for is dropped from jbi:created, not counted.
+- IPv6: the limiter keys an IPv6 client on its /64 and IPv4 on the address, and folds
+  ::ffff:a.b.c.d into the IPv4 address. Put the normalisation in one function with its own
+  tests. The container listens dual-stack; APP_BIND and FORWARDED_ALLOW_IPS are
+  documented with IPv6 examples; the healthcheck still works.
+
+Accept:
+- The warning fires once for an untrusted X-Forwarded-For, never when absent or trusted.
+- Two addresses in one /64 share a bucket; two /64s do not; ::ffff:192.0.2.1 and
+  192.0.2.1 share one.
+- Create with five live rooms refuses and links Home; removing one lets the sixth through.
+- Manual: curl -6 reaches a compose deployment bound to ::1. Say exactly what you ran.
+```
+
+---
+
+## T35 + T37. Invite links, and "someone is picking a name…"
+
+Both are about getting into a room: the key gets you through the door, and the name is
+chosen once you are inside. They touch the same Join and Lobby components and the same
+`room_updated` shape, so one session reads that code once.
+
+```text
+Two tasks from ideas/phase2.md in one session: T35 and T37. Do T35 first: it changes the
+join path and T37 builds on the lobby as T35 leaves it.
+
+Work through them one at a time: meet one task's accept criteria and get `make lint test`
+green before starting the next, and keep each task's changes separate enough to commit
+on its own. If the session runs long, stop after a whole task and say which are left.
+Never leave one half done. Report per task at the end.
+
+=== T35. Invite links ===
+
+Task T35 in ideas/phase2.md: a room that only a link with its key can join.
+
+Read ideas/architecture.md section 7 first. Tokens do not go in URLs, and this task is the
+narrow exception: a door code, not a credential, carried in the fragment so it never
+reaches the server's access log or a Referer.
+
+Do:
+- Create gains "Invite link only". Such a room gets join_key = secrets.token_urlsafe(9),
+  in a migration (a column, not settings: settings reach every player).
+- The key reaches admins only: in welcome and room_updated for an admin, never for a
+  player. Add the row to architecture section 3's "What the server withholds".
+- Share link becomes /r/CODE#k=KEY for a keyed room. Join reads the fragment, sends the key
+  in the join body, and replaceStates the fragment away once joined.
+- POST /api/rooms/{code}/join on a keyed room: missing key 403 key_required, wrong key 403
+  bad_key, compared in constant time. A session reconnect never needs the key.
+- A missing or wrong key lands on a small "ask the host for the link, or paste the key"
+  prompt, not an error screen.
+- An admin can rotate the key from the lobby: new key, old link dead, nobody disconnected.
+
+There is no separate "lock room" toggle. Rotating a key is the lock. Say so in the Lobby
+component's docstring, so nobody adds one later.
+
+Accept:
+- Join without, and with a wrong, key is refused with the right code; the right key joins.
+- Reconnect by session in a keyed room works with no key.
+- Rotating refuses the old link and disconnects nobody.
+- A test serialises every frame a non-admin receives in a keyed room and asserts the key
+  appears in none of them.
+- The access-log test proves a join via the share link never logs the key.
+- An unkeyed room is unchanged on the wire; a room from before the migration has no key.
+
+=== T37. "Someone is picking a name…" ===
+
+Task T37 in ideas/phase2.md. Since D4 a player joins first and renames after, so the lobby
+can show "Cow31337Killer42" while Dave is still typing his real name. Let the room see that
+someone is mid-rename.
+
+Read how `ready` works first (server/app/rooms/ready.py, PlayerView, the ready message), and
+copy its shape: in-memory, never persisted, broadcast as room_updated.
+
+Do:
+- PlayerView.editing: bool. A websocket message editing {on: bool}, sent by the client
+  when the profile popover opens and closes on a joined player.
+- Cleared by set_profile, by disconnect, and by 60 seconds without a refresh. A popover
+  held open for longer re-sends on a timer.
+- Rate-limit it like ready, so toggling cannot flood the room with room_updated.
+- Lobby: the player dimmed, "picking a name…" under the head. Splash heads row: a pencil
+  instead of the tick.
+- It is information, not a gate. The ready threshold and Start ignore it entirely.
+
+Accept:
+- Opening the popover shows the label to another browser within a frame of room_updated;
+  saving or closing clears it.
+- Disconnect clears it; a flag left on for 60 s clears itself (fake clock).
+- The rename lands with the flag already off.
+- The ready count and Start are unchanged by any of it.
+- Toggling fast is refused past the limit, like ready.
+```
+---
+
+## T36 + T38. Hidden rounds, then public lobbies
+
+Both are about what someone who is not the host gets to see. Doing T38 first means T36's
+listing hides round names from its first commit, instead of taking a follow-up. Needs T35.
+
+```text
+Two tasks from ideas/phase2.md in one session: T38 and T36. Do T38 first, then T36, so the
+public listing honours hide_rounds from the start rather than through its "if landed"
+branch.
+
+Work through them one at a time: meet one task's accept criteria and get `make lint test`
+green before starting the next, and keep each task's changes separate enough to commit
+on its own. If the session runs long, stop after a whole task and say which are left.
+Never leave one half done. Report per task at the end.
+
+=== T38. Hidden rounds ===
+
+Task T38 in ideas/phase2.md: "Surprise rounds". Players see how many rounds there are, and
+each round's name arrives with its splash.
+
+This is the server withholding, not the client hiding. Read ideas/architecture.md section
+3, "What the server withholds from the admin", which is the same idea pointed the other way,
+and add a row for this.
+
+Do:
+- settings.hide_rounds, default false, read with a default so stored rooms still load.
+  A tick on Create.
+- For a non-admin, while hide_rounds: welcome, room_updated and GET /api/rooms/{code} carry
+  only the segments that have started, plus the total count. Admins get everything.
+- Lobby: "5 rounds: a surprise". The splash is unchanged; it was always the reveal.
+- A random event inside a hidden round must not leak the round's mode through the event.
+  Check what OpenQuestion carries.
+
+Accept:
+- Before round 3, no frame a non-admin receives contains any identifier or name for
+  rounds 3+. Assert by serialising every frame and searching the text, not by checking
+  one field.
+- Admin frames unchanged. "Round 2 of 5" still counts right.
+- A reconnect mid-game reveals exactly the played rounds plus the current one.
+- hide_rounds false is byte-identical on the wire to before this task.
+
+=== T36. Public lobbies ===
+
+Task T36 in ideas/phase2.md: a host can list their room on the Home page. T35 must have
+landed: a public room cannot have an invite key.
+
+Do:
+- Create gains "List publicly", stored with the room. Mutually exclusive with "Invite link
+  only" in the form, and a 422 on the server if both arrive.
+- A room with custom questions defaults the tick OFF (ideas/plan.md: custom questions are
+  about real people). The host may still tick it.
+- GET /api/rooms/public: rooms in lobby or playing, not full, newest first, at most 50,
+  cached a few seconds in memory. Each entry: code, host name and head, player count,
+  round count, and round names unless the room hides them (T38, if landed).
+- Home shows the list with a Join button per room; an empty list shows nothing, not an
+  empty box.
+- PUBLIC_ROOMS env, default true. false hides the tick and makes the endpoint return [].
+  Document it in .env.example: a public instance keeps it off until Phase 4's abuse
+  measures exist.
+
+Accept:
+- A public lobby shows on another browser's Home within the cache window, and leaves it
+  when the game finishes or the room fills.
+- An unlisted room never appears.
+- Public + key is a 422.
+- PUBLIC_ROOMS=false hides the tick and serves [].
+- The listing carries no session, no key, no question and no player other than the host,
+  asserted on the serialised response.
+```
+---
+
+## T39. Finished rooms go home with the players
+
+```text
+Task T39 in ideas/phase2.md: every browser keeps the result of a game it played, and the
+server stops keeping finished rooms for a week.
+
+Do:
+- Client: on game_finished (and on a welcome for a finished room), write {code,
+  finished_at, standings, you} to localStorage "jbi:history", newest first, capped at 20.
+  Every accessor tolerates localStorage throwing, like lib/session.ts.
+- Home: "Past games" under "Rooms you created here". Each entry opens the final screen
+  drawn from storage, using D9's podium component if it has landed and Scoreboard if not.
+  No request to the server.
+- /r/{code} for a room that 410s: if history has it, show the stored result; if not,
+  today's 410 screen.
+- Server: a migration adds rooms.finished_at, set on the transition to finished, and
+  backfilled for already-finished rooms from their last question's closed_at. The cleanup
+  job also deletes finished rooms older than FINISHED_ROOM_GRACE_MINUTES (default 60, in
+  config.py and .env.example). The cascade takes answers and custom questions with it.
+
+The grace period is for the phone that locked on the last question. Say that in the config
+docstring, so nobody sets it to zero thinking it is free.
+
+Accept:
+- Every browser in a finished game holds identical standings in jbi:history.
+- The 21st game drops the oldest.
+- A finished room is deleted within one cleanup interval after its grace; its code can be
+  allocated again. Lobby and playing rooms are untouched by the new rule.
+- A deleted room with a history entry shows the stored result; without one, the 410 screen.
+- localStorage throwing loses history and nothing else.
+```
+
+---
+
+## T40. One menu in the top bar
+
+```text
+Task T40 in ideas/phase2.md: fold the top bar's identity, sound and theme controls into
+one. This reverses a decision. Read ideas/design.md §4 (the bar), §5 (identity) and §6
+(sound) first, and update §4, its ASCII bar and the "Decided" entry in the same change.
+
+Do:
+- One control on the right: head, name, and the current theme's emblem. GitHub stays where
+  it is, muted, hidden under 26rem.
+- One panel with three sections: You (today's profile popover, both save paths from §4:
+  local profile outside a room, set_profile inside), Sound (D6's switches and slider; if D6
+  has not landed, an empty section D6 builds into), Theme (a row of emblems).
+- Emblems: one slot per theme under client/src/assets/, shipping a placeholder, a flat mark
+  in the theme's accent, and replaced by dropping in a file. No code change to swap art,
+  the same rule design.md §9.1 sets for scenes and trophies.
+- The bar shows the current emblem instead of the light/dark icon.
+- No inline styles and no style: directive (design.md §8, the CSP).
+
+Accept:
+- At 320px: sign, one control, the name visible and ellipsised, no horizontal scroll.
+- Every setting the three popovers reached is reachable from the panel; name what you
+  checked.
+- Keyboard: opens with Enter/Space, Escape and outside click close it, focus returns to
+  the control.
+- Changing theme updates the bar's emblem before the panel closes.
+- Swapping a placeholder emblem for a file needs no code change; prove it with one.
+- The D1 contrast script and existing TopBar tests pass (update the tests mechanically).
+```
+
+---
+
+## T41 + T42. The TzHaar theme, and the clue-scroll splash
+
+Both are paint, and both are judged by the same contrast script. The scroll must read on
+every theme, so it is cheapest to build it once the new theme exists. Needs T40.
+
+```text
+Two tasks from ideas/phase2.md in one session: T41 and T42. Do T41 first, so T42's
+every-theme check includes tzhaar.
+
+Work through them one at a time: meet one task's accept criteria and get `make lint test`
+green before starting the next, and keep each task's changes separate enough to commit
+on its own. If the session runs long, stop after a whole task and say which are left.
+Never leave one half done. Report per task at the end.
+
+=== T41. The TzHaar theme ===
+
+Task T41 in ideas/phase2.md: a black-and-red theme, "tzhaar". Built like D12: against the
+contract, and deleted rather than exempted if it cannot pass. Read ideas/design.md §1 and
+§2 first.
+
+The trap: wilderness is already near-black and ember red. TzHaar must be WARM where
+Wilderness is cold: brown-black obsidian, not blue-grey slate; lava orange-to-red, not
+ember; an accent that reads as heat, not danger. If a screenshot of each cannot be told
+apart, this task has failed even if every check is green.
+
+Do:
+- One contiguous [data-theme='tzhaar'] block in app.css, layers 1-2 and 5-7 only.
+- Picker entry with a placeholder emblem in T40's slot (a fire cape or TokKul is the
+  eventual art).
+- Update design.md §1's theme table.
+
+Accept:
+- The D1 contrast script passes unmodified, --ok against every --gem-* included.
+- No layer-3 or layer-4 token is touched outside the block.
+- --bad and the lava accent stay distinguishable under a colour-blindness simulation.
+  "Red means wrong" is the contract this theme most wants to blur. Say which simulation
+  you used.
+- State the ΔE between tzhaar's and wilderness's base and accent, and put screenshots of
+  both, side by side, in your summary.
+
+=== T42. The splash as a clue scroll ===
+
+Task T42 in ideas/phase2.md: D7's splash card becomes a clue scroll. Read ideas/design.md
+§7.1 and §8 first. The scene above the card and the ready check inside it do not change.
+
+Do:
+- The card as parchment: a texture file under client/src/assets/, tinted per theme through
+  tokens, never an inline style. A wax seal. The round name in the display face. "Round 2
+  of 5" where a clue's tier would sit.
+- The heads row and countdown at the scroll's foot, behaviour untouched.
+- One transition: the scroll unrolls in 200ms or less; with prefers-reduced-motion it
+  simply appears.
+- It must read as a scroll in every theme, dark ones included. A parchment that only works
+  on cream is a light-theme feature.
+
+Accept:
+- Body text at 4.5:1 against the parchment in every theme (extend the contrast script if
+  the parchment has a token).
+- D7's tests untouched and green.
+- 375px: the scroll and heads row fit without scrolling.
+- Unroll is 200ms or less, and absent with reduced motion.
+- Swapping the parchment file needs no code change.
+```
+---
+
+## T44 + T45. Metrics, and the admin view
+
+The admin view is mostly a window onto the metrics, and T45's own prompt already plans for
+T44 being missing. Together, that fallback never runs.
+
+```text
+Two tasks from ideas/phase2.md in one session: T44 and T45. Do T44 first; T45's "if T44 has
+not landed" branch then does not apply.
+
+Work through them one at a time: meet one task's accept criteria and get `make lint test`
+green before starting the next, and keep each task's changes separate enough to commit
+on its own. If the session runs long, stop after a whole task and say which are left.
+Never leave one half done. Report per task at the end.
+
+=== T44. Metrics ===
+
+Task T44 in ideas/phase2.md: counters for how the instance is used. Nothing that
+identifies anyone.
+
+Do:
+- A migration: daily_stats (day date, metric text, key text not null default '', count
+  int not null, primary key (day, metric, key)). Independent of rooms, so cleanup never
+  touches it.
+- Increment by upsert in the SAME transaction as the event: rooms_created,
+  games_started, games_finished, players_joined, players_returning, rounds_played keyed
+  by mode id.
+- "Returning" with no accounts: create and join accept returning: bool, true when the
+  browser had a jbi:profile before this call. Counted, never stored on the player.
+- A small module (app/stats.py) owns the metric names as constants. No string literals at
+  the call sites.
+
+Accept:
+- One game played end to end increments each metric exactly once per event.
+- A rolled-back room creation increments nothing.
+- Deleting a room leaves its counts.
+- Two events on one day give one row with count 2.
+- A test asserts daily_stats' exact column set, with a docstring saying why no IP, name,
+  code or player id may be added.
+
+=== T45. The admin view ===
+
+Task T45 in ideas/phase2.md: a read-only page for whoever runs the instance. T44 should
+have landed; if not, build everything but the metrics section and say so.
+
+Read ideas/architecture.md section 7. The TODO wrote the entry URL as /admin?Token=...,
+and this task uses the fragment instead (/admin#token=...), because a query string reaches
+the access log and the Referer, and section 7 exists to keep tokens out of both.
+
+Do:
+- ADMIN_TOKEN env. Unset: the feature does not exist, and every /api/admin/* route is a
+  404. Set but shorter than 64 characters: the app refuses to start and says why.
+- /admin reads the fragment once, stores it in localStorage "jbi:admin", replaceStates the
+  URL clean, and sends Authorization: Bearer from then on. hmac.compare_digest on the
+  server.
+- GET /api/admin/rooms: live rooms from the room manager (code, status, current round,
+  players connected/total, created_at, expires_at), plus totals of rooms in memory and open
+  sockets.
+- GET /api/admin/stats: T44's counters for the last 30 days, modes ranked.
+- A plain page for both. Nothing links to /admin.
+- It never shows room contents: no display names, answers, question payloads or custom
+  questions. The operator needs to see the box is healthy, not read a clan's inside jokes.
+
+Accept:
+- Unset token: every admin route is 404.
+- A short token fails startup with a clear message.
+- Missing or wrong bearer: 401.
+- The token appears in no access log line, no Referer, and not in the address bar after
+  the first load.
+- The room list matches the room manager's state in a test with rooms in each status.
+- A test serialises every admin response and asserts no display name, answer or question
+  payload appears in it.
+```
+---
+
+## T43. README
+
+```text
+Task T43 in ideas/phase2.md: README.md is two lines, and it is the first thing a
+selfhoster reads. Write it last among T33/T34/T44/T45, or update those sections as they
+land.
+
+Contents:
+- One paragraph on what this is, and a screenshot slot (an image path that exists).
+- Running it: cp .env.example .env, docker compose up, open the port. Nothing else.
+- The env vars that matter, grouped (required / proxy / limits / branding / wiki / admin),
+  each pointing into .env.example rather than duplicating its comments.
+- Ingress: a complete Cloudflare Tunnel config and a complete Caddyfile (ideas/plan.md
+  promised both), each with the FORWARDED_ALLOW_IPS line.
+- Development: make dev, make lint test, where packs come from, make gen-packs.
+- Contributing questions: link data/packs/AUTHORING.md if it exists.
+- Licence (AGPL-3.0), the Jagex trademark line from the footer, OSRS Wiki attribution for
+  derived data.
+
+Match this repo's prose: plain, specific, and explaining why where a reader would ask.
+
+Accept:
+- Every make target and env var named exists (write a test that checks both).
+- Follow it from a fresh clone in a scratch directory to a playable room, and list what
+  tripped you up and how you fixed the README for it.
+- The Caddyfile and tunnel config are complete enough to paste.
+```
+
+---
+
+## After T45
+
+Phase 2 is eleven playable modes, a game that interrupts itself, and an instance someone
+other than its author can run. What is left, in `ideas/plan.md`'s order:
 
 - **Phase 3** is the asset pipeline (MOID renders, webp, zoom frames), then Who's That NPC?
   and Pixel Hunt — which are two components and a generator each, because the
@@ -608,6 +1134,9 @@ Phase 2 is eleven playable modes and a game that interrupts itself. What is left
   `ideas/architecture.md` already. Settle the open decision at the end of that file first:
   where asset files live given a read-only container. The random-event NPCs want renders
   too, and they are the same pipeline.
-- **Design**, from `ideas/TODO.md`: the OSRS theme, the ready-check instead of the splash
-  countdown, and the round-only leaderboard. Independent of all of the above, and the thing
-  that makes a playtest feel like a real game rather than a form.
+- **Design**: whatever of D1–D12 in `ideas/design.md` has not landed (the ready check
+  has, as D7). Independent of all of the above, and the thing that makes a playtest feel
+  like a real game rather than a form.
+- **Phase 4** inherits T33's limits, T36's `PUBLIC_ROOMS` switch and T45's admin view as
+  its starting point for abuse measures and monitoring, rather than building them from
+  nothing.

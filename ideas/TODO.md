@@ -79,7 +79,7 @@ Black and red is always cool.
 
 The topbar has 3 options right now, for player+avatar, sound and theme. Let's combine them into one, which will also bring more focus to the themes available.
 
-Ideally the theme picker will have custom logos and not a colourscheme logo.
+Ideally the theme picker will have custom logos and not a colourscheme logo. We can also display the theme logo in the topbar instead of the boring light/dark icon.
 
 # Hide the rounds
 We could make it optional to hide the rounds from everyone that is not an admin. That makes it a surprise as to what rounds the game contains. Could be a simple checkmark at creation.
@@ -97,3 +97,8 @@ Amount of (returning) players. Amount of games created. Amount of games complete
 # Admin view
 
 Configure a secure token in .env, minimum of 64 characters. manually create /admin?Token=blabla URL to create the local storage in the browser. This token now authenticates you against the server for admin type of things in the future. Like showing howmany rooms are active and which. Howmany players are connected. 
+
+
+# Clean up Game Creation screen
+
+We no longer need the option to configure your name on the game creation screen. This functionality moved to the top bar.
