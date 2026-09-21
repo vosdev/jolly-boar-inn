@@ -12,6 +12,8 @@ GE price, High Alch price or NPC Shop price
 ## Guess the examine
 show the examine text, name the item or NPC
 
+Answer with a searchable dropdown of every item in popular-items.json (type `pick_from_list`, like Pixel Hunt). Typing only searches; only an item picked from the list can be submitted. No free text, so no aliases or typo rules. Items only for now, since the examine comes from `/mapping`; NPC examines can follow once the importer writes `npcs.json`.
+
 Display Item/NPC with name and picture afterwards
 
 ## The price is right
@@ -26,10 +28,12 @@ We would need money displayed like it is ingame. over 100,000 it becomes 100k. O
 
 ## Pixel Hunt
 item render at 800 percent, zooming out in steps, guessing earlier scores more.
-People can use a typebox with autocomplete of all items in our database. Only autocompleted options can be submitted. We would probably need at least 300 items in popular-items.json to make this work.
+People answer with the same searchable dropdown (combobox) as Guess the examine, over all items in our database. Only an item picked from the list can be submitted. We would probably need at least 300 items in popular-items.json to make this work.
 
 ## Who is that NPC?
 show the render or a shadow of the render for the obvious like Jad/Elvarg, four names as answers. Or maybe an open textfield with autocompletion/dropdown type of thing.
+
+Decided: `pick_from_list`, so the same searchable dropdown (combobox) over every NPC, not four names.
 
 ## Drop Table
 item render plus four bosses. We would need either all fake bosses included in the data, or randomize it from all available bosses. The latter is more fun, but would have the risk of running into second bosses that drop an item. Unless we accept multiple entries for the right answer.

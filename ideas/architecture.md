@@ -71,7 +71,7 @@ jolly-boar-inn/
 │   │   │   ├── schema.py      # load schema, validate(question), content_id(question)
 │   │   │   ├── packs.py       # load data/packs/*.json at startup into memory
 │   │   │   ├── normalize.py   # free-text normalisation + Levenshtein
-│   │   │   ├── vocab.py       # closed answer lists for pick_from_list, from data/facts
+│   │   │   ├── vocab.py       # closed answer lists for pick_from_list: the roster, data/facts
 │   │   │   └── types/         # one module per question type: the answer shape
 │   │   │       ├── __init__.py    # registry: TYPES = {"more_less": more_less, ...}
 │   │   │       ├── bounds.py      # Bounds: a per-mode number, its default and its range
@@ -79,10 +79,10 @@ jolly-boar-inn/
 │   │   │       ├── more_less.py
 │   │   │       ├── multiple_choice.py    # T21
 │   │   │       ├── price_is_right.py     # T19
-│   │   │       ├── free_text.py          # T20
+│   │   │       ├── free_text.py          # T21
 │   │   │       ├── closest_number.py     # T21
 │   │   │       ├── ordering.py           # T27
-│   │   │       └── pick_from_list.py     # Phase 3
+│   │   │       └── pick_from_list.py     # T20
 │   │   ├── ws/
 │   │   │   ├── protocol.py    # pydantic models for every message, both directions
 │   │   │   └── handler.py     # /ws/{code} endpoint; parses, authenticates, dispatches to RoomManager
@@ -116,7 +116,7 @@ jolly-boar-inn/
 │       │   ├── modes.ts        # per-mode copy and presentation: label, hint, blurb, stem
 │       │   ├── randomEvents.ts # per-random-event copy: the NPC, the line, the asset
 │       │   ├── gp.ts           # format a coin amount the way the game writes it
-│       │   ├── vocab.ts        # fetch and cache /api/vocab/{name}, prefix search
+│       │   ├── vocab.ts        # fetch and cache /api/vocab/{name}, word-prefix search
 │       │   ├── session.ts      # localStorage: session per room, list of created rooms
 │       │   ├── protocol.ts     # TS types mirroring server/app/ws/protocol.py
 │       │   └── stores.ts       # room, players, question, standings (Svelte runes/stores)
@@ -143,7 +143,7 @@ jolly-boar-inn/
 │               │   ├── FreeText.svelte
 │               │   ├── ClosestNumber.svelte
 │               │   ├── Ordering.svelte
-│               │   └── PickFromList.svelte
+│               │   └── PickFromList.svelte   # strict combobox: search, select, submit an id
 │               └── stems/               # what sits above it, one per mode that needs one
 │                   ├── TextStem.svelte
 │                   ├── AssetStem.svelte
@@ -298,7 +298,7 @@ round. Names are final — `ideas/games.md` holds the sketches they came from.
 |---|---|---|---|---|
 | `more_less` | More or Less | `more_less` | `/mapping` + `/latest` | done (T5) |
 | `price_is_right` | The Price is Right | `price_is_right` | `/mapping` + `/latest` | T19 |
-| `guess_examine` | Guess the Examine | `free_text` | `/mapping` examine | T20 |
+| `guess_examine` | Guess the Examine | `pick_from_list` | `/mapping` examine | T20 |
 | `custom` | Host's Questions | *per question* | the host | T21 (as a random event) |
 | `bestiary` | Bestiary | `multiple_choice` | `facts/npcs.json` | T25 |
 | `drop_table` | Drop Table | `multiple_choice` | `facts/npcs.json` drops | T25 |
@@ -321,7 +321,13 @@ mode with nothing to say on its own splash screen.
 **Who's That NPC?** is `pick_from_list`, not `multiple_choice`. Four names is a mode you can
 play by elimination; a text box that only accepts a real NPC name is a mode you can only
 play by knowing. That is worth the autocomplete, and it is the same affordance Pixel Hunt
-needs anyway, so the two modes share one type and one component.
+needs anyway, so the modes share one type and one component. **Guess the Examine** is the
+third, and the first to land (T20). It was `free_text` until the free-text version met the
+roster: every item needed an alias list ("whip", "d scim", "dds"), and Levenshtein had to
+settle whether a typo was a typo or a different item. A list the player picks from makes the
+answer an item id, so there is nothing to spell and nothing to argue about. `free_text`
+stays for the host's own questions (T21), where the answer is a clan member's name and no
+list could hold it.
 
 **The Price is Right** keeps its own type rather than becoming `multiple_choice` with
 pre-formatted strings. Its options are integers and the payload stores the subject's price
@@ -555,9 +561,33 @@ is the whole answer to it.
 which way round it wants the answer.
 
 `pick_from_list` answers are the id of an entry in the named vocabulary, never free text:
-the client only lets an autocompleted entry be submitted, so grading is an integer
-comparison and there is no normalisation to argue about. `steps` is what makes Pixel Hunt
-progressive — the number of zoom frames — and is absent for the modes that show one image.
+the client only lets a selected entry be submitted, so grading is an integer comparison and
+there is no normalisation to argue about. `validate_value` rejects an integer that is not
+an id in the question's vocabulary with `bad_value`. `check()` fails a payload whose
+`answer_id` is not in its vocabulary, or whose `subject.name` is not that entry's name, and
+`validate_packs.py` runs it, so a roster edit that drops an answer fails CI rather than a
+quiz night. `steps` is what makes Pixel Hunt progressive — the number of zoom frames — and
+is absent for the modes that show one image. For Guess the Examine, `prompt` is the examine
+text itself and `vocab` is `items`.
+
+**Every `pick_from_list` mode answers through the same control: a strict combobox**
+(`PickFromList.svelte`, a searchable dropdown). Strict means selection only — what the
+player types is a search, never an answer:
+
+- It is the WAI-ARIA combobox pattern: an input with `role="combobox"`, a `listbox` popup,
+  and `aria-activedescendant` on the highlighted option.
+- Focus opens the list with the whole vocabulary, alphabetical, so a player who cannot spell
+  it can still scroll to it. Knowing the vocabulary gives nothing away (section 3).
+- Typing filters it (`lib/vocab.ts`): case- and accent-insensitive, matching the start of
+  any word in the name, so "whip" finds "Abyssal whip" and "d sc" finds "Dragon scimitar".
+  Names that start with the query sort first, then alphabetical. The first match is
+  highlighted.
+- Arrow keys move the highlight, Enter or a tap selects it, Escape closes the list. The
+  field then shows the selected name. Editing the text afterwards clears the selection.
+- No match shows one line in the list saying so, and selects nothing.
+- A Submit button sends the selected entry's id, and it is disabled until there is one.
+  Selecting is not submitting: a mis-tap on a phone costs a second tap, not the question.
+  Nothing else the control does can put free text on the wire.
 
 Example Phase 1 pack entry:
 
@@ -680,14 +710,18 @@ way `Timer.svelte` already counts down to the close.
 
 `GET /api/vocab/{name}` where `name` is `items` or `npcs`, returning
 `{"vocab": "items", "version": "<16 hex>", "entries": [{"id": 4151, "name": "Abyssal whip"}]}`.
-The list is built from `data/facts/*.json` at startup and never changes while the process
-runs; `version` is a hash of it so a client can tell two builds apart.
+The list is built at startup and never changes while the process runs; `version` is a hash
+of it so a client can tell two builds apart. `items` is `data/popular-items.json`, the
+curated roster, which exists before any importer does, so Guess the Examine does not wait
+for T23. `npcs` is `data/facts/npcs.json`, and is a 404 until T23 has written it. A
+vocabulary with two entries of the same name refuses to load, because a player could not
+tell them apart in the list.
 
 It is a separate HTTP fetch rather than a field on `OpenQuestion` because it is the same
 few hundred entries for every question of a `pick_from_list` round, and sending it per
 question would put the answer list on the wire eleven times in a ten-question round. The
-client fetches it once when it first meets a `pick_from_list` question and keeps it in
-memory for the session. `Cache-Control: no-store` applies as it does to all of `/api/*`;
+client fetches it once — during the splash of a round whose mode is `pick_from_list`, or at
+the latest when it first meets such a question — and keeps it in memory for the session. `Cache-Control: no-store` applies as it does to all of `/api/*`;
 the list is small enough that one fetch per page load is not worth an exception.
 
 Knowing the vocabulary gives nothing away: it is every item in the roster, not the
@@ -947,12 +981,12 @@ One multiplication, three tables. A type that wants a fourth way to be scored ad
 `Scoring` member and a table, and touches nothing else.
 
 `STEP` falls back to `SPEED` when the payload has no `steps`, which is why `points_for`
-takes both the band and the steps. `pick_from_list` serves two modes that want different
+takes both the band and the steps. `pick_from_list` serves modes that want different
 things: Pixel Hunt zooms out over eight frames and should pay for answering on frame two,
-Who's That NPC? shows one render and should pay for answering quickly. One type, one
-`SCORING`, and the payload decides — rather than two near-identical types, or a Who's That
-NPC? where everyone who knows the answer scores the same 1000 whether they took two seconds
-or twenty. `answer_ack` says `speed` for such a question too, with the bucket as its band,
+Who's That NPC? and Guess the Examine show one thing and should pay for answering quickly.
+One type, one `SCORING`, and the payload decides — rather than two near-identical types, or
+a Guess the Examine where everyone who knows the answer scores the same 1000 whether they
+took two seconds or twenty. `answer_ack` says `speed` for such a question too, with the bucket as its band,
 so a client is never told a step number for a question that has no steps.
 
 `correct` — the boolean stored on the answer row and counted in the standings tie-break —
@@ -1165,15 +1199,16 @@ the modes in `ideas/games.md` as they stand now, and three of them are why:
 - **Pixel Hunt** changes what it shows while it is open and scores on how early you
   answered, not how fast — a second scoring model, and nearly a second protocol (section 6
   explains why it turned out not to need one).
-- **Who's That NPC?** and Pixel Hunt answer from a closed vocabulary of a few hundred
-  entries, which is not something to put on the wire per question.
+- **Guess the Examine**, Who's That NPC? and Pixel Hunt answer from a closed vocabulary of
+  a few hundred entries, which is not something to put on the wire per question, through a
+  combobox that only submits an entry of it.
 - **Random events** (`ideas/TODO.md`, and T30) put a question of one mode inside a round of
   another, which "a round is a mode" could not express, and hold the answer affordance back
   behind the NPC asking it, which nothing on the wire could say. They also retired
   `settings.order` and the custom round it placed.
 
-So Phase 2 changes: the schema (`mode`, `ordering`, `pick_from_list`, `guess_examine`
-folded into `free_text`), the protocol (`answer_ack`, `OpenQuestion.mode`,
+So Phase 2 changes: the schema (`mode`, `ordering`, `pick_from_list`, which
+`guess_examine` is the first mode on), the protocol (`answer_ack`, `OpenQuestion.mode`,
 `PlayerResult.credit`, `OpenQuestion.random_event`, `answerable_at`, `GET /api/vocab`),
 the SQL (`0006_question_mode.sql`, `0007_random_events.sql`), and the scoring model
 (credit, then points). All of it is in the sections above. T16–T18 land exactly that
