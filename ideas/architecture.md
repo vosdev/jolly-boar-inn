@@ -324,10 +324,14 @@ play by knowing. That is worth the autocomplete, and it is the same affordance P
 needs anyway, so the two modes share one type and one component.
 
 **The Price is Right** keeps its own type rather than becoming `multiple_choice` with
-pre-formatted strings. Its options are integers, so `check()` can assert that
-`options[answer_index]` is the price actually stored for the subject — the consistency
-guarantee in the design rules below. Formatting them the way the game writes coins is the
-client's job (`lib/gp.ts`), not something baked into the pack.
+pre-formatted strings. Its options are integers and the payload stores the subject's price
+once more on its own, as `value`, so `check()` can assert that `options[answer_index]` is
+the price actually stored for the subject — the consistency guarantee in the design rules
+below. Without `value` the only stored price would be the answer itself, and there would
+be nothing to check it against. The generator rounds `value` to two significant figures
+before building the options around it, so the answer *is* the stored price rather than
+something near it. Formatting them the way the game writes coins is the client's job
+(`lib/gp.ts`), not something baked into the pack.
 
 **A random event is not a mode.** `custom` is a mode because its questions need a `mode`
 value and a pool of their own. A random event is a *placement*: any question, of any
@@ -436,10 +440,11 @@ Design rules:
 
     "price_is_right": {
       "type": "object",
-      "required": ["subject", "options", "answer_index", "as_of"],
+      "required": ["subject", "value", "options", "answer_index", "as_of"],
       "additionalProperties": false,
       "properties": {
         "subject": { "$ref": "#/$defs/subject" },
+        "value": { "type": "integer", "minimum": 0 },
         "options": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "integer", "minimum": 0 } },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 3 },
         "as_of": { "$ref": "#/$defs/date" }
