@@ -1,5 +1,6 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
-import { defineConfig } from 'vite'
+import { svelteTesting } from '@testing-library/svelte/vite'
+import { defineConfig } from 'vitest/config'
 
 import { headsSprite } from './heads-sprite.ts'
 
@@ -9,8 +10,16 @@ import { headsSprite } from './heads-sprite.ts'
 // server is allowed that one file as well as its own root. A build needs nothing: Rollup
 // reads it straight off the disk. The chat heads in `data/heads/` never go through the
 // dev server at all: `headsSprite` reads them and serves one sheet (D4).
+//
+// `pnpm test` runs the component tests in jsdom. `svelteTesting` resolves Svelte's
+// browser build rather than its server one, which is what `mount` needs, and unmounts
+// whatever a test rendered once it finishes.
 export default defineConfig({
-  plugins: [svelte(), headsSprite()],
+  plugins: [svelte(), svelteTesting(), headsSprite()],
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.ts'],
+  },
   server: {
     port: 5173,
     strictPort: true,

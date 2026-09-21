@@ -30,7 +30,7 @@
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
   import Timer from '../components/Timer.svelte'
-  import { QUESTION_VIEWS } from '../components/questions'
+  import Question from '../components/questions/Question.svelte'
   import { clearSession, getSession } from '../lib/session'
   import {
     answerAck,
@@ -126,11 +126,6 @@
   /** What the splash says each question of its round lasts; null for a round not in settings. */
   const roundSeconds = $derived(
     $room?.settings.modes.find((round) => round.mode === $room?.segment?.mode)?.seconds ?? null,
-  )
-  /** The component for the open question's type, or null for a mode this build lacks. */
-  const OpenView = $derived($question === null ? null : (QUESTION_VIEWS[$question.type] ?? null))
-  const ClosedView = $derived(
-    $lastClosed?.was == null ? null : (QUESTION_VIEWS[$lastClosed.was.type] ?? null),
   )
   /** Our own row in the reveal, if we answered. */
   const yourResult = $derived(
@@ -268,21 +263,7 @@
 
     {#if $room.phase === 'open' && $question !== null}
       <section class="panel">
-        {#if OpenView !== null}
-          <OpenView
-            data={$question.view}
-            revealed={false}
-            yourValue={$yourAnswer}
-            canAnswer={$question.you_can_answer}
-            onAnswer={answer}
-          />
-        {:else}
-          <!-- A pack from a newer server than this build knows would otherwise show
-               nothing at all, which reads as a broken room rather than a missing
-               component. -->
-          <p>This question is a <code>{$question.type}</code>, which this version cannot show.</p>
-          <p class="note">Sit this one out — the game carries on.</p>
-        {/if}
+        <Question question={$question} yourValue={$yourAnswer} onAnswer={answer} />
       </section>
 
       {#if $yourAnswer !== null}
@@ -301,12 +282,11 @@
       {/if}
     {:else if $lastClosed !== null}
       <section class="panel">
-        {#if ClosedView !== null && $lastClosed.was !== null}
-          <ClosedView
-            data={$lastClosed.reveal}
-            revealed={true}
+        {#if $lastClosed.was !== null}
+          <Question
+            question={$lastClosed.was}
+            reveal={$lastClosed.reveal}
             yourValue={$yourAnswer}
-            canAnswer={$lastClosed.was.you_can_answer}
             result={yourResult}
             onAnswer={() => {}}
           />
