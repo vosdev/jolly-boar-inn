@@ -4951,6 +4951,2606 @@
         "answer_index": 1,
         "as_of": "2026-09-20"
       }
+    },
+    {
+      "id": "q_a16d0b90c10c7bf6",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Armadyl chestplate",
+          "asset": "item:11828"
+        },
+        "value": 35000000,
+        "options": [
+          35000000,
+          41000000,
+          58000000,
+          79000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_6ae2e2a772fc5983",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Heavy ballista",
+          "asset": "item:19481"
+        },
+        "value": 1000000,
+        "options": [
+          1000000,
+          1300000,
+          1800000,
+          2600000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_d8cf9edcb6d7d50a",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Rune platebody",
+          "asset": "item:1127"
+        },
+        "value": 38000,
+        "options": [
+          27000,
+          38000,
+          52000,
+          68000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f748a526faf7108a",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Ahrim's robetop",
+          "asset": "item:4712"
+        },
+        "value": 1500000,
+        "options": [
+          950000,
+          1200000,
+          1500000,
+          1700000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e6e8db9be8e3a781",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Spade",
+          "asset": "item:952"
+        },
+        "value": 150,
+        "options": [
+          57,
+          77,
+          100,
+          150
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_43147950d44574ef",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Draconic visage",
+          "asset": "item:11286"
+        },
+        "value": 3300000,
+        "options": [
+          2800000,
+          3300000,
+          4800000,
+          6900000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_c8af2c8dabf94251",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Magic logs",
+          "asset": "item:1513"
+        },
+        "value": 710,
+        "options": [
+          270,
+          390,
+          500,
+          710
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e0d1797cf7a3fc0d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Dharok's greataxe",
+          "asset": "item:4718"
+        },
+        "value": 1800000,
+        "options": [
+          810000,
+          1200000,
+          1800000,
+          2700000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_70ae703949bef7f2",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Amulet of fury",
+          "asset": "item:6585"
+        },
+        "value": 2800000,
+        "options": [
+          2800000,
+          3700000,
+          4600000,
+          6100000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e15a47b17ee8dadf",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Blood rune",
+          "asset": "item:565"
+        },
+        "value": 340,
+        "options": [
+          230,
+          340,
+          430,
+          630
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_15d0a6fd7ecbd3e0",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Red halloween mask",
+          "asset": "item:1057"
+        },
+        "value": 11000,
+        "options": [
+          5300,
+          6400,
+          7700,
+          11000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1b13b556fb334a02",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Prayer potion(4)",
+          "asset": "item:2434"
+        },
+        "value": 9600,
+        "options": [
+          5900,
+          7800,
+          9600,
+          14000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1e7ffdb2fdd1704d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Granite maul",
+          "asset": "item:4153"
+        },
+        "value": 110000,
+        "options": [
+          38000,
+          50000,
+          74000,
+          110000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_c9df92d308256fd8",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Tinderbox",
+          "asset": "item:590"
+        },
+        "value": 330,
+        "options": [
+          330,
+          410,
+          540,
+          680
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_151eb862a63d52da",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Purple sweets",
+          "asset": "item:10476"
+        },
+        "value": 5100,
+        "options": [
+          3700,
+          5100,
+          7300,
+          10000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_16bbecc29f046460",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Dragon med helm",
+          "asset": "item:1149"
+        },
+        "value": 58000,
+        "options": [
+          32000,
+          40000,
+          58000,
+          78000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_b7bc0113149cd927",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Dragon halberd",
+          "asset": "item:3204"
+        },
+        "value": 150000,
+        "options": [
+          87000,
+          120000,
+          150000,
+          190000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f0a7ab4c80cfdd38",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Dragon 2h sword",
+          "asset": "item:7158"
+        },
+        "value": 130000,
+        "options": [
+          130000,
+          190000,
+          250000,
+          350000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_054f6f0c8cb9236d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Bandos chestplate",
+          "asset": "item:11832"
+        },
+        "value": 22000000,
+        "options": [
+          13000000,
+          15000000,
+          18000000,
+          22000000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_537fbd8fe67f900a",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Kodai wand",
+          "asset": "item:21006"
+        },
+        "value": 58000000,
+        "options": [
+          32000000,
+          43000000,
+          58000000,
+          71000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a83147d2035c85e8",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Zamorakian hasta",
+          "asset": "item:11889"
+        },
+        "value": 1400000,
+        "options": [
+          1000000,
+          1400000,
+          1800000,
+          2300000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_5ea24d0503b70bdb",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Karil's leathertop",
+          "asset": "item:4736"
+        },
+        "value": 890000,
+        "options": [
+          680000,
+          890000,
+          1300000,
+          1600000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_0747bee80fb5d53e",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Ancestral robe bottom",
+          "asset": "item:21024"
+        },
+        "value": 67000000,
+        "options": [
+          36000000,
+          42000000,
+          49000000,
+          67000000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_8ce16f4a5c32c19d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Swordfish",
+          "asset": "item:373"
+        },
+        "value": 200,
+        "options": [
+          200,
+          250,
+          380,
+          570
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f052142e0d76c9ca",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Voidwaker",
+          "asset": "item:27690"
+        },
+        "value": 39000000,
+        "options": [
+          39000000,
+          56000000,
+          65000000,
+          84000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_890b0f7813622b7b",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Cosmic rune",
+          "asset": "item:564"
+        },
+        "value": 120,
+        "options": [
+          48,
+          71,
+          90,
+          120
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_683cf6f27e45161a",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Seers ring",
+          "asset": "item:6731"
+        },
+        "value": 830000,
+        "options": [
+          560000,
+          830000,
+          1100000,
+          1500000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_50fdfd6961c3ce03",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Abyssal whip",
+          "asset": "item:4151"
+        },
+        "value": 820000,
+        "options": [
+          430000,
+          570000,
+          820000,
+          1000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_5243ebf81889ea9d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Amulet of glory(6)",
+          "asset": "item:11978"
+        },
+        "value": 10000,
+        "options": [
+          3400,
+          4900,
+          6700,
+          10000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a08b862481a3c988",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Ancestral hat",
+          "asset": "item:21018"
+        },
+        "value": 46000000,
+        "options": [
+          18000000,
+          27000000,
+          32000000,
+          46000000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_ac6ef8400f3b5d7e",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Dragon scimitar",
+          "asset": "item:4587"
+        },
+        "value": 60000,
+        "options": [
+          29000,
+          38000,
+          46000,
+          60000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_803cf21d7943c462",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Ring of recoil",
+          "asset": "item:2550"
+        },
+        "value": 940,
+        "options": [
+          780,
+          940,
+          1200,
+          1800
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_6bf815bc8cb68885",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Cooked karambwan",
+          "asset": "item:3144"
+        },
+        "value": 410,
+        "options": [
+          170,
+          250,
+          320,
+          410
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_990e015e0d5b9471",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Hammer",
+          "asset": "item:2347"
+        },
+        "value": 100,
+        "options": [
+          100,
+          150,
+          190,
+          230
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_2cfa5c9cee5c56c7",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Staff of the Dead",
+          "asset": "item:11791"
+        },
+        "value": 4700000,
+        "options": [
+          4700000,
+          6600000,
+          9600000,
+          14000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_342929d77aca654a",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Chaos rune",
+          "asset": "item:562"
+        },
+        "value": 100,
+        "options": [
+          54,
+          80,
+          100,
+          130
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1adb931abc04710f",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Astral rune",
+          "asset": "item:9075"
+        },
+        "value": 120,
+        "options": [
+          75,
+          94,
+          120,
+          140
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e8f821794cca1c25",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Rune pickaxe",
+          "asset": "item:1275"
+        },
+        "value": 18000,
+        "options": [
+          7400,
+          9300,
+          13000,
+          18000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_3fc86ac787a9e868",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Yellow partyhat",
+          "asset": "item:1040"
+        },
+        "value": 11000,
+        "options": [
+          6600,
+          8200,
+          11000,
+          15000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_7aaf28207e0a4b84",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Old school bond",
+          "asset": "item:13190"
+        },
+        "value": 12000000,
+        "options": [
+          4900000,
+          7000000,
+          9000000,
+          12000000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_2d4b6a247e16fd00",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dragon longsword",
+          "asset": "item:1305"
+        },
+        "value": 60000,
+        "options": [
+          50000,
+          60000,
+          74000,
+          98000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_021b8c7e28c20116",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "3rd Age platebody",
+          "asset": "item:10348"
+        },
+        "value": 140000000,
+        "options": [
+          140000000,
+          200000000,
+          250000000,
+          310000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_8b5b4871c3301eb0",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Ancestral robe top",
+          "asset": "item:21021"
+        },
+        "value": 90000000,
+        "options": [
+          90000000,
+          120000000,
+          180000000,
+          220000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_bf306ab9e7f956aa",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Masori body",
+          "asset": "item:27229"
+        },
+        "value": 41000000,
+        "options": [
+          16000000,
+          24000000,
+          35000000,
+          41000000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_caef6aecc2709ee3",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Combat bracelet(4)",
+          "asset": "item:11118"
+        },
+        "value": 12000,
+        "options": [
+          7500,
+          9700,
+          12000,
+          15000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_8f904a6f75f28e40",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Super combat potion(4)",
+          "asset": "item:12695"
+        },
+        "value": 12000,
+        "options": [
+          9200,
+          12000,
+          16000,
+          21000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_5fabff5580ab6f3d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Nature rune",
+          "asset": "item:561"
+        },
+        "value": 140,
+        "options": [
+          79,
+          94,
+          140,
+          190
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_cdc4b99b6955a650",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Death rune",
+          "asset": "item:560"
+        },
+        "value": 190,
+        "options": [
+          160,
+          190,
+          280,
+          410
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_7ca8f5e454cf1351",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Ranarr weed",
+          "asset": "item:257"
+        },
+        "value": 5900,
+        "options": [
+          2200,
+          3200,
+          4300,
+          5900
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_3d3a8319e6706c69",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Osmumten's fang",
+          "asset": "item:26219"
+        },
+        "value": 17000000,
+        "options": [
+          14000000,
+          17000000,
+          21000000,
+          31000000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_58194cc71f6d4c72",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Zulrah's scales",
+          "asset": "item:12934"
+        },
+        "value": 160,
+        "options": [
+          110,
+          160,
+          190,
+          260
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a510ff755d86eead",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Law rune",
+          "asset": "item:563"
+        },
+        "value": 120,
+        "options": [
+          89,
+          120,
+          170,
+          250
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_007285e309a9bf97",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Kraken tentacle",
+          "asset": "item:12004"
+        },
+        "value": 230000,
+        "options": [
+          230000,
+          290000,
+          380000,
+          450000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_08063e92f6e4e501",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Rune kiteshield",
+          "asset": "item:1201"
+        },
+        "value": 32000,
+        "options": [
+          28000,
+          32000,
+          47000,
+          69000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_79d9592e6b38087c",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Coal",
+          "asset": "item:453"
+        },
+        "value": 150,
+        "options": [
+          72,
+          99,
+          130,
+          150
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_50d6d5071fe2b5e0",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Shark",
+          "asset": "item:385"
+        },
+        "value": 1000,
+        "options": [
+          560,
+          680,
+          1000,
+          1300
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_acf63e95a9cbf75f",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Blade of Saeldor (inactive)",
+          "asset": "item:23997"
+        },
+        "value": 110000000,
+        "options": [
+          93000000,
+          110000000,
+          130000000,
+          180000000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_dd20fbe6b68b4310",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Bow string",
+          "asset": "item:1777"
+        },
+        "value": 180,
+        "options": [
+          180,
+          220,
+          280,
+          370
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_aab5a8acc19a9279",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dinh's bulwark",
+          "asset": "item:21015"
+        },
+        "value": 12000000,
+        "options": [
+          9500000,
+          12000000,
+          14000000,
+          20000000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f57a284f84c17995",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Wrath rune",
+          "asset": "item:21880"
+        },
+        "value": 320,
+        "options": [
+          140,
+          180,
+          230,
+          320
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1f77a55ab84f17ee",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dragon claws",
+          "asset": "item:13652"
+        },
+        "value": 39000000,
+        "options": [
+          24000000,
+          33000000,
+          39000000,
+          48000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e0f2fe5ddc2ee518",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Monkey nuts",
+          "asset": "item:4012"
+        },
+        "value": 130,
+        "options": [
+          130,
+          190,
+          280,
+          330
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_0292ad6cce4351be",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Helm of Neitiznot",
+          "asset": "item:10828"
+        },
+        "value": 48000,
+        "options": [
+          18000,
+          25000,
+          34000,
+          48000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f59c31bcf531f487",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Verac's plateskirt",
+          "asset": "item:4759"
+        },
+        "value": 350000,
+        "options": [
+          200000,
+          250000,
+          350000,
+          460000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a3fa87d5fde91b6d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Bandos tassets",
+          "asset": "item:11834"
+        },
+        "value": 15000000,
+        "options": [
+          6100000,
+          7400000,
+          10000000,
+          15000000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_d40a39ca51a6e4ed",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Elder maul",
+          "asset": "item:21003"
+        },
+        "value": 93000000,
+        "options": [
+          50000000,
+          74000000,
+          93000000,
+          110000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_6704ee76cb5bc8bf",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Santa hat",
+          "asset": "item:1050"
+        },
+        "value": 26000,
+        "options": [
+          18000,
+          26000,
+          31000,
+          37000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_796e69fc828f3301",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Armadyl crossbow",
+          "asset": "item:11785"
+        },
+        "value": 34000000,
+        "options": [
+          22000000,
+          25000000,
+          34000000,
+          44000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_d6d9106b23849918",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dragonfire shield",
+          "asset": "item:11284"
+        },
+        "value": 3600000,
+        "options": [
+          1700000,
+          2100000,
+          3000000,
+          3600000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e60bdcecc1f1e20f",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Berserker ring",
+          "asset": "item:6737"
+        },
+        "value": 3800000,
+        "options": [
+          3800000,
+          4900000,
+          7300000,
+          9200000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_9e7d5a7002c57936",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Black chinchompa",
+          "asset": "item:11959"
+        },
+        "value": 3400,
+        "options": [
+          3400,
+          4500,
+          6600,
+          8200
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_fe01d7b9474bec7a",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Grimy ranarr weed",
+          "asset": "item:207"
+        },
+        "value": 5700,
+        "options": [
+          2500,
+          3400,
+          4400,
+          5700
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_83a56653cad11dd8",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Dragon bones",
+          "asset": "item:536"
+        },
+        "value": 3600,
+        "options": [
+          3600,
+          4600,
+          6000,
+          8000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_35d2790d811a7cf5",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Enhanced crystal weapon seed",
+          "asset": "item:25859"
+        },
+        "value": 110000000,
+        "options": [
+          110000000,
+          160000000,
+          210000000,
+          280000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_1d67830545de9014",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Serpentine helm (uncharged)",
+          "asset": "item:12929"
+        },
+        "value": 3200000,
+        "options": [
+          2400000,
+          3200000,
+          4100000,
+          6000000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_cf9e1d66e4040bec",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Saradomin godsword",
+          "asset": "item:11806"
+        },
+        "value": 25000000,
+        "options": [
+          18000000,
+          25000000,
+          37000000,
+          48000000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_f4eaeaa9707dea16",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Occult necklace",
+          "asset": "item:12002"
+        },
+        "value": 410000,
+        "options": [
+          170000,
+          200000,
+          280000,
+          410000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_c801ee9d502dbbc2",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Yew logs",
+          "asset": "item:1515"
+        },
+        "value": 100,
+        "options": [
+          100,
+          150,
+          220,
+          300
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_d5d8daa770652a0e",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Zamorakian spear",
+          "asset": "item:11824"
+        },
+        "value": 1200000,
+        "options": [
+          490000,
+          730000,
+          940000,
+          1200000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_e1379adb03966518",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Toxic blowpipe (empty)",
+          "asset": "item:12924"
+        },
+        "value": 10000000,
+        "options": [
+          7200000,
+          8400000,
+          10000000,
+          14000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a4a15482eb11024e",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Eternal boots",
+          "asset": "item:13235"
+        },
+        "value": 4200000,
+        "options": [
+          3300000,
+          4200000,
+          5100000,
+          6700000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_faeec41fbe7b7643",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Guthan's warspear",
+          "asset": "item:4726"
+        },
+        "value": 80000,
+        "options": [
+          43000,
+          54000,
+          80000,
+          110000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_4e1f1457092e4f96",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dragon hunter crossbow",
+          "asset": "item:21012"
+        },
+        "value": 31000000,
+        "options": [
+          21000000,
+          26000000,
+          31000000,
+          43000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_2d4f5e82878a6dd3",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dragon boots",
+          "asset": "item:11840"
+        },
+        "value": 210000,
+        "options": [
+          210000,
+          260000,
+          320000,
+          400000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_5ded68b2042eba95",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Stamina potion(4)",
+          "asset": "item:12625"
+        },
+        "value": 3600,
+        "options": [
+          2300,
+          2900,
+          3600,
+          5000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a08a672cb79a1463",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Dragon pickaxe",
+          "asset": "item:11920"
+        },
+        "value": 600000,
+        "options": [
+          460000,
+          600000,
+          830000,
+          1100000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_5a65035ce5f69b0c",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Bandos godsword",
+          "asset": "item:11804"
+        },
+        "value": 18000000,
+        "options": [
+          18000000,
+          27000000,
+          37000000,
+          55000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_cc98f4ec6379fb40",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Teleport to house (tablet)",
+          "asset": "item:8013"
+        },
+        "value": 580,
+        "options": [
+          290,
+          400,
+          580,
+          840
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_4956bdee2583fb62",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dragon platebody",
+          "asset": "item:21892"
+        },
+        "value": 2200000,
+        "options": [
+          1600000,
+          2200000,
+          2600000,
+          3400000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_3414376e01d83600",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Dragon axe",
+          "asset": "item:6739"
+        },
+        "value": 72000,
+        "options": [
+          61000,
+          72000,
+          110000,
+          140000
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_7f22405c2e9e931c",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Archers ring",
+          "asset": "item:6733"
+        },
+        "value": 2100000,
+        "options": [
+          2100000,
+          3100000,
+          4000000,
+          6000000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_7d96ab28e2160806",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Soul rune",
+          "asset": "item:566"
+        },
+        "value": 380,
+        "options": [
+          380,
+          480,
+          710,
+          960
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_a0400d5697259d35",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Rune full helm",
+          "asset": "item:1163"
+        },
+        "value": 21000,
+        "options": [
+          10000,
+          15000,
+          21000,
+          25000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_15edc2d8752fb054",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Dharok's helm",
+          "asset": "item:4716"
+        },
+        "value": 370000,
+        "options": [
+          150000,
+          190000,
+          260000,
+          370000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_3c5e780039d0c59c",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Magic shortbow",
+          "asset": "item:861"
+        },
+        "value": 740,
+        "options": [
+          490,
+          740,
+          950,
+          1200
+        ],
+        "answer_index": 1,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_8d5a73b9b3dbec7d",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "medium",
+      "payload": {
+        "subject": {
+          "name": "Rune 2h sword",
+          "asset": "item:1319"
+        },
+        "value": 38000,
+        "options": [
+          38000,
+          51000,
+          59000,
+          71000
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_fb48a6ec35ba5e21",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Zamorak godsword",
+          "asset": "item:11808"
+        },
+        "value": 20000000,
+        "options": [
+          8600000,
+          11000000,
+          14000000,
+          20000000
+        ],
+        "answer_index": 3,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_be50746c4b1d2777",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Necklace of anguish",
+          "asset": "item:19547"
+        },
+        "value": 20000000,
+        "options": [
+          12000000,
+          17000000,
+          20000000,
+          25000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_053be540ce814c81",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "easy",
+      "payload": {
+        "subject": {
+          "name": "Ring of dueling(8)",
+          "asset": "item:2552"
+        },
+        "value": 890,
+        "options": [
+          890,
+          1300,
+          1700,
+          2500
+        ],
+        "answer_index": 0,
+        "as_of": "2026-09-20"
+      }
+    },
+    {
+      "id": "q_753c551b1588903b",
+      "type": "price_is_right",
+      "mode": "price_is_right",
+      "source": "pack",
+      "tags": [
+        "prices",
+        "ge-price"
+      ],
+      "difficulty": "hard",
+      "payload": {
+        "subject": {
+          "name": "Ring of suffering",
+          "asset": "item:19550"
+        },
+        "value": 20000000,
+        "options": [
+          12000000,
+          17000000,
+          20000000,
+          27000000
+        ],
+        "answer_index": 2,
+        "as_of": "2026-09-20"
+      }
     }
   ]
 }

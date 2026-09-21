@@ -33,7 +33,10 @@ QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=30, minimum=5, maximum=120)
 
 # In the order the create form lists them.
-MODES: dict[str, Mode] = {"more_less": Mode(id="more_less", type="more_less")}
+MODES: dict[str, Mode] = {
+    "more_less": Mode(id="more_less", type="more_less"),
+    "price_is_right": Mode(id="price_is_right", type="price_is_right"),
+}
 
 
 def _type_of(mode: Mode | None) -> ModuleType | None:

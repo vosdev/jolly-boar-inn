@@ -16,9 +16,13 @@ from app.questions.types import TYPES, more_less
 from app.questions.types.bounds import Bounds
 
 
-def test_the_registry_is_more_less_and_nothing_else() -> None:
-    """T16 adds the axis, not a mode: one round, whose mode and type share a name."""
-    assert MODES == {"more_less": Mode(id="more_less", type="more_less")}
+def test_the_registry_lists_every_shipped_mode_in_create_form_order() -> None:
+    """T16 added the axis with one round on it; T19 adds the second. Each mode and its
+    type still share a name, which stops being true at the first ``multiple_choice`` mode."""
+    assert MODES == {
+        "more_less": Mode(id="more_less", type="more_less"),
+        "price_is_right": Mode(id="price_is_right", type="price_is_right"),
+    }
 
 
 def test_every_mode_is_filed_under_its_own_id_and_plays_a_registered_type() -> None:

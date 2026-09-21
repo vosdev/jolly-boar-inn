@@ -1,10 +1,11 @@
 /**
  * `viewFor` and `Question.svelte`: which pair draws a question, and in what order.
  *
- * No shipped mode has a stem yet — `more_less` draws itself, and the modes that need one
- * arrive from T19 on — so the composed case plays a made-up mode, `stemmed`, on the
- * `more_less` view. It is added to the registry through the module mock below rather
- * than to `lib/modes.ts`, where it would be a mode the create form offers.
+ * `more_less` draws itself, and the one shipped mode with a stem (`price_is_right`) has
+ * tests of its own in `PriceIsRight.test.ts`, so the composed case here plays a made-up
+ * mode, `stemmed`, putting the text stem on the `more_less` view. It is added to the
+ * registry through the module mock below rather than to `lib/modes.ts`, where it would
+ * be a mode the create form offers.
  */
 
 import { render, screen } from '@testing-library/svelte'

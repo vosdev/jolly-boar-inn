@@ -166,7 +166,7 @@ Do:
   alone until Phase 3 brings images, per architecture section 2's asset rule).
 - Generator: extend the existing price generator to emit price_is_right questions into
   data/packs/prices.json from the same /mapping + /latest fetch. Distractors are rounded
-  and follow one of the five shapes from games.md (3 higher, 2 high 1 low, ...) picked per
+  and follow one of the four shapes from games.md (3 higher, 2 high 1 low, ...) picked per
   question, so the answer is not always in the same slot.
 - lib/modes.ts entry: "The Price is Right".
 

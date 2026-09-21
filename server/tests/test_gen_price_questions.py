@@ -1,12 +1,20 @@
 """T5 Accept: the generator produces about 100 valid questions, ``validate_packs.py``
 passes on the output, the script is idempotent, and nothing runs it at app startup or in
 CI. The generator is exercised on saved-response fixtures; the network is never touched.
+
+T19 Accept, the generator half: it emits ``price_is_right`` from the same fetch, rounded
+and on one of the four shapes per question, without moving a single ``more_less``
+question; it stays idempotent and offline-capable. The type and the shipped pack's
+properties are in ``test_price_is_right.py``.
 """
 
 import json
+import math
 import os
 import subprocess
 import sys
+from collections import Counter
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -55,6 +63,7 @@ LATEST = {
 NEWEST = "2026-09-18T22:47:24Z"  # 1789771644 in UTC
 GE_PAIRS = 55 + 9  # ladder pairs, plus the bond (1060 gp) with Ladder 03 and up
 HIGH_ALCH_PAIRS = 55  # the bond has no high alch, and nothing is near the whip's 72k
+PRICED = 12 + 2  # every item with a GE price: the ladder, the whip and the bond
 
 
 def _write_inputs(directory: Path) -> dict[str, Path]:
@@ -80,6 +89,10 @@ def _run_script(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def _mode(pack: dict[str, Any], mode: str) -> list[dict[str, Any]]:
+    return [q for q in pack["questions"] if q["mode"] == mode]
+
+
 def _ratio(question: dict[str, Any]) -> float:
     lo, hi = sorted(option["value"] for option in question["payload"]["options"])
     return hi / lo
@@ -88,7 +101,7 @@ def _ratio(question: dict[str, Any]) -> float:
 def _names(pack: dict[str, Any]) -> set[tuple[str, str]]:
     return {
         (q["payload"]["metric"], option["subject"]["name"])
-        for q in pack["questions"]
+        for q in _mode(pack, "more_less")
         for option in q["payload"]["options"]
     }
 
@@ -109,12 +122,14 @@ def test_shipped_prices_pack_is_full_of_valid_questions() -> None:
     packs = load_packs(PACKS_DIR)
     prices = next(pack for pack in packs if pack.path.name == "prices.json")
     assert prices.name == gen.PACK_NAME
-    assert len(prices.questions) == gen.DEFAULT_COUNT
-    metrics = {q["payload"]["metric"] for q in prices.questions}
+    more_less = [q for q in prices.questions if q["mode"] == "more_less"]
+    assert len(more_less) == gen.DEFAULT_COUNT
+    assert {q["mode"] for q in prices.questions} == {"more_less", "price_is_right"}
+    metrics = {q["payload"]["metric"] for q in more_less}
     assert metrics == set(gen.METRIC_SHARE)
-    directions = {q["payload"]["direction"] for q in prices.questions}
+    directions = {q["payload"]["direction"] for q in more_less}
     assert directions == {"more", "less"}, "both directions have to turn up"
-    for q in prices.questions:
+    for q in more_less:
         assert q["type"] == "more_less"
         assert q["mode"] == "more_less"
         assert q["source"] == "pack"
@@ -134,10 +149,10 @@ def test_generate_is_valid_and_deterministic() -> None:
     assert pack_errors(pack, "prices") == []
     assert pack["pack"] == "prices"
     assert pack["generated_at"] == NEWEST
-    assert len(pack["questions"]) == 10
-    assert [q["payload"]["metric"] for q in pack["questions"]].count("ge_price") == 7
-    assert notes == [] or all("skip" in n or "no highalch" in n for n in notes)
-    for q in pack["questions"]:
+    assert len(_mode(pack, "more_less")) == 10
+    assert [q["payload"]["metric"] for q in _mode(pack, "more_less")].count("ge_price") == 7
+    assert all("skip" in n or "no highalch" in n or "price_is_right" in n for n in notes)
+    for q in _mode(pack, "more_less"):
         assert q["payload"]["as_of"] == "2026-09-18"
         assert q["difficulty"] in ("easy", "medium", "hard")
         assert q["tags"] == gen.TAGS[q["payload"]["metric"]]
@@ -146,8 +161,8 @@ def test_generate_is_valid_and_deterministic() -> None:
 def test_generate_only_pairs_items_of_similar_value() -> None:
     """Every question compares values inside the window, so neither end is a coin flip."""
     pack, _ = gen.generate(ROSTER, MAPPING, LATEST, count=GE_PAIRS + HIGH_ALCH_PAIRS)
-    assert len(pack["questions"]) == GE_PAIRS + HIGH_ALCH_PAIRS
-    for q in pack["questions"]:
+    assert len(_mode(pack, "more_less")) == GE_PAIRS + HIGH_ALCH_PAIRS
+    for q in _mode(pack, "more_less"):
         assert gen.MIN_RATIO <= _ratio(q) <= gen.MAX_RATIO
     assert ("ge_price", "Abyssal whip") not in _names(pack)  # nothing is near 1.65m
 
@@ -166,12 +181,12 @@ def test_generate_skips_untradeable_and_missing_metrics() -> None:
 def test_generate_tops_up_a_short_metric_from_the_others() -> None:
     """70/30 wants 70 ge_price of 100, only 64 exist: high_alch fills the gap."""
     pack, notes = gen.generate(ROSTER, MAPPING, LATEST, count=100)
-    metrics = [q["payload"]["metric"] for q in pack["questions"]]
+    metrics = [q["payload"]["metric"] for q in _mode(pack, "more_less")]
     assert metrics.count("ge_price") == GE_PAIRS
     assert metrics.count("high_alch") == 100 - GE_PAIRS
     assert any(n.startswith("ge_price: 64 pair(s)") and "using 64" in n for n in notes)
     assert any(n.startswith("high_alch: 55 pair(s)") and "using 36" in n for n in notes)
-    assert not any("questions possible" in n for n in notes)
+    assert not any(n.startswith("only ") for n in notes), "more_less fell short"
 
 
 def test_generate_seed_changes_selection() -> None:
@@ -182,7 +197,7 @@ def test_generate_seed_changes_selection() -> None:
 
 def test_generate_reports_shortfall_without_failing() -> None:
     pack, notes = gen.generate(ROSTER, MAPPING, LATEST, count=1000)
-    assert len(pack["questions"]) == GE_PAIRS + HIGH_ALCH_PAIRS
+    assert len(_mode(pack, "more_less")) == GE_PAIRS + HIGH_ALCH_PAIRS
     assert any(n.startswith("only 119 of 1000 questions possible") for n in notes)
     assert pack_errors(pack, "prices") == []
     ids = [q["id"] for q in pack["questions"]]
@@ -285,6 +300,124 @@ def test_make_question_matches_more_less_contract() -> None:
     )
 
 
+# --- the price is right ----------------------------------------------------------------
+
+
+def test_price_is_right_does_not_move_a_single_more_less_question() -> None:
+    """T19: "do not change the more_less questions". Its own stream is what makes it so."""
+    with_pir, _ = gen.generate(ROSTER, MAPPING, LATEST, count=40)
+    without, _ = gen.generate(ROSTER, MAPPING, LATEST, count=40, pir_count=0)
+    assert _mode(with_pir, "more_less") == without["questions"]
+    assert _mode(without, "price_is_right") == []
+
+
+def test_price_is_right_comes_from_the_same_fetch() -> None:
+    """One question per priced item, its answer that item's GE price from ``/latest``."""
+    pack, _ = gen.generate(ROSTER, MAPPING, LATEST, count=10)
+    pir = _mode(pack, "price_is_right")
+    assert pack_errors(pack, "prices") == []
+    assert len(pir) == PRICED
+    items = {item.name: item for item in gen.build_items(ROSTER, MAPPING, LATEST)[0]}
+    for q in pir:
+        p = q["payload"]
+        item = items[p["subject"]["name"]]
+        assert p["subject"]["asset"] == f"item:{item.id}"
+        assert p["value"] == gen.round_price(item.ge_price) == p["options"][p["answer_index"]]
+        assert p["as_of"] == "2026-09-18"
+        assert q["tags"] == gen.PIR_TAGS
+        assert q["difficulty"] in ("easy", "medium", "hard")
+    assert "Barrows gloves" not in {q["payload"]["subject"]["name"] for q in pir}
+
+
+def test_price_is_right_is_deterministic_and_seeded() -> None:
+    a, _ = gen.generate(ROSTER, MAPPING, LATEST, count=10)
+    b, _ = gen.generate(ROSTER, MAPPING, LATEST, count=10)
+    c, _ = gen.generate(ROSTER, MAPPING, LATEST, count=10, seed=1)
+    assert gen.render(a) == gen.render(b)
+    assert _mode(a, "price_is_right") != _mode(c, "price_is_right")
+
+
+@pytest.mark.parametrize(
+    ("value", "rounded"),
+    [
+        (0, 0),
+        (57, 57),
+        (99, 99),
+        (100, 100),
+        (104, 100),
+        (105, 110),
+        (999, 1000),
+        (12_500, 13_000),
+        (99_999, 100_000),
+        (1_337_000, 1_300_000),
+        (1_650_000, 1_700_000),
+        (9_999_999, 10_000_000),
+        (1_234_567_890, 1_200_000_000),
+    ],
+)
+def test_round_price_keeps_two_figures(value: int, rounded: int) -> None:
+    assert gen.round_price(value) == rounded
+
+
+@pytest.mark.parametrize("below", gen.PIR_SHAPES)
+@pytest.mark.parametrize("price", [100, 990, 1_000, 13_000, 1_700_000, 95_000_000])
+def test_every_shape_puts_the_answer_in_its_own_slot(below: int, price: int) -> None:
+    """The shape is how many wrong prices sit below; ascending, that is the answer's index."""
+    for seed in range(50):
+        fitted = gen.price_options(price, below, gen.random.Random(seed))
+        assert fitted is not None
+        options, answer_index = fitted
+        assert answer_index == below
+        assert options[answer_index] == price
+        assert options == sorted(options)
+        for low, high in pairwise(options):
+            assert high >= low * gen.PIR_MIN_GAP, (seed, options)
+        assert all(gen.round_price(option) == option for option in options), options
+
+
+def test_a_shape_with_no_room_above_does_not_fit() -> None:
+    price = 1_500_000_000
+    assert gen.price_options(price, 0, gen.random.Random(0)) is None
+    options, _ = gen.price_options(price, 3, gen.random.Random(0)) or ([], 0)
+    assert options[-1] == price
+
+
+def test_an_item_near_max_cash_takes_a_shape_that_fits() -> None:
+    bow = gen.Item(20997, "Twisted bow", 1_500_000_000, None)
+    questions, notes = gen.price_is_right_questions([bow], 1, "2026-09-18", gen.random.Random(0))
+    (q,) = questions
+    assert q["payload"]["options"][-1] <= gen.MAX_CASH
+    assert q["payload"]["answer_index"] == 3
+    assert any("Twisted bow" in n and "took shape 3" in n for n in notes)
+
+
+def test_price_is_right_skips_items_worth_a_handful_of_coins() -> None:
+    items = [gen.Item(314, "Feather", 3, 1), gen.Item(4151, "Abyssal whip", 1_650_000, 72_000)]
+    questions, notes = gen.price_is_right_questions(items, 5, "2026-09-18", gen.random.Random(0))
+    assert [q["payload"]["subject"]["name"] for q in questions] == ["Abyssal whip"]
+    assert f"price_is_right: 1 item(s) under {gen.PIR_MIN_PRICE} gp skipped" in notes
+    assert any(n.startswith("price_is_right: only 1 of 5") for n in notes)
+
+
+def test_shapes_are_dealt_evenly() -> None:
+    """The deck is why the pack's answer slots are uniform on any roster, not by luck."""
+    items = [gen.Item(k, f"Item {k}", 1000 + 37 * k, None) for k in range(203)]
+    questions, _ = gen.price_is_right_questions(items, 203, "2026-09-18", gen.random.Random(0))
+    slots = Counter(q["payload"]["answer_index"] for q in questions)
+    assert set(slots) == set(range(4))
+    assert max(slots.values()) - min(slots.values()) <= 1
+    assert sum(slots.values()) == 203
+    per_slot = math.ceil(203 / 4)
+    assert all(n <= per_slot for n in slots.values())
+
+
+def test_price_is_right_difficulty_is_the_closest_wrong_price() -> None:
+    assert gen.pir_difficulty([100, 150, 230, 340], 0) == "easy"
+    assert gen.pir_difficulty([100, 130, 230, 340], 0) == "medium"
+    assert gen.pir_difficulty([100, 120, 230, 340], 1) == "hard"
+    assert gen.pir_difficulty([100, 120, 230, 340], 3) == "easy"
+
+
 # --- CLI -------------------------------------------------------------------------------
 
 
@@ -307,7 +440,9 @@ def test_cli_writes_validates_and_is_idempotent(tmp_path: Path) -> None:
     ]
     first = _run_script(*args)
     assert first.returncode == 0, first.stderr
-    assert "wrote 12 question(s)" in first.stdout
+    assert (
+        f"wrote {12 + PRICED} question(s) (12 more_less, {PRICED} price_is_right)" in first.stdout
+    )
     assert "Barrows gloves" in first.stderr
     written = out.read_bytes()
     assert written.endswith(b"\n")
@@ -321,11 +456,11 @@ def test_cli_writes_validates_and_is_idempotent(tmp_path: Path) -> None:
         check=False,
     )
     assert validate.returncode == 0, validate.stderr
-    assert "prices.json: 12 question(s) ok" in validate.stdout
+    assert f"prices.json: {12 + PRICED} question(s) ok" in validate.stdout
 
     second = _run_script(*args)
     assert second.returncode == 0, second.stderr
-    assert "unchanged, 12 question(s)" in second.stdout
+    assert f"unchanged, {12 + PRICED} question(s)" in second.stdout
     assert out.read_bytes() == written
 
 
@@ -374,7 +509,7 @@ def test_main_does_not_fetch_when_given_files(tmp_path: Path) -> None:
         ]
     )
     assert code == 0
-    assert len(json.loads(out.read_text())["questions"]) == 5
+    assert len(_mode(json.loads(out.read_text()), "more_less")) == 5
 
 
 def test_main_uses_the_api_with_a_descriptive_user_agent(
@@ -415,3 +550,19 @@ def test_generator_never_runs_at_startup_or_in_ci() -> None:
     assert "gen_price_questions" not in app_sources
     dockerfile = (REPO_ROOT / "Dockerfile").read_text()
     assert "gen_price" not in dockerfile
+
+
+def test_cli_price_is_right_count(tmp_path: Path) -> None:
+    inputs = _write_inputs(tmp_path)
+    out = tmp_path / "prices.json"
+    common = ["--roster", str(inputs["roster"]), "--mapping-file", str(inputs["mapping"])]
+    common += ["--latest-file", str(inputs["latest"]), "--out", str(out), "--count", "5"]
+    result = _run_script(*common, "--price-is-right-count", "0")
+    assert result.returncode == 0, result.stderr
+    assert {q["mode"] for q in json.loads(out.read_text())["questions"]} == {"more_less"}
+    result = _run_script(*common, "--price-is-right-count", "3")
+    assert result.returncode == 0, result.stderr
+    assert len(_mode(json.loads(out.read_text()), "price_is_right")) == 3
+    refused = _run_script(*common, "--price-is-right-count", "-1")
+    assert refused.returncode == 2
+    assert "must not be negative" in refused.stderr

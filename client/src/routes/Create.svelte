@@ -44,7 +44,7 @@
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   let displayName = $state($profile?.name ?? '')
-  let revealSeconds = $state(4)
+  let revealSeconds = $state(3)
   /** `splash_seconds` on the wire: 0 is off, anything else on (D7: it is no longer a length). */
   let introduceRounds = $state(true)
   let order = $state<'shuffle' | 'custom_last'>('shuffle')
@@ -88,8 +88,7 @@
   onMount(async () => {
     try {
       pacing = await getModes()
-      const first = pacing[0]
-      if (first !== undefined) rounds = [roundFor(first)]
+      rounds = pacing.map(roundFor)
     } catch (error) {
       pacingFailure =
         error instanceof ApiFailure ? error.message : 'could not reach the server'
@@ -172,7 +171,7 @@
 {/if}
 
 <h1>Create a room</h1>
-<p class="tagline">You are the host. Settings are fixed once the room exists.</p>
+<p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created.</p>
 
 <form onsubmit={submit}>
   <section class="panel">
@@ -181,12 +180,12 @@
   </section>
 
   <section class="panel">
-    <h2>Question types</h2>
-    <p class="note">Each type you pick is one round, opening with a screen introducing it.</p>
+    <h2>Game modes</h2>
+    <p class="note">Each mode you pick is one round. Each round opens with a screen introducing it.</p>
     {#if pacingFailure !== null}
       <p class="error">{pacingFailure}</p>
     {:else if pacing === null}
-      <p class="note">Loading the question types…</p>
+      <p class="note">Loading the game modes…</p>
     {:else}
       {#each pacing as mode (mode.id)}
         <label class="check">
@@ -291,8 +290,8 @@
     <div class="grid">
       <div>
         <label for="reveal">Reveal answers seconds</label>
-        <input id="reveal" type="number" min="3" max="30" bind:value={revealSeconds} />
-        <p class="note">3–30</p>
+        <input id="reveal" type="number" min="2" max="30" bind:value={revealSeconds} />
+        <p class="note">2–30</p>
       </div>
       <div>
         <label for="order">Your own questions</label>

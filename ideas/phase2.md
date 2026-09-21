@@ -134,8 +134,9 @@ Mode `price_is_right` on type `price_is_right`. Four prices, one right.
 Type module with `check()` asserting `options[answer_index]` equals the subject's stored
 price. `lib/gp.ts` formats coins the way the game writes them (`999`, `12,500`, `100k`,
 `1.6M`) with tests. `PriceIsRight.svelte` and an `AssetStem`. Distractors are generated
-around the real price per `ideas/games.md`: rounded, and one of the five shapes (3 higher,
-2 higher + 1 lower, and so on) so the answer is not always in the same position.
+around the real price per `ideas/games.md`: rounded, and one of the four shapes (3 higher,
+2 higher + 1 lower, and so on — three wrong prices split above and below admit no fifth)
+so the answer is not always in the same position.
 
 Generated into `data/packs/prices.json` alongside the `more_less` questions, from the same
 `/mapping` + `/latest` fetch.

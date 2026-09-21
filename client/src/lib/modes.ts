@@ -53,7 +53,7 @@ export interface Mode {
  * item, Who Said That? a line in a chatbox. Each id is one component under
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
-export type StemId = 'text'
+export type StemId = 'text' | 'asset'
 
 /**
  * The six pubs of the crawl. Each is one scene, drawn once and shared by every mode
@@ -79,13 +79,24 @@ export const MODES: Record<string, Mode> = {
     id: 'more_less',
     type: 'more_less',
     label: 'More or Less',
-    hint: 'Which of two items is worth more — or less',
+    hint: 'A mix of Grand Exchange, High Alchemy and NPC prices.',
     blurb:
       'Two items, one question: which one is worth more or less?',
     // Varrock's pub, a short walk from the Grand Exchange whose prices this round is about.
     scene: 'blue_moon',
     // The question is the two buttons: a stem above them would say the names twice.
     stem: null,
+  },
+  price_is_right: {
+    id: 'price_is_right',
+    type: 'price_is_right',
+    label: 'The Price is Right',
+    hint: 'Test your Grand Exchange knowledge.',
+    blurb: 'One item, four prices. Which one does it really go for on the Grand Exchange?',
+    // Mos Le'Harmless, where a chest of coins is the thing everyone is pricing up.
+    scene: 'dead_mans_chest',
+    // The item, above four prices that would otherwise not say what they are prices of.
+    stem: 'asset',
   },
 }
 

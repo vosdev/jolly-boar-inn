@@ -20,6 +20,7 @@
    * `revealed` says which one it is, so the cast below only reads the values and the
    * answer once the server has actually sent them.
    */
+  import { asOfDate } from '../../../lib/dates'
   import type { TypeViewProps } from '../props'
 
   /** An option index: the two buttons are `options[0]` and `options[1]`. */
@@ -101,19 +102,6 @@
   function coins(value: number | undefined): string {
     return value === undefined ? '?' : `${gp.format(value)} gp`
   }
-
-  /** `as_of` is a plain date; render it in the reader's locale, not ISO. */
-  function asOf(date: string): string {
-    const parsed = new Date(`${date}T00:00:00Z`)
-    return Number.isNaN(parsed.getTime())
-      ? date
-      : parsed.toLocaleDateString(undefined, {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-          timeZone: 'UTC',
-        })
-  }
 </script>
 
 <p class="ask">
@@ -156,7 +144,7 @@
 {/if}
 
 {#if revealed}
-  <p class="note asof">{metric}, as of {asOf(q.as_of)}.</p>
+  <p class="note asof">{metric}, as of {asOfDate(q.as_of)}.</p>
 {/if}
 
 <style>

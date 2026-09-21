@@ -1,4 +1,4 @@
-"""Registry of question type modules. Phase 1 ships ``more_less`` only.
+"""Registry of question type modules.
 
 Each module exports ``client_view``, ``reveal``, ``grade``, ``validate_value`` (see
 ideas/architecture.md section 1) plus ``check(payload)``, the consistency rules that
@@ -17,10 +17,10 @@ do the reading; a module that declares neither gets the registry's fallbacks the
 
 from types import ModuleType
 
-from app.questions.types import more_less
+from app.questions.types import more_less, price_is_right
 from app.questions.types.scoring import Scoring
 
-TYPES: dict[str, ModuleType] = {"more_less": more_less}
+TYPES: dict[str, ModuleType] = {"more_less": more_less, "price_is_right": price_is_right}
 
 
 def scoring_of(type_id: str) -> Scoring:
