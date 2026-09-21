@@ -53,8 +53,8 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, bool]:
-    return {s.player_id: s.value == payload["answer_index"] for s in submissions}
+def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
+    return {s.player_id: 1.0 if s.value == payload["answer_index"] else 0.0 for s in submissions}
 
 
 def validate_value(payload: dict[str, Any], value: Any) -> bool:

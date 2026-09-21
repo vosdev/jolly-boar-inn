@@ -7,8 +7,9 @@
    * clients disagreeing about who is second is exactly the bug this avoids.
    *
    * `results` is the just-closed question's per-player rows, when there is a reveal on
-   * screen. Present and correct shows what the answer earned, present and wrong shows a
-   * zero, and absent means that player did not answer at all.
+   * screen. Present and scoring shows what the answer earned, present and worth nothing
+   * shows a zero, and absent means that player did not answer at all. It reads `points`
+   * rather than `correct`: partial credit scores without being correct (section 6).
    *
    * Names and heads come from the live player list when the player is in it (D4): a
    * rename or a re-roll mid-game arrives in `room_updated` straight away, and the
@@ -57,8 +58,12 @@
               >{/if}
           </span>
           {#if results !== null}
-            <span class="delta" class:good={delta?.correct} class:none={delta === null}>
-              {#if delta === null}—{:else if delta.correct}+{points.format(delta.points)}{:else}0{/if}
+            <span
+              class="delta"
+              class:good={delta !== null && delta.points > 0}
+              class:none={delta === null}
+            >
+              {#if delta === null}—{:else if delta.points > 0}+{points.format(delta.points)}{:else}0{/if}
             </span>
           {/if}
           <span class="points">{points.format(standing.points)}</span>

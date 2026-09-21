@@ -33,7 +33,7 @@
   import { QUESTION_VIEWS } from '../components/questions'
   import { clearSession, getSession } from '../lib/session'
   import {
-    answerBucket,
+    answerAck,
     applyServerMessage,
     connection,
     lastClosed,
@@ -137,13 +137,25 @@
   const numbers = new Intl.NumberFormat()
 
   /**
-   * What `answer_ack` told us, which is how fast we were and nothing else. Built here
-   * rather than in the markup because Svelte trims the leading space off an `{#if}`
-   * block's first text node, and this clause needs one.
+   * What `answer_ack` told us, which is where the answer landed and nothing else: its
+   * speed bucket, or the step of a question that shows more of itself as it runs. A
+   * ranked question has no band — a guess is only worth something against the others —
+   * so it gets no badge. Built here rather than in the markup because Svelte trims the
+   * leading space off an `{#if}` block's first text node, and this clause needs one.
    */
-  const speed = $derived(
-    $answerBucket === null ? null : `speed bucket ${$answerBucket} of 5, 1 being the fastest`,
-  )
+  const landed = $derived.by(() => {
+    const ack = $answerAck
+    if (ack === null || ack.band === null) return null
+    return ack.scoring === 'step'
+      ? {
+          badge: `step ${ack.band}`,
+          sentence: `answered on step ${ack.band}, 1 being the earliest`,
+        }
+      : {
+          badge: `${ack.band}/5`,
+          sentence: `speed bucket ${ack.band} of 5, 1 being the fastest`,
+        }
+  })
 
   function answer(value: unknown): void {
     const open = $question
@@ -259,14 +271,16 @@
       </section>
 
       {#if $yourAnswer !== null}
-        <!-- The bucket is all `answer_ack` carries: how fast, never whether it was
-             right. Correctness is nobody's until `question_closed`. The badge keeps it
-             to two characters; the sentence is in the tooltip for anyone who wants it. -->
+        <!-- The band is all `answer_ack` carries: how fast or how early, never whether
+             it was right. Correctness is nobody's until `question_closed`. The badge
+             keeps it short; the sentence is in the tooltip for anyone who wants it. -->
         <p class="note waiting">
           Answer in.
-          {#if speed !== null}<span class="bucket" title={speed} aria-label={speed}>
-              {$answerBucket}/5
-            </span>{/if}
+          {#if landed !== null}<span
+              class="band"
+              title={landed.sentence}
+              aria-label={landed.sentence}>{landed.badge}</span
+            >{/if}
           Waiting for the rest of the room.
         </p>
       {/if}
@@ -355,7 +369,7 @@
     color: var(--muted);
   }
 
-  .bucket {
+  .band {
     padding: 0.05rem 0.35rem;
     border: 1px solid var(--line);
     border-radius: var(--radius);

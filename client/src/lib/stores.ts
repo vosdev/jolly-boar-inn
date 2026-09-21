@@ -13,6 +13,7 @@
 import { get, writable } from 'svelte/store'
 
 import type {
+  AnswerAck,
   ClientMessage,
   OpenQuestion,
   PlayerView,
@@ -49,8 +50,11 @@ export interface ClosedQuestion extends QuestionClosed {
 }
 
 export const lastClosed = writable<ClosedQuestion | null>(null)
-/** The speed bucket (1–5) the server acked our answer with. Null until it does. */
-export const answerBucket = writable<number | null>(null)
+/**
+ * What the server acked our answer with: how the question is scored and the band the
+ * answer landed in there. Null until it does.
+ */
+export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(null)
 export const connection = writable<ConnectionState>('connecting')
 /** The last rejected message. Screens show it and clear it; nothing else depends on it. */
 export const lastError = writable<ProtocolError | null>(null)
@@ -100,7 +104,7 @@ function patchRoom(patch: Partial<RoomView>): void {
 /** Forget one question: our answer, its ack, and the reveal it ended in. */
 function forgetQuestion(): void {
   yourAnswer.set(null)
-  answerBucket.set(null)
+  answerAck.set(null)
   lastClosed.set(null)
 }
 
@@ -109,11 +113,11 @@ function forgetQuestion(): void {
  *
  * Optimistic on purpose: the buttons go dead on the click rather than a round trip
  * later, which is what stops a double tap from becoming an `already_answered` error.
- * `answer_ack` confirms it with a bucket; a rejection puts the buttons back.
+ * `answer_ack` confirms it with a band; a rejection puts the buttons back.
  */
 export function noteAnswerSent(value: unknown): void {
   yourAnswer.set(value)
-  answerBucket.set(null)
+  answerAck.set(null)
 }
 
 /**
@@ -146,7 +150,7 @@ export function applyServerMessage(message: ServerMessage): void {
       players.set(message.players)
       question.set(message.question)
       standings.set(message.standings)
-      // No reveal and no bucket in a snapshot: a client that arrives mid-reveal shows
+      // No reveal and no ack in a snapshot: a client that arrives mid-reveal shows
       // the scoreboard, not the answer it never saw revealed.
       forgetQuestion()
       yourAnswer.set(message.your_answer)
@@ -208,7 +212,7 @@ export function applyServerMessage(message: ServerMessage): void {
       break
 
     case 'answer_ack':
-      answerBucket.set(message.bucket)
+      answerAck.set({ scoring: message.scoring, band: message.band })
       break
 
     case 'pong':

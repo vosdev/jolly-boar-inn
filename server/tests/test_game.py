@@ -13,6 +13,10 @@ cancelled, which is what the next ``get`` sees after a process restart); the que
 back voided, a reconnecting player's ``welcome`` has ``question = null`` and
 ``phase = reveal``, and the next question opens ``reveal_seconds`` later.
 
+T17 Accept (the game half; the tables are in test_scoring.py): a ``more_less`` game scores
+the same fixed standings it scored before credit existed, and a type's ``SCORING`` reaches
+both ``answer_ack`` and the close.
+
 Plus the rest of the section 3 and 4 surface these two tasks own: ``question_open`` (and
 what it withholds), ``answer_ack``, auto-advance, ``game_finished``, reconnecting
 mid-question, ``skip`` during a reveal, ``end_game``, ``promote`` and ``kick``.
@@ -37,6 +41,7 @@ from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
 from app.questions.types import more_less
+from app.questions.types.scoring import Scoring
 from app.rooms.state import BadState, Room, RoomQuestion
 from tests.rooms_api import call, create_fast, join
 
@@ -337,7 +342,12 @@ def test_the_answer_row_is_committed_before_the_ack(game, db) -> None:
     player = game.players[0]
     game.answer(player, 0, game.right(0))
     ack = player.take("answer_ack")
-    assert ack == {"t": "answer_ack", "question_id": game.question(0).question_id, "bucket": 1}
+    assert ack == {
+        "t": "answer_ack",
+        "question_id": game.question(0).question_id,
+        "scoring": "speed",
+        "band": 1,
+    }
     rows = db("select player_id, value, received_at, correct, points from answers")
     assert len(rows) == 1
     assert rows[0]["player_id"] == UUID(player.id)
@@ -539,8 +549,8 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
 
     assert closed["reveal"] == more_less.reveal(game.question(0).payload)
     assert closed["results"] == {
-        right.id: {"value": game.right(0), "correct": True, "points": 1000},
-        wrong.id: {"value": game.wrong(0), "correct": False, "points": 0},
+        right.id: {"value": game.right(0), "correct": True, "credit": 1.0, "points": 1000},
+        wrong.id: {"value": game.wrong(0), "correct": False, "credit": 0.0, "points": 0},
     }
     assert game.admin.id not in closed["results"]  # the admin never answered
     assert [
@@ -1183,4 +1193,179 @@ def test_speed_buckets_scale_to_the_questions_own_length(game) -> None:
     player = game.players[0]
     time.sleep(1.2)  # 12% of ten seconds is bucket 2; of thirty it would be bucket 1
     game.answer(player, 0, game.right(0))
-    assert player.take("answer_ack")["bucket"] == 2
+    assert player.take("answer_ack")["band"] == 2
+
+
+# --- T17: credit changed how points are computed, not what a game is worth ------------
+
+
+def answer_after(game: Game, seat: Seat, index: int, value: Any, seconds: float) -> dict[str, Any]:
+    """Answer question ``index`` as though ``seconds`` had passed since it opened.
+
+    ``submit_answer`` measures elapsed time from the in-memory ``shown_at`` and nothing
+    else, so moving that is how a test picks the bucket instead of racing the clock for
+    it. The row in the database keeps the real one; nothing reads it while a question is
+    open. Returns the ``answer_ack``.
+    """
+    question = game.question(index)
+    question.shown_at = datetime.now(UTC) - timedelta(seconds=seconds)
+    game.answer(seat, index, value)
+    return seat.take("answer_ack")
+
+
+# Into each ten-second bucket's middle, so a slow test run lands in the same one.
+AFTER = {1: 0.3, 2: 1.75, 3: 3.75, 4: 6.25, 5: 8.75}
+
+# Question, player, right or wrong, bucket. Lynx and Zezima finish level on points and
+# Lynx has one more right answer; Dorn never answers and ties the admin on nothing.
+PLAYED = [
+    (0, "Zezima", True, 1),
+    (0, "Woox", True, 2),
+    (0, "Lynx", True, 5),
+    (1, "Zezima", False, 1),
+    (1, "Woox", False, 3),
+    (1, "Lynx", True, 5),
+    (2, "Zezima", True, 3),
+    (2, "Woox", True, 4),
+    (2, "Lynx", True, 5),
+]
+
+
+def test_a_game_of_more_less_scores_what_it_always_scored(table, db) -> None:
+    """T17 Accept: credit replaced ``correct`` inside grading, and a ``more_less`` game
+    comes out exactly as it did before, to the point and to the rank.
+
+    The numbers are written out, not worked out: a test that recomputed them with the
+    formula would agree with any formula at all. They are what this game scored on the
+    ``points_for(correct, bucket)`` that T17 replaced.
+    """
+    game = table("Zezima", "Woox", "Lynx", "Dorn", seconds=10, close_when_all_answered=False)
+    seat = {s.name: s for s in game.seats}
+    game.start()
+    results = []
+    for index in range(3):
+        game.opened(index)
+        for _, name, right, bucket in (p for p in PLAYED if p[0] == index):
+            value = game.right(index) if right else game.wrong(index)
+            answer_after(game, seat[name], index, value, AFTER[bucket])
+        game.admin.send(t="skip")
+        closed = game.admin.take("question_closed")
+        results.append({seat_id: row["points"] for seat_id, row in closed["results"].items()})
+        assert_memory_matches_db(game, db)
+
+    by_name = {s.id: s.name for s in game.seats}
+    assert [{by_name[pid]: points for pid, points in r.items()} for r in results] == [
+        {"Zezima": 1000, "Woox": 900, "Lynx": 600},
+        {"Zezima": 0, "Woox": 0, "Lynx": 600},
+        {"Zezima": 800, "Woox": 700, "Lynx": 600},
+    ]
+    finished = game.admin.take("game_finished")
+    assert [(by_name[s["player_id"]], s["points"], s["rank"]) for s in finished["standings"]] == [
+        ("Lynx", 1800, 1),
+        ("Zezima", 1800, 2),
+        ("Woox", 1600, 3),
+        ("Admin", 0, 4),
+        ("Dorn", 0, 4),
+    ]
+    rows = db(
+        "select p.display_name, count(*) filter (where a.correct)::int as correct"
+        " from answers a join players p on p.id = a.player_id group by p.display_name"
+    )
+    assert {row["display_name"]: row["correct"] for row in rows} == {
+        "Zezima": 2,
+        "Woox": 2,
+        "Lynx": 3,
+    }
+
+
+def points_by_name(game: Game, closed: dict[str, Any]) -> dict[str, int]:
+    by_name = {s.id: s.name for s in game.seats}
+    return {by_name[pid]: row["points"] for pid, row in closed["results"].items()}
+
+
+def test_a_type_scored_on_rank_pays_the_same_early_or_late(table, monkeypatch) -> None:
+    """T17: ``SCORING = RANK`` reaches the ack and the close, and the clock does not.
+
+    Nothing ships a ``RANK`` type until ``closest_number`` (T21), so ``more_less`` wears
+    it here. Its all-or-nothing credit is the top and bottom of the rank table.
+    """
+    monkeypatch.setattr(more_less, "SCORING", Scoring.RANK, raising=False)
+    game = table("Zezima", "Woox", "Lynx", seconds=20, close_when_all_answered=False)
+    zezima, woox, lynx = game.players
+    game.start()
+    game.opened(0)
+    for seat, right, seconds in ((zezima, True, 1), (woox, True, 19), (lynx, False, 1)):
+        value = game.right(0) if right else game.wrong(0)
+        ack = answer_after(game, seat, 0, value, seconds)
+        assert (ack["scoring"], ack["band"]) == ("rank", None)
+    assert {answer.band for answer in game.question(0).answers.values()} == {None}
+    game.admin.send(t="skip")
+    closed = game.admin.take("question_closed")
+    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 1000, "Lynx": 0}
+
+
+def test_a_type_scored_on_steps_pays_the_frame_the_answer_arrived_on(table, monkeypatch) -> None:
+    """T17: ``SCORING = STEP`` with ``steps`` in the payload pays by the step, and without
+    them it is ``SPEED`` -- in the ack as well as the points, so a client is never told a
+    step number for a question that has no steps.
+
+    Only Pixel Hunt's ``pick_from_list`` payloads will carry ``steps``, and that is Phase
+    3, so the open question's in-memory payload is given four: 2.5 seconds a frame.
+    """
+    monkeypatch.setattr(more_less, "SCORING", Scoring.STEP, raising=False)
+    game = table("Zezima", "Woox", seconds=10, close_when_all_answered=False)
+    zezima, woox = game.players
+    game.start()
+    game.opened(0)
+    game.question(0).payload["steps"] = 4
+    first = answer_after(game, zezima, 0, game.right(0), 1.0)
+    third = answer_after(game, woox, 0, game.right(0), 6.0)
+    assert (first["scoring"], first["band"]) == ("step", 1)
+    assert (third["scoring"], third["band"]) == ("step", 3)
+    game.admin.send(t="skip")
+    closed = game.admin.take("question_closed")
+    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 600}
+
+    game.opened(1)
+    assert "steps" not in game.question(1).payload
+    ack = answer_after(game, zezima, 1, game.right(1), AFTER[2])
+    assert (ack["scoring"], ack["band"]) == ("speed", 2)
+    game.admin.send(t="skip")
+    closed = game.admin.take("question_closed")
+    assert points_by_name(game, closed) == {"Zezima": 900}
+
+
+def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> None:
+    """T17: the road ``ordering`` (T27) will drive on, driven early.
+
+    No type returns credit between nothing and everything yet, so ``more_less`` is handed
+    a ``grade`` that does, and the rest of the close has to carry it: 0.6 in bucket 2 is
+    540 points, the reveal says 0.6, and the answer is not ``correct`` -- in the frame,
+    in the row, or in the count the standings tie-break reads.
+    """
+    game = table("Zezima", "Woox", seconds=10, close_when_all_answered=False)
+    zezima, woox = game.players
+    partial = {UUID(zezima.id): 0.6, UUID(woox.id): 1.0}
+    monkeypatch.setattr(
+        more_less, "grade", lambda _, subs: {s.player_id: partial[s.player_id] for s in subs}
+    )
+    game.start()
+    game.opened(0)
+    answer_after(game, zezima, 0, game.right(0), AFTER[2])
+    answer_after(game, woox, 0, game.right(0), AFTER[5])
+    game.admin.send(t="skip")
+    closed = game.admin.take("question_closed")
+
+    right = game.right(0)
+    assert closed["results"] == {
+        zezima.id: {"value": right, "correct": False, "credit": 0.6, "points": 540},
+        woox.id: {"value": right, "correct": True, "credit": 1.0, "points": 600},
+    }
+    rows = db("select player_id, correct, points from answers")
+    assert {(row["player_id"], row["correct"], row["points"]) for row in rows} == {
+        (UUID(zezima.id), False, 540),
+        (UUID(woox.id), True, 600),
+    }
+    assert game.room.score(UUID(zezima.id)).correct == 0
+    assert game.room.score(UUID(woox.id)).correct == 1
+    assert_memory_matches_db(game, db)

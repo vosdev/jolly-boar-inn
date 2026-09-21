@@ -3,17 +3,35 @@
 worth, and the standings tie-break order. Section 6 of ideas/architecture.md is the table
 all of this encodes; the sums those standings are built from are test_game.py's job.
 
+T17 Accept: a table per scoring. ``SPEED`` pays a bucket's points times the credit, so
+0.6 in bucket 2 is 540; ``STEP`` pays 1000 down to 400 across the steps, 1000 for a
+one-step question, and clamps a step past the last; ``RANK`` pays 1000 times the credit
+and never looks at the clock. The bucket edges above them are T10's, untouched.
+
 The bucket edges are inclusive and are fractions of the room's ``question_seconds``, so
 the same answer speed buckets the same way whatever the question length.
 """
 
 import asyncio
+import math
 from datetime import UTC, datetime, timedelta
+from types import ModuleType
 from uuid import uuid4
 
 import pytest
 
-from app.rooms.scoring import BUCKETS, SLOWEST, bucket, points_for
+from app.questions.types import TYPES, scoring_of
+from app.questions.types.scoring import Scoring
+from app.rooms.scoring import (
+    BUCKETS,
+    SLOWEST,
+    band,
+    bucket,
+    effective,
+    points_for,
+    step,
+    step_points,
+)
 from app.rooms.settings import RoomSettings
 from app.rooms.state import Player, Room, Totals
 
@@ -98,24 +116,247 @@ def test_bucket_is_always_a_valid_bucket(elapsed_s: float) -> None:
     assert 1 <= bucket(elapsed_s, 30) <= SLOWEST
 
 
-# --- points -------------------------------------------------------------------------
+# --- which scoring ------------------------------------------------------------------
+
+
+def test_the_scorings_are_the_wire_strings() -> None:
+    """``answer_ack.scoring`` is the member itself, so its value is the protocol."""
+    assert [s.value for s in Scoring] == ["speed", "rank", "step"]
+
+
+def test_a_type_that_says_nothing_is_scored_on_speed() -> None:
+    assert not hasattr(TYPES["more_less"], "SCORING")
+    assert scoring_of("more_less") is Scoring.SPEED
+
+
+def test_a_type_that_says_something_is_scored_its_way(monkeypatch) -> None:
+    stub = ModuleType("closest_number")
+    stub.SCORING = Scoring.RANK  # type: ignore[attr-defined]
+    monkeypatch.setitem(TYPES, "closest_number", stub)
+    assert scoring_of("closest_number") is Scoring.RANK
+
+
+@pytest.mark.parametrize(
+    ("declared", "steps", "scored"),
+    [
+        (Scoring.SPEED, None, Scoring.SPEED),
+        (Scoring.SPEED, 8, Scoring.SPEED),  # steps turn nothing into STEP
+        (Scoring.RANK, None, Scoring.RANK),
+        (Scoring.RANK, 8, Scoring.RANK),
+        (Scoring.STEP, 8, Scoring.STEP),
+        (Scoring.STEP, 1, Scoring.STEP),
+        (Scoring.STEP, None, Scoring.SPEED),  # a question that never changes
+    ],
+)
+def test_step_without_steps_is_speed(declared: Scoring, steps: int | None, scored: Scoring) -> None:
+    assert effective(declared, steps) is scored
+
+
+# --- SPEED: a bucket's points, times the credit --------------------------------------
+
+# (bucket, credit, points)
+SPEED = [
+    (1, 1.0, 1000),
+    (2, 1.0, 900),
+    (3, 1.0, 800),
+    (4, 1.0, 700),
+    (5, 1.0, 600),
+    (2, 0.6, 540),  # three of five in the right place, in bucket 2 (section 6)
+    (1, 0.6, 600),
+    (5, 0.6, 360),
+    (1, 0.5, 500),
+    (3, 0.2, 160),
+    (4, 1 / 3, 233),
+    (5, 2 / 3, 400),
+    (1, 0.0, 0),
+    (5, 0.0, 0),
+]
+
+
+@pytest.mark.parametrize(("bucket_number", "credit", "points"), SPEED)
+def test_speed_points(bucket_number: int, credit: float, points: int) -> None:
+    assert points_for(Scoring.SPEED, credit, bucket_number, None) == points
 
 
 @pytest.mark.parametrize(
     ("bucket_number", "points"), [(1, 1000), (2, 900), (3, 800), (4, 700), (5, 600)]
 )
 def test_points_for_a_correct_answer(bucket_number: int, points: int) -> None:
-    assert points_for(True, bucket_number) == points
+    assert points_for(Scoring.SPEED, 1.0, bucket_number, None) == points
 
 
 @pytest.mark.parametrize("bucket_number", [1, 2, 3, 4, 5])
 def test_a_wrong_answer_is_worth_nothing_however_fast(bucket_number: int) -> None:
-    assert points_for(False, bucket_number) == 0
+    assert points_for(Scoring.SPEED, 0.0, bucket_number, None) == 0
 
 
-def test_faster_is_never_worth_less() -> None:
-    awarded = [points_for(True, b) for b in range(1, SLOWEST + 1)]
+@pytest.mark.parametrize("credit", [1.0, 0.6, 0.2])
+def test_faster_is_never_worth_less(credit: float) -> None:
+    awarded = [points_for(Scoring.SPEED, credit, b, None) for b in range(1, SLOWEST + 1)]
     assert awarded == sorted(awarded, reverse=True)
+
+
+@pytest.mark.parametrize("bucket_number", [1, 2, 3, 4, 5])
+def test_more_right_is_never_worth_less(bucket_number: int) -> None:
+    credits = [0.0, 0.2, 1 / 3, 0.5, 0.6, 0.8, 1.0]
+    awarded = [points_for(Scoring.SPEED, c, bucket_number, None) for c in credits]
+    assert awarded == sorted(awarded)
+
+
+@pytest.mark.parametrize(("elapsed_s", "expected"), [(0.5, 1), (1.2, 2), (4.0, 3), (12.0, 5)])
+def test_the_speed_band_is_the_bucket(elapsed_s: float, expected: int) -> None:
+    assert band(Scoring.SPEED, elapsed_s, 10, None) == bucket(elapsed_s, 10) == expected
+
+
+# --- STEP: the earlier the frame, the more it pays -----------------------------------
+
+# (seconds into a 16-second question of 8 steps, step): two seconds a step.
+STEP_EDGES = [
+    (-1.0, 1),  # clock skew, as for buckets
+    (0.0, 1),
+    (1.0, 1),
+    (2.0, 1),  # the instant the picture changes still counts for the one it replaced
+    (2.001, 2),
+    (4.0, 2),
+    (4.001, 3),
+    (8.0, 4),
+    (13.999, 7),
+    (14.0, 7),
+    (14.001, 8),
+    (16.0, 8),
+    (16.001, 8),  # past the end, and therefore clamped
+    (99.0, 8),
+]
+
+
+@pytest.mark.parametrize(("elapsed_s", "expected"), STEP_EDGES)
+def test_step_edges(elapsed_s: float, expected: int) -> None:
+    assert step(elapsed_s, 16, 8) == expected
+
+
+@pytest.mark.parametrize(("elapsed_s", "expected"), STEP_EDGES)
+@pytest.mark.parametrize("question_s", [8, 16, 30, 60])
+def test_step_edges_are_fractions_of_the_question_time(
+    question_s: int, elapsed_s: float, expected: int
+) -> None:
+    assert step(elapsed_s / 16 * question_s, question_s, 8) == expected
+
+
+@pytest.mark.parametrize("elapsed_s", [-1.0, 0.0, 15.0, 30.0, 45.0])
+def test_one_step_is_always_the_first(elapsed_s: float) -> None:
+    assert step(elapsed_s, 30, 1) == 1
+
+
+@pytest.mark.parametrize(
+    ("step_number", "points"),
+    [(1, 1000), (2, 914), (3, 829), (4, 743), (5, 657), (6, 571), (7, 486), (8, 400)],
+)
+def test_step_points_over_eight_steps(step_number: int, points: int) -> None:
+    """Section 6's worked example, verbatim."""
+    assert step_points(step_number, 8) == points
+
+
+@pytest.mark.parametrize(
+    ("step_number", "steps", "points"),
+    [
+        (1, 1, 1000),  # one step is the first, not a division by zero
+        (2, 1, 1000),
+        (1, 2, 1000),
+        (2, 2, 400),
+        (1, 12, 1000),
+        (12, 12, 400),
+        (9, 8, 400),  # a step past the last clamps to the last
+        (20, 8, 400),
+        (0, 8, 1000),  # and one before the first to the first
+    ],
+)
+def test_step_points_ends_and_clamps(step_number: int, steps: int, points: int) -> None:
+    assert step_points(step_number, steps) == points
+
+
+@pytest.mark.parametrize("steps", range(1, 13))
+def test_step_points_run_from_the_top_to_the_bottom(steps: int) -> None:
+    awarded = [step_points(k, steps) for k in range(1, steps + 1)]
+    assert awarded[0] == 1000
+    assert awarded[-1] == (1000 if steps == 1 else 400)
+    assert awarded == sorted(awarded, reverse=True)
+    assert len(set(awarded)) == len(awarded)
+
+
+# (step, steps, credit, points)
+STEPPED = [
+    (1, 8, 1.0, 1000),
+    (2, 8, 1.0, 914),
+    (8, 8, 1.0, 400),
+    (2, 8, 0.5, 457),
+    (8, 8, 0.0, 0),
+    (1, 1, 1.0, 1000),
+    (9, 8, 1.0, 400),
+]
+
+
+@pytest.mark.parametrize(("step_number", "steps", "credit", "points"), STEPPED)
+def test_step_scoring(step_number: int, steps: int, credit: float, points: int) -> None:
+    assert points_for(Scoring.STEP, credit, step_number, steps) == points
+
+
+def test_the_step_band_is_the_step() -> None:
+    assert band(Scoring.STEP, 5.0, 16, 8) == 3
+
+
+def test_step_without_steps_is_scored_on_speed() -> None:
+    """Who's That NPC?: one render, no frames, so being quick is what pays."""
+    assert band(Scoring.STEP, 1.2, 10, None) == 2
+    assert points_for(Scoring.STEP, 1.0, 2, None) == 900
+    assert points_for(Scoring.STEP, 0.6, 2, None) == 540
+
+
+# --- RANK: the credit is the ranking, and the clock is nobody's business -------------
+
+# Section 6's table: exact, then the closest three, then everyone else who answered.
+RANK = [(1.0, 1000), (0.8, 800), (0.6, 600), (0.4, 400), (0.2, 200), (0.0, 0)]
+
+
+@pytest.mark.parametrize(("credit", "points"), RANK)
+def test_rank_points(credit: float, points: int) -> None:
+    assert points_for(Scoring.RANK, credit, None, None) == points
+
+
+@pytest.mark.parametrize(("credit", "points"), RANK)
+def test_rank_ignores_elapsed_time_entirely(credit: float, points: int) -> None:
+    """T17 Accept: the same answer scored one second in and at twenty-nine is worth the
+    same. There is no band to carry the difference, so there is nothing to pay it on."""
+    early = band(Scoring.RANK, 1.0, 30, None)
+    late = band(Scoring.RANK, 29.0, 30, None)
+    assert early is None and late is None
+    assert points_for(Scoring.RANK, credit, early, None) == points
+    assert points_for(Scoring.RANK, credit, late, None) == points
+
+
+@pytest.mark.parametrize("elapsed_s", [-1.0, 0.0, 1.0, 15.0, 29.0, 30.0, 600.0])
+def test_rank_has_no_band(elapsed_s: float) -> None:
+    assert band(Scoring.RANK, elapsed_s, 30, None) is None
+    assert band(Scoring.RANK, elapsed_s, 30, 8) is None
+
+
+def test_rank_pays_no_attention_to_a_band_it_is_handed() -> None:
+    assert {points_for(Scoring.RANK, 0.8, b, None) for b in (None, 1, 5)} == {800}
+
+
+# --- credit is 0..1 whatever pays it -------------------------------------------------
+
+
+@pytest.mark.parametrize("credit", [-0.1, 1.0001, 2.0, math.nan])
+@pytest.mark.parametrize(
+    ("scoring", "band_number", "steps"),
+    [(Scoring.SPEED, 1, None), (Scoring.STEP, 1, 8), (Scoring.RANK, None, None)],
+)
+def test_credit_outside_zero_to_one_is_refused(
+    scoring: Scoring, band_number: int | None, steps: int | None, credit: float
+) -> None:
+    """A type that grades 1.2 has a bug, and paying 1200 for it would hide it."""
+    with pytest.raises(ValueError, match="outside 0..1"):
+        points_for(scoring, credit, band_number, steps)
 
 
 # --- standings ----------------------------------------------------------------------
