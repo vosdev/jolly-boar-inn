@@ -195,8 +195,10 @@
     gap: 0.2rem 0.35rem;
     width: 100%;
     height: 100%;
-    padding: 0.25rem 0.35rem;
+    padding: 0.6rem 0.35rem 0.25rem;
     background-color: var(--panel);
+    background-image: var(--texture-panel);
+    background-repeat: repeat-x;
     border: var(--border-width) solid var(--line);
     border-right: none;
     border-bottom: none;

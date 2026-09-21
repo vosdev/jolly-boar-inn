@@ -31,7 +31,7 @@
   const mode = $derived(MODES[segment.mode] ?? null)
 </script>
 
-<section class="splash">
+<section class="splash surface">
   <!-- Artwork for the mode goes here; it wants to be the loudest thing on the card. -->
   <p class="round">
     Round {segment.index + 1} of {segment.total}

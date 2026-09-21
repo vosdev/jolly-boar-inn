@@ -10,8 +10,9 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 
 * every token of every layer is defined, so a theme cannot half-exist;
 * ``--ok`` and ``--bad`` reach 4.5:1 against ``--panel``;
-* ``--ink`` reaches 7:1 against both ``--bg`` and ``--panel``;
-* ``--muted`` reaches 4.5:1 against ``--panel``;
+* ``--ink`` reaches 7:1 against ``--panel`` and ``--panel-raised``, and ``--bg-ink`` 7:1
+  against ``--bg`` — two inks, because a theme may put light panels on a dark page (D5);
+* ``--muted`` reaches 4.5:1 against ``--panel``, and ``--bg-muted`` 4.5:1 against ``--bg``;
 * ``--more`` and ``--less`` reach 4.5:1 against ``--panel``;
 * ``--ok`` and ``--bad`` are at least 60 degrees apart in hue, and so are ``--more`` and
   ``--less``, so neither pair collapses for a player who does not see red and green;
@@ -39,7 +40,16 @@ DEFAULT_CSS = Path(__file__).resolve().parents[2] / "client" / "src" / "app.css"
 
 # The seven layers of section 2. Everything here has to resolve for every theme; the
 # colour tokens additionally have to parse as a colour.
-SURFACE = ("--bg", "--panel", "--panel-raised", "--line", "--ink", "--muted")
+SURFACE = (
+    "--bg",
+    "--panel",
+    "--panel-raised",
+    "--line",
+    "--ink",
+    "--muted",
+    "--bg-ink",
+    "--bg-muted",
+)
 BRAND = ("--accent", "--accent-ink", "--accent-hover")
 VERDICT = ("--ok", "--ok-ink", "--bad", "--bad-ink", "--warn", "--warn-ink")
 SEMANTIC = ("--more", "--less")
@@ -217,9 +227,11 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
 
     ratio("--ok", "--panel", TEXT_RATIO)
     ratio("--bad", "--panel", TEXT_RATIO)
-    ratio("--ink", "--bg", BODY_TEXT_RATIO)
     ratio("--ink", "--panel", BODY_TEXT_RATIO)
+    ratio("--ink", "--panel-raised", BODY_TEXT_RATIO)
+    ratio("--bg-ink", "--bg", BODY_TEXT_RATIO)
     ratio("--muted", "--panel", TEXT_RATIO)
+    ratio("--bg-muted", "--bg", TEXT_RATIO)
     ratio("--more", "--panel", TEXT_RATIO)
     ratio("--less", "--panel", TEXT_RATIO)
     apart("--ok", "--bad")

@@ -21,33 +21,45 @@
  * carrying `data-theme`, and a block that leaned on another for half its tokens would draw
  * that half in whatever theme the page happens to be in.
  *
- * Textures (layer 7) are drawn under text, and the contrast check measures the flat
- * colour, not the texture. So a texture here is grain, never a picture: a few percent of
- * alpha, and nothing that moves a panel's colour far enough to matter to the check.
+ * **Two inks.** Text on the page (`--bg-ink`, `--bg-muted`) and text on a panel (`--ink`,
+ * `--muted`) are separate tokens, because a theme may put cream panels on a dark floor,
+ * as jolly does, and no one colour reads on both. `main` switches to the page inks, and
+ * every surface inside it — a panel, a dialog, a control — switches back (see below).
+ *
+ * **Textures** are original drawings in `assets/textures/`, in the manner of the place a
+ * theme is named after, never the game's own files. `--texture-bg` tiles under the page
+ * and sits under text, so it stays dark-on-dark or light-on-light and close to `--bg`:
+ * the contrast check measures the flat colour, not the drawing. `--texture-panel` is a
+ * band along a panel's top edge — a trim, a row of dentils — repeated across and kept
+ * above the panel's padding, so no text ever sits on it.
  */
 
-/* The inn. Oak, candlelight, spilled ale: warm, rounded, and a worn tabletop's soft
-   inner shadow. */
+/* The inn, as it is in game: a dark oak floor with a rug on it, cream plaster walls with
+   a wooden trim band, green lattice windows and lanterns. The page is the floor, a panel
+   is a stretch of wall, and the green is the windows. */
 :root,
 [data-theme='jolly'] {
-  /* 1. Surface */
-  --bg: #f6f2e8;
-  --panel: #fffdf7;
-  --panel-raised: #ffffff;
-  --line: #ddd2bd;
-  --ink: #241d15;
-  --muted: #6b5f4e;
+  /* 1. Surface. --bg is the floor, --panel the plaster. */
+  --bg: #3b321d;
+  --panel: #f2e5bf;
+  --panel-raised: #faf2da;
+  --line: #8c6a34;
+  --ink: #2a2012;
+  --muted: #5f4d2c;
+  --bg-ink: #f2e5bf;
+  --bg-muted: #cbb88a;
 
-  /* 2. Brand */
-  --accent: #8a3d1f;
-  --accent-ink: #fff8ef;
-  --accent-hover: #6f3018;
+  /* 2. Brand. The window glass. */
+  --accent: #2f6e25;
+  --accent-ink: #f7f1dc;
+  --accent-hover: #245a1c;
 
   /* 3. Verdict. Contract: 4.5:1 against --panel, and --ok at least 60 degrees from --bad
      in hue, because about 8% of players will not read them as green and red. That is also
-     why "wrong" is drawn with a border and a glyph as well as a colour, everywhere. */
-  --ok: #2f6b3a;
-  --ok-ink: #fff8ef;
+     why "wrong" is drawn with a border and a glyph as well as a colour, everywhere. Here
+     --ok leans to teal, so it is not the window green of every button in the inn. */
+  --ok: #1c6b5a;
+  --ok-ink: #f7f1dc;
   --bad: #97281f;
   --bad-ink: #fff5f2;
   --warn: #8a5a10;
@@ -58,7 +70,7 @@
      prompt word next to a red wrong answer reads as a verdict rather than as the question.
      A theme may give them the same colours, as this one does, because what keeps them
      apart is the shape cue they carry, not the hue. */
-  --more: #2f6b3a;
+  --more: #1c6b5a;
   --less: #97281f;
 
   /* 5. Gems, in value order: sapphire, emerald, ruby, diamond, dragonstone, onyx, zenyte.
@@ -76,52 +88,57 @@
   --gem-ink: #241d15;
 
   /* 6. Shape. This layer does more to make a theme feel like a different place than
-     colour does. --font-display has no pixel face to point at yet, so it falls back to the
-     body face and the app renders in body type throughout; dropping a file in later is a
-     change to this one line. --font-numeric is the display face plus tabular figures,
-     which are applied where they are used, so the timer does not twitch. */
-  --radius: 10px;
-  --border-width: 1px;
-  --shadow: inset 0 -2px 0 rgb(36 29 21 / 0.05), 0 1px 3px rgb(36 29 21 / 0.1);
+     colour does. Wooden edges, and panels lit from below by the lanterns: a dark drop
+     and a faint warm glow onto the floor. --font-display has no pixel face to point at
+     yet, so it falls back to the body face; dropping a file in later is a change to this
+     one line. --font-numeric is the display face plus tabular figures, which are applied
+     where they are used, so the timer does not twitch. */
+  --radius: 6px;
+  --border-width: 2px;
+  --shadow: 0 2px 0 rgb(18 12 4 / 0.45), 0 0 22px rgb(240 180 80 / 0.14);
   /* What a modal dims the page behind it with (D3's name popup). */
-  --scrim: rgb(36 29 21 / 0.45);
+  --scrim: rgb(18 12 4 / 0.6);
   --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
 
-  /* 7. Texture: a local url() or none. Oak grain under the page; the panels stay clean,
-     because they are what the text sits on. */
-  --texture-panel: none;
-  --texture-bg: url('./assets/textures/oak.svg');
+  /* 7. Texture: a local url() or none. The rug's diamonds, faint, across the floor; the
+     wall's wooden trim band along the top of every panel. */
+  --texture-panel: url('./assets/textures/inn-trim.svg');
+  --texture-bg: url('./assets/textures/inn-rug.svg');
 
   color-scheme: light;
 }
 
-/* Bright desert noon. Bleached sandstone, a terracotta door, indigo shade — and a hard
-   sun, so shadows are offset and unblurred, corners are cut square-ish, and nothing is
-   soft. The lightest of the three, for a garden or a sunny window. */
+/* The desert town, and the whitewashed stone house style: white walls framed in light
+   timber, sand underfoot, a row of red-brown dentils under every roofline. The lightest
+   of the three, for a garden or a sunny window. */
 [data-theme='pollnivneach'] {
-  --bg: #eadbc0;
-  --panel: #fcf8ee;
+  /* The sand, and the whitewash. */
+  --bg: #dcc48a;
+  --panel: #f6f4ee;
   --panel-raised: #ffffff;
-  --line: #c9b089;
-  --ink: #1d1a2c;
-  --muted: #5a5068;
+  --line: #c99a58;
+  --ink: #2b2319;
+  --muted: #5e5244;
+  --bg-ink: #2b2319;
+  --bg-muted: #5a4a30;
 
-  --accent: #a8431f;
+  /* The timber. */
+  --accent: #8a5526;
   --accent-ink: #fffaf2;
-  --accent-hover: #86341a;
+  --accent-hover: #6e421c;
 
-  --ok: #1d6647;
+  --ok: #2d6a33;
   --ok-ink: #fffaf2;
   --bad: #a3241c;
   --bad-ink: #fffaf2;
   --warn: #855400;
   --warn-ink: #fffaf2;
 
-  /* Indigo and terracotta, the two colours of the town, and neither of them the verdict
-     colours: here "more" and "less" differ from right and wrong by hue as well as by shape. */
-  --more: #34408c;
+  /* The fountain's blue and the dentils' red, neither of them a verdict colour: here
+     "more" and "less" differ from right and wrong by hue as well as by shape. */
+  --more: #2f5f8a;
   --less: #9a3b16;
 
   /* Sun-bleached stones: pale, so the deep --ok ring reads on every one of them. */
@@ -132,43 +149,49 @@
   --gem-dragonstone: #dcb5e6;
   --gem-onyx: #cdc6cf;
   --gem-zenyte: #f2c47e;
-  --gem-ink: #1d1a2c;
+  --gem-ink: #2b2319;
 
-  --radius: 4px;
-  --border-width: 1px;
-  --shadow: 3px 3px 0 rgb(94 62 30 / 0.16);
-  --scrim: rgb(29 26 44 / 0.45);
+  /* Squared stone in a timber frame, and a noon sun: the shadow is hard and offset. */
+  --radius: 3px;
+  --border-width: 2px;
+  --shadow: 3px 3px 0 rgb(120 88 40 / 0.2);
+  --scrim: rgb(43 35 25 / 0.45);
   --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
 
-  /* Blown sand under the page. */
-  --texture-panel: none;
-  --texture-bg: url('./assets/textures/sand.svg');
+  /* Pebbles in the sand; timber and dentils along the top of every wall. */
+  --texture-panel: url('./assets/textures/town-dentils.svg');
+  --texture-bg: url('./assets/textures/town-sand.svg');
 
   color-scheme: light;
 }
 
-/* Dark. Cold ash and ember, nothing cosy: square corners, a hard 2px edge on every
-   panel and control, and a shadow that drops rather than glows. */
+/* The Wilderness house style: rough grey-brown stone blocks, a near-black floor, and the
+   one warm thing in it the amber of a portal. Square corners, a hard 2px edge, and a
+   shadow that drops rather than glows. */
 [data-theme='wilderness'] {
-  --bg: #17140f;
-  --panel: #201c16;
-  --panel-raised: #2a251d;
-  --line: #3a332a;
-  --ink: #f0e8da;
-  --muted: #a39681;
+  /* The mortar between the stones, and the flagstone floor. */
+  --bg: #1d1a19;
+  --panel: #302c2b;
+  --panel-raised: #3a3534;
+  --line: #4d4745;
+  --ink: #efe8df;
+  --muted: #aaa198;
+  --bg-ink: #efe8df;
+  --bg-muted: #aaa198;
 
-  --accent: #d0713f;
-  --accent-ink: #1a1510;
-  --accent-hover: #e38a5c;
+  /* The portal. */
+  --accent: #e8a33a;
+  --accent-ink: #1d1a19;
+  --accent-hover: #f2b95c;
 
   --ok: #7dc08a;
-  --ok-ink: #17140f;
+  --ok-ink: #1d1a19;
   --bad: #e3776c;
-  --bad-ink: #17140f;
+  --bad-ink: #1d1a19;
   --warn: #d9ab5b;
-  --warn-ink: #17140f;
+  --warn-ink: #1d1a19;
 
   --more: #7dc08a;
   --less: #e3776c;
@@ -182,7 +205,7 @@
   --gem-dragonstone: #5a2172;
   --gem-onyx: #241f2c;
   --gem-zenyte: #7c4510;
-  --gem-ink: #f0e8da;
+  --gem-ink: #efe8df;
 
   --radius: 2px;
   --border-width: 2px;
@@ -192,9 +215,9 @@
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
 
-  /* Ash, drifting. */
+  /* The wall: irregular blocks, a shade off the mortar. The panels stay plain stone. */
   --texture-panel: none;
-  --texture-bg: url('./assets/textures/ash.svg');
+  --texture-bg: url('./assets/textures/wild-wall.svg');
 
   color-scheme: dark;
 }
@@ -218,6 +241,12 @@
      this off its padding, so the border grows inward and a theme switch never moves a
      button under somebody's thumb. */
   --border-give: calc(var(--border-width) - 1px);
+
+  /* The panel inks, kept aside before `main` swaps --ink and --muted for the page's, so
+     a surface inside it can take them back. Resolved here, on <html>, so they carry the
+     theme's values down rather than whatever --ink means where they are used. */
+  --surface-ink: var(--ink);
+  --surface-muted: var(--muted);
 }
 
 * {
@@ -233,7 +262,11 @@ body {
   line-height: 1.5;
 }
 
+/* Text on the page takes the page inks: a heading, a tagline, a note between panels. */
 main {
+  --ink: var(--bg-ink);
+  --muted: var(--bg-muted);
+  color: var(--ink);
   width: min(42rem, 100% - 2rem);
   margin-inline: auto;
   padding: 2rem 0 4rem;
@@ -254,6 +287,26 @@ h2 {
   margin: 0 0 0.75rem;
 }
 
+/* Everything that draws its own panel-coloured ground takes the panel inks back. A
+   component with a surface of its own that is not a .panel says so with .surface. */
+.panel,
+.surface,
+.banner,
+dialog {
+  --ink: var(--surface-ink);
+  --muted: var(--surface-muted);
+  color: var(--ink);
+}
+
+/* Controls only take the tokens back: each sets its own colour from them, and a .link
+   has to stay free to be the accent. */
+main button,
+main input,
+main select {
+  --ink: var(--surface-ink);
+  --muted: var(--surface-muted);
+}
+
 .tagline {
   color: var(--muted);
   margin: 0 0 2rem;
@@ -265,6 +318,9 @@ h2 {
   border: var(--border-width) solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  /* --texture-panel is a band along the top edge, not a fill: repeated across, once. */
+  background-repeat: repeat-x;
+  background-position: top left;
   padding: calc(1.25rem - var(--border-give));
   margin-bottom: 1.25rem;
 }
@@ -283,7 +339,8 @@ select {
   font: inherit;
   padding: calc(0.55rem - var(--border-give)) calc(0.7rem - var(--border-give));
   color: var(--ink);
-  background: var(--bg);
+  /* A field on a panel, which is where every field is; --bg may be a dark floor. */
+  background: var(--panel-raised);
   border: var(--border-width) solid var(--line);
   /* A control is never rounder than 8px, so jolly's soft corners stay on the panels;
      a squarer theme squares its controls with them. */
@@ -448,6 +505,8 @@ ul.players li:first-child {
 }
 
 .banner {
+  /* A banner sits on the page, between panels, so it brings its own ground. */
+  background: var(--panel);
   border-radius: var(--radius);
   padding: calc(0.6rem - var(--border-give)) calc(0.9rem - var(--border-give));
   margin-bottom: 1rem;

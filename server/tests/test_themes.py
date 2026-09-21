@@ -10,7 +10,9 @@ jolly ticked; picking a theme repaints at once and survives a reload; the arrow 
 the list; switching through all three mid-question leaves every button, panel and top bar
 control at the same position and size to the pixel, the question's elements are the same
 DOM nodes afterwards, and the timer counts on without a jump; at 320px the popover fits
-the screen and nothing scrolls sideways.
+the screen and nothing scrolls sideways; every piece of visible text on Home (picker open),
+Create, a live question and its reveal reaches 4.5:1 against the colour actually behind it,
+in all three themes.
 """
 
 import re
@@ -117,6 +119,36 @@ def test_a_thicker_edge_never_moves_the_layout() -> None:
         assert body is not None, selector
         assert "var(--border-width)" in body.group(1)
         assert "var(--border-give)" in body.group(1), f"{selector} grows with its border"
+
+
+def test_page_text_and_panel_text_take_different_inks() -> None:
+    """Jolly puts cream panels on a dark floor, and no one ink reads on both.
+
+    ``main`` swaps to the page inks; every surface inside it takes the panel inks back.
+    """
+    rules = check.strip_comments(read(APP_CSS))
+    assert "--surface-ink: var(--ink)" in rules
+    main = re.search(r"(?m)^main \{([^}]*)\}", rules)
+    assert main is not None
+    assert "--ink: var(--bg-ink)" in main.group(1)
+    assert "--muted: var(--bg-muted)" in main.group(1)
+    surfaces = re.search(r"(?m)^\.panel,\n\.surface,\n\.banner,\ndialog \{([^}]*)\}", rules)
+    assert surfaces is not None, "the surfaces no longer take the panel inks back"
+    assert "--ink: var(--surface-ink)" in surfaces.group(1)
+    controls = re.search(r"(?m)^main button,\nmain input,\nmain select \{([^}]*)\}", rules)
+    assert controls is not None
+    assert "--ink: var(--surface-ink)" in controls.group(1)
+    # A field is always on a panel, and --bg may be the dark floor.
+    field = re.search(r"(?m)^input\[type='text'\],\n[^{]*\{([^}]*)\}", rules)
+    assert field is not None
+    assert "background: var(--panel-raised)" in field.group(1)
+
+
+def test_the_panel_texture_is_a_band_along_the_top() -> None:
+    rules = check.strip_comments(read(APP_CSS))
+    panel = re.search(r"(?m)^\.panel \{([^}]*)\}", rules)
+    assert panel is not None
+    assert "background-repeat: repeat-x" in panel.group(1)
 
 
 # --- the picker ----------------------------------------------------------------------

@@ -107,6 +107,12 @@ def test_a_token_that_is_not_a_colour_fails(css: str) -> None:
     assert any("not a hex colour" in line for line in check.check(broken))
 
 
+def test_page_ink_that_cannot_be_read_on_the_page_fails(css: str) -> None:
+    """The panel ink passing says nothing about the page: jolly's page is a dark floor."""
+    broken = _swap(css, "wilderness", "--bg-ink", "#3a3534")
+    assert any("--bg-ink" in line and "--bg" in line for line in check.check(broken))
+
+
 def test_a_remote_texture_fails(css: str) -> None:
     """The CSP would refuse it; the check refuses it first."""
     broken = _swap(css, "wilderness", "--texture-bg", "url('https://example.com/ash.png')")

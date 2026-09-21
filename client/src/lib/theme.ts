@@ -22,9 +22,9 @@ export type Theme = (typeof THEMES)[number]
 
 /** What the picker calls each theme, and the one line that says what it is like. */
 export const THEME_LABELS: Record<Theme, { name: string; mood: string }> = {
-  jolly: { name: 'Jolly Boar Inn', mood: 'Oak, candlelight, spilled ale.' },
-  pollnivneach: { name: 'Pollnivneach', mood: 'Bright desert noon.' },
-  wilderness: { name: 'Wilderness', mood: 'Dark. Cold ash and ember.' },
+  jolly: { name: 'Jolly Boar Inn', mood: 'Oak floor, plaster walls, green windows.' },
+  pollnivneach: { name: 'Pollnivneach', mood: 'Whitewashed stone and sand.' },
+  wilderness: { name: 'Wilderness', mood: 'Cold stone. Nothing cosy.' },
 }
 
 export const DEFAULT_THEME: Theme = 'jolly'
