@@ -10,8 +10,10 @@
    *   room actually sees. A join that had to turn the suffix over (`AFKFisher42` was
    *   taken, so you are `AFKFisher517`) shows here, not in the profile.
    *
-   * The popover edits whichever one the chip is showing (D4). Outside a room that is the
-   * profile, saved on the spot. Inside one it is `set_profile` on the room's socket: the
+   * The popover edits whichever one the chip is showing (D4). Both the name and the head
+   * are drafts until Save: the die rolls a new face into the popover only, and a player
+   * who rolls a few and closes it keeps the one they had. Outside a room Save writes the
+   * profile. Inside one it is a single `set_profile` on the room's socket: the
    * change is the room's to accept, so nothing is saved until the `room_updated` that
    * carries it comes back, and a name somebody else in the room already has is answered
    * in the popover, under the field, with the old name still in place. What the room
@@ -39,6 +41,8 @@
 
   let open = $state(false)
   let draft = $state('')
+  /** The head the popover shows: rolled here, and nobody else's business until Save. */
+  let draftHead = $state<number | null>(null)
   let saved = $state<string | null>(null)
   let root = $state<HTMLElement | null>(null)
   /** What was sent in `set_profile` and has not come back in a `room_updated` yet. */
@@ -48,7 +52,9 @@
   const shownName = $derived(live?.display_name ?? $profile?.name ?? null)
   const shownHead = $derived(live !== null ? headOf(live) : ($profile?.head ?? null))
   const currentName = $derived(live?.display_name ?? $profile?.name ?? '')
-  const ok = $derived(nameProblem(draft) === null && draft.trim() !== currentName)
+  const nameChanged = $derived(draft.trim() !== currentName)
+  const headChanged = $derived(draftHead !== null && draftHead !== shownHead)
+  const ok = $derived(nameProblem(draft) === null && (nameChanged || headChanged))
   const nudging = $derived(
     live !== null && $nudge !== null && $nudge === $room?.code && $room?.status === 'lobby',
   )
@@ -72,7 +78,7 @@
     const headDone = pending.head === undefined || live.avatar === pending.head
     if (!nameDone || !headDone) return
     saveProfile(live.display_name, headOf(live))
-    saved = pending.name !== undefined ? 'Renamed.' : 'New head on.'
+    saved = 'Saved.'
     pending = null
   })
 
@@ -86,6 +92,7 @@
     nudge.set(null)
     if (open) {
       draft = currentName
+      draftHead = shownHead
       saved = null
       profileError.set(null)
     }
@@ -104,23 +111,24 @@
     if (!ok || pending !== null) return
     const name = draft.trim()
     if (inRoom) {
-      send({ display_name: name })
+      send({
+        ...(nameChanged ? { display_name: name } : {}),
+        ...(headChanged && draftHead !== null ? { avatar: draftHead } : {}),
+      })
     } else {
-      saveProfile(name)
+      saveProfile(name, draftHead ?? undefined)
       draft = name
+      // A first save rolls the profile its head: show it rather than keep a faceless popover.
+      draftHead = $profile?.head ?? null
       saved = 'Saved.'
     }
   }
 
+  /** A new face in the popover. It goes anywhere only with Save. */
   function rerollHead(): void {
     if (pending !== null) return
-    const next = randomHead(taken, shownHead)
-    if (inRoom) {
-      send({ avatar: next })
-    } else if ($profile !== null) {
-      saveProfile($profile.name, next)
-      saved = 'New head on.'
-    }
+    draftHead = randomHead(taken, draftHead ?? shownHead)
+    saved = null
   }
 
   function onWindowPointerDown(event: PointerEvent): void {
@@ -174,9 +182,9 @@
 
   {#if open}
     <div class="popover" role="dialog" aria-label="Your name and head">
-      {#if shownHead !== null}
+      {#if draftHead !== null}
         <div class="face">
-          <Head head={shownHead} size={48} />
+          <Head head={draftHead} size={48} />
           <button
             type="button"
             class="small reroll-head"
@@ -198,7 +206,7 @@
         />
         <div class="row">
           <button class="primary small" type="submit" disabled={!ok || pending !== null}>
-            {inRoom ? 'Rename' : 'Save'}
+            Save
           </button>
           {#if pending !== null}
             <span class="note" role="status">Asking the room…</span>
