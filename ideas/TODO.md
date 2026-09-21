@@ -34,11 +34,6 @@ Ideally, the question that is asked is a different type and/or gamemode. To make
 
 If we want a custom font, we should find one.
 
-
-# chat heads
-
-We need to include ~50 chat heads.
-
 # Logo
 
 We need to create our own logo/favicon for the website
@@ -49,3 +44,25 @@ We only have 7 gems (Sapphire <-> Zenyte) so we need to limit the amount of answ
 # Store rooms in LocalStorage when done
 
 When a game is done, the leaderboards of the room can be stored in LocalStorage, the room can then be moved to a list of completed games in every player's localstorage. Afterwards the room can be deleted from the database to immediately clean up and also free up the room name again. Or we can have the hourly task clean up completed games immediately. That's probably better.
+
+# Add password protection option to a room
+Doesn't have to be very rigid, just enough to keep people from guessing rooms to enter mid-game.
+
+The new share link could include a randomized token. Only the host would be able to share this with others. Entering an existing room without token should prompt you for the token.
+
+# Add the ability to lock a room to prevent new people from joining
+
+Not sure if we need this if the password option is already there.
+
+
+# List your game publicly
+
+Display your lobby on the homepage, allowing people to join you. Great option for selfhosters.
+
+# A player is joining...
+
+When a player is joining the game but has not picked a name yet, it would be cool to show that a new player is joining so that everyone knows to wait.
+
+# Player avatars
+
+We could go for pets inventory icons. There's over 70 of those.
