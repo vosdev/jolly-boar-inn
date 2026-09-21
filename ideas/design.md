@@ -527,8 +527,9 @@ small rooms:
   to look up.
 - **Everyone ready → 3 seconds**, from nothing or from the ten. Enough to register that
   it is about to start.
-- **A tap can be taken back.** Dropping below the threshold that way stops the countdown
-  again. A connect or disconnect never stops one — a room of phones locking and waking
+- **A tap can be taken back, once per splash.** Dropping below the threshold that way
+  stops the countdown again; a second take-back is refused, so nobody can spam the
+  countdown on and off. The lobby's toggle stops nothing and has no limit. A connect or disconnect never stops one — a room of phones locking and waking
   would otherwise never finish counting — and a running countdown is never pushed back.
 - **The host's skip is the override**, whether the splash is waiting or counting.
 
@@ -858,7 +859,8 @@ timer task, and only ever moves `next_at` earlier.
 mode this build has no entry for; a placeholder scene reads as deliberate rather than as a
 broken image, and swapping in a real file needs no code change; a splash with nobody
 ready waits rather than timing out; threshold-reached starts 10 seconds and everyone ready
-gives 3; taking a tap back below the threshold stops the countdown; a room of three with one
+gives 3; taking a tap back below the threshold stops the countdown, and a second take-back on the
+same splash is refused; a room of three with one
 player in the kitchen still starts; a room of one does not start until that player taps
 ready; a disconnecting player lowers the threshold rather than stalling the round; the host
 can still skip; a player who joins mid-splash sees the right ready state; `splash_seconds: 0`

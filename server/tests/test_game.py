@@ -1278,6 +1278,30 @@ def test_an_un_ready_below_the_threshold_stops_the_countdown(table) -> None:
     assert 9 < seconds_left(again) <= 10
 
 
+def test_a_splash_allows_one_un_ready_each(table) -> None:
+    """Spam-proofing: the second take-back on a splash is refused and changes nothing."""
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
+    game.start()
+    game.splash()
+    tap(game, game.admin)
+    player = game.players[0]
+    tap(game, player)
+    assert tap(game, player, False)["room"]["next_at"] is None  # the one take-back
+    counting = tap(game, player)
+    player.send(t="ready", ready=False)
+    assert player.take("error")["code"] == "bad_state"
+    room = game.room
+    assert room.players[UUID(player.id)].ready is True
+    assert room.next_at == datetime.fromisoformat(counting["room"]["next_at"])
+
+
+def test_the_lobby_toggle_has_no_limit(table) -> None:
+    game = table("Zezima")
+    for _ in range(3):
+        tap(game, game.players[0])
+        tap(game, game.players[0], False)
+
+
 def test_an_un_ready_that_keeps_the_threshold_keeps_the_countdown(table) -> None:
     """Five players: everyone ready is three seconds, one taking it back is four of five
     -- still the threshold -- and the countdown already running is not pushed back."""

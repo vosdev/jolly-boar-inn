@@ -198,6 +198,10 @@ class Player:
     # "ready for this round" on a splash, and every splash starts everybody afresh. A
     # restart forgets it, which costs one tap -- the same as the splash it replays.
     ready: bool = False
+    # Whether this player has already taken a tap back on this splash. One un-ready per
+    # splash, so a player hammering the button cannot stop and restart the room's
+    # countdown over and over; the lobby, where a toggle stops nothing, has no limit.
+    unreadied: bool = False
 
     def view(self) -> PlayerView:
         return PlayerView(
@@ -1058,6 +1062,8 @@ class RoomManager:
         splash (``rooms/ready.py``): the threshold starts a countdown, everyone ready
         shortens it, and taking a tap back below the threshold stops it again. The
         countdown rides as ``next_at`` on the same ``room_updated`` that says who is ready.
+        A splash allows each player one un-ready; a second is ``bad_state``, so nobody can
+        spam the countdown on and off. The lobby's toggle has no limit.
 
         Anywhere else there is nothing to be ready for. Nothing changed is nothing
         broadcast.
@@ -1073,6 +1079,10 @@ class RoomManager:
                 raise BadState("there is nothing to be ready for")
             if target.ready == is_ready:
                 return
+            if in_splash and not is_ready:
+                if target.unreadied:
+                    raise BadState("you can only take your ready back once a round")
+                target.unreadied = True
             target.ready = is_ready
             _recount_splash(room, unready=not is_ready)
             update = self._room_updated(room)
@@ -1359,6 +1369,7 @@ class RoomManager:
             # being ready for this one.
             for player in room.players.values():
                 player.ready = False
+                player.unreadied = False
             update = self._room_updated(room)
         await self._broadcast(update)
         await self._sleep_through_splash(room)

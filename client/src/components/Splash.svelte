@@ -15,7 +15,9 @@
    * their player taps ready, and never a list of names: a splash comes round up to
    * thirteen times a game, and naming who is holding things up each time turns an
    * short beat into a negotiation. The lobby is where names are listed. A tap can be
-   * taken back; below the threshold that stops the countdown again.
+   * taken back once per splash — below the threshold that stops the countdown again —
+   * and after that it stays put, so nobody can spam the countdown on and off. The
+   * server holds the same limit; this screen only stops offering what it would refuse.
    */
   import { headOf } from '../lib/heads'
   import { MODES, splashArt } from '../lib/modes'
@@ -70,6 +72,17 @@
    * starts the bar again from full at the shorter one rather than from partway down.
    */
   let span = $state(0)
+  /**
+   * Whether this player has used the splash's one take-back. Kept here rather than on the
+   * wire: the card is mounted fresh for every splash, which is exactly when it resets. A
+   * reload mid-splash forgets it, and the server's `bad_state` is the backstop then.
+   */
+  let undone = $state(false)
+
+  function press(): void {
+    if (youReady) undone = true
+    onReady(!youReady)
+  }
   $effect(() => {
     span =
       endsAt === null
@@ -112,9 +125,10 @@
         type="button"
         class:primary={!youReady}
         aria-pressed={youReady}
-        onclick={() => onReady(!youReady)}
+        disabled={youReady && undone}
+        onclick={press}
       >
-        {youReady ? '✓ Ready — tap to undo' : "✓ I'm ready"}
+        {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
       </button>
       <ul class="heads" aria-label={summary}>
         {#each present as player (player.id)}
