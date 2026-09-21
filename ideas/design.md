@@ -154,6 +154,10 @@ answer is "pick one of these". That leaves only `more_less`, which keeps `--more
 and the reasoning in §7.2, and which would not want a gem fill anyway: its two buttons carry
 the item picture, and a picture on a gem fill is a picture nobody can read.
 
+`pick_from_list` (Guess the Examine, and later Who's That NPC? and Pixel Hunt) is "pick one
+of these" too, but of a few hundred, not seven. It gets no gems and no buttons: it answers
+through a combobox (§7.2), and the seven-option cap does not apply to it.
+
 ---
 
 ## 3. Typography
@@ -557,6 +561,13 @@ only thing with any visual weight:
 - The prompt gets `--font-body` at 1.4rem and room to breathe. Answer buttons get a minimum
   height of 56px and full width on mobile — thumb targets at a pub table, not mouse targets.
 - `more_less`'s two buttons keep `--more` / `--less` and the existing reasoning.
+- Every `pick_from_list` mode answers through one **combobox**: a searchable dropdown that
+  only submits an entry of its list (behaviour in `ideas/architecture.md` §2). The search
+  field is full width, 56px tall and in `--font-body`, the Submit button under it is 56px
+  like any answer button, and the open list sits **above** the field on a phone so the
+  keyboard never covers it. The typed text reads as a search, not an answer: nothing in the
+  field looks committed until an entry is selected, and the selected name then shows in the
+  field with the Submit button lit.
 - Answered-and-waiting is a state that lasts up to 15 seconds and currently shows one line
   of `.note`. It should show your answer held, dimmed, with a quiet "waiting for the room"
   and the count of who has answered — it is dead time and it is where people look up at each
@@ -566,7 +577,8 @@ only thing with any visual weight:
 
 The same rule applies to every question type, not only multiple choice: **on reveal,
 everything recedes except the correct answer and your points.** For buttons that is §2's
-fade. For a typed or numeric answer it is your answer card fading beside the correct value.
+fade. For a typed, picked or numeric answer it is your answer card fading beside the
+correct value.
 
 Points earned sit in one fixed slot, in the same place in every mode, in the display face
 with tabular numerals. The player learns where to look once.

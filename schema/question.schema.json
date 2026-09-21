@@ -8,8 +8,8 @@
   "properties": {
     "id": { "type": "string", "pattern": "^q_[0-9a-f]{16}$" },
     "type": {
-      "enum": ["more_less", "guess_examine", "price_is_right",
-               "multiple_choice", "free_text", "closest_number"]
+      "enum": ["more_less", "price_is_right", "multiple_choice", "free_text",
+               "closest_number", "pick_from_list"]
     },
     "mode": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
     "payload": { "type": "object" },
@@ -26,8 +26,6 @@
   "allOf": [
     { "if": { "properties": { "type": { "const": "more_less" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/more_less" } } } },
-    { "if": { "properties": { "type": { "const": "guess_examine" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/guess_examine" } } } },
     { "if": { "properties": { "type": { "const": "price_is_right" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/price_is_right" } } } },
     { "if": { "properties": { "type": { "const": "multiple_choice" } } },
@@ -35,7 +33,9 @@
     { "if": { "properties": { "type": { "const": "free_text" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/free_text" } } } },
     { "if": { "properties": { "type": { "const": "closest_number" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/closest_number" } } } }
+      "then": { "properties": { "payload": { "$ref": "#/$defs/closest_number" } } } },
+    { "if": { "properties": { "type": { "const": "pick_from_list" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/pick_from_list" } } } }
   ],
   "$defs": {
     "asset": { "type": "string", "pattern": "^(item|npc):[0-9]{1,7}$" },
@@ -74,19 +74,6 @@
         },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 1 },
         "as_of": { "$ref": "#/$defs/date" }
-      }
-    },
-
-    "guess_examine": {
-      "type": "object",
-      "required": ["examine", "kind", "accepted", "reveal"],
-      "additionalProperties": false,
-      "properties": {
-        "examine": { "$ref": "#/$defs/prompt" },
-        "kind": { "enum": ["item", "npc"] },
-        "accepted": { "$ref": "#/$defs/accepted" },
-        "max_distance": { "type": "integer", "minimum": 0, "maximum": 2, "default": 1 },
-        "reveal": { "$ref": "#/$defs/subject" }
       }
     },
 
@@ -138,6 +125,21 @@
         "image": { "$ref": "#/$defs/asset" },
         "answer": { "type": "number" },
         "unit": { "type": "string", "maxLength": 16 },
+        "explanation": { "type": "string", "maxLength": 300 }
+      }
+    },
+
+    "pick_from_list": {
+      "type": "object",
+      "required": ["prompt", "vocab", "answer_id"],
+      "additionalProperties": false,
+      "properties": {
+        "prompt": { "$ref": "#/$defs/prompt" },
+        "vocab": { "enum": ["items", "npcs", "examines"] },
+        "answer_id": { "type": "integer", "minimum": 0 },
+        "image": { "$ref": "#/$defs/asset" },
+        "steps": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "subject": { "$ref": "#/$defs/subject" },
         "explanation": { "type": "string", "maxLength": 300 }
       }
     }

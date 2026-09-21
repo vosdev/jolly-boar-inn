@@ -78,6 +78,24 @@ export function getModes(): Promise<ModePacing[]> {
   return request<ModePacing[]>('/api/modes')
 }
 
+export interface VocabEntry {
+  id: number
+  name: string
+}
+
+/** `GET /api/vocab/{name}`: a closed answer list. `lib/vocab.ts` caches and searches it. */
+export interface Vocab {
+  vocab: string
+  /** A hash of the entries; two builds with different lists have different versions. */
+  version: string
+  entries: VocabEntry[]
+}
+
+/** `not_found` for a list this build does not have (`npcs` until the importer runs). */
+export function getVocab(name: string): Promise<Vocab> {
+  return request<Vocab>(`/api/vocab/${encodeURIComponent(name)}`)
+}
+
 export interface Credentials {
   session: string
   player: PlayerView

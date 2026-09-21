@@ -122,4 +122,10 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "questions": {"default": 5, "min": 1, "max": 30},
             "seconds": {"default": 10, "min": 5, "max": 30},
         },
+        {
+            "id": "guess_examine",
+            "type": "pick_from_list",
+            "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 20, "min": 10, "max": 60},
+        },
     ]

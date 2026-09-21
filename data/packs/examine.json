@@ -1,0 +1,312 @@
+{
+  "pack": "examine",
+  "generated_at": "2026-09-21T16:01:06Z",
+  "questions": [
+    {
+      "id": "q_6b7230aaa9df1eae",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "The lowest maintenance pet you will ever have.",
+        "vocab": "examines",
+        "answer_id": 1,
+        "subject": {
+          "name": "Pet rock"
+        }
+      }
+    },
+    {
+      "id": "q_670b8ddf64b3c3e0",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "I'd smell better after completing 3145 laps of an agility course dressed as a monkey.",
+        "vocab": "examines",
+        "answer_id": 2,
+        "subject": {
+          "name": "Repugnant spectre"
+        }
+      }
+    },
+    {
+      "id": "q_58c5738024937c23",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "The ectophial.",
+        "vocab": "examines",
+        "answer_id": 3,
+        "subject": {
+          "name": "Ectophial"
+        }
+      }
+    },
+    {
+      "id": "q_9e7f1edc222f1e76",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Half of it is suitable for vegetarians",
+        "vocab": "examines",
+        "answer_id": 4,
+        "subject": {
+          "name": "Half a meat pie"
+        }
+      }
+    },
+    {
+      "id": "q_499e313fd7091fe1",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "I don't understand, why didn't he return to Lumby?",
+        "vocab": "examines",
+        "answer_id": 5,
+        "subject": {
+          "name": "Dead skeleton"
+        }
+      }
+    },
+    {
+      "id": "q_9c006321f23e23fc",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "It's full of beer, a state to which many people aspire",
+        "vocab": "examines",
+        "answer_id": 6,
+        "subject": {
+          "name": "Big beer barrel"
+        }
+      }
+    },
+    {
+      "id": "q_4eaefc00e9604638",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Well now you know.",
+        "vocab": "examines",
+        "answer_id": 7,
+        "subject": {
+          "name": "Bear droppings"
+        }
+      }
+    },
+    {
+      "id": "q_90dd16f0e8b8c7af",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "I wonder if this ring helps with...",
+        "vocab": "examines",
+        "answer_id": 8,
+        "subject": {
+          "name": "Ring of endurance"
+        }
+      }
+    },
+    {
+      "id": "q_a33aaa507beb19b4",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Life is short and then we die.",
+        "vocab": "examines",
+        "answer_id": 9,
+        "subject": {
+          "name": "Wilting wheat"
+        }
+      }
+    },
+    {
+      "id": "q_c642f2efeaf7c03e",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Not very high.",
+        "vocab": "examines",
+        "answer_id": 10,
+        "subject": {
+          "name": "An ogre standard"
+        }
+      }
+    },
+    {
+      "id": "q_ecdf5956348539be",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Future web developers.",
+        "vocab": "examines",
+        "answer_id": 11,
+        "subject": {
+          "name": "Spider eggs"
+        }
+      }
+    },
+    {
+      "id": "q_01e3cd82441d646d",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Raccoons, like pandas but worse.",
+        "vocab": "examines",
+        "answer_id": 12,
+        "subject": {
+          "name": "Rocky"
+        }
+      }
+    },
+    {
+      "id": "q_1092e8acb20d6c4f",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Yep. Definitely a chicken.",
+        "vocab": "examines",
+        "answer_id": 13,
+        "subject": {
+          "name": "Chicken"
+        }
+      }
+    },
+    {
+      "id": "q_47f444cde1e15c8f",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Am I losing my marbles?",
+        "vocab": "examines",
+        "answer_id": 14,
+        "subject": {
+          "name": "Marble gargoyle"
+        }
+      }
+    },
+    {
+      "id": "q_66094f7e95fe5f84",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Some form of ancient terraforming device. Oh deere it looks broken.",
+        "vocab": "examines",
+        "answer_id": 15,
+        "subject": {
+          "name": "Ancient machinery"
+        }
+      }
+    },
+    {
+      "id": "q_804df1ee4d6cd4a4",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "It wasn't a rock... it was a rock lobster!",
+        "vocab": "examines",
+        "answer_id": 16,
+        "subject": {
+          "name": "Rock lobster"
+        }
+      }
+    },
+    {
+      "id": "q_b17fb20ebdad05e2",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Are those fleas all over it?",
+        "vocab": "examines",
+        "answer_id": 17,
+        "subject": {
+          "name": "Stray dog"
+        }
+      }
+    },
+    {
+      "id": "q_5d4a2f96100d887a",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "He likes to paaaarty!",
+        "vocab": "examines",
+        "answer_id": 18,
+        "subject": {
+          "name": "Party Pete"
+        }
+      }
+    }
+  ]
+}

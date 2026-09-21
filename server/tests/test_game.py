@@ -415,6 +415,33 @@ def test_an_answer_that_is_not_a_valid_value_is_bad_value(game) -> None:
     assert game.question(0).answers == {}
 
 
+def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table) -> None:
+    """T20: typed text is a search, never an answer, and an id the list does not hold is
+    as malformed as a string. A real entry that is not the answer is merely wrong, and a
+    question with no ``steps`` acks on speed."""
+    game = table("Zezima", "Woox", modes=["guess_examine"], seconds=10)
+    game.start()
+    game.opened(0)
+    zezima, woox = game.players
+    payload = game.question(0).payload
+    for value in (payload["subject"]["name"], str(payload["answer_id"]), 999999, None):
+        game.answer(zezima, 0, value)
+        assert zezima.take("error")["code"] == "bad_value", value
+    assert game.question(0).answers == {}
+    game.answer(zezima, 0, payload["answer_id"])
+    assert zezima.take("answer_ack")["scoring"] == "speed"
+    other = next(q.payload["answer_id"] for q in game.room.questions[1:])
+    game.answer(woox, 0, other)
+    woox.take("answer_ack")
+    game.admin.send(t="skip")
+    results = game.admin.take("question_closed")["results"]
+    by_name = {seat.player["id"]: seat.name for seat in game.players}
+    assert {by_name[pid]: r["correct"] for pid, r in results.items()} == {
+        "Zezima": True,
+        "Woox": False,
+    }
+
+
 def test_answering_before_the_game_starts_is_not_open(game) -> None:
     player = game.players[0]
     player.send(t="answer", question_id=game.question(0).question_id, value="higher")

@@ -17,11 +17,12 @@ from app.questions.types.bounds import Bounds
 
 
 def test_the_registry_lists_every_shipped_mode_in_create_form_order() -> None:
-    """T16 added the axis with one round on it; T19 adds the second. Each mode and its
-    type still share a name, which stops being true at the first ``multiple_choice`` mode."""
+    """T16 added the axis with one round on it; T19 adds the second. T20's is the first
+    whose type goes by another name: Guess the Examine is answered from a list."""
     assert MODES == {
         "more_less": Mode(id="more_less", type="more_less"),
         "price_is_right": Mode(id="price_is_right", type="price_is_right"),
+        "guess_examine": Mode(id="guess_examine", type="pick_from_list"),
     }
 
 

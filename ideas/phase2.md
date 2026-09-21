@@ -58,8 +58,8 @@ T16 mode/type split
  └─▶ T18 client    │
           │        │
           ├────────┴─▶ T19 price_is_right ─┐
-          │            T20 free_text ──────┤
-          │            T21 mc + number ────┼─▶ T22 custom editor
+          │            T20 pick_from_list ─┤
+          │            T21 mc, num, text ──┼─▶ T22 custom editor
           │                                └─▶ T30 random events
           │
           └──────────────────────▶ T23 importer
@@ -180,30 +180,43 @@ uniform across the pack; ~100 valid questions.
 
 ### T20. Guess the Examine
 
-Mode `guess_examine` on type `free_text`. The examine text is already in `/mapping`.
+Mode `guess_examine` on type `pick_from_list`. The examine text is already in `/mapping`.
+This is where `pick_from_list` lands, a phase before the two image modes that also use it
+(architecture section 2 has why the mode moved off `free_text`).
 
-`questions/normalize.py` (lowercase, NFKC, trim, collapse whitespace, strip punctuation,
-Levenshtein, the under-4-characters rule). `free_text` type module reading the optional
-`subject` for the reveal. `ExamineStem` and `FreeText.svelte`. Generator emitting
-`data/packs/examine.json`.
+`pick_from_list` type module: `validate_value` accepts only an id in the question's
+vocabulary, `check()` asserts `answer_id` is in it and `subject.name` is its name, no
+`steps`, so it scores on speed. `questions/vocab.py` and `GET /api/vocab/{name}`, with
+`items` built from `data/popular-items.json` (section 3). `lib/vocab.ts` and
+`PickFromList.svelte`, the strict combobox every `pick_from_list` mode shares (section 2
+has its behaviour), and `ExamineStem`. Generator emitting `data/packs/examine.json`.
 
 The generator's real work is rejection, not selection: an examine that contains the item's
 own name, or any word of it longer than three characters, is not a question. "A sharp
-sword." is fine; "An abyssal whip." is the answer written on the card.
+sword." is fine; "An abyssal whip." is the answer written on the card. Neither is an
+examine that another roster item with a different name shares, because the list would
+hold two right answers and the grader accepts one.
 
-**Accept:** normalisation tests including "Jad" not accepting "Jam"; an examine containing
-the item name is rejected with the reason; `accepted` carries the obvious aliases; a
-full-name typo one character out is accepted and a different item's name is not; the
+**Accept:** an answer that is not an id in the vocabulary is `bad_value`; `validate-packs`
+fails an `answer_id` missing from its vocabulary; a roster with two entries of the same
+name refuses to load; the combobox cannot submit anything but a selected entry — typed text
+with no selection leaves Submit disabled, and editing the text after selecting clears the
+selection; search tests for case, accents and word-prefix ("whip" finds "Abyssal whip");
+the combobox is operable by keyboard alone, and on a 375px phone its list is not hidden
+behind the keyboard; an examine containing the item name is rejected with the reason; the
 generator prints how many roster items it used, how many it rejected and why, and the
 rejection rate is under a third.
 
-### T21. Multiple choice, closest number, and where the host's questions land
+### T21. Multiple choice, closest number, free text, and where the host's questions land
 
-The two remaining simple types, plus everything random events need on the server. The
+The three remaining simple types, plus everything random events need on the server. The
 *presentation* is T30. Until that lands an event plays as an ordinary question that happens
 to interrupt a round, which is odd to look at and not broken — the same deal T16–T18 made.
 
-`multiple_choice` and `closest_number` type modules. Mode `custom` with `type = None`,
+`multiple_choice`, `closest_number` and `free_text` type modules; `free_text` brings
+`questions/normalize.py` (lowercase, NFKC, trim, collapse whitespace, strip punctuation,
+Levenshtein, the under-4-characters rule), and no pack mode uses it — it is for the host's
+own questions, whose answers no list could hold. Mode `custom` with `type = None`,
 and it is never a round. `POST /api/rooms` accepts `custom_questions`, validates each
 against the schema, stores them with `source = 'room'`, `mode = 'custom'` and
 `author_player_id`. `0007_random_events.sql` adds `questions.random_event` and swaps
@@ -225,7 +238,9 @@ not seven for a four-mode room holding three events; the author gets `excluded` 
 own question and scores 0 while everyone else scores normally; `host_only` scores nobody
 and still shows; a payload that fails the schema gives 422 naming the field and creates
 no room; a room created before `0007` rehydrates and plays its custom round unchanged;
-`closest_number` ranks correctly with ties.
+`closest_number` ranks correctly with ties; normalisation tests including "Jad" not
+accepting "Jam"; a one-character typo on a full accepted answer is accepted and a different
+answer is not.
 
 ### T22. The custom-question editor
 
@@ -436,7 +451,9 @@ them. So no question may offer more than seven choices, of any type, from any so
 
 The cap lives in the schema as one shared definition and every array of choices references
 it: `multiple_choice.options` goes from 6 to 7, `price_is_right` stays at 4, and T27's
-`ordering.entries` and Phase 3's `pick_from_list` inherit it when they land. A custom
+`ordering.entries` inherits it when it lands. `pick_from_list` has no array of choices —
+its answers come from a vocabulary through a combobox, not from gem buttons — so the cap
+does not reach it. A custom
 question with eight options is a 422 at room creation. The T22 editor reads the cap from the
 schema like every other limit.
 
@@ -757,9 +774,10 @@ payload contains a display name, an answer or a question payload, asserted.
 
 - **Images, and the two modes that need them.** Who's That NPC? and Pixel Hunt are Phase 3,
   behind the asset pipeline and the open decision at the end of `architecture.md` about
-  where asset files live given a read-only container. The `pick_from_list` type, the vocab
-  endpoint and `steps` are all specced in architecture sections 2, 3 and 6 so that Phase 3
-  is a pipeline and two components, not another framework change.
+  where asset files live given a read-only container. The `pick_from_list` type, its
+  combobox and the vocab endpoint land with Guess the Examine in T20, and `steps` is specced
+  in architecture section 6, so Phase 3 is a pipeline and two components, not another
+  framework change.
 - **Design** is `ideas/design.md`'s D1–D12, not T-tasks. The ready check that replaced the
   splash countdown shipped as D7. `ideas/TODO.md`'s version was "everyone taps ready, then 3
   seconds", and it survives as D7's everyone-ready branch, with an 80% threshold added so

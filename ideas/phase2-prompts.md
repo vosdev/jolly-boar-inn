@@ -197,34 +197,55 @@ Accept:
 ## T20. Guess the Examine
 
 ```text
-Task T20 in ideas/phase2.md: the guess_examine mode on the free_text type.
+Task T20 in ideas/phase2.md: the guess_examine mode on the pick_from_list type. This is
+where pick_from_list lands; Phase 3's two image modes reuse everything built here.
 
 The examine text is already in the /mapping response the price generator fetches and
-throws away. Read ideas/architecture.md section 2 for the free_text payload (note the
-optional subject, used for the reveal — the old guess_examine type was folded into this
-one).
+throws away. Read ideas/architecture.md section 2 for the pick_from_list payload, why
+Guess the Examine moved off free_text, and the combobox's behaviour; section 3
+("Autocomplete vocabularies") for GET /api/vocab; section 6 for why a payload with no
+steps scores on speed.
 
 Do:
-- questions/normalize.py : lowercase, NFKC, trim, collapse whitespace, strip punctuation,
-  Levenshtein distance. Accepted answers under 4 characters require distance 0, so "Jad"
-  does not accept "Jam".
-- questions/types/free_text.py, all six exports, using normalize.
-- types/FreeText.svelte and stems/ExamineStem.svelte.
-- scripts generator -> data/packs/examine.json.
+- questions/vocab.py : the items vocabulary from data/popular-items.json, a version hash,
+  and a refusal to load two entries of the same name.
+- http/vocab.py : GET /api/vocab/{name}. npcs is a 404 until T23 writes npcs.json.
+- questions/types/pick_from_list.py, all six exports. validate_value accepts only an id in
+  the question's vocabulary; check() asserts answer_id is in it and subject.name is its
+  name, so validate-packs catches a roster edit that drops an answer.
+- lib/vocab.ts : fetch once per session (during the splash of a pick_from_list round, or
+  at the first such question), cache in memory, and the search: case- and
+  accent-insensitive, matching the start of any word, names starting with the query first.
+- types/PickFromList.svelte : the strict combobox from architecture section 2. Selection
+  only — typed text is a search, never an answer. WAI-ARIA combobox pattern, a Submit button
+  disabled until an entry is selected. Every pick_from_list mode uses this component, so
+  nothing in it may know about examines.
+- stems/ExamineStem.svelte : the prompt is the examine text; render it as one.
+- scripts generator -> data/packs/examine.json, vocab "items".
 - lib/modes.ts entry: "Guess the Examine".
+
+Do not: build free_text or normalize.py (T21 owns them now), or add aliases — the search
+matching any word's start is what makes "whip" find "Abyssal whip".
 
 The generator's real work is rejection. An examine that contains the item's own name, or
 any word of the name longer than three characters, is not a question — "A sharp sword." is
 fine, "An abyssal whip." is the answer written on the card. Reject and report, do not try
-to mask the word.
+to mask the word. An examine shared by another roster item with a different name is
+rejected too: the list would hold two right answers.
 
 Accept:
-- Normalisation tests: case, accents, punctuation, whitespace, the under-4 rule.
-- A one-character typo on the full name is accepted; a different item's name is not.
+- An answer that is not an id in the vocabulary is bad_value; a string is bad_value.
+- validate-packs fails a question whose answer_id is not in its vocabulary.
+- A roster with two entries of the same name refuses to load.
+- Component tests: typed text with no selection leaves Submit disabled; selecting enables
+  it; editing the text after selecting clears the selection; no match selects nothing and
+  says so; the value sent is the entry's id.
+- Search tests: case, accents, word-prefix ("whip" finds "Abyssal whip"), ordering.
+- The combobox is operable by keyboard alone (arrows, Enter, Escape), and on a 375px phone
+  with the keyboard open its list is not hidden behind the keyboard (manual, say what you
+  saw).
 - An examine containing the item name is rejected by the generator with a reason in its
   output summary; assert it on a fixture.
-- accepted carries the obvious aliases (e.g. "whip" for "Abyssal whip") — decide the rule,
-  state it, and test it.
 - The generator prints how many roster items it used and how many it rejected, with the
   reason, and the rejection rate is under a third. The roster is 176 items today, so do not
   chase a fixed question count — report the number you got.
@@ -233,10 +254,10 @@ Accept:
 
 ---
 
-## T21. Multiple choice, closest number, and where the host's questions land
+## T21. Multiple choice, closest number, free text, and where the host's questions land
 
 ```text
-Task T21 in ideas/phase2.md: the last two simple types, and random events server-side.
+Task T21 in ideas/phase2.md: the last three simple types, and random events server-side.
 
 Read ideas/architecture.md section 1 (selection.py's "Random events", and segments.py),
 section 2 ("A random event is not a mode", and the payloads), section 4 (the settings
@@ -246,6 +267,12 @@ Do:
 - questions/types/multiple_choice.py and closest_number.py. closest_number is SCORING =
   RANK and returns the credit ladder from section 6 (1.0/0.8/0.6/0.4/0.2), ties sharing the
   better rank.
+- questions/normalize.py : lowercase, NFKC, trim, collapse whitespace, strip punctuation,
+  Levenshtein distance. Accepted answers under 4 characters require distance 0, so "Jad"
+  does not accept "Jam".
+- questions/types/free_text.py, all six exports, using normalize. No pack mode uses it; it
+  is for the host's own questions, whose answers (a clan member, a boss kill count) no
+  vocabulary could hold.
 - MODES gains "custom" with type = None — the one mode whose questions carry their own
   types, because a host may write a multiple-choice question and a number one. It is also
   the one mode that is never a round, so it declares seconds and no questions bounds.
@@ -267,7 +294,7 @@ Do:
 - app/random_events.py: the NPC ids, and nothing else. Names and lines are client copy
   in T30, the way mode copy already lives in lib/modes.ts.
 - Author exclusion gets its first real caller (T10 built and tested it).
-- types/MultipleChoice.svelte and ClosestNumber.svelte.
+- types/MultipleChoice.svelte, ClosestNumber.svelte and FreeText.svelte.
 
 Do not: build the editor UI (T22), and do not build the event presentation — the NPC card
 and the held-back buttons are T30. Until then an event plays as an ordinary question in the
@@ -288,6 +315,8 @@ Accept:
 - A room created before 0007 rehydrates and plays its custom round unchanged.
 - closest_number ties: two players equidistant share the better rank; exact match beats a
   1-off; an unanswered player scores 0, not 200.
+- Normalisation tests: case, accents, punctuation, whitespace, the under-4 rule. A
+  one-character typo on a full accepted answer is accepted; a different answer is not.
 ```
 
 ---
@@ -665,8 +694,9 @@ onyx, zenyte) and each choice is one of them.
 Do:
 - schema/question.schema.json: one shared $def for the cap, referenced by every array of
   choices. multiple_choice.options goes 6 -> 7. price_is_right stays at exactly 4.
-- If T27's ordering or Phase 3's pick_from_list already exist, they reference it too. If
-  not, add a line to ideas/architecture.md section 2 saying they must.
+- If T27's ordering already exists, it references it too. If not, add a line to
+  ideas/architecture.md section 2 saying it must. pick_from_list (T20) is exempt: it has no
+  array of choices, and its combobox draws no gems.
 - The client editor (T22), if landed, already reads caps from the schema. Check that it
   picks up 7 with no change of its own.
 
@@ -1132,9 +1162,9 @@ Phase 2 is eleven playable modes, a game that interrupts itself, and an instance
 other than its author can run. What is left, in `ideas/plan.md`'s order:
 
 - **Phase 3** is the asset pipeline (MOID renders, webp, zoom frames), then Who's That NPC?
-  and Pixel Hunt — which are two components and a generator each, because the
-  `pick_from_list` type, `GET /api/vocab` and `steps` are all specced in
-  `ideas/architecture.md` already. Settle the open decision at the end of that file first:
+  and Pixel Hunt — which are two stems and a generator each, because the
+  `pick_from_list` type, its combobox and `GET /api/vocab` landed with Guess the Examine in
+  T20, and `steps` is specced in `ideas/architecture.md` already. Settle the open decision at the end of that file first:
   where asset files live given a read-only container. The random-event NPCs want renders
   too, and they are the same pipeline.
 - **Design**: whatever of D1–D12 in `ideas/design.md` has not landed (the ready check

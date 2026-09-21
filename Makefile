@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions gen-examine-questions loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -78,6 +78,11 @@ loadtest:
 # commit the result. Idempotent, so a re-run against unchanged prices is a no-op.
 gen-price-questions:
 	cd server && uv run python scripts/gen_price_questions.py
+
+# Regenerate data/packs/examine.json from data/examines.json, offline. Run it after adding an
+# examine and commit both files; the test suite fails when the two disagree.
+gen-examine-questions:
+	cd server && uv run python scripts/gen_examine_questions.py
 
 # Build the production image, tagged with the version and as latest. Releases themselves are
 # git tags, which CI creates on main when VERSION changes; this is the local image to match.
