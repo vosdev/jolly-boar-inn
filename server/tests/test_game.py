@@ -650,6 +650,7 @@ def test_can_answer(host_only: bool, source: str, is_author: bool, expected: boo
         position=0,
         question_id="q_x",
         type="more_less",
+        mode="more_less",
         source=source,
         payload={},
         host_only=host_only,
@@ -1020,7 +1021,7 @@ def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> 
             {"mode": "more_less", "questions": 1, "seconds": 10},
         ],
     )
-    assert [q.type for q in game.room.questions] == [second_mode, "more_less"]
+    assert [q.mode for q in game.room.questions] == [second_mode, "more_less"]
     game.start()
     assert game.splash()["room"]["segment"]["mode"] == second_mode
     game.opened(0)
@@ -1043,6 +1044,29 @@ def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> 
         if message["t"] == "room_updated" and message["room"]["phase"] == "splash"
     ]
     assert splashes == [second_mode, "more_less"]
+
+
+def test_question_open_carries_its_mode_beside_its_type(table, second_mode) -> None:
+    """T16: two rounds that answer the same way are still two modes, and every question
+    says which one it belongs to as well as how it is answered."""
+    game = table(
+        "Zezima",
+        reveal_seconds=1,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
+    game.start()
+    first = game.opened(0)[0]["question"]
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    second = game.admin.take("question_open")["question"]
+    assert [(q["type"], q["mode"], q["segment"]["mode"]) for q in (first, second)] == [
+        ("more_less", "more_less", "more_less"),
+        ("more_less", second_mode, second_mode),
+    ]
 
 
 def test_skip_cuts_the_splash_short(table) -> None:

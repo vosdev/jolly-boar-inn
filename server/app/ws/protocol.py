@@ -53,7 +53,7 @@ class Segment(_Message):
     number within the round is ``index - start + 1``.
     """
 
-    mode: str  # the question type the round plays; the client's mode registry key
+    mode: str  # a mode id (``app/modes``), never a type id; the client's mode registry key
     index: int  # 0-based round number
     total: int  # rounds in this room
     start: int  # position of the round's first question
@@ -102,7 +102,11 @@ class OpenQuestion(_Message):
     question_id: str
     index: int
     total: int
-    type: str
+    type: str  # how it is answered: the key into ``questions/types``
+    # Which mode it was drawn for (``app/modes``); since T16 not the same string as ``type``.
+    # On the question itself rather than only on ``segment``, because it is a fact about
+    # the question, and the round it sits in is a different fact that merely agrees today.
+    mode: str
     # Repeated from ``RoomView`` because the client patches its room from this frame
     # rather than replacing it, and a round can change without a splash to announce it
     # (``splash_seconds`` at zero, or two consecutive rounds of the same mode).

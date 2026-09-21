@@ -21,7 +21,7 @@ from app.questions.submission import Submission
 from app.questions.types.bounds import Bounds
 
 DIRECTIONS = ("more", "less")
-# This mode is meant to be quick: two names, one word to read. So its round is a long one
+# This shape is meant to be quick: two names, one word to read. So its round is a long one
 # and its questions are short -- ten seconds is plenty, and a minute of it would be
 # forty-five seconds of waiting. Twenty is as far as a host may stretch one question
 # before that is all it is.

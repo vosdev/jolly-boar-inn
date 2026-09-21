@@ -7,14 +7,17 @@ from typing import Any
 
 import pytest
 
+from app.modes import MODES, Mode
 from app.questions.packs import Pack
-from app.questions.types import TYPES, more_less
 from app.rooms.selection import Round, flatten, select
 from app.rooms.settings import RoomSettings
 
 
-def _pack(name: str, qtype: str, n: int) -> Pack:
-    questions = tuple({"id": f"q_{name}_{i}", "type": qtype, "payload": {}} for i in range(n))
+def _pack(name: str, mode: str, n: int) -> Pack:
+    """Every question is a ``more_less`` whatever its mode, like the stub mode's are."""
+    questions = tuple(
+        {"id": f"q_{name}_{i}", "type": "more_less", "mode": mode, "payload": {}} for i in range(n)
+    )
     return Pack(
         name=name, generated_at="2026-09-18T00:00:00Z", questions=questions, path=Path(name)
     )
@@ -25,7 +28,9 @@ PACKS = [
     _pack("b", "more_less", 30),
     _pack("c", "free_text", 30),
 ]
-CUSTOM: list[dict[str, Any]] = [{"id": "q_custom_1", "type": "more_less", "payload": {}}]
+CUSTOM: list[dict[str, Any]] = [
+    {"id": "q_custom_1", "type": "more_less", "mode": "more_less", "payload": {}}
+]
 
 
 def _settings(*modes: tuple[str, int], **overrides: Any) -> RoomSettings:
@@ -40,15 +45,15 @@ def _questions(rounds: list[Round]) -> list[dict[str, Any]]:
 
 @pytest.fixture
 def second_mode() -> Iterator[str]:
-    """A second registered type, so round order can be tested before one exists.
+    """A second registered mode, so round order can be tested before one exists.
 
-    ``RoomSettings`` only takes modes the registry knows, and the registry is one module
-    long. The stub is never played -- selection reads nothing but ``type`` -- so it only
+    ``RoomSettings`` only takes modes the registry knows, and the registry is one mode
+    long. The stub is never played -- selection reads nothing but ``mode`` -- so it only
     has to be a key.
     """
-    TYPES["free_text"] = more_less  # a stand-in; selection never calls into it
+    MODES["free_text"] = Mode(id="free_text", type="more_less")
     yield "free_text"
-    del TYPES["free_text"]
+    del MODES["free_text"]
 
 
 def test_count_without_replacement_and_only_chosen_modes() -> None:
@@ -56,7 +61,7 @@ def test_count_without_replacement_and_only_chosen_modes() -> None:
     got = _questions(rounds)
     assert len(got) == 50
     assert len({q["id"] for q in got}) == 50
-    assert {q["type"] for q in got} == {"more_less"}
+    assert {q["mode"] for q in got} == {"more_less"}
 
 
 def test_a_mode_is_a_round(second_mode: str) -> None:
@@ -65,7 +70,17 @@ def test_a_mode_is_a_round(second_mode: str) -> None:
     rounds = select(PACKS, [], settings, random.Random(1))
     assert [(r.mode, len(r.questions)) for r in rounds] == [("more_less", 8), ("free_text", 3)]
     # Every question in a round is that round's mode: what makes a round introducible.
-    assert all({q["type"] for q in r.questions} == {r.mode} for r in rounds)
+    assert all({q["mode"] for q in r.questions} == {r.mode} for r in rounds)
+
+
+def test_a_pool_is_a_mode_not_a_type() -> None:
+    """Pack ``c`` is ``more_less`` questions too, but none of them are the ``more_less``
+    mode's: asking for more than packs ``a`` and ``b`` hold gives a short round, never a
+    question from a round that merely shares the answer shape."""
+    rounds = select(PACKS, [], _settings(("more_less", 90)), random.Random(1))
+    got = _questions(rounds)
+    assert len(got) == 60
+    assert not [q for q in got if q["id"].startswith("q_c_")]
 
 
 def test_one_mode_is_one_round() -> None:
@@ -134,11 +149,13 @@ def test_shuffle_mixes_custom_into_a_round_of_its_own_mode() -> None:
 @pytest.mark.parametrize("order", ["shuffle", "custom_last"])
 def test_every_round_is_one_mode(order: str) -> None:
     """A custom question of a mode nobody picked trails the game in a round of its own."""
-    custom = CUSTOM + [{"id": "q_custom_2", "type": "free_text", "payload": {}}]
+    custom = CUSTOM + [
+        {"id": "q_custom_2", "type": "free_text", "mode": "free_text", "payload": {}}
+    ]
     settings = _settings(("more_less", 10), order=order)
     rounds = select(PACKS, custom, settings, random.Random(2))
     for round_ in rounds:
-        assert {q["type"] for q in round_.questions} == {round_.mode}
+        assert {q["mode"] for q in round_.questions} == {round_.mode}
     assert rounds[-1].mode == "free_text"
 
 

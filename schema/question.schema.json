@@ -3,7 +3,7 @@
   "$id": "https://jollyboarinn.example/schema/question.schema.json",
   "title": "Question",
   "type": "object",
-  "required": ["id", "type", "payload", "source", "tags"],
+  "required": ["id", "type", "mode", "payload", "source", "tags"],
   "additionalProperties": false,
   "properties": {
     "id": { "type": "string", "pattern": "^q_[0-9a-f]{16}$" },
@@ -11,6 +11,7 @@
       "enum": ["more_less", "guess_examine", "price_is_right",
                "multiple_choice", "free_text", "closest_number"]
     },
+    "mode": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
     "payload": { "type": "object" },
     "difficulty": { "enum": ["easy", "medium", "hard"] },
     "source": { "enum": ["pack", "community", "room"] },

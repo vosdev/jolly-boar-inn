@@ -129,7 +129,8 @@ def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -
     code, _ = create(client, modes=[{"mode": "more_less", "questions": 7}])
     (room,) = db("select id from rooms where code = $1", code)
     rows = db(
-        "select position, question_id, type, source, payload, host_only, round from questions"
+        "select position, question_id, type, mode, source, payload, host_only, round"
+        " from questions"
         " where room_id = $1 order by position",
         room["id"],
     )
@@ -140,10 +141,11 @@ def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -
     assert [r["round"] for r in rows] == [0] * 7
     for row in rows:
         assert row["type"] == "more_less"
+        assert row["mode"] == "more_less"
         assert row["source"] == "pack"
         assert row["host_only"] is False
         assert set(row["payload"]) >= {"payload", "tags"}
-        assert not set(row["payload"]) & {"id", "type", "source", "host_only"}
+        assert not set(row["payload"]) & {"id", "type", "mode", "source", "host_only"}
         assert row["payload"]["payload"]["answer_index"] in (0, 1)
 
     code, _ = create(client, modes=[{"mode": "more_less", "questions": 30}])

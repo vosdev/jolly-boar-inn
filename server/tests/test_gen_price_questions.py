@@ -116,6 +116,7 @@ def test_shipped_prices_pack_is_full_of_valid_questions() -> None:
     assert directions == {"more", "less"}, "both directions have to turn up"
     for q in prices.questions:
         assert q["type"] == "more_less"
+        assert q["mode"] == "more_less"
         assert q["source"] == "pack"
         assert "prices" in q["tags"]
         assert q["id"] == schema.content_id(q)

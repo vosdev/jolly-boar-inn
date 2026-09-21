@@ -34,7 +34,7 @@ export type ErrorCode =
 
 /** One mode's round: how many questions it holds, and how long each one is open. */
 export interface ModeSettings {
-  /** The question type this round plays; the key into `lib/modes.ts`. */
+  /** A mode id, never a question type; the key into `lib/modes.ts`. */
   mode: string
   questions: number
   seconds: number
@@ -64,7 +64,7 @@ export interface RoomSettings {
  * counts in too, so the question number within the round is `index - start + 1`.
  */
 export interface Segment {
-  /** The question type the round plays; the key into `lib/modes.ts`. */
+  /** A mode id, never a question type; the key into `lib/modes.ts`. */
   mode: string
   /** 0-based round number. */
   index: number
@@ -115,7 +115,10 @@ export interface OpenQuestion {
   question_id: string
   index: number
   total: number
+  /** How it is answered: the key into `components/questions/index.ts`. */
   type: string
+  /** Which mode it was drawn for; not the same string as `type` since T16. */
+  mode: string
   /**
    * Repeated from `RoomView` because `stores.ts` patches its room from this frame rather
    * than replacing it, and a round can change with no splash to announce it

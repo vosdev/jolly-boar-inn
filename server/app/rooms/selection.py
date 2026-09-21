@@ -39,6 +39,10 @@ def select(
     all -- an empty round is dropped rather than played, because a splash for a round
     with no questions is a screen that introduces nothing.
 
+    A pool is every pack question carrying that ``mode``, never that ``type``. Modes share
+    types -- five of them will be ``multiple_choice`` -- and pooling by type would have
+    each of those rounds drawing the other four's questions.
+
     ``settings.order`` decides only where the room's own questions go. ``"custom_last"``
     gives them trailing rounds of their own; ``"shuffle"`` mixes each into the round of
     its own mode where there is one, and gives the rest trailing rounds. Either way a
@@ -46,7 +50,7 @@ def select(
     to be the record of what a room is playing.
     """
     pools = {
-        entry.mode: [q for pack in packs for q in pack.questions if q["type"] == entry.mode]
+        entry.mode: [q for pack in packs for q in pack.questions if q["mode"] == entry.mode]
         for entry in settings.modes
     }
     for pool in pools.values():
@@ -78,7 +82,7 @@ def _with_custom(
     leftover: list[dict[str, Any]] = []
     for question in custom:
         home = (
-            next((r for r in rounds if r.mode == question["type"]), None)
+            next((r for r in rounds if r.mode == question["mode"]), None)
             if settings.order == "shuffle"
             else None
         )
@@ -91,7 +95,7 @@ def _with_custom(
     # mode and the splash and the progress counter read the same everywhere.
     by_mode: dict[str, list[dict[str, Any]]] = {}
     for question in leftover:
-        by_mode.setdefault(question["type"], []).append(question)
+        by_mode.setdefault(question["mode"], []).append(question)
     for mode, block in by_mode.items():
         per_round = max(1, settings.questions_for(mode))
         for start in range(0, len(block), per_round):

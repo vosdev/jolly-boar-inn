@@ -83,7 +83,7 @@ CLOSE_KICKED = 4003
 # code the handler closes an unknown room with, because that is what a reconnect finds.
 CLOSE_GONE = 4004
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
-_QUESTION_COLUMNS = frozenset({"id", "type", "source", "host_only"})
+_QUESTION_COLUMNS = frozenset({"id", "type", "mode", "source", "host_only"})
 
 
 class RoomNotFound(ApiError):
@@ -232,12 +232,17 @@ class RoomQuestion:
     timer and the clients count down to. ``seconds`` is also what the speed bucket is a
     fraction of, so a ten-second mode scores on ten seconds in a room whose other rounds
     run to a minute.
+
+    ``type`` and ``mode`` are both columns, and neither is derived from the other: the
+    type is how the question is answered and graded, the mode is the round it was drawn
+    for and where its ``seconds`` come from.
     """
 
     id: UUID
     position: int
     question_id: str
     type: str
+    mode: str
     source: str
     payload: dict[str, Any]
     host_only: bool
@@ -264,6 +269,7 @@ class RoomQuestion:
             index=self.position,
             total=total,
             type=self.type,
+            mode=self.mode,
             segment=segment,
             view=TYPES[self.type].client_view(self.payload),
             opened_at=self.shown_at,
@@ -317,9 +323,9 @@ class Room:
     def current_segment(self) -> Segment | None:
         return None if self.current_index is None else self.segment_at(self.current_index)
 
-    def question_seconds(self, type_: str) -> int:
-        """How long a question of this type stays open: its mode's own setting."""
-        return self.settings.seconds_for(type_)
+    def question_seconds(self, mode: str) -> int:
+        """How long a question of this mode stays open: its round's own setting."""
+        return self.settings.seconds_for(mode)
 
     @property
     def current(self) -> RoomQuestion | None:
@@ -458,6 +464,7 @@ def _question_rows(
             position,
             q["id"],
             q["type"],
+            q["mode"],
             q["source"],
             {k: v for k, v in q.items() if k not in _QUESTION_COLUMNS},
             bool(q.get("host_only", False)),
@@ -899,9 +906,8 @@ class RoomManager:
                 avatar,
             )
             await conn.executemany(
-                "insert into questions"
-                " (room_id, position, question_id, type, source, payload, host_only, round)"
-                " values ($1, $2, $3, $4, $5, $6, $7, $8)",
+                "insert into questions (room_id, position, question_id, type, mode, source,"
+                " payload, host_only, round) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
                 _question_rows(room_row["id"], questions),
             )
             # Read them back so a freshly created room holds exactly what a rehydrated
@@ -1068,7 +1074,7 @@ class RoomManager:
             now = datetime.now(UTC)
             assert question.shown_at is not None  # set when the question opened
             elapsed = (now - question.shown_at).total_seconds()
-            # The question's own length, not the room's setting: a type that caps itself
+            # The question's own length, not the room's setting: a mode that caps itself
             # at ten seconds must score on ten seconds, or every answer to it lands in
             # the fastest bucket of a room set to a minute.
             assert question.seconds is not None  # set when the question opened
@@ -1295,7 +1301,7 @@ class RoomManager:
             question = room.questions[index]
             now = datetime.now(UTC)
             question.shown_at = now
-            question.seconds = room.question_seconds(question.type)
+            question.seconds = room.question_seconds(question.mode)
             question.ends_at = now + timedelta(seconds=question.seconds)
             room.current_index = index
             room.phase = "open"
@@ -1483,7 +1489,7 @@ async def _void_question(conn: asyncpg.Connection, question: RoomQuestion) -> No
 
 async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[RoomQuestion]:
     rows = await conn.fetch(
-        "select id, position, question_id, type, source, payload, host_only, round,"
+        "select id, position, question_id, type, mode, source, payload, host_only, round,"
         " author_player_id, shown_at, closed_at, voided"
         " from questions where room_id = $1 order by position",
         room_id,
@@ -1494,6 +1500,7 @@ async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[Room
             position=row["position"],
             question_id=row["question_id"],
             type=row["type"],
+            mode=row["mode"],
             source=row["source"],
             payload=row["payload"]["payload"],
             host_only=row["host_only"],

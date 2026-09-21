@@ -14,8 +14,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from app.config import REPO_ROOT, Settings
 from app.db import _init_connection
 from app.main import create_app
+from app.modes import MODES, Mode
 from app.questions.packs import Pack
-from app.questions.types import TYPES, more_less
 
 BASE = "https://quiz.example"
 
@@ -130,11 +130,12 @@ def evict(app: FastAPI, client: TestClient) -> Callable[[str], bool]:
 def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     """A second playable mode, so a room can be more than one round.
 
-    A mode is a round, and one registered type would make every room a single round --
+    A mode is a round, and one registered mode would make every room a single round --
     which is exactly what the rounds this feature is about would then never exercise. The
-    stub is ``more_less`` registered under a second name, with a pack of questions copied
-    from the shipped ones, so a two-mode room plays the way a two-mode room will when the
-    second real type lands.
+    stub is a second mode over the ``more_less`` type, with a pack of questions copied from
+    the shipped ones and relabelled with its mode, so a two-mode room plays the way a
+    two-mode room will when the second real mode lands -- and its two rounds share an
+    answer shape, which is the case a mode exists for.
 
     Takes ``client`` because the packs are loaded in the app's lifespan, which is what
     entering the test client runs.
@@ -142,13 +143,13 @@ def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     name = "free_text"
     borrowed = [q for pack in app.state.packs for q in pack.questions][:20]
     assert borrowed, "the shipped packs are the questions this stub copies"
-    TYPES[name] = more_less
+    MODES[name] = Mode(id=name, type="more_less")
     app.state.packs.append(
         Pack(
             name=name,
             generated_at="2026-09-18T00:00:00Z",
             questions=tuple(
-                {**question, "id": f"q_{name}_{index}", "type": name}
+                {**question, "id": f"q_{name}_{index}", "mode": name}
                 for index, question in enumerate(borrowed)
             ),
             path=Path(f"{name}.json"),
@@ -157,5 +158,5 @@ def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     try:
         yield name
     finally:
-        del TYPES[name]
+        del MODES[name]
         app.state.packs.pop()

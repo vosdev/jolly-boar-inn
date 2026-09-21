@@ -231,6 +231,7 @@ def make_question(
     question: dict[str, Any] = {
         "id": "",
         "type": "more_less",
+        "mode": "more_less",
         "source": "pack",
         "tags": list(TAGS[metric]),
         "difficulty": difficulty(values[0], values[1]),
