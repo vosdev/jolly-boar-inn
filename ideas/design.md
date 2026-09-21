@@ -189,16 +189,20 @@ Today `App.svelte` renders `<main>` and nothing else. D2 adds a shell:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [sign] The Jolly Boar Inn      [⌥] [🔊] [🎨]  [head] Name ▾  │  56px, sticky
+│ [sign] The Jolly Boar Inn      [⌥]  [head] Name   [🔊] [🎨]  │  56px, sticky
 └──────────────────────────────────────────────────────────────┘
 ```
 
 - **Left: logo + wordmark.** Both configurable (§9.4) so a selfhoster's instance is theirs.
-  The wordmark hides under 26rem; the sign never does.
-- **Right, in order: GitHub, sound, theme, identity.** Identity sits outermost because it is
-  the one a thumb reaches for, and because it is the widest. GitHub sits innermost and at
-  `--muted` — it is the only control in the bar that is not about the game, so it should
-  read that way (§9.3).
+  The wordmark hides under 26rem; the sign never does. **The sign is a link home** — a
+  plain `href="/"`, so a modified click still opens a tab. Following it from inside a room
+  loses nothing: the session stays in this browser and the room's link brings you back.
+- **Right, in order: GitHub, identity (head + name), sound, theme.** Identity leads the
+  group because the player's name is the bar's priority: it is shown at every width, and
+  it is the one item in the bar allowed to shrink — it ellipsises rather than dropping to
+  just the head. Sound and theme sit outermost at a fixed 36px each, where a thumb finds
+  them. GitHub sits innermost and at `--muted` — it is the only control in the bar that is
+  not about the game, so it should read that way (§9.3).
 - **Height 56px, `position: sticky`, `top: 0`**, carrying the mark and the controls and
   nothing else. **The room code is deliberately not in the bar.** It was, for one build —
   `The Jolly Boar Inn · DRAGON` reads well, and a code on screen at every moment is a real
@@ -209,8 +213,11 @@ Today `App.svelte` renders `<main>` and nothing else. D2 adds a shell:
   the code keeps the places with room for it: the lobby shows it big, next to the link to
   share, and Join keeps its own `<h1>Room {code}</h1>`, which is the only thing on that
   screen that says which room this is. Inside a room, the lobby and the host cover it.
-- **Under 26rem** GitHub collapses first, then theme and sound, into one `⋯` popover; the
-  identity chip drops to just the head.
+- **Under 26rem** the wordmark and the GitHub icon hide (the footer always carries GitHub),
+  and nothing else collapses: no `⋯` popover. Sign, name, sound, theme. At 320px that
+  leaves the name about 125px, enough for most of a 24-character name before the ellipsis.
+  The identity popover anchors to the bar's column, not to the chip, since the chip is no
+  longer the rightmost item.
 
 **A subtlety worth writing down:** identity in this app is per-room. A player exists because
 they joined a room; there is no account. So the chip means two different things in two
@@ -667,10 +674,10 @@ is where that obligation is discharged.
 
 - **Footer: always.** This is its real home, and it is where anyone looking for it will look.
 - **Top bar: a small icon**, leftmost in the right-hand group, at `--muted` rather than
-  `--ink`, so it sits behind sound, theme and identity in the visual order. It is the one
+  `--ink`, so it sits behind identity, sound and theme in the visual order. It is the one
   control in the bar that is not about the game, so it should read that way.
-- **On mobile** it is the first thing to collapse into the `⋯` popover, ahead of sound and
-  theme.
+- **On mobile** it hides under 26rem, along with the wordmark, so the player's name keeps
+  the room. The footer is still one scroll away.
 
 Deliberately *not* phase-dependent. A top bar that shows different controls during a
 question than between them is a bug farm for the sake of a few pixels.
@@ -742,7 +749,7 @@ script fails a deliberately broken `--bad`, fails an `--ok` that cannot be seen 
 ### D2. The app shell
 
 `App.svelte` grows a `<TopBar>` above `<main>`: logo, wordmark, and three named slots.
-Sticky, 56px, responsive collapse at 26rem. No room code in the bar (§4), so the screens
+Sticky, 56px, wordmark hidden under 26rem. No room code in the bar (§4), so the screens
 that name the room go on naming it; what comes out is the `<h1>Room {code}</h1>` on Room's
 connecting and disconnected states, where it never said anything the screen did not, and
 the Home `<h1>` that repeated the wordmark now sitting above it. Controls are placeholders
@@ -750,7 +757,8 @@ in this task.
 
 **Accept:** every existing screen renders under the bar with nothing clipped or double-titled;
 the bar is present on Home, Create, Join and Room; at 320px wide the wordmark is hidden, the
-sign is not, and there is no horizontal scroll; the bar is the same width whatever room you
+sign is not, the player's name is still shown next to the head, sound and theme are still in
+the bar, and there is no horizontal scroll; the sign links home; the bar is the same width whatever room you
 are in; the sticky bar does not cover a focused input when a mobile keyboard opens.
 
 ### D3. Names and the profile popover
@@ -763,7 +771,8 @@ respecting 21 chars + suffix, skipping the room code), the identity chip and pop
 
 Client only. No server change, no migration, no protocol change.
 
-**Accept:** a first-time browser cannot reach Create or Join without setting a name, and the
+**Accept:** the chip shows the name at every width, down to 320px, ellipsised rather than
+hidden; a first-time browser cannot reach Create or Join without setting a name, and the
 popup is pre-filled so that takes one tap; a returning browser goes Home → lobby in two taps
 and is never asked again; the re-roll button changes the name without losing focus; a name
 longer than 24 characters cannot be submitted; two browsers forced to the same generated
@@ -879,8 +888,7 @@ code change; an instance with none set is identical to today; a `PUBLIC_DEFAULT_
 a theme that does not exist falls back to `jolly` rather than rendering untokenised; a missing logo file falls back
 to the bundled sign rather than a broken image; the footer is present on every screen
 including mid-question and never overlaps an answer button on a 375px screen; the GitHub
-link works from both the footer and the top bar, and is the first bar item to collapse on a
-narrow screen.
+link works from both the footer and the top bar, and the bar icon hides under 26rem.
 
 ### D11. Motion and the reduced-motion pass
 
@@ -991,5 +999,10 @@ D4's heads are committed, and D2 draws a placeholder mark. §3, §9.1.
 it lasted one build: a code here is a word like `ThermonuclearSmokeDevil`, and one of those
 in a 56px bar beside four controls either truncates to something useless or pushes the
 controls off a phone. The lobby and Join carry the code instead. §4.
+
+[x] **The player's name is the top bar's priority.** Right group is identity, sound, theme,
+in that order; the name shows at every width and is the only thing in the bar that shrinks.
+On mobile the wordmark hides, the sign stays, and nothing folds into a `⋯` popover. The sign
+links home. §4.
 
 [x] **Design work is D1–D12**, independent of the T-numbers, and can interleave with Phase 2.

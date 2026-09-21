@@ -20,11 +20,8 @@
   import NameField from './NameField.svelte'
 
   let {
-    narrow,
     liveName = null,
   }: {
-    /** Under 26rem the chip is just the head (section 4). */
-    narrow: boolean
     /** Your name in the room you are in, or null outside one. */
     liveName?: string | null
   } = $props()
@@ -83,9 +80,9 @@
       <circle cx="12" cy="9.5" r="3.5" fill="currentColor" />
       <path d="M5 21a7 7 0 0 1 14 0z" fill="currentColor" />
     </svg>
-    {#if !narrow}
-      <span class="chip-name">{shown ?? 'Set your name'}</span>
-    {/if}
+    <!-- Always shown, at every width (section 4): on a phone it ellipsises rather than
+         collapsing to the head, because who you are is the one thing the bar is for. -->
+    <span class="chip-name">{shown ?? 'Set your name'}</span>
   </button>
 
   {#if open}
@@ -112,12 +109,19 @@
 </div>
 
 <style>
+  /* Deliberately not positioned: the popover anchors to the top bar's column instead
+     (TopBar's `.inner`), because the chip is no longer the rightmost control and a
+     20rem popover pinned to its edge would run off the left of a phone. */
   .identity {
-    position: relative;
+    display: flex;
+    min-width: 0;
   }
 
+  /* As wide as a 24-character name wants on a desktop; on a phone, as wide as the bar
+     leaves once the sign, sound and theme have theirs. */
   .chip {
-    max-width: 10rem;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .chip.unset .chip-name {
@@ -147,8 +151,8 @@
     position: absolute;
     top: calc(100% + 0.35rem);
     right: 0;
-    /* Pinned to the chip's right edge, and never wider than the screen it opens on:
-       at 320px that is the whole width less the page gutter. */
+    /* Pinned to the bar column's right edge, and never wider than the screen it opens
+       on: at 320px that is the whole width less the page gutter. */
     width: min(20rem, 100vw - 2rem);
     padding: 1rem;
     background: var(--panel-raised);

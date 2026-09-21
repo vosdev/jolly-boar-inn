@@ -74,9 +74,9 @@
 <!-- Inside a room the chip is the player the server knows; anywhere else it is the
      profile. `you` outlives the Room screen until the next one resets it, so the route
      decides which, not the store. -->
-<TopBar>
-  {#snippet identity({ narrow }: { narrow: boolean })}
-    <IdentityChip {narrow} liveName={route.name === 'room' ? ($you?.display_name ?? null) : null} />
+<TopBar {navigate}>
+  {#snippet identity()}
+    <IdentityChip liveName={route.name === 'room' ? ($you?.display_name ?? null) : null} />
   {/snippet}
 </TopBar>
 
