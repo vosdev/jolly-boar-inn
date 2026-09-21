@@ -3,10 +3,6 @@
 Instead of a splash countdown (default 8 seconds), have every player click ready. When every player is ready, count down from 3. Then the round begins.
 
 
-# Leaderboard
-
-Only show the standing on the leaderboard after a round is complete. Not after every question.
-
 # Bugs
 
 When no option is chosen (at least on the more_less gametype), it states I have chosen the correct option on the (green outlined) button, with the text underneath saying `No answer from you this round, so no points.`
@@ -74,3 +70,30 @@ We could go for pets inventory icons. There's over 70 of those.
 The wiki allows scraping, with a custom user agent and at most 1 visit per second. We need to enforce these rules with the scripts and via .env
 
 # Support IPv6
+
+# Tzhaar theme
+
+Black and red is always cool.
+
+# Group all topbar options
+
+The topbar has 3 options right now, for player+avatar, sound and theme. Let's combine them into one, which will also bring more focus to the themes available.
+
+Ideally the theme picker will have custom logos and not a colourscheme logo.
+
+# Hide the rounds
+We could make it optional to hide the rounds from everyone that is not an admin. That makes it a surprise as to what rounds the game contains. Could be a simple checkmark at creation.
+
+# Splash screens
+
+Splash screens could be displayed as a Clue Scroll
+
+# Metrics
+
+Let's keep track of some metrics. Could be stored in the database?
+
+Amount of (returning) players. Amount of games created. Amount of games completed. Most used game modes. 
+
+# Admin view
+
+Configure a secure token in .env, minimum of 64 characters. manually create /admin?Token=blabla URL to create the local storage in the browser. This token now authenticates you against the server for admin type of things in the future. Like showing howmany rooms are active and which. Howmany players are connected. 
