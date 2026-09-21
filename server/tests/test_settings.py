@@ -61,6 +61,14 @@ def test_only_modes_this_build_plays() -> None:
         RoomSettings(modes=[{"mode": "closest_number"}])
 
 
+def test_custom_is_not_a_round() -> None:
+    """T21: the host's questions go in ``custom_questions`` and land as random events."""
+    with pytest.raises(ValidationError, match="cannot be picked as a round"):
+        RoomSettings(modes=[{"mode": "more_less"}, {"mode": "custom"}])
+    with pytest.raises(ValidationError, match="cannot be picked as a round"):
+        NewRoomSettings(modes=[{"mode": "custom", "seconds": 20}])
+
+
 @pytest.mark.parametrize(
     "entry",
     [
@@ -88,9 +96,48 @@ def test_a_room_may_not_be_longer_than_the_cap(more_modes: list[str]) -> None:
     modes = [{"mode": name, "questions": 30} for name in more_modes]
     assert sum(entry["questions"] for entry in modes) > MAX_QUESTIONS_PER_ROOM
     with pytest.raises(ValidationError, match="limit"):
-        NewRoomSettings(modes=modes)
+        NewRoomSettings(modes=modes, random_events=False)
     modes[-1]["questions"] = 10  # 100 exactly, which is the cap and not over it
-    assert NewRoomSettings(modes=modes).question_count == MAX_QUESTIONS_PER_ROOM
+    settings = NewRoomSettings(modes=modes, random_events=False)
+    assert settings.question_count == MAX_QUESTIONS_PER_ROOM
+
+
+def test_the_cap_counts_the_random_events_a_room_may_hold(more_modes: list[str]) -> None:
+    """Section 4: events are questions the room will play, so they count against it.
+
+    With the packs allowed to interrupt, every slot may end up holding one; without,
+    only the host's own are events, and those are counted when they are checked.
+    """
+    modes = [{"mode": name, "questions": 24} for name in more_modes]  # 96, and 3 slots
+    assert NewRoomSettings(modes=modes).random_event_slots == 3  # 99 with every slot filled
+    modes[-1]["questions"] = 26  # 98, and 101 with every slot filled
+    with pytest.raises(ValidationError, match="101 questions over all rounds and random events"):
+        NewRoomSettings(modes=modes)
+    quiet = NewRoomSettings(modes=modes, random_events=False)
+    quiet.check_custom_questions(2)  # 100
+    with pytest.raises(ValueError, match="101 questions"):
+        quiet.check_custom_questions(3)
+
+
+def test_the_host_gets_one_question_per_round_after_the_first(more_modes: list[str]) -> None:
+    """T21: never truncated -- refused, with the count and the limit named."""
+    settings = NewRoomSettings(modes=[{"mode": name} for name in more_modes[:3]])
+    assert settings.random_event_slots == 2
+    settings.check_custom_questions(2)
+    with pytest.raises(ValueError) as info:
+        settings.check_custom_questions(5)
+    assert "5 custom questions" in str(info.value)
+    assert "a room of 3 modes holds at most 2" in str(info.value)
+    one = NewRoomSettings(modes=[{"mode": "more_less"}])
+    with pytest.raises(ValueError, match="holds at most 0"):
+        one.check_custom_questions(1)
+
+
+@pytest.mark.parametrize("seconds", [-1, 11])
+def test_the_npc_holds_the_floor_for_zero_to_ten_seconds(seconds: int) -> None:
+    assert NewRoomSettings(random_event_seconds=10).random_event_seconds == 10
+    with pytest.raises(ValidationError):
+        NewRoomSettings(random_event_seconds=seconds)
 
 
 def test_seconds_for_clamps_a_stored_room_into_the_types_range() -> None:
@@ -98,12 +145,14 @@ def test_seconds_for_clamps_a_stored_room_into_the_types_range() -> None:
     assert settings.seconds_for("more_less") == 20
 
 
-def test_a_mode_nobody_picked_falls_back_to_its_types_own_pace() -> None:
-    """A room's own question can be of a type no round was made for (Phase 2)."""
+def test_a_mode_nobody_picked_plays_at_its_own_pace() -> None:
+    """An event is a question of a mode no round was made for: a pack event's own mode,
+    or ``custom``. Either plays at that mode's default length."""
     settings = RoomSettings(modes=[{"mode": "more_less", "questions": 4, "seconds": 7}])
-    assert settings.seconds_for("free_text") == 30  # the registry fallback
-    assert settings.questions_for("free_text") == 5
-    assert (settings.seconds_for("more_less"), settings.questions_for("more_less")) == (7, 4)
+    assert settings.seconds_for("more_less") == 7
+    assert settings.seconds_for("guess_examine") == 20  # its type's default
+    assert settings.seconds_for("custom") == 20  # the mode's own
+    assert settings.seconds_for("not_a_mode") == 30  # the registry fallback
 
 
 def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) -> None:
@@ -126,6 +175,13 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "id": "guess_examine",
             "type": "pick_from_list",
             "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 20, "min": 10, "max": 60},
+        },
+        {
+            # Never a round, so no round length; its questions carry their own types.
+            "id": "custom",
+            "type": None,
+            "questions": None,
             "seconds": {"default": 20, "min": 10, "max": 60},
         },
     ]

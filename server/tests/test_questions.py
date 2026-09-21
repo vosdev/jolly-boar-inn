@@ -23,7 +23,15 @@ from app.modes import MODES, Mode, questions_bounds, seconds_bounds
 from app.questions import schema
 from app.questions.packs import PackError, load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, more_less, pick_from_list, price_is_right
+from app.questions.types import (
+    TYPES,
+    closest_number,
+    free_text,
+    more_less,
+    multiple_choice,
+    pick_from_list,
+    price_is_right,
+)
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
@@ -167,8 +175,11 @@ def test_wrong_id_fails_consistency_check() -> None:
     assert any(p.startswith("$.id") for p in schema.consistency_errors(wrong))
 
 
-def test_unsupported_type_is_reported() -> None:
-    """Schema allows Phase 2 types; nothing can play them yet, so packs must not ship them."""
+def test_unsupported_type_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A type the schema knows and this build cannot play is refused, so packs cannot ship
+    one ahead of its module. Since T21 every type in the schema file has a module, so one
+    is taken out of the registry to show it."""
+    monkeypatch.delitem(TYPES, "closest_number")
     q = {
         "type": "closest_number",
         "mode": "more_less",
@@ -186,7 +197,7 @@ def test_an_unknown_mode_is_reported() -> None:
     assert schema.schema_errors(q) == []  # the schema holds a mode to a pattern, no more
     assert schema.consistency_errors(q) == [
         "$.mode: 'drop_table' is not a mode this build plays"
-        " (it plays more_less, price_is_right, guess_examine)"
+        " (it plays more_less, price_is_right, guess_examine, custom)"
     ]
 
 
@@ -204,6 +215,23 @@ def test_a_type_that_disagrees_with_its_mode_is_reported(monkeypatch: pytest.Mon
 def test_two_modes_may_share_a_type(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(MODES, "stub", Mode(id="stub", type="more_less"))
     schema.validate(question(mode="stub"))
+
+
+def test_custom_is_the_mode_of_a_rooms_own_questions_and_nothing_else() -> None:
+    """T21: ``custom`` has no type to agree with, and it is the other half of ``room``."""
+    schema.validate(question(mode="custom", source="room"))  # any registered type will do
+    message = "a room's own questions, and only they, are 'custom'"
+    for wrong in (question(mode="custom"), question(source="room")):
+        (problem,) = schema.consistency_errors(wrong)
+        assert problem.startswith("$.mode:") and message in problem
+
+
+def test_validate_packs_script_fails_on_a_custom_question(tmp_path: Path) -> None:
+    """A pack question filed under ``custom`` would sit in a pool no round draws from."""
+    _write_pack(tmp_path / "custom.json", [question(mode="custom")])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    assert "custom.json: questions[0] $.mode: 'custom' with source 'pack'" in result.stderr
 
 
 # --- content id ---------------------------------------------------------------------
@@ -278,6 +306,9 @@ def test_registry_has_every_shipped_type() -> None:
         "more_less": more_less,
         "price_is_right": price_is_right,
         "pick_from_list": pick_from_list,
+        "multiple_choice": multiple_choice,
+        "closest_number": closest_number,
+        "free_text": free_text,
     }
     for module in TYPES.values():
         for name in ("client_view", "reveal", "grade", "validate_value", "check"):

@@ -87,6 +87,12 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
     registry's to say. A pack question with an unknown mode would sit in a pool nobody can
     pick, and one whose type disagrees with its mode's would be graded as one thing inside
     a round introduced as another.
+
+    ``custom`` has no type to disagree with -- a host's questions each carry their own --
+    and it is the other half of ``source: room``: a room's own question is ``custom`` and
+    nothing else is. A pack question filed under it would sit in a pool no round draws
+    from, and a host's question filed under a pack mode would be drawn into that mode's
+    rounds as if the packs had shipped it.
     """
     mode = MODES.get(question["mode"])
     if mode is None:
@@ -94,7 +100,12 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
             f"$.mode: {question['mode']!r} is not a mode this build plays"
             f" (it plays {', '.join(MODES)})"
         ]
-    if question["type"] != mode.type:
+    if (question["source"] == "room") != (mode.type is None):
+        return [
+            f"$.mode: {question['mode']!r} with source {question['source']!r}:"
+            " a room's own questions, and only they, are 'custom'"
+        ]
+    if mode.type is not None and question["type"] != mode.type:
         return [
             f"$.type: {question['type']!r} disagrees with its mode:"
             f" {mode.id!r} plays as {mode.type!r}"

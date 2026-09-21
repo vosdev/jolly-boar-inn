@@ -46,8 +46,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-/** What a host may ask for. The server's `NewRoomSettings` checks the same ranges. */
-export type NewRoomSettings = Omit<RoomSettings, 'max_players'> & { max_players?: number | null }
+/**
+ * What a host may ask for. The server's `NewRoomSettings` checks the same ranges, and
+ * fills in what is left out: `random_event_seconds` has no field on the form until the
+ * NPC it times is drawn (T30).
+ */
+export type NewRoomSettings = Omit<RoomSettings, 'max_players' | 'random_event_seconds'> & {
+  max_players?: number | null
+  random_event_seconds?: number
+}
 
 /** One number a mode's round is set with: what to offer, and what the server accepts. */
 export interface ModeBounds {
@@ -67,9 +74,16 @@ export interface ModeBounds {
  */
 export interface ModePacing {
   id: string
-  /** The question type the mode is answered in. */
-  type: string
-  questions: ModeBounds
+  /**
+   * The question type the mode is answered in. Null for `custom` only, whose questions
+   * each carry their own.
+   */
+  type: string | null
+  /**
+   * How many questions its round holds. Null for `custom` only, which is never a round:
+   * the host's questions are random events, so the form does not offer it as one.
+   */
+  questions: ModeBounds | null
   seconds: ModeBounds
 }
 

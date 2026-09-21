@@ -48,14 +48,19 @@ export interface RoomSettings {
   modes: ModeSettings[]
   /** `listed`: the order the host arranged. `random`: shuffled once, at creation. */
   mode_order: 'listed' | 'random'
-  /** Where the room's own questions go; nothing to do with `mode_order`. Phase 2. */
-  order: 'shuffle' | 'custom_last'
+  /**
+   * Whether a pack question may interrupt a round as a random event. The host's own
+   * questions always do: since T21 they are events rather than a round of their own.
+   */
+  random_events: boolean
   reveal_seconds: number
   /**
    * Zero means no splash at all; anything else, a splash that waits for the room to be
    * ready (D7). No longer a length, but still a number so every stored room reads.
    */
   splash_seconds: number
+  /** How long an event's NPC holds the floor before the buttons appear (T30). */
+  random_event_seconds: number
   close_when_all_answered: boolean
   max_players: number | null
 }

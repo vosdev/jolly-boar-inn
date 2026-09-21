@@ -6,17 +6,25 @@ test_codes.py plus an end-to-end check here).
 T7 Accept: join a finished room is 409; duplicate name is 409; over ``max_players`` is
 409; success returns a session; the player appears in ``GET /api/rooms/{code}``.
 
+T21 Accept (the creation half): five custom questions in a three-mode room give 422
+naming the limit and the count and create no room; a custom question that fails the schema
+gives 422 naming the field and creates no room.
+
 Plus section 7: the session token is hashed at rest and never rendered back.
 """
 
 import hashlib
 import re
+from typing import Any
 
 import asyncpg
+import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.questions import schema
+from app.random_events import RANDOM_EVENTS
 from app.rooms import state
 from app.rooms.settings import RoomSettings
 from tests.rooms_api import call, create, join
@@ -173,7 +181,8 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         # ``questions`` was left out, so the mode's own default filled it in.
         "modes": [{"mode": "more_less", "questions": 5, "seconds": 15}],
         "mode_order": "listed",
-        "order": "shuffle",
+        "random_events": True,
+        "random_event_seconds": 2,
         "reveal_seconds": 5,
         "splash_seconds": 8,
         "close_when_all_answered": True,
@@ -193,7 +202,10 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"modes": [{"mode": "more_less", "rounds": 2}]},  # not a field
         {"modes": ["more_less"]},  # the old shape: a name, not a round
         {"mode_order": "listed_or_not"},
-        {"order": "random"},
+        {"order": "shuffle"},  # gone since T21: the host's questions are random events
+        {"modes": [{"mode": "custom"}]},  # never a round
+        {"random_events": "sometimes"},
+        {"random_event_seconds": 11},
         {"reveal_seconds": 60},
         {"splash_seconds": -1},
         {"splash_seconds": 31},
@@ -220,6 +232,149 @@ def test_create_survives_unparseable_client_address(client: TestClient, db) -> N
     code, _ = create(client)
     (row,) = db("select creator_ip from rooms where code = $1", code)
     assert row["creator_ip"] is None
+
+
+# --- T21: the host's own questions ----------------------------------------------------
+
+THREE_MODES = [{"mode": "more_less"}, {"mode": "price_is_right"}, {"mode": "guess_examine"}]
+
+
+def own_question(prompt: str = "Which boss drops the Tanzanite fang?", **changes: Any) -> dict:
+    """A multiple-choice question the way a host writes one: a type and a payload."""
+    question: dict[str, Any] = {
+        "type": "multiple_choice",
+        "payload": {"prompt": prompt, "options": ["Zulrah", "Vorkath", "Jad"], "answer_index": 0},
+    }
+    question.update(changes)
+    return question
+
+
+def post(
+    client: TestClient, custom: list[Any], modes: list[dict[str, Any]] = THREE_MODES, **settings
+) -> httpx.Response:
+    return client.post(
+        "/api/rooms",
+        json={
+            "display_name": "Zezima",
+            "settings": {"modes": modes, **settings},
+            "custom_questions": custom,
+        },
+    )
+
+
+def assert_no_room(db) -> None:
+    for table in ("rooms", "questions", "players"):
+        assert db(f"select count(*) as n from {table}")[0]["n"] == 0, table
+
+
+def test_custom_questions_are_stored_as_the_hosts_own_random_events(client: TestClient, db) -> None:
+    """``source: room``, ``mode: custom``, the creator as author, each an event in a round
+    after the first and never at its start, each asked by a different NPC."""
+    number = {
+        "type": "closest_number",
+        "payload": {"prompt": "How many Zulrah kills?", "answer": 1234, "unit": "kills"},
+        "host_only": True,
+    }
+    response = post(client, [own_question(), number], random_events=False)
+    assert response.status_code == 201, response.text
+    admin = response.json()["player"]["id"]
+    rows = db(
+        "select position, question_id, type, mode, source, payload, host_only, round,"
+        " random_event, author_player_id from questions order by position"
+    )
+    own = [row for row in rows if row["source"] == "room"]
+    assert [(row["type"], row["mode"]) for row in own] == [
+        ("multiple_choice", "custom"),
+        ("closest_number", "custom"),
+    ]
+    assert [str(row["author_player_id"]) for row in own] == [admin, admin]
+    assert [row["host_only"] for row in own] == [False, True]
+    assert own[0]["question_id"] == schema.content_id(own_question())
+    assert own[0]["payload"] == {"payload": own_question()["payload"], "tags": []}
+    assert sorted(row["round"] for row in own) == [1, 2]
+    for row in own:
+        assert rows[row["position"] - 1]["round"] == row["round"], "an event opened a round"
+    faces = [row["random_event"] for row in own]
+    assert len(set(faces)) == 2 and set(faces) <= set(RANDOM_EVENTS)
+    theirs = [row for row in rows if row["source"] == "pack"]
+    assert {(row["random_event"], row["author_player_id"]) for row in theirs} == {(None, None)}
+
+
+def test_five_custom_questions_in_a_three_mode_room_are_refused_by_count(
+    client: TestClient, db
+) -> None:
+    """T21 Accept: one per round after the first is two here. Refused, never truncated."""
+    response = post(client, [own_question(f"Question {n}?") for n in range(5)])
+    assert response.status_code == 422
+    assert "5 custom questions" in response.text
+    assert "a room of 3 modes holds at most 2" in response.text
+    assert_no_room(db)
+    one_mode = post(client, [own_question()], modes=[{"mode": "more_less"}])
+    assert one_mode.status_code == 422
+    assert "holds at most 0" in one_mode.text
+    assert_no_room(db)
+
+
+@pytest.mark.parametrize(
+    ("bad", "field"),
+    [
+        # Schema: one option is not a choice.
+        (
+            own_question(payload={"prompt": "Who?", "options": ["A"], "answer_index": 0}),
+            "$.payload.options",
+        ),
+        # Schema: a type the question does not have.
+        (own_question(type="trivia"), "$.type"),
+        # The type's own ``check``: an answer that is none of the options.
+        (
+            own_question(payload={"prompt": "Who?", "options": ["A", "B"], "answer_index": 3}),
+            "$.payload.answer_index",
+        ),
+        # The mode rule: a host's question is ``custom`` and nothing else.
+        (own_question(mode="more_less"), "$.mode"),
+        # An exported question whose payload was edited after its id was taken.
+        (own_question(id="q_0123456789abcdef"), "$.id"),
+    ],
+)
+def test_a_custom_question_that_fails_the_schema_is_refused_by_field(
+    client: TestClient, db, bad: dict[str, Any], field: str
+) -> None:
+    """T21 Accept: the 422 names the question by its place and the field by its path."""
+    response = post(client, [own_question(), bad])
+    assert response.status_code == 422
+    assert f"custom_questions[1] {field}" in response.text, response.text
+    assert_no_room(db)
+
+
+def test_a_bad_custom_question_costs_no_rate_limit_quota(client: TestClient) -> None:
+    """Checked while the body is parsed, before the limiter counts anything."""
+    for _ in range(11):
+        assert post(client, [own_question(type="trivia")]).status_code == 422
+    assert post(client, [own_question()]).status_code == 201
+
+
+def test_an_exported_question_posts_back_as_it_came_out(client: TestClient) -> None:
+    """Import is the creation body, and an export carries the whole envelope."""
+    exported = {
+        **own_question(),
+        "id": schema.content_id(own_question()),
+        "mode": "custom",
+        "source": "room",
+        "tags": ["clan"],
+        "author": "Zezima",
+    }
+    assert post(client, [exported]).status_code == 201
+
+
+def test_the_manager_refuses_what_the_body_would_have(app: FastAPI, client: TestClient, db) -> None:
+    """``create`` checks again for callers that did not come through ``POST /api/rooms``."""
+    settings = RoomSettings(modes=THREE_MODES)
+    with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.type"):
+        call(client, app.state.rooms.create, "Zezima", settings, [own_question(type="x")], "")
+    too_many = [own_question(f"Question {n}?") for n in range(3)]
+    with pytest.raises(state.BadSettings, match="3 custom questions"):
+        call(client, app.state.rooms.create, "Zezima", settings, too_many, "")
+    assert_no_room(db)
 
 
 # --- T6: read back ----------------------------------------------------------------

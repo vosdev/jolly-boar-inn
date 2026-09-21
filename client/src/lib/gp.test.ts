@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { formatGp } from './gp'
+import { formatGp, parseAmount } from './gp'
 
 describe('formatGp', () => {
   it.each([
@@ -44,5 +44,36 @@ describe('formatGp', () => {
   it('does not print NaN over a button', () => {
     expect(formatGp(Number.NaN)).toBe('?')
     expect(formatGp(Number.POSITIVE_INFINITY)).toBe('?')
+  })
+})
+
+describe('parseAmount', () => {
+  it.each([
+    ['0', 0],
+    ['1234', 1234],
+    ['12,500', 12_500],
+    [' 1 234 567 ', 1_234_567],
+    ['-3.5', -3.5],
+    ['.5', 0.5],
+    ['7.', 7],
+    ['100k', 100_000],
+    ['1.6M', 1_600_000],
+    ['1.1m', 1_100_000],
+    ['2.1b', 2_100_000_000],
+  ])('reads %s as %d', (text, amount) => {
+    expect(parseAmount(text)).toBe(amount)
+  })
+
+  it.each(['', ' ', 'lots', '1.2.3', '1e5', '10kk', 'k', '-', '1,5m m', 'Infinity', '0x10'])(
+    'refuses %j',
+    (text) => {
+      expect(parseAmount(text)).toBeNull()
+    },
+  )
+
+  it('reads back what formatGp writes', () => {
+    for (const amount of [999, 12_500, 100_000, 1_600_000, 10_000_000]) {
+      expect(parseAmount(formatGp(amount))).toBe(amount)
+    }
   })
 })

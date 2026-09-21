@@ -21,16 +21,25 @@ Keeping the ranges off the stored model means two things. A room created under o
 bounds still loads after the bounds change, instead of becoming unrehydratable. And the
 test suite can run a whole game with one-second questions without going behind the
 model's back.
+
+The host's own questions are not a round and have no entry in ``modes``: each is a random
+event, one per round after the first (``rooms/selection.py``). That caps them at one fewer
+than the modes picked, and ``NewRoomSettings.check_custom_questions`` refuses a room that
+asks for more, naming both numbers, rather than letting selection drop the overflow where
+the host would only find out during the game. ``random_events`` is the one choice left
+about events -- whether the packs may interrupt as well -- and ``random_event_seconds`` is
+how long the NPC holds the floor before the buttons appear (T30).
 """
 
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.modes import MODES, questions_bounds, seconds_bounds
 
-# The most questions one room may be created with, over all of its rounds. Nothing in the
-# game loop cares; it is there so a host cannot ask for an evening that never ends.
+# The most questions one room may be created with, over all of its rounds and the events
+# inside them. Nothing in the game loop cares; it is there so a host cannot ask for an
+# evening that never ends.
 MAX_QUESTIONS_PER_ROOM = 100
 
 
@@ -81,14 +90,19 @@ class RoomSettings(BaseModel):
     # ``"listed"``: the rounds play in the order the host arranged them, which is the
     # order this list is in. ``"random"``: shuffled once, at creation.
     mode_order: Literal["listed", "random"] = "listed"
-    # Where the room's own questions go; nothing to do with ``mode_order``. Phase 2.
-    order: Literal["shuffle", "custom_last"] = "shuffle"
+    # Whether a pack question may interrupt a round as a random event. The host's own
+    # questions always do -- there is nowhere else for them to go -- so this only decides
+    # whether the packs may as well.
+    random_events: bool = True
     reveal_seconds: int = Field(default=8, ge=0)
     # Whether a round's mode is introduced before its first question: zero turns the splash
     # off, which is what the test suite runs with, and anything else turns it on. Since D7
     # the number is no longer a length -- a splash ends when the room is ready or the host
     # skips it (``rooms/ready.py``) -- but it stays an int so every stored room still reads.
     splash_seconds: int = Field(default=8, ge=0)
+    # How long an event's NPC holds the floor before the buttons appear. Stored from T21,
+    # read from T30, which is when there is an NPC to hold it; zero is a plain question.
+    random_event_seconds: int = Field(default=2, ge=0)
     close_when_all_answered: bool = True
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
     # so a stored room always has a number here.
@@ -100,6 +114,10 @@ class RoomSettings(BaseModel):
         unknown = [entry.mode for entry in modes if entry.mode not in MODES]
         if unknown:
             raise ValueError(f"unsupported mode(s): {unknown}")
+        events = [entry.mode for entry in modes if not MODES[entry.mode].is_round]
+        if events:
+            # The host's questions go in ``custom_questions``, and land as random events.
+            raise ValueError(f"{events} cannot be picked as a round: its questions are events")
         picked = [entry.mode for entry in modes]
         if len(set(picked)) != len(picked):
             # One round per mode is the whole rule; the same mode twice would be two
@@ -117,24 +135,21 @@ class RoomSettings(BaseModel):
         """Questions over every round, which is what the room asks the packs for."""
         return sum(entry.questions for entry in self.modes)
 
+    @property
+    def random_event_slots(self) -> int:
+        """How many random events the room can hold: one per round after the first."""
+        return len(self.modes) - 1
+
     def entry_for(self, mode: str) -> ModeSettings | None:
         return next((entry for entry in self.modes if entry.mode == mode), None)
-
-    def questions_for(self, mode: str) -> int:
-        """How many questions this mode's round holds; its own default if unpicked.
-
-        A mode can be unpicked and still play: a room's own question of a mode nobody
-        ticked trails the game in a round of its own (see ``selection``).
-        """
-        entry = self.entry_for(mode)
-        return entry.questions if entry is not None else questions_bounds(mode).default
 
     def seconds_for(self, mode: str) -> int:
         """How long one question of this mode stays open, the mode's own range included.
 
         The clamp is for stored rooms, not for new ones: ``NewRoomSettings`` refuses
         anything outside the mode's ``Bounds`` on the way in, so the only way past it is a
-        room created before the bounds moved.
+        room created before the bounds moved. A mode with no entry -- ``custom``, or the
+        unpicked mode a pack event was drawn from -- plays at its own default.
         """
         entry = self.entry_for(mode)
         bounds = seconds_bounds(mode)
@@ -146,13 +161,14 @@ class NewRoomSettings(RoomSettings):
 
     reveal_seconds: int = Field(default=8, ge=2, le=30)
     splash_seconds: int = Field(default=8, ge=0, le=30)
+    random_event_seconds: int = Field(default=2, ge=0, le=10)
 
     @field_validator("modes")
     @classmethod
     def _within_the_modes_own_bounds(cls, modes: list[ModeSettings]) -> list[ModeSettings]:
         for entry in modes:
-            if entry.mode not in MODES:
-                continue  # ``_supported_and_unique`` is the one that reports this
+            if entry.mode not in MODES or not MODES[entry.mode].is_round:
+                continue  # ``_supported_and_unique`` is the one that reports these
             questions, seconds = questions_bounds(entry.mode), seconds_bounds(entry.mode)
             if not questions.holds(entry.questions):
                 raise ValueError(
@@ -164,7 +180,35 @@ class NewRoomSettings(RoomSettings):
                     f"{entry.mode}: seconds must be"
                     f" {seconds.minimum}..{seconds.maximum}, not {entry.seconds}"
                 )
-        total = sum(entry.questions for entry in modes)
-        if total > MAX_QUESTIONS_PER_ROOM:
-            raise ValueError(f"{total} questions over all rounds, more than the room's limit")
         return modes
+
+    @model_validator(mode="after")
+    def _within_the_room_cap(self) -> Self:
+        # When the packs may interrupt, any slot may end up holding an event, so the cap
+        # counts every slot. When they may not, only the host's own questions are events,
+        # and ``check_custom_questions`` counts those.
+        self._check_total(self.random_event_slots if self.random_events else 0)
+        return self
+
+    def check_custom_questions(self, count: int) -> None:
+        """Refuse more of the host's own questions than the room has random-event slots.
+
+        Raises ``ValueError`` naming the count and the limit. Never truncates: a host who
+        loses two of five questions to a silent cut finds out during the game.
+        """
+        if count > self.random_event_slots:
+            raise ValueError(
+                f"{count} custom questions, but a room of {len(self.modes)} modes holds at"
+                f" most {self.random_event_slots}: one per round after the first. Pick more"
+                " modes or write fewer questions"
+            )
+        if not self.random_events:
+            self._check_total(count)
+
+    def _check_total(self, events: int) -> None:
+        total = self.question_count + events
+        if total > MAX_QUESTIONS_PER_ROOM:
+            raise ValueError(
+                f"{total} questions over all rounds and random events, more than the"
+                f" room's limit of {MAX_QUESTIONS_PER_ROOM}"
+            )

@@ -1,0 +1,104 @@
+/**
+ * `closest_number` on screen: a box that takes a number the way the game writes one, and a
+ * reveal that says how far off you were and what the rank paid.
+ */
+
+import { fireEvent, render, screen } from '@testing-library/svelte'
+import { describe, expect, it, vi } from 'vitest'
+
+import type { OpenQuestion } from '../../lib/protocol'
+import { viewFor } from './index'
+import Question from './Question.svelte'
+import TextStem from './stems/TextStem.svelte'
+import ClosestNumber from './types/ClosestNumber.svelte'
+
+const VIEW = { prompt: 'How many hours did the Infernal cape take?', unit: 'hours' }
+const REVEAL = { ...VIEW, answer: 100, explanation: 'Most of them at Zuk.' }
+
+function open(youCanAnswer = true): OpenQuestion {
+  return {
+    question_id: 'q1',
+    index: 3,
+    total: 10,
+    type: 'closest_number',
+    mode: 'custom',
+    segment: { mode: 'more_less', index: 1, total: 3, start: 2, count: 5 },
+    view: VIEW,
+    opened_at: '2026-09-21T20:00:00Z',
+    ends_at: '2026-09-21T20:00:20Z',
+    you_can_answer: youCanAnswer,
+  }
+}
+
+const box = () => screen.getByRole('textbox') as HTMLInputElement
+const submit = () => screen.getByRole('button', { name: 'Submit' }) as HTMLButtonElement
+
+describe('closest_number', () => {
+  it('is drawn by the text stem over its own view', () => {
+    expect(viewFor('closest_number', 'custom')).toEqual({ stem: TextStem, view: ClosestNumber })
+  })
+
+  it('asks for a guess in the unit given, and says a near miss still counts', () => {
+    render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    expect(screen.getByText(VIEW.prompt)).toBeTruthy()
+    expect(screen.getByLabelText(/Your best guess \(hours\) — the closest one wins/)).toBe(box())
+  })
+
+  it('keeps Submit off until the box holds a number', async () => {
+    render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    expect(submit().disabled).toBe(true)
+    await fireEvent.input(box(), { target: { value: 'lots' } })
+    expect(submit().disabled).toBe(true)
+    expect(screen.getByText('That is not a number. 12,500 and 1.6m both are.')).toBeTruthy()
+    await fireEvent.input(box(), { target: { value: '120' } })
+    expect(submit().disabled).toBe(false)
+  })
+
+  it('sends the number, read the way the game writes it', async () => {
+    const onAnswer = vi.fn()
+    render(Question, { question: open(), yourValue: null, onAnswer })
+    await fireEvent.input(box(), { target: { value: '1.2k' } })
+    await fireEvent.submit(box().form!)
+    expect(onAnswer).toHaveBeenCalledWith(1200)
+  })
+
+  it('shows the guess once it is in, and no box to change it', () => {
+    render(Question, { question: open(), yourValue: 1200, onAnswer: () => {} })
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.getByText('1,200 hours')).toBeTruthy()
+  })
+
+  it('lets the author watch rather than guess', () => {
+    render(Question, { question: open(false), yourValue: null, onAnswer: () => {} })
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
+  })
+
+  it('reveals the answer, how far off the guess was and what its rank paid', () => {
+    render(Question, {
+      question: open(),
+      reveal: REVEAL,
+      yourValue: 99,
+      result: { value: 99, correct: false, credit: 0.8, points: 800 },
+      onAnswer: () => {},
+    })
+    expect(screen.getByText('100 hours')).toBeTruthy()
+    expect(screen.getByText('99 hours')).toBeTruthy()
+    expect(screen.getByText('Off by 1 hours — 800 points')).toBeTruthy()
+    expect(screen.getByText('Most of them at Zuk.')).toBeTruthy()
+  })
+
+  it('calls an exact guess spot on, and no guess no points', () => {
+    const exact = render(Question, {
+      question: open(),
+      reveal: REVEAL,
+      yourValue: 100,
+      result: { value: 100, correct: true, credit: 1, points: 1000 },
+      onAnswer: () => {},
+    })
+    expect(screen.getByText('Spot on — 1000 points')).toBeTruthy()
+    exact.unmount()
+    render(Question, { question: open(), reveal: REVEAL, yourValue: null, onAnswer: () => {} })
+    expect(screen.getByText('No guess from you this round, so no points.')).toBeTruthy()
+  })
+})

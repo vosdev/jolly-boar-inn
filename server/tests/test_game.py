@@ -40,8 +40,12 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
-from app.questions.types import more_less
+from app.modes import MODES, Mode
+from app.questions.types import more_less, multiple_choice
+from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.random_events import RANDOM_EVENTS
+from app.rooms import selection
 from app.rooms.state import BadState, Room, RoomQuestion
 from tests.rooms_api import call, create_fast, join
 
@@ -1624,3 +1628,197 @@ def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> 
     assert game.room.score(UUID(zezima.id)).correct == 0
     assert game.room.score(UUID(woox.id)).correct == 1
     assert_memory_matches_db(game, db)
+
+
+# --- T21: the host's own questions, as random events ------------------------------------
+
+TANZANITE = {
+    "type": "multiple_choice",
+    "payload": {
+        "prompt": "Which boss drops the Tanzanite fang?",
+        "options": ["Zulrah", "Vorkath", "Jad"],
+        "answer_index": 0,
+    },
+}
+
+
+def two_rounds(second_mode: str, questions: int = 2) -> list[dict[str, Any]]:
+    """Two rounds, so a room has one slot for an event: round 1, after its first question."""
+    return [
+        {"mode": "more_less", "questions": questions, "seconds": 10},
+        {"mode": second_mode, "questions": questions, "seconds": 10},
+    ]
+
+
+def the_event(game: Game) -> RoomQuestion:
+    (event,) = [q for q in game.room.questions if q.random_event is not None]
+    return event
+
+
+def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
+    """Start, skip every question before ``index``, and return each seat's frame for it."""
+    game.start()
+    for skipped in range(index):
+        assert game.admin.take("question_open")["question"]["index"] == skipped
+        game.admin.send(t="skip")
+        game.admin.take("question_closed")
+        game.admin.send(t="skip")
+    frames = {}
+    for seat in game.seats:
+        while (question := seat.take("question_open")["question"])["index"] != index:
+            pass
+        frames[seat.name] = question
+    return frames
+
+
+def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
+    table, second_mode, db
+) -> None:
+    """T21 Accept: author exclusion's first real caller. The host who wrote it cannot
+    answer it and scores nothing on it; everyone else is graded as on any question.
+
+    Until T30 draws the NPC, the event plays as an ordinary question in the middle of the
+    round it interrupts -- its own mode on the question, the round's on the segment.
+    """
+    game = table(
+        "Zezima", "Woox", custom=[TANZANITE], reveal_seconds=1, modes=two_rounds(second_mode)
+    )
+    admin, zezima, woox = game.seats
+    event = the_event(game)
+    assert (event.source, event.mode, event.type) == ("room", "custom", "multiple_choice")
+    assert event.author_player_id == UUID(admin.id)
+    assert event.round == 1 and event.position in (3, 4)  # never round 1's first question
+    assert event.random_event in RANDOM_EVENTS
+
+    frames = reach(game, event.position)
+    assert {name: frame["you_can_answer"] for name, frame in frames.items()} == {
+        "Admin": False,
+        "Zezima": True,
+        "Woox": True,
+    }
+    opened = frames["Zezima"]
+    assert (opened["type"], opened["mode"]) == ("multiple_choice", "custom")
+    assert (opened["segment"]["mode"], opened["segment"]["index"]) == (second_mode, 1)
+    assert opened["view"] == multiple_choice.client_view(TANZANITE["payload"])
+
+    game.answer(admin, event.position, 0)
+    assert admin.take("error")["code"] == "excluded"
+    game.answer(zezima, event.position, 0)
+    game.answer(woox, event.position, 2)
+    assert zezima.take("answer_ack")["scoring"] == "speed"
+    woox.take("answer_ack")
+    closed = admin.take("question_closed")  # everyone who may answer has: it closes early
+    assert set(closed["results"]) == {zezima.id, woox.id}
+    assert closed["results"][zezima.id]["correct"] is True
+    assert closed["results"][zezima.id]["points"] >= 600
+    assert closed["results"][woox.id]["points"] == 0
+    assert closed["reveal"] == multiple_choice.reveal(TANZANITE["payload"])
+    points = {s["display_name"]: s["points"] for s in closed["standings"]}
+    assert points["Admin"] == 0 and points["Zezima"] >= 600
+    assert_memory_matches_db(game, db)
+
+
+def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
+    table, second_mode, db, monkeypatch
+) -> None:
+    """T21 Accept: ``host_only`` is for a question the host reads out and nobody plays.
+    It opens for everyone, takes no answer from anyone, and closes on its own clock --
+    shortened here from the mode's twenty seconds to one."""
+    monkeypatch.setitem(MODES, "custom", Mode(id="custom", type=None, seconds=Bounds(1, 1, 60)))
+    game = table(
+        "Zezima",
+        custom=[{**TANZANITE, "host_only": True}],
+        reveal_seconds=1,
+        modes=two_rounds(second_mode, questions=1),
+    )
+    event = the_event(game)
+    assert (event.position, event.host_only) == (2, True)
+    frames = reach(game, 2)
+    assert {frame["you_can_answer"] for frame in frames.values()} == {False}
+    for seat in game.seats:
+        game.answer(seat, 2, 0)
+        assert seat.take("error")["code"] == "excluded"
+    closed = game.admin.take("question_closed")
+    assert closed["results"] == {}
+    assert closed["reveal"]["answer_index"] == 0
+    game.admin.take("game_finished")
+    assert db("select count(*) as n from answers")[0]["n"] == 0
+
+
+def test_closest_number_ranks_every_guess_against_the_others(table, second_mode, db) -> None:
+    """T21 Accept: the exact guess beats the two one off, who tie for closest and share
+    its rung; the guess behind them is second closest; a player who sent nothing scores
+    nothing, not the 200 that having a go earns."""
+    number = {
+        "type": "closest_number",
+        "payload": {"prompt": "How many hours did the cape take?", "answer": 100, "unit": "hours"},
+    }
+    game = table(
+        "Exact",
+        "Under",
+        "Over",
+        "Far",
+        "Silent",
+        custom=[number],
+        reveal_seconds=1,
+        close_when_all_answered=False,
+        modes=two_rounds(second_mode, questions=1),
+    )
+    reach(game, 2)
+    seat = {s.name: s for s in game.seats}
+    for name, guess in (("Exact", 100), ("Under", 99), ("Over", 101.0), ("Far", 150)):
+        game.answer(seat[name], 2, guess)
+        ack = seat[name].take("answer_ack")
+        assert (ack["scoring"], ack["band"]) == ("rank", None)
+    game.admin.send(t="skip")
+    closed = game.admin.take("question_closed")
+    by_id = {s.id: s.name for s in game.seats}
+    assert {by_id[pid]: row["points"] for pid, row in closed["results"].items()} == {
+        "Exact": 1000,
+        "Under": 800,
+        "Over": 800,
+        "Far": 600,
+    }
+    points = {s["display_name"]: s["points"] for s in closed["standings"]}
+    assert points["Silent"] == 0 and points["Admin"] == 0
+    assert_memory_matches_db(game, db)
+
+
+def test_a_pack_event_plays_inside_the_round_it_interrupts(table, second_mode, monkeypatch) -> None:
+    """With the packs allowed to interrupt, a question of a mode nobody picked turns up in
+    the middle of a round: no splash of its own and none for the question after it,
+    because it is grouped into that round rather than splitting it."""
+    monkeypatch.setattr(selection, "PACK_RANDOM_EVENT_CHANCE", 1.0)
+    game = table(
+        "Zezima",
+        random_events=True,
+        splash_seconds=8,
+        reveal_seconds=1,
+        modes=two_rounds(second_mode),
+    )
+    event = the_event(game)
+    assert event.source == "pack" and event.author_player_id is None
+    assert event.mode in ("price_is_right", "guess_examine")  # the modes nobody picked
+    assert event.round == 1 and event.position in (3, 4)
+    assert [s.count for s in game.room.segments] == [2, 3]
+
+    game.start()
+    modes = []
+    for index in range(5):
+        if index in (0, 2):
+            game.splash()
+            game.admin.send(t="skip")
+        question = game.admin.take("question_open")["question"]
+        assert question["index"] == index
+        modes.append((question["mode"], question["segment"]["mode"]))
+        game.admin.send(t="skip")
+        game.admin.take("question_closed")
+        game.admin.send(t="skip")
+    game.admin.take("game_finished")
+    splashes = [
+        message["room"]["segment"]["mode"]
+        for message in game.admin.seen
+        if message["t"] == "room_updated" and message["room"]["phase"] == "splash"
+    ]
+    assert splashes == ["more_less", second_mode]
+    assert modes[event.position] == (event.mode, second_mode)

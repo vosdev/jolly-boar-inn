@@ -1,12 +1,13 @@
 """``POST /api/rooms``, ``GET /api/rooms/{code}``, ``DELETE /api/rooms/{code}``."""
 
-from typing import Any
+from typing import Any, Self
 
 from fastapi import APIRouter, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.errors import ApiError
-from app.rooms.settings import NewRoomSettings
+from app.questions import custom
+from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
 from app.rooms.state import RoomManager, normalize_name
 
 router = APIRouter(prefix="/api/rooms")
@@ -26,8 +27,23 @@ class CreateRoom(BaseModel):
     # heads still creates rooms; its players are drawn the head derived from their id.
     avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
     settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
-    # The custom-question editor is Phase 2; until then only an empty list is accepted.
-    custom_questions: list[dict[str, Any]] = Field(default_factory=list, max_length=0)
+    # The host's own questions, each a random event in a round it does not belong to. The
+    # bound is only the outer one; ``settings`` decides how many this room has room for.
+    custom_questions: list[dict[str, Any]] = Field(
+        default_factory=list, max_length=MAX_QUESTIONS_PER_ROOM
+    )
+
+    # Both checks run while the body is parsed, so a bad question is a 422 before the
+    # rate limiter has counted anything -- the same courtesy as a bad display name.
+    @field_validator("custom_questions")
+    @classmethod
+    def _complete_and_valid(cls, questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return custom.envelopes(questions)
+
+    @model_validator(mode="after")
+    def _room_for_them(self) -> Self:
+        self.settings.check_custom_questions(len(self.custom_questions))
+        return self
 
 
 class DeleteRoom(BaseModel):

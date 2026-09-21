@@ -11,25 +11,37 @@ from types import ModuleType
 import pytest
 
 from app import modes
-from app.modes import MODES, Mode, questions_bounds, seconds_bounds
+from app.modes import MODES, Mode, questions_bounds, round_modes, seconds_bounds
 from app.questions.types import TYPES, more_less
 from app.questions.types.bounds import Bounds
 
 
 def test_the_registry_lists_every_shipped_mode_in_create_form_order() -> None:
     """T16 added the axis with one round on it; T19 adds the second. T20's is the first
-    whose type goes by another name: Guess the Examine is answered from a list."""
+    whose type goes by another name: Guess the Examine is answered from a list. T21's is
+    the host's own questions, which have no type of their own and are never a round."""
     assert MODES == {
         "more_less": Mode(id="more_less", type="more_less"),
         "price_is_right": Mode(id="price_is_right", type="price_is_right"),
         "guess_examine": Mode(id="guess_examine", type="pick_from_list"),
+        "custom": Mode(id="custom", type=None, seconds=Bounds(20, 10, 60)),
     }
 
 
 def test_every_mode_is_filed_under_its_own_id_and_plays_a_registered_type() -> None:
     for key, mode in MODES.items():
         assert mode.id == key
+        if mode.id == "custom":
+            continue  # the host's questions each carry their own type
         assert mode.type in TYPES, f"{key} plays {mode.type!r}, which no type module answers"
+
+
+def test_custom_is_the_one_mode_that_is_not_a_round() -> None:
+    """Its questions are random events, so it has a length for one and no round to size."""
+    assert [mode.id for mode in MODES.values() if not mode.is_round] == ["custom"]
+    assert [mode.id for mode in round_modes()] == [m for m in MODES if m != "custom"]
+    assert MODES["custom"].questions is None
+    assert seconds_bounds("custom") == Bounds(default=20, minimum=10, maximum=60)
 
 
 def test_more_less_is_paced_by_its_type() -> None:

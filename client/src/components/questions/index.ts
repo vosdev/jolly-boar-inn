@@ -24,7 +24,10 @@ import type { StemProps, TypeViewProps } from './props'
 import AssetStem from './stems/AssetStem.svelte'
 import ExamineStem from './stems/ExamineStem.svelte'
 import TextStem from './stems/TextStem.svelte'
+import ClosestNumber from './types/ClosestNumber.svelte'
+import FreeText from './types/FreeText.svelte'
 import MoreLess from './types/MoreLess.svelte'
+import MultipleChoice from './types/MultipleChoice.svelte'
 import PickFromList from './types/PickFromList.svelte'
 import PriceIsRight from './types/PriceIsRight.svelte'
 
@@ -32,6 +35,9 @@ export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
   more_less: MoreLess,
   price_is_right: PriceIsRight,
   pick_from_list: PickFromList,
+  multiple_choice: MultipleChoice,
+  closest_number: ClosestNumber,
+  free_text: FreeText,
 }
 
 // Keyed on `StemId` rather than `string`, so naming a stem in `lib/modes.ts` that has no
