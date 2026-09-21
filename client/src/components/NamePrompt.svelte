@@ -1,7 +1,9 @@
 <script lang="ts">
   /**
-   * The blocking popup on Create and Join for a browser with no profile (section 5.1,
-   * option A of 5.1.1).
+   * The blocking popup on Create for a browser with no profile (section 5.1). The host's
+   * name is read aloud and anchors the room, so a beat to choose it is well spent. Join
+   * used this too until `set_profile` existed; since D4 it is join-first (5.1.1 option B)
+   * and the rename happens in the lobby instead.
    *
    * Pre-filled with a generated name and with focus on the button, so the whole question
    * is one tap: a phone that opened a party link should not have its keyboard thrown up

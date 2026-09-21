@@ -6,11 +6,13 @@
    * That is a convenience, not a check: the server decides per message (section 7
    * step 7), so a player who forges the flag gets `not_admin` back and nothing else.
    */
+  import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
   import type { PlayerView } from '../lib/protocol'
   import { lastError, players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
   import CopyLink from './CopyLink.svelte'
+  import Head from './Head.svelte'
 
   let { socket }: { socket: RoomSocket } = $props()
 
@@ -102,6 +104,7 @@
           class:off={!player.connected}
           title={player.connected ? 'connected' : 'not connected'}
         ></span>
+        <Head head={headOf(player)} size={32} label="" />
         <span class="name">
           {player.display_name}{#if player.id === $you?.id}<span class="note"> (you)</span>{/if}
         </span>

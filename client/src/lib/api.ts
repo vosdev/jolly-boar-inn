@@ -90,20 +90,22 @@ export interface RoomSnapshot {
   players: PlayerView[]
 }
 
+/** `avatar` is the profile's head (D4); left out, the room draws the one derived from the id. */
 export function createRoom(
   displayName: string,
   settings: NewRoomSettings,
+  avatar?: number,
 ): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
-    body: JSON.stringify({ display_name: displayName, settings, custom_questions: [] }),
+    body: JSON.stringify({ display_name: displayName, avatar, settings, custom_questions: [] }),
   })
 }
 
-export function joinRoom(code: string, displayName: string): Promise<Credentials> {
+export function joinRoom(code: string, displayName: string, avatar?: number): Promise<Credentials> {
   return request<Credentials>(`/api/rooms/${encodeURIComponent(code)}/join`, {
     method: 'POST',
-    body: JSON.stringify({ display_name: displayName }),
+    body: JSON.stringify({ display_name: displayName, avatar }),
   })
 }
 

@@ -77,7 +77,7 @@ The framework. `ideas/architecture.md` section 2 has the design and the mode cat
 
 Server: new `app/modes/` with the `Mode` dataclass and the `MODES` registry; `mode` becomes
 a required field on the question envelope in `schema/question.schema.json`;
-`0005_question_mode.sql` adds `questions.mode` backfilled from `type`; `selection.py` pools
+`0006_question_mode.sql` adds `questions.mode` backfilled from `type`; `selection.py` pools
 by mode instead of by type; `segments.py` groups on `mode`; `settings.py` validates
 `modes[].mode` against `MODES` instead of `TYPES`; `GET /api/modes` serves mode ids with
 their type and bounds; `Segment.mode` and the new `OpenQuestion.mode` carry mode ids.
@@ -173,7 +173,7 @@ to interrupt a round, which is odd to look at and not broken — the same deal T
 `multiple_choice` and `closest_number` type modules. Mode `custom` with `type = None`,
 and it is never a round. `POST /api/rooms` accepts `custom_questions`, validates each
 against the schema, stores them with `source = 'room'`, `mode = 'custom'` and
-`author_player_id`. `0006_random_events.sql` adds `questions.random_event` and swaps
+`author_player_id`. `0007_random_events.sql` adds `questions.random_event` and swaps
 `settings.order` for `random_events` and `random_event_seconds`. `selection.py` gains
 `place_random_events()`: never the first round, never a round's first question, one per
 round, a distinct NPC each time — four rules that between them cap the host at one fewer
@@ -191,7 +191,7 @@ never from the mode of the round they interrupt; `segments_of` reports four roun
 not seven for a four-mode room holding three events; the author gets `excluded` on their
 own question and scores 0 while everyone else scores normally; `host_only` scores nobody
 and still shows; a payload that fails the schema gives 422 naming the field and creates
-no room; a room created before `0006` rehydrates and plays its custom round unchanged;
+no room; a room created before `0007` rehydrates and plays its custom round unchanged;
 `closest_number` ranks correctly with ties.
 
 ### T22. The custom-question editor

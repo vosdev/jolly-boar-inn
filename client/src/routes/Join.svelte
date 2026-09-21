@@ -8,10 +8,15 @@
    *
    * Then, with a joinable room (D3, section 5.1):
    *
-   * - **A profile** joins straight through under its name. A returning player taps a link
-   *   and is in the lobby; they are never asked again.
-   * - **No profile** gets the blocking popup first, pre-filled, and joins the moment it
-   *   is saved. Join-first-and-rename needs `set_profile`, which is D4's (5.1.1).
+   * - **A profile** joins straight through under its name and head. A returning player
+   *   taps a link and is in the lobby; they are never asked again.
+   * - **No profile** joins straight through too, as a random name and a random head
+   *   (D4, section 5.1.1 option B). The link is tapped at the exact moment a distracted
+   *   person at a party puts their phone down, so nothing stands between it and the
+   *   room: they are in, seeing the others arrive, and the top bar's chip nudges them
+   *   once — "You're Cow31337Killer42 — tap to change" — where `set_profile` renames them
+   *   in place. What they were given becomes the profile, so the next room is the same
+   *   face and the same name, and never nudges again.
    *
    * A `name_taken` turns the number on the end over and tries again, up to three times,
    * before it is the player's problem: two people who rolled the same base name in one
@@ -23,10 +28,10 @@
   import { onMount } from 'svelte'
 
   import NameField from '../components/NameField.svelte'
-  import NamePrompt from '../components/NamePrompt.svelte'
   import { ApiFailure, getRoom, joinRoom, type Credentials, type RoomSnapshot } from '../lib/api'
-  import { nameProblem, resuffix } from '../lib/names'
-  import { profile, saveProfile } from '../lib/profile'
+  import { randomHead } from '../lib/heads'
+  import { generateName, nameProblem, resuffix } from '../lib/names'
+  import { nudge, profile, saveProfile } from '../lib/profile'
   import { setSession } from '../lib/session'
 
   /** Fresh numbers tried after the first `name_taken`, before giving up. */
@@ -59,8 +64,14 @@
     }
   })
 
-  // Straight through with the profile, whether it was there already or the popup has
-  // just saved it.
+  // Join-first: a browser with no profile is given one, and nudged in the lobby.
+  $effect(() => {
+    if (!joinable || attempted || $profile !== null) return
+    saveProfile(generateName(code), randomHead())
+    nudge.set(code)
+  })
+
+  // Straight through with the profile, whether it was there already or was just made.
   $effect(() => {
     if (!joinable || attempted || $profile === null) return
     attempted = true
@@ -73,7 +84,7 @@
     for (let attempt = 0; ; attempt++) {
       joiningAs = tried
       try {
-        return await joinRoom(code, tried)
+        return await joinRoom(code, tried, $profile?.head)
       } catch (error) {
         if (!(error instanceof ApiFailure && error.code === 'name_taken') || attempt >= REROLLS) {
           throw error
@@ -128,10 +139,8 @@
     {snapshot.players.length === 1 ? 'player' : 'players'} in so far.
     {#if status === 'playing'}The game has already started — you can still join.{/if}
   </p>
-  {#if $profile === null}
-    <NamePrompt action="Join" avoid={code} onBack={() => navigate('/')} />
-  {:else if failure === null}
-    <p class="note" role="status">Joining as {joiningAs ?? $profile.name}…</p>
+  {#if failure === null}
+    <p class="note" role="status">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>
   {:else}
     <section class="panel">
       <form onsubmit={submit}>

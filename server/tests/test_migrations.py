@@ -31,6 +31,7 @@ TABLES = {
         "id",
         "room_id",
         "display_name",
+        "avatar",
         "session_token_hash",
         "role",
         "joined_at",
@@ -89,22 +90,23 @@ async def pool(test_db_dsn: str):
 
 def test_migration_files_are_numbered_and_ordered() -> None:
     files = migration_files(MIGRATIONS_DIR)
-    assert [version for version, _ in files] == [1, 2, 3, 4]
+    assert [version for version, _ in files] == [1, 2, 3, 4, 5]
     assert [path.name for _, path in files] == [
         "0001_init.sql",
         "0002_drop_admin_tokens.sql",
         "0003_question_rounds.sql",
         "0004_per_mode_rounds.sql",
+        "0005_player_avatar.sql",
     ]
 
 
 async def test_fresh_db_gets_all_tables(pool: asyncpg.Pool) -> None:
     """T3: fresh DB gets all tables (and indexes) from section 5."""
-    assert await run_migrations(pool) == [1, 2, 3, 4]
+    assert await run_migrations(pool) == [1, 2, 3, 4, 5]
     assert await _columns(pool) == TABLES
     rows = await pool.fetch("select indexname from pg_indexes where schemaname = 'public'")
     assert INDEXES <= {row["indexname"] for row in rows}
-    assert await _versions(pool) == [1, 2, 3, 4]
+    assert await _versions(pool) == [1, 2, 3, 4, 5]
 
 
 async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
@@ -153,7 +155,7 @@ async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
 
 async def test_second_start_is_noop(pool: asyncpg.Pool) -> None:
     """T3: second start is a no-op."""
-    assert await run_migrations(pool) == [1, 2, 3, 4]
+    assert await run_migrations(pool) == [1, 2, 3, 4, 5]
     before = await pool.fetch("select version, applied_at from schema_migrations")
     assert await run_migrations(pool) == []
     after = await pool.fetch("select version, applied_at from schema_migrations")
@@ -166,7 +168,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
 ) -> None:
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
-    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4\]"):
+    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5\]"):
         await run_migrations(pool, tmp_path)
 
 
@@ -262,3 +264,34 @@ async def test_0004_leaves_a_room_created_after_it_alone(pool: asyncpg.Pool) -> 
     assert await run_migrations(pool) == [4]
     stored = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     assert stored == settings
+
+
+async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
+    pool: asyncpg.Pool, tmp_path: Path
+) -> None:
+    """0005 (D4): players who predate heads come through with ``avatar`` null.
+
+    Null is "never chosen", which the client draws as the head derived from the player's
+    id -- so a room from before the migration still shows a head for everyone, and a
+    spread of them rather than fifty copies of head 0.
+    """
+    for _, path in migration_files(MIGRATIONS_DIR)[:4]:
+        (tmp_path / path.name).write_text(path.read_text())
+    assert await run_migrations(pool, tmp_path) == [1, 2, 3, 4]
+    room_id = await pool.fetchval(
+        "insert into rooms (code, status, settings, expires_at)"
+        " values ('ABYSSAL', 'playing', $1, now() + interval '1 day') returning id",
+        NewRoomSettings().model_dump(),
+    )
+    await pool.execute(
+        "insert into players (room_id, display_name, session_token_hash, role)"
+        " values ($1, 'Zezima', 'h1', 'admin'), ($1, 'Woox', 'h2', 'player')",
+        room_id,
+    )
+
+    assert await run_migrations(pool) == [5]
+    rows = await pool.fetch("select display_name, avatar from players order by display_name")
+    assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
+    with pytest.raises(asyncpg.CheckViolationError):
+        await pool.execute("update players set avatar = -1 where display_name = 'Woox'")
+    await pool.execute("update players set avatar = 49 where display_name = 'Woox'")

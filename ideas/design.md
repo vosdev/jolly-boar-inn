@@ -357,8 +357,8 @@ heads, done. **Zero protocol change, zero migration, zero server code**, and eve
 the room independently computes the same head for the same player. The cost is absolute: it
 can never be re-rolled, because there is nothing to change.
 
-**B. A stored field.** `0006_player_avatar.sql` adds `players.avatar smallint not null
-default 0`; `display_name` gains a companion in the join and create payloads; `PlayerView`
+**B. A stored field.** `0005_player_avatar.sql` adds `players.avatar smallint`, null for a
+player who never chose; `display_name` gains a companion in the join and create payloads; `PlayerView`
 gains `avatar`; a `set_profile` ws message updates it and broadcasts `room_updated` (the
 same message that carries a rename, §5.1.1). Roughly
 the size of T7. Re-rollable, which is the whole point of the feature as you described it.
@@ -370,7 +370,9 @@ legible, and about as charming as a spreadsheet.
 `player.avatar ?? derivedFrom(player.id)`, so the client works against a server that has not
 shipped the column yet, and an old room rehydrated after the migration still has heads. That
 lets D4 ship the visuals against derived heads on day one and add the column in the same
-task or a later one without a second design pass.
+task or a later one without a second design pass. The column is nullable for the same
+reason: a `not null default 0` would have given every player in an old room head 0, where
+null gives each of them the head their id derives.
 
 Practical notes: **there are exactly 50 heads.** `max_players_per_room` is 50
 (`server/app/config.py`), so 50 is the number at which a full room can still give everyone a
@@ -388,6 +390,10 @@ fifty files — and `derivedFrom(player.id)` takes the id hash modulo the manife
 
 Render at 32px in the top bar and lobby list, 48px on standings. Heads in-game are drawn at
 low resolution, so `image-rendering: pixelated` and integer scaling, or they turn to mush.
+That makes **16×16** the size a head is saved at: both 32 and 48 are whole multiples of it,
+and `test_heads.py` holds every file to a square whose side divides both. The fifty D4
+shipped are generated placeholders in that format, each named for what it shows, so the
+owner's picks replace them file for file under the same ids.
 
 ---
 
@@ -781,7 +787,7 @@ name; localStorage throwing leaves the app usable for that session.
 
 ### D4. Heads, and changing your mind
 
-`0006_player_avatar.sql`; `avatar` through create/join and `PlayerView`; one
+`0005_player_avatar.sql`; `avatar` through create/join and `PlayerView`; one
 `set_profile {display_name?, avatar?}` websocket message covering **both** the head re-roll
 and the rename, validated and uniqueness-checked exactly like join, broadcast as
 `room_updated`; the fifty committed heads in `data/heads/` and the sprite sheet built from

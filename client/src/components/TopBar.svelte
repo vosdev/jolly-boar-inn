@@ -273,11 +273,11 @@
     font-size: 0.9rem;
   }
 
-  /* Wins over the 20px every other control glyph gets: a face wants the extra pixels,
-     and D4's real heads are drawn at this size. */
+  /* Wins over the 20px every other control glyph gets: the placeholder face is the size
+     of the real heads (32px, section 5.2) so the bar is the same bar either way. */
   .controls .chip .head {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
   }
 
   .head-face {

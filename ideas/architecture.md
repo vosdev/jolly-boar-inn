@@ -610,27 +610,28 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `promote` | `player_id` | admin | Sets target role to `admin`. |
 | `kick` | `player_id` | admin | Deletes player row and their answers, closes their socket with `4003`. Not allowed on admins. |
 | `end_game` | | admin | Closes any open question (voided), `playing → finished`. |
+| `set_profile` | `display_name?: string`, `avatar?: int` | all | D4. Renames the sender, re-rolls their head, or both; an omitted field is left alone. Validated exactly like a join (name rules, case-insensitive uniqueness in the room, a head id from `data/heads/heads.json`), so a rejection leaves the row as it was. Any status. Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
 
 ### Server → client
 
 | `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. |
-| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, status change, and the start of a splash. |
+| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, `set_profile`, status change, and the start of a splash. |
 | `question_open` | `question: OpenQuestion` | A question opens. |
 | `answer_ack` | `question_id`, `scoring: "speed" \| "rank" \| "step"`, `band: int \| null` | Answer committed. Never correctness. `band` is the speed bucket (1..5) for `speed`, the step it landed on for `step`, and null for `rank`, where nothing is known until everyone has answered. |
 | `question_closed` | `question_id`, `reveal: object`, `results: {player_id: {value, correct: bool, points: int}}`, `standings: Standing[]`, `next_at: iso \| null` | Question closed. `next_at` is when the next opens; null on the last. |
 | `game_finished` | `standings: Standing[]` | Final. |
 | `pong` | `server_time: iso` | Reply to `ping`. |
-| `error` | `code: string`, `message: string` | Any rejected message. Codes: `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`. |
+| `error` | `code: string`, `message: string` | Any rejected message. Codes: `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, and for `set_profile` the join's own `bad_name`, `name_taken`, `bad_avatar`. |
 
 Shared shapes:
 
 ```
 RoomView      { code, status, settings, current_index: int|null, total: int, phase,
                 next_at: iso|null, segment: Segment|null }
-PlayerView    { id, display_name, role, connected: bool }
-Standing      { player_id, display_name, points: int, rank: int }
+PlayerView    { id, display_name, avatar: int|null, role, connected: bool }
+Standing      { player_id, display_name, avatar: int|null, points: int, rank: int }
 Segment       { mode, index: int, total: int, start: int, count: int }
 OpenQuestion  { question_id, index, total, type, mode, segment: Segment, view: object,
                 random_event: string|null, opened_at: iso, answerable_at: iso,
@@ -847,6 +848,7 @@ create table players (
     id                 uuid primary key default gen_random_uuid(),
     room_id            uuid not null references rooms (id) on delete cascade,
     display_name       text not null check (char_length(display_name) between 1 and 24),
+    avatar             smallint check (avatar >= 0),     -- 0005: a head id; null = derived
     session_token_hash text not null,
     role               text not null default 'player' check (role in ('player', 'admin')),
     joined_at          timestamptz not null default now(),
@@ -861,12 +863,12 @@ create table questions (
     position         integer not null,
     question_id      text not null,                    -- content id from the schema, q_...
     type             text not null,                    -- how it is answered
-    mode             text not null,                    -- 0005: which round it belongs to
+    mode             text not null,                    -- 0006: which round it belongs to
     source           text not null check (source in ('pack', 'community', 'room')),
     payload          jsonb not null,                   -- full envelope minus id/type/source
     host_only        boolean not null default false,
     round            integer not null default 0,       -- 0003: which round this belongs to
-    random_event     text,                             -- 0006: the NPC asking it; null if not one
+    random_event     text,                             -- 0007: the NPC asking it; null if not one
     author_player_id uuid references players (id) on delete set null,
     shown_at         timestamptz,
     closed_at        timestamptz,
@@ -895,8 +897,9 @@ Notes:
 - `0002_drop_admin_tokens.sql` removes `admin_token_hash`, `admin_token_consumed_at` and the `created` status: the creator is the admin, so there is nothing to claim.
 - `0003_question_rounds.sql` adds `questions.round`. A room's rounds are grouped back out of it by `rooms/segments.py`; the default of 0 makes every room that predates it a single round, which is what it was.
 - `0004_per_mode_rounds.sql` rewrites `rooms.settings` in place: out go `question_seconds`, `question_count` and `questions_per_round`, and `modes` stops being a list of names and becomes a list of `{mode, questions, seconds}` carrying the old globals. A room created by the previous release keeps playing — its rounds are already in `questions.round` — and `mode_order` is `listed` for it, because there is nothing left to shuffle.
-- `0005_question_mode.sql` adds `questions.mode text not null`, backfilled from `type`. That backfill is exact rather than a best guess: every room that predates it plays `more_less` only, where the mode id and the type id are the same string. After it, `type` answers "how is this answered" and `mode` answers "what is this round", and `segments.py` groups on `mode` — it cannot derive one from the other any more, which is the point.
-- `0006_random_events.sql` adds `questions.random_event text` and rewrites
+- `0005_player_avatar.sql` (D4) adds `players.avatar smallint`, a head id from `data/heads/heads.json`, whose index is the contract. Nullable on purpose: null is a player who never chose, drawn with the head their id hashes to, so every player from before it still has a face and a spread of them. The upper bound is the manifest's length, which grows without a migration, so the server checks it before writing rather than the column.
+- `0006_question_mode.sql` adds `questions.mode text not null`, backfilled from `type`. That backfill is exact rather than a best guess: every room that predates it plays `more_less` only, where the mode id and the type id are the same string. After it, `type` answers "how is this answered" and `mode` answers "what is this round", and `segments.py` groups on `mode` — it cannot derive one from the other any more, which is the point.
+- `0007_random_events.sql` adds `questions.random_event text` and rewrites
   `rooms.settings` once more: out goes `order`, in go `random_events` and
   `random_event_seconds`. A room created by the previous release keeps its custom round
   exactly as it is — those rows carry their positions and their `round` already, and
@@ -1050,7 +1053,7 @@ Goal: the creator of a room is its first admin; every identity is a session toke
 3. **Client** stores `localStorage["jbi:session:" + code] = session`, appends `code` to `localStorage["jbi:created"]` (list, for the "your rooms" view), and navigates to `/r/{code}`.
 4. **Room page** opens the websocket and sends `hello {session}`. Admin capabilities are decided per message from `player.role`, never from the URL and never from anything the client asserts about itself.
 
-Join is the same shape with a narrower result: `POST /api/rooms/{code}/join {display_name}` → `200 {session, player}` with `role = 'player'`, stored and used identically.
+Both take an optional `avatar` beside the name (D4); left out, the player's head is derived from their id. Join is the same shape with a narrower result: `POST /api/rooms/{code}/join {display_name, avatar?}` → `200 {session, player}` with `role = 'player'`, stored and used identically.
 
 Follow-ups covered by the same mechanism:
 
@@ -1155,7 +1158,7 @@ the modes in `ideas/games.md` as they stand now, and three of them are why:
 So Phase 2 changes: the schema (`mode`, `ordering`, `pick_from_list`, `guess_examine`
 folded into `free_text`), the protocol (`answer_ack`, `OpenQuestion.mode`,
 `PlayerResult.credit`, `OpenQuestion.random_event`, `answerable_at`, `GET /api/vocab`),
-the SQL (`0005_question_mode.sql`, `0006_random_events.sql`), and the scoring model
+the SQL (`0006_question_mode.sql`, `0007_random_events.sql`), and the scoring model
 (credit, then points). All of it is in the sections above. T16–T18 land exactly that
 much and add no modes, which is what makes T19 onwards a mode each.
 

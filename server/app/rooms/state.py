@@ -110,6 +110,12 @@ class BadName(ApiError):
     status, code = 422, "bad_name"
 
 
+class BadAvatar(ApiError):
+    """An ``avatar`` that is not an id in ``data/heads/heads.json``."""
+
+    status, code = 422, "bad_avatar"
+
+
 class BadSettings(ApiError):
     status, code = 422, "bad_settings"
 
@@ -182,11 +188,15 @@ class Player:
     joined_at: datetime
     session_hash: str = field(repr=False)  # sha256 hex of the session token, never plaintext
     connected: bool = False
+    # A head from the manifest, or ``None`` for "never chosen": the client draws the one
+    # derived from ``id`` then, which is also what every player from before D4 has.
+    avatar: int | None = None
 
     def view(self) -> PlayerView:
         return PlayerView(
             id=self.id,
             display_name=self.display_name,
+            avatar=self.avatar,
             role=self.role,  # type: ignore[arg-type]  # the column's check constraint
             connected=self.connected,
         )
@@ -368,6 +378,7 @@ class Room:
                 Standing(
                     player_id=player.id,
                     display_name=player.display_name,
+                    avatar=player.avatar,
                     points=score.points,
                     rank=rank,
                 )
@@ -416,6 +427,7 @@ def _player_from_row(row: asyncpg.Record) -> Player:
     return Player(
         id=row["id"],
         display_name=row["display_name"],
+        avatar=row["avatar"],
         role=row["role"],
         joined_at=row["joined_at"],
         session_hash=row["session_token_hash"],
@@ -472,11 +484,15 @@ class RoomManager:
         settings: Settings,
         words: Sequence[str],
         rng: random.Random | None = None,
+        *,
+        heads: int,
     ) -> None:
         self._pool = pool
         self.packs = packs
         self.settings = settings
         self.words = words
+        # The length of ``data/heads/heads.json``: every valid ``avatar`` is below it.
+        self.heads = heads
         self.rng = rng or random.Random()
         self.rooms: dict[str, Room] = {}
         # Locks outlive their rooms so an eviction and a rehydrate of the same code
@@ -534,7 +550,7 @@ class RoomManager:
             row = await _fetch_room(conn, code)
             questions = await _fetch_questions(conn, row["id"])
             players = await conn.fetch(
-                "select id, display_name, role, joined_at, session_token_hash from players"
+                "select id, display_name, avatar, role, joined_at, session_token_hash from players"
                 " where room_id = $1 order by joined_at, id",
                 row["id"],
             )
@@ -820,6 +836,7 @@ class RoomManager:
         settings: RoomSettings,
         custom_questions: Sequence[dict[str, Any]],
         creator_ip: str | None,
+        avatar: int | None = None,
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
 
@@ -827,6 +844,7 @@ class RoomManager:
         """
         # First, before the pool is even touched: a bad name leaves no room behind.
         name = normalize_name(display_name)
+        self.check_avatar(avatar)
         cap = self.settings.max_players_per_room
         if settings.max_players is None:
             settings = settings.model_copy(update={"max_players": cap})
@@ -872,12 +890,13 @@ class RoomManager:
             # No ``NameTaken`` guard: the room is one statement old and has no players,
             # so a violation here is a bug and should read as one.
             player_row = await conn.fetchrow(
-                "insert into players (room_id, display_name, session_token_hash, role)"
-                " values ($1, $2, $3, 'admin')"
-                " returning id, display_name, role, joined_at, session_token_hash",
+                "insert into players (room_id, display_name, session_token_hash, role, avatar)"
+                " values ($1, $2, $3, 'admin', $4)"
+                " returning id, display_name, avatar, role, joined_at, session_token_hash",
                 room_row["id"],
                 name,
                 hash_token(session),
+                avatar,
             )
             await conn.executemany(
                 "insert into questions"
@@ -903,13 +922,16 @@ class RoomManager:
             player = room.players.get(player.id, player)
         return room, player, session
 
-    async def join(self, code: str, display_name: str) -> tuple[Player, str]:
+    async def join(
+        self, code: str, display_name: str, avatar: int | None = None
+    ) -> tuple[Player, str]:
         """Add a player to a joinable room. Returns the player and their session token, once.
 
         Connected sockets learn about the newcomer through ``room_updated``.
         """
         code = code.upper()
         name = normalize_name(display_name)
+        self.check_avatar(avatar)
         session = new_token()
         pool = await self._pool()
         async with self._lock(code):
@@ -921,12 +943,13 @@ class RoomManager:
             async with pool.acquire() as conn, conn.transaction():
                 try:
                     row = await conn.fetchrow(
-                        "insert into players (room_id, display_name, session_token_hash)"
-                        " values ($1, $2, $3)"
-                        " returning id, display_name, role, joined_at, session_token_hash",
+                        "insert into players (room_id, display_name, session_token_hash, avatar)"
+                        " values ($1, $2, $3, $4)"
+                        " returning id, display_name, avatar, role, joined_at, session_token_hash",
                         room.id,
                         name,
                         hash_token(session),
+                        avatar,
                     )
                 except asyncpg.UniqueViolationError:
                     raise NameTaken(f"the name {name!r} is taken in room {code}") from None
@@ -936,6 +959,55 @@ class RoomManager:
             update = self._room_updated(room)
         await self._broadcast(update)
         return player, session
+
+    async def set_profile(
+        self, code: str, player: Player, display_name: str | None, avatar: int | None
+    ) -> None:
+        """Rename, re-roll the head, or both (D4, section 5.1.1 of ideas/design.md).
+
+        Held to exactly what a join is: the same name rules, the same case-insensitive
+        uniqueness in the room -- the unique index is what decides, so a rename racing a
+        join cannot both win -- and a head from the manifest. A rejected change leaves
+        the row and the room exactly as they were. Allowed in any status: standings are
+        keyed on the player's id, so a mid-game rename moves no points and no answer.
+
+        Nothing changed is nothing broadcast. Everybody else hears about a real change
+        through ``room_updated``, the sender included, like every other command.
+        """
+        code = code.upper()
+        name = normalize_name(display_name) if display_name is not None else None
+        self.check_avatar(avatar)
+        pool = await self._pool()
+        async with self._lock(code):
+            room = await self._room(code)
+            # The ``Player`` the handler holds is the one in the room, unless the room
+            # left memory and came back since; the room's copy is the live one.
+            target = room.players.get(player.id)
+            if target is None:
+                raise BadState("you are no longer in this room")
+            new_name = target.display_name if name is None else name
+            new_avatar = target.avatar if avatar is None else avatar
+            if (new_name, new_avatar) == (target.display_name, target.avatar):
+                return
+            async with pool.acquire() as conn:
+                try:
+                    await conn.execute(
+                        "update players set display_name = $2, avatar = $3 where id = $1",
+                        target.id,
+                        new_name,
+                        new_avatar,
+                    )
+                except asyncpg.UniqueViolationError:
+                    raise NameTaken(f"the name {new_name!r} is taken in room {code}") from None
+            target.display_name = new_name
+            target.avatar = new_avatar
+            update = self._room_updated(room)
+        await self._broadcast(update)
+
+    def check_avatar(self, avatar: int | None) -> None:
+        """Refuse a head that is not in the manifest, before anything is written."""
+        if avatar is not None and not 0 <= avatar < self.heads:
+            raise BadAvatar(f"avatar must be a head id from 0 to {self.heads - 1}")
 
     # --- Game loop ------------------------------------------------------------------
 

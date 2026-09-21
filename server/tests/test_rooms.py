@@ -41,6 +41,7 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
     assert body["player"] == {
         "id": body["player"]["id"],
         "display_name": "Zezima",  # trimmed
+        "avatar": None,  # none sent, so the client draws the head derived from the id
         "role": "admin",
         "connected": False,
     }
@@ -267,6 +268,7 @@ def test_join_success_returns_session_and_appears_in_get(client: TestClient, db)
     assert body["player"] == {
         "id": body["player"]["id"],
         "display_name": "Zezima",
+        "avatar": None,
         "role": "player",
         "connected": False,
     }

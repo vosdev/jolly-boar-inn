@@ -29,6 +29,11 @@ ErrorCode = Literal[
     "excluded",
     "bad_value",
     "bad_state",
+    # ``set_profile`` (D4), which is validated exactly like a join, and says so with the
+    # same codes ``POST /api/rooms/{code}/join`` answers with.
+    "bad_name",
+    "name_taken",
+    "bad_avatar",
 ]
 
 
@@ -75,6 +80,9 @@ class RoomView(_Message):
 class PlayerView(_Message):
     id: UUID
     display_name: str
+    # An id in ``data/heads/heads.json``, or null for a player who never chose one: the
+    # client then draws the head derived from ``id`` (D4, section 5.2).
+    avatar: int | None
     role: Role
     connected: bool
 
@@ -82,6 +90,7 @@ class PlayerView(_Message):
 class Standing(_Message):
     player_id: UUID
     display_name: str
+    avatar: int | None  # as on ``PlayerView``
     points: int
     rank: int
 
@@ -144,8 +153,21 @@ class EndGame(_Message):
     t: Literal["end_game"]
 
 
+class SetProfile(_Message):
+    """Rename, re-roll the head, or both (D4). One message for both, because they are the
+    same operation on the same row: validated like a join, broadcast as ``room_updated``.
+
+    An omitted field is left as it is. The bounds here are only the outer ones; the name
+    rules and the manifest's length are the manager's to apply.
+    """
+
+    t: Literal["set_profile"]
+    display_name: str | None = Field(default=None, max_length=200)
+    avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
+
+
 ClientMessage = Annotated[
-    Hello | Ping | Answer | StartGame | Skip | Promote | Kick | EndGame,
+    Hello | Ping | Answer | StartGame | Skip | Promote | Kick | EndGame | SetProfile,
     Field(discriminator="t"),
 ]
 _client_message = TypeAdapter[ClientMessage](ClientMessage)
@@ -173,7 +195,7 @@ class Welcome(_Message):
 
 
 class RoomUpdated(_Message):
-    """Join, leave, connect, disconnect, promote, kick, status change."""
+    """Join, leave, connect, disconnect, promote, kick, status change, ``set_profile``."""
 
     t: Literal["room_updated"] = "room_updated"
     room: RoomView

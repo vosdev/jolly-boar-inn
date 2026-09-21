@@ -22,6 +22,9 @@ class CreateRoom(BaseModel):
     # The creator is the room's admin, so the name is needed up front. 200 is the outer
     # bound on what is worth reading; ``normalize_name`` holds it to 1-24.
     display_name: str = Field(max_length=200)
+    # A head id from ``data/heads/heads.json`` (D4). Optional, so a client from before
+    # heads still creates rooms; its players are drawn the head derived from their id.
+    avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
     settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
     # The custom-question editor is Phase 2; until then only an empty list is accepted.
     custom_questions: list[dict[str, Any]] = Field(default_factory=list, max_length=0)
@@ -49,10 +52,11 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     # Before the limiter, which records a hit on every call it allows: a handful of
     # typos in the name field should not cost a host their hourly quota.
     name = normalize_name(body.display_name)
+    manager(request).check_avatar(body.avatar)
     if not request.app.state.ratelimiter.allow(ip):
         raise RateLimited("too many rooms created from this address, try again later")
     room, player, session = await manager(request).create(
-        name, body.settings, body.custom_questions, ip
+        name, body.settings, body.custom_questions, ip, body.avatar
     )
     return {"code": room.code, "session": session, "player": player.view()}
 

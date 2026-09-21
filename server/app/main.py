@@ -14,6 +14,7 @@ from app import accesslog
 from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
+from app.heads import load_head_count
 from app.http import modes, players, rooms
 from app.http.headers import SecurityHeaders
 from app.http.ratelimit import RateLimiter
@@ -97,6 +98,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         packs=app.state.packs,
         settings=settings,
         words=load_words(),
+        heads=load_head_count(),
     )
     app.state.pool = None
     try:

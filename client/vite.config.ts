@@ -1,13 +1,16 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defineConfig } from 'vite'
 
+import { headsSprite } from './heads-sprite.ts'
+
 // Dev server proxies /api and /ws to the FastAPI server on :8000.
 //
 // `lib/names.ts` imports `data/player-names.json` from outside the client, so the dev
 // server is allowed that one file as well as its own root. A build needs nothing: Rollup
-// reads it straight off the disk.
+// reads it straight off the disk. The chat heads in `data/heads/` never go through the
+// dev server at all: `headsSprite` reads them and serves one sheet (D4).
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [svelte(), headsSprite()],
   server: {
     port: 5173,
     strictPort: true,
