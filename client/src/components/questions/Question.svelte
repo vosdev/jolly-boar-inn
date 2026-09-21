@@ -41,6 +41,9 @@
   const data = $derived(reveal ?? question.view)
 </script>
 
+<!-- Keyed on the question so a view with state of its own — the combobox's search, its
+     selection — starts clean for each question even if nothing between them unmounts it. -->
+{#key question.question_id}
 {#if View === null}
   {#if revealed}
     <p class="note">That question is closed.</p>
@@ -63,3 +66,4 @@
     {onAnswer}
   />
 {/if}
+{/key}

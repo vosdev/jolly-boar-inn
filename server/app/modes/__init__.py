@@ -36,6 +36,7 @@ SECONDS = Bounds(default=30, minimum=5, maximum=120)
 MODES: dict[str, Mode] = {
     "more_less": Mode(id="more_less", type="more_less"),
     "price_is_right": Mode(id="price_is_right", type="price_is_right"),
+    "guess_examine": Mode(id="guess_examine", type="pick_from_list"),
 }
 
 

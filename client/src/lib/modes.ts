@@ -45,6 +45,12 @@ export interface Mode {
    * this file stays free of `.svelte` imports.
    */
   stem: StemId | null
+  /**
+   * The list a round of this mode is answered from, for a `pick_from_list` mode only.
+   * The splash names it so the list is fetched while players read, not when the first
+   * question is already running (`lib/vocab.ts`).
+   */
+  vocab?: string
 }
 
 /**
@@ -53,7 +59,7 @@ export interface Mode {
  * item, Who Said That? a line in a chatbox. Each id is one component under
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
-export type StemId = 'text' | 'asset'
+export type StemId = 'text' | 'asset' | 'examine'
 
 /**
  * The six pubs of the crawl. Each is one scene, drawn once and shared by every mode
@@ -97,6 +103,18 @@ export const MODES: Record<string, Mode> = {
     scene: 'dead_mans_chest',
     // The item, above four prices that would otherwise not say what they are prices of.
     stem: 'asset',
+  },
+  guess_examine: {
+    id: 'guess_examine',
+    type: 'pick_from_list',
+    label: 'Guess the Examine',
+    hint: 'Name the item from the line you get when you examine it.',
+    blurb: 'An examine line from the game. Search the list and pick the item it belongs to.',
+    // Falador's pub, where half the White Knights stand about waiting to be examined.
+    scene: 'rising_sun',
+    // The examine line is the question; the list below it is only how you answer.
+    stem: 'examine',
+    vocab: 'items',
   },
 }
 

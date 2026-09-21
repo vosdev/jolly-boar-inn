@@ -23,7 +23,7 @@ from app.modes import MODES, Mode, questions_bounds, seconds_bounds
 from app.questions import schema
 from app.questions.packs import PackError, load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, more_less, price_is_right
+from app.questions.types import TYPES, more_less, pick_from_list, price_is_right
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
@@ -185,7 +185,8 @@ def test_an_unknown_mode_is_reported() -> None:
     q = question(mode="drop_table")
     assert schema.schema_errors(q) == []  # the schema holds a mode to a pattern, no more
     assert schema.consistency_errors(q) == [
-        "$.mode: 'drop_table' is not a mode this build plays (it plays more_less, price_is_right)"
+        "$.mode: 'drop_table' is not a mode this build plays"
+        " (it plays more_less, price_is_right, guess_examine)"
     ]
 
 
@@ -273,7 +274,11 @@ def test_content_id_follows_documented_algorithm() -> None:
 
 
 def test_registry_has_every_shipped_type() -> None:
-    assert TYPES == {"more_less": more_less, "price_is_right": price_is_right}
+    assert TYPES == {
+        "more_less": more_less,
+        "price_is_right": price_is_right,
+        "pick_from_list": pick_from_list,
+    }
     for module in TYPES.values():
         for name in ("client_view", "reveal", "grade", "validate_value", "check"):
             assert callable(getattr(module, name))
@@ -350,11 +355,11 @@ def test_schema_file_is_draft_2020_12_and_loads() -> None:
     assert loaded["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert set(loaded["$defs"]) >= {
         "more_less",
-        "guess_examine",
         "price_is_right",
         "multiple_choice",
         "free_text",
         "closest_number",
+        "pick_from_list",
     }
     schema.validate(EXAMPLE)
 

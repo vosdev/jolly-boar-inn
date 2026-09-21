@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "",
+    "Items whose examine is worth asking even though it trips Guess the Examine's name",
+    "check (server/scripts/gen_examine_questions.py): the examine contains the item's name,",
+    "or a word of it longer than three characters. Usually that is the answer written on",
+    "the card and the item is rightly left out. Sometimes the word is only what kind of",
+    "thing it is ('A very powerful onyx amulet.'), or the line is too good to lose",
+    "('Yuck I don't like cabbage.'). Those go here.",
+    "",
+    "  names  item names exactly as data/popular-items.json writes them. A name that is",
+    "         not on the roster fails the generator rather than doing nothing.",
+    "",
+    "This cannot let through an examine two roster items share: that is two right",
+    "answers in one list, not a matter of taste. Run `make gen-examine-questions` after",
+    "editing, and keep the list sorted."
+  ],
+  "names": [
+    "Abyssal bludgeon",
+    "Abyssal dagger",
+    "Amulet of fury",
+    "Amulet of glory(6)",
+    "Archers ring",
+    "Berserker ring",
+    "Cabbage",
+    "Cooked karambwan",
+    "Dark bow",
+    "Dragonfire shield",
+    "Elder maul",
+    "Eternal boots",
+    "Magic shortbow",
+    "Pegasian boots",
+    "Primordial boots",
+    "Seers ring",
+    "Zamorakian spear"
+  ]
+}

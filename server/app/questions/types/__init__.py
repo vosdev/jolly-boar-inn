@@ -17,10 +17,14 @@ do the reading; a module that declares neither gets the registry's fallbacks the
 
 from types import ModuleType
 
-from app.questions.types import more_less, price_is_right
+from app.questions.types import more_less, pick_from_list, price_is_right
 from app.questions.types.scoring import Scoring
 
-TYPES: dict[str, ModuleType] = {"more_less": more_less, "price_is_right": price_is_right}
+TYPES: dict[str, ModuleType] = {
+    "more_less": more_less,
+    "price_is_right": price_is_right,
+    "pick_from_list": pick_from_list,
+}
 
 
 def scoring_of(type_id: str) -> Scoring:

@@ -15,9 +15,10 @@ from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
 from app.heads import load_head_count
-from app.http import modes, players, rooms
+from app.http import modes, players, rooms, vocab
 from app.http.headers import SecurityHeaders
 from app.http.ratelimit import RateLimiter
+from app.questions import vocab as vocabularies
 from app.questions.packs import load_packs
 from app.rooms.codes import load_words
 from app.rooms.state import RoomManager
@@ -88,6 +89,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
     logging.basicConfig(level=settings.log_level.upper())
     accesslog.install()
+    # Before the packs: a pack question is checked against the vocabulary it answers from,
+    # and a roster that cannot be one should fail as itself, not as every question on it.
+    vocabularies.load_all()
     try:
         app.state.packs = load_packs(settings.packs_dir)
     except FileNotFoundError as exc:
@@ -155,6 +159,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.include_router(rooms.router)
     app.include_router(players.router)
     app.include_router(modes.router)
+    app.include_router(vocab.router)
     app.include_router(ws_handler.router)
     mount_client(app, client_dist)
     return app
