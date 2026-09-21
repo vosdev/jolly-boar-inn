@@ -108,7 +108,7 @@ jolly-boar-inn/
 │   ├── package.json
 │   ├── vite.config.ts         # dev proxy /api and /ws to :8000
 │   └── src/
-│       ├── App.svelte         # tiny hash-free router: /, /create, /r/:code, /r/:code/create
+│       ├── App.svelte         # the shell: TopBar over a hash-free router: /, /create, /r/:code
 │       ├── lib/
 │       │   ├── api.ts          # fetch wrappers for /api
 │       │   ├── ws.ts           # RoomSocket: connect, hello, backoff reconnect, ping, typed events
@@ -125,6 +125,7 @@ jolly-boar-inn/
 │       │   ├── Join.svelte
 │       │   └── Room.svelte          # lobby / question / reveal / final, driven by stores
 │       └── components/
+│           ├── TopBar.svelte           # sign, wordmark + room code, and three control slots
 │           ├── Lobby.svelte
 │           ├── Scoreboard.svelte
 │           ├── Splash.svelte            # introduces a round's mode, on a timer

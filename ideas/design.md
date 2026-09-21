@@ -199,10 +199,16 @@ Today `App.svelte` renders `<main>` and nothing else. D2 adds a shell:
   the one a thumb reaches for, and because it is the widest. GitHub sits innermost and at
   `--muted` — it is the only control in the bar that is not about the game, so it should
   read that way (§9.3).
-- **Height 56px, `position: sticky`, `top: 0`**, with the room code appended to the wordmark
-  while you are in a room — `The Jolly Boar Inn · DRAGON`. That kills the `<h1>Room {code}</h1>`
-  that currently costs a whole line on every screen, and it means the code is on screen for
-  a latecomer to read off someone's phone at any moment.
+- **Height 56px, `position: sticky`, `top: 0`**, carrying the mark and the controls and
+  nothing else. **The room code is deliberately not in the bar.** It was, for one build —
+  `The Jolly Boar Inn · DRAGON` reads well, and a code on screen at every moment is a real
+  thing for a latecomer reading it off somebody's phone. But the codes this app generates
+  are words, not six letters: `SaradominGodsword`, `ThermonuclearSmokeDevil`. One of those
+  in 56px beside four controls has two ways to go and both are bad — truncate to
+  `THERMONUC…`, which is worth less than nothing, or squeeze the controls off a phone. So
+  the code keeps the places with room for it: the lobby shows it big, next to the link to
+  share, and Join keeps its own `<h1>Room {code}</h1>`, which is the only thing on that
+  screen that says which room this is. Inside a room, the lobby and the host cover it.
 - **Under 26rem** GitHub collapses first, then theme and sound, into one `⋯` popover; the
   identity chip drops to just the head.
 
@@ -736,13 +742,16 @@ script fails a deliberately broken `--bad`, fails an `--ok` that cannot be seen 
 ### D2. The app shell
 
 `App.svelte` grows a `<TopBar>` above `<main>`: logo, wordmark, and three named slots.
-Sticky, 56px, responsive collapse at 26rem. The room code moves into the wordmark and the
-per-screen `<h1>Room {code}</h1>` comes out. Controls are placeholders in this task.
+Sticky, 56px, responsive collapse at 26rem. No room code in the bar (§4), so the screens
+that name the room go on naming it; what comes out is the `<h1>Room {code}</h1>` on Room's
+connecting and disconnected states, where it never said anything the screen did not, and
+the Home `<h1>` that repeated the wordmark now sitting above it. Controls are placeholders
+in this task.
 
 **Accept:** every existing screen renders under the bar with nothing clipped or double-titled;
 the bar is present on Home, Create, Join and Room; at 320px wide the wordmark is hidden, the
-sign is not, and there is no horizontal scroll; the sticky bar does not cover a focused input
-when a mobile keyboard opens.
+sign is not, and there is no horizontal scroll; the bar is the same width whatever room you
+are in; the sticky bar does not cover a focused input when a mobile keyboard opens.
 
 ### D3. Names and the profile popover
 
@@ -977,5 +986,10 @@ files arrive later, so neither D2 nor D7 reopens when the art lands. §7.1, §9.
 [x] **The display face, `make fetch-assets` and the logo are owned outside the D-tasks.**
 Nothing in D1–D12 blocks on any of them: `--font-display` falls back to the browser default,
 D4's heads are committed, and D2 draws a placeholder mark. §3, §9.1.
+
+[x] **The room code is not in the top bar.** Appending it to the wordmark was the plan and
+it lasted one build: a code here is a word like `ThermonuclearSmokeDevil`, and one of those
+in a 56px bar beside four controls either truncates to something useless or pushes the
+controls off a phone. The lobby and Join carry the code instead. §4.
 
 [x] **Design work is D1–D12**, independent of the T-numbers, and can interleave with Phase 2.

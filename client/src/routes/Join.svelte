@@ -53,6 +53,8 @@
   }
 </script>
 
+<!-- The code is not in the top bar (D2, section 4), and this is the one screen where
+     nothing else says which room you are about to join. -->
 <h1>Room {code}</h1>
 
 {#if lookupError !== null}

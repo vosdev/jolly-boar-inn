@@ -154,7 +154,9 @@
 </script>
 
 {#if departure !== null}
-  <h1>Room {code}</h1>
+  <!-- The room's code is in the top bar (D2, section 4). These headings say which screen
+       you are on, which is what the code used to be crowding out. -->
+  <h1>Disconnected</h1>
   <section class="panel">
     <p>{FAREWELL[departure.reason]}</p>
     <div class="row">
@@ -170,7 +172,6 @@
   {/if}
 
   {#if $room === null}
-    <h1>Room {code}</h1>
     <p class="note">Connecting…</p>
   {:else if $room.status === 'lobby'}
     <h1>Lobby</h1>
@@ -188,7 +189,9 @@
     {:else}
       <p class="tagline">Nobody scored. A quiet night at the inn.</p>
     {/if}
-    <Scoreboard standings={$standings} youId={$you?.id ?? null} title="Room {$room.code}" />
+    <!-- The table used to be captioned with the room code, which the top bar now carries
+         on every screen; D9 makes this and the between-rounds board one component. -->
+    <Scoreboard standings={$standings} youId={$you?.id ?? null} />
     <section class="panel">
       <!-- Rank is dense (section 6), so level scores genuinely share a place; what the
            sort settles is the order they are listed in, not the rank. -->

@@ -17,6 +17,7 @@
    */
   import { onMount } from 'svelte'
 
+  import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
@@ -68,7 +69,9 @@
   })
 </script>
 
-<main>
+<TopBar />
+
+<main id="content" tabindex="-1">
   {#if route.name === 'home'}
     <Home {navigate} />
   {:else if route.name === 'create'}
