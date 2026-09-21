@@ -226,8 +226,6 @@ def test_every_shipped_question_answers_from_the_examines_list_by_id() -> None:
     assert questions, "examine.json ships no questions"
     examines = vocab.get("examines")
     assert examines is not None
-    answers = [q["payload"]["answer_id"] for q in questions]
-    assert len(answers) == len(set(answers)), "one question per item"
     prompts = [q["payload"]["prompt"] for q in questions]
     assert len(prompts) == len(set(prompts)), "no examine is two items' answer"
     for q in questions:

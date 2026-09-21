@@ -1,6 +1,6 @@
 {
   "pack": "examine",
-  "generated_at": "2026-09-21T15:24:34Z",
+  "generated_at": "2026-09-21T16:01:06Z",
   "questions": [
     {
       "id": "q_6b7230aaa9df1eae",
@@ -190,7 +190,7 @@
       }
     },
     {
-      "id": "q_af13f6c6a224e0a5",
+      "id": "q_01e3cd82441d646d",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -198,11 +198,11 @@
         "examine"
       ],
       "payload": {
-        "prompt": "I shall call him, MINI PIG.",
+        "prompt": "Raccoons, like pandas but worse.",
         "vocab": "examines",
         "answer_id": 12,
         "subject": {
-          "name": "Pig"
+          "name": "Rocky"
         }
       }
     },
@@ -258,7 +258,7 @@
       }
     },
     {
-      "id": "q_2e99a6960e7ddb70",
+      "id": "q_804df1ee4d6cd4a4",
       "type": "pick_from_list",
       "mode": "guess_examine",
       "source": "pack",
@@ -266,11 +266,45 @@
         "examine"
       ],
       "payload": {
-        "prompt": "it wasnt a rock... It was a rock lobster!",
+        "prompt": "It wasn't a rock... it was a rock lobster!",
         "vocab": "examines",
         "answer_id": 16,
         "subject": {
           "name": "Rock lobster"
+        }
+      }
+    },
+    {
+      "id": "q_b17fb20ebdad05e2",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "Are those fleas all over it?",
+        "vocab": "examines",
+        "answer_id": 17,
+        "subject": {
+          "name": "Stray dog"
+        }
+      }
+    },
+    {
+      "id": "q_5d4a2f96100d887a",
+      "type": "pick_from_list",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "payload": {
+        "prompt": "He likes to paaaarty!",
+        "vocab": "examines",
+        "answer_id": 18,
+        "subject": {
+          "name": "Party Pete"
         }
       }
     }

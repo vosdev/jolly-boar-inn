@@ -1,4 +1,4 @@
-"""Generate ``data/packs/examine.json``: Guess the Examine, one question per entry of
+"""Generate ``data/packs/examine.json``: Guess the Examine, one question per examine line in
 ``data/examines.json``.
 
 The examines are hand-written rather than fetched. The first version of this mode took
@@ -8,9 +8,14 @@ sword." is a fair question and nobody laughs at it. The mode is only worth playi
 lines people quote to each other, and no filter finds those, so a person picks them.
 
 That also settles what the player picks the answer from: the ``examines`` vocabulary, which
-is the same file. Every entry is a question and every question's answer is an entry, so
-the list is exactly the set of things that could be the answer. It is short until people
-add to it; that is the cost of every line on it being worth asking.
+is the same file. Every question's answer is an entry, and every entry is asked, so the
+list is exactly the set of things that could be the answer. It is short until people add
+to it; that is the cost of every line on it being worth asking.
+
+An entry holds a list of lines because the game reuses names: the Motherlode Mine has
+eleven Miners, each with its own examine, and "Miner" is the answer to all of them. So the
+answer is the name and the question is the line. A line may appear only once in the whole
+file, since a line under two names is a question with two right answers.
 
 ``data/examines.json`` is the source of truth and this pack is derived from it, because a
 pack must be self-contained and validated like every other (architecture section 2). The
@@ -32,7 +37,7 @@ from typing import Any
 
 from app.questions import schema
 from app.questions.packs import pack_errors
-from app.questions.vocab import VocabError, build
+from app.questions.vocab import VocabError, build, fold
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_EXAMINES = REPO_ROOT / "data" / "examines.json"
@@ -45,13 +50,39 @@ TAGS = ["examine"]
 
 
 def load_examines(path: Path) -> list[dict[str, Any]]:
-    """The entries, once they are known to make a vocabulary. Raises ``VocabError``."""
+    """The entries, once they make a vocabulary and no line is asked twice.
+
+    Raises ``VocabError``.
+    """
     entries = json.loads(path.read_text(encoding="utf-8"))[VOCAB]
     build(VOCAB, entries, path.name)  # distinct ids and names, or nothing at all
+    errors = line_errors(entries, path.name)
+    if errors:
+        raise VocabError(errors)
     return entries
 
 
-def make_question(entry: dict[str, Any]) -> dict[str, Any]:
+def line_errors(entries: list[dict[str, Any]], label: str) -> list[str]:
+    """Entries with no lines, and lines that appear more than once, compared folded."""
+    errors: list[str] = []
+    seen: dict[str, str] = {}
+    for entry in entries:
+        lines = entry.get("examines")
+        if not isinstance(lines, list) or not lines:
+            errors.append(f"{label}: {entry['name']!r} needs a list of one or more examines")
+            continue
+        for line in lines:
+            key = fold(" ".join(str(line).split()))
+            if key in seen:
+                errors.append(
+                    f"{label}: {line!r} is under {seen[key]!r} and {entry['name']!r};"
+                    " a line may have only one answer"
+                )
+            seen[key] = entry["name"]
+    return errors
+
+
+def make_question(entry: dict[str, Any], examine: str) -> dict[str, Any]:
     question: dict[str, Any] = {
         "id": "",
         "type": "pick_from_list",
@@ -59,7 +90,7 @@ def make_question(entry: dict[str, Any]) -> dict[str, Any]:
         "source": "pack",
         "tags": list(TAGS),
         "payload": {
-            "prompt": entry["examine"],
+            "prompt": examine,
             "vocab": VOCAB,
             "answer_id": entry["id"],
             "subject": {"name": entry["name"]},
@@ -70,8 +101,12 @@ def make_question(entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def questions(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """One per entry, by id, so an appended entry appends a question."""
-    return [make_question(entry) for entry in sorted(entries, key=lambda e: e["id"])]
+    """One per line, by entry id and then line order, so an appended line appends one."""
+    return [
+        make_question(entry, examine)
+        for entry in sorted(entries, key=lambda e: e["id"])
+        for examine in entry["examines"]
+    ]
 
 
 def generate(entries: list[dict[str, Any]], generated_at: str) -> dict[str, Any]:
