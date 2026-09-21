@@ -58,7 +58,7 @@ jolly-boar-inn/
 │   │   │   └── 0001_init.sql
 │   │   ├── rooms/
 │   │   │   ├── state.py       # THE room-state module (see below)
-│   │   │   ├── scoring.py     # pure functions: bucket(), points_for()
+│   │   │   ├── scoring.py     # pure functions: bucket(), step(), band(), points_for()
 │   │   │   ├── selection.py   # pure function: pick a room's rounds from packs + custom
 │   │   │   ├── segments.py    # pure function: group questions back into rounds
 │   │   │   └── codes.py       # room code generation
@@ -620,7 +620,7 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, `set_profile`, status change, and the start of a splash. |
 | `question_open` | `question: OpenQuestion` | A question opens. |
 | `answer_ack` | `question_id`, `scoring: "speed" \| "rank" \| "step"`, `band: int \| null` | Answer committed. Never correctness. `band` is the speed bucket (1..5) for `speed`, the step it landed on for `step`, and null for `rank`, where nothing is known until everyone has answered. |
-| `question_closed` | `question_id`, `reveal: object`, `results: {player_id: {value, correct: bool, points: int}}`, `standings: Standing[]`, `next_at: iso \| null` | Question closed. `next_at` is when the next opens; null on the last. |
+| `question_closed` | `question_id`, `reveal: object`, `results: {player_id: PlayerResult}`, `standings: Standing[]`, `next_at: iso \| null` | Question closed. `next_at` is when the next opens; null on the last. |
 | `game_finished` | `standings: Standing[]` | Final. |
 | `pong` | `server_time: iso` | Reply to `ping`. |
 | `error` | `code: string`, `message: string` | Any rejected message. Codes: `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, and for `set_profile` the join's own `bad_name`, `name_taken`, `bad_avatar`. |
@@ -697,7 +697,7 @@ question's options.
 The admin is a player with a flag. There is no admin channel.
 
 - `question_open` and `welcome.question` are byte-identical for every socket in the room, admin included. They contain `client_view`, which never includes `answer`, `answer_index`, `accepted`, `reveal`, or raw `payload`.
-- `answer_ack` carries the speed bucket only, never correctness, for everyone.
+- `answer_ack` carries how the question is scored and the answer's band (its speed bucket or its step) only, never correctness, for everyone.
 - Correct answers and per-player results appear only in `question_closed`, sent to everyone at the same moment.
 - The list of questions selected for a room is never sent over the websocket. The admin sees `total` and `index`, nothing else.
 - Custom-question exception, stated up front: any admin can see the room's own questions in the editor before the game starts, because they wrote them. Authors are excluded from scoring on those questions server-side, so seeing them buys nothing.
@@ -942,7 +942,8 @@ things: Pixel Hunt zooms out over eight frames and should pay for answering on f
 Who's That NPC? shows one render and should pay for answering quickly. One type, one
 `SCORING`, and the payload decides — rather than two near-identical types, or a Who's That
 NPC? where everyone who knows the answer scores the same 1000 whether they took two seconds
-or twenty.
+or twenty. `answer_ack` says `speed` for such a question too, with the bucket as its band,
+so a client is never told a step number for a question that has no steps.
 
 `correct` — the boolean stored on the answer row and counted in the standings tie-break —
 is `credit >= 1.0`. A player who put three of five quests in the right order scores for it
@@ -950,7 +951,7 @@ and does not get a "correct" out of it, which is the honest reading of both.
 
 ### Speed buckets (`SCORING = SPEED`)
 
-`fraction = elapsed / the question's own seconds`, computed once at receive time and stored in memory with the answer; the bucket is sent back in `answer_ack`.
+`fraction = elapsed / the question's own seconds`, computed once at receive time and stored in memory with the answer; the bucket is sent back in `answer_ack` as its `band`.
 
 | Bucket | Fraction of question time | Points if correct |
 |---|---|---|
@@ -1025,17 +1026,23 @@ Sorted by total points desc, then by number of correct answers desc, then by `jo
 
 ```python
 BUCKETS = [(0.10, 1000), (0.25, 900), (0.50, 800), (0.75, 700), (1.00, 600)]
+RANK_TOP = 1000
 STEP_TOP, STEP_BOTTOM = 1000, 400
 
 def bucket(elapsed_s: float, question_s: int) -> int          # 1..5, clamps to 5
 def step(elapsed_s: float, question_s: int, steps: int) -> int  # 1..steps, clamps
-def step_points(step: int, steps: int) -> int
+def step_points(step: int, steps: int) -> int                   # clamps step into 1..steps
+def effective(scoring: Scoring, steps: int | None) -> Scoring   # STEP without steps is SPEED
+def band(scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None) -> int | None
 def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | None) -> int
 ```
 
-`points_for` is the one entry point the game loop calls, and it is where the table above
-lives. `bucket` and `step` are exported next to it because `submit_answer` needs the band
-at receive time for `answer_ack`, before anything has been graded.
+`points_for` is the one entry point the close calls, and it is where the table above
+lives. `band` is its counterpart at receive time: `submit_answer` needs the bucket or the
+step for `answer_ack` before anything has been graded, and `band` picks which of `bucket`
+and `step` to ask, or answers `None` for `RANK`. `effective` is what `answer_ack.scoring`
+carries, so the fallback above is stated once. `points_for` refuses credit outside 0..1
+rather than paying 1200 for a type's bug.
 
 ## 7. Identity: who you are, and what never goes in a URL
 
