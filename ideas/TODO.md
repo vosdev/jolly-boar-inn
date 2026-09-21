@@ -102,3 +102,7 @@ Configure a secure token in .env, minimum of 64 characters. manually create /adm
 # Clean up Game Creation screen
 
 We no longer need the option to configure your name on the game creation screen. This functionality moved to the top bar.
+
+# Guess The Examine
+
+Should have its own item database. popular-items.json is focussed around Less or More + The Price is Right gamemodes. For Guess The Examine, we can find unique items or NPCs that have a funny examine option.
