@@ -22,9 +22,9 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
   recede, but people want to read what they said;
 * every ``--gem-*`` stands a colour difference (CIE76 delta E) of at least
   ``MIN_FADE_DELTA_E`` from its own faded self (D8). Lit against faded is the whole of the
-  reveal, with no ring or glyph beside it, so a gem too close to its panel — diamond on a
-  cream panel, which is why red topaz replaced it, or black onyx on a near-black one —
-  shows no reveal at all;
+  pick and of the wait for everyone else, so a gem too close to its panel shows nothing.
+  Diamond on a cream panel is why red topaz replaced it, and black onyx on a near-black
+  one is why the gems are six;
 * each ``--texture-*`` is ``none`` or a local ``url()`` (D5): the CSP would block a remote
   one anyway, and this says so at build time rather than as a blank page background.
 
@@ -65,7 +65,6 @@ GEMS = (
     "--gem-ruby",
     "--gem-red-topaz",
     "--gem-dragonstone",
-    "--gem-onyx",
     "--gem-zenyte",
 )
 GEM_INK = ("--gem-ink",)

@@ -64,7 +64,7 @@ Done, T1–T15.
 Loose ends:
 
 - [ ] T31. Loose ends
-- [ ] T32. Seven options, at most
+- [ ] T32. Six options, at most
 - [ ] T33. Limits that mean one client, and IPv6
 - [ ] T34. The wiki's rules, enforced *(must land before T23 makes its first request)*
 

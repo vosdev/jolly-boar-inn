@@ -85,7 +85,7 @@ T31–T45 hang off almost nothing in the list above:
 
 ```
 T31 loose ends                 (none; its reveal fix is void if D8 lands first)
-T32 seven options, at most     (none; T27 must respect it)
+T32 six options, at most       (none; T27 must respect it)
 T33 per-client limits + IPv6   (none)
 T34 wiki User-Agent ──────────▶ T23 importer
 T35 invite key ───────────────▶ T36 public lobbies
@@ -487,22 +487,22 @@ name; a browser with no profile creates a room in one tap and is nudged once; an
 unanswered `more_less` question shows no button as pressed, and the verdict text still says
 nobody answered.
 
-### T32. Seven options, at most
+### T32. Six options, at most
 
-There are seven gems, sapphire to zenyte (design.md §2), and every answer button is one of
-them. So no question may offer more than seven choices, of any type, from any source.
+There are six gems, sapphire to zenyte (design.md §2), and every answer button is one of
+them. So no question may offer more than six choices, of any type, from any source.
 
 The cap lives in the schema as one shared definition and every array of choices references
-it: `multiple_choice.options` goes from 6 to 7, `price_is_right` stays at 4, and T27's
+it: `multiple_choice.options` stays at 6, `price_is_right` stays at 4, and T27's
 `ordering.entries` inherits it when it lands. `pick_from_list` has no array of choices —
 its answers come from a vocabulary through a combobox, not from gem buttons — so the cap
 does not reach it. A custom
-question with eight options is a 422 at room creation. The T30 editor reads the cap from the
+question with seven options is a 422 at room creation. The T30 editor reads the cap from the
 schema like every other limit.
 
 **Accept:** a test walks `schema/question.schema.json` and fails any choice array whose
-`maxItems` exceeds 7 or is missing; an eight-option custom question is a 422 naming the
-field; `validate-packs` rejects an eight-option pack entry; a seven-option
+`maxItems` exceeds 6 or is missing; a seven-option custom question is a 422 naming the
+field; `validate-packs` rejects a seven-option pack entry; a six-option
 `multiple_choice` question plays and every button draws a different gem.
 
 ### T33. Limits that mean one client, and IPv6

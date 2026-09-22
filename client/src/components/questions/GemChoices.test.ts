@@ -16,7 +16,7 @@ import { GEMS, gemState } from './GemButton.svelte'
 import GemChoices from './GemChoices.svelte'
 import Question from './Question.svelte'
 
-const SEVEN = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven']
+const SIX = ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
 
 const label = createRawSnippet((option: () => string) => ({
   render: () => `<span>${option()}</span>`,
@@ -31,7 +31,7 @@ function draw(props: {
   onAnswer?: (index: number) => void
 }) {
   return render(GemChoices<string>, {
-    options: props.options ?? SEVEN,
+    options: props.options ?? SIX,
     picked: props.picked ?? null,
     answer: props.answer ?? null,
     revealed: props.revealed ?? false,
@@ -66,7 +66,7 @@ describe('GemChoices', () => {
       ...GEMS,
     ])
     draw({ options: ['Yes', 'No'] })
-    const two = buttons().slice(7)
+    const two = buttons().slice(6)
     expect(two[0].classList.contains('sapphire')).toBe(true)
     expect(two[1].classList.contains('emerald')).toBe(true)
   })
@@ -81,7 +81,7 @@ describe('GemChoices', () => {
   it('holds every button once answered, ours lit and every other faded', () => {
     draw({ picked: 2 })
     expect(buttons().every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
-    expect(states()).toEqual(['faded', 'faded', 'waiting', 'faded', 'faded', 'faded', 'faded'])
+    expect(states()).toEqual(['faded', 'faded', 'waiting', 'faded', 'faded', 'faded'])
     expect(buttons()[2].textContent).toContain('you')
     expect(buttons().map((b) => b.getAttribute('aria-pressed'))).toEqual([
       'false',
@@ -90,8 +90,43 @@ describe('GemChoices', () => {
       'false',
       'false',
       'false',
-      'false',
     ])
+  })
+
+  it('draws a seventh option, over the cap, on the last gem rather than on nothing', () => {
+    draw({ options: [...SIX, 'Seven'] })
+    expect(buttons()[6].classList.contains('zenyte')).toBe(true)
+  })
+
+  const sizes = () =>
+    buttons().map((b) => ['normal', 'large', 'small'].find((s) => b.classList.contains(s)))
+
+  it('keeps every button its normal size while a pick waits', () => {
+    draw({ picked: 2 })
+    expect(sizes().every((size) => size === 'normal')).toBe(true)
+  })
+
+  it('draws the answer large on the reveal and the rest small, in position order', () => {
+    const { container } = draw({ picked: 4, answer: 1, revealed: true })
+    expect(sizes()).toEqual(['small', 'large', 'small', 'small', 'small', 'small'])
+    // The DOM, and so a screen reader, keeps the options in order; CSS moves the answer.
+    expect(buttons().map((b) => b.textContent?.match(/One|Two|Three|Four|Five|Six/)?.[0])).toEqual(
+      SIX,
+    )
+    const grid = container.querySelector('.gems') as HTMLElement
+    expect(grid.classList.contains('settled')).toBe(true)
+    expect(grid.style.getPropertyValue('--columns')).toBe('3')
+  })
+
+  it.each([
+    [2, '1'],
+    [4, '3'],
+    [5, '2'],
+    [6, '3'],
+  ])('lays %i options out under the answer in %s columns', (count, columns) => {
+    const { container } = draw({ options: SIX.slice(0, count), answer: 0, revealed: true })
+    const grid = container.querySelector('.gems') as HTMLElement
+    expect(grid.style.getPropertyValue('--columns')).toBe(columns)
   })
 
   it.each(GEMS.map((gem, index) => [gem, index] as const))(

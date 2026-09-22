@@ -32,9 +32,9 @@ If we want a custom font, we should find one.
 # Logo
 
 We need to create our own logo/favicon for the website
-# Limit answers to 7
+# Limit answers to 6
 
-We only have 7 gems (Sapphire <-> Zenyte) so we need to limit the amount of answers that any type of question can have to 7.
+We only have 6 gems (Sapphire <-> Zenyte) so we need to limit the amount of answers that any type of question can have to 6.
 
 # Store rooms in LocalStorage when done
 

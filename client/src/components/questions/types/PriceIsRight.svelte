@@ -74,14 +74,16 @@
     color: var(--muted);
   }
 
+  /* In em, so the price grows with the answer's button on a reveal and shrinks with the
+     rest beneath it. */
   .price {
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 1.35rem;
+    font-size: 1.35em;
     font-weight: 600;
   }
 
   .unit {
-    font-size: 0.8rem;
+    font-size: 0.6em;
     font-weight: 400;
   }
 

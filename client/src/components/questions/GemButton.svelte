@@ -1,9 +1,10 @@
 <script lang="ts" module>
   /**
-   * The seven gems, which are also the order of the options: position 1 is always
+   * The six gems, which are also the order of the options: position 1 is always
    * sapphire, position 2 always emerald (section 2). A two-option question shows sapphire
    * and emerald, never sapphire and zenyte. Red topaz holds the fourth place diamond had,
-   * because a near-white gem looked the same lit as faded.
+   * because a near-white gem looked the same lit as faded; onyx, black on the dark
+   * themes, went for the same reason.
    */
   export const GEMS = [
     'sapphire',
@@ -11,7 +12,6 @@
     'ruby',
     'red-topaz',
     'dragonstone',
-    'onyx',
     'zenyte',
   ] as const
 
@@ -63,6 +63,10 @@
    * Lit against faded is a fill and a weight, and the fade takes the edge's contrast with
    * it, so it still reads with the colour taken out.
    *
+   * `size` is the reveal's layout (section 2): the answer is drawn `large` above the rest,
+   * which are `small`, because a gem's hue is not the only thing that should say which
+   * one was right. Everywhere else a button is `normal`.
+   *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
    * `FADED_GEM_SHARE`; change the two together.
@@ -73,6 +77,7 @@
     gem,
     status,
     mine = false,
+    size = 'normal',
     disabled,
     onclick,
     children,
@@ -85,6 +90,7 @@
      * state that does not, a right answer, which keeps its "you" on the reveal.
      */
     mine?: boolean
+    size?: 'normal' | 'large' | 'small'
     disabled: boolean
     onclick: () => void
     children: Snippet
@@ -105,7 +111,7 @@
 
 <button
   type="button"
-  class="gem {gem ?? 'plain'} {status}"
+  class="gem {gem ?? 'plain'} {status} {size}"
   aria-pressed={yours}
   {disabled}
   {onclick}
@@ -155,15 +161,30 @@
   .dragonstone {
     --fill: var(--gem-dragonstone);
   }
-  .onyx {
-    --fill: var(--gem-onyx);
-  }
   .zenyte {
     --fill: var(--gem-zenyte);
   }
   .plain {
     --fill: var(--panel);
     --mark: var(--ink);
+  }
+
+  /* The revealed answer, above the rest. */
+  .large {
+    min-height: 84px;
+    font-size: 1.25rem;
+  }
+
+  /* The options that were not the answer, under it, up to three across a phone. Held by
+     then, so they are read rather than pressed and can go under the 56px a thumb needs;
+     the "you" goes under the answer rather than beside it, where it would take a third
+     of the width. */
+  .small {
+    flex-direction: column;
+    gap: 0.2rem;
+    min-height: 44px;
+    padding: calc(0.35rem - var(--border-give)) calc(0.4rem - var(--border-give));
+    font-size: 0.8rem;
   }
 
   .gem:hover:not(:disabled) {

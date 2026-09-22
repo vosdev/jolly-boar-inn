@@ -20,7 +20,7 @@ task everything else waits on.
    in localStorage the way the theme does.
 5. **Two sound switches, not one**, because one of them can make a round unplayable.
 6. **A quiet footer**, carrying the trademark line, the GitHub link and the licence.
-7. **Seven gems, and the reveal never recolours one.** Position is identity. The verdict
+7. **Six gems, and the reveal never recolours one.** Position is identity. The verdict
    lives in the points slot, where it is the same shape in every mode.
 8. **Standings between rounds, on a podium.** Never between questions. The top five stand on
    the Quest Speedrunning trophies, and everyone else is on the hiscores table below them.
@@ -93,7 +93,7 @@ that runs in CI.
 | 2. Brand | `--accent` `--accent-ink` `--accent-hover` | Freely |
 | 3. Verdict | `--ok` `--ok-ink` `--bad` `--bad-ink` `--warn` `--warn-ink` | Must pass contrast + hue check |
 | 4. Semantic | `--more` `--less` | Must pass; must differ from layer 3 by hue or shape cue |
-| 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-onyx` `--gem-zenyte` `--gem-ink` | Freely, but each must stay clear of its own faded self |
+| 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-zenyte` `--gem-ink` | Freely, but each must stay clear of its own faded self |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
 
@@ -124,7 +124,10 @@ being the gem mixed 25% into `--panel`; and **every gem at least 20 apart (CIE76
 its own faded self**, because lit against faded is now the whole reveal. That second one is
 why diamond is no longer a gem: near-white on jolly's cream panel it measured 18, and a
 player who picked a wrong sapphire saw more colour on their faded button than on the lit
-diamond answer. Red topaz, a pink, took its place.
+diamond answer. Red topaz, a pink, took its place. Onyx went for the same reason the other
+way round: black on wilderness's near-black panel, and no shade of it far enough from black
+to fade still looked like onyx. Black and white will always wash into a panel of their own
+lightness, so every gem left has a hue, and the gems are six.
 
 ### The gem buttons and the reveal problem
 
@@ -143,6 +146,13 @@ identity, and green and red never land on a gem.
 A pick works the same way before the reveal: the button you pressed stays lit and every
 other one fades, rather than yours gaining an outline.
 
+The reveal also moves the answer, so a gem's hue is never the only thing that says which
+one was right. The correct button is drawn large, across the top; the others go small
+beneath it, still faded and still in position order — one row for up to three, two rows
+for four or five (four as two by two). Only the layout moves: in the DOM the options stay
+one to six, so a screen reader reads them in order. While a pick waits for everyone else,
+nothing moves and the fade is the only signal.
+
 Your own pick carries a small "you" marker, right or wrong, and that is the only thing added
 to any button. If you pressed Ruby and it was wrong, Ruby is faded like the rest, and its
 "you" is how you still see what you chose — no ✗, and no red edge. Five states per button:
@@ -159,13 +169,13 @@ follow it. A player who did not answer is not on that list, and neither is a gra
 that scored.
 
 Gems are also ordering, not decoration: **sapphire, emerald, ruby, red topaz, dragonstone,
-onyx, zenyte**, the in-game value order with red topaz in the place diamond held (above:
-diamond could not be told lit from faded), so position 1 is always sapphire, position 2
+zenyte**, the in-game value order with red topaz in the place diamond held and onyx left out
+(above: neither could be told lit from faded), so position 1 is always sapphire, position 2
 always emerald, and so on down. That holds however many options are on screen — a two-option
 question shows sapphire and emerald, never sapphire and zenyte — because the whole value of
 the scheme is that a player learns the position, which is worth more than variety.
 
-Seven gems is therefore also a cap: **no mode may offer more than seven options.** That is a
+Six gems is therefore also a cap: **no mode may offer more than six options.** That is a
 constraint on question generation rather than on this document, and it is tracked as its own
 task outside the D-tasks.
 
@@ -866,7 +876,7 @@ The layered token set from §2 in `app.css`, the `[data-theme]` mechanism, and
 `lib/theme.ts` (read, set, persist to `jbi:theme`, fall back to `jolly` — there is no
 `prefers-color-scheme` branch, §1). No new palette: today's colours become `jolly` and
 today's dark block becomes `wilderness`, unchanged, so the diff is a rename and a
-restructure. `scripts/check_contrast.py` and a CI step. All seven gem tokens are defined here
+restructure. `scripts/check_contrast.py` and a CI step. Every gem token is defined here
 even though no button uses them yet, so the `--ok`-against-`--gem-*` assertion has something
 to check from day one.
 
@@ -984,18 +994,20 @@ not; the lobby's Start asks before starting a room short of its threshold.
 
 Timer as a bar under the top bar; the gem button component with its five states and the
 reveal rule from §2, used by `multiple_choice`, `price_is_right` and `ordering` and sized for
-up to seven options; the points slot from §7.2, earned points over the running total; the
+up to six options; the points slot from §7.2, earned points over the running total; the
 waiting state; touch targets at 56px. `more_less` keeps its own two buttons and its own two
 tokens. Fixes the `ideas/IDEAS.md` bug where an unanswered `more_less` question highlights a
 button as if it had been pressed.
 
 **Accept:** whichever gem is correct, it is the only one not faded, and no button changes
-colour on reveal; no ring, ✓ or ✗ on any button; a pick fades the other options; your own
+colour on reveal; the answer is drawn large above the rest, which go small beneath it in
+position order, while a waiting pick moves nothing; no ring, ✓ or ✗ on any button; a pick
+fades the other options; your own
 pick, right or wrong, carries a "you"; the count of who got it right is under every reveal,
 and the names of who got it wrong only when the host turned them on; faded answer text is still
 readable at 4.5:1; a timeout shows `No answer · +0` and is distinguishable from a wrong
 answer; the points slot is in the same place in every mode and its running total agrees with
-the next standings screen; seven gem buttons at 56px fit a 375px screen without pushing the
+the next standings screen; six gem buttons at 56px fit a 375px screen without pushing the
 prompt off it; no answer submitted shows no button as pressed; the timer bar
 is accurate against `ends_at` after a 20-second phone lock; every button is reachable and
 operable by keyboard with a visible focus ring.
@@ -1113,11 +1125,11 @@ manifest, because `max_players_per_room` is 50 and a full room should be able to
 different faces. The index is a contract: `players.avatar` stores it, so an id is never
 repointed at a different head. §5.2.
 
-[x] **Seven gems, seven options, three modes.** Sapphire, emerald, ruby, red topaz,
-dragonstone, onyx, zenyte — red topaz replacing diamond in D8, which looked the same lit as
-faded — in that order and position-stable however many are shown.
+[x] **Six gems, six options, three modes.** Sapphire, emerald, ruby, red topaz,
+dragonstone, zenyte — red topaz replacing diamond in D8 and onyx dropped, because white and
+black looked the same lit as faded — in that order and position-stable however many are shown.
 `multiple_choice`, `price_is_right` and `ordering` use them; `more_less` keeps `--more` /
-`--less` and its item pictures. No mode offers more than seven options, which is tracked as
+`--less` and its item pictures. No mode offers more than six options, which is tracked as
 its own task outside this document. §2.
 
 [x] ~~**The `--ok` ring stays on the winning gem**~~ — superseded in D8: **lit against faded,

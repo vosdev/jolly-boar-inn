@@ -681,7 +681,7 @@ says
 
 ---
 
-## T31 + T32 + T34. Loose ends, seven options, and the wiki's rules
+## T31 + T32 + T34. Loose ends, six options, and the wiki's rules
 
 Three small tasks with no files worth fighting over. T34 is the one with a deadline (before
 T23), which is the reason to run this session early.
@@ -725,28 +725,28 @@ Accept:
   answered.
 - ideas/design.md updated for item 2 in the same change.
 
-=== T32. Seven options, at most ===
+=== T32. Six options, at most ===
 
-Task T32 in ideas/phase2.md: no question may offer more than seven choices, because there
-are seven gem buttons (ideas/design.md §2: sapphire, emerald, ruby, red topaz, dragonstone,
-onyx, zenyte) and each choice is one of them.
+Task T32 in ideas/phase2.md: no question may offer more than six choices, because there
+are six gem buttons (ideas/design.md §2: sapphire, emerald, ruby, red topaz, dragonstone,
+zenyte) and each choice is one of them.
 
 Do:
 - schema/question.schema.json: one shared $def for the cap, referenced by every array of
-  choices. multiple_choice.options goes 6 -> 7. price_is_right stays at exactly 4.
+  choices. multiple_choice.options stays at 6. price_is_right stays at exactly 4.
 - If T27's ordering already exists, it references it too. If not, add a line to
   ideas/architecture.md section 2 saying it must. pick_from_list (T20) is exempt: it has no
   array of choices, and its combobox draws no gems.
 - The client editor (T30), if landed, already reads caps from the schema. Check that it
-  picks up 7 with no change of its own.
+  picks up 6 with no change of its own.
 
 Accept:
-- A test walks the schema and fails any choice array whose maxItems exceeds 7 or is unset.
+- A test walks the schema and fails any choice array whose maxItems exceeds 6 or is unset.
   Name how it recognises "an array of choices", so a future type cannot slip past by
   naming its field differently.
-- An eight-option custom question is a 422 naming the field, and creates no room.
-- make validate-packs rejects an eight-option pack entry.
-- A seven-option multiple_choice question plays, and every button draws a different gem
+- A seven-option custom question is a 422 naming the field, and creates no room.
+- make validate-packs rejects a seven-option pack entry.
+- A six-option multiple_choice question plays, and every button draws a different gem
   (manual if D8 has not landed, and say which).
 
 === T34. The wiki's rules, enforced ===
