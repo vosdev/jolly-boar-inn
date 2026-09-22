@@ -103,6 +103,11 @@ class RoomSettings(BaseModel):
     # How long an event's NPC holds the floor before the buttons appear. Stored from T21,
     # read from T22, which is when there is an NPC to hold it; zero is a plain question.
     random_event_seconds: int = Field(default=2, ge=0)
+    # How long the standings hold the floor between two rounds (D9). Zero turns them off,
+    # as ``splash_seconds`` does for the splash; the game's last round never has them,
+    # because the final screen is its standings. Defaulted, so a room stored before the
+    # field existed reads as a room that has them.
+    standings_seconds: int = Field(default=10, ge=0)
     close_when_all_answered: bool = True
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
     # so a stored room always has a number here.
@@ -162,6 +167,7 @@ class NewRoomSettings(RoomSettings):
     reveal_seconds: int = Field(default=8, ge=2, le=30)
     splash_seconds: int = Field(default=8, ge=0, le=30)
     random_event_seconds: int = Field(default=2, ge=0, le=10)
+    standings_seconds: int = Field(default=10, ge=0, le=30)
 
     @field_validator("modes")
     @classmethod

@@ -15,7 +15,12 @@
  */
 
 export type RoomStatus = 'lobby' | 'playing' | 'finished'
-export type Phase = 'idle' | 'splash' | 'open' | 'reveal'
+/**
+ * `standings` (D9) sits between a round's last reveal and the next round, and nowhere
+ * else. A screen that does not know a phase shows its waiting state, which is what a
+ * build from before one arrived does with it.
+ */
+export type Phase = 'idle' | 'splash' | 'open' | 'reveal' | 'standings'
 export type Role = 'player' | 'admin'
 /** How a question's credit becomes points: `questions/types/scoring.py`'s `Scoring`. */
 export type Scoring = 'speed' | 'rank' | 'step'
@@ -61,6 +66,8 @@ export interface RoomSettings {
   splash_seconds: number
   /** How long an event's NPC holds the floor before the buttons appear (T22). */
   random_event_seconds: number
+  /** How long the standings hold between two rounds (D9). Zero turns them off. */
+  standings_seconds: number
   close_when_all_answered: boolean
   max_players: number | null
 }
@@ -93,7 +100,10 @@ export interface RoomView {
   current_index: number | null
   total: number
   phase: Phase
-  /** When the current timed phase ends: a splash's first question, or the next question. */
+  /**
+   * When the current timed phase ends: a splash's first question, a reveal's next question
+   * or standings, the standings' next round.
+   */
   next_at: string | null
   /** The round in progress; null before the first question and once the game is over. */
   segment: Segment | null

@@ -1822,3 +1822,226 @@ def test_a_pack_event_plays_inside_the_round_it_interrupts(table, second_mode, m
     ]
     assert splashes == ["more_less", second_mode]
     assert modes[event.position] == (event.mode, second_mode)
+
+
+# --- D9: the standings, between rounds and only there --------------------------------
+
+
+def standings_updates(seat: Seat) -> list[dict[str, Any]]:
+    """Every ``room_updated`` ``seat`` has seen that put the room in ``standings``."""
+    return [
+        message
+        for message in seat.seen
+        if message["t"] == "room_updated" and message["room"]["phase"] == "standings"
+    ]
+
+
+def play_out(game: Game, count: int) -> dict[str, Any]:
+    """Skip through ``count`` questions and whatever sits between them; the final frame.
+
+    A skip during a standings phase ends it, so the loop skips the standings too, which
+    is what lets one helper play a game with and without them.
+    """
+    for index in range(count):
+        assert game.admin.take("question_open")["question"]["index"] == index
+        game.admin.send(t="skip")
+        game.admin.take("question_closed")
+        game.admin.send(t="skip")
+        if index + 1 < count and game.room.segment_at(index + 1).start == index + 1:  # type: ignore[union-attr]
+            if game.room.settings.standings_seconds > 0:
+                updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+                game.admin.send(t="skip")
+    return game.admin.take("game_finished")
+
+
+def test_standings_end_every_round_but_the_last(table, second_mode) -> None:
+    """D9 Accept: none between two questions of one round; one after each round but the
+    last, lasting ``standings_seconds``; the last round goes straight to ``finished``."""
+    game = table(
+        "Zezima",
+        reveal_seconds=1,
+        standings_seconds=10,
+        modes=[
+            {"mode": "more_less", "questions": 2, "seconds": 10},
+            {"mode": second_mode, "questions": 2, "seconds": 10},
+        ],
+    )
+    game.start()
+    game.opened(0)
+    game.answer(game.players[0], 0, game.right(0))
+    game.players[0].take("answer_ack")
+    game.admin.send(t="skip")
+    closed = game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    game.opened(1)  # the same round: straight on, no standings in between
+    assert standings_updates(game.admin) == []
+
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+    assert game.room.phase == "standings"
+    assert update["room"]["current_index"] == 1  # still on the round it closes
+    assert update["room"]["segment"]["index"] == 0
+    assert 8 < seconds_left(update) <= 10
+
+    game.admin.send(t="skip")
+    assert game.admin.take("question_open")["question"]["index"] == 2
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    game.admin.take("question_open")
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    finished = game.admin.take("game_finished")
+    assert len(standings_updates(game.admin)) == 1  # the last round had none of its own
+    assert finished["standings"][0]["points"] == closed["standings"][0]["points"] == 1000
+
+
+def test_standings_end_on_their_own(table, second_mode) -> None:
+    """Nobody skips: the phase holds for ``standings_seconds`` and the next round opens."""
+    game = table(
+        "Zezima",
+        reveal_seconds=1,
+        standings_seconds=1,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
+    game.start()
+    game.opened(0)
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+    ends_at = datetime.fromisoformat(update["room"]["next_at"])
+    opened = game.admin.take("question_open")["question"]
+    assert opened["index"] == 1
+    assert datetime.fromisoformat(opened["opened_at"]) >= ends_at - timedelta(milliseconds=200)
+
+
+def test_standings_seconds_zero_runs_the_rounds_straight_on(table, second_mode) -> None:
+    game = table(
+        "Zezima",
+        reveal_seconds=1,
+        standings_seconds=0,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
+    game.start()
+    play_out(game, 2)
+    assert standings_updates(game.admin) == []
+
+
+def test_a_single_round_game_has_standings_only_at_the_end(table) -> None:
+    game = table("Zezima", seconds=10, reveal_seconds=1, standings_seconds=10)
+    game.start()
+    play_out(game, 3)
+    assert standings_updates(game.admin) == []
+
+
+def test_the_standings_follow_a_round_whose_splash_is_off(table, second_mode) -> None:
+    """The splash introduces a mode and can be switched off; the standings follow every
+    round whatever the splash does, and the next round's splash comes after them."""
+    game = table(
+        "Zezima",
+        reveal_seconds=1,
+        splash_seconds=8,
+        standings_seconds=10,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
+    game.start()
+    game.splash()
+    game.admin.send(t="skip")
+    game.admin.take("question_open")
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+    game.admin.send(t="skip")
+    assert game.splash()["room"]["segment"]["mode"] == second_mode
+
+
+def test_skip_during_the_reveal_does_not_also_skip_the_standings(table, second_mode) -> None:
+    """One skip is one phase: the reveal it cut short does not carry it into the next."""
+    game = table(
+        "Zezima",
+        reveal_seconds=30,
+        standings_seconds=30,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
+    game.start()
+    game.opened(0)
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")
+    update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+    assert seconds_left(update) > 25
+    time.sleep(0.3)
+    assert game.room.phase == "standings"
+
+
+def test_a_player_arriving_during_the_standings_sees_them(table, client, second_mode) -> None:
+    """D9 Accept: a join or a reconnect during ``standings`` gets the phase, the
+    standings and the ``next_at`` a live socket was sent."""
+    game = table(
+        "Zezima",
+        reveal_seconds=1,
+        standings_seconds=30,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
+    game.start()
+    game.opened(0)
+    game.answer(game.players[0], 0, game.right(0))
+    game.players[0].take("answer_ack")
+    game.admin.send(t="skip")
+    closed = game.admin.take("question_closed")
+    update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+
+    late = join(client, game.code, "Lynx Titan").json()
+    for session in (game.players[0].session, late["session"]):
+        with client.websocket_connect(f"/ws/{game.code}") as again:
+            again.send_json({"t": "hello", "session": session})
+            welcome = again.receive_json()
+            assert welcome["t"] == "welcome"
+            assert welcome["room"]["phase"] == "standings"
+            assert welcome["room"]["next_at"] == update["room"]["next_at"]
+            assert welcome["question"] is None
+            ranked = [(s["player_id"], s["points"]) for s in welcome["standings"]]
+            assert ranked[: len(closed["standings"])] == [
+                (s["player_id"], s["points"]) for s in closed["standings"]
+            ]
+
+
+def test_skip_is_refused_outside_a_game_and_accepted_in_standings(table, second_mode) -> None:
+    game = table(
+        "Zezima",
+        reveal_seconds=1,
+        standings_seconds=30,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ],
+    )
+    game.admin.send(t="skip")
+    assert game.admin.take("error")["code"] == "bad_state"
+    game.start()
+    game.opened(0)
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+    started = time.monotonic()
+    game.admin.send(t="skip")
+    assert game.admin.take("question_open")["question"]["index"] == 1
+    assert time.monotonic() - started < 1

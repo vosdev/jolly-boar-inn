@@ -140,6 +140,24 @@ def test_the_npc_holds_the_floor_for_zero_to_ten_seconds(seconds: int) -> None:
         NewRoomSettings(random_event_seconds=seconds)
 
 
+@pytest.mark.parametrize("seconds", [-1, 31])
+def test_the_standings_hold_for_zero_to_thirty_seconds(seconds: int) -> None:
+    """D9: default 10, 0..30 at creation, zero turning the phase off."""
+    assert NewRoomSettings().standings_seconds == 10
+    assert NewRoomSettings(standings_seconds=0).standings_seconds == 0
+    assert NewRoomSettings(standings_seconds=30).standings_seconds == 30
+    with pytest.raises(ValidationError):
+        NewRoomSettings(standings_seconds=seconds)
+
+
+def test_a_room_stored_before_the_standings_reads_as_having_them() -> None:
+    """D9 Accept: a room created before the field existed still loads, and plays with the
+    default rather than being refused for a missing key."""
+    stored = RoomSettings().model_dump()
+    del stored["standings_seconds"]
+    assert RoomSettings.model_validate(stored).standings_seconds == 10
+
+
 def test_seconds_for_clamps_a_stored_room_into_the_types_range() -> None:
     settings = RoomSettings(modes=[{"mode": "more_less", "seconds": 45}])
     assert settings.seconds_for("more_less") == 20

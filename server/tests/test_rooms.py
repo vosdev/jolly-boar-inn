@@ -185,6 +185,7 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         "random_event_seconds": 2,
         "reveal_seconds": 5,
         "splash_seconds": 8,
+        "standings_seconds": 10,
         "close_when_all_answered": True,
         "max_players": 50,
     }
@@ -209,6 +210,8 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"reveal_seconds": 60},
         {"splash_seconds": -1},
         {"splash_seconds": 31},
+        {"standings_seconds": -1},
+        {"standings_seconds": 31},
         {"max_players": 0},
         {"bogus": 1},
     ]
