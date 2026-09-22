@@ -260,7 +260,7 @@ Accept:
 Task T21 in ideas/phase2.md: the last three simple types, and random events server-side.
 
 Read ideas/architecture.md section 1 (selection.py's "Random events", and segments.py),
-section 2 ("A random event is not a mode", and the payloads), section 4 (the settings
+section 2 ("A random event is a placement, not a round", and the payloads), section 4 (the settings
 block and the custom paragraph under it), and section 6 (exclusions).
 
 Do:
@@ -292,12 +292,12 @@ Do:
   the count. Do not truncate.
 - segments.py: an event is grouped into the round it interrupts, not a segment of its own.
 - app/random_events.py: the NPC ids, and nothing else. Names and lines are client copy
-  in T30, the way mode copy already lives in lib/modes.ts.
+  in T22, the way mode copy already lives in lib/modes.ts.
 - Author exclusion gets its first real caller (T10 built and tested it).
 - types/MultipleChoice.svelte, ClosestNumber.svelte and FreeText.svelte.
 
-Do not: build the editor UI (T22), and do not build the event presentation — the NPC card
-and the held-back buttons are T30. Until then an event plays as an ordinary question in the
+Do not: build the editor UI (T30), and do not build the event presentation — the NPC card
+and the held-back buttons are T22. Until then an event plays as an ordinary question in the
 middle of a round. That is deliberate; do not paper over it with a half client change.
 
 Accept:
@@ -321,36 +321,87 @@ Accept:
 
 ---
 
-## T22. The custom-question editor
+## T22. Random events
 
 ```text
-Task T22 in ideas/phase2.md: the client editor for custom questions. Client only — the
-server side landed in T21 and does not change.
+Task T22 in ideas/phase2.md: random events get a face, a theme and questions of their own,
+and the host's questions arrive through them.
 
-Do:
-- The /r/:code/create route: a form per custom type (multiple_choice, free_text,
-  closest_number), a list of what has been added, edit, remove, reorder.
-- Export the room's custom questions to a JSON file, and import one back. Same envelope as
-  the schema, so an exported file is a valid POST body.
-- Client-side validation mirroring the schema's limits, so the form never submits something
-  the server will 422. The schema is the source of truth for the caps — read them from
-  schema/question.schema.json rather than retyping the numbers.
-- The room's event cap: a host may write one question fewer than the number of modes they
-  picked, because each one interrupts a round and never the first (architecture section 1).
-  The form knows the selected modes, so it can say "four modes, three questions" before the
-  server has to.
+Read ideas/random-events.md first. It is the owner's roster: the NPC ids, their names,
+opening lines and themes, and the first questions for each one. If it does not exist or
+has fewer than twelve NPCs, stop and say so. Then read ideas/TODO.md "Custom Questions"
+for the idea in the words it was written in, and ideas/architecture.md section 1
+(selection.py's "Random events"), section 2 ("A random event is a placement, not a round", and the
+envelope's random_event), section 3 (OpenQuestion.random_event and answerable_at) and
+section 4 (the splash rule, and the pending → open row). T21 already placed events and
+stored questions.random_event. This task changes who asks and what they ask, and adds the
+two seconds and the card.
+
+Do, server and data:
+- app/random_events.py: the ids from ideas/random-events.md. tests/test_random_events.py
+  keeps holding the roster to at least len(round_modes()) - 1, and to twelve.
+- MODES gains "random_event" with type = None: never a round, only seconds, like "custom".
+- data/packs/random_events/<npc_id>.json, one hand-written file per NPC, carrying the
+  questions from ideas/random-events.md. The file declares "random_event" once and its
+  questions do not repeat it. load_packs and validate_packs.py read this folder as well as
+  data/packs/*.json. validate-packs fails a file not named after a roster id, a question
+  in it that sets its own random_event, and a question outside the folder that has one.
+  Each question still gets its id from the content hash.
+- schema/question.schema.json: an optional envelope field random_event, pattern
+  ^[a-z0-9_]{1,32}$. It is outside the hash like every envelope field. A custom question
+  may carry it, and POST /api/rooms 422s an id that is not in the roster.
+- selection.place_random_events: a custom question that names an NPC gets that NPC,
+  repeats included. Every other face is drawn from those not yet used in the room. A
+  leftover slot, with PACK_RANDOM_EVENT_CHANCE, takes a question from the event pack whose
+  NPC has not been used yet, preferring a type other than the interrupted round's type, and
+  stays empty if nothing qualifies. Delete the borrowing from unpicked modes, and update
+  the docstrings that describe it.
+
+Do, the two seconds:
+- OpenQuestion gains random_event (the NPC id, null for an ordinary question) and
+  answerable_at. answerable_at is shown_at for an ordinary question and shown_at +
+  random_event_seconds for an event; ends_at becomes answerable_at + the round's
+  seconds; elapsed is measured from answerable_at; an answer received before it is
+  rejected with not_open. Nothing new is stored: answerable_at is derived, so rehydrate
+  does not change.
+- The splash rule moves from "a new mode" to "a new segment" (segments.py already groups an
+  event into the round it interrupts). An event gets no splash, and neither does the
+  question after it.
+
+Do, client:
+- lib/randomEvents.ts: the roster's copy, as one flat array: id, name, theme, the line
+  they open with, and the asset ref. The ids must match app/random_events.py, and a test
+  says so. Write the lines the way the game writes them.
+- components/RandomEvent.svelte: the NPC and the question stem, with the answer
+  affordance held back until answerable_at, counted off server_time and not the local
+  clock. Images are Phase 3: the card reads well as text alone, with the asset as an empty
+  slot. An unknown random_event id draws a generic card, the way viewFor already falls
+  back for a mode it cannot draw.
+
+Do not: add a phase to the room state machine, add a column, or send a second message when
+the buttons appear. All three are avoidable and section 4 says how. Do not write event
+questions that need an image (a Certer's silhouette waits for Phase 3), and do not use
+ge_price in a hand-written more_less or price_is_right question, because it goes stale.
 
 Accept:
-- Add, edit, remove, reorder for all three types.
-- Export then import round-trips to a byte-identical file.
-- Import of a malformed file shows a readable message and changes nothing already entered.
-- Every schema limit (option counts, string lengths, accepted-answer counts) is enforced in
-  the form, with the message next to the field.
-- The event cap is enforced and explained: adding a fourth question to a four-mode room says
-  why it cannot, and deselecting a mode that drops the cap below what is already written
-says
-  so rather than waiting for submit.
-- pnpm check clean. Manual: create a room with two custom questions and play it.
+- An answer before answerable_at is rejected with not_open, asserted on the server.
+- A player answering the instant the buttons appear lands in bucket 1: the wait costs nobody
+  a point.
+- ends_at - answerable_at equals the round's own seconds.
+- No splash runs for an event, and none runs for the question following one.
+- A reconnect inside the held-back window lands on the NPC card with the right remaining
+  delay, computed from the welcome snapshot.
+- random_event_seconds: 0 plays an event as a plain question. That is what the rest of
+  the tests run on.
+- An unknown random_event id renders the generic card and logs nothing alarming.
+- validate-packs fails each of the three misplaced-random_event cases above, on fixtures.
+- A custom question's named NPC is the one that asks it, and two custom questions naming
+  one NPC are both honoured. Seeded over many rooms, no drawn face repeats and no pack
+  event shares an NPC with another event in its room.
+- Every roster id has an event file with at least two questions and a randomEvents.ts
+  entry.
+- pnpm check clean. Manual: play a four-mode room with two custom questions, one naming its
+  NPC, and say who turned up where.
 ```
 
 ---
@@ -589,54 +640,43 @@ Accept:
 
 ---
 
-## T30. Random events
+## T30. The custom-question editor
 
 ```text
-Task T30 in ideas/phase2.md: make the host's questions, and some of ours, arrive as random
-events.
-
-Read ideas/TODO.md "Custom Questions" for the idea in the words it was written in, then
-ideas/architecture.md section 3 (OpenQuestion.random_event and answerable_at, and the
-paragraphs under the shapes) and section 4 (the splash rule, and the pending → open
-row). T21 already placed the events and stored questions.random_event; this task is the
-two seconds and the NPC.
+Task T30 in ideas/phase2.md: the client editor for custom questions. Client only. The
+server side landed in T21 and T22 and does not change. This needs T22: check git log for it
+first, and stop if it has not landed.
 
 Do:
-- OpenQuestion gains random_event (the NPC id, null for an ordinary question) and
-  answerable_at. answerable_at is shown_at for an ordinary question and shown_at +
-  random_event_seconds for an event; ends_at becomes answerable_at + the round's
-  seconds; elapsed is measured from answerable_at; an answer received before it is
-  rejected with not_open. Nothing new is stored — answerable_at is derived, so rehydrate
-  does not change.
-- The splash rule moves from "a new mode" to "a new segment" (segments.py already groups an
-  event into the round it interrupts). An event gets no splash, and neither does the
-question
-  after it.
-- lib/random_events.ts: the roster's copy — id, NPC name, the line they open with, the
-  asset ref. A dozen of them. This is the one place in the project that gets to be
-  funny, so write them like the game writes them; the ids must match
-  app/random_events.py.
-- components/RandomEvent.svelte: the NPC and the question stem, with the answer
-  affordance held back until answerable_at, counted off server_time and not the local
-  clock. An unknown random_event id draws a generic card, the way viewFor already falls
-  back for a mode it cannot draw.
-
-Do not: add a phase to the room state machine, add a column, or send a second message when
-the buttons appear. All three are avoidable and section 4 says how.
+- The /r/:code/create route: a form per custom type (multiple_choice, free_text,
+  closest_number), a list of what has been added, edit, remove, reorder.
+- Export the room's custom questions to a JSON file, and import one back. Same envelope as
+  the schema, so an exported file is a valid POST body.
+- Client-side validation mirroring the schema's limits, so the form never submits something
+  the server will 422. The schema is the source of truth for the caps — read them from
+  schema/question.schema.json rather than retyping the numbers.
+- The room's event cap: a host may write one question fewer than the number of modes they
+  picked, because each one interrupts a round and never the first (architecture section 1).
+  The form knows the selected modes, so it can say "four modes, three questions" before the
+  server has to.
+- An NPC picker per question: Random (the default) and then the roster from
+  lib/randomEvents.ts, each entry with its name and theme, and a preview drawn by T22's
+  RandomEvent.svelte. Picking one sets the question's random_event, and Random leaves it
+  out. Two questions may pick the same NPC; the server honours that.
 
 Accept:
-- An answer before answerable_at is rejected with not_open, asserted on the server.
-- A player answering the instant the buttons appear lands in bucket 1: the wait costs nobody
-  a point.
-- ends_at - answerable_at equals the round's own seconds.
-- No splash runs for an event, and none runs for the question following one.
-- A reconnect inside the held-back window lands on the NPC card with the right remaining
-  delay, computed from the welcome snapshot.
-- random_event_seconds: 0 plays an event as a plain question — that is what the rest of
-  the tests run on.
-- An unknown random_event id renders the generic card and logs nothing alarming.
-- pnpm check clean. Manual: play a four-mode room with two custom questions, and say where
-  the events turned up.
+- Add, edit, remove, reorder for all three types.
+- Export then import round-trips to a byte-identical file, chosen NPCs included.
+- Import of a malformed file shows a readable message and changes nothing already entered.
+  An unknown random_event id is one of those messages.
+- The picker defaults to Random, and a question left on Random carries no random_event.
+- Every schema limit (option counts, string lengths, accepted-answer counts) is enforced in
+  the form, with the message next to the field.
+- The event cap is enforced and explained: adding a fourth question to a four-mode room says
+  why it cannot, and deselecting a mode that drops the cap below what is already written
+says
+  so rather than waiting for submit.
+- pnpm check clean. Manual: create a room with two custom questions and play it.
 ```
 
 ---
@@ -697,7 +737,7 @@ Do:
 - If T27's ordering already exists, it references it too. If not, add a line to
   ideas/architecture.md section 2 saying it must. pick_from_list (T20) is exempt: it has no
   array of choices, and its combobox draws no gems.
-- The client editor (T22), if landed, already reads caps from the schema. Check that it
+- The client editor (T30), if landed, already reads caps from the schema. Check that it
   picks up 7 with no change of its own.
 
 Accept:

@@ -21,7 +21,7 @@
    * `/api/modes` lists `custom` too, with no round length: the host's own questions are
    * never a round but random events, one dropped into each round after the first. So the
    * form offers every mode but that one. Writing those questions is the editor's job
-   * (T22); until it lands `custom_questions` is always the empty list `api.createRoom`
+   * (T30); until it lands `custom_questions` is always the empty list `api.createRoom`
    * sends, and the one choice about events here is whether the packs may interrupt.
    */
   import { onMount, untrack } from 'svelte'

@@ -6,7 +6,7 @@ mid-task. ``rooms/selection.py`` places them and gives each a face from this tup
 the same face twice in one room, and ``questions.random_event`` stores which one.
 
 The ids are all the server knows. Who these NPCs are, what they open with and what they
-look like is copy, and copy lives on the client (``lib/randomEvents.ts``, from T30) exactly
+look like is copy, and copy lives on the client (``lib/randomEvents.ts``, from T22) exactly
 as a mode's label does in ``lib/modes.ts``. A client that meets an id it has no copy for
 draws a generic card for it, so adding one here never breaks an older build.
 

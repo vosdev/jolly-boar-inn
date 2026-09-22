@@ -28,7 +28,7 @@ than the modes picked, and ``NewRoomSettings.check_custom_questions`` refuses a 
 asks for more, naming both numbers, rather than letting selection drop the overflow where
 the host would only find out during the game. ``random_events`` is the one choice left
 about events -- whether the packs may interrupt as well -- and ``random_event_seconds`` is
-how long the NPC holds the floor before the buttons appear (T30).
+how long the NPC holds the floor before the buttons appear (T22).
 """
 
 from typing import Any, Literal, Self
@@ -101,7 +101,7 @@ class RoomSettings(BaseModel):
     # skips it (``rooms/ready.py``) -- but it stays an int so every stored room still reads.
     splash_seconds: int = Field(default=8, ge=0)
     # How long an event's NPC holds the floor before the buttons appear. Stored from T21,
-    # read from T30, which is when there is an NPC to hold it; zero is a plain question.
+    # read from T22, which is when there is an NPC to hold it; zero is a plain question.
     random_event_seconds: int = Field(default=2, ge=0)
     close_when_all_answered: bool = True
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
