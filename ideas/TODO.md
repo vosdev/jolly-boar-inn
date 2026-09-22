@@ -97,8 +97,8 @@ Running an instance:
 - [x] D5. The three themes and the picker
 - [ ] D6. Sound
 - [x] D7. Splash and the ready check
-- [x] D8. Question screens
-- [ ] D9. Standings: the podium and the `standings` phase
+- [] D8. Question screens
+- [x] D9. Standings: the podium and the `standings` phase
 - [ ] D10. Selfhoster branding
 - [ ] D11. Motion and the reduced-motion pass
 - [ ] D12. The Party Room theme
