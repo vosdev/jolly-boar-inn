@@ -11,7 +11,7 @@ def test_the_roster_outnumbers_the_events_any_room_can_hold() -> None:
     mode picked must still have a face for every slot, or a host's question goes unasked.
     """
     assert len(RANDOM_EVENTS) >= len(round_modes()) - 1
-    assert len(RANDOM_EVENTS) >= 12  # the dozen T30 writes copy for; ids must match it
+    assert len(RANDOM_EVENTS) >= 12  # the dozen T22 writes copy for; ids must match it
 
 
 def test_ids_are_unique_and_plain() -> None:

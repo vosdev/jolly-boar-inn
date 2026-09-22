@@ -1677,7 +1677,7 @@ def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     """T21 Accept: author exclusion's first real caller. The host who wrote it cannot
     answer it and scores nothing on it; everyone else is graded as on any question.
 
-    Until T30 draws the NPC, the event plays as an ordinary question in the middle of the
+    Until T22 draws the NPC, the event plays as an ordinary question in the middle of the
     round it interrupts -- its own mode on the question, the round's on the segment.
     """
     game = table(

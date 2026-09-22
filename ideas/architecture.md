@@ -39,7 +39,9 @@ jolly-boar-inn/
 │   │   ├── bestiary.json      # generated: bestiary + drop_table
 │   │   ├── odd-one-out.json   # generated: odd_one_out
 │   │   ├── ordering.json      # generated: release_order + sort_it_out
-│   │   └── quotes.json        # hand-authored: who_said_that + clipped
+│   │   ├── quotes.json        # hand-authored: who_said_that + clipped
+│   │   └── random_events/     # hand-authored: mode random_event, one file per NPC, named by its id
+│   │       └── sandwich_lady.json
 │   ├── facts/                 # importer output: the dataset packs are generated from
 │   │   ├── items.json         # id, name, examine, high alch, release date, properties
 │   │   ├── npcs.json          # id, name, examine, combat level, quest, drops, weakness
@@ -66,10 +68,10 @@ jolly-boar-inn/
 │   │   ├── modes/             # what a round is: see section 2
 │   │   │   ├── __init__.py    # registry: MODES = {"more_less": Mode(...), ...}
 │   │   │   └── mode.py        # the Mode dataclass
-│   │   ├── random_events.py   # the random-event roster: NPC ids; copy is client-side
+│   │   ├── random_events.py   # the random-event roster: NPC ids (ideas/random-events.md); copy is client-side
 │   │   ├── questions/
 │   │   │   ├── schema.py      # load schema, validate(question), content_id(question)
-│   │   │   ├── packs.py       # load data/packs/*.json at startup into memory
+│   │   │   ├── packs.py       # load data/packs/*.json and random_events/*.json at startup
 │   │   │   ├── normalize.py   # free-text normalisation + Levenshtein
 │   │   │   ├── vocab.py       # closed answer lists for pick_from_list: the roster, data/facts
 │   │   │   └── types/         # one module per question type: the answer shape
@@ -114,7 +116,7 @@ jolly-boar-inn/
 │       │   ├── api.ts          # fetch wrappers for /api
 │       │   ├── ws.ts           # RoomSocket: connect, hello, backoff reconnect, ping, typed events
 │       │   ├── modes.ts        # per-mode copy and presentation: label, hint, blurb, stem
-│       │   ├── randomEvents.ts # per-random-event copy: the NPC, the line, the asset
+│       │   ├── randomEvents.ts # per-random-event copy: the NPC, its theme, the line, the asset
 │       │   ├── gp.ts           # format a coin amount the way the game writes it
 │       │   ├── vocab.ts        # fetch and cache /api/vocab/{name}, word-prefix search
 │       │   ├── session.ts      # localStorage: session per room, list of created rooms
@@ -258,13 +260,15 @@ has no `questions` bounds because it has no round to size. Every other mode has 
 - **Never in the first round.** A player who has seen one mode and nothing else has no routine to interrupt yet.
 - **Never a round's first question.** That position belongs to the splash that just introduced the mode.
 - **At most one per round**, so the surprise stays a surprise.
-- **A distinct NPC each time**, drawn from `app/random_events.py`, so no room sees the same face twice.
+- **A distinct NPC each time**, drawn from `app/random_events.py`, so no room sees the same face twice. The one exception is the host's own choice: a custom question may name its NPC, and two of them may name the same one. A drawn face skips every NPC the room already has.
 
 Three of those are about rarity and the fourth is the abuse guard. One per round and none in the first means a room has exactly `len(modes) - 1` slots, so a host who wants five questions of their own picks six modes — and cannot turn the room into their own trivia night with eleven of their questions and one round of ours. `NewRoomSettings` rejects more custom questions than there are slots, naming the count and the limit, rather than silently dropping the overflow.
 
-Custom questions fill the slots first, in the order the host wrote them, at a position drawn inside each round they land in. `settings.random_events` decides what happens to the slots left over: true (the default) gives each one a pack question with probability `PACK_RANDOM_EVENT_CHANCE`, false leaves them empty. It is a boolean rather than a three-way choice because a host's own questions are always events — there is nowhere else left to put them — so the only thing left to decide is whether the packs may interrupt as well. A host who wants a game with no surprises in it writes no custom questions and sets it false.
+Custom questions fill the slots first, in the order the host wrote them, at a position drawn inside each round they land in. A question whose envelope names an NPC (`random_event`) is asked by that NPC, and the others are asked by a drawn face. `settings.random_events` decides what happens to the slots left over: true (the default) gives each one an event-pack question with probability `PACK_RANDOM_EVENT_CHANCE`, false leaves them empty. It is a boolean rather than a three-way choice because a host's own questions are always events — there is nowhere else left to put them — so the only thing left to decide is whether the packs may interrupt as well. A host who wants a game with no surprises in it writes no custom questions and sets it false.
 
-A pack event draws from a mode the host did **not** pick, and failing that from any mode other than the one it is interrupting: an event that asks another Drop Table question in the middle of the Drop Table round is not an event, it is a long round. The drawn question keeps its own `mode`, its own `type` and its own pool; `questions.random_event` is the only thing that marks it as an interruption.
+A pack event comes from the event pack, `data/packs/random_events/`, and nowhere else. Every question there is mode `random_event` and was written for one NPC, about that NPC's subject: the Sandwich Lady asks about cooking and Rick Turpentine about money. So the face and the question are drawn together. Selection picks a question whose NPC the room has not seen yet, preferring one whose type differs from the type of the round it interrupts, and leaves the slot empty when none is left. An event that asks another four-button question in the middle of a four-button round reads as a long round, not as an interruption. The roster and the themes live in `ideas/random-events.md`.
+
+Until T22 a pack event borrowed a question from a mode the host did not pick and put a random face on it. That made for a Sandwich Lady asking a Drop Table question: the joke works once, and the NPC is only a sticker on it. A themed pack costs hand-written content, and it is the one kind of content in this project that is allowed to be silly.
 
 `order` is gone. It first meant "mix each custom question into the pack round of its own type", the mode/type split turned it into "where the custom round goes", and random events leave it nothing to decide. Both earlier meanings were answers to "where do the host's questions belong", and the honest answer turned out to be "nowhere in particular, which is the point".
 
@@ -300,6 +304,7 @@ round. Names are final — `ideas/games.md` holds the sketches they came from.
 | `price_is_right` | The Price is Right | `price_is_right` | `/mapping` + `/latest` | T19 |
 | `guess_examine` | Guess the Examine | `pick_from_list` | `/mapping` examine | T20 |
 | `custom` | Host's Questions | *per question* | the host | T21 (as a random event) |
+| `random_event` | Random Event | *per question* | hand-authored, one file per NPC | T22 (as a random event) |
 | `bestiary` | Bestiary | `multiple_choice` | `facts/npcs.json` | T25 |
 | `drop_table` | Drop Table | `multiple_choice` | `facts/npcs.json` drops | T25 |
 | `odd_one_out` | Odd One Out | `multiple_choice` | `facts/items.json` properties | T26 |
@@ -339,15 +344,30 @@ before building the options around it, so the answer *is* the stored price rathe
 something near it. Formatting them the way the game writes coins is the client's job
 (`lib/gp.ts`), not something baked into the pack.
 
-**A random event is not a mode.** `custom` is a mode because its questions need a `mode`
-value and a pool of their own. A random event is a *placement*: any question, of any
-mode, asked outside the round it belongs to, by an NPC who appears for it and then
-leaves. The room-question row carries `random_event`, the id of that NPC; the question's
-`mode`, `type` and payload are untouched. That is why `random_event` is neither in the
-schema nor in the content hash — the same question is the same question whether the
-Sandwich Lady asks it or the Drop Table round does. Section 1 (`selection.py`) has where
-events land, section 4 has how the splash rule changed to accommodate them, and section
-3 has what the client is told.
+**A random event is a placement, not a round.** `custom` and `random_event` are modes
+because their questions need a `mode` value and a pool of their own, and neither is ever a
+round. The `random_event` mode is only where the NPCs' own questions come from. A random
+event is a *placement*: a question asked outside the round it interrupts, by an NPC who
+appears for it and then leaves, and a host's `custom` question is placed the same way. The
+room-question row carries `random_event`, the id of that NPC. The mode and the field share
+a name on purpose. A `random_event` question always carries one, and the field is what
+makes any question an event.
+
+The envelope carries an optional `random_event` too, because some questions are written
+for their NPC. Every question in `data/packs/random_events/<npc>.json` belongs to the NPC
+the file is named after. The file declares it once, and the loader stamps it onto each
+question. A host's question may name one or leave it to the draw. Any other pack question
+must not carry it, and `validate_packs.py` says so. Like every envelope field it stays out
+of the content hash: the same payload asked by two NPCs is the same question. Section 1
+(`selection.py`) has where events land and who asks them, section 4 has how the splash rule
+changed to accommodate them, and section 3 has what the client is told.
+
+Any type can be an event question, but three need care. `more_less` and `price_is_right`
+compare prices only (`metric`), and a hand-written `ge_price` goes stale, so events use
+`high_alch` or `shop_price`. `ordering` waits for T27. `pick_from_list` works, because
+its list is the shared vocabulary and not the question's, but the answer must be on the
+item roster, and the version worth playing (a Certer's shadowy outline) needs Phase 3's
+images.
 
 ### The schema
 
@@ -386,7 +406,8 @@ Design rules:
     },
     "author": { "type": "string", "maxLength": 64 },
     "added_at": { "type": "string", "format": "date" },
-    "host_only": { "type": "boolean", "default": false }
+    "host_only": { "type": "boolean", "default": false },
+    "random_event": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" }
   },
   "allOf": [
     { "if": { "properties": { "type": { "const": "more_less" } } },
@@ -683,7 +704,7 @@ PlayerResult  { value, correct: bool, credit: float, points: int }
 `PlayerResult.credit` is what `grade` returned, 0.0 to 1.0. It is on the wire for one reason: `ordering` needs to say "three of five in the right place", and the reveal is the only place that can be said. `correct` stays the boolean the scoreboard tie-break counts, and is `credit >= 1.0`.
 
 `random_event` is the id of the NPC interrupting the round, and null for every question
-nobody is interrupting. The client looks it up in `lib/random_events.ts` for the name,
+nobody is interrupting. The client looks it up in `lib/randomEvents.ts` for the name,
 the opening line and the asset, and draws a generic event card for an id it does not
 know — the same honest fallback `viewFor` already makes for a mode this build cannot
 draw. The id is on the wire rather than the copy because copy is a client concern here,
@@ -831,7 +852,7 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
     {"mode": "more_less", "questions": 10, "seconds": 10}
   ],
   "mode_order": "listed",          // "listed": the order above; "random": shuffled at creation
-  "random_events": true,           // may a pack question interrupt a round? the host's always do
+  "random_events": true,           // may the event pack interrupt a round? the host's questions always do
   "reveal_seconds": 8,             // 2..30
   "splash_seconds": 8,             // 0..30: 0 turns the round intro off, anything else on (D7: not a length)
   "random_event_seconds": 2,       // 0..10, the NPC holds the floor this long before the buttons
@@ -1202,12 +1223,13 @@ the modes in `ideas/games.md` as they stand now, and three of them are why:
 - **Guess the Examine**, Who's That NPC? and Pixel Hunt answer from a closed vocabulary of
   a few hundred entries, which is not something to put on the wire per question, through a
   combobox that only submits an entry of it.
-- **Random events** (`ideas/TODO.md`, and T30) put a question of one mode inside a round of
+- **Random events** (`ideas/TODO.md`, and T22) put a question of one mode inside a round of
   another, which "a round is a mode" could not express, and hold the answer affordance back
   behind the NPC asking it, which nothing on the wire could say. They also retired
-  `settings.order` and the custom round it placed.
+  `settings.order` and the custom round it placed. From T22 the NPCs bring questions of
+  their own (the `random_event` mode, one file per NPC), and a host may name who asks theirs.
 
-So Phase 2 changes: the schema (`mode`, `ordering`, `pick_from_list`, which
+So Phase 2 changes: the schema (`mode`, the optional envelope `random_event`, `ordering`, `pick_from_list`, which
 `guess_examine` is the first mode on), the protocol (`answer_ack`, `OpenQuestion.mode`,
 `PlayerResult.credit`, `OpenQuestion.random_event`, `answerable_at`, `GET /api/vocab`),
 the SQL (`0006_question_mode.sql`, `0007_random_events.sql`), and the scoring model

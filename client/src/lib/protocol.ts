@@ -59,7 +59,7 @@ export interface RoomSettings {
    * ready (D7). No longer a length, but still a number so every stored room reads.
    */
   splash_seconds: number
-  /** How long an event's NPC holds the floor before the buttons appear (T30). */
+  /** How long an event's NPC holds the floor before the buttons appear (T22). */
   random_event_seconds: number
   close_when_all_answered: boolean
   max_players: number | null

@@ -77,7 +77,8 @@ How it works:
 
 - Custom questions use the same schema, with `source: room`, stored in the `questions` table on that room. They never touch the shared packs.
 - The admin editor supports the simple types first: multiple choice, free text with an answer list, and closest number. Image-based custom questions come later, since they need uploads.
-- Mixing is per room: the admin picks pack modes plus their own questions, and chooses fixed order or shuffle.
+- Every custom question is asked by a random-event NPC. The host picks which one, or leaves it random (the default).
+- Mixing is per room: the admin picks pack modes plus their own questions. Their questions arrive as random events, at most one per round and never in the first round (T21), so a host can write one question fewer than the number of modes they pick.
 - Export and import a room's custom questions as JSON, same schema. Now people can reuse their set next time, or share it with another clan.
 
 Two things worth getting right:

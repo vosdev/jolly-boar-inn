@@ -49,7 +49,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 /**
  * What a host may ask for. The server's `NewRoomSettings` checks the same ranges, and
  * fills in what is left out: `random_event_seconds` has no field on the form until the
- * NPC it times is drawn (T30).
+ * NPC it times is drawn (T22).
  */
 export type NewRoomSettings = Omit<RoomSettings, 'max_players' | 'random_event_seconds'> & {
   max_players?: number | null
