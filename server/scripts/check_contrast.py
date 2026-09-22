@@ -19,6 +19,10 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 * ``--ok`` reaches 3:1 — the non-text threshold for a UI boundary — against every
   ``--gem-*``, because the reveal rings the winning gem in ``--ok`` and an ``--ok`` green
   ringing an emerald button is a ring nobody can see;
+* ``--gem-ink`` reaches 4.5:1 against every ``--gem-*``, and against every gem as the
+  reveal fades it (D8): the fill mixed ``FADED_GEM_SHARE`` gem to the rest ``--panel``,
+  exactly as ``GemButton.svelte``'s ``color-mix(in srgb, ...)`` does. The other options
+  recede, but people want to read what they said;
 * each ``--texture-*`` is ``none`` or a local ``url()`` (D5): the CSP would block a remote
   one anyway, and this says so at build time rather than as a blank page background.
 
@@ -80,6 +84,9 @@ TEXT_RATIO = 4.5
 BODY_TEXT_RATIO = 7.0
 UI_RATIO = 3.0
 MIN_HUE_GAP = 60.0
+# D8: how much gem is left in a faded gem button's fill, the rest being --panel. The same
+# number is in ``client/src/components/questions/GemButton.svelte``; change both.
+FADED_GEM_SHARE = 0.25
 
 _COMMENTS = re.compile(r"/\*.*?\*/", re.DOTALL)
 _RULES = re.compile(r"([^{}]+)\{([^{}]*)\}", re.DOTALL)
@@ -124,6 +131,11 @@ def contrast(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
     """WCAG contrast ratio, 1.0 (identical) to 21.0 (black on white)."""
     lighter, darker = sorted((luminance(a), luminance(b)), reverse=True)
     return (lighter + 0.05) / (darker + 0.05)
+
+
+def mix(a: tuple[int, int, int], b: tuple[int, int, int], share: float) -> tuple[int, int, int]:
+    """``color-mix(in srgb, a share, b)``: per channel, on the encoded values."""
+    return tuple(round(x * share + y * (1 - share)) for x, y in zip(a, b, strict=True))  # type: ignore[return-value]
 
 
 def hue(rgb: tuple[int, int, int]) -> float:
@@ -239,6 +251,16 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
     # The reveal: --ok rings the winning gem, whichever gem that turns out to be.
     for gem in GEMS:
         ratio("--ok", gem, UI_RATIO)
+        ratio("--gem-ink", gem, TEXT_RATIO)
+        # ...and the losers fade, with their text still there to read.
+        if gem in colours and "--panel" in colours and "--gem-ink" in colours:
+            faded = mix(colours[gem], colours["--panel"], FADED_GEM_SHARE)
+            measured = contrast(colours["--gem-ink"], faded)
+            if measured < TEXT_RATIO:
+                problems.append(
+                    f"{name}: --gem-ink reaches only {measured:.2f}:1 against {gem} faded "
+                    f"into --panel, needs {TEXT_RATIO}:1"
+                )
     return problems
 
 

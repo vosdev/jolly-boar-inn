@@ -67,7 +67,7 @@ describe('price_is_right', () => {
     expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(
       true,
     )
-    expect(screen.getByText('your answer')).toBeTruthy()
+    expect(screen.getAllByRole('button')[0].getAttribute('aria-pressed')).toBe('true')
     answered.unmount()
     render(Question, {
       question: { ...open(), you_can_answer: false },
@@ -80,7 +80,7 @@ describe('price_is_right', () => {
     expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
   })
 
-  it('marks the right price on the reveal, and a wrong pick as wrong', () => {
+  it('lights the right price on the reveal and keeps a wrong pick identifiable', () => {
     render(Question, {
       question: open(),
       reveal: REVEAL,
@@ -89,10 +89,14 @@ describe('price_is_right', () => {
       onAnswer: () => {},
     })
     const buttons = screen.getAllByRole('button')
-    expect(buttons[1].classList.contains('right')).toBe(true)
+    expect(buttons[1].classList.contains('correct')).toBe(true)
+    expect(buttons[1].textContent).toContain('✓')
     expect(buttons[3].classList.contains('wrong')).toBe(true)
-    expect(buttons[1].textContent).toContain('correct')
-    expect(screen.getByText('Wrong — no points')).toBeTruthy()
+    expect(buttons[3].textContent).toContain('✗')
+    expect(buttons[3].textContent).toContain('you')
+    // Position is identity: the ladder is sapphire, emerald, ruby, diamond, revealed or not.
+    const gems = ['sapphire', 'emerald', 'ruby', 'diamond']
+    buttons.forEach((b, i) => expect(b.classList.contains(gems[i])).toBe(true))
     expect(screen.getByText(/^Grand Exchange price, rounded, as of /)).toBeTruthy()
   })
 

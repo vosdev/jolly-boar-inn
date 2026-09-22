@@ -677,7 +677,8 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. |
 | `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, `set_profile`, `ready`, status change, and the start of a splash. A splash the ready check hurries carries its new `next_at` here. |
 | `question_open` | `question: OpenQuestion` | A question opens. |
-| `answer_ack` | `question_id`, `scoring: "speed" \| "rank" \| "step"`, `band: int \| null` | Answer committed. Never correctness. `band` is the speed bucket (1..5) for `speed`, the step it landed on for `step`, and null for `rank`, where nothing is known until everyone has answered. |
+| `answer_ack` | `question_id`, `scoring: "speed" \| "rank" \| "step"`, `band: int \| null`, `answered: int`, `of: int` | Answer committed. Never correctness. `band` is the speed bucket (1..5) for `speed`, the step it landed on for `step`, and null for `rank`, where nothing is known until everyone has answered. `answered` of `of` is the room's count with this answer in it (D8). |
+| `answer_count` | `question_id`, `answered: int`, `of: int` | Somebody else answered: to every socket but the answerer's, who hears it on their ack. A count only, never who or what. `of` is every connected player who can answer plus anyone who answered and dropped. A disconnect sends no fresh count; the next answer does. |
 | `question_closed` | `question_id`, `reveal: object`, `results: {player_id: PlayerResult}`, `standings: Standing[]`, `next_at: iso \| null` | Question closed. `next_at` is when the next opens; null on the last. |
 | `game_finished` | `standings: Standing[]` | Final. |
 | `pong` | `server_time: iso` | Reply to `ping`. |
@@ -693,7 +694,7 @@ Standing      { player_id, display_name, avatar: int|null, points: int, rank: in
 Segment       { mode, index: int, total: int, start: int, count: int }
 OpenQuestion  { question_id, index, total, type, mode, segment: Segment, view: object,
                 random_event: string|null, opened_at: iso, answerable_at: iso,
-                ends_at: iso, you_can_answer: bool }
+                ends_at: iso, you_can_answer: bool, answered: int, of: int }
 PlayerResult  { value, correct: bool, credit: float, points: int }
 ```
 
@@ -760,6 +761,7 @@ The admin is a player with a flag. There is no admin channel.
 
 - `question_open` and `welcome.question` are byte-identical for every socket in the room, admin included. They contain `client_view`, which never includes `answer`, `answer_index`, `accepted`, `reveal`, or raw `payload`.
 - `answer_ack` carries how the question is scored and the answer's band (its speed bucket or its step) only, never correctness, for everyone.
+- `answer_count` and the count on `answer_ack` and `OpenQuestion` say how many have answered, never who or what.
 - Correct answers and per-player results appear only in `question_closed`, sent to everyone at the same moment.
 - The list of questions selected for a room is never sent over the websocket. The admin sees `total` and `index`, nothing else.
 - Custom-question exception, stated up front: any admin can see the room's own questions in the editor before the game starts, because they wrote them. Authors are excluded from scoring on those questions server-side, so seeing them buys nothing.

@@ -19,8 +19,15 @@
    *
    * `revealed` says which one it is, so the cast below only reads the values and the
    * answer once the server has actually sent them.
+   *
+   * The two buttons are `GemButton`'s plain variant (D8): panel-coloured, never a gem,
+   * because they will carry the item picture, but with the same five states as every
+   * other answer button. So the right answer on the reveal gets a ✓ and an `--ok` ring
+   * and nothing that looks like a press, and a question left unanswered shows neither
+   * button pressed — which it used to, by drawing the answer in the pressed style.
    */
   import { asOfDate } from '../../../lib/dates'
+  import GemButton, { gemState } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
 
   /** An option index: the two buttons are `options[0]` and `options[1]`. */
@@ -47,14 +54,7 @@
     answer_index?: Index
   }
 
-  let {
-    data,
-    revealed,
-    yourValue,
-    canAnswer,
-    result = null,
-    onAnswer,
-  }: TypeViewProps<Index> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<Index> = $props()
 
   // The wire type is `Record<string, unknown>`; this component is the thing that knows
   // what the keys mean, which is why the type map lives one level up and not in here.
@@ -110,37 +110,25 @@
 
 <div class="choices">
   {#each q.options as option, index (option.subject.name)}
-    <button
-      type="button"
-      class="choice"
-      class:picked={picked === index}
-      class:right={answer === index}
-      class:wrong={revealed && picked === index && answer !== index}
+    <GemButton
+      gem={null}
+      status={gemState(index, picked, answer, revealed)}
+      mine={picked === index}
       disabled={revealed || !canAnswer || picked !== null}
       onclick={() => onAnswer(index as Index)}
     >
       <!-- The item render goes here once the assets ship; `option.subject.asset` is
            already `item:<id>` in every payload. -->
-      <span class="who">{option.subject.name}</span>
-      {#if revealed}<span class="value">{coins(option.value)}</span>{/if}
-      {#if picked === index}<span class="mark">your answer</span>{/if}
-      {#if answer === index}<span class="mark">correct</span>{/if}
-    </button>
+      <span class="choice">
+        <span class="who">{option.subject.name}</span>
+        {#if revealed}<span class="value">{coins(option.value)}</span>{/if}
+      </span>
+    </GemButton>
   {/each}
 </div>
 
-{#if !canAnswer}
-  <p class="note">
-    {revealed
-      ? 'This one was not scored for you.'
-      : 'This one is not scored for you — sit back and watch.'}
-  </p>
-{:else if revealed && result !== null}
-  <p class="verdict" class:good={result.correct}>
-    {result.correct ? `Right — ${result.points} points` : 'Wrong — no points'}
-  </p>
-{:else if revealed}
-  <p class="note">No answer from you this round, so no points.</p>
+{#if !canAnswer && !revealed}
+  <p class="note">This one is not scored for you — sit back and watch.</p>
 {/if}
 
 {#if revealed}
@@ -180,9 +168,8 @@
     flex-direction: column;
     align-items: center;
     gap: 0.3rem;
-    padding: calc(1.5rem - var(--border-give)) calc(0.75rem - var(--border-give));
+    padding: 1rem 0;
     font-size: 1.1rem;
-    font-weight: 600;
   }
 
   .who {
@@ -193,54 +180,10 @@
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
     font-size: 0.95rem;
     font-weight: 400;
-    color: var(--muted);
   }
 
-  /* A disabled button is still the record of what we picked, so it keeps its colour
-     rather than fading out with the rest. */
-  .choice.picked {
-    opacity: 1;
-    border-color: var(--accent);
-    box-shadow: inset 0 0 0 1px var(--accent);
-  }
-
-  .choice.right {
-    opacity: 1;
-    border-color: var(--ok);
-    box-shadow: inset 0 0 0 2px var(--ok);
-    color: var(--ok);
-  }
-
-  .choice.wrong {
-    opacity: 1;
-    border-color: var(--bad);
-    box-shadow: inset 0 0 0 2px var(--bad);
-    color: var(--bad);
-  }
-
-  .choice.right .value,
-  .choice.wrong .value,
-  .choice.right .mark,
-  .choice.wrong .mark {
-    color: inherit;
-  }
-
-  .mark {
-    font-size: 0.72rem;
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-
-  .verdict {
+  .note {
     margin: 1rem 0 0;
-    font-weight: 600;
-    color: var(--bad);
-  }
-
-  .verdict.good {
-    color: var(--ok);
   }
 
   .asof {

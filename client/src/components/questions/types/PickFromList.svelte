@@ -50,14 +50,7 @@
     subject?: { name?: string }
   }
 
-  let {
-    data,
-    revealed,
-    yourValue,
-    canAnswer,
-    result = null,
-    onAnswer,
-  }: TypeViewProps<EntryId> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<EntryId> = $props()
 
   const q = $derived(data as unknown as Data)
   const uid = $props.id()
@@ -200,11 +193,7 @@
       <p class="answer">It was <strong>{answerName}</strong>.</p>
     {/if}
     {#if answered !== null}
-      <p
-        class="picked"
-        class:right={revealed && result?.correct === true}
-        class:wrong={revealed && result !== null && !result.correct}
-      >
+      <p class="picked">
         Your answer: <strong>{pickedName ?? (list === null ? '…' : 'not in this list')}</strong>
       </p>
     {/if}
@@ -280,18 +269,8 @@
   </form>
 {/if}
 
-{#if !canAnswer}
-  <p class="note">
-    {revealed
-      ? 'This one was not scored for you.'
-      : 'This one is not scored for you — sit back and watch.'}
-  </p>
-{:else if revealed && result !== null}
-  <p class="verdict" class:good={result.correct}>
-    {result.correct ? `Right — ${result.points} points` : 'Wrong — no points'}
-  </p>
-{:else if revealed}
-  <p class="note">No answer from you this round, so no points.</p>
+{#if !canAnswer && !revealed}
+  <p class="note">This one is not scored for you — sit back and watch.</p>
 {/if}
 
 <style>
@@ -309,8 +288,10 @@
     position: relative;
   }
 
+  /* Section 7.2: the search field full width and 56px tall, like an answer button. */
   .field input {
     width: 100%;
+    min-height: 56px;
     box-sizing: border-box;
     font-size: 1.1rem;
   }
@@ -350,7 +331,7 @@
   }
 
   .pick button {
-    align-self: flex-start;
+    min-height: 56px;
   }
 
   .settled p {
@@ -358,21 +339,9 @@
     font-size: 1.1rem;
   }
 
-  .picked.right {
-    color: var(--ok);
-  }
-
-  .picked.wrong {
-    color: var(--bad);
-  }
-
-  .verdict {
-    margin: 1rem 0 0;
-    font-weight: 600;
-    color: var(--bad);
-  }
-
-  .verdict.good {
-    color: var(--ok);
+  /* Your answer, held while the room answers and receding beside the real one after:
+     the verdict is the points slot's, so this card never turns green or red. */
+  .picked {
+    color: var(--muted);
   }
 </style>

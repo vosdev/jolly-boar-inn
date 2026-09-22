@@ -88,6 +88,13 @@ def test_an_ok_that_cannot_be_seen_against_emerald_fails(css: str) -> None:
     assert any("--ok" in line and "--gem-emerald" in line for line in problems)
 
 
+def test_gem_ink_that_cannot_be_read_on_a_faded_gem_fails(css: str) -> None:
+    """D8: a faded option still has to be read. Dark ink on a dark panel's fade does not."""
+    broken = _swap(css, "wilderness", "--gem-ink", "#3a3330")
+    problems = check.check(broken)
+    assert any("--gem-ink" in line and "faded" in line for line in problems)
+
+
 def test_ok_and_bad_of_the_same_hue_fail(css: str) -> None:
     """Green and red is not the cue; the 60 degrees between them is."""
     broken = _swap(css, "wilderness", "--bad", "#5fae6f")

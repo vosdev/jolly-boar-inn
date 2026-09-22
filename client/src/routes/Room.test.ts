@@ -9,10 +9,12 @@
  */
 
 import { render, screen } from '@testing-library/svelte'
+import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
 import { applyServerMessage } from '../lib/stores'
+import { timerBar } from '../lib/timerbar'
 import Room from './Room.svelte'
 
 vi.mock('../lib/session', async (importOriginal) => {
@@ -97,7 +99,8 @@ describe('Room', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(
       /After round 1 of 2\s*Standings/,
     )
-    expect(screen.getByText('s to the next round')).toBeTruthy()
+    // The countdown is the bar under the top bar (D8), which App draws from this store.
+    expect(get(timerBar)?.label).toBe('to the next round')
     expect(document.querySelector('.podium')).not.toBeNull()
     expect(screen.getByText('1st, Diamond trophy: Zezima, 1,000 points')).toBeTruthy()
   })
@@ -139,6 +142,67 @@ describe('Room', () => {
     await screen.findByText(/Question 1 of 2/)
     expect(document.querySelector('.podium')).toBeNull()
     expect(document.querySelector('.hiscores')).toBeNull()
+  })
+
+  it('puts the points slot on the reveal, with the total the standings will show', async () => {
+    const open: OpenQuestion = {
+      question_id: 'q1',
+      index: 0,
+      total: 2,
+      type: 'more_less',
+      mode: 'more_less',
+      segment: { ...SEGMENT, count: 2 },
+      view: {
+        metric: 'ge_price',
+        direction: 'more',
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+        as_of: '2026-09-01',
+      },
+      opened_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 10_000).toISOString(),
+      you_can_answer: true,
+      answered: 0,
+      of: 2,
+    }
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: open })
+    await screen.findByText(/Question 1 of 2/)
+    expect(get(timerBar)?.label).toBe('to answer')
+    expect(document.querySelector('.slot')).toBeNull()
+
+    // Answered and waiting: our answer held, and how the room is doing.
+    screen.getByText('Abyssal whip').click()
+    expect(sent).toContainEqual({ t: 'answer', question_id: 'q1', value: 0 })
+    applyServerMessage({
+      t: 'answer_ack',
+      question_id: 'q1',
+      scoring: 'speed',
+      band: 2,
+      answered: 1,
+      of: 2,
+    })
+    await screen.findByText(/answered — waiting for the room/)
+    expect(document.querySelector('.waiting .count')?.textContent).toBe('1 of 2')
+    applyServerMessage({ t: 'answer_count', question_id: 'q1', answered: 2, of: 2 })
+    await screen.findByText('2 of 2')
+
+    applyServerMessage({
+      t: 'question_closed',
+      question_id: 'q1',
+      reveal: { ...open.view, answer_index: 0 },
+      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
+      standings: [{ ...STANDINGS[0], points: 1850 }, STANDINGS[1]],
+      next_at: new Date(Date.now() + 8_000).toISOString(),
+    })
+    await screen.findByText('1,850')
+    expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('✓+850')
+    expect(get(timerBar)?.label).toBe('to the next question')
+  })
+
+  it('drops a count for a question that is no longer open', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal', next_at: null })))
+    applyServerMessage({ t: 'answer_count', question_id: 'gone', answered: 3, of: 4 })
+    expect(document.querySelector('.waiting')).toBeNull()
   })
 
   it('falls through to the waiting screen on a phase it does not know', async () => {

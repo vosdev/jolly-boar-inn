@@ -184,10 +184,12 @@ async def _dispatch(
         case protocol.Ping():
             return protocol.Pong(server_time=datetime.now(UTC))
         case protocol.Answer():
-            how, band = await manager.submit_answer(
+            how, band, (answered, of) = await manager.submit_answer(
                 code, player, message.question_id, message.value
             )
-            return protocol.AnswerAck(question_id=message.question_id, scoring=how, band=band)
+            return protocol.AnswerAck(
+                question_id=message.question_id, scoring=how, band=band, answered=answered, of=of
+            )
         case protocol.StartGame():
             await manager.start_game(code, player)
         case protocol.Skip():

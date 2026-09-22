@@ -122,6 +122,11 @@ class OpenQuestion(_Message):
     opened_at: datetime
     ends_at: datetime
     you_can_answer: bool
+    # How many have answered, of how many can (D8's waiting state). Current as of this
+    # frame: zero on ``question_open``, the live count in a ``welcome``, and kept up to
+    # date after that by ``answer_count`` and the answerer's own ``answer_ack``.
+    answered: int = 0
+    of: int = 0
 
 
 # --- Client → server --------------------------------------------------------------
@@ -238,6 +243,26 @@ class AnswerAck(_Message):
     question_id: str
     scoring: Scoring
     band: Annotated[int, Field(ge=1)] | None
+    # The room's count with this answer in it: the answerer is left out of the
+    # ``answer_count`` broadcast, so the ack is where they hear it.
+    answered: int
+    of: int
+
+
+class AnswerCount(_Message):
+    """Somebody else has answered the open question: how many have, of how many can.
+
+    Only a count, never who, and never what: the waiting state (D8) shows "4 of 6
+    answered" and nothing a player could read an answer off. ``of`` is every connected
+    player allowed to answer plus anyone who answered and has since dropped, so the count
+    never reads more than the total. A disconnect does not send a fresh count; the next
+    answer does.
+    """
+
+    t: Literal["answer_count"] = "answer_count"
+    question_id: str
+    answered: int
+    of: int
 
 
 class PlayerResult(_Message):
@@ -280,5 +305,13 @@ class Error(_Message):
 
 
 ServerMessage = (
-    Welcome | RoomUpdated | QuestionOpen | AnswerAck | QuestionClosed | GameFinished | Pong | Error
+    Welcome
+    | RoomUpdated
+    | QuestionOpen
+    | AnswerAck
+    | AnswerCount
+    | QuestionClosed
+    | GameFinished
+    | Pong
+    | Error
 )

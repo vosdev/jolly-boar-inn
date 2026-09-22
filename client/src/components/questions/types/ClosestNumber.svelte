@@ -19,7 +19,9 @@
    *   `explanation`.
    *
    * The reveal's points are the rank table, not a bucket: 1000 for exact, then 800, 600,
-   * 400 for the three closest misses and 200 for having a go.
+   * 400 for the three closest misses and 200 for having a go. The points slot in `Room`
+   * shows them (D8); this view says how far off the guess was, which is the answer, not
+   * the reason for the number.
    */
   import { parseAmount } from '../../../lib/gp'
   import type { TypeViewProps } from '../props'
@@ -32,14 +34,7 @@
     explanation?: string
   }
 
-  let {
-    data,
-    revealed,
-    yourValue,
-    canAnswer,
-    result = null,
-    onAnswer,
-  }: TypeViewProps<number> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<number> = $props()
 
   const q = $derived(data as unknown as Data)
   const uid = $props.id()
@@ -74,7 +69,11 @@
       <p class="answer">It was <strong>{written(q.answer)}</strong>.</p>
     {/if}
     {#if answered !== null}
-      <p class="picked">Your guess: <strong>{written(answered)}</strong></p>
+      <p class="picked">
+        Your guess: <strong>{written(answered)}</strong>{#if off !== null}{off === 0
+            ? ', spot on'
+            : `, off by ${written(off)}`}{/if}
+      </p>
     {/if}
   </div>
 {:else}
@@ -102,20 +101,8 @@
   </form>
 {/if}
 
-{#if !canAnswer}
-  <p class="note">
-    {revealed
-      ? 'This one was not scored for you.'
-      : 'This one is not scored for you — sit back and watch.'}
-  </p>
-{:else if revealed && result !== null}
-  <p class="verdict" class:good={result.points > 0}>
-    {result.correct
-      ? `Spot on — ${result.points} points`
-      : `Off by ${off === null ? '?' : written(off)} — ${result.points} points`}
-  </p>
-{:else if revealed}
-  <p class="note">No guess from you this round, so no points.</p>
+{#if !canAnswer && !revealed}
+  <p class="note">This one is not scored for you — sit back and watch.</p>
 {/if}
 
 {#if revealed && q.explanation}
@@ -144,19 +131,21 @@
     font-size: 1.1rem;
   }
 
+  /* Thumb targets (D8): the box and its button are as tall as an answer button. */
+  .row input,
+  .row button {
+    min-height: 56px;
+  }
+
   .settled p {
     margin: 0 0 0.5rem;
     font-size: 1.1rem;
   }
 
-  .verdict {
-    margin: 1rem 0 0;
-    font-weight: 600;
-    color: var(--bad);
-  }
-
-  .verdict.good {
-    color: var(--ok);
+  /* Your answer, held while the room answers and receding beside the real one after:
+     the verdict is the points slot's, so this card never turns green or red. */
+  .picked {
+    color: var(--muted);
   }
 
   .explanation {

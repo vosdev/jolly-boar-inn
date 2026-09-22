@@ -15,9 +15,11 @@
    * - after close, `reveal(payload)`: the same plus `answer_index` and, if the author
    *   gave one, an `explanation` of why.
    *
-   * The answers are text of any length up to a line, so they stack on a phone and sit two
-   * abreast where there is room, rather than the fixed grid of four prices.
+   * The answers are text of any length up to a line, one gem each (D8), stacked on a phone
+   * and two abreast where there is room. Whether you were right is the points slot's to
+   * say, over in `Room`; this only shows which answer it was.
    */
+  import GemChoices from '../GemChoices.svelte'
   import type { TypeViewProps } from '../props'
 
   /** An option index: the buttons are `options[0]` to `options[n - 1]`. */
@@ -31,14 +33,7 @@
     explanation?: string
   }
 
-  let {
-    data,
-    revealed,
-    yourValue,
-    canAnswer,
-    result = null,
-    onAnswer,
-  }: TypeViewProps<Index> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<Index> = $props()
 
   const q = $derived(data as unknown as Data)
   const answer = $derived(revealed ? (q.answer_index ?? null) : null)
@@ -47,36 +42,19 @@
   )
 </script>
 
-<div class="choices">
-  {#each q.options as option, index (index)}
-    <button
-      type="button"
-      class="choice"
-      class:picked={picked === index}
-      class:right={answer === index}
-      class:wrong={revealed && picked === index && answer !== index}
-      disabled={revealed || !canAnswer || picked !== null}
-      onclick={() => onAnswer(index)}
-    >
-      <span class="text">{option}</span>
-      {#if picked === index}<span class="mark">your answer</span>{/if}
-      {#if answer === index}<span class="mark">correct</span>{/if}
-    </button>
-  {/each}
-</div>
+<GemChoices
+  options={q.options}
+  {picked}
+  {answer}
+  {revealed}
+  {canAnswer}
+  {onAnswer}
+>
+  {#snippet label(option: string)}{option}{/snippet}
+</GemChoices>
 
-{#if !canAnswer}
-  <p class="note">
-    {revealed
-      ? 'This one was not scored for you.'
-      : 'This one is not scored for you — sit back and watch.'}
-  </p>
-{:else if revealed && result !== null}
-  <p class="verdict" class:good={result.correct}>
-    {result.correct ? `Right — ${result.points} points` : 'Wrong — no points'}
-  </p>
-{:else if revealed}
-  <p class="note">No answer from you this round, so no points.</p>
+{#if !canAnswer && !revealed}
+  <p class="note">This one is not scored for you — sit back and watch.</p>
 {/if}
 
 {#if revealed && q.explanation}
@@ -84,68 +62,8 @@
 {/if}
 
 <style>
-  .choices {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    gap: 0.75rem;
-  }
-
-  .choice {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    padding: calc(1rem - var(--border-give)) calc(0.75rem - var(--border-give));
-  }
-
-  .text {
-    font-size: 1.1rem;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-  }
-
-  /* As in `MoreLess`: a disabled button is still the record of what we picked. */
-  .choice.picked {
-    opacity: 1;
-    border-color: var(--accent);
-    box-shadow: inset 0 0 0 1px var(--accent);
-  }
-
-  .choice.right {
-    opacity: 1;
-    border-color: var(--ok);
-    box-shadow: inset 0 0 0 2px var(--ok);
-    color: var(--ok);
-  }
-
-  .choice.wrong {
-    opacity: 1;
-    border-color: var(--bad);
-    box-shadow: inset 0 0 0 2px var(--bad);
-    color: var(--bad);
-  }
-
-  .choice.right .mark,
-  .choice.wrong .mark {
-    color: inherit;
-  }
-
-  .mark {
-    font-size: 0.72rem;
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-
-  .verdict {
+  .note {
     margin: 1rem 0 0;
-    font-weight: 600;
-    color: var(--bad);
-  }
-
-  .verdict.good {
-    color: var(--ok);
   }
 
   .explanation {

@@ -251,7 +251,7 @@ describe('pick_from_list', () => {
     expect(screen.queryByRole('combobox')).toBeNull()
   })
 
-  it('names the answer on the reveal, and a wrong pick as wrong', async () => {
+  it('names the answer on the reveal, with our pick beside it', async () => {
     render(Question, {
       question: open(),
       reveal: REVEAL,
@@ -263,10 +263,10 @@ describe('pick_from_list', () => {
       'It was Amulet of fury.',
     )
     await waitFor(() => expect(screen.getByText('Dragon scimitar')).toBeTruthy())
-    expect(screen.getByText('Dragon scimitar').closest('p')?.classList.contains('wrong')).toBe(
+    expect(screen.getByText('Dragon scimitar').closest('p')?.classList.contains('picked')).toBe(
       true,
     )
-    expect(screen.getByText('Wrong — no points')).toBeTruthy()
+    expect(screen.queryByText(/no points/)).toBeNull()
     expect(screen.getByText('A very powerful onyx amulet.')).toBeTruthy()
   })
 })

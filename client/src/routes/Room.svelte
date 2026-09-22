@@ -34,14 +34,15 @@
   import { onMount } from 'svelte'
 
   import Lobby from '../components/Lobby.svelte'
+  import PointsSlot from '../components/PointsSlot.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
-  import Timer from '../components/Timer.svelte'
   import Question from '../components/questions/Question.svelte'
   import { MODES } from '../lib/modes'
   import { clearSession, getSession } from '../lib/session'
   import {
     answerAck,
+    answerCount,
     applyServerMessage,
     connection,
     lastClosed,
@@ -56,6 +57,7 @@
     you,
     yourAnswer,
   } from '../lib/stores'
+  import { timerBar } from '../lib/timerbar'
   import { prefetchVocab } from '../lib/vocab'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
 
@@ -87,6 +89,7 @@
     live.open()
     return () => {
       roomSend.set(null)
+      timerBar.set(null)
       live.close()
       socket = null
     }
@@ -142,6 +145,44 @@
     const vocab = $room?.phase === 'splash' ? MODES[$room.segment?.mode ?? '']?.vocab : undefined
     if (vocab !== undefined) prefetchVocab(vocab)
   })
+  /**
+   * The bar under the top bar (D8): the open question's clock, or the reveal's or the
+   * standings' countdown to what comes next. The splash draws its own, and nothing else
+   * in a room is timed.
+   */
+  $effect(() => {
+    const current = $room
+    const open = $question
+    if (departure !== null || current === null || current.status !== 'playing') {
+      timerBar.set(null)
+    } else if (current.phase === 'open' && open !== null) {
+      timerBar.set({ endsAt: open.ends_at, totalSeconds: questionSeconds, label: 'to answer' })
+    } else if (
+      (current.phase === 'reveal' || current.phase === 'standings') &&
+      current.next_at !== null
+    ) {
+      const standing = current.phase === 'standings'
+      timerBar.set({
+        endsAt: current.next_at,
+        totalSeconds: standing
+          ? current.settings.standings_seconds
+          : current.settings.reveal_seconds,
+        label: standing ? 'to the next round' : 'to the next question',
+      })
+    } else {
+      timerBar.set(null)
+    }
+  })
+  /**
+   * Our points after the question just closed, for the points slot. From `standings`,
+   * which `question_closed` carries and the standings screen draws, so the slot's total
+   * and the next board cannot disagree.
+   */
+  const yourTotal = $derived(
+    $you === null
+      ? null
+      : ($standings.find((standing) => standing.player_id === $you.id)?.points ?? null),
+  )
   /** Our own row in the reveal, if we answered. */
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
@@ -265,19 +306,13 @@
           Question {number} of {total}
         </h1>
       {/if}
-      {#if $room.phase === 'open' && $question !== null}
-        <Timer endsAt={$question.ends_at} totalSeconds={questionSeconds} label="to answer" />
-      {:else if $room.phase === 'standings' && $room.next_at !== null}
-        <Timer
-          endsAt={$room.next_at}
-          totalSeconds={$room.settings.standings_seconds}
-          label="to the next round"
-        />
-      {:else if $room.next_at !== null}
-        <Timer
-          endsAt={$room.next_at}
-          totalSeconds={$room.settings.reveal_seconds}
-          label="to the next"
+      <!-- The points slot (D8): always here, in every mode, so the eye learns where the
+           verdict is. The clock that used to sit here is the bar under the top bar. -->
+      {#if $room.phase === 'reveal' && $lastClosed !== null && $lastClosed.was !== null}
+        <PointsSlot
+          result={yourResult}
+          canAnswer={$lastClosed.was.you_can_answer}
+          total={yourTotal}
         />
       {/if}
     </div>
@@ -297,18 +332,28 @@
       </section>
 
       {#if $yourAnswer !== null}
-        <!-- The band is all `answer_ack` carries: how fast or how early, never whether
-             it was right. Correctness is nobody's until `question_closed`. The badge
-             keeps it short; the sentence is in the tooltip for anyone who wants it. -->
-        <p class="note waiting">
-          Answer in.
-          {#if landed !== null}<span
-              class="band"
-              title={landed.sentence}
-              aria-label={landed.sentence}>{landed.badge}</span
-            >{/if}
-          Waiting for the rest of the room.
-        </p>
+        <!-- Answered and waiting (D8): up to fifteen seconds in which people look up at
+             each other, so it says how the room is doing rather than one flat line. The
+             answer itself is held, dimmed, in the view above. The band is all
+             `answer_ack` carries: how fast or how early, never whether it was right.
+             Correctness is nobody's until `question_closed`. -->
+        <div class="waiting" role="status">
+          <p class="held">
+            Answer in{#if landed !== null}<span
+                class="band"
+                title={landed.sentence}
+                aria-label={landed.sentence}>{landed.badge}</span
+              >{/if}
+          </p>
+          <p class="room">
+            {#if $answerCount !== null && $answerCount.of > 0}
+              <span class="count">{$answerCount.answered} of {$answerCount.of}</span>
+              answered — waiting for the room
+            {:else}
+              Waiting for the room
+            {/if}
+          </p>
+        </div>
       {/if}
     {:else if $lastClosed !== null}
       <section class="panel">
@@ -380,7 +425,35 @@
   }
 
   .waiting {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
     margin: -0.5rem 0 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .waiting p {
+    margin: 0;
+  }
+
+  .held {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-weight: 600;
+  }
+
+  .room {
+    color: var(--muted);
+  }
+
+  .count {
+    color: var(--ink);
+    font-family: var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
   }
 
   .round {
