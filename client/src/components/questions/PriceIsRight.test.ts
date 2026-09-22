@@ -92,8 +92,8 @@ describe('price_is_right', () => {
     expect(buttons[1].classList.contains('correct')).toBe(true)
     expect(buttons[3].classList.contains('wrong')).toBe(true)
     expect(buttons[3].textContent).toContain('you')
-    // Position is identity: the ladder is sapphire, emerald, ruby, diamond, revealed or not.
-    const gems = ['sapphire', 'emerald', 'ruby', 'diamond']
+    // Position is identity: the ladder is sapphire, emerald, ruby, red topaz, revealed or not.
+    const gems = ['sapphire', 'emerald', 'ruby', 'red-topaz']
     buttons.forEach((b, i) => expect(b.classList.contains(gems[i])).toBe(true))
     expect(screen.getByText(/^Grand Exchange price, rounded, as of /)).toBeTruthy()
   })

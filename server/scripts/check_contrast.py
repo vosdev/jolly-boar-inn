@@ -16,13 +16,15 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 * ``--more`` and ``--less`` reach 4.5:1 against ``--panel``;
 * ``--ok`` and ``--bad`` are at least 60 degrees apart in hue, and so are ``--more`` and
   ``--less``, so neither pair collapses for a player who does not see red and green;
-* ``--ok`` reaches 3:1 — the non-text threshold for a UI boundary — against every
-  ``--gem-*``, because the reveal rings the winning gem in ``--ok`` and an ``--ok`` green
-  ringing an emerald button is a ring nobody can see;
 * ``--gem-ink`` reaches 4.5:1 against every ``--gem-*``, and against every gem as the
   reveal fades it (D8): the fill mixed ``FADED_GEM_SHARE`` gem to the rest ``--panel``,
   exactly as ``GemButton.svelte``'s ``color-mix(in srgb, ...)`` does. The other options
   recede, but people want to read what they said;
+* every ``--gem-*`` stands a colour difference (CIE76 delta E) of at least
+  ``MIN_FADE_DELTA_E`` from its own faded self (D8). Lit against faded is the whole of the
+  reveal, with no ring or glyph beside it, so a gem too close to its panel — diamond on a
+  cream panel, which is why red topaz replaced it, or black onyx on a near-black one —
+  shows no reveal at all;
 * each ``--texture-*`` is ``none`` or a local ``url()`` (D5): the CSP would block a remote
   one anyway, and this says so at build time rather than as a blank page background.
 
@@ -61,7 +63,7 @@ GEMS = (
     "--gem-sapphire",
     "--gem-emerald",
     "--gem-ruby",
-    "--gem-diamond",
+    "--gem-red-topaz",
     "--gem-dragonstone",
     "--gem-onyx",
     "--gem-zenyte",
@@ -82,11 +84,13 @@ REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE
 
 TEXT_RATIO = 4.5
 BODY_TEXT_RATIO = 7.0
-UI_RATIO = 3.0
 MIN_HUE_GAP = 60.0
 # D8: how much gem is left in a faded gem button's fill, the rest being --panel. The same
 # number is in ``client/src/components/questions/GemButton.svelte``; change both.
 FADED_GEM_SHARE = 0.25
+# D8: how far a lit gem must be from its faded self. Diamond at 18 looked the same both
+# ways on jolly's cream panel; everything that reads well is above 20.
+MIN_FADE_DELTA_E = 20.0
 
 _COMMENTS = re.compile(r"/\*.*?\*/", re.DOTALL)
 _RULES = re.compile(r"([^{}]+)\{([^{}]*)\}", re.DOTALL)
@@ -136,6 +140,24 @@ def contrast(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
 def mix(a: tuple[int, int, int], b: tuple[int, int, int], share: float) -> tuple[int, int, int]:
     """``color-mix(in srgb, a share, b)``: per channel, on the encoded values."""
     return tuple(round(x * share + y * (1 - share)) for x, y in zip(a, b, strict=True))  # type: ignore[return-value]
+
+
+def _lab(rgb: tuple[int, int, int]) -> tuple[float, float, float]:
+    """CIELAB under D65, from sRGB."""
+    r, g, b = (_channel(c) for c in rgb)
+    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+
+    def f(t: float) -> float:
+        return t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+
+    return 116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))
+
+
+def delta_e(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
+    """CIE76 colour difference: straight-line distance in CIELAB. About 2 is just visible."""
+    return sum((p - q) ** 2 for p, q in zip(_lab(a), _lab(b), strict=True)) ** 0.5
 
 
 def hue(rgb: tuple[int, int, int]) -> float:
@@ -248,9 +270,8 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
     ratio("--less", "--panel", TEXT_RATIO)
     apart("--ok", "--bad")
     apart("--more", "--less")
-    # The reveal: --ok rings the winning gem, whichever gem that turns out to be.
+    # The reveal: the answer stays lit and the rest fade into the panel.
     for gem in GEMS:
-        ratio("--ok", gem, UI_RATIO)
         ratio("--gem-ink", gem, TEXT_RATIO)
         # ...and the losers fade, with their text still there to read.
         if gem in colours and "--panel" in colours and "--gem-ink" in colours:
@@ -260,6 +281,12 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
                 problems.append(
                     f"{name}: --gem-ink reaches only {measured:.2f}:1 against {gem} faded "
                     f"into --panel, needs {TEXT_RATIO}:1"
+                )
+            difference = delta_e(colours[gem], faded)
+            if difference < MIN_FADE_DELTA_E:
+                problems.append(
+                    f"{name}: {gem} is only {difference:.1f} from itself faded into --panel, "
+                    f"needs {MIN_FADE_DELTA_E:.0f}: lit and faded would look alike"
                 )
     return problems
 

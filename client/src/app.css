@@ -73,15 +73,18 @@
   --more: #1c6b5a;
   --less: #97281f;
 
-  /* 5. Gems, in value order: sapphire, emerald, ruby, diamond, dragonstone, onyx, zenyte.
-     Position is identity, so position 1 is always sapphire however many options a question
-     shows. On reveal the winning button keeps its gem and gains an --ok ring, so every gem
-     has to stay 3:1 clear of --ok — which is why onyx is a pale lilac here rather than the
-     black it is in the game. A theme moves its gem, never the ring. */
+  /* 5. Gems: sapphire, emerald, ruby, red topaz, dragonstone, onyx, zenyte. Position is
+     identity, so position 1 is always sapphire however many options a question shows. A
+     gem answers lit, and every option that is not the answer (or not your pick) fades
+     into --panel, so each gem has to stand well clear of its own faded self: the contrast
+     check holds lit against faded to a colour difference of 20. Diamond was the fourth
+     gem until it failed that — near-white on a cream panel, lit and faded looked alike —
+     and red topaz, a pink, took its place. Onyx is a pale lilac here rather than the
+     black it is in the game for the same reason. */
   --gem-sapphire: #a8cbef;
   --gem-emerald: #8fd3a4;
   --gem-ruby: #f4afa9;
-  --gem-diamond: #e4f0f5;
+  --gem-red-topaz: #f390c0;
   --gem-dragonstone: #dfb3e8;
   --gem-onyx: #c6c0d0;
   --gem-zenyte: #f4bc6e;
@@ -141,13 +144,14 @@
   --more: #2f5f8a;
   --less: #9a3b16;
 
-  /* Sun-bleached stones: pale, so the deep --ok ring reads on every one of them. */
+  /* Sun-bleached stones: pale, but each still far enough from the off-white panel to
+     read lit against faded. */
   --gem-sapphire: #a3c3ea;
   --gem-emerald: #a4dbb3;
   --gem-ruby: #f3ada2;
-  --gem-diamond: #eef3f3;
+  --gem-red-topaz: #f08fc0;
   --gem-dragonstone: #dcb5e6;
-  --gem-onyx: #cdc6cf;
+  --gem-onyx: #aea5b5;
   --gem-zenyte: #f2c47e;
   --gem-ink: #2b2319;
 
@@ -196,14 +200,14 @@
   --more: #7dc08a;
   --less: #e3776c;
 
-  /* Deep stones, because here --ok is the light colour and the ring has to read against
-     the fill. Diamond is a dark steel for the same reason onyx is pale in jolly. */
+  /* Deep stones under light ink. Onyx is a slate violet rather than black: black on
+     this near-black panel would look the same lit as faded. */
   --gem-sapphire: #1e3f7a;
   --gem-emerald: #15613a;
   --gem-ruby: #7d1c22;
-  --gem-diamond: #3c4f5a;
+  --gem-red-topaz: #9a2f6e;
   --gem-dragonstone: #5a2172;
-  --gem-onyx: #241f2c;
+  --gem-onyx: #645c7c;
   --gem-zenyte: #7c4510;
   --gem-ink: #efe8df;
 

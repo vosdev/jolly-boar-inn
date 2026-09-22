@@ -1,14 +1,15 @@
 <script lang="ts" module>
   /**
-   * The seven gems, in the game's value order, which is also the order of the options:
-   * position 1 is always sapphire, position 2 always emerald (section 2). A two-option
-   * question shows sapphire and emerald, never sapphire and zenyte.
+   * The seven gems, which are also the order of the options: position 1 is always
+   * sapphire, position 2 always emerald (section 2). A two-option question shows sapphire
+   * and emerald, never sapphire and zenyte. Red topaz holds the fourth place diamond had,
+   * because a near-white gem looked the same lit as faded.
    */
   export const GEMS = [
     'sapphire',
     'emerald',
     'ruby',
-    'diamond',
+    'red-topaz',
     'dragonstone',
     'onyx',
     'zenyte',
@@ -148,8 +149,8 @@
   .ruby {
     --fill: var(--gem-ruby);
   }
-  .diamond {
-    --fill: var(--gem-diamond);
+  .red-topaz {
+    --fill: var(--gem-red-topaz);
   }
   .dragonstone {
     --fill: var(--gem-dragonstone);

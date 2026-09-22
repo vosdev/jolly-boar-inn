@@ -2,7 +2,7 @@
 
 The palette itself is not a matter of taste the tests can judge, so what is asserted here
 is the contract from section 2 of ideas/design.md: both shipped themes pass, a deliberately
-broken ``--bad`` fails, an ``--ok`` that cannot be seen against ``--gem-emerald`` fails, and
+broken ``--bad`` fails, a gem that looks the same lit as faded fails, and
 the stylesheet stays the only place a colour is set.
 """
 
@@ -81,11 +81,11 @@ def test_a_broken_bad_fails(css: str) -> None:
     assert any("--bad" in line and "--panel" in line for line in problems)
 
 
-def test_an_ok_that_cannot_be_seen_against_emerald_fails(css: str) -> None:
-    """The reveal ring: --ok lands on a gem, so it has to read against every gem."""
-    broken = _swap(css, "wilderness", "--gem-emerald", "#83c28f")
+def test_a_gem_that_looks_the_same_faded_fails(css: str) -> None:
+    """D8: lit against faded is the reveal. Diamond on jolly's cream panel is why."""
+    broken = _swap(css, "pollnivneach", "--gem-red-topaz", "#e4f0f5")
     problems = check.check(broken)
-    assert any("--ok" in line and "--gem-emerald" in line for line in problems)
+    assert any("--gem-red-topaz" in line and "look alike" in line for line in problems)
 
 
 def test_gem_ink_that_cannot_be_read_on_a_faded_gem_fails(css: str) -> None:

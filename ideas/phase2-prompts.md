@@ -728,7 +728,7 @@ Accept:
 === T32. Seven options, at most ===
 
 Task T32 in ideas/phase2.md: no question may offer more than seven choices, because there
-are seven gem buttons (ideas/design.md §2: sapphire, emerald, ruby, diamond, dragonstone,
+are seven gem buttons (ideas/design.md §2: sapphire, emerald, ruby, red topaz, dragonstone,
 onyx, zenyte) and each choice is one of them.
 
 Do:

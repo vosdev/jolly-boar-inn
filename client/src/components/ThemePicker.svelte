@@ -81,7 +81,7 @@
                   <span class="gem sapphire"></span>
                   <span class="gem emerald"></span>
                   <span class="gem ruby"></span>
-                  <span class="gem diamond"></span>
+                  <span class="gem red-topaz"></span>
                   <span class="gem dragonstone"></span>
                 </span>
               </span>
@@ -245,8 +245,8 @@
     background: var(--gem-ruby);
   }
 
-  .diamond {
-    background: var(--gem-diamond);
+  .red-topaz {
+    background: var(--gem-red-topaz);
   }
 
   .dragonstone {

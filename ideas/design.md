@@ -93,7 +93,7 @@ that runs in CI.
 | 2. Brand | `--accent` `--accent-ink` `--accent-hover` | Freely |
 | 3. Verdict | `--ok` `--ok-ink` `--bad` `--bad-ink` `--warn` `--warn-ink` | Must pass contrast + hue check |
 | 4. Semantic | `--more` `--less` | Must pass; must differ from layer 3 by hue or shape cue |
-| 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-diamond` `--gem-dragonstone` `--gem-onyx` `--gem-zenyte` `--gem-ink` | Freely, but `--ok` must stay visible against each |
+| 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-onyx` `--gem-zenyte` `--gem-ink` | Freely, but each must stay clear of its own faded self |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
 
@@ -118,14 +118,17 @@ moment in the game where `--ok` is doing its actual job, so the check is the che
 two. A theme that cannot satisfy it moves its gem, not the ring.
 
 *Since D8:* the ring did not survive its first look on screen, and the reveal is now lit
-against faded with no ring and no glyph (below). The assertion stays in the script for now,
-cheap and harmless; it constrains nothing the gems do not already satisfy. The assertion
-that replaced its job is **`--gem-ink` at 4.5:1 against every gem, lit and faded**, the fade
-being the gem mixed 25% into `--panel`.
+against faded with no ring and no glyph (below), so the `--ok`-against-gem assertion is
+gone. Two replace it: **`--gem-ink` at 4.5:1 against every gem, lit and faded**, the fade
+being the gem mixed 25% into `--panel`; and **every gem at least 20 apart (CIE76 ΔE) from
+its own faded self**, because lit against faded is now the whole reveal. That second one is
+why diamond is no longer a gem: near-white on jolly's cream panel it measured 18, and a
+player who picked a wrong sapphire saw more colour on their faded button than on the lit
+diamond answer. Red topaz, a pink, took its place.
 
 ### The gem buttons and the reveal problem
 
-Sapphire / emerald / ruby / diamond / dragonstone for multiple-choice answers is a good
+Sapphire / emerald / ruby / red topaz / dragonstone for multiple-choice answers is a good
 idea and it has one sharp edge: **a ruby button that turns out to be the correct answer, and
 an emerald button that turns out to be wrong.** If the verdict is painted as a green or red
 fill, the emerald button quietly lies for the half-second before anyone reads it.
@@ -134,7 +137,7 @@ The rule that fixes it: **on reveal, no button changes colour.** The correct but
 gem fill, lit, and nothing is added to it: no ring, no ✓. Every other button fades — the
 fill washes out into the panel, the answer text stays at 4.5:1 or better, because people
 want to read what the other options said. It does not matter which gem is correct: if
-Sapphire is right, ruby, emerald and diamond fade and sapphire stays lit. The gem stays as
+Sapphire is right, ruby, emerald and red topaz fade and sapphire stays lit. The gem stays as
 identity, and green and red never land on a gem.
 
 A pick works the same way before the reveal: the button you pressed stays lit and every
@@ -155,8 +158,9 @@ those who answered. If the host ticks **Name who got it wrong** on Create
 follow it. A player who did not answer is not on that list, and neither is a graded guess
 that scored.
 
-Gems are also ordering, not decoration: **sapphire, emerald, ruby, diamond, dragonstone,
-onyx, zenyte** is the in-game value order, so position 1 is always sapphire, position 2
+Gems are also ordering, not decoration: **sapphire, emerald, ruby, red topaz, dragonstone,
+onyx, zenyte**, the in-game value order with red topaz in the place diamond held (above:
+diamond could not be told lit from faded), so position 1 is always sapphire, position 2
 always emerald, and so on down. That holds however many options are on screen — a two-option
 question shows sapphire and emerald, never sapphire and zenyte — because the whole value of
 the scheme is that a player learns the position, which is worth more than variety.
@@ -1109,8 +1113,9 @@ manifest, because `max_players_per_room` is 50 and a full room should be able to
 different faces. The index is a contract: `players.avatar` stores it, so an id is never
 repointed at a different head. §5.2.
 
-[x] **Seven gems, seven options, three modes.** Sapphire, emerald, ruby, diamond,
-dragonstone, onyx, zenyte, in that order and position-stable however many are shown.
+[x] **Seven gems, seven options, three modes.** Sapphire, emerald, ruby, red topaz,
+dragonstone, onyx, zenyte — red topaz replacing diamond in D8, which looked the same lit as
+faded — in that order and position-stable however many are shown.
 `multiple_choice`, `price_is_right` and `ordering` use them; `more_less` keeps `--more` /
 `--less` and its item pictures. No mode offers more than seven options, which is tracked as
 its own task outside this document. §2.
