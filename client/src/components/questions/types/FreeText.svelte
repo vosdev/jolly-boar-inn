@@ -31,14 +31,7 @@
     explanation?: string
   }
 
-  let {
-    data,
-    revealed,
-    yourValue,
-    canAnswer,
-    result = null,
-    onAnswer,
-  }: TypeViewProps<string> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<string> = $props()
 
   const q = $derived(data as unknown as Data)
   const uid = $props.id()
@@ -64,13 +57,7 @@
       {/if}
     {/if}
     {#if answered !== null}
-      <p
-        class="picked"
-        class:right={revealed && result?.correct === true}
-        class:wrong={revealed && result !== null && !result.correct}
-      >
-        Your answer: <strong>{answered}</strong>
-      </p>
+      <p class="picked">Your answer: <strong>{answered}</strong></p>
     {/if}
   </div>
 {:else}
@@ -94,18 +81,8 @@
   </form>
 {/if}
 
-{#if !canAnswer}
-  <p class="note">
-    {revealed
-      ? 'This one was not scored for you.'
-      : 'This one is not scored for you — sit back and watch.'}
-  </p>
-{:else if revealed && result !== null}
-  <p class="verdict" class:good={result.correct}>
-    {result.correct ? `Right — ${result.points} points` : 'Wrong — no points'}
-  </p>
-{:else if revealed}
-  <p class="note">No answer from you this round, so no points.</p>
+{#if !canAnswer && !revealed}
+  <p class="note">This one is not scored for you — sit back and watch.</p>
 {/if}
 
 {#if revealed && q.explanation}
@@ -134,6 +111,12 @@
     font-size: 1.1rem;
   }
 
+  /* Thumb targets (D8): the box and its button are as tall as an answer button. */
+  .row input,
+  .row button {
+    min-height: 56px;
+  }
+
   .settled p {
     margin: 0 0 0.5rem;
     font-size: 1.1rem;
@@ -144,22 +127,10 @@
     font-size: inherit;
   }
 
-  .picked.right {
-    color: var(--ok);
-  }
-
-  .picked.wrong {
-    color: var(--bad);
-  }
-
-  .verdict {
-    margin: 1rem 0 0;
-    font-weight: 600;
-    color: var(--bad);
-  }
-
-  .verdict.good {
-    color: var(--ok);
+  /* Your answer, held while the room answers and receding beside the real one after:
+     the verdict is the points slot's, so this card never turns green or red. */
+  .picked {
+    color: var(--muted);
   }
 
   .explanation {

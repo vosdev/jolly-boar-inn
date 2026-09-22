@@ -366,6 +366,8 @@ def test_the_answer_row_is_committed_before_the_ack(game, db) -> None:
         "question_id": game.question(0).question_id,
         "scoring": "speed",
         "band": 1,
+        "answered": 1,
+        "of": 3,
     }
     rows = db("select player_id, value, received_at, correct, points from answers")
     assert len(rows) == 1
@@ -374,6 +376,35 @@ def test_the_answer_row_is_committed_before_the_ack(game, db) -> None:
     assert rows[0]["received_at"] is not None
     assert rows[0]["correct"] is None  # grading is the close's job
     assert rows[0]["points"] is None
+
+
+def test_everyone_else_hears_the_answer_count(game) -> None:
+    """D8: the waiting state's "2 of 3 answered", as a count and nothing else.
+
+    The answerer hears it on their ack, so the broadcast leaves them out; nobody hears who
+    answered or what.
+    """
+    game.start()
+    for opened in game.opened(0):
+        assert (opened["question"]["answered"], opened["question"]["of"]) == (0, 3)
+    first, second, third = game.seats
+    game.answer(first, 0, game.right(0))
+    assert first.take("answer_ack")["answered"] == 1
+    for seat in (second, third):
+        count = seat.take("answer_count")
+        assert count == {
+            "t": "answer_count",
+            "question_id": game.question(0).question_id,
+            "answered": 1,
+            "of": 3,
+        }
+    game.answer(second, 0, game.wrong(0))
+    ack = second.take("answer_ack")
+    assert (ack["answered"], ack["of"]) == (2, 3)
+    assert third.take("answer_count")["answered"] == 2
+    # Each heard only the other's answer counted, never their own.
+    assert "answer_count" not in first.kinds
+    assert second.kinds.count("answer_count") == 1
 
 
 def test_a_second_answer_is_already_answered(game) -> None:
@@ -554,7 +585,8 @@ def test_welcome_mid_question_carries_the_question_and_your_answer(game, client)
         again.send_json({"t": "hello", "session": player.session})
         welcome = again.receive_json()
         assert welcome["t"] == "welcome"
-        assert welcome["question"] == opened["question"]
+        # The same question, with the count as it stands now rather than at open (D8).
+        assert welcome["question"] == opened["question"] | {"answered": 1}
         assert welcome["your_answer"] == game.right(0)
         assert welcome["room"]["phase"] == "open"
         assert welcome["room"]["current_index"] == 0
@@ -878,6 +910,7 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
     player = game.players[0]
     game.answer(player, 0, game.right(0))
     player.take("answer_ack")
+    game.admin.take("answer_count")  # D8: read, so the close below is the next frame
     question_id = game.question(0).question_id
 
     assert evict(game.code) is True

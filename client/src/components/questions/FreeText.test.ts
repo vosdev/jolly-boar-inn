@@ -68,7 +68,7 @@ describe('free_text', () => {
     expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
   })
 
-  it('reveals the answer, the other spellings that counted, and the verdict', () => {
+  it('reveals the answer and the other spellings that counted beside ours', () => {
     render(Question, {
       question: open(),
       reveal: REVEAL,
@@ -78,7 +78,8 @@ describe('free_text', () => {
     })
     expect(screen.getByText('Zezima')).toBeTruthy()
     expect(screen.getByText('Also accepted: Zezima the Great')).toBeTruthy()
-    expect(screen.getByText('Zezma').closest('p')?.classList.contains('right')).toBe(true)
-    expect(screen.getByText('Right — 900 points')).toBeTruthy()
+    // Ours recedes beside it; whether it counted is the points slot's to say (D8).
+    expect(screen.getByText('Zezma').closest('p')?.classList.contains('picked')).toBe(true)
+    expect(screen.queryByText(/900/)).toBeNull()
   })
 })

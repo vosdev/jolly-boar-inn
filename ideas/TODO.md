@@ -1,6 +1,6 @@
 # Progress
 
-Current version: `0.3.1` (see [VERSION](../VERSION)). Task descriptions and accept criteria
+Current version: `0.5.0` (see [VERSION](../VERSION)). Task descriptions and accept criteria
 live in [phase2.md](phase2.md) (T-tasks) and [design.md](design.md) (D-tasks); prompts are in
 [phase2-prompts.md](phase2-prompts.md). Loose ideas that haven't become a task yet live in
 [IDEAS.md](IDEAS.md).
@@ -64,7 +64,7 @@ Done, T1–T15.
 Loose ends:
 
 - [ ] T31. Loose ends
-- [ ] T32. Seven options, at most
+- [ ] T32. Six options, at most
 - [ ] T33. Limits that mean one client, and IPv6
 - [ ] T34. The wiki's rules, enforced *(must land before T23 makes its first request)*
 
@@ -97,7 +97,7 @@ Running an instance:
 - [x] D5. The three themes and the picker
 - [ ] D6. Sound
 - [x] D7. Splash and the ready check
-- [] D8. Question screens
+- [x] D8. Question screens
 - [x] D9. Standings: the podium and the `standings` phase
 - [ ] D10. Selfhoster branding
 - [ ] D11. Motion and the reduced-motion pass

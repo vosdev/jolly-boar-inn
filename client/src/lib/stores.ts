@@ -55,6 +55,12 @@ export const lastClosed = writable<ClosedQuestion | null>(null)
  * answer landed in there. Null until it does.
  */
 export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(null)
+/**
+ * How many of the room have answered the open question, of how many can (D8). Seeded by
+ * the question's own frame and moved on by `answer_count` and our `answer_ack`; null with
+ * no question open, or from a server that does not count.
+ */
+export const answerCount = writable<{ answered: number; of: number } | null>(null)
 export const connection = writable<ConnectionState>('connecting')
 /** The last rejected message. Screens show it and clear it; nothing else depends on it. */
 export const lastError = writable<ProtocolError | null>(null)
@@ -105,7 +111,15 @@ function patchRoom(patch: Partial<RoomView>): void {
 function forgetQuestion(): void {
   yourAnswer.set(null)
   answerAck.set(null)
+  answerCount.set(null)
   lastClosed.set(null)
+}
+
+/** The count a frame carries, if it carries one. */
+function countFrom(frame: { answered?: number; of?: number } | null): void {
+  if (frame !== null && typeof frame.answered === 'number' && typeof frame.of === 'number') {
+    answerCount.set({ answered: frame.answered, of: frame.of })
+  }
 }
 
 /**
@@ -154,6 +168,7 @@ export function applyServerMessage(message: ServerMessage): void {
       // the scoreboard, not the answer it never saw revealed.
       forgetQuestion()
       yourAnswer.set(message.your_answer)
+      countFrom(message.question)
       lastError.set(null)
       noteServerTime(message.server_time)
       break
@@ -176,6 +191,7 @@ export function applyServerMessage(message: ServerMessage): void {
     case 'question_open':
       question.set(message.question)
       forgetQuestion()
+      countFrom(message.question)
       // The segment comes along because a round can change with no splash to announce
       // it — `splash_seconds` at zero, or a new round of the mode already playing — and
       // this frame is then the only thing carrying the change.
@@ -213,6 +229,12 @@ export function applyServerMessage(message: ServerMessage): void {
 
     case 'answer_ack':
       answerAck.set({ scoring: message.scoring, band: message.band })
+      countFrom(message)
+      break
+
+    case 'answer_count':
+      // A count for a question that has already closed is late news; drop it.
+      if (get(question)?.question_id === message.question_id) countFrom(message)
       break
 
     case 'pong':

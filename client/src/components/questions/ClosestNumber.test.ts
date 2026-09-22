@@ -84,11 +84,13 @@ describe('closest_number', () => {
     })
     expect(screen.getByText('100 hours')).toBeTruthy()
     expect(screen.getByText('99 hours')).toBeTruthy()
-    expect(screen.getByText('Off by 1 hours — 800 points')).toBeTruthy()
+    expect(document.querySelector('.picked')?.textContent).toMatch(/99 hours\s*, off by 1 hours/)
+    // What it paid is the points slot's to say (D8), not the view's.
+    expect(screen.queryByText(/800/)).toBeNull()
     expect(screen.getByText('Most of them at Zuk.')).toBeTruthy()
   })
 
-  it('calls an exact guess spot on, and no guess no points', () => {
+  it('calls an exact guess spot on, and shows no guess when there was none', () => {
     const exact = render(Question, {
       question: open(),
       reveal: REVEAL,
@@ -96,9 +98,10 @@ describe('closest_number', () => {
       result: { value: 100, correct: true, credit: 1, points: 1000 },
       onAnswer: () => {},
     })
-    expect(screen.getByText('Spot on — 1000 points')).toBeTruthy()
+    expect(document.querySelector('.picked')?.textContent).toMatch(/, spot on/)
     exact.unmount()
     render(Question, { question: open(), reveal: REVEAL, yourValue: null, onAnswer: () => {} })
-    expect(screen.getByText('No guess from you this round, so no points.')).toBeTruthy()
+    expect(document.querySelector('.picked')).toBeNull()
+    expect(screen.getByText('100 hours')).toBeTruthy()
   })
 })

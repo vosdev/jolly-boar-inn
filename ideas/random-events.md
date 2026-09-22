@@ -89,17 +89,16 @@ and questions, or swap any of them for something from the candidates below.
 | id | Theme (suggested) | Good types |
 |---|---|---|
 | `sandwich_lady` | cooking and food | closest_number (levels, heals), multiple_choice |
-| `rick_turpentine` | money: alch values, shop prices | more_less, price_is_right |
+| `lumbridge_cook` | cooking and food, recipe for disaster | multiple_choice |
 | `dr_jekyll` | herblore, potions, secondaries | multiple_choice, free_text |
-| `evil_bob` | fishing, and cats | multiple_choice, closest_number |
-| `freaky_forester` | woodcutting and hunter | multiple_choice, closest_number |
-| `drunken_dwarf` | ales, kebabs, dwarves, Keldagrim | multiple_choice, free_text |
+| `bob` | fishing, and cats | multiple_choice, closest_number |
+| `freaky_forester` or `tree_spirit` | woodcutting and hunter | multiple_choice, closest_number |
+| `drunken_dwarf` | ales, kebabs, dwarves, Keldagrim, pubs | multiple_choice, free_text |
 | `genie` | skills and XP | closest_number |
 | `sergeant_damien` | combat: gear, styles, bosses | multiple_choice |
-| `quiz_master` | anything at all: he runs a quiz | any |
-| `mr_mordaut` | the surprise exam: patterns, odd one out | multiple_choice |
 | `mysterious_old_man` | quests and lore | multiple_choice, free_text |
 | `count_check` | account security, and counting | closest_number |
+| `krystilia` | Slayer and Wilderness | closest_number, multiple_choice, free_text |
 
 For each one, copy this block:
 

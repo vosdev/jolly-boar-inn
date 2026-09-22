@@ -69,6 +69,11 @@ export interface RoomSettings {
   /** How long the standings hold between two rounds (D9). Zero turns them off. */
   standings_seconds: number
   close_when_all_answered: boolean
+  /**
+   * Name who answered wrong under a reveal (D8). Optional: a server from before it does
+   * not send it, and that reads as off.
+   */
+  name_wrong_answers?: boolean
   max_players: number | null
 }
 
@@ -155,6 +160,14 @@ export interface OpenQuestion {
   opened_at: string
   ends_at: string
   you_can_answer: boolean
+  /**
+   * How many have answered, of how many can (D8's waiting state), as of this frame: zero
+   * on `question_open`, the live count in a `welcome`. `answer_count` and our own
+   * `answer_ack` keep it current after that. Optional because a server from before D8
+   * does not send it, and the waiting state then goes without the count.
+   */
+  answered?: number
+  of?: number
 }
 
 // --- Client → server --------------------------------------------------------------
@@ -255,6 +268,17 @@ export interface AnswerAck {
   question_id: string
   scoring: Scoring
   band: number | null
+  /** The room's count with our answer in it. Optional: a server from before D8. */
+  answered?: number
+  of?: number
+}
+
+/** Somebody else answered the open question. A count, never who or what (D8). */
+export interface AnswerCount {
+  t: 'answer_count'
+  question_id: string
+  answered: number
+  of: number
 }
 
 export interface PlayerResult {
@@ -297,6 +321,7 @@ export type ServerMessage =
   | RoomUpdated
   | QuestionOpen
   | AnswerAck
+  | AnswerCount
   | QuestionClosed
   | GameFinished
   | Pong

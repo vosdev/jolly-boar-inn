@@ -19,6 +19,7 @@
 
   import IdentityChip from './components/IdentityChip.svelte'
   import ThemePicker from './components/ThemePicker.svelte'
+  import TimerBar from './components/TimerBar.svelte'
   import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
   import Home from './routes/Home.svelte'
@@ -26,6 +27,7 @@
   import Room from './routes/Room.svelte'
   import { getSession, normalizeCode } from './lib/session'
   import { you } from './lib/stores'
+  import { timerBar } from './lib/timerbar'
 
   type Route =
     | { name: 'home' }
@@ -83,6 +85,15 @@
     <ThemePicker />
   {/snippet}
 </TopBar>
+
+<!-- D8: the clock of whatever a room is timing, under the bar and outside the column.
+     Keyed on the deadline, so a new question starts a full bar rather than easing up to
+     one from the last question's empty. -->
+{#if $timerBar !== null}
+  {#key $timerBar.endsAt}
+    <TimerBar {...$timerBar} />
+  {/key}
+{/if}
 
 <main id="content" tabindex="-1">
   {#if route.name === 'home'}

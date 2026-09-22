@@ -61,14 +61,17 @@ describe('multiple_choice', () => {
     const disabled = () =>
       screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)
     expect(disabled()).toBe(true)
-    expect(screen.getByText('your answer')).toBeTruthy()
+    // D8's waiting state: our pick held, and only ours, as pressed.
+    const pressed = screen.getAllByRole('button').map((b) => b.getAttribute('aria-pressed'))
+    expect(pressed).toEqual(['false', 'true', 'false'])
+    expect(screen.getByText('you')).toBeTruthy()
     answered.unmount()
     render(Question, { question: open(false), yourValue: null, onAnswer: () => {} })
     expect(disabled()).toBe(true)
     expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
   })
 
-  it('marks the right answer on the reveal, a wrong pick as wrong, and says why', () => {
+  it('lights the right answer on the reveal, fades the rest, keeps our wrong pick, says why', () => {
     render(Question, {
       question: open(),
       reveal: REVEAL,
@@ -77,9 +80,11 @@ describe('multiple_choice', () => {
       onAnswer: () => {},
     })
     const buttons = screen.getAllByRole('button')
-    expect(buttons[0].classList.contains('right')).toBe(true)
+    expect(buttons.map((b) => b.classList.contains('correct'))).toEqual([true, false, false])
     expect(buttons[1].classList.contains('wrong')).toBe(true)
-    expect(screen.getByText('Wrong — no points')).toBeTruthy()
+    expect(buttons[2].classList.contains('faded')).toBe(true)
+    // The verdict is the points slot's (Room), not the view's.
+    expect(screen.queryByText(/no points/)).toBeNull()
     expect(screen.getByText('One of Zulrah’s uniques.')).toBeTruthy()
   })
 
@@ -91,7 +96,7 @@ describe('multiple_choice', () => {
       result: { value: 0, correct: true, credit: 1, points: 800 },
       onAnswer: () => {},
     })
-    expect(screen.getByText('Right — 800 points')).toBeTruthy()
+    expect(screen.getAllByRole('button')[0].classList.contains('correct')).toBe(true)
     expect(document.querySelector('.explanation')).toBeNull()
   })
 })

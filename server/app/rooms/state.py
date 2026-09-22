@@ -67,6 +67,7 @@ from app.questions.types.scoring import Scoring
 from app.rooms import codes, ready, scoring, segments, selection
 from app.rooms.settings import RoomSettings
 from app.ws.protocol import (
+    AnswerCount,
     GameFinished,
     OpenQuestion,
     PlayerResult,
@@ -315,7 +316,10 @@ class RoomQuestion:
             return False
         return self.source != "room" or self.author_player_id != player_id
 
-    def view(self, total: int, player_id: UUID, segment: Segment) -> OpenQuestion:
+    def view(
+        self, total: int, player_id: UUID, segment: Segment, count: tuple[int, int] = (0, 0)
+    ) -> OpenQuestion:
+        """The open question as ``player_id`` sees it. ``count`` is ``_answer_count``'s."""
         assert self.shown_at is not None and self.ends_at is not None
         return OpenQuestion(
             question_id=self.question_id,
@@ -328,6 +332,8 @@ class RoomQuestion:
             opened_at=self.shown_at,
             ends_at=self.ends_at,
             you_can_answer=self.can_answer(player_id),
+            answered=count[0],
+            of=count[1],
         )
 
 
@@ -855,7 +861,7 @@ class RoomManager:
             # gets the same phase, round and ``next_at`` a live one was broadcast.
             segment = room.current_segment
             open_view = (
-                question.view(room.total, player.id, segment)
+                question.view(room.total, player.id, segment, _answer_count(room, question))
                 if question is not None and segment is not None
                 else None
             )
@@ -1165,8 +1171,12 @@ class RoomManager:
 
     async def submit_answer(
         self, code: str, player: Player, question_id: str, value: Any
-    ) -> tuple[Scoring, int | None]:
-        """Store one answer and return how the question is scored and its band there.
+    ) -> tuple[Scoring, int | None, tuple[int, int]]:
+        """Store one answer and return how the question is scored, its band there, and
+        the room's answer count with it in.
+
+        Everyone else hears the new count as ``answer_count`` (D8), broadcast from here;
+        the answerer is left out of it, since the handler's ``answer_ack`` carries it.
 
         The row is committed before this returns and the handler sends ``answer_ack``
         only after it returns, so an acknowledged answer is an answer that survived the
@@ -1215,7 +1225,11 @@ class RoomManager:
             question.answers[player.id] = Submitted(value=value, received_at=now, band=band)
             if room.settings.close_when_all_answered and _everyone_answered(room, question):
                 room.advance.set()
-        return how, band
+            count = _answer_count(room, question)
+            counted = AnswerCount(question_id=question_id, answered=count[0], of=count[1])
+            others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
+        await self._broadcast(others)
+        return how, band, count
 
     async def skip(self, code: str, by: Player) -> None:
         """Admin: cut the splash, the open question, the reveal or the standings short.
@@ -1501,10 +1515,11 @@ class RoomManager:
                 )
             segment = room.segment_at(index)
             assert segment is not None  # every question belongs to a round
+            count = _answer_count(room, question)
             opened = Broadcast.per_player(
                 room,
                 lambda pid: QuestionOpen(
-                    question=question.view(room.total, pid, segment)
+                    question=question.view(room.total, pid, segment, count)
                 ).model_dump(mode="json"),
             )
         await self._broadcast(opened)
@@ -1650,6 +1665,18 @@ def _everyone_answered(room: Room, question: RoomQuestion) -> bool:
     """
     eligible = [pid for pid in room.sockets if question.can_answer(pid)]
     return bool(eligible) and all(pid in question.answers for pid in eligible)
+
+
+def _answer_count(room: Room, question: RoomQuestion) -> tuple[int, int]:
+    """How many have answered ``question``, of how many can. Lock held.
+
+    The second number is every connected player allowed to answer, plus anyone who
+    answered and has since dropped: an answer does not stop counting because its phone
+    went to sleep, and the first number never exceeds the second.
+    """
+    answering = {pid for pid in room.sockets if question.can_answer(pid)}
+    answering.update(question.answers)
+    return len(question.answers), len(answering)
 
 
 def _recount_splash(room: Room, unready: bool = False) -> None:

@@ -5,9 +5,6 @@ Instead of a splash countdown (default 8 seconds), have every player click ready
 
 # Bugs
 
-When no option is chosen (at least on the more_less gametype), it states I have chosen the correct option on the (green outlined) button, with the text underneath saying `No answer from you this round, so no points.`
-
-
 ROOMS_PER_IP_PER_HOUR seems to be for the whole deployment and not by ip? unless FORWARDED_ALLOW_IPS is set. ROOMS_PER_IP_PER_HOUR might be too strict regardless. We should limit the rooms per client at least client side. (The delete button is done: the front page lists the rooms this browser created and each has a Remove, which deletes the room and frees its code. It does not care whether the room is active -- a room being played is still the host's to remove.)
 
 HEAD /api/modes 404s while GET 200s;
@@ -35,9 +32,9 @@ If we want a custom font, we should find one.
 # Logo
 
 We need to create our own logo/favicon for the website
-# Limit answers to 7
+# Limit answers to 6
 
-We only have 7 gems (Sapphire <-> Zenyte) so we need to limit the amount of answers that any type of question can have to 7.
+We only have 6 gems (Sapphire <-> Zenyte) so we need to limit the amount of answers that any type of question can have to 6.
 
 # Store rooms in LocalStorage when done
 

@@ -111,7 +111,7 @@ describe('Question', () => {
       onAnswer,
     })
     expect(screen.getByText('1,500,000 gp')).toBeTruthy()
-    expect(screen.getByText('Right — 900 points')).toBeTruthy()
+    expect(screen.getAllByRole('button')[0].classList.contains('correct')).toBe(true)
   })
 
   it('draws the fallback for a type with no view, and no stem above it', () => {

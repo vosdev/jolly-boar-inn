@@ -56,6 +56,8 @@
   let randomEvents = $state(true)
   let modeOrder = $state<'listed' | 'random'>('listed')
   let closeWhenAllAnswered = $state(true)
+  /** List who got it wrong under each reveal (D8). The count of who got it right always shows. */
+  let nameWrongAnswers = $state(false)
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
 
@@ -169,6 +171,7 @@
       splash_seconds: introduceRounds ? 8 : 0,
       standings_seconds: standingsSeconds,
       close_when_all_answered: closeWhenAllAnswered,
+      name_wrong_answers: nameWrongAnswers,
     }
     try {
       const created = await createRoom(displayName.trim(), settings, $profile?.head)
@@ -328,6 +331,10 @@
     <label class="check">
       <input type="checkbox" bind:checked={closeWhenAllAnswered} />
       Close a question as soon as everyone has answered
+    </label>
+    <label class="check">
+      <input type="checkbox" bind:checked={nameWrongAnswers} />
+      Name who got it wrong under each answer
     </label>
   </section>
 
