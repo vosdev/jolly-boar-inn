@@ -1223,7 +1223,7 @@ the modes in `ideas/games.md` as they stand now, and three of them are why:
 - **Guess the Examine**, Who's That NPC? and Pixel Hunt answer from a closed vocabulary of
   a few hundred entries, which is not something to put on the wire per question, through a
   combobox that only submits an entry of it.
-- **Random events** (`ideas/TODO.md`, and T22) put a question of one mode inside a round of
+- **Random events** (`ideas/IDEAS.md`, and T22) put a question of one mode inside a round of
   another, which "a round is a mode" could not express, and hold the answer affordance back
   behind the NPC asking it, which nothing on the wire could say. They also retired
   `settings.order` and the custom round it placed. From T22 the NPCs bring questions of
@@ -1284,7 +1284,7 @@ D8.
 | Change | Bump | Example |
 |---|---|---|
 | A T task (`ideas/phase2.md`) or a D task (`ideas/design.md`) | minor | 0.1.0 → 0.2.0 |
-| A fix, a playtest follow-up, an item off `ideas/TODO.md` | patch | 0.2.0 → 0.2.1 |
+| A fix, a playtest follow-up, an item off `ideas/IDEAS.md` | patch | 0.2.0 → 0.2.1 |
 | Docs, CI, or anything else a player cannot see | none | |
 
 - **Semver, not decimals.** After 0.9.0 comes 0.10.0. About 35 tasks remain, and decimal

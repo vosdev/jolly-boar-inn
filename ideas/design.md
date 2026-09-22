@@ -181,7 +181,7 @@ body for things you read" gets 90% of the flavour for none of the cost.
 Fonts must be **self-hosted** — `font-src 'self'`, no Google Fonts, see §8.
 
 **No display face has been chosen yet**, and finding one whose licence survives being
-committed to this repo is the owner's, tracked in `ideas/TODO.md` rather than in any D-task.
+committed to this repo is the owner's, tracked in `ideas/IDEAS.md` rather than in any D-task.
 Until it lands, `--font-display` falls back to the browser default and the app renders in
 body type throughout. Everything above is written so that this costs flavour and nothing
 else: no layout, no contrast check and no accept criterion depends on the pixel face
@@ -425,7 +425,7 @@ Three implementation facts that need to be in the task, not discovered during it
    no `media-src` directive, so every `<audio>` load fails. D6 adds `media-src 'self'` and
    nothing else.
 2. **Browsers block autoplay until a user gesture.** A phone that has joined and not been
-   touched since cannot play the round-start sting. The fix is mostly free: `ideas/TODO.md`
+   touched since cannot play the round-start sting. The fix is mostly free: `ideas/IDEAS.md`
    already wants the splash countdown replaced with a per-player **ready check**, and that
    tap is the audio unlock. Build them in the same task and the problem never exists on the
    ordinary path.
@@ -758,7 +758,7 @@ swap.
 Download scripts would need to enforce a custom User Agent env variable before they can continue, according to the Wiki Terms of Use.
 
 **Neither `make fetch-assets` nor the logo is owned by a D-task.** Both are the owner's, both
-are tracked in `ideas/TODO.md`, and nothing in D1–D12 blocks on either: the heads D4 needs
+are tracked in `ideas/IDEAS.md`, and nothing in D1–D12 blocks on either: the heads D4 needs
 are committed, the display face §3 wants falls back, **D2 ships a placeholder mark** — the
 wordmark set in whatever type is loaded, over a plain sign shape — D7 ships placeholder
 scenes, and D9 ships placeholder trophies, one plain cup shape tinted per tier. Every one of those slots is built to be replaced by a file, so no task reopens when
@@ -966,7 +966,7 @@ Timer as a bar under the top bar; the gem button component with its five states 
 reveal rule from §2, used by `multiple_choice`, `price_is_right` and `ordering` and sized for
 up to seven options; the points slot from §7.2, earned points over the running total; the
 waiting state; touch targets at 56px. `more_less` keeps its own two buttons and its own two
-tokens. Fixes the `ideas/TODO.md` bug where an unanswered `more_less` question highlights a
+tokens. Fixes the `ideas/IDEAS.md` bug where an unanswered `more_less` question highlights a
 button as if it had been pressed.
 
 **Accept:** a colour-blind simulation of the reveal is unambiguous with colour removed

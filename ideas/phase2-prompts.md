@@ -329,7 +329,7 @@ and the host's questions arrive through them.
 
 Read ideas/random-events.md first. It is the owner's roster: the NPC ids, their names,
 opening lines and themes, and the first questions for each one. If it does not exist or
-has fewer than twelve NPCs, stop and say so. Then read ideas/TODO.md "Custom Questions"
+has fewer than twelve NPCs, stop and say so. Then read ideas/IDEAS.md "Custom Questions"
 for the idea in the words it was written in, and ideas/architecture.md section 1
 (selection.py's "Random events"), section 2 ("A random event is a placement, not a round", and the
 envelope's random_event), section 3 (OpenQuestion.random_event and answerable_at) and
@@ -697,7 +697,7 @@ Never leave one half done. Report per task at the end.
 
 === T31. Loose ends ===
 
-Task T31 in ideas/phase2.md: three small fixes from ideas/TODO.md. Keep them as three
+Task T31 in ideas/phase2.md: three small fixes from ideas/IDEAS.md. Keep them as three
 separate commits so each can be reverted alone.
 
 1. HEAD on the API. HEAD /api/modes is a 404 while GET is a 200: FastAPI registers GET

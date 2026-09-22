@@ -9,7 +9,7 @@ grouped: T31 + T32 + T34, T35 + T37, T36 + T38, T41 + T42 and T44 + T45.
 Phase 2 ships **ten new game modes, the framework that makes an eleventh cheap, and the
 random events that carry the host's own questions and a themed set of our own.** It assumes T1–T15 are done and does
 not depend on anything they left open. Behind the modes, T31–T45 are what the first
-playtests and `ideas/TODO.md` asked for: loose ends, who gets into a room, a tidier top bar,
+playtests and `ideas/IDEAS.md` asked for: loose ends, who gets into a room, a tidier top bar,
 and the tools for running an instance. None of them touch a mode.
 
 Each task is one working session, ends with `make lint test` green, bumps the minor
@@ -248,7 +248,7 @@ answer is not.
 ### T22. Random events
 
 The task that makes T21's storage look like something, and gives the NPCs questions of
-their own. `ideas/TODO.md` has the idea; `ideas/random-events.md` has the roster, the
+their own. `ideas/IDEAS.md` has the idea; `ideas/random-events.md` has the roster, the
 themes and the first questions; architecture sections 1, 2, 3 and 4 have the mechanism.
 
 **Who asks, and what.** T21 gave every event a random face and borrowed pack events from
@@ -461,7 +461,7 @@ green, and still leaves the app playable.
 
 ### T31. Loose ends
 
-Three small things from `ideas/TODO.md` that each fit in an afternoon.
+Three small things from `ideas/IDEAS.md` that each fit in an afternoon.
 
 **`HEAD` on the API.** `HEAD /api/modes` is a 404 while `GET` is a 200: FastAPI's
 `@router.get` registers `GET` alone, so a `HEAD` falls through to the static catch-all in
@@ -569,7 +569,7 @@ reads the fragment and puts the key in the join body. A link with no key, or the
 one, lands on a prompt asking for it, not on an error.
 
 An admin can **rotate** the key from the lobby. The old link stops working, and everyone
-already in the room keeps their session. That is also the answer to `ideas/TODO.md`'s
+already in the room keeps their session. That is also the answer to `ideas/IDEAS.md`'s
 "lock the room": rotating a key nobody else has is a lock, so there is no separate lock
 toggle.
 
@@ -793,7 +793,7 @@ T44 numbers.
 `/api/admin/*` route is a 404. If it is set and shorter than 64 characters, the app refuses
 to start and says why. The operator opens `/admin#token=…` once; the page moves the token
 into `localStorage["jbi:admin"]`, `replaceState`s it out of the address bar, and sends it as
-`Authorization: Bearer` from then on. `ideas/TODO.md` wrote this as `?Token=`. It is the
+`Authorization: Bearer` from then on. `ideas/IDEAS.md` wrote this as `?Token=`. It is the
 fragment instead for T35's reason: a query string reaches the access log and the `Referer`,
 and architecture §7 exists to keep tokens out of both. The server compares with
 `hmac.compare_digest`.
@@ -822,7 +822,7 @@ payload contains a display name, an answer or a question payload, asserted.
   in architecture section 6, so Phase 3 is a pipeline and two components, not another
   framework change.
 - **Design** is `ideas/design.md`'s D1–D12, not T-tasks. The ready check that replaced the
-  splash countdown shipped as D7. `ideas/TODO.md`'s version was "everyone taps ready, then 3
+  splash countdown shipped as D7. `ideas/IDEAS.md`'s version was "everyone taps ready, then 3
   seconds", and it survives as D7's everyone-ready branch, with an 80% threshold added so
   one phone in a pocket cannot stall a round. The round-only standings are D9. T40–T42 are
   the design ideas that arrived after that document was settled, and each updates it.
