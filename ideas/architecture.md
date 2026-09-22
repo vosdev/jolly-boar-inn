@@ -255,7 +255,7 @@ has no `questions` bounds because it has no round to size. Every other mode has 
 
 `flatten(rounds)` gives `(round number, question)` in play order, which is what `create` stores. Pure, seeded, tested.
 
-**Random events.** A room's own questions are not a round. They arrive the way a random event arrives in the game this one is about: someone interrupts what you were doing, asks you one thing, and leaves. `place_random_events(rounds, custom, settings, rng) -> list[Round]` is the second half of selection, and it holds to four rules:
+**Random events.** *Pending T22:* the placement rules below (one per round, never the first round, `random_events` as a boolean) are replaced by a frequency setting; `ideas/phase2.md` T22 "How often" is the spec, and T22 rewrites this paragraph when it lands. A room's own questions are not a round. They arrive the way a random event arrives in the game this one is about: someone interrupts what you were doing, asks you one thing, and leaves. `place_random_events(rounds, custom, settings, rng) -> list[Round]` is the second half of selection, and it holds to four rules:
 
 - **Never in the first round.** A player who has seen one mode and nothing else has no routine to interrupt yet.
 - **Never a round's first question.** That position belongs to the splash that just introduced the mode.

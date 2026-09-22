@@ -3,7 +3,7 @@
 One ready-to-paste prompt per session, for Opus 5 on High or Extra in a fresh session at
 the repo root. Most sessions are one task from `ideas/phase2.md`. The small ones are
 grouped, so a session is never spent on an afternoon's fix: T31 + T32 + T34, T35 + T37, T36 + T38,
-T41 + T42 and T44 + T45 each run as one prompt. It says the order to work in, and asks for
+and T44 + T45 each run as one prompt. It says the order to work in, and asks for
 each task to be finished, green and separable before the next starts. Run the sessions in
 the order they appear; each assumes the ones before it landed. T43 sits last because it
 documents what the others add.
@@ -334,12 +334,15 @@ for the idea in the words it was written in, and ideas/architecture.md section 1
 (selection.py's "Random events"), section 2 ("A random event is a placement, not a round", and the
 envelope's random_event), section 3 (OpenQuestion.random_event and answerable_at) and
 section 4 (the splash rule, and the pending → open row). T21 already placed events and
-stored questions.random_event. This task changes who asks and what they ask, and adds the
-two seconds and the card.
+stored questions.random_event. This task changes who asks and what they ask, how often
+events happen, and adds the two seconds and the card. ideas/phase2.md T22 "How often"
+replaces T21's placement rules; where architecture section 1 still says "one per round,
+never the first round", phase2.md wins, and this task rewrites that paragraph to match.
 
 Do, server and data:
 - app/random_events.py: the ids from ideas/random-events.md. tests/test_random_events.py
-  keeps holding the roster to at least len(round_modes()) - 1, and to twelve.
+  holds the roster to at least twelve; the len(round_modes()) - 1 bound goes, because a room
+  at "more" can hold more events than there are faces.
 - MODES gains "random_event" with type = None: never a round, only seconds, like "custom".
 - data/packs/random_events/<npc_id>.json, one hand-written file per NPC, carrying the
   questions from ideas/random-events.md. The file declares "random_event" once and its
@@ -350,12 +353,24 @@ Do, server and data:
 - schema/question.schema.json: an optional envelope field random_event, pattern
   ^[a-z0-9_]{1,32}$. It is outside the hash like every envelope field. A custom question
   may carry it, and POST /api/rooms 422s an id that is not in the roster.
-- selection.place_random_events: a custom question that names an NPC gets that NPC,
-  repeats included. Every other face is drawn from those not yet used in the room. A
-  leftover slot, with PACK_RANDOM_EVENT_CHANCE, takes a question from the event pack whose
-  NPC has not been used yet, preferring a type other than the interrupted round's type, and
-  stays empty if nothing qualifies. Delete the borrowing from unpicked modes, and update
-  the docstrings that describe it.
+- RoomSettings: random_event_frequency ("less" | "default" | "more": one event per 20, 10
+  or 5 round questions) replaces random_events. Slots are floor(round questions / N), added
+  on top of the round questions and counted by MAX_QUESTIONS_PER_ROOM. A stored room reads
+  random_events true as "default", and false as "only its own questions, placed by T21's
+  rules", so every stored room rehydrates and plays as it was created. No migration.
+- The custom cap is the slot count at the chosen frequency; more is a 422 naming the count,
+  the limit and the frequency.
+- selection.place_random_events: cut the round questions into consecutive windows of N and
+  put each slot at a position drawn inside its window, never the game's first question and
+  never a round's first question. The first round is no longer exempt. A custom question
+  that names an NPC gets that NPC, repeats included. Every other face is drawn from those
+  not yet used in the room, then from the least used, never the same face twice running.
+  Every slot the host's questions leave takes an event-pack question, preferring a type
+  other than the interrupted round's type, and stays empty only if nothing qualifies.
+  PACK_RANDOM_EVENT_CHANCE goes. Delete the borrowing from unpicked modes, and update the
+  docstrings (selection.py, settings.py) that describe the old rules.
+- Create: a Less often / Default / More often choice where the random_events checkbox is,
+  and the total question count including events ("11 questions").
 
 Do, the two seconds:
 - OpenQuestion gains random_event (the NPC id, null for an ordinary question) and
@@ -372,10 +387,11 @@ Do, client:
 - lib/randomEvents.ts: the roster's copy, as one flat array: id, name, theme, the line
   they open with, and the asset ref. The ids must match app/random_events.py, and a test
   says so. Write the lines the way the game writes them.
-- components/RandomEvent.svelte: the NPC and the question stem, with the answer
-  affordance held back until answerable_at, counted off server_time and not the local
-  clock. Images are Phase 3: the card reads well as text alone, with the asset as an empty
-  slot. An unknown random_event id draws a generic card, the way viewFor already falls
+- components/RandomEvent.svelte: the NPC's name, its line and the question stem, with the
+  answer affordance held back until answerable_at, counted off server_time and not the
+  local clock. Keep it plain: the NPC taking the stage (picture on the right, the scroll
+  moving, the typed prompt) is design D16, and the pictures are D15. Until then the card
+  reads well as text alone, with the picture as an empty slot. An unknown random_event id draws a generic card, the way viewFor already falls
   back for a mode it cannot draw.
 
 Do not: add a phase to the room state machine, add a column, or send a second message when
@@ -396,8 +412,13 @@ Accept:
 - An unknown random_event id renders the generic card and logs nothing alarming.
 - validate-packs fails each of the three misplaced-random_event cases above, on fixtures.
 - A custom question's named NPC is the one that asks it, and two custom questions naming
-  one NPC are both honoured. Seeded over many rooms, no drawn face repeats and no pack
-  event shares an NPC with another event in its room.
+  one NPC are both honoured. Seeded over many rooms, no drawn face repeats while an unused
+  one is left, and none appears twice running.
+- At "default" one mode of 10 questions plays 11, and Create says 11 before the room
+  exists; "less" and "more" give the counts in phase2.md's table. Seeded, no two events
+  share a window and none is a round's or the game's first question. A one-mode room gets
+  events. Too many custom questions is a 422 that names the frequency. A room stored with
+  random_events false rehydrates and places only its own questions.
 - Every roster id has an event file with at least two questions and a randomEvents.ts
   entry.
 - pnpm check clean. Manual: play a four-mode room with two custom questions, one naming its
@@ -609,6 +630,10 @@ Accept:
 ## T29. Who Said That? and Clipped
 
 ```text
+Clipped ships as "Know Your Content Creator" (label and copy only; the mode id stays
+clipped), presented by the Gnome Child. From design D14 on, both modes also bring their host:
+a drawing on the rig and the host's lines in lib/modes.ts (ideas/design.md §7.1, D14).
+
 Task T29 in ideas/phase2.md: two hand-authored multiple_choice modes, and the authoring
 guide this project needs before Phase 6 opens submissions.
 
@@ -655,13 +680,13 @@ Do:
 - Client-side validation mirroring the schema's limits, so the form never submits something
   the server will 422. The schema is the source of truth for the caps — read them from
   schema/question.schema.json rather than retyping the numbers.
-- The room's event cap: a host may write one question fewer than the number of modes they
-  picked, because each one interrupts a round and never the first (architecture section 1).
-  The form knows the selected modes, so it can say "four modes, three questions" before the
-  server has to.
+- The room's event cap: the number of event slots at the chosen frequency, floor(round
+  questions / N) (phase2.md T22, "How often"). The form knows the questions and the
+  frequency, so it can say "40 questions at Default, four of your own" before the server
+  has to, and that More often would allow more.
 - An NPC picker per question: Random (the default) and then the roster from
   lib/randomEvents.ts, each entry with its name and theme, and a preview drawn by T22's
-  RandomEvent.svelte. Picking one sets the question's random_event, and Random leaves it
+  RandomEvent.svelte (taking the stage as design D16 has it, if D16 has landed). Picking one sets the question's random_event, and Random leaves it
   out. Two questions may pick the same NPC; the server honours that.
 
 Accept:
@@ -672,10 +697,9 @@ Accept:
 - The picker defaults to Random, and a question left on Random carries no random_event.
 - Every schema limit (option counts, string lengths, accepted-answer counts) is enforced in
   the form, with the message next to the field.
-- The event cap is enforced and explained: adding a fourth question to a four-mode room says
-  why it cannot, and deselecting a mode that drops the cap below what is already written
-says
-  so rather than waiting for submit.
+- The event cap is enforced and explained: adding a fifth question to a 40-question room at
+  Default says why it cannot, and lowering the questions or the frequency below what is
+  already written says so rather than waiting for submit.
 - pnpm check clean. Manual: create a room with two custom questions and play it.
 ```
 
@@ -1010,7 +1034,7 @@ Do:
   has not landed, an empty section D6 builds into), Theme (a row of emblems).
 - Emblems: one slot per theme under client/src/assets/, shipping a placeholder, a flat mark
   in the theme's accent, and replaced by dropping in a file. No code change to swap art,
-  the same rule design.md §9.1 sets for scenes and trophies.
+  the same rule design.md §9.1 sets for trophies and NPCs.
 - The bar shows the current emblem instead of the light/dark icon.
 - No inline styles and no style: directive (design.md §8, the CSP).
 
@@ -1027,22 +1051,12 @@ Accept:
 
 ---
 
-## T41 + T42. The TzHaar theme, and the clue-scroll splash
+## T41. The TzHaar theme
 
-Both are paint, and both are judged by the same contrast script. The scroll must read on
-every theme, so it is cheapest to build it once the new theme exists. Needs T40.
+Paint, judged by the contrast script. Needs T40. T42, which used to share this session, was
+superseded by design D13 (`ideas/design.md` §7.1) and has no prompt of its own.
 
 ```text
-Two tasks from ideas/phase2.md in one session: T41 and T42. Do T41 first, so T42's
-every-theme check includes tzhaar.
-
-Work through them one at a time: meet one task's accept criteria and get `make lint test`
-green before starting the next, and keep each task's changes separate enough to commit
-on its own. If the session runs long, stop after a whole task and say which are left.
-Never leave one half done. Report per task at the end.
-
-=== T41. The TzHaar theme ===
-
 Task T41 in ideas/phase2.md: a black-and-red theme, "tzhaar". Built like D12: against the
 contract, and deleted rather than exempted if it cannot pass. Read ideas/design.md §1 and
 §2 first.
@@ -1053,42 +1067,21 @@ ember; an accent that reads as heat, not danger. If a screenshot of each cannot 
 apart, this task has failed even if every check is green.
 
 Do:
-- One contiguous [data-theme='tzhaar'] block in app.css, layers 1-2 and 5-7 only.
+- One contiguous [data-theme='tzhaar'] block in app.css: layers 1-2 and 5-7, plus layer
+  8's scroll tokens if D13 has landed.
 - Picker entry with a placeholder emblem in T40's slot (a fire cape or TokKul is the
   eventual art).
 - Update design.md §1's theme table.
 
 Accept:
-- The D1 contrast script passes unmodified, --ok against every --gem-* included.
+- The D1 contrast script passes unmodified, --gem-ink against every gem and layer 8's
+  scroll tokens included (if D13 has landed), and its scroll still reads as parchment.
 - No layer-3 or layer-4 token is touched outside the block.
 - --bad and the lava accent stay distinguishable under a colour-blindness simulation.
   "Red means wrong" is the contract this theme most wants to blur. Say which simulation
   you used.
 - State the ΔE between tzhaar's and wilderness's base and accent, and put screenshots of
   both, side by side, in your summary.
-
-=== T42. The splash as a clue scroll ===
-
-Task T42 in ideas/phase2.md: D7's splash card becomes a clue scroll. Read ideas/design.md
-§7.1 and §8 first. The scene above the card and the ready check inside it do not change.
-
-Do:
-- The card as parchment: a texture file under client/src/assets/, tinted per theme through
-  tokens, never an inline style. A wax seal. The round name in the display face. "Round 2
-  of 5" where a clue's tier would sit.
-- The heads row and countdown at the scroll's foot, behaviour untouched.
-- One transition: the scroll unrolls in 200ms or less; with prefers-reduced-motion it
-  simply appears.
-- It must read as a scroll in every theme, dark ones included. A parchment that only works
-  on cream is a light-theme feature.
-
-Accept:
-- Body text at 4.5:1 against the parchment in every theme (extend the contrast script if
-  the parchment has a token).
-- D7's tests untouched and green.
-- 375px: the scroll and heads row fit without scrolling.
-- Unroll is 200ms or less, and absent with reduced motion.
-- Swapping the parchment file needs no code change.
 ```
 ---
 
@@ -1207,7 +1200,7 @@ other than its author can run. What is left, in `ideas/plan.md`'s order:
   T20, and `steps` is specced in `ideas/architecture.md` already. Settle the open decision at the end of that file first:
   where asset files live given a read-only container. The random-event NPCs want renders
   too, and they are the same pipeline.
-- **Design**: whatever of D1–D12 in `ideas/design.md` has not landed (the ready check
+- **Design**: whatever of D1–D16 in `ideas/design.md` has not landed (the ready check
   has, as D7). Independent of all of the above, and the thing that makes a playtest feel
   like a real game rather than a form.
 - **Phase 4** inherits T33's limits, T36's `PUBLIC_ROOMS` switch and T45's admin view as
