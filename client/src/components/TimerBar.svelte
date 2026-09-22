@@ -36,8 +36,10 @@
   const remainingMs = $derived(
     Number.isNaN(endMs) ? 0 : Math.max(0, endMs - (nowMs + $serverOffsetMs)),
   )
-  // Ceil, so the last whole second on screen is "1" and not a flash of "0".
-  const seconds = $derived(Math.ceil(remainingMs / 1000))
+  // Ceil, so the last whole second on screen is "1" and not a flash of "0". Never more
+  // than the whole: a random event's clock starts after its NPC's hold (T22), and until
+  // then the bar sits full on the question's own length rather than counting the hold.
+  const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(
     totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0,
   )

@@ -46,3 +46,16 @@ def test_every_problem_is_named_by_its_question_and_its_field() -> None:
 def test_a_question_with_no_type_is_refused_rather_than_hashed() -> None:
     with pytest.raises(schema.QuestionError, match=r"custom_questions\[0\] \$: 'type'"):
         custom.envelopes([{"payload": {}}])
+
+
+def test_a_host_may_name_the_npc_who_asks_it_if_it_is_on_the_roster() -> None:
+    """T22: the NPC is a placement, so it is kept and left out of the content id."""
+    (named,) = custom.envelopes([{**WRITTEN, "random_event": "death"}])
+    assert named["random_event"] == "death"
+    assert named["id"] == schema.content_id(WRITTEN)
+    with pytest.raises(schema.QuestionError) as info:
+        custom.envelopes([{**WRITTEN, "random_event": "rick_turpentine"}])
+    assert info.value.errors == [
+        "custom_questions[0] $.random_event: 'rick_turpentine' is not on the roster"
+        " (app/random_events.py)"
+    ]

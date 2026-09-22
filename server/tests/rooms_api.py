@@ -49,10 +49,13 @@ def fast_settings(**overrides: Any) -> RoomSettings:
 
     ``splash_seconds`` and ``standings_seconds`` are zero by default too: a test that is
     not about the splash or the standings should see the frames it always saw, and the
-    ones that are about them pass their own. So is
-    ``random_events``, for the same reason: a pack question dropped into the middle of a
-    round would move every index a test counts on. The host's own questions are placed
-    whatever it says, which is what the tests about them rely on.
+    ones that are about them pass their own. ``random_event_frequency`` is ``less`` for the
+    same reason: an NPC's question dropped into the middle of a round would move every
+    index a test counts on, and at one event per twenty round questions a room this short
+    has none. There is no off switch, so a test room of twenty questions or more gets
+    events; the tests that are about events ask for ``more`` and enough questions to hold
+    the host's own. And ``random_event_seconds`` is zero, which plays an event as a plain
+    question, so only the tests about the NPC's hold have to wait it out.
     """
     seconds = overrides.pop("seconds", 1)
     questions = overrides.pop("questions", 3)
@@ -68,7 +71,8 @@ def fast_settings(**overrides: Any) -> RoomSettings:
             "reveal_seconds": 1,
             "splash_seconds": 0,
             "standings_seconds": 0,
-            "random_events": False,
+            "random_event_frequency": "less",
+            "random_event_seconds": 0,
             **overrides,
         }
     )

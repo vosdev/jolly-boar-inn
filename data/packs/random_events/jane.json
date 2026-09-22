@@ -1,0 +1,116 @@
+{
+  "pack": "random_events",
+  "random_event": "jane",
+  "questions": [
+    {
+      "id": "q_9e33e84cd2bbd256",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "payload": {
+        "prompt": "My back aches just watching you hack away at herbs with rusty garden shears! Tell me, what enchanted tool should any self-respecting herbalist wield to guarantee a 10% increase to their crop yield?",
+        "options": [
+          "Farmer's fork",
+          "Magic secateurs",
+          "Amulet of nature",
+          "Magic watering can"
+        ],
+        "answer_index": 1
+      }
+    },
+    {
+      "id": "q_05c49fe74d3fc1a6",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "payload": {
+        "prompt": "Good labor doesn't come cheap, adventurer, and neither do my colleagues. If you expect a fellow gardener to keep watchful eyes on a growing Magic tree so it doesn't rot, what will that cost you?",
+        "options": [
+          "10 cactus spines",
+          "5 baskets of oranges",
+          "15 papaya fruit",
+          "25 coconuts"
+        ],
+        "answer_index": 3
+      }
+    },
+    {
+      "id": "q_28b5df753cc00ab3",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "payload": {
+        "prompt": "I just packed a Tier 5 seed pack for a farmer who actually bothered finishing their contract. Out of these seeds, which one has the absolute lowest chance of appearing in my top-tier pack?",
+        "options": [
+          "Redwood tree seed",
+          "Cadantine seed",
+          "White lily seed",
+          "Ranarr seed",
+          "Cactus seed",
+          "Yanillian seed"
+        ],
+        "answer_index": 5
+      }
+    },
+    {
+      "id": "q_76fba719e0508c61",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "payload": {
+        "prompt": "Don't just stand there trampling my petunias! I have a clipboard full of work to assign! If I request you grow a patch of Kwuarm, which tier of Farming contract are you taking on?",
+        "options": [
+          "Easy",
+          "Medium",
+          "Hard"
+        ],
+        "answer_index": 1
+      }
+    },
+    {
+      "id": "q_6dace378071bd07c",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming",
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "The mighty Hespori rests in a cave in my Guild. Its roots can snap a man in two, and you look like you'd faint at the first sign of poison. Tell me its combat level before you go embarrass yourself again!",
+        "answer": 284
+      }
+    },
+    {
+      "id": "q_cbdee77a26af4974",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "farming"
+      ],
+      "payload": {
+        "prompt": "Exclusive to the master tier of my guild, this unique tree takes over 13 hours to grow and produces bark coveted by fletchers making battlestaves. What tree is it?",
+        "options": [
+          "Blisterwood tree",
+          "Celastrus tree",
+          "Calquat tree",
+          "Redwood tree"
+        ],
+        "answer_index": 1
+      }
+    }
+  ]
+}

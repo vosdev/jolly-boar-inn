@@ -21,7 +21,8 @@
     },
     "author": { "type": "string", "maxLength": 64 },
     "added_at": { "type": "string", "format": "date" },
-    "host_only": { "type": "boolean", "default": false }
+    "host_only": { "type": "boolean", "default": false },
+    "random_event": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" }
   },
   "allOf": [
     { "if": { "properties": { "type": { "const": "more_less" } } },

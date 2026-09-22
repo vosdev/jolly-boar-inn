@@ -1,0 +1,113 @@
+{
+  "pack": "random_events",
+  "random_event": "dr_jekyll",
+  "questions": [
+    {
+      "id": "q_bea872c6598ff231",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "payload": {
+        "prompt": "My mind is slipping... tell me! How many doses does a standard, newly created potion vial hold before it is sipped?!",
+        "answer": 3,
+        "unit": "doses"
+      }
+    },
+    {
+      "id": "q_d3628c22c965ff79",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "payload": {
+        "prompt": "If an adventurer offers me a clean Torstol when I desperately ask for aid on the road, what do I hand them in return before fleeing?",
+        "options": [
+          "Saradomin brew",
+          "Extended antifire",
+          "Super combat potion",
+          "Stamina potion"
+        ],
+        "answer_index": 3
+      }
+    },
+    {
+      "id": "q_1cd5446115af8c1c",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "payload": {
+        "prompt": "I must crush these dragon scales into fine powder! Name the two-piece tool every herbalist uses to grind ingredients into dust!",
+        "accepted": [
+          "Pestle and mortar",
+          "Pestle & mortar",
+          "Mortar and pestle"
+        ]
+      }
+    },
+    {
+      "id": "q_24e7b250ef258a72",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "payload": {
+        "prompt": "Please, quickly. I need an Antifire potion to steady myself before I transform into Hyde. What secondary ingredient is combined with a Lantadyme potion (unf)?",
+        "options": [
+          "Red spiders' eggs",
+          "Dragon scale dust",
+          "Crushed superior dragon bones",
+          "Snape grass"
+        ],
+        "answer_index": 1
+      }
+    },
+    {
+      "id": "q_0a46cddb5a998261",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "payload": {
+        "prompt": "I need to stay nimble and clear-headed before I lose myself to that brute Hyde. What secondary ingredient is added to a Toadflax potion (unf) to brew an Agility potion?",
+        "options": [
+          "Frog legs",
+          "Swamp weed",
+          "Toad's legs",
+          "Mort Myre fungus"
+        ],
+        "answer_index": 2
+      }
+    },
+    {
+      "id": "q_c9a0eacd0326272e",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "herblore"
+      ],
+      "payload": {
+        "prompt": "I feel Hyde trying to force his way out, you must hurry! Which secondary ingredient is required to brew a Super Defence potion?",
+        "options": [
+          "White berries",
+          "Poison ivy berries",
+          "Red spiders' eggs",
+          "Jangerberries"
+        ],
+        "answer_index": 0
+      }
+    }
+  ]
+}

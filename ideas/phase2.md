@@ -4,7 +4,7 @@ The task list. Design decisions live in `ideas/architecture.md` (sections 2, 3, 
 mode sketches live in `ideas/games.md`. This file does not repeat either — it says what to
 build, in what order, and what "done" means. The prompts to hand the tasks to are in
 `ideas/phase2-prompts.md`, one per session. Most sessions are one task. The small ones are
-grouped: T31 + T32 + T34, T35 + T37, T36 + T38, T41 + T42 and T44 + T45.
+grouped: T31 + T32 + T34, T35 + T37, T36 + T38 and T44 + T45.
 
 Phase 2 ships **ten new game modes, the framework that makes an eleventh cheap, and the
 random events that carry the host's own questions and a themed set of our own.** It assumes T1–T15 are done and does
@@ -34,10 +34,15 @@ Five things, and the first three are in an order that is not negotiable:
    are asked by an NPC since T22. T30 gives them a form, including a picker for which NPC
    asks each one. It is last because it blocks nothing.
 5. **T31–T45, everything that is not a mode.** Four groups: loose ends (T31–T34), who gets
-   into a room and what they keep when it ends (T35–T39), the chrome (T40–T42), and running
+   into a room and what they keep when it ends (T35–T39), the chrome (T40–T41; T42 went to the design track), and running
    an instance (T43–T45). They interleave freely with T16–T30 and with the D-tasks in
    `ideas/design.md`. T34 is the one with a deadline: it has to land before T23 sends its
    first request to the wiki.
+
+Since design D14 every mode has a host: an NPC who presents its round from a clue scroll
+(`ideas/design.md` §7.1). A mode task from T25 on therefore also brings its host — one
+drawing on D14's rig and the host's lines in `lib/modes.ts` — the way it already brings its
+blurb.
 
 Images stay in Phase 3. Every mode below is playable on text alone; Who's That NPC? and
 Pixel Hunt are the two that are not, and they wait.
@@ -93,7 +98,7 @@ T37 picking a name…            (D4)
 T38 hidden rounds              (T21, for events inside a hidden round)
 T39 finished rooms go home     (D9, for the component it reuses)
 T40 one top-bar menu ─────────▶ T41 TzHaar theme       (T40 needs D5 and D6)
-T42 clue-scroll splash         (D7)
+T42 superseded by design D13
 T43 README                     (last of T33/T34/T44/T45, since it documents their env)
 T44 metrics ──────────────────▶ T45 admin view
 ```
@@ -212,6 +217,10 @@ rejection rate is under a third.
 
 ### T21. Multiple choice, closest number, free text, and where the host's questions land
 
+*Since T22:* the placement rules below — one event per round, never the first round, and
+the custom cap of one fewer than the modes — are replaced by T22's frequency. What T21
+built stays; the rules it placed events by do not.
+
 The three remaining simple types, plus everything random events need on the server. The
 *presentation* is T22. Until that lands an event plays as an ordinary question that happens
 to interrupt a round, which is odd to look at and not broken — the same deal T16–T18 made.
@@ -257,7 +266,8 @@ asking about its own subject: the Sandwich Lady about cooking, Rick Turpentine a
 Dr Jekyll about potions.
 
 - `app/random_events.py` takes its ids from `ideas/random-events.md`. The roster test
-  still holds it to at least `len(round_modes()) - 1`, and to twelve.
+  holds it to at least twelve. It no longer has to outnumber the slots, because a room at
+  `more` can hold more events than there are faces, and those repeat (below).
 - New mode `random_event` with `type = None`, which is never a round and declares only `seconds`,
   as `custom` does. Its pool is `data/packs/random_events/`: one hand-written file per NPC,
   named after the NPC id, which declares `random_event` once for every question in it.
@@ -270,10 +280,36 @@ Dr Jekyll about potions.
   and an unknown id is a 422 at room creation.
 - `place_random_events`: a custom question that names an NPC gets that NPC, even if another
   custom question already named it. Every other face is drawn from those not yet used in
-  the room. A leftover slot, with `PACK_RANDOM_EVENT_CHANCE`, takes an event-pack question
-  whose NPC has not been used yet. It prefers a type other than the type of the round it
-  interrupts, and leaves the slot empty when nothing qualifies. Pack events no longer
-  borrow from other modes.
+  the room, and once the roster is used up, from the least used, never the same face twice
+  in a row. Every slot the host's questions leave takes an event-pack question; it prefers
+  a type other than the type of the round it interrupts, and leaves the slot empty only
+  when nothing qualifies. Pack events no longer borrow from other modes, and
+  `PACK_RANDOM_EVENT_CHANCE` goes: how many events a room gets is the frequency's to say.
+
+**How often.** Random events were rare by construction: one per round, never the first.
+They are now a bigger part of the game, and the host sets how big.
+`random_event_frequency` replaces `random_events` in `RoomSettings`, with three values:
+
+| Value | One event per | 10 questions play | 40 questions play |
+|---|---|---|---|
+| `less` | 20 questions | 10 | 42 |
+| `default` | 10 questions | 11 | 44 |
+| `more` | 5 questions | 12 | 48 |
+
+- **Events are added, not substituted.** The room holds `floor(round questions / N)`
+  slots, and Create shows the total with them: one mode of 10 questions at the default
+  reads *11 questions*. `MAX_QUESTIONS_PER_ROOM` counts the events, as it already does.
+- **Spacing, not rounds.** The round questions are cut into consecutive windows of N, and
+  each slot lands at a position drawn inside its window. The first round is no longer
+  exempt — a one-mode room would otherwise never see an event — but the two rules about
+  first questions stay: never the game's first question, never a round's first question
+  (that one is the splash's).
+- **The host's questions take slots first**, and the cap is the slot count at the chosen
+  frequency rather than one fewer than the modes. More than that is a 422 naming the count,
+  the limit and the frequency, and suggests `more`.
+- **There is no off switch.** A host who wants none picks `less`. A stored room reads
+  `random_events: true` as `default` and `false` as "only the host's own questions, placed
+  by T21's rules", so an old room rehydrates and plays as it was created.
 
 **The two seconds.** `OpenQuestion` gains `random_event` (the NPC id, null for a question
 nobody is interrupting) and `answerable_at` (when the buttons appear). `ends_at` becomes
@@ -282,10 +318,12 @@ arrives before it is `not_open`. The splash rule moves from "a new mode" to "a n
 segment", so an event gets no splash and the question after it gets no second one.
 
 **The card.** `lib/randomEvents.ts` carries the roster's copy: the NPC, its theme, the line
-it opens with, and the asset. `RandomEvent.svelte` draws the NPC and the question stem. It
-holds the answer affordance back until `answerable_at`, counting to it off `server_time`
-rather than the local clock. Images are Phase 3, so the card must read well as text alone,
-with the asset as an empty slot.
+it opens with, and the asset. `RandomEvent.svelte` draws the NPC's name, its line and the
+question stem, and holds the answer affordance back until `answerable_at`, counting to it
+off `server_time` rather than the local clock. That is all this task draws: the NPC taking
+the stage from the host — the picture on the right, the scroll moving, the typed prompt —
+is design D16 (`ideas/design.md` §7.4), and the pictures are D15. Until those land the card
+reads well as text alone, with the picture as an empty slot.
 
 This is the cheapest content in the project and the one place it gets to be funny. The
 roster is also the first thing a selfhoster will want to add to, so adding an NPC means one
@@ -301,9 +339,15 @@ plays an event as a plain question, which is what most tests run; an unknown
 event file whose name is not a roster id, a question in it that sets its own
 `random_event`, and a question outside the folder that has one. A custom question's named
 NPC is the one that asks it, and two custom questions naming the same NPC are both
-honoured. Seeded over many rooms, no face that was drawn repeats, and a pack event never
-shares its NPC with another event in the room. Every roster id has an event file with at
-least two questions, and a copy entry in `randomEvents.ts`. Manual: play a four-mode room
+honoured. Seeded over many rooms, no drawn face repeats while an unused one is left, and a
+pack event never shares its question with another event in the room. Every roster id has an event file with at
+least two questions, and a copy entry in `randomEvents.ts`. At `default`, one mode of 10
+questions plays 11 and Create says so beforehand; `less` and `more` give the slot counts in
+the table; seeded, no two slots share a window of N and none is a round's or the game's
+first question; a one-mode room gets events; a room whose slots outnumber the roster
+repeats the least-used face and never the same face twice running; too many custom
+questions is a 422 that names the frequency; a room stored with `random_events: false`
+rehydrates and places only its own questions. Manual: play a four-mode room
 with two custom questions, one of them naming its NPC, and say who turned up where.
 
 ### T23. The facts importer
@@ -411,6 +455,10 @@ splashes.
 
 ### T29. Who Said That? and Clipped
 
+*Rename:* Clipped ships as **Know Your Content Creator**, presented by the Gnome Child
+(`ideas/design.md`, Needs decision). The mode id stays `clipped`, so no stored room or pack
+changes with the name.
+
 Two `multiple_choice` modes, hand-authored, and the first content this project cannot
 generate.
 
@@ -434,13 +482,15 @@ has been added, edit and remove, and JSON export/import of the room's own questi
 
 Each question also gets an NPC picker. **Random** is the default, followed by the roster
 from `lib/randomEvents.ts` with each NPC's name and theme, and a preview that draws the
-choice in T22's `RandomEvent.svelte`. A host may pick the same NPC for two questions. That
+choice the way the room will see it: T22's `RandomEvent.svelte`, taking the stage as design
+D16 has it once D16 has landed. A host may pick the same NPC for two questions. That
 choice is theirs, and the server keeps it. What the picker writes is the question's
 `random_event` field. Leaving it on Random leaves the field out.
 
-It also enforces the room's event cap — a host with four modes may write three questions —
-because a 422 after filling in a fifth question is the wrong place to learn the rule, and the
-form knows how many modes are selected.
+It also enforces the room's event cap — the slot count at the chosen frequency, so a room
+of 40 questions at `default` takes four — because a 422 after filling in a fifth question is
+the wrong place to learn the rule, and the form knows the questions and the frequency. When
+the cap is reached it says that `more` would allow more.
 
 This is the one task in Phase 2 that blocks nothing. If Phase 2 has to be cut short, cut it
 here: T21 means a host can already post custom questions with `curl`, and every later task
@@ -715,8 +765,8 @@ the PR description side by side so a reviewer can judge.
 
 Its emblem slot (T40) wants a fire cape or a TokKul.
 
-**Accept:** passes the D1 contrast script unmodified, `--ok` against every `--gem-*`
-included; it is one contiguous `[data-theme='tzhaar']` block that touches no layer-3 or
+**Accept:** passes the D1 contrast script unmodified, `--gem-ink` against every gem and the
+clue scroll's layer 8 (design D13) included, and its scroll still reads as parchment; it is one contiguous `[data-theme='tzhaar']` block that touches no layer-3 or
 layer-4 token outside itself; `--bad` and the lava accent are distinguishable with colour
 blindness simulated, because "red means wrong" is the contract this theme most wants to
 blur; its base and accent differ from `wilderness` by a stated ΔE; the picker offers it
@@ -724,22 +774,10 @@ with a placeholder emblem.
 
 ### T42. The splash as a clue scroll
 
-D7's splash is a scene and a card. The card becomes a clue scroll: parchment, a wax seal,
-the round's name in the display face, and "Round 2 of 5" where a clue's tier would sit.
-Nothing about the ready check changes. The heads row sits at the scroll's foot, and the
-scene above it stays the per-mode art from §7.1.
-
-Motion budget, as §7.1 has it, is one transition: the scroll unrolls in 200ms, and with
-reduced motion it simply appears. The parchment is a texture under `client/src/assets/`,
-tinted per theme through tokens, never an inline style (design.md §8). It must read as a
-scroll in every theme, `wilderness` and T41's `tzhaar` included. A parchment that only works
-on cream is a light-theme feature.
-
-**Accept:** the scroll renders in every theme with body text at 4.5:1 against the parchment;
-unrolling is 200ms or less and absent with `prefers-reduced-motion`; the ready widget, the
-countdown and the host's skip behave exactly as before (D7's tests untouched and green); a
-375px screen fits the scroll and the heads row without scrolling; the parchment is a file,
-and swapping it needs no code change.
+*Superseded by design D13* (`ideas/design.md` §7.1). The clue scroll grew from the splash's
+card into the stage every question is asked on, with the round's host beside it, so it moved
+to the design track where the rest of that layout lives. The heading stays so the numbers
+do not shift.
 
 ### T43. README
 
@@ -821,11 +859,12 @@ payload contains a display name, an answer or a question payload, asserted.
   combobox and the vocab endpoint land with Guess the Examine in T20, and `steps` is specced
   in architecture section 6, so Phase 3 is a pipeline and two components, not another
   framework change.
-- **Design** is `ideas/design.md`'s D1–D12, not T-tasks. The ready check that replaced the
+- **Design** is `ideas/design.md`'s D1–D16, not T-tasks. The ready check that replaced the
   splash countdown shipped as D7. `ideas/IDEAS.md`'s version was "everyone taps ready, then 3
   seconds", and it survives as D7's everyone-ready branch, with an 80% threshold added so
-  one phone in a pocket cannot stall a round. The round-only standings are D9. T40–T42 are
-  the design ideas that arrived after that document was settled, and each updates it.
+  one phone in a pocket cannot stall a round. The round-only standings are D9. T40 and T41 are
+  design ideas that arrived after that document was settled, and each updates it. T42 was
+  one too, until `ideas/new-design.md` grew it into D13–D16.
 - **A separate room lock.** Rotating T35's invite key does the same job with no second
   control: the room keeps everyone in it and nobody new has the key.
 - **Pet inventory icons as avatars.** D4 settled on fifty chat heads, committed and

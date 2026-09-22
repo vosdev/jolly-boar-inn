@@ -119,7 +119,14 @@ class OpenQuestion(_Message):
     # (``splash_seconds`` at zero, or two consecutive rounds of the same mode).
     segment: Segment
     view: dict[str, Any]
+    # The NPC interrupting the round with this question, or ``None`` for a question that
+    # belongs to its round. An id from ``app/random_events.py``; the client has the copy.
+    random_event: str | None = None
     opened_at: datetime
+    # When the buttons appear and the clock starts: ``opened_at`` for every question but a
+    # random event, where the NPC holds the floor for ``random_event_seconds`` first. An
+    # answer before it is ``not_open``, and ``ends_at`` is this plus the question's seconds.
+    answerable_at: datetime
     ends_at: datetime
     you_can_answer: bool
     # How many have answered, of how many can (D8's waiting state). Current as of this

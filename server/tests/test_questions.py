@@ -197,7 +197,7 @@ def test_an_unknown_mode_is_reported() -> None:
     assert schema.schema_errors(q) == []  # the schema holds a mode to a pattern, no more
     assert schema.consistency_errors(q) == [
         "$.mode: 'drop_table' is not a mode this build plays"
-        " (it plays more_less, price_is_right, guess_examine, custom)"
+        " (it plays more_less, price_is_right, guess_examine, custom, random_event)"
     ]
 
 
@@ -232,6 +232,131 @@ def test_validate_packs_script_fails_on_a_custom_question(tmp_path: Path) -> Non
     result = _validate_packs(tmp_path)
     assert result.returncode == 1
     assert "custom.json: questions[0] $.mode: 'custom' with source 'pack'" in result.stderr
+
+
+# --- T22: the NPCs' own questions -----------------------------------------------------
+
+NPC_QUESTION: dict[str, Any] = {
+    "type": "multiple_choice",
+    "mode": "random_event",
+    "source": "pack",
+    "tags": ["cooking"],
+    "payload": {
+        "prompt": "What Cooking level do you need to cook a shark?",
+        "options": ["76", "80", "85", "90"],
+        "answer_index": 1,
+    },
+}
+NPC_QUESTION["id"] = schema.content_id(NPC_QUESTION)
+
+
+def _write_npc(directory: Path, npc: str, questions: list[dict[str, Any]], **extra: Any) -> Path:
+    """An NPC's file, the way ``ideas/random-events.md`` has it written."""
+    folder = directory / "random_events"
+    folder.mkdir(exist_ok=True)
+    path = folder / f"{npc}.json"
+    body = {"pack": "random_events", "random_event": npc, "questions": questions, **extra}
+    path.write_text(json.dumps(body))
+    return path
+
+
+def test_an_npcs_file_is_loaded_with_its_npc_on_every_question(tmp_path: Path) -> None:
+    """The file says who asks, once; the loader stamps it on, and the id ignores it."""
+    _write_pack(tmp_path / "a.json", [question()])
+    _write_npc(tmp_path, "sandwich_lady", [NPC_QUESTION])
+    packs = load_packs(tmp_path)
+    (theirs,) = [pack for pack in packs if pack.random_event is not None]
+    assert (theirs.random_event, theirs.generated_at) == ("sandwich_lady", None)
+    (asked,) = theirs.questions
+    assert asked == {**NPC_QUESTION, "random_event": "sandwich_lady"}
+    assert schema.content_id(asked) == NPC_QUESTION["id"]
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 0, result.stderr
+    assert "random_events/sandwich_lady.json: 1 question(s) ok" in result.stdout
+
+
+def test_validate_packs_fails_an_npcs_file_named_after_nobody_on_the_roster(
+    tmp_path: Path,
+) -> None:
+    _write_npc(tmp_path, "rick_turpentine", [NPC_QUESTION])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    assert (
+        "random_events/rick_turpentine.json: 'rick_turpentine' is not on the roster"
+        in result.stderr
+    )
+
+
+def test_validate_packs_fails_a_question_in_an_npcs_file_that_names_its_own_npc(
+    tmp_path: Path,
+) -> None:
+    """Even when it names the same NPC as the file: saying it twice is how the two drift."""
+    for npc in ("death", "sandwich_lady"):
+        _write_npc(tmp_path, "sandwich_lady", [{**NPC_QUESTION, "random_event": npc}])
+        result = _validate_packs(tmp_path)
+        assert result.returncode == 1
+        assert (
+            "random_events/sandwich_lady.json: questions[0] $.random_event: a question in an"
+            " NPC's file does not name the NPC; the file does" in result.stderr
+        )
+
+
+def test_validate_packs_fails_a_question_outside_the_folder_that_names_an_npc(
+    tmp_path: Path,
+) -> None:
+    """A pack question anywhere else belongs to a round, whatever mode it claims."""
+    _write_pack(tmp_path / "a.json", [question(random_event="death")])
+    _write_pack(tmp_path / "b.json", [{**NPC_QUESTION, "random_event": "death"}], name="b")
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    for label in ("a.json", "b.json"):
+        assert (
+            f"{label}: questions[0] $.random_event: only a question in random_events/<npc>.json"
+            in result.stderr
+        )
+    assert "FAILED: 2 problem(s)" in result.stderr
+
+
+def test_validate_packs_fails_an_npcs_file_that_disagrees_with_its_name_or_mode(
+    tmp_path: Path,
+) -> None:
+    _write_npc(tmp_path, "death", [NPC_QUESTION])
+    (tmp_path / "random_events" / "death.json").write_text(
+        json.dumps({"pack": "random_events", "random_event": "jane", "questions": [NPC_QUESTION]})
+    )
+    _write_npc(tmp_path, "bob", [{**question(), "mode": "more_less"}])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    assert "random_events/death.json: random_event must be 'death'" in result.stderr
+    assert "random_events/bob.json: questions[0] $.mode: every question in an NPC's file is" in (
+        result.stderr
+    )
+
+
+def test_an_npcs_question_needs_its_npc_and_a_rounds_question_may_not_have_one() -> None:
+    """The envelope rule behind the folder rule, which a host's question is held to too."""
+    assert schema.consistency_errors(NPC_QUESTION) == [
+        "$.random_event: an NPC's own question must name the NPC who asks it"
+    ]
+    schema.validate({**NPC_QUESTION, "random_event": "sandwich_lady"})
+    (problem,) = schema.consistency_errors(question(random_event="death"))
+    assert problem.startswith("$.random_event: a 'more_less' question is asked by its round")
+    schema.validate(question(mode="custom", source="room", random_event="death"))
+    assert schema.consistency_errors(
+        question(mode="custom", source="room", random_event="nobody")
+    ) == ["$.random_event: 'nobody' is not on the roster (app/random_events.py)"]
+    assert schema.schema_errors(question(mode="custom", source="room", random_event="Death!"))
+
+
+def test_the_shipped_npc_files_are_every_npcs_own() -> None:
+    """Each shipped question is the ``random_event`` mode and carries its file's NPC."""
+    events = [pack for pack in load_packs(PACKS_DIR) if pack.random_event is not None]
+    assert events
+    for pack in events:
+        assert pack.path.stem == pack.random_event
+        assert {(q["mode"], q["random_event"]) for q in pack.questions} == {
+            ("random_event", pack.random_event)
+        }
 
 
 # --- content id ---------------------------------------------------------------------

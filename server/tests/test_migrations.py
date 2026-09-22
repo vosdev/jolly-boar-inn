@@ -421,7 +421,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         (tmp_path / path.name).write_text(path.read_text())
     assert await run_migrations(pool, tmp_path) == [1, 2, 3, 4, 5, 6]
     before = {**fast_settings().model_dump(), "order": "custom_last"}
-    del before["random_events"], before["random_event_seconds"]
+    del before["random_event_frequency"], before["random_event_seconds"]
     await pool.execute(
         "insert into rooms (code, status, settings, expires_at)"
         " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
@@ -432,9 +432,16 @@ async def test_0007_swaps_order_for_the_event_settings_once(
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}
-    assert RoomSettings.model_validate(after).random_events is False
+    # Since T22 that reads as "the host's questions only", which is what it always meant.
+    assert RoomSettings.model_validate(after).random_event_frequency is None
 
-    created_after = NewRoomSettings().model_dump()
+    # As T21 wrote it; since T22 the flag is a frequency, which 0007 never looks at.
+    created_after = {
+        **{
+            k: v for k, v in NewRoomSettings().model_dump().items() if k != "random_event_frequency"
+        },
+        "random_events": True,
+    }
     await pool.execute(
         "insert into rooms (code, status, settings, expires_at)"
         " values ('BARROWS', 'lobby', $1, now() + interval '1 day')",

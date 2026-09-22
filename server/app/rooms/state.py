@@ -97,7 +97,8 @@ CLOSE_GONE = 4004
 # Every timed phase the host can cut short: all of them, since each one is a wait.
 SKIPPABLE = frozenset({"splash", "open", "reveal", "standings"})
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
-# ``random_event`` is not an envelope key at all but a placement ``selection`` adds.
+# ``random_event`` is the NPC asking it: the envelope's own for an NPC's question or a host's
+# that names one, a face ``selection`` draws for the rest, and a column either way.
 _QUESTION_COLUMNS = frozenset({"id", "type", "mode", "source", "host_only", "random_event"})
 
 
@@ -236,7 +237,7 @@ class Player:
 class Submitted:
     """One player's answer to one question, in memory.
 
-    ``band`` is fixed at receive time from ``received_at - shown_at`` (section 6); the
+    ``band`` is fixed at receive time from ``received_at - answerable_at`` (section 6); the
     client never sends a time. It is ``None`` for a question scored on ``RANK``, where
     nothing is known until everyone has answered. ``credit``, ``correct`` and ``points``
     stay ``None`` until the question closes and grading writes them here, and the last
@@ -261,11 +262,17 @@ class RoomQuestion:
     (``tags``, ``difficulty``, ``author``, ``added_at``), which the game loop has no use
     for and leaves in the database.
 
-    ``seconds`` and ``ends_at`` are not columns either: they are recomputed whenever the
-    question opens, from the setting its own mode carries, and ``ends_at`` is what the
-    timer and the clients count down to. ``seconds`` is also what the speed bucket is a
-    fraction of, so a ten-second mode scores on ten seconds in a room whose other rounds
-    run to a minute.
+    ``seconds``, ``answerable_at`` and ``ends_at`` are not columns either: they are
+    recomputed whenever the question opens, from the setting its own mode carries, and
+    ``ends_at`` is what the timer and the clients count down to. ``seconds`` is also what
+    the speed bucket is a fraction of, so a ten-second mode scores on ten seconds in a
+    room whose other rounds run to a minute.
+
+    ``answerable_at`` is when answers are taken from, and so when ``seconds`` starts. It is
+    ``shown_at`` for every question but a random event, where the NPC holds the floor with
+    the question for ``random_event_seconds`` before the buttons appear. Deriving it rather
+    than storing it is what leaves rehydrate as it was: a question that was open at a
+    restart is voided either way, so nothing ever needs it back from the database.
 
     ``type`` and ``mode`` are both columns, and neither is derived from the other: the
     type is how the question is answered and graded, the mode is the round it was drawn
@@ -291,6 +298,7 @@ class RoomQuestion:
     closed_at: datetime | None = None
     voided: bool = False
     seconds: int | None = None
+    answerable_at: datetime | None = None
     ends_at: datetime | None = None
     answers: dict[UUID, Submitted] = field(default_factory=dict)
 
@@ -321,6 +329,7 @@ class RoomQuestion:
     ) -> OpenQuestion:
         """The open question as ``player_id`` sees it. ``count`` is ``_answer_count``'s."""
         assert self.shown_at is not None and self.ends_at is not None
+        assert self.answerable_at is not None
         return OpenQuestion(
             question_id=self.question_id,
             index=self.position,
@@ -329,7 +338,9 @@ class RoomQuestion:
             mode=self.mode,
             segment=segment,
             view=TYPES[self.type].client_view(self.payload),
+            random_event=self.random_event,
             opened_at=self.shown_at,
+            answerable_at=self.answerable_at,
             ends_at=self.ends_at,
             you_can_answer=self.can_answer(player_id),
             answered=count[0],
@@ -1184,7 +1195,11 @@ class RoomManager:
 
         The room lock is what keeps this honest against the clock: an answer that arrives
         while the timer is closing the question waits for the lock and is then rejected
-        with ``not_open``, and one that wins the race is graded in that same close.
+        with ``not_open``, and one that wins the race is graded in that same close. The
+        other end is ``answerable_at``: a random event is on screen before it takes
+        answers, and one that arrives early is ``not_open`` too, so a client that draws
+        its buttons ahead of time gets nothing for it. Elapsed time runs from there, so
+        the NPC's two seconds cost nobody a speed bucket.
         """
         code = code.upper()
         pool = await self._pool()
@@ -1195,15 +1210,17 @@ class RoomManager:
                 raise NotOpen("no question is open")
             if question.question_id != question_id:
                 raise NotOpen(f"question {question_id} is not the open one")
+            now = datetime.now(UTC)
+            assert question.answerable_at is not None  # set when the question opened
+            if now < question.answerable_at:
+                raise NotOpen("this question is not taking answers yet")
             if player.id in question.answers:
                 raise AlreadyAnswered("you have already answered this question")
             if not question.can_answer(player.id):
                 raise Excluded("you cannot answer this question")
             if not TYPES[question.type].validate_value(question.payload, value):
                 raise BadValue(f"not a valid answer to a {question.type} question")
-            now = datetime.now(UTC)
-            assert question.shown_at is not None  # set when the question opened
-            elapsed = (now - question.shown_at).total_seconds()
+            elapsed = (now - question.answerable_at).total_seconds()
             # The question's own length, not the room's setting: a mode that caps itself
             # at ten seconds must score on ten seconds, or every answer to it lands in
             # the fastest bucket of a room set to a minute.
@@ -1396,8 +1413,15 @@ class RoomManager:
     async def _splash(self, room: Room, index: int) -> bool:
         """Introduce the round ``index`` starts, if it starts one. False: the room is gone.
 
-        The splash introduces a *mode*, not a round: a game whose rounds are all the same
-        mode gets one card at the start rather than the same card between every round.
+        The splash introduces a *segment*: it runs before a segment's first question and
+        before no other. It used to introduce a mode -- "before a question whose mode
+        differs from the one before it" -- which was the same rule until random events,
+        and is wrong twice over with them: an event would get a splash it must not have,
+        and the question after it a second one for a mode already introduced. A segment
+        groups an event into the round it interrupts (``segments.py``), and an event is
+        never a segment's first question, so it gets no introduction at all: that is what
+        makes it an interruption, and the NPC is its own announcement.
+
         Nothing is written to the database -- ``current_index`` was persisted by
         ``start_game`` or ``_advance`` before this ran, and ``phase`` has never been a
         column, so a restart mid-splash is a restart before a question that never opened,
@@ -1407,16 +1431,7 @@ class RoomManager:
             if self.rooms.get(room.code) is not room or room.status != "playing":
                 return False
             segment = room.segment_at(index)
-            previous = room.segment_at(index - 1) if index > 0 else None
-            introduces_a_mode = segment is not None and (
-                previous is None or previous.mode != segment.mode
-            )
-            if (
-                room.settings.splash_seconds <= 0
-                or segment is None
-                or segment.start != index
-                or not introduces_a_mode
-            ):
+            if room.settings.splash_seconds <= 0 or segment is None or segment.start != index:
                 return True
             room.current_index = index
             room.phase = "splash"
@@ -1493,7 +1508,14 @@ class RoomManager:
         return True
 
     async def _open_question(self, room: Room, index: int) -> RoomQuestion | None:
-        """``pending → open``: stamp ``shown_at``, broadcast ``question_open``."""
+        """``pending → open``: stamp ``shown_at``, broadcast ``question_open``.
+
+        A random event opens muted: on screen now, taking answers from ``answerable_at``,
+        and open for its own ``seconds`` from then rather than from now, so the NPC's hold
+        does not come out of the time to answer. It is the same one frame either way; the
+        client counts down to ``answerable_at`` itself, so the buttons appearing needs no
+        message of its own.
+        """
         pool = await self._pool()
         async with room.lock:
             if self.rooms.get(room.code) is not room or room.status != "playing":
@@ -1504,7 +1526,9 @@ class RoomManager:
             now = datetime.now(UTC)
             question.shown_at = now
             question.seconds = room.question_seconds(question.mode)
-            question.ends_at = now + timedelta(seconds=question.seconds)
+            hold = room.settings.random_event_seconds if question.random_event else 0
+            question.answerable_at = now + timedelta(seconds=hold)
+            question.ends_at = question.answerable_at + timedelta(seconds=question.seconds)
             room.current_index = index
             room.phase = "open"
             room.next_at = None

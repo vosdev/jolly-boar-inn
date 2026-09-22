@@ -18,11 +18,14 @@
    * is free — no room exists yet, so there is nothing to check it against or undo. What
    * the host creates with becomes the profile, so the next room starts from it.
    *
-   * `/api/modes` lists `custom` too, with no round length: the host's own questions are
-   * never a round but random events, one dropped into each round after the first. So the
-   * form offers every mode but that one. Writing those questions is the editor's job
+   * `/api/modes` lists `custom` and `random_event` too, with no round length: their
+   * questions are never a round but random events, an NPC interrupting a round with one
+   * question and leaving. So the form offers every mode but those two. How often that
+   * happens is the host's one choice about events: once per 20, 10 or 5 round questions,
+   * on top of the rounds, so the total the form shows counts them. There is no "never";
+   * "less often" is the quiet end. Writing the host's own questions is the editor's job
    * (T30); until it lands `custom_questions` is always the empty list `api.createRoom`
-   * sends, and the one choice about events here is whether the packs may interrupt.
+   * sends, and every event is an NPC asking a question of their own.
    */
   import { onMount, untrack } from 'svelte'
 
@@ -38,7 +41,7 @@
   import { MODES, modeLabel } from '../lib/modes'
   import { nameProblem } from '../lib/names'
   import { profile, saveProfile } from '../lib/profile'
-  import type { ModeSettings } from '../lib/protocol'
+  import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
   import { rememberCreated, setSession } from '../lib/session'
 
   /** The server's cap on a room, over every round. `NewRoomSettings` checks the same. */
@@ -52,8 +55,8 @@
   let standingsSeconds = $state(10)
   /** `splash_seconds` on the wire: 0 is off, anything else on (D7: it is no longer a length). */
   let introduceRounds = $state(true)
-  /** May a pack question interrupt a round? A room's own questions always do. */
-  let randomEvents = $state(true)
+  /** How often an NPC interrupts a round: one per 20, 10 or 5 round questions. */
+  let frequency = $state<EventFrequency>('default')
   let modeOrder = $state<'listed' | 'random'>('listed')
   let closeWhenAllAnswered = $state(true)
   /** List who got it wrong under each reveal (D8). The count of who got it right always shows. */
@@ -67,14 +70,18 @@
   let busy = $state(false)
   let failure = $state<string | null>(null)
 
-  /** The modes a host can pick as rounds: every one but `custom`, which has no round length. */
+  /** The modes a host can pick as rounds: every one with a round length to set. */
   const roundModes = $derived(pacing?.filter((mode) => mode.questions !== null) ?? [])
   const questionCount = $derived(rounds.reduce((total, round) => total + round.questions, 0))
   /**
-   * The events the room may add to that, which count against the cap as the server counts
-   * them: one per round after the first, whenever the packs are allowed to interrupt.
+   * The events the room adds to that, counted as the server counts them: one per whole
+   * `EVENT_EVERY` round questions. They are questions the room will play, so they are in
+   * the total and under the cap.
    */
-  const eventCount = $derived(randomEvents ? Math.max(0, rounds.length - 1) : 0)
+  const eventCount = $derived(
+    Number.isInteger(questionCount) ? Math.floor(questionCount / EVENT_EVERY[frequency]) : 0,
+  )
+  const totalCount = $derived(questionCount + eventCount)
   /** Every round's two numbers inside what `/api/modes` said the server would take. */
   const roundsInRange = $derived(
     rounds.every(
@@ -92,7 +99,7 @@
       rounds.length > 0 &&
       roundsInRange &&
       questionCount >= 1 &&
-      questionCount + eventCount <= MAX_QUESTIONS &&
+      totalCount <= MAX_QUESTIONS &&
       standingsInRange,
   )
 
@@ -166,7 +173,7 @@
     const settings: NewRoomSettings = {
       modes: rounds,
       mode_order: modeOrder,
-      random_events: randomEvents,
+      random_event_frequency: frequency,
       reveal_seconds: revealSeconds,
       splash_seconds: introduceRounds ? 8 : 0,
       standings_seconds: standingsSeconds,
@@ -298,10 +305,10 @@
           </li>
         {/each}
       </ul>
-      <p class="note" class:error={questionCount + eventCount > MAX_QUESTIONS}>
-        {questionCount} question{questionCount === 1 ? '' : 's'} in total{eventCount > 0
-          ? `, and up to ${eventCount} random event${eventCount === 1 ? '' : 's'}`
-          : ''}{questionCount + eventCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
+      <p class="note" class:error={totalCount > MAX_QUESTIONS}>
+        <strong>{totalCount} question{totalCount === 1 ? '' : 's'}</strong>{eventCount > 0
+          ? `: ${questionCount} in the rounds and ${eventCount} random event${eventCount === 1 ? '' : 's'}`
+          : ''}{totalCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
       </p>
     </section>
   {/if}
@@ -320,10 +327,17 @@
         <p class="note" class:error={!standingsInRange}>0–30, and 0 for none</p>
       </div>
     </div>
-    <label class="check">
-      <input type="checkbox" bind:checked={randomEvents} />
-      Random events: now and then, a question from another mode interrupts a round
-    </label>
+    <div class="field">
+      <label for="random-events">Random events</label>
+      <select id="random-events" bind:value={frequency}>
+        <option value="less">Less often: one every {EVENT_EVERY.less} questions</option>
+        <option value="default">Default: one every {EVENT_EVERY.default} questions</option>
+        <option value="more">More often: one every {EVENT_EVERY.more} questions</option>
+      </select>
+      <p class="note">
+        An NPC interrupts a round with a question of their own, on top of the round's.
+      </p>
+    </div>
     <label class="check">
       <input type="checkbox" bind:checked={introduceRounds} />
       Introduce each round, and start it when most of the room is ready

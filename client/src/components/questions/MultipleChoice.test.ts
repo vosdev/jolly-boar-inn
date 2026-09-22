@@ -26,7 +26,7 @@ function open(youCanAnswer = true): OpenQuestion {
     total: 10,
     type: 'multiple_choice',
     mode: 'custom',
-    // The round it interrupts: until T22 an event plays as a plain question inside it.
+    // The round it interrupts. `RandomEvent` draws the NPC around this; the question is this.
     segment: { mode: 'more_less', index: 1, total: 3, start: 2, count: 5 },
     view: VIEW,
     opened_at: '2026-09-21T20:00:00Z',

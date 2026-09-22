@@ -1,0 +1,117 @@
+{
+  "pack": "random_events",
+  "random_event": "lumbridge_cook",
+  "questions": [
+    {
+      "id": "q_71e3f1fd03705071",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "payload": {
+        "prompt": "Quick, adventurer! The council members are freezing in time! Who on Gielinor asked me for a Fishcake?!",
+        "options": [
+          "Pirate Pete",
+          "Skrach Uglogwee",
+          "Evil Dave",
+          "Sir Amik Varze",
+          "The Lumbridge Guide",
+          "King Awowogei"
+        ],
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_6217b8df98f8ff7f",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "payload": {
+        "prompt": "I have a raw stuffed snake stuffed with red banana and tchiki nuts... who am I supposed to serve this monstrosity to?",
+        "options": [
+          "General Bentnoze",
+          "King Awowogei",
+          "Evil Dave",
+          "Skrach Uglogwee",
+          "General Wartface"
+        ],
+        "answer_index": 1
+      }
+    },
+    {
+      "id": "q_246a0f4307917c19",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "payload": {
+        "prompt": "To make Pirate Pete's fishcake, I pounded giant crab meat, raw cod and breadcrumbs in my pestle and mortar. What was the fourth ingredient?!",
+        "options": [
+          "Ground Kelp",
+          "White Pearl Seed",
+          "Ground Seaweed",
+          "Crushed Oyster Pearl"
+        ],
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_dbbdae78c7f42a89",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "The gypsy says the magic barrier protecting the Culinaromancer will only drop for seasoned adventurers. Exactly how many Quest Points are required to enter the final portal?",
+        "answer": 175,
+        "unit": "quest points"
+      }
+    },
+    {
+      "id": "q_968647bf61fc502b",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "After saving the entire world from being eaten by a rogue wizard, how many coins (GP) does that cheeky chest in my basement charge you for a pair of Barrows Gloves?",
+        "answer": 130000,
+        "unit": "coins"
+      }
+    },
+    {
+      "id": "q_e585ab87f4b5a446",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "payload": {
+        "prompt": "Rohak's Rock Cake is way too hot to handle right out of the furnace. If you don't bring Ice Gloves, which monster can cool it down for you?",
+        "options": [
+          "Ice Queen",
+          "Ice Troll",
+          "Ice Giant",
+          "Icefiend"
+        ],
+        "answer_index": 3
+      }
+    }
+  ]
+}

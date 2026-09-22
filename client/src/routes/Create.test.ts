@@ -1,8 +1,8 @@
 /**
- * The create form against T21's `/api/modes`: `custom` is listed there, with no round
- * length, because the host's questions are random events rather than a round. The form
- * must not offer it as one — ticked by default, it would have every room refused — and it
- * sends `random_events` where `order` used to be.
+ * The create form against `/api/modes`: `custom` is listed there, with no round length,
+ * because the host's questions are random events rather than a round. The form must not
+ * offer it as one — ticked by default, it would have every room refused. Since T22 it
+ * sends how often the NPCs interrupt, and counts their questions in the total it shows.
  */
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
@@ -64,26 +64,53 @@ describe('Create', () => {
     expect(screen.getByText('Rounds (2)')).toBeTruthy()
   })
 
-  it('sends the rounds picked and random events, and no order', async () => {
+  it('sends the rounds picked and how often events come, and no order', async () => {
     await loaded()
     const settings = await submitted()
     expect(settings.modes.map((round) => round.mode)).toEqual(['more_less', 'price_is_right'])
-    expect(settings.random_events).toBe(true)
+    expect(settings.random_event_frequency).toBe('default')
+    expect(settings).not.toHaveProperty('random_events')
     expect(settings).not.toHaveProperty('order')
   })
 
-  it('lets the host keep the packs from interrupting', async () => {
+  it('lets the host pick how often, and offers no way to turn events off', async () => {
     await loaded()
-    await fireEvent.click(screen.getByRole('checkbox', { name: /Random events/ }))
-    expect((await submitted()).random_events).toBe(false)
+    const choice = screen.getByLabelText('Random events') as HTMLSelectElement
+    expect([...choice.options].map((option) => option.textContent)).toEqual([
+      'Less often: one every 20 questions',
+      'Default: one every 10 questions',
+      'More often: one every 5 questions',
+    ])
+    await fireEvent.change(choice, { target: { value: 'more' } })
+    expect((await submitted()).random_event_frequency).toBe('more')
   })
 
-  it('counts the events a room may add against the cap, as the server does', async () => {
+  /** The summary under the rounds, whole, however its parts are marked up. */
+  function summary(): string {
+    return document.querySelector('.rounds + .note')?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+  }
+
+  it('says how many questions the room plays, events included, before it exists', async () => {
+    // T22 Accept: one mode of ten at the default plays eleven, and Create says so.
+    await loaded()
+    await fireEvent.click(screen.getByRole('checkbox', { name: /^The Price is Right/ }))
+    await fireEvent.input(screen.getByLabelText('Questions', { selector: '#questions-more_less' }), {
+      target: { value: '10' },
+    })
+    expect(summary()).toBe('11 questions: 10 in the rounds and 1 random event')
+    const choice = screen.getByLabelText('Random events')
+    await fireEvent.change(choice, { target: { value: 'less' } })
+    expect(summary()).toBe('10 questions')
+    await fireEvent.change(choice, { target: { value: 'more' } })
+    expect(summary()).toBe('12 questions: 10 in the rounds and 2 random events')
+  })
+
+  it('counts the events against the cap, as the server does', async () => {
     await loaded()
     await fireEvent.input(screen.getByLabelText('Questions', { selector: '#questions-more_less' }), {
       target: { value: '30' },
     })
-    expect(screen.getByText('35 questions in total, and up to 1 random event')).toBeTruthy()
+    expect(summary()).toBe('38 questions: 35 in the rounds and 3 random events')
   })
 
   it('sends how long the standings hold between rounds, 10 unless changed (D9)', async () => {

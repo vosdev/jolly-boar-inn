@@ -90,15 +90,20 @@ and questions, or swap any of them for something from the candidates below.
 |---|---|---|
 | `sandwich_lady` | cooking and food | closest_number (levels, heals), multiple_choice |
 | `lumbridge_cook` | cooking and food, recipe for disaster | multiple_choice |
-| `dr_jekyll` | herblore, potions, secondaries | multiple_choice, free_text |
+| `dr_jekyll` | herblore, potions, secondaries, farming (herbs) | multiple_choice, free_text |
 | `bob` | fishing, and cats | multiple_choice, closest_number |
 | `freaky_forester` or `tree_spirit` | woodcutting and hunter | multiple_choice, closest_number |
 | `drunken_dwarf` | ales, kebabs, dwarves, Keldagrim, pubs | multiple_choice, free_text |
+| `alfred` | ales, pubs | |
+| `thurgo` | smithing, mining | |
 | `genie` | skills and XP | closest_number |
 | `sergeant_damien` | combat: gear, styles, bosses | multiple_choice |
-| `mysterious_old_man` | quests and lore | multiple_choice, free_text |
-| `count_check` | account security, and counting | closest_number |
+| `wise_old_man` | quests and lore | multiple_choice, free_text |
 | `krystilia` | Slayer and Wilderness | closest_number, multiple_choice, free_text |
+| `ned` | sailing? | |
+| `death`| Death, Prayer | |
+| `jane` | farming | |
+| `baba_yaga` or `mage_of_zamorak` | mage / runecrafting | |
 
 For each one, copy this block:
 
@@ -129,3 +134,46 @@ Random events, current or retired, and a few NPCs who would make a fine one:
 - **Flippa**: flipping on the GE, prices (a rival to Rick Turpentine's theme).
 - **Strange plant**: farming, seeds.
 - **Pinball**: speed round; any subject.
+
+
+
+ For my osrs trivia game, i want to introduce random events. Just like in the game, they randomly pop up and ask a question.
+
+
+My game supports the following modes:
+- free text
+- Multiple choice
+- closest number (fill in a number and you get points based on how close you are)
+-  ordering (Order up to 6 tiles in the right order).
+
+
+I have some original random event NPCs, but also some other ingame NPCs. Each has their own theme:
+
+Sandwich Lady: Cooking en Food
+Lumbridge Cook: Cooking, Food en Recipe for Disaster
+Dr Jekyll: Herblore, Potions, Secondaries
+Bob: Fishing, cats
+Tree Spirit: Woodcutting, Hunter, Firemaking
+Drunken Dwarf: Ales, Kebab, Dwarves, Pubs
+Alfred: Ales, Pubs
+Thurgo: Mining, Smithing
+Genie: Skills en XP
+Sergeant Damien: Combat, gear, styles
+Wise Old Man: Quests en Lore
+Krystillia: Slayer en Wilderness
+Ned: Sailing
+Death: Death, Prayer
+Jane: Farming
+Baba Yaga: Magic en Runecrafting
+
+I am looking for some questions that these Random Events can ask. 
+
+Can you provide me with some questions in the following format?
+
+- Question: < the question>
+  type: < ordering, free_text, multiple_choice, closest_number>
+  answer: < the answer or a list of answers for ordering>
+  other options: < the wrong options for multiple choice>
+
+
+I still need some questions for < npc >. Please keep their personality in the question to make it fun!

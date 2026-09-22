@@ -14,6 +14,9 @@
    * A type this build has no view for gets the honest fallback in place of the whole
    * question, stem included: a sentence with no way to answer it reads as a broken
    * screen, where "this version cannot show it" reads as what it is.
+   *
+   * `held` is a random event's hold (T22): the stem is up, and the view waits for the
+   * question's `answerable_at`. `RandomEvent` does the counting and says when.
    */
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
   import { viewFor } from './index'
@@ -24,6 +27,7 @@
     yourValue,
     result = null,
     onAnswer,
+    held = false,
   }: {
     /** The question as it was sent open. After close it is still what picks the pair. */
     question: OpenQuestion
@@ -32,6 +36,8 @@
     yourValue: unknown
     result?: PlayerResult | null
     onAnswer: (value: unknown) => void
+    /** Draw the stem only: the answers are not being taken yet. */
+    held?: boolean
   } = $props()
 
   const pair = $derived(viewFor(question.type, question.mode))
@@ -57,13 +63,17 @@
   {#if Stem !== null}
     <Stem {data} {revealed} />
   {/if}
-  <View
-    {data}
-    {revealed}
-    {yourValue}
-    canAnswer={question.you_can_answer}
-    {result}
-    {onAnswer}
-  />
+  {#if held}
+    <p class="note" role="status">The answers appear in a moment.</p>
+  {:else}
+    <View
+      {data}
+      {revealed}
+      {yourValue}
+      canAnswer={question.you_can_answer}
+      {result}
+      {onAnswer}
+    />
+  {/if}
 {/if}
 {/key}

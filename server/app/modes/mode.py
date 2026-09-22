@@ -23,9 +23,10 @@ class Mode:
     than to the round -- two names and one word is quick whatever the round is about --
     so a mode that states neither is the ordinary case, not a missing one.
 
-    ``type`` is ``None`` for one mode only, ``custom``: the host's own questions, each of
-    which carries a type of its own. It is also the one mode that is not a round
-    (``is_round``), so it states its ``seconds`` and has no ``questions`` to state.
+    ``type`` is ``None`` for the two modes whose questions are random events: ``custom``,
+    the host's own, and ``random_event``, the NPCs'. Each of those questions carries a
+    type of its own. They are also the two modes that are not rounds (``is_round``), so
+    they state their ``seconds`` and have no ``questions`` to state.
     """
 
     id: str
@@ -35,5 +36,5 @@ class Mode:
 
     @property
     def is_round(self) -> bool:
-        """Whether a host can pick it: every mode but the one whose questions are events."""
+        """Whether a host can pick it: every mode but the two whose questions are events."""
         return self.type is not None

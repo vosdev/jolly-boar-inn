@@ -223,8 +223,8 @@ about; the type is only how you answer it.
 @dataclass(frozen=True, slots=True)
 class Mode:
     id: str                       # "drop_table"; the questions.mode column and the settings key
-    type: str | None              # the question type it plays as; None only for "custom"
-    questions: Bounds | None      # how many questions its round holds; None only for "custom"
+    type: str | None              # the question type it plays as; None for "custom", "random_event"
+    questions: Bounds | None      # how many questions its round holds; None for the same two
     seconds: Bounds               # how long one of them stays open
 ```
 
@@ -240,12 +240,13 @@ index; keeping them as five types would be five copies of one `grade`, and would
 *modes* over one type gives each its own pool, its own pacing, its own splash and its own
 presentation, and costs one dataclass entry each.
 
-`Mode.type` is `None` for exactly one mode, `custom`: a host may write a multiple-choice
-question and a closest-number one, and each carries its own type. `custom` is also the one
-mode that is never a round — its questions arrive one at a time as random events
-(`selection.py` below) — so it declares only `seconds`, the length of one such question, and
-has no `questions` bounds because it has no round to size. Every other mode has a type, and
-`validate_packs.py` rejects a pack question whose `type` disagrees with its `mode`'s.
+`Mode.type` is `None` for two modes, `custom` and `random_event`: a host may write a
+multiple-choice question and a closest-number one, and so may whoever writes for an NPC, and
+each question carries its own type. They are also the two modes that are never a round —
+their questions arrive one at a time as random events (`selection.py` below) — so each
+declares only `seconds`, the length of one such question, and has no `questions` bounds
+because it has no round to size. Every other mode has a type, and `validate_packs.py`
+rejects a pack question whose `type` disagrees with its `mode`'s.
 
 `grade` takes all submissions at once because `closest_number` ranks them. `scoring.py` turns grade results plus timing into points.
 
@@ -255,20 +256,22 @@ has no `questions` bounds because it has no round to size. Every other mode has 
 
 `flatten(rounds)` gives `(round number, question)` in play order, which is what `create` stores. Pure, seeded, tested.
 
-**Random events.** A room's own questions are not a round. They arrive the way a random event arrives in the game this one is about: someone interrupts what you were doing, asks you one thing, and leaves. `place_random_events(rounds, custom, settings, rng) -> list[Round]` is the second half of selection, and it holds to four rules:
+**Random events.** A room's own questions are not a round, and neither are the NPCs'. They arrive the way a random event arrives in the game this one is about: someone interrupts what you were doing, asks you one thing, and leaves. `place_random_events(rounds, custom, events, settings, rng) -> list[Round]` is the second half of selection. `settings.random_event_frequency` says how many: one event per 20, 10 or 5 round questions (`less`, `default`, `more`), **added on top of the rounds**, so one mode of ten questions at `default` plays eleven, and `MAX_QUESTIONS_PER_ROOM` counts the events. There is no off switch; `less` is the quiet end.
 
-- **Never in the first round.** A player who has seen one mode and nothing else has no routine to interrupt yet.
-- **Never a round's first question.** That position belongs to the splash that just introduced the mode.
-- **At most one per round**, so the surprise stays a surprise.
-- **A distinct NPC each time**, drawn from `app/random_events.py`, so no room sees the same face twice. The one exception is the host's own choice: a custom question may name its NPC, and two of them may name the same one. A drawn face skips every NPC the room already has.
+Where they go:
 
-Three of those are about rarity and the fourth is the abuse guard. One per round and none in the first means a room has exactly `len(modes) - 1` slots, so a host who wants five questions of their own picks six modes — and cannot turn the room into their own trivia night with eleven of their questions and one round of ours. `NewRoomSettings` rejects more custom questions than there are slots, naming the count and the limit, rather than silently dropping the overflow.
+- **Spacing, not rounds.** The round questions, in play order, are cut into consecutive windows of N, and each whole window is one slot, at a position drawn inside it. The events are spread through the game rather than bunched, and a one-mode room gets them too.
+- **Always inside a round.** A slot sits straight after a question that is not its round's last, so there is a question of the same round on either side of every event: never the game's first question, never a round's first (that one is the splash's), and never followed by a round's first either, so a splash never comes straight after an interruption. A window whose questions are all their round's last — rounds of one question — has no slot.
 
-Custom questions fill the slots first, in the order the host wrote them, at a position drawn inside each round they land in. A question whose envelope names an NPC (`random_event`) is asked by that NPC, and the others are asked by a drawn face. `settings.random_events` decides what happens to the slots left over: true (the default) gives each one an event-pack question with probability `PACK_RANDOM_EVENT_CHANCE`, false leaves them empty. It is a boolean rather than a three-way choice because a host's own questions are always events — there is nowhere else left to put them — so the only thing left to decide is whether the packs may interrupt as well. A host who wants a game with no surprises in it writes no custom questions and sets it false.
+Who asks, and what:
 
-A pack event comes from the event pack, `data/packs/random_events/`, and nowhere else. Every question there is mode `random_event` and was written for one NPC, about that NPC's subject: the Sandwich Lady asks about cooking and Rick Turpentine about money. So the face and the question are drawn together. Selection picks a question whose NPC the room has not seen yet, preferring one whose type differs from the type of the round it interrupts, and leaves the slot empty when none is left. An event that asks another four-button question in the middle of a four-button round reads as a long round, not as an interruption. The roster and the themes live in `ideas/random-events.md`.
+- **The host's questions take random slots**, in the order the host wrote them. The cap is the slot count at the chosen frequency, and `NewRoomSettings` rejects more custom questions than that, naming the count, the limit and the frequency and pointing at `more`, rather than silently dropping the overflow. A host who wants five questions of their own writes a game long enough to hold five events, which also keeps them from turning the room into their own trivia night with one round of ours.
+- **Every other slot takes an NPC's own question**, from the event pack, `data/packs/random_events/`, and nowhere else. Every question there is mode `random_event` and was written for one NPC, about that NPC's subject: the Sandwich Lady asks about cooking and Dr Jekyll about potions. So for these slots the face and the question are drawn together, without replacement, preferring a question whose type differs from the round it interrupts — another four-button question in the middle of a four-button round reads as a long round, not an interruption. The slot is left empty only when no question qualifies.
+- **Faces.** A custom question whose envelope names an NPC (`random_event`) is asked by that NPC, even if another custom question already named it. Every other face is drawn from `app/random_events.py`: first from the NPCs the room has not seen yet, then from the least seen, and never the face of the event just before or after it. A face the host named counts as seen from the start, so the draw does not spend it early. A host's unnamed question may be asked by anyone on the roster, which is also the only way an NPC with no questions written yet turns up. The roster no longer has to outnumber the slots: a room at `more` can hold more events than there are faces, and the least used face repeats.
 
-Until T22 a pack event borrowed a question from a mode the host did not pick and put a random face on it. That made for a Sandwich Lady asking a Drop Table question: the joke works once, and the NPC is only a sticker on it. A themed pack costs hand-written content, and it is the one kind of content in this project that is allowed to be silly.
+A room stored before T22 said `random_events` instead, a boolean for "may the packs interrupt too". It reads back as `default` for true, and for false as a frequency of none: the host's own questions, placed by T21's rules — one per round after the first — and nothing else. `NewRoomSettings` never takes it, so no new room is made that way. Selection never runs twice, so this matters only for the settings a stored room loads with; its questions are already in their rows.
+
+Until T22 a pack event borrowed a question from a mode the host did not pick and put a random face on it. That made for a Sandwich Lady asking a Drop Table question: the joke works once, and the NPC is only a sticker on it. A themed pack costs hand-written content, and it is the one kind of content in this project that is allowed to be silly. The roster and the themes live in `ideas/random-events.md`.
 
 `order` is gone. It first meant "mix each custom question into the pack round of its own type", the mode/type split turned it into "where the custom round goes", and random events leave it nothing to decide. Both earlier meanings were answers to "where do the host's questions belong", and the honest answer turned out to be "nowhere in particular, which is the point".
 
@@ -332,7 +335,8 @@ roster: every item needed an alias list ("whip", "d scim", "dds"), and Levenshte
 settle whether a typo was a typo or a different item. A list the player picks from makes the
 answer an item id, so there is nothing to spell and nothing to argue about. `free_text`
 stays for the host's own questions (T21), where the answer is a clan member's name and no
-list could hold it.
+list could hold it, and for the NPCs' hand-written ones (T22), whose writer lists the
+spellings once. No round plays it.
 
 **The Price is Right** keeps its own type rather than becoming `multiple_choice` with
 pre-formatted strings. Its options are integers and the payload stores the subject's price
@@ -854,7 +858,7 @@ Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_que
     {"mode": "more_less", "questions": 10, "seconds": 10}
   ],
   "mode_order": "listed",          // "listed": the order above; "random": shuffled at creation
-  "random_events": true,           // may the event pack interrupt a round? the host's questions always do
+  "random_event_frequency": "default", // one event per 20 / 10 / 5 round questions: "less" / "default" / "more"
   "reveal_seconds": 8,             // 2..30
   "splash_seconds": 8,             // 0..30: 0 turns the round intro off, anything else on (D7: not a length)
   "random_event_seconds": 2,       // 0..10, the NPC holds the floor this long before the buttons
@@ -868,15 +872,15 @@ Bestiary is picking two rounds that happen to share the `multiple_choice` type, 
 settings never mention that type: the create form lists modes, the splash introduces
 modes, and the only place the type shows up is inside the question.
 
-`custom` never appears in `modes`, and it is not a round. The host's own questions are
-random events: `selection.py` drops each of them inside a round it does not belong to, one
-per round and never in the first round, which caps them at one fewer than the number of
-modes picked. A host who wants five questions of their own picks six modes, and a room
-asking for more than its slots is refused at creation — `NewRoomSettings` names the limit
-and the count it was given, because a host who loses two of their five questions to a
-silent truncation finds out during the game. `MODES["custom"]` keeps only `seconds`, the
-length of one such question, and a host may override it on the create form the way they
-may for any round.
+`custom` and `random_event` never appear in `modes`, and neither is a round. Their
+questions are random events: `selection.py` drops each of them inside a round it does not
+belong to, one per window of `EVENT_EVERY[random_event_frequency]` round questions (section
+1). The host's own take slots rather than adding to them, so the slot count at the chosen
+frequency is their cap, and a room asking for more is refused at creation —
+`NewRoomSettings` names the count, the limit and the frequency, because a host who loses
+two of their five questions to a silent truncation finds out during the game. Both modes
+keep only `seconds`, the length of one such question. A stored room from before T22 may
+say `random_events` instead; `RoomSettings` reads it as the frequency it meant.
 
 There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's type module says (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form, which offers each mode's default and gates its own submit button on the same bounds — `min` and `max` on a number input are a nudge a host can type past, so the form checks every round's two numbers itself and marks the one out of range under the field where its range is already written. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds — random events included, since they are questions the room will play.
 
