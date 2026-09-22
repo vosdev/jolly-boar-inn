@@ -12,17 +12,24 @@
    *                              │                 │        question_closed │
    *                              │                 │                        ▼
    *                              └── room_updated ─┴─── question_open ── playing/reveal
-   *                                  (a new mode)                            │
-   *                                                                          │
-   *   finished ◀───────────────── game_finished ─────────────────────────────┘
+   *                                  (a new mode)  │                         │   │
+   *                                                │            room_updated │   │
+   *                                                │                         ▼   │
+   *                                                └──── question_open ── playing/standings
+   *                                                                              │
+   *   finished ◀───────────────── game_finished ─────────────────────────────────┘
    *
    * The splash only comes round again when the next round plays a different mode: it
-   * introduces a mode, not a round, so a game of one mode shows it once.
+   * introduces a mode, not a round, so a game of one mode shows it once. The standings
+   * (D9) follow every round but the last, whatever the splash does, and only between
+   * rounds: inside one, there is no board under the reveal, and the last round's
+   * standings are the final screen, which draws the same `<Scoreboard>`.
    *
    * `playing` with no question and nothing revealed is the gap between a reveal ending
    * and the next question opening. It is a frame or two wide in practice, and after a
    * restart (T11) it is however long the recovery reveal has left, so it gets a screen
-   * of its own rather than a blank panel.
+   * of its own rather than a blank panel. A phase this build does not know lands there
+   * too, which is how a build from before `standings` existed rides one out.
    */
   import { onMount } from 'svelte'
 
@@ -212,9 +219,7 @@
     {:else}
       <p class="tagline">Nobody scored. A quiet night at the inn.</p>
     {/if}
-    <!-- The table used to be captioned with the room code, which the top bar now carries
-         on every screen; D9 makes this and the between-rounds board one component. -->
-    <Scoreboard standings={$standings} youId={$you?.id ?? null} />
+    <Scoreboard standings={$standings} youId={$you?.id ?? null} final />
     <section class="panel">
       <!-- Rank is dense (section 6), so level scores genuinely share a place; what the
            sort settles is the order they are listed in, not the rank. -->
@@ -245,14 +250,29 @@
   {:else}
     <!-- playing -->
     <div class="spread head">
-      <h1>
-        {#if segment !== null && segment.total > 1}
-          <span class="round">Round {segment.index + 1} of {segment.total}</span>
-        {/if}
-        Question {number} of {total}
-      </h1>
+      {#if $room.phase === 'standings'}
+        <h1>
+          {#if segment !== null}
+            <span class="round">After round {segment.index + 1} of {segment.total}</span>
+          {/if}
+          Standings
+        </h1>
+      {:else}
+        <h1>
+          {#if segment !== null && segment.total > 1}
+            <span class="round">Round {segment.index + 1} of {segment.total}</span>
+          {/if}
+          Question {number} of {total}
+        </h1>
+      {/if}
       {#if $room.phase === 'open' && $question !== null}
         <Timer endsAt={$question.ends_at} totalSeconds={questionSeconds} label="to answer" />
+      {:else if $room.phase === 'standings' && $room.next_at !== null}
+        <Timer
+          endsAt={$room.next_at}
+          totalSeconds={$room.settings.standings_seconds}
+          label="to the next round"
+        />
       {:else if $room.next_at !== null}
         <Timer
           endsAt={$room.next_at}
@@ -269,7 +289,9 @@
       </div>
     {/if}
 
-    {#if $room.phase === 'open' && $question !== null}
+    {#if $room.phase === 'standings'}
+      <Scoreboard standings={$standings} youId={$you?.id ?? null} />
+    {:else if $room.phase === 'open' && $question !== null}
       <section class="panel">
         <Question question={$question} yourValue={$yourAnswer} onAnswer={answer} />
       </section>
@@ -302,16 +324,11 @@
           <p class="note">That question is closed.</p>
         {/if}
       </section>
-      <Scoreboard
-        standings={$standings}
-        youId={$you?.id ?? null}
-        results={$lastClosed.results}
-        title="Standings"
-      />
     {:else}
       <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
            back from a restart. No `question_closed` reached this client, so there is
-           nothing to reveal — only where everyone stands. -->
+           nothing to reveal. There is no board here either: inside a round, where
+           everyone stands waits for the round's end (D9). -->
       <section class="panel">
         <p class="note">
           {$room.phase === 'reveal'
@@ -319,7 +336,6 @@
             : 'Waiting for the next question…'}
         </p>
       </section>
-      <Scoreboard standings={$standings} youId={$you?.id ?? null} />
     {/if}
 
     {#if isAdmin && socket !== null}
@@ -327,7 +343,11 @@
         <h2>Host</h2>
         <div class="row">
           <button type="button" onclick={() => socket?.send({ t: 'skip' })}>
-            {$room.phase === 'open' ? 'Close this question now' : 'Skip to the next question'}
+            {$room.phase === 'open'
+              ? 'Close this question now'
+              : $room.phase === 'standings'
+                ? 'Start the next round now'
+                : 'Skip to the next question'}
           </button>
           <button
             type="button"

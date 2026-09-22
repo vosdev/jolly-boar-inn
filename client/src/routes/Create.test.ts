@@ -85,4 +85,20 @@ describe('Create', () => {
     })
     expect(screen.getByText('35 questions in total, and up to 1 random event')).toBeTruthy()
   })
+
+  it('sends how long the standings hold between rounds, 10 unless changed (D9)', async () => {
+    await loaded()
+    expect((await submitted()).standings_seconds).toBe(10)
+  })
+
+  it('takes 0 for no standings, and will not submit past 30', async () => {
+    await loaded()
+    const field = screen.getByLabelText('Standings between rounds, seconds')
+    await fireEvent.input(field, { target: { value: '31' } })
+    const create = screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement
+    expect(create.disabled).toBe(true)
+    await fireEvent.input(field, { target: { value: '0' } })
+    expect(create.disabled).toBe(false)
+    expect((await submitted()).standings_seconds).toBe(0)
+  })
 })

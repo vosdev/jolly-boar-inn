@@ -48,6 +48,8 @@
 
   let displayName = $state($profile?.name ?? '')
   let revealSeconds = $state(3)
+  /** How long the standings hold between rounds (D9); 0 runs the rounds straight on. */
+  let standingsSeconds = $state(10)
   /** `splash_seconds` on the wire: 0 is off, anything else on (D7: it is no longer a length). */
   let introduceRounds = $state(true)
   /** May a pack question interrupt a round? A room's own questions always do. */
@@ -79,12 +81,17 @@
         inRange(round.mode, 'seconds', round.seconds),
     ),
   )
+  /** `NewRoomSettings`' 0..30, and an integer: a cleared field binds `null`. */
+  const standingsInRange = $derived(
+    Number.isInteger(standingsSeconds) && 0 <= standingsSeconds && standingsSeconds <= 30,
+  )
   const ready = $derived(
     nameProblem(displayName) === null &&
       rounds.length > 0 &&
       roundsInRange &&
       questionCount >= 1 &&
-      questionCount + eventCount <= MAX_QUESTIONS,
+      questionCount + eventCount <= MAX_QUESTIONS &&
+      standingsInRange,
   )
 
   // Filled in the moment the popup saves one. Only ever from empty, so a name the host
@@ -160,6 +167,7 @@
       random_events: randomEvents,
       reveal_seconds: revealSeconds,
       splash_seconds: introduceRounds ? 8 : 0,
+      standings_seconds: standingsSeconds,
       close_when_all_answered: closeWhenAllAnswered,
     }
     try {
@@ -302,6 +310,11 @@
         <label for="reveal">Reveal answers seconds</label>
         <input id="reveal" type="number" min="2" max="30" bind:value={revealSeconds} />
         <p class="note">2–30</p>
+      </div>
+      <div>
+        <label for="standings">Standings between rounds, seconds</label>
+        <input id="standings" type="number" min="0" max="30" bind:value={standingsSeconds} />
+        <p class="note" class:error={!standingsInRange}>0–30, and 0 for none</p>
       </div>
     </div>
     <label class="check">

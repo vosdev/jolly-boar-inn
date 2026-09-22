@@ -566,6 +566,13 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
                 results = _take(host, "question_closed")["results"]
                 _take(player, "question_closed")
                 assert set(results) == ({player_id} if own else {host_id, player_id})
+                if index == 1:
+                    # D9: stored before ``standings_seconds`` existed, it reads as the
+                    # default, and the first round ends in standings the host can skip.
+                    while (update := _take(host, "room_updated"))["room"]["phase"] != "standings":
+                        pass
+                    assert update["room"]["settings"]["standings_seconds"] == 10
+                    host.send_json({"t": "skip"})
             finished = _take(host, "game_finished")
 
     points = {s["display_name"]: s["points"] for s in finished["standings"]}

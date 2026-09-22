@@ -16,6 +16,12 @@ cancelling the task; every sleep is computed from the target timestamp, so a lat
 closes immediately instead of drifting. The task takes the same room lock as everything
 else and, like everything else, sends nothing while holding it.
 
+Between two rounds the loop holds the room in ``standings`` (D9) for
+``standings_seconds``: the reveal of a round's last question gives way to it, and it gives
+way to the next round's splash or first question. It is only ever between rounds. The
+game's last question goes straight to ``finished``, whose final standings are the same
+picture, and a question inside a round never stops for one.
+
 Scoring (T10, T17) is ``rooms/scoring.py``. An answer's band -- its speed bucket, or its
 step -- is fixed when it arrives; at the close the type's ``grade`` gives credit, and
 ``points_for`` pays out on the two. The answers table is the source of truth for
@@ -87,6 +93,8 @@ CLOSE_KICKED = 4003
 # The room is gone for good -- expired and cleaned up, or removed by its host. The same
 # code the handler closes an unknown room with, because that is what a reconnect finds.
 CLOSE_GONE = 4004
+# Every timed phase the host can cut short: all of them, since each one is a wait.
+SKIPPABLE = frozenset({"splash", "open", "reveal", "standings"})
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
 # ``random_event`` is not an envelope key at all but a placement ``selection`` adds.
 _QUESTION_COLUMNS = frozenset({"id", "type", "mode", "source", "host_only", "random_event"})
@@ -349,8 +357,9 @@ class Room:
     totals: dict[UUID, Totals] = field(default_factory=dict, repr=False)
     phase: str = "idle"
     # When the current timed phase ends: a splash gives way to its first question, a
-    # reveal to the next question. ``None`` while a question is open, and during a splash
-    # that is still waiting for the room to be ready.
+    # reveal to the next question or the standings, the standings to the next round.
+    # ``None`` while a question is open, and during a splash that is still waiting for the
+    # room to be ready.
     next_at: datetime | None = None
     # The one task driving open → closed → reveal → next.
     timer: asyncio.Task[None] | None = field(default=None, repr=False)
@@ -1209,7 +1218,7 @@ class RoomManager:
         return how, band
 
     async def skip(self, code: str, by: Player) -> None:
-        """Admin: cut the splash, the open question or the reveal short (section 3).
+        """Admin: cut the splash, the open question, the reveal or the standings short.
 
         Nothing is broadcast and nothing is awaited here: setting ``advance`` wakes the
         timer task, which owns every state change either way. A skip that arrives while
@@ -1220,7 +1229,7 @@ class RoomManager:
         async with self._lock(code):
             room = await self._room(code)
             _require_admin(by)
-            if room.status != "playing" or room.phase not in ("splash", "open", "reveal"):
+            if room.status != "playing" or room.phase not in SKIPPABLE:
                 raise BadState("there is nothing to skip")
             room.advance.set()
 
@@ -1342,6 +1351,8 @@ class RoomManager:
                 if next_at is None:
                     return
                 await self._sleep_until(room, next_at)
+                if not await self._standings(room, index):
+                    return
                 following = await self._advance(room, index)
                 if following is None:
                     return
@@ -1430,6 +1441,42 @@ class RoomManager:
             if delay <= 0:
                 return
             await _wait_for_either(room.advance, room.rescheduled, delay)
+
+    async def _standings(self, room: Room, index: int) -> bool:
+        """Hold the standings up if ``index`` ended a round. False: the room is gone.
+
+        Only a round's last question ends one, and never the game's last: that one goes
+        to ``finished``, whose final screen is these same standings. ``standings_seconds``
+        at zero turns the phase off. The standings themselves are not in the frame -- the
+        reveal just before this carried them, and a socket that arrives now gets them in
+        its ``welcome`` -- so ``room_updated`` says only that this is the phase and when it
+        ends.
+
+        Like the splash, nothing is written: ``phase`` is not a column, and a restart
+        here resumes in the reveal (``_recover``) and moves straight on, which costs that
+        round its standings and nothing else.
+        """
+        async with room.lock:
+            if self.rooms.get(room.code) is not room or room.status != "playing":
+                return False
+            segment = room.segment_at(index)
+            seconds = room.settings.standings_seconds
+            if (
+                seconds <= 0
+                or segment is None
+                or index != segment.start + segment.count - 1
+                or index + 1 >= len(room.questions)
+            ):
+                return True
+            room.phase = "standings"
+            room.next_at = datetime.now(UTC) + timedelta(seconds=seconds)
+            # A skip that landed during the reveal has been spent on the reveal.
+            room.advance.clear()
+            update = self._room_updated(room)
+            next_at = room.next_at
+        await self._broadcast(update)
+        await self._sleep_until(room, next_at)
+        return True
 
     async def _open_question(self, room: Room, index: int) -> RoomQuestion | None:
         """``pending → open``: stamp ``shown_at``, broadcast ``question_open``."""

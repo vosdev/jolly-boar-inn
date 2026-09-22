@@ -108,3 +108,14 @@ We no longer need the option to configure your name on the game creation screen.
 # Guess The Examine
 
 Should have its own item database. popular-items.json is focussed around Less or More + The Price is Right gamemodes. For Guess The Examine, we can find unique items or NPCs that have a funny examine option.
+
+
+# Teams
+
+2-4 teams
+
+Add some team names
+
+When teams vs teams, Questions are no longer scored based on how quick you answer, but on accuracy from the whole team.
+
+If 3 out of 4 members pick the correct answer, 75% of the points are granted.

@@ -47,8 +47,9 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     ``modes`` takes names, or whole ``{"mode": ..., "questions": ..., "seconds": ...}``
     dicts for a game whose rounds are deliberately different lengths.
 
-    ``splash_seconds`` is zero by default too: a test that is not about the splash should
-    see the frames it always saw, and the ones that are about it pass their own. So is
+    ``splash_seconds`` and ``standings_seconds`` are zero by default too: a test that is
+    not about the splash or the standings should see the frames it always saw, and the
+    ones that are about them pass their own. So is
     ``random_events``, for the same reason: a pack question dropped into the middle of a
     round would move every index a test counts on. The host's own questions are placed
     whatever it says, which is what the tests about them rely on.
@@ -66,6 +67,7 @@ def fast_settings(**overrides: Any) -> RoomSettings:
             "modes": modes,
             "reveal_seconds": 1,
             "splash_seconds": 0,
+            "standings_seconds": 0,
             "random_events": False,
             **overrides,
         }

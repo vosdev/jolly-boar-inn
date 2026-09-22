@@ -19,7 +19,9 @@ from app.questions.types.scoring import Scoring
 from app.rooms.settings import RoomSettings
 
 RoomStatus = Literal["lobby", "playing", "finished"]
-Phase = Literal["idle", "splash", "open", "reveal"]
+# ``standings`` (D9) sits between a round's last reveal and the next round, never between
+# two questions of one round, and never after the game's last: that goes to ``finished``.
+Phase = Literal["idle", "splash", "open", "reveal", "standings"]
 Role = Literal["player", "admin"]
 ErrorCode = Literal[
     "bad_hello",
@@ -69,10 +71,11 @@ class RoomView(_Message):
     total: int
     phase: Phase
     # When the current timed phase ends: a splash gives way to its first question, a
-    # reveal to the next question. Null while a question is open, during a splash still
-    # waiting for the room to be ready (D7), and in a room that is not playing. Also on
-    # ``question_closed``, but a splash or a reveal a client arrives into (a reconnect,
-    # or a room that just came back from a restart) has no frame of its own to carry it.
+    # reveal to the next question or to the standings, the standings to the next round.
+    # Null while a question is open, during a splash still waiting for the room to be
+    # ready (D7), and in a room that is not playing. Also on ``question_closed``, but a
+    # splash, reveal or standings a client arrives into (a reconnect, or a room that just
+    # came back from a restart) has no frame of its own to carry it.
     next_at: datetime | None
     # The round in progress, null before the first question and once the game is over.
     segment: Segment | None
@@ -211,7 +214,7 @@ class Welcome(_Message):
 
 class RoomUpdated(_Message):
     """Join, leave, connect, disconnect, promote, kick, status change, ``set_profile``,
-    ``ready``, and the start of a splash."""
+    ``ready``, and the start of a splash or of the standings."""
 
     t: Literal["room_updated"] = "room_updated"
     room: RoomView
