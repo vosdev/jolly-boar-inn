@@ -13,6 +13,7 @@ answer: Ring of life
 
 Question: "Mortals love waving glowing symbols over their heads to postpone our inevitable appointment. Arrange these prayers in order of the Prayer level required to unlock them, from highest to lowest."
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer: [Protect from Magic, Protect from Missiles, Protect from Melee, Retribution, Redemption, Smite]
 answer: [Smite, Redemption, Retribution, Protect from Melee, Protect from Missiles, Protect from Magic ]
 
@@ -31,6 +32,7 @@ answer: Retribution
 
 Question: "I see mortal remains of all varieties pass through the veil. Arrange these bones in ascending order based on the baseline Prayer experience granted when simply buried in the dirt without an altar."
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer: [Bones, Big bones, Dragon bones, Dagannoth bones, Superior dragon bones]
 
 Question: "Mortals expend millions of coins on ancient arcane scrolls from the Chambers of Xeric just to bolster their defenses. At what Prayer level does an adventurer unlock Augury?"

@@ -16,7 +16,13 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app.modes import MODES, Mode
-from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, ModeSettings, NewRoomSettings, RoomSettings
+from app.rooms.settings import (
+    EVENT_EVERY,
+    MAX_QUESTIONS_PER_ROOM,
+    ModeSettings,
+    NewRoomSettings,
+    RoomSettings,
+)
 
 
 @pytest.fixture
@@ -93,44 +99,96 @@ def test_the_stored_model_loads_what_a_host_may_not_ask_for() -> None:
 
 
 def test_a_room_may_not_be_longer_than_the_cap(more_modes: list[str]) -> None:
-    modes = [{"mode": name, "questions": 30} for name in more_modes]
-    assert sum(entry["questions"] for entry in modes) > MAX_QUESTIONS_PER_ROOM
-    with pytest.raises(ValidationError, match="limit"):
-        NewRoomSettings(modes=modes, random_events=False)
-    modes[-1]["questions"] = 10  # 100 exactly, which is the cap and not over it
-    settings = NewRoomSettings(modes=modes, random_events=False)
-    assert settings.question_count == MAX_QUESTIONS_PER_ROOM
+    """The events count, and there is no off switch: at ``more``, 84 round questions and
+    their 16 events are the longest room there is."""
+    modes = [{"mode": name, "questions": 21} for name in more_modes]
+    settings = NewRoomSettings(modes=modes, random_event_frequency="more")
+    assert settings.question_count + settings.random_event_slots == MAX_QUESTIONS_PER_ROOM
+    modes[-1]["questions"] = 22
+    with pytest.raises(ValidationError, match="102 questions over all rounds and random events"):
+        NewRoomSettings(modes=modes, random_event_frequency="more")
 
 
-def test_the_cap_counts_the_random_events_a_room_may_hold(more_modes: list[str]) -> None:
-    """Section 4: events are questions the room will play, so they count against it.
-
-    With the packs allowed to interrupt, every slot may end up holding one; without,
-    only the host's own are events, and those are counted when they are checked.
-    """
-    modes = [{"mode": name, "questions": 24} for name in more_modes]  # 96, and 3 slots
-    assert NewRoomSettings(modes=modes).random_event_slots == 3  # 99 with every slot filled
-    modes[-1]["questions"] = 26  # 98, and 101 with every slot filled
-    with pytest.raises(ValidationError, match="101 questions over all rounds and random events"):
+def test_the_cap_counts_the_random_events_at_the_frequency_asked_for(
+    more_modes: list[str],
+) -> None:
+    """Section 4: events are questions the room will play, so they count against it,
+    whoever ends up asking them -- the host's take slots rather than adding to them."""
+    modes = [{"mode": name, "questions": 24} for name in more_modes]  # 96
+    assert NewRoomSettings(modes=modes, random_event_frequency="less").random_event_slots == 4
+    with pytest.raises(ValidationError, match="105 questions over all rounds and random events"):
         NewRoomSettings(modes=modes)
-    quiet = NewRoomSettings(modes=modes, random_events=False)
-    quiet.check_custom_questions(2)  # 100
-    with pytest.raises(ValueError, match="101 questions"):
-        quiet.check_custom_questions(3)
 
 
-def test_the_host_gets_one_question_per_round_after_the_first(more_modes: list[str]) -> None:
-    """T21: never truncated -- refused, with the count and the limit named."""
-    settings = NewRoomSettings(modes=[{"mode": name} for name in more_modes[:3]])
-    assert settings.random_event_slots == 2
-    settings.check_custom_questions(2)
+@pytest.mark.parametrize(
+    ("frequency", "questions", "slots"),
+    [
+        ("less", 10, 0),
+        ("default", 10, 1),
+        ("more", 10, 2),
+        ("less", 40, 2),
+        ("default", 40, 4),
+        ("more", 40, 8),
+        ("default", 19, 1),  # a window is whole or it is not a window
+    ],
+)
+def test_one_event_per_twenty_ten_or_five_round_questions(
+    more_modes: list[str], frequency: str, questions: int, slots: int
+) -> None:
+    """phase2.md's table, which is what Create shows before the room exists."""
+    modes = [{"mode": more_modes[0], "questions": questions // 2}]
+    modes.append({"mode": more_modes[1], "questions": questions - questions // 2})
+    settings = NewRoomSettings(modes=modes, random_event_frequency=frequency)
+    assert settings.random_event_slots == slots
+    assert EVENT_EVERY[frequency] == {"less": 20, "default": 10, "more": 5}[frequency]
+
+
+def test_the_frequency_is_one_of_three_and_defaults_to_default() -> None:
+    assert NewRoomSettings().random_event_frequency == "default"
+    for frequency in ("less", "default", "more"):
+        assert NewRoomSettings(random_event_frequency=frequency).random_event_frequency == frequency
+    for wrong in ("never", None):
+        with pytest.raises(ValidationError, match="random_event_frequency"):
+            NewRoomSettings(random_event_frequency=wrong)
+
+
+def test_a_room_stored_with_t21s_boolean_reads_as_the_frequency_it_meant() -> None:
+    """True was "the packs may interrupt too", which is ``default``; false was "only the
+    host's questions", which only a stored room can still be. A new room cannot."""
+    stored = RoomSettings().model_dump()
+    del stored["random_event_frequency"]
+    assert RoomSettings.model_validate(
+        {**stored, "random_events": True}
+    ).random_event_frequency == ("default")
+    quiet = RoomSettings.model_validate({**stored, "random_events": False})
+    assert quiet.random_event_frequency is None
+    assert quiet.random_event_slots == len(quiet.modes) - 1  # T21's count
+    assert "random_events" not in quiet.model_dump()
+    with pytest.raises(ValidationError, match="random_event_frequency"):
+        NewRoomSettings.model_validate({**stored, "random_events": False})
+    with pytest.raises(ValidationError, match="random_events"):
+        RoomSettings.model_validate({**stored, "random_events": "sometimes"})
+
+
+def test_the_hosts_questions_are_capped_at_the_slots(more_modes: list[str]) -> None:
+    """Never truncated -- refused, naming the count, the limit and the frequency, and
+    pointing at ``more`` while there is a ``more`` to point at."""
+    settings = NewRoomSettings(modes=[{"mode": name, "questions": 10} for name in more_modes[:3]])
+    assert settings.random_event_slots == 3
+    settings.check_custom_questions(3)
     with pytest.raises(ValueError) as info:
-        settings.check_custom_questions(5)
-    assert "5 custom questions" in str(info.value)
-    assert "a room of 3 modes holds at most 2" in str(info.value)
-    one = NewRoomSettings(modes=[{"mode": "more_less"}])
-    with pytest.raises(ValueError, match="holds at most 0"):
-        one.check_custom_questions(1)
+        settings.check_custom_questions(4)
+    message = str(info.value)
+    assert "4 custom questions" in message
+    assert "30 round questions at random_event_frequency 'default'" in message
+    assert "make room for 3 random events: one per 10" in message
+    assert "Pick random_event_frequency 'more'" in message
+    busy = settings.model_copy(update={"random_event_frequency": "more"})
+    busy.check_custom_questions(6)
+    with pytest.raises(ValueError, match="make room for 6") as info:
+        busy.check_custom_questions(7)
+    assert "one per 5. Add questions to the rounds" in str(info.value)
+    assert "Pick" not in str(info.value)
 
 
 @pytest.mark.parametrize("seconds", [-1, 11])
@@ -173,12 +231,14 @@ def test_seconds_for_clamps_a_stored_room_into_the_types_range() -> None:
 
 
 def test_a_mode_nobody_picked_plays_at_its_own_pace() -> None:
-    """An event is a question of a mode no round was made for: a pack event's own mode,
-    or ``custom``. Either plays at that mode's default length."""
+    """An event is a question of a mode no round was made for: ``random_event``, ``custom``,
+    or a round mode a room from before T22 borrowed one from. Each plays at that mode's
+    default length."""
     settings = RoomSettings(modes=[{"mode": "more_less", "questions": 4, "seconds": 7}])
     assert settings.seconds_for("more_less") == 7
     assert settings.seconds_for("guess_examine") == 20  # its type's default
     assert settings.seconds_for("custom") == 20  # the mode's own
+    assert settings.seconds_for("random_event") == 20
     assert settings.seconds_for("not_a_mode") == 30  # the registry fallback
 
 
@@ -207,6 +267,12 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
         {
             # Never a round, so no round length; its questions carry their own types.
             "id": "custom",
+            "type": None,
+            "questions": None,
+            "seconds": {"default": 20, "min": 10, "max": 60},
+        },
+        {
+            "id": "random_event",
             "type": None,
             "questions": None,
             "seconds": {"default": 20, "min": 10, "max": 60},

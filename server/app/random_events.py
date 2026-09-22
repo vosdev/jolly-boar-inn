@@ -2,30 +2,43 @@
 
 A random event is a question asked outside the round it belongs to, by an NPC who turns
 up for it and leaves -- the way the game this quiz is about has always interrupted people
-mid-task. ``rooms/selection.py`` places them and gives each a face from this tuple, never
-the same face twice in one room, and ``questions.random_event`` stores which one.
+mid-task. ``rooms/selection.py`` places them and gives each a face from this tuple, and
+``questions.random_event`` stores which one.
+
+Each NPC asks about one subject, and its questions are one file each:
+``data/packs/random_events/<id>.json``, named after the id here. ``questions/packs.py``
+refuses a file named after anyone else, because a file nobody on the roster owns is a
+set of questions nobody can be drawn to ask. An NPC may be on the roster before its file
+exists: until then it only ever asks a host's own question, which carries no subject of
+its own. ``ideas/random-events.md`` is where the roster, the themes and the questions are
+written first.
 
 The ids are all the server knows. Who these NPCs are, what they open with and what they
-look like is copy, and copy lives on the client (``lib/randomEvents.ts``, from T22) exactly
-as a mode's label does in ``lib/modes.ts``. A client that meets an id it has no copy for
-draws a generic card for it, so adding one here never breaks an older build.
+look like is copy, and copy lives on the client (``lib/randomEvents.ts``) exactly as a
+mode's label does in ``lib/modes.ts``. A client that meets an id it has no copy for draws
+a generic card for it, so adding one here never breaks an older build.
 
-The roster has to be at least as long as the most events a room can hold -- one per round
-after the first -- or the last host to pick every mode would lose a question to a shortage
-of faces. ``tests/test_random_events.py`` holds it to that.
+The roster no longer has to outnumber the events a room can hold. A room at ``more`` has
+one event per five round questions and may run out of new faces, so ``selection`` repeats
+the least used one instead, and never the same face twice running. An id is stored in a
+room's questions, so it is never renamed once it has shipped.
 """
 
 RANDOM_EVENTS: tuple[str, ...] = (
     "sandwich_lady",
-    "genie",
-    "drunken_dwarf",
-    "rick_turpentine",
-    "sergeant_damien",
-    "evil_bob",
-    "freaky_forester",
-    "mysterious_old_man",
-    "quiz_master",
-    "mr_mordaut",
+    "lumbridge_cook",
     "dr_jekyll",
-    "count_check",
+    "bob",
+    "tree_spirit",
+    "drunken_dwarf",
+    "alfred",
+    "thurgo",
+    "genie",
+    "sergeant_damien",
+    "wise_old_man",
+    "krystilia",
+    "ned",
+    "death",
+    "jane",
+    "baba_yaga",
 )

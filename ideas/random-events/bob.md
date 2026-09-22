@@ -41,12 +41,15 @@ answer: 82
 
 Question: "A proper predator knows the hierarchy of seafood. Put these raw catches in order from the lowest Fishing level required to catch to the highest level required!"
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer: Shrimp, Trout, Lobster, Swordfish, Monkfish, Shark
 
 Question: "Not that I care about your fragile mortal health, but some cooked catches clearly nourish better than others. Rank these cooked fish from LEAST to MOST Hitpoints restored when eaten!"
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer: Trout, Lobster, Swordfish, Monkfish, Shark, Manta ray
 
 Question: "Barbarians claim they invented catching fish with bare paws—as - if cats haven't been doing that since the First Age. Arrange these barehanded catches in order from lowest to highest Fishing level required!"
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer: Tuna, Swordfish, Shark

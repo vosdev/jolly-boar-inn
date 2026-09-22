@@ -22,13 +22,25 @@ bounds still loads after the bounds change, instead of becoming unrehydratable. 
 test suite can run a whole game with one-second questions without going behind the
 model's back.
 
-The host's own questions are not a round and have no entry in ``modes``: each is a random
-event, one per round after the first (``rooms/selection.py``). That caps them at one fewer
-than the modes picked, and ``NewRoomSettings.check_custom_questions`` refuses a room that
-asks for more, naming both numbers, rather than letting selection drop the overflow where
-the host would only find out during the game. ``random_events`` is the one choice left
-about events -- whether the packs may interrupt as well -- and ``random_event_seconds`` is
-how long the NPC holds the floor before the buttons appear (T22).
+Random events are the other thing a room is made of, and ``random_event_frequency`` says
+how many: one per 20, 10 or 5 round questions (``EVENT_EVERY``), added on top of the
+rounds rather than taken out of them, so one mode of ten questions at ``default`` plays
+eleven. ``rooms/selection.py`` places them. There is no off switch -- a host who wants
+fewer picks ``less`` -- because the events are where the NPCs' own questions live, and a
+game without them is a game without the part that is allowed to be silly.
+
+The host's own questions are not a round and have no entry in ``modes``: each takes one of
+those event slots. So the slot count is also their cap, and
+``NewRoomSettings.check_custom_questions`` refuses a room that asks for more, naming the
+count, the limit and the frequency, rather than letting selection drop the overflow where
+the host would only find out during the game. ``random_event_seconds`` is how long the NPC
+holds the floor before the buttons appear.
+
+Until T22 the choice was a boolean, ``random_events``: whether the packs could interrupt
+as well as the host. A stored room still says so, and reads back as ``default`` for true
+and as ``None`` for false -- "the host's questions only, one per round after the first",
+the rules it was created under. ``NewRoomSettings`` never takes ``None``, so no new room
+is made that way; it exists so every stored room still loads.
 """
 
 from typing import Any, Literal, Self
@@ -41,6 +53,17 @@ from app.modes import MODES, questions_bounds, seconds_bounds
 # inside them. Nothing in the game loop cares; it is there so a host cannot ask for an
 # evening that never ends.
 MAX_QUESTIONS_PER_ROOM = 100
+
+Frequency = Literal["less", "default", "more"]
+# One random event per this many round questions (ideas/phase2.md T22, "How often"). Ten is
+# roughly once a round at the default round lengths, which is about as often as the game
+# itself interrupts anyone; five is a room that came for the NPCs.
+EVENT_EVERY: dict[str, int] = {"less": 20, "default": 10, "more": 5}
+
+
+def event_slots(round_questions: int, frequency: Frequency) -> int:
+    """How many random events ``round_questions`` questions of rounds make room for."""
+    return round_questions // EVENT_EVERY[frequency]
 
 
 class ModeSettings(BaseModel):
@@ -90,18 +113,19 @@ class RoomSettings(BaseModel):
     # ``"listed"``: the rounds play in the order the host arranged them, which is the
     # order this list is in. ``"random"``: shuffled once, at creation.
     mode_order: Literal["listed", "random"] = "listed"
-    # Whether a pack question may interrupt a round as a random event. The host's own
-    # questions always do -- there is nowhere else for them to go -- so this only decides
-    # whether the packs may as well.
-    random_events: bool = True
+    # One random event per 20, 10 or 5 round questions. ``None`` is a room stored before
+    # T22 with ``random_events: false``: its host's questions only (see the module
+    # docstring). Never ``None`` for a room created since.
+    random_event_frequency: Frequency | None = "default"
     reveal_seconds: int = Field(default=8, ge=0)
     # Whether a round's mode is introduced before its first question: zero turns the splash
     # off, which is what the test suite runs with, and anything else turns it on. Since D7
     # the number is no longer a length -- a splash ends when the room is ready or the host
     # skips it (``rooms/ready.py``) -- but it stays an int so every stored room still reads.
     splash_seconds: int = Field(default=8, ge=0)
-    # How long an event's NPC holds the floor before the buttons appear. Stored from T21,
-    # read from T22, which is when there is an NPC to hold it; zero is a plain question.
+    # How long an event's NPC holds the floor before the buttons appear: the question is on
+    # screen and nobody can answer it yet. Zero plays an event as a plain question, which
+    # is what the test suite runs with.
     random_event_seconds: int = Field(default=2, ge=0)
     # How long the standings hold the floor between two rounds (D9). Zero turns them off,
     # as ``splash_seconds`` does for the splash; the game's last round never has them,
@@ -118,6 +142,22 @@ class RoomSettings(BaseModel):
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
     # so a stored room always has a number here.
     max_players: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _frequency_from_the_boolean(cls, data: Any) -> Any:
+        """Read a room stored with T21's ``random_events`` as the frequency it meant.
+
+        Only a real boolean is translated. Anything else is left where it is, for
+        ``extra="forbid"`` to refuse by name.
+        """
+        if not isinstance(data, dict) or not isinstance(data.get("random_events"), bool):
+            return data
+        translated = {k: v for k, v in data.items() if k != "random_events"}
+        translated.setdefault(
+            "random_event_frequency", "default" if data["random_events"] else None
+        )
+        return translated
 
     @field_validator("modes")
     @classmethod
@@ -148,8 +188,14 @@ class RoomSettings(BaseModel):
 
     @property
     def random_event_slots(self) -> int:
-        """How many random events the room can hold: one per round after the first."""
-        return len(self.modes) - 1
+        """How many random events the room asks for: one per ``EVENT_EVERY`` round questions.
+
+        A stored room with no frequency has T21's count instead, one per round after the
+        first, and only its host's questions ever filled those.
+        """
+        if self.random_event_frequency is None:
+            return len(self.modes) - 1
+        return event_slots(self.question_count, self.random_event_frequency)
 
     def entry_for(self, mode: str) -> ModeSettings | None:
         return next((entry for entry in self.modes if entry.mode == mode), None)
@@ -159,8 +205,9 @@ class RoomSettings(BaseModel):
 
         The clamp is for stored rooms, not for new ones: ``NewRoomSettings`` refuses
         anything outside the mode's ``Bounds`` on the way in, so the only way past it is a
-        room created before the bounds moved. A mode with no entry -- ``custom``, or the
-        unpicked mode a pack event was drawn from -- plays at its own default.
+        room created before the bounds moved. A mode with no entry -- ``custom`` and
+        ``random_event``, whose questions are events, or a round mode a room from before T22
+        borrowed an event from -- plays at its own default.
         """
         entry = self.entry_for(mode)
         bounds = seconds_bounds(mode)
@@ -170,6 +217,7 @@ class RoomSettings(BaseModel):
 class NewRoomSettings(RoomSettings):
     """What ``POST /api/rooms`` accepts: section 4's ranges, checked on the way in."""
 
+    random_event_frequency: Frequency = "default"
     reveal_seconds: int = Field(default=8, ge=2, le=30)
     splash_seconds: int = Field(default=8, ge=0, le=30)
     random_event_seconds: int = Field(default=2, ge=0, le=10)
@@ -196,31 +244,35 @@ class NewRoomSettings(RoomSettings):
 
     @model_validator(mode="after")
     def _within_the_room_cap(self) -> Self:
-        # When the packs may interrupt, any slot may end up holding an event, so the cap
-        # counts every slot. When they may not, only the host's own questions are events,
-        # and ``check_custom_questions`` counts those.
-        self._check_total(self.random_event_slots if self.random_events else 0)
-        return self
-
-    def check_custom_questions(self, count: int) -> None:
-        """Refuse more of the host's own questions than the room has random-event slots.
-
-        Raises ``ValueError`` naming the count and the limit. Never truncates: a host who
-        loses two of five questions to a silent cut finds out during the game.
-        """
-        if count > self.random_event_slots:
-            raise ValueError(
-                f"{count} custom questions, but a room of {len(self.modes)} modes holds at"
-                f" most {self.random_event_slots}: one per round after the first. Pick more"
-                " modes or write fewer questions"
-            )
-        if not self.random_events:
-            self._check_total(count)
-
-    def _check_total(self, events: int) -> None:
-        total = self.question_count + events
+        # Every slot is a question the room will play, whoever ends up asking it: the
+        # host's questions take slots rather than adding to them, and the packs fill the
+        # rest.
+        total = self.question_count + self.random_event_slots
         if total > MAX_QUESTIONS_PER_ROOM:
             raise ValueError(
                 f"{total} questions over all rounds and random events, more than the"
                 f" room's limit of {MAX_QUESTIONS_PER_ROOM}"
             )
+        return self
+
+    def check_custom_questions(self, count: int) -> None:
+        """Refuse more of the host's own questions than the room has random-event slots.
+
+        Raises ``ValueError`` naming the count, the limit and the frequency. Never
+        truncates: a host who loses two of five questions to a silent cut finds out during
+        the game.
+        """
+        if count <= self.random_event_slots:
+            return
+        frequency = self.random_event_frequency
+        assert frequency is not None  # ``NewRoomSettings`` has no ``None`` to offer
+        remedy = (
+            "Add questions to the rounds or write fewer of your own"
+            if frequency == "more"
+            else "Pick random_event_frequency 'more', add questions, or write fewer of your own"
+        )
+        raise ValueError(
+            f"{count} custom questions, but {self.question_count} round questions at"
+            f" random_event_frequency {frequency!r} make room for {self.random_event_slots}"
+            f" random events: one per {EVENT_EVERY[frequency]}. {remedy}"
+        )

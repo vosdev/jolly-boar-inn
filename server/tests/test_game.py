@@ -45,7 +45,6 @@ from app.questions.types import more_less, multiple_choice
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
-from app.rooms import selection
 from app.rooms.state import BadState, Room, RoomQuestion
 from tests.rooms_api import call, create_fast, join
 
@@ -1492,15 +1491,16 @@ def test_speed_buckets_scale_to_the_questions_own_length(game) -> None:
 
 
 def answer_after(game: Game, seat: Seat, index: int, value: Any, seconds: float) -> dict[str, Any]:
-    """Answer question ``index`` as though ``seconds`` had passed since it opened.
+    """Answer question ``index`` as though ``seconds`` had passed since it took answers.
 
-    ``submit_answer`` measures elapsed time from the in-memory ``shown_at`` and nothing
-    else, so moving that is how a test picks the bucket instead of racing the clock for
-    it. The row in the database keeps the real one; nothing reads it while a question is
-    open. Returns the ``answer_ack``.
+    ``submit_answer`` measures elapsed time from the in-memory ``answerable_at`` and
+    nothing else, so moving that is how a test picks the bucket instead of racing the
+    clock for it. ``shown_at`` goes with it, and the row in the database keeps the real
+    one; nothing reads it while a question is open. Returns the ``answer_ack``.
     """
     question = game.question(index)
-    question.shown_at = datetime.now(UTC) - timedelta(seconds=seconds)
+    question.answerable_at = datetime.now(UTC) - timedelta(seconds=seconds)
+    question.shown_at = question.answerable_at
     game.answer(seat, index, value)
     return seat.take("answer_ack")
 
@@ -1663,7 +1663,7 @@ def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> 
     assert_memory_matches_db(game, db)
 
 
-# --- T21: the host's own questions, as random events ------------------------------------
+# --- T21 and T22: random events, the host's own questions and the NPCs' --------------------
 
 TANZANITE = {
     "type": "multiple_choice",
@@ -1675,17 +1675,33 @@ TANZANITE = {
 }
 
 
-def two_rounds(second_mode: str, questions: int = 2) -> list[dict[str, Any]]:
-    """Two rounds, so a room has one slot for an event: round 1, after its first question."""
-    return [
-        {"mode": "more_less", "questions": questions, "seconds": 10},
-        {"mode": second_mode, "questions": questions, "seconds": 10},
-    ]
+def event_rooms(second_mode: str, questions: int = 3) -> dict[str, Any]:
+    """Two rounds of ``questions``, at ``more``: six round questions make one event slot.
+
+    The slot is somewhere in the first five, after a question that is not its round's
+    last, so it lands in either round. Tests that care where find it with ``the_event``.
+    """
+    return {
+        "random_event_frequency": "more",
+        "modes": [
+            {"mode": "more_less", "questions": questions, "seconds": 10},
+            {"mode": second_mode, "questions": questions, "seconds": 10},
+        ],
+    }
 
 
 def the_event(game: Game) -> RoomQuestion:
     (event,) = [q for q in game.room.questions if q.random_event is not None]
     return event
+
+
+def assert_inside_its_round(game: Game, event: RoomQuestion) -> None:
+    """An event interrupts a round: a question of that round on either side of it."""
+    questions = game.room.questions
+    assert 0 < event.position < len(questions) - 1
+    before, after = questions[event.position - 1], questions[event.position + 1]
+    assert before.round == event.round == after.round
+    assert before.random_event is None and after.random_event is None
 
 
 def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
@@ -1704,23 +1720,26 @@ def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
     return frames
 
 
+def any_value(question: RoomQuestion) -> Any:
+    """Something ``validate_value`` takes for an NPC's question, right or not."""
+    return {"multiple_choice": 0, "closest_number": 1, "free_text": "Zezima"}[question.type]
+
+
 def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     table, second_mode, db
 ) -> None:
     """T21 Accept: author exclusion's first real caller. The host who wrote it cannot
     answer it and scores nothing on it; everyone else is graded as on any question.
 
-    Until T22 draws the NPC, the event plays as an ordinary question in the middle of the
-    round it interrupts -- its own mode on the question, the round's on the segment.
+    It plays in the middle of the round it interrupts -- its own mode on the question, the
+    round's on the segment -- asked by an NPC from the roster.
     """
-    game = table(
-        "Zezima", "Woox", custom=[TANZANITE], reveal_seconds=1, modes=two_rounds(second_mode)
-    )
+    game = table("Zezima", "Woox", custom=[TANZANITE], reveal_seconds=1, **event_rooms(second_mode))
     admin, zezima, woox = game.seats
     event = the_event(game)
     assert (event.source, event.mode, event.type) == ("room", "custom", "multiple_choice")
     assert event.author_player_id == UUID(admin.id)
-    assert event.round == 1 and event.position in (3, 4)  # never round 1's first question
+    assert_inside_its_round(game, event)
     assert event.random_event in RANDOM_EVENTS
 
     frames = reach(game, event.position)
@@ -1731,7 +1750,9 @@ def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     }
     opened = frames["Zezima"]
     assert (opened["type"], opened["mode"]) == ("multiple_choice", "custom")
-    assert (opened["segment"]["mode"], opened["segment"]["index"]) == (second_mode, 1)
+    assert opened["random_event"] == event.random_event
+    round_mode = "more_less" if event.round == 0 else second_mode
+    assert (opened["segment"]["mode"], opened["segment"]["index"]) == (round_mode, event.round)
     assert opened["view"] == multiple_choice.client_view(TANZANITE["payload"])
 
     game.answer(admin, event.position, 0)
@@ -1762,19 +1783,18 @@ def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
         "Zezima",
         custom=[{**TANZANITE, "host_only": True}],
         reveal_seconds=1,
-        modes=two_rounds(second_mode, questions=1),
+        **event_rooms(second_mode),
     )
     event = the_event(game)
-    assert (event.position, event.host_only) == (2, True)
-    frames = reach(game, 2)
+    assert event.host_only
+    frames = reach(game, event.position)
     assert {frame["you_can_answer"] for frame in frames.values()} == {False}
     for seat in game.seats:
-        game.answer(seat, 2, 0)
+        game.answer(seat, event.position, 0)
         assert seat.take("error")["code"] == "excluded"
     closed = game.admin.take("question_closed")
     assert closed["results"] == {}
     assert closed["reveal"]["answer_index"] == 0
-    game.admin.take("game_finished")
     assert db("select count(*) as n from answers")[0]["n"] == 0
 
 
@@ -1795,12 +1815,13 @@ def test_closest_number_ranks_every_guess_against_the_others(table, second_mode,
         custom=[number],
         reveal_seconds=1,
         close_when_all_answered=False,
-        modes=two_rounds(second_mode, questions=1),
+        **event_rooms(second_mode),
     )
-    reach(game, 2)
+    at = the_event(game).position
+    reach(game, at)
     seat = {s.name: s for s in game.seats}
     for name, guess in (("Exact", 100), ("Under", 99), ("Over", 101.0), ("Far", 150)):
-        game.answer(seat[name], 2, guess)
+        game.answer(seat[name], at, guess)
         ack = seat[name].take("answer_ack")
         assert (ack["scoring"], ack["band"]) == ("rank", None)
     game.admin.send(t="skip")
@@ -1817,44 +1838,141 @@ def test_closest_number_ranks_every_guess_against_the_others(table, second_mode,
     assert_memory_matches_db(game, db)
 
 
-def test_a_pack_event_plays_inside_the_round_it_interrupts(table, second_mode, monkeypatch) -> None:
-    """With the packs allowed to interrupt, a question of a mode nobody picked turns up in
-    the middle of a round: no splash of its own and none for the question after it,
-    because it is grouped into that round rather than splitting it."""
-    monkeypatch.setattr(selection, "PACK_RANDOM_EVENT_CHANCE", 1.0)
-    game = table(
-        "Zezima",
-        random_events=True,
-        splash_seconds=8,
-        reveal_seconds=1,
-        modes=two_rounds(second_mode),
-    )
-    event = the_event(game)
-    assert event.source == "pack" and event.author_player_id is None
-    assert event.mode in ("price_is_right", "guess_examine")  # the modes nobody picked
-    assert event.round == 1 and event.position in (3, 4)
-    assert [s.count for s in game.room.segments] == [2, 3]
+def test_no_splash_for_an_event_or_for_the_question_after_it(table, second_mode) -> None:
+    """T22 Accept: the splash introduces a segment, and an event is inside one.
+
+    Two rounds of five at ``more`` hold two events, and with no host's questions both are
+    NPCs asking their own. Every question is played through; only the two rounds' first
+    questions are introduced, and each event sits in the round it interrupts.
+    """
+    game = table("Zezima", splash_seconds=8, reveal_seconds=1, **event_rooms(second_mode, 5))
+    events = [q for q in game.room.questions if q.random_event is not None]
+    assert len(events) == 2
+    assert {(q.mode, q.source) for q in events} == {("random_event", "pack")}
+    assert sum(s.count for s in game.room.segments) == 12
+    assert [s.mode for s in game.room.segments] == ["more_less", second_mode]
+    for event in events:
+        assert_inside_its_round(game, event)
 
     game.start()
-    modes = []
-    for index in range(5):
-        if index in (0, 2):
-            game.splash()
-            game.admin.send(t="skip")
-        question = game.admin.take("question_open")["question"]
+    introduced = []
+    for index in range(12):
+        question, splashed = next_open(game.admin)
         assert question["index"] == index
-        modes.append((question["mode"], question["segment"]["mode"]))
+        if splashed:
+            introduced.append(index)
         game.admin.send(t="skip")
         game.admin.take("question_closed")
         game.admin.send(t="skip")
     game.admin.take("game_finished")
-    splashes = [
-        message["room"]["segment"]["mode"]
-        for message in game.admin.seen
-        if message["t"] == "room_updated" and message["room"]["phase"] == "splash"
-    ]
-    assert splashes == ["more_less", second_mode]
-    assert modes[event.position] == (event.mode, second_mode)
+    assert introduced == [segment.start for segment in game.room.segments]
+    for event in events:
+        assert event.position not in introduced
+        assert event.position + 1 not in introduced
+
+
+def next_open(seat: Seat) -> tuple[dict[str, Any], bool]:
+    """The next ``question_open``, and whether a splash came first.
+
+    Any splash is skipped as it arrives, wanted or not, so a splash in the wrong place is
+    an assertion about where it was rather than a test waiting on a ready check forever.
+    """
+    splashed = False
+    for _ in range(30):
+        message = seat.ws.receive_json()
+        seat.seen.append(message)
+        if message["t"] == "room_updated" and message["room"]["phase"] == "splash":
+            splashed = True
+            seat.send(t="skip")
+        elif message["t"] == "question_open":
+            return message["question"], splashed
+    raise AssertionError(f"{seat.name} never got question_open; saw {seat.kinds}")
+
+
+# --- T22: the NPC holds the floor before the buttons appear ---------------------------------
+
+
+def at(frame: dict[str, Any], key: str) -> datetime:
+    return datetime.fromisoformat(frame[key])
+
+
+def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
+    """Nobody is interrupting, so there is nothing to hold: the clock starts on the open."""
+    game.start()
+    (opened, *_) = game.opened(0)
+    question = opened["question"]
+    assert question["random_event"] is None
+    assert question["answerable_at"] == question["opened_at"]
+    assert (at(question, "ends_at") - at(question, "answerable_at")).total_seconds() == 10
+
+
+def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db) -> None:
+    """T22 Accept, on the server: an answer inside the NPC's hold is ``not_open``, and
+    ``ends_at - answerable_at`` is the question's own seconds -- the hold comes on top.
+    The event here is an NPC asking its own question, in the ``random_event`` mode."""
+    game = table("Zezima", random_event_seconds=5, **event_rooms(second_mode))
+    event = the_event(game)
+    assert (event.mode, event.source) == ("random_event", "pack")
+    frames = reach(game, event.position)
+    opened = frames["Zezima"]
+    assert opened["random_event"] == event.random_event
+    assert (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds() == 5
+    assert (at(opened, "ends_at") - at(opened, "answerable_at")).total_seconds() == 20
+
+    player = game.players[0]
+    assert datetime.now(UTC) < at(opened, "answerable_at"), "reached the event too slowly"
+    game.answer(player, event.position, any_value(event))
+    assert player.take("error")["code"] == "not_open"
+    assert not game.question(event.position).answers
+    assert db("select count(*) as n from answers")[0]["n"] == 0
+
+
+def test_answering_the_instant_the_buttons_appear_is_bucket_1(table, second_mode) -> None:
+    """T22 Accept: the wait costs nobody a point. Two seconds on a twenty-second question
+    would be bucket 2 counted from the open (0.1025 of it); from ``answerable_at`` it is
+    the fastest there is."""
+    game = table("Zezima", custom=[TANZANITE], random_event_seconds=2, **event_rooms(second_mode))
+    event = the_event(game)
+    frames = reach(game, event.position)
+    wait = (at(frames["Zezima"], "answerable_at") - datetime.now(UTC)).total_seconds()
+    time.sleep(max(0.0, wait) + 0.05)
+    zezima = game.players[0]
+    game.answer(zezima, event.position, TANZANITE["payload"]["answer_index"])
+    assert zezima.take("answer_ack")["band"] == 1
+    closed = game.admin.take("question_closed")  # the host wrote it; Zezima is everyone
+    assert closed["results"][zezima.id]["points"] == 1000
+
+
+def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(table, second_mode, client) -> None:
+    """T22 Accept, the server's half: ``welcome`` carries the event, its NPC and when the
+    buttons appear, against its own ``server_time``, so the client can count the rest of
+    the hold down without a message of its own. The client's half is RandomEvent.test.ts.
+    """
+    game = table("Zezima", random_event_seconds=5, **event_rooms(second_mode))
+    event = the_event(game)
+    frames = reach(game, event.position)
+    with client.websocket_connect(f"/ws/{game.code}") as again:
+        again.send_json({"t": "hello", "session": game.players[0].session})
+        welcome = again.receive_json()
+    question = welcome["question"]
+    assert question["random_event"] == event.random_event
+    assert question["answerable_at"] == frames["Zezima"]["answerable_at"]
+    left = (at(question, "answerable_at") - at(welcome, "server_time")).total_seconds()
+    assert 0 < left <= 5
+    assert welcome["room"]["phase"] == "open"
+
+
+def test_random_event_seconds_zero_plays_an_event_as_a_plain_question(table, second_mode) -> None:
+    """What the rest of the suite runs on: the NPC is there, and the buttons with it."""
+    game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
+    assert game.room.settings.random_event_seconds == 0
+    event = the_event(game)
+    frames = reach(game, event.position)
+    assert frames["Zezima"]["random_event"] == event.random_event
+    assert frames["Zezima"]["answerable_at"] == frames["Zezima"]["opened_at"]
+    zezima = game.players[0]
+    game.answer(zezima, event.position, 0)
+    assert zezima.take("answer_ack")["band"] == 1
 
 
 # --- D9: the standings, between rounds and only there --------------------------------

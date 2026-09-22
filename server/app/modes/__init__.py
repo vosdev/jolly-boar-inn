@@ -17,11 +17,13 @@ only the numbers it disagrees with its type about, and ``more_less`` disagrees w
 nothing, so the pace a room was played at before the split is the one it is played at
 now.
 
-``custom`` is the exception to all of it. The host's own questions carry their own types --
-a host may write a multiple-choice question and a closest-number one -- so the mode has
-none, and they are never a round: each is a random event, dropped into a round it does
-not belong to (``rooms/selection.py``). So ``custom`` states ``seconds``, how long one of
-them stays open, and nothing about how many make a round, because there is no round.
+``custom`` and ``random_event`` are the exceptions to all of it. Their questions carry their
+own types -- a host may write a multiple-choice question and a closest-number one, and so
+may whoever writes for the Sandwich Lady -- so the modes have none, and they are never a
+round: each question is a random event, dropped into a round it does not belong to
+(``rooms/selection.py``). ``custom`` is the host's own questions and ``random_event`` the
+NPCs' (``data/packs/random_events/``). Each states ``seconds``, how long one of its
+questions stays open, and nothing about how many make a round, because there is no round.
 
 Copy -- what a mode is called and how it is explained -- is not here. It stays on the
 client, in ``lib/modes.ts``.
@@ -47,6 +49,12 @@ MODES: dict[str, Mode] = {
     # seconds reads one and answers it in any of the three; a minute is the longest a
     # room will sit still for somebody else's question.
     "custom": Mode(id="custom", type=None, seconds=Bounds(default=20, minimum=10, maximum=60)),
+    # An NPC's question comes in character, so its prompt is the longest in the game, and
+    # it is on screen for ``random_event_seconds`` before the buttons appear. The same
+    # twenty seconds as the host's, because the reading has already started by then.
+    "random_event": Mode(
+        id="random_event", type=None, seconds=Bounds(default=20, minimum=10, maximum=60)
+    ),
 }
 
 

@@ -1,0 +1,171 @@
+{
+  "pack": "random_events",
+  "random_event": "death",
+  "questions": [
+    {
+      "id": "q_833c8d601b035e56",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer",
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "I keep an extensive, rather exhausting ledger of adventurers who panic and misclick their prayers. Which fiery Mor Ul Rek monster is most infamous for sending mortals straight to my desk with a single, 97-damage strike?",
+        "options": [
+          "TzTok-Jad",
+          "Yt-HurKot",
+          "Tok-Xil",
+          "Toktz-mej-tal"
+        ],
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_74a1842ea61d73bd",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "death"
+      ],
+      "payload": {
+        "prompt": "Many fearful mortals attempt to cheat me of their company by wearing an enchanted ring that teleports them away the moment their health drops below 10%. Name this irritating piece of jewelry.",
+        "accepted": [
+          "Ring of life"
+        ]
+      }
+    },
+    {
+      "id": "q_7890158ea1c56240",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "death"
+      ],
+      "payload": {
+        "prompt": "When your fragile mortal frame collapses, I generously set a timer on your gravestone before I must clean up your mess and haul it to my office. How many minutes does your gravestone last?",
+        "answer": 15,
+        "unit": "minutes"
+      }
+    },
+    {
+      "id": "q_695f6ff67556b384",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "death"
+      ],
+      "payload": {
+        "prompt": "I keep a special, pristine registry for mortals who boast that they will never make a foolish mistake. What color helmet does a Hardcore Ironman proudly wear right up until their inevitable visit here?",
+        "options": [
+          "Orange",
+          "White",
+          "Grey",
+          "Red",
+          "Pink",
+          "Blue"
+        ],
+        "answer_index": 3
+      }
+    },
+    {
+      "id": "q_ea463501f123d483",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer"
+      ],
+      "payload": {
+        "prompt": "Some especially spiteful adventurers choose to depart this world with an explosive burst of divine wrath that damages nearby enemies upon their demise. Name this level 46 Prayer.",
+        "accepted": [
+          "Retribution"
+        ]
+      }
+    },
+    {
+      "id": "q_5b3c6c6d61655450",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer"
+      ],
+      "payload": {
+        "prompt": "Mortals expend millions of coins on ancient arcane scrolls from the Chambers of Xeric just to bolster their defenses. At what Prayer level does an adventurer unlock Augury?",
+        "answer": 77
+      }
+    },
+    {
+      "id": "q_b175797e5bdd7685",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "death"
+      ],
+      "payload": {
+        "prompt": "I run a very fair business. If you sacrifice tradeable equipment into my Coffer to cover future reclamation fees, what percentage of the item's Grand Exchange guide price do I credit to your account?",
+        "options": [
+          "90%",
+          "115%",
+          "105%",
+          "100%"
+        ],
+        "answer_index": 2
+      }
+    },
+    {
+      "id": "q_b31e5de65bbd7657",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer"
+      ],
+      "payload": {
+        "prompt": "Most mortals who cross my threshold immediately start weeping about their precious fourth item. At what Prayer level do you unlock the 'Protect Item' incantation to spare me the whining?",
+        "answer": 25
+      }
+    },
+    {
+      "id": "q_1d6cceedce148879",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer",
+        "wilderness"
+      ],
+      "payload": {
+        "prompt": "Deep in level 38 of the Wilderness lies an unholy altar where many reckless mortals have met their end offering bones. Which god's chaotic temple serves as this notorious death trap?",
+        "accepted": [
+          "Zamorak"
+        ]
+      }
+    },
+    {
+      "id": "q_619e72a8ee8a97cd",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "prayer"
+      ],
+      "payload": {
+        "prompt": "Which overhead prayer drains a dying adventurer's prayer points completely to restore a chunk of their hitpoints if they drop below 10% health?",
+        "options": [
+          "Preserve",
+          "Smite",
+          "Retribution",
+          "Redemption"
+        ],
+        "answer_index": 3
+      }
+    }
+  ]
+}

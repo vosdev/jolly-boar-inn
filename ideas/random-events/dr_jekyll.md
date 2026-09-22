@@ -20,6 +20,7 @@ other options:
 
 Question: Help me focus! Walk me through the preparation sequence before my sanity completely slips! Put these steps for brewing a potion in the correct chronological order!
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer:
 
     Fill an empty vial with water
@@ -49,6 +50,7 @@ other options:
 
 Question: My hands are trembling too much to organize my supplies before Hyde surfaces. Order these herbs from the lowest to highest Herblore level required to clean them.
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer:
 
     Marrentill

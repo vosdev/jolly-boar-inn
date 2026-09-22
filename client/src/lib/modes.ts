@@ -31,7 +31,7 @@ export interface Mode {
   id: string
   /**
    * The question type a round of this mode is answered in, as `OpenQuestion.type` names it.
-   * Null for `custom`, the host's own questions, each of which carries its own.
+   * Null for `custom` and `random_event`, whose questions each carry their own.
    */
   type: string | null
   /** Two or three words. The splash headline and the checkbox label. */
@@ -131,6 +131,18 @@ export const MODES: Record<string, Mode> = {
     // The inn the app is named after, where the host is the one behind the bar.
     scene: 'jolly_boar',
     // Every type a host can write asks in a sentence; the view below it is the answer.
+    stem: 'text',
+  },
+  // Never a round either: the NPCs' own questions, each asked by the NPC it was written
+  // for (`lib/randomEvents.ts`, `components/RandomEvent.svelte`). Here for its stem.
+  random_event: {
+    id: 'random_event',
+    type: null,
+    label: 'Random Event',
+    hint: 'An NPC interrupts the round with a question of their own.',
+    blurb: 'Someone has turned up with a question. Answer it, and they will be on their way.',
+    scene: 'jolly_boar',
+    // In character, and still a sentence.
     stem: 'text',
   },
 }

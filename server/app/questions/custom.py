@@ -7,6 +7,11 @@ the server computes for every question it stores (section 2). What a host *did* 
 kept, and has to agree -- an export posted straight back carries all four, and it is
 exactly as valid as it was when it came out.
 
+A host may also name the NPC who asks it, ``random_event``, or leave it out and let the
+room draw one (``rooms/selection.py``). A name the roster does not have is refused here
+with the rest, since a face nobody can draw is a question the host would never see asked
+the way they meant it.
+
 Then the whole envelope is held to what a pack question is held to: the schema, the content
 id, the mode rule and the type's own ``check``. A room is created with its questions or not
 at all, so one bad question refuses the room, and the error names the question by its

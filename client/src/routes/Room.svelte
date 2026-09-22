@@ -12,15 +12,17 @@
    *                              │                 │        question_closed │
    *                              │                 │                        ▼
    *                              └── room_updated ─┴─── question_open ── playing/reveal
-   *                                  (a new mode)  │                         │   │
+   *                                  (a new round) │                         │   │
    *                                                │            room_updated │   │
    *                                                │                         ▼   │
    *                                                └──── question_open ── playing/standings
    *                                                                              │
    *   finished ◀───────────────── game_finished ─────────────────────────────────┘
    *
-   * The splash only comes round again when the next round plays a different mode: it
-   * introduces a mode, not a round, so a game of one mode shows it once. The standings
+   * The splash comes round before each round's first question and before no other, so a
+   * random event, which is a question inside a round, never gets one and neither does the
+   * question after it. The event draws its own announcement instead: `RandomEvent`, the NPC
+   * and their question, with the answers held back until `answerable_at`. The standings
    * (D9) follow every round but the last, whatever the splash does, and only between
    * rounds: inside one, there is no board under the reveal, and the last round's
    * standings are the final screen, which draws the same `<Scoreboard>`.
@@ -35,6 +37,7 @@
 
   import Lobby from '../components/Lobby.svelte'
   import PointsSlot from '../components/PointsSlot.svelte'
+  import RandomEvent from '../components/RandomEvent.svelte'
   import RevealTally from '../components/RevealTally.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
@@ -129,12 +132,16 @@
   /**
    * How long this question is open for, from the question rather than from the settings:
    * the two agree, but only the frame knows what a room stored under older rules was
-   * clamped to. With nothing open it falls back to the round's own `seconds`.
+   * clamped to. With nothing open it falls back to the round's own `seconds`. The clock
+   * starts at `answerable_at`, after a random event's NPC has held the floor, so that is
+   * what the length is measured from.
    */
   const questionSeconds = $derived(
     $question === null
       ? ($room?.settings.modes.find((round) => round.mode === segment?.mode)?.seconds ?? 0)
-      : (Date.parse($question.ends_at) - Date.parse($question.opened_at)) / 1000,
+      : (Date.parse($question.ends_at) -
+          Date.parse($question.answerable_at ?? $question.opened_at)) /
+          1000,
   )
   /** What the splash says each question of its round lasts; null for a round not in settings. */
   const roundSeconds = $derived(
@@ -337,7 +344,11 @@
       <Scoreboard standings={$standings} youId={$you?.id ?? null} />
     {:else if $room.phase === 'open' && $question !== null}
       <section class="panel">
-        <Question question={$question} yourValue={$yourAnswer} onAnswer={answer} />
+        {#if $question.random_event}
+          <RandomEvent question={$question} yourValue={$yourAnswer} onAnswer={answer} />
+        {:else}
+          <Question question={$question} yourValue={$yourAnswer} onAnswer={answer} />
+        {/if}
       </section>
 
       {#if $yourAnswer !== null}
@@ -367,13 +378,23 @@
     {:else if $lastClosed !== null}
       <section class="panel">
         {#if $lastClosed.was !== null}
-          <Question
-            question={$lastClosed.was}
-            reveal={$lastClosed.reveal}
-            yourValue={$yourAnswer}
-            result={yourResult}
-            onAnswer={() => {}}
-          />
+          {#if $lastClosed.was.random_event}
+            <RandomEvent
+              question={$lastClosed.was}
+              reveal={$lastClosed.reveal}
+              yourValue={$yourAnswer}
+              result={yourResult}
+              onAnswer={() => {}}
+            />
+          {:else}
+            <Question
+              question={$lastClosed.was}
+              reveal={$lastClosed.reveal}
+              yourValue={$yourAnswer}
+              result={yourResult}
+              onAnswer={() => {}}
+            />
+          {/if}
           <RevealTally
             results={$lastClosed.results}
             {nameOf}

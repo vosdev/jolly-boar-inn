@@ -48,16 +48,23 @@ export interface ModeSettings {
 }
 
 /** `app/rooms/settings.py`. `max_players` is null only before the server resolves it. */
+/** How often an NPC interrupts: there is no off switch, `less` is the fewest. */
+export type EventFrequency = 'less' | 'default' | 'more'
+
+/** Round questions per random event at each frequency: `rooms/settings.py`'s `EVENT_EVERY`. */
+export const EVENT_EVERY: Record<EventFrequency, number> = { less: 20, default: 10, more: 5 }
+
 export interface RoomSettings {
   /** A mode is a round: this list *is* the rounds, one each, in the order they play. */
   modes: ModeSettings[]
   /** `listed`: the order the host arranged. `random`: shuffled once, at creation. */
   mode_order: 'listed' | 'random'
   /**
-   * Whether a pack question may interrupt a round as a random event. The host's own
-   * questions always do: since T21 they are events rather than a round of their own.
+   * One random event per 20, 10 or 5 round questions (`EVENT_EVERY`), added on top of the
+   * rounds. Null only for a room stored before T22 with its host's questions and nothing
+   * else, which the server still loads but never creates.
    */
-  random_events: boolean
+  random_event_frequency: EventFrequency | null
   reveal_seconds: number
   /**
    * Zero means no splash at all; anything else, a splash that waits for the room to be
@@ -157,7 +164,20 @@ export interface OpenQuestion {
    */
   segment: Segment
   view: Record<string, unknown>
+  /**
+   * The NPC interrupting the round with this question, looked up in `lib/randomEvents.ts`;
+   * null for a question that belongs to its round. Optional because a server from before
+   * T22 does not send it, and that reads as nobody interrupting.
+   */
+  random_event?: string | null
   opened_at: string
+  /**
+   * When the buttons appear and the clock starts: `opened_at` for an ordinary question,
+   * later for an event, whose NPC holds the floor first. An answer before it is
+   * `not_open`, and `ends_at` is this plus the question's own seconds. Optional for the
+   * same reason as `random_event`; missing, it is `opened_at`.
+   */
+  answerable_at?: string
   ends_at: string
   you_can_answer: boolean
   /**

@@ -157,12 +157,20 @@ def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -
         assert not set(row["payload"]) & {"id", "type", "mode", "source", "host_only"}
         assert row["payload"]["payload"]["answer_index"] in (0, 1)
 
+    # Thirty at the default frequency: three random events on top, each an NPC's own.
     code, _ = create(client, modes=[{"mode": "more_less", "questions": 30}])
-    (n,) = db(
-        "select count(*) as n from questions q join rooms r on r.id = q.room_id where r.code = $1",
+    rows = db(
+        "select q.mode, q.source, q.random_event, q.round from questions q"
+        " join rooms r on r.id = q.room_id where r.code = $1 order by q.position",
         code,
     )
-    assert n["n"] == 30
+    assert len(rows) == 33
+    assert sum(row["random_event"] is None for row in rows) == 30
+    events = [row for row in rows if row["random_event"] is not None]
+    assert {(row["mode"], row["source"], row["round"]) for row in events} == {
+        ("random_event", "pack", 0)
+    }
+    assert set(row["random_event"] for row in events) <= set(RANDOM_EVENTS)
 
 
 def test_eleventh_create_from_one_ip_is_429(client: TestClient) -> None:
@@ -181,7 +189,7 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         # ``questions`` was left out, so the mode's own default filled it in.
         "modes": [{"mode": "more_less", "questions": 5, "seconds": 15}],
         "mode_order": "listed",
-        "random_events": True,
+        "random_event_frequency": "default",
         "random_event_seconds": 2,
         "reveal_seconds": 5,
         "splash_seconds": 8,
@@ -207,6 +215,8 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"order": "shuffle"},  # gone since T21: the host's questions are random events
         {"modes": [{"mode": "custom"}]},  # never a round
         {"random_events": "sometimes"},
+        {"random_events": False},  # T21's "host's questions only": a stored room's, never new
+        {"random_event_frequency": "never"},  # there is no off switch; "less" is the fewest
         {"random_event_seconds": 11},
         {"reveal_seconds": 60},
         {"splash_seconds": -1},
@@ -272,20 +282,22 @@ def assert_no_room(db) -> None:
 
 
 def test_custom_questions_are_stored_as_the_hosts_own_random_events(client: TestClient, db) -> None:
-    """``source: room``, ``mode: custom``, the creator as author, each an event in a round
-    after the first and never at its start, each asked by a different NPC."""
+    """``source: room``, ``mode: custom``, the creator as author, each an event inside a
+    round and asked by an NPC. Fifteen questions at ``more`` make three slots, and the one
+    the host's two leave goes to an NPC's own question."""
     number = {
         "type": "closest_number",
         "payload": {"prompt": "How many Zulrah kills?", "answer": 1234, "unit": "kills"},
         "host_only": True,
     }
-    response = post(client, [own_question(), number], random_events=False)
+    response = post(client, [own_question(), number], random_event_frequency="more")
     assert response.status_code == 201, response.text
     admin = response.json()["player"]["id"]
     rows = db(
         "select position, question_id, type, mode, source, payload, host_only, round,"
         " random_event, author_player_id from questions order by position"
     )
+    assert len(rows) == 18
     own = [row for row in rows if row["source"] == "room"]
     assert [(row["type"], row["mode"]) for row in own] == [
         ("multiple_choice", "custom"),
@@ -295,27 +307,52 @@ def test_custom_questions_are_stored_as_the_hosts_own_random_events(client: Test
     assert [row["host_only"] for row in own] == [False, True]
     assert own[0]["question_id"] == schema.content_id(own_question())
     assert own[0]["payload"] == {"payload": own_question()["payload"], "tags": []}
-    assert sorted(row["round"] for row in own) == [1, 2]
-    for row in own:
-        assert rows[row["position"] - 1]["round"] == row["round"], "an event opened a round"
-    faces = [row["random_event"] for row in own]
-    assert len(set(faces)) == 2 and set(faces) <= set(RANDOM_EVENTS)
-    theirs = [row for row in rows if row["source"] == "pack"]
-    assert {(row["random_event"], row["author_player_id"]) for row in theirs} == {(None, None)}
+    events = [row for row in rows if row["random_event"] is not None]
+    assert len(events) == 3 and all(row in events for row in own)
+    for row in events:
+        before, after = rows[row["position"] - 1], rows[row["position"] + 1]
+        assert before["round"] == row["round"] == after["round"], "an event outside a round"
+    faces = [row["random_event"] for row in events]
+    assert set(faces) <= set(RANDOM_EVENTS)
+    assert all(a != b for a, b in zip(faces, faces[1:], strict=False)), "a face twice running"
+    (theirs,) = [row for row in events if row["source"] == "pack"]
+    assert (theirs["mode"], theirs["author_player_id"]) == ("random_event", None)
+    assert "random_event" not in theirs["payload"]  # a column, not part of the question
 
 
-def test_five_custom_questions_in_a_three_mode_room_are_refused_by_count(
-    client: TestClient, db
-) -> None:
-    """T21 Accept: one per round after the first is two here. Refused, never truncated."""
-    response = post(client, [own_question(f"Question {n}?") for n in range(5)])
+def test_a_custom_question_is_asked_by_the_npc_it_names(client: TestClient, db) -> None:
+    """T22 Accept: the named NPC asks it, and two questions naming one NPC are both
+    honoured -- even back to back, which a drawn face never is."""
+    named = [own_question("Who?", random_event="death"), own_question("Why?", random_event="death")]
+    response = post(client, named, random_event_frequency="more")
+    assert response.status_code == 201, response.text
+    rows = db("select random_event from questions where source = 'room' order by position")
+    assert [row["random_event"] for row in rows] == ["death", "death"]
+
+
+def test_a_custom_question_naming_nobody_on_the_roster_is_refused(client: TestClient, db) -> None:
+    response = post(client, [own_question(random_event="rick_turpentine")])
     assert response.status_code == 422
-    assert "5 custom questions" in response.text
-    assert "a room of 3 modes holds at most 2" in response.text
+    assert "custom_questions[0] $.random_event: 'rick_turpentine' is not on the roster" in (
+        response.text
+    )
     assert_no_room(db)
-    one_mode = post(client, [own_question()], modes=[{"mode": "more_less"}])
-    assert one_mode.status_code == 422
-    assert "holds at most 0" in one_mode.text
+
+
+def test_too_many_custom_questions_are_refused_naming_the_frequency(client: TestClient, db) -> None:
+    """T22 Accept: fifteen questions at ``default`` make one slot. Refused, never truncated,
+    and the refusal says which frequency would make room."""
+    response = post(client, [own_question(f"Question {n}?") for n in range(2)])
+    assert response.status_code == 422
+    assert "2 custom questions" in response.text
+    assert "random_event_frequency 'default' make room for 1 random events" in response.text
+    assert "Pick random_event_frequency 'more'" in response.text
+    assert_no_room(db)
+    busy = post(
+        client, [own_question(f"Question {n}?") for n in range(4)], random_event_frequency="more"
+    )
+    assert busy.status_code == 422
+    assert "make room for 3" in busy.text
     assert_no_room(db)
 
 

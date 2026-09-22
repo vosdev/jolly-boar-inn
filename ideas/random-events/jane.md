@@ -4,6 +4,7 @@
 
 Question: You want to call yourself a farmer? Prove you know your crops. Order these fruit trees from lowest to highest Farming level required to plant them.
 type: ordering
+skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
 answer: [Apple tree, Banana tree, Orange tree, Curry tree, Pineapple tree, Palm tree]
 other options: []
 

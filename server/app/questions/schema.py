@@ -7,7 +7,8 @@ facts). ``content_id()`` derives the stable id from ``type`` and ``payload``.
 ``mode`` is deliberately not in the id. The same payload asked in two modes is the same
 question, and a mode is a name a round goes by: hashing it would make a rename rewrite
 every id in the pack, and every room that stored one would stop matching the pack it came
-from. ``type`` is in it because it decides what the payload means.
+from. ``type`` is in it because it decides what the payload means. ``random_event`` stays
+out for the same reason as ``mode``: the same payload asked by two NPCs is one question.
 """
 
 import hashlib
@@ -20,6 +21,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from app.modes import MODES
 from app.questions.types import TYPES
+from app.random_events import RANDOM_EVENTS
 
 SCHEMA_PATH = Path(__file__).resolve().parents[3] / "schema" / "question.schema.json"
 
@@ -65,14 +67,14 @@ def schema_errors(question: Any) -> list[str]:
 
 def consistency_errors(question: dict[str, Any]) -> list[str]:
     """Problems a schema cannot express: unsupported type, a mode this build does not play
-    or one the type disagrees with, wrong id, answer vs facts.
+    or one the type disagrees with, an NPC where none may ask, wrong id, answer vs facts.
 
     Assumes the envelope already passes ``schema_errors``.
     """
     module = TYPES.get(question["type"])
     if module is None:
         return [f"$.type: {question['type']!r} is not supported yet"]
-    errors = mode_errors(question)
+    errors = mode_errors(question) + event_errors(question)
     errors += [f"$.payload.{message}" for message in module.check(question["payload"])]
     expected = content_id(question)
     if question["id"] != expected:
@@ -88,11 +90,11 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
     pick, and one whose type disagrees with its mode's would be graded as one thing inside
     a round introduced as another.
 
-    ``custom`` has no type to disagree with -- a host's questions each carry their own --
-    and it is the other half of ``source: room``: a room's own question is ``custom`` and
-    nothing else is. A pack question filed under it would sit in a pool no round draws
-    from, and a host's question filed under a pack mode would be drawn into that mode's
-    rounds as if the packs had shipped it.
+    ``custom`` and ``random_event`` have no type to disagree with -- their questions each
+    carry their own. ``custom`` is also the other half of ``source: room``: a room's own
+    question is ``custom`` and nothing else is. A pack question filed under it would sit in
+    a pool no round draws from, and a host's question filed under a pack mode would be
+    drawn into that mode's rounds as if the packs had shipped it.
     """
     mode = MODES.get(question["mode"])
     if mode is None:
@@ -100,7 +102,7 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
             f"$.mode: {question['mode']!r} is not a mode this build plays"
             f" (it plays {', '.join(MODES)})"
         ]
-    if (question["source"] == "room") != (mode.type is None):
+    if (question["source"] == "room") != (mode.id == "custom"):
         return [
             f"$.mode: {question['mode']!r} with source {question['source']!r}:"
             " a room's own questions, and only they, are 'custom'"
@@ -110,6 +112,30 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
             f"$.type: {question['type']!r} disagrees with its mode:"
             f" {mode.id!r} plays as {mode.type!r}"
         ]
+    return []
+
+
+def event_errors(question: dict[str, Any]) -> list[str]:
+    """A ``random_event`` where no NPC may ask, missing where one must, or off the roster.
+
+    The field names who interrupts a round with this question, and only a question that is
+    an event can say that: a host's, which may name its NPC or leave it to the draw, and an
+    NPC's own, which always names it -- the pack loader stamps it on from the file. On a
+    question of a round it would be a face with nothing to interrupt. An id the roster does
+    not have is a face nobody can draw, and a host who typed one learns it at creation.
+    """
+    npc = question.get("random_event")
+    if question["mode"] == "random_event" and npc is None:
+        return ["$.random_event: an NPC's own question must name the NPC who asks it"]
+    if npc is None:
+        return []
+    if question["mode"] not in ("custom", "random_event"):
+        return [
+            f"$.random_event: a {question['mode']!r} question is asked by its round,"
+            " not by an NPC; only the host's questions and the NPCs' own may name one"
+        ]
+    if npc not in RANDOM_EVENTS:
+        return [f"$.random_event: {npc!r} is not on the roster (app/random_events.py)"]
     return []
 
 

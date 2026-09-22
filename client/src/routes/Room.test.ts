@@ -9,6 +9,7 @@
  */
 
 import { render, screen } from '@testing-library/svelte'
+import { tick } from 'svelte'
 import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -47,7 +48,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
         { mode: 'price_is_right', questions: 1, seconds: 10 },
       ],
       mode_order: 'listed',
-      random_events: false,
+      random_event_frequency: 'default',
       reveal_seconds: 8,
       splash_seconds: 0,
       random_event_seconds: 2,
@@ -197,6 +198,52 @@ describe('Room', () => {
     await screen.findByText('1,850')
     expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('✓+850')
     expect(get(timerBar)?.label).toBe('to the next question')
+  })
+
+  it('lands a reconnect inside an NPC’s hold on the card, with what is left of it', async () => {
+    // T22 Accept: rebuilt from the welcome alone. The server's clock is a minute ahead of
+    // this one and the hold has 1.5 seconds to go, so the buttons wait 1.5 seconds.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    try {
+      const server = Date.parse('2026-09-22T20:00:00Z')
+      vi.setSystemTime(server - 60_000)
+      const held: OpenQuestion = {
+        question_id: 'q_bob',
+        index: 3,
+        total: 11,
+        type: 'multiple_choice',
+        mode: 'random_event',
+        segment: { mode: 'more_less', index: 0, total: 1, start: 0, count: 11 },
+        view: { prompt: 'What amulet lets you talk to cats?', options: ['Catspeak', 'Camulet'] },
+        random_event: 'bob',
+        opened_at: new Date(server - 500).toISOString(),
+        answerable_at: new Date(server + 1500).toISOString(),
+        ends_at: new Date(server + 21_500).toISOString(),
+        you_can_answer: true,
+      }
+      render(Room, { code: 'ABYSSAL', navigate: () => {} })
+      applyServerMessage({
+        ...welcome(roomView({ phase: 'open', next_at: null, total: 11 })),
+        question: held,
+        server_time: new Date(server).toISOString(),
+      })
+      await tick()
+      expect(screen.getByRole('heading', { name: 'Bob' })).toBeTruthy()
+      expect(screen.getByText('What amulet lets you talk to cats?')).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Catspeak' })).toBeNull()
+      // The bar under the top bar counts the question's twenty seconds, not the hold.
+      expect(get(timerBar)?.totalSeconds).toBe(20)
+
+      await vi.advanceTimersByTimeAsync(1490)
+      await tick()
+      expect(screen.queryByRole('button', { name: 'Catspeak' })).toBeNull()
+      await vi.advanceTimersByTimeAsync(20)
+      await tick()
+      screen.getByRole('button', { name: 'Catspeak' }).click()
+      expect(sent).toContainEqual({ t: 'answer', question_id: 'q_bob', value: 0 })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('drops a count for a question that is no longer open', async () => {
