@@ -17,13 +17,15 @@
   export type Gem = (typeof GEMS)[number]
 
   /**
-   * The five states of section 2, and nothing else:
+   * The five states of section 2. There are two looks between them, lit and faded, and a
+   * "you" on whichever one we pressed:
    *
-   * - `idle`: answerable, or held because somebody else's answer is not ours to see.
-   * - `waiting`: we pressed this one and the question is still open.
-   * - `correct`: revealed, and this is the answer. Keeps its gem and gains the `--ok` ring.
-   * - `faded`: revealed, and this is not the answer. Loses its fill, never its text.
-   * - `wrong`: revealed, not the answer, and ours. Faded like the rest, with a ✗ and "you".
+   * - `idle`: lit. Answerable, or held for somebody who cannot answer.
+   * - `waiting`: lit, and ours; the question is still open and every other option fades.
+   * - `correct`: lit. Revealed, and this is the answer, whoever pressed it.
+   * - `faded`: revealed and not the answer, or not ours while ours waits.
+   * - `wrong`: revealed, not the answer, and ours. Faded like the rest, and the "you" is
+   *   the whole of the verdict on the button; the points slot says the rest.
    */
   export type GemState = 'idle' | 'waiting' | 'correct' | 'faded' | 'wrong'
 
@@ -33,7 +35,7 @@
     answer: number | null,
     revealed: boolean,
   ): GemState {
-    if (!revealed) return picked === index ? 'waiting' : 'idle'
+    if (!revealed) return picked === null ? 'idle' : picked === index ? 'waiting' : 'faded'
     if (answer === index) return 'correct'
     return picked === index ? 'wrong' : 'faded'
   }
@@ -45,20 +47,20 @@
    * `ordering` all answer with.
    *
    * **On reveal no button changes colour.** That is the whole of section 2's rule, and
-   * everything here serves it. The winner keeps its own gem and gains an `--ok` ring and
-   * a ✓; every other button fades to a wash of its gem over the panel, with its text at
-   * full strength because people want to read what the other options said; your own
-   * wrong pick fades too but keeps a ✗ and a "you". Green and red never become a fill,
-   * so an emerald button cannot spend half a second looking right.
-   *
-   * Every state is carried by a shape as well as a colour — a ring, a glyph, a word — so
-   * the reveal reads the same with the colour taken out: the only ✓ is the answer, the
-   * only ✗ is yours, and the "you" says which one you pressed.
+   * everything here serves it. The answer stays lit in its own gem and every other button
+   * fades to a wash of its gem over the panel, with its text still readable because people
+   * want to read what the other options said. A pick does the same while the question is
+   * open: ours stays lit, the rest fade. No rings, no ✓ or ✗: lit or faded is the whole
+   * signal, and a "you" marks what we pressed, right or wrong. Green and red never become
+   * a fill, so an emerald button cannot spend half a second looking right.
    *
    * `gem: null` is the plain variant, for `more_less`, whose two buttons carry a picture
    * and keep the panel's colours rather than a gem's (section 2), but whose reveal obeys
    * the same five states: the plain one fades by dropping to `--muted` behind a dashed
    * edge instead of losing a fill it never had.
+   *
+   * Lit against faded is a fill and a weight, and the fade takes the edge's contrast with
+   * it, so it still reads with the colour taken out.
    *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
@@ -88,7 +90,7 @@
   } = $props()
 
   const yours = $derived(mine || status === 'waiting' || status === 'wrong')
-  /** What the glyphs and the "you" say, in words, for a screen reader. */
+  /** What lit, faded and the "you" say, in words, for a screen reader. */
   const spoken = $derived(
     {
       idle: '',
@@ -107,11 +109,6 @@
   {disabled}
   {onclick}
 >
-  {#if status === 'correct'}
-    <span class="glyph ok" aria-hidden="true">✓</span>
-  {:else if status === 'wrong'}
-    <span class="glyph bad" aria-hidden="true">✗</span>
-  {/if}
   <span class="content">{@render children()}</span>
   {#if yours}
     <span class="you" aria-hidden="true">you</span>
@@ -122,8 +119,8 @@
 <style>
   .gem {
     --fill: var(--gem-sapphire);
-    /* What the ring and the ink are drawn in: the gem's ink on a gem, the panel's on a
-       plain button. */
+    /* What the text, the edge and the "you" are drawn in: the gem's ink on a gem, the
+       panel's on a plain button. */
     --mark: var(--gem-ink);
     position: relative;
     display: flex;
@@ -185,20 +182,6 @@
     overflow-wrap: anywhere;
   }
 
-  /* Pressed and waiting: a heavy ring in the gem's own ink, which the contrast check
-     holds to 4.5:1 on every gem, so it reads without any colour at all. */
-  .waiting {
-    box-shadow: inset 0 0 0 3px var(--mark);
-  }
-
-  /* The answer: its gem, untouched, and the --ok ring the check holds to 3:1 on every
-     gem. Outside as well as in, so it also reads against the panel around it. */
-  .correct {
-    box-shadow:
-      inset 0 0 0 3px var(--ok),
-      0 0 0 2px var(--ok);
-  }
-
   .faded,
   .wrong {
     background: color-mix(in srgb, var(--fill) 25%, var(--panel));
@@ -211,39 +194,12 @@
     font-weight: 400;
   }
 
-  .wrong {
-    box-shadow: inset 0 0 0 2px var(--bad);
-  }
-
   /* A plain button has no fill to lose, so it recedes in its ink and its edge. --muted
      is held to 4.5:1 on --panel, so the text still reads. */
   .plain.faded,
   .plain.wrong {
     color: var(--muted);
     border-style: dashed;
-  }
-
-  /* A glyph brings its own ground, so its colour never has to read against a gem. */
-  .glyph {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 50%;
-    font-size: 0.95rem;
-    font-weight: 700;
-    line-height: 1;
-  }
-
-  .glyph.ok {
-    background: var(--ok);
-    color: var(--ok-ink);
-  }
-
-  .glyph.bad {
-    background: var(--bad);
-    color: var(--bad-ink);
   }
 
   .you {

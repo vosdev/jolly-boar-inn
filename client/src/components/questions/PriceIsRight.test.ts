@@ -90,9 +90,7 @@ describe('price_is_right', () => {
     })
     const buttons = screen.getAllByRole('button')
     expect(buttons[1].classList.contains('correct')).toBe(true)
-    expect(buttons[1].textContent).toContain('✓')
     expect(buttons[3].classList.contains('wrong')).toBe(true)
-    expect(buttons[3].textContent).toContain('✗')
     expect(buttons[3].textContent).toContain('you')
     // Position is identity: the ladder is sapphire, emerald, ruby, diamond, revealed or not.
     const gems = ['sapphire', 'emerald', 'ruby', 'diamond']

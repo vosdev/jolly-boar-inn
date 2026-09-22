@@ -1,9 +1,10 @@
 /**
  * D8: the gem buttons and the reveal rule from section 2.
  *
- * What the accept criteria ask of a reveal, held without looking at a colour: whichever
- * gem is correct, it is the only one not faded; our own wrong pick still says so, in a
- * glyph and a word; and with no answer from us, no button is drawn as pressed.
+ * What the accept criteria ask of a reveal: whichever gem is correct, it is the only one
+ * not faded; our own pick, right or wrong, carries a "you"; and with no answer from us,
+ * no button is drawn as pressed. There are no rings, ✓ or ✗: lit against faded is the
+ * signal, and a pick fades the other options while the question is still open.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
@@ -50,7 +51,7 @@ describe('gemState', () => {
   it('has five states and no others', () => {
     expect(gemState(0, null, null, false)).toBe('idle')
     expect(gemState(0, 0, null, false)).toBe('waiting')
-    expect(gemState(1, 0, null, false)).toBe('idle')
+    expect(gemState(1, 0, null, false)).toBe('faded')
     expect(gemState(0, 0, 0, true)).toBe('correct')
     expect(gemState(0, null, 0, true)).toBe('correct')
     expect(gemState(1, 0, 0, true)).toBe('faded')
@@ -77,10 +78,11 @@ describe('GemChoices', () => {
     expect(onAnswer).toHaveBeenCalledWith(4)
   })
 
-  it('holds every button once answered, with only ours pressed', () => {
+  it('holds every button once answered, ours lit and every other faded', () => {
     draw({ picked: 2 })
     expect(buttons().every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
-    expect(states()).toEqual(['idle', 'idle', 'waiting', 'idle', 'idle', 'idle', 'idle'])
+    expect(states()).toEqual(['faded', 'faded', 'waiting', 'faded', 'faded', 'faded', 'faded'])
+    expect(buttons()[2].textContent).toContain('you')
     expect(buttons().map((b) => b.getAttribute('aria-pressed'))).toEqual([
       'false',
       'false',
@@ -98,19 +100,19 @@ describe('GemChoices', () => {
       draw({ answer, revealed: true })
       expect(states().filter((state) => state !== 'faded')).toEqual(['correct'])
       expect(states()[answer]).toBe('correct')
-      // Colour is not the cue: the ✓ is, and it is on the answer alone.
-      expect(buttons().filter((b) => b.textContent?.includes('✓'))).toEqual([buttons()[answer]])
+      // No glyphs: lit against faded is the whole signal.
+      expect(buttons().some((b) => /[✓✗]/.test(b.textContent ?? ''))).toBe(false)
     },
   )
 
-  it('keeps our wrong pick identifiable without colour: a ✗ and a "you"', () => {
+  it('keeps our wrong pick identifiable by its "you", faded like the rest', () => {
     draw({ picked: 5, answer: 1, revealed: true })
     const ours = buttons()[5]
     expect(ours.classList.contains('wrong')).toBe(true)
-    expect(ours.textContent).toContain('✗')
     expect(ours.textContent).toContain('you')
     expect(ours.textContent).toContain('your answer, wrong')
-    expect(buttons().filter((b) => b.textContent?.includes('✗'))).toEqual([ours])
+    expect(ours.textContent).not.toContain('✗')
+    expect(screen.getAllByText('you')).toHaveLength(1)
   })
 
   it('keeps the "you" on a right pick, where no ✗ says it is ours', () => {

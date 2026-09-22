@@ -117,6 +117,12 @@ boundary. A neutral ring would have avoided the check; it would also have thrown
 moment in the game where `--ok` is doing its actual job, so the check is the cheaper of the
 two. A theme that cannot satisfy it moves its gem, not the ring.
 
+*Since D8:* the ring did not survive its first look on screen, and the reveal is now lit
+against faded with no ring and no glyph (below). The assertion stays in the script for now,
+cheap and harmless; it constrains nothing the gems do not already satisfy. The assertion
+that replaced its job is **`--gem-ink` at 4.5:1 against every gem, lit and faded**, the fade
+being the gem mixed 25% into `--panel`.
+
 ### The gem buttons and the reveal problem
 
 Sapphire / emerald / ruby / diamond / dragonstone for multiple-choice answers is a good
@@ -125,19 +131,29 @@ an emerald button that turns out to be wrong.** If the verdict is painted as a g
 fill, the emerald button quietly lies for the half-second before anyone reads it.
 
 The rule that fixes it: **on reveal, no button changes colour.** The correct button keeps its
-gem fill and gains a `--ok` ring plus a leading ✓. Every other button fades — the fill loses
-saturation, the answer text stays at 4.5:1 or better, because people want to read what the
-other options said. It does not matter which gem is correct: if Sapphire is right, ruby,
-emerald and diamond fade and sapphire stays lit. The gem stays as identity, and green and red
-never land on a gem.
+gem fill, lit, and nothing is added to it: no ring, no ✓. Every other button fades — the
+fill washes out into the panel, the answer text stays at 4.5:1 or better, because people
+want to read what the other options said. It does not matter which gem is correct: if
+Sapphire is right, ruby, emerald and diamond fade and sapphire stays lit. The gem stays as
+identity, and green and red never land on a gem.
 
-Your own pick is the one exception to "faded means nothing". If you pressed Ruby and it was
-wrong, Ruby is faded like the rest but carries a ✗ and a small "you" marker, so you can still
-see what you chose. Five states per button, all of which need drawing in D8: idle,
-pressed-by-you-and-waiting, revealed-correct, revealed-faded, revealed-your-wrong-pick.
+A pick works the same way before the reveal: the button you pressed stays lit and every
+other one fades, rather than yours gaining an outline.
+
+Your own pick carries a small "you" marker, right or wrong, and that is the only thing added
+to any button. If you pressed Ruby and it was wrong, Ruby is faded like the rest, and its
+"you" is how you still see what you chose — no ✗, and no red edge. Five states per button:
+idle, pressed-by-you-and-waiting, revealed-correct, revealed-faded, revealed-your-wrong-pick,
+drawn in two looks, lit and faded.
 
 Fading on its own does not say whether *you* were right — you would have to compare your
 button with the lit one. The verdict is the points slot in §7.2.
+
+Under the buttons, every reveal says how many got it right — "3 of 5 got it right", out of
+those who answered. If the host ticks **Name who got it wrong** on Create
+(`name_wrong_answers`, off by default), the names of everyone whose answer scored nothing
+follow it. A player who did not answer is not on that list, and neither is a graded guess
+that scored.
 
 Gems are also ordering, not decoration: **sapphire, emerald, ruby, diamond, dragonstone,
 onyx, zenyte** is the in-game value order, so position 1 is always sapphire, position 2
@@ -969,9 +985,10 @@ waiting state; touch targets at 56px. `more_less` keeps its own two buttons and 
 tokens. Fixes the `ideas/IDEAS.md` bug where an unanswered `more_less` question highlights a
 button as if it had been pressed.
 
-**Accept:** a colour-blind simulation of the reveal is unambiguous with colour removed
-entirely; whichever gem is correct, it is the only one not faded, and no button changes
-colour on reveal; your own wrong pick is still identifiable; faded answer text is still
+**Accept:** whichever gem is correct, it is the only one not faded, and no button changes
+colour on reveal; no ring, ✓ or ✗ on any button; a pick fades the other options; your own
+pick, right or wrong, carries a "you"; the count of who got it right is under every reveal,
+and the names of who got it wrong only when the host turned them on; faded answer text is still
 readable at 4.5:1; a timeout shows `No answer · +0` and is distinguishable from a wrong
 answer; the points slot is in the same place in every mode and its running total agrees with
 the next standings screen; seven gem buttons at 56px fit a 375px screen without pushing the
@@ -1098,8 +1115,12 @@ dragonstone, onyx, zenyte, in that order and position-stable however many are sh
 `--less` and its item pictures. No mode offers more than seven options, which is tracked as
 its own task outside this document. §2.
 
-[x] **The `--ok` ring stays on the winning gem**, and the contrast script grows an assertion
-of `--ok` at 3:1 against every `--gem-*` rather than the ring going neutral. §2.
+[x] ~~**The `--ok` ring stays on the winning gem**~~ — superseded in D8: **lit against faded,
+no ring and no ✓ / ✗**, a "you" on your own pick, and a pick fades the other options too.
+The contrast script holds `--gem-ink` to 4.5:1 on every gem, lit and faded. §2.
+
+[x] **Under every reveal, how many got it right**, and the names of who got it wrong only
+when the host turns on `name_wrong_answers`. §2.
 
 [x] **The points slot shows earned points over the running total**, and never the reason for
 a bonus. §7.2.

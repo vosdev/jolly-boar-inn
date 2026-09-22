@@ -69,6 +69,11 @@ export interface RoomSettings {
   /** How long the standings hold between two rounds (D9). Zero turns them off. */
   standings_seconds: number
   close_when_all_answered: boolean
+  /**
+   * Name who answered wrong under a reveal (D8). Optional: a server from before it does
+   * not send it, and that reads as off.
+   */
+  name_wrong_answers?: boolean
   max_players: number | null
 }
 

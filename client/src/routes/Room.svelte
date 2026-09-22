@@ -35,6 +35,7 @@
 
   import Lobby from '../components/Lobby.svelte'
   import PointsSlot from '../components/PointsSlot.svelte'
+  import RevealTally from '../components/RevealTally.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
   import Question from '../components/questions/Question.svelte'
@@ -183,6 +184,14 @@
       ? null
       : ($standings.find((standing) => standing.player_id === $you.id)?.points ?? null),
   )
+  /** A name for the reveal's tally: whoever is in the room, or was in the standings. */
+  function nameOf(id: string): string | null {
+    return (
+      $players.find((player) => player.id === id)?.display_name ??
+      $standings.find((standing) => standing.player_id === id)?.display_name ??
+      null
+    )
+  }
   /** Our own row in the reveal, if we answered. */
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
@@ -364,6 +373,12 @@
             yourValue={$yourAnswer}
             result={yourResult}
             onAnswer={() => {}}
+          />
+          <RevealTally
+            results={$lastClosed.results}
+            {nameOf}
+            youId={$you?.id ?? null}
+            showNames={$room.settings.name_wrong_answers === true}
           />
         {:else}
           <p class="note">That question is closed.</p>
