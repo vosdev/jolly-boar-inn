@@ -140,7 +140,7 @@ def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     Takes ``client`` because the packs are loaded in the app's lifespan, which is what
     entering the test client runs.
     """
-    name = "free_text"
+    name = "second_round"
     shipped = [q for pack in app.state.packs for q in pack.questions]
     borrowed = [q for q in shipped if q["type"] == "more_less"][:20]
     assert borrowed, "the shipped packs are the questions this stub copies"

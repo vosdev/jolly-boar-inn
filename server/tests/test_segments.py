@@ -1,4 +1,8 @@
-"""``rooms/segments.py``: rounds grouped back out of the questions that carry them."""
+"""``rooms/segments.py``: rounds grouped back out of the questions that carry them.
+
+T21 Accept: ``segments_of`` reports four rounds, not seven, for a four-mode room holding
+three random events.
+"""
 
 from dataclasses import dataclass
 
@@ -7,7 +11,7 @@ from app.rooms.segments import segment_at, segments_of
 
 @dataclass
 class Q:
-    """The two fields grouping reads. ``RoomQuestion`` has both and much more.
+    """The fields grouping reads. ``RoomQuestion`` has them all and much more.
 
     ``type`` is not one of them, and every question here answers as ``more_less`` whatever
     its mode: a segment named for its type would name every round below the same.
@@ -16,6 +20,7 @@ class Q:
     round: int
     mode: str
     type: str = "more_less"
+    random_event: str | None = None
 
 
 def _questions(*rounds: tuple[int, str]) -> list[Q]:
@@ -75,3 +80,47 @@ def test_segment_at_finds_the_round_a_position_falls_in() -> None:
     assert segment_at(got, 4) is None
     assert segment_at(got, -1) is None
     assert segment_at([], 0) is None
+
+
+def test_an_event_is_grouped_into_the_round_it_interrupts() -> None:
+    """T21 Accept: four modes, three events, four rounds -- not seven.
+
+    Each event is a question of another mode sitting inside a round, carrying that round's
+    number. Runs of equal mode would split every interrupted round in three; grouping on
+    the round keeps it whole and named for its own mode.
+    """
+    questions = [
+        Q(0, "more_less"),
+        Q(0, "more_less"),
+        Q(1, "price_is_right"),
+        Q(1, "custom", "multiple_choice", "sandwich_lady"),
+        Q(1, "price_is_right"),
+        Q(2, "guess_examine"),
+        Q(2, "guess_examine"),
+        Q(2, "more_less", random_event="genie"),
+        Q(3, "drop_table", "multiple_choice"),
+        Q(3, "custom", "closest_number", "quiz_master"),
+        Q(3, "drop_table", "multiple_choice"),
+    ]
+    assert len({(q.mode, q.round) for q in questions}) == 7  # what grouping on mode would see
+    got = segments_of(questions)
+    assert [(s.mode, s.index, s.total, s.start, s.count) for s in got] == [
+        ("more_less", 0, 4, 0, 2),
+        ("price_is_right", 1, 4, 2, 3),
+        ("guess_examine", 2, 4, 5, 3),
+        ("drop_table", 3, 4, 8, 3),
+    ]
+    assert segment_at(got, 3).mode == "price_is_right"  # type: ignore[union-attr]
+    assert segment_at(got, 7).mode == "guess_examine"  # type: ignore[union-attr]
+
+
+def test_a_round_is_never_named_for_its_event() -> None:
+    """An event is never a round's first question, and if one were, the round would still
+    be introduced as itself rather than as the mode of the question interrupting it."""
+    got = segments_of(
+        [Q(0, "custom", "free_text", "genie"), Q(0, "more_less"), Q(1, "price_is_right")]
+    )
+    assert [(s.mode, s.start, s.count) for s in got] == [
+        ("more_less", 0, 2),
+        ("price_is_right", 2, 1),
+    ]

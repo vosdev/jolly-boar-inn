@@ -22,9 +22,18 @@ class Mode:
     ``seconds_bounds`` fall back to. A pace belongs to the answer shape far more often
     than to the round -- two names and one word is quick whatever the round is about --
     so a mode that states neither is the ordinary case, not a missing one.
+
+    ``type`` is ``None`` for one mode only, ``custom``: the host's own questions, each of
+    which carries a type of its own. It is also the one mode that is not a round
+    (``is_round``), so it states its ``seconds`` and has no ``questions`` to state.
     """
 
     id: str
-    type: str
+    type: str | None
     questions: Bounds | None = None
     seconds: Bounds | None = None
+
+    @property
+    def is_round(self) -> bool:
+        """Whether a host can pick it: every mode but the one whose questions are events."""
+        return self.type is not None

@@ -52,7 +52,9 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from app.config import Settings
 from app.errors import ApiError
+from app.questions import custom
 from app.questions.packs import Pack
+from app.questions.schema import QuestionError
 from app.questions.submission import Submission
 from app.questions.types import TYPES, scoring_of
 from app.questions.types.scoring import Scoring
@@ -86,7 +88,8 @@ CLOSE_KICKED = 4003
 # code the handler closes an unknown room with, because that is what a reconnect finds.
 CLOSE_GONE = 4004
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
-_QUESTION_COLUMNS = frozenset({"id", "type", "mode", "source", "host_only"})
+# ``random_event`` is not an envelope key at all but a placement ``selection`` adds.
+_QUESTION_COLUMNS = frozenset({"id", "type", "mode", "source", "host_only", "random_event"})
 
 
 class RoomNotFound(ApiError):
@@ -121,6 +124,12 @@ class BadAvatar(ApiError):
 
 class BadSettings(ApiError):
     status, code = 422, "bad_settings"
+
+
+class BadQuestion(ApiError):
+    """One of the host's own questions fails the schema or its type's ``check``."""
+
+    status, code = 422, "bad_question"
 
 
 class BadSession(ApiError):
@@ -252,6 +261,10 @@ class RoomQuestion:
     ``type`` and ``mode`` are both columns, and neither is derived from the other: the
     type is how the question is answered and graded, the mode is the round it was drawn
     for and where its ``seconds`` come from.
+
+    ``random_event`` is the NPC interrupting ``round`` with this question, or ``None`` for
+    a question that belongs to its round. An event's ``mode`` is its own and its ``round``
+    is the one it interrupts; ``segments.py`` reads the pair.
     """
 
     id: UUID
@@ -264,6 +277,7 @@ class RoomQuestion:
     host_only: bool
     author_player_id: UUID | None
     round: int = 0
+    random_event: str | None = None
     shown_at: datetime | None = None
     closed_at: datetime | None = None
     voided: bool = False
@@ -490,9 +504,14 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
 
 
 def _question_rows(
-    room_id: UUID, questions: Sequence[tuple[int, dict[str, Any]]]
+    room_id: UUID, questions: Sequence[tuple[int, dict[str, Any]]], author: UUID
 ) -> list[tuple[Any, ...]]:
-    """Rows for ``selection.flatten``'s ``(round, question)`` pairs, position by position."""
+    """Rows for ``selection.flatten``'s ``(round, question)`` pairs, position by position.
+
+    ``author`` is the room's creator, and it is written against the questions they wrote
+    -- ``source: room`` -- and nothing else. That column is what keeps them from scoring on
+    their own questions (``RoomQuestion.can_answer``).
+    """
     return [
         (
             room_id,
@@ -504,6 +523,8 @@ def _question_rows(
             {k: v for k, v in q.items() if k not in _QUESTION_COLUMNS},
             bool(q.get("host_only", False)),
             round_,
+            q.get("random_event"),
+            author if q["source"] == "room" else None,
         )
         for position, (round_, q) in enumerate(questions)
     ]
@@ -887,19 +908,30 @@ class RoomManager:
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
 
+        ``custom_questions`` are the creator's own: stored ``source: room``, ``mode:
+        custom``, with the creator as their author, each placed as a random event. The HTTP
+        body has already checked them and how many there are; they are checked again here
+        for callers that did not come through it, before anything is written.
+
         Returns the room, the admin player and their plaintext session token, once.
         """
         # First, before the pool is even touched: a bad name leaves no room behind.
         name = normalize_name(display_name)
         self.check_avatar(avatar)
+        try:
+            own = custom.envelopes(custom_questions)
+        except QuestionError as exc:
+            raise BadQuestion(str(exc)) from None
         cap = self.settings.max_players_per_room
         if settings.max_players is None:
             settings = settings.model_copy(update={"max_players": cap})
         elif settings.max_players > cap:
             raise BadSettings(f"max_players may not exceed {cap}")
-        questions = selection.flatten(
-            selection.select(self.packs, custom_questions, settings, self.rng)
-        )
+        try:
+            rounds = selection.select(self.packs, own, settings, self.rng)
+        except selection.TooManyEvents as exc:
+            raise BadSettings(str(exc)) from None
+        questions = selection.flatten(rounds)
         session = new_token()
         now = datetime.now(UTC)
         expires_at = now + timedelta(days=self.settings.room_ttl_days)
@@ -945,15 +977,16 @@ class RoomManager:
                 hash_token(session),
                 avatar,
             )
+            assert player_row is not None
             await conn.executemany(
                 "insert into questions (room_id, position, question_id, type, mode, source,"
-                " payload, host_only, round) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-                _question_rows(room_row["id"], questions),
+                " payload, host_only, round, random_event, author_player_id)"
+                " values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+                _question_rows(room_row["id"], questions, player_row["id"]),
             )
             # Read them back so a freshly created room holds exactly what a rehydrated
             # one would, ids included.
             inserted = await _fetch_questions(conn, room_row["id"])
-        assert player_row is not None
         code = room_row["code"]
         player = _player_from_row(player_row)
         room = _room_from_row(room_row, total=len(inserted), lock=self._lock(code))
@@ -1641,7 +1674,7 @@ async def _void_question(conn: asyncpg.Connection, question: RoomQuestion) -> No
 async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[RoomQuestion]:
     rows = await conn.fetch(
         "select id, position, question_id, type, mode, source, payload, host_only, round,"
-        " author_player_id, shown_at, closed_at, voided"
+        " random_event, author_player_id, shown_at, closed_at, voided"
         " from questions where room_id = $1 order by position",
         room_id,
     )
@@ -1656,6 +1689,7 @@ async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[Room
             payload=row["payload"]["payload"],
             host_only=row["host_only"],
             round=row["round"],
+            random_event=row["random_event"],
             author_player_id=row["author_player_id"],
             shown_at=row["shown_at"],
             closed_at=row["closed_at"],

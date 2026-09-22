@@ -112,6 +112,7 @@
         "image": { "$ref": "#/$defs/asset" },
         "accepted": { "$ref": "#/$defs/accepted" },
         "max_distance": { "type": "integer", "minimum": 0, "maximum": 2, "default": 1 },
+        "subject": { "$ref": "#/$defs/subject" },
         "explanation": { "type": "string", "maxLength": 300 }
       }
     },

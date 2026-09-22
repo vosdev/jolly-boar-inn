@@ -1,0 +1,77 @@
+"""Free text: type the answer, and be forgiven a typo.
+
+Payload shape (schema ``$defs/free_text``)::
+
+    {"prompt": str, "accepted": [str, ...], "max_distance"?: 0..2,
+     "image"?: asset, "subject"?: {"name", "asset"?}, "explanation"?: str}
+
+No pack mode plays this, and none should. Guess the Examine started here and left for
+``pick_from_list`` once every item needed an alias list and every typo needed a ruling
+(section 2). It stays for the host's own questions, whose answers -- a clan member's name,
+the boss somebody's pet came from -- are in no list the game could ship. The price of that
+is ``questions/normalize.py``: case, accents, punctuation and spacing are not what a
+player is being asked about, and a typo on a long answer is not a wrong answer.
+
+``accepted`` is every spelling the host will take, and the first is the one the reveal
+shows as *the* answer. ``max_distance`` is how many typos, one by default; an accepted
+answer under four characters takes none whatever it says, so "Jad" does not accept "Jam".
+
+``image`` is the question's picture, so it is shown while the question is open.
+``subject`` is what the answer is -- the NPC it names, with its asset -- and waits for the
+reveal with ``accepted``, for the reason ``pick_from_list`` withholds its own.
+"""
+
+from typing import Any
+from uuid import UUID
+
+from app.questions import normalize
+from app.questions.submission import Submission
+from app.questions.types.bounds import Bounds
+from app.questions.types.scoring import Scoring
+
+SCORING = Scoring.SPEED
+# The wire caps a typed answer at this; the schema caps an accepted one at the same.
+MAX_LENGTH = 80
+DEFAULT_DISTANCE = 1
+# A question to read and an answer to type on a phone: slower than a button, so twenty
+# seconds, and a minute at most before the round is waiting on the slowest thumbs.
+QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
+SECONDS = Bounds(default=20, minimum=10, maximum=60)
+
+_OPEN_KEYS = ("prompt", "image")
+
+
+def client_view(payload: dict[str, Any]) -> dict[str, Any]:
+    """What everyone sees while it is open: the question, and its picture if it has one."""
+    return {key: payload[key] for key in _OPEN_KEYS if key in payload}
+
+
+def reveal(payload: dict[str, Any]) -> dict[str, Any]:
+    """Shown after close: the same, plus every answer that counted and what it was."""
+    shown = {**client_view(payload), "accepted": list(payload["accepted"])}
+    for key in ("subject", "explanation"):
+        if key in payload:
+            shown[key] = payload[key]
+    return shown
+
+
+def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
+    accepted = payload["accepted"]
+    allowed = payload.get("max_distance", DEFAULT_DISTANCE)
+    return {
+        s.player_id: 1.0 if normalize.accepts(s.value, accepted, allowed) else 0.0
+        for s in submissions
+    }
+
+
+def validate_value(payload: dict[str, Any], value: Any) -> bool:
+    return isinstance(value, str) and 0 < len(value) <= MAX_LENGTH
+
+
+def check(payload: dict[str, Any]) -> list[str]:
+    """Consistency: every accepted answer is something a player could type."""
+    return [
+        f"accepted[{index}]: {answer!r} is only punctuation and spaces, so nothing can match it"
+        for index, answer in enumerate(payload["accepted"])
+        if not normalize.normalize(answer)
+    ]

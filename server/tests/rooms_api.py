@@ -48,7 +48,10 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     dicts for a game whose rounds are deliberately different lengths.
 
     ``splash_seconds`` is zero by default too: a test that is not about the splash should
-    see the frames it always saw, and the ones that are about it pass their own.
+    see the frames it always saw, and the ones that are about it pass their own. So is
+    ``random_events``, for the same reason: a pack question dropped into the middle of a
+    round would move every index a test counts on. The host's own questions are placed
+    whatever it says, which is what the tests about them rely on.
     """
     seconds = overrides.pop("seconds", 1)
     questions = overrides.pop("questions", 3)
@@ -58,11 +61,27 @@ def fast_settings(**overrides: Any) -> RoomSettings:
         else {"mode": mode, "questions": questions, "seconds": seconds}
         for mode in overrides.pop("modes", [next(iter(MODES))])
     ]
-    return RoomSettings(**{"modes": modes, "reveal_seconds": 1, "splash_seconds": 0, **overrides})
+    return RoomSettings(
+        **{
+            "modes": modes,
+            "reveal_seconds": 1,
+            "splash_seconds": 0,
+            "random_events": False,
+            **overrides,
+        }
+    )
 
 
 def create_fast(
-    app: FastAPI, client: TestClient, name: str = "Admin", **overrides: Any
+    app: FastAPI,
+    client: TestClient,
+    name: str = "Admin",
+    custom: list[dict[str, Any]] | None = None,
+    **overrides: Any,
 ) -> tuple[Room, Player, str]:
-    """A room with one-second questions, its admin player and their session token."""
-    return call(client, app.state.rooms.create, name, fast_settings(**overrides), [], "127.0.0.1")
+    """A room with one-second questions, its admin player and their session token.
+
+    ``custom`` is the admin's own questions, placed as random events and authored by them.
+    """
+    settings = fast_settings(**overrides)
+    return call(client, app.state.rooms.create, name, settings, custom or [], "127.0.0.1")

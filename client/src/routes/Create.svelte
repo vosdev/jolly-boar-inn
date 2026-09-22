@@ -18,8 +18,11 @@
    * is free — no room exists yet, so there is nothing to check it against or undo. What
    * the host creates with becomes the profile, so the next room starts from it.
    *
-   * The custom-question editor is Phase 2, so `custom_questions` is always the empty
-   * list `api.createRoom` sends.
+   * `/api/modes` lists `custom` too, with no round length: the host's own questions are
+   * never a round but random events, one dropped into each round after the first. So the
+   * form offers every mode but that one. Writing those questions is the editor's job
+   * (T22); until it lands `custom_questions` is always the empty list `api.createRoom`
+   * sends, and the one choice about events here is whether the packs may interrupt.
    */
   import { onMount, untrack } from 'svelte'
 
@@ -47,7 +50,8 @@
   let revealSeconds = $state(3)
   /** `splash_seconds` on the wire: 0 is off, anything else on (D7: it is no longer a length). */
   let introduceRounds = $state(true)
-  let order = $state<'shuffle' | 'custom_last'>('shuffle')
+  /** May a pack question interrupt a round? A room's own questions always do. */
+  let randomEvents = $state(true)
   let modeOrder = $state<'listed' | 'random'>('listed')
   let closeWhenAllAnswered = $state(true)
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
@@ -59,7 +63,14 @@
   let busy = $state(false)
   let failure = $state<string | null>(null)
 
+  /** The modes a host can pick as rounds: every one but `custom`, which has no round length. */
+  const roundModes = $derived(pacing?.filter((mode) => mode.questions !== null) ?? [])
   const questionCount = $derived(rounds.reduce((total, round) => total + round.questions, 0))
+  /**
+   * The events the room may add to that, which count against the cap as the server counts
+   * them: one per round after the first, whenever the packs are allowed to interrupt.
+   */
+  const eventCount = $derived(randomEvents ? Math.max(0, rounds.length - 1) : 0)
   /** Every round's two numbers inside what `/api/modes` said the server would take. */
   const roundsInRange = $derived(
     rounds.every(
@@ -73,7 +84,7 @@
       rounds.length > 0 &&
       roundsInRange &&
       questionCount >= 1 &&
-      questionCount <= MAX_QUESTIONS,
+      questionCount + eventCount <= MAX_QUESTIONS,
   )
 
   // Filled in the moment the popup saves one. Only ever from empty, so a name the host
@@ -88,7 +99,7 @@
   onMount(async () => {
     try {
       pacing = await getModes()
-      rounds = pacing.map(roundFor)
+      rounds = roundModes.map(roundFor)
     } catch (error) {
       pacingFailure =
         error instanceof ApiFailure ? error.message : 'could not reach the server'
@@ -97,7 +108,7 @@
 
   /** A round of `mode` at that mode's own pace, which is what ticking it gives you. */
   function roundFor(mode: ModePacing): ModeSettings {
-    return { mode: mode.id, questions: mode.questions.default, seconds: mode.seconds.default }
+    return { mode: mode.id, questions: mode.questions?.default ?? 1, seconds: mode.seconds.default }
   }
 
   function bounds(mode: string): ModePacing | null {
@@ -116,7 +127,7 @@
    */
   function inRange(mode: string, field: 'questions' | 'seconds', value: number): boolean {
     const limits = bounds(mode)?.[field]
-    if (limits === undefined || !Number.isInteger(value)) return false
+    if (limits === undefined || limits === null || !Number.isInteger(value)) return false
     return limits.min <= value && value <= limits.max
   }
 
@@ -146,7 +157,7 @@
     const settings: NewRoomSettings = {
       modes: rounds,
       mode_order: modeOrder,
-      order,
+      random_events: randomEvents,
       reveal_seconds: revealSeconds,
       splash_seconds: introduceRounds ? 8 : 0,
       close_when_all_answered: closeWhenAllAnswered,
@@ -187,7 +198,7 @@
     {:else if pacing === null}
       <p class="note">Loading the game modes…</p>
     {:else}
-      {#each pacing as mode (mode.id)}
+      {#each roundModes as mode (mode.id)}
         <label class="check">
           <input
             type="checkbox"
@@ -251,12 +262,12 @@
                 <input
                   id="questions-{round.mode}"
                   type="number"
-                  min={bounds(round.mode)?.questions.min ?? 1}
-                  max={bounds(round.mode)?.questions.max ?? 30}
+                  min={bounds(round.mode)?.questions?.min ?? 1}
+                  max={bounds(round.mode)?.questions?.max ?? 30}
                   bind:value={round.questions}
                 />
                 <p class="note" class:error={!inRange(round.mode, 'questions', round.questions)}>
-                  {bounds(round.mode)?.questions.min}–{bounds(round.mode)?.questions.max}
+                  {bounds(round.mode)?.questions?.min}–{bounds(round.mode)?.questions?.max}
                 </p>
               </div>
               <div>
@@ -276,11 +287,10 @@
           </li>
         {/each}
       </ul>
-      <p class="note" class:error={questionCount > MAX_QUESTIONS}>
-        {questionCount} question{questionCount === 1 ? '' : 's'} in total{questionCount >
-        MAX_QUESTIONS
-          ? `, over the ${MAX_QUESTIONS} cap`
-          : ''}
+      <p class="note" class:error={questionCount + eventCount > MAX_QUESTIONS}>
+        {questionCount} question{questionCount === 1 ? '' : 's'} in total{eventCount > 0
+          ? `, and up to ${eventCount} random event${eventCount === 1 ? '' : 's'}`
+          : ''}{questionCount + eventCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
       </p>
     </section>
   {/if}
@@ -293,14 +303,11 @@
         <input id="reveal" type="number" min="2" max="30" bind:value={revealSeconds} />
         <p class="note">2–30</p>
       </div>
-      <div>
-        <label for="order">Your own questions</label>
-        <select id="order" bind:value={order}>
-          <option value="shuffle">Mixed into their round</option>
-          <option value="custom_last">All at the end</option>
-        </select>
-      </div>
     </div>
+    <label class="check">
+      <input type="checkbox" bind:checked={randomEvents} />
+      Random events: now and then, a question from another mode interrupts a round
+    </label>
     <label class="check">
       <input type="checkbox" bind:checked={introduceRounds} />
       Introduce each round, and start it when most of the room is ready

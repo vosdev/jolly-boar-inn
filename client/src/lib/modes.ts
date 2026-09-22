@@ -29,8 +29,11 @@
 
 export interface Mode {
   id: string
-  /** The question type a round of this mode is answered in, as `OpenQuestion.type` names it. */
-  type: string
+  /**
+   * The question type a round of this mode is answered in, as `OpenQuestion.type` names it.
+   * Null for `custom`, the host's own questions, each of which carries its own.
+   */
+  type: string | null
   /** Two or three words. The splash headline and the checkbox label. */
   label: string
   /** One line, for the create form. */
@@ -115,6 +118,20 @@ export const MODES: Record<string, Mode> = {
     // The examine line is the question; the list below it is only how you answer.
     stem: 'examine',
     vocab: 'examines',
+  },
+  // Never offered as a round: the host's questions are random events inside other rounds.
+  // It is here for the stem those questions are drawn with, and for the splash of a room
+  // created before T21, whose custom questions still play as a round of their own.
+  custom: {
+    id: 'custom',
+    type: null,
+    label: "Host's Questions",
+    hint: 'Questions the host wrote for this room.',
+    blurb: 'The host wrote these ones. Whatever they ask, answer it.',
+    // The inn the app is named after, where the host is the one behind the bar.
+    scene: 'jolly_boar',
+    // Every type a host can write asks in a sentence; the view below it is the answer.
+    stem: 'text',
   },
 }
 

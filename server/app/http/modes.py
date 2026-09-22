@@ -7,6 +7,11 @@ than carrying a second copy that drifts. Each mode's ``type`` rides along becaus
 answer shape a round is played in is the server's to say, like its pace. Copy -- what a
 mode is called and how it is explained -- stays on the client, in ``lib/modes.ts``: it is
 the one thing about a mode the server has no opinion on.
+
+``custom`` is listed too, with ``type`` and ``questions`` null: it has no type because the
+host's questions carry their own, and no round length because it is never a round -- each
+of its questions is a random event. Its ``seconds`` is how long one of them stays open. The
+create form offers as a round every mode that has ``questions``, which is every other one.
 """
 
 from typing import Any
@@ -25,7 +30,7 @@ def list_modes() -> list[dict[str, Any]]:
         {
             "id": mode.id,
             "type": mode.type,
-            "questions": questions_bounds(mode.id).view(),
+            "questions": questions_bounds(mode.id).view() if mode.is_round else None,
             "seconds": seconds_bounds(mode.id).view(),
         }
         for mode in MODES.values()
