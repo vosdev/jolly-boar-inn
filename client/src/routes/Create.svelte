@@ -38,7 +38,7 @@
   } from '../lib/api'
   import NameField from '../components/NameField.svelte'
   import NamePrompt from '../components/NamePrompt.svelte'
-  import { MODES, modeLabel } from '../lib/modes'
+  import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
   import { nameProblem } from '../lib/names'
   import { profile, saveProfile } from '../lib/profile'
   import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
@@ -72,6 +72,10 @@
 
   /** The modes a host can pick as rounds: every one with a round length to set. */
   const roundModes = $derived(pacing?.filter((mode) => mode.questions !== null) ?? [])
+  /** Coming soon, minus any this server already plays: those are in `roundModes` instead. */
+  const upcomingModes = $derived(
+    UPCOMING_MODES.filter((mode) => !pacing?.some((entry) => entry.id === mode.id)),
+  )
   const questionCount = $derived(rounds.reduce((total, round) => total + round.questions, 0))
   /**
    * The events the room adds to that, counted as the server counts them: one per whole
@@ -227,6 +231,13 @@
           {#if MODES[mode.id]}<span class="note">— {MODES[mode.id].hint}</span>{/if}
         </label>
       {/each}
+      {#each upcomingModes as mode (mode.id)}
+        <label class="check upcoming">
+          <input type="checkbox" checked={false} disabled />
+          {mode.label}
+          <span class="note">— coming soon: {mode.hint}</span>
+        </label>
+      {/each}
       {#if rounds.length === 0}
         <p class="error">Pick at least one type; a room with no rounds is no game.</p>
       {/if}
@@ -364,3 +375,10 @@
     <p class="banner bad" role="alert">{failure}</p>
   {/if}
 </form>
+
+<style>
+  .upcoming {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+</style>

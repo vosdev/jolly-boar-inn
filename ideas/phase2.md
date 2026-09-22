@@ -303,8 +303,7 @@ They are now a bigger part of the game, and the host sets how big.
   each slot lands at a position drawn inside its window. The first round is no longer
   exempt — a one-mode room would otherwise never see an event — but the two rules about
   first questions stay: never the game's first question, never a round's first question
-  (that one is the splash's).
-- **The host's questions take slots first**, and the cap is the slot count at the chosen
+- **The host's questions take a random slot in the game**, and the cap is the slot count at the chosen
   frequency rather than one fewer than the modes. More than that is a 422 naming the count,
   the limit and the frequency, and suggests `more`.
 - **There is no off switch.** A host who wants none picks `less`. A stored room reads

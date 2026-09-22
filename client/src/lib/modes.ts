@@ -148,6 +148,26 @@ export const MODES: Record<string, Mode> = {
 }
 
 /**
+ * Modes still being built, shown on the create form ticked off and disabled so players
+ * can see what is coming. Copy only: once a mode ships it gets a full `MODES` entry and
+ * `/api/modes` lists it, and the form stops treating it as upcoming — so an entry left
+ * here after that is harmless, but belongs deleted.
+ */
+export const UPCOMING_MODES: { id: string; label: string; hint: string }[] = [
+  { id: 'who_is_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!" },
+  { id: 'bestiary', label: 'Bestiary', hint: 'Combat levels, weaknesses and haunts of the monsters.' },
+  { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.' },
+  { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.' },
+  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.' },
+  { id: 'sort_it_out', label: 'Sort It Out', hint: 'Are you a skiller or a slacker?' },
+  { id: 'who_said_that', label: 'Who Said That?', hint: 'Name the character behind the line.' },
+  { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?' },
+  { id: 'clipped', label: 'Know Your Content Creator', hint: 'Are you sure you are a fan?' },
+  { id: 'Name that spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!' },
+  { id: 'Minimap Guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?' },
+]
+
+/**
  * A mode's name, or the raw id for one this build does not know.
  *
  * A room can be playing a mode from a newer server than this client was built against.
