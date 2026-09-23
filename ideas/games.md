@@ -51,7 +51,11 @@ give 4-5 random items or NPCs. And then we have to sort them in logical order (s
 
 
 ## Bestiary
-year of introduction, quest, location, combat level, weakness
+year of introduction, quest, location, combat level, weakness, race etc? Need more.
+But also add fun questions, for example:
+Which of Vorkath’s eyes is torn out and scarred shut? (left)
+Howmany toes does the King Black Dragon have? (12 I think)
+General Graardor wears Bandosian war armor, but what is he wearing on his feet? (Nothing)
 
 # Who said that?
 Popular NPC quotes, like:
@@ -60,7 +64,7 @@ Thugo wanting Redberry Pie
 Seriously, you'll be a monkey's uncle before you'll ever hold a dragon scimitar.
 Tell me... a story...
 
-# Clipped
+# Know your Content Creator (Clipped)
 Famous streamer quotes
 B0aty's 73
 C Engineer: Dying on my HCIM: Completed
@@ -68,11 +72,23 @@ C Engineer: Dying on my HCIM: Completed
 Fun game mode, but we would need more quotes. A 20 minimum, would need community support for this. The type of data would be 4-5 options and one right answer.
 
 
+# Minimap Guesser
+A random crop of the minimap.
+no world map picker, but a list of either all provinces and areas, or a list of all cities.
+
+Too many options so multiple choice won't work. Combobox would fit best I think.
+
+Gieliguessr and osrsguesser already exist and they are very expensive to make. Especially making it work on a smaller screen like a phone while having all of the other required elements onscreen.
+Hence the simpler solution.
+
+# New game type
+A new game type that allows you to pick all options that apply. There have been several occasions where I wanted to have some multiple_choice questions with several correct answers. 
+We will probably end up having to support multiple game types for a single game mode. For example `multiple_choice` and `pick_all_that_apply` or something like that.
+
 # Expensive
 (Out of scope for now, maybe later):
 
 - Name that spell or spec: Play a short audio clip and have players guess the action (Ice barrage, teleblock, AGS spec, DDS spec etc)
-- Minimap geoguessr: a random crop of the world map, drop a pin. Coordinates are known by definition, so no manual work. Build this version first.
 - Screenshot geoguessr: your own in-game images, higher difficulty. Automate the metadata by renaming screenshots straight to `x_y_plane.png`.
 - Music round: name the track, or guess where it plays on the map
 - Clue scroll cryptics and anagrams: existing in-game content, answers are on the wiki.
