@@ -1290,8 +1290,7 @@ D8.
 | Change | Bump | Example |
 |---|---|---|
 | A T task (`ideas/phase2.md`) or a D task (`ideas/design.md`) | minor | 0.1.0 → 0.2.0 |
-| A fix, a playtest follow-up, an item off `ideas/IDEAS.md` | patch | 0.2.0 → 0.2.1 |
-| Docs, CI, or anything else a player cannot see | none | |
+| Anything else: a fix, an item off `ideas/IDEAS.md`, docs, CI | patch | 0.2.0 → 0.2.1 |
 
 - **Semver, not decimals.** After 0.9.0 comes 0.10.0. About 35 tasks remain, and decimal
   arithmetic would reach 1.0 partway through Phase 2 without anyone deciding it. **1.0 is a
