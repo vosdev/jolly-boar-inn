@@ -190,7 +190,7 @@ class Room:
 Rules:
 
 - One `asyncio.Lock` per room; every public `RoomManager` method acquires it. No cross-room locking.
-- Every DB write happens inside the method that mutates memory, before broadcasting. Answers are written and committed before `answer_ack` is sent.
+- Every DB write happens inside the method that mutates memory, before memory changes and before broadcasting, so a failed write leaves memory as it was. Answers are committed before `answer_ack` is sent.
 - Broadcasting is `for ws in room.sockets.values(): await ws.send_json(msg)` with per-socket try/except; a failed send removes the socket.
 - Replaceability: `RoomManager` is the only thing that would change for multi-replica. Do not build for it now.
 
@@ -844,13 +844,13 @@ The splash introduces a *segment*: it runs before a segment's first question and
 | `(new segment) → splash` | timer task, before a segment's first question, unless `splash_seconds` is 0 | `next_at = null` (it waits for the room), every player's `ready` cleared, broadcast `room_updated`; no write |
 | `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`; no write |
 | `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the type's `SECONDS`), broadcast `question_open`, schedule close |
-| `open → closed` | `ends_at` reached; or every connected player who can answer has answered and `close_when_all_answered`; or admin `skip` | `UPDATE questions SET closed_at = now`, grade all answers, `UPDATE answers SET correct, points`, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
+| `open → closed` | `ends_at` reached; or every connected player who can answer has answered and `close_when_all_answered`; or admin `skip` | grade all answers, then `UPDATE questions SET closed_at = now` and `UPDATE answers SET correct, points` in one transaction, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
 | `open → voided` | restart recovery, `end_game` | `closed_at = now, voided = true`, no grading |
 
 **The ready check (D7).** Each player carries an in-memory `ready` flag, on `PlayerView`. In the lobby it is what the host's Start waits on — the client offers "Start anyway" short of the threshold, and the server does not refuse it, because that is the host's override. `start_game` clears it. On a splash it is the ready check from section 7.1 of `ideas/design.md`: *eligible* is every connected player who can answer the round's first question, the threshold is `min(ceil(0.8 × eligible), eligible - 1)` with a room of one at 1, and the splash has no clock until it is reached — then a countdown runs as in the table above. A running countdown is never pushed back; only an un-ready can stop it, and each player gets one un-ready per splash (a second is `bad_state`, so the button cannot be spammed), never a connect or a disconnect, and a disconnect lowers the threshold instead of stalling the round. The host's `skip` ends a splash whether it is waiting or counting. The timer task sleeps through a splash to whatever `next_at` currently says, or indefinitely while it is null: changing it sets `Room.rescheduled`, which wakes the task to sleep again to the new time. The flag is never persisted, so a restart costs one tap — the same as the splash it replays.
 
-Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_question(index)` which does open → sleep-until-close → close → sleep-until-advance → next. `skip` cancels the sleep via an `asyncio.Event`, not by cancelling the task. Early close on all-answered sets the same event. Timing uses `asyncio.sleep(max(0, (ends_at - now).total_seconds()))`, so a late wakeup closes immediately instead of drifting.
+Single timer task per room: `Room.timer` is one `asyncio.Task` running `_run_questions` which does open → sleep-until-close → close → sleep-until-advance → next. `skip` cancels the sleep via an `asyncio.Event`, not by cancelling the task. Early close on all-answered sets the same event. Each deadline also lives on the manager's monotonic clock, and the task sleeps `max(0, deadline - now)` on that clock, so a late wakeup closes immediately instead of drifting and a wall-clock jump moves nothing; `ends_at` and `next_at` are for the wire. A step that raises drops the room from memory and closes its sockets with 1012; the reconnects rehydrate it as after a restart (section 3), which voids a question the failure left open.
 
 ### Room settings (`rooms.settings` jsonb)
 
@@ -984,7 +984,8 @@ Notes:
 
 ## 6. Scoring
 
-All timing is server-side: `elapsed = received_at - answerable_at`, which is `shown_at`
+All timing is server-side, on the monotonic clock, from when the answer arrives rather than
+when it gets the room lock: `elapsed = received_at - answerable_at`, which is `shown_at`
 for every question but a random event, where the NPC holds the floor for
 `random_event_seconds` first (section 3). The client never sends a time.
 
@@ -1034,7 +1035,7 @@ and does not get a "correct" out of it, which is the honest reading of both.
 | 4 | ≤ 0.75 | 700 |
 | 5 | ≤ 1.00 | 600 |
 
-For a 30-second question: 0–3 s, 3–7.5 s, 7.5–15 s, 15–22.5 s, 22.5–30 s. Wrong answer or no answer: 0. An answer arriving after `closed_at` is rejected with `not_open`, never scored.
+For a 30-second question: 0–3 s, 3–7.5 s, 7.5–15 s, 15–22.5 s, 22.5–30 s. Wrong answer or no answer: 0. An answer arriving from `ends_at` on is rejected with `not_open` and never scored, even if the close runs late.
 
 The bucket boundaries are fractions, so a quick round and a slow one in the same game are each scored on how fast you were for that round. No RTT compensation; the coarse first bucket makes 50–150 ms irrelevant.
 

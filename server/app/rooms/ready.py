@@ -18,7 +18,6 @@ lowers the threshold rather than stalling it.
 """
 
 import math
-from datetime import datetime, timedelta
 
 EVERYONE_READY_SECONDS = 3
 THRESHOLD_SECONDS = 10
@@ -42,24 +41,24 @@ def threshold(eligible: int) -> int:
     return min(math.ceil(0.8 * eligible), eligible - 1)
 
 
-def countdown(
-    next_at: datetime | None, now: datetime, eligible: int, ready: int
-) -> datetime | None:
+def countdown(running: float | None, now: float, eligible: int, ready: int) -> float | None:
     """When the splash should end, given ``ready`` of ``eligible`` players tapped ready.
 
-    ``next_at`` is the countdown as it stands, ``None`` for none running. A running
-    countdown is never pushed later: reaching the threshold again keeps it, and everyone
-    being ready only ever brings it closer. ``None`` back means the room is short of the
-    threshold, which the caller only acts on for an un-ready (see the module docstring).
+    Times are on the room manager's monotonic clock, so a wall clock that jumps mid-splash
+    neither ends the countdown early nor holds it up. ``running`` is the countdown as it
+    stands, ``None`` for none running. A running countdown is never pushed later: reaching
+    the threshold again keeps it, and everyone being ready only ever brings it closer.
+    ``None`` back means the room is short of the threshold, which the caller only acts on
+    for an un-ready (see the module docstring).
 
     Nobody eligible leaves it as it is: there is nobody to wait on, and nobody who can
     have said they are ready either, so the host's skip decides.
     """
     if eligible < 1:
-        return next_at
+        return running
     if ready >= eligible:
-        soon = now + timedelta(seconds=EVERYONE_READY_SECONDS)
-        return soon if next_at is None else min(next_at, soon)
+        soon = now + EVERYONE_READY_SECONDS
+        return soon if running is None else min(running, soon)
     if ready >= threshold(eligible):
-        return next_at if next_at is not None else now + timedelta(seconds=THRESHOLD_SECONDS)
+        return running if running is not None else now + THRESHOLD_SECONDS
     return None

@@ -4,15 +4,13 @@ The game half -- taps over the socket, disconnects, the splash actually ending -
 test_game.py beside the rest of the splash.
 """
 
-from datetime import UTC, datetime, timedelta
-
 import pytest
 
 from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS, countdown, threshold
 
-NOW = datetime(2026, 9, 21, 20, 0, tzinfo=UTC)
-TEN = NOW + timedelta(seconds=THRESHOLD_SECONDS)
-THREE = NOW + timedelta(seconds=EVERYONE_READY_SECONDS)
+NOW = 1000.0  # the room manager's monotonic clock
+TEN = NOW + THRESHOLD_SECONDS
+THREE = NOW + EVERYONE_READY_SECONDS
 
 
 @pytest.mark.parametrize(
@@ -46,7 +44,7 @@ def test_the_threshold_starts_ten_seconds() -> None:
 
 
 def test_the_threshold_again_keeps_the_countdown_running() -> None:
-    running = NOW + timedelta(seconds=4)
+    running = NOW + 4
     assert countdown(running, NOW, eligible=5, ready=4) == running
 
 
@@ -56,7 +54,7 @@ def test_everyone_ready_is_three_seconds_from_nothing_or_from_ten() -> None:
 
 
 def test_everyone_ready_never_pushes_a_countdown_back() -> None:
-    soon = NOW + timedelta(seconds=1)
+    soon = NOW + 1
     assert countdown(soon, NOW, eligible=5, ready=5) == soon
 
 

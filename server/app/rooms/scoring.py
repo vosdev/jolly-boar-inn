@@ -40,8 +40,8 @@ def bucket(elapsed_s: float, question_s: int) -> int:
     """Which speed bucket, 1..5, an answer that took ``elapsed_s`` lands in.
 
     Edges are inclusive: exactly a tenth of the question's time is still bucket 1.
-    Anything past the full time clamps to the slowest bucket, which is what an answer
-    accepted a moment after ``ends_at`` gets (the close was waiting on the room lock).
+    Anything past the full time clamps to the slowest bucket, though the room refuses an
+    answer that arrives from ``ends_at`` on.
     """
     fraction = elapsed_s / question_s
     for index, (edge, _) in enumerate(BUCKETS, start=1):

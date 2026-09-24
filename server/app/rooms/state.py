@@ -12,9 +12,15 @@ The game loop (T9) is one ``asyncio.Task`` per room, ``Room.timer``, running
 ``_run_questions``: open a question, sleep until it closes, close and grade it, sleep
 through the reveal, move on. Nothing else drives time. ``skip`` and an early close on
 all-answered cut a sleep short through ``Room.advance``, an ``asyncio.Event``, never by
-cancelling the task; every sleep is computed from the target timestamp, so a late wakeup
-closes immediately instead of drifting. The task takes the same room lock as everything
-else and, like everything else, sends nothing while holding it.
+cancelling the task; every sleep is computed from its deadline on the manager's monotonic
+clock, so a late wakeup closes immediately instead of drifting and a wall clock that jumps
+moves nothing. Wall-clock times are for the wire and the database. The task takes the same
+room lock as everything else and, like everything else, sends nothing while holding it.
+
+A step that raises (a database blip, a type's ``grade``) takes the room out of memory as a
+process restart would, and the next ``get`` brings it back through the recovery below.
+Every step writes to the database before it changes memory, so whatever the failure left
+behind, the database holds a state recovery knows how to resume.
 
 Between two rounds the loop holds the room in ``standings`` (D9) for
 ``standings_seconds``: the reveal of a round's last question gives way to it, and it gives
@@ -300,6 +306,11 @@ class RoomQuestion:
     than storing it is what leaves rehydrate as it was: a question that was open at a
     restart is voided either way, so nothing ever needs it back from the database.
 
+    ``answerable_mono`` and ``ends_mono`` are those two moments on the manager's monotonic
+    clock. An answer is timed and cut off against them and the timer sleeps to them, so a
+    wall clock that jumps mid-question moves neither a bucket nor the close; the wall-clock
+    pair is what the clients count down to.
+
     ``type`` and ``mode`` are both columns, and neither is derived from the other: the
     type is how the question is answered and graded, the mode is the round it was drawn
     for and where its ``seconds`` come from.
@@ -326,6 +337,8 @@ class RoomQuestion:
     seconds: int | None = None
     answerable_at: datetime | None = None
     ends_at: datetime | None = None
+    answerable_mono: float | None = None
+    ends_mono: float | None = None
     answers: dict[UUID, Submitted] = field(default_factory=dict)
 
     @property
@@ -404,12 +417,15 @@ class Room:
     # ``None`` while a question is open, and during a splash that is still waiting for the
     # room to be ready.
     next_at: datetime | None = None
+    # The same moment on the manager's monotonic clock, and what the timer sleeps to: a
+    # wall clock that jumps must not move it. ``next_at`` is for the wire.
+    next_mono: float | None = None
     # The one task driving open → closed → reveal → next.
     timer: asyncio.Task[None] | None = field(default=None, repr=False)
     # Set to cut the current sleep short: ``skip``, or everyone has answered.
     advance: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
     # Set when the ready check (D7) starts, shortens or stops a splash's countdown, so the
-    # timer task wakes and sleeps to the new ``next_at`` rather than the old one.
+    # timer task wakes and sleeps to the new ``next_mono`` rather than the old one.
     rescheduled: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
 
     @property
@@ -736,21 +752,24 @@ class RoomManager:
         if question is None or question.shown_at is None:
             resume_from -= 1
         elif question.closed_at is None:
+            closed_at = datetime.now(UTC)
             pool = await self._pool()
             async with pool.acquire() as conn:
-                await _void_question(conn, question)
+                await _void_question(conn, question, closed_at)
+            question.closed_at, question.voided = closed_at, True
             log.warning(
                 "room %s: question %d was open at the restart, voided", room.code, question.position
             )
         room.phase = "reveal"
         room.next_at = datetime.now(UTC) + timedelta(seconds=room.settings.reveal_seconds)
+        room.next_mono = self.clock() + room.settings.reveal_seconds
         log.info(
             "room %s resumes in reveal until %s, then question %d",
             room.code,
             room.next_at.isoformat(),
             resume_from + 1,
         )
-        self._start_timer(room, resume_from, resume_at=room.next_at)
+        self._start_timer(room, resume_from, resume_at=room.next_mono)
 
     def _forget(self, room: Room) -> list[WebSocket]:
         """Take a room out of memory and detach its sockets, returning them to close.
@@ -785,6 +804,20 @@ class RoomManager:
         for ws in sockets:
             await _close(ws, CLOSE_RESTART, "room restarted, reconnect")
         return True
+
+    async def _restart(self, room: Room) -> None:
+        """``evict`` for a room whose timer step failed, unless it has already left memory.
+
+        The room is checked by identity, not code: a timer that failed after its room was
+        dropped and rehydrated must not drop the new one. The ``get`` a reconnect makes
+        runs ``_recover``, which voids a question the failure left open.
+        """
+        async with self._locked(room.code):
+            if self.rooms.get(room.code) is not room:
+                return
+            sockets = self._forget(room)
+        for ws in sockets:
+            await _close(ws, CLOSE_RESTART, "room restarted, reconnect")
 
     # --- Removal --------------------------------------------------------------------
 
@@ -917,7 +950,7 @@ class RoomManager:
             room.sockets[player.id] = ws
             player.connected = True
             # A ready player coming back can be the last one a splash was waiting on.
-            _recount_splash(room)
+            _recount_splash(room, self.clock())
             question = room.open_question()
             answered = question.answers.get(player.id) if question is not None else None
             # ``room.view()`` carries the round, so a socket arriving during a splash
@@ -970,7 +1003,7 @@ class RoomManager:
             if player is not None:
                 player.connected = False
             # Somebody leaving lowers the threshold rather than stalling the splash.
-            _recount_splash(room)
+            _recount_splash(room, self.clock())
             update = self._room_updated(room)
         await self._broadcast(update)
 
@@ -1204,7 +1237,7 @@ class RoomManager:
                 _cool_down(target.ready_changed_at, now)
                 target.ready_changed_at = now
             target.ready = is_ready
-            _recount_splash(room, unready=not is_ready)
+            _recount_splash(room, self.clock(), unready=not is_ready)
             update = self._room_updated(room)
         await self._broadcast(update)
 
@@ -1227,16 +1260,16 @@ class RoomManager:
                 raise BadState(f"room {code} has no questions")
             if not room.sockets:
                 raise BadState("nobody is connected to play")
-            room.status = "playing"
-            room.current_index = 0
-            # "Ready to start" has been answered by starting. The first splash asks again.
-            for player in room.players.values():
-                player.ready = False
             async with pool.acquire() as conn:
                 await conn.execute(
                     "update rooms set status = 'playing', current_index = 0 where id = $1",
                     room.id,
                 )
+            room.status = "playing"
+            room.current_index = 0
+            # "Ready to start" has been answered by starting. The first splash asks again.
+            for player in room.players.values():
+                player.ready = False
             update = self._room_updated(room)
         await self._broadcast(update)
         self._start_timer(room, 0)
@@ -1254,15 +1287,16 @@ class RoomManager:
         only after it returns, so an acknowledged answer is an answer that survived the
         process. Nothing here is batched or deferred.
 
-        The room lock is what keeps this honest against the clock: an answer that arrives
-        while the timer is closing the question waits for the lock and is then rejected
-        with ``not_open``, and one that wins the race is graded in that same close. The
-        other end is ``answerable_at``: a random event is on screen before it takes
-        answers, and one that arrives early is ``not_open`` too, so a client that draws
-        its buttons ahead of time gets nothing for it. Elapsed time runs from there, so
-        the NPC's two seconds cost nobody a speed bucket.
+        An answer is timed when it arrives, before it queues for the room lock behind
+        other answers' writes, so a pile-up at the buzzer costs nobody a bucket. It counts
+        from ``answerable_at`` up to, not including, ``ends_at``, and a close that runs late
+        gives nobody extra time. A random event is on screen before it takes answers, and
+        one that arrives early is ``not_open``, so a client that draws its buttons ahead of
+        time gets nothing for it. Elapsed time runs from there, so the NPC's two seconds
+        cost nobody a speed bucket.
         """
         code = code.upper()
+        received_at, arrived = datetime.now(UTC), self.clock()
         pool = await self._pool()
         async with self._locked(code):
             room = await self._room(code)
@@ -1275,17 +1309,19 @@ class RoomManager:
                 raise NotOpen("no question is open")
             if question.question_id != question_id:
                 raise NotOpen(f"question {question_id} is not the open one")
-            now = datetime.now(UTC)
-            assert question.answerable_at is not None  # set when the question opened
-            if now < question.answerable_at:
+            # Both set when the question opened.
+            assert question.answerable_mono is not None and question.ends_mono is not None
+            if arrived < question.answerable_mono:
                 raise NotOpen("this question is not taking answers yet")
+            if arrived >= question.ends_mono:
+                raise NotOpen("this question's time is up")
             if player.id in question.answers:
                 raise AlreadyAnswered("you have already answered this question")
             if not question.can_answer(player.id):
                 raise Excluded("you cannot answer this question")
             if not TYPES[question.type].validate_value(question.payload, value):
                 raise BadValue(f"not a valid answer to a {question.type} question")
-            elapsed = (now - question.answerable_at).total_seconds()
+            elapsed = arrived - question.answerable_mono
             # The question's own length, not the room's setting: a mode that caps itself
             # at ten seconds must score on ten seconds, or every answer to it lands in
             # the fastest bucket of a room set to a minute.
@@ -1300,11 +1336,11 @@ class RoomManager:
                         question.id,
                         player.id,
                         value,
-                        now,
+                        received_at,
                     )
                 except asyncpg.UniqueViolationError:  # a row this room never loaded
                     raise AlreadyAnswered("you have already answered this question") from None
-            question.answers[player.id] = Submitted(value=value, received_at=now, band=band)
+            question.answers[player.id] = Submitted(value=value, received_at=received_at, band=band)
             if room.settings.close_when_all_answered and _everyone_answered(room, question):
                 room.advance.set()
             count = _answer_count(room, question)
@@ -1370,7 +1406,7 @@ class RoomManager:
             for question in room.questions:
                 question.answers.pop(player_id, None)
             socket = room.sockets.pop(player_id, None)
-            _recount_splash(room)
+            _recount_splash(room, self.clock())
             update = self._room_updated(room)
         if socket is not None:
             await _close(socket, CLOSE_KICKED, "removed from the room")
@@ -1381,6 +1417,9 @@ class RoomManager:
 
         The voided question keeps its answers but is never graded, so those rows stay at
         ``points = null`` and add nothing to anyone's sum.
+
+        Nothing changes in memory, the timer included, until the transaction commits: an
+        end the database refused leaves the game running for the host to end again.
         """
         code = code.upper()
         pool = await self._pool()
@@ -1389,18 +1428,23 @@ class RoomManager:
             _require_admin(by)
             if room.status != "playing":
                 raise BadState(f"room {code} is {room.status}, not playing")
-            _stop_timer(room)
+            question = room.open_question()
+            voiding = question if question is not None and question.closed_at is None else None
+            closed_at = datetime.now(UTC)
             async with pool.acquire() as conn, conn.transaction():
-                question = room.open_question()
-                if question is not None and question.closed_at is None:
-                    await _void_question(conn, question)
-                broadcasts = await self._finish(room, conn)
+                if voiding is not None:
+                    await _void_question(conn, voiding, closed_at)
+                await conn.execute("update rooms set status = 'finished' where id = $1", room.id)
+            _stop_timer(room)
+            if voiding is not None:
+                voiding.closed_at, voiding.voided = closed_at, True
+            broadcasts = self._finish(room)
         for broadcast in broadcasts:
             await self._broadcast(broadcast)
 
     # --- The timer task --------------------------------------------------------------
 
-    def _start_timer(self, room: Room, index: int, resume_at: datetime | None = None) -> None:
+    def _start_timer(self, room: Room, index: int, resume_at: float | None = None) -> None:
         """Hand the room to its one timer task, starting at ``index``.
 
         ``start_game`` calls this with the lock released, right after its own broadcast,
@@ -1415,9 +1459,7 @@ class RoomManager:
             self._run_questions(room, index, resume_at), name=f"room-{room.code}-timer"
         )
 
-    async def _run_questions(
-        self, room: Room, index: int, resume_at: datetime | None = None
-    ) -> None:
+    async def _run_questions(self, room: Room, index: int, resume_at: float | None = None) -> None:
         """The one task per room: open → close → reveal → next, until the game ends.
 
         Every step takes the room lock again and re-checks that this room is still the
@@ -1428,6 +1470,9 @@ class RoomManager:
         ``index`` is the question that reveal belongs to rather than one to open. It
         rejoins at the top of the loop, so a recovered room that owes the first question
         of a round introduces that round again before opening it.
+
+        A step that raises restarts the room (``_restart``) rather than leaving it in
+        memory with nothing to move it on.
         """
         try:
             if resume_at is not None:
@@ -1440,13 +1485,13 @@ class RoomManager:
                 if not await self._splash(room, index):
                     return
                 question = await self._open_question(room, index)
-                if question is None or question.ends_at is None:
+                if question is None or question.ends_mono is None:
                     return
-                await self._sleep_until(room, question.ends_at)
-                next_at = await self._close_question(room, question)
-                if next_at is None:
+                await self._sleep_until(room, question.ends_mono)
+                reveal_ends = await self._close_question(room, question)
+                if reveal_ends is None:
                     return
-                await self._sleep_until(room, next_at)
+                await self._sleep_until(room, reveal_ends)
                 if not await self._standings(room, index):
                     return
                 following = await self._advance(room, index)
@@ -1456,19 +1501,20 @@ class RoomManager:
         except asyncio.CancelledError:
             raise
         except Exception:  # a broken question or a database failure must not go silent
-            log.exception("room %s: the timer task stopped", room.code)
+            log.exception("room %s: a timer step failed, restarting the room", room.code)
+            await self._restart(room)
         finally:
             if room.timer is asyncio.current_task():
                 room.timer = None
 
-    async def _sleep_until(self, room: Room, target: datetime) -> None:
-        """Wait until ``target``, or until something sets ``room.advance``.
+    async def _sleep_until(self, room: Room, deadline: float) -> None:
+        """Wait until ``deadline`` on the manager's clock, or until ``room.advance`` is set.
 
         The delay is measured against the clock every time rather than counted down, so
-        a wakeup that is late (a busy event loop, a suspended machine) closes the
-        question immediately instead of pushing the rest of the game back by that much.
+        a wakeup that is late (a busy event loop) closes the question immediately instead
+        of pushing the rest of the game back by that much.
         """
-        delay = max(0.0, (target - datetime.now(UTC)).total_seconds())
+        delay = max(0.0, deadline - self.clock())
         try:
             async with asyncio.timeout(delay):
                 await room.advance.wait()
@@ -1501,7 +1547,7 @@ class RoomManager:
             room.current_index = index
             room.phase = "splash"
             # No clock: the splash waits for the room (``rooms/ready.py``) or the host.
-            room.next_at = None
+            room.next_at = room.next_mono = None
             room.advance.clear()
             # Each splash is its own ready check: being ready for the last round is not
             # being ready for this one.
@@ -1516,22 +1562,22 @@ class RoomManager:
     async def _sleep_through_splash(self, room: Room) -> None:
         """Wait out a splash, which ends when the room is ready rather than on a clock.
 
-        ``next_at`` is ``None`` until the ready check starts a countdown, and it can be
+        ``next_mono`` is ``None`` until the ready check starts a countdown, and it can be
         started, shortened or stopped while this sleeps: each change sets
         ``rescheduled``, and this wakes, reads the new time and sleeps again. ``skip``
         sets ``advance`` and ends it at once, as it ends any other sleep. Reading
-        ``next_at`` and clearing ``rescheduled`` happen with no await between them, so a
+        ``next_mono`` and clearing ``rescheduled`` happen with no await between them, so a
         change is never lost between the read and the wait.
         """
         while True:
-            target = room.next_at
+            target = room.next_mono
             room.rescheduled.clear()
             if room.phase != "splash" or room.advance.is_set():
                 return
             if target is None:
                 await _wait_for_either(room.advance, room.rescheduled, None)
                 continue
-            delay = (target - datetime.now(UTC)).total_seconds()
+            delay = target - self.clock()
             if delay <= 0:
                 return
             await _wait_for_either(room.advance, room.rescheduled, delay)
@@ -1564,12 +1610,12 @@ class RoomManager:
                 return True
             room.phase = "standings"
             room.next_at = datetime.now(UTC) + timedelta(seconds=seconds)
+            room.next_mono = ends = self.clock() + seconds
             # A skip that landed during the reveal has been spent on the reveal.
             room.advance.clear()
             update = self._room_updated(room)
-            next_at = room.next_at
         await self._broadcast(update)
-        await self._sleep_until(room, next_at)
+        await self._sleep_until(room, ends)
         return True
 
     async def _open_question(self, room: Room, index: int) -> RoomQuestion | None:
@@ -1588,20 +1634,23 @@ class RoomManager:
             if not 0 <= index < len(room.questions):
                 return None
             question = room.questions[index]
-            now = datetime.now(UTC)
-            question.shown_at = now
-            question.seconds = room.question_seconds(question.mode)
+            shown_at, now = datetime.now(UTC), self.clock()
+            seconds = room.question_seconds(question.mode)
             hold = room.settings.random_event_seconds if question.random_event else 0
-            question.answerable_at = now + timedelta(seconds=hold)
-            question.ends_at = question.answerable_at + timedelta(seconds=question.seconds)
-            room.current_index = index
-            room.phase = "open"
-            room.next_at = None
-            room.advance.clear()
             async with pool.acquire() as conn:
                 await conn.execute(
-                    "update questions set shown_at = $1 where id = $2", now, question.id
+                    "update questions set shown_at = $1 where id = $2", shown_at, question.id
                 )
+            question.shown_at = shown_at
+            question.seconds = seconds
+            question.answerable_at = shown_at + timedelta(seconds=hold)
+            question.ends_at = question.answerable_at + timedelta(seconds=seconds)
+            question.answerable_mono = now + hold
+            question.ends_mono = question.answerable_mono + seconds
+            room.current_index = index
+            room.phase = "open"
+            room.next_at = room.next_mono = None
+            room.advance.clear()
             segment = room.segment_at(index)
             assert segment is not None  # every question belongs to a round
             count = _answer_count(room, question)
@@ -1614,13 +1663,17 @@ class RoomManager:
         await self._broadcast(opened)
         return question
 
-    async def _close_question(self, room: Room, question: RoomQuestion) -> datetime | None:
+    async def _close_question(self, room: Room, question: RoomQuestion) -> float | None:
         """``open → closed``: grade, write the points, broadcast ``question_closed``.
 
-        Returns when the reveal ends, or ``None`` if the room stopped playing underneath
-        us. This is the only place ``answers.correct`` and ``answers.points`` are written,
-        and the standings that go out with the reveal are the table's own sum, re-read
-        here once the points are in.
+        Returns when the reveal ends on the manager's clock, or ``None`` if the room
+        stopped playing underneath us. This is the only place ``answers.correct`` and
+        ``answers.points`` are written, and the standings that go out with the reveal are
+        the table's own sum, re-read here once the points are in.
+
+        Grading and the reveal run before the write, because a type's bug shows up there,
+        and nothing in memory changes until the write has committed. A close that fails
+        leaves the question open in both, for the restart to void.
         """
         pool = await self._pool()
         async with room.lock:
@@ -1628,11 +1681,7 @@ class RoomManager:
                 return None
             if room.phase != "open" or room.current is not question:
                 return None
-            now = datetime.now(UTC)
-            question.closed_at = now
-            room.phase = "reveal"
-            room.next_at = now + timedelta(seconds=room.settings.reveal_seconds)
-            room.advance.clear()
+            closed_at, now = datetime.now(UTC), self.clock()
             module = TYPES[question.type]
             # Everything in ``answers`` passed ``can_answer`` on the way in, so grading
             # never has to re-check the exclusions.
@@ -1641,30 +1690,41 @@ class RoomManager:
                 [Submission(pid, answer.value) for pid, answer in question.answers.items()],
             )
             how = question.scoring
+            graded: dict[UUID, tuple[float, bool, int]] = {}
             for pid, answer in question.answers.items():
-                answer.credit = credit.get(pid, 0.0)
+                got = credit.get(pid, 0.0)
+                points = scoring.points_for(how, got, answer.band, question.steps)
                 # Full marks only. Three of five in the right order scores, and is not
                 # "correct" for the standings tie-break (section 6).
-                answer.correct = answer.credit >= 1.0
-                answer.points = scoring.points_for(how, answer.credit, answer.band, question.steps)
+                graded[pid] = (got, got >= 1.0, points)
+            reveal = module.reveal(question.payload)
             async with pool.acquire() as conn, conn.transaction():
                 await conn.execute(
-                    "update questions set closed_at = $1 where id = $2", now, question.id
+                    "update questions set closed_at = $1 where id = $2", closed_at, question.id
                 )
-                if question.answers:
+                if graded:
                     await conn.executemany(
                         "update answers set correct = $1, points = $2"
                         " where question_id = $3 and player_id = $4",
                         [
-                            (answer.correct, answer.points, question.id, pid)
-                            for pid, answer in question.answers.items()
+                            (correct, points, question.id, pid)
+                            for pid, (_, correct, points) in graded.items()
                         ],
                     )
-                room.totals = await _fetch_totals(conn, room.id)
+                totals = await _fetch_totals(conn, room.id)
+            question.closed_at = closed_at
+            for pid, (got, correct, points) in graded.items():
+                answer = question.answers[pid]
+                answer.credit, answer.correct, answer.points = got, correct, points
+            room.totals = totals
+            room.phase = "reveal"
+            room.next_at = closed_at + timedelta(seconds=room.settings.reveal_seconds)
+            room.next_mono = reveal_ends = now + room.settings.reveal_seconds
+            room.advance.clear()
             more = question.position + 1 < len(room.questions)
             message = QuestionClosed(
                 question_id=question.question_id,
-                reveal=module.reveal(question.payload),
+                reveal=reveal,
                 results={
                     pid: PlayerResult(
                         value=answer.value,
@@ -1678,9 +1738,8 @@ class RoomManager:
                 next_at=room.next_at if more else None,
             )
             closed = Broadcast.to_all(room, message.model_dump(mode="json"))
-            next_at = room.next_at
         await self._broadcast(closed)
-        return next_at
+        return reveal_ends
 
     async def _advance(self, room: Room, index: int) -> int | None:
         """``closed → next pending``, or the end of the game.
@@ -1696,27 +1755,28 @@ class RoomManager:
             following = index + 1
             async with pool.acquire() as conn:
                 if following < len(room.questions):
-                    room.current_index = following
-                    room.next_at = None
                     await conn.execute(
                         "update rooms set current_index = $1 where id = $2", following, room.id
                     )
+                    room.current_index = following
+                    room.next_at = room.next_mono = None
                     return following
-                broadcasts = await self._finish(room, conn)
+                await conn.execute("update rooms set status = 'finished' where id = $1", room.id)
+            broadcasts = self._finish(room)
         for broadcast in broadcasts:
             await self._broadcast(broadcast)
         return None
 
-    async def _finish(self, room: Room, conn: asyncpg.Connection) -> list[Broadcast]:
-        """``playing → finished``. Call with the room lock held, send what it returns.
+    def _finish(self, room: Room) -> list[Broadcast]:
+        """``playing → finished`` in memory, once the database says so. Lock held; send
+        what it returns.
 
         ``room_updated`` goes first so a client knows the room is over before the final
         standings land.
         """
         room.status = "finished"
         room.phase = "idle"
-        room.next_at = None
-        await conn.execute("update rooms set status = 'finished' where id = $1", room.id)
+        room.next_at = room.next_mono = None
         finished = GameFinished(standings=room.standings())
         return [
             self._room_updated(room),
@@ -1773,8 +1833,10 @@ def _answer_count(room: Room, question: RoomQuestion) -> tuple[int, int]:
     return len(question.answers), len(answering)
 
 
-def _recount_splash(room: Room, unready: bool = False) -> None:
+def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
     """Start, shorten or stop a splash's countdown to match who is ready. Lock held.
+
+    ``now`` is the manager's clock, which the countdown runs on.
 
     A no-op outside a splash. Eligible is every connected player who can answer the
     round's first question (``current_index`` points at it during a splash), and only
@@ -1782,7 +1844,7 @@ def _recount_splash(room: Room, unready: bool = False) -> None:
 
     Only an un-ready (``unready``) stops a running countdown; a connect, a disconnect or a
     kick can start or shorten one but never stop it (``rooms/ready.py`` says why). Any
-    change sets ``rescheduled``, so the timer task sleeps to the new ``next_at``.
+    change sets ``rescheduled``, so the timer task sleeps to the new ``next_mono``.
     """
     if room.status != "playing" or room.phase != "splash":
         return
@@ -1791,11 +1853,14 @@ def _recount_splash(room: Room, unready: bool = False) -> None:
         return
     eligible = [pid for pid in room.sockets if question.can_answer(pid)]
     tapped = sum(1 for pid in eligible if room.players[pid].ready)
-    target = ready.countdown(room.next_at, datetime.now(UTC), len(eligible), tapped)
+    target = ready.countdown(room.next_mono, now, len(eligible), tapped)
     if target is None and not unready:
         return
-    if target != room.next_at:
-        room.next_at = target
+    if target != room.next_mono:
+        room.next_mono = target
+        room.next_at = (
+            None if target is None else datetime.now(UTC) + timedelta(seconds=target - now)
+        )
         room.rescheduled.set()
 
 
@@ -1823,19 +1888,16 @@ def _stop_timer(room: Room) -> None:
         timer.cancel()
 
 
-async def _void_question(conn: asyncpg.Connection, question: RoomQuestion) -> None:
-    """``open → voided`` (section 4): close a question now and grade nothing.
+async def _void_question(conn: asyncpg.Connection, question: RoomQuestion, at: datetime) -> None:
+    """Write ``open → voided`` (section 4): the question closes at ``at``, graded nothing.
 
     Both ways in are a question nobody gets to score: ``end_game``, and a restart that
     found it open (T11). Answers already in the table stay exactly as they arrived, with
-    ``correct`` and ``points`` null, which is what ``_fetch_totals`` sums as nothing.
+    ``correct`` and ``points`` null, which is what ``_fetch_totals`` sums as nothing. The
+    caller marks the question voided in memory once the write has committed.
     """
-    question.closed_at = datetime.now(UTC)
-    question.voided = True
     await conn.execute(
-        "update questions set closed_at = $1, voided = true where id = $2",
-        question.closed_at,
-        question.id,
+        "update questions set closed_at = $1, voided = true where id = $2", at, question.id
     )
 
 
