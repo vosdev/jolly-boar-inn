@@ -18,7 +18,7 @@
 import { writable } from 'svelte/store'
 
 import { isHead, randomHead } from './heads'
-import { nameProblem } from './names'
+import { nameProblem, normalizeName } from './names'
 
 export interface Profile {
   name: string
@@ -50,10 +50,10 @@ function load(): Profile | null {
     // A name the rules have since tightened against is no name: better to ask again than
     // to walk somebody into a join the server refuses.
     if (typeof name !== 'string' || nameProblem(name) !== null) return null
-    if (isHead(parsed?.head)) return { name: name.trim(), head: parsed.head }
+    if (isHead(parsed?.head)) return { name: normalizeName(name), head: parsed.head }
     // A profile from before heads: give it one now and keep it, so it is the same face
     // on every visit rather than a new one each time the page loads.
-    const upgraded = { name: name.trim(), head: randomHead() }
+    const upgraded = { name: normalizeName(name), head: randomHead() }
     store(upgraded)
     return upgraded
   } catch {
@@ -71,7 +71,7 @@ export const profile = writable<Profile | null>(load())
  */
 export function saveProfile(name: string, head?: number): void {
   profile.update((current) => {
-    const next: Profile = { name: name.trim(), head: head ?? current?.head ?? randomHead() }
+    const next: Profile = { name: normalizeName(name), head: head ?? current?.head ?? randomHead() }
     store(next)
     return next
   })

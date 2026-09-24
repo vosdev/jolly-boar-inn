@@ -1,6 +1,7 @@
 """App factory and lifespan."""
 
 import asyncio
+import json
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
@@ -8,6 +9,8 @@ from pathlib import Path
 
 import asyncpg
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app import accesslog
@@ -136,6 +139,20 @@ async def _api_error(request: Request, exc: ApiError) -> JSONResponse:
     return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.status)
 
 
+class _AsciiJSONResponse(JSONResponse):
+    def render(self, content: object) -> bytes:
+        return json.dumps(content, separators=(",", ":")).encode("ascii")
+
+
+async def _validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """FastAPI's own 422 body, escaped to ASCII.
+
+    It echoes the input back, and a lone surrogate from a ``\\ud800`` escape has no UTF-8
+    encoding, so the default response would turn the 422 into a 500.
+    """
+    return _AsciiJSONResponse({"detail": jsonable_encoder(exc.errors())}, status_code=422)
+
+
 def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST) -> FastAPI:
     app = FastAPI(
         title="Jolly Boar Inn",
@@ -154,6 +171,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.add_middleware(UntrustedForwardWarning)
     app.add_middleware(SecurityHeaders)  # last, so it wraps the others' responses too
     app.add_exception_handler(ApiError, _api_error)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, _validation_error)  # type: ignore[arg-type]
 
     @app.get("/api/health")
     async def health(request: Request) -> JSONResponse:

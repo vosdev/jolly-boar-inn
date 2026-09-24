@@ -26,13 +26,14 @@ reveal with ``accepted``, for the reason ``pick_from_list`` withholds its own.
 from typing import Any
 from uuid import UUID
 
-from app.questions import normalize
+from app.questions import normalize, text
 from app.questions.submission import Submission
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 
 SCORING = Scoring.SPEED
-# The wire caps a typed answer at this; the schema caps an accepted one at the same.
+# A typed or accepted answer, before normalising and after: the wire and the schema
+# hold the first, and ``validate_value`` and ``check`` the second.
 MAX_LENGTH = 80
 DEFAULT_DISTANCE = 1
 # A question to read and an answer to type on a phone: slower than a button, so twenty
@@ -67,13 +68,29 @@ def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, 
 
 
 def validate_value(payload: dict[str, Any], value: Any) -> bool:
-    return isinstance(value, str) and 0 < len(value) <= MAX_LENGTH
+    # The raw cap bounds the NFKC that the normalised cap needs; the normalised one is what
+    # bounds grading, since NFKC can make one character eighteen.
+    return (
+        isinstance(value, str)
+        and 0 < len(value) <= MAX_LENGTH
+        and text.unstorable(value) is None
+        and len(normalize.normalize(value)) <= MAX_LENGTH
+    )
 
 
 def check(payload: dict[str, Any]) -> list[str]:
     """Consistency: every accepted answer is something a player could type."""
-    return [
-        f"accepted[{index}]: {answer!r} is only punctuation and spaces, so nothing can match it"
-        for index, answer in enumerate(payload["accepted"])
-        if not normalize.normalize(answer)
-    ]
+    problems = []
+    for index, answer in enumerate(payload["accepted"]):
+        normal = normalize.normalize(answer)
+        if not normal:
+            problems.append(
+                f"accepted[{index}]: {answer!r} is only punctuation and spaces,"
+                " so nothing can match it"
+            )
+        elif len(normal) > MAX_LENGTH:
+            problems.append(
+                f"accepted[{index}]: is {len(normal)} characters once normalised,"
+                f" over the {MAX_LENGTH} an answer may be"
+            )
+    return problems

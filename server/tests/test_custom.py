@@ -59,3 +59,14 @@ def test_a_host_may_name_the_npc_who_asks_it_if_it_is_on_the_roster() -> None:
         "custom_questions[0] $.random_event: 'rick_turpentine' is not on the roster"
         " (app/random_events.py)"
     ]
+
+
+@pytest.mark.parametrize(("bad", "code"), [("\x00", "0000"), ("\ud800", "D800")])
+def test_a_character_the_database_cannot_store_is_refused_by_its_path(bad: str, code: str) -> None:
+    """Lone surrogates are valid JSON escapes, and would otherwise break the content id."""
+    written = {**WRITTEN, "payload": {**WRITTEN["payload"], "prompt": f"How{bad} many?"}}
+    with pytest.raises(schema.QuestionError) as info:
+        custom.envelopes([WRITTEN, written])
+    assert info.value.errors == [
+        f"custom_questions[1] $.payload.prompt: U+{code} is not a character that can be stored"
+    ]

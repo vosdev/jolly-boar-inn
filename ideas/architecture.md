@@ -644,12 +644,12 @@ Submitted answer values on the wire, per type (validated by `validate_value`):
 |---|---|---|
 | `more_less` | integer option index | 1.0 or 0.0 |
 | `price_is_right`, `multiple_choice` | integer option index | 1.0 or 0.0 |
-| `free_text` | string, max 80 chars | 1.0 or 0.0 |
+| `free_text` | string, max 80 chars before and after normalising, no NUL or lone surrogate | 1.0 or 0.0 |
 | `closest_number` | number | by rank (section 6) |
 | `ordering` | array of entry keys, one per entry, no repeats | fraction in the right place |
 | `pick_from_list` | integer vocabulary entry id | 1.0 or 0.0 |
 
-Free-text grading (`questions/normalize.py`): lowercase, NFKC, trim, collapse whitespace, strip punctuation, then accept if Levenshtein distance to any accepted answer is ≤ `max_distance`. Distance is capped at 0 for accepted answers shorter than 4 characters so "Jad" does not accept "Jam".
+Free-text grading (`questions/normalize.py`): NFKC, lowercase, strip punctuation, trim and collapse whitespace, then accept if Levenshtein distance to any accepted answer is ≤ `max_distance`, computed only within that band so grading stays linear on the event loop. Distance is capped at 0 for accepted answers shorter than 4 characters so "Jad" does not accept "Jam".
 
 Custom questions are ordinary rows in `questions` with `source = 'room'`, `mode = 'custom'`, `author_player_id` set, and `payload` validated against this schema at room creation. Export is `SELECT` of those rows serialised back into the envelope; import is the same POST body as creation.
 
@@ -1123,7 +1123,7 @@ Goal: the creator of a room is its first admin; every identity is a session toke
 
 1. **Create.** Client `POST /api/rooms` with `{display_name, settings, custom_questions: []}`.
 2. **Server** (`RoomManager.create`), one transaction:
-   - Normalise the display name first — trimmed, 1–24 characters, no `<`/`>`, no control characters → `422 bad_name` before a single row exists, and before the rate limiter is consulted. The limiter records a hit on every call it allows, so validating afterwards would let a handful of typos cost a host their hourly quota.
+   - Normalise the display name first — NFKC, trimmed, runs of spaces made one, then 1–24 Latin letters (accents included), digits, spaces, `_` and `-` → `422 bad_name` before a single row exists, and before the rate limiter is consulted. The limiter records a hit on every call it allows, so validating afterwards would let a handful of typos cost a host their hourly quota.
    - Rate limit: `ratelimit.py` keeps `{key: deque[timestamps]}` in memory, keyed on the IPv4 address or the IPv6 /64; more than `ROOMS_PER_IP_PER_HOUR` → `429`.
    - Generate `code`: random entry from `data/room-words.json`, uppercase, retry on unique violation up to 5 times (a savepoint per attempt), then append two random digits.
    - Insert the room with `status = 'lobby'` and `expires_at = now + ROOM_TTL_DAYS`. There is no `created` state: a room and its host are born together.
@@ -1181,7 +1181,7 @@ Accept: produces +- 100 valid questions; `validate_packs.py` passes on the outpu
 DONE: **T6. Room creation.** `rooms/codes.py`, `data/room-words.json` (see Needs decision), `http/rooms.py` with `POST /api/rooms`, `GET /api/rooms/{code}`; `ratelimit.py`; `rooms/selection.py`; the `create` method of `RoomManager`, inserting the room, its questions and its admin player at creation.
 Accept: integration tests cover: create returns `{code, session, player}` and the creator is the room's admin; a bad display name creates no room row and costs no rate-limit quota; a failed admin insert leaves no room; sixth create from one IP in an hour is `429`; `questions` rows equal what the picked modes asked for; code collision retry is unit-tested with a stubbed word list.
 
-DONE: **T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules: trimmed, 1–24 chars, unique per room case-insensitively, no HTML (escaped on render anyway).
+DONE: **T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules as in section 7, unique per room case-insensitively on the normalised name.
 Accept: join a `finished` room → `409 not_open`; duplicate name → `409`; over `max_players` → `409`; success returns a session; player appears in `GET /api/rooms/{code}`.
 
 DONE: **T8. RoomManager core and websocket handshake.** `rooms/state.py` with `Room`, lock, `get` with rehydrate, `connect`/`disconnect`; `ws/protocol.py` models; `ws/handler.py` with `hello`/`welcome`/`ping`/`pong`/`room_updated`/`error`.

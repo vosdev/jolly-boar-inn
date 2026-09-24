@@ -26,19 +26,24 @@ function length(text: string): number {
   return [...text].length
 }
 
+/** `_LATIN_LETTERS` in `server/app/rooms/state.py`, then digits, space, `_` and `-`. */
+const ALLOWED = /^[A-Za-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u024f\u1e00-\u1eff0-9 _-]*$/
+
+/** The name as the server stores it: NFKC, trimmed, and runs of spaces made one. */
+export function normalizeName(raw: string): string {
+  return raw.normalize('NFKC').trim().replace(/ {2,}/g, ' ')
+}
+
 /**
  * Why the server would refuse this name, or null if it would take it. The same rules as
- * `normalize_name`: trimmed, 1–24 characters, no `<` or `>`, and no whitespace but a
- * plain space and no control characters. Uniqueness is the room's to check.
+ * `normalize_name`, checked on `normalizeName(raw)`: 1–24 characters of Latin letters,
+ * accents included, digits, spaces, `_` and `-`. Uniqueness is the room's to check.
  */
 export function nameProblem(raw: string): string | null {
-  const name = raw.trim()
+  const name = normalizeName(raw)
   if (name === '') return 'Pick a name.'
   if (length(name) > NAME_MAX) return `At most ${NAME_MAX} characters.`
-  if (/[<>]/.test(name)) return 'No < or > in a name.'
-  if ([...name].some((ch) => ch.codePointAt(0)! < 32) || /[^\S ]/.test(name)) {
-    return 'No line breaks or control characters.'
-  }
+  if (!ALLOWED.test(name)) return 'Only letters, digits, spaces, _ and - in a name.'
   return null
 }
 
