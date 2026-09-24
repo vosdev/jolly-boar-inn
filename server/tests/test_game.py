@@ -72,6 +72,18 @@ class Seat:
     def send(self, **frame: Any) -> None:
         self.ws.send_json(frame)
 
+    def skip(self, phase: str, index: int) -> None:
+        """The host's skip, naming the phase and question it was pressed on."""
+        self.send(t="skip", phase=phase, index=index)
+
+    def settle(self) -> None:
+        """Wait until the server has handled every frame this seat sent before now.
+
+        One socket's frames are handled in order, so the ``pong`` comes after them all.
+        """
+        self.send(t="ping")
+        self.take("pong")
+
     def take(self, kind: str, limit: int = 30) -> dict[str, Any]:
         """The next message of type ``kind``. Anything before it is kept in ``seen``.
 
@@ -121,6 +133,12 @@ class Game:
 
     def start(self) -> None:
         self.admin.send(t="start_game")
+
+    def skip(self, seat: Seat | None = None) -> None:
+        """Skip the phase the room is in now, named as a client that is up to date would."""
+        room = self.room
+        assert room.current_index is not None, f"nothing to skip in {room.status}"
+        (seat or self.admin).skip(room.phase, room.current_index)
 
     def answer(self, seat: Seat, index: int, value: Any) -> None:
         seat.send(t="answer", question_id=self.question(index).question_id, value=value)
@@ -478,7 +496,7 @@ def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table) -> None:
     other = next(q.payload["answer_id"] for q in game.room.questions[1:])
     game.answer(woox, 0, other)
     woox.take("answer_ack")
-    game.admin.send(t="skip")
+    game.skip()
     results = game.admin.take("question_closed")["results"]
     by_name = {seat.player["id"]: seat.name for seat in game.players}
     assert {by_name[pid]: r["correct"] for pid, r in results.items()} == {
@@ -522,6 +540,44 @@ def test_a_disconnected_player_does_not_hold_the_close_up(game) -> None:
     assert set(closed["results"]) == {game.admin.id, game.players[0].id}
 
 
+@pytest.mark.parametrize("leaves", ["disconnects", "is kicked"])
+def test_the_last_player_owing_an_answer_leaving_closes_the_question(game, leaves) -> None:
+    """Section 4: the others answer first and the last phone then locks, or the host kicks
+    its owner. Nobody connected is owed the question any more, so it closes now."""
+    game.start()
+    game.opened(0)
+    for seat in (game.admin, game.players[0]):
+        game.answer(seat, 0, game.right(0))
+        seat.take("answer_ack")
+    started = time.monotonic()
+    last = game.players[1]
+    if leaves == "disconnects":
+        last.ws.close()
+    else:
+        game.admin.send(t="kick", player_id=last.id)
+    closed = game.admin.take("question_closed")
+    assert time.monotonic() - started < 5  # not the ten seconds the question had
+    assert set(closed["results"]) == {game.admin.id, game.players[0].id}
+
+
+@pytest.mark.parametrize("leaves", ["disconnects", "is kicked"])
+def test_a_player_leaving_while_another_still_owes_an_answer_keeps_it_open(game, leaves) -> None:
+    game.start()
+    game.opened(0)
+    game.answer(game.admin, 0, game.right(0))
+    game.admin.take("answer_ack")
+    last = game.players[1]
+    if leaves == "disconnects":
+        last.ws.close()
+    else:
+        game.admin.send(t="kick", player_id=last.id)
+    # The leave is checked under the lock before this frame goes out, so a close it asked
+    # for shows here as ``advance`` set or the question already closed.
+    game.admin.take("room_updated")
+    room = game.room
+    assert (room.phase, room.advance.is_set()) == ("open", False)
+
+
 def test_an_unanswered_seat_keeps_the_question_open(game) -> None:
     """The early close waits for every connected player who can answer."""
     game.start()
@@ -541,7 +597,7 @@ def test_skip_closes_the_open_question_within_100ms(game) -> None:
     game.start()
     game.opened(0)
     started = time.monotonic()
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
     took = time.monotonic() - started
     assert took < 0.1, f"skip took {took * 1000:.0f} ms"
@@ -553,10 +609,10 @@ def test_skip_during_the_reveal_opens_the_next_question(table) -> None:
     game = table("Zezima", seconds=10, reveal_seconds=30)
     game.start()
     game.opened(0)
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
     started = time.monotonic()
-    game.admin.send(t="skip")
+    game.skip()
     opened = game.admin.take("question_open")
     assert time.monotonic() - started < 1
     assert opened["question"]["index"] == 1
@@ -565,20 +621,87 @@ def test_skip_during_the_reveal_opens_the_next_question(table) -> None:
 def test_a_player_cannot_skip(game) -> None:
     game.start()
     game.opened(0)
-    game.players[0].send(t="skip")
+    game.skip(game.players[0])
     assert game.players[0].take("error")["code"] == "not_admin"
     assert game.room.phase == "open"
 
 
 def test_skips_during_a_close_never_deadlock_the_room(table) -> None:
-    """Section 4: ``skip`` cancels a sleep, it does not fight the timer for the lock."""
-    game = table("Zezima", seconds=1, reveal_seconds=1)
+    """Section 4: ``skip`` cancels a sleep, it does not fight the timer for the lock.
+
+    Each burst names one phase and lands before, during and after its close. It ends that
+    phase and no more, and the ones that find it over get no reply.
+    """
+    game = table("Zezima", seconds=10, reveal_seconds=10)
     game.start()
-    for _ in range(12):  # land on opens, closes and reveals alike
-        game.admin.send(t="skip")
+    for index in range(3):
+        assert game.admin.take("question_open")["question"]["index"] == index
+        for _ in range(4):
+            game.admin.skip("open", index)
+        game.admin.take("question_closed")
+        game.admin.settle()
+        assert (game.room.phase, game.room.current_index) == ("reveal", index)
+        for _ in range(4):
+            game.admin.skip("reveal", index)
     finished = game.admin.take("game_finished", limit=80)
     assert len(finished["standings"]) == 2
     assert game.room.status == "finished"
+    assert not any(question.voided for question in game.room.questions)
+    game.admin.settle()
+    assert "error" not in game.admin.kinds
+
+
+def test_a_double_skip_ends_one_phase_in_every_phase(table, second_mode) -> None:
+    """ENG-2: a skip names the phase it was pressed on. A second tap that lands after the
+    first has moved the room on names a phase that is over, and nothing happens."""
+    game = table(
+        "Zezima",
+        reveal_seconds=30,
+        splash_seconds=8,
+        standings_seconds=30,
+        modes=[
+            {"mode": "more_less", "questions": 1, "seconds": 30},
+            {"mode": second_mode, "questions": 1, "seconds": 30},
+        ],
+    )
+    game.start()
+    game.splash()
+    steps = [
+        ("splash", 0, "question_open", ("open", 0)),
+        ("open", 0, "question_closed", ("reveal", 0)),
+        ("reveal", 0, "room_updated", ("standings", 0)),
+        ("standings", 0, "room_updated", ("splash", 1)),
+        ("splash", 1, "question_open", ("open", 1)),
+        ("open", 1, "question_closed", ("reveal", 1)),
+    ]
+    for phase, index, announced, after in steps:
+        assert (game.room.phase, game.room.current_index) == (phase, index)
+        game.admin.skip(phase, index)
+        game.admin.take(announced)
+        game.admin.skip(phase, index)
+        game.admin.settle()
+        assert (game.room.phase, game.room.current_index) == after, (phase, index)
+    assert "error" not in game.admin.kinds
+
+
+def test_a_skip_for_another_phase_or_question_does_nothing(table) -> None:
+    """Two admins, one a question behind: the skip it sends is for a question already
+    over, and a skip that names the wrong phase of this one is just as stale."""
+    game = table("Zezima", seconds=30, reveal_seconds=30)
+    game.start()
+    game.opened(0)
+    game.skip()
+    game.admin.take("question_closed")
+    game.skip()
+    game.opened(1)
+    for phase, index in (("open", 0), ("reveal", 0), ("reveal", 1), ("splash", 1), ("open", 2)):
+        game.admin.skip(phase, index)
+    game.admin.settle()
+    room = game.room
+    assert (room.phase, room.current_index, room.advance.is_set()) == ("open", 1, False)
+    assert "error" not in game.admin.kinds
+    game.admin.skip("open", 1)
+    assert game.admin.take("question_closed")["question_id"] == game.question(1).question_id
 
 
 # --- T9: reconnecting mid-game -------------------------------------------------------
@@ -632,7 +755,7 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
     right.take("answer_ack")
     game.answer(wrong, 0, game.wrong(0))
     wrong.take("answer_ack")
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
 
     assert closed["reveal"] == more_less.reveal(game.question(0).payload)
@@ -667,7 +790,7 @@ def test_the_sum_in_memory_matches_the_database_after_every_close(game, db) -> N
             if (index + offset) % 3:
                 game.answer(seat, index, game.right(index) if offset else game.wrong(index))
                 seat.take("answer_ack")
-        game.admin.send(t="skip")
+        game.skip()
         closed = game.admin.take("question_closed")
         assert_memory_matches_db(game, db)
         assert closed["standings"] == [
@@ -707,7 +830,7 @@ def test_end_game_between_questions_finishes_without_voiding(table, db) -> None:
     game = table("Zezima", seconds=10, reveal_seconds=30)
     game.start()
     game.opened(0)
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
     game.admin.send(t="end_game")
     game.admin.take("game_finished")
@@ -767,7 +890,7 @@ def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
         game.answer(seat, 0, game.right(0))
         assert seat.take("error")["code"] == "excluded"
     assert game.room.phase == "open"  # nobody can answer, so it never closes early
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
     assert closed["results"] == {}
     assert closed["reveal"] == more_less.reveal(game.question(0).payload)
@@ -900,7 +1023,7 @@ def test_a_rename_mid_game_disturbs_neither_the_standings_nor_an_open_answer(gam
     player.send(t="answer", question_id=game.question(0).question_id, value=game.right(0))
     assert player.take("error")["code"] == "already_answered"
 
-    game.admin.send(t="skip")
+    game.skip()
     closed = other.take("question_closed")
     assert closed["results"][player.id]["points"] == 1000
     top = closed["standings"][0]
@@ -996,7 +1119,7 @@ def test_a_restart_between_questions_voids_nothing_and_still_reveals(
     player = game.players[0]
     game.answer(player, 0, game.right(0))
     player.take("answer_ack")
-    game.admin.send(t="skip")
+    game.skip()
     for seat in game.seats:
         seat.take("question_closed")
     assert game.room.phase == "reveal"
@@ -1019,7 +1142,7 @@ def test_a_restart_between_questions_voids_nothing_and_still_reveals(
         assert welcome["room"]["phase"] == "reveal"
         assert [s["points"] for s in welcome["standings"]] == [1000, 0]
         # The resumed timer is a running timer: ``skip`` cuts its reveal short.
-        admin.send(t="skip")
+        game.skip(admin)
         assert admin.take("question_open")["question"]["index"] == 1
     assert db("select voided from questions where position = 0")[0]["voided"] is False
 
@@ -1050,7 +1173,7 @@ def test_a_restart_before_the_first_question_opened_still_plays_it(
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         admin = reseat(game.admin, ws)
         assert admin.take("welcome")["question"] is None
-        admin.send(t="skip")
+        game.skip(admin)
         opened = admin.take("question_open")
         assert opened["question"]["index"] == 0  # the question the restart owed
     assert db("select current_index from rooms")[0]["current_index"] == 0
@@ -1119,9 +1242,9 @@ def test_every_question_carries_the_round_it_belongs_to(table, second_mode) -> N
         "start": 0,
         "count": 2,
     }
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     second = game.admin.take("question_open")["question"]
     assert second["segment"] == first["segment"]  # same round, second question
 
@@ -1141,13 +1264,13 @@ def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> 
     assert [q.mode for q in game.room.questions] == [second_mode, "more_less"]
     game.start()
     assert game.splash()["room"]["segment"]["mode"] == second_mode
-    game.admin.send(t="skip")
+    game.skip()
     game.opened(0)
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     assert game.splash()["room"]["segment"]["mode"] == "more_less"
-    game.admin.send(t="skip")
+    game.skip()
     opened = game.admin.take("question_open")["question"]
     assert opened["index"] == 1
     assert opened["segment"] == {
@@ -1178,9 +1301,9 @@ def test_question_open_carries_its_mode_beside_its_type(table, second_mode) -> N
     )
     game.start()
     first = game.opened(0)[0]["question"]
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     second = game.admin.take("question_open")["question"]
     assert [(q["type"], q["mode"], q["segment"]["mode"]) for q in (first, second)] == [
         ("more_less", "more_less", "more_less"),
@@ -1193,7 +1316,7 @@ def test_skip_cuts_the_splash_short(table) -> None:
     game.start()
     game.splash()
     started = time.monotonic()
-    game.admin.send(t="skip")
+    game.skip()
     opened = game.admin.take("question_open")
     assert time.monotonic() - started < 1
     assert opened["question"]["index"] == 0
@@ -1203,7 +1326,7 @@ def test_a_player_cannot_skip_the_splash(table) -> None:
     game = table("Zezima", seconds=10, splash_seconds=30)
     game.start()
     game.splash(game.players[0])
-    game.players[0].send(t="skip")
+    game.skip(game.players[0])
     assert game.players[0].take("error")["code"] == "not_admin"
     assert game.room.phase == "splash"
 
@@ -1328,7 +1451,7 @@ def test_a_splash_has_no_clock_of_its_own(table) -> None:
     time.sleep(1.5)
     room = game.room
     assert (room.phase, room.next_at) == ("splash", None)
-    game.admin.send(t="skip")  # the host's override still works on a waiting splash
+    game.skip()  # the host's override still works on a waiting splash
     assert game.admin.take("question_open")["question"]["index"] == 0
 
 
@@ -1366,7 +1489,7 @@ def test_the_host_can_skip_a_counting_splash(table) -> None:
     tap(game, game.admin)
     tap(game, game.players[0])
     assert game.room.phase == "splash"
-    game.admin.send(t="skip")
+    game.skip()
     assert game.admin.take("question_open")["question"]["index"] == 0
 
 
@@ -1568,7 +1691,7 @@ def test_a_game_of_more_less_scores_what_it_always_scored(table, db) -> None:
         for _, name, right, bucket in (p for p in PLAYED if p[0] == index):
             value = game.right(index) if right else game.wrong(index)
             answer_after(game, seat[name], index, value, AFTER[bucket])
-        game.admin.send(t="skip")
+        game.skip()
         closed = game.admin.take("question_closed")
         results.append({seat_id: row["points"] for seat_id, row in closed["results"].items()})
         assert_memory_matches_db(game, db)
@@ -1619,7 +1742,7 @@ def test_a_type_scored_on_rank_pays_the_same_early_or_late(table, monkeypatch) -
         ack = answer_after(game, seat, 0, value, seconds)
         assert (ack["scoring"], ack["band"]) == ("rank", None)
     assert {answer.band for answer in game.question(0).answers.values()} == {None}
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
     assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 1000, "Lynx": 0}
 
@@ -1642,7 +1765,7 @@ def test_a_type_scored_on_steps_pays_the_frame_the_answer_arrived_on(table, monk
     third = answer_after(game, woox, 0, game.right(0), 6.0)
     assert (first["scoring"], first["band"]) == ("step", 1)
     assert (third["scoring"], third["band"]) == ("step", 3)
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
     assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 600}
 
@@ -1650,7 +1773,7 @@ def test_a_type_scored_on_steps_pays_the_frame_the_answer_arrived_on(table, monk
     assert "steps" not in game.question(1).payload
     ack = answer_after(game, zezima, 1, game.right(1), AFTER[2])
     assert (ack["scoring"], ack["band"]) == ("speed", 2)
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
     assert points_by_name(game, closed) == {"Zezima": 900}
 
@@ -1673,7 +1796,7 @@ def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> 
     game.opened(0)
     answer_after(game, zezima, 0, game.right(0), AFTER[2])
     answer_after(game, woox, 0, game.right(0), AFTER[5])
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
 
     right = game.right(0)
@@ -1737,9 +1860,9 @@ def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
     game.start()
     for skipped in range(index):
         assert game.admin.take("question_open")["question"]["index"] == skipped
-        game.admin.send(t="skip")
+        game.skip()
         game.admin.take("question_closed")
-        game.admin.send(t="skip")
+        game.skip()
     frames = {}
     for seat in game.seats:
         while (question := seat.take("question_open")["question"])["index"] != index:
@@ -1852,7 +1975,7 @@ def test_closest_number_ranks_every_guess_against_the_others(table, second_mode,
         game.answer(seat[name], at, guess)
         ack = seat[name].take("answer_ack")
         assert (ack["scoring"], ack["band"]) == ("rank", None)
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
     by_id = {s.id: s.name for s in game.seats}
     assert {by_id[pid]: row["points"] for pid, row in closed["results"].items()} == {
@@ -1889,9 +2012,9 @@ def test_no_splash_for_an_event_or_for_the_question_after_it(table, second_mode)
         assert question["index"] == index
         if splashed:
             introduced.append(index)
-        game.admin.send(t="skip")
+        game.skip()
         game.admin.take("question_closed")
-        game.admin.send(t="skip")
+        game.skip()
     game.admin.take("game_finished")
     assert introduced == [segment.start for segment in game.room.segments]
     for event in events:
@@ -1911,7 +2034,7 @@ def next_open(seat: Seat) -> tuple[dict[str, Any], bool]:
         seat.seen.append(message)
         if message["t"] == "room_updated" and message["room"]["phase"] == "splash":
             splashed = True
-            seat.send(t="skip")
+            seat.skip("splash", message["room"]["current_index"])
         elif message["t"] == "question_open":
             return message["question"], splashed
     raise AssertionError(f"{seat.name} never got question_open; saw {seat.kinds}")
@@ -2023,13 +2146,13 @@ def play_out(game: Game, count: int) -> dict[str, Any]:
     """
     for index in range(count):
         assert game.admin.take("question_open")["question"]["index"] == index
-        game.admin.send(t="skip")
+        game.skip()
         game.admin.take("question_closed")
-        game.admin.send(t="skip")
+        game.skip()
         if index + 1 < count and game.room.segment_at(index + 1).start == index + 1:  # type: ignore[union-attr]
             if game.room.settings.standings_seconds > 0:
                 updated(game.admin, lambda m: m["room"]["phase"] == "standings")
-                game.admin.send(t="skip")
+                game.skip()
     return game.admin.take("game_finished")
 
 
@@ -2049,13 +2172,13 @@ def test_standings_end_every_round_but_the_last(table, second_mode) -> None:
     game.opened(0)
     game.answer(game.players[0], 0, game.right(0))
     game.players[0].take("answer_ack")
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     game.opened(1)  # the same round: straight on, no standings in between
     assert standings_updates(game.admin) == []
 
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
     update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
     assert game.room.phase == "standings"
@@ -2063,15 +2186,15 @@ def test_standings_end_every_round_but_the_last(table, second_mode) -> None:
     assert update["room"]["segment"]["index"] == 0
     assert 8 < seconds_left(update) <= 10
 
-    game.admin.send(t="skip")
+    game.skip()
     assert game.admin.take("question_open")["question"]["index"] == 2
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_open")
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     finished = game.admin.take("game_finished")
     assert len(standings_updates(game.admin)) == 1  # the last round had none of its own
     assert finished["standings"][0]["points"] == closed["standings"][0]["points"] == 1000
@@ -2090,7 +2213,7 @@ def test_standings_end_on_their_own(table, second_mode) -> None:
     )
     game.start()
     game.opened(0)
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
     update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
     ends_at = datetime.fromisoformat(update["room"]["next_at"])
@@ -2136,13 +2259,13 @@ def test_the_standings_follow_a_round_whose_splash_is_off(table, second_mode) ->
     )
     game.start()
     game.splash()
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_open")
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     updated(game.admin, lambda m: m["room"]["phase"] == "standings")
-    game.admin.send(t="skip")
+    game.skip()
     assert game.splash()["room"]["segment"]["mode"] == second_mode
 
 
@@ -2159,9 +2282,9 @@ def test_skip_during_the_reveal_does_not_also_skip_the_standings(table, second_m
     )
     game.start()
     game.opened(0)
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")
+    game.skip()
     update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
     assert seconds_left(update) > 25
     time.sleep(0.3)
@@ -2184,7 +2307,7 @@ def test_a_player_arriving_during_the_standings_sees_them(table, client, second_
     game.opened(0)
     game.answer(game.players[0], 0, game.right(0))
     game.players[0].take("answer_ack")
-    game.admin.send(t="skip")
+    game.skip()
     closed = game.admin.take("question_closed")
     update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
 
@@ -2203,7 +2326,8 @@ def test_a_player_arriving_during_the_standings_sees_them(table, client, second_
             ]
 
 
-def test_skip_is_refused_outside_a_game_and_accepted_in_standings(table, second_mode) -> None:
+def test_skip_is_ignored_outside_a_game_and_accepted_in_standings(table, second_mode) -> None:
+    """Outside a game no phase is running, so every skip names one that is not."""
     game = table(
         "Zezima",
         reveal_seconds=1,
@@ -2213,15 +2337,17 @@ def test_skip_is_refused_outside_a_game_and_accepted_in_standings(table, second_
             {"mode": second_mode, "questions": 1, "seconds": 10},
         ],
     )
-    game.admin.send(t="skip")
-    assert game.admin.take("error")["code"] == "bad_state"
+    game.admin.skip("open", 0)
+    game.admin.settle()
+    assert "error" not in game.admin.kinds
+    assert (game.room.status, game.room.advance.is_set()) == ("lobby", False)
     game.start()
     game.opened(0)
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
     updated(game.admin, lambda m: m["room"]["phase"] == "standings")
     started = time.monotonic()
-    game.admin.send(t="skip")
+    game.skip()
     assert game.admin.take("question_open")["question"]["index"] == 1
     assert time.monotonic() - started < 1
 
@@ -2386,7 +2512,7 @@ def test_a_close_that_fails_voids_the_question_and_the_game_plays_on(
     game.opened(0)
     game.answer(game.players[0], 0, game.right(0))
     game.players[0].take("answer_ack")
-    game.admin.send(t="skip")
+    game.skip()
 
     assert left_memory(game), "the room stayed in memory with its timer stopped"
     assert [closed_after(seat) for seat in game.seats] == [1012, 1012]
@@ -2404,11 +2530,11 @@ def test_a_close_that_fails_voids_the_question_and_the_game_plays_on(
         assert zezima.take("question_open")["question"]["index"] == 1
         game.answer(zezima, 1, game.right(1))
         zezima.take("answer_ack")
-        admin.send(t="skip")
+        game.skip(admin)
         assert admin.take("question_closed")["results"][zezima.id]["points"] == 1000
-        admin.send(t="skip")
+        game.skip(admin)
         admin.take("question_open")
-        admin.send(t="skip")
+        game.skip(admin)
         finished = admin.take("game_finished")
     assert [s["points"] for s in finished["standings"]] == [1000, 0]
     assert [row["voided"] for row in db("select voided from questions order by position")] == [
@@ -2432,16 +2558,16 @@ def test_a_question_whose_opening_fails_is_still_asked_after_the_restart(
     game.start()
     game.opened(0)
     faults.fail_once("update questions set shown_at")
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")  # the reveal ends, and opening question 1 is what fails
+    game.skip()  # the reveal ends, and opening question 1 is what fails
 
     assert left_memory(game), "the room stayed in memory with its timer stopped"
     assert [closed_after(seat) for seat in game.seats] == [1012, 1012]
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         admin = reseat(game.admin, ws)
         assert admin.take("welcome")["room"]["phase"] == "reveal"
-        admin.send(t="skip")
+        game.skip(admin)
         assert admin.take("question_open")["question"]["index"] == 1
     assert not any(row["voided"] for row in db("select voided from questions"))
 
@@ -2451,9 +2577,9 @@ def test_a_game_whose_finish_fails_finishes_after_the_restart(table, client, db,
     game.start()
     game.opened(0)
     faults.fail_once("update rooms set status = 'finished'")
-    game.admin.send(t="skip")
+    game.skip()
     game.admin.take("question_closed")
-    game.admin.send(t="skip")  # the reveal ends the game, and finishing it is what fails
+    game.skip()  # the reveal ends the game, and finishing it is what fails
 
     assert left_memory(game), "the room stayed in memory with its timer stopped"
     assert [closed_after(seat) for seat in game.seats] == [1012, 1012]
@@ -2461,7 +2587,7 @@ def test_a_game_whose_finish_fails_finishes_after_the_restart(table, client, db,
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         admin = reseat(game.admin, ws)
         assert admin.take("welcome")["room"]["status"] == "playing"
-        admin.send(t="skip")
+        game.skip(admin)
         admin.take("game_finished")
     assert db("select status from rooms")[0]["status"] == "finished"
 

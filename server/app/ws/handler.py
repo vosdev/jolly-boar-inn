@@ -251,7 +251,7 @@ async def _dispatch(
         case protocol.StartGame():
             await manager.start_game(code, player)
         case protocol.Skip():
-            await manager.skip(code, player)
+            await manager.skip(code, player, message.phase, message.index)
         case protocol.Promote():
             await manager.promote(code, player, message.player_id)
         case protocol.Kick():

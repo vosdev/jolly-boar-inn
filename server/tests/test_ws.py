@@ -250,7 +250,7 @@ def test_rejected_messages_keep_the_socket_open(client: TestClient, lobby) -> No
         for frame, expected in (
             ({"t": "answer", "question_id": "q_x", "value": "higher"}, "not_open"),
             ({"t": "start_game"}, "not_admin"),  # the lobby fixture's player is not admin
-            ({"t": "skip"}, "not_admin"),
+            ({"t": "skip", "phase": "open", "index": 0}, "not_admin"),
             ({"t": "end_game"}, "not_admin"),
             ({"t": "kick", "player_id": lobby["admin"]["player"]["id"]}, "not_admin"),
         ):
@@ -262,8 +262,10 @@ def test_rejected_messages_keep_the_socket_open(client: TestClient, lobby) -> No
         assert ws.receive_json()["t"] == "pong"
     with client.websocket_connect(f"/ws/{code}") as admin_ws:
         hello(admin_ws, lobby["admin"]["session"])
+        # Nothing is running, so the phase a skip names is not, and it gets no reply: the
+        # first frame back is the one for ``end_game``.
+        admin_ws.send_json({"t": "skip", "phase": "open", "index": 0})
         for frame, expected in (
-            ({"t": "skip"}, "bad_state"),  # nothing is running to skip
             ({"t": "end_game"}, "bad_state"),
             ({"t": "answer", "question_id": "q_x", "value": "higher"}, "not_open"),
         ):
@@ -281,6 +283,11 @@ def test_rejected_messages_keep_the_socket_open(client: TestClient, lobby) -> No
         {"t": "promote", "player_id": "not-a-uuid"},
         {"t": "answer", "question_id": "q"},
         {"t": "ping", "extra": True},
+        {"t": "skip"},  # a skip names the phase and question it was pressed on
+        {"t": "skip", "phase": "idle", "index": 0},
+        {"t": "skip", "phase": "open", "index": -1},
+        {"t": "skip", "phase": "open", "index": True},
+        {"t": "skip", "phase": "open", "index": "0"},
         "{not json",
         b"\x00",
     ],

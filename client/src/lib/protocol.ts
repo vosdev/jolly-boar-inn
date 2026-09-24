@@ -211,8 +211,14 @@ export interface StartGame {
   t: 'start_game'
 }
 
+/**
+ * End `phase` of the question at `index`: what the host was looking at when they pressed
+ * it, so a second tap that lands once the room has moved on ends nothing.
+ */
 export interface Skip {
   t: 'skip'
+  phase: Exclude<Phase, 'idle'>
+  index: number
 }
 
 export interface Promote {

@@ -120,8 +120,6 @@ CLOSE_KICKED = 4003
 # The room is gone for good -- expired and cleaned up, or removed by its host. The same
 # code the handler closes an unknown room with, because that is what a reconnect finds.
 CLOSE_GONE = 4004
-# Every timed phase the host can cut short: all of them, since each one is a wait.
-SKIPPABLE = frozenset({"splash", "open", "reveal", "standings"})
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
 # ``random_event`` is the NPC asking it: the envelope's own for an NPC's question or a host's
 # that names one, a face ``selection`` draws for the rest, and a column either way.
@@ -1002,8 +1000,10 @@ class RoomManager:
             player = room.players.get(player_id)
             if player is not None:
                 player.connected = False
-            # Somebody leaving lowers the threshold rather than stalling the splash.
+            # Somebody leaving lowers the threshold rather than stalling the splash, and can
+            # be the last player the open question was waiting on.
             _recount_splash(room, self.clock())
+            _close_if_everyone_answered(room)
             update = self._room_updated(room)
         await self._broadcast(update)
 
@@ -1341,29 +1341,32 @@ class RoomManager:
                 except asyncpg.UniqueViolationError:  # a row this room never loaded
                     raise AlreadyAnswered("you have already answered this question") from None
             question.answers[player.id] = Submitted(value=value, received_at=received_at, band=band)
-            if room.settings.close_when_all_answered and _everyone_answered(room, question):
-                room.advance.set()
+            _close_if_everyone_answered(room)
             count = _answer_count(room, question)
             counted = AnswerCount(question_id=question_id, answered=count[0], of=count[1])
             others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
         await self._broadcast(others)
         return how, band, count
 
-    async def skip(self, code: str, by: Player) -> None:
+    async def skip(self, code: str, by: Player, phase: str, index: int) -> None:
         """Admin: cut the splash, the open question, the reveal or the standings short.
 
+        Only if ``phase`` of question ``index`` is still the room's. The second tap of a
+        double tap, or a second admin's, lands once the room has moved on, and it must not
+        end the phase after the one it meant. It is no error either: what it asked for has
+        happened.
+
         Nothing is broadcast and nothing is awaited here: setting ``advance`` wakes the
-        timer task, which owns every state change either way. A skip that arrives while
-        the timer is midway through a close finds the phase already ``reveal`` and
-        shortens that instead, which is the same thing the admin asked for.
+        timer task, which owns every state change either way. Each phase clears
+        ``advance`` as it starts, so a skip that matched just as the timer moved on by
+        itself is spent on the phase it named.
         """
         code = code.upper()
         async with self._locked(code):
             room = await self._room(code)
             _require_admin(by)
-            if room.status != "playing" or room.phase not in SKIPPABLE:
-                raise BadState("there is nothing to skip")
-            room.advance.set()
+            if room.status == "playing" and (room.phase, room.current_index) == (phase, index):
+                room.advance.set()
 
     async def promote(self, code: str, by: Player, player_id: UUID) -> None:
         """Admin: make another player an admin too. There is no demote."""
@@ -1407,6 +1410,7 @@ class RoomManager:
                 question.answers.pop(player_id, None)
             socket = room.sockets.pop(player_id, None)
             _recount_splash(room, self.clock())
+            _close_if_everyone_answered(room)
             update = self._room_updated(room)
         if socket is not None:
             await _close(socket, CLOSE_KICKED, "removed from the room")
@@ -1807,15 +1811,28 @@ def _cool_down(last: float, now: float) -> None:
         raise BadState("wait a moment before changing that again")
 
 
+def _close_if_everyone_answered(room: Room) -> None:
+    """Wake the timer to close the open question early, if nobody connected still owes it.
+
+    An answer, a disconnect and a kick each call this, since any of them can be the change
+    that leaves nobody owing one. A phone that drops unanswered is not waited for, because
+    it would not have been had it dropped before the others answered, and the order must
+    not decide how long the room waits. Lock held.
+    """
+    question = room.open_question()
+    if (
+        question is not None
+        and room.settings.close_when_all_answered
+        and _everyone_answered(room, question)
+    ):
+        room.advance.set()
+
+
 def _everyone_answered(room: Room, question: RoomQuestion) -> bool:
     """Has every connected player who is allowed to score answered this question?
 
     A question nobody may answer (``host_only``) is never "all answered": it runs its
     full time, as section 4 says it should.
-
-    Only an arriving answer asks this. Somebody leaving with the question unanswered does
-    not close it early, so a player whose phone drops has until ``ends_at`` to come back
-    and answer rather than having the question shut behind them.
     """
     eligible = [pid for pid in room.sockets if question.can_answer(pid)]
     return bool(eligible) and all(pid in question.answers for pid in eligible)

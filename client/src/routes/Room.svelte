@@ -228,6 +228,34 @@
         }
   })
 
+  /** The host's skip, naming the phase and question on screen (see `Skip`). */
+  function skip(): void {
+    const current = $room
+    if (current === null || current.phase === 'idle' || current.current_index === null) return
+    socket?.send({ t: 'skip', phase: current.phase, index: current.current_index })
+  }
+
+  /**
+   * The skip button says where it goes. From a reveal that is the next question, except
+   * after a round's last, which goes to the standings (or the next round with them off),
+   * and after the game's last, which goes to the final screen.
+   */
+  const skipLabel = $derived.by(() => {
+    const current = $room
+    if (current?.phase === 'open') return 'Close this question now'
+    if (current?.phase === 'standings') return 'Start the next round now'
+    if (current?.phase !== 'reveal' || current.current_index === null) {
+      return 'Skip to the next question'
+    }
+    const at = current.current_index
+    if (at + 1 >= current.total) return 'Show the final standings'
+    const round = current.segment
+    if (round === null || at !== round.start + round.count - 1) return 'Skip to the next question'
+    return current.settings.standings_seconds > 0
+      ? 'Show the standings now'
+      : 'Start the next round now'
+  })
+
   function answer(value: unknown): void {
     const open = $question
     if (open === null || socket === null) return
@@ -302,7 +330,7 @@
       players={$players}
       youId={$you?.id ?? null}
       onReady={(ready) => socket?.send({ t: 'ready', ready })}
-      onSkip={isAdmin ? () => socket?.send({ t: 'skip' }) : null}
+      onSkip={isAdmin ? skip : null}
     />
   {:else}
     <!-- playing -->
@@ -423,13 +451,7 @@
       <section class="panel">
         <h2>Host</h2>
         <div class="row">
-          <button type="button" onclick={() => socket?.send({ t: 'skip' })}>
-            {$room.phase === 'open'
-              ? 'Close this question now'
-              : $room.phase === 'standings'
-                ? 'Start the next round now'
-                : 'Skip to the next question'}
-          </button>
+          <button type="button" onclick={skip}>{skipLabel}</button>
           <button
             type="button"
             onclick={() => {

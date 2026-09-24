@@ -109,7 +109,7 @@ describe('Room', () => {
   it('lets the host start the next round early', async () => {
     await arrive(welcome(roomView({}), 'admin'))
     screen.getByRole('button', { name: 'Start the next round now' }).click()
-    expect(sent).toContainEqual({ t: 'skip' })
+    expect(sent).toContainEqual({ t: 'skip', phase: 'standings', index: 0 })
   })
 
   it('draws no board under a reveal inside a round', async () => {
@@ -264,5 +264,44 @@ describe('Room', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Final standings')
     expect(document.querySelector('.podium')).not.toBeNull()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(2)
+  })
+})
+
+describe('the host’s skip', () => {
+  /** Two rounds of two: positions 1 and 3 end a round, and 3 ends the game. */
+  function reveal(index: number, standingsSeconds = 10): RoomView {
+    const view = roomView({
+      phase: 'reveal',
+      current_index: index,
+      total: 4,
+      segment: { mode: 'more_less', index: index < 2 ? 0 : 1, total: 2, start: index < 2 ? 0 : 2, count: 2 },
+    })
+    view.settings.standings_seconds = standingsSeconds
+    return view
+  }
+
+  it.each([
+    ['inside a round', reveal(0), 'Skip to the next question'],
+    ['after a round, before the standings', reveal(1), 'Show the standings now'],
+    ['after a round, with the standings off', reveal(1, 0), 'Start the next round now'],
+    ['after the game’s last question', reveal(3), 'Show the final standings'],
+  ])('says where a reveal %s goes, and names it when pressed', async (_, view, label) => {
+    await arrive(welcome(view, 'admin'))
+    screen.getByRole('button', { name: label }).click()
+    expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: view.current_index }])
+  })
+
+  it('names the question it closes', async () => {
+    await arrive(welcome(roomView({ phase: 'open', current_index: 1, next_at: null }), 'admin'))
+    screen.getByRole('button', { name: 'Close this question now' }).click()
+    expect(sent).toEqual([{ t: 'skip', phase: 'open', index: 1 }])
+  })
+
+  it('names the splash it cuts short', async () => {
+    // The splash is the whole screen, with no heading for `arrive` to wait on.
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
+    ;(await screen.findByRole('button', { name: 'Start the round now' })).click()
+    expect(sent).toEqual([{ t: 'skip', phase: 'splash', index: 0 }])
   })
 })

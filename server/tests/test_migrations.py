@@ -579,7 +579,8 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
                     while (update := _take(host, "room_updated"))["room"]["phase"] != "standings":
                         pass
                     assert update["room"]["settings"]["standings_seconds"] == 10
-                    host.send_json({"t": "skip"})
+                    index = update["room"]["current_index"]
+                    host.send_json({"t": "skip", "phase": "standings", "index": index})
             finished = _take(host, "game_finished")
 
     points = {s["display_name"]: s["points"] for s in finished["standings"]}
