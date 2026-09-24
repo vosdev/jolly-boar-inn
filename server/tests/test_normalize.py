@@ -7,6 +7,7 @@ typo on a full accepted answer is accepted and a different answer is not.
 
 import random
 import time
+from typing import SupportsIndex
 
 import pytest
 
@@ -127,9 +128,23 @@ def test_an_answer_nfkc_blows_up_grades_in_under_10_ms() -> None:
     assert graded_in("ﷻ" * 80, ["ﷺ" * 79] * 20, 2) < 0.010
 
 
+class Counted(str):
+    """A string that counts how often one of its characters is read."""
+
+    reads = 0
+
+    def __getitem__(self, index: SupportsIndex | slice) -> str:
+        Counted.reads += 1
+        return super().__getitem__(index)
+
+
 def test_a_limited_distance_only_looks_near_the_diagonal() -> None:
-    """Strings of one length cannot be skipped, so the band is what keeps them cheap."""
-    long = "a" * 10_000
-    start = time.perf_counter()
-    assert distance(long, "b" + long[1:], 2) == 1
-    assert time.perf_counter() - start < 0.010
+    """Strings of one length cannot be skipped, so the band is what keeps them cheap.
+
+    Counted rather than timed, so a slow machine cannot fail it: a full table would read
+    a million characters here, the band about six thousand.
+    """
+    long = "a" * 1_000
+    Counted.reads = 0
+    assert distance(Counted(long), Counted("b" + long[1:]), 2) == 1
+    assert 0 < Counted.reads <= 2 * len(long) * (2 * 2 + 1)
