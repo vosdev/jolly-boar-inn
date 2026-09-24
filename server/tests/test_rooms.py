@@ -28,7 +28,7 @@ from app.questions import schema
 from app.random_events import RANDOM_EVENTS
 from app.rooms import state
 from app.rooms.settings import RoomSettings
-from tests.rooms_api import call, create, join
+from tests.rooms_api import call, create, held, join
 
 
 def sha256(token: str) -> str:
@@ -436,25 +436,15 @@ def test_the_manager_refuses_what_the_body_would_have(app: FastAPI, client: Test
 # --- T6: read back ----------------------------------------------------------------
 
 
-def test_get_room_view_and_case_insensitive_code(client: TestClient) -> None:
+def test_get_room_says_only_the_status_and_count_and_ignores_case(client: TestClient) -> None:
+    """Who is in the room is for the people in it: a lookup says whether you can join."""
     code, admin = create(client, modes=[{"mode": "more_less", "questions": 3}])
     response = client.get(f"/api/rooms/{code}")
     assert response.status_code == 200
-    assert response.json() == {
-        "room": {
-            "code": code,
-            "status": "lobby",
-            "settings": response.json()["room"]["settings"],
-            "current_index": None,
-            "total": 3,
-            "phase": "idle",
-            "next_at": None,
-            "segment": None,  # no round until the game starts
-        },
-        "players": [admin["player"]],
-    }
+    assert response.json() == {"status": "lobby", "players": 1}
+    assert admin["player"]["display_name"] not in response.text
     assert admin["session"] not in response.text  # section 7: never rendered back
-    assert client.get(f"/api/rooms/{code.lower()}").json()["room"]["code"] == code
+    assert client.get(f"/api/rooms/{code.lower()}").json() == {"status": "lobby", "players": 1}
     assert client.get("/api/rooms/NOSUCHROOM").status_code == 404
 
 
@@ -462,7 +452,6 @@ def test_get_room_view_and_case_insensitive_code(client: TestClient) -> None:
 
 
 def test_join_a_finished_room_is_409(client: TestClient, db, evict) -> None:
-    """T7: a finished room is the only one that is not open for joining."""
     code, _ = create(client)
     db("update rooms set status = 'finished' where code = $1", code)
     evict(code)
@@ -472,7 +461,7 @@ def test_join_a_finished_room_is_409(client: TestClient, db, evict) -> None:
 
 
 def test_join_success_returns_session_and_appears_in_get(client: TestClient, db) -> None:
-    """T7: success returns a session; player appears in GET /api/rooms/{code}."""
+    """T7: success returns a session; the count in GET /api/rooms/{code} goes up."""
     code, admin = create(client)
     response = join(client, code, "  Zezima ")
     assert response.status_code == 200, response.text
@@ -491,9 +480,8 @@ def test_join_success_returns_session_and_appears_in_get(client: TestClient, db)
     assert player["session_token_hash"] == sha256(body["session"])
     assert body["session"] != admin["session"]
 
-    view = client.get(f"/api/rooms/{code}").json()
-    assert view["room"]["status"] == "lobby"
-    assert view["players"] == [admin["player"], body["player"]]
+    assert client.get(f"/api/rooms/{code}").json() == {"status": "lobby", "players": 2}
+    assert held(client, code)["players"] == [admin["player"], body["player"]]
 
 
 def test_duplicate_name_is_409(client: TestClient) -> None:
@@ -514,7 +502,7 @@ def test_over_max_players_is_409(client: TestClient) -> None:
     response = join(client, code, "Two")
     assert response.status_code == 409
     assert response.json()["code"] == "room_full"
-    assert len(client.get(f"/api/rooms/{code}").json()["players"]) == 2
+    assert client.get(f"/api/rooms/{code}").json()["players"] == 2
 
 
 def test_join_name_rules(client: TestClient) -> None:

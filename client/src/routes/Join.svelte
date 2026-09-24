@@ -3,10 +3,10 @@
    * `/r/:code` for a browser with no session for that room.
    *
    * The room is looked up first so a wrong code fails here rather than on a name the
-   * player just thought about. `GET /api/rooms/{code}` returns the room view and the
-   * players, never the questions.
+   * player just thought about. `GET /api/rooms/{code}` says only the room's status and
+   * how many players are in it.
    *
-   * Then, with a joinable room (D3, section 5.1):
+   * Then, with a room still in its lobby (D3, section 5.1):
    *
    * - **A profile** joins straight through under its name and head. A returning player
    *   taps a link and is in the lobby; they are never asked again.
@@ -47,8 +47,8 @@
   let displayName = $state('')
   let failure = $state<string | null>(null)
 
-  const status = $derived(snapshot?.room.status ?? null)
-  const joinable = $derived(status === 'lobby' || status === 'playing')
+  const status = $derived(snapshot?.status ?? null)
+  const joinable = $derived(status === 'lobby')
   const busy = $derived(joiningAs !== null)
 
   onMount(async () => {
@@ -130,14 +130,13 @@
   <p class="note">Looking for the room…</p>
 {:else if !joinable}
   <section class="panel">
-    <p>This game has finished.</p>
+    <p>{status === 'playing' ? 'This game has already started.' : 'This game has finished.'}</p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
 {:else}
   <p class="tagline">
-    {snapshot.players.length}
-    {snapshot.players.length === 1 ? 'player' : 'players'} in so far.
-    {#if status === 'playing'}The game has already started — you can still join.{/if}
+    {snapshot.players}
+    {snapshot.players === 1 ? 'player' : 'players'} in so far.
   </p>
   {#if failure === null}
     <p class="note" role="status">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>

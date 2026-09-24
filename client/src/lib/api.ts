@@ -125,9 +125,10 @@ export interface CreatedRoom extends Credentials {
   code: string
 }
 
+/** What a lookup tells somebody who has not joined: whether they can, and how many are in. */
 export interface RoomSnapshot {
-  room: RoomView
-  players: PlayerView[]
+  status: RoomView['status']
+  players: number
 }
 
 /** `avatar` is the profile's head (D4); left out, the room draws the one derived from the id. */
@@ -149,7 +150,6 @@ export function joinRoom(code: string, displayName: string, avatar?: number): Pr
   })
 }
 
-/** `RoomView` plus players, never questions. */
 export function getRoom(code: string): Promise<RoomSnapshot> {
   return request<RoomSnapshot>(`/api/rooms/${encodeURIComponent(code)}`)
 }

@@ -95,7 +95,7 @@ jolly-boar-inn/
 │   │   │   ├── vocab.py       # GET /api/vocab/{name}: the autocomplete lists
 │   │   │   ├── bodylimit.py   # 256 KiB cap on /api/* request bodies, 413 over it
 │   │   │   ├── forwarded.py   # warns once about an ignored X-Forwarded-For
-│   │   │   └── ratelimit.py   # in-memory per-IP limiter
+│   │   │   └── ratelimit.py   # in-memory per-address limiters
 │   │   └── static.py          # mount client/dist with SPA fallback
 │   ├── scripts/
 │   │   ├── fetch_facts.py           # the importer: wiki APIs → data/facts/*.json (network)
@@ -772,7 +772,7 @@ The admin is a player with a flag. There is no admin channel.
 - Correct answers and per-player results appear only in `question_closed`, sent to everyone at the same moment.
 - The list of questions selected for a room is never sent over the websocket. The admin sees `total` and `index`, nothing else.
 - Custom-question exception, stated up front: any admin can see the room's own questions in the editor before the game starts, because they wrote them. Authors are excluded from scoring on those questions server-side, so seeing them buys nothing.
-- HTTP `GET /api/rooms/{code}` returns `RoomView` plus players, never questions.
+- HTTP `GET /api/rooms/{code}` returns only `{status, players}`, the player count: no names, roles or questions.
 
 ### Reconnect flow
 
@@ -795,7 +795,7 @@ Process restart (`RoomManager.get` rehydrate):
 1. Room not in memory → load `rooms` row, `players`, `questions` ordered by position, and `answers` for those questions.
 2. If status is `playing` and a question has `shown_at` set and `closed_at` null, it was open at crash time: set `closed_at = now`, `voided = true`, no points. That is the "a crash costs the open question at most" guarantee.
 3. Phase becomes `reveal` for the voided question with `next_at = now + reveal_seconds`, then the timer task advances normally. If no question was open, the phase is `reveal` for `current_index` with the same delay, so nobody gets a question opened on them without warning. The one question that is not behind us is one that never opened — the process died in the gap between persisting `current_index` and stamping `shown_at` — and the room is still owed it, so that reveal ends by opening it rather than advancing past it.
-4. Players reconnect on their own through the client flow above.
+4. Players reconnect on their own through the client flow above. Steps 2 and 3 wait for the first of them: any lookup loads the room, but only an authenticated socket resumes it, so a scanner or link preview never plays a room nobody is in.
 
 ## 4. Room lifecycle
 
@@ -813,7 +813,7 @@ A room is never without a host: there is no state between "does not exist" and `
 | State | Joinable | Notes |
 |---|---|---|
 | `lobby` | yes | Created with the room; its creator is the first admin. Players join, admins promote/kick. |
-| `playing` | yes | Late joiners get `welcome` with the current question and can answer it. |
+| `playing` | no | Only players already in the room come back, by reconnecting with their session. A join is `409 not_open`. |
 | `finished` | no | Final standings served via `welcome` for the room's lifetime. |
 
 Transitions:
@@ -1126,7 +1126,8 @@ Goal: the creator of a room is its first admin; every identity is a session toke
 1. **Create.** Client `POST /api/rooms` with `{display_name, settings, custom_questions: []}`.
 2. **Server** (`RoomManager.create`), one transaction:
    - Normalise the display name first — NFKC, trimmed, runs of spaces made one, then 1–24 Latin letters (accents included), digits, spaces, `_` and `-` → `422 bad_name` before a single row exists, and before the rate limiter is consulted. The limiter records a hit on every call it allows, so validating afterwards would let a handful of typos cost a host their hourly quota.
-   - Rate limit: `ratelimit.py` keeps `{key: deque[timestamps]}` in memory, keyed on the IPv4 address or the IPv6 /64; more than `ROOMS_PER_IP_PER_HOUR` → `429`.
+   - Rate limit: `ratelimit.py` keeps `{key: deque[timestamps]}` in memory, keyed on the IPv4 address or the IPv6 /64; more than `ROOMS_PER_IP_PER_HOUR` → `429`. Two more cap joins at 100 an hour per key, and requests naming a room that does not exist at 30 per 10 minutes. Past that, every GET, join, DELETE and websocket for any room is `429` (1008 on a socket), so the refusal says nothing about which codes are live.
+   - Codes are drawn with `secrets.SystemRandom`, not the seedable `random.Random` question selection uses.
    - Generate `code`: random entry from `data/room-words.json`, uppercase, retry on unique violation up to 5 times (a savepoint per attempt), then append two random digits.
    - Insert the room with `status = 'lobby'` and `expires_at = now + ROOM_TTL_DAYS`. There is no `created` state: a room and its host are born together.
    - Insert the creator as a player with `role = 'admin'` and `session_token = secrets.token_urlsafe(32)`, storing only its sha256. This insert sits outside the code-allocation savepoint on purpose — that savepoint reads a unique violation as "code taken, try another", and `players_session_idx` is unique across every room, so a collision there would otherwise be retried as a code collision until the allocator gave up.
@@ -1184,7 +1185,7 @@ DONE: **T6. Room creation.** `rooms/codes.py`, `data/room-words.json` (see Needs
 Accept: integration tests cover: create returns `{code, session, player}` and the creator is the room's admin; a bad display name creates no room row and costs no rate-limit quota; a failed admin insert leaves no room; sixth create from one IP in an hour is `429`; `questions` rows equal what the picked modes asked for; code collision retry is unit-tested with a stubbed word list.
 
 DONE: **T7. Join.** `POST /api/rooms/{code}/join {display_name}` → `RoomManager.join`; name rules as in section 7, unique per room case-insensitively on the normalised name.
-Accept: join a `finished` room → `409 not_open`; duplicate name → `409`; over `max_players` → `409`; success returns a session; player appears in `GET /api/rooms/{code}`.
+Accept: join a `playing` or `finished` room → `409 not_open`; duplicate name → `409`; over `max_players` → `409`; success returns a session; the player count in `GET /api/rooms/{code}` goes up.
 
 DONE: **T8. RoomManager core and websocket handshake.** `rooms/state.py` with `Room`, lock, `get` with rehydrate, `connect`/`disconnect`; `ws/protocol.py` models; `ws/handler.py` with `hello`/`welcome`/`ping`/`pong`/`room_updated`/`error`.
 Accept: test client connects, sends `hello`, gets `welcome` with `players` and `you`; second socket for the same player closes the first with `4000`; bad session → `4001`; disconnect flips `connected` in a broadcast to the remaining socket; a room evicted from memory (test hook) rehydrates identically.

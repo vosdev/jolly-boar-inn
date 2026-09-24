@@ -5,17 +5,12 @@ from typing import Any, Self
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.errors import ApiError
-from app.http.ratelimit import client_key
+from app.http.ratelimit import RateLimited, client_key, room_lookup
 from app.questions import custom
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
 from app.rooms.state import RoomManager, normalize_name
 
 router = APIRouter(prefix="/api/rooms")
-
-
-class RateLimited(ApiError):
-    status, code = 429, "rate_limited"
 
 
 class CreateRoom(BaseModel):
@@ -80,8 +75,10 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
 
 @router.get("/{code}")
 async def get_room(code: str, request: Request) -> dict[str, Any]:
-    room = await manager(request).get(code)
-    return {"room": room.view(), "players": [p.view() for p in room.players.values()]}
+    """What the join page needs before joining, and nothing about who is in the room."""
+    with room_lookup(request.app.state.lookup_misses, client_host(request)):
+        room = await manager(request).get(code)
+    return {"status": room.status, "players": len(room.players)}
 
 
 @router.delete("/{code}", status_code=204, response_class=Response)
@@ -94,5 +91,6 @@ async def delete_room(code: str, body: DeleteRoom, request: Request) -> Response
     a caller who is not an admin of this room gets, so the room's existence is the only
     thing an unauthenticated request can learn -- and its code was already in their hands.
     """
-    await manager(request).delete(code, body.session)
+    with room_lookup(request.app.state.lookup_misses, client_host(request)):
+        await manager(request).delete(code, body.session)
     return Response(status_code=204)

@@ -18,7 +18,8 @@ moves nothing. Wall-clock times are for the wire and the database. The task take
 room lock as everything else and, like everything else, sends nothing while holding it.
 
 A step that raises (a database blip, a type's ``grade``) takes the room out of memory as a
-process restart would, and the next ``get`` brings it back through the recovery below.
+process restart would, and the next player to reconnect brings it back through the
+recovery below.
 Every step writes to the database before it changes memory, so whatever the failure left
 behind, the database holds a state recovery knows how to resume.
 
@@ -38,6 +39,8 @@ Restart recovery (T11) is the rest of the rehydrate: ``_load`` brings back the r
 players, its questions and the standings sum, and ``_recover`` voids whatever question was
 open when the process died, puts the room in ``reveal`` and hands it to a timer task that
 starts there, so a crash costs one question and nobody is asked another one on arrival.
+Loading is on any lookup, but recovery waits for the first player whose socket
+authenticates: a room nobody has come back to stays still.
 
 Token flow (section 7 of ideas/architecture.md): a session token is
 ``secrets.token_urlsafe(32)`` and only its sha256 hex is stored. The plaintext is
@@ -424,6 +427,9 @@ class Room:
     next_mono: float | None = None
     # The one task driving open → closed → reveal → next.
     timer: asyncio.Task[None] | None = field(default=None, repr=False)
+    # A ``playing`` room rehydrated but not yet resumed: it waits for a player to come
+    # back, so a scanner or link preview asking for the code does not play it unattended.
+    awaiting_player: bool = False
     # Set to cut the current sleep short: ``skip``, or everyone has answered.
     advance: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
     # Set when the ready check (D7) starts, shortens or stops a splash's countdown, so the
@@ -636,6 +642,9 @@ class RoomManager:
         # The length of ``data/heads/heads.json``: every valid ``avatar`` is below it.
         self.heads = heads
         self.rng = rng or random.Random()
+        # Codes from the OS, not ``rng``: Mersenne Twister's next draw can be worked out
+        # from enough of its past ones, and a code is only as private as its successors.
+        self.code_rng: random.Random = secrets.SystemRandom()
         self.clock = clock
         self.rooms: dict[str, Room] = {}
         # A room in memory shares its code's lock. The entry outlives the room while
@@ -677,18 +686,8 @@ class RoomManager:
         room = self.rooms.get(code)
         if room is None:
             room = await self._load(code)
-            # Registered before the recovery, which starts a timer task that checks it.
+            room.awaiting_player = room.status == "playing"
             self.rooms[code] = room
-            if room.status == "playing":
-                try:
-                    await self._recover(room)
-                except Exception:
-                    # An unrecovered room left in memory would stay that way: every later
-                    # call finds it here and skips this branch, so the game would sit in
-                    # ``idle`` with no timer until it expired. Drop it and let the caller's
-                    # retry rehydrate from scratch.
-                    self.rooms.pop(code, None)
-                    raise
         elif room.expires_at <= datetime.now(UTC):
             raise RoomExpired(f"room {code} has expired")
         return room
@@ -701,8 +700,8 @@ class RoomManager:
         ``_recover`` voids that question ungraded; everything already scored is in
         ``totals``, which is the ``answers`` table's own sum.
 
-        A room that comes back ``playing`` is not running yet when this returns:
-        ``_room`` hands it to ``_recover`` once it is in ``self.rooms``.
+        A room that comes back ``playing`` is not running yet when this returns, and stays
+        that way until ``connect`` attaches a player and hands it to ``_recover``.
         """
         pool = await self._pool()
         async with pool.acquire() as conn:
@@ -746,6 +745,9 @@ class RoomManager:
         in the gap between ``start_game`` or ``_advance`` persisting ``current_index`` and
         ``_open_question`` stamping ``shown_at``, so the room is still owed that question
         and advancing out of the one before it opens it.
+
+        The reveal starts when the first player's socket authenticates, not when the room
+        is loaded, so it is always a reveal somebody sees.
 
         Call with the room lock held, once the room is in ``self.rooms``.
         """
@@ -811,8 +813,8 @@ class RoomManager:
         """``evict`` for a room whose timer step failed, unless it has already left memory.
 
         The room is checked by identity, not code: a timer that failed after its room was
-        dropped and rehydrated must not drop the new one. The ``get`` a reconnect makes
-        runs ``_recover``, which voids a question the failure left open.
+        dropped and rehydrated must not drop the new one. The first reconnect runs
+        ``_recover``, which voids a question the failure left open.
         """
         async with self._locked(room.code):
             if self.rooms.get(room.code) is not room:
@@ -948,6 +950,16 @@ class RoomManager:
             player = room.find_by_session(session)
             if player is None:
                 raise BadSession("no player in this room has that session")
+            if room.awaiting_player:
+                try:
+                    await self._recover(room)
+                except Exception:
+                    # Left in memory, the room would never be offered to ``_recover``
+                    # again and would sit with no timer until it expired. Dropped, the
+                    # client's reconnect rehydrates it from scratch.
+                    self.rooms.pop(code, None)
+                    raise
+                room.awaiting_player = False
             previous = room.sockets.get(player.id)
             room.sockets[player.id] = ws
             player.connected = True
@@ -1073,7 +1085,7 @@ class RoomManager:
                     return False
                 return True
 
-            await codes.allocate(self.words, self.rng, try_insert)
+            await codes.allocate(self.words, self.code_rng, try_insert)
             assert room_row is not None
             # Outside the savepoint above and inside this transaction, deliberately.
             # ``try_insert`` reads a unique violation as "that code was taken, try
@@ -1119,7 +1131,7 @@ class RoomManager:
     async def join(
         self, code: str, display_name: str, avatar: int | None = None
     ) -> tuple[Player, str]:
-        """Add a player to a joinable room. Returns the player and their session token, once.
+        """Add a player to a room in its lobby. Returns the player and their session token, once.
 
         Connected sockets learn about the newcomer through ``room_updated``.
         """
@@ -1130,7 +1142,11 @@ class RoomManager:
         pool = await self._pool()
         async with self._locked(code):
             room = await self._room(code)
-            if room.status not in ("lobby", "playing"):
+            # A player who is already in comes back through ``connect`` with their
+            # session; a join is a new player, and a game under way is too late for one.
+            if room.status == "playing":
+                raise NotOpen(f"the game in room {code} has already started")
+            if room.status != "lobby":
                 raise NotOpen(f"room {code} has finished")
             if len(room.players) >= room.max_players:
                 raise RoomFull(f"room {code} is full")

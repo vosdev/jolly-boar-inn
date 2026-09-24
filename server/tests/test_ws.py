@@ -20,7 +20,7 @@ from starlette.websockets import WebSocketDisconnect
 from app.rooms.state import Room, RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
-from tests.rooms_api import call, create, join
+from tests.rooms_api import call, create, held, join
 
 
 @pytest.fixture
@@ -42,12 +42,6 @@ def closed_with(ws: WebSocketTestSession) -> int:
     with pytest.raises(WebSocketDisconnect) as info:
         ws.receive_json()
     return info.value.code
-
-
-def get_room(client: TestClient, code: str) -> dict[str, Any]:
-    response = client.get(f"/api/rooms/{code}")
-    assert response.status_code == 200
-    return response.json()
 
 
 def snapshot(room: Room) -> dict[str, Any]:
@@ -100,12 +94,12 @@ def test_hello_gets_welcome_with_players_and_you(client: TestClient, lobby) -> N
         assert served.tzinfo is not None
         assert abs((datetime.now(UTC) - served).total_seconds()) < 5
         # The HTTP view and the socket view are the same object rendered twice.
-        assert get_room(client, code) == {"room": welcome["room"], "players": welcome["players"]}
+        assert held(client, code) == {"room": welcome["room"], "players": welcome["players"]}
         assert welcome["room"]["status"] == "lobby"
         assert welcome["room"]["total"] == 3
         assert welcome["room"]["phase"] == "idle"
         assert "session" not in str(welcome)
-    assert get_room(client, code)["players"][1]["connected"] is False
+    assert held(client, code)["players"][1]["connected"] is False
 
 
 def test_ping_gets_pong(client: TestClient, lobby) -> None:
@@ -137,11 +131,11 @@ def test_second_socket_for_same_player_closes_first_with_4000(client: TestClient
         assert welcome["you"]["connected"] is True
         assert closed_with(first) == 4000
         # The player stays connected, through the second socket only.
-        assert get_room(client, code)["players"][1]["connected"] is True
+        assert held(client, code)["players"][1]["connected"] is True
         join(client, code, "Late")
         assert second.receive_json()["t"] == "room_updated"
         first.close()  # the replaced socket's own disconnect must not flip the flag
-        assert get_room(client, code)["players"][1]["connected"] is True
+        assert held(client, code)["players"][1]["connected"] is True
 
 
 # --- handshake failures -------------------------------------------------------------
@@ -217,7 +211,7 @@ def test_disconnect_flips_connected_in_broadcast_to_remaining_socket(
         assert set(update) == {"t", "room", "players"}
         assert [p["connected"] for p in update["players"]] == [True, False]
         assert update["players"][1]["id"] == lobby["player"]["player"]["id"]
-        assert get_room(client, code)["players"] == update["players"]
+        assert held(client, code)["players"] == update["players"]
 
 
 def test_join_over_http_broadcasts_room_updated(client: TestClient, lobby) -> None:
@@ -231,7 +225,7 @@ def test_join_over_http_broadcasts_room_updated(client: TestClient, lobby) -> No
         assert update["t"] == "room_updated"
         assert update["players"][-1] == response.json()["player"]
         assert len(update["players"]) == 3
-        assert update["room"] == get_room(client, code)["room"]
+        assert update["room"] == held(client, code)["room"]
         # A rejected join broadcasts nothing.
         assert join(client, code, "Newcomer").status_code == 409
         ws.send_json({"t": "ping"})
@@ -440,7 +434,7 @@ def test_evicted_room_rehydrates_identically(app: FastAPI, client: TestClient, l
     assert after.timer is None
     assert after.sockets == {}
     # The rehydrated room is the one everything now uses.
-    assert get_room(client, code) == {
+    assert held(client, code) == {
         "room": expected["view"],
         "players": expected["players"],
     }
