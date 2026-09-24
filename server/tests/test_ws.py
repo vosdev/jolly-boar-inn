@@ -429,7 +429,7 @@ def test_evicted_room_rehydrates_identically(app: FastAPI, client: TestClient, l
     assert after is not before
     assert manager.rooms[code] is after
     assert snapshot(after) == expected
-    assert after.lock is before.lock  # one lock per code, across evictions
+    assert after.lock is manager._locks[code].lock  # the lock every caller of this code takes
     assert after.timer is None
     assert after.sockets == {}
     # The rehydrated room is the one everything now uses.

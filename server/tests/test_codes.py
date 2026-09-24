@@ -26,6 +26,17 @@ def test_load_words_rejects_bad_files(tmp_path) -> None:
             codes.load_words(path)
 
 
+def test_every_candidate_is_well_formed() -> None:
+    words = codes.load_words()
+    assert all(codes.well_formed(c) for c in codes.candidates(words, random.Random(1)))
+    assert codes.well_formed("CABBAGE07")
+
+
+@pytest.mark.parametrize("code", ["", "A", "X" * 35, "cabbage", "ABC-12", "ÄBC", "ABC DEF"])
+def test_a_code_no_candidate_could_be_is_not_well_formed(code: str) -> None:
+    assert not codes.well_formed(code)
+
+
 def test_candidates_plain_then_digit_suffixed() -> None:
     got = list(codes.candidates(STUB, random.Random(1)))
     assert got[: codes.PLAIN_ATTEMPTS] == ["CABBAGE"] * codes.PLAIN_ATTEMPTS

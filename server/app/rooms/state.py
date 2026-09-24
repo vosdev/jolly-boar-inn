@@ -49,7 +49,8 @@ import math
 import random
 import secrets
 import time
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -573,6 +574,14 @@ async def _close(ws: WebSocket, code: int, reason: str) -> None:
         log.debug("closing socket with %d failed: %r", code, exc)
 
 
+@dataclass(slots=True)
+class _Slot:
+    """A code's room lock, and how many callers hold or wait on it."""
+
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    users: int = 0
+
+
 class RoomManager:
     def __init__(
         self,
@@ -594,12 +603,28 @@ class RoomManager:
         self.rng = rng or random.Random()
         self.clock = clock
         self.rooms: dict[str, Room] = {}
-        # Locks outlive their rooms so an eviction and a rehydrate of the same code
-        # serialise with whatever else holds the room.
-        self._locks: dict[str, asyncio.Lock] = {}
+        # A room in memory shares its code's lock. The entry outlives the room while
+        # anyone holds or waits on it, so an eviction and a rehydrate of the same code
+        # serialise with whatever else holds the room, and no longer than that: anyone
+        # can ask for any code, so an entry kept for every code asked would never shrink.
+        self._locks: dict[str, _Slot] = {}
 
-    def _lock(self, code: str) -> asyncio.Lock:
-        return self._locks.setdefault(code, asyncio.Lock())
+    @asynccontextmanager
+    async def _locked(self, code: str) -> AsyncIterator[asyncio.Lock]:
+        """Hold ``code``'s room lock; a code no room could have raises ``RoomNotFound``."""
+        if not codes.well_formed(code):
+            raise RoomNotFound("no room has that code")
+        slot = self._locks.get(code)
+        if slot is None:
+            slot = self._locks[code] = _Slot()
+        slot.users += 1
+        try:
+            async with slot.lock:
+                yield slot.lock
+        finally:
+            slot.users -= 1
+            if slot.users == 0 and code not in self.rooms:
+                del self._locks[code]
 
     # --- Loading ------------------------------------------------------------------
 
@@ -609,7 +634,7 @@ class RoomManager:
         Callers share the returned object; read it, but mutate only through this class.
         """
         code = code.upper()
-        async with self._lock(code):
+        async with self._locked(code):
             return await self._room(code)
 
     async def _room(self, code: str) -> Room:
@@ -654,7 +679,7 @@ class RoomManager:
                 row["id"],
             )
             totals = await _fetch_totals(conn, row["id"])
-        room = _room_from_row(row, total=len(questions), lock=self._lock(code))
+        room = _room_from_row(row, total=len(questions), lock=self._locks[code].lock)
         room.players = {p["id"]: _player_from_row(p) for p in players}
         room.questions = questions
         room.totals = totals
@@ -735,7 +760,7 @@ class RoomManager:
         a room really goes away.
         """
         code = code.upper()
-        async with self._lock(code):
+        async with self._locked(code):
             room = self.rooms.get(code)
             if room is None:
                 return False
@@ -777,7 +802,7 @@ class RoomManager:
         """
         now = datetime.now(UTC)
         for code in [c for c, room in self.rooms.items() if room.expires_at <= now]:
-            async with self._lock(code):
+            async with self._locked(code):
                 room = self.rooms.get(code)
                 if room is None or room.expires_at > now:
                     continue
@@ -803,7 +828,7 @@ class RoomManager:
         """
         code = code.upper()
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             player = room.find_by_session(session)
             if player is None:
@@ -866,7 +891,7 @@ class RoomManager:
         ``WebSocketDisconnect``; the handler treats that as the client having left.
         """
         code = code.upper()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             player = room.find_by_session(session)
             if player is None:
@@ -1025,12 +1050,12 @@ class RoomManager:
             inserted = await _fetch_questions(conn, room_row["id"])
         code = room_row["code"]
         player = _player_from_row(player_row)
-        room = _room_from_row(room_row, total=len(inserted), lock=self._lock(code))
-        room.questions = inserted
-        # Before ``setdefault``: the copy that lands in ``self.rooms`` is never re-read,
-        # so a room cached without its admin would reject the host's own ``hello``.
-        room.players[player.id] = player
-        async with room.lock:
+        async with self._locked(code) as lock:
+            room = _room_from_row(room_row, total=len(inserted), lock=lock)
+            room.questions = inserted
+            # Before ``setdefault``: the copy that lands in ``self.rooms`` is never re-read,
+            # so a room cached without its admin would reject the host's own ``hello``.
+            room.players[player.id] = player
             # A ``get`` racing the commit may have loaded it first; that copy wins, and
             # it read the admin back from the same committed row.
             room = self.rooms.setdefault(code, room)
@@ -1049,7 +1074,7 @@ class RoomManager:
         self.check_avatar(avatar)
         session = new_token()
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             if room.status not in ("lobby", "playing"):
                 raise NotOpen(f"room {code} has finished")
@@ -1094,7 +1119,7 @@ class RoomManager:
         name = normalize_name(display_name) if display_name is not None else None
         self.check_avatar(avatar)
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             # The ``Player`` the handler holds is the one in the room, unless the room
             # left memory and came back since; the room's copy is the live one.
@@ -1143,7 +1168,7 @@ class RoomManager:
         broadcast.
         """
         code = code.upper()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             target = room.players.get(player.id)
             if target is None:
@@ -1176,7 +1201,7 @@ class RoomManager:
         """
         code = code.upper()
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             _require_admin(by)
             if room.status != "lobby":
@@ -1222,7 +1247,7 @@ class RoomManager:
         """
         code = code.upper()
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             question = room.open_question()
             if room.status != "playing" or question is None or question.closed_at is not None:
@@ -1276,7 +1301,7 @@ class RoomManager:
         shortens that instead, which is the same thing the admin asked for.
         """
         code = code.upper()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             _require_admin(by)
             if room.status != "playing" or room.phase not in SKIPPABLE:
@@ -1287,7 +1312,7 @@ class RoomManager:
         """Admin: make another player an admin too. There is no demote."""
         code = code.upper()
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             _require_admin(by)
             target = room.players.get(player_id)
@@ -1309,7 +1334,7 @@ class RoomManager:
         """
         code = code.upper()
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             _require_admin(by)
             target = room.players.get(player_id)
@@ -1338,7 +1363,7 @@ class RoomManager:
         """
         code = code.upper()
         pool = await self._pool()
-        async with self._lock(code):
+        async with self._locked(code):
             room = await self._room(code)
             _require_admin(by)
             if room.status != "playing":
