@@ -37,6 +37,10 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 - Every PR bumps the version: minor for a T or D task, patch for anything else. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`.
 - PR descriptions under 10 lines.
 
+## Subagents
+- Run at most one xhigh, two high or three medium subagents at a time.
+- Check the remaining plan usage before you spawn one.
+
 ## Scope and replies
 - Change only what the task asks for. Mention unrelated problems in your reply instead of fixing them.
 - No summary markdown files unless asked.
