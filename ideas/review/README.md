@@ -58,7 +58,10 @@ Where a finding spans areas, the other IDs follow it and the owner of the fix is
 
 "OK" marks a PR that touches the protocol, schema, scoring, room settings or what players see. CLAUDE.md says to ask before those.
 
+Each PR is a branch `R<number>-short-description`
+
 Stability and security first:
+
 1. `ws-limits`: SEC-1/RT-3 frame, body and socket caps and a first-frame timeout; SEC-4; SEC-8. **OK.**
 2. `bounded-memory`: SEC-5, ENG-5, and dropping a room's lock on purge and delete.
 3. `input-validation`: SEC-6, a length cap before NFKC and a bounded Levenshtein; ENG-13; DB-10; SEC-7, with the name rule in ../review-responses.md. **OK.**
@@ -69,6 +72,7 @@ Stability and security first:
 8. `deploy-hardening`: RT-4, SEC-9, SEC-10, SEC-12, SEC-13, SEC-15.
 
 Before ordering and pick all that apply:
+
 9. `mode-registry`: TM-1/ENG-6, TM-7, TM-9, TM-10, TM-17, ENG-10/DB-8. **OK** (room settings).
 10. `type-contract`: TM-3, TM-8, TM-14, TM-16, ENG-15, and a contract test over `TYPES` (TST-3).
 11. `event-questions`: TM-2, TM-15, TM-19, TM-20, FE-11, TST-14. **OK.**
@@ -77,6 +81,7 @@ Before ordering and pick all that apply:
 14. `engine-edges`: ENG-3, ENG-4, ENG-11, ENG-12, ENG-14. **OK** (scoring).
 
 Realtime, database, frontend and tests:
+
 15. `reconnect`: RT-1/FE-6, RT-2, RT-5, RT-6, RT-7, RT-8, RT-10. **OK** (the RT-8 version handshake).
 16. `db-expiry`: DB-1, an index in a new migration; RT-9/DB-9; DB-2; DB-4; DB-5; DB-6. **OK** (schema).
 17. `frontend-fixes`: FE-1, FE-2/SEC-11, FE-3, FE-8, FE-13, FE-14, FE-17, FE-19. **OK.**
@@ -86,5 +91,6 @@ Realtime, database, frontend and tests:
 21. `svelte-tests`: TST-4, replacing the source regexes with Vitest component tests.
 
 Docs and comments:
+
 22. Plan docs: your rewrites of architecture.md, design.md, phase2.md and phase2-prompts.md cover DRIFT-1 to DRIFT-29 and DOC-1, 2, 7, 8, 10–14 and 18, plus TST-20. Your answers in [../review-responses.md](../review-responses.md) apply.
 23. Comment cleanup, one PR per area, for DOC-3 to DOC-6, DOC-9, DOC-15 to DOC-17 and FE-12. Violation counts cover task IDs, section references, and long or missing docstrings; restating comments are rare. The areas are engine (188), more_less (3), price_is_right (23), pick_from_list (26), multiple_choice (14), closest_number (19), free_text (17), modes and random events (29), frontend (183), tests (575, of which 292 are test functions without a docstring, per DOC-16) and scripts (56). Each type's PR adds DOC-6's docstrings on `grade` and `validate_value`.
