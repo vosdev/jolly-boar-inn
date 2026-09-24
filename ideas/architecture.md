@@ -19,7 +19,7 @@ Every choice below is final unless it appears in "Needs decision" at the end.
 | Containers | One three-stage `Dockerfile` (client build, uv venv build, slim runtime), `docker-compose.yml` with `app` + `postgres:18` | Works out of the box for selfhosters. Build tooling never reaches the runtime image. |
 | Postgres | 18, `pgcrypto` not needed (`gen_random_uuid()` is built in) | Current stable. |
 | Time | Server-side `datetime.now(UTC)` everywhere, `timestamptz` columns, ISO 8601 strings on the wire | The client never sends a timestamp. |
-| IDs | `uuid` for rows, short text `code` for rooms, content hash for questions | Room codes are for humans, uuids for joins. |
+| IDs | `uuid` for rows, short text `code` for rooms, content hash for questions (server-only) | Room codes are for humans, uuids for joins and the wire. |
 
 ## 1. Repo layout and main modules
 
@@ -384,7 +384,7 @@ Design rules:
 - Every payload carries an explicit `answer` (or `answer_index`). Derivable answers are still stored, and `validate_packs.py` checks consistency, so `grade()` never recomputes game logic.
 - Numeric facts (GE price, high alch) are embedded at generation time, together with `as_of`. The pack is self-contained and play needs no dataset. Reason: Phase 1 has no dataset.
 - Asset references are strings `item:<id>` or `npc:<id>`, optional everywhere. The client renders an image only if the asset exists locally (Phase 3), otherwise the name. Never a URL.
-- `id` is `q_` plus the first 16 hex chars of `sha256(type + "\n" + canonical_json(payload))` where canonical JSON is sorted keys, no whitespace, UTF-8. Room questions get ids the same way at save time. `mode` is deliberately **not** in the hash: the same payload asked under two modes is the same question, and a mode rename would otherwise rewrite every id in the pack.
+- `id` is `q_` plus the first 16 hex chars of `sha256(type + "\n" + canonical_json(payload))` where canonical JSON is sorted keys, no whitespace, UTF-8. Room questions get ids the same way at save time. `mode` is deliberately **not** in the hash: the same payload asked under two modes is the same question, and a mode rename would otherwise rewrite every id in the pack. It never goes on the wire (section 3).
 - Length caps live in the schema, not only in forms.
 - `host_only: true` means the question is shown but nobody scores on it. Independently, the author of a `source: room` question never scores on it.
 
@@ -667,7 +667,7 @@ Authentication happens in the first frame, never in the URL. The session token i
 |---|---|---|---|
 | `hello` | `session: string` | all | Must be first. Attaches socket, replies `welcome`. |
 | `ping` | | all | Replies `pong`. Client sends every 30 s. |
-| `answer` | `question_id: string`, `value` | all | Stored if the question is open, sender has not answered, sender is allowed to score. Replies `answer_ack` or `error`. |
+| `answer` | `question_id: uuid`, `value` | all | Stored if the question is open, sender has not answered, sender is allowed to score. Replies `answer_ack` or `error`. |
 | `start_game` | | admin | `lobby → playing`, opens question 0. |
 | `skip` | `phase`, `index: int` | admin | Ends `phase` now if the room is in it with `current_index = index`. Otherwise it was pressed on a phase that is over, and gets no reply, so a double tap ends one phase. |
 | `promote` | `player_id` | admin | Sets target role to `admin`. |
@@ -766,6 +766,7 @@ question's options.
 The admin is a player with a flag. There is no admin channel.
 
 - `question_open` and `welcome.question` are byte-identical for every socket in the room, admin included. They contain `client_view`, which never includes `answer`, `answer_index`, `accepted`, `reveal`, or raw `payload`.
+- `question_id` on every frame is the question's `questions.id` row uuid, never its content id: that hashes the payload, answer included, so a client could hash each candidate answer until one matched.
 - `answer_ack` carries how the question is scored and the answer's band (its speed bucket or its step) only, never correctness, for everyone.
 - `answer_count` and the count on `answer_ack` and `OpenQuestion` say how many have answered, never who or what.
 - Correct answers and per-player results appear only in `question_closed`, sent to everyone at the same moment.
