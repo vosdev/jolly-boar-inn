@@ -16,6 +16,8 @@ from app.db import create_pool, run_migrations
 from app.errors import ApiError
 from app.heads import load_head_count
 from app.http import modes, players, rooms, vocab
+from app.http.bodylimit import BodyLimit
+from app.http.forwarded import UntrustedForwardWarning
 from app.http.headers import SecurityHeaders
 from app.http.ratelimit import RateLimiter
 from app.questions import vocab as vocabularies
@@ -148,7 +150,9 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.rooms = None
     app.state.cleanup = None
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour)
-    app.add_middleware(SecurityHeaders)
+    app.add_middleware(BodyLimit)
+    app.add_middleware(UntrustedForwardWarning)
+    app.add_middleware(SecurityHeaders)  # last, so it wraps the others' responses too
     app.add_exception_handler(ApiError, _api_error)  # type: ignore[arg-type]
 
     @app.get("/api/health")

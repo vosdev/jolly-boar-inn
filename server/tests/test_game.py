@@ -45,7 +45,8 @@ from app.questions.types import more_less, multiple_choice
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
-from app.rooms.state import BadState, Room, RoomQuestion
+from app.rooms.state import CHANGE_COOLDOWN, BadState, Room, RoomQuestion
+from app.ws import handler as ws_handler
 from tests.rooms_api import call, create_fast, join
 
 
@@ -140,11 +141,16 @@ class Game:
 
 
 @pytest.fixture
-def table(app: FastAPI, client: TestClient) -> Iterator[Callable[..., Game]]:
+def table(
+    app: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[Callable[..., Game]]:
     """``table("Zezima", "Woox", seconds=1)`` → a lobby with everyone connected.
 
     Seat 0 is always the admin. Sockets close when the test ends, before the app does.
     """
+    # These tests play whole games in a second or two, far faster than anyone taps; the
+    # per-socket rate limit is tested on its own in ``test_limits.py``.
+    monkeypatch.setattr(ws_handler, "RATE_BURST", 10_000)
     with ExitStack() as stack:
 
         def build(*names: str, **settings: Any) -> Game:
@@ -1262,12 +1268,13 @@ def tap(game: Game, seat: Seat, is_ready: bool = True) -> dict[str, Any]:
     return updated(game.admin, lambda m: ready_of(m)[seat.name] is is_ready)
 
 
-def test_ready_in_the_lobby_is_broadcast_by_name(table) -> None:
+def test_ready_in_the_lobby_is_broadcast_by_name(table, clock) -> None:
     """The lobby list: who is ready is everyone's to see, and a tap can be taken back."""
     game = table("Zezima", "Woox")
     message = tap(game, game.players[0])
     assert ready_of(message) == {game.admin.name: False, "Zezima": True, "Woox": False}
     assert game.room.status == "lobby"
+    clock[0] += CHANGE_COOLDOWN
     assert not ready_of(tap(game, game.players[0], False))["Zezima"]
 
 
@@ -1373,11 +1380,13 @@ def test_a_splash_allows_one_un_ready_each(table) -> None:
     assert room.next_at == datetime.fromisoformat(counting["room"]["next_at"])
 
 
-def test_the_lobby_toggle_has_no_limit(table) -> None:
+def test_the_lobby_toggle_has_no_count_limit_only_a_cooldown(table, clock) -> None:
     game = table("Zezima")
     for _ in range(3):
         tap(game, game.players[0])
+        clock[0] += CHANGE_COOLDOWN
         tap(game, game.players[0], False)
+        clock[0] += CHANGE_COOLDOWN
 
 
 def test_an_un_ready_that_keeps_the_threshold_keeps_the_countdown(table) -> None:

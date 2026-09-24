@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.errors import ApiError
+from app.http.ratelimit import client_key
 from app.questions import custom
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
 from app.rooms.state import RoomManager, normalize_name
@@ -69,7 +70,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     # typos in the name field should not cost a host their hourly quota.
     name = normalize_name(body.display_name)
     manager(request).check_avatar(body.avatar)
-    if not request.app.state.ratelimiter.allow(ip):
+    if not request.app.state.ratelimiter.allow(client_key(ip)):
         raise RateLimited("too many rooms created from this address, try again later")
     room, player, session = await manager(request).create(
         name, body.settings, body.custom_questions, ip, body.avatar

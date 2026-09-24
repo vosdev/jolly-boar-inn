@@ -173,9 +173,9 @@ def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -
     assert set(row["random_event"] for row in events) <= set(RANDOM_EVENTS)
 
 
-def test_eleventh_create_from_one_ip_is_429(client: TestClient) -> None:
-    """T6: sixth create from one IP in an hour is 429."""
-    for _ in range(10):
+def test_one_create_over_the_hourly_limit_from_one_ip_is_429(app, client: TestClient) -> None:
+    """One create more than ``ROOMS_PER_IP_PER_HOUR`` from one address is 429."""
+    for _ in range(app.state.settings.rooms_per_ip_per_hour):
         create(client)
     response = client.post("/api/rooms", json={"display_name": "Zezima"})
     assert response.status_code == 429

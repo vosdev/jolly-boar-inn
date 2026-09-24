@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # loop into a spin issuing a delete as fast as the pool can serve one, so a typo
     # here refuses to start the app rather than hammering Postgres for its lifetime.
     room_cleanup_interval_seconds: int = Field(default=3600, gt=0)
-    rooms_per_ip_per_hour: int = 10
+    rooms_per_ip_per_hour: int = 30
     max_players_per_room: int = 50
     packs_dir: Path = Path("../data/packs")
     log_level: Literal["debug", "info", "warning", "error"] = "info"

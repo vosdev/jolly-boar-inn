@@ -2,8 +2,10 @@
 
 Close codes (section 3): ``4001`` bad ``hello``, ``4004`` unknown or expired room, ``4008``
 any protocol error after the handshake, each after a single ``error`` message where the
-protocol has a code for it. ``4000`` (replaced by a newer socket) and ``1012`` (room left
-memory) come from the manager.
+protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT`` or a socket
+over its message rate, and ``1009`` for a frame over ``MAX_FRAME``: the client reconnects
+after both. ``4000`` (replaced by a newer socket) and ``1012`` (room left memory) come from
+the manager.
 
 Every message after the handshake is one ``RoomManager`` call. A call that raises
 ``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
@@ -17,6 +19,8 @@ the sender included, through the broadcasts the manager sends.
 import asyncio
 import json
 import logging
+import time
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, get_args
 
@@ -41,7 +45,18 @@ router = APIRouter()
 CLOSE_BAD_HELLO = 4001
 CLOSE_UNKNOWN_ROOM = 4004
 CLOSE_PROTOCOL_ERROR = 4008
+CLOSE_POLICY = 1008
+CLOSE_TOO_BIG = 1009
 CLOSE_INTERNAL = 1011
+# uvicorn's ``--ws-max-size`` refuses bigger frames before they reach us. This repeats it
+# for any other launcher, and so that ``json.loads`` never sees one: a 16 MiB array of
+# empty objects costs hundreds of MB to parse. The largest real frame is well under 1 KB.
+MAX_FRAME = 65536
+# Until ``hello`` the socket belongs to nobody, so nothing else would ever close it.
+HELLO_TIMEOUT = 10.0
+# Per socket, after the handshake. A player tapping as fast as they can stays far below.
+RATE_PER_SECOND = 10.0
+RATE_BURST = 20
 # The ``ApiError.code`` values that are also websocket error codes (section 3). Anything
 # else a manager call raises is a room that cannot take the message: ``bad_state``.
 _ERROR_CODES: frozenset[str] = frozenset(get_args(ErrorCode))
@@ -49,6 +64,33 @@ _ERROR_CODES: frozenset[str] = frozenset(get_args(ErrorCode))
 
 class BadFrame(Exception):
     """Not a JSON text frame."""
+
+
+class FrameTooBig(Exception):
+    """A text frame over ``MAX_FRAME``."""
+
+
+class TokenBucket:
+    """``rate`` tokens a second, holding at most ``burst``; each message takes one."""
+
+    def __init__(
+        self, rate: float, burst: int, clock: Callable[[], float] = time.monotonic
+    ) -> None:
+        self.rate = rate
+        self.burst = burst
+        self.clock = clock
+        self.tokens = float(burst)
+        self.updated = clock()
+
+    def take(self) -> bool:
+        """Spend one token; ``False`` if there was none left."""
+        now = self.clock()
+        self.tokens = min(self.burst, self.tokens + (now - self.updated) * self.rate)
+        self.updated = now
+        if self.tokens < 1:
+            return False
+        self.tokens -= 1
+        return True
 
 
 async def _next_frame(ws: WebSocket) -> Any:
@@ -63,6 +105,8 @@ async def _next_frame(ws: WebSocket) -> Any:
     text = message.get("text")
     if text is None:
         raise BadFrame("only JSON text frames are accepted")
+    if len(text) > MAX_FRAME:
+        raise FrameTooBig
     try:
         return json.loads(text)
     except ValueError:
@@ -136,10 +180,17 @@ async def room_socket(ws: WebSocket, code: str) -> None:
 
 
 async def _handshake(ws: WebSocket) -> protocol.Hello | None:
-    """The first frame as ``Hello``, or ``None`` after rejecting the socket with 4001."""
+    """The first frame as ``Hello``, or ``None`` after rejecting or closing the socket."""
     try:
-        frame = await _next_frame(ws)
+        async with asyncio.timeout(HELLO_TIMEOUT):
+            frame = await _next_frame(ws)
         message = protocol.parse_client_message(frame)
+    except TimeoutError:
+        await _close(ws, CLOSE_POLICY, "no hello")
+        return None
+    except FrameTooBig:
+        await _close(ws, CLOSE_TOO_BIG, "frame too big")
+        return None
     except BadFrame as exc:
         await _reject(ws, "bad_hello", str(exc), CLOSE_BAD_HELLO)
         return None
@@ -154,10 +205,14 @@ async def _handshake(ws: WebSocket) -> protocol.Hello | None:
 
 async def _serve(ws: WebSocket, manager: RoomManager, code: str, player: Player) -> None:
     """Every frame after a successful ``hello`` until the client leaves."""
+    bucket = TokenBucket(RATE_PER_SECOND, RATE_BURST)
     while True:
         try:
             frame = await _next_frame(ws)
             message = protocol.parse_client_message(frame)
+        except FrameTooBig:
+            await _close(ws, CLOSE_TOO_BIG, "frame too big")
+            return
         except BadFrame as exc:
             await _reject(ws, "bad_message", str(exc), CLOSE_PROTOCOL_ERROR)
             return
@@ -167,6 +222,9 @@ async def _serve(ws: WebSocket, manager: RoomManager, code: str, player: Player)
         if isinstance(message, protocol.Hello):
             reason = "hello is only valid as the first message"
             await _reject(ws, "bad_hello", reason, CLOSE_PROTOCOL_ERROR)
+            return
+        if not bucket.take():
+            await _close(ws, CLOSE_POLICY, "too many messages")
             return
         try:
             reply = await _dispatch(manager, code, player, message)

@@ -94,6 +94,14 @@ def client(app: FastAPI) -> Iterator[TestClient]:
 
 
 @pytest.fixture
+def clock(app: FastAPI, client: TestClient) -> list[float]:
+    """The manager's monotonic clock, frozen; move it with ``clock[0] += seconds``."""
+    now = [1000.0]
+    app.state.rooms.clock = lambda: now[0]
+    return now
+
+
+@pytest.fixture
 def db(test_db_dsn: str) -> Callable[..., list[asyncpg.Record]]:
     """``db(sql, *args)`` runs a query on the test database from the test thread."""
 

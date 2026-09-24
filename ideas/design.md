@@ -617,7 +617,7 @@ small rooms:
   it is about to start.
 - **A tap can be taken back, once per splash.** Dropping below the threshold that way
   stops the countdown again; a second take-back is refused, so nobody can spam the
-  countdown on and off. The lobby's toggle stops nothing and has no limit. A connect or disconnect never stops one — a room of phones locking and waking
+  countdown on and off. The lobby's toggle stops nothing; it only waits a second between changes. A connect or disconnect never stops one — a room of phones locking and waking
   would otherwise never finish counting — and a running countdown is never pushed back.
 - **The host's skip is the override**, whether the splash is waiting or counting.
 

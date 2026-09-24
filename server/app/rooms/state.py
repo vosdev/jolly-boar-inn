@@ -45,8 +45,10 @@ import hashlib
 import hmac
 import ipaddress
 import logging
+import math
 import random
 import secrets
+import time
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -86,6 +88,8 @@ log = logging.getLogger("app.rooms")
 NAME_MAX = 24
 # Seconds a single socket send may take before that socket counts as dead.
 SEND_TIMEOUT = 10.0
+# Seconds between one player's lobby ready changes, and between their profile changes.
+CHANGE_COOLDOWN = 1.0
 # Close codes the manager itself uses (the handler owns the handshake codes).
 CLOSE_REPLACED = 4000  # a newer socket for the same player took over
 CLOSE_RESTART = 1012  # the room left memory; reconnect and you get a fresh welcome
@@ -219,8 +223,12 @@ class Player:
     ready: bool = False
     # Whether this player has already taken a tap back on this splash. One un-ready per
     # splash, so a player hammering the button cannot stop and restart the room's
-    # countdown over and over; the lobby, where a toggle stops nothing, has no limit.
+    # countdown over and over. The lobby has ``CHANGE_COOLDOWN`` instead.
     unreadied: bool = False
+    # When this player last changed their lobby ready or their profile, on the manager's
+    # monotonic clock. Each change is a full ``room_updated`` to every socket in the room.
+    ready_changed_at: float = field(default=-math.inf, repr=False)
+    profile_changed_at: float = field(default=-math.inf, repr=False)
 
     def view(self) -> PlayerView:
         return PlayerView(
@@ -575,6 +583,7 @@ class RoomManager:
         rng: random.Random | None = None,
         *,
         heads: int,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._pool = pool
         self.packs = packs
@@ -583,6 +592,7 @@ class RoomManager:
         # The length of ``data/heads/heads.json``: every valid ``avatar`` is below it.
         self.heads = heads
         self.rng = rng or random.Random()
+        self.clock = clock
         self.rooms: dict[str, Room] = {}
         # Locks outlive their rooms so an eviction and a rehydrate of the same code
         # serialise with whatever else holds the room.
@@ -1075,6 +1085,7 @@ class RoomManager:
         join cannot both win -- and a head from the manifest. A rejected change leaves
         the row and the room exactly as they were. Allowed in any status: standings are
         keyed on the player's id, so a mid-game rename moves no points and no answer.
+        A change within ``CHANGE_COOLDOWN`` of the last one is ``bad_state``.
 
         Nothing changed is nothing broadcast. Everybody else hears about a real change
         through ``room_updated``, the sender included, like every other command.
@@ -1094,6 +1105,8 @@ class RoomManager:
             new_avatar = target.avatar if avatar is None else avatar
             if (new_name, new_avatar) == (target.display_name, target.avatar):
                 return
+            now = self.clock()
+            _cool_down(target.profile_changed_at, now)
             async with pool.acquire() as conn:
                 try:
                     await conn.execute(
@@ -1106,6 +1119,7 @@ class RoomManager:
                     raise NameTaken(f"the name {new_name!r} is taken in room {code}") from None
             target.display_name = new_name
             target.avatar = new_avatar
+            target.profile_changed_at = now
             update = self._room_updated(room)
         await self._broadcast(update)
 
@@ -1122,7 +1136,8 @@ class RoomManager:
         shortens it, and taking a tap back below the threshold stops it again. The
         countdown rides as ``next_at`` on the same ``room_updated`` that says who is ready.
         A splash allows each player one un-ready; a second is ``bad_state``, so nobody can
-        spam the countdown on and off. The lobby's toggle has no limit.
+        spam the countdown on and off. In the lobby, a change within ``CHANGE_COOLDOWN``
+        of the last one is ``bad_state``.
 
         Anywhere else there is nothing to be ready for. Nothing changed is nothing
         broadcast.
@@ -1142,6 +1157,10 @@ class RoomManager:
                 if target.unreadied:
                     raise BadState("you can only take your ready back once a round")
                 target.unreadied = True
+            if not in_splash:
+                now = self.clock()
+                _cool_down(target.ready_changed_at, now)
+                target.ready_changed_at = now
             target.ready = is_ready
             _recount_splash(room, unready=not is_ready)
             update = self._room_updated(room)
@@ -1675,6 +1694,11 @@ def _rows_affected(status: str) -> int:
 def _require_admin(player: Player) -> None:
     if player.role != "admin":
         raise NotAdmin("only an admin can do that")
+
+
+def _cool_down(last: float, now: float) -> None:
+    if now - last < CHANGE_COOLDOWN:
+        raise BadState("wait a moment before changing that again")
 
 
 def _everyone_answered(room: Room, question: RoomQuestion) -> bool:

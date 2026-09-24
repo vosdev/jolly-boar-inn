@@ -21,6 +21,7 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 
 from app.heads import load_head_count
+from app.rooms.state import CHANGE_COOLDOWN
 from tests.rooms_api import create, join
 
 HEADS = load_head_count()
@@ -126,7 +127,9 @@ def test_a_full_room_can_have_fifty_different_heads(app: FastAPI, client: TestCl
 # --- set_profile ------------------------------------------------------------------
 
 
-def test_a_reroll_and_a_rename_reach_the_other_browser(client: TestClient, lobby, db) -> None:
+def test_a_reroll_and_a_rename_reach_the_other_browser(
+    client: TestClient, lobby, db, clock
+) -> None:
     """D4 Accept: both browsers see the same heads, and a change in one reaches the other."""
     code, admin, player = lobby["code"], lobby["admin"], lobby["player"]
     with (
@@ -143,10 +146,12 @@ def test_a_reroll_and_a_rename_reach_the_other_browser(client: TestClient, lobby
             seen = by_id(next_of(ws, "room_updated")["players"], player["player"]["id"])
             assert (seen["display_name"], seen["avatar"]) == ("Zezima", 12)
 
+        clock[0] += CHANGE_COOLDOWN
         two.send_json({"t": "set_profile", "display_name": "  Woox  "})
         seen = by_id(next_of(one, "room_updated")["players"], player["player"]["id"])
         assert (seen["display_name"], seen["avatar"]) == ("Woox", 12)  # trimmed, head kept
 
+        clock[0] += CHANGE_COOLDOWN
         two.send_json({"t": "set_profile", "display_name": "Lynx Titan", "avatar": 0})
         seen = by_id(next_of(one, "room_updated")["players"], player["player"]["id"])
         assert (seen["display_name"], seen["avatar"]) == ("Lynx Titan", 0)

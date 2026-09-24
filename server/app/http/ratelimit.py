@@ -1,5 +1,6 @@
 """In-memory per-IP limiter for room creation: at most ``limit`` hits per window."""
 
+import ipaddress
 from collections import deque
 from datetime import UTC, datetime, timedelta
 
@@ -28,6 +29,20 @@ class RateLimiter:
             _expire(self._hits[key], cutoff)
             if not self._hits[key]:
                 del self._hits[key]
+
+
+def client_key(host: str) -> str:
+    """The limiter's key for an address: IPv4 as it is, IPv6 by its /64."""
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return host
+    if isinstance(address, ipaddress.IPv6Address):
+        if address.ipv4_mapped is not None:
+            return str(address.ipv4_mapped)
+        # A household is given a whole /64, so one address alone would limit nobody.
+        return str(ipaddress.IPv6Network((address, 64), strict=False))
+    return str(address)
 
 
 def _expire(hits: deque[datetime], cutoff: datetime) -> None:
