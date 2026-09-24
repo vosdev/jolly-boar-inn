@@ -93,6 +93,8 @@ jolly-boar-inn/
 │   │   │   ├── players.py     # POST /api/rooms/{code}/join
 │   │   │   ├── modes.py       # GET /api/modes: the modes, their type, and their pacing
 │   │   │   ├── vocab.py       # GET /api/vocab/{name}: the autocomplete lists
+│   │   │   ├── bodylimit.py   # 256 KiB cap on /api/* request bodies, 413 over it
+│   │   │   ├── forwarded.py   # warns once about an ignored X-Forwarded-For
 │   │   │   └── ratelimit.py   # in-memory per-IP limiter
 │   │   └── static.py          # mount client/dist with SPA fallback
 │   ├── scripts/
@@ -289,7 +291,7 @@ A random event carries the `round` of the round it interrupts and is grouped int
 | `PUBLIC_BASE_URL` | `http://localhost:5173` | Absolute base for this deployment. No consumer in Phase 1: the client builds every link from `location.origin`. |
 | `ROOM_TTL_DAYS` | `3` | Sets `expires_at`. |
 | `ROOM_CLEANUP_INTERVAL_SECONDS` | `3600` | How often the cleanup task deletes rooms past `expires_at`. Must be positive; the app refuses to start otherwise. |
-| `ROOMS_PER_IP_PER_HOUR` | `10` | |
+| `ROOMS_PER_IP_PER_HOUR` | `30` | IPv6 counts by its /64. |
 | `MAX_PLAYERS_PER_ROOM` | `50` | |
 | `PACKS_DIR` | `../data/packs` | |
 | `LOG_LEVEL` | `info` | Query strings are never logged. |
@@ -655,7 +657,7 @@ Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`
 
 ## 3. Websocket protocol
 
-Endpoint: `GET /ws/{code}`. Plain JSON text frames. Every message is `{"t": "<type>", ...fields}`. The server closes with code `4001` on a bad `hello`, `4004` unknown room -- which a room that has just been expired or deleted underneath its sockets becomes -- `4008` on any protocol error after a single `error` message.
+Endpoint: `GET /ws/{code}`. Plain JSON text frames. Every message is `{"t": "<type>", ...fields}`. The server closes with code `4001` on a bad `hello`, `4004` unknown room -- which a room that has just been expired or deleted underneath its sockets becomes -- `4008` on any protocol error after a single `error` message. It closes with `1009` on a frame over 64 KiB, and with `1008` when no `hello` arrives within 10 s or a socket sends more than 10 messages a second after a burst of 20; the client reconnects after both.
 
 Authentication happens in the first frame, never in the URL. The session token is the one returned by create or join, kept in `localStorage["jbi:session:" + code]`.
 
@@ -671,8 +673,8 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `promote` | `player_id` | admin | Sets target role to `admin`. |
 | `kick` | `player_id` | admin | Deletes player row and their answers, closes their socket with `4003`. Not allowed on admins. |
 | `end_game` | | admin | Closes any open question (voided), `playing → finished`. |
-| `ready` | `ready: bool` | all | D7. Tap ready or take it back, in the lobby or during a splash; anywhere else is `bad_state`, and so is a second take-back on the same splash. On a splash it may bring `next_at` forward (section 4). Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
-| `set_profile` | `display_name?: string`, `avatar?: int` | all | D4. Renames the sender, re-rolls their head, or both; an omitted field is left alone. Validated exactly like a join (name rules, case-insensitive uniqueness in the room, a head id from `data/heads/heads.json`), so a rejection leaves the row as it was. Any status. Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
+| `ready` | `ready: bool` | all | D7. Tap ready or take it back, in the lobby or during a splash; anywhere else is `bad_state`, and so is a second take-back on the same splash or a lobby change within a second of the last. On a splash it may bring `next_at` forward (section 4). Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
+| `set_profile` | `display_name?: string`, `avatar?: int` | all | D4. Renames the sender, re-rolls their head, or both; an omitted field is left alone. Validated exactly like a join (name rules, case-insensitive uniqueness in the room, a head id from `data/heads/heads.json`), so a rejection leaves the row as it was. Any status. A change within a second of the last is `bad_state`. Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
 
 ### Server → client
 
@@ -1122,7 +1124,7 @@ Goal: the creator of a room is its first admin; every identity is a session toke
 1. **Create.** Client `POST /api/rooms` with `{display_name, settings, custom_questions: []}`.
 2. **Server** (`RoomManager.create`), one transaction:
    - Normalise the display name first — trimmed, 1–24 characters, no `<`/`>`, no control characters → `422 bad_name` before a single row exists, and before the rate limiter is consulted. The limiter records a hit on every call it allows, so validating afterwards would let a handful of typos cost a host their hourly quota.
-   - Rate limit: `ratelimit.py` keeps `{ip: deque[timestamps]}` in memory; more than `ROOMS_PER_IP_PER_HOUR` → `429`.
+   - Rate limit: `ratelimit.py` keeps `{key: deque[timestamps]}` in memory, keyed on the IPv4 address or the IPv6 /64; more than `ROOMS_PER_IP_PER_HOUR` → `429`.
    - Generate `code`: random entry from `data/room-words.json`, uppercase, retry on unique violation up to 5 times (a savepoint per attempt), then append two random digits.
    - Insert the room with `status = 'lobby'` and `expires_at = now + ROOM_TTL_DAYS`. There is no `created` state: a room and its host are born together.
    - Insert the creator as a player with `role = 'admin'` and `session_token = secrets.token_urlsafe(32)`, storing only its sha256. This insert sits outside the code-allocation savepoint on purpose — that savepoint reads a unique violation as "code taken, try another", and `players_session_idx` is unique across every room, so a collision there would otherwise be retried as a code collision until the allocator gave up.
@@ -1142,7 +1144,9 @@ Headers on every response (`main.py` middleware): `Referrer-Policy: no-referrer`
 
 No HSTS from the app: TLS terminates at the reverse proxy, and a self-hoster serving plain HTTP on a LAN would lock themselves out. It belongs in the proxy config.
 
-The container runs read-only with `cap_drop: ALL` and `no-new-privileges`, as uid 10001 against root-owned application files -- nothing under `server/app/` writes to disk, and the process cannot rewrite the code it runs. Trusted reverse proxies come from `FORWARDED_ALLOW_IPS`, which uvicorn reads directly; it defaults to loopback, so `X-Forwarded-For` is believed only from an address the operator names. `ROOMS_PER_IP_PER_HOUR` keys on the resulting client address.
+The container runs read-only with `cap_drop: ALL` and `no-new-privileges`, as uid 10001 against root-owned application files -- nothing under `server/app/` writes to disk, and the process cannot rewrite the code it runs. Trusted reverse proxies come from `FORWARDED_ALLOW_IPS`, which uvicorn reads directly; it defaults to loopback, so `X-Forwarded-For` is believed only from an address the operator names. `ROOMS_PER_IP_PER_HOUR` keys on the resulting client address, and the first ignored `X-Forwarded-For` logs one warning naming the sender.
+
+Resource caps: uvicorn runs with `--ws-max-size 65536` and `--limit-concurrency 1000`, and `/api/*` bodies over 256 KiB get `413 too_large` before FastAPI parses them.
 
 Deviation from plan.md: created rooms are tracked in localStorage instead of a cookie. Reason: the server needs no cookie, and one storage mechanism on the client is enough.
 

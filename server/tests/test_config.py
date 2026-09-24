@@ -12,7 +12,7 @@ def test_defaults_match_architecture_table() -> None:
     assert s.public_base_url == "http://localhost:5173"
     assert s.room_ttl_days == 3
     assert s.room_cleanup_interval_seconds == 3600
-    assert s.rooms_per_ip_per_hour == 10
+    assert s.rooms_per_ip_per_hour == 30
     assert s.max_players_per_room == 50
     assert s.packs_dir == Path("../data/packs")
     assert s.log_level == "info"
