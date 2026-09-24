@@ -1,0 +1,32 @@
+{
+  "accepted": [
+    ["Zezima", "Zezima"],
+    ["  Zézima  ", "Zézima"],
+    ["Zézima", "Zézima"],
+    ["Ｄａｎ", "Dan"],
+    ["Dan   the  Man", "Dan the Man"],
+    ["Dan Smith", "Dan Smith"],
+    ["Łukasz_ß-9", "Łukasz_ß-9"],
+    ["ǅemal Ề", "Džemal Ề"],
+    ["123", "123"],
+    ["xxxxxxxxxxxxxxxxxxxxxxxx", "xxxxxxxxxxxxxxxxxxxxxxxx"]
+  ],
+  "refused": [
+    "",
+    "   ",
+    "xxxxxxxxxxxxxxxxxxxxxxxxx",
+    "Dan​",
+    "​",
+    "‮Host",
+    "Dаn",
+    "Dan\u0080",
+    "á́́́́́́́́́́́́́́́́́́́́́́",
+    "Tom & Jerry",
+    "<b>bold</b>",
+    "two\nlines",
+    "tab\there",
+    "Dan😀",
+    "2×3",
+    "Dan!"
+  ]
+}

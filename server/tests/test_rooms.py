@@ -14,6 +14,7 @@ Plus section 7: the session token is hashed at rest and never rendered back.
 """
 
 import hashlib
+import json
 import re
 from typing import Any
 
@@ -281,6 +282,20 @@ def assert_no_room(db) -> None:
         assert db(f"select count(*) as n from {table}")[0]["n"] == 0, table
 
 
+@pytest.mark.parametrize("escape", ["\\u0000", "\\ud800"])
+def test_a_custom_question_postgres_cannot_store_is_a_422_and_no_room(
+    client: TestClient, db, escape: str
+) -> None:
+    """Both are valid JSON escapes, so the body is sent as written rather than re-encoded."""
+    body = json.dumps(
+        {"display_name": "Zezima", "settings": {}, "custom_questions": [own_question("X")]}
+    ).replace('"X"', f'"X{escape}"')
+    response = client.post("/api/rooms", content=body, headers={"content-type": "application/json"})
+    assert response.status_code == 422, response.text
+    assert "$.payload.prompt" in response.text
+    assert_no_room(db)
+
+
 def test_custom_questions_are_stored_as_the_hosts_own_random_events(client: TestClient, db) -> None:
     """``source: room``, ``mode: custom``, the creator as author, each an event inside a
     round and asked by an NPC. Fifteen questions at ``more`` make three slots, and the one
@@ -509,7 +524,17 @@ def test_join_name_rules(client: TestClient) -> None:
         assert response.status_code == 422, name
         assert response.json()["code"] == "bad_name"
     assert join(client, code, "x" * 24).status_code == 200
-    assert join(client, code, "Tom & Jerry").status_code == 200
+    assert join(client, code, "Tom-and_Jerry 2").status_code == 200
+
+
+def test_two_spellings_of_one_name_are_one_name_in_a_room(client: TestClient) -> None:
+    """Names are stored after NFKC and space-collapsing, so the unique index sees one name."""
+    code, _ = create(client)
+    assert join(client, code, "Dan Smith").json()["player"]["display_name"] == "Dan Smith"
+    for twin in ("\uff24\uff41\uff4e Smith", "dan   smith", "Dan\u00a0Smith"):
+        response = join(client, code, twin)
+        assert response.status_code == 409, twin
+        assert response.json()["code"] == "name_taken"
 
 
 def test_join_unknown_and_expired_rooms(client: TestClient, db, evict) -> None:

@@ -20,6 +20,7 @@ from typing import Any
 from jsonschema import Draft202012Validator, FormatChecker
 
 from app.modes import MODES
+from app.questions import text
 from app.questions.types import TYPES
 from app.random_events import RANDOM_EVENTS
 
@@ -140,8 +141,11 @@ def event_errors(question: dict[str, Any]) -> list[str]:
 
 
 def errors(question: Any) -> list[str]:
-    """Schema errors, or if the schema is satisfied, consistency errors."""
-    return schema_errors(question) or consistency_errors(question)
+    """Characters Postgres cannot store, else schema errors, else consistency errors.
+
+    The characters come first because ``content_id`` cannot hash a lone surrogate.
+    """
+    return text.errors(question) or schema_errors(question) or consistency_errors(question)
 
 
 def validate(question: Any) -> None:

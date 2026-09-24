@@ -45,7 +45,7 @@ from app.questions.types import more_less, multiple_choice
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
-from app.rooms.state import CHANGE_COOLDOWN, BadState, Room, RoomQuestion
+from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, Room, RoomQuestion
 from app.ws import handler as ws_handler
 from tests.rooms_api import call, create_fast, join
 
@@ -840,6 +840,21 @@ def test_kick_deletes_the_player_their_answers_and_closes_their_socket(game, db)
         UUID(game.players[1].id),
     ]
     assert_memory_matches_db(game, db)
+
+
+def test_an_answer_that_waited_out_a_kick_is_excluded_not_a_database_error(game, db) -> None:
+    """The kick holds the room lock while the answer waits on it; the player is gone after."""
+    game.start()
+    game.opened(0)
+    manager, room = game.app.state.rooms, game.room
+    admin = room.players[UUID(game.admin.id)]
+    kicked = room.players[UUID(game.players[0].id)]
+    question_id = game.question(0).question_id
+
+    call(game.client, manager.kick, game.code, admin, kicked.id)
+    with pytest.raises(Excluded, match="no longer in this room"):
+        call(game.client, manager.submit_answer, game.code, kicked, question_id, game.right(0))
+    assert db("select * from answers") == []
 
 
 def test_an_admin_cannot_be_kicked(game) -> None:

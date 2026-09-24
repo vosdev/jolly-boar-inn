@@ -47,8 +47,10 @@ import ipaddress
 import logging
 import math
 import random
+import re
 import secrets
 import time
+import unicodedata
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -87,6 +89,19 @@ from app.ws.protocol import (
 log = logging.getLogger("app.rooms")
 
 NAME_MAX = 24
+# Letters only, from the Latin blocks whose accented letters a player could type:
+# names are read aloud and compared by eye, and every other script has letters that look
+# like these. ``names.ts`` holds the same ranges.
+_LATIN_LETTERS = (
+    ("A", "Z"),
+    ("a", "z"),
+    ("\u00c0", "\u00d6"),
+    ("\u00d8", "\u00f6"),
+    ("\u00f8", "\u024f"),
+    ("\u1e00", "\u1eff"),
+)
+_NAME_MARKS = frozenset("0123456789 _-")
+_SPACES = re.compile(" {2,}")
 # Seconds a single socket send may take before that socket counts as dead.
 SEND_TIMEOUT = 10.0
 # Seconds between one player's lobby ready changes, and between their profile changes.
@@ -188,15 +203,17 @@ def new_token() -> str:
 
 
 def normalize_name(raw: str) -> str:
-    """T7 name rules: trimmed, 1-24 chars, no HTML, no control characters."""
-    name = raw.strip()
+    """NFKC, trimmed, spaces collapsed, then 1-24 of Latin letters, digits, space, _ and -."""
+    name = _SPACES.sub(" ", unicodedata.normalize("NFKC", raw).strip())
     if not 1 <= len(name) <= NAME_MAX:
         raise BadName(f"display name must be 1 to {NAME_MAX} characters")
-    if "<" in name or ">" in name:
-        raise BadName("display name may not contain < or >")
-    if any(ch.isspace() and ch != " " for ch in name) or any(ord(ch) < 32 for ch in name):
-        raise BadName("display name may not contain line breaks or control characters")
+    if not all(ch in _NAME_MARKS or _is_latin_letter(ch) for ch in name):
+        raise BadName("Only letters, digits, spaces, _ and - in a name.")
     return name
+
+
+def _is_latin_letter(ch: str) -> bool:
+    return any(low <= ch <= high for low, high in _LATIN_LETTERS)
 
 
 def parse_ip(value: str | None) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
@@ -1249,6 +1266,10 @@ class RoomManager:
         pool = await self._pool()
         async with self._locked(code):
             room = await self._room(code)
+            # A kick that held the lock while this waited has deleted the player's row,
+            # and the insert below would fail on its foreign key.
+            if player.id not in room.players:
+                raise Excluded("you are no longer in this room")
             question = room.open_question()
             if room.status != "playing" or question is None or question.closed_at is not None:
                 raise NotOpen("no question is open")

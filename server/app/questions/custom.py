@@ -26,7 +26,7 @@ that did not come through HTTP, and it changes nothing the second time.
 from collections.abc import Sequence
 from typing import Any
 
-from app.questions import schema
+from app.questions import schema, text
 
 MODE = "custom"
 SOURCE = "room"
@@ -41,7 +41,8 @@ def envelopes(raw: Sequence[Any]) -> list[dict[str, Any]]:
             found.append(f"custom_questions[{index}]: a question is a JSON object")
             continue
         filled = {"mode": MODE, "source": SOURCE, "tags": [], **question}
-        if isinstance(filled.get("type"), str) and "payload" in filled:
+        hashable = not text.errors(filled)
+        if isinstance(filled.get("type"), str) and "payload" in filled and hashable:
             filled.setdefault("id", schema.content_id(filled))
         found += [f"custom_questions[{index}] {problem}" for problem in schema.errors(filled)]
         done.append(filled)

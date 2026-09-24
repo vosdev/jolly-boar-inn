@@ -14,6 +14,9 @@ comes back on each visit and the app still plays.
 
 import json
 import re
+from pathlib import Path
+
+import pytest
 
 from app.config import REPO_ROOT
 from app.rooms.state import NAME_MAX, BadName, normalize_name
@@ -34,6 +37,34 @@ def names() -> list[str]:
 
 def read(path: str) -> str:
     return (CLIENT_SRC / path).read_text(encoding="utf-8")
+
+
+# --- the rules -----------------------------------------------------------------------
+
+# Shared with ``client/src/lib/names.test.ts``, so the hint a player sees while typing is
+# the server's own answer.
+CASES = json.loads((Path(__file__).parent / "name_cases.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize(("raw", "stored"), CASES["accepted"])
+def test_a_name_is_stored_in_one_spelling(raw: str, stored: str) -> None:
+    """NFKC, trimmed, and one space where the player typed several."""
+    assert normalize_name(raw) == stored
+
+
+# A lone surrogate is valid JSON, but Vite's JSON loader refuses to read one.
+@pytest.mark.parametrize("raw", [*CASES["refused"], "Dan\ud800"])
+def test_a_name_is_latin_letters_digits_spaces_underscores_and_hyphens(raw: str) -> None:
+    """Nothing invisible, nothing that reverses the sentence around it, no look-alikes."""
+    with pytest.raises(BadName):
+        normalize_name(raw)
+
+
+def test_every_latin_letter_the_rule_names_is_taken_and_nothing_next_to_it() -> None:
+    assert normalize_name("\u00c0\u00d6\u00d8\u00f6\u00f8\u00ff\u0100\u024f\u1e00\u1eff")
+    for outside in ("\u00bf", "\u00d7", "\u00f7", "\u0250", "\u1dff", "\u1f00"):
+        with pytest.raises(BadName, match="Only letters, digits, spaces, _ and - in a name."):
+            normalize_name("Dan" + outside)
 
 
 # --- the corpus ----------------------------------------------------------------------

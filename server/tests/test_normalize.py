@@ -5,6 +5,9 @@ answer under four characters takes no typo, so "Jad" does not accept "Jam"; a on
 typo on a full accepted answer is accepted and a different answer is not.
 """
 
+import random
+import time
+
 import pytest
 
 from app.questions.normalize import SHORT, accepts, distance, normalize
@@ -81,3 +84,52 @@ def test_any_accepted_spelling_will_do() -> None:
 )
 def test_distance_is_levenshtein(a: str, b: str, expected: int) -> None:
     assert distance(a, b) == distance(b, a) == expected
+
+
+@pytest.mark.parametrize(
+    ("a", "b", "limit", "expected"),
+    [
+        ("kitten", "sitting", 3, 3),
+        ("kitten", "sitting", 2, 3),
+        ("kitten", "sitting", 0, 1),
+        ("zulrah", "zulrah", 0, 0),
+        ("abcdef", "uvwxyz", 2, 3),
+        ("jad", "", 1, 2),
+        ("x" * 50 + "a", "x" * 50 + "b", 1, 1),
+    ],
+)
+def test_a_limited_distance_stops_one_past_its_limit(
+    a: str, b: str, limit: int, expected: int
+) -> None:
+    assert distance(a, b, limit) == distance(b, a, limit) == expected
+
+
+def test_a_limited_distance_agrees_with_the_full_one_up_to_its_limit() -> None:
+    rng = random.Random(1)
+    for _ in range(5000):
+        a, b = ("".join(rng.choices("ab", k=rng.randint(0, 9))) for _ in range(2))
+        limit = rng.randint(0, 4)
+        assert distance(a, b, limit) == min(distance(a, b), limit + 1), (a, b, limit)
+
+
+def graded_in(answer: str, accepted: list[str], max_distance: int) -> float:
+    """Seconds one ``accepts`` takes: grading runs on the event loop every room shares."""
+    start = time.perf_counter()
+    accepts(answer, accepted, max_distance)
+    return time.perf_counter() - start
+
+
+def test_an_answer_nfkc_blows_up_grades_in_under_10_ms() -> None:
+    """U+FDFA is one character that NFKC makes eighteen, so 80 of them become 1,440."""
+    bloated = "ﷺ" * 80
+    worst = [f"{'x' * 78}{index:02}" for index in range(20)]
+    assert graded_in(bloated, worst, 2) < 0.010
+    assert graded_in("ﷻ" * 80, ["ﷺ" * 79] * 20, 2) < 0.010
+
+
+def test_a_limited_distance_only_looks_near_the_diagonal() -> None:
+    """Strings of one length cannot be skipped, so the band is what keeps them cheap."""
+    long = "a" * 10_000
+    start = time.perf_counter()
+    assert distance(long, "b" + long[1:], 2) == 1
+    assert time.perf_counter() - start < 0.010
