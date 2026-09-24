@@ -22,6 +22,8 @@ RoomStatus = Literal["lobby", "playing", "finished"]
 # ``standings`` (D9) sits between a round's last reveal and the next round, never between
 # two questions of one round, and never after the game's last: that goes to ``finished``.
 Phase = Literal["idle", "splash", "open", "reveal", "standings"]
+# Every timed phase: each one is a wait the host can cut short.
+SkippablePhase = Literal["splash", "open", "reveal", "standings"]
 Role = Literal["player", "admin"]
 ErrorCode = Literal[
     "bad_hello",
@@ -159,7 +161,12 @@ class StartGame(_Message):
 
 
 class Skip(_Message):
+    """End ``phase`` of the question at ``index``: what the host was looking at when they
+    pressed it, so a second tap that lands once the room has moved on ends nothing."""
+
     t: Literal["skip"]
+    phase: SkippablePhase
+    index: int = Field(ge=0, strict=True)
 
 
 class Promote(_Message):
