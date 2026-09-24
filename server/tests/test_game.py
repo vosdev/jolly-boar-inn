@@ -19,16 +19,20 @@ both ``answer_ack`` and the close.
 
 Plus the rest of the section 3 and 4 surface these two tasks own: ``question_open`` (and
 what it withholds), ``answer_ack``, auto-advance, ``game_finished``, reconnecting
-mid-question, ``skip`` during a reveal, ``end_game``, ``promote`` and ``kick``.
+mid-question, ``skip`` during a reveal, ``end_game``, ``promote`` and ``kick``. And what the
+timer does when a step fails, when it loses a race for the lock, and when the wall clock
+jumps.
 
 Most tests run with ten-second questions and drive the closes themselves with ``skip``,
 so what they assert is the state machine and not the wall clock. The ones that are about
 time say so.
 """
 
+import asyncio
+import threading
 import time
-from collections.abc import Callable, Iterator
-from contextlib import ExitStack
+from collections.abc import AsyncIterator, Callable, Iterator
+from contextlib import ExitStack, asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -45,6 +49,7 @@ from app.questions.types import more_less, multiple_choice
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
+from app.rooms import state
 from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, Room, RoomQuestion
 from app.ws import handler as ws_handler
 from tests.rooms_api import call, create_fast, join
@@ -1517,14 +1522,13 @@ def test_speed_buckets_scale_to_the_questions_own_length(game) -> None:
 def answer_after(game: Game, seat: Seat, index: int, value: Any, seconds: float) -> dict[str, Any]:
     """Answer question ``index`` as though ``seconds`` had passed since it took answers.
 
-    ``submit_answer`` measures elapsed time from the in-memory ``answerable_at`` and
-    nothing else, so moving that is how a test picks the bucket instead of racing the
-    clock for it. ``shown_at`` goes with it, and the row in the database keeps the real
-    one; nothing reads it while a question is open. Returns the ``answer_ack``.
+    ``submit_answer`` measures elapsed time from the in-memory ``answerable_mono`` on the
+    manager's clock and nothing else, so moving that is how a test picks the bucket
+    instead of racing the clock for it. ``ends_mono`` stays, so the answer is still on
+    time. Returns the ``answer_ack``.
     """
     question = game.question(index)
-    question.answerable_at = datetime.now(UTC) - timedelta(seconds=seconds)
-    question.shown_at = question.answerable_at
+    question.answerable_mono = game.app.state.rooms.clock() - seconds
     game.answer(seat, index, value)
     return seat.take("answer_ack")
 
@@ -2220,3 +2224,424 @@ def test_skip_is_refused_outside_a_game_and_accepted_in_standings(table, second_
     game.admin.send(t="skip")
     assert game.admin.take("question_open")["question"]["index"] == 1
     assert time.monotonic() - started < 1
+
+
+# --- the timer: a step that fails, a race it loses, a wall clock that jumps ----------
+
+
+class Faults:
+    """The manager's database, with statements a test picks failing once or stalling first.
+
+    A statement is picked by how its SQL starts. Failing raises what a connection dropped
+    mid-query raises, which is what a Postgres restart looks like to a game in progress.
+    """
+
+    def __init__(self, manager: Any) -> None:
+        self._real = manager._pool
+        self._failing: list[str] = []
+        self._stalls: dict[str, float] = {}
+        manager._pool = self._pool
+
+    def fail_once(self, sql: str) -> None:
+        self._failing.append(sql)
+
+    def stall(self, sql: str, seconds: float) -> None:
+        self._stalls[sql] = seconds
+
+    async def _pool(self) -> _FaultyPool:
+        return _FaultyPool(await self._real(), self)
+
+    async def check(self, sql: str) -> None:
+        for prefix in self._failing:
+            if sql.startswith(prefix):
+                self._failing.remove(prefix)
+                raise ConnectionResetError(f"injected: the database dropped {prefix!r}")
+        for prefix, seconds in self._stalls.items():
+            if sql.startswith(prefix):
+                await asyncio.sleep(seconds)
+
+
+@dataclass
+class _FaultyPool:
+    pool: Any
+    faults: Faults
+
+    @asynccontextmanager
+    async def acquire(self) -> AsyncIterator[_FaultyConnection]:
+        async with self.pool.acquire() as conn:
+            yield _FaultyConnection(conn, self.faults)
+
+
+@dataclass
+class _FaultyConnection:
+    conn: Any
+    faults: Faults
+
+    async def execute(self, sql: str, *args: Any) -> str:
+        await self.faults.check(sql)
+        return await self.conn.execute(sql, *args)
+
+    async def executemany(self, sql: str, args: Any) -> None:
+        await self.faults.check(sql)
+        await self.conn.executemany(sql, args)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.conn, name)
+
+
+@pytest.fixture
+def faults(app: FastAPI, client: TestClient) -> Faults:
+    return Faults(app.state.rooms)
+
+
+def left_memory(game: Game, within: float = 5.0) -> bool:
+    """Whether the room drops out of the manager's memory within ``within`` seconds."""
+    rooms = game.app.state.rooms.rooms
+    deadline = time.monotonic() + within
+    while game.code in rooms:
+        if time.monotonic() > deadline:
+            return False
+        time.sleep(0.02)
+    return True
+
+
+def closed_after(seat: Seat) -> int:
+    """The code ``seat``'s socket closes with, once the frames still queued on it are read."""
+    with pytest.raises(WebSocketDisconnect) as info:
+        for _ in range(30):
+            seat.seen.append(seat.ws.receive_json())
+    return info.value.code
+
+
+def reply(seat: Seat, wanted: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
+    """The first frame ``wanted`` accepts, or the first ``error``, whichever comes first."""
+    for _ in range(30):
+        message = seat.ws.receive_json()
+        seat.seen.append(message)
+        if message["t"] == "error" or wanted(message):
+            return message
+    raise AssertionError(f"{seat.name} never heard back; saw {seat.kinds}")
+
+
+def acked(message: dict[str, Any]) -> bool:
+    return message["t"] == "answer_ack"
+
+
+@contextmanager
+def lock_held(game: Game) -> Iterator[None]:
+    """Hold the room lock on the app's loop for the block, as a slow step would."""
+    room = game.room
+    portal = game.client.portal
+    assert portal is not None
+    held, release = threading.Event(), asyncio.Event()
+
+    async def hold() -> None:
+        async with room.lock:
+            held.set()
+            await release.wait()
+
+    holder = portal.start_task_soon(hold)
+    assert held.wait(5), "never got the room lock"
+    try:
+        yield
+    finally:
+        portal.call(release.set)
+        holder.result(5)
+
+
+def broken_once(real: Callable[..., Any], broken: Callable[..., Any]) -> Callable[..., Any]:
+    """``broken`` on the first call and ``real`` from then on."""
+    calls: list[object] = []
+
+    def either(*args: Any) -> Any:
+        calls.append(args)
+        return (broken if len(calls) == 1 else real)(*args)
+
+    return either
+
+
+def raising_grade(payload: Any, submissions: Any) -> dict[UUID, float]:
+    raise RuntimeError("a bug in grade")
+
+
+def over_one_grade(payload: Any, submissions: Any) -> dict[UUID, float]:
+    return {submission.player_id: 1.5 for submission in submissions}
+
+
+@pytest.mark.parametrize("breakage", ["grade raises", "credit over 1", "database drops"])
+def test_a_close_that_fails_voids_the_question_and_the_game_plays_on(
+    table, client, db, faults, monkeypatch, breakage: str
+) -> None:
+    """The room restarts as it would after a crash: the question is voided, everyone
+    reconnects into its reveal, and the rest of the game is played and scored."""
+    game = table("Zezima", seconds=10, reveal_seconds=1)
+    match breakage:
+        case "grade raises":
+            monkeypatch.setattr(more_less, "grade", broken_once(more_less.grade, raising_grade))
+        case "credit over 1":
+            monkeypatch.setattr(more_less, "grade", broken_once(more_less.grade, over_one_grade))
+        case "database drops":
+            faults.fail_once("update questions set closed_at = $1 where")
+    game.start()
+    game.opened(0)
+    game.answer(game.players[0], 0, game.right(0))
+    game.players[0].take("answer_ack")
+    game.admin.send(t="skip")
+
+    assert left_memory(game), "the room stayed in memory with its timer stopped"
+    assert [closed_after(seat) for seat in game.seats] == [1012, 1012]
+    assert "question_closed" not in game.admin.kinds
+    (stored,) = db("select closed_at from questions where position = 0")
+    assert stored["closed_at"] is None  # nothing of the close was written
+
+    with ExitStack() as stack:
+        admin, zezima = [
+            reseat(seat, stack.enter_context(client.websocket_connect(f"/ws/{game.code}")))
+            for seat in game.seats
+        ]
+        welcome = zezima.take("welcome")
+        assert (welcome["room"]["phase"], welcome["question"]) == ("reveal", None)
+        assert zezima.take("question_open")["question"]["index"] == 1
+        game.answer(zezima, 1, game.right(1))
+        zezima.take("answer_ack")
+        admin.send(t="skip")
+        assert admin.take("question_closed")["results"][zezima.id]["points"] == 1000
+        admin.send(t="skip")
+        admin.take("question_open")
+        admin.send(t="skip")
+        finished = admin.take("game_finished")
+    assert [s["points"] for s in finished["standings"]] == [1000, 0]
+    assert [row["voided"] for row in db("select voided from questions order by position")] == [
+        True,
+        False,
+        False,
+    ]
+    (voided,) = db(
+        "select a.points from answers a join questions q on q.id = a.question_id"
+        " where q.position = 0"
+    )
+    assert voided["points"] is None
+    assert_memory_matches_db(game, db)
+
+
+def test_a_question_whose_opening_fails_is_still_asked_after_the_restart(
+    table, client, db, faults
+) -> None:
+    """Nothing of the open was written, so the restart owes the question, not a void."""
+    game = table("Zezima", seconds=10, reveal_seconds=30)
+    game.start()
+    game.opened(0)
+    faults.fail_once("update questions set shown_at")
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")  # the reveal ends, and opening question 1 is what fails
+
+    assert left_memory(game), "the room stayed in memory with its timer stopped"
+    assert [closed_after(seat) for seat in game.seats] == [1012, 1012]
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        assert admin.take("welcome")["room"]["phase"] == "reveal"
+        admin.send(t="skip")
+        assert admin.take("question_open")["question"]["index"] == 1
+    assert not any(row["voided"] for row in db("select voided from questions"))
+
+
+def test_a_game_whose_finish_fails_finishes_after_the_restart(table, client, db, faults) -> None:
+    game = table("Zezima", seconds=10, reveal_seconds=30, questions=1)
+    game.start()
+    game.opened(0)
+    faults.fail_once("update rooms set status = 'finished'")
+    game.admin.send(t="skip")
+    game.admin.take("question_closed")
+    game.admin.send(t="skip")  # the reveal ends the game, and finishing it is what fails
+
+    assert left_memory(game), "the room stayed in memory with its timer stopped"
+    assert [closed_after(seat) for seat in game.seats] == [1012, 1012]
+    assert "game_finished" not in game.admin.kinds
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        assert admin.take("welcome")["room"]["status"] == "playing"
+        admin.send(t="skip")
+        admin.take("game_finished")
+    assert db("select status from rooms")[0]["status"] == "finished"
+
+
+def test_an_end_game_the_database_refuses_leaves_the_game_running(game, client, db, faults) -> None:
+    """Nothing ends in memory that the database did not end, so the host can try again."""
+    game.start()
+    game.opened(0)
+    faults.fail_once("update rooms set status = 'finished'")
+    admin = game.room.players[UUID(game.admin.id)]
+    with pytest.raises(ConnectionResetError):
+        call(client, game.app.state.rooms.end_game, game.code, admin)
+
+    room = game.room
+    assert (room.status, room.phase) == ("playing", "open")
+    assert room.timer is not None and not room.timer.done()
+    assert (room.questions[0].closed_at, room.questions[0].voided) == (None, False)
+    (stored,) = db("select closed_at, voided from questions where position = 0")
+    assert (stored["closed_at"], stored["voided"]) == (None, False)
+    game.admin.send(t="end_game")
+    game.admin.take("game_finished")
+    assert db("select status from rooms")[0]["status"] == "finished"
+
+
+def test_a_start_the_database_refuses_leaves_the_room_in_the_lobby(game, client, faults) -> None:
+    faults.fail_once("update rooms set status = 'playing'")
+    admin = game.room.players[UUID(game.admin.id)]
+    with pytest.raises(ConnectionResetError):
+        call(client, game.app.state.rooms.start_game, game.code, admin)
+
+    room = game.room
+    assert (room.status, room.current_index, room.timer) == ("lobby", None, None)
+    game.start()
+    game.opened(0)
+
+
+def test_end_game_ahead_of_a_waiting_close_voids_the_question_and_nothing_follows(
+    table, db
+) -> None:
+    """Both queue on the room lock and the host was first: the timer, woken at ``ends_at``
+    and waiting behind them, grades nothing and opens nothing."""
+    game = table("Zezima", seconds=1, reveal_seconds=1)
+    zezima = game.players[0]
+    game.start()
+    game.opened(0)
+    game.answer(zezima, 0, game.right(0))
+    zezima.take("answer_ack")
+    with lock_held(game):
+        game.admin.send(t="end_game")
+        time.sleep(1.5)  # past ``ends_at``, so the close is waiting too
+    game.admin.take("game_finished")
+    time.sleep(1.5)  # a reveal and more, for a timer that survived to open question 1
+
+    assert "question_closed" not in game.admin.kinds
+    rows = db("select shown_at, closed_at, voided from questions order by position")
+    assert [(row["closed_at"] is not None, row["voided"]) for row in rows] == [
+        (True, True),
+        (False, False),
+        (False, False),
+    ]
+    assert rows[1]["shown_at"] is None
+    (answer,) = db("select correct, points from answers")
+    assert (answer["correct"], answer["points"]) == (None, None)
+    room = game.room
+    assert (room.status, room.timer) == ("finished", None)
+
+
+def test_an_eviction_ahead_of_a_waiting_close_leaves_the_question_to_recovery(
+    table, client, db
+) -> None:
+    game = table("Zezima", seconds=1, reveal_seconds=1)
+    game.start()
+    game.opened(0)
+    assert client.portal is not None
+    with lock_held(game):
+        evicted = client.portal.start_task_soon(game.app.state.rooms.evict, game.code)
+        time.sleep(1.5)  # past ``ends_at``, so the close is waiting too
+    assert evicted.result(5) is True
+
+    assert [closed_after(seat) for seat in game.seats] == [1012, 1012]
+    assert all("question_closed" not in seat.kinds for seat in game.seats)
+    (stored,) = db("select closed_at from questions where position = 0")
+    assert stored["closed_at"] is None  # still open, for the rehydrate to void
+
+
+@pytest.mark.parametrize("gone", ["ended", "evicted"])
+def test_a_timer_step_for_a_room_it_no_longer_drives_changes_nothing(
+    table, client, db, gone: str
+) -> None:
+    """Every step re-checks the room under the lock, for a timer the cancellation has
+    not reached yet."""
+    game = table("Zezima", seconds=10, reveal_seconds=1)
+    game.start()
+    game.opened(0)
+    manager = game.app.state.rooms
+    room = game.room
+    if gone == "ended":
+        game.admin.send(t="end_game")
+        game.admin.take("game_finished")
+    else:
+        assert call(client, manager.evict, game.code) is True
+    snapshot = (
+        "select r.status, r.current_index, q.position, q.shown_at, q.closed_at, q.voided"
+        " from questions q join rooms r on r.id = q.room_id order by q.position"
+    )
+    before = db(snapshot)
+
+    assert call(client, manager._splash, room, 1) is False
+    assert call(client, manager._open_question, room, 1) is None
+    assert call(client, manager._close_question, room, room.questions[0]) is None
+    assert call(client, manager._standings, room, 0) is False
+    assert call(client, manager._advance, room, 0) is None
+    assert db(snapshot) == before
+
+
+def test_an_answer_from_ends_at_on_is_not_open_even_while_the_close_is_late(game, clock) -> None:
+    """A close held up past ``ends_at`` (a busy loop, a slow database) gives nobody more
+    time: the answer is judged on when it arrived."""
+    game.start()
+    game.opened(0)
+    player = game.players[0]
+    clock[0] += 10  # the question's full ten seconds, on the manager's clock
+    game.answer(player, 0, game.right(0))
+    refused = reply(player, acked)
+    assert (refused["t"], refused.get("code")) == ("error", "not_open")
+    assert game.question(0).answers == {}
+    assert game.room.phase == "open"  # the close has not run: the clock refused it
+
+
+def test_answers_that_arrive_together_are_timed_on_arrival(table, db, faults) -> None:
+    """Not on their turn at the room lock, which comes after every write ahead of them."""
+    game = table("Zezima", "Woox", seconds=10, close_when_all_answered=False)
+    faults.stall("insert into answers", 1.2)  # longer than bucket 1 of ten seconds
+    game.start()
+    game.opened(0)
+    # Read before either answer: once one is writing, reading the room waits on its lock.
+    question_id, right = game.question(0).question_id, game.right(0)
+    for seat in game.players:
+        seat.send(t="answer", question_id=question_id, value=right)
+    assert [reply(seat, acked)["band"] for seat in game.players] == [1, 1]
+    first, second = (row["received_at"] for row in db("select received_at from answers"))
+    assert abs((second - first).total_seconds()) < 0.3
+
+
+def jumped(hours: float) -> type[datetime]:
+    """``datetime`` with its wall clock ``hours`` off, for the room state to read."""
+
+    class Jumped(datetime):
+        @classmethod
+        def now(cls, tz: Any = None) -> datetime:
+            return datetime.now(tz) + timedelta(hours=hours)
+
+    return Jumped
+
+
+@pytest.mark.parametrize("hours", [-1, 1])
+def test_a_wall_clock_jump_moves_neither_the_cutoff_nor_the_band(
+    game, clock, monkeypatch, hours: int
+) -> None:
+    game.start()
+    game.opened(0)
+    monkeypatch.setattr(state, "datetime", jumped(hours))
+    clock[0] += AFTER[2]
+    game.answer(game.players[0], 0, game.right(0))
+    ack = reply(game.players[0], acked)
+    assert (ack["t"], ack.get("band")) == ("answer_ack", 2)
+
+
+def test_a_wall_clock_jump_leaves_a_splash_countdown_where_it_was(table, monkeypatch) -> None:
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
+    game.start()
+    game.splash()
+    tap(game, game.admin)
+    tap(game, game.players[0])  # two of three: ten seconds
+    monkeypatch.setattr(state, "datetime", jumped(1))
+    woox = game.players[1]
+    woox.send(t="ready", ready=True)
+    everyone = reply(woox, lambda m: m["t"] == "room_updated" and ready_of(m)[woox.name])
+    assert everyone["t"] == "room_updated", everyone
+    ends_at = datetime.fromisoformat(everyone["room"]["next_at"])
+    assert 2 < (ends_at - jumped(1).now(UTC)).total_seconds() <= 3
+    time.sleep(1)
+    assert game.room.phase == "splash"
