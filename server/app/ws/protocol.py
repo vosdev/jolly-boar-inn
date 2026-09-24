@@ -108,6 +108,7 @@ class OpenQuestion(_Message):
     """What every socket sees while a question is open: ``client_view`` only, never the
     answer or the raw payload (section 3, "What the server withholds from the admin")."""
 
+    # The ``questions`` row id, never the content id: that one hashes the answer.
     question_id: str
     index: int
     total: int

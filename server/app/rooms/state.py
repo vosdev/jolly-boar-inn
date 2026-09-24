@@ -292,6 +292,10 @@ class RoomQuestion:
     (``tags``, ``difficulty``, ``author``, ``added_at``), which the game loop has no use
     for and leaves in the database.
 
+    ``content_id`` is the ``questions.question_id`` column and never leaves the server: it
+    hashes the payload, answer included, so a client could hash each candidate answer
+    until one matched. The wire names a question by ``id`` instead.
+
     ``seconds``, ``answerable_at`` and ``ends_at`` are not columns either: they are
     recomputed whenever the question opens, from the setting its own mode carries, and
     ``ends_at`` is what the timer and the clients count down to. ``seconds`` is also what
@@ -320,7 +324,7 @@ class RoomQuestion:
 
     id: UUID
     position: int
-    question_id: str
+    content_id: str
     type: str
     mode: str
     source: str
@@ -368,7 +372,7 @@ class RoomQuestion:
         assert self.shown_at is not None and self.ends_at is not None
         assert self.answerable_at is not None
         return OpenQuestion(
-            question_id=self.question_id,
+            question_id=str(self.id),
             index=self.position,
             total=total,
             type=self.type,
@@ -1307,7 +1311,7 @@ class RoomManager:
             question = room.open_question()
             if room.status != "playing" or question is None or question.closed_at is not None:
                 raise NotOpen("no question is open")
-            if question.question_id != question_id:
+            if str(question.id) != question_id:
                 raise NotOpen(f"question {question_id} is not the open one")
             # Both set when the question opened.
             assert question.answerable_mono is not None and question.ends_mono is not None
@@ -1727,7 +1731,7 @@ class RoomManager:
             room.advance.clear()
             more = question.position + 1 < len(room.questions)
             message = QuestionClosed(
-                question_id=question.question_id,
+                question_id=str(question.id),
                 reveal=reveal,
                 results={
                     pid: PlayerResult(
@@ -1929,7 +1933,7 @@ async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[Room
         RoomQuestion(
             id=row["id"],
             position=row["position"],
-            question_id=row["question_id"],
+            content_id=row["question_id"],
             type=row["type"],
             mode=row["mode"],
             source=row["source"],

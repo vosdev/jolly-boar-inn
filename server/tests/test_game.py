@@ -141,7 +141,7 @@ class Game:
         (seat or self.admin).skip(room.phase, room.current_index)
 
     def answer(self, seat: Seat, index: int, value: Any) -> None:
-        seat.send(t="answer", question_id=self.question(index).question_id, value=value)
+        seat.send(t="answer", question_id=str(self.question(index).id), value=value)
 
     def splash(self, seat: Seat | None = None) -> dict[str, Any]:
         """The next ``room_updated`` that is a splash.
@@ -300,7 +300,7 @@ def test_question_open_is_the_same_frame_for_everyone_and_withholds_the_answer(g
     assert all(message == opened[0] for message in opened)
     question = game.question(0)
     view = opened[0]["question"]
-    assert view["question_id"] == question.question_id
+    assert view["question_id"] == str(question.id)
     assert view["type"] == "more_less"
     assert view["total"] == 3
     assert view["you_can_answer"] is True
@@ -318,6 +318,27 @@ def test_question_open_is_the_same_frame_for_everyone_and_withholds_the_answer(g
     assert (ends_at - opened_at).total_seconds() == 10
     assert game.room.phase == "open"
     assert game.client.get(f"/api/rooms/{game.code}").json()["room"]["phase"] == "open"
+
+
+def test_frames_name_a_question_by_its_row_id_and_never_its_content_id(game) -> None:
+    """The content id hashes the payload, answer included, so a client that saw it could
+    hash each candidate answer until one matched."""
+    game.start()
+    opened = game.opened(0)
+    question = game.question(0)
+    player = game.players[0]
+    game.answer(player, 0, game.right(0))
+    player.take("answer_ack")
+    game.admin.take("answer_count")
+    game.skip()
+    for seat in game.seats:
+        seat.take("question_closed")
+    frames = [message for seat in game.seats for message in seat.seen]
+    named = [(m.get("question") or m).get("question_id") for m in frames]
+    # Three opens, the ack, two counts and three closes.
+    assert len([n for n in named if n]) == 9
+    assert {n for n in named if n} == {str(question.id)} and opened[0] in frames
+    assert all(question.content_id not in _leaves(message) for message in frames)
 
 
 def test_non_admin_cannot_start_the_game(game) -> None:
@@ -391,7 +412,7 @@ def test_the_answer_row_is_committed_before_the_ack(game, db) -> None:
     ack = player.take("answer_ack")
     assert ack == {
         "t": "answer_ack",
-        "question_id": game.question(0).question_id,
+        "question_id": str(game.question(0).id),
         "scoring": "speed",
         "band": 1,
         "answered": 1,
@@ -422,7 +443,7 @@ def test_everyone_else_hears_the_answer_count(game) -> None:
         count = seat.take("answer_count")
         assert count == {
             "t": "answer_count",
-            "question_id": game.question(0).question_id,
+            "question_id": str(game.question(0).id),
             "answered": 1,
             "of": 3,
         }
@@ -453,7 +474,7 @@ def test_an_answer_after_the_close_is_not_open(table) -> None:
     game.start()
     game.opened(0)
     player = game.players[0]
-    question_id = game.question(0).question_id
+    question_id = str(game.question(0).id)
     player.take("question_closed")
     player.send(t="answer", question_id=question_id, value=game.right(0))
     assert player.take("error")["code"] == "not_open"
@@ -464,7 +485,7 @@ def test_an_answer_for_another_question_is_not_open(game) -> None:
     game.start()
     game.opened(0)
     player = game.players[0]
-    player.send(t="answer", question_id=game.question(1).question_id, value=game.right(1))
+    player.send(t="answer", question_id=str(game.question(1).id), value=game.right(1))
     assert player.take("error")["code"] == "not_open"
 
 
@@ -507,7 +528,7 @@ def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table) -> None:
 
 def test_answering_before_the_game_starts_is_not_open(game) -> None:
     player = game.players[0]
-    player.send(t="answer", question_id=game.question(0).question_id, value="higher")
+    player.send(t="answer", question_id=str(game.question(0).id), value="higher")
     assert player.take("error")["code"] == "not_open"
 
 
@@ -601,7 +622,7 @@ def test_skip_closes_the_open_question_within_100ms(game) -> None:
     closed = game.admin.take("question_closed")
     took = time.monotonic() - started
     assert took < 0.1, f"skip took {took * 1000:.0f} ms"
-    assert closed["question_id"] == game.question(0).question_id
+    assert closed["question_id"] == str(game.question(0).id)
     assert game.room.phase == "reveal"
 
 
@@ -701,7 +722,7 @@ def test_a_skip_for_another_phase_or_question_does_nothing(table) -> None:
     assert (room.phase, room.current_index, room.advance.is_set()) == ("open", 1, False)
     assert "error" not in game.admin.kinds
     game.admin.skip("open", 1)
-    assert game.admin.take("question_closed")["question_id"] == game.question(1).question_id
+    assert game.admin.take("question_closed")["question_id"] == str(game.question(1).id)
 
 
 # --- T9: reconnecting mid-game -------------------------------------------------------
@@ -869,7 +890,7 @@ def test_can_answer(host_only: bool, source: str, is_author: bool, expected: boo
     question = RoomQuestion(
         id=uuid4(),
         position=0,
-        question_id="q_x",
+        content_id="q_x",
         type="more_less",
         mode="more_less",
         source=source,
@@ -977,7 +998,7 @@ def test_an_answer_that_waited_out_a_kick_is_excluded_not_a_database_error(game,
     manager, room = game.app.state.rooms, game.room
     admin = room.players[UUID(game.admin.id)]
     kicked = room.players[UUID(game.players[0].id)]
-    question_id = game.question(0).question_id
+    question_id = str(game.question(0).id)
 
     call(game.client, manager.kick, game.code, admin, kicked.id)
     with pytest.raises(Excluded, match="no longer in this room"):
@@ -1020,7 +1041,7 @@ def test_a_rename_mid_game_disturbs_neither_the_standings_nor_an_open_answer(gam
     assert (renamed["display_name"], renamed["avatar"]) == ("RenamedMidGame", 7)
     # The answer given under the old name is still this player's, and still counts.
     assert game.question(0).answers[UUID(player.id)].value == game.right(0)
-    player.send(t="answer", question_id=game.question(0).question_id, value=game.right(0))
+    player.send(t="answer", question_id=str(game.question(0).id), value=game.right(0))
     assert player.take("error")["code"] == "already_answered"
 
     game.skip()
@@ -1059,7 +1080,7 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
     game.answer(player, 0, game.right(0))
     player.take("answer_ack")
     game.admin.take("answer_count")  # D8: read, so the close below is the next frame
-    question_id = game.question(0).question_id
+    question_id = str(game.question(0).id)
 
     assert evict(game.code) is True
     for seat in game.seats:
@@ -2724,7 +2745,7 @@ def test_answers_that_arrive_together_are_timed_on_arrival(table, db, faults) ->
     game.start()
     game.opened(0)
     # Read before either answer: once one is writing, reading the room waits on its lock.
-    question_id, right = game.question(0).question_id, game.right(0)
+    question_id, right = str(game.question(0).id), game.right(0)
     for seat in game.players:
         seat.send(t="answer", question_id=question_id, value=right)
     assert [reply(seat, acked)["band"] for seat in game.players] == [1, 1]
