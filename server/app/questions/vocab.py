@@ -150,11 +150,16 @@ def read(name: str, path: Path) -> Vocab | None:
     return build(name, records, path.name)
 
 
-@cache
 def get(name: str) -> Vocab | None:
     """A shipped vocabulary by name; ``None`` for an unknown name or a missing file."""
-    path = SOURCES.get(name)
-    return None if path is None else read(name, path)
+    # Checked before the cache, because the name comes straight from a URL: caching
+    # every unknown one would let anybody grow the process without limit.
+    return _load(name) if name in SOURCES else None
+
+
+@cache
+def _load(name: str) -> Vocab | None:
+    return read(name, SOURCES[name])
 
 
 def load_all() -> dict[str, Vocab]:

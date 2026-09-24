@@ -17,6 +17,8 @@ WORDS_PATH = REPO_ROOT / "data" / "room-words.json"
 PLAIN_ATTEMPTS = 5
 SUFFIXED_ATTEMPTS = 20
 _WORD = re.compile(r"^[A-Za-z0-9]{2,32}$")
+# A word plus at most the two digits ``candidates`` appends, uppercased.
+_CODE = re.compile(r"[A-Z0-9]{2,34}")
 
 
 class CodeSpaceExhausted(RuntimeError):
@@ -34,6 +36,11 @@ def load_words(path: Path = WORDS_PATH) -> tuple[str, ...]:
     if len({w.upper() for w in words}) != len(words):
         raise ValueError(f"{path}: duplicate words (case-insensitive)")
     return tuple(words)
+
+
+def well_formed(code: str) -> bool:
+    """Whether ``code`` has the shape of one ``candidates`` could yield."""
+    return _CODE.fullmatch(code) is not None
 
 
 def candidates(words: Sequence[str], rng: random.Random) -> Iterator[str]:

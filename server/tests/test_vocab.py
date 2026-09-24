@@ -81,6 +81,15 @@ def test_the_shipped_roster_loads_as_the_items_vocabulary() -> None:
     assert items.name_of(4151) == "Abyssal whip"
 
 
+def test_unknown_names_do_not_grow_the_cache() -> None:
+    """Names come straight from the URL, so caching unknown ones is unbounded memory."""
+    vocab.get("items")
+    before = vocab._load.cache_info().currsize
+    for index in range(1000):
+        assert vocab.get(f"unknown-{index}") is None
+    assert vocab._load.cache_info().currsize == before
+
+
 # --- GET /api/vocab ---------------------------------------------------------------------
 
 
