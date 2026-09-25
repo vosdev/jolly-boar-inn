@@ -35,6 +35,13 @@ def test_no_path_traversal(settings: Settings, dist: Path) -> None:
     assert "nope" not in response.text
 
 
+def test_a_nul_in_the_path_is_404(settings: Settings, dist: Path) -> None:
+    """A NUL makes ``Path.resolve`` raise, which must not turn into a 500."""
+    with TestClient(create_app(settings, dist), raise_server_exceptions=False) as client:
+        for path in ("/%00", "/assets/index-abc123.js%00", "/r/%00ABYSSAL"):
+            assert client.get(path).status_code == 404, path
+
+
 def test_missing_dist_is_404(settings: Settings, tmp_path: Path) -> None:
     with TestClient(create_app(settings, tmp_path / "missing")) as client:
         response = client.get("/")

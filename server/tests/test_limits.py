@@ -205,6 +205,44 @@ def test_a_body_under_the_cap_reaches_the_route(client: TestClient) -> None:
     assert response.status_code == 422  # pydantic saw it and refused the extra field
 
 
+# --- JSON-only writes ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize("content_type", [None, "text/plain", "application/x-www-form-urlencoded"])
+@pytest.mark.parametrize(
+    ("method", "path"),
+    [("POST", "/api/rooms"), ("POST", "/api/rooms/ABYSSAL/join"), ("DELETE", "/api/rooms/ABYSSAL")],
+)
+def test_a_write_that_is_not_json_is_415(
+    bare: TestClient, method: str, path: str, content_type: str | None
+) -> None:
+    """A cross-site ``no-cors`` fetch can send a body with no type, which FastAPI parses as JSON."""
+    headers = {} if content_type is None else {"content-type": content_type}
+    response = bare.request(method, path, content=b'{"display_name": "Zezima"}', headers=headers)
+    assert response.request.headers.get("content-type") == content_type
+    assert response.status_code == 415
+    assert response.json()["code"] == "not_json"
+
+
+def test_a_json_write_with_a_charset_reaches_the_route(client: TestClient) -> None:
+    response = client.post(
+        "/api/rooms",
+        content=b'{"display_name": "Zezima"}',
+        headers={"content-type": "application/json; charset=utf-8"},
+    )
+    assert response.status_code == 201
+
+
+def test_a_read_needs_no_content_type(bare: TestClient) -> None:
+    assert bare.get("/api/modes").status_code == 200
+
+
+def test_an_oversized_body_is_413_before_its_type_is_checked(bare: TestClient) -> None:
+    response = bare.post("/api/rooms", content=b"x" * (1024 * 1024))
+    assert "content-type" not in response.request.headers
+    assert response.status_code == 413
+
+
 # --- uvicorn flags ------------------------------------------------------------------
 
 

@@ -1147,9 +1147,11 @@ Headers on every response (`main.py` middleware): `Referrer-Policy: no-referrer`
 
 No HSTS from the app: TLS terminates at the reverse proxy, and a self-hoster serving plain HTTP on a LAN would lock themselves out. It belongs in the proxy config.
 
-The container runs read-only with `cap_drop: ALL` and `no-new-privileges`, as uid 10001 against root-owned application files -- nothing under `server/app/` writes to disk, and the process cannot rewrite the code it runs. Trusted reverse proxies come from `FORWARDED_ALLOW_IPS`, which uvicorn reads directly; it defaults to loopback, so `X-Forwarded-For` is believed only from an address the operator names. `ROOMS_PER_IP_PER_HOUR` keys on the resulting client address, and the first ignored `X-Forwarded-For` logs one warning naming the sender.
+The container runs read-only with `cap_drop: ALL` and `no-new-privileges`, as uid 10001 against root-owned application files -- nothing under `server/app/` writes to disk, and the process cannot rewrite the code it runs. Trusted reverse proxies come from `FORWARDED_ALLOW_IPS`, which uvicorn reads directly; it defaults to loopback (compose passes an empty list, which trusts nothing), so `X-Forwarded-For` is believed only from an address the operator names. `ROOMS_PER_IP_PER_HOUR` keys on the resulting client address, and the first ignored `X-Forwarded-For` logs one warning naming the sender.
 
-Resource caps: uvicorn runs with `--ws-max-size 65536` and `--limit-concurrency 1000`, and `/api/*` bodies over 256 KiB get `413 too_large` before FastAPI parses them.
+Resource caps: uvicorn runs with `--ws-max-size 65536` and `--limit-concurrency 1000`, and `/api/*` bodies over 256 KiB get `413 too_large` before FastAPI parses them. An `/api/*` write not declared `application/json` gets `415 not_json`, since FastAPI would parse an untyped body as JSON and a cross-site `no-cors` fetch sends one without a preflight. `/ws` checks no `Origin`: nothing ambient logs a socket in. Add an allow-list with any cookie.
+
+One process per database. The image passes `--workers 1`, which beats uvicorn's `WEB_CONCURRENCY`, and the app holds `pg_try_advisory_lock` on a connection of its own, taken before the pool and again whenever that connection closes. A second process on the same database fails to start, or answers `503 db_unavailable` if it could not reach the database at startup, so a deploy stops the old container before starting the new one.
 
 Deviation from plan.md: created rooms are tracked in localStorage instead of a cookie. Reason: the server needs no cookie, and one storage mechanism on the client is enough.
 
