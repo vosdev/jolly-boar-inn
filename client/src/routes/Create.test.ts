@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { saveProfile } from '../lib/profile'
+import { createdRooms } from '../lib/session'
 import Create from './Create.svelte'
 
 const PACING: api.ModePacing[] = [
@@ -39,6 +40,7 @@ beforeEach(() => {
   vi.mocked(api.createRoom).mockResolvedValue({
     code: 'ABYSSAL',
     session: 's',
+    expires_at: '2099-01-01T00:00:00Z',
     player: { id: 'p', display_name: 'Zezima', role: 'admin', connected: false },
   })
   saveProfile('Zezima')
@@ -151,5 +153,25 @@ describe('Create', () => {
     await fireEvent.input(field, { target: { value: '0' } })
     expect(create.disabled).toBe(false)
     expect((await submitted()).standings_seconds).toBe(0)
+  })
+
+  it('will not submit a reveal outside 2 to 30, or none at all', async () => {
+    await loaded()
+    const field = screen.getByLabelText('Reveal answers seconds')
+    const create = screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement
+    for (const value of ['45', '1', '']) {
+      await fireEvent.input(field, { target: { value } })
+      expect(create.disabled).toBe(true)
+    }
+    await fireEvent.input(field, { target: { value: '30' } })
+    expect(create.disabled).toBe(false)
+    expect((await submitted()).reveal_seconds).toBe(30)
+  })
+
+  it('remembers the room it created until the server says it expires', async () => {
+    await loaded()
+    await submitted()
+    await waitFor(() => expect(createdRooms(Date.parse('2098-12-31T23:59:59Z'))).toEqual(['ABYSSAL']))
+    expect(createdRooms(Date.parse('2099-01-01T00:00:00Z'))).toEqual([])
   })
 })

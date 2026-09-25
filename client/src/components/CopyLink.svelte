@@ -1,7 +1,7 @@
 <script lang="ts">
   /** A read-only URL with a copy button. `navigator.clipboard` needs a secure context,
    * so the input stays selectable as the fallback when it is missing or refused. */
-  let { value, label }: { value: string; label: string } = $props()
+  let { id, value, label }: { id: string; value: string; label: string } = $props()
 
   let field: HTMLInputElement | undefined = $state()
   let copied = $state(false)
@@ -20,9 +20,9 @@
 </script>
 
 <div class="field">
-  <label for={label}>{label}</label>
+  <label for={id}>{label}</label>
   <div class="row">
-    <input id={label} type="text" readonly {value} bind:this={field} onfocus={() => field?.select()} />
+    <input {id} type="text" readonly {value} bind:this={field} onfocus={() => field?.select()} />
     <button type="button" class="small" onclick={copy}>{copied ? 'Copied' : 'Copy'}</button>
   </div>
 </div>

@@ -16,6 +16,7 @@ Plus section 7: the session token is hashed at rest and never rendered back.
 import hashlib
 import json
 import re
+from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
@@ -47,7 +48,7 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
     )
     assert response.status_code == 201
     body = response.json()
-    assert set(body) == {"code", "session", "player"}
+    assert set(body) == {"code", "session", "player", "expires_at"}
     assert len(body["session"]) >= 40
     assert body["player"] == {
         "id": body["player"]["id"],
@@ -65,6 +66,14 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
     assert player["role"] == "admin"
     assert player["session_token_hash"] == sha256(body["session"])
     assert body["session"] not in str(dict(player))
+
+
+def test_create_returns_when_the_room_expires(client: TestClient, db) -> None:
+    """The host's list of rooms needs the stored expiry to know when a code is no longer theirs."""
+    response = client.post("/api/rooms", json={"display_name": "Zezima"})
+    assert response.status_code == 201
+    (room,) = db("select expires_at from rooms")
+    assert datetime.fromisoformat(response.json()["expires_at"]) == room["expires_at"]
 
 
 def test_create_registers_the_room_in_memory_with_its_admin(

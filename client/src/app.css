@@ -476,8 +476,10 @@ ul.players {
   padding: 0;
 }
 
+/* Wraps so a row's buttons drop to a line of their own on a phone, not off its edge. */
 ul.players li {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0;
@@ -500,9 +502,12 @@ ul.players li:first-child {
   background: var(--line);
 }
 
+/* The 6rem basis is what wraps a row before the name is squeezed out of it; min-width 0
+   lets a long name with no spaces break instead of pushing the row wider. */
 .name {
-  flex: 1;
-  min-width: 6rem;
+  flex: 1 1 6rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .tag {

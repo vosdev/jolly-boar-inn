@@ -41,7 +41,9 @@
   import RevealTally from '../components/RevealTally.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
+  import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import Question from '../components/questions/Question.svelte'
+  import { errorText } from '../lib/errors'
   import { clearSession, getSession } from '../lib/session'
   import {
     answerAck,
@@ -69,6 +71,7 @@
 
   let socket = $state<RoomSocket | null>(null)
   let departure = $state<{ reason: ClosureReason; detail: string } | null>(null)
+  let endingGame = $state(false)
 
   onMount(() => {
     resetRoom()
@@ -322,7 +325,7 @@
          The host's skip is on the card, small, for the same reason. -->
     {#if $lastError !== null}
       <div class="banner bad">
-        {$lastError.message}
+        {errorText($lastError)}
         <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
       </div>
     {/if}
@@ -366,7 +369,7 @@
 
     {#if $lastError !== null}
       <div class="banner bad">
-        {$lastError.message}
+        {errorText($lastError)}
         <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
       </div>
     {/if}
@@ -455,22 +458,24 @@
         <h2>Host</h2>
         <div class="row">
           <button type="button" onclick={skip}>{skipLabel}</button>
-          <button
-            type="button"
-            onclick={() => {
-              if (confirm('End the game now and show the final standings?')) {
-                socket?.send({ t: 'end_game' })
-              }
-            }}
-          >
-            End the game
-          </button>
+          <button type="button" onclick={() => (endingGame = true)}>End the game</button>
         </div>
         <p class="note">
           {$players.length}
           {$players.length === 1 ? 'player' : 'players'} in the room.
         </p>
       </section>
+      {#if endingGame}
+        <ConfirmDialog
+          message="End the game now and show the final standings?"
+          confirmLabel="End the game"
+          onConfirm={() => {
+            socket?.send({ t: 'end_game' })
+            endingGame = false
+          }}
+          onCancel={() => (endingGame = false)}
+        />
+      {/if}
     {/if}
   {/if}
 {/if}

@@ -33,9 +33,17 @@ function drop(key: string): void {
   }
 }
 
-/** Room codes are uppercase everywhere, so a link typed in lowercase finds its session. */
+/**
+ * A code as the server spells it. Codes are joined-up words that get read out as two, so
+ * "Abyssal bludgeon", "abyssal-bludgeon" and "Ahrim's Staff" all have to find their room.
+ */
 export function normalizeCode(code: string): string {
-  return code.trim().toUpperCase()
+  return code.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+}
+
+/** Whether a normalized code is one the router can route to. */
+export function isRoomCode(code: string): boolean {
+  return /^[A-Z0-9]{1,32}$/.test(code)
 }
 
 export function getSession(code: string): string | null {
@@ -50,28 +58,65 @@ export function clearSession(code: string): void {
   drop(SESSION_PREFIX + normalizeCode(code))
 }
 
-/** The rooms created from this browser, newest first. Section 7 step 3. */
-export function createdRooms(): string[] {
+interface CreatedRoom {
+  code: string
+  expiresAt: number
+}
+
+/**
+ * A stored entry as a room and its expiry, or null if there is nothing to go on. Entries
+ * from before the list kept expiries are bare codes with no time at all, so they go.
+ */
+function entryOf(raw: unknown): CreatedRoom | null {
+  if (typeof raw !== 'object' || raw === null) return null
+  const { code, expires_at } = raw as Record<string, unknown>
+  if (typeof code !== 'string' || typeof expires_at !== 'string') return null
+  const expiresAt = Date.parse(expires_at)
+  return Number.isNaN(expiresAt) ? null : { code, expiresAt }
+}
+
+function readCreated(now: number): CreatedRoom[] {
   const raw = read(CREATED_KEY)
   if (raw === null) return []
   try {
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed.filter((c): c is string => typeof c === 'string')
+    return parsed
+      .map(entryOf)
+      .filter((entry): entry is CreatedRoom => entry !== null && entry.expiresAt > now)
   } catch {
     return []
   }
 }
 
+function writeCreated(rooms: CreatedRoom[]): void {
+  const stored = rooms.map((room) => ({
+    code: room.code,
+    expires_at: new Date(room.expiresAt).toISOString(),
+  }))
+  write(CREATED_KEY, JSON.stringify(stored))
+}
+
+/**
+ * The codes of the rooms created from this browser that have not expired, newest first.
+ * Codes are reused once a room is gone, so an expired entry would open somebody else's.
+ */
+export function createdRooms(now: number = Date.now()): string[] {
+  return readCreated(now).map((room) => room.code)
+}
+
 /** Drop a room from the created list and forget its session; used after deleting it. */
 export function forgetCreated(code: string): void {
   const normalized = normalizeCode(code)
-  write(CREATED_KEY, JSON.stringify(createdRooms().filter((c) => c !== normalized)))
+  writeCreated(readCreated(Date.now()).filter((room) => room.code !== normalized))
   clearSession(normalized)
 }
 
-export function rememberCreated(code: string): void {
+/** Put a room at the top of the created list until `expiresAt`, the server's ISO time. */
+export function rememberCreated(code: string, expiresAt: string): void {
   const normalized = normalizeCode(code)
-  const rooms = [normalized, ...createdRooms().filter((c) => c !== normalized)].slice(0, 20)
-  write(CREATED_KEY, JSON.stringify(rooms))
+  const expiry = Date.parse(expiresAt)
+  const rest = readCreated(Date.now()).filter((room) => room.code !== normalized)
+  const rooms = Number.isNaN(expiry) ? rest : [{ code: normalized, expiresAt: expiry }, ...rest]
+  writeCreated(rooms.slice(0, 20))
 }

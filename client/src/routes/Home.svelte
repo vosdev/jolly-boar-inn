@@ -6,23 +6,35 @@
    * "Rooms you created here" is the list in localStorage, and removing one really
    * removes it: the server deletes the row, its players and their answers, and the code
    * is free again the moment it answers. That is the only way to be rid of a room before
-   * its thirty days are up, so the button asks first.
+   * it expires, so the button asks first.
    */
+  import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import { ApiFailure, deleteRoom } from '../lib/api'
-  import { createdRooms, forgetCreated, getSession, normalizeCode } from '../lib/session'
+  import {
+    createdRooms,
+    forgetCreated,
+    getSession,
+    isRoomCode,
+    normalizeCode,
+  } from '../lib/session'
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   let hosted = $state(createdRooms())
   let code = $state('')
   let removing = $state<string | null>(null)
+  /** The room whose Remove is waiting on a yes. */
+  let confirming = $state<string | null>(null)
+  let codeProblem = $state<string | null>(null)
   let notice = $state<{ text: string; bad: boolean } | null>(null)
 
   const target = $derived(normalizeCode(code))
 
+  /** Anything the router cannot match would leave Home on screen with no word said. */
   function join(event: SubmitEvent): void {
     event.preventDefault()
-    if (target !== '') navigate(`/r/${target}`)
+    if (isRoomCode(target)) navigate(`/r/${target}`)
+    else codeProblem = 'That is not a room code.'
   }
 
   /** Forget the room here. The list is re-read rather than spliced, so it cannot drift. */
@@ -32,8 +44,7 @@
   }
 
   async function remove(room: string): Promise<void> {
-    const warning = `Remove room ${room}? Anybody still in it is dropped, and this cannot be undone.`
-    if (!confirm(warning)) return
+    confirming = null
     notice = null
     const session = getSession(room)
     if (session === null) {
@@ -80,13 +91,19 @@
         id="code"
         type="text"
         bind:value={code}
+        oninput={() => (codeProblem = null)}
+        aria-invalid={codeProblem !== null}
+        aria-describedby={codeProblem === null ? undefined : 'code-problem'}
         placeholder="DRAGON"
         autocomplete="off"
         autocapitalize="characters"
         spellcheck="false"
       />
+      {#if codeProblem !== null}
+        <p id="code-problem" class="error">{codeProblem}</p>
+      {/if}
     </div>
-    <button class="primary" type="submit" disabled={target === ''}>Join</button>
+    <button class="primary" type="submit" disabled={code.trim() === ''}>Join</button>
   </form>
 </section>
 
@@ -116,7 +133,7 @@
             type="button"
             class="small"
             disabled={removing === room}
-            onclick={() => remove(room)}
+            onclick={() => (confirming = room)}
           >
             {removing === room ? 'Removing…' : 'Remove'}
           </button>
@@ -127,6 +144,16 @@
       Removing a room deletes it and its scores for everyone, and frees the code.
     </p>
   </section>
+{/if}
+
+{#if confirming !== null}
+  {@const room = confirming}
+  <ConfirmDialog
+    message={`Remove room ${room}? Anybody still in it is dropped, and this cannot be undone.`}
+    confirmLabel="Remove"
+    onConfirm={() => remove(room)}
+    onCancel={() => (confirming = null)}
+  />
 {/if}
 
 <style>

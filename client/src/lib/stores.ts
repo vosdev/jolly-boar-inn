@@ -62,7 +62,7 @@ export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(nu
  */
 export const answerCount = writable<{ answered: number; of: number } | null>(null)
 export const connection = writable<ConnectionState>('connecting')
-/** The last rejected message. Screens show it and clear it; nothing else depends on it. */
+/** The last rejected message, until dismissed or the next question opens. */
 export const lastError = writable<ProtocolError | null>(null)
 /**
  * The last rejected `set_profile` (D4). Kept apart from `lastError` because the answer
@@ -207,6 +207,9 @@ export function applyServerMessage(message: ServerMessage): void {
       question.set(message.question)
       forgetQuestion()
       countFrom(message.question)
+      // A refusal was about a moment that has passed; left up, "too late" would hang over
+      // every question after it.
+      lastError.set(null)
       // The segment comes along because a round can change with no splash to announce
       // it — `splash_seconds` at zero, or a new round of the mode already playing — and
       // this frame is then the only thing carrying the change.

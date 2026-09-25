@@ -8,6 +8,7 @@ import {
   answerAck,
   answerCount,
   applyServerMessage,
+  lastError,
   players,
   question,
   requestsSettled,
@@ -113,5 +114,13 @@ describe('applyServerMessage', () => {
     applyServerMessage({ t: 'error', code: 'bad_state', message: 'wait a moment' })
     applyServerMessage({ t: 'players_updated', players: [host, me] })
     expect(get(requestsSettled)).toBe(before + 2)
+  })
+
+  it('takes a refusal down when the next question opens', () => {
+    applyServerMessage(welcome({ question: open('q1') }))
+    applyServerMessage({ t: 'error', code: 'not_open', message: 'no question is open' })
+    expect(get(lastError)?.code).toBe('not_open')
+    applyServerMessage({ t: 'question_open', question: open('q2') })
+    expect(get(lastError)).toBeNull()
   })
 })

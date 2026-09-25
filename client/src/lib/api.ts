@@ -124,6 +124,8 @@ export interface Credentials {
 /** The creator is the room's admin, so creating one signs you in as its host. */
 export interface CreatedRoom extends Credentials {
   code: string
+  /** ISO time the room is deleted, unless starting its game gives it a new lifetime. */
+  expires_at: string
 }
 
 /** What a lookup tells somebody who has not joined: whether they can, and how many are in. */

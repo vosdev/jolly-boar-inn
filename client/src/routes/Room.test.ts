@@ -8,7 +8,7 @@
  * with that phase.
  */
 
-import { render, screen } from '@testing-library/svelte'
+import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import { type Component, tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -442,5 +442,29 @@ describe('the host’s skip', () => {
     applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
     ;(await screen.findByRole('button', { name: 'Start the round now' })).click()
     expect(sent).toEqual([{ t: 'skip', phase: 'splash', index: 0 }])
+  })
+})
+
+describe('the host’s End the game', () => {
+  async function ask(): Promise<HTMLElement> {
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    await fireEvent.click(screen.getByRole('button', { name: 'End the game' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toContain('End the game now and show the final standings?')
+    return dialog
+  }
+
+  it('ends the game only once the host confirms', async () => {
+    const dialog = await ask()
+    expect(sent).toEqual([])
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'End the game' }))
+    expect(sent).toEqual([{ t: 'end_game' }])
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('sends nothing when cancelled', async () => {
+    await fireEvent.click(within(await ask()).getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(sent).toEqual([])
   })
 })

@@ -1153,8 +1153,8 @@ Goal: the creator of a room is its first admin; every identity is a session toke
    - Insert the room with `status = 'lobby'` and `expires_at = now + ROOM_TTL_DAYS`. There is no `created` state: a room and its host are born together.
    - Insert the creator as a player with `role = 'admin'` and `session_token = secrets.token_urlsafe(32)`, storing only its sha256. This insert sits outside the code-allocation savepoint on purpose — that savepoint reads a unique violation as "code taken, try another", and `players_session_idx` is unique across every room, so a collision there would otherwise be retried as a code collision until the allocator gave up.
    - Select questions (`selection.py`) and insert `questions` rows now, so the set is fixed at creation.
-   - Respond `201 {code, session, player}`. The plaintext session is returned exactly once and never logged. Anything that fails rolls all of it back: no room without a host, and no half-built room to garbage-collect.
-3. **Client** stores `localStorage["jbi:session:" + code] = session`, appends `code` to `localStorage["jbi:created"]` (list, for the "your rooms" view), and navigates to `/r/{code}`.
+   - Respond `201 {code, session, player, expires_at}`. The plaintext session is returned exactly once and never logged. Anything that fails rolls all of it back: no room without a host, and no half-built room to garbage-collect.
+3. **Client** stores `localStorage["jbi:session:" + code] = session`, puts `{code, expires_at}` first in `localStorage["jbi:created"]` (the "your rooms" view, which hides expired entries), and navigates to `/r/{code}`.
 4. **Room page** opens the websocket and sends `hello {session}`. Admin capabilities are decided per message from `player.role`, never from the URL and never from anything the client asserts about itself.
 
 Both take an optional `avatar` beside the name (D4); left out, the player's head is derived from their id. Join is the same shape with a narrower result: `POST /api/rooms/{code}/join {display_name, avatar?}` → `200 {session, player}` with `role = 'player'`, stored and used identically.
