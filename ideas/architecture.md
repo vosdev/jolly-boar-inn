@@ -78,6 +78,7 @@ jolly-boar-inn/
 │   │   │       ├── __init__.py    # registry: TYPES = {"more_less": more_less, ...}
 │   │   │       ├── bounds.py      # Bounds: a per-mode number, its default and its range
 │   │   │       ├── scoring.py     # Scoring: how a type turns credit into points
+│   │   │       ├── exact.py       # parse and grade a one-integer answer (index or entry id)
 │   │   │       ├── more_less.py
 │   │   │       ├── multiple_choice.py    # T21
 │   │   │       ├── price_is_right.py     # T19
@@ -203,19 +204,23 @@ def client_view(payload: dict) -> dict     # what players and admin see while op
 def reveal(payload: dict) -> dict          # shown after close: answer, reveal block, asset refs
 def grade(payload: dict, submissions: list[Submission]) -> dict[player_id, float]
                                            # credit per player, 0.0..1.0 (section 6)
-def validate_value(payload: dict, value) -> bool   # shape check of a submitted answer before storing
+def parse_value(payload: dict, value) -> Any | None  # canonical answer, or None to refuse it
 def check(payload: dict) -> list[str]      # consistency: the stored answer follows from the stored facts
+def steps(payload: dict) -> int | None     # optional: how many frames it shows itself in (section 6)
 
 SCORING: Scoring = Scoring.SPEED           # optional: how credit becomes points (section 6)
 QUESTIONS: Bounds                          # optional: fallback round length for a mode of this type
 SECONDS: Bounds                            # optional: fallback question length, and an event's length
 ```
 
+The room stores, echoes (`results`, `welcome.your_answer`) and grades what `parse_value`
+returns, never the raw value; `None` is `bad_value`. Today's types return the value as sent.
 `grade` returns **credit**, a float from 0.0 to 1.0, for every type. One is fully right,
 zero is wrong, and the values between are `ordering`'s partial credit. It takes all
-submissions at once because `closest_number` ranks them against each other. `scoring.py`
-turns credit plus timing into points, and `SCORING` picks which of the three ways it does
-that — which is the whole reason a type is a separate thing from a mode.
+submissions at once because `closest_number` ranks them against each other. The close
+rounds credit to 1e-9 and clamps it to 0..1, logging a bad one rather than failing the
+close. `scoring.py` turns credit plus timing into points, and `SCORING` picks which of the
+three ways it does that — which is the whole reason a type is a separate thing from a mode.
 
 **`modes/__init__.py`.** A mode is a *round*: the thing a host picks on the create form, the
 thing a splash introduces, and the thing `questions.mode` records. It is what a question is
@@ -564,7 +569,7 @@ Design rules:
       "additionalProperties": false,
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
-        "vocab": { "enum": ["items", "npcs"] },
+        "vocab": { "enum": ["items", "npcs", "examines"] },
         "answer_id": { "type": "integer", "minimum": 0 },
         "image": { "$ref": "#/$defs/asset" },
         "steps": { "type": "integer", "minimum": 1, "maximum": 12 },
@@ -591,13 +596,13 @@ which way round it wants the answer.
 
 `pick_from_list` answers are the id of an entry in the named vocabulary, never free text:
 the client only lets a selected entry be submitted, so grading is an integer comparison and
-there is no normalisation to argue about. `validate_value` rejects an integer that is not
+there is no normalisation to argue about. `parse_value` rejects an integer that is not
 an id in the question's vocabulary with `bad_value`. `check()` fails a payload whose
 `answer_id` is not in its vocabulary, or whose `subject.name` is not that entry's name, and
 `validate_packs.py` runs it, so a roster edit that drops an answer fails CI rather than a
 quiz night. `steps` is what makes Pixel Hunt progressive — the number of zoom frames — and
 is absent for the modes that show one image. For Guess the Examine, `prompt` is the examine
-text itself and `vocab` is `items`.
+text itself and `vocab` is `examines`.
 
 **Every `pick_from_list` mode answers through the same control: a strict combobox**
 (`PickFromList.svelte`, a searchable dropdown). Strict means selection only — what the
@@ -640,7 +645,7 @@ Example Phase 1 pack entry:
 }
 ```
 
-Submitted answer values on the wire, per type (validated by `validate_value`):
+Submitted answer values on the wire, per type (parsed by `parse_value`):
 
 | Type | `value` | Credit |
 |---|---|---|
@@ -738,7 +743,7 @@ way `Timer.svelte` already counts down to the close.
 
 ### Autocomplete vocabularies
 
-`GET /api/vocab/{name}` where `name` is `items` or `npcs`, returning
+`GET /api/vocab/{name}` where `name` is one of `vocab.SOURCES` (`items`, `npcs`, `examines`), returning
 `{"vocab": "items", "version": "<16 hex>", "entries": [{"id": 4151, "name": "Abyssal whip"}]}`.
 The list is built at startup and never changes while the process runs; `version` is a hash
 of it so a client can tell two builds apart. `items` is `data/popular-items.json`, the
@@ -1015,10 +1020,11 @@ good. It does not know what that is worth.
 One multiplication, three tables. A type that wants a fourth way to be scored adds a
 `Scoring` member and a table, and touches nothing else.
 
-`STEP` falls back to `SPEED` when the payload has no `steps`, which is why `points_for`
-takes both the band and the steps. `pick_from_list` serves modes that want different
-things: Pixel Hunt zooms out over eight frames and should pay for answering on frame two,
-Who's That NPC? and Guess the Examine show one thing and should pay for answering quickly.
+`STEP` falls back to `SPEED` when the type's `steps(payload)` says none (as it does for a
+type without the hook), which is why `points_for` takes both the band and the steps.
+`pick_from_list` serves modes that want different things: Pixel Hunt zooms out over eight
+frames and should pay for answering on frame two, Who's That NPC? and Guess the Examine
+show one thing and should pay for answering quickly.
 One type, one `SCORING`, and the payload decides — rather than two near-identical types, or
 a Guess the Examine where everyone who knows the answer scores the same 1000 whether they
 took two seconds or twenty. `answer_ack` says `speed` for such a question too, with the bucket as its band,
@@ -1121,7 +1127,7 @@ lives. `band` is its counterpart at receive time: `submit_answer` needs the buck
 step for `answer_ack` before anything has been graded, and `band` picks which of `bucket`
 and `step` to ask, or answers `None` for `RANK`. `effective` is what `answer_ack.scoring`
 carries, so the fallback above is stated once. `points_for` refuses credit outside 0..1
-rather than paying 1200 for a type's bug.
+rather than paying 1200 for a type's bug; the close has already clamped and logged it.
 
 ## 7. Identity: who you are, and what never goes in a URL
 

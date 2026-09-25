@@ -462,7 +462,7 @@ def test_registry_has_every_shipped_type() -> None:
         "free_text": free_text,
     }
     for module in TYPES.values():
-        for name in ("client_view", "reveal", "grade", "validate_value", "check"):
+        for name in ("client_view", "reveal", "grade", "parse_value", "check"):
             assert callable(getattr(module, name))
 
 
@@ -519,14 +519,14 @@ def test_grade() -> None:
     ("value", "ok"),
     [(0, True), (1, True), (2, False), (-1, False), ("0", False), (None, False), (0.0, False)],
 )
-def test_validate_value(value: Any, ok: bool) -> None:
-    assert more_less.validate_value(EXAMPLE["payload"], value) is ok
+def test_parse_value(value: Any, ok: bool) -> None:
+    assert more_less.parse_value(EXAMPLE["payload"], value) == (value if ok else None)
 
 
 @pytest.mark.parametrize("value", [True, False])
-def test_validate_value_rejects_booleans(value: bool) -> None:
+def test_parse_value_rejects_booleans(value: bool) -> None:
     """``bool`` is an ``int`` and ``True == 1``: ``true`` must not answer option 1."""
-    assert more_less.validate_value(EXAMPLE["payload"], value) is False
+    assert more_less.parse_value(EXAMPLE["payload"], value) is None
 
 
 # --- JSON Schema ------------------------------------------------------------------------

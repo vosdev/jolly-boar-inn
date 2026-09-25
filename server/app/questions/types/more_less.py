@@ -18,6 +18,7 @@ from typing import Any
 from uuid import UUID
 
 from app.questions.submission import Submission
+from app.questions.types import exact
 from app.questions.types.bounds import Bounds
 
 DIRECTIONS = ("more", "less")
@@ -52,15 +53,13 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
-    return {s.player_id: 1.0 if s.value == payload["answer_index"] else 0.0 for s in submissions}
+    """Full credit for the index of the right option, none for any other."""
+    return exact.grade(payload["answer_index"], submissions)
 
 
-def validate_value(payload: dict[str, Any], value: Any) -> bool:
-    # ``bool`` is a subclass of ``int`` and ``True == 1``, so without the explicit
-    # rejection a client sending ``true`` would submit — and score — as option 1.
-    if isinstance(value, bool) or not isinstance(value, int):
-        return False
-    return 0 <= value < len(payload["options"])
+def parse_value(payload: dict[str, Any], value: Any) -> int | None:
+    """The index of one of the options, as sent; ``None`` for anything else."""
+    return exact.option_index(payload, value)
 
 
 def check(payload: dict[str, Any]) -> list[str]:

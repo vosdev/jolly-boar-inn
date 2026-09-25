@@ -157,8 +157,8 @@ def test_grade_is_all_or_nothing_credit() -> None:
     ("value", "ok"),
     [(0, True), (3, True), (4, False), (-1, False), ("1", False), (1.0, False), (True, False)],
 )
-def test_validate_value(value: Any, ok: bool) -> None:
-    assert price_is_right.validate_value(EXAMPLE["payload"], value) is ok
+def test_parse_value(value: Any, ok: bool) -> None:
+    assert price_is_right.parse_value(EXAMPLE["payload"], value) == (value if ok else None)
 
 
 # --- the shipped pack -------------------------------------------------------------------

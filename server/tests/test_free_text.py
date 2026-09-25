@@ -102,22 +102,22 @@ def test_grade_holds_a_short_answer_to_itself() -> None:
     ("value", "ok"),
     [("Zezima", True), ("x" * 80, True), ("x" * 81, False), ("", False), (1, False), (None, False)],
 )
-def test_validate_value_takes_a_string_of_up_to_80(value: Any, ok: bool) -> None:
-    assert free_text.validate_value(EXAMPLE["payload"], value) is ok
+def test_parse_value_takes_a_string_of_up_to_80(value: Any, ok: bool) -> None:
+    assert free_text.parse_value(EXAMPLE["payload"], value) == (value if ok else None)
 
 
 @pytest.mark.parametrize(
     "value",
     ["\ufdfa" * 5, "a\x00b", "\ud800", "Zez\udfffima"],
 )
-def test_validate_value_refuses_what_grows_past_80_or_cannot_be_stored(value: str) -> None:
+def test_parse_value_refuses_what_grows_past_80_or_cannot_be_stored(value: str) -> None:
     """U+FDFA is eighteen characters after NFKC; jsonb holds no NUL and no lone surrogate."""
-    assert free_text.validate_value(EXAMPLE["payload"], value) is False
+    assert free_text.parse_value(EXAMPLE["payload"], value) is None
 
 
-def test_validate_value_counts_what_nfkc_leaves() -> None:
+def test_parse_value_counts_what_nfkc_leaves() -> None:
     decomposed = "e\u0301" * 40  # eighty code points, forty once each accent is composed
-    assert free_text.validate_value(EXAMPLE["payload"], decomposed) is True
+    assert free_text.parse_value(EXAMPLE["payload"], decomposed) == decomposed
 
 
 def test_check_fails_an_accepted_answer_over_80_once_normalised() -> None:

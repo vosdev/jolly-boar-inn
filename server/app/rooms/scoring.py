@@ -22,6 +22,8 @@ that have not arrived yet. ``answer_ack`` carries it, and ``points_for`` reads i
 the close.
 """
 
+from typing import assert_never
+
 from app.questions.types.scoring import Scoring
 
 BUCKETS: tuple[tuple[float, int], ...] = (
@@ -86,7 +88,7 @@ def effective(scoring: Scoring, steps: int | None) -> Scoring:
 
 def band(scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None) -> int | None:
     """What an answer has earned on arrival: its bucket, its step, or ``None`` for ``RANK``."""
-    match effective(scoring, steps):
+    match how := effective(scoring, steps):
         case Scoring.SPEED:
             return bucket(elapsed_s, question_s)
         case Scoring.STEP:
@@ -94,6 +96,8 @@ def band(scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None)
             return step(elapsed_s, question_s, steps)
         case Scoring.RANK:
             return None
+        case _:
+            assert_never(how)
 
 
 def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | None) -> int:
@@ -104,7 +108,7 @@ def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | N
     """
     if not 0.0 <= credit <= 1.0:
         raise ValueError(f"credit {credit} is outside 0..1")
-    match effective(scoring, steps):
+    match how := effective(scoring, steps):
         case Scoring.SPEED:
             assert band is not None
             top = BUCKETS[band - 1][1]
@@ -113,4 +117,6 @@ def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | N
             top = step_points(band, steps)
         case Scoring.RANK:
             top = RANK_TOP
+        case _:
+            assert_never(how)
     return round(top * credit)

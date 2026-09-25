@@ -20,7 +20,7 @@ are both "closest", and the guess behind them is second closest, not third. That
 rule the standings already count ranks by, and it reads the way a host would call it out:
 the second-closest *guess*, however many people made the closest one.
 
-``validate_value`` takes an int or a float and nothing else, and only a finite one. JSON
+``parse_value`` takes an int or a float and nothing else, and only a finite one. JSON
 parsing here will turn ``1e400`` into infinity and accept ``NaN``, and a huge integer
 cannot be subtracted from a float answer at all, so any of the three would reach the close
 and stop the room's timer task with an exception rather than being refused on arrival.
@@ -72,11 +72,12 @@ def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, 
     return {pid: EXACT if distance == 0 else rung[distance] for pid, distance in off.items()}
 
 
-def validate_value(payload: dict[str, Any], value: Any) -> bool:
-    # ``True == 1``, so a ``true`` would otherwise guess 1; see ``more_less``.
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return False
-    return _finite(value)
+def parse_value(payload: dict[str, Any], value: Any) -> int | float | None:
+    """A finite number, as sent; ``None`` for anything else."""
+    # ``True == 1``, so a ``true`` would otherwise guess 1; see ``exact``.
+    if isinstance(value, bool) or not isinstance(value, int | float) or not _finite(value):
+        return None
+    return value
 
 
 def check(payload: dict[str, Any]) -> list[str]:

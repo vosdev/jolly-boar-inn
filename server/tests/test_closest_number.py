@@ -122,8 +122,8 @@ def test_speed_does_not_come_into_it() -> None:
         (10**400, False),  # no float holds it, so it could not be ranked against 99.5
     ],
 )
-def test_validate_value_takes_a_finite_number(value: Any, ok: bool) -> None:
-    assert closest_number.validate_value(EXAMPLE["payload"], value) is ok
+def test_parse_value_takes_a_finite_number(value: Any, ok: bool) -> None:
+    assert closest_number.parse_value(EXAMPLE["payload"], value) == (value if ok else None)
 
 
 def test_client_view_withholds_the_answer() -> None:
