@@ -375,12 +375,12 @@ of the content hash: the same payload asked by two NPCs is the same question. Se
 (`selection.py`) has where events land and who asks them, section 4 has how the splash rule
 changed to accommodate them, and section 3 has what the client is told.
 
-Any type can be an event question, but three need care. `more_less` and `price_is_right`
-compare prices only (`metric`), and a hand-written `ge_price` goes stale, so events use
-`high_alch` or `shop_price`. `ordering` waits for T27. `pick_from_list` works, because
-its list is the shared vocabulary and not the question's, but the answer must be on the
-item roster, and the version worth playing (a Certer's shadowy outline) needs Phase 3's
-images.
+Most types can be an event question. `more_less` and `price_is_right` cannot yet: only
+their own round shows the item they ask about, so `mode_errors` refuses them in `custom`
+and `random_event` until they get a stem. `ordering` waits for T27. `pick_from_list`
+works, because its list is the shared vocabulary and not the question's, but the answer
+must be on the item roster, and the version worth playing (a Certer's shadowy outline)
+needs Phase 3's images.
 
 ### The schema
 
@@ -660,7 +660,7 @@ Free-text grading (`questions/normalize.py`): NFKC, lowercase, strip punctuation
 
 Custom questions are ordinary rows in `questions` with `source = 'room'`, `mode = 'custom'`, `author_player_id` set, and `payload` validated against this schema at room creation. Export is `SELECT` of those rows serialised back into the envelope; import is the same POST body as creation.
 
-Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`. One pack may hold more than one mode — `prices.json` carries both `more_less` and `price_is_right` questions, because they are generated from one fetch of the same two endpoints. `validate_packs.py` fails CI on schema errors, duplicate ids, `id` not matching content, an unknown `mode`, or a `type` that is not among its mode's.
+Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`. One pack may hold more than one mode — `prices.json` carries both `more_less` and `price_is_right` questions, because they are generated from one fetch of the same two endpoints. `validate_packs.py` fails CI on schema errors, duplicate ids, `id` not matching content, an unknown `mode`, a `type` that is not among its mode's, or a price type filed as an event.
 
 ## 3. Websocket protocol
 

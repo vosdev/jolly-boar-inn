@@ -13,7 +13,9 @@
    *
    * A type this build has no view for gets the honest fallback in place of the whole
    * question, stem included: a sentence with no way to answer it reads as a broken
-   * screen, where "this version cannot show it" reads as what it is.
+   * screen, where "this version cannot show it" reads as what it is. A stem or view that
+   * throws gets the same treatment from the boundary, for a payload this build misreads:
+   * without it the error takes the whole room screen down with the question.
    *
    * `held` is a random event's hold (T22): the stem is up, and the view waits for the
    * question's `answerable_at`. `RandomEvent` does the counting and says when.
@@ -50,6 +52,7 @@
 <!-- Keyed on the question so a view with state of its own — the combobox's search, its
      selection — starts clean for each question even if nothing between them unmounts it. -->
 {#key question.question_id}
+<svelte:boundary onerror={(error) => console.error('The question could not be drawn:', error)}>
 {#if View === null}
   {#if revealed}
     <p class="note">That question is closed.</p>
@@ -76,4 +79,8 @@
     />
   {/if}
 {/if}
+{#snippet failed()}
+  <p>This question can't be shown in this version. Refresh to update.</p>
+{/snippet}
+</svelte:boundary>
 {/key}

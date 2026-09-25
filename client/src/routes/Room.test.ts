@@ -9,11 +9,13 @@
  */
 
 import { render, screen } from '@testing-library/svelte'
-import { tick } from 'svelte'
+import { type Component, tick } from 'svelte'
 import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
+import { TYPE_VIEWS } from '../components/questions/index'
+import type { TypeViewProps } from '../components/questions/props'
 import { applyServerMessage } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
 import Room from './Room.svelte'
@@ -243,6 +245,47 @@ describe('Room', () => {
       expect(sent).toContainEqual({ t: 'answer', question_id: 'q_bob', value: 0 })
     } finally {
       vi.useRealTimers()
+    }
+  })
+
+  it('keeps the room around a question whose view throws', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+    TYPE_VIEWS.throws = (() => {
+      throw new Error('a payload this build misreads')
+    }) as unknown as Component<TypeViewProps>
+    try {
+      const open: OpenQuestion = {
+        question_id: 'q1',
+        index: 0,
+        total: 2,
+        type: 'throws',
+        mode: 'more_less',
+        segment: { ...SEGMENT, count: 2 },
+        view: {},
+        opened_at: new Date().toISOString(),
+        ends_at: new Date(Date.now() + 10_000).toISOString(),
+        you_can_answer: true,
+      }
+      await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+      applyServerMessage({ t: 'question_open', question: open })
+      await screen.findByText(/Question 1 of 2/)
+      const fallback = "This question can't be shown in this version. Refresh to update."
+      expect(screen.getByText(fallback)).toBeTruthy()
+
+      applyServerMessage({
+        t: 'question_closed',
+        question_id: 'q1',
+        reveal: {},
+        results: { b: { value: 0, correct: true, credit: 1, points: 900 } },
+        standings: STANDINGS,
+        next_at: new Date(Date.now() + 8_000).toISOString(),
+      })
+      await screen.findByText('1 of 1')
+      expect(screen.getByText(fallback)).toBeTruthy()
+      expect(screen.getByText(/Question 1 of 2/)).toBeTruthy()
+    } finally {
+      delete TYPE_VIEWS.throws
+      logged.mockRestore()
     }
   })
 

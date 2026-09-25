@@ -4,10 +4,12 @@
    * it on, who got it wrong (D8).
    *
    * Everything here comes from `question_closed.results`, which already carries every
-   * player's row; nothing new crosses the wire. "Right" is `correct`, full credit. "Wrong"
-   * is an answer that scored nothing, so a closest-number guess that earned its 200 for
-   * having a go is not called out, and a player who did not answer is neither: sitting a
-   * question out is not getting it wrong (the points slot makes the same distinction).
+   * player's row; nothing new crosses the wire. "Right" is `correct`, full credit. Partial
+   * credit gets a line per band under it, so a closest-number question, where almost
+   * nobody is exact, does not read as "0 of 6". "Wrong" is under the lowest band: a guess
+   * that earned its 200 for having a go is still wrong, one that came within 70% is not
+   * called out. A player who did not answer is neither: sitting a question out is not
+   * getting it wrong (the points slot makes the same distinction).
    *
    * The names are the room's taste, so they are `settings.name_wrong_answers`, off unless
    * the host asks. The count is always there: it is the answer to "was that a hard one?",
@@ -28,11 +30,24 @@
     showNames: boolean
   } = $props()
 
+  // Highest first: a player counts once, in the first band their credit reaches.
+  const BANDS = [0.9, 0.8, 0.7]
+  const LOWEST = BANDS[BANDS.length - 1]
+
   const rows = $derived(Object.entries(results))
   const right = $derived(rows.filter(([, result]) => result.correct).length)
+  const bands = $derived(
+    BANDS.map((least, index) => ({
+      percent: Math.round(least * 100),
+      count: rows.filter(
+        ([, { correct, credit }]) =>
+          !correct && credit >= least && (index === 0 || credit < BANDS[index - 1]),
+      ).length,
+    })).filter((band) => band.count > 0),
+  )
   const wrong = $derived(
     rows
-      .filter(([, result]) => !result.correct && result.points === 0)
+      .filter(([, result]) => !result.correct && result.credit < LOWEST)
       .map(([id]) => ({ id, name: nameOf(id) ?? 'Someone who left', you: id === youId }))
       .sort((a, b) => a.name.localeCompare(b.name)),
   )
@@ -45,6 +60,12 @@
     <p class="count">
       <strong class="number">{right} of {rows.length}</strong> got it right
     </p>
+    {#each bands as band (band.percent)}
+      <p class="count band">
+        <strong class="number">{band.count} of {rows.length}</strong>
+        {band.count === 1 ? 'was' : 'were'} at least {band.percent}% right
+      </p>
+    {/each}
     {#if showNames && wrong.length > 0}
       <p class="wrong">
         <span class="label">Got it wrong:</span>
@@ -71,6 +92,10 @@
 
   .count {
     color: var(--muted);
+  }
+
+  .band {
+    margin-top: 0.2rem;
   }
 
   .number {

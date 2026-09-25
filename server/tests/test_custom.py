@@ -70,3 +70,23 @@ def test_a_character_the_database_cannot_store_is_refused_by_its_path(bad: str, 
     assert info.value.errors == [
         f"custom_questions[1] $.payload.prompt: U+{code} is not a character that can be stored"
     ]
+
+
+def test_a_host_may_not_write_a_price_question_yet() -> None:
+    """Neither price type can show its item outside its own round, so the room is refused."""
+    priced = {
+        "type": "price_is_right",
+        "payload": {
+            "subject": {"name": "Abyssal whip", "asset": "item:4151"},
+            "value": 1600000,
+            "options": [1100000, 1600000, 2100000, 2900000],
+            "answer_index": 1,
+            "as_of": "2026-09-20",
+        },
+    }
+    with pytest.raises(schema.QuestionError) as info:
+        custom.envelopes([WRITTEN, priced])
+    assert info.value.errors == [
+        "custom_questions[1] $.type: 'price_is_right' is not accepted in 'custom' yet:"
+        " a question of it can only be shown inside its own round"
+    ]

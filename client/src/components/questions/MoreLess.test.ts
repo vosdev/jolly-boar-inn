@@ -1,0 +1,74 @@
+/**
+ * `more_less` on screen: two plain buttons that answer with their position, and hold once
+ * an answer is in or when it is not ours to answer.
+ */
+
+import { fireEvent, render, screen } from '@testing-library/svelte'
+import { describe, expect, it, vi } from 'vitest'
+
+import type { OpenQuestion } from '../../lib/protocol'
+import Question from './Question.svelte'
+
+const VIEW = {
+  metric: 'ge_price',
+  direction: 'more',
+  options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+  as_of: '2026-09-01',
+}
+
+function open(patch: Partial<OpenQuestion> = {}): OpenQuestion {
+  return {
+    question_id: 'q1',
+    index: 0,
+    total: 10,
+    type: 'more_less',
+    mode: 'more_less',
+    segment: { mode: 'more_less', index: 0, total: 1, start: 0, count: 10 },
+    view: VIEW,
+    opened_at: '2026-09-21T20:00:00Z',
+    ends_at: '2026-09-21T20:00:10Z',
+    you_can_answer: true,
+    ...patch,
+  }
+}
+
+const buttons = () => screen.getAllByRole('button') as HTMLButtonElement[]
+
+describe('more_less', () => {
+  it('answers with the index of the item picked', async () => {
+    const onAnswer = vi.fn()
+    render(Question, { question: open(), yourValue: null, onAnswer })
+    await fireEvent.click(screen.getByText('Dragon bones'))
+    expect(onAnswer).toHaveBeenCalledWith(1)
+  })
+
+  it('holds both buttons once answered, with ours pressed', () => {
+    render(Question, { question: open(), yourValue: 0, onAnswer: () => {} })
+    expect(buttons().every((b) => b.disabled)).toBe(true)
+    expect(buttons().map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false'])
+  })
+
+  it('gives someone who cannot answer no button to press', () => {
+    render(Question, {
+      question: open({ you_can_answer: false }),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(buttons().every((b) => b.disabled)).toBe(true)
+    expect(buttons().every((b) => b.getAttribute('aria-pressed') === 'false')).toBe(true)
+    expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
+  })
+
+  it('draws both buttons when an item is compared with itself', async () => {
+    const whip = { subject: { name: 'Abyssal whip', asset: 'item:4151' } }
+    const onAnswer = vi.fn()
+    render(Question, {
+      question: open({ view: { ...VIEW, metric: 'high_alch', options: [whip, whip] } }),
+      yourValue: null,
+      onAnswer,
+    })
+    expect(screen.getAllByText('Abyssal whip')).toHaveLength(2)
+    await fireEvent.click(buttons()[1])
+    expect(onAnswer).toHaveBeenCalledWith(1)
+  })
+})

@@ -9,10 +9,12 @@
  */
 
 import { render, screen } from '@testing-library/svelte'
-import { describe, expect, it, vi } from 'vitest'
+import type { Component } from 'svelte'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
-import { viewFor } from './index'
+import { TYPE_VIEWS, viewFor } from './index'
+import type { TypeViewProps } from './props'
 import Question from './Question.svelte'
 import TextStem from './stems/TextStem.svelte'
 import MoreLess from './types/MoreLess.svelte'
@@ -141,5 +143,29 @@ describe('Question', () => {
     for (const button of buttons) {
       expect(stem.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     }
+  })
+
+  describe('a view that throws', () => {
+    afterEach(() => {
+      delete TYPE_VIEWS.throws
+      vi.restoreAllMocks()
+    })
+
+    it('is replaced by the fallback, stem and all', () => {
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+      TYPE_VIEWS.throws = (() => {
+        throw new Error('a payload this build misreads')
+      }) as unknown as Component<TypeViewProps>
+      const view = { prompt: 'Which of these would a merchant rather hold?' }
+      const { container } = render(Question, {
+        question: open('throws', 'stemmed', view),
+        yourValue: null,
+        onAnswer,
+      })
+      expect(container.textContent?.trim()).toBe(
+        "This question can't be shown in this version. Refresh to update.",
+      )
+      expect(logged).toHaveBeenCalled()
+    })
   })
 })

@@ -243,9 +243,14 @@ def test_any_mode_that_is_not_a_round_may_name_an_npc(monkeypatch: pytest.Monkey
     assert problem.startswith("$.random_event: a 'not_a_mode' question is asked by its round")
 
 
+def own(**changes: Any) -> dict[str, Any]:
+    """A host's question of a type an event may be."""
+    return {**NPC_QUESTION, "mode": "custom", "source": "room", **changes}
+
+
 def test_custom_is_the_mode_of_a_rooms_own_questions_and_nothing_else() -> None:
     """T21: ``custom`` has no type to agree with, and it is the other half of ``room``."""
-    schema.validate(question(mode="custom", source="room"))  # any registered type will do
+    schema.validate(own())
     message = "a room's own questions, and only they, are 'custom'"
     for wrong in (question(mode="custom"), question(source="room")):
         (problem,) = schema.consistency_errors(wrong)
@@ -258,6 +263,55 @@ def test_validate_packs_script_fails_on_a_custom_question(tmp_path: Path) -> Non
     result = _validate_packs(tmp_path)
     assert result.returncode == 1
     assert "custom.json: questions[0] $.mode: 'custom' with source 'pack'" in result.stderr
+
+
+PRICE_QUESTION: dict[str, Any] = {
+    "type": "price_is_right",
+    "mode": "price_is_right",
+    "source": "pack",
+    "tags": ["prices"],
+    "payload": {
+        "subject": {"name": "Armadyl chestplate", "asset": "item:11828"},
+        "value": 35000000,
+        "options": [35000000, 41000000, 58000000, 79000000],
+        "answer_index": 0,
+        "as_of": "2026-09-20",
+    },
+}
+PRICE_QUESTION["id"] = schema.content_id(PRICE_QUESTION)
+
+
+@pytest.mark.parametrize("priced", [EXAMPLE, PRICE_QUESTION], ids=["more_less", "price_is_right"])
+def test_a_price_type_is_refused_as_an_event(priced: dict[str, Any]) -> None:
+    """Only its own round shows the item it asks about, so as an event it would ask nothing."""
+    schema.validate(priced)
+    for mode, source, npc in (("custom", "room", None), ("random_event", "pack", "death")):
+        event = {**priced, "mode": mode, "source": source}
+        if npc is not None:
+            event["random_event"] = npc
+        assert schema.consistency_errors(event) == [
+            f"$.type: {priced['type']!r} is not accepted in {mode!r} yet:"
+            " a question of it can only be shown inside its own round"
+        ]
+
+
+def test_validate_packs_fails_a_price_question_in_an_npcs_file(tmp_path: Path) -> None:
+    _write_npc(tmp_path, "death", [{**PRICE_QUESTION, "mode": "random_event"}])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    assert (
+        "random_events/death.json: questions[0] $.type: 'price_is_right' is not accepted in"
+        " 'random_event' yet" in result.stderr
+    )
+
+
+def test_no_shipped_event_is_of_a_price_type() -> None:
+    """The refusal broke nothing that ships: every pack still loads."""
+    events = [
+        q for pack in load_packs(PACKS_DIR) for q in pack.questions if not MODES[q["mode"]].is_round
+    ]
+    assert events
+    assert {q["type"] for q in events}.isdisjoint({"more_less", "price_is_right"})
 
 
 # --- T22: the NPCs' own questions -----------------------------------------------------
@@ -367,11 +421,11 @@ def test_an_npcs_question_needs_its_npc_and_a_rounds_question_may_not_have_one()
     schema.validate({**NPC_QUESTION, "random_event": "sandwich_lady"})
     (problem,) = schema.consistency_errors(question(random_event="death"))
     assert problem.startswith("$.random_event: a 'more_less' question is asked by its round")
-    schema.validate(question(mode="custom", source="room", random_event="death"))
-    assert schema.consistency_errors(
-        question(mode="custom", source="room", random_event="nobody")
-    ) == ["$.random_event: 'nobody' is not on the roster (app/random_events.py)"]
-    assert schema.schema_errors(question(mode="custom", source="room", random_event="Death!"))
+    schema.validate(own(random_event="death"))
+    assert schema.consistency_errors(own(random_event="nobody")) == [
+        "$.random_event: 'nobody' is not on the roster (app/random_events.py)"
+    ]
+    assert schema.schema_errors(own(random_event="Death!"))
 
 
 def test_the_shipped_npc_files_are_every_npcs_own() -> None:

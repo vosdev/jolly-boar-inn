@@ -109,7 +109,9 @@
 </p>
 
 <div class="choices">
-  {#each q.options as option, index (option.subject.name)}
+  <!-- Keyed by position: nothing stops a pair naming one item twice, and a duplicate key
+       throws. -->
+  {#each q.options as option, index (index)}
     <GemButton
       gem={null}
       status={gemState(index, picked, answer, revealed)}

@@ -17,7 +17,9 @@
    * - while open, `client_view(payload)`: the prompt, and an `image` ref. Nothing about
    *   the answer, not even its length.
    * - after close, `reveal(payload)`: the same plus `accepted`, every spelling the author
-   *   would take with the first as *the* answer, and an optional `explanation`.
+   *   would take with the first as *the* answer, and optionally `explanation` and
+   *   `subject`, what the answer is. A subject is named in place of the first spelling,
+   *   as `PickFromList` names its own, and the spellings follow it.
    */
   import type { TypeViewProps } from '../props'
 
@@ -29,6 +31,8 @@
     accepted?: string[]
     /** Reveal only, and optional there. */
     explanation?: string
+    /** Reveal only, and optional there. */
+    subject?: { name?: string }
   }
 
   let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<string> = $props()
@@ -40,6 +44,11 @@
   const answered = $derived(typeof yourValue === 'string' ? yourValue : null)
   const locked = $derived(revealed || !canAnswer || answered !== null)
   const accepted = $derived(revealed && Array.isArray(q.accepted) ? q.accepted : [])
+  const answerName = $derived(revealed ? (q.subject?.name ?? accepted[0] ?? null) : null)
+  // Case aside, the name already says a spelling, and "also" should not repeat it.
+  const others = $derived(
+    accepted.filter((spelling) => spelling.toLowerCase() !== answerName?.toLowerCase()),
+  )
 
   function submit(event: SubmitEvent): void {
     event.preventDefault()
@@ -50,10 +59,10 @@
 
 {#if locked}
   <div class="settled">
-    {#if accepted.length > 0}
-      <p class="answer">It was <strong>{accepted[0]}</strong>.</p>
-      {#if accepted.length > 1}
-        <p class="note">Also accepted: {accepted.slice(1).join(', ')}</p>
+    {#if answerName !== null}
+      <p class="answer">It was <strong>{answerName}</strong>.</p>
+      {#if others.length > 0}
+        <p class="note">Also accepted: {others.join(', ')}</p>
       {/if}
     {/if}
     {#if answered !== null}

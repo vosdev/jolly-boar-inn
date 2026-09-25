@@ -388,7 +388,8 @@ runs it; no generator opens a socket.
 Two `multiple_choice` modes from `facts/npcs.json`. First two modes off the importer.
 
 Bestiary asks combat level, release year, quest, location or weakness. Drop Table asks which
-of four bosses drops an item.
+of four bosses drops an item. For `AssetStem` to show that item, `multiple_choice` needs an
+optional `subject` (a schema change): today its payload has none and allows no extra keys.
 
 Distractors are the whole task. `ideas/games.md` names the trap: pick three random bosses
 for a Drop Table question and one of them may also drop the item. The generator checks every
