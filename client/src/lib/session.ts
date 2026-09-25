@@ -9,23 +9,29 @@
 const SESSION_PREFIX = 'jbi:session:'
 const CREATED_KEY = 'jbi:created'
 
+/** What storage would not take, so a browser that stores nothing keeps it for the page. */
+const unstored = new Map<string, string>()
+
 function read(key: string): string | null {
   try {
-    return localStorage.getItem(key)
+    return localStorage.getItem(key) ?? unstored.get(key) ?? null
   } catch {
-    return null
+    return unstored.get(key) ?? null
   }
 }
 
 function write(key: string, value: string): void {
   try {
     localStorage.setItem(key, value)
+    unstored.delete(key)
   } catch {
-    // Out of quota, or storage denied. The session lives in memory for this page only.
+    // Out of quota, or storage denied.
+    unstored.set(key, value)
   }
 }
 
 function drop(key: string): void {
+  unstored.delete(key)
   try {
     localStorage.removeItem(key)
   } catch {

@@ -5,11 +5,12 @@
  * sends how often the NPCs interrupt, and counts their questions in the total it shows.
  */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
-import { saveProfile } from '../lib/profile'
+import { profile, saveProfile } from '../lib/profile'
 import { createdRooms } from '../lib/session'
 import Create from './Create.svelte'
 
@@ -59,6 +60,36 @@ async function loaded(): Promise<void> {
 }
 
 describe('Create', () => {
+  it('stops a browser with no name at a popup that one tap gets past', async () => {
+    profile.set(null)
+    render(Create, { navigate: () => {} })
+    const dialog = screen.getByRole('dialog', { name: 'What do we call you?' }) as HTMLDialogElement
+    const offered = (within(dialog).getByRole('textbox') as HTMLInputElement).value
+    const host = within(dialog).getByRole('button', { name: `Host as ${offered}` })
+    expect(document.activeElement).toBe(host)
+    await fireEvent.click(host)
+    expect(dialog.open).toBe(false)
+    expect(get(profile)?.name).toBe(offered)
+    expect((screen.getByLabelText('Your name', { selector: '#name' }) as HTMLInputElement).value).toBe(
+      offered,
+    )
+  })
+
+  it('asks a returning browser nothing, and one tap lands the host in the lobby', async () => {
+    const navigate = vi.fn()
+    render(Create, { navigate })
+    expect(document.querySelector('dialog')).toBeNull()
+    await screen.findByRole('checkbox', { name: /^More or Less/ })
+    await submitted()
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+  })
+
+  it('gives its one text field a die', async () => {
+    await loaded()
+    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Roll a random name' })).toBeTruthy()
+  })
+
   it('offers every mode but custom as a round', async () => {
     await loaded()
     expect(screen.getByRole('checkbox', { name: /^The Price is Right/ })).toBeTruthy()

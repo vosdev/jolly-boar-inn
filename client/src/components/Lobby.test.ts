@@ -6,9 +6,11 @@
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { derivedHead } from '../lib/heads'
 import type { PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, resetRoom } from '../lib/stores'
 import type { RoomSocket } from '../lib/ws'
+import { headsDrawn } from '../test-heads'
 import Lobby from './Lobby.svelte'
 
 const HOST: PlayerView = { id: 'a', display_name: 'Zezima', role: 'admin', connected: true }
@@ -110,6 +112,14 @@ describe('Lobby', () => {
     lobby([{ ...HOST, ready: true }, WOOX, { ...away, ready: true }])
     await fireEvent.click(screen.getByRole('button', { name: 'Start the game' }))
     expect(sent).toEqual([{ t: 'start_game' }])
+  })
+
+  it('draws each player’s own head, or the one their id gives, at 32px', () => {
+    lobby([{ ...HOST, avatar: 7 }, { ...WOOX, avatar: null }])
+    expect(headsDrawn(document.querySelector('.players')!)).toEqual([
+      { head: 7, size: 32 },
+      { head: derivedHead(WOOX.id), size: 32 },
+    ])
   })
 
   it('names who is not ready, and marks who is', () => {

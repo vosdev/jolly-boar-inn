@@ -1,15 +1,9 @@
-"""D3 Accept: names, the profile, and the popup that stands in front of Create and Join.
+"""D3 Accept: names, and a corpus the server will accept every one of.
 
-Like ``test_app_shell.py``, there is no browser here, so what a test can hold is what the
-criteria are made of: a corpus the server will accept every name from, a generator
-bounded the way the server is, and the screens wired to the profile rather than to an
-empty field.
-
-What a browser confirmed, and a test here cannot: a first-time browser meets the popup on
-Create and on Join and gets past it in one tap; a returning browser goes Home to the lobby
-in two; the re-roll keeps focus in the field; two browsers with the same stored name both
-join one room and come out with different names; with ``localStorage`` throwing, the popup
-comes back on each visit and the app still plays.
+The rules, the corpus, and a generator bounded the way the server is. The popup, the
+re-roll, the profile and a ``localStorage`` that throws are the client's own tests:
+``Create.test.ts``, ``Join.test.ts``, ``NameField.test.ts``, ``profile.test.ts`` and
+``App.test.ts``.
 """
 
 import json
@@ -130,38 +124,7 @@ def test_the_image_can_see_the_corpus() -> None:
     assert "COPY data/player-names.json ../data/player-names.json" in client_stage
 
 
-# --- the flow ------------------------------------------------------------------------
-
-
-def test_the_profile_lives_under_the_jbi_prefix() -> None:
-    assert "'jbi:profile'" in read("lib/profile.ts")
-
-
-def test_create_stops_an_empty_profile() -> None:
-    """Section 5.1: no name, no room to host. Join stopped too until D4 made it join-first,
-    which ``test_heads.py`` holds it to."""
-    source = read("routes/Create.svelte")
-    assert re.search(r"\{#if \$profile === null\}\s*<NamePrompt", source)
-
-
-def test_every_name_field_is_the_re_rollable_one() -> None:
-    """A bare text input for a name is a field somebody forgot to give a die."""
-    for screen in ("routes/Create.svelte", "routes/Join.svelte"):
-        source = read(screen)
-        assert "<NameField" in source, screen
-        assert 'type="text"' not in source, f"{screen} has its own name input"
-
-
-def test_the_name_field_cannot_take_more_than_the_server_does() -> None:
-    field = read("components/NameField.svelte")
-    assert "maxlength={NAME_MAX}" in field
-
-
-def test_join_turns_the_suffix_over_on_name_taken() -> None:
-    join = read("routes/Join.svelte")
-    assert "'name_taken'" in join
-    assert "resuffix(" in join
-    assert re.search(r"const REROLLS = 3\b", join)
+# --- the shell -----------------------------------------------------------------------
 
 
 def test_the_top_bar_is_given_an_identity_chip() -> None:

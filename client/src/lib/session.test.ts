@@ -1,10 +1,23 @@
-/** Codes as players type them, and the list of rooms created in this browser. */
+/**
+ * Codes as players type them, the list of rooms created in this browser, and sessions
+ * kept for the page when storage throws.
+ */
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createdRooms, forgetCreated, isRoomCode, normalizeCode, rememberCreated } from './session'
+import {
+  clearSession,
+  createdRooms,
+  forgetCreated,
+  getSession,
+  isRoomCode,
+  normalizeCode,
+  rememberCreated,
+  setSession,
+} from './session'
 
 beforeEach(() => localStorage.clear())
+afterEach(() => vi.restoreAllMocks())
 
 describe('normalizeCode', () => {
   it.each([
@@ -51,5 +64,30 @@ describe('createdRooms', () => {
     rememberCreated('RUNE', '2099-01-01T00:00:00Z')
     forgetCreated('dragon')
     expect(createdRooms(NOW)).toEqual(['RUNE'])
+  })
+})
+
+describe('with storage throwing', () => {
+  beforeEach(() => {
+    const denied = (): never => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    }
+    for (const method of ['getItem', 'setItem', 'removeItem'] as const) {
+      vi.spyOn(Storage.prototype, method).mockImplementation(denied)
+    }
+  })
+
+  it('keeps a session for the page, so a join still reaches its room', () => {
+    setSession('dragon', 'token')
+    expect(getSession('DRAGON')).toBe('token')
+    clearSession('DRAGON')
+    expect(getSession('DRAGON')).toBeNull()
+  })
+
+  it('keeps the rooms created here for the page', () => {
+    rememberCreated('RUNE', '2099-01-01T00:00:00Z')
+    expect(createdRooms(Date.parse('2098-01-01T00:00:00Z'))).toEqual(['RUNE'])
+    forgetCreated('RUNE')
+    expect(createdRooms(Date.parse('2098-01-01T00:00:00Z'))).toEqual([])
   })
 })

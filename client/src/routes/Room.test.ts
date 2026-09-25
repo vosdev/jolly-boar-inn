@@ -19,6 +19,7 @@ import type { TypeViewProps } from '../components/questions/props'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
 import { clearVocabCache } from '../lib/vocab'
+import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
 
 vi.mock('../lib/session', async (importOriginal) => {
@@ -27,9 +28,13 @@ vi.mock('../lib/session', async (importOriginal) => {
 })
 
 const sent: unknown[] = []
+let closeSocket: RoomSocketHandlers['onClosed'] = () => {}
 
 vi.mock('../lib/ws', () => ({
   RoomSocket: class {
+    constructor(_code: string, _session: string, handlers: RoomSocketHandlers) {
+      closeSocket = handlers.onClosed
+    }
     open(): void {}
     close(): void {}
     send(message: unknown): boolean {
@@ -309,6 +314,25 @@ describe('Room', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Final standings')
     expect(document.querySelector('.podium')).not.toBeNull()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(2)
+  })
+})
+
+describe('the room’s own headings', () => {
+  const titles = () =>
+    screen.queryAllByRole('heading', { level: 1 }).map((heading) => heading.textContent ?? '')
+
+  it('never name the room by its code, which the lobby shows and the bar does not', async () => {
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    expect(screen.getByText('Connecting…')).toBeTruthy()
+    expect(titles()).toEqual([])
+    applyServerMessage(
+      welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
+    )
+    await screen.findByRole('heading', { level: 1, name: 'Lobby' })
+    expect(titles()).toEqual(['Lobby'])
+    closeSocket('no_room', '')
+    await screen.findByRole('heading', { level: 1, name: 'Disconnected' })
+    expect(titles()).toEqual(['Disconnected'])
   })
 })
 

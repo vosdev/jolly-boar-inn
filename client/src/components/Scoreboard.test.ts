@@ -8,8 +8,10 @@
 import { render, screen, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { derivedHead } from '../lib/heads'
 import type { Standing } from '../lib/protocol'
 import { players } from '../lib/stores'
+import { headsDrawn } from '../test-heads'
 import Scoreboard from './Scoreboard.svelte'
 
 const LONG = 'Cow31337Killer42Forever1' // 24 characters, the longest a name may be
@@ -36,6 +38,25 @@ function steps(container: HTMLElement): HTMLElement[] {
 }
 
 describe('Scoreboard', () => {
+  it('draws the head each player chose, or the one their id gives, 48px on the podium and 32px in the table', () => {
+    const two = [{ ...standing('Zezima', 900, 1), avatar: 7 }, standing('Woox', 800, 2)]
+    const { container } = render(Scoreboard, { standings: two, final: true })
+    expect(headsDrawn(container.querySelector('.podium')!)).toEqual([
+      { head: derivedHead('Woox'), size: 48 },
+      { head: 7, size: 48 },
+    ])
+    expect(headsDrawn(container.querySelector('.hiscores')!)).toEqual([
+      { head: 7, size: 32 },
+      { head: derivedHead('Woox'), size: 32 },
+    ])
+  })
+
+  it('draws the head the room last sent over the one in the standings', () => {
+    players.set([{ id: 'Zezima', display_name: 'Zezima', avatar: 2, role: 'player', connected: true }])
+    const { container } = render(Scoreboard, { standings: [{ ...standing('Zezima', 900, 1), avatar: 7 }] })
+    expect(headsDrawn(container.querySelector('.podium')!)).toEqual([{ head: 2, size: 48 }])
+  })
+
   it('stands ranks 4 · 2 · 1 · 3 · 5 from left to right', () => {
     const { container } = render(Scoreboard, { standings: EIGHT })
     expect(steps(container).map((step) => step.dataset.rank)).toEqual(['4', '2', '1', '3', '5'])

@@ -8,8 +8,8 @@ name already taken in the room is rejected and the old name survives unchanged; 
 ``avatar`` and never sends ``set_profile``, still creates, joins and plays.
 
 The mid-game rename is in ``test_game.py`` beside the other in-game commands, a room from
-before the migration is in ``test_migrations.py``, and the manifest and the client are in
-``test_heads.py``.
+before the migration is in ``test_migrations.py``, the manifest is in ``test_heads.py``, and
+the client's half in its own tests.
 """
 
 from typing import Any

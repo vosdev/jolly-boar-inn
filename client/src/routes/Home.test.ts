@@ -26,6 +26,15 @@ async function typeCode(typed: string): Promise<void> {
 }
 
 describe('Home', () => {
+  it('leaves the inn’s name to the top bar, and one tap goes to Create', async () => {
+    render(Home, { navigate })
+    const heading = screen.getByRole('heading', { level: 1 }).textContent ?? ''
+    expect(heading.trim()).not.toBe('')
+    expect(heading).not.toContain('Jolly Boar Inn')
+    await fireEvent.click(screen.getByRole('button', { name: 'Create a room' }))
+    expect(navigate).toHaveBeenCalledWith('/create')
+  })
+
   it('joins a code typed as two words', async () => {
     render(Home, { navigate })
     await typeCode("Ahrim's Staff")

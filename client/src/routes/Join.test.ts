@@ -38,6 +38,12 @@ beforeEach(() => {
 })
 
 describe('Join', () => {
+  it('says which room it is, since the top bar does not', async () => {
+    render(Join, { code: 'ABYSSAL', navigate })
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Room ABYSSAL')
+    await waitFor(() => expect(navigate).toHaveBeenCalled())
+  })
+
   it('joins straight through under the profile, and lands in the room', async () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
@@ -55,6 +61,7 @@ describe('Join', () => {
     expect(made).not.toBeNull()
     expect(joinedAs()).toEqual([made?.name])
     expect(get(nudge)).toBe('ABYSSAL')
+    expect(document.querySelector('dialog')).toBeNull()
   })
 
   it('turns the number over on name_taken, with a new name each time, and keeps the profile', async () => {
@@ -88,6 +95,8 @@ describe('Join', () => {
     expect(field.value).toBe('Zezima')
     expect(screen.getByText('the room is full')).toBeTruthy()
     expect(api.joinRoom).toHaveBeenCalledTimes(1)
+    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Roll a random name' })).toBeTruthy()
   })
 
   it('says so for a room that does not exist, and joins nothing', async () => {

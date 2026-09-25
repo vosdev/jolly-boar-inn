@@ -1,18 +1,16 @@
-"""D5 Accept: three themes, each one block a selfhoster can copy, and a picker that offers
-exactly those.
+"""D5 Accept: three themes, each one block a selfhoster can copy.
 
-Like ``test_check_contrast.py`` and ``test_app_shell.py``, this reads the stylesheet and the
-components rather than rendering them. The contract itself — all three themes passing the
-D1 check — is ``test_check_contrast.py``'s ``test_every_shipped_theme_passes``.
+This reads the stylesheet. The contract itself — all three themes passing the D1 check —
+is ``test_check_contrast.py``'s ``test_every_shipped_theme_passes``, and the picker is
+``ThemePicker.test.ts``'s.
 
-What a browser confirmed, and a test here cannot: with no ``jbi:theme`` the picker shows
-jolly ticked; picking a theme repaints at once and survives a reload; the arrow keys walk
-the list; switching through all three mid-question leaves every button, panel and top bar
-control at the same position and size to the pixel, the question's elements are the same
-DOM nodes afterwards, and the timer counts on without a jump; at 320px the popover fits
-the screen and nothing scrolls sideways; every piece of visible text on Home (picker open),
-Create, a live question and its reveal reaches 4.5:1 against the colour actually behind it,
-in all three themes.
+What a browser confirmed, and a test cannot: the arrow keys walk the list; switching
+through all three mid-question leaves every button, panel and top bar control at the same
+position and size to the pixel, the question's elements are the same DOM nodes
+afterwards, and the timer counts on without a jump; at 320px the popover fits the screen
+and nothing scrolls sideways; every piece of visible text on Home (picker open), Create, a
+live question and its reveal reaches 4.5:1 against the colour actually behind it, in all
+three themes.
 """
 
 import re
@@ -23,8 +21,6 @@ from tests.client_source import CLIENT_SRC, read
 
 APP_CSS = CLIENT_SRC / "app.css"
 THEME_TS = CLIENT_SRC / "lib" / "theme.ts"
-PICKER = CLIENT_SRC / "components" / "ThemePicker.svelte"
-APP_SVELTE = CLIENT_SRC / "App.svelte"
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
 import check_contrast as check  # noqa: E402
@@ -153,44 +149,3 @@ def test_the_panel_texture_is_a_band_along_the_top() -> None:
     panel = re.search(r"(?m)^\.panel \{([^}]*)\}", rules)
     assert panel is not None
     assert "background-repeat: repeat-x" in panel.group(1)
-
-
-# --- the picker ----------------------------------------------------------------------
-
-
-def test_the_picker_is_in_the_theme_slot() -> None:
-    app = read(APP_SVELTE)
-    slot = re.search(r"\{#snippet theme\(\)\}(.*?)\{/snippet\}", app, re.DOTALL)
-    assert slot is not None
-    assert "<ThemePicker" in slot.group(1)
-
-
-def test_the_picker_offers_exactly_the_stylesheets_themes() -> None:
-    """One entry per THEMES id, which test_check_contrast holds to app.css, and nothing more."""
-    picker = read(PICKER)
-    assert re.search(r"\{#each THEMES as theme", picker)
-    assert picker.count('type="radio"') == 1, "an entry the THEMES loop does not draw"
-    assert set(listed_themes()) == set(check.parse_themes(read(APP_CSS)))
-    labels = re.search(r"THEME_LABELS[^=]*=\s*\{(.*?)\n\}", read(THEME_TS), re.DOTALL)
-    assert labels is not None
-    assert re.findall(r"^\s*(\w+):", labels.group(1), re.MULTILINE) == listed_themes()
-
-
-def test_there_is_no_follow_my_device_entry() -> None:
-    for source in (read(PICKER), read(THEME_TS)):
-        code = re.sub(r"/\*.*?\*/|<!--.*?-->|//[^\n]*", "", source, flags=re.DOTALL)
-        assert "prefers-color-scheme" not in code
-        assert "matchMedia" not in code
-        assert "'auto'" not in code
-
-
-def test_a_browser_that_never_chose_sees_jolly_selected() -> None:
-    """The picker starts from getTheme(), which answers jolly when nothing is stored."""
-    picker = read(PICKER)
-    assert re.search(r"let current = \$state<Theme>\(getTheme\(\)\)", picker)
-    assert "checked={theme === current}" in picker
-    assert re.search(r"return isTheme\(stored\) \? stored : DEFAULT_THEME", read(THEME_TS))
-
-
-def test_each_swatch_is_drawn_in_its_own_theme() -> None:
-    assert re.search(r'class="swatch" data-theme=\{theme\}', read(PICKER))
