@@ -29,8 +29,8 @@
    * list is never taller than the space left between the box and the keyboard, measured
    * off `visualViewport`, which is the part of the page the keyboard is not covering.
    *
-   * The list comes from `lib/vocab.ts`, fetched once per session — usually during the
-   * round's splash, so it is already here when the first question opens.
+   * The list comes from `lib/vocab.ts`, fetched once per session — `Room` starts that as
+   * the question arrives, so during a random event's hold it is already on its way.
    *
    * `data` is `client_view(payload)` while open — `prompt`, `vocab` — and `reveal(payload)`
    * after close, which adds `answer_id`, `subject` and an `explanation` that `Question`

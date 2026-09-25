@@ -326,9 +326,11 @@ round. Names are final — `ideas/games.md` holds the sketches they came from.
 | `release_order` | Release Order | `ordering` | `facts/quests.json`, `facts/npcs.json` | T27 |
 | `sort_it_out` | Sort It Out | `ordering` | `facts/sequences.json`, combat levels | T28 |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-authored | T29 |
-| `clipped` | Clipped | `multiple_choice` | hand-authored | T29 |
+| `clipped` | Know Your Content Creator | `multiple_choice` | hand-authored | T29 |
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` | MOID renders | Phase 3 |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` | MOID zoom frames | Phase 3 |
+| `minimap_guesser` | Minimap Guesser | `pick_from_list` (candidate) | minimap crops | not scheduled |
+| `name_that_spell` | Name that spell | undecided | audio clips | not scheduled |
 
 Three of these are worth the sentence that explains them:
 
@@ -758,8 +760,8 @@ tell them apart in the list.
 It is a separate HTTP fetch rather than a field on `OpenQuestion` because it is the same
 few hundred entries for every question of a `pick_from_list` round, and sending it per
 question would put the answer list on the wire eleven times in a ten-question round. The
-client fetches it once — during the splash of a round whose mode is `pick_from_list`, or at
-the latest when it first meets such a question — and keeps it in memory for the session. `Cache-Control: no-store` applies as it does to all of `/api/*`;
+client fetches it once — when the first `pick_from_list` question naming it in `view.vocab`
+arrives, during a random event's hold too — and keeps it in memory for the session. `Cache-Control: no-store` applies as it does to all of `/api/*`;
 the list is small enough that one fetch per page load is not worth an exception.
 
 Knowing the vocabulary gives nothing away: it is every item in the roster, not the

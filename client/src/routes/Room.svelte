@@ -42,7 +42,6 @@
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
   import Question from '../components/questions/Question.svelte'
-  import { MODES } from '../lib/modes'
   import { clearSession, getSession } from '../lib/session'
   import {
     answerAck,
@@ -62,7 +61,7 @@
     yourAnswer,
   } from '../lib/stores'
   import { timerBar } from '../lib/timerbar'
-  import { prefetchVocab } from '../lib/vocab'
+  import { listFor, prefetchVocab } from '../lib/vocab'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
 
   let { code, navigate }: { code: string; navigate: (to: string) => void } = $props()
@@ -147,11 +146,11 @@
   const roundSeconds = $derived(
     $room?.settings.modes.find((round) => round.mode === $room?.segment?.mode)?.seconds ?? null,
   )
-  // A `pick_from_list` round answers from a list fetched once per session. The splash is
-  // the time to fetch it, so the first question does not open on "Loading the list".
+  // Fetched as the question arrives rather than when its view mounts, so a random event
+  // spends its NPC's hold fetching the list instead of the first seconds of answering.
   $effect(() => {
-    const vocab = $room?.phase === 'splash' ? MODES[$room.segment?.mode ?? '']?.vocab : undefined
-    if (vocab !== undefined) prefetchVocab(vocab)
+    const vocab = listFor($question)
+    if (vocab !== null) prefetchVocab(vocab)
   })
   /**
    * The bar under the top bar (D8): the open question's clock, or the reveal's or the
