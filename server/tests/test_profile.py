@@ -8,8 +8,8 @@ name already taken in the room is rejected and the old name survives unchanged; 
 ``avatar`` and never sends ``set_profile``, still creates, joins and plays.
 
 The mid-game rename is in ``test_game.py`` beside the other in-game commands, a room from
-before the migration is in ``test_migrations.py``, and the manifest and the client are in
-``test_heads.py``.
+before the migration is in ``test_migrations.py``, the manifest is in ``test_heads.py``, and
+the client's half in its own tests.
 """
 
 from typing import Any
@@ -18,36 +18,12 @@ from uuid import UUID
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.testclient import WebSocketTestSession
 
 from app.heads import load_head_count
 from app.rooms.state import CHANGE_COOLDOWN
-from tests.rooms_api import create, held, join
+from tests.rooms_api import create, held, hello, next_of
 
 HEADS = load_head_count()
-
-
-@pytest.fixture
-def lobby(client: TestClient) -> dict[str, Any]:
-    """A room with its admin and one joined player: ``code``, ``admin``, ``player``."""
-    code, admin = create(client)
-    player = join(client, code, "Zezima").json()
-    return {"code": code, "admin": admin, "player": player}
-
-
-def hello(ws: WebSocketTestSession, session: str) -> dict[str, Any]:
-    ws.send_json({"t": "hello", "session": session})
-    message = ws.receive_json()
-    assert message["t"] == "welcome", message
-    return message
-
-
-def next_of(ws: WebSocketTestSession, kind: str) -> dict[str, Any]:
-    for _ in range(10):
-        message = ws.receive_json()
-        if message["t"] == kind:
-            return message
-    raise AssertionError(f"never got {kind}")
 
 
 def by_id(players: list[dict[str, Any]], player_id: str) -> dict[str, Any]:
@@ -138,7 +114,7 @@ def test_a_reroll_and_a_rename_reach_the_other_browser(
     ):
         first = hello(one, admin["session"])
         second = hello(two, player["session"])
-        next_of(one, "room_updated")  # the second socket connecting
+        next_of(one, "players_updated")  # the second socket connecting
         assert [p["avatar"] for p in first["players"]] == [p["avatar"] for p in second["players"]]
 
         two.send_json({"t": "set_profile", "avatar": 12})

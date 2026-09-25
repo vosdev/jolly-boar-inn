@@ -12,7 +12,7 @@ Every choice below is final unless it appears in "Needs decision" at the end.
 | DB access | `asyncpg` directly, hand-written SQL | Five tables; an ORM adds more code than it removes. |
 | Migrations | Numbered `.sql` files applied by a 40-line runner at startup | Alembic needs SQLAlchemy models we otherwise do not want. |
 | Validation | Pydantic v2 for WS/HTTP messages, `jsonschema` for questions | Questions need a language-neutral schema shared with CI and the client editor. |
-| Python tooling | `uv`, `ruff`, `pytest`, `pytest-asyncio` | Fast, single lockfile, no extra config. |
+| Python tooling | `uv`, `ruff`, `pytest`, `pytest-asyncio`, `pytest-timeout` | Fast, single lockfile, no extra config. |
 | Client | Svelte 5 + Vite SPA, TypeScript, `pnpm` | Decided in plan.md; no SSR needed, so no SvelteKit. |
 | Client tooling | `svelte-check`, `vitest` + `@testing-library/svelte` in jsdom | Vitest reuses the Vite config, so a component test compiles exactly what the build does. |
 | Serving | FastAPI serves `client/dist` as static files, SPA fallback to `index.html` | One container, one origin, no CORS. |
@@ -88,6 +88,7 @@ jolly-boar-inn/
 │   │   │       └── pick_from_list.py     # T20
 │   │   ├── ws/
 │   │   │   ├── protocol.py    # pydantic models for every message, both directions
+│   │   │   ├── outbox.py      # per-socket bounded send queue and its one writer task
 │   │   │   └── handler.py     # /ws/{code} endpoint; parses, authenticates, dispatches to RoomManager
 │   │   ├── http/
 │   │   │   ├── rooms.py       # POST /api/rooms, GET+DELETE /api/rooms/{code}
@@ -130,13 +131,15 @@ jolly-boar-inn/
 │       │   ├── Home.svelte          # create or join
 │       │   ├── Create.svelte        # name + settings; creates and lands in the lobby as host
 │       │   ├── Join.svelte
-│       │   └── Room.svelte          # lobby / question / reveal / final, driven by stores
+│       │   └── Room.svelte          # the socket, and which screen the stores call for
 │       └── components/
 │           ├── TopBar.svelte           # sign, wordmark + room code, and three control slots
 │           ├── Lobby.svelte
 │           ├── Scoreboard.svelte
 │           ├── Splash.svelte            # introduces a round's mode, on a timer
+│           ├── QuestionStage.svelte     # one question, open or revealed: event card or plain
 │           ├── RandomEvent.svelte       # the NPC who interrupts a round with one question
+│           ├── ErrorBanner.svelte       # the last refusal, until dismissed
 │           ├── Timer.svelte
 │           └── questions/
 │               ├── index.ts             # viewFor(type, mode): which pair draws a question
@@ -170,7 +173,7 @@ jolly-boar-inn/
 class RoomManager:
     rooms: dict[str, Room]                      # code -> Room, loaded lazily
     async def get(code) -> Room                 # load from Postgres if not in memory (rehydrate)
-    async def create(display_name, settings, custom_questions, creator_ip) -> tuple[Room, Player, session_token]
+    async def create(display_name, settings, custom_questions) -> tuple[Room, Player, session_token]
     async def join(code, display_name) -> Player
     async def connect(code, session_token, ws) -> Player     # attaches socket, sends welcome
     async def disconnect(code, player_id)
@@ -186,7 +189,7 @@ class Room:
     current: int | None                         # index into questions
     phase: "idle" | "splash" | "open" | "reveal"
     open_since: datetime | None, ends_at: datetime | None
-    sockets: dict[uuid, WebSocket]              # connected players
+    sockets: dict[uuid, Outbox]                 # connected players' send queues
     timer: asyncio.Task | None                  # the one task driving open→closed→reveal→next
     lock: asyncio.Lock                          # every mutation holds it
 ```
@@ -195,7 +198,7 @@ Rules:
 
 - One `asyncio.Lock` per room; every public `RoomManager` method acquires it. No cross-room locking.
 - Every DB write happens inside the method that mutates memory, before memory changes and before broadcasting, so a failed write leaves memory as it was. Answers are committed before `answer_ack` is sent.
-- Broadcasting is `for ws in room.sockets.values(): await ws.send_json(msg)` with per-socket try/except; a failed send removes the socket.
+- Broadcasting snapshots the frame and its sockets under the lock, then puts it on each socket's `Outbox` (256 frames) and awaits nothing. Each outbox has one writer task, and the handler's own replies and every close go through it too, so a socket's frames keep their order. An overflow or a send over 10 s closes that socket with 1011 and disconnects it.
 - Replaceability: `RoomManager` is the only thing that would change for multi-replica. Do not build for it now.
 
 **`questions/types/<type>.py`.** A type is an *answer shape*: what a player sends, how it is
@@ -299,7 +302,7 @@ A random event carries the `round` of the round it interrupts and is grouped int
 |---|---|---|
 | `DATABASE_URL` | `postgresql://jbi:jbi@localhost:5432/jbi` | |
 | `PUBLIC_BASE_URL` | `http://localhost:5173` | Absolute base for this deployment. No consumer in Phase 1: the client builds every link from `location.origin`. |
-| `ROOM_TTL_DAYS` | `3` | Sets `expires_at`. |
+| `ROOM_TTL_DAYS` | `3` | Sets `expires_at`, at creation and again at `start_game`. |
 | `ROOM_CLEANUP_INTERVAL_SECONDS` | `3600` | How often the cleanup task deletes rooms past `expires_at`. Must be positive; the app refuses to start otherwise. |
 | `ROOMS_PER_IP_PER_HOUR` | `30` | IPv6 counts by its /64. |
 | `MAX_PLAYERS_PER_ROOM` | `50` | |
@@ -615,8 +618,9 @@ player types is a search, never an answer:
 
 - It is the WAI-ARIA combobox pattern: an input with `role="combobox"`, a `listbox` popup,
   and `aria-activedescendant` on the highlighted option.
-- Focus opens the list with the whole vocabulary, alphabetical, so a player who cannot spell
-  it can still scroll to it. Knowing the vocabulary gives nothing away (section 3).
+- Focus opens the list alphabetical, so a player who cannot spell a name can still scroll
+  to it. It draws the first 50 matches and says how many more typing would find.
+  Knowing the vocabulary gives nothing away (section 3).
 - Typing filters it (`lib/vocab.ts`): case- and accent-insensitive, matching the start of
   any word in the name, so "whip" finds "Abyssal whip" and "d sc" finds "Dragon scimitar".
   Names that start with the query sort first, then alphabetical. The first match is
@@ -685,15 +689,16 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `promote` | `player_id` | admin | Sets target role to `admin`. |
 | `kick` | `player_id` | admin | Deletes player row and their answers, closes their socket with `4003`. Not allowed on admins. |
 | `end_game` | | admin | Closes any open question (voided), `playing → finished`. |
-| `ready` | `ready: bool` | all | D7. Tap ready or take it back, in the lobby or during a splash; anywhere else is `bad_state`, and so is a second take-back on the same splash or a lobby change within a second of the last. On a splash it may bring `next_at` forward (section 4). Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
+| `ready` | `ready: bool` | all | D7. Tap ready or take it back, in the lobby or during a splash; anywhere else is `bad_state`, and so is a second take-back on the same splash or a lobby change within a second of the last. On a splash it may bring `next_at` forward (section 4). Broadcasts `players_updated`, or `room_updated` if it moved `next_at`; a change that changes nothing broadcasts nothing. |
 | `set_profile` | `display_name?: string`, `avatar?: int` | all | D4. Renames the sender, re-rolls their head, or both; an omitted field is left alone. Validated exactly like a join (name rules, case-insensitive uniqueness in the room, a head id from `data/heads/heads.json`), so a rejection leaves the row as it was. Any status. A change within a second of the last is `bad_state`. Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
 
 ### Server → client
 
 | `t` | Fields | When |
 |---|---|---|
-| `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. |
-| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, `set_profile`, `ready`, status change, and the start of a splash. A splash the ready check hurries carries its new `next_at` here. |
+| `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso`, `server_version: string` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. `server_version` is `/VERSION`. |
+| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, promote, kick, `set_profile`, status change, and the start of a splash; a `ready`, connect or disconnect only when it moves the room. A splash the ready check hurries carries its new `next_at` here. |
+| `players_updated` | `players: PlayerView[]` | A `ready`, connect or disconnect that changed the players and nothing else. |
 | `question_open` | `question: OpenQuestion` | A question opens. |
 | `answer_ack` | `question_id`, `scoring: "speed" \| "rank" \| "step"`, `band: int \| null`, `answered: int`, `of: int` | Answer committed. Never correctness. `band` is the speed bucket (1..5) for `speed`, the step it landed on for `step`, and null for `rank`, where nothing is known until everyone has answered. `answered` of `of` is the room's count with this answer in it (D8). |
 | `answer_count` | `question_id`, `answered: int`, `of: int` | Somebody else answered: to every socket but the answerer's, who hears it on their ack. A count only, never who or what. `of` is every connected player who can answer plus anyone who answered and dropped. A disconnect sends no fresh count; the next answer does. |
@@ -792,15 +797,17 @@ Client (`lib/ws.ts`):
 
 1. On `close` or `error`, wait `min(8000, 500 * 2^attempt)` ms plus 0–250 ms jitter, reconnect, send `hello`. Attempt resets to 0 after a `welcome`.
 2. On `welcome`, replace all local state with the snapshot. If `question` is non-null, render it with the timer computed from `ends_at - server_time` (not from the local clock). If `your_answer` is non-null, show the answered state.
-3. On `visibilitychange` to visible, if the socket is not open, reconnect immediately (phones lock between questions).
-4. Send `ping` every 30 s; if no `pong` within 10 s, close the socket to trigger step 1.
+3. On `visibilitychange` to visible or the `online` event, if the socket is not open, reconnect immediately (phones lock between questions). If it claims to be open, send `ping` at once and reconnect if no frame arrives within 4 s.
+4. Send `ping` every 30 s; if no `pong` within 10 s, close the socket to trigger step 1. Any frame counts as a `pong`.
+5. An `answer` with no `answer_ack` or `error` within 5 s closes the socket too; the `welcome` then says whether it landed.
+6. Nothing but `hello` and `ping` is sent before `welcome`. A `welcome` whose `server_version` differs from `__APP_VERSION__` reloads the page, once per server version (sessionStorage).
 
 Server (`RoomManager.connect`):
 
 1. Look up the player by `sha256(session)` in the room; unknown → close `4001`.
-2. If the player already has a socket, close the old one with `4000` and replace it (last device wins).
-3. Set `connected = true`, broadcast `room_updated`, send `welcome`.
-4. On socket close, set `connected = false`, broadcast `room_updated`. Player row and answers stay.
+2. If the player already has a socket, queue a `4000` close on the old one and replace it (last device wins).
+3. Set `connected = true`, queue `welcome` on the new socket under the lock, broadcast `players_updated`.
+4. On socket close, set `connected = false`, broadcast `players_updated`. Player row and answers stay.
 
 Process restart (`RoomManager.get` rehydrate):
 
@@ -833,7 +840,7 @@ Transitions:
 | From | Trigger | Guard | Side effects |
 |---|---|---|---|
 | — → `lobby` | `POST /api/rooms` | valid display name and settings, under the per-IP rate limit | allocate a code, insert the room, its questions and the admin player in one transaction |
-| `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, introduce round 0, open question 0, persist status |
+| `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, `expires_at = now + ROOM_TTL_DAYS`, introduce round 0, open question 0, persist status |
 | `playing` → `finished` | last question's reveal ends, or `end_game` | admin for `end_game` | void open question if any, persist status, broadcast `game_finished` |
 | any → deleted | cleanup job | `expires_at < now` | `DELETE FROM rooms` cascades |
 | any → deleted | `DELETE /api/rooms/{code}` | the session in the body belongs to an admin of the room | the same delete, now: sockets close with 4004 and the code is free again |
@@ -855,7 +862,7 @@ The splash introduces a *segment*: it runs before a segment's first question and
 | Transition | Trigger | Side effects |
 |---|---|---|
 | `(new segment) → splash` | timer task, before a segment's first question, unless `splash_seconds` is 0 | `next_at = null` (it waits for the room), every player's `ready` cleared, broadcast `room_updated`; no write |
-| `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`; no write |
+| `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`, or `players_updated` when `next_at` stayed; no write |
 | `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the mode's range), or the type's `SECONDS.default` for an event, broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or, with `close_when_all_answered`, an answer, disconnect or kick leaves every connected player who can answer answered; or admin `skip` | grade all answers, then `UPDATE questions SET closed_at = now` and `UPDATE answers SET correct, points` in one transaction, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
@@ -905,13 +912,13 @@ The ranges above are what a host may ask for, and they are checked where the req
 arrives (`NewRoomSettings` in `rooms/settings.py`). The stored model keeps only what the
 game loop cannot work without, so a room created under one set of bounds still loads
 after the bounds change — `seconds_for` clamps it into today's range rather than refusing
-it — and the tests can run a whole game on one-second questions. `RoomSettings.stored`,
+it — and a test's one-second round is a stub mode that allows it. `RoomSettings.stored`,
 the rehydrate read, also keeps a round whose mode has left the registry (it plays at the
 fallbacks) and drops keys it does not know, so a downgrade strands no room.
 
 ## 5. SQL schema
 
-`server/app/migrations/0001_init.sql`:
+The schema once every migration in `server/app/migrations/` has run:
 
 ```sql
 create table schema_migrations (
@@ -925,7 +932,6 @@ create table rooms (
     status                 text not null check (status in ('lobby', 'playing', 'finished')),
     settings               jsonb not null,
     current_index          integer,                    -- index into questions.position, null before start
-    creator_ip             inet,
     created_at             timestamptz not null default now(),
     expires_at             timestamptz not null
 );
@@ -939,8 +945,7 @@ create table players (
     avatar             smallint check (avatar >= 0),     -- 0005: a head id; null = derived
     session_token_hash text not null,
     role               text not null default 'player' check (role in ('player', 'admin')),
-    joined_at          timestamptz not null default now(),
-    last_seen_at       timestamptz not null default now()
+    joined_at          timestamptz not null default now()
 );
 create unique index players_session_idx on players (session_token_hash);
 create unique index players_room_name_idx on players (room_id, lower(display_name));
@@ -963,6 +968,8 @@ create table questions (
     voided           boolean not null default false,
     unique (room_id, position)
 );
+create index questions_author_idx on questions (author_player_id)  -- 0008
+    where author_player_id is not null;
 
 create table answers (
     id          bigserial primary key,
@@ -981,7 +988,7 @@ Notes:
 
 - Session tokens are stored hashed. A DB dump never yields a usable session.
 - `points` is written once at close and is the only thing standings read: `SELECT player_id, coalesce(sum(points), 0) FROM answers ... GROUP BY player_id`. In memory the same sum is kept per room and rebuilt from this query on rehydrate, so the table stays the source of truth.
-- `questions.payload` stores the type-specific payload and the envelope extras (`tags`, `difficulty`, `author`, `added_at`); `type`, `mode`, `source`, `host_only`, `question_id` are columns because queries, grading and round grouping need them.
+- `questions.payload` holds the envelope minus its columns: the extras (`tags`, `difficulty`, `author`, `added_at`) at the top, the type-specific payload nested under `payload`, so hand-written SQL reads `payload->'payload'`. `type`, `mode`, `source`, `host_only`, `question_id` are columns because queries, grading and round grouping need them.
 - `0002_drop_admin_tokens.sql` removes `admin_token_hash`, `admin_token_consumed_at` and the `created` status: the creator is the admin, so there is nothing to claim.
 - `0003_question_rounds.sql` adds `questions.round`. A room's rounds are grouped back out of it by `rooms/segments.py`; the default of 0 makes every room that predates it a single round, which is what it was.
 - `0004_per_mode_rounds.sql` rewrites `rooms.settings` in place: out go `question_seconds`, `question_count` and `questions_per_round`, and `modes` stops being a list of names and becomes a list of `{mode, questions, seconds}` carrying the old globals. A room created by the previous release keeps playing — its rounds are already in `questions.round` — and `mode_order` is `listed` for it, because there is nothing left to shuffle.
@@ -993,8 +1000,9 @@ Notes:
   exactly as it is — those rows carry their positions and their `round` already, and
   selection never runs twice — so the migration can drop `order` without caring what it
   said.
-- `suggestions` (Phase 6) is not created now. It will be `0003_suggestions.sql` when needed.
-- Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every `ROOM_CLEANUP_INTERVAL_SECONDS` (default hourly, which is fine grain against a 30-day TTL), starting with one pass at startup so a deployment that restarts often still cleans up. No external cron. The task never dies: a failed pass is logged and the next one runs on schedule. `RoomManager.purge_expired` runs it and then drops the same rooms from memory, so the process does not hold rooms the database no longer has.
+- `0008_purge_index_drop_unused.sql` indexes `questions.author_player_id`, which each deleted player's `on delete set null` looks up, and drops `rooms.creator_ip` and `players.last_seen_at`, which nothing read.
+- `suggestions` (Phase 6) is not created now. It will be a new migration when needed.
+- Cleanup: `DELETE FROM rooms` past `expires_at`, 200 rooms per statement until a batch comes up short, so no backlog outgrows the pool's `command_timeout`. An `asyncio` task in the app runs it every `ROOM_CLEANUP_INTERVAL_SECONDS` (default hourly, fine grain against a 3-day TTL), starting with one pass at startup so a deployment that restarts often still cleans up. No external cron. The task never dies: a failed pass is logged and the next one runs on schedule. `RoomManager.purge_expired` runs it and then drops the same rooms from memory, so the process does not hold rooms the database no longer has.
 - A host does not have to wait for that. `DELETE /api/rooms/{code}` with `{session}` in the body -- never in the URL, section 7 -- deletes the room on the spot when that session belongs to an admin of it: the front page lists the rooms this browser created and each one has a Remove button. Anybody still connected is closed with 4004, and the code is back in circulation.
 
 ## 6. Scoring
@@ -1148,8 +1156,8 @@ Goal: the creator of a room is its first admin; every identity is a session toke
    - Insert the room with `status = 'lobby'` and `expires_at = now + ROOM_TTL_DAYS`. There is no `created` state: a room and its host are born together.
    - Insert the creator as a player with `role = 'admin'` and `session_token = secrets.token_urlsafe(32)`, storing only its sha256. This insert sits outside the code-allocation savepoint on purpose — that savepoint reads a unique violation as "code taken, try another", and `players_session_idx` is unique across every room, so a collision there would otherwise be retried as a code collision until the allocator gave up.
    - Select questions (`selection.py`) and insert `questions` rows now, so the set is fixed at creation.
-   - Respond `201 {code, session, player}`. The plaintext session is returned exactly once and never logged. Anything that fails rolls all of it back: no room without a host, and no half-built room to garbage-collect.
-3. **Client** stores `localStorage["jbi:session:" + code] = session`, appends `code` to `localStorage["jbi:created"]` (list, for the "your rooms" view), and navigates to `/r/{code}`.
+   - Respond `201 {code, session, player, expires_at}`. The plaintext session is returned exactly once and never logged. Anything that fails rolls all of it back: no room without a host, and no half-built room to garbage-collect.
+3. **Client** stores `localStorage["jbi:session:" + code] = session`, puts `{code, expires_at}` first in `localStorage["jbi:created"]` (the "your rooms" view, which hides expired entries), and navigates to `/r/{code}`.
 4. **Room page** opens the websocket and sends `hello {session}`. Admin capabilities are decided per message from `player.role`, never from the URL and never from anything the client asserts about itself.
 
 Both take an optional `avatar` beside the name (D4); left out, the player's head is derived from their id. Join is the same shape with a narrower result: `POST /api/rooms/{code}/join {display_name, avatar?}` → `200 {session, player}` with `role = 'player'`, stored and used identically.
@@ -1330,7 +1338,8 @@ D8.
 **Where it lives.** `/VERSION` at the repo root is the single source: one line, `X.Y.Z`, no
 `v`. `server/pyproject.toml` and `client/package.json` carry copies, and
 `server/tests/test_version.py` fails if either drifts. The client reads `/VERSION` at build
-time (`__APP_VERSION__`, `client/vite.config.ts`). Readers see `0.1` for `0.1.0` and `0.1.1`
+time (`__APP_VERSION__`, `client/vite.config.ts`), the server at startup for `welcome`
+(section 3). Readers see `0.1` for `0.1.0` and `0.1.1`
 for a fix. The version goes in the footer (`ideas/design.md` §9.2) and, until D10 builds
 that footer, in the top bar beside the wordmark. It is never part of `PUBLIC_SITE_NAME`.
 

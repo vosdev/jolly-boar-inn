@@ -12,6 +12,7 @@
 
 import { get, writable } from 'svelte/store'
 
+import { type Refusal, refusedEarly } from './errors'
 import type {
   AnswerAck,
   ClientMessage,
@@ -62,8 +63,8 @@ export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(nu
  */
 export const answerCount = writable<{ answered: number; of: number } | null>(null)
 export const connection = writable<ConnectionState>('connecting')
-/** The last rejected message. Screens show it and clear it; nothing else depends on it. */
-export const lastError = writable<ProtocolError | null>(null)
+/** The last rejected message, until dismissed or the next question opens. */
+export const lastError = writable<Refusal | null>(null)
 /**
  * The last rejected `set_profile` (D4). Kept apart from `lastError` because the answer
  * belongs in the popover that sent it — "that name is taken" under the name field — not
@@ -71,6 +72,12 @@ export const lastError = writable<ProtocolError | null>(null)
  */
 export const profileError = writable<ProtocolError | null>(null)
 const PROFILE_ERRORS: ReadonlySet<string> = new Set(['bad_name', 'name_taken', 'bad_avatar'])
+/**
+ * How many `welcome` and `error` frames have arrived. A request still waiting on the room
+ * (the chip's `set_profile`) is over once this moves: an error answered something, and a
+ * welcome replaced the state it was waiting to see change.
+ */
+export const requestsSettled = writable(0)
 
 /**
  * Send on the room's socket, from outside the Room screen: the top bar's identity chip
@@ -155,6 +162,20 @@ export function resetRoom(): void {
   serverOffsetMs.set(0)
 }
 
+/**
+ * `room_updated` and `players_updated` have no `you` field, but the player list has us in
+ * it. A promote changes our own role and the list is the only thing that carries it, so
+ * without this the promoted client keeps a stale `player` role and never sees the
+ * controls it just earned. Falling back to the current value keeps a kicked player's
+ * identity readable while their socket closes.
+ */
+function setPlayers(list: PlayerView[]): void {
+  players.set(list)
+  you.update((current) =>
+    current === null ? null : (list.find((player) => player.id === current.id) ?? current),
+  )
+}
+
 export function applyServerMessage(message: ServerMessage): void {
   switch (message.t) {
     case 'welcome':
@@ -171,27 +192,25 @@ export function applyServerMessage(message: ServerMessage): void {
       countFrom(message.question)
       lastError.set(null)
       noteServerTime(message.server_time)
+      requestsSettled.update((n) => n + 1)
       break
 
     case 'room_updated':
       room.set(message.room)
-      players.set(message.players)
-      // `room_updated` has no `you` field, but the player list has us in it. A promote
-      // changes our own role and this frame is the only thing that carries it, so
-      // without this the promoted client keeps a stale `player` role and never sees
-      // the controls it just earned. Falling back to the current value keeps a kicked
-      // player's identity readable while their socket closes.
-      you.update((current) =>
-        current === null
-          ? null
-          : (message.players.find((player) => player.id === current.id) ?? current),
-      )
+      setPlayers(message.players)
+      break
+
+    case 'players_updated':
+      setPlayers(message.players)
       break
 
     case 'question_open':
       question.set(message.question)
       forgetQuestion()
       countFrom(message.question)
+      // A refusal was about a moment that has passed; left up, "too late" would hang over
+      // every question after it.
+      lastError.set(null)
       // The segment comes along because a round can change with no splash to announce
       // it — `splash_seconds` at zero, or a new round of the mode already playing — and
       // this frame is then the only thing carrying the change.
@@ -228,6 +247,8 @@ export function applyServerMessage(message: ServerMessage): void {
       break
 
     case 'answer_ack':
+      // Late news too, once the next question is up: its band is not this one's.
+      if (get(question)?.question_id !== message.question_id) break
       answerAck.set({ scoring: message.scoring, band: message.band })
       countFrom(message)
       break
@@ -242,11 +263,16 @@ export function applyServerMessage(message: ServerMessage): void {
       break
 
     case 'error':
+      requestsSettled.update((n) => n + 1)
       if (PROFILE_ERRORS.has(message.code)) {
         profileError.set(message)
         break
       }
-      lastError.set(message)
+      lastError.set(
+        message.code === 'not_open'
+          ? { ...message, early: refusedEarly(get(question), Date.now() + get(serverOffsetMs)) }
+          : message,
+      )
       if (ANSWER_REJECTED.has(message.code)) yourAnswer.set(null)
       break
   }

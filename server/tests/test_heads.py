@@ -5,15 +5,13 @@ are enough heads for a full room. Every head is a square PNG whose side divides 
 sizes it is drawn at, which is what "crisp, not blurred, at 32px and 48px" is made of once
 ``image-rendering: pixelated`` is on.
 
-The rest, like ``test_app_shell.py``, reads the client rather than rendering it: one
-``avatar ?? derived`` rule, drawn from one sheet, at the sizes section 5.2 names.
+The ``avatar ?? derived`` rule and the sizes each screen draws at are the client's tests
+(``heads.test.ts``, and Lobby's, Scoreboard's and IdentityChip's). What is left here is
+source: one sheet, drawn pixelated, and the protocol mirror.
 
-What a browser confirmed, and a test here cannot: two browsers on two origins draw the
-same head for the same player in the lobby and on the standings; a re-roll and a rename in
-one reach the other at the next ``room_updated``; a name taken in the room is answered in
-the popover and the old name stays; join-first lands a browser with no profile in the
-lobby with the chip nudging; a room whose host sent no ``avatar`` shows the same derived
-head in every browser; at 320px the lobby and the standings do not scroll sideways.
+What a browser confirmed, and a test cannot: two browsers on two origins draw the same
+head for the same player; a re-roll and a rename in one reach the other at the next
+``room_updated``; at 320px the lobby and the standings do not scroll sideways.
 """
 
 import json
@@ -25,15 +23,11 @@ import pytest
 
 from app.config import REPO_ROOT, Settings
 from app.heads import HEADS_DIR, MANIFEST, load_head_count
+from tests.client_source import CLIENT_SRC, read
 
 CLIENT = REPO_ROOT / "client"
-CLIENT_SRC = CLIENT / "src"
 # Section 5.2: 32px in the top bar and the lobby, 48px on the standings.
 SIZES = (32, 48)
-
-
-def read(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
 
 
 def png_size(path: Path) -> tuple[int, int]:
@@ -99,24 +93,6 @@ def test_a_broken_manifest_stops_the_server(tmp_path: Path, entry: dict, problem
 # --- the client ----------------------------------------------------------------------
 
 
-def test_one_rule_decides_every_head() -> None:
-    """``avatar ?? derived(id)``, in one place, and every screen goes through it."""
-    heads = read(CLIENT_SRC / "lib" / "heads.ts")
-    assert "export function headOf(" in heads
-    assert "derivedHead(player.id)" in heads
-    for screen in ("Lobby.svelte", "Scoreboard.svelte", "IdentityChip.svelte"):
-        source = read(CLIENT_SRC / "components" / screen)
-        assert "<Head " in source, screen
-        assert "headOf(" in source, screen
-
-
-def test_heads_are_drawn_at_the_sizes_section_5_2_names() -> None:
-    components = CLIENT_SRC / "components"
-    assert "size={32}" in read(components / "Lobby.svelte")
-    assert "size={48}" in read(components / "Scoreboard.svelte")
-    assert "size={32}" in read(components / "IdentityChip.svelte")
-
-
 def test_heads_are_pixelated_and_come_from_one_sheet() -> None:
     head = read(CLIENT_SRC / "components" / "Head.svelte")
     assert "image-rendering: pixelated" in head
@@ -127,14 +103,6 @@ def test_heads_are_pixelated_and_come_from_one_sheet() -> None:
         if path.is_file() and path.suffix in {".svelte", ".ts"}:
             assert imports_a_head.search(read(path)) is None, path
     assert "headsSprite()" in read(CLIENT / "vite.config.ts")
-
-
-def test_join_is_join_first_and_create_still_asks() -> None:
-    """Section 5.1.1: option B on Join now that ``set_profile`` exists; Create keeps A."""
-    join = read(CLIENT_SRC / "routes" / "Join.svelte")
-    assert "NamePrompt" not in join
-    assert "nudge.set(code)" in join
-    assert "<NamePrompt" in read(CLIENT_SRC / "routes" / "Create.svelte")
 
 
 def test_the_protocol_mirror_has_set_profile() -> None:

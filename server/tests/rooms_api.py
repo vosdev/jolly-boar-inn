@@ -1,12 +1,15 @@
 """Helpers shared by the room, websocket and game tests."""
 
+import asyncio
 from typing import Any
 
 import httpx
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from starlette.testclient import WebSocketTestSession
+from starlette.websockets import WebSocketDisconnect
 
-from app.modes import MODES
 from app.rooms.settings import RoomSettings
 from app.rooms.state import Player, Room
 
@@ -25,6 +28,32 @@ def create(client: TestClient, name: str = "Admin", **settings: Any) -> tuple[st
 
 def join(client: TestClient, code: str, name: str) -> httpx.Response:
     return client.post(f"/api/rooms/{code}/join", json={"display_name": name})
+
+
+def hello(ws: WebSocketTestSession, session: str) -> dict[str, Any]:
+    """Send ``hello`` on a fresh socket; the ``welcome`` it gets back."""
+    ws.send_json({"t": "hello", "session": session})
+    message = ws.receive_json()
+    assert message["t"] == "welcome", message
+    return message
+
+
+def next_of(ws: WebSocketTestSession, kind: str, limit: int = 10) -> dict[str, Any]:
+    """The next frame of type ``kind`` among the next ``limit``, skipping the rest."""
+    for _ in range(limit):
+        message = ws.receive_json()
+        if message["t"] == kind:
+            return message
+    raise AssertionError(f"never got {kind}")
+
+
+def closed_with(ws: WebSocketTestSession, drain: bool = False) -> int:
+    """The code the socket closes with, which must be its next frame unless ``drain``."""
+    with pytest.raises(WebSocketDisconnect) as info:
+        ws.receive_json()
+        while drain:
+            ws.receive_json()
+    return info.value.code
 
 
 def call(client: TestClient, fn: Any, *args: Any) -> Any:
@@ -56,9 +85,11 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     made through the manager directly.
 
     ``seconds`` and ``questions`` belong to a mode now, so this spreads them over the
-    modes asked for: ``fast_settings()`` is one round of three one-second questions.
+    modes asked for: ``fast_settings()`` is one ``more_less`` round of three questions.
     ``modes`` takes names, or whole ``{"mode": ..., "questions": ..., "seconds": ...}``
-    dicts for a game whose rounds are deliberately different lengths.
+    dicts for a game whose rounds are deliberately different lengths. A question is held
+    to its mode's range (``more_less`` opens for five seconds at least), so only the
+    ``quick_mode`` fixture's round really plays one-second questions.
 
     ``splash_seconds`` and ``standings_seconds`` are zero by default too: a test that is
     not about the splash or the standings should see the frames it always saw, and the
@@ -76,7 +107,7 @@ def fast_settings(**overrides: Any) -> RoomSettings:
         mode
         if isinstance(mode, dict)
         else {"mode": mode, "questions": questions, "seconds": seconds}
-        for mode in overrides.pop("modes", [next(iter(MODES))])
+        for mode in overrides.pop("modes", ["more_less"])
     ]
     return RoomSettings(
         **{
@@ -98,9 +129,25 @@ def create_fast(
     custom: list[dict[str, Any]] | None = None,
     **overrides: Any,
 ) -> tuple[Room, Player, str]:
-    """A room with one-second questions, its admin player and their session token.
+    """A room on ``fast_settings``, its admin player and their session token.
 
     ``custom`` is the admin's own questions, placed as random events and authored by them.
     """
     settings = fast_settings(**overrides)
-    return call(client, app.state.rooms.create, name, settings, custom or [], "127.0.0.1")
+    return call(client, app.state.rooms.create, name, settings, custom or [])
+
+
+class StalledSocket:
+    """A client that has stopped reading: a send or a close to it never finishes."""
+
+    def __init__(self) -> None:
+        self.sends = 0
+        self.closed_with: int | None = None
+
+    async def send_json(self, data: dict[str, Any]) -> None:
+        self.sends += 1
+        await asyncio.Event().wait()
+
+    async def close(self, code: int = 1000, reason: str | None = None) -> None:
+        self.closed_with = code
+        await asyncio.Event().wait()

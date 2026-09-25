@@ -1,0 +1,52 @@
+/**
+ * The profile under `jbi:profile`, and a browser whose storage throws: it gets no profile
+ * on each visit, and the one it makes lasts for the page.
+ */
+
+import { get } from 'svelte/store'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { isHead } from './heads'
+
+/** The module as a fresh page load would evaluate it. */
+async function visit(): Promise<typeof import('./profile')> {
+  vi.resetModules()
+  return import('./profile')
+}
+
+function storageThrows(): void {
+  const denied = (): never => {
+    throw new DOMException('The operation is insecure.', 'SecurityError')
+  }
+  vi.spyOn(Storage.prototype, 'getItem').mockImplementation(denied)
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(denied)
+}
+
+beforeEach(() => localStorage.clear())
+afterEach(() => vi.restoreAllMocks())
+
+describe('profile', () => {
+  it('is kept under jbi:profile and read back on the next visit', async () => {
+    const first = await visit()
+    expect(get(first.profile)).toBeNull()
+    first.saveProfile('  Zezima ', 4)
+    expect(JSON.parse(localStorage.getItem('jbi:profile')!)).toEqual({ name: 'Zezima', head: 4 })
+    expect(get((await visit()).profile)).toEqual({ name: 'Zezima', head: 4 })
+  })
+
+  it('gives a stored profile from before heads a head, and keeps that one', async () => {
+    localStorage.setItem('jbi:profile', JSON.stringify({ name: 'Zezima' }))
+    const head = get((await visit()).profile)?.head
+    expect(isHead(head)).toBe(true)
+    expect(get((await visit()).profile)).toEqual({ name: 'Zezima', head })
+  })
+
+  it('with storage throwing, starts empty on every visit and keeps a name for the page', async () => {
+    storageThrows()
+    const first = await visit()
+    expect(get(first.profile)).toBeNull()
+    first.saveProfile('Zezima')
+    expect(get(first.profile)?.name).toBe('Zezima')
+    expect(get((await visit()).profile)).toBeNull()
+  })
+})

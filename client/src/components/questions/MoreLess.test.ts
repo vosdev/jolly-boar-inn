@@ -68,7 +68,7 @@ describe('more_less', () => {
       onAnswer,
     })
     expect(screen.getAllByText('Abyssal whip')).toHaveLength(2)
-    await fireEvent.click(buttons()[1])
+    await fireEvent.click(buttons()[1]!)
     expect(onAnswer).toHaveBeenCalledWith(1)
   })
 })

@@ -1,6 +1,8 @@
 import asyncio
+import os
 import secrets
 from collections.abc import Callable, Iterator
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -12,12 +14,24 @@ from fastapi.testclient import TestClient
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.config import REPO_ROOT, Settings
-from app.db import _init_connection
+from app.db import _init_connection, create_pool, run_migrations
 from app.main import create_app
 from app.modes import MODES, Mode
 from app.questions.packs import Pack
+from app.questions.types.bounds import Bounds
+from app.ws import handler as ws_handler
+from tests.game_api import Faults, Game, seat_table
+from tests.rooms_api import create, join
 
 BASE = "https://quiz.example"
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--require-db",
+        action="store_true",
+        help="fail, rather than skip, the database tests when DATABASE_URL_TEST is unset",
+    )
 
 
 @pytest.fixture
@@ -45,6 +59,25 @@ class _TestEnv(BaseSettings):
     database_url_test: str | None = None
 
 
+def _server_dsn(config: pytest.Config) -> str:
+    """``DATABASE_URL_TEST``; without it the database tests skip, or fail where they must.
+
+    CI sets ``CI``, and ``make test`` passes ``--require-db``: a run of either that skipped
+    the database tests would pass having tested little of the game.
+    """
+    server_dsn = _TestEnv().database_url_test
+    if server_dsn:
+        return server_dsn
+    in_ci = os.environ.get("CI", "").lower() not in ("", "0", "false")
+    if in_ci or config.getoption("--require-db"):
+        pytest.fail("DATABASE_URL_TEST is not set, and this run requires the database tests")
+    pytest.skip("DATABASE_URL_TEST not set")
+
+
+def _on(server_dsn: str, name: str) -> str:
+    return urlunsplit(urlsplit(server_dsn)._replace(path="/" + name))
+
+
 def _run(dsn: str, sql: str) -> None:
     async def go() -> None:
         conn = await asyncpg.connect(dsn)
@@ -56,21 +89,48 @@ def _run(dsn: str, sql: str) -> None:
     asyncio.run(go())
 
 
+@pytest.fixture(scope="session")
+def migrated_template(request: pytest.FixtureRequest) -> Iterator[str]:
+    """A database migrated once per run, which each test's database is copied from.
+
+    Copying a template is a file copy on the server; running every migration again for
+    each of hundreds of tests was most of their setup.
+    """
+    server_dsn = _server_dsn(request.config)
+    name = f"jbi_template_{secrets.token_hex(4)}"
+    _run(server_dsn, f'create database "{name}"')
+    try:
+
+        async def migrate() -> None:
+            pool = await create_pool(_on(server_dsn, name))
+            try:
+                await run_migrations(pool)
+            finally:
+                await pool.close()
+
+        asyncio.run(migrate())
+        yield name
+    finally:
+        _run(server_dsn, f'drop database "{name}" with (force)')
+
+
 @pytest.fixture
-def test_db_dsn() -> Iterator[str]:
+def test_db_dsn(request: pytest.FixtureRequest) -> Iterator[str]:
     """DSN of a throwaway database created for this test and dropped afterwards.
 
     ``DATABASE_URL_TEST`` names a Postgres server; its database is only used to issue
-    ``CREATE DATABASE`` / ``DROP DATABASE``. Unset, the tests that need it skip.
+    ``CREATE DATABASE`` / ``DROP DATABASE``. The database comes migrated, unless the test
+    is marked ``empty_database``, as the tests of the migrations themselves are.
     """
-    server_dsn = _TestEnv().database_url_test
-    if not server_dsn:
-        pytest.skip("DATABASE_URL_TEST not set")
+    server_dsn = _server_dsn(request.config)
     name = f"jbi_test_{secrets.token_hex(4)}"
-    dsn = urlunsplit(urlsplit(server_dsn)._replace(path="/" + name))
-    _run(server_dsn, f'create database "{name}"')
+    if request.node.get_closest_marker("empty_database"):
+        _run(server_dsn, f'create database "{name}"')
+    else:
+        template = request.getfixturevalue("migrated_template")
+        _run(server_dsn, f'create database "{name}" template "{template}"')
     try:
-        yield dsn
+        yield _on(server_dsn, name)
     finally:
         _run(server_dsn, f'drop database "{name}" with (force)')
 
@@ -135,24 +195,23 @@ def evict(app: FastAPI, client: TestClient) -> Callable[[str], bool]:
 
 
 @pytest.fixture
-def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
-    """A second playable mode, so a room can be more than one round.
+def lobby(client: TestClient) -> dict[str, Any]:
+    """A room of three questions with its admin and one joined player: ``code``,
+    ``admin``, ``player``."""
+    code, admin = create(client, modes=[{"mode": "more_less", "questions": 3}])
+    player = join(client, code, "Zezima").json()
+    return {"code": code, "admin": admin, "player": player}
 
-    A mode is a round, and one registered mode would make every room a single round --
-    which is exactly what the rounds this feature is about would then never exercise. The
-    stub is a second mode over the ``more_less`` type, with a pack of questions copied from
-    the shipped ones and relabelled with its mode, so a two-mode room plays the way a
-    two-mode room will when the second real mode lands -- and its two rounds share an
-    answer shape, which is the case a mode exists for.
 
-    Takes ``client`` because the packs are loaded in the app's lifespan, which is what
-    entering the test client runs.
+def _stub_mode(app: FastAPI, name: str, seconds: Bounds | None = None) -> Iterator[str]:
+    """Register mode ``name`` over the ``more_less`` type, with a pack of its own.
+
+    The pack is questions copied from the shipped ones and relabelled with the mode.
     """
-    name = "second_round"
     shipped = [q for pack in app.state.packs for q in pack.questions]
     borrowed = [q for q in shipped if q["type"] == "more_less"][:20]
     assert borrowed, "the shipped packs are the questions this stub copies"
-    MODES[name] = Mode(id=name, types=frozenset({"more_less"}))
+    MODES[name] = Mode(id=name, types=frozenset({"more_less"}), seconds=seconds)
     app.state.packs.append(
         Pack(
             name=name,
@@ -168,4 +227,52 @@ def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
         yield name
     finally:
         del MODES[name]
-        app.state.packs.pop()
+        app.state.packs.remove(next(p for p in app.state.packs if p.name == name))
+
+
+@pytest.fixture
+def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
+    """A second playable mode, so a room can be more than one round.
+
+    A mode is a round, and one registered mode would make every room a single round --
+    which is exactly what the rounds this feature is about would then never exercise. The
+    stub is a second mode over the ``more_less`` type, so a two-mode room plays the way a
+    two-mode room will when the second real mode lands -- and its two rounds share an
+    answer shape, which is the case a mode exists for.
+
+    Takes ``client`` because the packs are loaded in the app's lifespan, which is what
+    entering the test client runs.
+    """
+    yield from _stub_mode(app, "second_round")
+
+
+@pytest.fixture
+def quick_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
+    """A ``more_less`` round whose questions may be one second long.
+
+    ``seconds_for`` holds a stored room to its mode's range, and every real mode's starts
+    at five or more, so this is the only round that plays the one-second questions the
+    tests about the unattended clock ask for.
+    """
+    yield from _stub_mode(app, "quick_round", Bounds(default=1, minimum=1, maximum=20))
+
+
+@pytest.fixture
+def table(
+    app: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[Callable[..., Game]]:
+    """``table("Zezima", "Woox", seconds=10)`` -> a lobby with everyone connected.
+
+    Seat 0 is always the admin. Sockets close when the test ends, before the app does.
+    """
+    # These tests play whole games in a second or two, far faster than anyone taps; the
+    # per-socket rate limit is tested on its own in ``test_limits.py``.
+    monkeypatch.setattr(ws_handler, "RATE_BURST", 10_000)
+    with ExitStack() as stack:
+        yield lambda *names, **settings: seat_table(app, client, stack, *names, **settings)
+
+
+@pytest.fixture
+def faults(app: FastAPI, client: TestClient) -> Faults:
+    """The manager's database, with statements a test picks failing or stalling."""
+    return Faults(app.state.rooms)

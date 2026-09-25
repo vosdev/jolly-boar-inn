@@ -26,6 +26,7 @@
    * form, pre-filled with the name that was tried.
    */
   import { onMount } from 'svelte'
+  import { get } from 'svelte/store'
 
   import NameField from '../components/NameField.svelte'
   import { ApiFailure, getRoom, joinRoom, type Credentials, type RoomSnapshot } from '../lib/api'
@@ -41,8 +42,6 @@
 
   let snapshot = $state<RoomSnapshot | null>(null)
   let lookupError = $state<string | null>(null)
-  /** Set once the automatic join has been tried, so a failure is not retried forever. */
-  let attempted = $state(false)
   let joiningAs = $state<string | null>(null)
   let displayName = $state('')
   let failure = $state<string | null>(null)
@@ -61,22 +60,24 @@
           : error instanceof ApiFailure
             ? error.message
             : 'could not reach the server'
+      return
     }
+    if (snapshot.status === 'lobby') await enter()
   })
 
-  // Join-first: a browser with no profile is given one, and nudged in the lobby.
-  $effect(() => {
-    if (!joinable || attempted || $profile !== null) return
-    saveProfile(generateName(code), randomHead())
-    nudge.set(code)
-  })
-
-  // Straight through with the profile, whether it was there already or was just made.
-  $effect(() => {
-    if (!joinable || attempted || $profile === null) return
-    attempted = true
-    void join($profile.name)
-  })
+  /**
+   * Straight through with the profile, once. A browser with none is given one first
+   * (join-first), and nudged about it in the lobby.
+   */
+  async function enter(): Promise<void> {
+    let current = get(profile)
+    if (current === null) {
+      saveProfile(generateName(code), randomHead())
+      nudge.set(code)
+      current = get(profile)
+    }
+    if (current !== null) await join(current.name)
+  }
 
   /** Join as `name`, turning its number over on `name_taken`. Throws what is left. */
   async function joinAs(name: string): Promise<Credentials> {

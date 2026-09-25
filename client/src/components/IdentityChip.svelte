@@ -17,7 +17,9 @@
    * change is the room's to accept, so nothing is saved until the `room_updated` that
    * carries it comes back, and a name somebody else in the room already has is answered
    * in the popover, under the field, with the old name still in place. What the room
-   * accepts becomes the profile too, so the next room starts from it.
+   * accepts becomes the profile too, so the next room starts from it. A change the room
+   * never answers is given up on: any `welcome` or `error` after the send, leaving the
+   * room, or `PENDING_MS` with no word, which says so.
    *
    * A player who joined first and never chose a name (section 5.1.1, option B) is nudged
    * here, once: the chip pulses and says who they are and that a tap changes it. It stays
@@ -27,10 +29,13 @@
   import { nameProblem } from '../lib/names'
   import { nudge, profile, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
-  import { players, profileError, room, roomSend } from '../lib/stores'
+  import { players, profileError, requestsSettled, room, roomSend } from '../lib/stores'
   import Die from './Die.svelte'
   import Head from './Head.svelte'
   import NameField from './NameField.svelte'
+
+  /** How long a `set_profile` may go unanswered before the popover stops waiting. */
+  const PENDING_MS = 5_000
 
   let {
     live = null,
@@ -47,6 +52,9 @@
   let root = $state<HTMLElement | null>(null)
   /** What was sent in `set_profile` and has not come back in a `room_updated` yet. */
   let pending = $state<{ name?: string; head?: number } | null>(null)
+  /** `$requestsSettled` when it was sent: once that moves, the reply is not coming. */
+  let sentAt = 0
+  let unanswered = $state(false)
 
   const inRoom = $derived(live !== null)
   const shownName = $derived(live?.display_name ?? $profile?.name ?? null)
@@ -87,6 +95,21 @@
     if ($profileError !== null) pending = null
   })
 
+  // A fresh snapshot, an error about anything, or leaving the room: the change is either
+  // on `live` already or lost, and waiting longer would only lock the popover.
+  $effect(() => {
+    if (pending !== null && (live === null || $requestsSettled !== sentAt)) pending = null
+  })
+
+  $effect(() => {
+    if (pending === null) return
+    const timer = setTimeout(() => {
+      pending = null
+      unanswered = true
+    }, PENDING_MS)
+    return () => clearTimeout(timer)
+  })
+
   function toggle(): void {
     open = !open
     nudge.set(null)
@@ -94,6 +117,7 @@
       draft = currentName
       draftHead = shownHead
       saved = null
+      unanswered = false
       profileError.set(null)
     }
   }
@@ -101,7 +125,9 @@
   function send(change: { display_name?: string; avatar?: number }): void {
     profileError.set(null)
     saved = null
+    unanswered = false
     if ($roomSend?.({ t: 'set_profile', ...change })) {
+      sentAt = $requestsSettled
       pending = { name: change.display_name, head: change.avatar }
     }
   }
@@ -212,6 +238,8 @@
             <span class="note" role="status">Asking the room…</span>
           {:else if refusal !== null}
             <span class="error" role="alert">{refusal}</span>
+          {:else if unanswered}
+            <span class="error" role="alert">The room didn't answer. Try again.</span>
           {:else if saved !== null}
             <span class="note" role="status">{saved}</span>
           {/if}

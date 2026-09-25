@@ -708,6 +708,65 @@ def test_load_packs_reports_every_problem(tmp_path: Path) -> None:
     ]
 
 
+PACK_BODY = {"pack": "p", "generated_at": "2026-09-18T00:00:00Z", "questions": []}
+
+
+@pytest.mark.parametrize(
+    ("body", "error"),
+    [
+        ([], "p.json: pack must be a JSON object"),
+        ({**PACK_BODY, "generated_at": 1}, "p.json: generated_at must be a string"),
+        ({**PACK_BODY, "questions": {}}, "p.json: questions must be a list"),
+        (
+            {**PACK_BODY, "questions": [{**EXAMPLE, "mode": "random_event"}]},
+            "p.json: questions[0] $.random_event: only a question in random_events/<npc>.json",
+        ),
+        ({**PACK_BODY, "questions": ["q"]}, "p.json: questions[0] $: 'q' is not of type"),
+    ],
+    ids=["not an object", "generated_at", "questions", "event mode", "not a question"],
+)
+def test_load_packs_names_what_is_wrong_with_a_pack(tmp_path: Path, body: Any, error: str) -> None:
+    (tmp_path / "p.json").write_text(json.dumps(body))
+    with pytest.raises(PackError) as info:
+        load_packs(tmp_path)
+    (found,) = info.value.errors
+    assert found.startswith(error), found
+
+
+@pytest.mark.parametrize(
+    ("npc", "body", "error"),
+    [
+        (
+            "rick_turpentine",
+            {"questions": [NPC_QUESTION]},
+            "'rick_turpentine' is not on the roster",
+        ),
+        ("death", {"random_event": "jane"}, "random_event must be 'death'"),
+        (
+            "death",
+            {"questions": [{**NPC_QUESTION, "random_event": "death"}]},
+            "questions[0] $.random_event: a question in an NPC's file does not name the NPC",
+        ),
+        (
+            "death",
+            {"questions": [{**question(), "mode": "more_less"}]},
+            "questions[0] $.mode: every question in an NPC's file is 'random_event'",
+        ),
+    ],
+    ids=["nobody on the roster", "another npc", "names its npc", "a round's mode"],
+)
+def test_load_packs_names_what_is_wrong_with_an_npcs_file(
+    tmp_path: Path, npc: str, body: dict[str, Any], error: str
+) -> None:
+    _write_npc(tmp_path, npc, [])
+    path = tmp_path / "random_events" / f"{npc}.json"
+    path.write_text(json.dumps({**json.loads(path.read_text()), **body}))
+    with pytest.raises(PackError) as info:
+        load_packs(tmp_path)
+    (found,) = info.value.errors
+    assert found.startswith(f"random_events/{npc}.json: {error}"), found
+
+
 def test_packs_are_loaded_at_startup(settings: Settings, dist: Path) -> None:
     app = create_app(settings, dist)
     with TestClient(app):

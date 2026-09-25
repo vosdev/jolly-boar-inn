@@ -12,8 +12,11 @@ Every message after the handshake is one ``RoomManager`` call. A call that raise
 message (``not_admin``, ``not_open``, ``already_answered``) is not a protocol error.
 Only a frame we cannot parse closes the socket.
 
-Commands other than ``answer`` have no direct reply. What they did reaches every client,
-the sender included, through the broadcasts the manager sends.
+Commands other than ``answer`` and ``ping`` have no direct reply. What they did reaches
+every client, the sender included, through the broadcasts the manager sends.
+
+After the handshake nothing here writes to the socket directly: replies and closes go
+through the socket's ``Outbox``, behind the broadcasts already queued on it.
 """
 
 import asyncio
@@ -30,7 +33,6 @@ from pydantic import ValidationError
 from app.errors import ApiError
 from app.http.ratelimit import RateLimited, room_lookup
 from app.rooms.state import (
-    SEND_TIMEOUT,
     BadSession,
     Player,
     RoomExpired,
@@ -38,6 +40,9 @@ from app.rooms.state import (
     RoomNotFound,
 )
 from app.ws import protocol
+from app.ws.outbox import Outbox
+from app.ws.outbox import close as outbox_close
+from app.ws.outbox import send as outbox_send
 from app.ws.protocol import ErrorCode
 
 log = logging.getLogger("app.ws")
@@ -115,29 +120,19 @@ async def _next_frame(ws: WebSocket) -> Any:
 
 
 async def _send(ws: WebSocket, message: protocol.ServerMessage) -> bool:
-    """Send to this socket; ``False`` if it is gone (the loop then ends).
+    """Send to this socket before it has an outbox; ``False`` if it is gone.
 
     Every failure is the same failure: the socket state machine refusing us
     (``RuntimeError``), the server reporting the client gone (uvicorn raises
     ``ClientDisconnected``, an ``OSError``), a transport error, or a client that has
-    stopped reading and blows ``SEND_TIMEOUT``. The manager treats sends the same way.
+    stopped reading and blows ``SEND_TIMEOUT``. The outbox treats sends the same way.
     """
-    try:
-        async with asyncio.timeout(SEND_TIMEOUT):
-            await ws.send_json(message.model_dump(mode="json"))
-    except Exception as exc:
-        log.info("dropping socket after failed send: %r", exc)
-        return False
-    return True
+    return await outbox_send(ws, message.model_dump(mode="json"))
 
 
 async def _close(ws: WebSocket, code: int, reason: str) -> None:
     """Close from our side; a client that is already gone is not an error."""
-    try:
-        async with asyncio.timeout(SEND_TIMEOUT):
-            await ws.close(code=code, reason=reason[:120])
-    except Exception as exc:
-        log.debug("closing socket with %d failed: %r", code, exc)
+    await outbox_close(ws, code, reason)
 
 
 async def _reject(ws: WebSocket, code: ErrorCode, message: str, close_code: int) -> None:
@@ -156,6 +151,7 @@ async def room_socket(ws: WebSocket, code: str) -> None:
     manager: RoomManager = ws.app.state.rooms
     await ws.accept()
     player: Player | None = None
+    outbox: Outbox | None = None
     try:
         hello = await _handshake(ws)
         if hello is None:
@@ -163,7 +159,7 @@ async def room_socket(ws: WebSocket, code: str) -> None:
         try:
             host = ws.client.host if ws.client else ""
             with room_lookup(ws.app.state.lookup_misses, host):
-                player = await manager.connect(code, hello.session, ws)
+                player, outbox = await manager.connect(code, hello.session, ws)
         except RateLimited as exc:
             await _close(ws, CLOSE_POLICY, exc.message)
             return
@@ -177,12 +173,16 @@ async def room_socket(ws: WebSocket, code: str) -> None:
             log.warning("connect to room %s failed: %s", code, exc.message)
             await _close(ws, CLOSE_INTERNAL, exc.code)
             return
-        await _serve(ws, manager, code, player)
+        await _serve(ws, outbox, manager, code, player)
     except WebSocketDisconnect:
         pass
     finally:
         if player is not None:
             await manager.disconnect(code, player.id, ws)
+        if outbox is not None:
+            # Returning ends the socket, so whatever this handler queued last (an error
+            # and its close) has to be written first.
+            await outbox.finished()
 
 
 async def _handshake(ws: WebSocket) -> protocol.Hello | None:
@@ -209,7 +209,14 @@ async def _handshake(ws: WebSocket) -> protocol.Hello | None:
     return message
 
 
-async def _serve(ws: WebSocket, manager: RoomManager, code: str, player: Player) -> None:
+def _refuse(outbox: Outbox, code: ErrorCode, message: str, close_code: int) -> None:
+    outbox.put(protocol.Error(code=code, message=message).model_dump(mode="json"))
+    outbox.close(close_code, message)
+
+
+async def _serve(
+    ws: WebSocket, outbox: Outbox, manager: RoomManager, code: str, player: Player
+) -> None:
     """Every frame after a successful ``hello`` until the client leaves."""
     bucket = TokenBucket(RATE_PER_SECOND, RATE_BURST)
     while True:
@@ -217,26 +224,26 @@ async def _serve(ws: WebSocket, manager: RoomManager, code: str, player: Player)
             frame = await _next_frame(ws)
             message = protocol.parse_client_message(frame)
         except FrameTooBig:
-            await _close(ws, CLOSE_TOO_BIG, "frame too big")
+            outbox.close(CLOSE_TOO_BIG, "frame too big")
             return
         except BadFrame as exc:
-            await _reject(ws, "bad_message", str(exc), CLOSE_PROTOCOL_ERROR)
+            _refuse(outbox, "bad_message", str(exc), CLOSE_PROTOCOL_ERROR)
             return
         except ValidationError as exc:
-            await _reject(ws, "bad_message", _describe(exc), CLOSE_PROTOCOL_ERROR)
+            _refuse(outbox, "bad_message", _describe(exc), CLOSE_PROTOCOL_ERROR)
             return
         if isinstance(message, protocol.Hello):
             reason = "hello is only valid as the first message"
-            await _reject(ws, "bad_hello", reason, CLOSE_PROTOCOL_ERROR)
+            _refuse(outbox, "bad_hello", reason, CLOSE_PROTOCOL_ERROR)
             return
         if not bucket.take():
-            await _close(ws, CLOSE_POLICY, "too many messages")
+            outbox.close(CLOSE_POLICY, "too many messages")
             return
         try:
             reply = await _dispatch(manager, code, player, message)
         except ApiError as exc:
             reply = protocol.Error(code=_error_code(exc), message=exc.message)
-        if reply is not None and not await _send(ws, reply):
+        if reply is not None and not outbox.put(reply.model_dump(mode="json")):
             return
 
 

@@ -14,6 +14,7 @@ jobs:
   server:
     name: Server (ruff, pytest, packs, contrast)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: server
@@ -49,6 +50,7 @@ jobs:
   client:
     name: Client (svelte-check, vitest, build)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: client
@@ -70,6 +72,7 @@ jobs:
   containers:
     name: Containers (build, compose smoke test)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # docker-compose.yml requires this rather than defaulting to the dev password.
     env:
       POSTGRES_PASSWORD: jbi
@@ -125,6 +128,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [server, client, containers]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     env:

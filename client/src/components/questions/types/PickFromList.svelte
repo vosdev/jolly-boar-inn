@@ -38,7 +38,7 @@
    */
   import { tick } from 'svelte'
 
-  import { loadVocab, search, type Vocab, type VocabEntry } from '../../../lib/vocab'
+  import { loadVocab, search, SHOWN_MAX, type Vocab, type VocabEntry } from '../../../lib/vocab'
   import AnswerSettled from '../AnswerSettled.svelte'
   import type { TypeViewProps } from '../props'
 
@@ -86,6 +86,7 @@
   let maxHeight = $state<number | null>(null)
 
   const matches = $derived(list === null ? [] : search(list.entries, query))
+  const shown = $derived(matches.slice(0, SHOWN_MAX))
   const answered = $derived(typeof yourValue === 'number' ? yourValue : null)
   const locked = $derived(revealed || !canAnswer || answered !== null)
   const optionId = (index: number) => `${uid}-option-${index}`
@@ -114,7 +115,7 @@
   }
 
   async function highlight(index: number): Promise<void> {
-    active = Math.max(0, Math.min(matches.length - 1, index))
+    active = Math.max(0, Math.min(shown.length - 1, index))
     await tick()
     listbox?.querySelector(`#${CSS.escape(optionId(active))}`)?.scrollIntoView?.({
       block: 'nearest',
@@ -128,16 +129,18 @@
         event.preventDefault()
         if (!expanded) {
           open()
-          void highlight(selected === null ? 0 : matches.indexOf(selected))
+          void highlight(selected === null ? 0 : shown.indexOf(selected))
         } else {
           void highlight(active + (event.key === 'ArrowDown' ? 1 : -1))
         }
         break
-      case 'Enter':
+      case 'Enter': {
         // Enter picks; it never submits. Submitting is the button's job alone.
         event.preventDefault()
-        if (expanded && matches[active] !== undefined) select(matches[active])
+        const entry = shown[active]
+        if (expanded && entry !== undefined) select(entry)
         break
+      }
       case 'Escape':
         if (expanded) {
           event.preventDefault()
@@ -225,7 +228,7 @@
         aria-autocomplete="list"
         aria-expanded={expanded}
         aria-controls={listId}
-        aria-activedescendant={expanded && matches.length > 0 ? optionId(active) : undefined}
+        aria-activedescendant={expanded && shown.length > 0 ? optionId(active) : undefined}
         oninput={onInput}
         onfocus={onFocus}
         onclick={open}
@@ -240,7 +243,7 @@
         hidden={!expanded}
         style:max-height={maxHeight === null ? null : `${maxHeight}px`}
       >
-        {#each matches as entry, index (entry.id)}
+        {#each shown as entry, index (entry.id)}
           <!-- The keys belong to the input, which keeps focus throughout: that is the
                combobox pattern, and an option that took focus would close the keyboard. -->
           <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -259,6 +262,11 @@
             Nothing in the list matches “{query.trim()}”.
           </li>
         {/each}
+        {#if matches.length > shown.length}
+          <li class="empty" role="option" aria-selected="false" aria-disabled="true">
+            {matches.length - shown.length} more — keep typing to narrow the list.
+          </li>
+        {/if}
       </ul>
     </div>
     <button type="submit" class="primary" disabled={selected === null}>Submit</button>

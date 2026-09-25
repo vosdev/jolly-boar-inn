@@ -211,7 +211,7 @@ name refuses to load; the combobox cannot submit anything but a selected entry â
 with no selection leaves Submit disabled, and editing the text after selecting clears the
 selection; search tests for case, accents and word-prefix ("whip" finds "Abyssal whip");
 the combobox is operable by keyboard alone, and on a 375px phone its list is not hidden
-behind the keyboard; an examine containing the item name is rejected with the reason; the
+behind the keyboard (manual); an examine containing the item name is rejected with the reason; the
 generator prints how many roster items it used, how many it rejected and why, and the
 rejection rate is under a third.
 

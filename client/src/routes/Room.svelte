@@ -32,24 +32,29 @@
    * restart (T11) it is however long the recovery reveal has left, so it gets a screen
    * of its own rather than a blank panel. A phase this build does not know lands there
    * too, which is how a build from before `standings` existed rides one out.
+   *
+   * A screen reader hears the changes through one polite live region that stays mounted
+   * for the whole visit, because a region inserted already filled is often never read: a
+   * question opening, the verdict on it, and a lost connection. Focus moves to the
+   * question's heading as it opens, since the answer just pressed is disabled or gone and
+   * would otherwise drop focus back to the top of the page. The tab's title names the
+   * screen.
    */
-  import { onMount } from 'svelte'
+  import { onMount, tick, untrack } from 'svelte'
 
+  import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import ErrorBanner from '../components/ErrorBanner.svelte'
   import Lobby from '../components/Lobby.svelte'
-  import PointsSlot from '../components/PointsSlot.svelte'
-  import RandomEvent from '../components/RandomEvent.svelte'
+  import PointsSlot, { verdictSentence } from '../components/PointsSlot.svelte'
+  import QuestionStage from '../components/QuestionStage.svelte'
   import RevealTally from '../components/RevealTally.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
-  import Question from '../components/questions/Question.svelte'
   import { clearSession, getSession } from '../lib/session'
   import {
-    answerAck,
-    answerCount,
     applyServerMessage,
     connection,
     lastClosed,
-    lastError,
     noteAnswerSent,
     players,
     question,
@@ -61,6 +66,7 @@
     yourAnswer,
   } from '../lib/stores'
   import { timerBar } from '../lib/timerbar'
+  import { reloadIfStale } from '../lib/version'
   import { listFor, prefetchVocab } from '../lib/vocab'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
 
@@ -68,6 +74,7 @@
 
   let socket = $state<RoomSocket | null>(null)
   let departure = $state<{ reason: ClosureReason; detail: string } | null>(null)
+  let endingGame = $state(false)
 
   onMount(() => {
     resetRoom()
@@ -77,7 +84,10 @@
       return
     }
     const live = new RoomSocket(code, session, {
-      onMessage: applyServerMessage,
+      onMessage: (message) => {
+        if (message.t === 'welcome' && reloadIfStale(message.server_version)) return
+        applyServerMessage(message)
+      },
       onState: (state) => connection.set(state),
       onClosed: (reason, detail) => {
         // A session the room will not accept is worth nothing; drop it so the next
@@ -203,28 +213,85 @@
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
   const winners = $derived($standings.filter((standing) => standing.rank === 1))
+  const topScore = $derived(winners[0]?.points ?? 0)
   /** Same grouping as the scoreboard, so the headline and the table agree. */
   const numbers = new Intl.NumberFormat()
 
-  /**
-   * What `answer_ack` told us, which is where the answer landed and nothing else: its
-   * speed bucket, or the step of a question that shows more of itself as it runs. A
-   * ranked question has no band — a guess is only worth something against the others —
-   * so it gets no badge. Built here rather than in the markup because Svelte trims the
-   * leading space off an `{#if}` block's first text node, and this clause needs one.
-   */
-  const landed = $derived.by(() => {
-    const ack = $answerAck
-    if (ack === null || ack.band === null) return null
-    return ack.scoring === 'step'
-      ? {
-          badge: `step ${ack.band}`,
-          sentence: `answered on step ${ack.band}, 1 being the earliest`,
-        }
-      : {
-          badge: `${ack.band}/5`,
-          sentence: `speed bucket ${ack.band} of 5, 1 being the fastest`,
-        }
+  /** The question's own heading, for the heading line, the announcer and the title. */
+  const questionTitle = $derived(`Question ${number} of ${total}`)
+  /** What the announcer says as a question opens: the heading, round and all. */
+  const questionSpoken = $derived(
+    segment !== null && segment.total > 1
+      ? `Round ${segment.index + 1} of ${segment.total}, question ${number} of ${total}`
+      : questionTitle,
+  )
+
+  let announcement = $state('')
+  let heading = $state<HTMLElement | null>(null)
+
+  async function announce(text: string): Promise<void> {
+    // Emptied first, so a sentence the same as the last one is still new text to read.
+    announcement = ''
+    await tick()
+    announcement = text
+  }
+
+  /** Someone typing, into the name editor say, keeps their focus when a question opens. */
+  function typing(): boolean {
+    const active = document.activeElement
+    return (
+      (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) &&
+      !active.disabled
+    )
+  }
+
+  let spokenQuestion: string | null = null
+  $effect(() => {
+    const open = $question
+    if (open === null || open.question_id === spokenQuestion) return
+    spokenQuestion = open.question_id
+    untrack(() => {
+      void announce(questionSpoken)
+      void tick().then(() => {
+        if (!typing()) heading?.focus()
+      })
+    })
+  })
+
+  let spokenVerdict: object | null = null
+  $effect(() => {
+    const closed = $lastClosed
+    if (closed === null || closed.was === null || closed === spokenVerdict) return
+    spokenVerdict = closed
+    const canAnswer = closed.was.you_can_answer
+    untrack(() => void announce(verdictSentence(yourResult, canAnswer, yourTotal)))
+  })
+
+  $effect(() => {
+    if ($connection === 'reconnecting') untrack(() => void announce('Connection lost'))
+  })
+
+  const siteTitle = document.title
+  const screenTitle = $derived(
+    departure !== null
+      ? 'Disconnected'
+      : $room === null
+        ? 'Connecting'
+        : $room.status === 'lobby'
+          ? 'Lobby'
+          : $room.status === 'finished'
+            ? 'Final standings'
+            : $room.phase === 'splash' && $room.segment !== null
+              ? `Round ${$room.segment.index + 1} of ${$room.segment.total}`
+              : $room.phase === 'standings'
+                ? 'Standings'
+                : questionTitle,
+  )
+  $effect(() => {
+    document.title = `${screenTitle} · ${siteTitle}`
+  })
+  onMount(() => () => {
+    document.title = siteTitle
   })
 
   /** The host's skip, naming the phase and question on screen (see `Skip`). */
@@ -267,6 +334,8 @@
   }
 </script>
 
+<p class="sr" aria-live="polite">{announcement}</p>
+
 {#if departure !== null}
   <!-- The room's code is in the top bar (D2, section 4). These headings say which screen
        you are on, which is what the code used to be crowding out. -->
@@ -282,7 +351,7 @@
   </section>
 {:else}
   {#if $connection === 'reconnecting'}
-    <div class="banner">Connection lost — reconnecting…</div>
+    <div class="banner" role="status">Connection lost — reconnecting…</div>
   {/if}
 
   {#if $room === null}
@@ -297,7 +366,7 @@
     {#if winners.length > 0}
       <p class="tagline">
         {winners.map((w) => w.display_name).join(' and ')}
-        {winners.length === 1 ? 'wins' : 'tie for first'} with {numbers.format(winners[0].points)}
+        {winners.length === 1 ? 'wins' : 'tie for first'} with {numbers.format(topScore)}
         points.
       </p>
     {:else}
@@ -316,12 +385,7 @@
   {:else if $room.phase === 'splash' && $room.segment !== null}
     <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past.
          The host's skip is on the card, small, for the same reason. -->
-    {#if $lastError !== null}
-      <div class="banner bad">
-        {$lastError.message}
-        <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
-      </div>
-    {/if}
+    <ErrorBanner />
     <Splash
       segment={$room.segment}
       endsAt={$room.next_at}
@@ -342,11 +406,11 @@
           Standings
         </h1>
       {:else}
-        <h1>
+        <h1 bind:this={heading} tabindex="-1">
           {#if segment !== null && segment.total > 1}
             <span class="round">Round {segment.index + 1} of {segment.total}</span>
           {/if}
-          Question {number} of {total}
+          {questionTitle}
         </h1>
       {/if}
       <!-- The points slot (D8): always here, in every mode, so the eye learns where the
@@ -360,77 +424,30 @@
       {/if}
     </div>
 
-    {#if $lastError !== null}
-      <div class="banner bad">
-        {$lastError.message}
-        <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
-      </div>
-    {/if}
+    <ErrorBanner />
 
     {#if $room.phase === 'standings'}
       <Scoreboard standings={$standings} youId={$you?.id ?? null} />
     {:else if $room.phase === 'open' && $question !== null}
-      <section class="panel">
-        {#if $question.random_event}
-          <RandomEvent question={$question} yourValue={$yourAnswer} onAnswer={answer} />
-        {:else}
-          <Question question={$question} yourValue={$yourAnswer} onAnswer={answer} />
-        {/if}
-      </section>
-
-      {#if $yourAnswer !== null}
-        <!-- Answered and waiting (D8): up to fifteen seconds in which people look up at
-             each other, so it says how the room is doing rather than one flat line. The
-             answer itself is held, dimmed, in the view above. The band is all
-             `answer_ack` carries: how fast or how early, never whether it was right.
-             Correctness is nobody's until `question_closed`. -->
-        <div class="waiting" role="status">
-          <p class="held">
-            Answer in{#if landed !== null}<span
-                class="band"
-                title={landed.sentence}
-                aria-label={landed.sentence}>{landed.badge}</span
-              >{/if}
-          </p>
-          <p class="room">
-            {#if $answerCount !== null && $answerCount.of > 0}
-              <span class="count">{$answerCount.answered} of {$answerCount.of}</span>
-              answered — waiting for the room
-            {:else}
-              Waiting for the room
-            {/if}
-          </p>
-        </div>
-      {/if}
+      <QuestionStage question={$question} yourValue={$yourAnswer} onAnswer={answer} />
+    {:else if $lastClosed !== null && $lastClosed.was !== null}
+      <QuestionStage
+        question={$lastClosed.was}
+        reveal={$lastClosed.reveal}
+        yourValue={$yourAnswer}
+        result={yourResult}
+        onAnswer={() => {}}
+      >
+        <RevealTally
+          results={$lastClosed.results}
+          {nameOf}
+          youId={$you?.id ?? null}
+          showNames={$room.settings.name_wrong_answers === true}
+        />
+      </QuestionStage>
     {:else if $lastClosed !== null}
       <section class="panel">
-        {#if $lastClosed.was !== null}
-          {#if $lastClosed.was.random_event}
-            <RandomEvent
-              question={$lastClosed.was}
-              reveal={$lastClosed.reveal}
-              yourValue={$yourAnswer}
-              result={yourResult}
-              onAnswer={() => {}}
-            />
-          {:else}
-            <Question
-              question={$lastClosed.was}
-              reveal={$lastClosed.reveal}
-              yourValue={$yourAnswer}
-              result={yourResult}
-              onAnswer={() => {}}
-            />
-          {/if}
-          <RevealTally
-            results={$lastClosed.results}
-            {nameOf}
-            youId={$you?.id ?? null}
-            showNames={$room.settings.name_wrong_answers === true}
-          />
-        {:else}
-          <p class="note">That question is closed.</p>
-        {/if}
+        <p class="note">That question is closed.</p>
       </section>
     {:else}
       <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
@@ -451,22 +468,24 @@
         <h2>Host</h2>
         <div class="row">
           <button type="button" onclick={skip}>{skipLabel}</button>
-          <button
-            type="button"
-            onclick={() => {
-              if (confirm('End the game now and show the final standings?')) {
-                socket?.send({ t: 'end_game' })
-              }
-            }}
-          >
-            End the game
-          </button>
+          <button type="button" onclick={() => (endingGame = true)}>End the game</button>
         </div>
         <p class="note">
           {$players.length}
           {$players.length === 1 ? 'player' : 'players'} in the room.
         </p>
       </section>
+      {#if endingGame}
+        <ConfirmDialog
+          message="End the game now and show the final standings?"
+          confirmLabel="End the game"
+          onConfirm={() => {
+            socket?.send({ t: 'end_game' })
+            endingGame = false
+          }}
+          onCancel={() => (endingGame = false)}
+        />
+      {/if}
     {/if}
   {/if}
 {/if}
@@ -481,36 +500,9 @@
     margin: 0;
   }
 
-  .waiting {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    margin: -0.5rem 0 1.25rem;
-    font-size: 0.9rem;
-  }
-
-  .waiting p {
-    margin: 0;
-  }
-
-  .held {
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
-    font-weight: 600;
-  }
-
-  .room {
-    color: var(--muted);
-  }
-
-  .count {
-    color: var(--ink);
-    font-family: var(--font-numeric);
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
+  /* Focus lands here so the next Tab reaches the answers; a heading is not a control. */
+  .head h1:focus {
+    outline: none;
   }
 
   .round {
@@ -522,11 +514,4 @@
     color: var(--muted);
   }
 
-  .band {
-    padding: 0.05rem 0.35rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    font-variant-numeric: tabular-nums;
-    cursor: help;
-  }
 </style>

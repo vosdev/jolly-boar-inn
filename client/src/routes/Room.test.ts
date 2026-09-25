@@ -8,7 +8,7 @@
  * with that phase.
  */
 
-import { render, screen } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { type Component, tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -16,9 +16,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
 import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
-import { applyServerMessage, resetRoom } from '../lib/stores'
+import { applyServerMessage, connection, resetRoom } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
 import { clearVocabCache } from '../lib/vocab'
+import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
 
 vi.mock('../lib/session', async (importOriginal) => {
@@ -27,9 +28,13 @@ vi.mock('../lib/session', async (importOriginal) => {
 })
 
 const sent: unknown[] = []
+let closeSocket: RoomSocketHandlers['onClosed'] = () => {}
 
 vi.mock('../lib/ws', () => ({
   RoomSocket: class {
+    constructor(_code: string, _session: string, handlers: RoomSocketHandlers) {
+      closeSocket = handlers.onClosed
+    }
     open(): void {}
     close(): void {}
     send(message: unknown): boolean {
@@ -84,6 +89,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
     your_answer: null,
     standings: STANDINGS,
     server_time: new Date().toISOString(),
+    server_version: __APP_VERSION__,
   }
 }
 
@@ -195,7 +201,7 @@ describe('Room', () => {
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
-      standings: [{ ...STANDINGS[0], points: 1850 }, STANDINGS[1]],
+      standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 8_000).toISOString(),
     })
     await screen.findByText('1,850')
@@ -308,6 +314,25 @@ describe('Room', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Final standings')
     expect(document.querySelector('.podium')).not.toBeNull()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(2)
+  })
+})
+
+describe('the room’s own headings', () => {
+  const titles = () =>
+    screen.queryAllByRole('heading', { level: 1 }).map((heading) => heading.textContent ?? '')
+
+  it('never name the room by its code, which the lobby shows and the bar does not', async () => {
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    expect(screen.getByText('Connecting…')).toBeTruthy()
+    expect(titles()).toEqual([])
+    applyServerMessage(
+      welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
+    )
+    await screen.findByRole('heading', { level: 1, name: 'Lobby' })
+    expect(titles()).toEqual(['Lobby'])
+    closeSocket('no_room', '')
+    await screen.findByRole('heading', { level: 1, name: 'Disconnected' })
+    expect(titles()).toEqual(['Disconnected'])
   })
 })
 
@@ -441,5 +466,141 @@ describe('the host’s skip', () => {
     applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
     ;(await screen.findByRole('button', { name: 'Start the round now' })).click()
     expect(sent).toEqual([{ t: 'skip', phase: 'splash', index: 0 }])
+  })
+})
+
+describe('the host’s End the game', () => {
+  async function ask(): Promise<HTMLElement> {
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    await fireEvent.click(screen.getByRole('button', { name: 'End the game' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toContain('End the game now and show the final standings?')
+    return dialog
+  }
+
+  it('ends the game only once the host confirms', async () => {
+    const dialog = await ask()
+    expect(sent).toEqual([])
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'End the game' }))
+    expect(sent).toEqual([{ t: 'end_game' }])
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('sends nothing when cancelled', async () => {
+    await fireEvent.click(within(await ask()).getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(sent).toEqual([])
+  })
+})
+
+describe('what a screen reader and the tab hear', () => {
+  const WHIP: OpenQuestion = {
+    question_id: 'q1',
+    index: 0,
+    total: 2,
+    type: 'more_less',
+    mode: 'more_less',
+    segment: { ...SEGMENT, count: 2 },
+    view: {
+      metric: 'ge_price',
+      direction: 'more',
+      options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+      as_of: '2026-09-01',
+    },
+    opened_at: new Date().toISOString(),
+    ends_at: new Date(Date.now() + 10_000).toISOString(),
+    you_can_answer: true,
+  }
+
+  let container: HTMLElement
+
+  beforeEach(() => {
+    resetRoom()
+    document.title = 'Jolly Boar Inn'
+    container = render(Room, { code: 'ABYSSAL', navigate: () => {} }).container
+  })
+
+  /** The one live region Room keeps mounted, as opposed to a component's own. */
+  const live = () => container.querySelector(':scope > [aria-live="polite"]')
+
+  it('announces a question as it opens, and puts focus on its heading', async () => {
+    applyServerMessage(welcome(roomView({ phase: 'reveal', next_at: null })))
+    const region = live()
+    expect(region).not.toBeNull()
+    applyServerMessage({ t: 'question_open', question: WHIP })
+    await waitFor(() => expect(live()?.textContent).toBe('Round 1 of 2, question 1 of 2'))
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(heading.textContent).toMatch(/Question 1 of 2/)
+    expect(document.activeElement).toBe(heading)
+    expect(live()).toBe(region)
+  })
+
+  it('says a round of its own without the round', async () => {
+    applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
+    const alone = { ...SEGMENT, total: 1, count: 10 }
+    applyServerMessage({
+      t: 'question_open',
+      question: { ...WHIP, index: 2, total: 10, segment: alone },
+    })
+    await waitFor(() => expect(live()?.textContent).toBe('Question 3 of 10'))
+    expect(document.title).toBe('Question 3 of 10 · Jolly Boar Inn')
+  })
+
+  it('leaves focus where someone is typing', async () => {
+    const field = document.createElement('input')
+    document.body.append(field)
+    try {
+      field.focus()
+      applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
+      applyServerMessage({ t: 'question_open', question: WHIP })
+      await waitFor(() => expect(live()?.textContent).not.toBe(''))
+      await tick()
+      expect(document.activeElement).toBe(field)
+    } finally {
+      field.remove()
+    }
+  })
+
+  it('announces the verdict in the same region, with the running total', async () => {
+    applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: WHIP })
+    await waitFor(() => expect(live()?.textContent).not.toBe(''))
+    const region = live()
+    applyServerMessage({
+      t: 'question_closed',
+      question_id: 'q1',
+      reveal: { ...WHIP.view, answer_index: 0 },
+      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
+      standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
+      next_at: new Date(Date.now() + 8_000).toISOString(),
+    })
+    await waitFor(() => expect(live()?.textContent).toBe('Right, +850 points. 1,850 in total.'))
+    expect(live()).toBe(region)
+    // The slot itself is no live region: one inserted already filled often goes unread.
+    expect(document.querySelector('.slot')?.getAttribute('role')).toBeNull()
+  })
+
+  it('announces a lost connection, and the banner is a status', async () => {
+    applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
+    connection.set('reconnecting')
+    await waitFor(() => expect(live()?.textContent).toBe('Connection lost'))
+    expect(screen.getByRole('status').textContent).toBe('Connection lost — reconnecting…')
+  })
+
+  it.each([
+    ['the lobby', roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null }), 'Lobby'],
+    ['a splash', roomView({ phase: 'splash', next_at: null }), 'Round 1 of 2'],
+    ['the standings', roomView({}), 'Standings'],
+    ['the final screen', roomView({ status: 'finished', phase: 'idle', next_at: null }), 'Final standings'],
+  ])('names %s in the tab title', async (_, view, title) => {
+    applyServerMessage(welcome(view))
+    await waitFor(() => expect(document.title).toBe(`${title} · Jolly Boar Inn`))
+  })
+
+  it('gives the tab its own title back on the way out', async () => {
+    applyServerMessage(welcome(roomView({})))
+    await waitFor(() => expect(document.title).toBe('Standings · Jolly Boar Inn'))
+    cleanup()
+    expect(document.title).toBe('Jolly Boar Inn')
   })
 })

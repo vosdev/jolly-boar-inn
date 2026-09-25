@@ -11,6 +11,8 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+# The app's one version (ideas/architecture.md, Versioning), sent in every ``welcome``.
+APP_VERSION = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 
 class Settings(BaseSettings):
@@ -24,7 +26,7 @@ class Settings(BaseSettings):
     public_base_url: str = "http://localhost:5173"
     room_ttl_days: int = 3
     # How often the cleanup task deletes rooms past their ``expires_at`` (section 4's
-    # ``any -> deleted``). Hourly is far finer than a 30-day TTL needs; it is the
+    # ``any -> deleted``). Hourly is far finer than a 3-day TTL needs; it is the
     # interval a self-hoster can lower when they want the rows gone sooner. It has to
     # stay positive: the task sleeps on it between passes, and ``0`` would turn that
     # loop into a spin issuing a delete as fast as the pool can serve one, so a typo

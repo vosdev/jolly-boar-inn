@@ -16,6 +16,7 @@ Plus section 7: the session token is hashed at rest and never rendered back.
 import hashlib
 import json
 import re
+from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
@@ -47,7 +48,7 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
     )
     assert response.status_code == 201
     body = response.json()
-    assert set(body) == {"code", "session", "player"}
+    assert set(body) == {"code", "session", "player", "expires_at"}
     assert len(body["session"]) >= 40
     assert body["player"] == {
         "id": body["player"]["id"],
@@ -65,6 +66,14 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
     assert player["role"] == "admin"
     assert player["session_token_hash"] == sha256(body["session"])
     assert body["session"] not in str(dict(player))
+
+
+def test_create_returns_when_the_room_expires(client: TestClient, db) -> None:
+    """The host's list of rooms needs the stored expiry to know when a code is no longer theirs."""
+    response = client.post("/api/rooms", json={"display_name": "Zezima"})
+    assert response.status_code == 201
+    (room,) = db("select expires_at from rooms")
+    assert datetime.fromisoformat(response.json()["expires_at"]) == room["expires_at"]
 
 
 def test_create_registers_the_room_in_memory_with_its_admin(
@@ -112,7 +121,7 @@ def test_a_failed_player_insert_leaves_no_room(
     _, admin = create(client)
     monkeypatch.setattr(state, "new_token", lambda: admin["session"])
     with pytest.raises(asyncpg.UniqueViolationError):
-        call(client, app.state.rooms.create, "Other", RoomSettings(), [], "127.0.0.1")
+        call(client, app.state.rooms.create, "Other", RoomSettings(), [])
     assert db("select count(*) as n from rooms")[0]["n"] == 1
 
 
@@ -242,13 +251,6 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         json={"display_name": "Zezima", "custom_questions": [{"type": "more_less"}]},
     )
     assert response.status_code == 422
-
-
-def test_create_survives_unparseable_client_address(client: TestClient, db) -> None:
-    """TestClient's host is "testclient", which ``inet`` cannot store; must not 500."""
-    code, _ = create(client)
-    (row,) = db("select creator_ip from rooms where code = $1", code)
-    assert row["creator_ip"] is None
 
 
 # --- T21: the host's own questions ----------------------------------------------------
@@ -448,13 +450,13 @@ def test_the_manager_refuses_what_the_body_would_have(app: FastAPI, client: Test
     """``create`` checks again for callers that did not come through ``POST /api/rooms``."""
     settings = RoomSettings(modes=THREE_MODES)
     with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.type"):
-        call(client, app.state.rooms.create, "Zezima", settings, [own_question(type="x")], "")
+        call(client, app.state.rooms.create, "Zezima", settings, [own_question(type="x")])
     too_many = [own_question(f"Question {n}?") for n in range(3)]
     with pytest.raises(state.BadSettings, match="3 custom questions"):
-        call(client, app.state.rooms.create, "Zezima", settings, too_many, "")
+        call(client, app.state.rooms.create, "Zezima", settings, too_many)
     borrowed = [own_question(source="pack")]
     with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.source"):
-        call(client, app.state.rooms.create, "Zezima", settings, borrowed, "")
+        call(client, app.state.rooms.create, "Zezima", settings, borrowed)
     assert_no_room(db)
 
 

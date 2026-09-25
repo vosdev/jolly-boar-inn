@@ -92,6 +92,21 @@ describe('search', () => {
     search(ENTRIES, '')
     expect(ENTRIES.map((e) => e.id)).toEqual(before)
   })
+
+  it('folds a list once, and after that only the query', () => {
+    const list = ENTRIES.map((entry) => ({ ...entry }))
+    const normalize = vi.spyOn(String.prototype, 'normalize')
+    try {
+      search(list, 'a')
+      expect(normalize.mock.calls.length).toBeGreaterThanOrEqual(list.length)
+      normalize.mockClear()
+      search(list, 'ab')
+      search(list, 'abyssal w')
+      expect(normalize).toHaveBeenCalledTimes(2)
+    } finally {
+      normalize.mockRestore()
+    }
+  })
 })
 
 describe('loadVocab', () => {
@@ -110,7 +125,7 @@ describe('loadVocab', () => {
     expect(a).toEqual(body)
     expect(b).toBe(a)
     expect(fetch).toHaveBeenCalledTimes(1)
-    expect(fetch.mock.calls[0][0]).toBe('/api/vocab/items')
+    expect(fetch.mock.calls[0]?.[0]).toBe('/api/vocab/items')
   })
 
   it('forgets a failure, so the next caller tries again', async () => {

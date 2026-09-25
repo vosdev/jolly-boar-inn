@@ -12,14 +12,19 @@
    * any other and taps too. Start is the plain button once the room reaches the same
    * threshold a splash uses; short of it, it is "Start anyway", which asks first. The
    * splash asks again with heads only.
+   *
+   * Promote asks first as well as Kick: there is no demote, and an admin cannot be kicked,
+   * so one slip of the thumb would make a permanent co-host.
    */
   import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
   import { readyThreshold } from '../lib/ready'
   import type { PlayerView } from '../lib/protocol'
-  import { lastError, players, room, you } from '../lib/stores'
+  import { players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
+  import ConfirmDialog from './ConfirmDialog.svelte'
   import CopyLink from './CopyLink.svelte'
+  import ErrorBanner from './ErrorBanner.svelte'
   import Head from './Head.svelte'
 
   let { socket }: { socket: RoomSocket } = $props()
@@ -66,36 +71,49 @@
   )
   const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
 
+  /** The question the host is being asked, and what a yes does. */
+  let asking = $state<{ message: string; label: string; act: () => void } | null>(null)
+
   function toggleReady(): void {
     socket.send({ t: 'ready', ready: !youReady })
   }
 
   /** Start, asking first when the room is short of its threshold: the host's override. */
   function start(): void {
-    if (!enoughReady && !confirm(`Start anyway? Still waiting on ${listFormat.format(waitingOn)}.`)) {
+    if (enoughReady) {
+      socket.send({ t: 'start_game' })
       return
     }
-    socket.send({ t: 'start_game' })
+    asking = {
+      message: `Start anyway? Still waiting on ${listFormat.format(waitingOn)}.`,
+      label: 'Start anyway',
+      act: () => socket.send({ t: 'start_game' }),
+    }
   }
 
   function kick(player: PlayerView): void {
-    if (confirm(`Remove ${player.display_name} from the room?`)) {
-      socket.send({ t: 'kick', player_id: player.id })
+    asking = {
+      message: `Remove ${player.display_name} from the room?`,
+      label: 'Kick',
+      act: () => socket.send({ t: 'kick', player_id: player.id }),
+    }
+  }
+
+  function promote(player: PlayerView): void {
+    asking = {
+      message: `Make ${player.display_name} a host? This can't be undone.`,
+      label: 'Make host',
+      act: () => socket.send({ t: 'promote', player_id: player.id }),
     }
   }
 </script>
 
-{#if $lastError !== null}
-  <div class="banner bad">
-    {$lastError.message}
-    <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
-  </div>
-{/if}
+<ErrorBanner />
 
 <section class="panel">
   <div class="spread">
     <div>
-      <label for="join-link">Room code</label>
+      <p class="code-label">Room code</p>
       <p class="code">{$room?.code ?? ''}</p>
     </div>
     {#if settings !== null}
@@ -106,7 +124,7 @@
       </p>
     {/if}
   </div>
-  <CopyLink label="Link for players" value={`${location.origin}/r/${$room?.code ?? ''}`} />
+  <CopyLink id="join-link" label="Link for players" value={`${location.origin}/r/${$room?.code ?? ''}`} />
 </section>
 
 {#if settings !== null}
@@ -160,14 +178,10 @@
         {#if player.role === 'admin'}<span class="tag">host</span>{/if}
         {#if player.ready === true}<span class="tag ready">✓ ready</span>{/if}
         {#if isAdmin && player.role !== 'admin'}
-          <button
-            type="button"
-            class="small"
-            onclick={() => socket.send({ t: 'promote', player_id: player.id })}
-          >
-            Promote
-          </button>
-          <button type="button" class="small" onclick={() => kick(player)}>Kick</button>
+          <span class="admin">
+            <button type="button" onclick={() => promote(player)}>Promote</button>
+            <button type="button" onclick={() => kick(player)}>Kick</button>
+          </span>
         {/if}
       </li>
     {/each}
@@ -193,7 +207,26 @@
   <p class="note">Waiting for the host to start…</p>
 {/if}
 
+{#if asking !== null}
+  <ConfirmDialog
+    message={asking.message}
+    confirmLabel={asking.label}
+    onConfirm={() => {
+      asking?.act()
+      asking = null
+    }}
+    onCancel={() => (asking = null)}
+  />
+{/if}
+
 <style>
+  /* Drawn as the global label is, but it names text, not a field. */
+  .code-label {
+    margin: 0 0 0.3rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
   .ready-head h2 {
     margin: 0;
   }
@@ -212,6 +245,16 @@
   .tag.ready {
     border-color: var(--accent);
     color: var(--ink);
+  }
+
+  /* Apart and full height: Promote cannot be undone, so it must not be a near miss for Kick. */
+  .admin {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .admin button {
+    min-height: 44px;
   }
 
   .waiting {

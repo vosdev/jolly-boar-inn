@@ -81,8 +81,8 @@ describe('multiple_choice', () => {
     })
     const buttons = screen.getAllByRole('button')
     expect(buttons.map((b) => b.classList.contains('correct'))).toEqual([true, false, false])
-    expect(buttons[1].classList.contains('wrong')).toBe(true)
-    expect(buttons[2].classList.contains('faded')).toBe(true)
+    expect(buttons[1]!.classList.contains('wrong')).toBe(true)
+    expect(buttons[2]!.classList.contains('faded')).toBe(true)
     // The verdict is the points slot's (Room), not the view's.
     expect(screen.queryByText(/no points/)).toBeNull()
     expect(screen.getByText('One of Zulrah’s uniques.')).toBeTruthy()
@@ -96,7 +96,7 @@ describe('multiple_choice', () => {
       result: { value: 0, correct: true, credit: 1, points: 800 },
       onAnswer: () => {},
     })
-    expect(screen.getAllByRole('button')[0].classList.contains('correct')).toBe(true)
+    expect(screen.getAllByRole('button')[0]!.classList.contains('correct')).toBe(true)
     expect(document.querySelector('.explanation')).toBeNull()
   })
 })

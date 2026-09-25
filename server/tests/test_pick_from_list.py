@@ -9,6 +9,7 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -106,9 +107,17 @@ def test_parse_value_takes_only_an_id_in_the_vocabulary(value: Any, ok: bool) ->
     assert pick_from_list.parse_value(EXAMPLE["payload"], value) == (value if ok else None)
 
 
-def test_parse_value_refuses_everything_for_a_vocabulary_this_build_lacks() -> None:
-    if vocab.get("npcs") is not None:
-        pytest.skip("npcs.json exists now")
+@pytest.fixture
+def without_npcs(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[None]:
+    """A build whose ``npcs`` vocabulary has no file, whatever this checkout ships."""
+    monkeypatch.setitem(vocab.SOURCES, "npcs", tmp_path / "npcs.json")
+    vocab._load.cache_clear()
+    yield
+    vocab._load.cache_clear()
+
+
+def test_parse_value_refuses_everything_for_a_vocabulary_this_build_lacks(without_npcs) -> None:
+    assert vocab.get("npcs") is None
     assert pick_from_list.parse_value(payload(vocab="npcs"), 4151) is None
 
 
@@ -135,9 +144,7 @@ def test_check_fails_a_subject_that_is_not_the_entrys_name() -> None:
     ]
 
 
-def test_check_fails_a_vocabulary_this_build_lacks() -> None:
-    if vocab.get("npcs") is not None:
-        pytest.skip("npcs.json exists now")
+def test_check_fails_a_vocabulary_this_build_lacks(without_npcs) -> None:
     assert pick_from_list.check(payload(vocab="npcs")) == [
         "vocab: 'npcs' is not available in this build"
     ]

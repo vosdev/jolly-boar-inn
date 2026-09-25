@@ -10,7 +10,7 @@ import json
 import re
 import tomllib
 
-from app.config import REPO_ROOT
+from app.config import APP_VERSION, REPO_ROOT
 
 VERSION = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
@@ -28,3 +28,15 @@ def test_the_server_manifest_matches() -> None:
 def test_the_client_manifest_matches() -> None:
     package = json.loads((REPO_ROOT / "client" / "package.json").read_text(encoding="utf-8"))
     assert package["version"] == VERSION
+
+
+def test_the_server_reads_the_version_it_sends() -> None:
+    """``welcome`` carries it, and a client built from another version reloads on it."""
+    assert APP_VERSION == VERSION
+
+
+def test_the_runtime_image_carries_the_version() -> None:
+    """The server reads ``/VERSION`` at startup; only the client stage copied it before."""
+    dockerfile = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    runtime = dockerfile[dockerfile.index("AS runtime") :]
+    assert "COPY VERSION /app/VERSION" in runtime

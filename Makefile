@@ -47,7 +47,7 @@ db-shell:
 
 # Migration tests need Postgres, so start the dev database first.
 test: db-up validate-packs check-contrast
-	cd server && DATABASE_URL_TEST=$(DATABASE_URL_TEST) uv run pytest
+	cd server && DATABASE_URL_TEST=$(DATABASE_URL_TEST) uv run pytest --require-db
 	cd client && pnpm test && pnpm build
 
 # Every shipped question pack: schema, content ids, answer consistency, unique ids.

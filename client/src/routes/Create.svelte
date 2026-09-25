@@ -94,6 +94,10 @@
         inRange(round.mode, 'seconds', round.seconds),
     ),
   )
+  /** `NewRoomSettings`' 2..30, and an integer: a cleared field binds `null`. */
+  const revealInRange = $derived(
+    Number.isInteger(revealSeconds) && 2 <= revealSeconds && revealSeconds <= 30,
+  )
   /** `NewRoomSettings`' 0..30, and an integer: a cleared field binds `null`. */
   const standingsInRange = $derived(
     Number.isInteger(standingsSeconds) && 0 <= standingsSeconds && standingsSeconds <= 30,
@@ -102,6 +106,7 @@
     nameProblem(displayName) === null &&
       rounds.length > 0 &&
       roundsInRange &&
+      revealInRange &&
       questionCount >= 1 &&
       totalCount <= MAX_QUESTIONS &&
       standingsInRange,
@@ -169,6 +174,7 @@
     if (to < 0 || to >= rounds.length) return
     const moved = [...rounds]
     const [round] = moved.splice(index, 1)
+    if (round === undefined) return
     moved.splice(to, 0, round)
     rounds = moved
   }
@@ -192,7 +198,7 @@
       const created = await createRoom(displayName.trim(), settings, $profile?.head)
       setSession(created.code, created.session)
       saveProfile(displayName)
-      rememberCreated(created.code)
+      rememberCreated(created.code, created.expires_at)
       navigate(`/r/${created.code}`)
     } catch (error) {
       failure =
@@ -232,7 +238,7 @@
             onchange={(event) => toggle(mode, event.currentTarget.checked)}
           />
           {modeLabel(mode.id)}
-          {#if MODES[mode.id]}<span class="note">— {MODES[mode.id].hint}</span>{/if}
+          {#if MODES[mode.id]}<span class="note">— {MODES[mode.id]?.hint}</span>{/if}
         </label>
       {/each}
       {#each upcomingModes as mode (mode.id)}
@@ -334,7 +340,7 @@
       <div>
         <label for="reveal">Reveal answers seconds</label>
         <input id="reveal" type="number" min="2" max="30" bind:value={revealSeconds} />
-        <p class="note">2–30</p>
+        <p class="note" class:error={!revealInRange}>2–30</p>
       </div>
       <div>
         <label for="standings">Standings between rounds, seconds</label>

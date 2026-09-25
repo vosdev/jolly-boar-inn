@@ -32,7 +32,7 @@
 
   // Highest first: a player counts once, in the first band their credit reaches.
   const BANDS = [0.9, 0.8, 0.7]
-  const LOWEST = BANDS[BANDS.length - 1]
+  const LOWEST = BANDS[BANDS.length - 1] ?? 0
 
   const rows = $derived(Object.entries(results))
   const right = $derived(rows.filter(([, result]) => result.correct).length)
@@ -41,7 +41,7 @@
       percent: Math.round(least * 100),
       count: rows.filter(
         ([, { correct, credit }]) =>
-          !correct && credit >= least && (index === 0 || credit < BANDS[index - 1]),
+          !correct && credit >= least && credit < (BANDS[index - 1] ?? Infinity),
       ).length,
     })).filter((band) => band.count > 0),
   )

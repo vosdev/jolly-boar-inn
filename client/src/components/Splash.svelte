@@ -19,6 +19,8 @@
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
    */
+  import { get } from 'svelte/store'
+
   import { headOf } from '../lib/heads'
   import { MODES, splashArt } from '../lib/modes'
   import type { PlayerView, Segment } from '../lib/protocol'
@@ -70,8 +72,14 @@
    * What a full timer bar means: however long the countdown had when it last started or
    * moved. There are two lengths (ten seconds, three), and a tap arriving mid-countdown
    * starts the bar again from full at the shorter one rather than from partway down.
+   * Only a new `endsAt` sets it: the offset is read without subscribing, because a `pong`
+   * that nudges it mid-countdown would otherwise fill the bar up again.
    */
-  let span = $state(0)
+  const span = $derived(
+    endsAt === null
+      ? 0
+      : Math.max(1, (Date.parse(endsAt) - (Date.now() + get(serverOffsetMs))) / 1000),
+  )
   /**
    * Whether this player has used the splash's one take-back. Kept here rather than on the
    * wire: the card is mounted fresh for every splash, which is exactly when it resets. A
@@ -83,12 +91,6 @@
     if (youReady) undone = true
     onReady(!youReady)
   }
-  $effect(() => {
-    span =
-      endsAt === null
-        ? 0
-        : Math.max(1, (Date.parse(endsAt) - (Date.now() + $serverOffsetMs)) / 1000)
-  })
   // Built here rather than in the markup, where Svelte would trim the space before the dot.
   const pace = $derived(
     `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}` +

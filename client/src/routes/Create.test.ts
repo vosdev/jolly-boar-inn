@@ -5,11 +5,13 @@
  * sends how often the NPCs interrupt, and counts their questions in the total it shows.
  */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
-import { saveProfile } from '../lib/profile'
+import { profile, saveProfile } from '../lib/profile'
+import { createdRooms } from '../lib/session'
 import Create from './Create.svelte'
 
 const PACING: api.ModePacing[] = [
@@ -39,6 +41,7 @@ beforeEach(() => {
   vi.mocked(api.createRoom).mockResolvedValue({
     code: 'ABYSSAL',
     session: 's',
+    expires_at: '2099-01-01T00:00:00Z',
     player: { id: 'p', display_name: 'Zezima', role: 'admin', connected: false },
   })
   saveProfile('Zezima')
@@ -47,7 +50,7 @@ beforeEach(() => {
 async function submitted(): Promise<api.NewRoomSettings> {
   await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
   await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
-  return vi.mocked(api.createRoom).mock.calls[0][1]
+  return vi.mocked(api.createRoom).mock.calls[0]![1]
 }
 
 /** The form, once `/api/modes` has answered and the rounds are drawn. */
@@ -57,6 +60,36 @@ async function loaded(): Promise<void> {
 }
 
 describe('Create', () => {
+  it('stops a browser with no name at a popup that one tap gets past', async () => {
+    profile.set(null)
+    render(Create, { navigate: () => {} })
+    const dialog = screen.getByRole('dialog', { name: 'What do we call you?' }) as HTMLDialogElement
+    const offered = (within(dialog).getByRole('textbox') as HTMLInputElement).value
+    const host = within(dialog).getByRole('button', { name: `Host as ${offered}` })
+    expect(document.activeElement).toBe(host)
+    await fireEvent.click(host)
+    expect(dialog.open).toBe(false)
+    expect(get(profile)?.name).toBe(offered)
+    expect((screen.getByLabelText('Your name', { selector: '#name' }) as HTMLInputElement).value).toBe(
+      offered,
+    )
+  })
+
+  it('asks a returning browser nothing, and one tap lands the host in the lobby', async () => {
+    const navigate = vi.fn()
+    render(Create, { navigate })
+    expect(document.querySelector('dialog')).toBeNull()
+    await screen.findByRole('checkbox', { name: /^More or Less/ })
+    await submitted()
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+  })
+
+  it('gives its one text field a die', async () => {
+    await loaded()
+    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Roll a random name' })).toBeTruthy()
+  })
+
   it('offers every mode but custom as a round', async () => {
     await loaded()
     expect(screen.getByRole('checkbox', { name: /^The Price is Right/ })).toBeTruthy()
@@ -73,7 +106,7 @@ describe('Create', () => {
   })
 
   it('stops calling a mode upcoming once the server plays it', async () => {
-    const shipped = { ...PACING[0], types: ['pick_from_list'] }
+    const shipped = { ...PACING[0]!, types: ['pick_from_list'] }
     vi.mocked(api.getModes).mockResolvedValue([
       ...structuredClone(PACING),
       { ...shipped, id: 'whos_that_npc' },
@@ -151,5 +184,25 @@ describe('Create', () => {
     await fireEvent.input(field, { target: { value: '0' } })
     expect(create.disabled).toBe(false)
     expect((await submitted()).standings_seconds).toBe(0)
+  })
+
+  it('will not submit a reveal outside 2 to 30, or none at all', async () => {
+    await loaded()
+    const field = screen.getByLabelText('Reveal answers seconds')
+    const create = screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement
+    for (const value of ['45', '1', '']) {
+      await fireEvent.input(field, { target: { value } })
+      expect(create.disabled).toBe(true)
+    }
+    await fireEvent.input(field, { target: { value: '30' } })
+    expect(create.disabled).toBe(false)
+    expect((await submitted()).reveal_seconds).toBe(30)
+  })
+
+  it('remembers the room it created until the server says it expires', async () => {
+    await loaded()
+    await submitted()
+    await waitFor(() => expect(createdRooms(Date.parse('2098-12-31T23:59:59Z'))).toEqual(['ABYSSAL']))
+    expect(createdRooms(Date.parse('2099-01-01T00:00:00Z'))).toEqual([])
   })
 })

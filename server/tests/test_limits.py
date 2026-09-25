@@ -23,37 +23,7 @@ from app.http.ratelimit import RateLimiter, client_key
 from app.main import create_app
 from app.ws import handler as ws_handler
 from app.ws.handler import MAX_FRAME, RATE_BURST, TokenBucket
-from tests.rooms_api import create, join
-
-
-@pytest.fixture
-def lobby(client: TestClient) -> dict[str, Any]:
-    """A room with its admin and one joined player: ``code``, ``admin``, ``player``."""
-    code, admin = create(client)
-    player = join(client, code, "Zezima").json()
-    return {"code": code, "admin": admin, "player": player}
-
-
-def hello(ws: WebSocketTestSession, session: str) -> dict[str, Any]:
-    ws.send_json({"t": "hello", "session": session})
-    message = ws.receive_json()
-    assert message["t"] == "welcome", message
-    return message
-
-
-def closed_with(ws: WebSocketTestSession) -> int:
-    with pytest.raises(WebSocketDisconnect) as info:
-        while True:
-            ws.receive_json()
-    return info.value.code
-
-
-def next_of(ws: WebSocketTestSession, kind: str) -> dict[str, Any]:
-    for _ in range(10):
-        message = ws.receive_json()
-        if message["t"] == kind:
-            return message
-    raise AssertionError(f"never got {kind}")
+from tests.rooms_api import closed_with, hello, next_of
 
 
 def until_pong(ws: WebSocketTestSession) -> list[dict[str, Any]]:
@@ -71,14 +41,14 @@ def until_pong(ws: WebSocketTestSession) -> list[dict[str, Any]]:
 def test_an_oversized_first_frame_is_closed_with_1009(client: TestClient) -> None:
     with client.websocket_connect("/ws/ANYTHING") as ws:
         ws.send_text("[" + "{}," * (MAX_FRAME // 3) + "{}]")
-        assert closed_with(ws) == 1009
+        assert closed_with(ws, drain=True) == 1009
 
 
 def test_an_oversized_frame_after_hello_is_closed_with_1009(client: TestClient, lobby) -> None:
     with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
         hello(ws, lobby["player"]["session"])
         ws.send_text('{"t": "ping", "pad": "' + "x" * MAX_FRAME + '"}')
-        assert closed_with(ws) == 1009
+        assert closed_with(ws, drain=True) == 1009
 
 
 def test_a_socket_that_never_says_hello_is_closed_with_1008(
@@ -86,7 +56,7 @@ def test_a_socket_that_never_says_hello_is_closed_with_1008(
 ) -> None:
     monkeypatch.setattr(ws_handler, "HELLO_TIMEOUT", 0.2)
     with client.websocket_connect("/ws/ANYTHING") as ws:
-        assert closed_with(ws) == 1008
+        assert closed_with(ws, drain=True) == 1008
 
 
 def test_a_flood_of_messages_is_closed_with_1008_after_the_burst(client: TestClient, lobby) -> None:
@@ -112,11 +82,11 @@ def test_a_burst_of_ready_taps_reaches_the_room_at_most_a_burst_of_times(
     ):
         hello(watcher, lobby["admin"]["session"])
         hello(flooder, lobby["player"]["session"])
-        next_of(watcher, "room_updated")  # the flooder connecting
+        next_of(watcher, "players_updated")  # the flooder connecting
         for i in range(100):
             flooder.send_json({"t": "ready", "ready": i % 2 == 0})
-        assert closed_with(flooder) == 1008
-        updates = [m for m in until_pong(watcher) if m["t"] == "room_updated"]
+        assert closed_with(flooder, drain=True) == 1008
+        updates = [m for m in until_pong(watcher) if m["t"] == "players_updated"]
         assert len(updates) <= RATE_BURST
 
 
@@ -138,13 +108,13 @@ def test_a_lobby_ready_change_within_a_second_is_refused(client: TestClient, lob
     with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
         hello(ws, lobby["player"]["session"])
         ws.send_json({"t": "ready", "ready": True})
-        assert next_of(ws, "room_updated")
+        assert next_of(ws, "players_updated")
         ws.send_json({"t": "ready", "ready": False})
         error = next_of(ws, "error")
         assert error["code"] == "bad_state"
         clock[0] += 1
         ws.send_json({"t": "ready", "ready": False})
-        mine = next_of(ws, "room_updated")["players"]
+        mine = next_of(ws, "players_updated")["players"]
         assert not next(p for p in mine if p["id"] == lobby["player"]["player"]["id"])["ready"]
 
 
