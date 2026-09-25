@@ -29,13 +29,15 @@ describe('podium', () => {
 
   it('puts tied players on one step, and past three shows the rest as +N', () => {
     const level = ['a', 'b', 'c', 'd', 'e'].map((name) => standing(name, 500, 1))
-    const [, , first, second] = podium([...level, standing('f', 100, 2)])
+    const steps = podium([...level, standing('f', 100, 2)])
+    const first = steps[2]!
+    const second = steps[3]!
     expect(first.standings.map((s) => s.player_id)).toEqual(['a', 'b', 'c', 'd', 'e'])
     expect(first.shown.map((s) => s.player_id)).toEqual(['a', 'b', 'c'])
     expect(first.more).toBe(2)
     expect(second.rank).toBe(3)
     expect(second.standings).toEqual([])
-    const platinum = podium([...level, standing('f', 100, 2)])[1]
+    const platinum = podium([...level, standing('f', 100, 2)])[1]!
     expect(platinum.standings.map((s) => s.player_id)).toEqual(['f'])
     expect(platinum.more).toBe(0)
   })

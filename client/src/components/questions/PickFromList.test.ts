@@ -122,6 +122,26 @@ describe('pick_from_list', () => {
     ])
   })
 
+  it('draws at most fifty matches, and says how many more typing would find', async () => {
+    const many = Array.from({ length: 120 }, (_, i) => ({
+      id: i + 1,
+      name: `Item ${String(i).padStart(3, '0')}`,
+    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ vocab: 'items', version: 'v2', entries: many }))),
+    )
+    const { box } = await mount()
+    await fireEvent.focus(box)
+    const drawn = options()
+    expect(drawn).toHaveLength(51)
+    expect(drawn[0]).toBe('Item 000')
+    expect(drawn[49]).toBe('Item 049')
+    expect(drawn[50]).toBe('70 more — keep typing to narrow the list.')
+    await fireEvent.input(box, { target: { value: 'item 11' } })
+    expect(options()).toEqual(Array.from({ length: 10 }, (_, i) => `Item 11${i}`))
+  })
+
   it('filters as you type and highlights the first match', async () => {
     const { box } = await mount()
     await fireEvent.focus(box)

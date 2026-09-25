@@ -131,13 +131,15 @@ jolly-boar-inn/
 │       │   ├── Home.svelte          # create or join
 │       │   ├── Create.svelte        # name + settings; creates and lands in the lobby as host
 │       │   ├── Join.svelte
-│       │   └── Room.svelte          # lobby / question / reveal / final, driven by stores
+│       │   └── Room.svelte          # the socket, and which screen the stores call for
 │       └── components/
 │           ├── TopBar.svelte           # sign, wordmark + room code, and three control slots
 │           ├── Lobby.svelte
 │           ├── Scoreboard.svelte
 │           ├── Splash.svelte            # introduces a round's mode, on a timer
+│           ├── QuestionStage.svelte     # one question, open or revealed: event card or plain
 │           ├── RandomEvent.svelte       # the NPC who interrupts a round with one question
+│           ├── ErrorBanner.svelte       # the last refusal, until dismissed
 │           ├── Timer.svelte
 │           └── questions/
 │               ├── index.ts             # viewFor(type, mode): which pair draws a question
@@ -616,8 +618,9 @@ player types is a search, never an answer:
 
 - It is the WAI-ARIA combobox pattern: an input with `role="combobox"`, a `listbox` popup,
   and `aria-activedescendant` on the highlighted option.
-- Focus opens the list with the whole vocabulary, alphabetical, so a player who cannot spell
-  it can still scroll to it. Knowing the vocabulary gives nothing away (section 3).
+- Focus opens the list alphabetical, so a player who cannot spell a name can still scroll
+  to it. It draws the first 50 matches and says how many more typing would find.
+  Knowing the vocabulary gives nothing away (section 3).
 - Typing filters it (`lib/vocab.ts`): case- and accent-insensitive, matching the start of
   any word in the name, so "whip" finds "Abyssal whip" and "d sc" finds "Dragon scimitar".
   Names that start with the query sort first, then alphabetical. The first match is

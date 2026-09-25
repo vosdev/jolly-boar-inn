@@ -49,7 +49,7 @@ beforeEach(() => {
 async function submitted(): Promise<api.NewRoomSettings> {
   await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
   await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
-  return vi.mocked(api.createRoom).mock.calls[0][1]
+  return vi.mocked(api.createRoom).mock.calls[0]![1]
 }
 
 /** The form, once `/api/modes` has answered and the rounds are drawn. */
@@ -75,7 +75,7 @@ describe('Create', () => {
   })
 
   it('stops calling a mode upcoming once the server plays it', async () => {
-    const shipped = { ...PACING[0], types: ['pick_from_list'] }
+    const shipped = { ...PACING[0]!, types: ['pick_from_list'] }
     vi.mocked(api.getModes).mockResolvedValue([
       ...structuredClone(PACING),
       { ...shipped, id: 'whos_that_npc' },

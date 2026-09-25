@@ -18,6 +18,8 @@
  *   is what lets "ahrim" find "Ahrim's robetop".
  * - Names that start with the query come first, then everything else that matches, each
  *   group alphabetical. An empty query is the whole list, alphabetical.
+ * - Each list is folded and sorted once, and the combobox draws only the first
+ *   `SHOWN_MAX` matches, so a list of thousands of NPCs keeps up with typing on a phone.
  */
 
 import { getVocab, type Vocab, type VocabEntry } from './api'
@@ -68,8 +70,25 @@ export function words(text: string): string[] {
   return fold(text).match(/[\p{L}\p{N}]+/gu) ?? []
 }
 
-const byName = (a: VocabEntry, b: VocabEntry) =>
-  fold(a.name) < fold(b.name) ? -1 : fold(a.name) > fold(b.name) ? 1 : a.id - b.id
+/** An entry with its name folded, split and ranked once, rather than on every keystroke. */
+interface Indexed {
+  entry: VocabEntry
+  words: string[]
+}
+
+/** Each list's entries, alphabetical and folded, built the first time the list is searched. */
+const indexes = new WeakMap<readonly VocabEntry[], Indexed[]>()
+
+function indexOf(entries: readonly VocabEntry[]): Indexed[] {
+  let index = indexes.get(entries)
+  if (index === undefined) {
+    const keyed = entries.map((entry) => ({ entry, key: fold(entry.name), words: words(entry.name) }))
+    keyed.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : a.entry.id - b.entry.id))
+    index = keyed.map(({ entry, words }) => ({ entry, words }))
+    indexes.set(entries, index)
+  }
+  return index
+}
 
 /**
  * Where in `name` the query's words start, as a word index, or -1 if they do not.
@@ -77,21 +96,25 @@ const byName = (a: VocabEntry, b: VocabEntry) =>
  */
 function matchAt(name: string[], query: string[]): number {
   for (let start = 0; start + query.length <= name.length; start++) {
-    if (query.every((word, offset) => name[start + offset].startsWith(word))) return start
+    if (query.every((word, offset) => name[start + offset]?.startsWith(word) === true)) return start
   }
   return -1
 }
 
+/** How many matches the combobox draws: a phone lists thousands of `<li>`s slowly. */
+export const SHOWN_MAX = 50
+
 /** The entries `query` finds, best first. See the module comment for the rules. */
 export function search(entries: readonly VocabEntry[], query: string): VocabEntry[] {
+  const index = indexOf(entries)
   const wanted = words(query)
-  if (wanted.length === 0) return [...entries].sort(byName)
+  if (wanted.length === 0) return index.map(({ entry }) => entry)
   const first: VocabEntry[] = []
   const rest: VocabEntry[] = []
-  for (const entry of entries) {
-    const at = matchAt(words(entry.name), wanted)
+  for (const { entry, words } of index) {
+    const at = matchAt(words, wanted)
     if (at === 0) first.push(entry)
     else if (at > 0) rest.push(entry)
   }
-  return [...first.sort(byName), ...rest.sort(byName)]
+  return [...first, ...rest]
 }

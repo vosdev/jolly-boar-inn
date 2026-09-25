@@ -46,7 +46,7 @@ export function podium(standings: readonly Standing[]): Step[] {
     const on = standings.filter((standing) => standing.rank === rank && standing.points > 0)
     return {
       rank,
-      tier: TIERS[rank - 1],
+      tier: TIERS[rank - 1]!,
       standings: on,
       shown: on.slice(0, HEADS_PER_STEP),
       more: Math.max(0, on.length - HEADS_PER_STEP),

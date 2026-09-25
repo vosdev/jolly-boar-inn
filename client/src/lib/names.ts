@@ -48,7 +48,9 @@ export function nameProblem(raw: string): string | null {
 }
 
 function pick<T>(items: readonly T[]): T {
-  return items[Math.floor(Math.random() * items.length)]
+  const item = items[Math.floor(Math.random() * items.length)]
+  if (item === undefined) throw new Error('nothing to pick from')
+  return item
 }
 
 /** 1–999, weighted toward two digits because `Cow31337Killer42` reads better than `…7`. */

@@ -1,3 +1,35 @@
+<script lang="ts" module>
+  import type { PlayerResult } from '../lib/protocol'
+
+  const numbers = new Intl.NumberFormat('en-GB')
+
+  type Outcome = 'right' | 'wrong' | 'graded' | 'none' | 'unscored'
+
+  function outcomeOf(result: PlayerResult | null, canAnswer: boolean): Outcome {
+    if (!canAnswer) return 'unscored'
+    if (result === null) return 'none'
+    if (result.correct) return 'right'
+    return result.points > 0 ? 'graded' : 'wrong'
+  }
+
+  /** The whole slot in one sentence, for a screen reader: `Room` announces it too. */
+  export function verdictSentence(
+    result: PlayerResult | null,
+    canAnswer: boolean,
+    total: number | null,
+  ): string {
+    const points = `+${numbers.format(result?.points ?? 0)}`
+    const said = {
+      right: `Right, ${points} points`,
+      wrong: 'Wrong, no points',
+      graded: `${points} points`,
+      none: 'No answer, no points',
+      unscored: 'Not scored for you',
+    }[outcomeOf(result, canAnswer)]
+    return said + (total === null ? '' : `. ${numbers.format(total)} in total.`)
+  }
+</script>
+
 <script lang="ts">
   /**
    * Your points for the question just revealed, over your running total (D8, section 7.2).
@@ -18,8 +50,10 @@
    * show, from the same `standings` they will show it from, so the two cannot disagree.
    * What the slot does not carry is the reason for the number: a speed bonus explained
    * mid-reveal is a second thing to read in a beat that is already short.
+   *
+   * It is not a live region of its own: one that appears already filled is often never
+   * read, so `Room`'s announcer says the same sentence instead.
    */
-  import type { PlayerResult } from '../lib/protocol'
 
   let {
     result,
@@ -34,34 +68,12 @@
     total: number | null
   } = $props()
 
-  const numbers = new Intl.NumberFormat('en-GB')
-
-  type Outcome = 'right' | 'wrong' | 'graded' | 'none' | 'unscored'
-  const outcome = $derived<Outcome>(
-    !canAnswer
-      ? 'unscored'
-      : result === null
-        ? 'none'
-        : result.correct
-          ? 'right'
-          : result.points > 0
-            ? 'graded'
-            : 'wrong',
-  )
+  const outcome = $derived(outcomeOf(result, canAnswer))
   const points = $derived(`+${numbers.format(result?.points ?? 0)}`)
-  /** The whole slot in one sentence, for a screen reader. */
-  const spoken = $derived(
-    {
-      right: `Right, ${points} points`,
-      wrong: 'Wrong, no points',
-      graded: `${points} points`,
-      none: 'No answer, no points',
-      unscored: 'Not scored for you',
-    }[outcome] + (total === null ? '' : `. ${numbers.format(total)} in total.`),
-  )
+  const spoken = $derived(verdictSentence(result, canAnswer, total))
 </script>
 
-<div class="slot surface {outcome}" role="status">
+<div class="slot surface {outcome}">
   <span class="sr">{spoken}</span>
   <p class="earned" aria-hidden="true">
     {#if outcome === 'right'}

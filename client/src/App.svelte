@@ -47,7 +47,7 @@
     if (path === '/create') return { name: 'create' }
     const match = ROOM_PATH.exec(path)
     if (match === null) return { name: 'home' }
-    const code = normalizeCode(match[1])
+    const code = normalizeCode(match[1] ?? '')
     if (match[2] === 'create') return { name: 'create' }
     return getSession(code) === null ? { name: 'join', code } : { name: 'room', code }
   }

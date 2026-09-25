@@ -37,13 +37,13 @@ const ROOM: RoomView = {
 
 let sent: unknown[] = []
 
-function lobby(): void {
+function lobby(players: PlayerView[] = [HOST, WOOX]): void {
   resetRoom()
   applyServerMessage({
     t: 'welcome',
     room: ROOM,
     you: HOST,
-    players: [HOST, WOOX],
+    players,
     question: null,
     your_answer: null,
     standings: [],
@@ -96,6 +96,20 @@ describe('Lobby', () => {
     await fireEvent(dialog(), new Event('cancel'))
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(sent).toEqual([])
+  })
+
+  it('starts at once, asking nothing, when enough of the room is ready', async () => {
+    lobby([{ ...HOST, ready: true }, WOOX])
+    await fireEvent.click(screen.getByRole('button', { name: 'Start the game' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(sent).toEqual([{ t: 'start_game' }])
+  })
+
+  it('counts only who is connected toward Start, and names the rest', async () => {
+    const away: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false }
+    lobby([{ ...HOST, ready: true }, WOOX, { ...away, ready: true }])
+    await fireEvent.click(screen.getByRole('button', { name: 'Start the game' }))
+    expect(sent).toEqual([{ t: 'start_game' }])
   })
 
   it('names the players link by its own label alone, not the room code', () => {

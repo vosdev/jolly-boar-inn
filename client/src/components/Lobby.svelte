@@ -16,15 +16,15 @@
    * Promote asks first as well as Kick: there is no demote, and an admin cannot be kicked,
    * so one slip of the thumb would make a permanent co-host.
    */
-  import { errorText } from '../lib/errors'
   import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
   import { readyThreshold } from '../lib/ready'
   import type { PlayerView } from '../lib/protocol'
-  import { lastError, players, room, you } from '../lib/stores'
+  import { players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
   import ConfirmDialog from './ConfirmDialog.svelte'
   import CopyLink from './CopyLink.svelte'
+  import ErrorBanner from './ErrorBanner.svelte'
   import Head from './Head.svelte'
 
   let { socket }: { socket: RoomSocket } = $props()
@@ -108,12 +108,7 @@
   }
 </script>
 
-{#if $lastError !== null}
-  <div class="banner bad">
-    {errorText($lastError)}
-    <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
-  </div>
-{/if}
+<ErrorBanner />
 
 <section class="panel">
   <div class="spread">

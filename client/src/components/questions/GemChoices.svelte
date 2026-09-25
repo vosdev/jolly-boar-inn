@@ -40,7 +40,7 @@
 
   // Six is the cap (section 2), and a pack that broke it must still draw something: a
   // seventh option reuses the last gem rather than vanishing.
-  const gemAt = (index: number) => GEMS[Math.min(index, GEMS.length - 1)]
+  const gemAt = (index: number) => GEMS[Math.min(index, GEMS.length - 1)] ?? null
 
   const settled = $derived(
     revealed && [...answer].some((index) => index >= 0 && index < options.length),

@@ -174,6 +174,7 @@
     if (to < 0 || to >= rounds.length) return
     const moved = [...rounds]
     const [round] = moved.splice(index, 1)
+    if (round === undefined) return
     moved.splice(to, 0, round)
     rounds = moved
   }
@@ -237,7 +238,7 @@
             onchange={(event) => toggle(mode, event.currentTarget.checked)}
           />
           {modeLabel(mode.id)}
-          {#if MODES[mode.id]}<span class="note">— {MODES[mode.id].hint}</span>{/if}
+          {#if MODES[mode.id]}<span class="note">— {MODES[mode.id]?.hint}</span>{/if}
         </label>
       {/each}
       {#each upcomingModes as mode (mode.id)}

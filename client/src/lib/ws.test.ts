@@ -64,7 +64,7 @@ let received: ServerMessage[]
 let live: RoomSocket
 
 function latest(): FakeSocket {
-  return FakeSocket.made[FakeSocket.made.length - 1]
+  return FakeSocket.made[FakeSocket.made.length - 1]!
 }
 
 /** A socket that has said hello and been welcomed. */

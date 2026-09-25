@@ -44,6 +44,6 @@ export function parseAmount(text: string): number | null {
   const cleaned = text.trim().toLowerCase().replace(/[\s,_]/g, '')
   const match = /^(-?(?:\d+\.?\d*|\.\d+))([kmb]?)$/.exec(cleaned)
   if (match === null) return null
-  const value = Number(match[1] + (SUFFIX[match[2]] ?? ''))
+  const value = Number(match[1] + (SUFFIX[match[2] ?? ''] ?? ''))
   return Number.isFinite(value) ? value : null
 }

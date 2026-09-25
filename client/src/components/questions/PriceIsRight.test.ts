@@ -51,7 +51,7 @@ describe('price_is_right', () => {
     const name = screen.getByText('Abyssal whip')
     expect(name.dataset.asset).toBe('item:4151')
     expect(prices()).toEqual(['1.1M gp', '1.6M gp', '2.1M gp', '29M gp'])
-    const first = screen.getAllByRole('button')[0]
+    const first = screen.getAllByRole('button')[0]!
     expect(name.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.queryByText('correct')).toBeNull()
   })
@@ -68,7 +68,7 @@ describe('price_is_right', () => {
     expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(
       true,
     )
-    expect(screen.getAllByRole('button')[0].getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getAllByRole('button')[0]!.getAttribute('aria-pressed')).toBe('true')
     answered.unmount()
     render(Question, {
       question: { ...open(), you_can_answer: false },
@@ -90,12 +90,12 @@ describe('price_is_right', () => {
       onAnswer: () => {},
     })
     const buttons = screen.getAllByRole('button')
-    expect(buttons[1].classList.contains('correct')).toBe(true)
-    expect(buttons[3].classList.contains('wrong')).toBe(true)
-    expect(buttons[3].textContent).toContain('you')
+    expect(buttons[1]!.classList.contains('correct')).toBe(true)
+    expect(buttons[3]!.classList.contains('wrong')).toBe(true)
+    expect(buttons[3]!.textContent).toContain('you')
     // Position is identity: the ladder is sapphire, emerald, ruby, red topaz, revealed or not.
     const gems = ['sapphire', 'emerald', 'ruby', 'red-topaz']
-    buttons.forEach((b, i) => expect(b.classList.contains(gems[i])).toBe(true))
+    buttons.forEach((b, i) => expect(b.classList.contains(gems[i]!)).toBe(true))
     expect(screen.getByText(/^Grand Exchange price, rounded, as of /)).toBeTruthy()
   })
 

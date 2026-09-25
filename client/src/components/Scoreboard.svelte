@@ -62,7 +62,7 @@
     const place = `${ORDINALS[step.rank - 1]}, ${tierName(step.tier)} trophy`
     if (step.standings.length === 0) return `${place}: nobody`
     const names = step.standings.map(nameOf).join(', ')
-    return `${place}: ${names}, ${numbers.format(step.standings[0].points)} points`
+    return `${place}: ${names}, ${numbers.format(step.standings[0]?.points ?? 0)} points`
   }
 </script>
 
@@ -98,7 +98,7 @@
               <span class="more">+{step.more}</span>
             {/if}
             <span class="names">{step.standings.map(nameOf).join(', ')}</span>
-            <span class="points">{numbers.format(step.standings[0].points)}</span>
+            <span class="points">{numbers.format(step.standings[0]?.points ?? 0)}</span>
           {/if}
         </div>
         <div class="block" aria-hidden="true">

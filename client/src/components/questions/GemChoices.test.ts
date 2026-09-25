@@ -70,8 +70,8 @@ describe('GemChoices', () => {
     ])
     draw({ options: ['Yes', 'No'] })
     const two = buttons().slice(6)
-    expect(two[0].classList.contains('sapphire')).toBe(true)
-    expect(two[1].classList.contains('emerald')).toBe(true)
+    expect(two[0]!.classList.contains('sapphire')).toBe(true)
+    expect(two[1]!.classList.contains('emerald')).toBe(true)
   })
 
   it('answers with the position pressed', async () => {
@@ -85,7 +85,7 @@ describe('GemChoices', () => {
     draw({ picked: 2 })
     expect(buttons().every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
     expect(states()).toEqual(['faded', 'faded', 'waiting', 'faded', 'faded', 'faded'])
-    expect(buttons()[2].textContent).toContain('you')
+    expect(buttons()[2]!.textContent).toContain('you')
     expect(buttons().map((b) => b.getAttribute('aria-pressed'))).toEqual([
       'false',
       'false',
@@ -98,7 +98,7 @@ describe('GemChoices', () => {
 
   it('draws a seventh option, over the cap, on the last gem rather than on nothing', () => {
     draw({ options: [...SIX, 'Seven'] })
-    expect(buttons()[6].classList.contains('zenyte')).toBe(true)
+    expect(buttons()[6]!.classList.contains('zenyte')).toBe(true)
   })
 
   const sizes = () =>
@@ -145,7 +145,7 @@ describe('GemChoices', () => {
 
   it('keeps our wrong pick identifiable by its "you", faded like the rest', () => {
     draw({ picked: 5, answer: 1, revealed: true })
-    const ours = buttons()[5]
+    const ours = buttons()[5]!
     expect(ours.classList.contains('wrong')).toBe(true)
     expect(ours.textContent).toContain('you')
     expect(ours.textContent).toContain('your answer, wrong')
@@ -155,7 +155,7 @@ describe('GemChoices', () => {
 
   it('keeps the "you" on a right pick, where no ✗ says it is ours', () => {
     draw({ picked: 2, answer: 2, revealed: true })
-    const ours = buttons()[2]
+    const ours = buttons()[2]!
     expect(ours.classList.contains('correct')).toBe(true)
     expect(ours.textContent).toContain('you')
     expect(ours.getAttribute('aria-pressed')).toBe('true')
@@ -169,8 +169,8 @@ describe('GemChoices', () => {
 
   it('never changes a gem on reveal: the answer keeps its own', () => {
     draw({ answer: 1, revealed: true })
-    expect(buttons()[1].classList.contains('emerald')).toBe(true)
-    expect(buttons()[1].classList.contains('correct')).toBe(true)
+    expect(buttons()[1]!.classList.contains('emerald')).toBe(true)
+    expect(buttons()[1]!.classList.contains('correct')).toBe(true)
   })
 })
 
@@ -199,7 +199,8 @@ describe('more_less on the plain buttons', () => {
   // which read as "you chose the right one".
   it('draws no button pressed on a reveal we did not answer', () => {
     render(Question, { question: open, reveal, yourValue: null, onAnswer: () => {} })
-    const [whip, bones] = buttons()
+    const whip = buttons()[0]!
+    const bones = buttons()[1]!
     expect(whip.classList.contains('correct')).toBe(true)
     expect(whip.classList.contains('waiting')).toBe(false)
     expect(whip.textContent).not.toContain('you')
