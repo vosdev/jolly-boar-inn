@@ -2,7 +2,7 @@
 
 T21 Accept (the type half; the game half is in ``test_game.py``): two players the same
 distance away share the better rank; an exact match beats a guess one off; a player who
-did not answer scores 0, not 200.
+did not answer scores 0.
 """
 
 import copy
@@ -53,52 +53,52 @@ def test_example_validates() -> None:
 
 
 def test_the_ladder_is_section_6s_table() -> None:
-    """1.0 exact, then 0.8 / 0.6 / 0.4 for the closest three misses, 0.2 for the rest."""
+    """1.0 exact, then 0.9 / 0.8 / 0.7 for the closest three misses, 0.0 for the rest."""
     assert ranked(100, a=100, b=90, c=80, d=70, e=60, f=50) == {
         "a": 1.0,
-        "b": 0.8,
-        "c": 0.6,
-        "d": 0.4,
-        "e": 0.2,
-        "f": 0.2,
+        "b": 0.9,
+        "c": 0.8,
+        "d": 0.7,
+        "e": 0.0,
+        "f": 0.0,
     }
-    points = [scoring.points_for(Scoring.RANK, c, None, None) for c in (1.0, 0.8, 0.6, 0.4, 0.2)]
-    assert points == [1000, 800, 600, 400, 200]
+    points = [scoring.points_for(Scoring.RANK, c, None, None) for c in (1.0, 0.9, 0.8, 0.7, 0.0)]
+    assert points == [1000, 750, 500, 250, 0]
 
 
 def test_players_the_same_distance_away_share_the_better_rank() -> None:
     """Either side of the answer, and the guess behind them is second closest: dense."""
     assert ranked(100, under=99, over=101, behind=105, last=200) == {
-        "under": 0.8,
-        "over": 0.8,
-        "behind": 0.6,
-        "last": 0.4,
+        "under": 0.9,
+        "over": 0.9,
+        "behind": 0.8,
+        "last": 0.7,
     }
 
 
 def test_an_exact_match_beats_a_guess_one_off() -> None:
-    assert ranked(100, exact=100, near=101) == {"exact": 1.0, "near": 0.8}
+    assert ranked(100, exact=100, near=101) == {"exact": 1.0, "near": 0.9}
     # And an exact match takes no rung from the misses: the nearest one is still closest.
-    assert ranked(100, exact=100, also=100.0, near=150)["near"] == 0.8
+    assert ranked(100, exact=100, also=100.0, near=150)["near"] == 0.9
 
 
 def test_nobody_exact_means_nobody_gets_full_marks() -> None:
-    assert max(ranked(100, a=150, b=40).values()) == 0.8
+    assert max(ranked(100, a=150, b=40).values()) == 0.9
 
 
-def test_a_player_who_did_not_answer_scores_nothing_not_two_hundred() -> None:
+def test_a_player_who_did_not_answer_is_not_graded() -> None:
     """``grade`` only ever sees submissions, so a silent player is not in what it returns
     -- and the close pays only the players it returned."""
     silent = uuid4()
     credit = closest_number.grade(EXAMPLE["payload"], [Submission(uuid4(), 5)])
     assert silent not in credit
-    assert list(credit.values()) == [0.8]
+    assert list(credit.values()) == [0.9]
 
 
 def test_decimal_guesses_equally_far_off_tie() -> None:
     """In float arithmetic 1.1 and 0.9 are not quite as far from 1 as each other."""
     assert abs(1.1 - 1) != abs(0.9 - 1)
-    assert ranked(1, over=1.1, under=0.9) == {"over": 0.8, "under": 0.8}
+    assert ranked(1, over=1.1, under=0.9) == {"over": 0.9, "under": 0.9}
 
 
 def test_speed_does_not_come_into_it() -> None:

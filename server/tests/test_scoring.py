@@ -5,8 +5,9 @@ all of this encodes; the sums those standings are built from are test_game.py's 
 
 T17 Accept: a table per scoring. ``SPEED`` pays a bucket's points times the credit, so
 0.6 in bucket 2 is 540; ``STEP`` pays 1000 down to 400 across the steps, 1000 for a
-one-step question, and clamps a step past the last; ``RANK`` pays 1000 times the credit
-and never looks at the clock. The bucket edges above them are T10's, untouched.
+one-step question, and clamps a step past the last; ``RANK`` pays a share of 1000 for the
+rung the credit reached and never looks at the clock. The bucket edges above them are
+T10's, untouched.
 
 The bucket edges are inclusive and are fractions of the room's ``question_seconds``, so
 the same answer speed buckets the same way whatever the question length.
@@ -314,8 +315,18 @@ def test_step_without_steps_is_scored_on_speed() -> None:
 
 # --- RANK: the credit is the ranking, and the clock is nobody's business -------------
 
-# Section 6's table: exact, then the closest three, then everyone else who answered.
-RANK = [(1.0, 1000), (0.8, 800), (0.6, 600), (0.4, 400), (0.2, 200), (0.0, 0)]
+# Section 6's table: exact, then the closest three, then nothing. A credit between rungs
+# is paid at the rung it reached.
+RANK = [
+    (1.0, 1000),
+    (0.95, 750),
+    (0.9, 750),
+    (0.8, 500),
+    (0.7, 250),
+    (0.69, 0),
+    (0.2, 0),
+    (0.0, 0),
+]
 
 
 @pytest.mark.parametrize(("credit", "points"), RANK)
@@ -341,7 +352,7 @@ def test_rank_has_no_band(elapsed_s: float) -> None:
 
 
 def test_rank_pays_no_attention_to_a_band_it_is_handed() -> None:
-    assert {points_for(Scoring.RANK, 0.8, b, None) for b in (None, 1, 5)} == {800}
+    assert {points_for(Scoring.RANK, 0.8, b, None) for b in (None, 1, 5)} == {500}
 
 
 # --- credit is 0..1 whatever pays it -------------------------------------------------

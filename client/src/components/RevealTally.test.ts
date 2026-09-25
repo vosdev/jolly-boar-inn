@@ -51,7 +51,7 @@ describe('RevealTally', () => {
   })
 
   it('does not call out a graded guess within 70%', () => {
-    const near: PlayerResult = { value: 99, correct: false, credit: 0.8, points: 800 }
+    const near: PlayerResult = { value: 99, correct: false, credit: 0.9, points: 750 }
     const { container } = draw({ a: near, b: wrong }, true)
     expect(container.querySelector('.count')?.textContent?.trim()).toBe('0 of 2 got it right')
     expect(container.querySelector('.wrong')?.textContent).not.toContain('Zezima')

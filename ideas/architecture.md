@@ -1063,16 +1063,16 @@ right is still worth more than being fast.
 
 `closest_number` ranks answers by `abs(value - answer)`; ties share the better rank. There is
 no speed component, because the closest guess should win whether it arrived first or last.
-The type's `grade` returns the credit below and `scoring.py` multiplies by 1000.
+The type's `grade` returns the credit below and `scoring.py` pays the credit's rung
+(`RANK_SHARES`), so nearly right is clearly worth less than right. Under 0.7 is wrong.
 
 | Rank | Credit | Points |
 |---|---|---|
 | Exact match | 1.0 | 1000 |
-| 1st closest (not exact) | 0.8 | 800 |
-| 2nd | 0.6 | 600 |
-| 3rd | 0.4 | 400 |
-| Everyone else who answered | 0.2 | 200 |
-| No answer | — | 0 |
+| 1st closest (not exact) | 0.9 | 750 |
+| 2nd | 0.8 | 500 |
+| 3rd | 0.7 | 250 |
+| Everyone else, or no answer | 0.0 / — | 0 |
 
 ### Steps (`SCORING = STEP`)
 
@@ -1117,6 +1117,7 @@ Sorted by total points desc, then by number of correct answers desc, then by `jo
 ```python
 BUCKETS = [(0.10, 1000), (0.25, 900), (0.50, 800), (0.75, 700), (1.00, 600)]
 RANK_TOP = 1000
+RANK_SHARES = [(1.0, 1.0), (0.9, 0.75), (0.8, 0.5), (0.7, 0.25)]
 STEP_TOP, STEP_BOTTOM = 1000, 400
 
 def bucket(elapsed_s: float, question_s: int) -> int          # 1..5, clamps to 5

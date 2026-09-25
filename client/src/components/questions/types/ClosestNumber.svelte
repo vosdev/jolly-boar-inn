@@ -18,8 +18,8 @@
    * - after close, `reveal(payload)`: the same plus `answer`, and an optional
    *   `explanation` that `Question` draws.
    *
-   * The reveal's points are the rank table, not a bucket: 1000 for exact, then 800, 600,
-   * 400 for the three closest misses and 200 for having a go. The points slot in `Room`
+   * The reveal's points are the rank table, not a bucket: 1000 for exact, then 750, 500,
+   * 250 for the three closest misses and nothing further off. The points slot in `Room`
    * shows them (D8); this view says how far off the guess was, which is the answer, not
    * the reason for the number.
    */

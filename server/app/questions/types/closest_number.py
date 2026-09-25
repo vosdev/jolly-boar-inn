@@ -11,9 +11,9 @@ win whether it arrived first or last (``SCORING = RANK``, section 6). That is al
 ``grade`` takes every submission at once, which is the reason every type's ``grade`` does.
 
 The credit ladder is section 6's table. An exact guess is 1.0, whatever anyone else did;
-then the closest guesses that were not exact are 0.8, the next closest 0.6, the next 0.4,
-and every other answer 0.2 -- having a go is worth something, not answering is not, and a
-player who sent nothing is not in ``submissions`` and so not in what this returns.
+then the closest guesses that were not exact are 0.9, the next closest 0.8, the next 0.7,
+and every other answer 0.0, which the reveal tally counts as wrong. A player who sent
+nothing is not in ``submissions`` and so not in what this returns.
 
 Ties share the better rank, and the ranks are dense: two players the same distance away
 are both "closest", and the guess behind them is second closest, not third. That is the
@@ -44,8 +44,8 @@ SECONDS = Bounds(default=20, minimum=10, maximum=60)
 
 EXACT = 1.0
 # The closest non-exact guess, the next, the next; then everybody else who answered.
-LADDER = (0.8, 0.6, 0.4)
-ANSWERED = 0.2
+LADDER = (0.9, 0.8, 0.7)
+FURTHER = 0.0
 
 _OPEN_KEYS = ("prompt", "image", "unit")
 
@@ -68,7 +68,7 @@ def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, 
     off = {s.player_id: abs(_as_written(s.value) - answer) for s in submissions}
     # Dense ranks over the distinct misses: equal distances share one rung of the ladder.
     misses = sorted({distance for distance in off.values() if distance != 0})
-    rung = {miss: LADDER[i] if i < len(LADDER) else ANSWERED for i, miss in enumerate(misses)}
+    rung = {miss: LADDER[i] if i < len(LADDER) else FURTHER for i, miss in enumerate(misses)}
     return {pid: EXACT if distance == 0 else rung[distance] for pid, distance in off.items()}
 
 

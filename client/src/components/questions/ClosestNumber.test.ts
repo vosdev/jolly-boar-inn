@@ -79,14 +79,14 @@ describe('closest_number', () => {
       question: open(),
       reveal: REVEAL,
       yourValue: 99,
-      result: { value: 99, correct: false, credit: 0.8, points: 800 },
+      result: { value: 99, correct: false, credit: 0.9, points: 750 },
       onAnswer: () => {},
     })
     expect(screen.getByText('100 hours')).toBeTruthy()
     expect(screen.getByText('99 hours')).toBeTruthy()
     expect(document.querySelector('.picked')?.textContent).toMatch(/99 hours\s*, off by 1 hours/)
     // What it paid is the points slot's to say (D8), not the view's.
-    expect(screen.queryByText(/800/)).toBeNull()
+    expect(screen.queryByText(/750/)).toBeNull()
     expect(screen.getByText('Most of them at Zuk.')).toBeTruthy()
   })
 

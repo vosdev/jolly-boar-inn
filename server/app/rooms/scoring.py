@@ -5,10 +5,10 @@ the numbers are argued about.
 
 Grading happens in two halves. A type's ``grade`` returns credit, 0.0 to 1.0, and this
 module turns credit into points one of three ways, picked by the type's ``SCORING``: a
-speed bucket (``SPEED``), a flat 1000 (``RANK``, where the credit is already the ranking),
-or the step of a question that shows more of itself as it runs (``STEP``). Each is one
-table and one multiplication, so partial credit needs nothing of its own: three of five in
-the right place in bucket 2 is 900 x 0.6.
+speed bucket (``SPEED``), a share of 1000 for the rung the credit reached (``RANK``, where
+the credit is already the ranking), or the step of a question that shows more of itself as
+it runs (``STEP``). ``SPEED`` and ``STEP`` are one table and one multiplication, so partial
+credit needs nothing of its own: three of five in the right place in bucket 2 is 900 x 0.6.
 
 The bucket edges are fractions of the question's own length -- its mode's ``seconds`` --
 rather than absolute seconds, so a slow round and a quick one in the same game are both
@@ -35,6 +35,9 @@ BUCKETS: tuple[tuple[float, int], ...] = (
 )
 SLOWEST = len(BUCKETS)
 RANK_TOP = 1000
+# (least credit, share of RANK_TOP), best first. The rungs pay less than their credit so
+# that being nearly right is clearly worth less than being right; below the last, nothing.
+RANK_SHARES: tuple[tuple[float, float], ...] = ((1.0, 1.0), (0.9, 0.75), (0.8, 0.5), (0.7, 0.25))
 STEP_TOP, STEP_BOTTOM = 1000, 400
 
 
@@ -101,7 +104,8 @@ def band(scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None)
 
 
 def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | None) -> int:
-    """Points for one graded answer: the scoring's table at ``band``, times ``credit``.
+    """Points for one graded answer: the scoring's table at ``band`` times ``credit``, or for
+    ``RANK`` the share of its top for the rung ``credit`` reached.
 
     ``band`` is one this module's ``band()`` returned for the same scoring and steps;
     nothing else produces them. A wrong answer, like no answer at all, is worth 0.
@@ -116,7 +120,8 @@ def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | N
             assert band is not None and steps is not None
             top = step_points(band, steps)
         case Scoring.RANK:
-            top = RANK_TOP
+            share = next((share for least, share in RANK_SHARES if credit >= least), 0.0)
+            return round(RANK_TOP * share)
         case _:
             assert_never(how)
     return round(top * credit)

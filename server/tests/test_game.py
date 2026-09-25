@@ -2184,7 +2184,7 @@ def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
 def test_closest_number_ranks_every_guess_against_the_others(table, second_mode, db) -> None:
     """T21 Accept: the exact guess beats the two one off, who tie for closest and share
     its rung; the guess behind them is second closest; a player who sent nothing scores
-    nothing, not the 200 that having a go earns."""
+    nothing."""
     number = {
         "type": "closest_number",
         "payload": {"prompt": "How many hours did the cape take?", "answer": 100, "unit": "hours"},
@@ -2212,9 +2212,9 @@ def test_closest_number_ranks_every_guess_against_the_others(table, second_mode,
     by_id = {s.id: s.name for s in game.seats}
     assert {by_id[pid]: row["points"] for pid, row in closed["results"].items()} == {
         "Exact": 1000,
-        "Under": 800,
-        "Over": 800,
-        "Far": 600,
+        "Under": 750,
+        "Over": 750,
+        "Far": 500,
     }
     points = {s["display_name"]: s["points"] for s in closed["standings"]}
     assert points["Silent"] == 0 and points["Admin"] == 0

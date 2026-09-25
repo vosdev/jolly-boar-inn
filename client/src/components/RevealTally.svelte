@@ -6,10 +6,10 @@
    * Everything here comes from `question_closed.results`, which already carries every
    * player's row; nothing new crosses the wire. "Right" is `correct`, full credit. Partial
    * credit gets a line per band under it, so a closest-number question, where almost
-   * nobody is exact, does not read as "0 of 6". "Wrong" is under the lowest band: a guess
-   * that earned its 200 for having a go is still wrong, one that came within 70% is not
-   * called out. A player who did not answer is neither: sitting a question out is not
-   * getting it wrong (the points slot makes the same distinction).
+   * nobody is exact, does not read as "0 of 6". "Wrong" is under the lowest band, which
+   * is also where closest number stops paying. A player who did not answer is neither:
+   * sitting a question out is not getting it wrong (the points slot makes the same
+   * distinction).
    *
    * The names are the room's taste, so they are `settings.name_wrong_answers`, off unless
    * the host asks. The count is always there: it is the answer to "was that a hard one?",
