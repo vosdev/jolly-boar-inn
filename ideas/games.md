@@ -9,14 +9,14 @@ Possibly from the same data set, so cheap to create
 ## More or less (DONE! Implemented!)
 GE price, High Alch price or NPC Shop price
 
-## Guess the examine
-show the examine text, name the item or NPC
+## Guess the examine (DONE! Implemented!)
+show the examine text, name the item, NPC or scenery
 
-Answer with a searchable dropdown of every item in popular-items.json (type `pick_from_list`, like Pixel Hunt). Typing only searches; only an item picked from the list can be submitted. No free text, so no aliases or typo rules. Items only for now, since the examine comes from `/mapping`; NPC examines can follow once the importer writes `npcs.json`.
+The lines are hand-picked in `data/examines.json`, not taken from `/mapping`: the wiki's were accurate and not funny. Answer with a searchable dropdown of every name in that file (type `pick_from_list`, like Pixel Hunt). Typing only searches; only an entry picked from the list can be submitted. No free text, so no aliases or typo rules.
 
 Display Item/NPC with name and picture afterwards
 
-## The price is right
+## The price is right (DONE! Implemented!)
 estimate the GE price
 4 options given.
 Can we automate this? Rounded GE price (so 1337k becomes 1350k) and then alternative options with either 1 lower and 2 higher, 3 higher, 3 lower, 2 lower and 1 higher. 

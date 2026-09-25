@@ -3,8 +3,7 @@
 The task list. Design decisions live in `ideas/architecture.md` (sections 2, 3, 6 and 9);
 mode sketches live in `ideas/games.md`. This file does not repeat either — it says what to
 build, in what order, and what "done" means. The prompts to hand the tasks to are in
-`ideas/phase2-prompts.md`, one per session. Most sessions are one task. The small ones are
-grouped: T31 + T32 + T34, T35 + T37, T36 + T38 and T44 + T45.
+`ideas/phase2-prompts.md`; `ideas/TODO.md` says which have landed.
 
 Phase 2 ships **ten new game modes, the framework that makes an eleventh cheap, and the
 random events that carry the host's own questions and a themed set of our own.** It assumes T1–T15 are done and does
@@ -12,9 +11,8 @@ not depend on anything they left open. Behind the modes, T31–T45 are what the 
 playtests and `ideas/IDEAS.md` asked for: loose ends, who gets into a room, a tidier top bar,
 and the tools for running an instance. None of them touch a mode.
 
-Each task is one working session, ends with `make lint test` green, bumps the minor
-version in `VERSION` (`ideas/architecture.md` §10, Versioning), and leaves the app
-playable. Nothing here is a refactor you cannot stop after.
+Each task is one working session and leaves the app playable. Nothing here is a refactor
+you cannot stop after. CLAUDE.md has the rest: branches, tests, versions.
 
 ## What Phase 2 is actually about
 
@@ -24,10 +22,10 @@ Five things, and the first three are in an order that is not negotiable:
    "right or wrong, times how fast". The client stops having one component per type. No new
    mode ships in these three tasks and the game plays identically before and after, which is
    how you know they landed.
-2. **T19–T22, the modes that need no new data.** The Price is Right and Guess the Examine
-   come out of the two API endpoints T5 already calls. Custom questions need no data at all,
-   and random events need only the questions the owner writes for them. Four modes and the
-   events, zero crawling.
+2. **T19–T22, the modes that need no new data.** The Price is Right comes out of the two
+   API endpoints T5 already calls, and Guess the Examine out of a hand-written list.
+   Custom questions need no data at all, and random events need only the questions the
+   owner writes for them. Four modes and the events, zero crawling.
 3. **T23–T29, data, then the modes that need it.** The importer, then six modes generated
    from what it fetches.
 4. **T30, the custom-question editor.** The host's questions could be posted since T21 and
@@ -55,9 +53,10 @@ is a separate, parallel job that makes six modes better at once, and it is the s
 highest-leverage thing anyone can do to this repo without writing code.
 
 The random-event questions are the same kind of job. They are hand-written, one file per
-NPC under `data/packs/random_events/`, and T22 ships a starter set of two or three per NPC
-to prove the format. Around five per NPC is the target, so a group that plays every week
-does not hear the same question twice in a month. Writing more needs no code either.
+NPC under `data/packs/random_events/`. T22 shipped six to ten for six of the sixteen NPCs;
+the other ten are listed in `AWAITING_QUESTIONS` (`server/tests/test_random_events.py`)
+until someone writes theirs. Around five per NPC is the floor, so a group that plays every
+week does not hear the same question twice in a month. Writing more needs no code either.
 
 ## Dependencies
 
@@ -80,16 +79,14 @@ T16 mode/type split
                                       └─▶ T29 quotes packs                  (needs T21)
 ```
 
-T16 is the only task everything waits on. T23 can start any time after T16 and is the long
-pole, because it is the one task with a network dependency and an unknown — run it early if
-two people are working. T22 is free after T21 once `ideas/random-events.md` has its twelve
-NPCs. It is the only task in Phase 2 that changes how the game feels rather than what it
-knows, so it is the other one to run early. T30 follows it and can wait until the end.
+T16–T22 have landed. T23 is the long pole, because it is the one task with a network
+dependency and an unknown, and it waits on T34. T30 blocks nothing and can wait until the
+end.
 
 T31–T45 hang off almost nothing in the list above:
 
 ```
-T31 loose ends                 (none; its reveal fix is void if D8 lands first)
+T31 loose ends                 (none)
 T32 six options, at most       (none; T27 must respect it)
 T33 per-client limits + IPv6   (none)
 T34 wiki User-Agent ──────────▶ T23 importer
@@ -188,32 +185,30 @@ uniform across the pack; ~100 valid questions.
 
 ### T20. Guess the Examine
 
-Mode `guess_examine` on type `pick_from_list`. The examine text is already in `/mapping`.
-This is where `pick_from_list` lands, a phase before the two image modes that also use it
-(architecture section 2 has why the mode moved off `free_text`).
+Mode `guess_examine` on type `pick_from_list`. This is where `pick_from_list` lands, a phase
+before the two image modes that also use it (architecture section 2 has why the mode moved
+off `free_text`).
 
-`pick_from_list` type module: `validate_value` accepts only an id in the question's
+*As built:* the examine lines are hand-picked in `data/examines.json` (items, NPCs and
+scenery, each with a stable id), not taken from `/mapping` and filtered. The filtered wiki
+lines were accurate and not funny. `make gen-examine-questions` builds
+`data/packs/examine.json` from the file with no facts and no rejection step, and the same
+file is a third vocabulary, `examines`, so every answer is an entry and every entry is asked.
+
+`pick_from_list` type module: `parse_value` accepts only an id in the question's
 vocabulary, `check()` asserts `answer_id` is in it and `subject.name` is its name, no
-`steps`, so it scores on speed. `questions/vocab.py` and `GET /api/vocab/{name}`, with
-`items` built from `data/popular-items.json` (section 3). `lib/vocab.ts` and
-`PickFromList.svelte`, the strict combobox every `pick_from_list` mode shares (section 2
-has its behaviour), and `ExamineStem`. Generator emitting `data/packs/examine.json`.
-
-The generator's real work is rejection, not selection: an examine that contains the item's
-own name, or any word of it longer than three characters, is not a question. "A sharp
-sword." is fine; "An abyssal whip." is the answer written on the card. Neither is an
-examine that another roster item with a different name shares, because the list would
-hold two right answers and the grader accepts one.
+`steps`, so it scores on speed. `questions/vocab.py` and `GET /api/vocab/{name}`.
+`lib/vocab.ts` and `PickFromList.svelte`, the strict combobox every `pick_from_list` mode
+shares (architecture section 2 has its behaviour), and `ExamineStem`.
 
 **Accept:** an answer that is not an id in the vocabulary is `bad_value`; `validate-packs`
-fails an `answer_id` missing from its vocabulary; a roster with two entries of the same
+fails an `answer_id` missing from its vocabulary; a vocabulary with two entries of the same
 name refuses to load; the combobox cannot submit anything but a selected entry — typed text
 with no selection leaves Submit disabled, and editing the text after selecting clears the
 selection; search tests for case, accents and word-prefix ("whip" finds "Abyssal whip");
 the combobox is operable by keyboard alone, and on a 375px phone its list is not hidden
-behind the keyboard (manual); an examine containing the item name is rejected with the reason; the
-generator prints how many roster items it used, how many it rejected and why, and the
-rejection rate is under a third.
+behind the keyboard (manual); a line that appears under two names fails the tests; the pack
+and `data/examines.json` disagreeing fails the tests.
 
 ### T21. Multiple choice, closest number, free text, and where the host's questions land
 
@@ -227,8 +222,8 @@ to interrupt a round, which is odd to look at and not broken — the same deal T
 
 `multiple_choice`, `closest_number` and `free_text` type modules; `free_text` brings
 `questions/normalize.py` (lowercase, NFKC, trim, collapse whitespace, strip punctuation,
-Levenshtein, the under-4-characters rule), and no pack mode uses it — it is for the host's
-own questions, whose answers no list could hold. Mode `custom` with `type = None`,
+Levenshtein, the under-4-characters rule), and no round uses it: it is for the host's own
+questions, whose answers no list could hold, and the NPCs' hand-written ones. Mode `custom` with `type = None`,
 and it is never a round. `POST /api/rooms` accepts `custom_questions`, validates each
 against the schema, stores them with `source = 'room'`, `mode = 'custom'` and
 `author_player_id`. `0007_random_events.sql` adds `questions.random_event` and swaps
@@ -262,18 +257,19 @@ themes and the first questions; architecture sections 1, 2, 3 and 4 have the mec
 
 **Who asks, and what.** T21 gave every event a random face and borrowed pack events from
 modes the host did not pick. That is the thing this task undoes. An event is now an NPC
-asking about its own subject: the Sandwich Lady about cooking, Rick Turpentine about money,
-Dr Jekyll about potions.
+asking about its own subject: the Lumbridge Cook about cooking, Death about dying, Dr
+Jekyll about potions.
 
-- `app/random_events.py` takes its ids from `ideas/random-events.md`. The roster test
-  holds it to at least twelve. It no longer has to outnumber the slots, because a room at
+- `app/random_events.py` holds the ids (sixteen as built). The roster test holds it to at
+  least twelve. It no longer has to outnumber the slots, because a room at
   `more` can hold more events than there are faces, and those repeat (below).
 - New mode `random_event` with `type = None`, which is never a round and declares only `seconds`,
   as `custom` does. Its pool is `data/packs/random_events/`: one hand-written file per NPC,
   named after the NPC id, which declares `random_event` once for every question in it.
   `load_packs` and `validate_packs.py` read that folder as well as `data/packs/*.json`.
-  Any type fits except `ordering` until T27 lands, and `pick_from_list` questions that need
-  a picture wait for Phase 3.
+  Any type fits except `ordering` until T27 lands and the two price types, which only
+  their own round's stem can show; `pick_from_list` questions that need a picture wait for
+  Phase 3.
 - The question envelope gains an optional `random_event` (an NPC id). It sits outside the
   content hash, as every envelope field does. A question in the event folder gets it from
   its file. A question in any other pack must not have it. A custom question may name one,
@@ -339,8 +335,11 @@ event file whose name is not a roster id, a question in it that sets its own
 `random_event`, and a question outside the folder that has one. A custom question's named
 NPC is the one that asks it, and two custom questions naming the same NPC are both
 honoured. Seeded over many rooms, no drawn face repeats while an unused one is left, and a
-pack event never shares its question with another event in the room. Every roster id has an event file with at
-least two questions, and a copy entry in `randomEvents.ts`. At `default`, one mode of 10
+pack event never shares its question with another event in the room. Every roster id has a
+copy entry in `randomEvents.ts`, and an event file with at least two questions unless it is
+in `AWAITING_QUESTIONS`, which the test holds to the truth both ways. *As built* the roster
+runs ahead of the content: that list replaced "every roster id has a file", and shrinks as
+the questions are written. At `default`, one mode of 10
 questions plays 11 and Create says so beforehand; `less` and `more` give the slot counts in
 the table; seeded, no two slots share a window of N and none is a round's or the game's
 first question; a one-mode room gets events; a room whose slots outnumber the roster
@@ -357,8 +356,9 @@ with two custom questions, one of them naming its NPC, and say who turned up whe
 Writes `data/facts/items.json`, `npcs.json`, `quests.json` and `manifest.json`. One request
 per second and the operator's User-Agent, both through T34's `scripts/wiki.py`, `If-Modified-Since`, resumable
 across runs, and a `--from-dir` that replays saved responses so tests and later generators
-never need the network. Bucket API for infobox and drop data; `/mapping` for examine and
-high alch; MediaWiki generators for the rest, 50 titles a request.
+never need the network. Bucket API for infobox and drop data; `/mapping` for high alch;
+MediaWiki generators for the rest, 50 titles a request. Guess the Examine does not read
+facts (T20), so no examine field is needed for it.
 
 Never called at app startup, in CI, or during a quiz — the rule `gen_price_questions.py`
 has had since T5.
@@ -372,7 +372,9 @@ asserted, not just written; no test hits the network.
 
 The umbrella the mode generators plug into. `scripts/gen_packs.py` + `scripts/generators/`.
 `gen_price_questions.py` becomes `generators/prices.py` and keeps its offline file flags.
-T19's and T20's generators move under it too.
+T20's `gen_examine_questions.py` moves under it too, with `data/examines.json` as its input:
+that file is hand-written and stays the source, and no generator may derive it from facts.
+If `make gen-examine-questions` goes, CLAUDE.md's command for it changes in the same PR.
 
 `make gen-packs CHECK=1` regenerates every pack into a temporary directory and diffs against
 the committed files, and CI runs it. A generator edited without its pack regenerated is the
@@ -380,7 +382,7 @@ failure mode a committed generated file always has, and this is the one cheap wa
 it.
 
 **Accept:** `make gen-packs` reproduces every committed pack byte for byte from committed
-facts; `CHECK=1` exits non-zero after a one-line generator change and names the pack; CI
+facts, the roster and `data/examines.json`; `CHECK=1` exits non-zero after a one-line generator change and names the pack; CI
 runs it; no generator opens a socket.
 
 ### T25. Bestiary and Drop Table
@@ -515,7 +517,7 @@ green, and still leaves the app playable.
 
 ### T31. Loose ends
 
-Three small things from `ideas/IDEAS.md` that each fit in an afternoon.
+Two small things from `ideas/IDEAS.md` that each fit in an afternoon.
 
 **`HEAD` on the API.** `HEAD /api/modes` is a 404 while `GET` is a 200: FastAPI's
 `@router.get` registers `GET` alone, so a `HEAD` falls through to the static catch-all in
@@ -529,17 +531,10 @@ browser with no profile is handled the way Join handles it since D4 — a genera
 becomes the profile, and the chip nudges once. That reverses design.md §5.1.1's "an empty
 profile blocks Create", so the task updates that line and its entry under "Decided".
 
-**The unanswered `more_less` reveal.** A player who did not answer sees one button outlined
-in green, as if they had picked it, over "No answer from you this round, so no points".
-D8 owns this and lists it in its accept criteria. If D8 has landed, drop this item; if not,
-fix it here, so a known bug does not wait on a redesign.
-
 **Accept:** a test walks every `GET` route under `/api` and asserts `HEAD` gives the same
 status and headers with an empty body; `HEAD` on an unknown `/api` path is 404 and on a
 `POST`-only one is 405; Create has no name field and the created host carries the profile
-name; a browser with no profile creates a room in one tap and is nudged once; an
-unanswered `more_less` question shows no button as pressed, and the verdict text still says
-nobody answered.
+name; a browser with no profile creates a room in one tap and is nudged once.
 
 ### T32. Six options, at most
 
@@ -562,30 +557,24 @@ field; `validate-packs` rejects a seven-option pack entry; a six-option
 ### T33. Limits that mean one client, and IPv6
 
 `ROOMS_PER_IP_PER_HOUR` keys on the client address, and behind a proxy that address is the
-proxy's until `FORWARDED_ALLOW_IPS` names it. `.env.example` and the Dockerfile say so, and
-nobody reads either before the first "too many rooms" on a quiz night. Documenting it
-harder will not help. Three changes will:
+proxy's until `FORWARDED_ALLOW_IPS` names it. The server half has landed: the first ignored
+`X-Forwarded-For` logs one warning (`http/forwarded.py`), the default is 30 an hour as a
+backstop, and the limiter keys IPv6 on its /64 and folds `::ffff:a.b.c.d` into the IPv4 it
+is. What is left:
 
-1. **Say so at runtime.** The first time a request arrives carrying `X-Forwarded-For` from
-   an address uvicorn does not trust, log one warning naming the address and the variable
-   to set. It fires once per process, because the fix is one line in `.env`.
-2. **The server limit is a backstop.** Raise the default to 30 an hour. The everyday limit
-   moves to the client: `plan.md` wants a host to have at most five rooms at once, and the
-   Home page already lists the rooms this browser created. Create refuses a sixth and
-   points at the list, where each room already has a Remove button. It is bypassable. The
-   client-side limit is the polite one, and the server's catches the rude one.
-3. **IPv6.** A household gets a /64, so an IPv6 address alone limits nobody. The limiter
-   keys IPv6 on its /64 and IPv4 on the address, and folds `::ffff:a.b.c.d` into the IPv4
-   it is. `APP_BIND` accepts an IPv6 address, `FORWARDED_ALLOW_IPS` is documented with a
-   v6 range, and the container listens dual-stack. The healthcheck keeps working on
-   `127.0.0.1`.
+1. **The everyday limit moves to the client.** `plan.md` wants a host to have at most five
+   rooms at once, and the Home page already lists the rooms this browser created. Create
+   refuses a sixth and points at the list, where each room already has a Remove button. It
+   is bypassable. The client-side limit is the polite one, and the server's catches the
+   rude one.
+2. **IPv6 deployments.** `APP_BIND` accepts an IPv6 address, `FORWARDED_ALLOW_IPS` is
+   documented with a v6 range, and the container listens dual-stack. The healthcheck keeps
+   working on `127.0.0.1`.
 
-**Accept:** the warning fires once for an untrusted `X-Forwarded-For` and never when the
-header is absent or trusted; two addresses in one /64 share a bucket and two in different
-/64s do not; `::ffff:192.0.2.1` and `192.0.2.1` share one; Create with five live rooms in
-`jbi:created` refuses and links Home, and removing one lets the sixth through; a room that
-410s is dropped from `jbi:created` rather than counted; manual: `curl -6` reaches a
-compose deployment with `APP_BIND=::1`, and say what you ran.
+**Accept:** Create with five live rooms in `jbi:created` refuses and links Home, and
+removing one lets the sixth through; a room that 410s is dropped from `jbi:created` rather
+than counted; manual: `curl -6` reaches a compose deployment with `APP_BIND=::1`, and say
+what you ran.
 
 ### T34. The wiki's rules, enforced
 
@@ -835,8 +824,8 @@ T44 numbers.
 `/api/admin/*` route is a 404. If it is set and shorter than 64 characters, the app refuses
 to start and says why. The operator opens `/admin#token=…` once; the page moves the token
 into `localStorage["jbi:admin"]`, `replaceState`s it out of the address bar, and sends it as
-`Authorization: Bearer` from then on. `ideas/IDEAS.md` wrote this as `?Token=`. It is the
-fragment instead for T35's reason: a query string reaches the access log and the `Referer`,
+`Authorization: Bearer` from then on. It is the fragment, not a query string, for T35's
+reason: a query string reaches the access log and the `Referer`,
 and architecture §7 exists to keep tokens out of both. The server compares with
 `hmac.compare_digest`.
 
@@ -868,7 +857,7 @@ payload contains a display name, an answer or a question payload, asserted.
   seconds", and it survives as D7's everyone-ready branch, with an 80% threshold added so
   one phone in a pocket cannot stall a round. The round-only standings are D9. T40 and T41 are
   design ideas that arrived after that document was settled, and each updates it. T42 was
-  one too, until `ideas/new-design.md` grew it into D13–D16.
+  one too, until it grew into D13–D16.
 - **A separate room lock.** Rotating T35's invite key does the same job with no second
   control: the room keeps everyone in it and nobody new has the key.
 - **Pet inventory icons as avatars.** D4 settled on fifty chat heads, committed and

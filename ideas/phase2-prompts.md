@@ -1,429 +1,14 @@
 # Phase 2 prompts
 
-One ready-to-paste prompt per session, for Opus 5 on High or Extra in a fresh session at
-the repo root. Most sessions are one task from `ideas/phase2.md`. The small ones are
-grouped, so a session is never spent on an afternoon's fix: T31 + T32 + T34, T35 + T37, T36 + T38,
-and T44 + T45 each run as one prompt. It says the order to work in, and asks for
-each task to be finished, green and separable before the next starts. Run the sessions in
-the order they appear; each assumes the ones before it landed. T43 sits last because it
-documents what the others add.
+One prompt per session, pasted into a fresh session at the repo root. CLAUDE.md applies to
+every session and is the only standing instruction. Each prompt names the task in `ideas/phase2.md` and adds only what the spec does not
+say. Run the sessions in the order they appear; each assumes the ones before it landed. T43
+sits last because it documents what the others add.
 
-Paste **House rules** first in each new session, then the task prompt. House rules are the
-same every time — keep them in your clipboard manager.
-
-Prompts name accept criteria rather than implementation. That is deliberate: the design is
-already written down in `architecture.md`, and a prompt that restates it in worse words is a
-second copy to keep in sync.
-
----
-
-## House rules
-
-```text
-This is jolly-boar-inn, a self-hosted multiplayer OSRS quiz. Before writing any code:
-
-- Read ideas/architecture.md. It is authoritative and current. If your task contradicts
-  it, the architecture wins — stop and tell me rather than diverging.
-- Read ideas/phase2.md for where this task sits and what it must not break.
-- Match the surrounding code. This codebase writes long explanatory module docstrings that
-  say WHY, not what, and comments only where a reader would otherwise ask a question.
-  Read two or three neighbouring modules before writing yours and match that register. Do
-  not add comments that restate the line below them.
-- Tests are not optional and not an afterthought. Every accept criterion below is a test
-  unless it says "manual".
-- Bump VERSION, and its copies in server/pyproject.toml and client/package.json: the
-  minor number once for each T or D task you finish, the patch number for a fix. See
-  ideas/architecture.md section 10, Versioning.
-- Finish with `make lint test` green. Do not report done before it is.
-- Do not commit unless I ask. Do not touch ideas/*.md unless the task says to.
-- If a design decision is genuinely underdetermined, make the call, state it in one line at
-  the end, and keep going. Do not stop to ask about a detail I can read in the diff.
-```
-
----
-
-## T16. The mode/type split
-
-```text
-Task T16 in ideas/phase2.md: split "mode" from "question type".
-
-Today a mode IS a question type — settings.modes[].mode holds "more_less", which is also
-the type. Phase 2 adds modes that share a type (five modes will be multiple_choice), so the
-two have to come apart. ideas/architecture.md section 2 has the design, the Mode dataclass
-and the mode catalogue; section 1 "Module contracts" has the registry contract; section 5
-has the migration.
-
-Do:
-- app/modes/ : the Mode dataclass (id, type, questions: Bounds, seconds: Bounds) and
-  MODES, registering more_less only. questions_bounds(mode) / seconds_bounds(mode) move
-  here from questions/types/__init__.py and fall back mode -> type -> registry default.
-- schema/question.schema.json : "mode" required, pattern ^[a-z0-9_]{1,32}$. It is NOT part
-  of the content id hash — architecture section 2 says why, keep that true.
-- 0006_question_mode.sql : questions.mode text not null, backfilled from type.
-- selection.py pools by mode, not by type. segments.py groups on mode. settings.py
-  validates modes[].mode against MODES. GET /api/modes serves id + type + bounds.
-- Segment.mode is a mode id; OpenQuestion gains mode alongside type.
-- validate_packs.py rejects an unknown mode, or a type that disagrees with its mode's.
-- data/packs/*.json get "mode": "more_less" added per entry. Do NOT regenerate the pack —
-  the content ids must not change, and if they do you have hashed the wrong thing.
-- client: lib/modes.ts gains type per mode; protocol.ts follows the wire.
-
-Do not: add a new mode, a new type, or change how anything is scored or rendered. The game
-must play identically before and after. This task is the axis change and nothing else.
-
-Accept:
-- Every existing test passes. Update them mechanically where the shape moved; delete none.
-  If a test cannot be made to pass mechanically, stop and tell me which and why.
-- A migration test asserts a pre-0006 room rehydrates with mode = type on its rows and
-  plays to finished.
-- validate_packs.py fails {"mode": "drop_table", "type": "more_less"} and says so clearly.
-- GET /api/modes returns [{"id","type","questions","seconds"}].
-- The existing end-to-end game test is green untouched.
-```
-
----
-
-## T17. Credit, and the three ways to score it
-
-```text
-Task T17 in ideas/phase2.md: generalise scoring. Read ideas/architecture.md section 6 first
-— it is the whole spec, including the tables.
-
-Today grade() returns bool and points_for(correct, bucket) pays out. Phase 2 needs partial
-credit (ordering) and two more ways to turn an answer into points.
-
-Do:
-- grade() returns dict[UUID, float] — credit, 0.0..1.0 — for every type.
-- questions/types/scoring.py : class Scoring (SPEED, RANK, STEP). A type module declares
-  SCORING; the default is SPEED.
-- rooms/scoring.py : add step(elapsed_s, question_s, steps) and step_points(step, steps),
-  and collapse the payout into points_for(scoring, credit, band, steps). Keep bucket()
-  exactly as it is — T10's edge tests must not need touching.
-- answer_ack: replace bucket with scoring ("speed"|"rank"|"step") and band (int | null).
-- PlayerResult gains credit: float. answers.correct becomes credit >= 1.0.
-- Client: protocol.ts, and whatever reads answer_ack.bucket today.
-
-Do not: add a type, a mode, or a payload field. No type actually returns a fractional
-credit yet — ordering lands in T27. This task makes the road, not the traffic.
-
-Accept:
-- Table-driven tests per strategy. T10's bucket edge cases (exactly 0.10, 0.1001, >1.0
-  clamps) still pass with no change to their expectations.
-- credit 0.6 in bucket 2 scores 540.
-- step_points over 8 steps is 1000/914/829/743/657/571/486/400; steps=1 gives 1000; a step
-  past the last clamps.
-- RANK ignores elapsed entirely: the same answers scored at 1s and at 29s give the same
-  points.
-- A full more_less game produces the same standings as before this task. Assert it against
-  fixed values, not against a reimplementation of the formula.
-```
-
----
-
-## T18. The client presentation layer
-
-```text
-Task T18 in ideas/phase2.md: split the question components into "type view" and "mode stem".
-
-Read ideas/architecture.md section 1 (the client tree) and section 3 (OpenQuestion carries
-both type and mode). Phase 2 puts five modes on the multiple_choice type, and they must not
-all look like each other: Drop Table shows an item, Who Said That? shows a quote in a
-chatbox, Bestiary shows a sentence. Same buttons, different thing above them.
-
-Do:
-- components/questions/types/ : the answer affordance, one per question type.
-MoreLess.svelte
-  moves here unchanged in behaviour.
-- components/questions/stems/ : what sits above it, one per mode that needs one. Ship
-  TextStem for now; the rest arrive with their modes.
-- Question.svelte composes a stem and a type view from one OpenQuestion.
-- index.ts exports viewFor(type, mode) -> { stem, view }. Mode picks the stem, type picks
-  the view. Either missing is not an error: a missing stem renders the view alone, a
-  missing view renders the fallback Room.svelte already has for an unknown type.
-- lib/modes.ts gains the stem per mode.
-- props.ts: one props shape for a type view, one for a stem. A stem never sees onAnswer.
-
-Do not: restyle anything, add a mode, or change the protocol. more_less must look the same
-pixel for pixel — it is the one mode whose stem and affordance are the same two buttons, so
-it has no stem and draws itself.
-
-Accept:
-- Play a round of more_less and confirm it is unchanged (manual, say what you saw).
-- Component tests: missing stem renders the view; missing view renders the fallback; both
-  present compose in the right order.
-- pnpm check clean. No component imports another component's internals.
-```
-
----
-
-## T19. The Price is Right
-
-```text
-Task T19 in ideas/phase2.md: the price_is_right mode and type. Four prices, one right.
-
-Read ideas/architecture.md section 2 for the payload and for why this is its own type
-rather than multiple_choice with formatted strings, and ideas/games.md for the distractor
-shapes the mode was sketched with.
-
-Do:
-- questions/types/price_is_right.py, all six exports. check() asserts
-  options[answer_index] equals the subject's stored price — that consistency guarantee is
-  the entire reason this is not multiple_choice, so do not skip it.
-- client/src/lib/gp.ts : format a coin amount the way the game writes it. 999 -> "999",
-  12500 -> "12,500", 100000 -> "100k", 1650000 -> "1.6M". Pure, tested.
-- types/PriceIsRight.svelte and stems/AssetStem.svelte (name + asset ref; renders the name
-  alone until Phase 3 brings images, per architecture section 2's asset rule).
-- Generator: extend the existing price generator to emit price_is_right questions into
-  data/packs/prices.json from the same /mapping + /latest fetch. Distractors are rounded
-  and follow one of the four shapes from games.md (3 higher, 2 high 1 low, ...) picked per
-  question, so the answer is not always in the same slot.
-- lib/modes.ts entry: "The Price is Right".
-
-Do not: change the more_less questions already in prices.json.
-
-Accept:
-- gp.ts table tests including 99999/100000/9999999/10000000 and zero.
-- check() rejects a payload whose answer_index does not point at the stored price.
-- No generated question has two options within 5% of each other (they would read as the
-  same answer).
-- Answer position is roughly uniform over the pack — assert each slot is within 40-60% of
-  expected, not exact.
-- ~100 valid price_is_right questions; make validate-packs green; the generator is still
-  idempotent and still offline-capable via its file flags.
-```
-
----
-
-## T20. Guess the Examine
-
-```text
-Task T20 in ideas/phase2.md: the guess_examine mode on the pick_from_list type. This is
-where pick_from_list lands; Phase 3's two image modes reuse everything built here.
-
-The examine text is already in the /mapping response the price generator fetches and
-throws away. Read ideas/architecture.md section 2 for the pick_from_list payload, why
-Guess the Examine moved off free_text, and the combobox's behaviour; section 3
-("Autocomplete vocabularies") for GET /api/vocab; section 6 for why a payload with no
-steps scores on speed.
-
-Do:
-- questions/vocab.py : the items vocabulary from data/popular-items.json, a version hash,
-  and a refusal to load two entries of the same name.
-- http/vocab.py : GET /api/vocab/{name}. npcs is a 404 until T23 writes npcs.json.
-- questions/types/pick_from_list.py, all six exports. validate_value accepts only an id in
-  the question's vocabulary; check() asserts answer_id is in it and subject.name is its
-  name, so validate-packs catches a roster edit that drops an answer.
-- lib/vocab.ts : fetch once per session (during the splash of a pick_from_list round, or
-  at the first such question), cache in memory, and the search: case- and
-  accent-insensitive, matching the start of any word, names starting with the query first.
-- types/PickFromList.svelte : the strict combobox from architecture section 2. Selection
-  only — typed text is a search, never an answer. WAI-ARIA combobox pattern, a Submit button
-  disabled until an entry is selected. Every pick_from_list mode uses this component, so
-  nothing in it may know about examines.
-- stems/ExamineStem.svelte : the prompt is the examine text; render it as one.
-- scripts generator -> data/packs/examine.json, vocab "items".
-- lib/modes.ts entry: "Guess the Examine".
-
-Do not: build free_text or normalize.py (T21 owns them now), or add aliases — the search
-matching any word's start is what makes "whip" find "Abyssal whip".
-
-The generator's real work is rejection. An examine that contains the item's own name, or
-any word of the name longer than three characters, is not a question — "A sharp sword." is
-fine, "An abyssal whip." is the answer written on the card. Reject and report, do not try
-to mask the word. An examine shared by another roster item with a different name is
-rejected too: the list would hold two right answers.
-
-Accept:
-- An answer that is not an id in the vocabulary is bad_value; a string is bad_value.
-- validate-packs fails a question whose answer_id is not in its vocabulary.
-- A roster with two entries of the same name refuses to load.
-- Component tests: typed text with no selection leaves Submit disabled; selecting enables
-  it; editing the text after selecting clears the selection; no match selects nothing and
-  says so; the value sent is the entry's id.
-- Search tests: case, accents, word-prefix ("whip" finds "Abyssal whip"), ordering.
-- The combobox is operable by keyboard alone (arrows, Enter, Escape), and on a 375px phone
-  with the keyboard open its list is not hidden behind the keyboard (manual, say what you
-  saw).
-- An examine containing the item name is rejected by the generator with a reason in its
-  output summary; assert it on a fixture.
-- The generator prints how many roster items it used and how many it rejected, with the
-  reason, and the rejection rate is under a third. The roster is 176 items today, so do not
-  chase a fixed question count — report the number you got.
-- make validate-packs green.
-```
-
----
-
-## T21. Multiple choice, closest number, free text, and where the host's questions land
-
-```text
-Task T21 in ideas/phase2.md: the last three simple types, and random events server-side.
-
-Read ideas/architecture.md section 1 (selection.py's "Random events", and segments.py),
-section 2 ("A random event is a placement, not a round", and the payloads), section 4 (the settings
-block and the custom paragraph under it), and section 6 (exclusions).
-
-Do:
-- questions/types/multiple_choice.py and closest_number.py. closest_number is SCORING =
-  RANK and returns the credit ladder from section 6 (1.0/0.8/0.6/0.4/0.2), ties sharing the
-  better rank.
-- questions/normalize.py : lowercase, NFKC, trim, collapse whitespace, strip punctuation,
-  Levenshtein distance. Accepted answers under 4 characters require distance 0, so "Jad"
-  does not accept "Jam".
-- questions/types/free_text.py, all six exports, using normalize. No pack mode uses it; it
-  is for the host's own questions, whose answers (a clan member, a boss kill count) no
-  vocabulary could hold.
-- MODES gains "custom" with type = None — the one mode whose questions carry their own
-  types, because a host may write a multiple-choice question and a number one. It is also
-  the one mode that is never a round, so it declares seconds and no questions bounds.
-- POST /api/rooms accepts custom_questions: validate each against the schema, store with
-  source='room', mode='custom', author_player_id set. All of it in the existing creation
-  transaction — a bad custom question must leave no room behind.
-- 0007_random_events.sql: questions.random_event text, and rewrite rooms.settings — drop
-  order, add random_events and random_event_seconds.
-- selection.py: place_random_events(). The host's questions are not a round any more;
-  each one interrupts a round it does not belong to. Never the first round, never a
-  round's first question, one per round, a distinct NPC each time. Delete settings.order
-  and the custom round with it; architecture section 1 says why both went.
-- Pack events: with random_events true, a slot no custom question took gets a pack question
-  with probability PACK_EVENT_CHANCE, drawn from a mode the host did not pick and never from
-  the mode of the round it interrupts.
-- NewRoomSettings: more custom questions than len(modes) - 1 is a 422 naming the limit and
-  the count. Do not truncate.
-- segments.py: an event is grouped into the round it interrupts, not a segment of its own.
-- app/random_events.py: the NPC ids, and nothing else. Names and lines are client copy
-  in T22, the way mode copy already lives in lib/modes.ts.
-- Author exclusion gets its first real caller (T10 built and tested it).
-- types/MultipleChoice.svelte, ClosestNumber.svelte and FreeText.svelte.
-
-Do not: build the editor UI (T30), and do not build the event presentation — the NPC card
-and the held-back buttons are T22. Until then an event plays as an ordinary question in the
-middle of a round. That is deliberate; do not paper over it with a half client change.
-
-Accept:
-- Three custom questions in a four-mode room land in three different rounds, none of them
-  the first round and none at a round's first position. Seeded, asserted.
-- Five custom questions in a three-mode room give 422 naming the limit and the count, and
-  create no room row.
-- random_events true with no custom questions still produces pack events, and no pack event
-  shares the mode of the round it interrupts.
-- segments_of reports four rounds, not seven, for a four-mode room holding three events.
-- The author gets `excluded` on their own question and scores 0; everyone else scores
-  normally on it.
-- host_only scores nobody and still shows and closes.
-- A custom question failing the schema gives 422 naming the field, and creates no room row.
-- A room created before 0007 rehydrates and plays its custom round unchanged.
-- closest_number ties: two players equidistant share the better rank; exact match beats a
-  1-off; an unanswered player scores 0, not 200.
-- Normalisation tests: case, accents, punctuation, whitespace, the under-4 rule. A
-  one-character typo on a full accepted answer is accepted; a different answer is not.
-```
-
----
-
-## T22. Random events
-
-```text
-Task T22 in ideas/phase2.md: random events get a face, a theme and questions of their own,
-and the host's questions arrive through them.
-
-Read ideas/random-events.md first. It is the owner's roster: the NPC ids, their names,
-opening lines and themes, and the first questions for each one. If it does not exist or
-has fewer than twelve NPCs, stop and say so. Then read ideas/IDEAS.md "Custom Questions"
-for the idea in the words it was written in, and ideas/architecture.md section 1
-(selection.py's "Random events"), section 2 ("A random event is a placement, not a round", and the
-envelope's random_event), section 3 (OpenQuestion.random_event and answerable_at) and
-section 4 (the splash rule, and the pending → open row). T21 already placed events and
-stored questions.random_event. This task changes who asks and what they ask, how often
-events happen, and adds the two seconds and the card. ideas/phase2.md T22 "How often"
-replaces T21's placement rules; where architecture section 1 still says "one per round,
-never the first round", phase2.md wins, and this task rewrites that paragraph to match.
-
-Do, server and data:
-- app/random_events.py: the ids from ideas/random-events.md. tests/test_random_events.py
-  holds the roster to at least twelve; the len(round_modes()) - 1 bound goes, because a room
-  at "more" can hold more events than there are faces.
-- MODES gains "random_event" with type = None: never a round, only seconds, like "custom".
-- data/packs/random_events/<npc_id>.json, one hand-written file per NPC, carrying the
-  questions from ideas/random-events.md. The file declares "random_event" once and its
-  questions do not repeat it. load_packs and validate_packs.py read this folder as well as
-  data/packs/*.json. validate-packs fails a file not named after a roster id, a question
-  in it that sets its own random_event, and a question outside the folder that has one.
-  Each question still gets its id from the content hash.
-- schema/question.schema.json: an optional envelope field random_event, pattern
-  ^[a-z0-9_]{1,32}$. It is outside the hash like every envelope field. A custom question
-  may carry it, and POST /api/rooms 422s an id that is not in the roster.
-- RoomSettings: random_event_frequency ("less" | "default" | "more": one event per 20, 10
-  or 5 round questions) replaces random_events. Slots are floor(round questions / N), added
-  on top of the round questions and counted by MAX_QUESTIONS_PER_ROOM. A stored room reads
-  random_events true as "default", and false as "only its own questions, placed by T21's
-  rules", so every stored room rehydrates and plays as it was created. No migration.
-- The custom cap is the slot count at the chosen frequency; more is a 422 naming the count,
-  the limit and the frequency.
-- selection.place_random_events: cut the round questions into consecutive windows of N and
-  put each slot at a position drawn inside its window, never the game's first question and
-  never a round's first question. The first round is no longer exempt. A custom question
-  that names an NPC gets that NPC, repeats included. Every other face is drawn from those
-  not yet used in the room, then from the least used, never the same face twice running.
-  Every slot the host's questions leave takes an event-pack question, preferring a type
-  other than the interrupted round's type, and stays empty only if nothing qualifies.
-  PACK_RANDOM_EVENT_CHANCE goes. Delete the borrowing from unpicked modes, and update the
-  docstrings (selection.py, settings.py) that describe the old rules.
-- Create: a Less often / Default / More often choice where the random_events checkbox is,
-  and the total question count including events ("11 questions").
-
-Do, the two seconds:
-- OpenQuestion gains random_event (the NPC id, null for an ordinary question) and
-  answerable_at. answerable_at is shown_at for an ordinary question and shown_at +
-  random_event_seconds for an event; ends_at becomes answerable_at + the round's
-  seconds; elapsed is measured from answerable_at; an answer received before it is
-  rejected with not_open. Nothing new is stored: answerable_at is derived, so rehydrate
-  does not change.
-- The splash rule moves from "a new mode" to "a new segment" (segments.py already groups an
-  event into the round it interrupts). An event gets no splash, and neither does the
-  question after it.
-
-Do, client:
-- lib/randomEvents.ts: the roster's copy, as one flat array: id, name, theme, the line
-  they open with, and the asset ref. The ids must match app/random_events.py, and a test
-  says so. Write the lines the way the game writes them.
-- components/RandomEvent.svelte: the NPC's name, its line and the question stem, with the
-  answer affordance held back until answerable_at, counted off server_time and not the
-  local clock. Keep it plain: the NPC taking the stage (picture on the right, the scroll
-  moving, the typed prompt) is design D16, and the pictures are D15. Until then the card
-  reads well as text alone, with the picture as an empty slot. An unknown random_event id draws a generic card, the way viewFor already falls
-  back for a mode it cannot draw.
-
-Do not: add a phase to the room state machine, add a column, or send a second message when
-the buttons appear. All three are avoidable and section 4 says how. Do not write event
-questions that need an image (a Certer's silhouette waits for Phase 3), and do not use
-ge_price in a hand-written more_less or price_is_right question, because it goes stale.
-
-Accept:
-- An answer before answerable_at is rejected with not_open, asserted on the server.
-- A player answering the instant the buttons appear lands in bucket 1: the wait costs nobody
-  a point.
-- ends_at - answerable_at equals the round's own seconds.
-- No splash runs for an event, and none runs for the question following one.
-- A reconnect inside the held-back window lands on the NPC card with the right remaining
-  delay, computed from the welcome snapshot.
-- random_event_seconds: 0 plays an event as a plain question. That is what the rest of
-  the tests run on.
-- An unknown random_event id renders the generic card and logs nothing alarming.
-- validate-packs fails each of the three misplaced-random_event cases above, on fixtures.
-- A custom question's named NPC is the one that asks it, and two custom questions naming
-  one NPC are both honoured. Seeded over many rooms, no drawn face repeats while an unused
-  one is left, and none appears twice running.
-- At "default" one mode of 10 questions plays 11, and Create says 11 before the room
-  exists; "less" and "more" give the counts in phase2.md's table. Seeded, no two events
-  share a window and none is a round's or the game's first question. A one-mode room gets
-  events. Too many custom questions is a 422 that names the frequency. A room stored with
-  random_events false rehydrates and places only its own questions.
-- Every roster id has an event file with at least two questions and a randomEvents.ts
-  entry.
-- pnpm check clean. Manual: play a four-mode room with two custom questions, one naming its
-  NPC, and say who turned up where.
-```
+The small tasks are grouped so a session is never spent on an afternoon's fix: T31 + T32 +
+T34, T35 + T37, T36 + T38 and T44 + T45. A grouped session does its tasks in the order
+given, one at a time, each on its own branch and PR with its own version bump, and stops
+after a whole task rather than leaving one half done.
 
 ---
 
@@ -444,8 +29,8 @@ never runs at startup or in CI) and this one should feel like its sibling.
 Do:
 - data/facts/items.json, npcs.json, quests.json and manifest.json (source, fetched_at,
   sha256 per file).
-- Sources: Bucket API (meta.weirdgloop.org) for infobox and drop data, /mapping for
-  examine and high alch, MediaWiki generators for the rest at 50 titles per request.
+- Sources: Bucket API (meta.weirdgloop.org) for infobox and drop data, /mapping for high
+  alch, MediaWiki generators for the rest at 50 titles per request.
 - Every request through scripts/wiki.py (T34): it owns the one-per-second throttle and the
   operator's WIKI_USER_AGENT, so this script sets neither. If-Modified-Since. Resumable
   across runs — an interrupted run must not start over.
@@ -456,7 +41,8 @@ Do:
 
 Decide the exact field set per file and state it in the module docstring — later tasks
 (T25, T26, T27, T28) read these files, so name the fields for what they are rather than
-for the endpoint they came from.
+for the endpoint they came from. Guess the Examine does not read facts, so no field is
+needed for it.
 
 Accept:
 - A full run against recorded fixtures produces all four files with no network.
@@ -477,13 +63,15 @@ Task T24 in ideas/phase2.md: the umbrella every pack generator plugs into.
 
 Do:
 - scripts/gen_packs.py and scripts/generators/. Move gen_price_questions.py to
-  generators/prices.py and T19's and T20's generators alongside it, keeping their offline
-  file flags working.
+  generators/prices.py and gen_examine_questions.py alongside it, keeping their offline
+  file flags working. The examine generator keeps reading the hand-written
+  data/examines.json; nothing may regenerate that file from facts.
 - make gen-packs runs them all. make gen-packs CHECK=1 regenerates into a temp directory,
   diffs against the committed packs, and exits non-zero on any difference, naming the pack.
 - CI runs CHECK=1.
-- Update the Makefile and .github/workflows/ci.yml. Drop make gen-price-questions or keep
-  it as an alias — your call, say which.
+- Update the Makefile and .github/workflows/ci.yml. Drop the gen-*-questions targets or
+  keep them as aliases — your call, say which. If gen-examine-questions goes, update
+  CLAUDE.md's command for it in the same PR.
 
 A generator changed without its pack regenerated is the failure mode every committed
 generated file has, and this gate is the cheap way to catch it. That is the point of the
@@ -494,7 +82,8 @@ Accept:
 - CHECK=1 is green on a clean tree, and exits non-zero naming the pack after a one-line
   change to any generator.
 - CI runs it and fails on the same condition.
-- No generator opens a socket: every one of them reads data/facts/ and the roster only.
+- No generator opens a socket: every one of them reads only data/facts/, the roster and
+  data/examines.json.
 ```
 
 ---
@@ -548,8 +137,9 @@ there are two defensible answers and neither player is wrong. Check every proper
 facts file before emitting, not only the property the question is about.
 
 Do: generators/odd_one_out.py -> data/packs/odd-one-out.json, the MODES entry, lib/modes.ts
-copy, and a stem that shows four subjects. Decide which properties are in scope and say so
-in the module docstring — a property nobody can name is not a question.
+copy, and a stem that shows four subjects. Which properties are in scope decides what
+players are asked, so propose the list and wait for my answer before generating; then say
+so in the module docstring. A property nobody can name is not a question.
 
 Accept:
 - Asserted over the whole pack: exactly one item differs, on exactly one known property.
@@ -669,8 +259,7 @@ Accept:
 
 ```text
 Task T30 in ideas/phase2.md: the client editor for custom questions. Client only. The
-server side landed in T21 and T22 and does not change. This needs T22: check git log for it
-first, and stop if it has not landed.
+server side landed in T21 and T22 and does not change.
 
 Do:
 - The /r/:code/create route: a form per custom type (multiple_choice, free_text,
@@ -714,14 +303,12 @@ T23), which is the reason to run this session early.
 Three tasks from ideas/phase2.md in one session: T31, T32 and T34. They share no files that
 matter, so do them in the order given.
 
-Work through them one at a time: meet one task's accept criteria and get `make lint test`
-green before starting the next, and keep each task's changes separate enough to commit
-on its own. If the session runs long, stop after a whole task and say which are left.
-Never leave one half done. Report per task at the end.
+One task at a time, each on its own branch and PR. If the session runs long, stop after a
+whole task and say which are left. Report per task at the end.
 
 === T31. Loose ends ===
 
-Task T31 in ideas/phase2.md: three small fixes from ideas/IDEAS.md. Keep them as three
+Task T31 in ideas/phase2.md: two small fixes from ideas/IDEAS.md. Keep them as two
 separate commits so each can be reverted alone.
 
 1. HEAD on the API. HEAD /api/modes is a 404 while GET is a 200: FastAPI registers GET
@@ -735,18 +322,11 @@ separate commits so each can be reverted alone.
    loses its NameField and its NamePrompt gate. §5.1.1 and the "Decided" list say an empty
    profile blocks Create; update both lines, since this task reverses them.
 
-3. The unanswered more_less reveal: a player who did not answer sees a green-outlined
-   button over "No answer from you this round, so no points". Check git log for D8 first:
-   if D8 has landed, skip this item and say so. If not, fix it without redesigning
-   anything. D8 owns the reveal's look.
-
 Accept:
 - A test walks every GET route under /api and asserts HEAD gives the same status and
   headers with an empty body. HEAD on an unknown /api path is 404; on a POST-only route 405.
 - Create has no name field; the created host carries the profile name; a browser with no
   profile creates a room in one tap and is nudged once, exactly as a joiner is.
-- An unanswered more_less question shows no button as pressed, and still says nobody
-  answered.
 - ideas/design.md updated for item 2 in the same change.
 
 === T32. Six options, at most ===
@@ -770,8 +350,7 @@ Accept:
   naming its field differently.
 - A seven-option custom question is a 422 naming the field, and creates no room.
 - make validate-packs rejects a seven-option pack entry.
-- A six-option multiple_choice question plays, and every button draws a different gem
-  (manual if D8 has not landed, and say which).
+- A six-option multiple_choice question plays, and every button draws a different gem.
 
 === T34. The wiki's rules, enforced ===
 
@@ -806,32 +385,20 @@ Accept:
 ## T33. Limits that mean one client, and IPv6
 
 ```text
-Task T33 in ideas/phase2.md. Read server/app/http/ratelimit.py, client_host() in
-server/app/http/rooms.py, the FORWARDED_ALLOW_IPS block in .env.example, the Dockerfile's
-CMD, and ideas/architecture.md section 7.
-
-The problem: ROOMS_PER_IP_PER_HOUR keys on request.client.host, and behind an untrusted
-proxy that is the proxy, so a whole deployment shares one bucket. It is documented, and
-nobody reads the documentation before the first 429 on a quiz night.
+Task T33 in ideas/phase2.md. The server half (the X-Forwarded-For warning, 30 an hour, IPv6
+by /64) has landed; read server/app/http/ratelimit.py and forwarded.py to see it. What is
+left is the client-side limit and IPv6 deployments.
 
 Do:
-- A one-time warning: the first request that carries X-Forwarded-For from an address
-  uvicorn did not trust logs one line naming that address and FORWARDED_ALLOW_IPS. Once
-  per process. Do NOT start trusting the header yourself; that is a bypass, not a fix.
-- Default ROOMS_PER_IP_PER_HOUR to 30. It is the abuse backstop now, not the everyday limit.
-- The everyday limit goes client-side: Create refuses a sixth live room in jbi:created
-  (ideas/plan.md "Misc decisions" wants five) and points at Home, where each room already
-  has Remove. A room the server answers 410 for is dropped from jbi:created, not counted.
-- IPv6: the limiter keys an IPv6 client on its /64 and IPv4 on the address, and folds
-  ::ffff:a.b.c.d into the IPv4 address. Put the normalisation in one function with its own
-  tests. The container listens dual-stack; APP_BIND and FORWARDED_ALLOW_IPS are
-  documented with IPv6 examples; the healthcheck still works.
+- Create refuses a sixth live room in jbi:created (ideas/plan.md wants five) and points at
+  Home, where each room already has Remove. A room the server answers 410 for is dropped
+  from jbi:created, not counted.
+- The container listens dual-stack; APP_BIND and FORWARDED_ALLOW_IPS are documented with
+  IPv6 examples in .env.example; the healthcheck still works.
 
 Accept:
-- The warning fires once for an untrusted X-Forwarded-For, never when absent or trusted.
-- Two addresses in one /64 share a bucket; two /64s do not; ::ffff:192.0.2.1 and
-  192.0.2.1 share one.
 - Create with five live rooms refuses and links Home; removing one lets the sixth through.
+- A room that 410s leaves jbi:created.
 - Manual: curl -6 reaches a compose deployment bound to ::1. Say exactly what you ran.
 ```
 
@@ -847,10 +414,8 @@ chosen once you are inside. They touch the same Join and Lobby components and th
 Two tasks from ideas/phase2.md in one session: T35 and T37. Do T35 first: it changes the
 join path and T37 builds on the lobby as T35 leaves it.
 
-Work through them one at a time: meet one task's accept criteria and get `make lint test`
-green before starting the next, and keep each task's changes separate enough to commit
-on its own. If the session runs long, stop after a whole task and say which are left.
-Never leave one half done. Report per task at the end.
+One task at a time, each on its own branch and PR. If the session runs long, stop after a
+whole task and say which are left. Report per task at the end.
 
 === T35. Invite links ===
 
@@ -924,10 +489,8 @@ Two tasks from ideas/phase2.md in one session: T38 and T36. Do T38 first, then T
 public listing honours hide_rounds from the start rather than through its "if landed"
 branch.
 
-Work through them one at a time: meet one task's accept criteria and get `make lint test`
-green before starting the next, and keep each task's changes separate enough to commit
-on its own. If the session runs long, stop after a whole task and say which are left.
-Never leave one half done. Report per task at the end.
+One task at a time, each on its own branch and PR. If the session runs long, stop after a
+whole task and say which are left. Report per task at the end.
 
 === T38. Hidden rounds ===
 
@@ -996,7 +559,7 @@ Do:
   finished_at, standings, you} to localStorage "jbi:history", newest first, capped at 20.
   Every accessor tolerates localStorage throwing, like lib/session.ts.
 - Home: "Past games" under "Rooms you created here". Each entry opens the final screen
-  drawn from storage, using D9's podium component if it has landed and Scoreboard if not.
+  drawn from storage, using the standings' podium component (Scoreboard.svelte).
   No request to the server.
 - /r/{code} for a room that 410s: if history has it, show the stored result; if not,
   today's 410 screen.
@@ -1094,10 +657,8 @@ T44 being missing. Together, that fallback never runs.
 Two tasks from ideas/phase2.md in one session: T44 and T45. Do T44 first; T45's "if T44 has
 not landed" branch then does not apply.
 
-Work through them one at a time: meet one task's accept criteria and get `make lint test`
-green before starting the next, and keep each task's changes separate enough to commit
-on its own. If the session runs long, stop after a whole task and say which are left.
-Never leave one half done. Report per task at the end.
+One task at a time, each on its own branch and PR. If the session runs long, stop after a
+whole task and say which are left. Report per task at the end.
 
 === T44. Metrics ===
 
@@ -1129,9 +690,9 @@ Accept:
 Task T45 in ideas/phase2.md: a read-only page for whoever runs the instance. T44 should
 have landed; if not, build everything but the metrics section and say so.
 
-Read ideas/architecture.md section 7. The TODO wrote the entry URL as /admin?Token=...,
-and this task uses the fragment instead (/admin#token=...), because a query string reaches
-the access log and the Referer, and section 7 exists to keep tokens out of both.
+Read ideas/architecture.md section 7. The entry URL is /admin#token=..., a fragment and
+never a query string, because a query string reaches the access log and the Referer, and
+section 7 exists to keep tokens out of both.
 
 Do:
 - ADMIN_TOKEN env. Unset: the feature does not exist, and every /api/admin/* route is a
@@ -1174,7 +735,7 @@ Contents:
 - Ingress: a complete Cloudflare Tunnel config and a complete Caddyfile (ideas/plan.md
   promised both), each with the FORWARDED_ALLOW_IPS line.
 - Development: make dev, make lint test, where packs come from, make gen-packs.
-- Contributing questions: link data/packs/AUTHORING.md if it exists.
+- Contributing questions: link data/packs/AUTHORING.md.
 - Licence (AGPL-3.0), the Jagex trademark line from the footer, OSRS Wiki attribution for
   derived data.
 

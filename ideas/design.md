@@ -710,8 +710,8 @@ way to show them. So the top of the board is a podium, and the rest is the OSRS 
 
 Standings appear **between rounds and at the end of the game, never between questions.**
 They get their own server phase, `standings`, rather than borrowing the splash. The splash
-only runs when a round introduces a new mode, and a room can turn it off with
-`splash_seconds: 0`. Standings need to follow every round whatever happens to the splash.
+only runs before a round's first question (a new segment, architecture §4), and a room can
+turn it off with `splash_seconds: 0`. Standings need to follow every round whatever happens to the splash.
 
 The loop becomes `… reveal → standings → splash / open …`:
 
@@ -995,15 +995,12 @@ D1 tokens + theme engine
         D11 motion + reduced-motion pass  (last, after D16)
 ```
 
-D13–D16 came out of `ideas/new-design.md`, after D1–D5 and D7–D9 had landed. They change
+D13–D16 came after D1–D5 and D7–D9 had landed. They change
 two finished tasks rather than reopening them: D13 retires D7's scene slot and moves D8's
 stems onto the scroll, and each of those tasks carries a one-line "since D13" note where it
 is affected. Every mode that lands after D14 brings its own host — one drawing on the rig
 and its lines in `lib/modes.ts` — inside its own T-task, the way a mode already brings its
 blurb.
-
-Every D task, like every T task, bumps the minor version in `VERSION` when it lands
-(`ideas/architecture.md` §10, Versioning).
 
 Build order for the biggest visible change soonest: **D1, D2, D5, D3.** That is the tokens,
 the shell, the themes and the names — after which the app stops looking generic, and D4 and
@@ -1397,7 +1394,7 @@ waits on the same threshold, with "Start anyway" as the override. §7.1.
 — and a room of one is exempt at a threshold of 1 rather than starting instantly. §7.1.
 
 [x] **Standings only between rounds, in their own `standings` phase**, never between
-questions and not on the splash, which only runs when the mode changes and can be switched
+questions and not on the splash, which only runs when a round starts and can be switched
 off. `standings_seconds` sets its length, and the host can skip it. §7.3.
 
 [x] **The top five stand on a podium with the Quest Speedrunning trophies**, Diamond to
