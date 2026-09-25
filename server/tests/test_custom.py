@@ -90,3 +90,40 @@ def test_a_host_may_not_write_a_price_question_yet() -> None:
         "custom_questions[1] $.type: 'price_is_right' is not accepted in 'custom' yet:"
         " a question of it can only be shown inside its own round"
     ]
+
+
+@pytest.mark.parametrize(
+    ("claims", "refused"),
+    [
+        (
+            {"source": "community"},
+            ["$.source: 'community', but a host's own question is always 'room'"],
+        ),
+        (
+            {"mode": "more_less"},
+            ["$.mode: 'more_less', but a host's own question is always 'custom'"],
+        ),
+        (
+            {"mode": "random_event", "source": "community", "random_event": "bob"},
+            [
+                "$.mode: 'random_event', but a host's own question is always 'custom'",
+                "$.source: 'community', but a host's own question is always 'room'",
+            ],
+        ),
+        (
+            {"mode": "more_less", "source": "pack"},
+            [
+                "$.mode: 'more_less', but a host's own question is always 'custom'",
+                "$.source: 'pack', but a host's own question is always 'room'",
+            ],
+        ),
+    ],
+)
+def test_a_host_question_claiming_another_mode_or_source_is_refused(
+    claims: dict[str, str], refused: list[str]
+) -> None:
+    """Only the room's own questions keep their author from scoring on them, so a question
+    that claims to be anyone else's would let its author play it."""
+    with pytest.raises(schema.QuestionError) as info:
+        custom.envelopes([WRITTEN, {**WRITTEN, **claims}])
+    assert info.value.errors == [f"custom_questions[1] {problem}" for problem in refused]

@@ -5,7 +5,8 @@ from where the question is going, so it is filled in here rather than asked for:
 is ``custom``, ``source`` is ``room``, ``tags`` may be empty, and ``id`` is the content id
 the server computes for every question it stores (section 2). What a host *did* send is
 kept, and has to agree -- an export posted straight back carries all four, and it is
-exactly as valid as it was when it came out.
+exactly as valid as it was when it came out. Any other ``mode`` or ``source`` is refused:
+the schema alone would take a pack's, and the author rule is written against the room's.
 
 A host may also name the NPC who asks it, ``random_event``, or leave it out and let the
 room draw one (``rooms/selection.py``). A name the roster does not have is refused here
@@ -44,7 +45,15 @@ def envelopes(raw: Sequence[Any]) -> list[dict[str, Any]]:
         hashable = not text.errors(filled)
         if isinstance(filled.get("type"), str) and "payload" in filled and hashable:
             filled.setdefault("id", schema.content_id(filled))
-        found += [f"custom_questions[{index}] {problem}" for problem in schema.errors(filled)]
+        claimed = [
+            f"$.{key}: {filled[key]!r}, but a host's own question is always {wanted!r}"
+            for key, wanted in (("mode", MODE), ("source", SOURCE))
+            if filled[key] != wanted
+        ]
+        # The rest is checked as the room's own question it has to be, so the one wrong
+        # claim is not echoed back as the mode rule or a type the claimed mode does not play.
+        problems = claimed + schema.errors({**filled, "mode": MODE, "source": SOURCE})
+        found += [f"custom_questions[{index}] {problem}" for problem in problems]
         done.append(filled)
     if found:
         raise schema.QuestionError(found)

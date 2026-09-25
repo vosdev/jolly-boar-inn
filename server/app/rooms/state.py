@@ -60,7 +60,7 @@ import re
 import secrets
 import time
 import unicodedata
-from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -603,13 +603,18 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
 
 
 def _question_rows(
-    room_id: UUID, questions: Sequence[tuple[int, dict[str, Any]]], author: UUID
+    room_id: UUID,
+    questions: Sequence[tuple[int, dict[str, Any]]],
+    author: UUID,
+    authored: Collection[str],
 ) -> list[tuple[Any, ...]]:
     """Rows for ``selection.flatten``'s ``(round, question)`` pairs, position by position.
 
     ``author`` is the room's creator, and it is written against the questions they wrote
-    -- ``source: room`` -- and nothing else. That column is what keeps them from scoring on
-    their own questions (``RoomQuestion.can_answer``).
+    -- the content ids in ``authored`` -- and nothing else. That column is what keeps them
+    from scoring on their own questions (``RoomQuestion.can_answer``). It goes by where a
+    question came from rather than by the ``source`` it carries, so a claim in the
+    envelope can never be what decides who the author is.
     """
     return [
         (
@@ -623,7 +628,7 @@ def _question_rows(
             bool(q.get("host_only", False)),
             round_,
             q.get("random_event"),
-            author if q["source"] == "room" else None,
+            author if q["id"] in authored else None,
         )
         for position, (round_, q) in enumerate(questions)
     ]
@@ -1132,7 +1137,7 @@ class RoomManager:
                 "insert into questions (room_id, position, question_id, type, mode, source,"
                 " payload, host_only, round, random_event, author_player_id)"
                 " values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
-                _question_rows(room_row["id"], questions, player_row["id"]),
+                _question_rows(room_row["id"], questions, player_row["id"], {q["id"] for q in own}),
             )
             # Read them back so a freshly created room holds exactly what a rehydrated
             # one would, ids included.

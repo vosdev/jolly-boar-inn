@@ -2109,6 +2109,52 @@ def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     assert_memory_matches_db(game, db)
 
 
+def test_two_identical_custom_questions_each_take_their_own_answers(table, second_mode, db) -> None:
+    """The same words give the same content id, but each is its own row: an answer to the
+    first that arrives once the second is open is refused, not counted for the second."""
+    game = table(
+        "Zezima",
+        "Woox",
+        custom=[TANZANITE, TANZANITE],
+        reveal_seconds=1,
+        **event_rooms(second_mode, questions=5),
+    )
+    admin, zezima, woox = game.seats
+    first, second = (q for q in game.room.questions if q.random_event is not None)
+    assert first.content_id == second.content_id and first.id != second.id
+
+    reach(game, first.position)
+    game.answer(zezima, first.position, 0)
+    game.answer(woox, first.position, 2)
+    assert zezima.take("answer_ack")["t"] == woox.take("answer_ack")["t"] == "answer_ack"
+    admin.take("question_closed")
+    game.skip()
+    for between in range(first.position + 1, second.position):
+        assert admin.take("question_open")["question"]["index"] == between
+        game.skip()
+        admin.take("question_closed")
+        game.skip()
+    for seat in game.seats:
+        while seat.take("question_open")["question"]["index"] != second.position:
+            pass
+
+    game.answer(zezima, first.position, 2)
+    late = reply(zezima, acked)
+    assert (late["t"], late.get("code")) == ("error", "not_open")
+    game.answer(zezima, second.position, 2)
+    game.answer(woox, second.position, 0)
+    assert reply(zezima, acked)["t"] == reply(woox, acked)["t"] == "answer_ack"
+    admin.take("question_closed")
+    rows = db("select question_id, player_id, value from answers")
+    answered = {(row["question_id"], str(row["player_id"])): row["value"] for row in rows}
+    assert answered == {
+        (first.id, zezima.id): 0,
+        (first.id, woox.id): 2,
+        (second.id, zezima.id): 2,
+        (second.id, woox.id): 0,
+    }
+
+
 def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
     table, second_mode, db, monkeypatch
 ) -> None:

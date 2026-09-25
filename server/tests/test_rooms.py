@@ -17,6 +17,7 @@ import hashlib
 import json
 import re
 from typing import Any
+from uuid import uuid4
 
 import asyncpg
 import httpx
@@ -24,6 +25,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.modes import MODES, Mode
 from app.questions import schema
 from app.random_events import RANDOM_EVENTS
 from app.rooms import state
@@ -371,6 +373,23 @@ def test_too_many_custom_questions_are_refused_naming_the_frequency(client: Test
     assert_no_room(db)
 
 
+def test_rounds_too_short_for_the_hosts_questions_are_refused_as_the_body_is_read(
+    client: TestClient, db, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Five one-question rounds at ``more`` hold no event: a round's last question is never
+    followed by one. The body says so, as it does for too few round questions, rather than
+    the room finding out once it has drawn them."""
+    stubs = [f"stub_{index}" for index in range(4)]
+    for name in stubs:
+        monkeypatch.setitem(MODES, name, Mode(id=name, types=frozenset({"more_less"})))
+    ones = [{"mode": name, "questions": 1} for name in ("more_less", *stubs)]
+    response = post(client, [own_question()], ones, random_event_frequency="more")
+    assert response.status_code == 422
+    assert "detail" in response.json(), response.text  # the body's refusal, not the room's
+    assert "5 round questions at random_event_frequency 'more' make room for 0" in response.text
+    assert_no_room(db)
+
+
 @pytest.mark.parametrize(
     ("bad", "field"),
     [
@@ -388,6 +407,9 @@ def test_too_many_custom_questions_are_refused_naming_the_frequency(client: Test
         ),
         # The mode rule: a host's question is ``custom`` and nothing else.
         (own_question(mode="more_less"), "$.mode"),
+        # Nor anyone else's: a pack's source would have let its author score on it.
+        (own_question(source="community"), "$.source"),
+        (own_question(mode="random_event", source="community", random_event="bob"), "$.mode"),
         # An exported question whose payload was edited after its id was taken.
         (own_question(id="q_0123456789abcdef"), "$.id"),
     ],
@@ -430,7 +452,20 @@ def test_the_manager_refuses_what_the_body_would_have(app: FastAPI, client: Test
     too_many = [own_question(f"Question {n}?") for n in range(3)]
     with pytest.raises(state.BadSettings, match="3 custom questions"):
         call(client, app.state.rooms.create, "Zezima", settings, too_many, "")
+    borrowed = [own_question(source="pack")]
+    with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.source"):
+        call(client, app.state.rooms.create, "Zezima", settings, borrowed, "")
     assert_no_room(db)
+
+
+def test_the_author_is_whoever_wrote_the_question_not_the_source_it_carries() -> None:
+    """The host's own list decides, so the creator cannot score on a question of theirs
+    even if its envelope ever came to say it was someone else's."""
+    room, author = uuid4(), uuid4()
+    written = {**own_question(), "id": "q_written", "mode": "custom", "source": "community"}
+    drawn = {**own_question("Who?"), "id": "q_drawn", "mode": "more_less", "source": "pack"}
+    rows = state._question_rows(room, [(0, drawn), (0, written)], author, {"q_written"})
+    assert [row[-1] for row in rows] == [None, author]
 
 
 # --- T6: read back ----------------------------------------------------------------

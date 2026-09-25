@@ -46,6 +46,7 @@ the rules it was created under. ``NewRoomSettings`` never takes ``None``, so no 
 is made that way; it exists so every stored room still loads.
 """
 
+from collections.abc import Sequence
 from typing import Any, Literal, Self
 
 from pydantic import (
@@ -82,9 +83,26 @@ def _known_keys(model: type[BaseModel], data: Any, info: ValidationInfo, *legacy
     return {k: v for k, v in data.items() if k in model.model_fields or k in legacy}
 
 
-def event_slots(round_questions: int, frequency: Frequency) -> int:
-    """How many random events ``round_questions`` questions of rounds make room for."""
-    return round_questions // EVENT_EVERY[frequency]
+def event_windows(lengths: Sequence[int], every: int) -> list[list[tuple[int, int]]]:
+    """Each window of ``every`` round questions that has room for an event, in play order.
+
+    ``lengths`` are the rounds' question counts, in play order. A window lists where its
+    event may go, as ``(round, position)`` of the question it would follow: any but its
+    round's last. A window of nothing but rounds' last questions has nowhere, and is left
+    out. Selection draws from these and the settings count them, so the slots a room is
+    promised are the slots it gets.
+    """
+    played = [
+        (number, at, at < length - 1)
+        for number, length in enumerate(lengths)
+        for at in range(length)
+    ]
+    windows: list[list[tuple[int, int]]] = []
+    for start in range(0, len(played) - every + 1, every):
+        inside = [(number, at) for number, at, open_ in played[start : start + every] if open_]
+        if inside:
+            windows.append(inside)
+    return windows
 
 
 class ModeSettings(BaseModel):
@@ -218,14 +236,17 @@ class RoomSettings(BaseModel):
 
     @property
     def random_event_slots(self) -> int:
-        """How many random events the room asks for: one per ``EVENT_EVERY`` round questions.
+        """How many random events the room asks for: one per ``EVENT_EVERY`` round questions,
+        less any window of one-question rounds, which has nowhere to put one.
 
-        A stored room with no frequency has T21's count instead, one per round after the
-        first, and only its host's questions ever filled those.
+        Counted in the listed order, so a room whose rounds are shuffled can still come out
+        a slot short, and ``create`` refuses it then. A stored room with no frequency has
+        the old count instead, one per round after the first.
         """
         if self.random_event_frequency is None:
             return len(self.modes) - 1
-        return event_slots(self.question_count, self.random_event_frequency)
+        lengths = [entry.questions for entry in self.modes]
+        return len(event_windows(lengths, EVENT_EVERY[self.random_event_frequency]))
 
     def entry_for(self, mode: str) -> ModeSettings | None:
         return next((entry for entry in self.modes if entry.mode == mode), None)
