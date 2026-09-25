@@ -53,7 +53,6 @@ made with ``promote``.
 import asyncio
 import hashlib
 import hmac
-import ipaddress
 import logging
 import math
 import random
@@ -123,6 +122,9 @@ CLOSE_KICKED = 4003
 # The room is gone for good -- expired and cleaned up, or removed by its host. The same
 # code the handler closes an unknown room with, because that is what a reconnect finds.
 CLOSE_GONE = 4004
+# Expired rooms deleted per statement: small enough that a batch never nears the pool's
+# ``command_timeout``, whatever the backlog.
+PURGE_BATCH = 200
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
 # ``random_event`` is the NPC asking it: the envelope's own for an NPC's question or a host's
 # that names one, a face ``selection`` draws for the rest, and a column either way.
@@ -221,14 +223,6 @@ def normalize_name(raw: str) -> str:
 
 def _is_latin_letter(ch: str) -> bool:
     return any(low <= ch <= high for low, high in _LATIN_LETTERS)
-
-
-def parse_ip(value: str | None) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
-    """An address the ``inet`` column accepts, or ``None`` for anything else."""
-    try:
-        return ipaddress.ip_address(value) if value else None
-    except ValueError:
-        return None
 
 
 # Credit summed from fractions misses its target by a few ulps: ten tenths are
@@ -844,9 +838,12 @@ class RoomManager:
     async def purge_expired(self) -> int:
         """Section 4's ``any → deleted``: delete every room past its ``expires_at``.
 
-        One statement; ``on delete cascade`` takes the players, questions and answers
-        with it. Then the same rooms go from memory, so the process does not hold what
-        the database has dropped. Returns the number of rows deleted.
+        ``on delete cascade`` takes the players, questions and answers with it. The rooms
+        go ``PURGE_BATCH`` at a time, each batch its own statement under the pool's
+        ``command_timeout``: one statement over a backlog could outgrow the timeout, roll
+        back, and meet a larger backlog every hour after. Then the same rooms go from
+        memory, so the process does not hold what the database has dropped. Returns the
+        number of rows deleted.
 
         The order is deliberate. Between the delete and the eviction an expired room is
         still in ``self.rooms``, and every way in refuses it anyway: ``_room`` checks
@@ -856,9 +853,18 @@ class RoomManager:
         The caller is the cleanup task in ``main.py``; the tests run a pass directly.
         """
         pool = await self._pool()
+        deleted = 0
         async with pool.acquire() as conn:
-            status = await conn.execute("delete from rooms where expires_at < now()")
-        deleted = _rows_affected(status)
+            while True:
+                status = await conn.execute(
+                    "delete from rooms where id in (select id from rooms"
+                    " where expires_at < now() order by expires_at limit $1)",
+                    PURGE_BATCH,
+                )
+                batch = _rows_affected(status)
+                deleted += batch
+                if batch < PURGE_BATCH:
+                    break
         log.info("cleanup deleted %d expired room%s", deleted, "" if deleted == 1 else "s")
         await self._evict_expired()
         return deleted
@@ -1046,7 +1052,6 @@ class RoomManager:
         display_name: str,
         settings: RoomSettings,
         custom_questions: Sequence[dict[str, Any]],
-        creator_ip: str | None,
         avatar: int | None = None,
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
@@ -1088,13 +1093,12 @@ class RoomManager:
                 try:
                     async with conn.transaction():  # savepoint, so a collision is retryable
                         room_row = await conn.fetchrow(
-                            "insert into rooms (code, status, settings, creator_ip, expires_at)"
-                            " values ($1, 'lobby', $2, $3, $4)"
+                            "insert into rooms (code, status, settings, expires_at)"
+                            " values ($1, 'lobby', $2, $3)"
                             " returning id, code, status, settings, current_index,"
                             " created_at, expires_at",
                             code,
                             settings.model_dump(),
-                            parse_ip(creator_ip),
                             expires_at,
                         )
                 except asyncpg.UniqueViolationError:
@@ -1297,12 +1301,18 @@ class RoomManager:
                 raise BadState(f"room {code} has no questions")
             if not room.sockets:
                 raise BadState("nobody is connected to play")
+            # A room made near its expiry must not expire mid-game, so it gets a full
+            # lifetime from here.
+            expires_at = datetime.now(UTC) + timedelta(days=self.settings.room_ttl_days)
             async with pool.acquire() as conn:
                 await conn.execute(
-                    "update rooms set status = 'playing', current_index = 0 where id = $1",
+                    "update rooms set status = 'playing', current_index = 0, expires_at = $2"
+                    " where id = $1",
                     room.id,
+                    expires_at,
                 )
             room.status = "playing"
+            room.expires_at = expires_at
             room.current_index = 0
             # "Ready to start" has been answered by starting. The first splash asks again.
             for player in room.players.values():

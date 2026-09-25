@@ -3,6 +3,7 @@ against a throwaway database (the ``test_db_dsn`` fixture, driven by ``DATABASE_
 """
 
 import asyncio
+import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -29,7 +30,6 @@ TABLES = {
         "status",
         "settings",
         "current_index",
-        "creator_ip",
         "created_at",
         "expires_at",
     },
@@ -41,7 +41,6 @@ TABLES = {
         "session_token_hash",
         "role",
         "joined_at",
-        "last_seen_at",
     },
     "questions": {
         "id",
@@ -62,13 +61,26 @@ TABLES = {
     },
     "answers": {"id", "question_id", "player_id", "value", "received_at", "correct", "points"},
 }
-ALL = [1, 2, 3, 4, 5, 6, 7]
+ALL = [1, 2, 3, 4, 5, 6, 7, 8]
 INDEXES = {
     "rooms_code_idx",
     "rooms_expires_at_idx",
     "players_session_idx",
     "players_room_name_idx",
     "answers_player_idx",
+    "questions_author_idx",
+}
+# An applied migration never runs again, so an edit to one reaches a fresh database and no
+# existing one. These pin what every deployment has already run.
+SHA256 = {
+    1: "7688e364db78aef458d8e55084b2087d8b8dbc097268863e48e67929b8d79a44",
+    2: "ad5c919f962fc09fee3653437444c5ef3977c5602d8e5f190e244e0dc863133a",
+    3: "d0733d31a40a29722161eaf6f5366e37528237266b3daaf81faf78c8f7a9e1ba",
+    4: "cf97795fdd41e6b828f055f4be180d925e2029b33064c9606e25c837cb0532cb",
+    5: "99c1dbe28efaa1add1c564db0889532db5c348c75aea6ea0c21e4809d7c964b1",
+    6: "d4bb6f0371b27acbd957fd12fb3ea473b1758c5c8668117a28509c03d07a0d75",
+    7: "6dc1a2306e272a3aeab96d4fbe23f8fd97e1e4c25255c72bc9042b743efc65ba",
+    8: "a6ec4722f4118bc7181679896f2715abca78b753ce6920e635846e05432c9ec2",
 }
 
 
@@ -99,7 +111,7 @@ async def pool(test_db_dsn: str):
 
 def test_migration_files_are_numbered_and_ordered() -> None:
     files = migration_files(MIGRATIONS_DIR)
-    assert [version for version, _ in files] == [1, 2, 3, 4, 5, 6, 7]
+    assert [version for version, _ in files] == ALL
     assert [path.name for _, path in files] == [
         "0001_init.sql",
         "0002_drop_admin_tokens.sql",
@@ -108,7 +120,19 @@ def test_migration_files_are_numbered_and_ordered() -> None:
         "0005_player_avatar.sql",
         "0006_question_mode.sql",
         "0007_random_events.sql",
+        "0008_purge_index_drop_unused.sql",
     ]
+
+
+def test_applied_migrations_are_unchanged() -> None:
+    """Every shipped migration still has the bytes it shipped with."""
+    for version, path in migration_files(MIGRATIONS_DIR):
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        assert version in SHA256, f"pin the new {path.name} in SHA256: {digest}"
+        assert digest == SHA256[version], (
+            f"{path.name} changed after it shipped, and a database that already ran it will"
+            " never see the change. Put it back and add a new migration instead."
+        )
 
 
 async def test_fresh_db_gets_all_tables(pool: asyncpg.Pool) -> None:
@@ -179,7 +203,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
 ) -> None:
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
-    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7\]"):
+    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7, 8\]"):
         await run_migrations(pool, tmp_path)
 
 
@@ -258,7 +282,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     }
     # Loaded by today's model once the migrations after it have run too, which is what
     # the room meets on its way back into a release: 0007 is where ``order`` went.
-    assert await run_migrations(pool) == [5, 6, 7]
+    assert await run_migrations(pool) == [5, 6, 7, 8]
     loaded = RoomSettings.model_validate(
         await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     )
@@ -306,7 +330,7 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
         room_id,
     )
 
-    assert await run_migrations(pool) == [5, 6, 7]
+    assert await run_migrations(pool) == [5, 6, 7, 8]
     rows = await pool.fetch("select display_name, avatar from players order by display_name")
     assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
     with pytest.raises(asyncpg.CheckViolationError):
@@ -429,7 +453,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         before,
     )
 
-    assert await run_migrations(pool) == [7]
+    assert await run_migrations(pool) == [7, 8]
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}

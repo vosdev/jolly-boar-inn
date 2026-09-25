@@ -112,7 +112,7 @@ def test_a_failed_player_insert_leaves_no_room(
     _, admin = create(client)
     monkeypatch.setattr(state, "new_token", lambda: admin["session"])
     with pytest.raises(asyncpg.UniqueViolationError):
-        call(client, app.state.rooms.create, "Other", RoomSettings(), [], "127.0.0.1")
+        call(client, app.state.rooms.create, "Other", RoomSettings(), [])
     assert db("select count(*) as n from rooms")[0]["n"] == 1
 
 
@@ -242,13 +242,6 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         json={"display_name": "Zezima", "custom_questions": [{"type": "more_less"}]},
     )
     assert response.status_code == 422
-
-
-def test_create_survives_unparseable_client_address(client: TestClient, db) -> None:
-    """TestClient's host is "testclient", which ``inet`` cannot store; must not 500."""
-    code, _ = create(client)
-    (row,) = db("select creator_ip from rooms where code = $1", code)
-    assert row["creator_ip"] is None
 
 
 # --- T21: the host's own questions ----------------------------------------------------
@@ -448,13 +441,13 @@ def test_the_manager_refuses_what_the_body_would_have(app: FastAPI, client: Test
     """``create`` checks again for callers that did not come through ``POST /api/rooms``."""
     settings = RoomSettings(modes=THREE_MODES)
     with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.type"):
-        call(client, app.state.rooms.create, "Zezima", settings, [own_question(type="x")], "")
+        call(client, app.state.rooms.create, "Zezima", settings, [own_question(type="x")])
     too_many = [own_question(f"Question {n}?") for n in range(3)]
     with pytest.raises(state.BadSettings, match="3 custom questions"):
-        call(client, app.state.rooms.create, "Zezima", settings, too_many, "")
+        call(client, app.state.rooms.create, "Zezima", settings, too_many)
     borrowed = [own_question(source="pack")]
     with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.source"):
-        call(client, app.state.rooms.create, "Zezima", settings, borrowed, "")
+        call(client, app.state.rooms.create, "Zezima", settings, borrowed)
     assert_no_room(db)
 
 

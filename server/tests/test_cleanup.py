@@ -10,6 +10,7 @@ for the room to expire.
 """
 
 import asyncio
+import functools
 import time
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
@@ -22,7 +23,9 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
+from app.db import _init_connection
 from app.main import cleanup_expired_rooms
+from app.rooms.state import PURGE_BATCH
 from tests.rooms_api import call, create, create_fast, join
 
 
@@ -98,11 +101,84 @@ def test_purge_with_nothing_to_delete_is_a_no_op(app: FastAPI, client: TestClien
     assert [row["code"] for row in db("select code from rooms")] == [code]
 
 
+def test_a_backlog_purges_under_a_short_command_timeout(
+    app: FastAPI, client: TestClient, db, test_db_dsn: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Days of expired rooms go in one pass, however long deleting them all would take.
+
+    A trigger makes each room row cost two milliseconds to delete, standing in for the
+    per-player work its cascade does, so the whole backlog in one statement would outlast
+    the pool's timeout and roll back, pass after pass. One batch fits comfortably.
+    """
+    backlog = PURGE_BATCH * 3 + 100
+    db(
+        "insert into rooms (code, status, settings, expires_at)"
+        " select 'OLD' || n, 'finished', '{}', now() - interval '1 day' - n * interval '1 s'"
+        " from generate_series(1, $1) n",
+        backlog,
+    )
+    db(
+        "insert into players (room_id, display_name, session_token_hash, role)"
+        " select id, 'Host', 'token-' || code, 'admin' from rooms where code like 'OLD%'"
+    )
+    db(
+        "insert into questions (room_id, position, question_id, type, mode, source, payload,"
+        " round, author_player_id)"
+        " select room_id, 0, 'q', 'more_less', 'custom', 'room', '{}', 0, id from players"
+    )
+    live, _ = create(client, "Host")
+    db(
+        "create function slow_delete() returns trigger language plpgsql as"
+        " $$ begin perform pg_sleep(0.002); return old; end $$"
+    )
+    db(
+        "create trigger slow_delete before delete on rooms"
+        " for each row execute function slow_delete()"
+    )
+    timeout = PURGE_BATCH * 0.002 + 0.5
+    assert timeout < backlog * 0.002
+    pool = call(
+        client,
+        functools.partial(
+            asyncpg.create_pool, test_db_dsn, command_timeout=timeout, init=_init_connection
+        ),
+    )
+
+    async def short_pool() -> asyncpg.Pool:
+        return pool
+
+    monkeypatch.setattr(app.state.rooms, "_pool", short_pool)
+    try:
+        assert call(client, app.state.rooms.purge_expired) == backlog
+    finally:
+        call(client, pool.close)
+    assert [row["code"] for row in db("select code from rooms")] == [live]
+    assert db("select count(*) as n from questions where author_player_id is not null")[0]["n"] == 0
+
+
+def test_starting_a_game_gives_the_room_a_full_lifetime(
+    app: FastAPI, client: TestClient, db
+) -> None:
+    """A room made days ago and played now does not expire halfway through the game."""
+    room, _, session = create_fast(app, client, "Host")
+    soon = datetime.now(UTC) + timedelta(minutes=5)
+    expire(db, room.code, soon)
+    room.expires_at = soon
+    with client.websocket_connect(f"/ws/{room.code}") as ws:
+        hello(ws, session)
+        ws.send_json({"t": "start_game"})
+        assert ws.receive_json()["t"] == "room_updated"
+    ttl = timedelta(days=app.state.settings.room_ttl_days)
+    (row,) = db("select expires_at from rooms where code = $1", room.code)
+    assert row["expires_at"] > datetime.now(UTC) + ttl - timedelta(minutes=1)
+    assert room.expires_at == row["expires_at"]
+
+
 def test_purge_drops_the_expired_room_from_memory(app: FastAPI, client: TestClient, db) -> None:
     """Memory must not hold what the database has dropped.
 
-    ``expires_at`` is set on both sides of the room here: nothing in the app ever moves
-    it, so the row and the cached copy agreeing is the normal case, not a contrivance.
+    ``expires_at`` is set on both sides of the room here: the app moves it only on both
+    sides at once, so the row and the cached copy agreeing is the normal case.
     """
     expired, _ = create(client, "Host")
     live, _ = create(client, "Host")

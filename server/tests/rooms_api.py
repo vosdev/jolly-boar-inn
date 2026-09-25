@@ -104,7 +104,7 @@ def create_fast(
     ``custom`` is the admin's own questions, placed as random events and authored by them.
     """
     settings = fast_settings(**overrides)
-    return call(client, app.state.rooms.create, name, settings, custom or [], "127.0.0.1")
+    return call(client, app.state.rooms.create, name, settings, custom or [])
 
 
 class StalledSocket:

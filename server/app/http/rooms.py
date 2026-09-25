@@ -68,7 +68,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     if not request.app.state.ratelimiter.allow(client_key(ip)):
         raise RateLimited("too many rooms created from this address, try again later")
     room, player, session = await manager(request).create(
-        name, body.settings, body.custom_questions, ip, body.avatar
+        name, body.settings, body.custom_questions, body.avatar
     )
     return {"code": room.code, "session": session, "player": player.view()}
 

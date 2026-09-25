@@ -171,7 +171,7 @@ jolly-boar-inn/
 class RoomManager:
     rooms: dict[str, Room]                      # code -> Room, loaded lazily
     async def get(code) -> Room                 # load from Postgres if not in memory (rehydrate)
-    async def create(display_name, settings, custom_questions, creator_ip) -> tuple[Room, Player, session_token]
+    async def create(display_name, settings, custom_questions) -> tuple[Room, Player, session_token]
     async def join(code, display_name) -> Player
     async def connect(code, session_token, ws) -> Player     # attaches socket, sends welcome
     async def disconnect(code, player_id)
@@ -300,7 +300,7 @@ A random event carries the `round` of the round it interrupts and is grouped int
 |---|---|---|
 | `DATABASE_URL` | `postgresql://jbi:jbi@localhost:5432/jbi` | |
 | `PUBLIC_BASE_URL` | `http://localhost:5173` | Absolute base for this deployment. No consumer in Phase 1: the client builds every link from `location.origin`. |
-| `ROOM_TTL_DAYS` | `3` | Sets `expires_at`. |
+| `ROOM_TTL_DAYS` | `3` | Sets `expires_at`, at creation and again at `start_game`. |
 | `ROOM_CLEANUP_INTERVAL_SECONDS` | `3600` | How often the cleanup task deletes rooms past `expires_at`. Must be positive; the app refuses to start otherwise. |
 | `ROOMS_PER_IP_PER_HOUR` | `30` | IPv6 counts by its /64. |
 | `MAX_PLAYERS_PER_ROOM` | `50` | |
@@ -837,7 +837,7 @@ Transitions:
 | From | Trigger | Guard | Side effects |
 |---|---|---|---|
 | — → `lobby` | `POST /api/rooms` | valid display name and settings, under the per-IP rate limit | allocate a code, insert the room, its questions and the admin player in one transaction |
-| `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, introduce round 0, open question 0, persist status |
+| `lobby` → `playing` | `start_game` | sender is admin, ≥ 1 question, ≥ 1 connected player | `current_index = 0`, `expires_at = now + ROOM_TTL_DAYS`, introduce round 0, open question 0, persist status |
 | `playing` → `finished` | last question's reveal ends, or `end_game` | admin for `end_game` | void open question if any, persist status, broadcast `game_finished` |
 | any → deleted | cleanup job | `expires_at < now` | `DELETE FROM rooms` cascades |
 | any → deleted | `DELETE /api/rooms/{code}` | the session in the body belongs to an admin of the room | the same delete, now: sockets close with 4004 and the code is free again |
@@ -915,7 +915,7 @@ fallbacks) and drops keys it does not know, so a downgrade strands no room.
 
 ## 5. SQL schema
 
-`server/app/migrations/0001_init.sql`:
+The schema once every migration in `server/app/migrations/` has run:
 
 ```sql
 create table schema_migrations (
@@ -929,7 +929,6 @@ create table rooms (
     status                 text not null check (status in ('lobby', 'playing', 'finished')),
     settings               jsonb not null,
     current_index          integer,                    -- index into questions.position, null before start
-    creator_ip             inet,
     created_at             timestamptz not null default now(),
     expires_at             timestamptz not null
 );
@@ -943,8 +942,7 @@ create table players (
     avatar             smallint check (avatar >= 0),     -- 0005: a head id; null = derived
     session_token_hash text not null,
     role               text not null default 'player' check (role in ('player', 'admin')),
-    joined_at          timestamptz not null default now(),
-    last_seen_at       timestamptz not null default now()
+    joined_at          timestamptz not null default now()
 );
 create unique index players_session_idx on players (session_token_hash);
 create unique index players_room_name_idx on players (room_id, lower(display_name));
@@ -967,6 +965,8 @@ create table questions (
     voided           boolean not null default false,
     unique (room_id, position)
 );
+create index questions_author_idx on questions (author_player_id)  -- 0008
+    where author_player_id is not null;
 
 create table answers (
     id          bigserial primary key,
@@ -985,7 +985,7 @@ Notes:
 
 - Session tokens are stored hashed. A DB dump never yields a usable session.
 - `points` is written once at close and is the only thing standings read: `SELECT player_id, coalesce(sum(points), 0) FROM answers ... GROUP BY player_id`. In memory the same sum is kept per room and rebuilt from this query on rehydrate, so the table stays the source of truth.
-- `questions.payload` stores the type-specific payload and the envelope extras (`tags`, `difficulty`, `author`, `added_at`); `type`, `mode`, `source`, `host_only`, `question_id` are columns because queries, grading and round grouping need them.
+- `questions.payload` holds the envelope minus its columns: the extras (`tags`, `difficulty`, `author`, `added_at`) at the top, the type-specific payload nested under `payload`, so hand-written SQL reads `payload->'payload'`. `type`, `mode`, `source`, `host_only`, `question_id` are columns because queries, grading and round grouping need them.
 - `0002_drop_admin_tokens.sql` removes `admin_token_hash`, `admin_token_consumed_at` and the `created` status: the creator is the admin, so there is nothing to claim.
 - `0003_question_rounds.sql` adds `questions.round`. A room's rounds are grouped back out of it by `rooms/segments.py`; the default of 0 makes every room that predates it a single round, which is what it was.
 - `0004_per_mode_rounds.sql` rewrites `rooms.settings` in place: out go `question_seconds`, `question_count` and `questions_per_round`, and `modes` stops being a list of names and becomes a list of `{mode, questions, seconds}` carrying the old globals. A room created by the previous release keeps playing — its rounds are already in `questions.round` — and `mode_order` is `listed` for it, because there is nothing left to shuffle.
@@ -997,8 +997,9 @@ Notes:
   exactly as it is — those rows carry their positions and their `round` already, and
   selection never runs twice — so the migration can drop `order` without caring what it
   said.
-- `suggestions` (Phase 6) is not created now. It will be `0003_suggestions.sql` when needed.
-- Cleanup: `DELETE FROM rooms WHERE expires_at < now()`, run by an `asyncio` task in the app every `ROOM_CLEANUP_INTERVAL_SECONDS` (default hourly, which is fine grain against a 30-day TTL), starting with one pass at startup so a deployment that restarts often still cleans up. No external cron. The task never dies: a failed pass is logged and the next one runs on schedule. `RoomManager.purge_expired` runs it and then drops the same rooms from memory, so the process does not hold rooms the database no longer has.
+- `0008_purge_index_drop_unused.sql` indexes `questions.author_player_id`, which each deleted player's `on delete set null` looks up, and drops `rooms.creator_ip` and `players.last_seen_at`, which nothing read.
+- `suggestions` (Phase 6) is not created now. It will be a new migration when needed.
+- Cleanup: `DELETE FROM rooms` past `expires_at`, 200 rooms per statement until a batch comes up short, so no backlog outgrows the pool's `command_timeout`. An `asyncio` task in the app runs it every `ROOM_CLEANUP_INTERVAL_SECONDS` (default hourly, fine grain against a 3-day TTL), starting with one pass at startup so a deployment that restarts often still cleans up. No external cron. The task never dies: a failed pass is logged and the next one runs on schedule. `RoomManager.purge_expired` runs it and then drops the same rooms from memory, so the process does not hold rooms the database no longer has.
 - A host does not have to wait for that. `DELETE /api/rooms/{code}` with `{session}` in the body -- never in the URL, section 7 -- deletes the room on the spot when that session belongs to an admin of it: the front page lists the rooms this browser created and each one has a Remove button. Anybody still connected is closed with 4004, and the code is back in circulation.
 
 ## 6. Scoring
