@@ -1,33 +1,14 @@
 # Progress
 
-Current version: `0.5.0` (see [VERSION](../VERSION)). Task descriptions and accept criteria
-live in [phase2.md](phase2.md) (T-tasks) and [design.md](design.md) (D-tasks); prompts are in
-[phase2-prompts.md](phase2-prompts.md). Loose ideas that haven't become a task yet live in
-[IDEAS.md](IDEAS.md).
+Which tasks have landed. This file is the only status list: the specs and accept criteria
+live in [phase2.md](phase2.md) (T-tasks) and [design.md](design.md) (D-tasks), the prompts in
+[phase2-prompts.md](phase2-prompts.md), the version in [VERSION](../VERSION), and loose
+ideas in [IDEAS.md](IDEAS.md).
 
-## Phase 0 — Decisions
+## Phase 0 and Phase 1
 
-Done. Svelte client, FastAPI server, Postgres, containers throughout.
-
-## Phase 1 — Core plus one mode
-
-Done, T1–T15.
-
-- [x] T1 repo scaffold
-- [x] T2 containers
-- [x] T3 migrations
-- [x] T4 question schema and packs
-- [x] T5 Price question generator
-- [x] T6 room creation and admin claim
-- [x] T7 join
-- [x] T8 RoomManager core and websocket handshake
-- [x] T9 game loop
-- [x] T10 scoring and standings
-- [x] T11 restart recovery
-- [x] T12 client create, claim, join, lobby
-- [x] T13 client done alongside T12
-- [x] T14 container websocket and deep-link checks in CI
-- [x] T15 load test, 30 bots through one room over websockets
+Done, T1–T15: rooms, joins, the websocket, scoring, restart recovery, the client, the
+containers and a 30-bot load test, with More or Less.
 
 ## Phase 2 — Custom questions, new modes, the framework
 
@@ -37,16 +18,15 @@ Done, T1–T15.
 - [x] T17. Credit, and the three ways to score it
 - [x] T18. The client presentation layer
 
-### Modes that need no new data (T19–T21)
+### Modes that need no new data (T19–T22)
 
 - [x] T19. The Price is Right
 - [x] T20. Guess the Examine
 - [x] T21. Multiple choice, closest number, free text, and where the host's questions land
+- [x] T22. Random events
 
+### Data, then the modes that need it (T23–T29)
 
-### Data, then the modes that need it (T22–T29)
-
-- [ ] T22. Random events
 - [ ] T23. The facts importer
 - [ ] T24. `make gen-packs`, and the reproducibility gate
 - [ ] T25. Bestiary and Drop Table
@@ -65,7 +45,7 @@ Loose ends:
 
 - [ ] T31. Loose ends
 - [ ] T32. Six options, at most
-- [ ] T33. Limits that mean one client, and IPv6
+- [ ] T33. Limits that mean one client, and IPv6 *(server half landed)*
 - [ ] T34. The wiki's rules, enforced *(must land before T23 makes its first request)*
 
 Who gets into a room, what they keep when it ends:

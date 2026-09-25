@@ -15,9 +15,7 @@ Custom questions can be displayed as random events. They can be shown at a rando
 
 Additionally, we could introduce random events anyways. Also when no custom questions are configured. It's very in line with OSRS.
 
-Random events will never be in the first round, and never the first question of a round.
-
-We should probably keep to a max of 1 random event/custom question per round. If people want 5 custom questions, they will have to enable at least 6 game modes. That also prevents people from abusing the custom question system to host their own non-osrs trivia game via our application.
+Random events are never the first question of a round, and never the game's first. How many a room gets is its frequency setting: one per 20, 10 or 5 round questions. A host's own questions take those slots, so a host who wants five of them writes a game long enough to hold five events. That also keeps people from turning the room into their own non-OSRS trivia night.
 
 Similar to a splash page, we can have an NPC show up and 1 second later ask the question. With the buttons showing up 2 seconds later.
 
