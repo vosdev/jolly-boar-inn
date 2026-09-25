@@ -152,7 +152,7 @@ def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     shipped = [q for pack in app.state.packs for q in pack.questions]
     borrowed = [q for q in shipped if q["type"] == "more_less"][:20]
     assert borrowed, "the shipped packs are the questions this stub copies"
-    MODES[name] = Mode(id=name, type="more_less")
+    MODES[name] = Mode(id=name, types=frozenset({"more_less"}))
     app.state.packs.append(
         Pack(
             name=name,

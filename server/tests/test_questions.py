@@ -32,6 +32,7 @@ from app.questions.types import (
     pick_from_list,
     price_is_right,
 )
+from app.questions.types.bounds import Bounds
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
@@ -203,7 +204,9 @@ def test_an_unknown_mode_is_reported() -> None:
 
 def test_a_type_that_disagrees_with_its_mode_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
     """The other half of T16's pack rule, once Drop Table exists and is multiple choice."""
-    monkeypatch.setitem(MODES, "drop_table", Mode(id="drop_table", type="multiple_choice"))
+    monkeypatch.setitem(
+        MODES, "drop_table", Mode(id="drop_table", types=frozenset({"multiple_choice"}))
+    )
     q = question(mode="drop_table")
     assert schema.consistency_errors(q) == [
         "$.type: 'more_less' disagrees with its mode: 'drop_table' plays as 'multiple_choice'"
@@ -213,8 +216,31 @@ def test_a_type_that_disagrees_with_its_mode_is_reported(monkeypatch: pytest.Mon
 
 
 def test_two_modes_may_share_a_type(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setitem(MODES, "stub", Mode(id="stub", type="more_less"))
+    monkeypatch.setitem(MODES, "stub", Mode(id="stub", types=frozenset({"more_less"})))
     schema.validate(question(mode="stub"))
+
+
+def test_a_round_of_several_types_takes_a_question_of_any_of_them(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    both = frozenset({"more_less", "multiple_choice"})
+    monkeypatch.setitem(MODES, "mixed", Mode(id="mixed", types=both, seconds=Bounds(12, 5, 30)))
+    schema.validate(question(mode="mixed"))
+    monkeypatch.setitem(
+        MODES, "mixed", Mode(id="mixed", types=frozenset({"multiple_choice", "free_text"}))
+    )
+    assert schema.consistency_errors(question(mode="mixed")) == [
+        "$.type: 'more_less' disagrees with its mode:"
+        " 'mixed' plays as 'free_text', 'multiple_choice'"
+    ]
+
+
+def test_any_mode_that_is_not_a_round_may_name_an_npc(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Events are recognised by the registry, not by the two names that ship today."""
+    monkeypatch.setitem(MODES, "pool", Mode(id="pool", types=frozenset(), is_round=False))
+    assert schema.event_errors(question(mode="pool", random_event="death")) == []
+    (problem,) = schema.event_errors(question(mode="not_a_mode", random_event="death"))
+    assert problem.startswith("$.random_event: a 'not_a_mode' question is asked by its round")
 
 
 def test_custom_is_the_mode_of_a_rooms_own_questions_and_nothing_else() -> None:

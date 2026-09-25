@@ -7,12 +7,12 @@ ideas/architecture.md section 1) plus ``check(payload)``, the consistency rules 
 business, told how to go about it by the module's optional ``SCORING``.
 
 A type is an answer shape, not a round: the rounds are modes (``app/modes``), and several
-of them may share one type. A type module may still say how a round of it is paced, as
-two ``Bounds``: ``QUESTIONS``, how many questions a round holds, and ``SECONDS``, how long
-one of them stays open. That is where the pace usually belongs -- ``more_less`` is two
-names and one word whatever round it is dressed as -- so it is what every mode of the type
-gets unless the mode says otherwise. ``app.modes.questions_bounds`` and ``seconds_bounds``
-do the reading; a module that declares neither gets the registry's fallbacks there.
+of them may share one type. A type module may still say how its questions are paced, as
+two optional ``Bounds``: ``QUESTIONS``, how many a round holds, and ``SECONDS``, how long
+one stays open. That is where the pace usually belongs -- ``more_less`` is two names and
+one word whatever round it is dressed as -- so it is what every mode of the type gets
+unless the mode says otherwise, and what a random event of the type is open for.
+``app.modes`` does the reading; a module that declares neither gets its fallbacks.
 """
 
 from types import ModuleType

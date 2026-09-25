@@ -40,7 +40,6 @@ SCORING = Scoring.RANK
 # A number to think about and type, where a guess made in the last second is worth what
 # one made in the first. Twenty seconds leaves room to argue it out loud; a minute is as
 # long as a room will wait on one number.
-QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=20, minimum=10, maximum=60)
 
 EXACT = 1.0

@@ -147,7 +147,7 @@ def assert_the_faces_are_fair(faces: list[str], pool: tuple[str, ...]) -> None:
 def stubs() -> Iterator[tuple[str, ...]]:
     """The stub rounds, registered. ``RoomSettings`` only takes modes the registry knows."""
     for stub in STUBS:
-        MODES[stub] = Mode(id=stub, type="more_less")
+        MODES[stub] = Mode(id=stub, types=frozenset({"more_less"}))
     yield STUBS
     for stub in STUBS:
         del MODES[stub]
@@ -355,6 +355,21 @@ def test_a_pack_event_prefers_a_type_other_than_the_rounds(stubs: tuple[str, ...
     for seed in range(40):
         rounds = select(PACKS + EVENT_PACKS, [], settings, random.Random(seed))
         assert {q["type"] for _, _, q in _events(rounds)} == {"multiple_choice"}
+
+
+def test_a_pack_event_prefers_a_type_the_round_does_not_play_at_all(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A round of two types is interrupted by neither, while a third is on offer."""
+    both = frozenset({"more_less", "multiple_choice"})
+    monkeypatch.setitem(MODES, "more_less", Mode(id="more_less", types=both))
+    packs = PACKS + [
+        _event_pack(npc, ("more_less", "multiple_choice", "closest_number") * 3) for npc in ASKERS
+    ]
+    settings = _settings(("more_less", 20), random_event_frequency="more")
+    for seed in range(20):
+        rounds = select(packs, [], settings, random.Random(seed))
+        assert {q["type"] for _, _, q in _events(rounds)} == {"closest_number"}
 
 
 def test_a_pack_event_takes_the_rounds_own_type_rather_than_leave_the_slot_empty() -> None:

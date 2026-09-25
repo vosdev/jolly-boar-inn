@@ -49,7 +49,7 @@ def test_no_round_plays_it() -> None:
     """It is for the host's own questions, whose answers no shipped list could hold, and
     since T22 for the NPCs', written by hand one at a time with their spellings listed.
     No round's pool has one."""
-    assert "free_text" not in {mode.type for mode in MODES.values()}
+    assert "free_text" not in {t for mode in MODES.values() for t in mode.types}
     shipped = [q for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
     assert {q["mode"] for q in shipped if q["type"] == "free_text"} == {"random_event"}
 

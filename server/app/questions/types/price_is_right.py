@@ -34,7 +34,6 @@ SCORING = Scoring.SPEED
 # Four numbers to read and weigh against what you remember paying, not two names and a
 # word, so a host may stretch it further than ``more_less``. Ten seconds is enough to
 # read all four; thirty is as long as it stays a question about knowing.
-QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=10, minimum=5, maximum=30)
 
 

@@ -133,7 +133,7 @@ def place_random_events(
     ``TooManyEvents`` if there are fewer slots than questions, because dropping the rest is
     the one thing a host must never find out about during the game. Every slot left takes
     one of ``events``, the NPCs' own questions, drawn without replacement: preferring a type
-    other than the interrupted round's -- another four-button question in the middle of a
+    the interrupted round does not play -- another four-button question in the middle of a
     four-button round reads as a long round, not an interruption -- and left empty only
     when no question qualifies.
 
@@ -178,7 +178,7 @@ def place_random_events(
                 raise TooManyEvents("the random-event roster has no face left to draw")
             seen[face] += 1
         else:
-            question = _npc_question(left, seen, avoid, MODES[rounds[slot.round].mode].type, rng)
+            question = _npc_question(left, seen, avoid, MODES[rounds[slot.round].mode].types, rng)
             if question is None:
                 continue
             face = question["random_event"]
@@ -241,7 +241,7 @@ def _npc_question(
     left: list[dict[str, Any]],
     seen: Counter[str],
     avoid: set[str | None],
-    interrupted_type: str | None,
+    interrupted_types: frozenset[str],
     rng: random.Random,
 ) -> dict[str, Any] | None:
     """Draw an NPC's own question for a slot, and take it out of ``left``.
@@ -259,11 +259,11 @@ def _npc_question(
     different = [
         npc
         for npc in freshest
-        if any(q["random_event"] == npc and q["type"] != interrupted_type for q in left)
+        if any(q["random_event"] == npc and q["type"] not in interrupted_types for q in left)
     ]
     npc = rng.choice(different or freshest)
     theirs = [q for q in left if q["random_event"] == npc]
-    question = next((q for q in theirs if q["type"] != interrupted_type), theirs[0])
+    question = next((q for q in theirs if q["type"] not in interrupted_types), theirs[0])
     left.remove(question)
     return question
 

@@ -448,9 +448,9 @@ class Room:
     def current_segment(self) -> Segment | None:
         return None if self.current_index is None else self.segment_at(self.current_index)
 
-    def question_seconds(self, mode: str) -> int:
-        """How long a question of this mode stays open: its round's own setting."""
-        return self.settings.seconds_for(mode)
+    def question_seconds(self, question: RoomQuestion) -> int:
+        """How long ``question`` stays open: its round's own setting, or its type's."""
+        return self.settings.seconds_for(question.mode, question.type)
 
     @property
     def current(self) -> RoomQuestion | None:
@@ -570,7 +570,7 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
         id=row["id"],
         code=row["code"],
         status=row["status"],
-        settings=RoomSettings.model_validate(row["settings"]),
+        settings=RoomSettings.stored(row["settings"]),
         current_index=row["current_index"],
         total=total,
         created_at=row["created_at"],
@@ -1659,7 +1659,7 @@ class RoomManager:
                 return None
             question = room.questions[index]
             shown_at, now = datetime.now(UTC), self.clock()
-            seconds = room.question_seconds(question.mode)
+            seconds = room.question_seconds(question)
             hold = room.settings.random_event_seconds if question.random_event else 0
             async with pool.acquire() as conn:
                 await conn.execute(

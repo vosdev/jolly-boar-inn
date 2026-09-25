@@ -44,7 +44,7 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
-from app.modes import MODES, Mode
+from app.modes import MODES, type_seconds
 from app.questions.types import more_less, multiple_choice
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
@@ -1401,6 +1401,41 @@ def test_a_restart_during_a_splash_replays_it(table, client, db, evict) -> None:
         assert admin.take("question_open")["question"]["index"] == 0
 
 
+def test_a_room_whose_mode_left_the_registry_still_resumes_and_plays(
+    second_mode, table, client, db, evict
+) -> None:
+    """A stored room outlives its round's mode, and settings keys a newer build wrote:
+    each of its questions carries its own type, and that is all the game loop reads."""
+    game = table(
+        "Zezima",
+        modes=[{"mode": second_mode, "questions": 3, "seconds": 10}],
+        reveal_seconds=1,
+    )
+    game.start()
+    game.opened(0)
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_with(seat.ws) == 1012
+    db(
+        "update rooms set settings = jsonb_set("
+        """settings || '{"list_publicly": true}', '{modes,0,hidden}', 'true')"""
+    )
+    removed = MODES.pop(second_mode)
+    try:
+        with client.websocket_connect(f"/ws/{game.code}") as ws:
+            again = reseat(game.players[0], ws)
+            assert again.take("welcome")["room"]["segment"]["mode"] == second_mode
+            opened = again.take("question_open")["question"]
+            assert (opened["index"], opened["mode"], opened["type"]) == (
+                1,
+                second_mode,
+                "more_less",
+            )
+            assert (at(opened, "ends_at") - at(opened, "answerable_at")).total_seconds() == 10
+    finally:
+        MODES[second_mode] = removed
+
+
 def test_a_lookup_does_not_resume_a_restarted_room(table, client, db, evict) -> None:
     """Only a player coming back resumes a room, so a scanner or a link preview asking
     for the code never plays the game on to nobody."""
@@ -1680,7 +1715,7 @@ def test_a_player_connecting_mid_splash_sees_who_is_ready(table, client) -> None
 
 def test_a_question_lasts_what_its_own_mode_says(game) -> None:
     """The room has no question length: the round does, and this one is ten seconds."""
-    assert game.room.settings.seconds_for("more_less") == 10
+    assert game.room.settings.seconds_for("more_less", "more_less") == 10
     game.start()
     view = game.opened(0)[0]["question"]
     opened_at = datetime.fromisoformat(view["opened_at"])
@@ -2009,8 +2044,8 @@ def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
 ) -> None:
     """T21 Accept: ``host_only`` is for a question the host reads out and nobody plays.
     It opens for everyone, takes no answer from anyone, and closes on its own clock --
-    shortened here from the mode's twenty seconds to one."""
-    monkeypatch.setitem(MODES, "custom", Mode(id="custom", type=None, seconds=Bounds(1, 1, 60)))
+    shortened here from its type's fifteen seconds to one."""
+    monkeypatch.setattr(multiple_choice, "SECONDS", Bounds(1, 1, 60))
     game = table(
         "Zezima",
         custom=[{**TANZANITE, "host_only": True}],
@@ -2140,7 +2175,7 @@ def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
 
 def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db) -> None:
     """T22 Accept, on the server: an answer inside the NPC's hold is ``not_open``, and
-    ``ends_at - answerable_at`` is the question's own seconds -- the hold comes on top.
+    ``ends_at - answerable_at`` is its type's own seconds -- the hold comes on top.
     The event here is an NPC asking its own question, in the ``random_event`` mode."""
     game = table("Zezima", random_event_seconds=5, **event_rooms(second_mode))
     event = the_event(game)
@@ -2149,7 +2184,8 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db) -
     opened = frames["Zezima"]
     assert opened["random_event"] == event.random_event
     assert (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds() == 5
-    assert (at(opened, "ends_at") - at(opened, "answerable_at")).total_seconds() == 20
+    seconds = (at(opened, "ends_at") - at(opened, "answerable_at")).total_seconds()
+    assert seconds == type_seconds(event.type).default
 
     player = game.players[0]
     assert datetime.now(UTC) < at(opened, "answerable_at"), "reached the event too slowly"
