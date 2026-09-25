@@ -33,7 +33,7 @@ from app.questions.types.scoring import Scoring
 
 SCORING = Scoring.SPEED
 # A typed or accepted answer, before normalising and after: the wire and the schema
-# hold the first, and ``validate_value`` and ``check`` the second.
+# hold the first, and ``parse_value`` and ``check`` the second.
 MAX_LENGTH = 80
 DEFAULT_DISTANCE = 1
 # A question to read and an answer to type on a phone: slower than a button, so twenty
@@ -66,15 +66,18 @@ def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, 
     }
 
 
-def validate_value(payload: dict[str, Any], value: Any) -> bool:
+def parse_value(payload: dict[str, Any], value: Any) -> str | None:
+    """A storable string of up to ``MAX_LENGTH``, as typed; ``None`` for anything else."""
     # The raw cap bounds the NFKC that the normalised cap needs; the normalised one is what
     # bounds grading, since NFKC can make one character eighteen.
-    return (
+    if (
         isinstance(value, str)
         and 0 < len(value) <= MAX_LENGTH
         and text.unstorable(value) is None
         and len(normalize.normalize(value)) <= MAX_LENGTH
-    )
+    ):
+        return value
+    return None
 
 
 def check(payload: dict[str, Any]) -> list[str]:

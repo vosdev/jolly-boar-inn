@@ -96,6 +96,9 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
     question is ``custom`` and nothing else is. A pack question filed under it would sit in
     a pool no round draws from, and a host's question filed under a pack mode would be
     drawn into that mode's rounds as if the packs had shipped it.
+
+    Two types may not be events yet: the client shows what they ask about only inside
+    their own round (``_ROUND_ONLY``).
     """
     mode = MODES.get(question["mode"])
     if mode is None:
@@ -113,7 +116,20 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
             f"$.type: {question['type']!r} disagrees with its mode:"
             f" {mode.id!r} plays as {', '.join(map(repr, sorted(mode.types)))}"
         ]
+    if not mode.is_round and question["type"] in _ROUND_ONLY:
+        return [
+            f"$.type: {question['type']!r} is not accepted in {mode.id!r} yet:"
+            " a question of it can only be shown inside its own round"
+        ]
     return []
+
+
+# An event's stem is its mode's, and the event modes' stem reads only ``prompt``. As an
+# event, ``price_is_right`` would never name its item, and ``more_less``, whose view is its
+# whole question, would show nothing while the NPC holds it. Until each has a stem that
+# works outside its round, a host or NPC pack writing one would set a question nobody can
+# answer.
+_ROUND_ONLY = frozenset({"more_less", "price_is_right"})
 
 
 def event_errors(question: dict[str, Any]) -> list[str]:

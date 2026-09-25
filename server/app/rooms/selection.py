@@ -27,15 +27,16 @@ from typing import Any
 from app.modes import MODES
 from app.questions.packs import EVENT_MODE, Pack
 from app.random_events import RANDOM_EVENTS
-from app.rooms.settings import EVENT_EVERY, RoomSettings
+from app.rooms.settings import EVENT_EVERY, RoomSettings, event_windows
 
 
 class TooManyEvents(ValueError):
     """More custom questions than the room has event slots.
 
     ``NewRoomSettings`` refuses that on the way in, counting the questions the host asked
-    for. This is the rarer case it cannot see: a mode whose pool ran short gives fewer
-    round questions than it asked for, and so fewer slots.
+    for in the order they were listed. This is the rarer case it cannot see: a mode whose
+    pool ran short gives fewer round questions than it asked for, and so fewer slots, and
+    rounds shuffled into another order can put more one-question rounds in one window.
     """
 
 
@@ -145,9 +146,6 @@ def place_random_events(
     with its NPC, so for a pack slot the face and the question are drawn together, from the
     NPCs with questions left.
 
-    A stored room with no frequency (``random_events: false`` before T22) places its host's
-    questions by T21's rules instead, one per round after the first, and nothing else.
-
     Returns new rounds; ``rounds`` and the questions in it are left as they were.
     """
     slots = _slots(rounds, settings, rng)
@@ -161,7 +159,7 @@ def place_random_events(
     taken = sorted(rng.sample(slots, len(custom)), key=_order)
     for slot, question in zip(taken, custom, strict=True):
         asked[slot] = question
-    left = list(events) if settings.random_event_frequency is not None else []
+    left = list(events)
 
     seen = Counter(q["random_event"] for q in custom if q.get("random_event") is not None)
     placed: dict[_Slot, dict[str, Any]] = {}
@@ -204,26 +202,11 @@ def _order(slot: _Slot) -> tuple[int, int]:
 
 def _slots(rounds: Sequence[Round], settings: RoomSettings, rng: random.Random) -> list[_Slot]:
     """Every event position this room has, in play order. See ``place_random_events``."""
-    if settings.random_event_frequency is None:
-        # T21: one per round after the first, anywhere after that round's first question.
-        return [
-            _Slot(number, rng.randrange(len(round_.questions)))
-            for number, round_ in enumerate(rounds)
-            if number > 0
-        ]
-    every = EVENT_EVERY[settings.random_event_frequency]
-    # (round, position in it, whether an event may follow it), in play order.
-    played = [
-        (number, at, at < len(round_.questions) - 1)
-        for number, round_ in enumerate(rounds)
-        for at in range(len(round_.questions))
-    ]
-    slots: list[_Slot] = []
-    for start in range(0, len(played) - every + 1, every):
-        inside = [_Slot(number, at) for number, at, open_ in played[start : start + every] if open_]
-        if inside:
-            slots.append(rng.choice(inside))
-    return slots
+    frequency = settings.random_event_frequency
+    # Only a stored room can lack one, and selection only runs when a room is made.
+    assert frequency is not None, "a room is created with a frequency"
+    lengths = [len(round_.questions) for round_ in rounds]
+    return [_Slot(*rng.choice(window)) for window in event_windows(lengths, EVENT_EVERY[frequency])]
 
 
 def _face(

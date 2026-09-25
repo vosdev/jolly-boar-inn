@@ -3,7 +3,7 @@
 A separate fetch rather than a field on ``OpenQuestion``, because it is the same few
 hundred entries for every question of the round: sending it per question would put the
 answer list on the wire once per question for no gain. The client fetches it once per
-session, during the splash of a round that needs it (section 3, "Autocomplete
+session, when the first question naming it arrives (section 3, "Autocomplete
 vocabularies").
 
 Knowing the list gives nothing away. It is every item in the roster, not the question's

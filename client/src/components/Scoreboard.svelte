@@ -358,15 +358,6 @@
     box-shadow: 0 -1px 0 var(--line);
   }
 
-  .sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
   @media (max-width: 26rem) {
     .trophy {
       width: 2.5rem;

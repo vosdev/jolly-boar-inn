@@ -5,8 +5,9 @@ all of this encodes; the sums those standings are built from are test_game.py's 
 
 T17 Accept: a table per scoring. ``SPEED`` pays a bucket's points times the credit, so
 0.6 in bucket 2 is 540; ``STEP`` pays 1000 down to 400 across the steps, 1000 for a
-one-step question, and clamps a step past the last; ``RANK`` pays 1000 times the credit
-and never looks at the clock. The bucket edges above them are T10's, untouched.
+one-step question, and clamps a step past the last; ``RANK`` pays a share of 1000 for the
+rung the credit reached and never looks at the clock. The bucket edges above them are
+T10's, untouched.
 
 The bucket edges are inclusive and are fractions of the room's ``question_seconds``, so
 the same answer speed buckets the same way whatever the question length.
@@ -16,6 +17,7 @@ import asyncio
 import math
 from datetime import UTC, datetime, timedelta
 from types import ModuleType
+from typing import cast
 from uuid import uuid4
 
 import pytest
@@ -33,7 +35,7 @@ from app.rooms.scoring import (
     step_points,
 )
 from app.rooms.settings import RoomSettings
-from app.rooms.state import Player, Room, Totals
+from app.rooms.state import Player, Room, Totals, settle_credit
 
 # The section 6 table, verbatim. If this changes, the game changed.
 SECTION_6 = ((0.10, 1000), (0.25, 900), (0.50, 800), (0.75, 700), (1.00, 600))
@@ -313,8 +315,18 @@ def test_step_without_steps_is_scored_on_speed() -> None:
 
 # --- RANK: the credit is the ranking, and the clock is nobody's business -------------
 
-# Section 6's table: exact, then the closest three, then everyone else who answered.
-RANK = [(1.0, 1000), (0.8, 800), (0.6, 600), (0.4, 400), (0.2, 200), (0.0, 0)]
+# Section 6's table: exact, then the closest three, then nothing. A credit between rungs
+# is paid at the rung it reached.
+RANK = [
+    (1.0, 1000),
+    (0.95, 750),
+    (0.9, 750),
+    (0.8, 500),
+    (0.7, 250),
+    (0.69, 0),
+    (0.2, 0),
+    (0.0, 0),
+]
 
 
 @pytest.mark.parametrize(("credit", "points"), RANK)
@@ -340,7 +352,7 @@ def test_rank_has_no_band(elapsed_s: float) -> None:
 
 
 def test_rank_pays_no_attention_to_a_band_it_is_handed() -> None:
-    assert {points_for(Scoring.RANK, 0.8, b, None) for b in (None, 1, 5)} == {800}
+    assert {points_for(Scoring.RANK, 0.8, b, None) for b in (None, 1, 5)} == {500}
 
 
 # --- credit is 0..1 whatever pays it -------------------------------------------------
@@ -357,6 +369,68 @@ def test_credit_outside_zero_to_one_is_refused(
     """A type that grades 1.2 has a bug, and paying 1200 for it would hide it."""
     with pytest.raises(ValueError, match="outside 0..1"):
         points_for(scoring, credit, band_number, steps)
+
+
+@pytest.mark.parametrize(
+    ("raw", "settled"),
+    [
+        (sum([0.1] * 10), 1.0),  # 0.9999999999999999
+        (1 - 1e-12, 1.0),
+        (1e-12, 0.0),
+        (-1e-12, 0.0),
+        (0.6, 0.6),
+        (1, 1.0),
+        (0, 0.0),
+    ],
+)
+def test_credit_is_rounded_before_anything_reads_it(
+    raw: float, settled: float, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Credit summed from fractions is full marks, and a rounding speck is no bug."""
+    credit = settle_credit("ordering", raw)
+    assert credit == settled
+    assert type(credit) is float
+    assert math.copysign(1, credit) == 1  # never -0.0
+    assert caplog.records == []
+
+
+@pytest.mark.parametrize(
+    ("raw", "settled"),
+    [
+        (1.2, 1.0),
+        (-0.1, 0.0),
+        (math.inf, 1.0),
+        (-math.inf, 0.0),
+        (10**400, 1.0),
+        (math.nan, 0.0),
+        (None, 0.0),
+        ("1", 0.0),
+        (True, 0.0),
+    ],
+)
+def test_bad_credit_is_clamped_and_logged_never_raised(
+    raw: object, settled: float, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A type's bug costs its player the question and names the type; it never raises."""
+    credit = settle_credit("ordering", raw)
+    assert credit == settled
+    assert points_for(Scoring.SPEED, credit, 1, None) == round(1000 * settled)
+    [record] = caplog.records
+    assert record.levelname == "ERROR"
+    assert "ordering" in record.getMessage()
+
+
+# --- a scoring nobody taught the tables ------------------------------------------------
+
+
+def test_a_scoring_the_tables_do_not_know_fails_loudly() -> None:
+    """A fourth ``Scoring`` member added without its table must not slip through as
+    ``None`` points or an ``UnboundLocalError`` somewhere in the close."""
+    unknown = cast(Scoring, "fourth")
+    with pytest.raises(AssertionError):
+        band(unknown, 1.0, 10, None)
+    with pytest.raises(AssertionError):
+        points_for(unknown, 1.0, 1, None)
 
 
 # --- standings ----------------------------------------------------------------------

@@ -6,18 +6,22 @@ shown here with stub modes and stub types. The registry itself is held to rules 
 than to a snapshot, so a new mode needs no edit here.
 """
 
+import re
 from collections.abc import Iterator
 from types import ModuleType
 
 import pytest
 
 from app import modes
+from app.config import REPO_ROOT
 from app.modes import MODES, Mode, problems, questions_bounds, round_modes, seconds_bounds
+from app.questions.schema import load_schema
 from app.questions.types import TYPES, more_less, multiple_choice
 from app.questions.types.bounds import Bounds
 
 # The two modes whose questions are random events rather than a round.
 EVENTS = ("custom", "random_event")
+CLIENT_COPY = REPO_ROOT / "client" / "src" / "lib" / "modes.ts"
 
 
 def test_every_shipped_mode_follows_the_registry_rules() -> None:
@@ -31,6 +35,29 @@ def test_custom_and_random_event_are_the_modes_that_are_not_rounds() -> None:
     type or a number of its own."""
     assert tuple(mode.id for mode in MODES.values() if not mode.is_round) == EVENTS
     assert [mode.id for mode in round_modes()] == [m for m in MODES if m not in EVENTS]
+
+
+def _between(source: str, start: str, end: str) -> str:
+    head = source.index(start)
+    return source[head : source.index(end, head)]
+
+
+def test_the_clients_mode_list_is_this_registry() -> None:
+    """``lib/modes.ts`` has copy for every round, names no mode this server lacks, and
+    lists as coming soon only ids the schema accepts and nothing already shipped."""
+    source = CLIENT_COPY.read_text(encoding="utf-8")
+    shipped = _between(source, "export const MODES", "\n}\n")
+    upcoming = _between(source, "export const UPCOMING_MODES", "\n]\n")
+    keys = re.findall(r"^  ([a-z0-9_]+): \{$", shipped, flags=re.MULTILINE)
+    ids = re.findall(r"^    id: '([^']*)',$", shipped, flags=re.MULTILINE)
+    soon = re.findall(r"^  \{ id: '([^']*)',", upcoming, flags=re.MULTILINE)
+    assert keys and keys == ids, "an entry filed under another id, or the file's shape moved"
+    assert {mode.id for mode in round_modes()} <= set(keys), "a round with no client copy"
+    assert set(keys) <= set(MODES), "client copy for a mode this server does not have"
+    pattern = load_schema()["properties"]["mode"]["pattern"]
+    assert soon and all(re.fullmatch(pattern, mode) for mode in soon), soon
+    assert len(set(soon)) == len(soon)
+    assert not set(soon) & (set(MODES) | set(keys)), "shipped, and still coming soon"
 
 
 def test_more_less_is_paced_by_its_type() -> None:

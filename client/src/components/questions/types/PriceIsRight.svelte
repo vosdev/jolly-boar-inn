@@ -22,6 +22,7 @@
    */
   import { asOfDate } from '../../../lib/dates'
   import { formatGp } from '../../../lib/gp'
+  import { indexSet } from '../GemButton.svelte'
   import GemChoices from '../GemChoices.svelte'
   import type { TypeViewProps } from '../props'
 
@@ -38,9 +39,9 @@
   let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<Index> = $props()
 
   const q = $derived(data as unknown as Data)
-  const answer = $derived(revealed ? (q.answer_index ?? null) : null)
+  const answer = $derived(indexSet(revealed ? (q.answer_index ?? null) : null))
   const picked = $derived(
-    typeof yourValue === 'number' && Number.isInteger(yourValue) ? yourValue : null,
+    indexSet(typeof yourValue === 'number' && Number.isInteger(yourValue) ? yourValue : null),
   )
 </script>
 
@@ -58,10 +59,6 @@
     <span class="price">{formatGp(option)} <span class="unit">gp</span></span>
   {/snippet}
 </GemChoices>
-
-{#if !canAnswer && !revealed}
-  <p class="note">This one is not scored for you — sit back and watch.</p>
-{/if}
 
 {#if revealed}
   <p class="note asof">Grand Exchange price, rounded, as of {asOfDate(q.as_of)}.</p>

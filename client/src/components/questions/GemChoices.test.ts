@@ -12,7 +12,7 @@ import { createRawSnippet } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
-import { GEMS, gemState } from './GemButton.svelte'
+import { GEMS, gemState, indexSet } from './GemButton.svelte'
 import GemChoices from './GemChoices.svelte'
 import Question from './Question.svelte'
 
@@ -32,8 +32,8 @@ function draw(props: {
 }) {
   return render(GemChoices<string>, {
     options: props.options ?? SIX,
-    picked: props.picked ?? null,
-    answer: props.answer ?? null,
+    picked: indexSet(props.picked ?? null),
+    answer: indexSet(props.answer ?? null),
     revealed: props.revealed ?? false,
     canAnswer: props.canAnswer ?? true,
     onAnswer: props.onAnswer ?? (() => {}),
@@ -49,13 +49,16 @@ const states = () =>
 
 describe('gemState', () => {
   it('has five states and no others', () => {
-    expect(gemState(0, null, null, false)).toBe('idle')
-    expect(gemState(0, 0, null, false)).toBe('waiting')
-    expect(gemState(1, 0, null, false)).toBe('faded')
-    expect(gemState(0, 0, 0, true)).toBe('correct')
-    expect(gemState(0, null, 0, true)).toBe('correct')
-    expect(gemState(1, 0, 0, true)).toBe('faded')
-    expect(gemState(1, 1, 0, true)).toBe('wrong')
+    const none = indexSet(null)
+    const zero = indexSet(0)
+    const one = indexSet(1)
+    expect(gemState(0, none, none, false)).toBe('idle')
+    expect(gemState(0, zero, none, false)).toBe('waiting')
+    expect(gemState(1, zero, none, false)).toBe('faded')
+    expect(gemState(0, zero, zero, true)).toBe('correct')
+    expect(gemState(0, none, zero, true)).toBe('correct')
+    expect(gemState(1, zero, zero, true)).toBe('faded')
+    expect(gemState(1, one, zero, true)).toBe('wrong')
   })
 })
 

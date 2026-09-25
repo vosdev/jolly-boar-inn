@@ -82,4 +82,19 @@ describe('free_text', () => {
     expect(screen.getByText('Zezma').closest('p')?.classList.contains('picked')).toBe(true)
     expect(screen.queryByText(/900/)).toBeNull()
   })
+
+  it('names the subject on the reveal the way the list does, and the other spellings', () => {
+    render(Question, {
+      question: open(),
+      reveal: {
+        prompt: 'Whose pet is the Jal-nib-rek?',
+        accepted: ['zuk', 'TzKal-Zuk', 'tzkal zuk'],
+        subject: { name: 'TzKal-Zuk', asset: 'npc:7706' },
+      },
+      yourValue: 'zuk',
+      onAnswer: () => {},
+    })
+    expect(screen.getByText('TzKal-Zuk').parentElement?.textContent).toBe('It was TzKal-Zuk.')
+    expect(screen.getByText('Also accepted: zuk, tzkal zuk')).toBeTruthy()
+  })
 })

@@ -432,6 +432,17 @@ button.small {
   font-size: 0.9rem;
 }
 
+/* Read by a screen reader and drawn by nobody: what a glyph, a colour or a layout says to
+   the eye, in words. */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .error {
   color: var(--bad);
   font-size: 0.9rem;

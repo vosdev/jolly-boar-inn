@@ -6,14 +6,12 @@
  * splash screen says before a round, and where the artwork will hang when there is some.
  * Keeping all of it on one object is what stops them drifting apart as modes are added.
  *
- * Which modes exist, and how a round of each is paced, is the server's to say:
- * `GET /api/modes` (see `lib/api.ts`) is what the create form lists, so a build that
- * plays a mode this file has no copy for still offers it, under its id.
+ * Which modes exist, which types each plays and how a round of each is paced is the
+ * server's to say: `GET /api/modes` (see `lib/api.ts`) is what the create form lists, so a
+ * build that plays a mode this file has no copy for still offers it, under its id.
  *
  * A mode is a round, not a question type: several modes may be answered the same way.
- * Each entry names the type it plays as, which is the pairing `app/modes` holds on the
- * server. A question on the wire carries its own `type` as well, and that one is what
- * draws it.
+ * A question on the wire carries its own `type`, and that is what draws it.
  *
  * Plain TypeScript with no `.svelte` imports, so every screen can use it. The components
  * that *draw* a question live in `components/questions/index.ts` instead.
@@ -29,11 +27,6 @@
 
 export interface Mode {
   id: string
-  /**
-   * The question type a round of this mode is answered in, as `OpenQuestion.type` names it.
-   * Null for `custom` and `random_event`, whose questions each carry their own.
-   */
-  type: string | null
   /** Two or three words. The splash headline and the checkbox label. */
   label: string
   /** One line, for the create form. */
@@ -48,12 +41,6 @@ export interface Mode {
    * this file stays free of `.svelte` imports.
    */
   stem: StemId | null
-  /**
-   * The list a round of this mode is answered from, for a `pick_from_list` mode only.
-   * The splash names it so the list is fetched while players read, not when the first
-   * question is already running (`lib/vocab.ts`).
-   */
-  vocab?: string
 }
 
 /**
@@ -86,7 +73,6 @@ export const DEFAULT_SCENE: SceneId = 'jolly_boar'
 export const MODES: Record<string, Mode> = {
   more_less: {
     id: 'more_less',
-    type: 'more_less',
     label: 'More or Less',
     hint: 'A mix of Grand Exchange, High Alchemy and NPC prices.',
     blurb:
@@ -98,7 +84,6 @@ export const MODES: Record<string, Mode> = {
   },
   price_is_right: {
     id: 'price_is_right',
-    type: 'price_is_right',
     label: 'The Price is Right',
     hint: 'Test your Grand Exchange knowledge.',
     blurb: 'One item, four prices. Which one does it really go for on the Grand Exchange?',
@@ -109,7 +94,6 @@ export const MODES: Record<string, Mode> = {
   },
   guess_examine: {
     id: 'guess_examine',
-    type: 'pick_from_list',
     label: 'Guess the Examine',
     hint: 'Name the thing from the line you get when you examine it.',
     blurb: 'An examine line from the game. Search the list and pick what it belongs to.',
@@ -117,14 +101,12 @@ export const MODES: Record<string, Mode> = {
     scene: 'rising_sun',
     // The examine line is the question; the list below it is only how you answer.
     stem: 'examine',
-    vocab: 'examines',
   },
   // Never offered as a round: the host's questions are random events inside other rounds.
   // It is here for the stem those questions are drawn with, and for the splash of a room
   // created before T21, whose custom questions still play as a round of their own.
   custom: {
     id: 'custom',
-    type: null,
     label: "Host's Questions",
     hint: 'Questions the host wrote for this room.',
     blurb: 'The host wrote these ones. Whatever they ask, answer it.',
@@ -137,7 +119,6 @@ export const MODES: Record<string, Mode> = {
   // for (`lib/randomEvents.ts`, `components/RandomEvent.svelte`). Here for its stem.
   random_event: {
     id: 'random_event',
-    type: null,
     label: 'Random Event',
     hint: 'An NPC interrupts the round with a question of their own.',
     blurb: 'Someone has turned up with a question. Answer it, and they will be on their way.',
@@ -154,7 +135,7 @@ export const MODES: Record<string, Mode> = {
  * here after that is harmless, but belongs deleted.
  */
 export const UPCOMING_MODES: { id: string; label: string; hint: string }[] = [
-  { id: 'who_is_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!" },
+  { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!" },
   { id: 'bestiary', label: 'Bestiary', hint: 'Combat levels, weaknesses and haunts of the monsters.' },
   { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.' },
   { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.' },
@@ -163,8 +144,8 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string }[] = [
   { id: 'who_said_that', label: 'Who Said That?', hint: 'Name the character behind the line.' },
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?' },
   { id: 'clipped', label: 'Know Your Content Creator', hint: 'Are you sure you are a fan?' },
-  { id: 'Name that spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!' },
-  { id: 'Minimap Guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?' },
+  { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!' },
+  { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?' },
 ]
 
 /**

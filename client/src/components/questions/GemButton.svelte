@@ -30,22 +30,30 @@
    */
   export type GemState = 'idle' | 'waiting' | 'correct' | 'faded' | 'wrong'
 
+  /**
+   * Which state the option at `index` is in. `picked` and `answer` are sets rather than
+   * one index each, so an answer of several options will not need a second signature.
+   */
   export function gemState(
     index: number,
-    picked: number | null,
-    answer: number | null,
+    picked: ReadonlySet<number>,
+    answer: ReadonlySet<number>,
     revealed: boolean,
   ): GemState {
-    if (!revealed) return picked === null ? 'idle' : picked === index ? 'waiting' : 'faded'
-    if (answer === index) return 'correct'
-    return picked === index ? 'wrong' : 'faded'
+    if (!revealed) return picked.size === 0 ? 'idle' : picked.has(index) ? 'waiting' : 'faded'
+    if (answer.has(index)) return 'correct'
+    return picked.has(index) ? 'wrong' : 'faded'
+  }
+
+  /** One option index as a set, or the empty set for none. */
+  export function indexSet(index: number | null): ReadonlySet<number> {
+    return new Set(index === null ? [] : [index])
   }
 </script>
 
 <script lang="ts">
   /**
-   * One answer on a gem (D8): the button `multiple_choice`, `price_is_right` and, later,
-   * `ordering` all answer with.
+   * One answer on a gem (D8): the button `multiple_choice` and `price_is_right` answer with.
    *
    * **On reveal no button changes colour.** That is the whole of section 2's rule, and
    * everything here serves it. The answer stays lit in its own gem and every other button
@@ -234,15 +242,6 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     line-height: 1.5;
-  }
-
-  .sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 
   @media (prefers-reduced-motion: reduce) {

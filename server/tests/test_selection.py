@@ -6,8 +6,7 @@ window of N and none is a round's or the game's first question; a one-mode room 
 events; a custom question's named NPC is the one that asks it, and two naming one NPC are
 both honoured; seeded over many rooms, no drawn face repeats while an unused one is left,
 and none appears twice running; a room whose slots outnumber the faces repeats the least
-used; a pack event never shares its question with another event; a room stored with
-``random_events: false`` places only its own questions.
+used; a pack event never shares its question with another event.
 """
 
 import random
@@ -304,6 +303,28 @@ def test_a_window_of_one_question_rounds_has_nowhere_to_put_an_event(
     assert _events(rounds) == []
 
 
+@pytest.mark.parametrize(
+    "lengths",
+    [
+        (1, 1, 1, 1, 1),  # one window, every question in it its round's last
+        (6, 1, 1, 1, 1),  # the first window has room, the second none
+        (2, 1, 1, 1, 1),  # the first question is not its round's last
+        (1, 1, 1, 1, 2),  # nor is the last round's first
+        (10, 10),
+    ],
+)
+def test_the_settings_promise_exactly_the_slots_the_room_gets(
+    stubs: tuple[str, ...], lengths: tuple[int, ...]
+) -> None:
+    """Counted by the rounds' shape, not their total, so a host is never promised a slot
+    that a window of one-question rounds cannot hold."""
+    modes = ("more_less", *STUBS)[: len(lengths)]
+    settings = _settings(*zip(modes, lengths, strict=True), random_event_frequency="more")
+    for seed in range(20):
+        rounds = select(PACKS + EVENT_PACKS, [], settings, random.Random(seed))
+        assert len(_events(rounds)) == settings.random_event_slots
+
+
 # --- what: the host's questions, then the NPCs' own ----------------------------------------
 
 
@@ -480,29 +501,6 @@ def test_a_hosts_unnamed_question_may_be_asked_by_an_npc_with_no_questions_yet(
 
 
 # --- rooms stored before T22 ---------------------------------------------------------------
-
-
-def test_a_room_stored_with_random_events_false_places_only_its_own_questions(
-    stubs: tuple[str, ...],
-) -> None:
-    """T21's rules: one per round after the first, anywhere after its first question, and
-    no NPC of the packs', however many of them there are to draw."""
-    settings = RoomSettings.model_validate(
-        {
-            "modes": [{"mode": mode, "questions": 4} for mode in ("more_less", *STUBS[:3])],
-            "random_events": False,
-        }
-    )
-    assert settings.random_event_frequency is None
-    positions = set()
-    for seed in range(40):
-        rounds = select(PACKS + EVENT_PACKS, _custom(3), settings, random.Random(seed))
-        events = _events(rounds)
-        assert [number for number, _, _ in events] == [1, 2, 3]
-        assert {q["mode"] for _, _, q in events} == {"custom"}
-        assert len(set(_faces(rounds))) == 3
-        positions |= {position for _, position, _ in events}
-    assert positions == {1, 2, 3, 4}
 
 
 def test_a_room_stored_with_random_events_true_reads_as_default() -> None:

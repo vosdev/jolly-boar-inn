@@ -3,10 +3,10 @@
  *
  * A list is the same few hundred entries for every question of a round, so it is fetched
  * once per session from `GET /api/vocab/{name}` rather than sent with each question
- * (architecture section 3). `prefetchVocab` starts that fetch during the splash of a round
- * that needs it; `loadVocab` is the same fetch for whoever asks first, and every caller
- * after that gets the same promise. A failed fetch is forgotten, so the next caller tries
- * again rather than inheriting the failure for the rest of the evening.
+ * (architecture section 3). `prefetchVocab` starts that fetch as a question naming the
+ * list arrives (`listFor`); `loadVocab` is the same fetch for whoever asks first, and
+ * every caller after that gets the same promise. A failed fetch is forgotten, so the next
+ * caller tries again rather than inheriting the failure for the rest of the evening.
  *
  * The search is what makes a list of names answerable without spelling them, and it is
  * the reason the old `free_text` Guess the Examine needed aliases and this one does not:
@@ -21,6 +21,7 @@
  */
 
 import { getVocab, type Vocab, type VocabEntry } from './api'
+import type { OpenQuestion } from './protocol'
 
 export type { Vocab, VocabEntry }
 
@@ -41,6 +42,15 @@ export function loadVocab(name: string): Promise<Vocab> {
  * it calls `loadVocab` and hears about a failure then. */
 export function prefetchVocab(name: string): void {
   loadVocab(name).catch(() => {})
+}
+
+/**
+ * The list an open question is answered from, as its own view names it, or null for a
+ * question answered some other way. Only `pick_from_list` sends one.
+ */
+export function listFor(question: OpenQuestion | null): string | null {
+  const name = question?.type === 'pick_from_list' ? question.view.vocab : null
+  return typeof name === 'string' ? name : null
 }
 
 /** For tests: forget every list fetched so far. */

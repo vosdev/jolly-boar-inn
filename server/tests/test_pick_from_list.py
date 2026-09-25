@@ -20,7 +20,7 @@ from app.modes import MODES, seconds_bounds
 from app.questions import schema, vocab
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, pick_from_list, scoring_of
+from app.questions.types import TYPES, pick_from_list, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from app.rooms import scoring
 
@@ -76,11 +76,16 @@ def test_it_scores_on_steps_which_without_steps_is_speed() -> None:
     assert scoring.effective(Scoring.STEP, 8) is Scoring.STEP
 
 
+def test_its_steps_hook_is_how_the_engine_learns_the_frames() -> None:
+    assert steps_of("pick_from_list", payload(steps=8)) == 8
+    assert steps_of("pick_from_list", EXAMPLE["payload"]) is None
+
+
 def test_example_validates() -> None:
     schema.validate(EXAMPLE)
 
 
-# --- validate_value ---------------------------------------------------------------------
+# --- parse_value ------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -97,14 +102,14 @@ def test_example_validates() -> None:
         (None, False),
     ],
 )
-def test_validate_value_takes_only_an_id_in_the_vocabulary(value: Any, ok: bool) -> None:
-    assert pick_from_list.validate_value(EXAMPLE["payload"], value) is ok
+def test_parse_value_takes_only_an_id_in_the_vocabulary(value: Any, ok: bool) -> None:
+    assert pick_from_list.parse_value(EXAMPLE["payload"], value) == (value if ok else None)
 
 
-def test_validate_value_refuses_everything_for_a_vocabulary_this_build_lacks() -> None:
+def test_parse_value_refuses_everything_for_a_vocabulary_this_build_lacks() -> None:
     if vocab.get("npcs") is not None:
         pytest.skip("npcs.json exists now")
-    assert pick_from_list.validate_value(payload(vocab="npcs"), 4151) is False
+    assert pick_from_list.parse_value(payload(vocab="npcs"), 4151) is None
 
 
 # --- check ------------------------------------------------------------------------------

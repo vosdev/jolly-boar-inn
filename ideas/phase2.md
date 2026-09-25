@@ -388,7 +388,8 @@ runs it; no generator opens a socket.
 Two `multiple_choice` modes from `facts/npcs.json`. First two modes off the importer.
 
 Bestiary asks combat level, release year, quest, location or weakness. Drop Table asks which
-of four bosses drops an item.
+of four bosses drops an item. For `AssetStem` to show that item, `multiple_choice` needs an
+optional `subject` (a schema change): today its payload has none and allows no extra keys.
 
 Distractors are the whole task. `ideas/games.md` names the trap: pick three random bosses
 for a Drop Table question and one of them may also drop the item. The generator checks every
@@ -427,14 +428,18 @@ The last new type. `ideas/architecture.md` section 2 has the payload and why it 
 
 `ordering` type module: credit is the fraction of entries in the right place, ties on `rank`
 accepted in either order, `check()` refusing a payload whose `answer` disagrees with `rank`
-or whose entries all tie. `Ordering.svelte` — a list you reorder, working with a mouse and
-with a thumb, with the `ends` labels at either end so the direction is never in doubt. Mode
-`release_order` generated from quest and NPC release dates.
+or whose entries all tie. `client_view` drops `rank` and `detail` and orders `entries` by a
+shuffle seeded from the payload's content hash, so every socket and reconnect sees one
+order; a hand-written payload lists them in answer order, so a shuffle that lands on an
+order scoring full credit is rotated by one. `Ordering.svelte` — a list you reorder, working
+with a mouse and with a thumb, with the `ends` labels at either end so the direction is
+never in doubt. Mode `release_order` generated from quest and NPC release dates.
 
 **Accept:** three of five in the right place scores credit 0.6, and with bucket 2 that is
 540 points; two entries sharing a rank score full credit in either order; `check()` rejects
-an `answer` that does not sort by `rank`; the component is usable one-thumbed on a 375px
-viewport; partial credit shows in the reveal as "3 of 5".
+an `answer` that does not sort by `rank`; a payload written in answer order is not shown in
+answer order, and `client_view` gives the same order every call; the component is usable
+one-thumbed on a 375px viewport; partial credit shows in the reveal as "3 of 5".
 
 ### T28. Sort It Out
 

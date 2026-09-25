@@ -78,6 +78,7 @@ jolly-boar-inn/
 │   │   │       ├── __init__.py    # registry: TYPES = {"more_less": more_less, ...}
 │   │   │       ├── bounds.py      # Bounds: a per-mode number, its default and its range
 │   │   │       ├── scoring.py     # Scoring: how a type turns credit into points
+│   │   │       ├── exact.py       # parse and grade a one-integer answer (index or entry id)
 │   │   │       ├── more_less.py
 │   │   │       ├── multiple_choice.py    # T21
 │   │   │       ├── price_is_right.py     # T19
@@ -123,6 +124,7 @@ jolly-boar-inn/
 │       │   ├── vocab.ts        # fetch and cache /api/vocab/{name}, word-prefix search
 │       │   ├── session.ts      # localStorage: session per room, list of created rooms
 │       │   ├── protocol.ts     # TS types mirroring server/app/ws/protocol.py
+│       │   ├── clock.ts        # the server's clock: local time plus the offset, ticking
 │       │   └── stores.ts       # room, players, question, standings (Svelte runes/stores)
 │       ├── routes/
 │       │   ├── Home.svelte          # create or join
@@ -139,7 +141,9 @@ jolly-boar-inn/
 │           └── questions/
 │               ├── index.ts             # viewFor(type, mode): which pair draws a question
 │               ├── props.ts             # the props a type view and a stem take
-│               ├── Question.svelte      # composes the mode's stem with the type's view
+│               ├── Question.svelte      # the mode's stem over the type's view, the shared lines
+│               ├── AnswerForm.svelte    # a typed answer's box and Submit
+│               ├── AnswerSettled.svelte # "It was X", and ours beside it
 │               ├── types/               # the answer affordance, one per question type
 │               │   ├── MoreLess.svelte
 │               │   ├── MultipleChoice.svelte
@@ -203,19 +207,23 @@ def client_view(payload: dict) -> dict     # what players and admin see while op
 def reveal(payload: dict) -> dict          # shown after close: answer, reveal block, asset refs
 def grade(payload: dict, submissions: list[Submission]) -> dict[player_id, float]
                                            # credit per player, 0.0..1.0 (section 6)
-def validate_value(payload: dict, value) -> bool   # shape check of a submitted answer before storing
+def parse_value(payload: dict, value) -> Any | None  # canonical answer, or None to refuse it
 def check(payload: dict) -> list[str]      # consistency: the stored answer follows from the stored facts
+def steps(payload: dict) -> int | None     # optional: how many frames it shows itself in (section 6)
 
 SCORING: Scoring = Scoring.SPEED           # optional: how credit becomes points (section 6)
 QUESTIONS: Bounds                          # optional: fallback round length for a mode of this type
 SECONDS: Bounds                            # optional: fallback question length, and an event's length
 ```
 
+The room stores, echoes (`results`, `welcome.your_answer`) and grades what `parse_value`
+returns, never the raw value; `None` is `bad_value`. Today's types return the value as sent.
 `grade` returns **credit**, a float from 0.0 to 1.0, for every type. One is fully right,
 zero is wrong, and the values between are `ordering`'s partial credit. It takes all
-submissions at once because `closest_number` ranks them against each other. `scoring.py`
-turns credit plus timing into points, and `SCORING` picks which of the three ways it does
-that — which is the whole reason a type is a separate thing from a mode.
+submissions at once because `closest_number` ranks them against each other. The close
+rounds credit to 1e-9 and clamps it to 0..1, logging a bad one rather than failing the
+close. `scoring.py` turns credit plus timing into points, and `SCORING` picks which of the
+three ways it does that — which is the whole reason a type is a separate thing from a mode.
 
 **`modes/__init__.py`.** A mode is a *round*: the thing a host picks on the create form, the
 thing a splash introduces, and the thing `questions.mode` records. It is what a question is
@@ -269,11 +277,11 @@ Where they go:
 
 Who asks, and what:
 
-- **The host's questions take random slots**, in the order the host wrote them. The cap is the slot count at the chosen frequency, and `NewRoomSettings` rejects more custom questions than that, naming the count, the limit and the frequency and pointing at `more`, rather than silently dropping the overflow. A host who wants five questions of their own writes a game long enough to hold five events, which also keeps them from turning the room into their own trivia night with one round of ours.
+- **The host's questions take random slots**, in the order the host wrote them. The cap is the slot count at the chosen frequency, counted as the slots are placed (`event_windows`), and `NewRoomSettings` rejects more custom questions than that, naming the count, the limit and the frequency and pointing at `more`, rather than silently dropping the overflow. A host who wants five questions of their own writes a game long enough to hold five events, which also keeps them from turning the room into their own trivia night with one round of ours.
 - **Every other slot takes an NPC's own question**, from the event pack, `data/packs/random_events/`, and nowhere else. Every question there is mode `random_event` and was written for one NPC, about that NPC's subject: the Sandwich Lady asks about cooking and Dr Jekyll about potions. So for these slots the face and the question are drawn together, without replacement, preferring a question of a type the interrupted round does not play — another four-button question in the middle of a four-button round reads as a long round, not an interruption. The slot is left empty only when no question qualifies.
 - **Faces.** A custom question whose envelope names an NPC (`random_event`) is asked by that NPC, even if another custom question already named it. Every other face is drawn from `app/random_events.py`: first from the NPCs the room has not seen yet, then from the least seen, and never the face of the event just before or after it. A face the host named counts as seen from the start, so the draw does not spend it early. A host's unnamed question may be asked by anyone on the roster, which is also the only way an NPC with no questions written yet turns up. The roster no longer has to outnumber the slots: a room at `more` can hold more events than there are faces, and the least used face repeats.
 
-A room stored before T22 said `random_events` instead, a boolean for "may the packs interrupt too". It reads back as `default` for true, and for false as a frequency of none: the host's own questions, placed by T21's rules — one per round after the first — and nothing else. `NewRoomSettings` never takes it, so no new room is made that way. Selection never runs twice, so this matters only for the settings a stored room loads with; its questions are already in their rows.
+A room stored before T22 said `random_events` instead, a boolean for "may the packs interrupt too". It reads back as `default` for true, and for false as a frequency of none, which `NewRoomSettings` never takes and selection cannot place. Selection never runs twice, so this matters only for the settings a stored room loads with; its questions are already in their rows.
 
 Until T22 a pack event borrowed a question from a mode the host did not pick and put a random face on it. That made for a Sandwich Lady asking a Drop Table question: the joke works once, and the NPC is only a sticker on it. A themed pack costs hand-written content, and it is the one kind of content in this project that is allowed to be silly. The roster and the themes live in `ideas/random-events.md`.
 
@@ -318,9 +326,11 @@ round. Names are final — `ideas/games.md` holds the sketches they came from.
 | `release_order` | Release Order | `ordering` | `facts/quests.json`, `facts/npcs.json` | T27 |
 | `sort_it_out` | Sort It Out | `ordering` | `facts/sequences.json`, combat levels | T28 |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-authored | T29 |
-| `clipped` | Clipped | `multiple_choice` | hand-authored | T29 |
+| `clipped` | Know Your Content Creator | `multiple_choice` | hand-authored | T29 |
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` | MOID renders | Phase 3 |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` | MOID zoom frames | Phase 3 |
+| `minimap_guesser` | Minimap Guesser | `pick_from_list` (candidate) | minimap crops | not scheduled |
+| `name_that_spell` | Name that spell | undecided | audio clips | not scheduled |
 
 Three of these are worth the sentence that explains them:
 
@@ -370,12 +380,12 @@ of the content hash: the same payload asked by two NPCs is the same question. Se
 (`selection.py`) has where events land and who asks them, section 4 has how the splash rule
 changed to accommodate them, and section 3 has what the client is told.
 
-Any type can be an event question, but three need care. `more_less` and `price_is_right`
-compare prices only (`metric`), and a hand-written `ge_price` goes stale, so events use
-`high_alch` or `shop_price`. `ordering` waits for T27. `pick_from_list` works, because
-its list is the shared vocabulary and not the question's, but the answer must be on the
-item roster, and the version worth playing (a Certer's shadowy outline) needs Phase 3's
-images.
+Most types can be an event question. `more_less` and `price_is_right` cannot yet: only
+their own round shows the item they ask about, so `mode_errors` refuses them in `custom`
+and `random_event` until they get a stem. `ordering` waits for T27. `pick_from_list`
+works, because its list is the shared vocabulary and not the question's, but the answer
+must be on the item roster, and the version worth playing (a Certer's shadowy outline)
+needs Phase 3's images.
 
 ### The schema
 
@@ -564,7 +574,7 @@ Design rules:
       "additionalProperties": false,
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
-        "vocab": { "enum": ["items", "npcs"] },
+        "vocab": { "enum": ["items", "npcs", "examines"] },
         "answer_id": { "type": "integer", "minimum": 0 },
         "image": { "$ref": "#/$defs/asset" },
         "steps": { "type": "integer", "minimum": 1, "maximum": 12 },
@@ -591,13 +601,13 @@ which way round it wants the answer.
 
 `pick_from_list` answers are the id of an entry in the named vocabulary, never free text:
 the client only lets a selected entry be submitted, so grading is an integer comparison and
-there is no normalisation to argue about. `validate_value` rejects an integer that is not
+there is no normalisation to argue about. `parse_value` rejects an integer that is not
 an id in the question's vocabulary with `bad_value`. `check()` fails a payload whose
 `answer_id` is not in its vocabulary, or whose `subject.name` is not that entry's name, and
 `validate_packs.py` runs it, so a roster edit that drops an answer fails CI rather than a
 quiz night. `steps` is what makes Pixel Hunt progressive — the number of zoom frames — and
 is absent for the modes that show one image. For Guess the Examine, `prompt` is the examine
-text itself and `vocab` is `items`.
+text itself and `vocab` is `examines`.
 
 **Every `pick_from_list` mode answers through the same control: a strict combobox**
 (`PickFromList.svelte`, a searchable dropdown). Strict means selection only — what the
@@ -640,7 +650,7 @@ Example Phase 1 pack entry:
 }
 ```
 
-Submitted answer values on the wire, per type (validated by `validate_value`):
+Submitted answer values on the wire, per type (parsed by `parse_value`):
 
 | Type | `value` | Credit |
 |---|---|---|
@@ -655,7 +665,7 @@ Free-text grading (`questions/normalize.py`): NFKC, lowercase, strip punctuation
 
 Custom questions are ordinary rows in `questions` with `source = 'room'`, `mode = 'custom'`, `author_player_id` set, and `payload` validated against this schema at room creation. Export is `SELECT` of those rows serialised back into the envelope; import is the same POST body as creation.
 
-Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`. One pack may hold more than one mode — `prices.json` carries both `more_less` and `price_is_right` questions, because they are generated from one fetch of the same two endpoints. `validate_packs.py` fails CI on schema errors, duplicate ids, `id` not matching content, an unknown `mode`, or a `type` that is not among its mode's.
+Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`. One pack may hold more than one mode — `prices.json` carries both `more_less` and `price_is_right` questions, because they are generated from one fetch of the same two endpoints. `validate_packs.py` fails CI on schema errors, duplicate ids, `id` not matching content, an unknown `mode`, a `type` that is not among its mode's, or a price type filed as an event.
 
 ## 3. Websocket protocol
 
@@ -738,7 +748,7 @@ way `Timer.svelte` already counts down to the close.
 
 ### Autocomplete vocabularies
 
-`GET /api/vocab/{name}` where `name` is `items` or `npcs`, returning
+`GET /api/vocab/{name}` where `name` is one of `vocab.SOURCES` (`items`, `npcs`, `examines`), returning
 `{"vocab": "items", "version": "<16 hex>", "entries": [{"id": 4151, "name": "Abyssal whip"}]}`.
 The list is built at startup and never changes while the process runs; `version` is a hash
 of it so a client can tell two builds apart. `items` is `data/popular-items.json`, the
@@ -750,8 +760,8 @@ tell them apart in the list.
 It is a separate HTTP fetch rather than a field on `OpenQuestion` because it is the same
 few hundred entries for every question of a `pick_from_list` round, and sending it per
 question would put the answer list on the wire eleven times in a ten-question round. The
-client fetches it once — during the splash of a round whose mode is `pick_from_list`, or at
-the latest when it first meets such a question — and keeps it in memory for the session. `Cache-Control: no-store` applies as it does to all of `/api/*`;
+client fetches it once — when the first `pick_from_list` question naming it in `view.vocab`
+arrives, during a random event's hold too — and keeps it in memory for the session. `Cache-Control: no-store` applies as it does to all of `/api/*`;
 the list is small enough that one fetch per page load is not worth an exception.
 
 Knowing the vocabulary gives nothing away: it is every item in the roster, not the
@@ -1015,10 +1025,11 @@ good. It does not know what that is worth.
 One multiplication, three tables. A type that wants a fourth way to be scored adds a
 `Scoring` member and a table, and touches nothing else.
 
-`STEP` falls back to `SPEED` when the payload has no `steps`, which is why `points_for`
-takes both the band and the steps. `pick_from_list` serves modes that want different
-things: Pixel Hunt zooms out over eight frames and should pay for answering on frame two,
-Who's That NPC? and Guess the Examine show one thing and should pay for answering quickly.
+`STEP` falls back to `SPEED` when the type's `steps(payload)` says none (as it does for a
+type without the hook), which is why `points_for` takes both the band and the steps.
+`pick_from_list` serves modes that want different things: Pixel Hunt zooms out over eight
+frames and should pay for answering on frame two, Who's That NPC? and Guess the Examine
+show one thing and should pay for answering quickly.
 One type, one `SCORING`, and the payload decides — rather than two near-identical types, or
 a Guess the Examine where everyone who knows the answer scores the same 1000 whether they
 took two seconds or twenty. `answer_ack` says `speed` for such a question too, with the bucket as its band,
@@ -1052,16 +1063,16 @@ right is still worth more than being fast.
 
 `closest_number` ranks answers by `abs(value - answer)`; ties share the better rank. There is
 no speed component, because the closest guess should win whether it arrived first or last.
-The type's `grade` returns the credit below and `scoring.py` multiplies by 1000.
+The type's `grade` returns the credit below and `scoring.py` pays the credit's rung
+(`RANK_SHARES`), so nearly right is clearly worth less than right. Under 0.7 is wrong.
 
 | Rank | Credit | Points |
 |---|---|---|
 | Exact match | 1.0 | 1000 |
-| 1st closest (not exact) | 0.8 | 800 |
-| 2nd | 0.6 | 600 |
-| 3rd | 0.4 | 400 |
-| Everyone else who answered | 0.2 | 200 |
-| No answer | — | 0 |
+| 1st closest (not exact) | 0.9 | 750 |
+| 2nd | 0.8 | 500 |
+| 3rd | 0.7 | 250 |
+| Everyone else, or no answer | 0.0 / — | 0 |
 
 ### Steps (`SCORING = STEP`)
 
@@ -1080,13 +1091,13 @@ than dividing by zero, and a payload with no `steps` at all is scored on speed i
 above) — a question that never changes has nothing to be early about.
 
 **There is no `question_update` message, and there does not need to be one.** The step
-schedule is a pure function of `opened_at`, `ends_at` and `steps`, all three of which the
-client already has, so every client advances the image on its own clock against a server
-timestamp — exactly as `Timer.svelte` already counts down. The frames for all steps are
-preloaded when the question opens. Keeping the schedule derived rather than pushed means a
-client that reconnects mid-question lands on the right step from the `welcome` snapshot
-with no extra message, and a dropped frame cannot desynchronise anyone from the scoring,
-because the scoring never looked at what the client was showing.
+schedule is a pure function of `answerable_at`, `ends_at` and `steps`, which a stem gets as
+`StemProps.timing`, so every client advances the image on its own clock against a server
+timestamp — `lib/clock.ts`, exactly as `Timer.svelte` counts down. The frames for all
+steps are preloaded when the question opens. Keeping the schedule derived rather than
+pushed means a client that reconnects mid-question lands on the right step from the
+`welcome` snapshot with no extra message, and a dropped frame cannot desynchronise anyone
+from the scoring, because the scoring never looked at what the client was showing.
 
 ### Exclusions
 
@@ -1106,6 +1117,7 @@ Sorted by total points desc, then by number of correct answers desc, then by `jo
 ```python
 BUCKETS = [(0.10, 1000), (0.25, 900), (0.50, 800), (0.75, 700), (1.00, 600)]
 RANK_TOP = 1000
+RANK_SHARES = [(1.0, 1.0), (0.9, 0.75), (0.8, 0.5), (0.7, 0.25)]
 STEP_TOP, STEP_BOTTOM = 1000, 400
 
 def bucket(elapsed_s: float, question_s: int) -> int          # 1..5, clamps to 5
@@ -1121,7 +1133,7 @@ lives. `band` is its counterpart at receive time: `submit_answer` needs the buck
 step for `answer_ack` before anything has been graded, and `band` picks which of `bucket`
 and `step` to ask, or answers `None` for `RANK`. `effective` is what `answer_ack.scoring`
 carries, so the fallback above is stated once. `points_for` refuses credit outside 0..1
-rather than paying 1200 for a type's bug.
+rather than paying 1200 for a type's bug; the close has already clamped and logged it.
 
 ## 7. Identity: who you are, and what never goes in a URL
 

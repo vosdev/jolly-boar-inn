@@ -7,14 +7,10 @@
    * row. The seconds still exist, small, in a tab hanging off the bar's right end, and
    * in full for a screen reader.
    *
-   * The clock is `Timer`'s, for the same reasons: every tick recomputes
-   * `ends_at - (now + serverOffsetMs)` from scratch and nothing is decremented, so a phone
-   * that was locked for twenty seconds wakes onto the right width, not twenty seconds
-   * behind. `visibilitychange` ticks at once so the jump happens on the first frame back.
+   * The clock is `Timer`'s, `lib/clock.ts`, so a phone that was locked for twenty seconds
+   * wakes onto the right width, not twenty seconds behind.
    */
-  import { onMount } from 'svelte'
-
-  import { serverOffsetMs } from '../lib/stores'
+  import { msUntil, serverNow } from '../lib/clock'
 
   let {
     endsAt,
@@ -26,16 +22,10 @@
     label: string
   } = $props()
 
-  const TICK_MS = 100
   /** Where the bar turns urgent, in seconds. */
   const URGENT_S = 5
 
-  let nowMs = $state(Date.now())
-
-  const endMs = $derived(Date.parse(endsAt))
-  const remainingMs = $derived(
-    Number.isNaN(endMs) ? 0 : Math.max(0, endMs - (nowMs + $serverOffsetMs)),
-  )
+  const remainingMs = $derived(msUntil(endsAt, $serverNow))
   // Ceil, so the last whole second on screen is "1" and not a flash of "0". Never more
   // than the whole: a random event's clock starts after its NPC's hold (T22), and until
   // then the bar sits full on the question's own length rather than counting the hold.
@@ -44,19 +34,6 @@
     totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0,
   )
   const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
-
-  onMount(() => {
-    const tick = (): void => {
-      nowMs = Date.now()
-    }
-    tick()
-    const timer = setInterval(tick, TICK_MS)
-    document.addEventListener('visibilitychange', tick)
-    return () => {
-      clearInterval(timer)
-      document.removeEventListener('visibilitychange', tick)
-    }
-  })
 </script>
 
 <div class="timerbar" class:urgent role="timer" aria-label="{seconds} seconds {label}">

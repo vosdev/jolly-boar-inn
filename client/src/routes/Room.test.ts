@@ -9,13 +9,16 @@
  */
 
 import { render, screen } from '@testing-library/svelte'
-import { tick } from 'svelte'
+import { type Component, tick } from 'svelte'
 import { get } from 'svelte/store'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
-import { applyServerMessage } from '../lib/stores'
+import { TYPE_VIEWS } from '../components/questions/index'
+import type { TypeViewProps } from '../components/questions/props'
+import { applyServerMessage, resetRoom } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
+import { clearVocabCache } from '../lib/vocab'
 import Room from './Room.svelte'
 
 vi.mock('../lib/session', async (importOriginal) => {
@@ -246,6 +249,47 @@ describe('Room', () => {
     }
   })
 
+  it('keeps the room around a question whose view throws', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+    TYPE_VIEWS.throws = (() => {
+      throw new Error('a payload this build misreads')
+    }) as unknown as Component<TypeViewProps>
+    try {
+      const open: OpenQuestion = {
+        question_id: 'q1',
+        index: 0,
+        total: 2,
+        type: 'throws',
+        mode: 'more_less',
+        segment: { ...SEGMENT, count: 2 },
+        view: {},
+        opened_at: new Date().toISOString(),
+        ends_at: new Date(Date.now() + 10_000).toISOString(),
+        you_can_answer: true,
+      }
+      await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+      applyServerMessage({ t: 'question_open', question: open })
+      await screen.findByText(/Question 1 of 2/)
+      const fallback = "This question can't be shown in this version. Refresh to update."
+      expect(screen.getByText(fallback)).toBeTruthy()
+
+      applyServerMessage({
+        t: 'question_closed',
+        question_id: 'q1',
+        reveal: {},
+        results: { b: { value: 0, correct: true, credit: 1, points: 900 } },
+        standings: STANDINGS,
+        next_at: new Date(Date.now() + 8_000).toISOString(),
+      })
+      await screen.findByText('1 of 1')
+      expect(screen.getByText(fallback)).toBeTruthy()
+      expect(screen.getByText(/Question 1 of 2/)).toBeTruthy()
+    } finally {
+      delete TYPE_VIEWS.throws
+      logged.mockRestore()
+    }
+  })
+
   it('drops a count for a question that is no longer open', async () => {
     await arrive(welcome(roomView({ phase: 'reveal', next_at: null })))
     applyServerMessage({ t: 'answer_count', question_id: 'gone', answered: 3, of: 4 })
@@ -264,6 +308,100 @@ describe('Room', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Final standings')
     expect(document.querySelector('.podium')).not.toBeNull()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(2)
+  })
+})
+
+describe('the list a question is answered from', () => {
+  const EXAMINE = { prompt: 'A very powerful onyx amulet.', vocab: 'examines' }
+  let fetched: string[]
+
+  beforeEach(() => {
+    // The last test's question is still in the stores, and a first render would draw it.
+    resetRoom()
+    fetched = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        fetched.push(url)
+        return new Response(JSON.stringify({ vocab: 'examines', version: 'v1', entries: [] }))
+      }),
+    )
+  })
+
+  afterEach(() => {
+    clearVocabCache()
+    vi.unstubAllGlobals()
+  })
+
+  function opened(patch: Partial<OpenQuestion>): OpenQuestion {
+    return {
+      question_id: 'q1',
+      index: 0,
+      total: 2,
+      type: 'pick_from_list',
+      mode: 'guess_examine',
+      segment: { ...SEGMENT, mode: 'guess_examine', count: 2 },
+      view: EXAMINE,
+      opened_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 20_000).toISOString(),
+      you_can_answer: true,
+      ...patch,
+    }
+  }
+
+  it('is fetched as a round’s question opens, by the name its view gives', async () => {
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: opened({}) })
+    await tick()
+    expect(fetched).toEqual(['/api/vocab/examines'])
+  })
+
+  it('is fetched while an NPC holds the floor, before the answers are up', async () => {
+    const event = opened({
+      mode: 'random_event',
+      segment: SEGMENT,
+      random_event: 'bob',
+      answerable_at: new Date(Date.now() + 60_000).toISOString(),
+      ends_at: new Date(Date.now() + 80_000).toISOString(),
+    })
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage({ ...welcome(roomView({ phase: 'open', next_at: null })), question: event })
+    await screen.findByRole('heading', { name: 'Bob' })
+    expect(screen.queryByRole('combobox')).toBeNull()
+    expect(fetched).toEqual(['/api/vocab/examines'])
+  })
+
+  it('is not fetched for a question answered any other way', async () => {
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({
+      t: 'question_open',
+      question: opened({
+        type: 'multiple_choice',
+        mode: 'random_event',
+        segment: SEGMENT,
+        random_event: 'bob',
+        view: { prompt: 'What amulet lets you talk to cats?', options: ['Catspeak', 'Camulet'] },
+      }),
+    })
+    await tick()
+    applyServerMessage({
+      t: 'question_open',
+      question: opened({
+        question_id: 'q2',
+        index: 1,
+        type: 'more_less',
+        mode: 'more_less',
+        segment: { ...SEGMENT, count: 2 },
+        view: {
+          metric: 'ge_price',
+          direction: 'more',
+          options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+          as_of: '2026-09-01',
+        },
+      }),
+    })
+    await screen.findByText('Abyssal whip')
+    expect(fetched).toEqual([])
   })
 })
 

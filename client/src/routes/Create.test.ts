@@ -64,6 +64,30 @@ describe('Create', () => {
     expect(screen.getByText('Rounds (2)')).toBeTruthy()
   })
 
+  it('lists the modes still coming, ticked off and disabled', async () => {
+    await loaded()
+    for (const name of [/^Who is That NPC\?/, /^Name that spell/, /^Minimap Guesser/]) {
+      const box = screen.getByRole('checkbox', { name }) as HTMLInputElement
+      expect([box.checked, box.disabled]).toEqual([false, true])
+    }
+  })
+
+  it('stops calling a mode upcoming once the server plays it', async () => {
+    const shipped = { ...PACING[0], types: ['pick_from_list'] }
+    vi.mocked(api.getModes).mockResolvedValue([
+      ...structuredClone(PACING),
+      { ...shipped, id: 'whos_that_npc' },
+      { ...shipped, id: 'minimap_guesser' },
+    ])
+    await loaded()
+    expect(screen.queryByRole('checkbox', { name: /^Who is That NPC\?/ })).toBeNull()
+    expect(screen.queryByRole('checkbox', { name: /^Minimap Guesser/ })).toBeNull()
+    for (const id of ['whos_that_npc', 'minimap_guesser']) {
+      expect((screen.getByRole('checkbox', { name: id }) as HTMLInputElement).disabled).toBe(false)
+    }
+    expect(screen.getByRole('checkbox', { name: /^Name that spell/ })).toBeTruthy()
+  })
+
   it('sends the rounds picked and how often events come, and no order', async () => {
     await loaded()
     const settings = await submitted()

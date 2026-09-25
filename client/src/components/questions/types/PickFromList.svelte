@@ -29,15 +29,17 @@
    * list is never taller than the space left between the box and the keyboard, measured
    * off `visualViewport`, which is the part of the page the keyboard is not covering.
    *
-   * The list comes from `lib/vocab.ts`, fetched once per session — usually during the
-   * round's splash, so it is already here when the first question opens.
+   * The list comes from `lib/vocab.ts`, fetched once per session — `Room` starts that as
+   * the question arrives, so during a random event's hold it is already on its way.
    *
    * `data` is `client_view(payload)` while open — `prompt`, `vocab` — and `reveal(payload)`
-   * after close, which adds `answer_id` and `subject`.
+   * after close, which adds `answer_id`, `subject` and an `explanation` that `Question`
+   * draws.
    */
   import { tick } from 'svelte'
 
   import { loadVocab, search, type Vocab, type VocabEntry } from '../../../lib/vocab'
+  import AnswerSettled from '../AnswerSettled.svelte'
   import type { TypeViewProps } from '../props'
 
   /** A vocabulary entry's id: the only thing this control ever sends. */
@@ -188,16 +190,10 @@
 </script>
 
 {#if locked}
-  <div class="settled">
-    {#if revealed && answerName !== null}
-      <p class="answer">It was <strong>{answerName}</strong>.</p>
-    {/if}
-    {#if answered !== null}
-      <p class="picked">
-        Your answer: <strong>{pickedName ?? (list === null ? '…' : 'not in this list')}</strong>
-      </p>
-    {/if}
-  </div>
+  <AnswerSettled
+    answer={answerName}
+    yours={answered === null ? null : (pickedName ?? (list === null ? '…' : 'not in this list'))}
+  />
 {:else if failed}
   <p class="note">The list could not be loaded.</p>
   <button type="button" onclick={() => typeof q.vocab === 'string' && fetchList(q.vocab)}>
@@ -269,10 +265,6 @@
   </form>
 {/if}
 
-{#if !canAnswer && !revealed}
-  <p class="note">This one is not scored for you — sit back and watch.</p>
-{/if}
-
 <style>
   .pick {
     display: flex;
@@ -332,16 +324,5 @@
 
   .pick button {
     min-height: 56px;
-  }
-
-  .settled p {
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-  }
-
-  /* Your answer, held while the room answers and receding beside the real one after:
-     the verdict is the points slot's, so this card never turns green or red. */
-  .picked {
-    color: var(--muted);
   }
 </style>

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from app.questions import vocab
+from app.questions import schema, vocab
 from app.questions.vocab import VocabError, build, fold
 
 ROSTER = [
@@ -117,3 +117,10 @@ def test_api_vocab_is_a_404_for_a_list_this_build_does_not_have(
     response = client.get(f"/api/vocab/{name}")
     assert response.status_code == 404
     assert response.json()["code"] == "not_found"
+
+
+def test_the_schema_names_exactly_the_vocabularies_the_server_builds() -> None:
+    """Two lists kept in step by hand: a name only the schema has validates a question no
+    answer can be parsed for, and one only the server has can never be asked."""
+    names = schema.load_schema()["$defs"]["pick_from_list"]["properties"]["vocab"]["enum"]
+    assert sorted(names) == sorted(vocab.SOURCES)

@@ -184,10 +184,10 @@ Fading on its own does not say whether *you* were right — you would have to co
 button with the lit one. The verdict is the points slot in §7.2.
 
 Under the buttons, every reveal says how many got it right — "3 of 5 got it right", out of
-those who answered. If the host ticks **Name who got it wrong** on Create
-(`name_wrong_answers`, off by default), the names of everyone whose answer scored nothing
-follow it. A player who did not answer is not on that list, and neither is a graded guess
-that scored.
+those who answered — then, for partial credit, "1 of 5 was at least 90% right", and 80% and
+70% likewise: a line only when someone is in it, each player in their highest. If the host
+ticks **Name who got it wrong** on Create (`name_wrong_answers`, off by default), the names
+of everyone under 70% follow. A player who did not answer is not on that list.
 
 Gems are also ordering, not decoration: **sapphire, emerald, ruby, red topaz, dragonstone,
 zenyte**, the in-game value order with red topaz in the place diamond held and onyx left out

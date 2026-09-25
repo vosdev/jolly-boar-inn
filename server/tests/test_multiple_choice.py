@@ -73,8 +73,8 @@ def test_grade_is_all_or_nothing_on_the_index() -> None:
     ("value", "ok"),
     [(0, True), (3, True), (4, False), (-1, False), (True, False), ("0", False), (0.0, False)],
 )
-def test_validate_value_takes_an_option_index(value: Any, ok: bool) -> None:
-    assert multiple_choice.validate_value(EXAMPLE["payload"], value) is ok
+def test_parse_value_takes_an_option_index(value: Any, ok: bool) -> None:
+    assert multiple_choice.parse_value(EXAMPLE["payload"], value) == (value if ok else None)
 
 
 def test_check_passes_a_consistent_payload() -> None:

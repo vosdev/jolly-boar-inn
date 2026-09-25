@@ -2,7 +2,7 @@
 
 Payload shape (schema ``$defs/pick_from_list``)::
 
-    {"prompt": str, "vocab": "items" | "npcs", "answer_id": int,
+    {"prompt": str, "vocab": "items" | "npcs" | "examines", "answer_id": int,
      "subject"?: {"name", "asset"?}, "image"?: asset, "steps"?: 1..12, "explanation"?: str}
 
 Three modes answer this way -- Guess the Examine now, Who's That NPC? and Pixel Hunt in
@@ -16,11 +16,12 @@ questions, where no list could hold the answer.
 ``check`` holds a payload to the vocabulary it names: the ``answer_id`` must be in it and
 ``subject.name`` must be that entry's name. ``validate_packs.py`` runs it, so a roster
 edit that drops or renames an item that a question answers to fails CI rather than a
-quiz night. For the same reason ``validate_value`` refuses an id the vocabulary does not
+quiz night. For the same reason ``parse_value`` refuses an id the vocabulary does not
 have: a submission that could never be right is a malformed one, not a wrong one.
 
-``steps`` is Pixel Hunt's -- how many frames the picture zooms out over. Without it the
-question shows one thing, and ``STEP`` scoring falls back to speed (section 6).
+``steps`` is Pixel Hunt's -- how many frames the picture zooms out over -- and ``steps()``
+hands it to the engine. Without it the question shows one thing, and ``STEP`` scoring falls
+back to speed (section 6).
 
 The subject is the answer, so it is withheld with ``answer_id`` until the reveal. So is
 ``image``: an asset reference is ``item:<id>``, and for this type the id *is* the answer.
@@ -33,6 +34,7 @@ from uuid import UUID
 
 from app.questions import vocab
 from app.questions.submission import Submission
+from app.questions.types import exact
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 
@@ -60,15 +62,22 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
-    return {s.player_id: 1.0 if s.value == payload["answer_id"] else 0.0 for s in submissions}
+    """Full credit for the answer's entry id, none for any other."""
+    return exact.grade(payload["answer_id"], submissions)
 
 
-def validate_value(payload: dict[str, Any], value: Any) -> bool:
-    # ``True == 1``, so a ``true`` would otherwise answer entry 1; see ``more_less``.
-    if isinstance(value, bool) or not isinstance(value, int):
-        return False
+def parse_value(payload: dict[str, Any], value: Any) -> int | None:
+    """An entry id of the question's vocabulary, as sent; ``None`` for anything else."""
+    entry = exact.whole_number(value)
     names = vocab.get(payload["vocab"])
-    return names is not None and names.name_of(value) is not None
+    if entry is None or names is None or names.name_of(entry) is None:
+        return None
+    return entry
+
+
+def steps(payload: dict[str, Any]) -> int | None:
+    """How many frames the picture zooms out over; ``None`` for a question that shows one."""
+    return payload.get("steps")
 
 
 def check(payload: dict[str, Any]) -> list[str]:

@@ -222,6 +222,24 @@ def test_the_hosts_questions_are_capped_at_the_slots(more_modes: list[str]) -> N
     assert "Pick" not in str(info.value)
 
 
+def test_one_question_rounds_make_no_room_for_the_hosts_questions(more_modes: list[str]) -> None:
+    """Five one-question rounds at ``more`` are one window, and every question in it is its
+    round's last, so there is nowhere inside a round for an event. The host hears it here,
+    as they would for too few round questions, not once the room has drawn its rounds."""
+    ones = [{"mode": name, "questions": 1} for name in ("more_less", *more_modes)]
+    settings = NewRoomSettings(modes=ones, random_event_frequency="more")
+    assert settings.random_event_slots == 0
+    with pytest.raises(ValueError, match="make room for 0 random events: one per 5"):
+        settings.check_custom_questions(1)
+    longer = NewRoomSettings(
+        modes=[{"mode": "more_less", "questions": 6}, *ones[1:]], random_event_frequency="more"
+    )
+    assert longer.random_event_slots == 1  # ten round questions, but the second window is ones
+    longer.check_custom_questions(1)
+    with pytest.raises(ValueError, match="10 round questions .* make room for 1 random events"):
+        longer.check_custom_questions(2)
+
+
 @pytest.mark.parametrize("seconds", [-1, 11])
 def test_the_npc_holds_the_floor_for_zero_to_ten_seconds(seconds: int) -> None:
     assert NewRoomSettings(random_event_seconds=10).random_event_seconds == 10

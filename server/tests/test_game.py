@@ -29,6 +29,7 @@ time say so.
 """
 
 import asyncio
+import math
 import threading
 import time
 from collections.abc import AsyncIterator, Callable, Iterator
@@ -45,7 +46,7 @@ from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
 from app.modes import MODES, type_seconds
-from app.questions.types import more_less, multiple_choice
+from app.questions.types import more_less, multiple_choice, pick_from_list
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
@@ -1869,9 +1870,11 @@ def test_a_type_scored_on_steps_pays_the_frame_the_answer_arrived_on(table, monk
     step number for a question that has no steps.
 
     Only Pixel Hunt's ``pick_from_list`` payloads will carry ``steps``, and that is Phase
-    3, so the open question's in-memory payload is given four: 2.5 seconds a frame.
+    3, so ``more_less`` is lent the type's two hooks and the open question's in-memory
+    payload is given four: 2.5 seconds a frame.
     """
     monkeypatch.setattr(more_less, "SCORING", Scoring.STEP, raising=False)
+    monkeypatch.setattr(more_less, "steps", pick_from_list.steps, raising=False)
     game = table("Zezima", "Woox", seconds=10, close_when_all_answered=False)
     zezima, woox = game.players
     game.start()
@@ -1928,6 +1931,73 @@ def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> 
     assert game.room.score(UUID(zezima.id)).correct == 0
     assert game.room.score(UUID(woox.id)).correct == 1
     assert_memory_matches_db(game, db)
+
+
+def test_bad_credit_is_clamped_at_the_close_and_the_room_plays_on(
+    table, db, monkeypatch, caplog
+) -> None:
+    """A type whose ``grade`` sums to a hair under 1, overshoots or returns NaN voids
+    nothing: the close clamps each, logs the two that are bugs, and pays out."""
+    game = table("Zezima", "Woox", "Lynx", seconds=10, close_when_all_answered=False)
+    zezima, woox, lynx = game.players
+    graded = {UUID(zezima.id): sum([0.1] * 10), UUID(woox.id): 1.2, UUID(lynx.id): math.nan}
+    monkeypatch.setattr(
+        more_less, "grade", lambda _, subs: {s.player_id: graded[s.player_id] for s in subs}
+    )
+    game.start()
+    game.opened(0)
+    for seat in (zezima, woox, lynx):
+        answer_after(game, seat, 0, game.right(0), AFTER[1])
+    game.skip()
+    closed = game.admin.take("question_closed")
+
+    results = closed["results"]
+    assert (results[zezima.id]["credit"], results[zezima.id]["correct"]) == (1.0, True)
+    assert (results[woox.id]["credit"], results[woox.id]["correct"]) == (1.0, True)
+    assert (results[lynx.id]["credit"], results[lynx.id]["correct"]) == (0.0, False)
+    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 1000, "Lynx": 0}
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert len(errors) == 2 and all("more_less" in message for message in errors)
+    assert_memory_matches_db(game, db)
+    game.skip()
+    game.opened(1)
+
+
+def test_the_canonical_answer_is_what_is_stored_echoed_and_graded(
+    game, db, client, monkeypatch
+) -> None:
+    """``parse_value`` decides the form an answer lives in from the moment it arrives:
+    the row, the reconnect's ``your_answer``, ``grade`` and the reveal all see that one."""
+    spelled = {"first": 0, "second": 1}
+    monkeypatch.setattr(more_less, "parse_value", lambda _, value: spelled.get(value))
+    seen: list[Any] = []
+    real_grade = more_less.grade
+
+    def grade(payload: dict[str, Any], subs: list[Any]) -> dict[UUID, float]:
+        seen.extend(s.value for s in subs)
+        return real_grade(payload, subs)
+
+    monkeypatch.setattr(more_less, "grade", grade)
+    game.start()
+    game.opened(0)
+    player = game.players[0]
+    word = "first" if game.right(0) == 0 else "second"
+    game.answer(player, 0, word)
+    player.take("answer_ack")
+
+    [row] = db("select value from answers")
+    assert row["value"] == game.right(0)
+    with client.websocket_connect(f"/ws/{game.code}") as again:
+        again.send_json({"t": "hello", "session": player.session})
+        welcome = again.receive_json()
+        assert welcome["your_answer"] == game.right(0)
+        game.skip()
+        closed = again.receive_json()
+        while closed["t"] != "question_closed":
+            closed = again.receive_json()
+    assert seen == [game.right(0)]
+    assert closed["results"][player.id]["value"] == game.right(0)
+    assert closed["results"][player.id]["correct"] is True
 
 
 # --- T21 and T22: random events, the host's own questions and the NPCs' --------------------
@@ -1988,7 +2058,7 @@ def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
 
 
 def any_value(question: RoomQuestion) -> Any:
-    """Something ``validate_value`` takes for an NPC's question, right or not."""
+    """Something ``parse_value`` takes for an NPC's question, right or not."""
     return {"multiple_choice": 0, "closest_number": 1, "free_text": "Zezima"}[question.type]
 
 
@@ -2039,6 +2109,52 @@ def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     assert_memory_matches_db(game, db)
 
 
+def test_two_identical_custom_questions_each_take_their_own_answers(table, second_mode, db) -> None:
+    """The same words give the same content id, but each is its own row: an answer to the
+    first that arrives once the second is open is refused, not counted for the second."""
+    game = table(
+        "Zezima",
+        "Woox",
+        custom=[TANZANITE, TANZANITE],
+        reveal_seconds=1,
+        **event_rooms(second_mode, questions=5),
+    )
+    admin, zezima, woox = game.seats
+    first, second = (q for q in game.room.questions if q.random_event is not None)
+    assert first.content_id == second.content_id and first.id != second.id
+
+    reach(game, first.position)
+    game.answer(zezima, first.position, 0)
+    game.answer(woox, first.position, 2)
+    assert zezima.take("answer_ack")["t"] == woox.take("answer_ack")["t"] == "answer_ack"
+    admin.take("question_closed")
+    game.skip()
+    for between in range(first.position + 1, second.position):
+        assert admin.take("question_open")["question"]["index"] == between
+        game.skip()
+        admin.take("question_closed")
+        game.skip()
+    for seat in game.seats:
+        while seat.take("question_open")["question"]["index"] != second.position:
+            pass
+
+    game.answer(zezima, first.position, 2)
+    late = reply(zezima, acked)
+    assert (late["t"], late.get("code")) == ("error", "not_open")
+    game.answer(zezima, second.position, 2)
+    game.answer(woox, second.position, 0)
+    assert reply(zezima, acked)["t"] == reply(woox, acked)["t"] == "answer_ack"
+    admin.take("question_closed")
+    rows = db("select question_id, player_id, value from answers")
+    answered = {(row["question_id"], str(row["player_id"])): row["value"] for row in rows}
+    assert answered == {
+        (first.id, zezima.id): 0,
+        (first.id, woox.id): 2,
+        (second.id, zezima.id): 2,
+        (second.id, woox.id): 0,
+    }
+
+
 def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
     table, second_mode, db, monkeypatch
 ) -> None:
@@ -2068,7 +2184,7 @@ def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
 def test_closest_number_ranks_every_guess_against_the_others(table, second_mode, db) -> None:
     """T21 Accept: the exact guess beats the two one off, who tie for closest and share
     its rung; the guess behind them is second closest; a player who sent nothing scores
-    nothing, not the 200 that having a go earns."""
+    nothing."""
     number = {
         "type": "closest_number",
         "payload": {"prompt": "How many hours did the cape take?", "answer": 100, "unit": "hours"},
@@ -2096,9 +2212,9 @@ def test_closest_number_ranks_every_guess_against_the_others(table, second_mode,
     by_id = {s.id: s.name for s in game.seats}
     assert {by_id[pid]: row["points"] for pid, row in closed["results"].items()} == {
         "Exact": 1000,
-        "Under": 800,
-        "Over": 800,
-        "Far": 600,
+        "Under": 750,
+        "Over": 750,
+        "Far": 500,
     }
     points = {s["display_name"]: s["points"] for s in closed["standings"]}
     assert points["Silent"] == 0 and points["Admin"] == 0
@@ -2607,11 +2723,13 @@ def raising_grade(payload: Any, submissions: Any) -> dict[UUID, float]:
     raise RuntimeError("a bug in grade")
 
 
-def over_one_grade(payload: Any, submissions: Any) -> dict[UUID, float]:
-    return {submission.player_id: 1.5 for submission in submissions}
+def raising_reveal(payload: Any) -> dict[str, Any]:
+    raise RuntimeError("a bug in reveal")
 
 
-@pytest.mark.parametrize("breakage", ["grade raises", "credit over 1", "database drops"])
+# Credit over 1 is not among them: the close clamps it and plays on
+# (``test_bad_credit_is_clamped_at_the_close_and_the_room_plays_on``).
+@pytest.mark.parametrize("breakage", ["grade raises", "reveal raises", "database drops"])
 def test_a_close_that_fails_voids_the_question_and_the_game_plays_on(
     table, client, db, faults, monkeypatch, breakage: str
 ) -> None:
@@ -2621,8 +2739,8 @@ def test_a_close_that_fails_voids_the_question_and_the_game_plays_on(
     match breakage:
         case "grade raises":
             monkeypatch.setattr(more_less, "grade", broken_once(more_less.grade, raising_grade))
-        case "credit over 1":
-            monkeypatch.setattr(more_less, "grade", broken_once(more_less.grade, over_one_grade))
+        case "reveal raises":
+            monkeypatch.setattr(more_less, "reveal", broken_once(more_less.reveal, raising_reveal))
         case "database drops":
             faults.fail_once("update questions set closed_at = $1 where")
     game.start()

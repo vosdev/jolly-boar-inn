@@ -60,7 +60,7 @@ import re
 import secrets
 import time
 import unicodedata
-from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -76,7 +76,7 @@ from app.questions import custom
 from app.questions.packs import Pack
 from app.questions.schema import QuestionError
 from app.questions.submission import Submission
-from app.questions.types import TYPES, scoring_of
+from app.questions.types import TYPES, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from app.rooms import codes, ready, scoring, segments, selection
 from app.rooms.settings import RoomSettings
@@ -231,6 +231,29 @@ def parse_ip(value: str | None) -> ipaddress.IPv4Address | ipaddress.IPv6Address
         return None
 
 
+# Credit summed from fractions misses its target by a few ulps: ten tenths are
+# 0.9999999999999999, which would not be "correct".
+_CREDIT_DIGITS = 9
+
+
+def settle_credit(type_id: str, raw: object) -> float:
+    """One player's credit from ``grade``, rounded and held to 0..1; a bad one is logged."""
+    # A type's bug should cost its player the question, not everyone: ``points_for``
+    # raising would fail the whole close, and the restart voids the question for all.
+    if isinstance(raw, bool) or not isinstance(raw, int | float):
+        log.error("%s graded %r, which is not a number: counted as 0", type_id, raw)
+        return 0.0
+    if isinstance(raw, float) and math.isnan(raw):
+        log.error("%s graded NaN: counted as 0", type_id)
+        return 0.0
+    credit = round(raw, _CREDIT_DIGITS)
+    if not 0 <= credit <= 1:
+        log.error("%s graded %r, outside 0..1: clamped", type_id, raw)
+        credit = min(max(credit, 0), 1)
+    # ``+ 0.0`` turns a rounded -1e-12 into 0.0 rather than -0.0.
+    return float(credit) + 0.0
+
+
 @dataclass(slots=True)
 class Player:
     id: UUID
@@ -350,11 +373,11 @@ class RoomQuestion:
     def steps(self) -> int | None:
         """How many frames the question shows itself in, for ``STEP`` scoring (section 6).
 
-        Pixel Hunt's ``pick_from_list`` payloads will be the only ones to carry it (Phase
-        3). Every other question is ``None``, which is also what turns ``STEP`` into
-        ``SPEED``.
+        Its type says, so the engine never reads a payload. Pixel Hunt's ``pick_from_list``
+        payloads will be the only ones with any (Phase 3). Every other question is ``None``,
+        which is also what turns ``STEP`` into ``SPEED``.
         """
-        return self.payload.get("steps")
+        return steps_of(self.type, self.payload)
 
     @property
     def scoring(self) -> Scoring:
@@ -580,13 +603,18 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
 
 
 def _question_rows(
-    room_id: UUID, questions: Sequence[tuple[int, dict[str, Any]]], author: UUID
+    room_id: UUID,
+    questions: Sequence[tuple[int, dict[str, Any]]],
+    author: UUID,
+    authored: Collection[str],
 ) -> list[tuple[Any, ...]]:
     """Rows for ``selection.flatten``'s ``(round, question)`` pairs, position by position.
 
     ``author`` is the room's creator, and it is written against the questions they wrote
-    -- ``source: room`` -- and nothing else. That column is what keeps them from scoring on
-    their own questions (``RoomQuestion.can_answer``).
+    -- the content ids in ``authored`` -- and nothing else. That column is what keeps them
+    from scoring on their own questions (``RoomQuestion.can_answer``). It goes by where a
+    question came from rather than by the ``source`` it carries, so a claim in the
+    envelope can never be what decides who the author is.
     """
     return [
         (
@@ -600,7 +628,7 @@ def _question_rows(
             bool(q.get("host_only", False)),
             round_,
             q.get("random_event"),
-            author if q["source"] == "room" else None,
+            author if q["id"] in authored else None,
         )
         for position, (round_, q) in enumerate(questions)
     ]
@@ -1109,7 +1137,7 @@ class RoomManager:
                 "insert into questions (room_id, position, question_id, type, mode, source,"
                 " payload, host_only, round, random_event, author_player_id)"
                 " values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
-                _question_rows(room_row["id"], questions, player_row["id"]),
+                _question_rows(room_row["id"], questions, player_row["id"], {q["id"] for q in own}),
             )
             # Read them back so a freshly created room holds exactly what a rehydrated
             # one would, ids included.
@@ -1339,7 +1367,9 @@ class RoomManager:
                 raise AlreadyAnswered("you have already answered this question")
             if not question.can_answer(player.id):
                 raise Excluded("you cannot answer this question")
-            if not TYPES[question.type].validate_value(question.payload, value):
+            # From here on the answer is its canonical form: stored, echoed and graded as that.
+            value = TYPES[question.type].parse_value(question.payload, value)
+            if value is None:
                 raise BadValue(f"not a valid answer to a {question.type} question")
             elapsed = arrived - question.answerable_mono
             # The question's own length, not the room's setting: a mode that caps itself
@@ -1716,7 +1746,7 @@ class RoomManager:
             how = question.scoring
             graded: dict[UUID, tuple[float, bool, int]] = {}
             for pid, answer in question.answers.items():
-                got = credit.get(pid, 0.0)
+                got = settle_credit(question.type, credit.get(pid, 0.0))
                 points = scoring.points_for(how, got, answer.band, question.steps)
                 # Full marks only. Three of five in the right order scores, and is not
                 # "correct" for the standings tie-break (section 6).
