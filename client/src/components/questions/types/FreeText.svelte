@@ -17,10 +17,12 @@
    * - while open, `client_view(payload)`: the prompt, and an `image` ref. Nothing about
    *   the answer, not even its length.
    * - after close, `reveal(payload)`: the same plus `accepted`, every spelling the author
-   *   would take with the first as *the* answer, and optionally `explanation` and
-   *   `subject`, what the answer is. A subject is named in place of the first spelling,
-   *   as `PickFromList` names its own, and the spellings follow it.
+   *   would take with the first as *the* answer, and optionally `subject`, what the
+   *   answer is, and an `explanation` that `Question` draws. A subject is named in place
+   *   of the first spelling, as `PickFromList` names its own, and the spellings follow it.
    */
+  import AnswerForm from '../AnswerForm.svelte'
+  import AnswerSettled from '../AnswerSettled.svelte'
   import type { TypeViewProps } from '../props'
 
   /** The server's cap on a typed answer, `free_text.MAX_LENGTH`. */
@@ -29,8 +31,6 @@
   interface Data {
     /** Reveal only. */
     accepted?: string[]
-    /** Reveal only, and optional there. */
-    explanation?: string
     /** Reveal only, and optional there. */
     subject?: { name?: string }
   }
@@ -50,100 +50,30 @@
     accepted.filter((spelling) => spelling.toLowerCase() !== answerName?.toLowerCase()),
   )
 
-  function submit(event: SubmitEvent): void {
-    event.preventDefault()
+  function submit(): void {
     const answer = text.trim()
     if (answer !== '' && !locked) onAnswer(answer)
   }
 </script>
 
 {#if locked}
-  <div class="settled">
-    {#if answerName !== null}
-      <p class="answer">It was <strong>{answerName}</strong>.</p>
-      {#if others.length > 0}
-        <p class="note">Also accepted: {others.join(', ')}</p>
-      {/if}
-    {/if}
-    {#if answered !== null}
-      <p class="picked">Your answer: <strong>{answered}</strong></p>
-    {/if}
-  </div>
+  <AnswerSettled answer={answerName} also={others} yours={answered} />
 {:else}
-  <form class="typed" onsubmit={submit}>
-    <label for="{uid}-answer" class="label">
-      Type your answer — capitals and punctuation do not matter
-    </label>
-    <div class="row">
-      <input
-        id="{uid}-answer"
-        type="text"
-        maxlength={MAX_LENGTH}
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        enterkeyhint="send"
-        bind:value={text}
-      />
-      <button type="submit" class="primary" disabled={text.trim() === ''}>Submit</button>
-    </div>
-  </form>
+  <AnswerForm
+    id="{uid}-answer"
+    label="Type your answer — capitals and punctuation do not matter"
+    ready={text.trim() !== ''}
+    onsubmit={submit}
+  >
+    <input
+      id="{uid}-answer"
+      type="text"
+      maxlength={MAX_LENGTH}
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      enterkeyhint="send"
+      bind:value={text}
+    />
+  </AnswerForm>
 {/if}
-
-{#if !canAnswer && !revealed}
-  <p class="note">This one is not scored for you — sit back and watch.</p>
-{/if}
-
-{#if revealed && q.explanation}
-  <p class="explanation">{q.explanation}</p>
-{/if}
-
-<style>
-  .typed {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .label {
-    color: var(--muted);
-  }
-
-  .row {
-    display: flex;
-    gap: 0.6rem;
-  }
-
-  .row input {
-    flex: 1;
-    min-width: 0;
-    font-size: 1.1rem;
-  }
-
-  /* Thumb targets (D8): the box and its button are as tall as an answer button. */
-  .row input,
-  .row button {
-    min-height: 56px;
-  }
-
-  .settled p {
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-    overflow-wrap: anywhere;
-  }
-
-  .settled p.note {
-    font-size: inherit;
-  }
-
-  /* Your answer, held while the room answers and receding beside the real one after:
-     the verdict is the points slot's, so this card never turns green or red. */
-  .picked {
-    color: var(--muted);
-  }
-
-  .explanation {
-    margin: 1rem 0 0;
-    overflow-wrap: anywhere;
-  }
-</style>

@@ -28,10 +28,10 @@
     label,
   }: {
     options: Option[]
-    /** Our pick, or null. */
-    picked: number | null
-    /** The right option's index; null until the reveal. */
-    answer: number | null
+    /** Our pick: empty, or one index. */
+    picked: ReadonlySet<number>
+    /** The right option's index; empty until the reveal. */
+    answer: ReadonlySet<number>
     revealed: boolean
     canAnswer: boolean
     onAnswer: (index: number) => void
@@ -42,13 +42,15 @@
   // seventh option reuses the last gem rather than vanishing.
   const gemAt = (index: number) => GEMS[Math.min(index, GEMS.length - 1)]
 
-  const settled = $derived(revealed && answer !== null && answer >= 0 && answer < options.length)
+  const settled = $derived(
+    revealed && [...answer].some((index) => index >= 0 && index < options.length),
+  )
   /** The rows under the answer: three across at most, and four as two by two. */
   const columns = $derived.by(() => {
     const rest = options.length - 1
     return rest === 4 ? 2 : Math.max(1, Math.min(rest, 3))
   })
-  const sizeAt = (index: number) => (!settled ? 'normal' : index === answer ? 'large' : 'small')
+  const sizeAt = (index: number) => (!settled ? 'normal' : answer.has(index) ? 'large' : 'small')
 </script>
 
 <div class="gems" class:settled style:--columns={columns}>
@@ -56,9 +58,9 @@
     <GemButton
       gem={gemAt(index)}
       status={gemState(index, picked, answer, revealed)}
-      mine={picked === index}
+      mine={picked.has(index)}
       size={sizeAt(index)}
-      disabled={revealed || !canAnswer || picked !== null}
+      disabled={revealed || !canAnswer || picked.size > 0}
       onclick={() => onAnswer(index)}
     >
       {@render label(option, index)}

@@ -10,11 +10,13 @@
 
 import { render, screen } from '@testing-library/svelte'
 import type { Component } from 'svelte'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { serverNow } from '../../lib/clock'
 import type { OpenQuestion } from '../../lib/protocol'
-import { TYPE_VIEWS, viewFor } from './index'
-import type { TypeViewProps } from './props'
+import { clearVocabCache } from '../../lib/vocab'
+import { STEMS, TYPE_VIEWS, viewFor } from './index'
+import type { StemProps, StemTiming, TypeViewProps } from './props'
 import Question from './Question.svelte'
 import TextStem from './stems/TextStem.svelte'
 import MoreLess from './types/MoreLess.svelte'
@@ -167,5 +169,142 @@ describe('Question', () => {
       )
       expect(logged).toHaveBeenCalled()
     })
+  })
+})
+
+const PRICES = { subject: { name: 'Abyssal whip' }, options: [1, 2, 3, 4], as_of: '2026-09-20' }
+
+/** One question of every type this build draws, as its mode sends it open and closed. */
+const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[] = [
+  { type: 'more_less', mode: 'more_less', view: VIEW, reveal: REVEAL },
+  {
+    type: 'price_is_right',
+    mode: 'price_is_right',
+    view: PRICES,
+    reveal: { ...PRICES, value: 2, answer_index: 1 },
+  },
+  {
+    type: 'multiple_choice',
+    mode: 'custom',
+    view: { prompt: 'Which?', options: ['Zulrah', 'Vorkath'] },
+    reveal: { prompt: 'Which?', options: ['Zulrah', 'Vorkath'], answer_index: 0 },
+  },
+  {
+    type: 'closest_number',
+    mode: 'custom',
+    view: { prompt: 'How many?' },
+    reveal: { prompt: 'How many?', answer: 100 },
+  },
+  {
+    type: 'free_text',
+    mode: 'custom',
+    view: { prompt: 'Who?' },
+    reveal: { prompt: 'Who?', accepted: ['Zezima'] },
+  },
+  {
+    type: 'pick_from_list',
+    mode: 'guess_examine',
+    view: { prompt: 'A very powerful onyx amulet.', vocab: 'items' },
+    reveal: { prompt: 'A very powerful onyx amulet.', vocab: 'items', answer_id: 6585 },
+  },
+]
+
+/** The types whose `reveal` carries the author's `explanation` (`questions/types/*.py`). */
+const EXPLAINED = ['multiple_choice', 'closest_number', 'free_text', 'pick_from_list']
+
+const entries = [{ id: 6585, name: 'Amulet of fury' }]
+const NOTE = 'This one is not scored for you — sit back and watch.'
+const WHY = 'Because the wiki says so.'
+
+describe('what every type says the same way', () => {
+  beforeEach(() => {
+    clearVocabCache()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ vocab: 'items', version: 'v1', entries }))),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('covers every type this build draws', () => {
+    expect(EVERY_TYPE.map((each) => each.type).sort()).toEqual(Object.keys(TYPE_VIEWS).sort())
+  })
+
+  it.each(EVERY_TYPE)('tells somebody who cannot answer $type, once', (each) => {
+    const question = { ...open(each.type, each.mode, { ...each.view }), you_can_answer: false }
+    const shut = render(Question, { question, yourValue: null, onAnswer })
+    expect(screen.getAllByText(NOTE)).toHaveLength(1)
+    shut.unmount()
+    render(Question, { question, reveal: { ...each.reveal }, yourValue: null, onAnswer })
+    expect(screen.queryByText(NOTE)).toBeNull()
+  })
+
+  it.each(EVERY_TYPE)('says nothing of the kind to a player of $type', (each) => {
+    const question = open(each.type, each.mode, { ...each.view })
+    render(Question, { question, yourValue: null, onAnswer })
+    expect(screen.queryByText(NOTE)).toBeNull()
+  })
+
+  it.each(EXPLAINED)('shows the explanation of a revealed %s once, under the view', (type) => {
+    const each = EVERY_TYPE.find((one) => one.type === type)!
+    const { container } = render(Question, {
+      question: open(each.type, each.mode, { ...each.view }),
+      reveal: { ...each.reveal, explanation: WHY },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(screen.getAllByText(WHY)).toHaveLength(1)
+    expect(container.lastElementChild?.textContent).toBe(WHY)
+  })
+
+  it('keeps the explanation back while the question is open', () => {
+    render(Question, {
+      question: open('multiple_choice', 'custom', {
+        prompt: 'Which?',
+        options: ['A', 'B'],
+        explanation: WHY,
+      }),
+      yourValue: null,
+      onAnswer,
+    })
+    expect(screen.queryByText(WHY)).toBeNull()
+  })
+})
+
+describe('the stem’s schedule', () => {
+  const real = STEMS.text
+  let seen: StemTiming | null = null
+
+  beforeEach(() => {
+    seen = null
+    STEMS.text = ((_anchor: unknown, props: StemProps) => {
+      seen = props.timing
+    }) as unknown as Component<StemProps>
+  })
+
+  afterEach(() => {
+    STEMS.text = real
+  })
+
+  it('is the question’s, on the server clock', () => {
+    const question = {
+      ...open('more_less', 'stemmed', { ...VIEW, steps: 8 }),
+      answerable_at: '2026-09-21T20:00:02Z',
+    }
+    render(Question, { question, yourValue: null, onAnswer })
+    expect(seen).toEqual({
+      answerableAt: '2026-09-21T20:00:02Z',
+      endsAt: '2026-09-21T20:00:10Z',
+      steps: 8,
+      now: serverNow,
+    })
+  })
+
+  it('opens at `opened_at` with no hold sent, and has no steps with none in the view', () => {
+    render(Question, { question: open('more_less', 'stemmed'), yourValue: null, onAnswer })
+    expect(seen).toMatchObject({ answerableAt: '2026-09-21T20:00:00Z', steps: null })
   })
 })

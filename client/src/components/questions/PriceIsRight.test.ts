@@ -4,6 +4,7 @@
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
+import { readable } from 'svelte/store'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
@@ -99,7 +100,13 @@ describe('price_is_right', () => {
   })
 
   it('draws the stem as nothing when the subject has no name', () => {
-    const { container } = render(AssetStem, { data: { subject: {} }, revealed: false })
+    const timing = {
+      answerableAt: '2026-09-21T20:00:00Z',
+      endsAt: '2026-09-21T20:00:20Z',
+      steps: null,
+      now: readable(0),
+    }
+    const { container } = render(AssetStem, { data: { subject: {} }, revealed: false, timing })
     expect(container.textContent?.trim()).toBe('')
   })
 })

@@ -15,8 +15,8 @@
    *
    * - while open, `client_view(payload)`: the prompt, and the `unit` to answer in if the
    *   author gave one.
-   * - after close, `reveal(payload)`: the same plus `answer` and an optional
-   *   `explanation`.
+   * - after close, `reveal(payload)`: the same plus `answer`, and an optional
+   *   `explanation` that `Question` draws.
    *
    * The reveal's points are the rank table, not a bucket: 1000 for exact, then 800, 600,
    * 400 for the three closest misses and 200 for having a go. The points slot in `Room`
@@ -24,14 +24,14 @@
    * the reason for the number.
    */
   import { parseAmount } from '../../../lib/gp'
+  import AnswerForm from '../AnswerForm.svelte'
+  import AnswerSettled from '../AnswerSettled.svelte'
   import type { TypeViewProps } from '../props'
 
   interface Data {
     unit?: string
     /** Reveal only. */
     answer?: number
-    /** Reveal only, and optional there. */
-    explanation?: string
   }
 
   let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<number> = $props()
@@ -39,6 +39,7 @@
   const q = $derived(data as unknown as Data)
   const uid = $props.id()
   const unit = $derived(typeof q.unit === 'string' && q.unit !== '' ? q.unit : null)
+  const unitAside = $derived(unit === null ? '' : ` (${unit})`)
 
   let text = $state('')
   const guess = $derived(parseAmount(text))
@@ -57,99 +58,40 @@
       : null,
   )
 
-  function submit(event: SubmitEvent): void {
-    event.preventDefault()
+  function submit(): void {
     if (guess !== null && !locked) onAnswer(guess)
   }
 </script>
 
 {#if locked}
-  <div class="settled">
-    {#if revealed && typeof q.answer === 'number'}
-      <p class="answer">It was <strong>{written(q.answer)}</strong>.</p>
-    {/if}
-    {#if answered !== null}
-      <p class="picked">
-        Your guess: <strong>{written(answered)}</strong>{#if off !== null}{off === 0
-            ? ', spot on'
-            : `, off by ${written(off)}`}{/if}
-      </p>
-    {/if}
-  </div>
+  <AnswerSettled
+    answer={revealed && typeof q.answer === 'number' ? written(q.answer) : null}
+    yours={answered === null ? null : written(answered)}
+    yoursLabel="Your guess"
+    yoursAfter={off === null ? '' : off === 0 ? ', spot on' : `, off by ${written(off)}`}
+  />
 {:else}
-  <form class="guess" onsubmit={submit}>
-    <label for="{uid}-guess" class="label">
-      Your best guess{unit === null ? '' : ` (${unit})`} — the closest one wins, however late
-    </label>
-    <div class="row">
-      <input
-        id="{uid}-guess"
-        type="text"
-        inputmode="decimal"
-        autocomplete="off"
-        spellcheck="false"
-        enterkeyhint="done"
-        placeholder="A number"
-        aria-invalid={text.trim() !== '' && guess === null}
-        bind:value={text}
-      />
-      <button type="submit" class="primary" disabled={guess === null}>Submit</button>
-    </div>
-    {#if text.trim() !== '' && guess === null}
-      <p class="note">That is not a number. 12,500 and 1.6m both are.</p>
-    {/if}
-  </form>
+  <AnswerForm
+    id="{uid}-guess"
+    label="Your best guess{unitAside} — the closest one wins, however late"
+    ready={guess !== null}
+    onsubmit={submit}
+  >
+    <input
+      id="{uid}-guess"
+      type="text"
+      inputmode="decimal"
+      autocomplete="off"
+      spellcheck="false"
+      enterkeyhint="done"
+      placeholder="A number"
+      aria-invalid={text.trim() !== '' && guess === null}
+      bind:value={text}
+    />
+    {#snippet after()}
+      {#if text.trim() !== '' && guess === null}
+        <p class="note">That is not a number. 12,500 and 1.6m both are.</p>
+      {/if}
+    {/snippet}
+  </AnswerForm>
 {/if}
-
-{#if !canAnswer && !revealed}
-  <p class="note">This one is not scored for you — sit back and watch.</p>
-{/if}
-
-{#if revealed && q.explanation}
-  <p class="explanation">{q.explanation}</p>
-{/if}
-
-<style>
-  .guess {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .label {
-    color: var(--muted);
-  }
-
-  .row {
-    display: flex;
-    gap: 0.6rem;
-  }
-
-  .row input {
-    flex: 1;
-    min-width: 0;
-    font-size: 1.1rem;
-  }
-
-  /* Thumb targets (D8): the box and its button are as tall as an answer button. */
-  .row input,
-  .row button {
-    min-height: 56px;
-  }
-
-  .settled p {
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-  }
-
-  /* Your answer, held while the room answers and receding beside the real one after:
-     the verdict is the points slot's, so this card never turns green or red. */
-  .picked {
-    color: var(--muted);
-  }
-
-  .explanation {
-    margin: 1rem 0 0;
-    overflow-wrap: anywhere;
-  }
-</style>

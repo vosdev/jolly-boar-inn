@@ -2,26 +2,11 @@
   /**
    * How long is left, on the server's clock.
    *
-   * The only inputs are an absolute `ends_at` from the server and `serverOffsetMs`, the
-   * difference between the server's clock and this browser's as of the last `welcome`
-   * or `pong` (section 3, reconnect step 2). Every tick recomputes
-   * `ends_at - (now + offset)` from scratch; nothing is ever decremented.
-   *
-   * That is what makes the awkward cases come out right:
-   *
-   * - A phone that slept for 20 s wakes into a tick that subtracts the real elapsed
-   *   time, not 20 s of ticks that never ran.
-   * - A laptop whose clock is five minutes fast still shows the same number as everyone
-   *   else, because the offset cancels it out.
-   * - A tab that a browser throttled to one timer callback a second is at worst a
-   *   second stale, never a second wrong.
-   *
-   * `visibilitychange` gets its own tick so coming back to the tab redraws immediately
-   * rather than waiting out a throttled interval.
+   * The only inputs are an absolute `ends_at` from the server and `lib/clock.ts`, which
+   * corrects this browser's clock by the offset from the last `welcome` or `pong` and says
+   * why nothing here is ever decremented.
    */
-  import { onMount } from 'svelte'
-
-  import { serverOffsetMs } from '../lib/stores'
+  import { msUntil, serverNow } from '../lib/clock'
 
   let {
     endsAt,
@@ -35,35 +20,16 @@
     label?: string
   } = $props()
 
-  const TICK_MS = 100
   /** Where the bar turns urgent, in seconds. */
   const URGENT_S = 5
 
-  let nowMs = $state(Date.now())
-
-  const endMs = $derived(Date.parse(endsAt))
-  const remainingMs = $derived(
-    Number.isNaN(endMs) ? 0 : Math.max(0, endMs - (nowMs + $serverOffsetMs)),
-  )
+  const remainingMs = $derived(msUntil(endsAt, $serverNow))
   // Ceil, so the last whole second on screen is "1" and not a flash of "0".
   const seconds = $derived(Math.ceil(remainingMs / 1000))
   const fraction = $derived(
     totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0,
   )
   const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
-
-  onMount(() => {
-    const tick = (): void => {
-      nowMs = Date.now()
-    }
-    tick()
-    const timer = setInterval(tick, TICK_MS)
-    document.addEventListener('visibilitychange', tick)
-    return () => {
-      clearInterval(timer)
-      document.removeEventListener('visibilitychange', tick)
-    }
-  })
 </script>
 
 <div class="timer surface" class:urgent role="timer" aria-label="{seconds} seconds {label}">

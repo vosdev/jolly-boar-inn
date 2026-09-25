@@ -27,7 +27,7 @@
    * button pressed — which it used to, by drawing the answer in the pressed style.
    */
   import { asOfDate } from '../../../lib/dates'
-  import GemButton, { gemState } from '../GemButton.svelte'
+  import GemButton, { gemState, indexSet } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
 
   /** An option index: the two buttons are `options[0]` and `options[1]`. */
@@ -114,7 +114,7 @@
   {#each q.options as option, index (index)}
     <GemButton
       gem={null}
-      status={gemState(index, picked, answer, revealed)}
+      status={gemState(index, indexSet(picked), indexSet(answer), revealed)}
       mine={picked === index}
       disabled={revealed || !canAnswer || picked !== null}
       onclick={() => onAnswer(index as Index)}
@@ -128,10 +128,6 @@
     </GemButton>
   {/each}
 </div>
-
-{#if !canAnswer && !revealed}
-  <p class="note">This one is not scored for you — sit back and watch.</p>
-{/if}
 
 {#if revealed}
   <p class="note asof">{metric}, as of {asOfDate(q.as_of)}.</p>

@@ -124,6 +124,7 @@ jolly-boar-inn/
 │       │   ├── vocab.ts        # fetch and cache /api/vocab/{name}, word-prefix search
 │       │   ├── session.ts      # localStorage: session per room, list of created rooms
 │       │   ├── protocol.ts     # TS types mirroring server/app/ws/protocol.py
+│       │   ├── clock.ts        # the server's clock: local time plus the offset, ticking
 │       │   └── stores.ts       # room, players, question, standings (Svelte runes/stores)
 │       ├── routes/
 │       │   ├── Home.svelte          # create or join
@@ -140,7 +141,9 @@ jolly-boar-inn/
 │           └── questions/
 │               ├── index.ts             # viewFor(type, mode): which pair draws a question
 │               ├── props.ts             # the props a type view and a stem take
-│               ├── Question.svelte      # composes the mode's stem with the type's view
+│               ├── Question.svelte      # the mode's stem over the type's view, the shared lines
+│               ├── AnswerForm.svelte    # a typed answer's box and Submit
+│               ├── AnswerSettled.svelte # "It was X", and ours beside it
 │               ├── types/               # the answer affordance, one per question type
 │               │   ├── MoreLess.svelte
 │               │   ├── MultipleChoice.svelte
@@ -1086,13 +1089,13 @@ than dividing by zero, and a payload with no `steps` at all is scored on speed i
 above) — a question that never changes has nothing to be early about.
 
 **There is no `question_update` message, and there does not need to be one.** The step
-schedule is a pure function of `opened_at`, `ends_at` and `steps`, all three of which the
-client already has, so every client advances the image on its own clock against a server
-timestamp — exactly as `Timer.svelte` already counts down. The frames for all steps are
-preloaded when the question opens. Keeping the schedule derived rather than pushed means a
-client that reconnects mid-question lands on the right step from the `welcome` snapshot
-with no extra message, and a dropped frame cannot desynchronise anyone from the scoring,
-because the scoring never looked at what the client was showing.
+schedule is a pure function of `answerable_at`, `ends_at` and `steps`, which a stem gets as
+`StemProps.timing`, so every client advances the image on its own clock against a server
+timestamp — `lib/clock.ts`, exactly as `Timer.svelte` counts down. The frames for all
+steps are preloaded when the question opens. Keeping the schedule derived rather than
+pushed means a client that reconnects mid-question lands on the right step from the
+`welcome` snapshot with no extra message, and a dropped frame cannot desynchronise anyone
+from the scoring, because the scoring never looked at what the client was showing.
 
 ### Exclusions
 

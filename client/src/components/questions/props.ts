@@ -6,23 +6,46 @@
  * its own `data` means; nothing above it does.
  *
  * The two shapes differ on purpose. A stem is what a question is *about* — a sentence, an
- * item, a quote — and it is the same whether you can answer or not, so it gets `data` and
- * whether that is the reveal, and nothing else. In particular it never sees `onAnswer`:
- * the moment a stem can send an answer, Drop Table's item and Who Said That?'s chatbox
- * start growing buttons of their own, and the one place a type's answer is shaped is no
- * longer one place.
+ * item, a quote — and it is the same whether you can answer or not, so it gets `data`,
+ * whether that is the reveal and the question's schedule, and nothing else. In particular
+ * it never sees `onAnswer`: the moment a stem can send an answer, Drop Table's item and
+ * Who Said That?'s chatbox start growing buttons of their own, and the one place a type's
+ * answer is shaped is no longer one place.
  */
+
+import type { Readable } from 'svelte/store'
 
 import type { PlayerResult } from '../../lib/protocol'
 
-export interface StemProps {
+/** What both halves draw from. */
+interface Drawn {
   /** `client_view(payload)` while the question is open, `reveal(payload)` after close. */
   data: Record<string, unknown>
   /** Which of the two `data` is. A stem may say more once the answer is out. */
   revealed: boolean
 }
 
-export interface TypeViewProps<Value = unknown> extends StemProps {
+/**
+ * The question's schedule. A stem that shows more of itself as time runs out — Pixel
+ * Hunt's zoom — works out its frame from these on its own (architecture section 6), since
+ * there is no message that would tell it.
+ */
+export interface StemTiming {
+  /** ISO 8601: when answers open and the clock starts; `opened_at` from an older server. */
+  answerableAt: string
+  /** ISO 8601: when the question closes. */
+  endsAt: string
+  /** How many frames the time is divided into; null for a question that shows one. */
+  steps: number | null
+  /** The server's time in ms (`lib/clock.ts`), which the schedule is counted against. */
+  now: Readable<number>
+}
+
+export interface StemProps extends Drawn {
+  timing: StemTiming
+}
+
+export interface TypeViewProps<Value = unknown> extends Drawn {
   /** What we answered, optimistic or acked; null if we have not. */
   yourValue: unknown
   /**
