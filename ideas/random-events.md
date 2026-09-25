@@ -1,7 +1,7 @@
 # Random events
 
 How to write an NPC's questions. Where events land and who asks them is
-`ideas/architecture.md` §1 (`selection.py`, "Random events"); the ids live in
+`ideas/architecture.md` §5 ("Random events"); the ids live in
 `server/app/random_events.py`, the copy in `client/src/lib/randomEvents.ts`, and the
 questions in `data/packs/random_events/<id>.json`, one file per NPC.
 
