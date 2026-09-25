@@ -3,6 +3,7 @@
 import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { errorText } from './errors'
 import type { OpenQuestion, PlayerView, RoomView, ServerMessage } from './protocol'
 import {
   answerAck,
@@ -122,5 +123,27 @@ describe('applyServerMessage', () => {
     expect(get(lastError)?.code).toBe('not_open')
     applyServerMessage({ t: 'question_open', question: open('q2') })
     expect(get(lastError)).toBeNull()
+  })
+
+  it('tells a refusal before an event’s answers from one after its close', () => {
+    const now = Date.now()
+    const held = {
+      ...open('q1'),
+      answerable_at: new Date(now + 5_000).toISOString(),
+      ends_at: new Date(now + 15_000).toISOString(),
+    }
+    applyServerMessage(welcome({ question: held, server_time: new Date(now).toISOString() }))
+    applyServerMessage({ t: 'error', code: 'not_open', message: 'not taking answers yet' })
+    expect(errorText(get(lastError)!)).toBe("Hold on, answers aren't open yet.")
+    applyServerMessage({
+      t: 'question_closed',
+      question_id: 'q1',
+      reveal: {},
+      results: {},
+      standings: [],
+      next_at: null,
+    })
+    applyServerMessage({ t: 'error', code: 'not_open', message: 'no question is open' })
+    expect(errorText(get(lastError)!)).toBe('Too late, that question had closed.')
   })
 })

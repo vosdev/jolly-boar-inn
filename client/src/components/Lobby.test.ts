@@ -98,12 +98,14 @@ describe('Lobby', () => {
     expect(sent).toEqual([])
   })
 
-  it('labels the players link and the code with the field they belong to', () => {
+  it('names the players link by its own label alone, not the room code', () => {
     lobby()
-    const field = document.getElementById('join-link')
-    expect(field?.tagName).toBe('INPUT')
-    expect(document.querySelector('label[for="join-link"]')).not.toBeNull()
-    expect(screen.getByLabelText('Link for players')).toBe(field)
+    const field = screen.getByLabelText('Link for players') as HTMLInputElement
+    expect([...(field.labels ?? [])].map((label) => label.textContent)).toEqual([
+      'Link for players',
+    ])
+    expect(screen.queryByLabelText('Room code')).toBeNull()
+    expect(screen.getByText('Room code')).toBeTruthy()
   })
 
   it('says a refusal in its own words', async () => {

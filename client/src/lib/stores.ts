@@ -12,6 +12,7 @@
 
 import { get, writable } from 'svelte/store'
 
+import { type Refusal, refusedEarly } from './errors'
 import type {
   AnswerAck,
   ClientMessage,
@@ -63,7 +64,7 @@ export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(nu
 export const answerCount = writable<{ answered: number; of: number } | null>(null)
 export const connection = writable<ConnectionState>('connecting')
 /** The last rejected message, until dismissed or the next question opens. */
-export const lastError = writable<ProtocolError | null>(null)
+export const lastError = writable<Refusal | null>(null)
 /**
  * The last rejected `set_profile` (D4). Kept apart from `lastError` because the answer
  * belongs in the popover that sent it — "that name is taken" under the name field — not
@@ -267,7 +268,11 @@ export function applyServerMessage(message: ServerMessage): void {
         profileError.set(message)
         break
       }
-      lastError.set(message)
+      lastError.set(
+        message.code === 'not_open'
+          ? { ...message, early: refusedEarly(get(question), Date.now() + get(serverOffsetMs)) }
+          : message,
+      )
       if (ANSWER_REJECTED.has(message.code)) yourAnswer.set(null)
       break
   }

@@ -118,7 +118,7 @@
 <section class="panel">
   <div class="spread">
     <div>
-      <label for="join-link">Room code</label>
+      <p class="code-label">Room code</p>
       <p class="code">{$room?.code ?? ''}</p>
     </div>
     {#if settings !== null}
@@ -225,6 +225,13 @@
 {/if}
 
 <style>
+  /* Drawn as the global label is, but it names text, not a field. */
+  .code-label {
+    margin: 0 0 0.3rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
   .ready-head h2 {
     margin: 0;
   }

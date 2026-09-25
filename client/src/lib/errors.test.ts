@@ -2,8 +2,8 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { errorText } from './errors'
-import type { ErrorCode } from './protocol'
+import { errorText, refusedEarly } from './errors'
+import type { ErrorCode, OpenQuestion } from './protocol'
 
 function refusal(code: ErrorCode, message = 'from the server'): string {
   return errorText({ t: 'error', code, message })
@@ -29,4 +29,28 @@ describe('errorText', () => {
       expect(refusal(code, 'nobody is connected to play')).toBe('nobody is connected to play')
     },
   )
+})
+
+describe('an early not_open', () => {
+  const event = {
+    answerable_at: '2026-09-25T12:00:05Z',
+    ends_at: '2026-09-25T12:00:15Z',
+  } as OpenQuestion
+
+  it('says to hold on rather than too late', () => {
+    expect(errorText({ t: 'error', code: 'not_open', message: 'x', early: true })).toBe(
+      "Hold on, answers aren't open yet.",
+    )
+  })
+
+  it('is one refused while the question is still open, even once its hold has ended', () => {
+    expect(refusedEarly(event, Date.parse('2026-09-25T12:00:04Z'))).toBe(true)
+    expect(refusedEarly(event, Date.parse('2026-09-25T12:00:06Z'))).toBe(true)
+  })
+
+  it('is not one after the close, or for a question with no hold, or none at all', () => {
+    expect(refusedEarly(event, Date.parse('2026-09-25T12:00:15Z'))).toBe(false)
+    expect(refusedEarly({ ...event, answerable_at: undefined }, Date.parse('2026-09-25T12:00:04Z'))).toBe(false)
+    expect(refusedEarly(null, 0)).toBe(false)
+  })
 })
