@@ -2,10 +2,10 @@
 
 Close codes (section 3): ``4001`` bad ``hello``, ``4004`` unknown or expired room, ``4008``
 any protocol error after the handshake, each after a single ``error`` message where the
-protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT`` or a socket
-over its message rate, and ``1009`` for a frame over ``MAX_FRAME``: the client reconnects
-after both. ``4000`` (replaced by a newer socket) and ``1012`` (room left memory) come from
-the manager.
+protocol has a code for it. ``1008`` for no ``hello`` within ``HELLO_TIMEOUT``, a socket
+over its message rate or an address over its budget of rooms not found, and ``1009`` for
+a frame over ``MAX_FRAME``: the client reconnects after both. ``4000`` (replaced by a
+newer socket) and ``1012`` (room left memory) come from the manager.
 
 Every message after the handshake is one ``RoomManager`` call. A call that raises
 ``ApiError`` becomes a single ``error`` frame and the socket stays open: a rejected
@@ -28,6 +28,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
 from app.errors import ApiError
+from app.http.ratelimit import RateLimited, room_lookup
 from app.rooms.state import (
     SEND_TIMEOUT,
     BadSession,
@@ -160,7 +161,12 @@ async def room_socket(ws: WebSocket, code: str) -> None:
         if hello is None:
             return
         try:
-            player = await manager.connect(code, hello.session, ws)
+            host = ws.client.host if ws.client else ""
+            with room_lookup(ws.app.state.lookup_misses, host):
+                player = await manager.connect(code, hello.session, ws)
+        except RateLimited as exc:
+            await _close(ws, CLOSE_POLICY, exc.message)
+            return
         except BadSession as exc:
             await _reject(ws, "bad_hello", exc.message, CLOSE_BAD_HELLO)
             return

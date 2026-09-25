@@ -33,6 +33,19 @@ def call(client: TestClient, fn: Any, *args: Any) -> Any:
     return client.portal.call(fn, *args)
 
 
+def held(client: TestClient, code: str) -> dict[str, Any]:
+    """The room as the manager holds it, as ``{room, players}`` in the shapes ``welcome`` uses.
+
+    ``GET /api/rooms/{code}`` says only the status and how many are in, so a test that
+    wants to see who they are looks here.
+    """
+    room = call(client, client.app.state.rooms.get, code)  # type: ignore[attr-defined]
+    return {
+        "room": room.view().model_dump(mode="json"),
+        "players": [p.view().model_dump(mode="json") for p in room.players.values()],
+    }
+
+
 def fast_settings(**overrides: Any) -> RoomSettings:
     """Settings for a game that is over in seconds rather than minutes.
 

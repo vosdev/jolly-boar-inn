@@ -486,7 +486,7 @@ Three implementation facts that need to be in the task, not discovered during it
    ordinary path.
 
    Two players never see that splash: one in a room with `splash_seconds: 0`, and one who
-   joins mid-game. For them the unlock is **the first answer tap** — the next question they
+   reloads mid-game. For them the unlock is **the first answer tap** — the next question they
    touch. The cost is small and worth stating plainly: that one question plays no audio, and
    every question after it does. The case where it bites is a player whose very first
    question is an audio-only one, who would get silence on a question they cannot answer
@@ -1102,7 +1102,7 @@ before any audio file exists.
 
 **Accept:** with no audio assets present, both switches persist and no console error appears;
 muting question audio shows the warning copy; a fresh tab that has not been tapped does not
-throw an autoplay error; a player who joined mid-game, or who is in a room with
+throw an autoplay error; a player who reloaded mid-game, or who is in a room with
 `splash_seconds: 0`, has working audio from their second question onwards; an audio-only
 question that cannot play its audio says so instead of showing a silent prompt; the CSP
 change is covered by the existing headers test.
@@ -1128,7 +1128,7 @@ gives 3; taking a tap back below the threshold stops the countdown, and a second
 same splash is refused; a room of three with one
 player in the kitchen still starts; a room of one does not start until that player taps
 ready; a disconnecting player lowers the threshold rather than stalling the round; the host
-can still skip; a player who joins mid-splash sees the right ready state; `splash_seconds: 0`
+can still skip; a player who reconnects mid-splash sees the right ready state; `splash_seconds: 0`
 still skips the splash entirely; the lobby list names who is not ready and the splash does
 not; the lobby's Start asks before starting a room short of its threshold.
 
@@ -1181,7 +1181,7 @@ a step, and a step with more than three shows `+N`; nobody with 0 points stands 
 podium; five steps and eight table rows fit a 375px screen with no horizontal scroll; a
 24-character name is whole in the table and in the podium's accessible label; points do not
 shift horizontally as they change; ranks tie correctly per the existing tie-break; a player
-who joins or reconnects during `standings` sees the podium and the right `next_at`; a room
+who connects or reconnects during `standings` sees the podium and the right `next_at`; a room
 created before this task still plays; a client built before this task survives the new phase
 value by falling through to its "waiting for the next question" state; a placeholder trophy
 reads as deliberate, and a real render drops in with no code change.
@@ -1409,7 +1409,7 @@ gold/silver/bronze rank medals are gone. §7.3.
 [x] **Two sound switches**, because muting question audio can make a round unplayable. §6.
 
 [x] **Audio unlocks on the first answer tap** for the players who never see a splash: a room
-with `splash_seconds: 0`, or a player who joined mid-game. One question of silence, once. §6.
+with `splash_seconds: 0`, or a player who reloaded mid-game. One question of silence, once. §6.
 
 [x] **One-line trademark notice in the footer, next to the GitHub and licence links.** §9.2.
 

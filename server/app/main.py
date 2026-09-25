@@ -22,7 +22,7 @@ from app.http import modes, players, rooms, vocab
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
 from app.http.headers import SecurityHeaders
-from app.http.ratelimit import RateLimiter
+from app.http.ratelimit import JOINS_PER_HOUR, LOOKUP_MISSES, LOOKUP_WINDOW, RateLimiter
 from app.questions import vocab as vocabularies
 from app.questions.packs import load_packs
 from app.rooms.codes import load_words
@@ -167,6 +167,8 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.rooms = None
     app.state.cleanup = None
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour)
+    app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW)
+    app.state.joins = RateLimiter(JOINS_PER_HOUR)
     app.add_middleware(BodyLimit)
     app.add_middleware(UntrustedForwardWarning)
     app.add_middleware(SecurityHeaders)  # last, so it wraps the others' responses too

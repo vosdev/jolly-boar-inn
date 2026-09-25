@@ -1,8 +1,30 @@
-"""In-memory per-IP limiter for room creation: at most ``limit`` hits per window."""
+"""In-memory per-address limiters: at most ``limit`` hits per window.
+
+Three of them: room creation, joins, and lookups of rooms that turn out not to exist.
+The last is what keeps the room list private. The live codes are a few of a few hundred
+words, and every request that names a room answers whether it exists, so an address
+that keeps asking for rooms that are not there is scanning and is refused for a while.
+"""
 
 import ipaddress
 from collections import deque
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
+
+from app.errors import ApiError
+from app.rooms.state import RoomExpired, RoomNotFound
+
+# A mistyped code or two, or a phone retrying an old link, stays far below this.
+LOOKUP_MISSES = 30
+LOOKUP_WINDOW = timedelta(minutes=10)
+# High enough for a pub on one address, with every player's name clash retried; low
+# enough that a kicked player's script cannot keep coming back all evening.
+JOINS_PER_HOUR = 100
+
+
+class RateLimited(ApiError):
+    status, code = 429, "rate_limited"
 
 
 class RateLimiter:
@@ -24,6 +46,18 @@ class RateLimiter:
         hits.append(now)
         return True
 
+    def refund(self, key: str, at: datetime) -> None:
+        """Take back the hit ``allow`` recorded for ``key`` at ``at``."""
+        hits = self._hits.get(key)
+        if hits is None:
+            return
+        try:
+            hits.remove(at)
+        except ValueError:
+            return
+        if not hits:
+            del self._hits[key]
+
     def _sweep(self, cutoff: datetime) -> None:
         for key in list(self._hits):
             _expire(self._hits[key], cutoff)
@@ -43,6 +77,29 @@ def client_key(host: str) -> str:
         # A household is given a whole /64, so one address alone would limit nobody.
         return str(ipaddress.IPv6Network((address, 64), strict=False))
     return str(address)
+
+
+@contextmanager
+def room_lookup(misses: RateLimiter, host: str) -> Iterator[None]:
+    """Refuse a request naming a room once ``host`` has missed too often; count a miss.
+
+    Every lookup is charged up front and refunded unless it misses, so a burst of
+    concurrent guesses cannot all pass the check before the first of them is counted.
+    Over the limit, a lookup is refused whether or not its room exists: refusing only
+    the misses would answer the question the limit is there to stop answering.
+    """
+    key, now = client_key(host), datetime.now(UTC)
+    if not misses.allow(key, now):
+        raise RateLimited("too many rooms not found from this address, try again later")
+    missed = False
+    try:
+        yield
+    except RoomNotFound, RoomExpired:
+        missed = True
+        raise
+    finally:
+        if not missed:
+            misses.refund(key, now)
 
 
 def _expire(hits: deque[datetime], cutoff: datetime) -> None:

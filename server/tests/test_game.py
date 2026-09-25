@@ -266,7 +266,7 @@ def test_a_three_question_game_runs_to_finished_unattended(table, db) -> None:
     assert all(question.closed_at is not None for question in room.questions)
     assert not any(question.voided for question in room.questions)
     assert [row["status"] for row in db("select status from rooms")] == ["finished"]
-    assert game.client.get(f"/api/rooms/{game.code}").json()["room"]["status"] == "finished"
+    assert game.client.get(f"/api/rooms/{game.code}").json()["status"] == "finished"
 
 
 def test_the_next_question_opens_when_question_closed_said_it_would(table) -> None:
@@ -317,7 +317,6 @@ def test_question_open_is_the_same_frame_for_everyone_and_withholds_the_answer(g
     # Ten seconds: the ``more_less`` round's own ``seconds``, not a number the room set.
     assert (ends_at - opened_at).total_seconds() == 10
     assert game.room.phase == "open"
-    assert game.client.get(f"/api/rooms/{game.code}").json()["room"]["phase"] == "open"
 
 
 def test_frames_name_a_question_by_its_row_id_and_never_its_content_id(game) -> None:
@@ -1071,7 +1070,8 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
     """T11 Accept: the process dies with a question open.
 
     ``evict`` is the crash: the room leaves memory and its timer task is cancelled, so the
-    next ``get`` rehydrates from Postgres exactly as a fresh process would.
+    next lookup rehydrates from Postgres exactly as a fresh process would, and the first
+    player back resumes it.
     """
     game = table("Zezima", seconds=10, reveal_seconds=3)
     game.start()
@@ -1087,22 +1087,22 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
         assert closed_with(seat.ws) == 1012
 
     before = datetime.now(UTC)
-    room = game.room  # the rehydrate, and with it the recovery
-    assert room.questions[0].voided is True
-    assert room.questions[0].closed_at is not None
-    assert room.phase == "reveal"
-    assert room.current_index == 0  # still the voided question's; the reveal is its
-    assert room.timer is not None
-    # A whole fresh reveal, measured from the restart rather than from the old open. Held
-    # in a local: ``room`` is the live object, and opening the next question clears it.
-    next_at = room.next_at
-    assert next_at is not None
-    reveal = (next_at - before).total_seconds()
-    assert room.settings.reveal_seconds <= reveal < room.settings.reveal_seconds + 2
-
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         again = reseat(player, ws)
-        welcome = again.take("welcome")
+        welcome = again.take("welcome")  # the first player back, and with it the recovery
+        room = game.room
+        assert room.questions[0].voided is True
+        assert room.questions[0].closed_at is not None
+        assert room.phase == "reveal"
+        assert room.current_index == 0  # still the voided question's; the reveal is its
+        assert room.timer is not None
+        # A whole fresh reveal, measured from the restart rather than from the old open.
+        # Held in a local: ``room`` is live, and opening the next question clears it.
+        next_at = room.next_at
+        assert next_at is not None
+        reveal = (next_at - before).total_seconds()
+        assert room.settings.reveal_seconds <= reveal < room.settings.reveal_seconds + 2
+
         assert welcome["question"] is None  # nothing is open, so nothing to answer
         assert welcome["your_answer"] is None
         assert welcome["room"]["phase"] == "reveal"
@@ -1149,16 +1149,15 @@ def test_a_restart_between_questions_voids_nothing_and_still_reveals(
     for seat in game.seats:
         assert closed_with(seat.ws) == 1012
 
-    room = game.room
-    assert not any(question.voided for question in room.questions)
-    assert room.questions[0].closed_at is not None
-    assert room.phase == "reveal"
-    assert room.current_index == 0
-    assert room.score(UUID(player.id)).points == 1000  # what was graded stays graded
-
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         admin = reseat(game.admin, ws)
         welcome = admin.take("welcome")
+        room = game.room
+        assert not any(question.voided for question in room.questions)
+        assert room.questions[0].closed_at is not None
+        assert room.phase == "reveal"
+        assert room.current_index == 0
+        assert room.score(UUID(player.id)).points == 1000  # what was graded stays graded
         assert welcome["question"] is None
         assert welcome["room"]["phase"] == "reveal"
         assert [s["points"] for s in welcome["standings"]] == [1000, 0]
@@ -1184,16 +1183,15 @@ def test_a_restart_before_the_first_question_opened_still_plays_it(
     for seat in game.seats:
         assert closed_with(seat.ws) == 1012
 
-    room = game.room
-    assert room.status == "playing"
-    assert room.phase == "reveal"
-    assert room.current_index == 0
-    assert room.questions[0].shown_at is None
-    assert not any(question.voided for question in room.questions)
-
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         admin = reseat(game.admin, ws)
         assert admin.take("welcome")["question"] is None
+        room = game.room
+        assert room.status == "playing"
+        assert room.phase == "reveal"
+        assert room.current_index == 0
+        assert room.questions[0].shown_at is None
+        assert not any(question.voided for question in room.questions)
         game.skip(admin)
         opened = admin.take("question_open")
         assert opened["question"]["index"] == 0  # the question the restart owed
@@ -1355,9 +1353,9 @@ def test_a_player_cannot_skip_the_splash(table) -> None:
 def test_welcome_during_a_splash_says_so(table, client) -> None:
     """A socket arriving mid-splash is told the same thing a live one was broadcast."""
     game = table("Zezima", seconds=10, splash_seconds=30)
+    body = join(client, game.code, "Latecomer").json()  # in the lobby, connecting later
     game.start()
     game.splash()
-    body = join(client, game.code, "Latecomer").json()
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         ws.send_json({"t": "hello", "session": body["session"]})
         welcome = ws.receive_json()
@@ -1390,19 +1388,81 @@ def test_a_restart_during_a_splash_replays_it(table, client, db, evict) -> None:
     for seat in game.seats:
         assert closed_with(seat.ws) == 1012
 
-    room = game.room  # the rehydrate, and with it the recovery
-    assert room.phase == "reveal"
-    assert room.current_index == 0
-    assert room.questions[0].shown_at is None
-    assert not any(question.voided for question in room.questions)
-
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         admin = reseat(game.admin, ws)
         assert admin.take("welcome")["room"]["phase"] == "reveal"
+        room = game.room
+        assert room.current_index == 0
+        assert room.questions[0].shown_at is None
+        assert not any(question.voided for question in room.questions)
         # The reveal ends, and the round is introduced again before the question it owes.
         assert game.splash(admin)["room"]["phase"] == "splash"
         admin.send(t="ready", ready=True)  # the only one connected: a room of one
         assert admin.take("question_open")["question"]["index"] == 0
+
+
+def test_a_lookup_does_not_resume_a_restarted_room(table, client, db, evict) -> None:
+    """Only a player coming back resumes a room, so a scanner or a link preview asking
+    for the code never plays the game on to nobody."""
+    game = table("Zezima", seconds=10, reveal_seconds=3)
+    game.start()
+    game.opened(0)
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_with(seat.ws) == 1012
+
+    assert client.get(f"/api/rooms/{game.code}").json() == {"status": "playing", "players": 2}
+    assert join(client, game.code, "Woox").status_code == 409
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        ws.send_json({"t": "hello", "session": "not-a-session"})
+        assert ws.receive_json()["code"] == "bad_hello"
+        assert closed_with(ws) == 4001
+
+    room = game.room
+    assert room.timer is None
+    assert room.phase == "idle"
+    (stored,) = db("select closed_at, voided from questions where position = 0")
+    assert (stored["closed_at"], stored["voided"]) == (None, False)
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        assert admin.take("welcome")["room"]["phase"] == "reveal"
+        assert game.room.timer is not None
+    assert db("select voided from questions where position = 0")[0]["voided"] is True
+
+
+def test_a_recovery_that_fails_is_tried_again_by_the_next_player(
+    table, client, db, evict, faults
+) -> None:
+    """A room left in memory unrecovered would never be offered to recovery again."""
+    game = table("Zezima", seconds=10, reveal_seconds=30)
+    game.start()
+    game.opened(0)
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_with(seat.ws) == 1012
+
+    faults.fail_once("update questions set closed_at")
+    with pytest.raises(ConnectionResetError), client.websocket_connect(f"/ws/{game.code}") as ws:
+        reseat(game.admin, ws).take("welcome")
+    assert game.code not in game.app.state.rooms.rooms
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        assert admin.take("welcome")["room"]["phase"] == "reveal"
+    assert db("select voided from questions where position = 0")[0]["voided"] is True
+
+
+def test_nobody_new_joins_a_game_under_way(game, client) -> None:
+    """Too late is too late; a player already in comes back on their own session."""
+    game.start()
+    game.opened(0)
+    response = join(client, game.code, "Lynx")
+    assert response.status_code == 409
+    assert response.json()["code"] == "not_open"
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        again = reseat(game.players[0], ws)
+        assert again.take("welcome")["question"]["index"] == 0
 
 
 # --- D7: the ready check ------------------------------------------------------------
@@ -1584,11 +1644,11 @@ def test_a_disconnect_lowers_the_threshold_rather_than_stalling(table) -> None:
 def test_a_connect_never_stops_a_countdown(table, client) -> None:
     """A phone waking up changes the threshold; it must not reset a running countdown."""
     game = table("Zezima", seconds=10, splash_seconds=8)
+    body = join(client, game.code, "Latecomer").json()  # in the lobby, connecting later
     game.start()
     game.splash()
     counting = tap(game, game.players[0])  # one of two is the threshold
     assert counting["room"]["next_at"] is not None
-    body = join(client, game.code, "Latecomer").json()
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         ws.send_json({"t": "hello", "session": body["session"]})
         welcome = ws.receive_json()
@@ -1596,12 +1656,12 @@ def test_a_connect_never_stops_a_countdown(table, client) -> None:
         assert welcome["room"]["next_at"] == counting["room"]["next_at"]
 
 
-def test_a_player_joining_mid_splash_sees_who_is_ready(table, client) -> None:
+def test_a_player_connecting_mid_splash_sees_who_is_ready(table, client) -> None:
     game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
+    body = join(client, game.code, "Latecomer").json()  # in the lobby, connecting later
     game.start()
     game.splash()
     tap(game, game.admin)
-    body = join(client, game.code, "Latecomer").json()
     with client.websocket_connect(f"/ws/{game.code}") as ws:
         ws.send_json({"t": "hello", "session": body["session"]})
         welcome = ws.receive_json()
@@ -2313,7 +2373,7 @@ def test_skip_during_the_reveal_does_not_also_skip_the_standings(table, second_m
 
 
 def test_a_player_arriving_during_the_standings_sees_them(table, client, second_mode) -> None:
-    """D9 Accept: a join or a reconnect during ``standings`` gets the phase, the
+    """D9 Accept: a first connect or a reconnect during ``standings`` gets the phase, the
     standings and the ``next_at`` a live socket was sent."""
     game = table(
         "Zezima",
@@ -2324,6 +2384,7 @@ def test_a_player_arriving_during_the_standings_sees_them(table, client, second_
             {"mode": second_mode, "questions": 1, "seconds": 10},
         ],
     )
+    late = join(client, game.code, "Lynx Titan").json()  # in the lobby, connecting later
     game.start()
     game.opened(0)
     game.answer(game.players[0], 0, game.right(0))
@@ -2332,7 +2393,6 @@ def test_a_player_arriving_during_the_standings_sees_them(table, client, second_
     closed = game.admin.take("question_closed")
     update = updated(game.admin, lambda m: m["room"]["phase"] == "standings")
 
-    late = join(client, game.code, "Lynx Titan").json()
     for session in (game.players[0].session, late["session"]):
         with client.websocket_connect(f"/ws/{game.code}") as again:
             again.send_json({"t": "hello", "session": session})

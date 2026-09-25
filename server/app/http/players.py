@@ -1,11 +1,13 @@
 """``POST /api/rooms/{code}/join``."""
 
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.http.rooms import manager
+from app.http.ratelimit import RateLimited, client_key, room_lookup
+from app.http.rooms import client_host, manager
 
 router = APIRouter(prefix="/api/rooms")
 
@@ -19,5 +21,16 @@ class Join(BaseModel):
 
 @router.post("/{code}/join")
 async def join(code: str, body: Join, request: Request) -> dict[str, Any]:
-    player, session = await manager(request).join(code, body.display_name, body.avatar)
+    host = client_host(request)
+    with room_lookup(request.app.state.lookup_misses, host):
+        # Charged before the join and refunded if it fails, like a lookup miss, so a
+        # burst of joins cannot all pass the check before the first one is counted.
+        key, now = client_key(host), datetime.now(UTC)
+        if not request.app.state.joins.allow(key, now):
+            raise RateLimited("too many joins from this address, try again later")
+        try:
+            player, session = await manager(request).join(code, body.display_name, body.avatar)
+        except BaseException:
+            request.app.state.joins.refund(key, now)
+            raise
     return {"session": session, "player": player.view()}

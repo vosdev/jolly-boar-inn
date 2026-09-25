@@ -22,7 +22,7 @@ from starlette.testclient import WebSocketTestSession
 
 from app.heads import load_head_count
 from app.rooms.state import CHANGE_COOLDOWN
-from tests.rooms_api import create, join
+from tests.rooms_api import create, held, join
 
 HEADS = load_head_count()
 
@@ -74,7 +74,7 @@ def test_create_and_join_store_the_head_they_were_sent(client: TestClient, db) -
         ("Admin", 3),
         ("Zezima", HEADS - 1),
     ]
-    room = client.get(f"/api/rooms/{body['code']}").json()
+    room = held(client, body["code"])
     assert [p["avatar"] for p in room["players"]] == [3, HEADS - 1]
 
 
@@ -119,7 +119,7 @@ def test_a_full_room_can_have_fifty_different_heads(app: FastAPI, client: TestCl
             f"/api/rooms/{code}/join", json={"display_name": f"Player{seat}", "avatar": seat}
         )
         assert joined.status_code == 200, joined.text
-    players = client.get(f"/api/rooms/{code}").json()["players"]
+    players = held(client, code)["players"]
     assert len(players) == cap
     assert sorted(p["avatar"] for p in players) == list(range(cap))
 
@@ -175,7 +175,7 @@ def test_a_rename_to_a_taken_name_is_refused_and_the_old_one_survives(
         assert ws.receive_json()["t"] == "pong"  # the socket is still open, nothing sent
     row = db("select display_name, avatar from players where id = $1", UUID(player["player"]["id"]))
     assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", None)
-    names = [p["display_name"] for p in client.get(f"/api/rooms/{code}").json()["players"]]
+    names = [p["display_name"] for p in held(client, code)["players"]]
     assert names == ["Admin", "Zezima"]
 
 
@@ -236,7 +236,7 @@ def test_the_change_survives_the_room_leaving_memory(client: TestClient, lobby, 
         ws.send_json({"t": "set_profile", "display_name": "Woox", "avatar": 9})
         next_of(ws, "room_updated")
     assert evict(code)
-    seen = by_id(client.get(f"/api/rooms/{code}").json()["players"], player["player"]["id"])
+    seen = by_id(held(client, code)["players"], player["player"]["id"])
     assert (seen["display_name"], seen["avatar"]) == ("Woox", 9)
 
 
