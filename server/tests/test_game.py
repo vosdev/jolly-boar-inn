@@ -53,7 +53,7 @@ from app.random_events import RANDOM_EVENTS
 from app.rooms import state
 from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, Room, RoomQuestion
 from app.ws import handler as ws_handler
-from tests.rooms_api import call, create_fast, join
+from tests.rooms_api import StalledSocket, call, create_fast, join
 
 
 @dataclass
@@ -88,7 +88,7 @@ class Seat:
     def take(self, kind: str, limit: int = 30) -> dict[str, Any]:
         """The next message of type ``kind``. Anything before it is kept in ``seen``.
 
-        Skipping is deliberate: a ``room_updated`` for somebody else connecting can land
+        Skipping is deliberate: a ``players_updated`` for somebody else connecting can land
         between any two messages a test cares about, and no client may depend on the
         order of those.
         """
@@ -192,11 +192,11 @@ def table(
                     Seat(body["player"]["display_name"], body["session"], body["player"], ws)
                 )
             # Everyone already seated hears each new socket connect. Drain those now so a
-            # test that waits for a ``room_updated`` gets the one it is waiting for.
+            # test that waits for a ``players_updated`` gets the one it is waiting for.
             for index, seat in enumerate(seats):
                 for _ in range(len(seats) - 1 - index):
                     message = seat.ws.receive_json()
-                    assert message["t"] == "room_updated", message
+                    assert message["t"] == "players_updated", message
             return Game(app, client, room.code, seats)
 
         yield build
@@ -552,7 +552,7 @@ def test_a_disconnected_player_does_not_hold_the_close_up(game) -> None:
     game.opened(0)
     absent = game.players[1]
     absent.ws.close()
-    update = game.admin.take("room_updated")
+    update = game.admin.take("players_updated")
     assert [p["connected"] for p in update["players"]] == [True, True, False]
     for seat in (game.admin, game.players[0]):
         game.answer(seat, 0, game.right(0))
@@ -594,7 +594,7 @@ def test_a_player_leaving_while_another_still_owes_an_answer_keeps_it_open(game,
         game.admin.send(t="kick", player_id=last.id)
     # The leave is checked under the lock before this frame goes out, so a close it asked
     # for shows here as ``advance`` set or the question already closed.
-    game.admin.take("room_updated")
+    game.admin.take("players_updated" if leaves == "disconnects" else "room_updated")
     room = game.room
     assert (room.phase, room.advance.is_set()) == ("open", False)
 
@@ -608,6 +608,31 @@ def test_an_unanswered_seat_keeps_the_question_open(game) -> None:
         seat.take("answer_ack")
     time.sleep(0.2)
     assert game.room.phase == "open"
+
+
+def test_a_stalled_socket_holds_up_nobody_else(table, client) -> None:
+    """One phone that has stopped reading: everyone else's acks and the clock run on time."""
+    game = table("Zezima", seconds=1, reveal_seconds=1)
+    body = join(client, game.code, "Woox").json()
+    stalled = StalledSocket()
+    call(client, game.app.state.rooms.connect, game.code, body["session"], stalled)
+    for seat in game.seats:
+        seat.take("players_updated")
+    game.start()
+    opened = game.opened(0)[0]["question"]
+    started = time.monotonic()
+    player = game.players[0]
+    game.answer(player, 0, game.right(0))
+    player.take("answer_ack")
+    assert time.monotonic() - started < 1
+    closed = game.admin.take("question_closed")
+    # The question's own length, held to its mode's floor of five; Woox is connected and
+    # never answers, so nothing closes it early, and waiting on Woox would have made it ten.
+    length = datetime.fromisoformat(opened["ends_at"]) - datetime.fromisoformat(opened["opened_at"])
+    assert length.total_seconds() < 8
+    assert time.monotonic() - started < length.total_seconds() + 1
+    assert set(closed["results"]) == {player.id}
+    assert stalled.sends == 1  # still on its welcome
 
 
 # --- T9: skip ------------------------------------------------------------------------
@@ -1505,12 +1530,13 @@ def test_nobody_new_joins_a_game_under_way(game, client) -> None:
 
 
 def updated(seat: Seat, until: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
-    """The next ``room_updated`` that ``until`` accepts."""
-    for _ in range(20):
-        message = seat.take("room_updated")
-        if until(message):
+    """The next ``room_updated`` or ``players_updated`` that ``until`` accepts."""
+    for _ in range(200):
+        message = seat.ws.receive_json()
+        seat.seen.append(message)
+        if message["t"] in ("room_updated", "players_updated") and until(message):
             return message
-    raise AssertionError(f"{seat.name} never got the room_updated wanted; saw {seat.kinds}")
+    raise AssertionError(f"{seat.name} never got the update wanted; saw {seat.kinds}")
 
 
 def ready_of(message: dict[str, Any]) -> dict[str, bool]:
@@ -1523,7 +1549,7 @@ def seconds_left(message: dict[str, Any]) -> float:
 
 
 def tap(game: Game, seat: Seat, is_ready: bool = True) -> dict[str, Any]:
-    """``seat`` taps ready (or takes it back); the admin's ``room_updated`` that shows it."""
+    """``seat`` taps ready (or takes it back); the admin's update that shows it."""
     seat.send(t="ready", ready=is_ready)
     return updated(game.admin, lambda m: ready_of(m)[seat.name] is is_ready)
 
@@ -1589,7 +1615,9 @@ def test_the_threshold_starts_ten_seconds_and_everyone_brings_it_to_three(table)
     game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
     game.start()
     game.splash()
-    assert tap(game, game.admin)["room"]["next_at"] is None  # one of three is short
+    # One of three is short: only the players changed, so the room is not in the frame.
+    assert tap(game, game.admin)["t"] == "players_updated"
+    assert game.room.next_at is None
     two = tap(game, game.players[0])
     assert 9 < seconds_left(two) <= 10
     three = tap(game, game.players[1])
@@ -1660,7 +1688,8 @@ def test_an_un_ready_that_keeps_the_threshold_keeps_the_countdown(table) -> None
     everyone = tap(game, game.seats[-1])
     assert 2 < seconds_left(everyone) <= 3
     back = tap(game, game.seats[-1], False)
-    assert back["room"]["next_at"] == everyone["room"]["next_at"]
+    assert back["t"] == "players_updated"  # the room, countdown and all, did not move
+    assert game.room.view().model_dump(mode="json")["next_at"] == everyone["room"]["next_at"]
 
 
 def test_a_disconnect_lowers_the_threshold_rather_than_stalling(table) -> None:
@@ -1668,7 +1697,8 @@ def test_a_disconnect_lowers_the_threshold_rather_than_stalling(table) -> None:
     game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
     game.start()
     game.splash()
-    assert tap(game, game.admin)["room"]["next_at"] is None
+    assert tap(game, game.admin)["t"] == "players_updated"
+    assert game.room.next_at is None
     game.players[1].ws.close()
 
     def woox_gone(message: dict[str, Any]) -> bool:

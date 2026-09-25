@@ -1,5 +1,6 @@
 """Helpers shared by the room, websocket and game tests."""
 
+import asyncio
 from typing import Any
 
 import httpx
@@ -104,3 +105,19 @@ def create_fast(
     """
     settings = fast_settings(**overrides)
     return call(client, app.state.rooms.create, name, settings, custom or [], "127.0.0.1")
+
+
+class StalledSocket:
+    """A client that has stopped reading: a send or a close to it never finishes."""
+
+    def __init__(self) -> None:
+        self.sends = 0
+        self.closed_with: int | None = None
+
+    async def send_json(self, data: dict[str, Any]) -> None:
+        self.sends += 1
+        await asyncio.Event().wait()
+
+    async def close(self, code: int = 1000, reason: str | None = None) -> None:
+        self.closed_with = code
+        await asyncio.Event().wait()

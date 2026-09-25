@@ -57,6 +57,8 @@ COPY --from=builder /app/server /app/server
 COPY --from=client /build/client/dist /app/client/dist
 COPY schema/ /app/schema/
 COPY data/ /app/data/
+# The server sends it in every welcome, so a tab on an older bundle reloads.
+COPY VERSION /app/VERSION
 
 # packs_dir defaults to ../data/packs, resolved against the working directory.
 WORKDIR /app/server

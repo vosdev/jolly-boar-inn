@@ -138,7 +138,7 @@ def test_a_reroll_and_a_rename_reach_the_other_browser(
     ):
         first = hello(one, admin["session"])
         second = hello(two, player["session"])
-        next_of(one, "room_updated")  # the second socket connecting
+        next_of(one, "players_updated")  # the second socket connecting
         assert [p["avatar"] for p in first["players"]] == [p["avatar"] for p in second["players"]]
 
         two.send_json({"t": "set_profile", "avatar": 12})

@@ -61,6 +61,7 @@
     yourAnswer,
   } from '../lib/stores'
   import { timerBar } from '../lib/timerbar'
+  import { reloadIfStale } from '../lib/version'
   import { listFor, prefetchVocab } from '../lib/vocab'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
 
@@ -77,7 +78,10 @@
       return
     }
     const live = new RoomSocket(code, session, {
-      onMessage: applyServerMessage,
+      onMessage: (message) => {
+        if (message.t === 'welcome' && reloadIfStale(message.server_version)) return
+        applyServerMessage(message)
+      },
       onState: (state) => connection.set(state),
       onClosed: (reason, detail) => {
         // A session the room will not accept is worth nothing; drop it so the next

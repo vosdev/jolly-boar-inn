@@ -7,6 +7,9 @@ Plus section 3: join over HTTP is a ``room_updated`` trigger, ``ping``/``pong``,
 4004 and 4008, and section 1: a failed send removes the socket.
 """
 
+import asyncio
+import time
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
@@ -17,10 +20,12 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
+from app.config import REPO_ROOT
 from app.rooms.state import Room, RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
-from tests.rooms_api import call, create, held, join
+from app.ws.outbox import Outbox
+from tests.rooms_api import StalledSocket, call, create, held, join
 
 
 @pytest.fixture
@@ -42,6 +47,14 @@ def closed_with(ws: WebSocketTestSession) -> int:
     with pytest.raises(WebSocketDisconnect) as info:
         ws.receive_json()
     return info.value.code
+
+
+def until(check: Callable[[], bool], seconds: float = 2.0) -> None:
+    """Wait for something a socket's outbox does on the app's loop, not the test thread."""
+    deadline = time.monotonic() + seconds
+    while not check():
+        assert time.monotonic() < deadline, "timed out waiting"
+        time.sleep(0.01)
 
 
 def snapshot(room: Room) -> dict[str, Any]:
@@ -74,7 +87,9 @@ def test_hello_gets_welcome_with_players_and_you(client: TestClient, lobby) -> N
             "your_answer",
             "standings",
             "server_time",
+            "server_version",
         }
+        assert welcome["server_version"] == (REPO_ROOT / "VERSION").read_text().strip()
         assert welcome["you"] == {**player["player"], "connected": True}
         assert welcome["players"] == [lobby["admin"]["player"], welcome["you"]]
         assert welcome["players"][0]["connected"] is False
@@ -203,12 +218,13 @@ def test_disconnect_flips_connected_in_broadcast_to_remaining_socket(
         with client.websocket_connect(f"/ws/{code}") as player_ws:
             hello(player_ws, lobby["player"]["session"])
             connected = admin_ws.receive_json()
-            assert connected["t"] == "room_updated"
+            assert connected["t"] == "players_updated"
             assert [p["connected"] for p in connected["players"]] == [True, True]
             player_ws.close()
             update = admin_ws.receive_json()
-        assert update["t"] == "room_updated"
-        assert set(update) == {"t", "room", "players"}
+        # Only the players changed, so only the players are sent.
+        assert update["t"] == "players_updated"
+        assert set(update) == {"t", "players"}
         assert [p["connected"] for p in update["players"]] == [True, False]
         assert update["players"][1]["id"] == lobby["player"]["player"]["id"]
         assert held(client, code)["players"] == update["players"]
@@ -306,7 +322,7 @@ def test_protocol_error_after_hello_closes_4008(client: TestClient, lobby, frame
             ws.close()
             # The close detaches the socket like any disconnect.
             update = admin_ws.receive_json()
-            assert update["t"] == "room_updated"
+            assert update["t"] == "players_updated"
             assert [p["connected"] for p in update["players"]] == [True, False]
 
 
@@ -339,7 +355,8 @@ def test_failed_send_removes_socket_and_tells_the_others(
     flaky = FlakySocket()
     with client.websocket_connect(f"/ws/{code}") as admin_ws:
         hello(admin_ws, lobby["admin"]["session"])
-        player = call(client, manager.connect, code, lobby["player"]["session"], flaky)
+        player, _ = call(client, manager.connect, code, lobby["player"]["session"], flaky)
+        until(lambda: bool(flaky.sent))
         assert flaky.sent[0]["t"] == "welcome"
         assert admin_ws.receive_json()["players"][1]["connected"] is True
         flaky.alive = False
@@ -348,6 +365,7 @@ def test_failed_send_removes_socket_and_tells_the_others(
         first = admin_ws.receive_json()  # the join itself, snapshotted before the send failed
         assert [p["connected"] for p in first["players"]] == [True, True, False]
         second = admin_ws.receive_json()  # the flaky socket's removal
+        assert second["t"] == "players_updated"
         assert [p["connected"] for p in second["players"]] == [True, False, False]
         assert flaky.closed_with == 1011
         room = call(client, manager.get, code)
@@ -391,23 +409,109 @@ def test_failed_welcome_still_closes_the_replaced_socket(
     with client.websocket_connect(f"/ws/{code}") as admin_ws:
         hello(admin_ws, lobby["admin"]["session"])
         first = FlakySocket()
-        player = call(client, manager.connect, code, session, first)
+        player, _ = call(client, manager.connect, code, session, first)
+        until(lambda: bool(first.sent))
         assert first.sent[0]["t"] == "welcome"
         assert admin_ws.receive_json()["players"][1]["connected"] is True
 
         second = FlakySocket()
         second.alive = False  # the new device is gone before the welcome is written
-        with pytest.raises(WebSocketDisconnect):
-            call(client, manager.connect, code, session, second)
+        call(client, manager.connect, code, session, second)
+        # The new device connecting, then its welcome failing.
+        assert [p["connected"] for p in admin_ws.receive_json()["players"]] == [True, True]
+        update = admin_ws.receive_json()
+        assert update["t"] == "players_updated"
+        assert [p["connected"] for p in update["players"]] == [True, False]
 
+        until(lambda: first.closed_with is not None)
         assert first.closed_with == 4000  # replaced, not orphaned
         assert second.closed_with == 1011
         room = call(client, manager.get, code)
         assert player.id not in room.sockets
         assert room.players[player.id].connected is False
+
+
+def test_replacing_a_stalled_socket_waits_for_nothing(
+    app: FastAPI, client: TestClient, lobby
+) -> None:
+    """The old device's close queues behind its own frames; the room hears of the new one now."""
+    manager: RoomManager = app.state.rooms
+    code = lobby["code"]
+    stalled = StalledSocket()
+    with client.websocket_connect(f"/ws/{code}") as admin_ws:
+        hello(admin_ws, lobby["admin"]["session"])
+        call(client, manager.connect, code, lobby["player"]["session"], stalled)
+        assert admin_ws.receive_json()["t"] == "players_updated"
+        started = time.monotonic()
+        with client.websocket_connect(f"/ws/{code}") as player_ws:
+            hello(player_ws, lobby["player"]["session"])
+            assert admin_ws.receive_json()["t"] == "players_updated"
+            assert time.monotonic() - started < 1
+            player_ws.send_json({"t": "ping"})
+            assert player_ws.receive_json()["t"] == "pong"
+
+
+def test_kicking_a_stalled_player_waits_for_nothing(
+    app: FastAPI, client: TestClient, lobby
+) -> None:
+    manager: RoomManager = app.state.rooms
+    code = lobby["code"]
+    stalled = StalledSocket()
+    with client.websocket_connect(f"/ws/{code}") as admin_ws:
+        hello(admin_ws, lobby["admin"]["session"])
+        call(client, manager.connect, code, lobby["player"]["session"], stalled)
+        assert admin_ws.receive_json()["t"] == "players_updated"
+        started = time.monotonic()
+        admin_ws.send_json({"t": "kick", "player_id": lobby["player"]["player"]["id"]})
         update = admin_ws.receive_json()
+        assert time.monotonic() - started < 1
         assert update["t"] == "room_updated"
-        assert [p["connected"] for p in update["players"]] == [True, False]
+        assert [p["display_name"] for p in update["players"]] == ["Admin"]
+
+
+async def test_an_outbox_sends_in_order_and_closes_after_what_it_holds() -> None:
+    ws = FlakySocket()
+    outbox = Outbox(ws, on_failed=_never)
+    assert outbox.put({"n": 1}) and outbox.put({"n": 2})
+    outbox.close(4003, "removed from the room")
+    assert outbox.closing and not outbox.put({"n": 3})
+    await asyncio.wait_for(outbox.finished(), 1)
+    assert ws.sent == [{"n": 1}, {"n": 2}]
+    assert ws.closed_with == 4003
+
+
+async def test_an_outbox_that_overflows_closes_and_detaches_its_socket_at_once() -> None:
+    ws = StalledSocket()
+    detached = asyncio.Event()
+
+    async def on_failed() -> None:
+        detached.set()
+
+    outbox = Outbox(ws, on_failed=on_failed, limit=3)
+    assert all(outbox.put({"n": n}) for n in range(3))
+    assert not outbox.put({"n": 3})
+    await asyncio.wait_for(detached.wait(), 1)  # not the ten seconds a send may take
+    assert ws.closed_with == 1011
+    assert not outbox.put({"n": 4})
+
+
+async def test_an_outbox_whose_send_fails_closes_and_detaches_its_socket() -> None:
+    ws = FlakySocket()
+    ws.alive = False
+    detached = asyncio.Event()
+
+    async def on_failed() -> None:
+        detached.set()
+
+    outbox = Outbox(ws, on_failed=on_failed)
+    outbox.put({"n": 1})
+    await asyncio.wait_for(detached.wait(), 1)
+    await asyncio.wait_for(outbox.finished(), 1)
+    assert ws.closed_with == 1011
+
+
+async def _never() -> None:
+    raise AssertionError("this outbox should not have failed")
 
 
 # --- rehydrate ----------------------------------------------------------------------

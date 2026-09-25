@@ -271,11 +271,19 @@ export interface Welcome {
   your_answer: unknown | null
   standings: Standing[]
   server_time: string
+  /** `/VERSION` of the running server; a bundle from another version reloads itself. */
+  server_version: string
 }
 
 export interface RoomUpdated {
   t: 'room_updated'
   room: RoomView
+  players: PlayerView[]
+}
+
+/** A ready tap, connect or disconnect that changed the players and nothing else. */
+export interface PlayersUpdated {
+  t: 'players_updated'
   players: PlayerView[]
 }
 
@@ -345,6 +353,7 @@ export interface ProtocolError {
 export type ServerMessage =
   | Welcome
   | RoomUpdated
+  | PlayersUpdated
   | QuestionOpen
   | AnswerAck
   | AnswerCount

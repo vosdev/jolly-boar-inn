@@ -112,11 +112,11 @@ def test_a_burst_of_ready_taps_reaches_the_room_at_most_a_burst_of_times(
     ):
         hello(watcher, lobby["admin"]["session"])
         hello(flooder, lobby["player"]["session"])
-        next_of(watcher, "room_updated")  # the flooder connecting
+        next_of(watcher, "players_updated")  # the flooder connecting
         for i in range(100):
             flooder.send_json({"t": "ready", "ready": i % 2 == 0})
         assert closed_with(flooder) == 1008
-        updates = [m for m in until_pong(watcher) if m["t"] == "room_updated"]
+        updates = [m for m in until_pong(watcher) if m["t"] == "players_updated"]
         assert len(updates) <= RATE_BURST
 
 
@@ -138,13 +138,13 @@ def test_a_lobby_ready_change_within_a_second_is_refused(client: TestClient, lob
     with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
         hello(ws, lobby["player"]["session"])
         ws.send_json({"t": "ready", "ready": True})
-        assert next_of(ws, "room_updated")
+        assert next_of(ws, "players_updated")
         ws.send_json({"t": "ready", "ready": False})
         error = next_of(ws, "error")
         assert error["code"] == "bad_state"
         clock[0] += 1
         ws.send_json({"t": "ready", "ready": False})
-        mine = next_of(ws, "room_updated")["players"]
+        mine = next_of(ws, "players_updated")["players"]
         assert not next(p for p in mine if p["id"] == lobby["player"]["player"]["id"])["ready"]
 
 

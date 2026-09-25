@@ -5,11 +5,17 @@
  *   1. On close or error, wait `min(8000, 500 * 2^attempt)` ms plus 0–250 ms of jitter,
  *      reconnect, send `hello`. The attempt counter resets to 0 after a `welcome`.
  *   2. On `welcome`, the caller replaces all local state with the snapshot.
- *   3. On `visibilitychange` to visible, reconnect immediately if the socket is not
- *      open — phones lock between questions and the backoff timer may be minutes out.
- *   4. Send `ping` every 30 s; if no `pong` within 10 s, close the socket, which drops
- *      into step 1. A socket that a sleeping network has killed still reports `OPEN`,
- *      so this is the only thing that notices.
+ *   3. On `visibilitychange` to visible or the `online` event, reconnect immediately if
+ *      the socket is not open — phones lock between questions and the backoff timer may
+ *      be minutes out. If it claims to be open, send a `ping` at once and reconnect if
+ *      nothing arrives within 4 s: a socket a sleeping network killed still says `OPEN`.
+ *   4. Send `ping` every 30 s; if no `pong` within 10 s, reconnect. Any frame at all
+ *      proves the socket alive, for this and for step 3.
+ *   5. An `answer` that gets no `answer_ack` or `error` within 5 s reconnects too, so the
+ *      `welcome` says whether it landed rather than the screen showing it sent.
+ *
+ * Nothing but `hello` and those pings goes out before `welcome`: a frame sent then is
+ * about a screen the snapshot is about to replace.
  *
  * The session token authenticates in the first frame and never in the URL, so nothing
  * here appends it to `/ws/{code}`.
@@ -22,6 +28,8 @@ import type { ClientMessage, ServerMessage } from './protocol'
 
 const PING_INTERVAL_MS = 30_000
 const PONG_TIMEOUT_MS = 10_000
+export const PROBE_TIMEOUT_MS = 4_000
+export const ANSWER_TIMEOUT_MS = 5_000
 const BACKOFF_BASE_MS = 500
 const BACKOFF_CEILING_MS = 8_000
 const BACKOFF_JITTER_MS = 250
@@ -86,13 +94,15 @@ export class RoomSocket {
   #reconnect: ReturnType<typeof setTimeout> | null = null
   #ping: ReturnType<typeof setInterval> | null = null
   #pong: ReturnType<typeof setTimeout> | null = null
+  #probe: ReturnType<typeof setTimeout> | null = null
+  #answer: ReturnType<typeof setTimeout> | null = null
 
   readonly #onVisible = (): void => {
-    if (this.#stopped || document.visibilityState !== 'visible') return
-    // CONNECTING counts as "not lost": a second socket would not arrive any sooner.
-    if (this.#socket !== null && this.#socket.readyState <= WebSocket.OPEN) return
-    this.#clearReconnect()
-    this.#connect()
+    if (document.visibilityState === 'visible') this.#check()
+  }
+
+  readonly #onOnline = (): void => {
+    this.#check()
   }
 
   constructor(code: string, session: string, handlers: RoomSocketHandlers) {
@@ -104,6 +114,7 @@ export class RoomSocket {
   open(): void {
     if (this.#stopped) return
     document.addEventListener('visibilitychange', this.#onVisible)
+    window.addEventListener('online', this.#onOnline)
     this.#connect()
   }
 
@@ -111,18 +122,23 @@ export class RoomSocket {
   close(): void {
     if (this.#stopped) return
     this.#stopped = true
-    document.removeEventListener('visibilitychange', this.#onVisible)
+    this.#unlisten()
     this.#clearReconnect()
     this.#stopHeartbeat()
     this.#drop(1000, 'client closed')
     this.#setState('closed')
   }
 
-  /** `true` if the frame went out. A queued send would arrive after a `welcome` replaced
-   * the state it was about, so a lost frame is dropped rather than buffered. */
+  /** `true` if the frame went out. Only once welcomed: a queued send would arrive after a
+   * `welcome` replaced the state it was about, so it is refused rather than buffered. */
   send(message: ClientMessage): boolean {
-    if (this.#socket === null || this.#socket.readyState !== WebSocket.OPEN) return false
-    this.#socket.send(JSON.stringify(message))
+    if (this.#state !== 'open' || !this.#write(message)) return false
+    if (message.t === 'answer' && this.#answer === null) {
+      this.#answer = setTimeout(() => {
+        this.#answer = null
+        this.#lost('answer timeout')
+      }, ANSWER_TIMEOUT_MS)
+    }
     return true
   }
 
@@ -134,6 +150,7 @@ export class RoomSocket {
 
   #connect(): void {
     if (this.#stopped) return
+    this.#stopHeartbeat()
     this.#drop(1000, 'reconnecting')
     this.#setState(this.#attempt === 0 ? 'connecting' : 'reconnecting')
 
@@ -148,7 +165,7 @@ export class RoomSocket {
 
     socket.onopen = () => {
       if (socket !== this.#socket) return
-      this.send({ t: 'hello', session: this.#session })
+      this.#write({ t: 'hello', session: this.#session })
     }
     socket.onmessage = (event: MessageEvent<string>) => {
       if (socket === this.#socket) this.#receive(event.data)
@@ -160,7 +177,7 @@ export class RoomSocket {
       const terminal = TERMINAL.get(event.code)
       if (terminal !== undefined) {
         this.#stopped = true
-        document.removeEventListener('visibilitychange', this.#onVisible)
+        this.#unlisten()
         this.#setState('closed')
         this.#handlers.onClosed(terminal, event.reason)
         return
@@ -173,20 +190,59 @@ export class RoomSocket {
   }
 
   #receive(raw: string): void {
+    this.#clearPongTimer()
+    this.#clearProbe()
     let message: ServerMessage
     try {
       message = JSON.parse(raw) as ServerMessage
     } catch {
       return // Not our frame. The server only sends JSON; ignoring beats crashing.
     }
-    if (message.t === 'pong') {
-      this.#clearPongTimer()
+    if (message.t === 'answer_ack' || message.t === 'error') {
+      this.#clearAnswerTimer()
     } else if (message.t === 'welcome') {
       this.#attempt = 0 // Section 3 step 1: a welcome is what proves the link works.
       this.#setState('open')
       this.#startHeartbeat()
     }
     this.#handlers.onMessage(message)
+  }
+
+  /** Is the socket still there? Reconnect now if it is gone, and ask it if it says so. */
+  #check(): void {
+    if (this.#stopped) return
+    const socket = this.#socket
+    if (socket === null || socket.readyState > WebSocket.OPEN) {
+      this.#clearReconnect()
+      this.#connect()
+      return
+    }
+    // CONNECTING counts as "not lost": a second socket would not arrive any sooner.
+    if (socket.readyState !== WebSocket.OPEN || this.#probe !== null) return
+    if (!this.#write({ t: 'ping' })) return
+    this.#probe = setTimeout(() => {
+      this.#probe = null
+      this.#lost('probe timeout')
+    }, PROBE_TIMEOUT_MS)
+  }
+
+  /** A socket that went quiet. It may still claim to be OPEN; close it and back off. */
+  #lost(reason: string): void {
+    this.#stopHeartbeat()
+    this.#drop(1000, reason)
+    this.#scheduleReconnect()
+  }
+
+  /** Straight onto the socket, welcomed or not. `false` if there is no open socket. */
+  #write(message: ClientMessage): boolean {
+    if (this.#socket === null || this.#socket.readyState !== WebSocket.OPEN) return false
+    this.#socket.send(JSON.stringify(message))
+    return true
+  }
+
+  #unlisten(): void {
+    document.removeEventListener('visibilitychange', this.#onVisible)
+    window.removeEventListener('online', this.#onOnline)
   }
 
   #scheduleReconnect(): void {
@@ -203,24 +259,38 @@ export class RoomSocket {
   #startHeartbeat(): void {
     this.#stopHeartbeat()
     this.#ping = setInterval(() => {
-      if (!this.send({ t: 'ping' })) return
+      if (!this.#write({ t: 'ping' })) return
       if (this.#pong !== null) return // A pong is already overdue; one timer is enough.
       this.#pong = setTimeout(() => {
         this.#pong = null
-        // Silent for 10 s. The socket may still claim to be OPEN; close it so that
-        // `onclose` runs the backoff.
-        this.#drop(1000, 'pong timeout')
-        this.#scheduleReconnect()
+        this.#lost('pong timeout')
       }, PONG_TIMEOUT_MS)
     }, PING_INTERVAL_MS)
   }
 
+  /** Every timer that watches the current socket; the next one starts clean. */
   #stopHeartbeat(): void {
     if (this.#ping !== null) {
       clearInterval(this.#ping)
       this.#ping = null
     }
     this.#clearPongTimer()
+    this.#clearProbe()
+    this.#clearAnswerTimer()
+  }
+
+  #clearProbe(): void {
+    if (this.#probe !== null) {
+      clearTimeout(this.#probe)
+      this.#probe = null
+    }
+  }
+
+  #clearAnswerTimer(): void {
+    if (this.#answer !== null) {
+      clearTimeout(this.#answer)
+      this.#answer = null
+    }
   }
 
   #clearPongTimer(): void {

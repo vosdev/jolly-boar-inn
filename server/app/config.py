@@ -11,6 +11,8 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+# The app's one version (ideas/architecture.md, Versioning), sent in every ``welcome``.
+APP_VERSION = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 
 class Settings(BaseSettings):

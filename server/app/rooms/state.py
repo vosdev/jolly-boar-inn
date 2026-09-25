@@ -3,10 +3,11 @@
 Rooms live in memory, one ``Room`` per code, loaded from Postgres on first use
 (rehydrate) and shared by the HTTP handlers and every websocket in the room. Each room
 has one ``asyncio.Lock``; every public method acquires it around its reads and writes of
-the room and the matching database transaction. Sockets are never awaited under the
-lock: a mutation snapshots the message and the sockets it goes to, releases the lock,
-and only then sends (``Broadcast`` / ``_send``), so one stalled client cannot hold up the
-room. A send that fails or times out detaches that socket like a disconnect.
+the room and the matching database transaction. Nothing here awaits a socket: each one has
+an ``Outbox`` (``ws/outbox.py``), a mutation snapshots the message and the sockets it goes
+to under the lock (``Broadcast``) and queues it on each, and the outbox's own task does the
+sending. One stalled client cannot hold up the room, and a socket whose queue overflows or
+whose send times out is closed and detached like a disconnect.
 
 The game loop (T9) is one ``asyncio.Task`` per room, ``Room.timer``, running
 ``_run_questions``: open a question, sleep until it closes, close and grade it, sleep
@@ -68,9 +69,9 @@ from typing import Any
 from uuid import UUID
 
 import asyncpg
-from starlette.websockets import WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocket
 
-from app.config import Settings
+from app.config import APP_VERSION, Settings
 from app.errors import ApiError
 from app.questions import custom
 from app.questions.packs import Pack
@@ -80,11 +81,13 @@ from app.questions.types import TYPES, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from app.rooms import codes, ready, scoring, segments, selection
 from app.rooms.settings import RoomSettings
+from app.ws.outbox import Outbox
 from app.ws.protocol import (
     AnswerCount,
     GameFinished,
     OpenQuestion,
     PlayerResult,
+    PlayersUpdated,
     PlayerView,
     QuestionClosed,
     QuestionOpen,
@@ -111,14 +114,11 @@ _LATIN_LETTERS = (
 )
 _NAME_MARKS = frozenset("0123456789 _-")
 _SPACES = re.compile(" {2,}")
-# Seconds a single socket send may take before that socket counts as dead.
-SEND_TIMEOUT = 10.0
 # Seconds between one player's lobby ready changes, and between their profile changes.
 CHANGE_COOLDOWN = 1.0
 # Close codes the manager itself uses (the handler owns the handshake codes).
 CLOSE_REPLACED = 4000  # a newer socket for the same player took over
 CLOSE_RESTART = 1012  # the room left memory; reconnect and you get a fresh welcome
-CLOSE_SEND_FAILED = 1011
 CLOSE_KICKED = 4003
 # The room is gone for good -- expired and cleaned up, or removed by its host. The same
 # code the handler closes an unknown room with, because that is what a reconnect finds.
@@ -274,7 +274,7 @@ class Player:
     # countdown over and over. The lobby has ``CHANGE_COOLDOWN`` instead.
     unreadied: bool = False
     # When this player last changed their lobby ready or their profile, on the manager's
-    # monotonic clock. Each change is a full ``room_updated`` to every socket in the room.
+    # monotonic clock. Each change is a broadcast to every socket in the room.
     ready_changed_at: float = field(default=-math.inf, repr=False)
     profile_changed_at: float = field(default=-math.inf, repr=False)
 
@@ -435,7 +435,7 @@ class Room:
     expires_at: datetime
     lock: asyncio.Lock = field(repr=False)
     players: dict[UUID, Player] = field(default_factory=dict)  # in join order
-    sockets: dict[UUID, WebSocket] = field(default_factory=dict, repr=False)
+    sockets: dict[UUID, Outbox] = field(default_factory=dict, repr=False)
     questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.
     totals: dict[UUID, Totals] = field(default_factory=dict, repr=False)
@@ -564,17 +564,15 @@ class Broadcast:
     ones. Nothing else in the frame differs, and nothing in it depends on being admin.
     """
 
-    room: Room
-    targets: list[tuple[UUID, WebSocket, dict[str, Any]]]
+    targets: list[tuple[Outbox, dict[str, Any]]]
 
     @classmethod
     def to_all(cls, room: Room, message: dict[str, Any], exclude: UUID | None = None) -> Broadcast:
-        targets = [(pid, ws, message) for pid, ws in room.sockets.items() if pid != exclude]
-        return cls(room, targets)
+        return cls([(out, message) for pid, out in room.sockets.items() if pid != exclude])
 
     @classmethod
     def per_player(cls, room: Room, build: Callable[[UUID], dict[str, Any]]) -> Broadcast:
-        return cls(room, [(pid, ws, build(pid)) for pid, ws in room.sockets.items()])
+        return cls([(out, build(pid)) for pid, out in room.sockets.items()])
 
 
 def _player_from_row(row: asyncpg.Record) -> Player:
@@ -632,15 +630,6 @@ def _question_rows(
         )
         for position, (round_, q) in enumerate(questions)
     ]
-
-
-async def _close(ws: WebSocket, code: int, reason: str) -> None:
-    """Best-effort close of a socket we are done with. Never raises, never hangs."""
-    try:
-        async with asyncio.timeout(SEND_TIMEOUT):
-            await ws.close(code=code, reason=reason)
-    except Exception as exc:  # already closed, client gone, or stalled: all the same to us
-        log.debug("closing socket with %d failed: %r", code, exc)
 
 
 @dataclass(slots=True)
@@ -803,11 +792,10 @@ class RoomManager:
         )
         self._start_timer(room, resume_from, resume_at=room.next_mono)
 
-    def _forget(self, room: Room) -> list[WebSocket]:
+    def _forget(self, room: Room) -> list[Outbox]:
         """Take a room out of memory and detach its sockets, returning them to close.
 
-        Call with the room lock held. Closing a socket is a send, and sends never happen
-        under the lock, so that is the caller's job once it has released it.
+        Call with the room lock held.
         """
         if self.rooms.get(room.code) is room:
             del self.rooms[room.code]
@@ -833,8 +821,8 @@ class RoomManager:
             if room is None:
                 return False
             sockets = self._forget(room)
-        for ws in sockets:
-            await _close(ws, CLOSE_RESTART, "room restarted, reconnect")
+        for outbox in sockets:
+            outbox.close(CLOSE_RESTART, "room restarted, reconnect")
         return True
 
     async def _restart(self, room: Room) -> None:
@@ -848,8 +836,8 @@ class RoomManager:
             if self.rooms.get(room.code) is not room:
                 return
             sockets = self._forget(room)
-        for ws in sockets:
-            await _close(ws, CLOSE_RESTART, "room restarted, reconnect")
+        for outbox in sockets:
+            outbox.close(CLOSE_RESTART, "room restarted, reconnect")
 
     # --- Removal --------------------------------------------------------------------
 
@@ -890,8 +878,8 @@ class RoomManager:
                     continue
                 sockets = self._forget(room)
                 log.info("room %s expired and left memory", code)
-            for ws in sockets:
-                await _close(ws, CLOSE_GONE, "this room has expired")
+            for outbox in sockets:
+                outbox.close(CLOSE_GONE, "this room has expired")
 
     async def delete(self, code: str, session: str) -> None:
         """An admin removes their room: the row goes now, cascade and all.
@@ -920,57 +908,57 @@ class RoomManager:
                 await conn.execute("delete from rooms where id = $1", room.id)
             sockets = self._forget(room)
             log.info("room %s deleted by %s", code, player.display_name)
-        for ws in sockets:
-            await _close(ws, CLOSE_GONE, "the host removed this room")
+        for outbox in sockets:
+            outbox.close(CLOSE_GONE, "the host removed this room")
 
     # --- Broadcasting ---------------------------------------------------------------
 
     def _room_updated(self, room: Room, exclude: UUID | None = None) -> Broadcast:
         """Snapshot ``room_updated`` and its recipients. Call with the room lock held.
 
-        Join, leave, connect, disconnect, promote, kick, status change, ``ready`` -- and
-        the start of a splash, which has no frame of its own because the ``RoomView`` in
-        here says everything a client needs: the phase, the round, and when it ends. The
-        ready check's countdown is that ``next_at``, so it travels in the same frame.
+        Join, leave, promote, kick, status change, ``set_profile`` -- and the start of a
+        splash, which has no frame of its own because the ``RoomView`` in here says
+        everything a client needs: the phase, the round, and when it ends. The ready
+        check's countdown is that ``next_at``, so it travels in the same frame.
         """
         message = RoomUpdated(room=room.view(), players=room.player_views())
         return Broadcast.to_all(room, message.model_dump(mode="json"), exclude)
 
-    async def _broadcast(self, broadcast: Broadcast) -> None:
-        """Send to every snapshotted socket, concurrently, outside the lock.
+    def _players_updated(
+        self, room: Room, before: RoomView, exclude: UUID | None = None
+    ) -> Broadcast:
+        """``players_updated``, or ``room_updated`` if the room itself moved since ``before``.
 
-        A socket whose send fails or times out is detached exactly as if it had
-        disconnected, which broadcasts its own ``room_updated`` to the survivors.
+        For a ready tap, a connect and a disconnect, which change a player and usually
+        nothing else: the full ``RoomView`` with its settings is most of ``room_updated``,
+        and those three are the frames a room of fifty sends most. On a splash any of them
+        can start or shorten the countdown, and that ``next_at`` needs the full frame.
         """
-        if not broadcast.targets:
-            return
-        results = await asyncio.gather(
-            *(self._send(ws, message) for _, ws, message in broadcast.targets)
-        )
-        for (pid, ws, _), ok in zip(broadcast.targets, results, strict=True):
-            if not ok:
-                await _close(ws, CLOSE_SEND_FAILED, "send failed")
-                await self.disconnect(broadcast.room.code, pid, ws)
+        if room.view() != before:
+            return self._room_updated(room, exclude)
+        message = PlayersUpdated(players=room.player_views())
+        return Broadcast.to_all(room, message.model_dump(mode="json"), exclude)
 
-    async def _send(self, ws: WebSocket, message: dict[str, Any]) -> bool:
-        try:
-            async with asyncio.timeout(SEND_TIMEOUT):
-                await ws.send_json(message)
-        except Exception as exc:  # closed from either side, transport error, timeout
-            log.info("dropping socket after failed send: %r", exc)
-            return False
-        return True
+    def _broadcast(self, broadcast: Broadcast) -> None:
+        """Queue every snapshotted frame on its socket. Waits for nothing.
+
+        Called straight after the lock that built ``broadcast`` is released, with no await
+        in between, so frames are queued in the order the room changed.
+        """
+        for outbox, message in broadcast.targets:
+            outbox.put(message)
 
     # --- Sockets --------------------------------------------------------------------
 
-    async def connect(self, code: str, session: str, ws: WebSocket) -> Player:
-        """Attach a socket for the player who owns ``session`` and send ``welcome``.
+    async def connect(self, code: str, session: str, ws: WebSocket) -> tuple[Player, Outbox]:
+        """Attach a socket for the player who owns ``session`` and queue its ``welcome``.
 
-        Last device wins: a socket already attached for that player is closed with 4000.
-        Everyone else gets ``room_updated`` with the player connected.
+        Returns the player and the socket's outbox, which is where the handler's own
+        replies go. Last device wins: a socket already attached for that player is closed
+        with 4000. Everyone else hears the player connect.
 
-        A ``welcome`` that cannot be delivered detaches the new socket again and raises
-        ``WebSocketDisconnect``; the handler treats that as the client having left.
+        A ``welcome`` that cannot be delivered fails like any other send: the outbox
+        closes the socket with 1011 and detaches it again.
         """
         code = code.upper()
         async with self._locked(code):
@@ -988,8 +976,10 @@ class RoomManager:
                     self.rooms.pop(code, None)
                     raise
                 room.awaiting_player = False
+            before = room.view()
             previous = room.sockets.get(player.id)
-            room.sockets[player.id] = ws
+            outbox = Outbox(ws, lambda: self.disconnect(code, player.id, ws))
+            room.sockets[player.id] = outbox
             player.connected = True
             # A ready player coming back can be the last one a splash was waiting on.
             _recount_splash(room, self.clock())
@@ -1011,36 +1001,34 @@ class RoomManager:
                 your_answer=answered.value if answered is not None else None,
                 standings=room.standings(),
                 server_time=datetime.now(UTC),
+                server_version=APP_VERSION,
             ).model_dump(mode="json")
-            update = self._room_updated(room, exclude=player.id)
-        # Sent first, straight after the lock is released, so no later broadcast can
-        # reach this socket before its snapshot does.
-        delivered = await self._send(ws, welcome)
-        # The replaced socket goes either way: it left ``room.sockets`` under the lock
-        # and can never be reattached, so leaving it open would strand that device.
-        if previous is not None:
-            await _close(previous, CLOSE_REPLACED, "connected from another device")
-        if not delivered:
-            reason = "welcome could not be delivered"
-            await _close(ws, CLOSE_SEND_FAILED, reason)
-            await self.disconnect(code, player.id, ws)
-            raise WebSocketDisconnect(CLOSE_SEND_FAILED, reason)
-        await self._broadcast(update)
-        return player
+            # Queued under the lock, so no later broadcast can reach this socket first.
+            outbox.put(welcome)
+            if previous is not None:
+                # Behind whatever it still had queued, so nothing it was owed is cut off.
+                previous.close(CLOSE_REPLACED, "connected from another device")
+            update = self._players_updated(room, before, exclude=player.id)
+        self._broadcast(update)
+        return player, outbox
 
     async def disconnect(self, code: str, player_id: UUID, ws: WebSocket) -> None:
         """Detach ``ws`` if it is still the player's socket, and tell the others.
 
         A no-op for a socket that was already replaced or whose room left memory, so the
-        handler can call it unconditionally on the way out. Never rehydrates.
+        handler can call it unconditionally on the way out. Never rehydrates. The socket's
+        outbox gets a close behind whatever it still holds, unless it has one already.
         """
         room = self.rooms.get(code.upper())
         if room is None:
             return
         async with room.lock:
-            if room.sockets.get(player_id) is not ws:
+            outbox = room.sockets.get(player_id)
+            if outbox is None or outbox.ws is not ws:
                 return
+            before = room.view()
             del room.sockets[player_id]
+            outbox.close(1000, "disconnected")
             player = room.players.get(player_id)
             if player is not None:
                 player.connected = False
@@ -1048,8 +1036,8 @@ class RoomManager:
             # be the last player the open question was waiting on.
             _recount_splash(room, self.clock())
             _close_if_everyone_answered(room)
-            update = self._room_updated(room)
-        await self._broadcast(update)
+            update = self._players_updated(room, before)
+        self._broadcast(update)
 
     # --- HTTP-driven mutations -----------------------------------------------------
 
@@ -1195,7 +1183,7 @@ class RoomManager:
             player = _player_from_row(row)
             room.players[player.id] = player
             update = self._room_updated(room)
-        await self._broadcast(update)
+        self._broadcast(update)
         return player, session
 
     async def set_profile(
@@ -1244,7 +1232,7 @@ class RoomManager:
             target.avatar = new_avatar
             target.profile_changed_at = now
             update = self._room_updated(room)
-        await self._broadcast(update)
+        self._broadcast(update)
 
     def check_avatar(self, avatar: int | None) -> None:
         """Refuse a head that is not in the manifest, before anything is written."""
@@ -1257,7 +1245,7 @@ class RoomManager:
         In the lobby it is what the host's Start waits on. On a splash it is what ends the
         splash (``rooms/ready.py``): the threshold starts a countdown, everyone ready
         shortens it, and taking a tap back below the threshold stops it again. The
-        countdown rides as ``next_at`` on the same ``room_updated`` that says who is ready.
+        countdown rides as ``next_at`` on the same frame that says who is ready.
         A splash allows each player one un-ready; a second is ``bad_state``, so nobody can
         spam the countdown on and off. In the lobby, a change within ``CHANGE_COOLDOWN``
         of the last one is ``bad_state``.
@@ -1276,6 +1264,7 @@ class RoomManager:
                 raise BadState("there is nothing to be ready for")
             if target.ready == is_ready:
                 return
+            before = room.view()
             if in_splash and not is_ready:
                 if target.unreadied:
                     raise BadState("you can only take your ready back once a round")
@@ -1286,16 +1275,16 @@ class RoomManager:
                 target.ready_changed_at = now
             target.ready = is_ready
             _recount_splash(room, self.clock(), unready=not is_ready)
-            update = self._room_updated(room)
-        await self._broadcast(update)
+            update = self._players_updated(room, before)
+        self._broadcast(update)
 
     # --- Game loop ------------------------------------------------------------------
 
     async def start_game(self, code: str, by: Player) -> None:
         """``lobby → playing``, then open question 0 (section 4).
 
-        The timer task is created only after ``room_updated`` is on the wire, so nobody
-        can see ``question_open`` before they know the game has started.
+        The timer task is created only after ``room_updated`` is queued, so nobody can see
+        ``question_open`` before they know the game has started.
         """
         code = code.upper()
         pool = await self._pool()
@@ -1319,7 +1308,7 @@ class RoomManager:
             for player in room.players.values():
                 player.ready = False
             update = self._room_updated(room)
-        await self._broadcast(update)
+        self._broadcast(update)
         self._start_timer(room, 0)
 
     async def submit_answer(
@@ -1395,7 +1384,7 @@ class RoomManager:
             count = _answer_count(room, question)
             counted = AnswerCount(question_id=question_id, answered=count[0], of=count[1])
             others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
-        await self._broadcast(others)
+        self._broadcast(others)
         return how, band, count
 
     async def skip(self, code: str, by: Player, phase: str, index: int) -> None:
@@ -1434,7 +1423,7 @@ class RoomManager:
                 await conn.execute("update players set role = 'admin' where id = $1", player_id)
             target.role = "admin"
             update = self._room_updated(room)
-        await self._broadcast(update)
+        self._broadcast(update)
 
     async def kick(self, code: str, by: Player, player_id: UUID) -> None:
         """Admin: delete a player and their answers, and close their socket with 4003.
@@ -1463,8 +1452,8 @@ class RoomManager:
             _close_if_everyone_answered(room)
             update = self._room_updated(room)
         if socket is not None:
-            await _close(socket, CLOSE_KICKED, "removed from the room")
-        await self._broadcast(update)
+            socket.close(CLOSE_KICKED, "removed from the room")
+        self._broadcast(update)
 
     async def end_game(self, code: str, by: Player) -> None:
         """Admin: void whatever is open and finish the game (section 4).
@@ -1494,7 +1483,7 @@ class RoomManager:
                 voiding.closed_at, voiding.voided = closed_at, True
             broadcasts = self._finish(room)
         for broadcast in broadcasts:
-            await self._broadcast(broadcast)
+            self._broadcast(broadcast)
 
     # --- The timer task --------------------------------------------------------------
 
@@ -1609,7 +1598,7 @@ class RoomManager:
                 player.ready = False
                 player.unreadied = False
             update = self._room_updated(room)
-        await self._broadcast(update)
+        self._broadcast(update)
         await self._sleep_through_splash(room)
         return True
 
@@ -1668,7 +1657,7 @@ class RoomManager:
             # A skip that landed during the reveal has been spent on the reveal.
             room.advance.clear()
             update = self._room_updated(room)
-        await self._broadcast(update)
+        self._broadcast(update)
         await self._sleep_until(room, ends)
         return True
 
@@ -1714,7 +1703,7 @@ class RoomManager:
                     question=question.view(room.total, pid, segment, count)
                 ).model_dump(mode="json"),
             )
-        await self._broadcast(opened)
+        self._broadcast(opened)
         return question
 
     async def _close_question(self, room: Room, question: RoomQuestion) -> float | None:
@@ -1792,7 +1781,7 @@ class RoomManager:
                 next_at=room.next_at if more else None,
             )
             closed = Broadcast.to_all(room, message.model_dump(mode="json"))
-        await self._broadcast(closed)
+        self._broadcast(closed)
         return reveal_ends
 
     async def _advance(self, room: Room, index: int) -> int | None:
@@ -1818,7 +1807,7 @@ class RoomManager:
                 await conn.execute("update rooms set status = 'finished' where id = $1", room.id)
             broadcasts = self._finish(room)
         for broadcast in broadcasts:
-            await self._broadcast(broadcast)
+            self._broadcast(broadcast)
         return None
 
     def _finish(self, room: Room) -> list[Broadcast]:
@@ -1842,6 +1831,8 @@ class RoomManager:
         timers = [room.timer for room in self.rooms.values() if room.timer is not None]
         for room in self.rooms.values():
             _stop_timer(room)
+            for outbox in room.sockets.values():
+                outbox.cancel()
         await asyncio.gather(*timers, return_exceptions=True)
 
 

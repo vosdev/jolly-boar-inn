@@ -230,14 +230,25 @@ class Welcome(_Message):
     your_answer: Any | None
     standings: list[Standing]
     server_time: datetime
+    # ``/VERSION`` of the running server. A client built from another version reloads
+    # itself, so a deploy never leaves an old bundle reading frames it does not know.
+    server_version: str
 
 
 class RoomUpdated(_Message):
-    """Join, leave, connect, disconnect, promote, kick, status change, ``set_profile``,
-    ``ready``, and the start of a splash or of the standings."""
+    """Join, leave, promote, kick, status change, ``set_profile``, and the start of a
+    splash or of the standings. Also a ready tap, connect or disconnect that moves the
+    room itself, which on a splash is its countdown."""
 
     t: Literal["room_updated"] = "room_updated"
     room: RoomView
+    players: list[PlayerView]
+
+
+class PlayersUpdated(_Message):
+    """A ready tap, connect or disconnect that changed the players and nothing else."""
+
+    t: Literal["players_updated"] = "players_updated"
     players: list[PlayerView]
 
 
@@ -322,6 +333,7 @@ class Error(_Message):
 ServerMessage = (
     Welcome
     | RoomUpdated
+    | PlayersUpdated
     | QuestionOpen
     | AnswerAck
     | AnswerCount

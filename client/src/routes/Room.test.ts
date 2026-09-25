@@ -84,6 +84,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
     your_answer: null,
     standings: STANDINGS,
     server_time: new Date().toISOString(),
+    server_version: __APP_VERSION__,
   }
 }
 

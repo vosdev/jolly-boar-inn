@@ -88,6 +88,7 @@ jolly-boar-inn/
 │   │   │       └── pick_from_list.py     # T20
 │   │   ├── ws/
 │   │   │   ├── protocol.py    # pydantic models for every message, both directions
+│   │   │   ├── outbox.py      # per-socket bounded send queue and its one writer task
 │   │   │   └── handler.py     # /ws/{code} endpoint; parses, authenticates, dispatches to RoomManager
 │   │   ├── http/
 │   │   │   ├── rooms.py       # POST /api/rooms, GET+DELETE /api/rooms/{code}
@@ -186,7 +187,7 @@ class Room:
     current: int | None                         # index into questions
     phase: "idle" | "splash" | "open" | "reveal"
     open_since: datetime | None, ends_at: datetime | None
-    sockets: dict[uuid, WebSocket]              # connected players
+    sockets: dict[uuid, Outbox]                 # connected players' send queues
     timer: asyncio.Task | None                  # the one task driving open→closed→reveal→next
     lock: asyncio.Lock                          # every mutation holds it
 ```
@@ -195,7 +196,7 @@ Rules:
 
 - One `asyncio.Lock` per room; every public `RoomManager` method acquires it. No cross-room locking.
 - Every DB write happens inside the method that mutates memory, before memory changes and before broadcasting, so a failed write leaves memory as it was. Answers are committed before `answer_ack` is sent.
-- Broadcasting is `for ws in room.sockets.values(): await ws.send_json(msg)` with per-socket try/except; a failed send removes the socket.
+- Broadcasting snapshots the frame and its sockets under the lock, then puts it on each socket's `Outbox` (256 frames) and awaits nothing. Each outbox has one writer task, and the handler's own replies and every close go through it too, so a socket's frames keep their order. An overflow or a send over 10 s closes that socket with 1011 and disconnects it.
 - Replaceability: `RoomManager` is the only thing that would change for multi-replica. Do not build for it now.
 
 **`questions/types/<type>.py`.** A type is an *answer shape*: what a player sends, how it is
@@ -685,15 +686,16 @@ Authentication happens in the first frame, never in the URL. The session token i
 | `promote` | `player_id` | admin | Sets target role to `admin`. |
 | `kick` | `player_id` | admin | Deletes player row and their answers, closes their socket with `4003`. Not allowed on admins. |
 | `end_game` | | admin | Closes any open question (voided), `playing → finished`. |
-| `ready` | `ready: bool` | all | D7. Tap ready or take it back, in the lobby or during a splash; anywhere else is `bad_state`, and so is a second take-back on the same splash or a lobby change within a second of the last. On a splash it may bring `next_at` forward (section 4). Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
+| `ready` | `ready: bool` | all | D7. Tap ready or take it back, in the lobby or during a splash; anywhere else is `bad_state`, and so is a second take-back on the same splash or a lobby change within a second of the last. On a splash it may bring `next_at` forward (section 4). Broadcasts `players_updated`, or `room_updated` if it moved `next_at`; a change that changes nothing broadcasts nothing. |
 | `set_profile` | `display_name?: string`, `avatar?: int` | all | D4. Renames the sender, re-rolls their head, or both; an omitted field is left alone. Validated exactly like a join (name rules, case-insensitive uniqueness in the room, a head id from `data/heads/heads.json`), so a rejection leaves the row as it was. Any status. A change within a second of the last is `bad_state`. Broadcasts `room_updated`; a change that changes nothing broadcasts nothing. |
 
 ### Server → client
 
 | `t` | Fields | When |
 |---|---|---|
-| `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. |
-| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, connect, disconnect, promote, kick, `set_profile`, `ready`, status change, and the start of a splash. A splash the ready check hurries carries its new `next_at` here. |
+| `welcome` | `room: RoomView`, `you: PlayerView`, `players: PlayerView[]`, `question: OpenQuestion \| null`, `your_answer: value \| null`, `standings: Standing[]`, `server_time: iso`, `server_version: string` | Reply to `hello`. Full snapshot; the client rebuilds all state from this. `server_version` is `/VERSION`. |
+| `room_updated` | `room: RoomView`, `players: PlayerView[]` | Join, leave, promote, kick, `set_profile`, status change, and the start of a splash; a `ready`, connect or disconnect only when it moves the room. A splash the ready check hurries carries its new `next_at` here. |
+| `players_updated` | `players: PlayerView[]` | A `ready`, connect or disconnect that changed the players and nothing else. |
 | `question_open` | `question: OpenQuestion` | A question opens. |
 | `answer_ack` | `question_id`, `scoring: "speed" \| "rank" \| "step"`, `band: int \| null`, `answered: int`, `of: int` | Answer committed. Never correctness. `band` is the speed bucket (1..5) for `speed`, the step it landed on for `step`, and null for `rank`, where nothing is known until everyone has answered. `answered` of `of` is the room's count with this answer in it (D8). |
 | `answer_count` | `question_id`, `answered: int`, `of: int` | Somebody else answered: to every socket but the answerer's, who hears it on their ack. A count only, never who or what. `of` is every connected player who can answer plus anyone who answered and dropped. A disconnect sends no fresh count; the next answer does. |
@@ -792,15 +794,17 @@ Client (`lib/ws.ts`):
 
 1. On `close` or `error`, wait `min(8000, 500 * 2^attempt)` ms plus 0–250 ms jitter, reconnect, send `hello`. Attempt resets to 0 after a `welcome`.
 2. On `welcome`, replace all local state with the snapshot. If `question` is non-null, render it with the timer computed from `ends_at - server_time` (not from the local clock). If `your_answer` is non-null, show the answered state.
-3. On `visibilitychange` to visible, if the socket is not open, reconnect immediately (phones lock between questions).
-4. Send `ping` every 30 s; if no `pong` within 10 s, close the socket to trigger step 1.
+3. On `visibilitychange` to visible or the `online` event, if the socket is not open, reconnect immediately (phones lock between questions). If it claims to be open, send `ping` at once and reconnect if no frame arrives within 4 s.
+4. Send `ping` every 30 s; if no `pong` within 10 s, close the socket to trigger step 1. Any frame counts as a `pong`.
+5. An `answer` with no `answer_ack` or `error` within 5 s closes the socket too; the `welcome` then says whether it landed.
+6. Nothing but `hello` and `ping` is sent before `welcome`. A `welcome` whose `server_version` differs from `__APP_VERSION__` reloads the page, once per server version (sessionStorage).
 
 Server (`RoomManager.connect`):
 
 1. Look up the player by `sha256(session)` in the room; unknown → close `4001`.
-2. If the player already has a socket, close the old one with `4000` and replace it (last device wins).
-3. Set `connected = true`, broadcast `room_updated`, send `welcome`.
-4. On socket close, set `connected = false`, broadcast `room_updated`. Player row and answers stay.
+2. If the player already has a socket, queue a `4000` close on the old one and replace it (last device wins).
+3. Set `connected = true`, queue `welcome` on the new socket under the lock, broadcast `players_updated`.
+4. On socket close, set `connected = false`, broadcast `players_updated`. Player row and answers stay.
 
 Process restart (`RoomManager.get` rehydrate):
 
@@ -855,7 +859,7 @@ The splash introduces a *segment*: it runs before a segment's first question and
 | Transition | Trigger | Side effects |
 |---|---|---|
 | `(new segment) → splash` | timer task, before a segment's first question, unless `splash_seconds` is 0 | `next_at = null` (it waits for the room), every player's `ready` cleared, broadcast `room_updated`; no write |
-| `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`; no write |
+| `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`, or `players_updated` when `next_at` stayed; no write |
 | `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the mode's range), or the type's `SECONDS.default` for an event, broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or, with `close_when_all_answered`, an answer, disconnect or kick leaves every connected player who can answer answered; or admin `skip` | grade all answers, then `UPDATE questions SET closed_at = now` and `UPDATE answers SET correct, points` in one transaction, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
@@ -1330,7 +1334,8 @@ D8.
 **Where it lives.** `/VERSION` at the repo root is the single source: one line, `X.Y.Z`, no
 `v`. `server/pyproject.toml` and `client/package.json` carry copies, and
 `server/tests/test_version.py` fails if either drifts. The client reads `/VERSION` at build
-time (`__APP_VERSION__`, `client/vite.config.ts`). Readers see `0.1` for `0.1.0` and `0.1.1`
+time (`__APP_VERSION__`, `client/vite.config.ts`), the server at startup for `welcome`
+(section 3). Readers see `0.1` for `0.1.0` and `0.1.1`
 for a fix. The version goes in the footer (`ideas/design.md` §9.2) and, until D10 builds
 that footer, in the top bar beside the wordmark. It is never part of `PUBLIC_SITE_NAME`.
 
