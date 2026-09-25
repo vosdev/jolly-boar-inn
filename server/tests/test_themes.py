@@ -116,6 +116,15 @@ def test_a_thicker_edge_never_moves_the_layout() -> None:
         assert "var(--border-give)" in body.group(1), f"{selector} grows with its border"
 
 
+def test_a_focused_button_draws_a_ring_in_every_theme() -> None:
+    """D8: every button is operable by keyboard with a visible focus ring. The reach is
+    ``GemChoices.test.ts``'s; the ring is this rule, in the theme's own accent."""
+    rules = check.strip_comments(read(APP_CSS))
+    body = re.search(r"button:focus-visible\s*\{([^}]*)\}", rules)
+    assert body is not None
+    assert re.search(r"outline:\s*[1-9]\d*px solid var\(--accent\)", body.group(1))
+
+
 def test_page_text_and_panel_text_take_different_inks() -> None:
     """Jolly puts cream panels on a dark floor, and no one ink reads on both.
 

@@ -38,8 +38,8 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.modes import MODES, type_seconds
-from app.questions.types import more_less, multiple_choice, pick_from_list
+from app.modes import MODES, round_modes, type_seconds
+from app.questions.types import TYPES, more_less, multiple_choice, pick_from_list
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
@@ -352,8 +352,7 @@ def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table) -> None:
     assert game.question(0).answers == {}
     game.answer(zezima, 0, payload["answer_id"])
     assert zezima.take("answer_ack")["scoring"] == "speed"
-    other = next(q.payload["answer_id"] for q in game.room.questions[1:])
-    game.answer(woox, 0, other)
+    game.answer(woox, 0, game.wrong(0))
     woox.take("answer_ack")
     game.skip()
     results = game.admin.take("question_closed")["results"]
@@ -892,6 +891,114 @@ def test_a_player_cannot_kick(game) -> None:
     player.send(t="kick", player_id=other.id)
     assert player.take("error")["code"] == "not_admin"
     assert len(game.room.players) == 3
+
+
+@pytest.mark.parametrize("command", ["promote", "kick"])
+def test_promote_or_kick_of_nobody_in_the_room_is_bad_state(game, db, command: str) -> None:
+    game.admin.send(t=command, player_id=str(uuid4()))
+    assert game.admin.take("error")["code"] == "bad_state"
+    assert len(game.room.players) == 3
+    assert [row["role"] for row in db("select role from players order by joined_at")] == [
+        "admin",
+        "player",
+        "player",
+    ]
+
+
+def test_promoting_an_admin_changes_nothing_and_says_nothing(game, db) -> None:
+    game.admin.send(t="promote", player_id=game.admin.id)
+    game.admin.settle()
+    assert "room_updated" not in game.admin.kinds
+    assert "error" not in game.admin.kinds
+    assert game.room.players[UUID(game.admin.id)].role == "admin"
+    assert len(db("select * from players where role = 'admin'")) == 1
+
+
+@pytest.mark.parametrize("command", ["set_profile", "set_ready"])
+def test_a_command_that_waited_out_its_senders_kick_is_bad_state(game, command: str) -> None:
+    """Like an answer that waited out a kick: the player is gone by the time it runs."""
+    manager, room = game.app.state.rooms, game.room
+    admin = room.players[UUID(game.admin.id)]
+    kicked = room.players[UUID(game.players[0].id)]
+    call(game.client, manager.kick, game.code, admin, kicked.id)
+    args = ("Renamed", None) if command == "set_profile" else (True,)
+    with pytest.raises(BadState, match="no longer in this room"):
+        call(game.client, getattr(manager, command), game.code, kicked, *args)
+    assert [p.display_name for p in game.room.players.values()] == ["Admin", "Woox"]
+
+
+def test_a_kick_during_the_reveal_drops_the_player_and_the_game_plays_on(table, db) -> None:
+    game = table("Zezima", "Woox", seconds=10, reveal_seconds=30)
+    zezima, woox = game.players
+    game.start()
+    game.opened(0)
+    game.answer(zezima, 0, game.right(0))
+    zezima.take("answer_ack")
+    game.skip()
+    assert game.admin.take("question_closed")["standings"][0]["player_id"] == zezima.id
+
+    game.admin.send(t="kick", player_id=zezima.id)
+    assert closed_after(zezima) == 4003
+    update = game.admin.take("room_updated")
+    assert update["room"]["phase"] == "reveal"
+    assert [p["display_name"] for p in update["players"]] == ["Admin", woox.name]
+    assert [s.player_id for s in game.room.standings()] == [UUID(game.admin.id), UUID(woox.id)]
+    assert_memory_matches_db(game, db)
+    game.skip()
+    opened = game.admin.take("question_open")["question"]
+    assert (opened["index"], opened["of"]) == (1, 2)
+
+
+def test_a_kick_during_the_standings_drops_the_player_and_the_next_round_opens(
+    table, db, second_mode
+) -> None:
+    game = table(
+        "Zezima", "Woox", reveal_seconds=1, standings_seconds=30, **two_rounds(second_mode)
+    )
+    zezima = game.players[0]
+    game.start()
+    game.opened(0)
+    game.answer(zezima, 0, game.right(0))
+    zezima.take("answer_ack")
+    game.skip()
+    game.admin.take("question_closed")
+    updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+
+    game.admin.send(t="kick", player_id=zezima.id)
+    assert closed_after(zezima) == 4003
+    update = game.admin.take("room_updated")
+    assert update["room"]["phase"] == "standings"
+    assert zezima.name not in [p["display_name"] for p in update["players"]]
+    assert_memory_matches_db(game, db)
+    game.skip()
+    opened = game.admin.take("question_open")["question"]
+    assert (opened["index"], opened["of"]) == (1, 2)
+    game.skip()
+    game.admin.take("question_closed")
+    game.skip()
+    finished = game.admin.take("game_finished")
+    assert zezima.id not in [s["player_id"] for s in finished["standings"]]
+
+
+def test_a_player_who_first_connects_mid_question_counts_and_is_scored(table, client) -> None:
+    """Section 4 lets nobody new join a game under way; somebody who joined in the lobby
+    and only now connects is not new, and answers the question already up."""
+    game = table("Zezima", seconds=10)
+    late = join(client, game.code, "Lynx").json()  # in the lobby, connecting later
+    game.start()
+    for opened in game.opened(0):
+        assert opened["question"]["of"] == 2
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        lynx = reseat(Seat("Lynx", late["session"], late["player"], ws), ws)
+        welcome = lynx.take("welcome")
+        assert (welcome["question"]["index"], welcome["question"]["of"]) == (0, 3)
+        game.answer(lynx, 0, game.right(0))
+        ack = lynx.take("answer_ack")
+        assert (ack["answered"], ack["of"]) == (1, 3)
+        game.skip()
+        result = lynx.take("question_closed")["results"][lynx.id]
+    assert result["correct"] is True
+    assert result["points"] > 0
 
 
 # --- D4: set_profile mid-game ---------------------------------------------------------
@@ -1522,6 +1629,20 @@ def test_a_disconnect_lowers_the_threshold_rather_than_stalling(table) -> None:
     assert EVERYONE_READY_SECONDS < left <= THRESHOLD_SECONDS
 
 
+def test_a_kick_mid_splash_lowers_the_threshold_like_a_disconnect(table) -> None:
+    game = table("Zezima", "Woox", seconds=10, splash_seconds=8)
+    game.start()
+    game.splash()
+    assert tap(game, game.admin)["t"] == "players_updated"
+    woox = game.players[1]
+    game.admin.send(t="kick", player_id=woox.id)
+    assert closed_after(woox) == 4003
+    update = game.admin.take("room_updated")
+    assert update["room"]["phase"] == "splash"
+    assert [p["display_name"] for p in update["players"]] == ["Admin", "Zezima"]
+    assert EVERYONE_READY_SECONDS < seconds_left(update) <= THRESHOLD_SECONDS
+
+
 def test_a_connect_never_stops_a_countdown(table, client) -> None:
     """A phone waking up changes the threshold; it must not reset a running countdown."""
     game = table("Zezima", seconds=10, splash_seconds=8)
@@ -1827,6 +1948,71 @@ def test_the_canonical_answer_is_what_is_stored_echoed_and_graded(
     assert closed["results"][player.id]["correct"] is True
 
 
+# --- every round mode, played through the loop -----------------------------------
+
+
+def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
+    """Zezima answers question ``index`` right and Woox wrong; the close, checked."""
+    zezima, woox = game.players
+    game.answer(zezima, index, game.right(index))
+    zezima.take("answer_ack")
+    game.answer(woox, index, game.wrong(index))
+    woox.take("answer_ack")
+    game.skip()
+    closed = game.admin.take("question_closed")
+    question = game.question(index)
+    assert closed["reveal"] == TYPES[question.type].reveal(question.payload)
+    zezimas, wooxs = (closed["results"][seat.id] for seat in (zezima, woox))
+    assert (zezimas["correct"], zezimas["points"] > 0) == (True, True)
+    assert (wooxs["correct"], wooxs["points"]) == (False, 0)
+    return closed
+
+
+@pytest.mark.parametrize("mode", [mode.id for mode in round_modes()])
+def test_a_round_of_every_mode_takes_a_right_and_a_wrong_answer_and_closes(
+    table, db, mode: str
+) -> None:
+    game = table("Zezima", "Woox", modes=[mode], questions=1, seconds=10)
+    game.start()
+    opened = game.opened(0)[0]["question"]
+    question = game.question(0)
+    assert question.mode == opened["mode"] == mode
+    assert question.type == opened["type"]
+    assert question.type in MODES[mode].types
+    play_right_and_wrong(game, 0)
+    finished = game.admin.take("game_finished")
+    assert finished["standings"][0]["display_name"] == "Zezima"
+    assert_memory_matches_db(game, db)
+
+
+def test_a_game_of_two_real_modes_changes_type_between_rounds(table, db) -> None:
+    """Each round's answers are the shape of its own type, in the same game."""
+    game = table(
+        "Zezima",
+        "Woox",
+        modes=[
+            {"mode": "more_less", "questions": 2, "seconds": 10},
+            {"mode": "guess_examine", "questions": 2, "seconds": 10},
+        ],
+    )
+    assert [q.type for q in game.room.questions] == [
+        "more_less",
+        "more_less",
+        "pick_from_list",
+        "pick_from_list",
+    ]
+    game.start()
+    for index in range(4):
+        assert game.admin.take("question_open")["question"]["index"] == index
+        play_right_and_wrong(game, index)
+        game.skip()
+    finished = game.admin.take("game_finished")
+    points = {s["display_name"]: s["points"] for s in finished["standings"]}
+    assert points["Woox"] == 0 < points["Zezima"]
+    assert game.room.score(UUID(game.players[0].id)).correct == 4
+    assert_memory_matches_db(game, db)
+
+
 # --- T21 and T22: random events, the host's own questions and the NPCs' --------------------
 
 TANZANITE = {
@@ -1882,11 +2068,6 @@ def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
             pass
         frames[seat.name] = question
     return frames
-
-
-def any_value(question: RoomQuestion) -> Any:
-    """Something ``parse_value`` takes for an NPC's question, right or not."""
-    return {"multiple_choice": 0, "closest_number": 1, "free_text": "Zezima"}[question.type]
 
 
 def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
@@ -2128,7 +2309,7 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db) -
 
     player = game.players[0]
     assert datetime.now(UTC) < at(opened, "answerable_at"), "reached the event too slowly"
-    game.answer(player, event.position, any_value(event))
+    game.answer(player, event.position, game.right(event.position))
     assert player.take("error")["code"] == "not_open"
     assert not game.question(event.position).answers
     assert db("select count(*) as n from answers")[0]["n"] == 0
@@ -2171,6 +2352,42 @@ def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(table, second_mode
     assert welcome["room"]["phase"] == "open"
 
 
+def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db) -> None:
+    game = table("Zezima", random_event_seconds=5, **event_rooms(second_mode))
+    event = the_event(game)
+    reach(game, event.position)
+    game.admin.send(t="end_game")
+    game.admin.take("game_finished")
+    rows = db("select position, closed_at, voided from questions order by position")
+    assert [row["position"] for row in rows if row["voided"]] == [event.position]
+    assert rows[event.position]["closed_at"] is not None
+    assert (game.room.status, game.room.timer) == ("finished", None)
+
+
+def test_a_restart_inside_the_hold_voids_the_event_and_resumes_after_it(
+    table, second_mode, client, db, evict
+) -> None:
+    game = table("Zezima", random_event_seconds=5, reveal_seconds=30, **event_rooms(second_mode))
+    event = the_event(game)
+    reach(game, event.position)
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_after(seat) == 1012
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        welcome = admin.take("welcome")
+        assert welcome["question"] is None
+        assert (welcome["room"]["phase"], welcome["room"]["current_index"]) == (
+            "reveal",
+            event.position,
+        )
+        game.skip(admin)
+        assert admin.take("question_open")["question"]["index"] == event.position + 1
+    rows = db("select position, voided from questions order by position")
+    assert [row["position"] for row in rows if row["voided"]] == [event.position]
+
+
 def test_random_event_seconds_zero_plays_an_event_as_a_plain_question(table, second_mode) -> None:
     """What the rest of the suite runs on: the NPC is there, and the buttons with it."""
     game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
@@ -2185,6 +2402,97 @@ def test_random_event_seconds_zero_plays_an_event_as_a_plain_question(table, sec
 
 
 # --- D9: the standings, between rounds and only there --------------------------------
+
+
+def two_rounds(second_mode: str) -> dict[str, Any]:
+    """Two rounds of one ten-second question each, so the first ends in the standings."""
+    return {
+        "modes": [
+            {"mode": "more_less", "questions": 1, "seconds": 10},
+            {"mode": second_mode, "questions": 1, "seconds": 10},
+        ]
+    }
+
+
+def to_standings(game: Game) -> None:
+    """Start, Zezima answers the first round's one question right, and on to its standings."""
+    zezima = game.players[0]
+    game.start()
+    game.opened(0)
+    game.answer(zezima, 0, game.right(0))
+    zezima.take("answer_ack")
+    game.skip()
+    game.admin.take("question_closed")
+    updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+
+
+def test_end_game_during_the_standings_finishes_on_them_and_voids_nothing(
+    table, db, second_mode
+) -> None:
+    game = table("Zezima", reveal_seconds=1, standings_seconds=30, **two_rounds(second_mode))
+    to_standings(game)
+    game.admin.send(t="end_game")
+    finished = game.admin.take("game_finished")
+    assert [(s["display_name"], s["points"]) for s in finished["standings"]] == [
+        ("Zezima", 1000),
+        ("Admin", 0),
+    ]
+    rows = db("select shown_at, voided from questions order by position")
+    assert [(row["shown_at"] is not None, row["voided"]) for row in rows] == [
+        (True, False),
+        (False, False),
+    ]
+    assert (game.room.status, game.room.timer) == ("finished", None)
+
+
+def test_a_restart_during_the_standings_resumes_in_the_reveal_and_moves_on(
+    table, client, second_mode, evict
+) -> None:
+    """Section 4: a restart here costs the round its standings and nothing else."""
+    game = table("Zezima", reveal_seconds=30, standings_seconds=30, **two_rounds(second_mode))
+    to_standings(game)
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_after(seat) == 1012
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        welcome = admin.take("welcome")
+        assert (welcome["room"]["phase"], welcome["room"]["current_index"]) == ("reveal", 0)
+        assert [s["points"] for s in welcome["standings"]] == [1000, 0]
+        game.skip(admin)
+        assert admin.take("question_open")["question"]["index"] == 1
+        assert standings_updates(admin) == []
+    assert not any(question.voided for question in game.room.questions)
+
+
+def test_a_restart_during_the_last_questions_reveal_finishes_the_game(
+    table, client, db, evict
+) -> None:
+    game = table("Zezima", seconds=10, reveal_seconds=30, questions=1)
+    zezima = game.players[0]
+    game.start()
+    game.opened(0)
+    game.answer(zezima, 0, game.right(0))
+    zezima.take("answer_ack")
+    game.skip()
+    assert game.admin.take("question_closed")["next_at"] is None
+    assert evict(game.code) is True
+    for seat in game.seats:
+        assert closed_after(seat) == 1012
+
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        admin = reseat(game.admin, ws)
+        welcome = admin.take("welcome")
+        assert (welcome["room"]["phase"], welcome["room"]["current_index"]) == ("reveal", 0)
+        game.skip(admin)
+        finished = admin.take("game_finished")
+    assert [(s["display_name"], s["points"]) for s in finished["standings"]] == [
+        ("Zezima", 1000),
+        ("Admin", 0),
+    ]
+    assert db("select status from rooms")[0]["status"] == "finished"
+    assert db("select voided from questions")[0]["voided"] is False
 
 
 def standings_updates(seat: Seat) -> list[dict[str, Any]]:

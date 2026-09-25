@@ -1024,7 +1024,7 @@ browser with no `jbi:theme` and an OS in dark mode gets `jolly`; setting `data-t
 `<html>` from DevTools repaints everything with no reload; nothing in `client/src` sets a
 colour through an inline style or a `style:` directive (grep is in the test); the contrast
 script fails a deliberately broken `--bad`, fails an `--ok` that cannot be seen against
-`--gem-emerald`, and passes both themes; first paint is not a flash of the wrong palette.
+`--gem-emerald`, and passes both themes; first paint is not a flash of the wrong palette (manual).
 
 ### D2. The app shell
 
@@ -1088,7 +1088,7 @@ texture); the picker popover in the top bar with a live swatch per theme. `party
 in this task — it is D12.
 
 **Accept:** all three pass the D1 contrast script; switching theme mid-question does not
-disturb the layout or the timer; the picker offers exactly the themes present in `app.css`
+disturb the layout or the timer (manual); the picker offers exactly the themes present in `app.css`
 and no "follow my device" entry; a player who has never chosen sees `jolly` as the selected
 swatch rather than nothing selected; a theme is a single contiguous block in `app.css` that a
 selfhoster can copy and edit.
@@ -1153,8 +1153,8 @@ and the names of who got it wrong only when the host turned them on; faded answe
 readable at 4.5:1; a timeout shows `No answer · +0` and is distinguishable from a wrong
 answer; the points slot is in the same place in every mode and its running total agrees with
 the next standings screen; six gem buttons at 56px fit a 375px screen without pushing the
-prompt off it; no answer submitted shows no button as pressed; the timer bar
-is accurate against `ends_at` after a 20-second phone lock; every button is reachable and
+prompt off it (manual); no answer submitted shows no button as pressed; the timer bar
+is accurate against `ends_at` after a 20-second phone lock (manual); every button is reachable and
 operable by keyboard with a visible focus ring.
 
 ### D9. Standings: the podium and the `standings` phase
@@ -1178,7 +1178,7 @@ the rounds run straight on; the last round goes straight to the final screen, wh
 same component; a single-round game shows standings only at the end; the podium reads ranks
 4 · 2 · 1 · 3 · 5 from left to right, with Diamond to Bronze on ranks 1–5; tied players share
 a step, and a step with more than three shows `+N`; nobody with 0 points stands on the
-podium; five steps and eight table rows fit a 375px screen with no horizontal scroll; a
+podium; five steps and eight table rows fit a 375px screen with no horizontal scroll (manual); a
 24-character name is whole in the table and in the podium's accessible label; points do not
 shift horizontally as they change; ranks tie correctly per the existing tie-break; a player
 who connects or reconnects during `standings` sees the podium and the right `next_at`; a room

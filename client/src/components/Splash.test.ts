@@ -1,11 +1,13 @@
 /**
- * The splash's ready button and countdown bar: one take-back per splash, and a bar that
- * a `pong` moving the clock offset does not fill up again.
+ * The splash: its mode's scene, or the default one for a mode this build does not know;
+ * a ready check that counts heads and never names anyone; one take-back per splash; and
+ * a countdown bar that a `pong` moving the clock offset does not fill up again.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_SCENE, MODES, SCENES } from '../lib/modes'
 import type { PlayerView, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import Splash from './Splash.svelte'
@@ -23,6 +25,46 @@ const fill = () => (document.querySelector('.fill') as HTMLElement).style.width
 
 afterEach(() => {
   serverOffsetMs.set(0)
+})
+
+function splash(segment: Segment = SEGMENT, youReady = false) {
+  return render(Splash, {
+    segment,
+    endsAt: null,
+    questionSeconds: 10,
+    players: players(youReady),
+    youId: 'a',
+    onReady: () => {},
+  })
+}
+
+const scene = () => document.querySelector('.scene') as HTMLElement
+
+describe('Splash scene', () => {
+  it("hangs the round's own scene behind its name", () => {
+    splash()
+    const own = MODES.more_less!.scene
+    expect(own).not.toBe(DEFAULT_SCENE)
+    expect(scene().dataset.scene).toBe(own)
+    expect(scene().textContent).toContain(SCENES[own])
+    expect(screen.getByRole('heading', { name: 'More or Less' })).toBeTruthy()
+  })
+
+  it('falls back to the default scene, headed by the id, for a mode this build lacks', () => {
+    splash({ ...SEGMENT, mode: 'zoom_quiz' })
+    expect(scene().dataset.scene).toBe(DEFAULT_SCENE)
+    expect(scene().textContent).toContain(SCENES[DEFAULT_SCENE])
+    expect(screen.getByRole('heading', { name: 'zoom_quiz' })).toBeTruthy()
+  })
+})
+
+describe('Splash ready check', () => {
+  it('counts who is ready by heads and names nobody', () => {
+    splash(SEGMENT, true)
+    expect(screen.getByRole('list', { name: '1 of 2 ready' })).toBeTruthy()
+    expect(document.body.textContent).not.toContain('Woox')
+    expect(document.body.textContent).not.toContain('Zezima')
+  })
 })
 
 describe('Splash ready button', () => {

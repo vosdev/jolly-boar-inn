@@ -174,6 +174,25 @@ describe('GemChoices', () => {
   })
 })
 
+describe('from the keyboard', () => {
+  // jsdom has no Tab order and no key-to-click, so this holds the buttons to what gives
+  // them both in a browser: a native, enabled <button> that nothing takes out of the order.
+  // The focus ring is a stylesheet rule jsdom never applies; test_themes.py holds it.
+  it('makes every gem a button Tab reaches and Enter presses', async () => {
+    const onAnswer = vi.fn()
+    draw({ onAnswer })
+    for (const button of buttons()) {
+      expect(button.tagName).toBe('BUTTON')
+      expect((button as HTMLButtonElement).disabled).toBe(false)
+      expect(button.tabIndex).toBeGreaterThanOrEqual(0)
+      button.focus()
+      expect(document.activeElement).toBe(button)
+    }
+    await fireEvent.click(buttons()[5]!)
+    expect(onAnswer).toHaveBeenCalledWith(5)
+  })
+})
+
 describe('more_less on the plain buttons', () => {
   const VIEW = {
     metric: 'ge_price',

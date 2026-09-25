@@ -112,6 +112,18 @@ describe('Lobby', () => {
     expect(sent).toEqual([{ t: 'start_game' }])
   })
 
+  it('names who is not ready, and marks who is', () => {
+    const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: true }
+    lobby([{ ...HOST, ready: true }, WOOX, lynx])
+    expect(screen.getByText('Waiting on Woox and Lynx.')).toBeTruthy()
+    const rows = within(screen.getAllByRole('list').at(-1)!).getAllByRole('listitem')
+    expect(rows.map((row) => [row.textContent?.includes('✓ ready'), row.textContent])).toEqual([
+      [true, expect.stringContaining('Zezima')],
+      [false, expect.stringContaining('Woox')],
+      [false, expect.stringContaining('Lynx')],
+    ])
+  })
+
   it('names the players link by its own label alone, not the room code', () => {
     lobby()
     const field = screen.getByLabelText('Link for players') as HTMLInputElement
