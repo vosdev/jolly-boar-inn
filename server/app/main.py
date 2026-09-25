@@ -22,6 +22,7 @@ from app.http import modes, players, rooms, vocab
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
 from app.http.headers import SecurityHeaders
+from app.http.jsonbody import JsonBody
 from app.http.ratelimit import JOINS_PER_HOUR, LOOKUP_MISSES, LOOKUP_WINDOW, RateLimiter
 from app.questions import vocab as vocabularies
 from app.questions.packs import load_packs
@@ -35,6 +36,14 @@ log = logging.getLogger("app")
 
 class DatabaseUnavailable(ApiError):
     status, code = 503, "db_unavailable"
+
+
+# Any constant does, as long as every process that shares a database uses the same one.
+INSTANCE_LOCK = 0x4A42_4900
+
+
+class AnotherInstance(RuntimeError):
+    """Another process already holds this database's instance lock."""
 
 
 async def connect(settings: Settings) -> asyncpg.Pool:
@@ -52,15 +61,51 @@ async def connect(settings: Settings) -> asyncpg.Pool:
     return pool
 
 
+async def take_instance_lock(dsn: str) -> asyncpg.Connection:
+    """A connection holding the instance lock for as long as it stays open.
+
+    Every room lives in one process's memory, so a second process on the same database
+    would load its own copy of a room and run a second timer over it. ``AnotherInstance``
+    if some other process holds the lock.
+    """
+    conn = await asyncpg.connect(dsn)
+    try:
+        taken = await conn.fetchval("select pg_try_advisory_lock($1)", INSTANCE_LOCK)
+    except BaseException:
+        await conn.close()
+        raise
+    if not taken:
+        await conn.close()
+        raise AnotherInstance("another process is serving rooms from this database")
+    return conn
+
+
+async def _connect(app: FastAPI) -> asyncpg.Pool:
+    """The pool, taking the instance lock first whenever this process does not hold it.
+
+    A lock connection that closed (a Postgres restart) released the lock, so it is taken
+    again before the next query rather than letting another process share the rooms.
+    """
+    async with app.state.connecting:
+        lock = app.state.instance_lock
+        if lock is None or lock.is_closed():
+            app.state.instance_lock = None
+            app.state.instance_lock = await take_instance_lock(app.state.settings.database_url)
+        if app.state.pool is None:
+            app.state.pool = await connect(app.state.settings)
+    return app.state.pool
+
+
 async def ensure_pool(app: FastAPI) -> asyncpg.Pool:
     """The app's pool, connecting now if startup could not. ``DatabaseUnavailable`` if not."""
-    if app.state.pool is None:
-        try:
-            app.state.pool = await connect(app.state.settings)
-        except (OSError, asyncpg.PostgresError) as exc:
-            log.warning("database unavailable: %s", exc)
-            raise DatabaseUnavailable("database unavailable") from exc
-    return app.state.pool
+    try:
+        return await _connect(app)
+    except AnotherInstance as exc:
+        log.error("%s; refusing to touch it", exc)
+        raise DatabaseUnavailable("database unavailable") from exc
+    except (OSError, asyncpg.PostgresError) as exc:
+        log.warning("database unavailable: %s", exc)
+        raise DatabaseUnavailable("database unavailable") from exc
 
 
 async def cleanup_expired_rooms(app: FastAPI) -> None:
@@ -110,10 +155,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         heads=load_head_count(),
     )
     app.state.pool = None
+    app.state.instance_lock = None
     try:
-        await ensure_pool(app)
-    except DatabaseUnavailable:
-        log.warning("will retry the database connection on demand")
+        await _connect(app)  # AnotherInstance escapes: this process must not start
+    except (OSError, asyncpg.PostgresError) as exc:
+        log.warning("database unavailable, will retry on demand: %s", exc)
     app.state.cleanup = asyncio.create_task(cleanup_expired_rooms(app), name="room-cleanup")
     yield
     app.state.cleanup.cancel()
@@ -122,6 +168,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await app.state.rooms.shutdown()  # every room's timer task, before the pool goes
     if app.state.pool is not None:
         await app.state.pool.close()
+    if app.state.instance_lock is not None:
+        await app.state.instance_lock.close()
 
 
 async def _db_ok(request: Request) -> bool:
@@ -163,12 +211,15 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     )
     app.state.settings = settings or get_settings()
     app.state.pool = None
+    app.state.instance_lock = None
+    app.state.connecting = asyncio.Lock()
     app.state.packs = []
     app.state.rooms = None
     app.state.cleanup = None
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour)
     app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW)
     app.state.joins = RateLimiter(JOINS_PER_HOUR)
+    app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)
     app.add_middleware(UntrustedForwardWarning)
     app.add_middleware(SecurityHeaders)  # last, so it wraps the others' responses too

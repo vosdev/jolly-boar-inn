@@ -69,8 +69,11 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=5 --start-period=5s \
 # Trusted proxies come from $FORWARDED_ALLOW_IPS, which uvicorn reads itself and
 # which defaults to 127.0.0.1,::1. Set it to your reverse proxy's address, or
 # X-Forwarded-For is ignored and every client shares one rate-limit bucket.
+# --workers 1: rooms live in one process's memory, and uvicorn otherwise takes a worker
+# count from $WEB_CONCURRENCY, which some hosts set. The app also refuses to start next
+# to another process on the same database.
 # --ws-max-size: the default 16 MiB frame takes hundreds of MB to parse; real ones are
 # under 1 KB. --limit-concurrency: past it uvicorn answers 503 rather than running the
 # 512 MB container out of memory.
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", \
-     "--ws-max-size", "65536", "--limit-concurrency", "1000"]
+     "--workers", "1", "--ws-max-size", "65536", "--limit-concurrency", "1000"]

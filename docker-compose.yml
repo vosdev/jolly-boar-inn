@@ -19,9 +19,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-jbi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-jbi}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
       # Reverse proxies whose X-Forwarded-For is trusted, as addresses or CIDR
-      # ranges. Unset means uvicorn's 127.0.0.1,::1, which trusts nothing arriving
-      # over the bridge network -- so set it, or all players share one rate-limit
-      # bucket. See .env.example.
+      # ranges. Unset passes an empty list, which trusts nothing -- so set it, or all
+      # players share one rate-limit bucket. See .env.example.
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-}
     depends_on:
       postgres:

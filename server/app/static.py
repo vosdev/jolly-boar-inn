@@ -23,6 +23,9 @@ def mount_client(app: FastAPI, dist: Path = CLIENT_DIST) -> None:
         if not index.is_file():
             raise HTTPException(status_code=404, detail="client not built")
 
+        # No real file or client route has one, and it makes ``resolve`` raise.
+        if "\0" in path:
+            raise HTTPException(status_code=404)
         candidate = (dist / path).resolve()
         if path and candidate.is_relative_to(dist) and candidate.is_file():
             cache = IMMUTABLE if path.startswith("assets/") else NO_CACHE
