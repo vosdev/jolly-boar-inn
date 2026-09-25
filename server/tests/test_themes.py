@@ -17,11 +17,10 @@ in all three themes.
 
 import re
 import sys
-from pathlib import Path
 
 from app.config import REPO_ROOT
+from tests.client_source import CLIENT_SRC, read
 
-CLIENT_SRC = REPO_ROOT / "client" / "src"
 APP_CSS = CLIENT_SRC / "app.css"
 THEME_TS = CLIENT_SRC / "lib" / "theme.ts"
 PICKER = CLIENT_SRC / "components" / "ThemePicker.svelte"
@@ -31,10 +30,6 @@ sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 import check_contrast as check  # noqa: E402
 
 THEME_BLOCK = re.compile(r"([^{}]*\[data-theme=['\"]?([\w-]+)['\"]?\][^{}]*)\{([^{}]*)\}")
-
-
-def read(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
 
 
 def theme_blocks() -> list[tuple[str, dict[str, str]]]:

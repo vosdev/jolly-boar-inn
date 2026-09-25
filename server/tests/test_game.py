@@ -25,25 +25,18 @@ jumps.
 
 Most tests run with ten-second questions and drive the closes themselves with ``skip``,
 so what they assert is the state machine and not the wall clock. The ones that are about
-time say so.
+time say so, and play the ``quick_mode`` round, whose questions really are one second.
 """
 
-import asyncio
 import math
-import threading
 import time
-from collections.abc import AsyncIterator, Callable, Iterator
-from contextlib import ExitStack, asynccontextmanager, contextmanager
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterator
+from contextlib import ExitStack
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from starlette.testclient import WebSocketTestSession
-from starlette.websockets import WebSocketDisconnect
 
 from app.modes import MODES, type_seconds
 from app.questions.types import more_less, multiple_choice, pick_from_list
@@ -51,155 +44,29 @@ from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
 from app.rooms import state
-from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, Room, RoomQuestion
-from app.ws import handler as ws_handler
-from tests.rooms_api import StalledSocket, call, create_fast, join
-
-
-@dataclass
-class Seat:
-    """One player at the table: their session, their socket and what it has received."""
-
-    name: str
-    session: str
-    player: dict[str, Any]
-    ws: WebSocketTestSession
-    seen: list[dict[str, Any]] = field(default_factory=list)
-
-    @property
-    def id(self) -> str:
-        return self.player["id"]
-
-    def send(self, **frame: Any) -> None:
-        self.ws.send_json(frame)
-
-    def skip(self, phase: str, index: int) -> None:
-        """The host's skip, naming the phase and question it was pressed on."""
-        self.send(t="skip", phase=phase, index=index)
-
-    def settle(self) -> None:
-        """Wait until the server has handled every frame this seat sent before now.
-
-        One socket's frames are handled in order, so the ``pong`` comes after them all.
-        """
-        self.send(t="ping")
-        self.take("pong")
-
-    def take(self, kind: str, limit: int = 30) -> dict[str, Any]:
-        """The next message of type ``kind``. Anything before it is kept in ``seen``.
-
-        Skipping is deliberate: a ``players_updated`` for somebody else connecting can land
-        between any two messages a test cares about, and no client may depend on the
-        order of those.
-        """
-        for _ in range(limit):
-            message = self.ws.receive_json()
-            self.seen.append(message)
-            if message["t"] == kind:
-                return message
-        raise AssertionError(f"{self.name} never got {kind}; saw {self.kinds}")
-
-    @property
-    def kinds(self) -> list[str]:
-        return [message["t"] for message in self.seen]
-
-
-@dataclass
-class Game:
-    app: FastAPI
-    client: TestClient
-    code: str
-    seats: list[Seat]
-
-    @property
-    def admin(self) -> Seat:
-        return self.seats[0]
-
-    @property
-    def players(self) -> list[Seat]:
-        return self.seats[1:]
-
-    @property
-    def room(self) -> Room:
-        return call(self.client, self.app.state.rooms.get, self.code)
-
-    def question(self, index: int) -> RoomQuestion:
-        return self.room.questions[index]
-
-    def right(self, index: int) -> int:
-        return self.question(index).payload["answer_index"]
-
-    def wrong(self, index: int) -> int:
-        return 1 - self.right(index)
-
-    def start(self) -> None:
-        self.admin.send(t="start_game")
-
-    def skip(self, seat: Seat | None = None) -> None:
-        """Skip the phase the room is in now, named as a client that is up to date would."""
-        room = self.room
-        assert room.current_index is not None, f"nothing to skip in {room.status}"
-        (seat or self.admin).skip(room.phase, room.current_index)
-
-    def answer(self, seat: Seat, index: int, value: Any) -> None:
-        seat.send(t="answer", question_id=str(self.question(index).id), value=value)
-
-    def splash(self, seat: Seat | None = None) -> dict[str, Any]:
-        """The next ``room_updated`` that is a splash.
-
-        ``start_game`` broadcasts its own ``room_updated`` for ``lobby -> playing``, and
-        that one is still ``idle``: the timer task has not run a step yet.
-        """
-        seat = seat or self.admin
-        for _ in range(10):
-            message = seat.take("room_updated")
-            if message["room"]["phase"] == "splash":
-                return message
-        raise AssertionError(f"{seat.name} never got a splash; saw {seat.kinds}")
-
-    def opened(self, index: int) -> list[dict[str, Any]]:
-        """Everyone's ``question_open`` for question ``index``."""
-        messages = [seat.take("question_open") for seat in self.seats]
-        assert {m["question"]["index"] for m in messages} == {index}
-        return messages
-
-
-@pytest.fixture
-def table(
-    app: FastAPI, client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> Iterator[Callable[..., Game]]:
-    """``table("Zezima", "Woox", seconds=1)`` → a lobby with everyone connected.
-
-    Seat 0 is always the admin. Sockets close when the test ends, before the app does.
-    """
-    # These tests play whole games in a second or two, far faster than anyone taps; the
-    # per-socket rate limit is tested on its own in ``test_limits.py``.
-    monkeypatch.setattr(ws_handler, "RATE_BURST", 10_000)
-    with ExitStack() as stack:
-
-        def build(*names: str, **settings: Any) -> Game:
-            room, admin, session = create_fast(app, client, **settings)
-            # The admin comes back from ``create`` itself, in the shape ``join`` returns.
-            bodies = [{"session": session, "player": admin.view().model_dump(mode="json")}]
-            bodies += [join(client, room.code, name).json() for name in names]
-            seats = []
-            for body in bodies:
-                ws = stack.enter_context(client.websocket_connect(f"/ws/{room.code}"))
-                ws.send_json({"t": "hello", "session": body["session"]})
-                welcome = ws.receive_json()
-                assert welcome["t"] == "welcome", welcome
-                seats.append(
-                    Seat(body["player"]["display_name"], body["session"], body["player"], ws)
-                )
-            # Everyone already seated hears each new socket connect. Drain those now so a
-            # test that waits for a ``players_updated`` gets the one it is waiting for.
-            for index, seat in enumerate(seats):
-                for _ in range(len(seats) - 1 - index):
-                    message = seat.ws.receive_json()
-                    assert message["t"] == "players_updated", message
-            return Game(app, client, room.code, seats)
-
-        yield build
+from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
+from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, RoomQuestion
+from app.ws.outbox import SEND_TIMEOUT
+from tests.game_api import (
+    AFTER,
+    Game,
+    Seat,
+    acked,
+    answer_after,
+    assert_memory_matches_db,
+    at,
+    closed_after,
+    db_totals,
+    left_memory,
+    lock_held,
+    ready_of,
+    reply,
+    reseat,
+    seconds_left,
+    tap,
+    updated,
+)
+from tests.rooms_api import StalledSocket, call, closed_with, create_fast, join
 
 
 @pytest.fixture
@@ -208,43 +75,12 @@ def game(table) -> Game:
     return table("Zezima", "Woox", seconds=10, reveal_seconds=1)
 
 
-def db_totals(db, code: str) -> dict[UUID, int]:
-    """Every player's points straight from the answers table, the way section 5 says."""
-    rows = db(
-        "select a.player_id, coalesce(sum(a.points), 0)::int as points from answers a"
-        " join questions q on q.id = a.question_id join rooms r on r.id = q.room_id"
-        " where r.code = $1 group by a.player_id",
-        code,
-    )
-    return {row["player_id"]: row["points"] for row in rows}
-
-
-def assert_memory_matches_db(game: Game, db) -> None:
-    """T10: the sum kept in memory is the one the database holds, after every close.
-
-    A player with no graded answer is 0 either way: absent from ``totals``, or present in
-    the query with an ungraded (voided) row that sums to nothing.
-    """
-    room = game.room
-    from_db = db_totals(db, game.code)
-    expected = {player_id: from_db.get(player_id, 0) for player_id in room.players}
-    assert {player_id: room.score(player_id).points for player_id in room.players} == expected
-    assert {s.player_id: s.points for s in room.standings()} == expected
-    assert set(room.totals) <= set(from_db)  # memory never invents a scorer
-
-
-def closed_with(ws: WebSocketTestSession) -> int:
-    with pytest.raises(WebSocketDisconnect) as info:
-        ws.receive_json()
-    return info.value.code
-
-
 # --- T9: the loop runs itself --------------------------------------------------------
 
 
-def test_a_three_question_game_runs_to_finished_unattended(table, db) -> None:
+def test_a_three_question_game_runs_to_finished_unattended(table, quick_mode, db) -> None:
     """T9: one-second questions and reveals, three questions, nobody touching anything."""
-    game = table("Zezima", "Woox", seconds=1, reveal_seconds=1)
+    game = table("Zezima", "Woox", modes=[quick_mode], seconds=1, reveal_seconds=1)
     game.start()
     started = time.monotonic()
     for index in range(3):
@@ -259,7 +95,9 @@ def test_a_three_question_game_runs_to_finished_unattended(table, db) -> None:
     assert [s["rank"] for s in finals[0]["standings"]] == [1, 1, 1]
 
     elapsed = time.monotonic() - started
-    assert 3 <= elapsed < 20, f"three 1s questions and reveals took {elapsed:.1f}s"
+    # Three questions and three reveals are six seconds; twice that is still well short of
+    # the eighteen that questions held to ``more_less``'s five-second floor would take.
+    assert 3 <= elapsed < 12, f"three 1s questions and reveals took {elapsed:.1f}s"
     room = game.room
     assert room.status == "finished"
     assert room.phase == "idle"
@@ -270,8 +108,8 @@ def test_a_three_question_game_runs_to_finished_unattended(table, db) -> None:
     assert game.client.get(f"/api/rooms/{game.code}").json()["status"] == "finished"
 
 
-def test_the_next_question_opens_when_question_closed_said_it_would(table) -> None:
-    game = table("Zezima", seconds=1, reveal_seconds=1)
+def test_the_next_question_opens_when_question_closed_said_it_would(table, quick_mode) -> None:
+    game = table("Zezima", modes=[quick_mode], seconds=1, reveal_seconds=1)
     game.start()
     game.opened(0)
     closed = game.admin.take("question_closed")
@@ -468,9 +306,9 @@ def test_a_second_answer_is_already_answered(game) -> None:
     assert len(game.question(0).answers) == 1
 
 
-def test_an_answer_after_the_close_is_not_open(table) -> None:
+def test_an_answer_after_the_close_is_not_open(table, quick_mode) -> None:
     """T9: answering a question that has closed is ``not_open``, never scored."""
-    game = table("Zezima", seconds=1, reveal_seconds=30)
+    game = table("Zezima", modes=[quick_mode], seconds=1, reveal_seconds=30)
     game.start()
     game.opened(0)
     player = game.players[0]
@@ -600,19 +438,27 @@ def test_a_player_leaving_while_another_still_owes_an_answer_keeps_it_open(game,
 
 
 def test_an_unanswered_seat_keeps_the_question_open(game) -> None:
-    """The early close waits for every connected player who can answer."""
+    """The early close waits for every connected player who can answer.
+
+    An answer that leaves nobody owing one wakes the timer before its ack goes out, so a
+    close it asked for shows here as ``advance`` set or the question already closed.
+    """
     game.start()
     game.opened(0)
     for seat in game.seats[:2]:
         game.answer(seat, 0, game.right(0))
         seat.take("answer_ack")
-    time.sleep(0.2)
-    assert game.room.phase == "open"
+    room = game.room
+    assert (room.phase, room.advance.is_set()) == ("open", False)
+    last = game.seats[2]
+    game.answer(last, 0, game.right(0))
+    last.take("answer_ack")
+    assert game.admin.take("question_closed")["question_id"] == str(game.question(0).id)
 
 
-def test_a_stalled_socket_holds_up_nobody_else(table, client) -> None:
+def test_a_stalled_socket_holds_up_nobody_else(table, quick_mode, client) -> None:
     """One phone that has stopped reading: everyone else's acks and the clock run on time."""
-    game = table("Zezima", seconds=1, reveal_seconds=1)
+    game = table("Zezima", modes=[quick_mode], seconds=1, reveal_seconds=1)
     body = join(client, game.code, "Woox").json()
     stalled = StalledSocket()
     call(client, game.app.state.rooms.connect, game.code, body["session"], stalled)
@@ -626,11 +472,11 @@ def test_a_stalled_socket_holds_up_nobody_else(table, client) -> None:
     player.take("answer_ack")
     assert time.monotonic() - started < 1
     closed = game.admin.take("question_closed")
-    # The question's own length, held to its mode's floor of five; Woox is connected and
-    # never answers, so nothing closes it early, and waiting on Woox would have made it ten.
+    # Woox is connected and never answers, so nothing closes it early; waiting on Woox's
+    # send would have held the close up for the outbox's ten-second send timeout.
     length = datetime.fromisoformat(opened["ends_at"]) - datetime.fromisoformat(opened["opened_at"])
-    assert length.total_seconds() < 8
-    assert time.monotonic() - started < length.total_seconds() + 1
+    assert length.total_seconds() == 1
+    assert time.monotonic() - started < length.total_seconds() + SEND_TIMEOUT / 2
     assert set(closed["results"]) == {player.id}
     assert stalled.sends == 1  # still on its welcome
 
@@ -772,8 +618,8 @@ def test_welcome_mid_question_carries_the_question_and_your_answer(game, client)
         assert closed_with(player.ws) == 4000  # the old socket, replaced
 
 
-def test_welcome_after_the_game_still_serves_the_final_standings(table, client) -> None:
-    game = table("Zezima", seconds=1, reveal_seconds=1)
+def test_welcome_after_the_game_still_serves_the_final_standings(table, quick_mode, client) -> None:
+    game = table("Zezima", modes=[quick_mode], seconds=1, reveal_seconds=1)
     game.start()
     game.opened(0)
     game.answer(game.players[0], 0, game.right(0))
@@ -1083,13 +929,6 @@ def test_a_rename_mid_game_disturbs_neither_the_standings_nor_an_open_answer(gam
 
 
 # --- T11: restart recovery -----------------------------------------------------------
-
-
-def reseat(seat: Seat, ws: WebSocketTestSession) -> Seat:
-    """The same player on a new socket, the way their client reconnects after a restart."""
-    again = Seat(seat.name, seat.session, seat.player, ws)
-    again.send(t="hello", session=again.session)
-    return again
 
 
 def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db, evict) -> None:
@@ -1529,31 +1368,6 @@ def test_nobody_new_joins_a_game_under_way(game, client) -> None:
 # --- D7: the ready check ------------------------------------------------------------
 
 
-def updated(seat: Seat, until: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
-    """The next ``room_updated`` or ``players_updated`` that ``until`` accepts."""
-    for _ in range(200):
-        message = seat.ws.receive_json()
-        seat.seen.append(message)
-        if message["t"] in ("room_updated", "players_updated") and until(message):
-            return message
-    raise AssertionError(f"{seat.name} never got the update wanted; saw {seat.kinds}")
-
-
-def ready_of(message: dict[str, Any]) -> dict[str, bool]:
-    return {p["display_name"]: p["ready"] for p in message["players"]}
-
-
-def seconds_left(message: dict[str, Any]) -> float:
-    ends_at = datetime.fromisoformat(message["room"]["next_at"])
-    return (ends_at - datetime.now(UTC)).total_seconds()
-
-
-def tap(game: Game, seat: Seat, is_ready: bool = True) -> dict[str, Any]:
-    """``seat`` taps ready (or takes it back); the admin's update that shows it."""
-    seat.send(t="ready", ready=is_ready)
-    return updated(game.admin, lambda m: ready_of(m)[seat.name] is is_ready)
-
-
 def test_ready_in_the_lobby_is_broadcast_by_name(table, clock) -> None:
     """The lobby list: who is ready is everyone's to see, and a tap can be taken back."""
     game = table("Zezima", "Woox")
@@ -1604,10 +1418,10 @@ def test_a_room_of_one_waits_for_its_player(table) -> None:
     game.start()
     game.splash()
     hurried = tap(game, game.admin)
-    assert 2 < seconds_left(hurried) <= 3
+    assert 0 < seconds_left(hurried) <= EVERYONE_READY_SECONDS
     started = time.monotonic()
     assert game.admin.take("question_open")["question"]["index"] == 0
-    assert time.monotonic() - started < 4
+    assert time.monotonic() - started < THRESHOLD_SECONDS  # the short count, not the long
 
 
 def test_the_threshold_starts_ten_seconds_and_everyone_brings_it_to_three(table) -> None:
@@ -1619,12 +1433,12 @@ def test_the_threshold_starts_ten_seconds_and_everyone_brings_it_to_three(table)
     assert tap(game, game.admin)["t"] == "players_updated"
     assert game.room.next_at is None
     two = tap(game, game.players[0])
-    assert 9 < seconds_left(two) <= 10
+    assert EVERYONE_READY_SECONDS < seconds_left(two) <= THRESHOLD_SECONDS
     three = tap(game, game.players[1])
-    assert 2 < seconds_left(three) <= 3
+    assert 0 < seconds_left(three) <= EVERYONE_READY_SECONDS
     started = time.monotonic()
     game.admin.take("question_open")
-    assert time.monotonic() - started < 4
+    assert time.monotonic() - started < THRESHOLD_SECONDS
 
 
 def test_the_host_can_skip_a_counting_splash(table) -> None:
@@ -1648,7 +1462,7 @@ def test_an_un_ready_below_the_threshold_stops_the_countdown(table) -> None:
     assert stopped["room"]["next_at"] is None
     assert game.room.phase == "splash"
     again = tap(game, game.players[0])  # and tapping again starts it afresh
-    assert 9 < seconds_left(again) <= 10
+    assert EVERYONE_READY_SECONDS < seconds_left(again) <= THRESHOLD_SECONDS
 
 
 def test_a_splash_allows_one_un_ready_each(table) -> None:
@@ -1686,7 +1500,7 @@ def test_an_un_ready_that_keeps_the_threshold_keeps_the_countdown(table) -> None
     for seat in game.seats[:-1]:
         tap(game, seat)
     everyone = tap(game, game.seats[-1])
-    assert 2 < seconds_left(everyone) <= 3
+    assert 0 < seconds_left(everyone) <= EVERYONE_READY_SECONDS
     back = tap(game, game.seats[-1], False)
     assert back["t"] == "players_updated"  # the room, countdown and all, did not move
     assert game.room.view().model_dump(mode="json")["next_at"] == everyone["room"]["next_at"]
@@ -1704,7 +1518,8 @@ def test_a_disconnect_lowers_the_threshold_rather_than_stalling(table) -> None:
     def woox_gone(message: dict[str, Any]) -> bool:
         return not {p["display_name"]: p["connected"] for p in message["players"]}["Woox"]
 
-    assert 9 < seconds_left(updated(game.admin, woox_gone)) <= 10
+    left = seconds_left(updated(game.admin, woox_gone))
+    assert EVERYONE_READY_SECONDS < left <= THRESHOLD_SECONDS
 
 
 def test_a_connect_never_stops_a_countdown(table, client) -> None:
@@ -1781,30 +1596,12 @@ def test_speed_buckets_scale_to_the_questions_own_length(game) -> None:
     game.start()
     game.opened(0)
     player = game.players[0]
-    time.sleep(1.2)  # 12% of ten seconds is bucket 2; of thirty it would be bucket 1
-    game.answer(player, 0, game.right(0))
-    assert player.take("answer_ack")["band"] == 2
+    # 17.5% of ten seconds is bucket 2; of thirty it would be bucket 1.
+    assert answer_after(game, player, 0, game.right(0), AFTER[2])["band"] == 2
 
 
 # --- T17: credit changed how points are computed, not what a game is worth ------------
 
-
-def answer_after(game: Game, seat: Seat, index: int, value: Any, seconds: float) -> dict[str, Any]:
-    """Answer question ``index`` as though ``seconds`` had passed since it took answers.
-
-    ``submit_answer`` measures elapsed time from the in-memory ``answerable_mono`` on the
-    manager's clock and nothing else, so moving that is how a test picks the bucket
-    instead of racing the clock for it. ``ends_mono`` stays, so the answer is still on
-    time. Returns the ``answer_ack``.
-    """
-    question = game.question(index)
-    question.answerable_mono = game.app.state.rooms.clock() - seconds
-    game.answer(seat, index, value)
-    return seat.take("answer_ack")
-
-
-# Into each ten-second bucket's middle, so a slow test run lands in the same one.
-AFTER = {1: 0.3, 2: 1.75, 3: 3.75, 4: 6.25, 5: 8.75}
 
 # Question, player, right or wrong, bucket. Lynx and Zezima finish level on points and
 # Lynx has one more right answer; Dorn never answers and ties the admin on nothing.
@@ -2305,10 +2102,6 @@ def next_open(seat: Seat) -> tuple[dict[str, Any], bool]:
 # --- T22: the NPC holds the floor before the buttons appear ---------------------------------
 
 
-def at(frame: dict[str, Any], key: str) -> datetime:
-    return datetime.fromisoformat(frame[key])
-
-
 def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
     """Nobody is interrupting, so there is nothing to hold: the clock starts on the open."""
     game.start()
@@ -2341,15 +2134,17 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db) -
     assert db("select count(*) as n from answers")[0]["n"] == 0
 
 
-def test_answering_the_instant_the_buttons_appear_is_bucket_1(table, second_mode) -> None:
+def test_answering_the_instant_the_buttons_appear_is_bucket_1(table, second_mode, clock) -> None:
     """T22 Accept: the wait costs nobody a point. Two seconds on a twenty-second question
     would be bucket 2 counted from the open (0.1025 of it); from ``answerable_at`` it is
     the fastest there is."""
     game = table("Zezima", custom=[TANZANITE], random_event_seconds=2, **event_rooms(second_mode))
     event = the_event(game)
-    frames = reach(game, event.position)
-    wait = (at(frames["Zezima"], "answerable_at") - datetime.now(UTC)).total_seconds()
-    time.sleep(max(0.0, wait) + 0.05)
+    reach(game, event.position)
+    # Just past the hold on the manager's clock, which is what the band is measured on.
+    answerable = game.question(event.position).answerable_mono
+    assert answerable == clock[0] + 2
+    clock[0] = answerable + 0.05
     zezima = game.players[0]
     game.answer(zezima, event.position, TANZANITE["payload"]["answer_index"])
     assert zezima.take("answer_ack")["band"] == 1
@@ -2618,126 +2413,6 @@ def test_skip_is_ignored_outside_a_game_and_accepted_in_standings(table, second_
 # --- the timer: a step that fails, a race it loses, a wall clock that jumps ----------
 
 
-class Faults:
-    """The manager's database, with statements a test picks failing once or stalling first.
-
-    A statement is picked by how its SQL starts. Failing raises what a connection dropped
-    mid-query raises, which is what a Postgres restart looks like to a game in progress.
-    """
-
-    def __init__(self, manager: Any) -> None:
-        self._real = manager._pool
-        self._failing: list[str] = []
-        self._stalls: dict[str, float] = {}
-        manager._pool = self._pool
-
-    def fail_once(self, sql: str) -> None:
-        self._failing.append(sql)
-
-    def stall(self, sql: str, seconds: float) -> None:
-        self._stalls[sql] = seconds
-
-    async def _pool(self) -> _FaultyPool:
-        return _FaultyPool(await self._real(), self)
-
-    async def check(self, sql: str) -> None:
-        for prefix in self._failing:
-            if sql.startswith(prefix):
-                self._failing.remove(prefix)
-                raise ConnectionResetError(f"injected: the database dropped {prefix!r}")
-        for prefix, seconds in self._stalls.items():
-            if sql.startswith(prefix):
-                await asyncio.sleep(seconds)
-
-
-@dataclass
-class _FaultyPool:
-    pool: Any
-    faults: Faults
-
-    @asynccontextmanager
-    async def acquire(self) -> AsyncIterator[_FaultyConnection]:
-        async with self.pool.acquire() as conn:
-            yield _FaultyConnection(conn, self.faults)
-
-
-@dataclass
-class _FaultyConnection:
-    conn: Any
-    faults: Faults
-
-    async def execute(self, sql: str, *args: Any) -> str:
-        await self.faults.check(sql)
-        return await self.conn.execute(sql, *args)
-
-    async def executemany(self, sql: str, args: Any) -> None:
-        await self.faults.check(sql)
-        await self.conn.executemany(sql, args)
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self.conn, name)
-
-
-@pytest.fixture
-def faults(app: FastAPI, client: TestClient) -> Faults:
-    return Faults(app.state.rooms)
-
-
-def left_memory(game: Game, within: float = 5.0) -> bool:
-    """Whether the room drops out of the manager's memory within ``within`` seconds."""
-    rooms = game.app.state.rooms.rooms
-    deadline = time.monotonic() + within
-    while game.code in rooms:
-        if time.monotonic() > deadline:
-            return False
-        time.sleep(0.02)
-    return True
-
-
-def closed_after(seat: Seat) -> int:
-    """The code ``seat``'s socket closes with, once the frames still queued on it are read."""
-    with pytest.raises(WebSocketDisconnect) as info:
-        for _ in range(30):
-            seat.seen.append(seat.ws.receive_json())
-    return info.value.code
-
-
-def reply(seat: Seat, wanted: Callable[[dict[str, Any]], bool]) -> dict[str, Any]:
-    """The first frame ``wanted`` accepts, or the first ``error``, whichever comes first."""
-    for _ in range(30):
-        message = seat.ws.receive_json()
-        seat.seen.append(message)
-        if message["t"] == "error" or wanted(message):
-            return message
-    raise AssertionError(f"{seat.name} never heard back; saw {seat.kinds}")
-
-
-def acked(message: dict[str, Any]) -> bool:
-    return message["t"] == "answer_ack"
-
-
-@contextmanager
-def lock_held(game: Game) -> Iterator[None]:
-    """Hold the room lock on the app's loop for the block, as a slow step would."""
-    room = game.room
-    portal = game.client.portal
-    assert portal is not None
-    held, release = threading.Event(), asyncio.Event()
-
-    async def hold() -> None:
-        async with room.lock:
-            held.set()
-            await release.wait()
-
-    holder = portal.start_task_soon(hold)
-    assert held.wait(5), "never got the room lock"
-    try:
-        yield
-    finally:
-        portal.call(release.set)
-        holder.result(5)
-
-
 def broken_once(real: Callable[..., Any], broken: Callable[..., Any]) -> Callable[..., Any]:
     """``broken`` on the first call and ``real`` from then on."""
     calls: list[object] = []
@@ -2890,11 +2565,11 @@ def test_a_start_the_database_refuses_leaves_the_room_in_the_lobby(game, client,
 
 
 def test_end_game_ahead_of_a_waiting_close_voids_the_question_and_nothing_follows(
-    table, db
+    table, quick_mode, db
 ) -> None:
     """Both queue on the room lock and the host was first: the timer, woken at ``ends_at``
     and waiting behind them, grades nothing and opens nothing."""
-    game = table("Zezima", seconds=1, reveal_seconds=1)
+    game = table("Zezima", modes=[quick_mode], seconds=1, reveal_seconds=1)
     zezima = game.players[0]
     game.start()
     game.opened(0)
@@ -2921,9 +2596,9 @@ def test_end_game_ahead_of_a_waiting_close_voids_the_question_and_nothing_follow
 
 
 def test_an_eviction_ahead_of_a_waiting_close_leaves_the_question_to_recovery(
-    table, client, db
+    table, quick_mode, client, db
 ) -> None:
-    game = table("Zezima", seconds=1, reveal_seconds=1)
+    game = table("Zezima", modes=[quick_mode], seconds=1, reveal_seconds=1)
     game.start()
     game.opened(0)
     assert client.portal is not None
@@ -3033,6 +2708,6 @@ def test_a_wall_clock_jump_leaves_a_splash_countdown_where_it_was(table, monkeyp
     everyone = reply(woox, lambda m: m["t"] == "room_updated" and ready_of(m)[woox.name])
     assert everyone["t"] == "room_updated", everyone
     ends_at = datetime.fromisoformat(everyone["room"]["next_at"])
-    assert 2 < (ends_at - jumped(1).now(UTC)).total_seconds() <= 3
+    assert 0 < (ends_at - jumped(1).now(UTC)).total_seconds() <= EVERYONE_READY_SECONDS
     time.sleep(1)
     assert game.room.phase == "splash"

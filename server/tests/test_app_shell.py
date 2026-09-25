@@ -13,21 +13,15 @@ reveal and the final standings; an input sitting under the bar scrolls clear of 
 """
 
 import re
-from pathlib import Path
 
-from app.config import REPO_ROOT
+from tests.client_source import CLIENT_SRC, read
 
-CLIENT_SRC = REPO_ROOT / "client" / "src"
 APP_CSS = CLIENT_SRC / "app.css"
 APP_SVELTE = CLIENT_SRC / "App.svelte"
 TOP_BAR = CLIENT_SRC / "components" / "TopBar.svelte"
 
 # Section 4: the wordmark hides at one width, and it is this one.
 BREAKPOINT = "26rem"
-
-
-def read(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
 
 
 def block_after(text: str, opening: str) -> str:

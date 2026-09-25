@@ -17,36 +17,13 @@ from uuid import UUID
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.testclient import WebSocketTestSession
-from starlette.websockets import WebSocketDisconnect
 
 from app.config import REPO_ROOT
 from app.rooms.state import Room, RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
 from app.ws.outbox import Outbox
-from tests.rooms_api import StalledSocket, call, create, held, join
-
-
-@pytest.fixture
-def lobby(client: TestClient) -> dict[str, Any]:
-    """A room with its admin and one joined player: ``code``, ``admin``, ``player``."""
-    code, admin = create(client, modes=[{"mode": "more_less", "questions": 3}])
-    player = join(client, code, "Zezima").json()
-    return {"code": code, "admin": admin, "player": player}
-
-
-def hello(ws: WebSocketTestSession, session: str) -> dict[str, Any]:
-    ws.send_json({"t": "hello", "session": session})
-    message = ws.receive_json()
-    assert message["t"] == "welcome", message
-    return message
-
-
-def closed_with(ws: WebSocketTestSession) -> int:
-    with pytest.raises(WebSocketDisconnect) as info:
-        ws.receive_json()
-    return info.value.code
+from tests.rooms_api import StalledSocket, call, closed_with, create, held, hello, join
 
 
 def until(check: Callable[[], bool], seconds: float = 2.0) -> None:

@@ -18,36 +18,12 @@ from uuid import UUID
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.testclient import WebSocketTestSession
 
 from app.heads import load_head_count
 from app.rooms.state import CHANGE_COOLDOWN
-from tests.rooms_api import create, held, join
+from tests.rooms_api import create, held, hello, next_of
 
 HEADS = load_head_count()
-
-
-@pytest.fixture
-def lobby(client: TestClient) -> dict[str, Any]:
-    """A room with its admin and one joined player: ``code``, ``admin``, ``player``."""
-    code, admin = create(client)
-    player = join(client, code, "Zezima").json()
-    return {"code": code, "admin": admin, "player": player}
-
-
-def hello(ws: WebSocketTestSession, session: str) -> dict[str, Any]:
-    ws.send_json({"t": "hello", "session": session})
-    message = ws.receive_json()
-    assert message["t"] == "welcome", message
-    return message
-
-
-def next_of(ws: WebSocketTestSession, kind: str) -> dict[str, Any]:
-    for _ in range(10):
-        message = ws.receive_json()
-        if message["t"] == kind:
-            return message
-    raise AssertionError(f"never got {kind}")
 
 
 def by_id(players: list[dict[str, Any]], player_id: str) -> dict[str, Any]:

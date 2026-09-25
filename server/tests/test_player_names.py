@@ -20,10 +20,10 @@ import pytest
 
 from app.config import REPO_ROOT
 from app.rooms.state import NAME_MAX, BadName, normalize_name
+from tests.client_source import CLIENT_SRC, read
 
 NAMES_JSON = REPO_ROOT / "data" / "player-names.json"
 ROOM_WORDS_JSON = REPO_ROOT / "data" / "room-words.json"
-CLIENT_SRC = REPO_ROOT / "client" / "src"
 NAMES_TS = CLIENT_SRC / "lib" / "names.ts"
 
 # Section 5.1.2: the numeric suffix is up to three digits, and it always fits.
@@ -33,10 +33,6 @@ SUFFIX_DIGITS = 3
 
 def names() -> list[str]:
     return json.loads(NAMES_JSON.read_text(encoding="utf-8"))
-
-
-def read(path: str) -> str:
-    return (CLIENT_SRC / path).read_text(encoding="utf-8")
 
 
 # --- the rules -----------------------------------------------------------------------

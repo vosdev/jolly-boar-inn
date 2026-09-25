@@ -12,7 +12,7 @@ Every choice below is final unless it appears in "Needs decision" at the end.
 | DB access | `asyncpg` directly, hand-written SQL | Five tables; an ORM adds more code than it removes. |
 | Migrations | Numbered `.sql` files applied by a 40-line runner at startup | Alembic needs SQLAlchemy models we otherwise do not want. |
 | Validation | Pydantic v2 for WS/HTTP messages, `jsonschema` for questions | Questions need a language-neutral schema shared with CI and the client editor. |
-| Python tooling | `uv`, `ruff`, `pytest`, `pytest-asyncio` | Fast, single lockfile, no extra config. |
+| Python tooling | `uv`, `ruff`, `pytest`, `pytest-asyncio`, `pytest-timeout` | Fast, single lockfile, no extra config. |
 | Client | Svelte 5 + Vite SPA, TypeScript, `pnpm` | Decided in plan.md; no SSR needed, so no SvelteKit. |
 | Client tooling | `svelte-check`, `vitest` + `@testing-library/svelte` in jsdom | Vitest reuses the Vite config, so a component test compiles exactly what the build does. |
 | Serving | FastAPI serves `client/dist` as static files, SPA fallback to `index.html` | One container, one origin, no CORS. |
@@ -912,7 +912,7 @@ The ranges above are what a host may ask for, and they are checked where the req
 arrives (`NewRoomSettings` in `rooms/settings.py`). The stored model keeps only what the
 game loop cannot work without, so a room created under one set of bounds still loads
 after the bounds change — `seconds_for` clamps it into today's range rather than refusing
-it — and the tests can run a whole game on one-second questions. `RoomSettings.stored`,
+it — and a test's one-second round is a stub mode that allows it. `RoomSettings.stored`,
 the rehydrate read, also keeps a round whose mode has left the registry (it plays at the
 fallbacks) and drops keys it does not know, so a downgrade strands no room.
 

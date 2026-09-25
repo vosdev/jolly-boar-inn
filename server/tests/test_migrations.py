@@ -7,19 +7,20 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 import asyncpg
 import pytest
 from fastapi.testclient import TestClient
-from starlette.testclient import WebSocketTestSession
 
 from app.config import REPO_ROOT, Settings
 from app.db import MIGRATIONS_DIR, MigrationError, create_pool, migration_files, run_migrations
 from app.main import create_app
 from app.rooms.settings import NewRoomSettings, RoomSettings
 from app.rooms.state import hash_token
-from tests.rooms_api import fast_settings
+from tests.rooms_api import fast_settings, next_of
+
+# These apply the migrations themselves, so each starts from a database with none.
+pytestmark = pytest.mark.empty_database
 
 # Section 5 of ideas/architecture.md.
 TABLES = {
@@ -338,15 +339,6 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
     await pool.execute("update players set avatar = 49 where display_name = 'Woox'")
 
 
-def _take(ws: WebSocketTestSession, kind: str) -> dict[str, Any]:
-    """The next message of type ``kind``, skipping whatever comes first."""
-    for _ in range(30):
-        message = ws.receive_json()
-        if message["t"] == kind:
-            return message
-    raise AssertionError(f"never got {kind}")
-
-
 def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
     test_db_dsn: str, dist: Path, tmp_path: Path, db
 ) -> None:
@@ -410,19 +402,20 @@ def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
 
         with client.websocket_connect("/ws/ABYSSAL") as ws:
             ws.send_json({"t": "hello", "session": session})
-            welcome = _take(ws, "welcome")
+            welcome = next_of(ws, "welcome", limit=30)
             assert welcome["room"]["phase"] == "reveal"
             assert welcome["room"]["segment"]["mode"] == "more_less"
             assert welcome["question"] is None
             for index in (1, 2):
-                opened = _take(ws, "question_open")["question"]
+                opened = next_of(ws, "question_open", limit=30)["question"]
                 assert opened["index"] == index
                 assert (opened["type"], opened["mode"]) == ("more_less", "more_less")
                 answer = questions[index]["payload"]["answer_index"]
                 ws.send_json({"t": "answer", "question_id": opened["question_id"], "value": answer})
-                _take(ws, "answer_ack")
-                assert _take(ws, "question_closed")["results"][welcome["you"]["id"]]["correct"]
-            finished = _take(ws, "game_finished")
+                next_of(ws, "answer_ack", limit=30)
+                closed = next_of(ws, "question_closed", limit=30)
+                assert closed["results"][welcome["you"]["id"]]["correct"]
+            finished = next_of(ws, "game_finished", limit=30)
 
     assert finished["standings"][0]["points"] > 0
     assert db("select status from rooms")[0]["status"] == "finished"
@@ -566,13 +559,13 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
             client.websocket_connect("/ws/ABYSSAL") as player,
         ):
             host.send_json({"t": "hello", "session": host_session})
-            host_id = _take(host, "welcome")["you"]["id"]
+            host_id = next_of(host, "welcome", limit=30)["you"]["id"]
             player.send_json({"t": "hello", "session": player_session})
-            player_id = _take(player, "welcome")["you"]["id"]
+            player_id = next_of(player, "welcome", limit=30)["you"]["id"]
             host.send_json({"t": "start_game"})
             for index, question in enumerate(questions):
                 seen = {
-                    name: _take(ws, "question_open")["question"]
+                    name: next_of(ws, "question_open", limit=30)["question"]
                     for name, ws in (("host", host), ("player", player))
                 }
                 opened = seen["player"]
@@ -591,22 +584,23 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
                         {"t": "answer", "question_id": opened["question_id"], "value": answer}
                     )
                 if own:
-                    assert _take(host, "error")["code"] == "excluded"
+                    assert next_of(host, "error", limit=30)["code"] == "excluded"
                 else:
-                    _take(host, "answer_ack")
-                _take(player, "answer_ack")
-                results = _take(host, "question_closed")["results"]
-                _take(player, "question_closed")
+                    next_of(host, "answer_ack", limit=30)
+                next_of(player, "answer_ack", limit=30)
+                results = next_of(host, "question_closed", limit=30)["results"]
+                next_of(player, "question_closed", limit=30)
                 assert set(results) == ({player_id} if own else {host_id, player_id})
                 if index == 1:
                     # D9: stored before ``standings_seconds`` existed, it reads as the
                     # default, and the first round ends in standings the host can skip.
-                    while (update := _take(host, "room_updated"))["room"]["phase"] != "standings":
-                        pass
+                    update = next_of(host, "room_updated", limit=30)
+                    while update["room"]["phase"] != "standings":
+                        update = next_of(host, "room_updated", limit=30)
                     assert update["room"]["settings"]["standings_seconds"] == 10
                     index = update["room"]["current_index"]
                     host.send_json({"t": "skip", "phase": "standings", "index": index})
-            finished = _take(host, "game_finished")
+            finished = next_of(host, "game_finished", limit=30)
 
     points = {s["display_name"]: s["points"] for s in finished["standings"]}
     assert points["Woox"] > points["Zezima"] > 0

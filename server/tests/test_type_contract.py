@@ -20,6 +20,7 @@ from app.questions import schema
 from app.questions.submission import Submission
 from app.questions.types import TYPES, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
+from tests import answers
 
 
 @dataclass(frozen=True)
@@ -225,6 +226,18 @@ def test_the_right_answer_is_full_credit_and_the_wrong_one_is_not(type_id: str) 
     module, payload = TYPES[type_id], example(type_id).payload
     assert grade_alone(type_id, module.parse_value(payload, right_value(type_id))) == 1.0
     assert grade_alone(type_id, module.parse_value(payload, wrong_value(type_id))) < 1.0
+
+
+@per_type
+def test_the_game_tests_answers_are_right_and_wrong_as_they_say(type_id: str) -> None:
+    """``tests/answers.py``, which every game test answers through, worked out from the
+    payload rather than written down, so it holds for whatever question a room draws."""
+    module, payload = TYPES[type_id], example(type_id).payload
+    right = module.parse_value(payload, answers.right_value(type_id, payload))
+    wrong = module.parse_value(payload, answers.wrong_value(type_id, payload))
+    assert right is not None and wrong is not None
+    assert grade_alone(type_id, right) == 1.0
+    assert grade_alone(type_id, wrong) < 1.0
 
 
 @per_type

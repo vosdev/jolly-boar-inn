@@ -14,19 +14,17 @@ import functools
 import time
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from typing import Any
 
 import asyncpg
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
 from app.db import _init_connection
 from app.main import cleanup_expired_rooms
 from app.rooms.state import PURGE_BATCH
-from tests.rooms_api import call, create, create_fast, join
+from tests.rooms_api import call, create, create_fast, hello, join
 
 
 def expire(db, code: str, when: datetime) -> None:
@@ -54,13 +52,6 @@ def wait_until(predicate, timeout: float = 5.0) -> bool:
             return True
         time.sleep(0.02)
     return False
-
-
-def hello(ws: WebSocketTestSession, session: str) -> dict[str, Any]:
-    ws.send_json({"t": "hello", "session": session})
-    message = ws.receive_json()
-    assert message["t"] == "welcome", message
-    return message
 
 
 # --- purge_expired ------------------------------------------------------------------

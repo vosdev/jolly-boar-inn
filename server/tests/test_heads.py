@@ -25,15 +25,11 @@ import pytest
 
 from app.config import REPO_ROOT, Settings
 from app.heads import HEADS_DIR, MANIFEST, load_head_count
+from tests.client_source import CLIENT_SRC, read
 
 CLIENT = REPO_ROOT / "client"
-CLIENT_SRC = CLIENT / "src"
 # Section 5.2: 32px in the top bar and the lobby, 48px on the standings.
 SIZES = (32, 48)
-
-
-def read(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
 
 
 def png_size(path: Path) -> tuple[int, int]:
