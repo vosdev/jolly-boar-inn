@@ -80,16 +80,17 @@ export interface ModeBounds {
 export interface ModePacing {
   id: string
   /**
-   * The question type the mode is answered in. Null for `custom` only, whose questions
-   * each carry their own.
+   * The question types a round of the mode is answered in. Empty for `custom` and
+   * `random_event`, whose questions each carry their own.
    */
-  type: string | null
+  types: string[]
   /**
-   * How many questions its round holds. Null for `custom` only, which is never a round:
-   * the host's questions are random events, so the form does not offer it as one.
+   * How many questions its round holds, and how long each stays open. Both null for
+   * `custom` and `random_event`, which are never rounds: their questions are random
+   * events, paced by their own types, so the form does not offer them as rounds.
    */
   questions: ModeBounds | null
-  seconds: ModeBounds
+  seconds: ModeBounds | null
 }
 
 /** Registry order, which is the order the create form lists them in. */

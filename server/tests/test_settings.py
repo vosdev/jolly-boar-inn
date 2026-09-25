@@ -30,7 +30,7 @@ def more_modes() -> Iterator[list[str]]:
     """Four more registered modes, for the rules that need a room of several rounds."""
     names = [f"stub_{index}" for index in range(4)]
     for name in names:
-        MODES[name] = Mode(id=name, type="more_less")
+        MODES[name] = Mode(id=name, types=frozenset({"more_less"}))
     yield names
     for name in names:
         del MODES[name]
@@ -170,6 +170,37 @@ def test_a_room_stored_with_t21s_boolean_reads_as_the_frequency_it_meant() -> No
         RoomSettings.model_validate({**stored, "random_events": "sometimes"})
 
 
+def test_a_stored_room_keeps_a_mode_that_left_the_registry() -> None:
+    """Its questions carry their own types, so it plays on, at the fallback pace; a room
+    being created or built in code is still held to the registry."""
+    stored = {"modes": [{"mode": "drop_table", "questions": 4, "seconds": 12}]}
+    settings = RoomSettings.stored(stored)
+    assert settings.mode_ids == ["drop_table"]
+    assert settings.seconds_for("drop_table", "multiple_choice") == 12
+    with pytest.raises(ValidationError, match="unsupported"):
+        RoomSettings.model_validate(stored)
+    with pytest.raises(ValidationError, match="cannot be picked as a round"):
+        RoomSettings.model_validate({"modes": [{"mode": "custom"}]})
+    assert RoomSettings.stored({"modes": [{"mode": "custom"}]}).mode_ids == ["custom"]
+
+
+def test_a_stored_room_drops_the_keys_a_newer_build_wrote() -> None:
+    """A downgrade must not strand every room the newer release created."""
+    stored = {
+        **RoomSettings().model_dump(),
+        "list_publicly": True,
+        "modes": [{"mode": "more_less", "questions": 5, "seconds": 10, "hidden": True}],
+    }
+    assert RoomSettings.stored(stored) == RoomSettings(
+        modes=[{"mode": "more_less", "questions": 5, "seconds": 10}]
+    )
+    with pytest.raises(ValidationError, match="list_publicly"):
+        RoomSettings.model_validate(stored)
+    old = {k: v for k, v in stored.items() if k != "random_event_frequency"}
+    old["random_events"] = False
+    assert RoomSettings.stored(old).random_event_frequency is None  # still translated
+
+
 def test_the_hosts_questions_are_capped_at_the_slots(more_modes: list[str]) -> None:
     """Never truncated -- refused, naming the count, the limit and the frequency, and
     pointing at ``more`` while there is a ``more`` to point at."""
@@ -227,19 +258,19 @@ def test_naming_wrong_answers_is_off_unless_the_host_asks() -> None:
 
 def test_seconds_for_clamps_a_stored_room_into_the_types_range() -> None:
     settings = RoomSettings(modes=[{"mode": "more_less", "seconds": 45}])
-    assert settings.seconds_for("more_less") == 20
+    assert settings.seconds_for("more_less", "more_less") == 20
 
 
-def test_a_mode_nobody_picked_plays_at_its_own_pace() -> None:
-    """An event is a question of a mode no round was made for: ``random_event``, ``custom``,
-    or a round mode a room from before T22 borrowed one from. Each plays at that mode's
-    default length."""
+def test_an_event_is_open_for_its_own_types_default() -> None:
+    """An event has no round of its own to take a length from, so the question's type
+    decides, not the mode it came from or the round it interrupts."""
     settings = RoomSettings(modes=[{"mode": "more_less", "questions": 4, "seconds": 7}])
-    assert settings.seconds_for("more_less") == 7
-    assert settings.seconds_for("guess_examine") == 20  # its type's default
-    assert settings.seconds_for("custom") == 20  # the mode's own
-    assert settings.seconds_for("random_event") == 20
-    assert settings.seconds_for("not_a_mode") == 30  # the registry fallback
+    assert settings.seconds_for("more_less", "more_less") == 7
+    for mode in ("custom", "random_event"):
+        assert settings.seconds_for(mode, "more_less") == 10
+        assert settings.seconds_for(mode, "multiple_choice") == 15
+        assert settings.seconds_for(mode, "closest_number") == 20
+    assert settings.seconds_for("custom", "not_a_type") == 30  # the registry fallback
 
 
 def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) -> None:
@@ -248,33 +279,33 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
     assert response.json() == [
         {
             "id": "more_less",
-            "type": "more_less",
+            "types": ["more_less"],
             "questions": {"default": 5, "min": 1, "max": 30},
             "seconds": {"default": 10, "min": 5, "max": 20},
         },
         {
             "id": "price_is_right",
-            "type": "price_is_right",
+            "types": ["price_is_right"],
             "questions": {"default": 5, "min": 1, "max": 30},
             "seconds": {"default": 10, "min": 5, "max": 30},
         },
         {
             "id": "guess_examine",
-            "type": "pick_from_list",
+            "types": ["pick_from_list"],
             "questions": {"default": 5, "min": 1, "max": 30},
             "seconds": {"default": 20, "min": 10, "max": 60},
         },
         {
-            # Never a round, so no round length; its questions carry their own types.
+            # Never a round, so no round length; its questions carry and pace by their types.
             "id": "custom",
-            "type": None,
+            "types": [],
             "questions": None,
-            "seconds": {"default": 20, "min": 10, "max": 60},
+            "seconds": None,
         },
         {
             "id": "random_event",
-            "type": None,
+            "types": [],
             "questions": None,
-            "seconds": {"default": 20, "min": 10, "max": 60},
+            "seconds": None,
         },
     ]

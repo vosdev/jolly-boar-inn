@@ -20,7 +20,10 @@ request comes in.
 Keeping the ranges off the stored model means two things. A room created under one set of
 bounds still loads after the bounds change, instead of becoming unrehydratable. And the
 test suite can run a whole game with one-second questions without going behind the
-model's back.
+model's back. A room read back from the database (``RoomSettings.stored``) goes further:
+it keeps a round whose mode has left the registry, which still plays because each of its
+questions carries its own type, and drops keys a newer release wrote, so a downgrade does
+not strand every room that release created.
 
 Random events are the other thing a room is made of, and ``random_event_frequency`` says
 how many: one per 20, 10 or 5 round questions (``EVENT_EVERY``), added on top of the
@@ -45,9 +48,16 @@ is made that way; it exists so every stored room still loads.
 
 from typing import Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
-from app.modes import MODES, questions_bounds, seconds_bounds
+from app.modes import MODES, questions_bounds, seconds_bounds, type_seconds
 
 # The most questions one room may be created with, over all of its rounds and the events
 # inside them. Nothing in the game loop cares; it is there so a host cannot ask for an
@@ -59,6 +69,17 @@ Frequency = Literal["less", "default", "more"]
 # roughly once a round at the default round lengths, which is about as often as the game
 # itself interrupts anyone; five is a room that came for the NPCs.
 EVENT_EVERY: dict[str, int] = {"less": 20, "default": 10, "more": 5}
+
+
+def _stored(info: ValidationInfo) -> bool:
+    return bool(info.context and info.context.get("stored"))
+
+
+def _known_keys(model: type[BaseModel], data: Any, info: ValidationInfo, *legacy: str) -> Any:
+    """``data`` without the keys ``model`` does not have, when it is being read back."""
+    if not _stored(info) or not isinstance(data, dict):
+        return data
+    return {k: v for k, v in data.items() if k in model.model_fields or k in legacy}
 
 
 def event_slots(round_questions: int, frequency: Frequency) -> int:
@@ -82,13 +103,14 @@ class ModeSettings(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _defaults_from_the_mode(cls, data: Any) -> Any:
+    def _defaults_from_the_mode(cls, data: Any, info: ValidationInfo) -> Any:
         """Fill what was left out from the mode's own bounds.
 
         A mode the registry does not know is filled from the fallbacks rather than left
         short: the problem with ``{"mode": "closest_number"}`` is the mode, and the host
         should read that from ``modes`` and not two complaints about missing numbers.
         """
+        data = _known_keys(cls, data, info)
         mode = data.get("mode") if isinstance(data, dict) else None
         if not isinstance(mode, str):
             return data  # not a mode at all; ``mode``'s own field error says so
@@ -143,14 +165,20 @@ class RoomSettings(BaseModel):
     # so a stored room always has a number here.
     max_players: int | None = Field(default=None, ge=1)
 
+    @classmethod
+    def stored(cls, data: Any) -> Self:
+        """Read a room's settings back from ``rooms.settings``, whichever build wrote them."""
+        return cls.model_validate(data, context={"stored": True})
+
     @model_validator(mode="before")
     @classmethod
-    def _frequency_from_the_boolean(cls, data: Any) -> Any:
+    def _frequency_from_the_boolean(cls, data: Any, info: ValidationInfo) -> Any:
         """Read a room stored with T21's ``random_events`` as the frequency it meant.
 
         Only a real boolean is translated. Anything else is left where it is, for
-        ``extra="forbid"`` to refuse by name.
+        ``extra="forbid"`` to refuse by name, or for ``stored`` to drop.
         """
+        data = _known_keys(cls, data, info, "random_events")
         if not isinstance(data, dict) or not isinstance(data.get("random_events"), bool):
             return data
         translated = {k: v for k, v in data.items() if k != "random_events"}
@@ -161,12 +189,14 @@ class RoomSettings(BaseModel):
 
     @field_validator("modes")
     @classmethod
-    def _supported_and_unique(cls, modes: list[ModeSettings]) -> list[ModeSettings]:
+    def _supported_and_unique(
+        cls, modes: list[ModeSettings], info: ValidationInfo
+    ) -> list[ModeSettings]:
         unknown = [entry.mode for entry in modes if entry.mode not in MODES]
-        if unknown:
+        if unknown and not _stored(info):
             raise ValueError(f"unsupported mode(s): {unknown}")
-        events = [entry.mode for entry in modes if not MODES[entry.mode].is_round]
-        if events:
+        events = [m for m in (e.mode for e in modes) if m in MODES and not MODES[m].is_round]
+        if events and not _stored(info):
             # The host's questions go in ``custom_questions``, and land as random events.
             raise ValueError(f"{events} cannot be picked as a round: its questions are events")
         picked = [entry.mode for entry in modes]
@@ -200,18 +230,18 @@ class RoomSettings(BaseModel):
     def entry_for(self, mode: str) -> ModeSettings | None:
         return next((entry for entry in self.modes if entry.mode == mode), None)
 
-    def seconds_for(self, mode: str) -> int:
-        """How long one question of this mode stays open, the mode's own range included.
+    def seconds_for(self, mode: str, type_id: str) -> int:
+        """How long one question stays open: its round's setting, or its type's default.
 
         The clamp is for stored rooms, not for new ones: ``NewRoomSettings`` refuses
         anything outside the mode's ``Bounds`` on the way in, so the only way past it is a
-        room created before the bounds moved. A mode with no entry -- ``custom`` and
-        ``random_event``, whose questions are events, or a round mode a room from before T22
-        borrowed an event from -- plays at its own default.
+        room created before the bounds moved. A question whose mode has no entry is a
+        random event, which has no round to take a length from, so its own type decides.
         """
         entry = self.entry_for(mode)
-        bounds = seconds_bounds(mode)
-        return bounds.default if entry is None else bounds.clamp(entry.seconds)
+        if entry is None:
+            return type_seconds(type_id).default
+        return seconds_bounds(mode).clamp(entry.seconds)
 
 
 class NewRoomSettings(RoomSettings):

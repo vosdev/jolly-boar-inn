@@ -2,16 +2,15 @@
 
 The create form needs a number field per mode with a sane default and a range that the
 server will actually accept. Both come from the mode registry (``app/modes``), which reads
-them off the mode's type unless the mode says otherwise, so the form asks for them rather
-than carrying a second copy that drifts. Each mode's ``type`` rides along because which
-answer shape a round is played in is the server's to say, like its pace. Copy -- what a
-mode is called and how it is explained -- stays on the client, in ``lib/modes.ts``: it is
-the one thing about a mode the server has no opinion on.
+them off the mode's types unless the mode says otherwise, so the form asks for them rather
+than carrying a second copy that drifts. Each mode's ``types`` ride along because which
+answer shapes a round is played in is the server's to say, like its pace. Copy -- what a
+mode is called and how it is explained -- stays on the client, in ``lib/modes.ts``.
 
-``custom`` is listed too, with ``type`` and ``questions`` null: it has no type because the
-host's questions carry their own, and no round length because it is never a round -- each
-of its questions is a random event. Its ``seconds`` is how long one of them stays open. The
-create form offers as a round every mode that has ``questions``, which is every other one.
+``custom`` and ``random_event`` are listed too, with no types and ``questions`` and
+``seconds`` null: they are never a round, and each of their questions is a random event
+paced by its own type. The create form offers as a round every mode that has
+``questions``, which is every other one.
 """
 
 from typing import Any
@@ -29,9 +28,9 @@ def list_modes() -> list[dict[str, Any]]:
     return [
         {
             "id": mode.id,
-            "type": mode.type,
+            "types": sorted(mode.types),
             "questions": questions_bounds(mode.id).view() if mode.is_round else None,
-            "seconds": seconds_bounds(mode.id).view(),
+            "seconds": seconds_bounds(mode.id).view() if mode.is_round else None,
         }
         for mode in MODES.values()
     ]

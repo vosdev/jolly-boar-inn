@@ -32,7 +32,6 @@ SCORING = Scoring.SPEED
 # A sentence and up to six answers to read, which takes longer than four prices: fifteen
 # seconds by default, and no more than half a minute before it is a question about
 # re-reading rather than knowing.
-QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=15, minimum=5, maximum=30)
 
 _OPEN_KEYS = ("prompt", "image", "options")

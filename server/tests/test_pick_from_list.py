@@ -16,7 +16,7 @@ from uuid import uuid4
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES, questions_bounds, seconds_bounds
+from app.modes import MODES, seconds_bounds
 from app.questions import schema, vocab
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
@@ -64,9 +64,8 @@ def shipped() -> list[dict[str, Any]]:
 
 
 def test_guess_examine_plays_as_pick_from_list_at_its_types_pace() -> None:
-    assert MODES["guess_examine"].type == "pick_from_list"
+    assert MODES["guess_examine"].types == {"pick_from_list"}
     assert TYPES["pick_from_list"] is pick_from_list
-    assert questions_bounds("guess_examine") is pick_from_list.QUESTIONS
     assert seconds_bounds("guess_examine") is pick_from_list.SECONDS
 
 

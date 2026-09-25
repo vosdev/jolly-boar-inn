@@ -91,7 +91,7 @@ jolly-boar-inn/
 │   │   ├── http/
 │   │   │   ├── rooms.py       # POST /api/rooms, GET+DELETE /api/rooms/{code}
 │   │   │   ├── players.py     # POST /api/rooms/{code}/join
-│   │   │   ├── modes.py       # GET /api/modes: the modes, their type, and their pacing
+│   │   │   ├── modes.py       # GET /api/modes: the modes, their types, and their pacing
 │   │   │   ├── vocab.py       # GET /api/vocab/{name}: the autocomplete lists
 │   │   │   ├── bodylimit.py   # 256 KiB cap on /api/* request bodies, 413 over it
 │   │   │   ├── forwarded.py   # warns once about an ignored X-Forwarded-For
@@ -208,7 +208,7 @@ def check(payload: dict) -> list[str]      # consistency: the stored answer foll
 
 SCORING: Scoring = Scoring.SPEED           # optional: how credit becomes points (section 6)
 QUESTIONS: Bounds                          # optional: fallback round length for a mode of this type
-SECONDS: Bounds                            # optional: fallback question length for a mode of this type
+SECONDS: Bounds                            # optional: fallback question length, and an event's length
 ```
 
 `grade` returns **credit**, a float from 0.0 to 1.0, for every type. One is fully right,
@@ -225,9 +225,10 @@ about; the type is only how you answer it.
 @dataclass(frozen=True, slots=True)
 class Mode:
     id: str                       # "drop_table"; the questions.mode column and the settings key
-    type: str | None              # the question type it plays as; None for "custom", "random_event"
-    questions: Bounds | None      # how many questions its round holds; None for the same two
-    seconds: Bounds               # how long one of them stays open
+    types: frozenset[str]         # the question types its questions use; empty for "custom", "random_event"
+    is_round: bool = True         # stated, never derived: False for the same two
+    questions: Bounds | None      # how many questions its round holds; None: its types decide
+    seconds: Bounds | None        # how long one of them stays open; None: its types decide
 ```
 
 `MODES: dict[str, Mode]` is the registry, in the order the create form lists them.
@@ -242,17 +243,18 @@ index; keeping them as five types would be five copies of one `grade`, and would
 *modes* over one type gives each its own pool, its own pacing, its own splash and its own
 presentation, and costs one dataclass entry each.
 
-`Mode.type` is `None` for two modes, `custom` and `random_event`: a host may write a
-multiple-choice question and a closest-number one, and so may whoever writes for an NPC, and
-each question carries its own type. They are also the two modes that are never a round —
-their questions arrive one at a time as random events (`selection.py` below) — so each
-declares only `seconds`, the length of one such question, and has no `questions` bounds
-because it has no round to size. Every other mode has a type, and `validate_packs.py`
-rejects a pack question whose `type` disagrees with its `mode`'s.
+A round usually has one type, but may mix several (four buttons, and pick all that apply):
+the game loop reads only `question.type`. A round whose types disagree about a pace must
+state that number itself. `custom` and `random_event` are never rounds — their questions
+arrive one at a time as random events (`selection.py` below) — so they state no types and
+no numbers, and each question is open for its own type's `SECONDS.default`. `is_round` is
+explicit so that an empty `types` cannot quietly turn a round into an event pool.
+`modes.problems` checks all of this at import, and `validate_packs.py` rejects a pack
+question whose `type` is not among its `mode`'s.
 
 `grade` takes all submissions at once because `closest_number` ranks them. `scoring.py` turns grade results plus timing into points.
 
-`QUESTIONS` and `SECONDS` exist because modes differ in pace, and a room has no question length of its own to fall back on any more. Each is a `Bounds(default, minimum, maximum)`: the default the create form offers, and the range `NewRoomSettings` holds a host to. `more_less` is two names and one word, so it is a long round of short questions — ten of them at ten seconds, stretchable to twenty, because a minute of it would be forty-five seconds of waiting. They are the default for every mode of the type: a `Mode` states its own `questions` or `seconds` only where it disagrees, and a module that declares neither leaves it to the fallbacks in `modes/__init__.py`. `questions_bounds(mode)` and `seconds_bounds(mode)` read that chain — mode, then type, then registry — `GET /api/modes` serves the result to the create form, and `RoomSettings.seconds_for` clamps a stored room into it, so a room created before a mode or its type changed its mind still plays. The speed bucket is a fraction of that same number, so a ten-second round scores on ten seconds in a game whose other rounds run to a minute.
+`QUESTIONS` and `SECONDS` exist because modes differ in pace, and a room has no question length of its own to fall back on any more. Each is a `Bounds(default, minimum, maximum)`: the default the create form offers, and the range `NewRoomSettings` holds a host to. `more_less` is two names and one word, so it is a long round of short questions — ten of them at ten seconds, stretchable to twenty, because a minute of it would be forty-five seconds of waiting. They are the default for every mode of the type: a `Mode` states its own `questions` or `seconds` only where it disagrees, and a module that declares neither leaves it to the fallbacks in `modes/__init__.py`. `questions_bounds(mode)` and `seconds_bounds(mode)` read that chain — mode, then types, then registry — `GET /api/modes` serves the result to the create form, and `RoomSettings.seconds_for` clamps a stored room into it, so a room created before a mode or its type changed its mind still plays. The speed bucket is a fraction of that same number, so a ten-second round scores on ten seconds in a game whose other rounds run to a minute.
 
 **`rooms/selection.py`.** `select(packs, settings, rng) -> list[Round]`: a mode is a round. A room plays one round per mode picked, as long as that mode's own `questions` setting asks for — six modes are six rounds, one mode is one round. A mode's pool is every pack question carrying that `mode`, which is why the envelope stores it: pools are looked up by mode, never by type, or the five modes that share `multiple_choice` would draw from each other. `settings.mode_order` decides the running order: `"listed"` plays them in the order the host arranged them in, `"random"` shuffles them once, here, at creation, because the stored questions *are* the running order. Questions are drawn without replacement per mode; a mode whose pool runs dry gives a short round, or none at all — an empty round is dropped rather than played.
 
@@ -268,7 +270,7 @@ Where they go:
 Who asks, and what:
 
 - **The host's questions take random slots**, in the order the host wrote them. The cap is the slot count at the chosen frequency, and `NewRoomSettings` rejects more custom questions than that, naming the count, the limit and the frequency and pointing at `more`, rather than silently dropping the overflow. A host who wants five questions of their own writes a game long enough to hold five events, which also keeps them from turning the room into their own trivia night with one round of ours.
-- **Every other slot takes an NPC's own question**, from the event pack, `data/packs/random_events/`, and nowhere else. Every question there is mode `random_event` and was written for one NPC, about that NPC's subject: the Sandwich Lady asks about cooking and Dr Jekyll about potions. So for these slots the face and the question are drawn together, without replacement, preferring a question whose type differs from the round it interrupts — another four-button question in the middle of a four-button round reads as a long round, not an interruption. The slot is left empty only when no question qualifies.
+- **Every other slot takes an NPC's own question**, from the event pack, `data/packs/random_events/`, and nowhere else. Every question there is mode `random_event` and was written for one NPC, about that NPC's subject: the Sandwich Lady asks about cooking and Dr Jekyll about potions. So for these slots the face and the question are drawn together, without replacement, preferring a question of a type the interrupted round does not play — another four-button question in the middle of a four-button round reads as a long round, not an interruption. The slot is left empty only when no question qualifies.
 - **Faces.** A custom question whose envelope names an NPC (`random_event`) is asked by that NPC, even if another custom question already named it. Every other face is drawn from `app/random_events.py`: first from the NPCs the room has not seen yet, then from the least seen, and never the face of the event just before or after it. A face the host named counts as seen from the start, so the draw does not spend it early. A host's unnamed question may be asked by anyone on the roster, which is also the only way an NPC with no questions written yet turns up. The roster no longer has to outnumber the slots: a room at `more` can hold more events than there are faces, and the least used face repeats.
 
 A room stored before T22 said `random_events` instead, a boolean for "may the packs interrupt too". It reads back as `default` for true, and for false as a frequency of none: the host's own questions, placed by T21's rules — one per round after the first — and nothing else. `NewRoomSettings` never takes it, so no new room is made that way. Selection never runs twice, so this matters only for the settings a stored room loads with; its questions are already in their rows.
@@ -653,7 +655,7 @@ Free-text grading (`questions/normalize.py`): NFKC, lowercase, strip punctuation
 
 Custom questions are ordinary rows in `questions` with `source = 'room'`, `mode = 'custom'`, `author_player_id` set, and `payload` validated against this schema at room creation. Export is `SELECT` of those rows serialised back into the envelope; import is the same POST body as creation.
 
-Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`. One pack may hold more than one mode — `prices.json` carries both `more_less` and `price_is_right` questions, because they are generated from one fetch of the same two endpoints. `validate_packs.py` fails CI on schema errors, duplicate ids, `id` not matching content, an unknown `mode`, or a `type` that disagrees with its mode's.
+Pack files are `{"pack": "prices", "generated_at": "...", "questions": [ ... ]}`. One pack may hold more than one mode — `prices.json` carries both `more_less` and `price_is_right` questions, because they are generated from one fetch of the same two endpoints. `validate_packs.py` fails CI on schema errors, duplicate ids, `id` not matching content, an unknown `mode`, or a `type` that is not among its mode's.
 
 ## 3. Websocket protocol
 
@@ -723,8 +725,8 @@ event, where the NPC holds the floor with the question but without the buttons. 
 consequences, all of them the point of having the field rather than a client-side
 animation:
 
-- `ends_at` is `answerable_at` plus the question's own seconds, so an event is not two
-  seconds shorter than the round it interrupts.
+- `ends_at` is `answerable_at` plus the question's own seconds (its type's default for an
+  event), so an event is not two seconds shorter than it would be anywhere else.
 - `elapsed` is measured from `answerable_at` (section 6), so the theatre costs nobody a
   speed bucket.
 - An answer received before `answerable_at` is rejected with `not_open`. A client that
@@ -844,7 +846,7 @@ The splash introduces a *segment*: it runs before a segment's first question and
 |---|---|---|
 | `(new segment) → splash` | timer task, before a segment's first question, unless `splash_seconds` is 0 | `next_at = null` (it waits for the room), every player's `ready` cleared, broadcast `room_updated`; no write |
 | `splash → splash` (recounted) | a `ready`, connect, disconnect or kick during a splash | `rooms/ready.py`: the threshold reached with nothing running → `next_at = now + 10s`; everyone eligible ready → `min(next_at, now + 3s)`; an un-ready below the threshold → `next_at = null`; broadcast `room_updated`; no write |
-| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the type's `SECONDS`), broadcast `question_open`, schedule close |
+| `pending → open` | timer task, or `start_game` for index 0 | `UPDATE questions SET shown_at = now`, `answerable_at` = `shown_at` plus `random_event_seconds` for an event and `shown_at` otherwise, `ends_at` = `answerable_at` plus the round's own `seconds` (clamped to the mode's range), or the type's `SECONDS.default` for an event, broadcast `question_open`, schedule close |
 | `open → closed` | `ends_at` reached; or, with `close_when_all_answered`, an answer, disconnect or kick leaves every connected player who can answer answered; or admin `skip` | grade all answers, then `UPDATE questions SET closed_at = now` and `UPDATE answers SET correct, points` in one transaction, compute standings, broadcast `question_closed` with `next_at = now + reveal_seconds`, schedule advance |
 | `closed → next pending` | `next_at` reached or admin `skip` | `current_index += 1`, persist; if past the end → `finished` |
 | `open → voided` | restart recovery, `end_game` | `closed_at = now, voided = true`, no grading |
@@ -885,7 +887,7 @@ two of their five questions to a silent truncation finds out during the game. Bo
 keep only `seconds`, the length of one such question. A stored room from before T22 may
 say `random_events` instead; `RoomSettings` reads it as the frequency it meant.
 
-There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's type module says (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form, which offers each mode's default and gates its own submit button on the same bounds — `min` and `max` on a number input are a nudge a host can type past, so the form checks every round's two numbers itself and marks the one out of range under the field where its range is already written. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds — random events included, since they are questions the room will play.
+There is no room-wide round count and no room-wide question length. The number of rounds is the number of modes picked — one mode is one round, six modes are six rounds — and each round's `questions` and `seconds` are its own, because those two numbers are the ones modes differ most in: `more_less` is a long round of short questions, where a release-date round will be a short one of long questions. Both default to what the mode's types say (`QUESTIONS` / `SECONDS`, section 1) and are held to its range; `GET /api/modes` serves that to the create form, which offers each mode's default and gates its own submit button on the same bounds — `min` and `max` on a number input are a nudge a host can type past, so the form checks every round's two numbers itself and marks the one out of range under the field where its range is already written. A mode may appear only once, and a room may not ask for more than 100 questions over all of its rounds — random events included, since they are questions the room will play.
 
 Settings are fixed at creation. Editing settings in the lobby is not in Phase 1.
 
@@ -893,7 +895,9 @@ The ranges above are what a host may ask for, and they are checked where the req
 arrives (`NewRoomSettings` in `rooms/settings.py`). The stored model keeps only what the
 game loop cannot work without, so a room created under one set of bounds still loads
 after the bounds change — `seconds_for` clamps it into today's range rather than refusing
-it — and the tests can run a whole game on one-second questions.
+it — and the tests can run a whole game on one-second questions. `RoomSettings.stored`,
+the rehydrate read, also keeps a round whose mode has left the registry (it plays at the
+fallbacks) and drops keys it does not know, so a downgrade strands no room.
 
 ## 5. SQL schema
 

@@ -84,15 +84,15 @@ def consistency_errors(question: dict[str, Any]) -> list[str]:
 
 
 def mode_errors(question: dict[str, Any]) -> list[str]:
-    """A ``mode`` the registry does not have, or a ``type`` other than the one it plays as.
+    """A ``mode`` the registry does not have, or a ``type`` other than the ones it plays as.
 
     The schema can only hold ``mode`` to a pattern, because which modes exist is the
     registry's to say. A pack question with an unknown mode would sit in a pool nobody can
-    pick, and one whose type disagrees with its mode's would be graded as one thing inside
-    a round introduced as another.
+    pick, and one whose type is not among its mode's would be graded as one thing inside a
+    round introduced as another.
 
-    ``custom`` and ``random_event`` have no type to disagree with -- their questions each
-    carry their own. ``custom`` is also the other half of ``source: room``: a room's own
+    A mode that is not a round has no types to disagree with -- its questions are events
+    and each carries its own. ``custom`` is also the other half of ``source: room``: a room's own
     question is ``custom`` and nothing else is. A pack question filed under it would sit in
     a pool no round draws from, and a host's question filed under a pack mode would be
     drawn into that mode's rounds as if the packs had shipped it.
@@ -108,10 +108,10 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
             f"$.mode: {question['mode']!r} with source {question['source']!r}:"
             " a room's own questions, and only they, are 'custom'"
         ]
-    if mode.type is not None and question["type"] != mode.type:
+    if mode.is_round and question["type"] not in mode.types:
         return [
             f"$.type: {question['type']!r} disagrees with its mode:"
-            f" {mode.id!r} plays as {mode.type!r}"
+            f" {mode.id!r} plays as {', '.join(map(repr, sorted(mode.types)))}"
         ]
     return []
 
@@ -130,7 +130,8 @@ def event_errors(question: dict[str, Any]) -> list[str]:
         return ["$.random_event: an NPC's own question must name the NPC who asks it"]
     if npc is None:
         return []
-    if question["mode"] not in ("custom", "random_event"):
+    mode = MODES.get(question["mode"])
+    if mode is None or mode.is_round:
         return [
             f"$.random_event: a {question['mode']!r} question is asked by its round,"
             " not by an NPC; only the host's questions and the NPCs' own may name one"

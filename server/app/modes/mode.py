@@ -1,4 +1,4 @@
-"""``Mode``: one round a host can pick, and the question type it is answered in.
+"""``Mode``: one round a host can pick, and the question types it is answered in.
 
 Its own module rather than a class in ``modes/__init__.py`` for the same reason ``Bounds``
 has one: a test's stub mode, or anything else that needs the shape, should not have to
@@ -14,27 +14,31 @@ from app.questions.types.bounds import Bounds
 class Mode:
     """One entry in ``MODES``.
 
-    ``id`` is what ``questions.mode`` and ``settings.modes[].mode`` hold. ``type`` is the
-    key into ``questions/types``: the answer shape, and so what grades the round.
+    ``id`` is what ``questions.mode`` and ``settings.modes[].mode`` hold. ``types`` are the
+    keys into ``questions/types`` its questions may use: the answer shapes, and so what
+    grades them. Most rounds have one; a round may mix several, since every question
+    carries its own type and the game loop only ever reads that.
 
-    ``questions`` and ``seconds`` are the numbers a mode disagrees with its type about.
-    ``None`` means "whatever the type says", which is what ``questions_bounds`` and
-    ``seconds_bounds`` fall back to. A pace belongs to the answer shape far more often
-    than to the round -- two names and one word is quick whatever the round is about --
-    so a mode that states neither is the ordinary case, not a missing one.
+    ``is_round`` is stated rather than derived from ``types``, so that forgetting a type
+    cannot quietly turn a round into something no host can pick. The two modes that are
+    not rounds, ``custom`` (the host's own questions) and ``random_event`` (the NPCs'), are
+    pools of random events: each of their questions carries a type of its own, and is
+    paced by it, so they state no types and no numbers.
 
-    ``type`` is ``None`` for the two modes whose questions are random events: ``custom``,
-    the host's own, and ``random_event``, the NPCs'. Each of those questions carries a
-    type of its own. They are also the two modes that are not rounds (``is_round``), so
-    they state their ``seconds`` and have no ``questions`` to state.
+    ``questions`` and ``seconds`` are the numbers a round disagrees with its types about.
+    ``None`` means "whatever the types say", which is what ``questions_bounds`` and
+    ``seconds_bounds`` fall back to; a round whose types disagree must state the number
+    itself, which ``modes.problems`` checks.
     """
 
     id: str
-    type: str | None
+    types: frozenset[str]
+    is_round: bool = True
     questions: Bounds | None = None
     seconds: Bounds | None = None
 
-    @property
-    def is_round(self) -> bool:
-        """Whether a host can pick it: every mode but the two whose questions are events."""
-        return self.type is not None
+    def __post_init__(self) -> None:
+        # A bare string would be read as a set of its letters.
+        if isinstance(self.types, str):
+            raise TypeError(f"{self.id}: types must be a collection of type ids, not a str")
+        object.__setattr__(self, "types", frozenset(self.types))

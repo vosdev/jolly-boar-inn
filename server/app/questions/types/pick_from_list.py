@@ -40,7 +40,6 @@ SCORING = Scoring.STEP
 # A sentence to read, then a search to type and an entry to pick: slower than four buttons.
 # Twenty seconds leaves a player who knows it time to find it in the list; a minute is as
 # long as it stays a question about knowing rather than about scrolling.
-QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=20, minimum=10, maximum=60)
 
 _OPEN_KEYS = ("prompt", "vocab", "steps")

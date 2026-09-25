@@ -264,7 +264,8 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     )
     assert loaded.mode_ids == ["more_less"]
     assert loaded.question_count == 5
-    assert loaded.seconds_for("more_less") == 20  # the type's maximum, not the stored 45
+    # The type's maximum, not the stored 45.
+    assert loaded.seconds_for("more_less", "more_less") == 20
 
 
 async def test_0004_leaves_a_room_created_after_it_alone(pool: asyncpg.Pool) -> None:

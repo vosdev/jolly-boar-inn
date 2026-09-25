@@ -15,17 +15,17 @@ import Create from './Create.svelte'
 const PACING: api.ModePacing[] = [
   {
     id: 'more_less',
-    type: 'more_less',
+    types: ['more_less'],
     questions: { default: 5, min: 1, max: 30 },
     seconds: { default: 10, min: 5, max: 20 },
   },
   {
     id: 'price_is_right',
-    type: 'price_is_right',
+    types: ['price_is_right'],
     questions: { default: 5, min: 1, max: 30 },
     seconds: { default: 10, min: 5, max: 30 },
   },
-  { id: 'custom', type: null, questions: null, seconds: { default: 20, min: 10, max: 60 } },
+  { id: 'custom', types: [], questions: null, seconds: null },
 ]
 
 vi.mock('../lib/api', async (importOriginal) => {

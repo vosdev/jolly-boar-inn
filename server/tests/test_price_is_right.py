@@ -14,7 +14,7 @@ from uuid import uuid4
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES, questions_bounds, seconds_bounds
+from app.modes import MODES, seconds_bounds
 from app.questions import schema
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
@@ -54,10 +54,9 @@ def shipped() -> list[dict[str, Any]]:
 
 
 def test_mode_plays_its_own_type_at_its_own_pace() -> None:
-    assert MODES["price_is_right"].type == "price_is_right"
+    assert MODES["price_is_right"].types == {"price_is_right"}
     assert TYPES["price_is_right"] is price_is_right
     assert scoring_of("price_is_right") is Scoring.SPEED
-    assert questions_bounds("price_is_right") is price_is_right.QUESTIONS
     assert seconds_bounds("price_is_right") is price_is_right.SECONDS
 
 

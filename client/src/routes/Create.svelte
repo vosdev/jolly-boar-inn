@@ -128,7 +128,11 @@
 
   /** A round of `mode` at that mode's own pace, which is what ticking it gives you. */
   function roundFor(mode: ModePacing): ModeSettings {
-    return { mode: mode.id, questions: mode.questions?.default ?? 1, seconds: mode.seconds.default }
+    return {
+      mode: mode.id,
+      questions: mode.questions?.default ?? 1,
+      seconds: mode.seconds?.default ?? 1,
+    }
   }
 
   function bounds(mode: string): ModePacing | null {
@@ -304,12 +308,12 @@
                 <input
                   id="seconds-{round.mode}"
                   type="number"
-                  min={bounds(round.mode)?.seconds.min ?? 5}
-                  max={bounds(round.mode)?.seconds.max ?? 120}
+                  min={bounds(round.mode)?.seconds?.min ?? 5}
+                  max={bounds(round.mode)?.seconds?.max ?? 120}
                   bind:value={round.seconds}
                 />
                 <p class="note" class:error={!inRange(round.mode, 'seconds', round.seconds)}>
-                  {bounds(round.mode)?.seconds.min}–{bounds(round.mode)?.seconds.max}
+                  {bounds(round.mode)?.seconds?.min}–{bounds(round.mode)?.seconds?.max}
                 </p>
               </div>
             </div>

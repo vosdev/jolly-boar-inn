@@ -38,7 +38,6 @@ MAX_LENGTH = 80
 DEFAULT_DISTANCE = 1
 # A question to read and an answer to type on a phone: slower than a button, so twenty
 # seconds, and a minute at most before the round is waiting on the slowest thumbs.
-QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=20, minimum=10, maximum=60)
 
 _OPEN_KEYS = ("prompt", "image")
