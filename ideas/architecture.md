@@ -32,8 +32,8 @@ server/app/rooms/                  state (RoomManager), settings, selection, seg
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
-server/scripts/                    gen_price_questions, gen_examine_questions, validate_packs,
-                                   check_contrast, smoke_ws, loadtest
+server/scripts/                    wiki, gen_price_questions, gen_examine_questions,
+                                   validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, profile, modes, vocab, …
 client/src/routes/, components/    Home, Create, Join, Room; TopBar, Lobby, Splash, Scoreboard, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
@@ -449,7 +449,8 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
   code.
 - One process per database: the app holds `pg_try_advisory_lock` on its own connection. A second
   process fails to start or answers `503 db_unavailable`, so stop the old container first.
-- Env vars and defaults are in `config.py`, documented in `.env.example`. `PUBLIC_BASE_URL` has no
+- The app's env vars and defaults are in `config.py`. `.env.example` documents them and the
+  scripts' `WIKI_USER_AGENT`. `PUBLIC_BASE_URL` has no
   consumer yet; the client links from `location.origin`.
 
 ## 11. Database
@@ -473,12 +474,14 @@ creation) and `answers` (one per player per question). The last three cascade fr
 
 Packs are generated offline and committed, so a clone plays without a network.
 
+- Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
+  `.env`) or no request, and one request a second per process. Offline flags need neither. A test
+  fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
 - `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - `make gen-examine-questions` builds `examine.json` from the hand-written `data/examines.json`. A
   test fails when they disagree.
-- T23 adds `make fetch-facts`, the only thing that talks to the wiki, through T34's `wiki.py`: one
-  request a second, the operator's User-Agent, resumable, into `data/facts/`.
+- T23 adds `make fetch-facts` on `wiki.py`: resumable, into `data/facts/`.
 - T24 adds `make gen-packs`: facts, the roster and `examines.json` into packs, offline and seeded,
   with `CHECK=1` diffing in CI. It never derives `examines.json`.
 - Facts are committed so generators run offline and reproducibly. Images are never committed; a

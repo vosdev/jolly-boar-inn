@@ -75,7 +75,8 @@ loadtest:
 
 # Regenerate data/packs/prices.json from the roster and the wiki price API (two requests,
 # /mapping and /latest). Never part of test, CI or app startup: run it about monthly and
-# commit the result. Idempotent, so a re-run against unchanged prices is a no-op.
+# commit the result. Idempotent, so a re-run against unchanged prices is a no-op. Needs
+# WIKI_USER_AGENT, from .env or the environment (.env.example).
 gen-price-questions:
 	cd server && uv run python scripts/gen_price_questions.py
 

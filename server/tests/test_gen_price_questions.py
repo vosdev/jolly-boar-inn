@@ -29,6 +29,7 @@ PACKS_DIR = REPO_ROOT / "data" / "packs"
 sys.path.insert(0, str(SERVER_DIR / "scripts"))
 
 import gen_price_questions as gen  # noqa: E402
+import wiki  # noqa: E402
 
 # A ladder of 12 tradeables 12% apart. The window is 1.25x..4x, so neighbours are too
 # close to make a question and everything two or more rungs apart is in: 55 pairs per
@@ -111,7 +112,7 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
     def refuse(*args: Any, **kwargs: Any) -> None:
         raise AssertionError("tests must not touch the network")
 
-    monkeypatch.setattr(gen.urllib.request, "urlopen", refuse)
+    monkeypatch.setattr(wiki.urllib.request, "urlopen", refuse)
 
 
 # --- shipped pack ----------------------------------------------------------------------
@@ -491,7 +492,15 @@ def test_cli_requires_both_saved_files(tmp_path: Path) -> None:
     assert "go together" in result.stderr
 
 
-def test_main_does_not_fetch_when_given_files(tmp_path: Path) -> None:
+@pytest.fixture
+def no_user_agent(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """No ``WIKI_USER_AGENT`` in the environment or in ``.env``."""
+    monkeypatch.delenv("WIKI_USER_AGENT", raising=False)
+    monkeypatch.setattr(wiki, "ENV_FILE", tmp_path / "no.env")
+
+
+@pytest.mark.usefixtures("no_user_agent")
+def test_main_does_not_fetch_when_given_files_and_needs_no_user_agent(tmp_path: Path) -> None:
     inputs = _write_inputs(tmp_path)
     out = tmp_path / "prices.json"
     code = gen.main(
@@ -512,26 +521,39 @@ def test_main_does_not_fetch_when_given_files(tmp_path: Path) -> None:
     assert len(_mode(json.loads(out.read_text()), "more_less")) == 5
 
 
-def test_main_uses_the_api_with_a_descriptive_user_agent(
+@pytest.mark.usefixtures("no_user_agent")
+def test_a_network_run_without_a_user_agent_exits_before_its_first_request(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inputs = _write_inputs(tmp_path)
+    out = tmp_path / "prices.json"
+    assert gen.main(["--roster", str(inputs["roster"]), "--out", str(out)]) == 1
+    err = capsys.readouterr().err
+    assert "WIKI_USER_AGENT is not set" in err
+    assert wiki.EXAMPLE in err
+    assert not out.exists()
+
+
+def test_main_fetches_through_wiki_py_under_the_operators_user_agent(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """One request each to /mapping and /latest, both carrying the User-Agent."""
+    """One request each to /mapping and /latest, both carrying ``WIKI_USER_AGENT``."""
     inputs = _write_inputs(tmp_path)
+    monkeypatch.setenv("WIKI_USER_AGENT", "price-test - Zezima on Discord")
     calls: list[tuple[str, str]] = []
 
-    def fake_fetch(url: str, user_agent: str) -> Any:
-        calls.append((url, user_agent))
+    def get_json(self: wiki.Wiki, url: str) -> Any:
+        calls.append((url, self.user_agent))
         return MAPPING if url.endswith("/mapping") else LATEST
 
-    monkeypatch.setattr(gen, "fetch_json", fake_fetch)
+    monkeypatch.setattr(wiki.Wiki, "get_json", get_json)
     out = tmp_path / "prices.json"
     code = gen.main(["--roster", str(inputs["roster"]), "--out", str(out), "--count", "5"])
     assert code == 0
     assert calls == [
-        (gen.API_BASE + "/mapping", gen.USER_AGENT),
-        (gen.API_BASE + "/latest", gen.USER_AGENT),
+        (gen.API_BASE + "/mapping", "price-test - Zezima on Discord"),
+        (gen.API_BASE + "/latest", "price-test - Zezima on Discord"),
     ]
-    assert "jolly-boar-inn" in gen.USER_AGENT and "github.com" in gen.USER_AGENT
 
 
 # --- wiring ----------------------------------------------------------------------------

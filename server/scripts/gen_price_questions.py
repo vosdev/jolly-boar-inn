@@ -3,9 +3,9 @@ Right on GE price.
 
 Inputs: ``data/popular-items.json`` (the curated roster) and the wiki price API, one
 request each to ``/mapping`` (names, high alch) and ``/latest`` (current prices), sent
-with a descriptive User-Agent. Untradeable roster items are absent from ``/mapping`` and
-are skipped; a roster name that disagrees with ``/mapping`` is an error, because it means
-the id is wrong.
+through ``wiki.py`` under the operator's ``WIKI_USER_AGENT``. Untradeable roster items are
+absent from ``/mapping`` and are skipped; a roster name that disagrees with ``/mapping`` is
+an error, because it means the id is wrong.
 
 Both modes come out of the one fetch because they are about the same numbers, and a pack
 whose two halves disagreed about what a whip costs would be caught out by anyone who
@@ -24,10 +24,9 @@ Usage (from ``server/``)::
 
     uv run python scripts/gen_price_questions.py [--count 150] [--price-is-right-count 100]
         [--out PATH] [--roster PATH] [--mapping-file PATH --latest-file PATH]
-        [--user-agent UA]
 
 ``--mapping-file`` / ``--latest-file`` read saved API responses instead of fetching, for
-tests and offline runs.
+tests and offline runs, and need no User-Agent.
 """
 
 import argparse
@@ -36,12 +35,13 @@ import json
 import math
 import random
 import sys
-import urllib.request
 from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+import wiki
 
 from app.questions import schema
 from app.questions.packs import pack_errors
@@ -51,8 +51,6 @@ DEFAULT_ROSTER = REPO_ROOT / "data" / "popular-items.json"
 DEFAULT_OUT = REPO_ROOT / "data" / "packs" / "prices.json"
 
 API_BASE = "https://prices.runescape.wiki/api/v1/osrs"
-USER_AGENT = "jolly-boar-inn gen_price_questions (https://github.com/vosdev/jolly-boar-inn)"
-TIMEOUT_SECONDS = 30
 
 PACK_NAME = "prices"
 DEFAULT_COUNT = 150
@@ -116,12 +114,6 @@ class RosterError(ValueError):
 
 
 # --- inputs ---------------------------------------------------------------------------
-
-
-def fetch_json(url: str, user_agent: str) -> Any:
-    request = urllib.request.Request(url, headers={"User-Agent": user_agent})
-    with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # noqa: S310
-        return json.loads(response.read().decode("utf-8"))
 
 
 def load_roster(path: Path) -> list[dict[str, Any]]:
@@ -501,7 +493,6 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--roster", type=Path, default=DEFAULT_ROSTER)
     parser.add_argument("--mapping-file", type=Path, help="saved /mapping response")
     parser.add_argument("--latest-file", type=Path, help="saved /latest response")
-    parser.add_argument("--user-agent", default=USER_AGENT)
     parser.add_argument("--seed", type=int, default=SEED)
     args = parser.parse_args(argv)
     if (args.mapping_file is None) != (args.latest_file is None):
@@ -521,8 +512,9 @@ def main(argv: list[str]) -> int:
             mapping = json.loads(args.mapping_file.read_text(encoding="utf-8"))
             latest = json.loads(args.latest_file.read_text(encoding="utf-8"))
         else:
-            mapping = fetch_json(f"{API_BASE}/mapping", args.user_agent)
-            latest = fetch_json(f"{API_BASE}/latest", args.user_agent)
+            source = wiki.connect()
+            mapping = source.get_json(f"{API_BASE}/mapping")
+            latest = source.get_json(f"{API_BASE}/latest")
         pack, notes = generate(
             roster,
             mapping,
@@ -531,6 +523,9 @@ def main(argv: list[str]) -> int:
             seed=args.seed,
             pir_count=args.price_is_right_count,
         )
+    except wiki.MissingUserAgent as exc:
+        print(exc, file=sys.stderr)
+        return 1
     except RosterError as exc:
         for line in exc.errors:
             print(line, file=sys.stderr)
