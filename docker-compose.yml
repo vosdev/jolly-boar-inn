@@ -2,7 +2,8 @@
 # Optional overrides come from a `.env` file next to this file (see .env.example).
 #
 # The published port binds to loopback by default, on the assumption that a reverse
-# proxy fronts it. Set APP_BIND=0.0.0.0 if your proxy lives on another host.
+# proxy fronts it. Set APP_BIND=0.0.0.0 if your proxy lives on another host, or an IPv6
+# address such as ::1 to publish over IPv6.
 
 services:
   app:

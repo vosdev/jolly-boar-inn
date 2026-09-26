@@ -7,14 +7,15 @@
  * the way Join gives one.
  */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { nudge, profile } from '../lib/profile'
-import { createdRooms } from '../lib/session'
+import { createdRooms, rememberCreated, setSession } from '../lib/session'
 import Create from './Create.svelte'
+import Home from './Home.svelte'
 
 const PACING: api.ModePacing[] = [
   {
@@ -34,11 +35,14 @@ const PACING: api.ModePacing[] = [
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getModes: vi.fn(), createRoom: vi.fn() }
+  return { ...real, getModes: vi.fn(), createRoom: vi.fn(), getRoom: vi.fn(), deleteRoom: vi.fn() }
 })
 
 beforeEach(() => {
   vi.clearAllMocks()
+  localStorage.clear()
+  vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 1 })
+  vi.mocked(api.deleteRoom).mockResolvedValue(undefined)
   vi.mocked(api.getModes).mockResolvedValue(structuredClone(PACING))
   vi.mocked(api.createRoom).mockResolvedValue({
     code: 'ABYSSAL',
@@ -217,5 +221,82 @@ describe('Create', () => {
     await submitted()
     await waitFor(() => expect(createdRooms(Date.parse('2098-12-31T23:59:59Z'))).toEqual(['ABYSSAL']))
     expect(createdRooms(Date.parse('2099-01-01T00:00:00Z'))).toEqual([])
+  })
+})
+
+describe('Create with five rooms already', () => {
+  const HOSTED = ['RUNE', 'DRAGON', 'BARROWS', 'ZULRAH', 'VORKATH']
+
+  beforeEach(() => {
+    for (const code of HOSTED) {
+      rememberCreated(code, '2099-01-01T00:00:00Z')
+      setSession(code, `s-${code}`)
+    }
+  })
+
+  it('refuses a sixth and links the homepage, where each room has Remove', async () => {
+    const navigate = vi.fn()
+    render(Create, { navigate })
+    const banner = await screen.findByText(/You already have five rooms/)
+    expect(banner.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'You already have five rooms. Remove one on the homepage to make another.',
+    )
+    expect(screen.queryByRole('button', { name: 'Create room' })).toBeNull()
+    await fireEvent.click(within(banner).getByRole('link', { name: 'homepage' }))
+    expect(navigate).toHaveBeenCalledWith('/')
+    expect(api.createRoom).not.toHaveBeenCalled()
+  })
+
+  it('lets the sixth through once one is removed on the homepage', async () => {
+    render(Home, { navigate: vi.fn() })
+    const rune = screen.getByText('RUNE').closest('li')!
+    await fireEvent.click(within(rune).getByRole('button', { name: 'Remove' }))
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove' }))
+    await waitFor(() => expect(createdRooms()).not.toContain('RUNE'))
+    cleanup()
+    await loaded()
+    await submitted()
+  })
+
+  it.each([404, 410])('drops a room that answers %i from the list rather than counting it', async (status) => {
+    vi.mocked(api.getRoom).mockImplementation(async (code) => {
+      if (code === 'ZULRAH') throw new api.ApiFailure(status, 'gone', 'gone')
+      return { status: 'lobby', players: 1 }
+    })
+    await loaded()
+    await submitted()
+    expect(createdRooms()).not.toContain('ZULRAH')
+  })
+
+  it('counts a room it could not check, since nothing says it is gone', async () => {
+    vi.mocked(api.getRoom).mockRejectedValue(new api.ApiFailure(429, 'rate_limited', 'slow down'))
+    render(Create, { navigate: () => {} })
+    expect(await screen.findByText(/You already have five rooms/)).toBeTruthy()
+    expect(createdRooms()).toHaveLength(5)
+  })
+
+  it('refuses at submit when another tab filled the list since the form loaded', async () => {
+    const [last, ...four] = HOSTED
+    localStorage.clear()
+    for (const code of four) rememberCreated(code, '2099-01-01T00:00:00Z')
+    await loaded()
+    await waitFor(() =>
+      expect((screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled).toBe(false),
+    )
+    rememberCreated(last!, '2099-01-01T00:00:00Z')
+    await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+    expect(await screen.findByText(/You already have five rooms/)).toBeTruthy()
+    expect(api.createRoom).not.toHaveBeenCalled()
+  })
+})
+
+describe('Create under five rooms', () => {
+  it('asks the server nothing about them', async () => {
+    for (const code of ['RUNE', 'DRAGON', 'BARROWS', 'ZULRAH']) {
+      rememberCreated(code, '2099-01-01T00:00:00Z')
+    }
+    await loaded()
+    await submitted()
+    expect(api.getRoom).not.toHaveBeenCalled()
   })
 })
