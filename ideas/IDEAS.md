@@ -93,7 +93,7 @@ Amount of (returning) players. Amount of games created. Amount of games complete
 
 # Admin view
 
-Configure a secure token in .env, minimum of 64 characters. manually create /admin?Token=blabla URL to create the local storage in the browser. This token now authenticates you against the server for admin type of things in the future. Like showing howmany rooms are active and which. Howmany players are connected. 
+Configure a secure token in .env, minimum of 64 characters. manually create /admin#Token=blabla URL to create the local storage in the browser. This token now authenticates you against the server for admin type of things in the future. Like showing howmany rooms are active and which. Howmany players are connected. 
 
 
 # Clean up Game Creation screen
@@ -114,3 +114,11 @@ Add some team names
 When teams vs teams, Questions are no longer scored based on how quick you answer, but on accuracy from the whole team.
 
 If 3 out of 4 members pick the correct answer, 75% of the points are granted.
+
+
+# Mobile view "bugs"
+
+When playing games with a text input, there's very little room left on a mobile phone's screen. We should scroll into view to just show the question + input box + possible combobox dropdown. The "Question X of Y" is irrelevant when you need to quickly think of your answer.
+
+# End round button
+We can end the question and the game, but not just the round.
