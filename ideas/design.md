@@ -382,7 +382,7 @@ never over live answers.
 
 `party_room` on its own, against the contract: deep purple base, gold and partyhat accents, a wide
 radius, no border. Its accent most wants to be used everywhere, which §2 forbids, so it must be able
-to fail, or be cut, without taking the other themes with it.
+to fail, or be cut, without taking the other themes with it. Small balloons on the background. Sometimes a partyhat.
 
 **Accept:** it passes the contrast script unmodified, `--gem-ink` against every gem and layer 8's
 scroll included, and its scroll still reads as parchment; no `party_room` rule touches a layer-3 or
