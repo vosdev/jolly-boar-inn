@@ -126,9 +126,9 @@ def test_a_failed_player_insert_leaves_no_room(
 
 
 def test_the_claim_endpoint_is_gone(client: TestClient) -> None:
-    """405, not 404: the SPA catch-all claims every path, but only for GET and HEAD."""
+    """404: no route has the path, and the SPA catch-all stays out of ``/api``."""
     code, _ = create(client)
-    assert client.post(f"/api/rooms/{code}/claim", json={}).status_code == 405
+    assert client.post(f"/api/rooms/{code}/claim", json={}).status_code == 404
 
 
 def test_code_is_an_uppercase_room_word(client: TestClient) -> None:

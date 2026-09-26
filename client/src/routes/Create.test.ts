@@ -3,14 +3,16 @@
  * because the host's questions are random events rather than a round. The form must not
  * offer it as one — ticked by default, it would have every room refused. Since T22 it
  * sends how often the NPCs interrupt, and counts their questions in the total it shows.
+ * It never asks for a name: the host is the profile, and a browser with none gets one
+ * the way Join gives one.
  */
 
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
 import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
-import { profile, saveProfile } from '../lib/profile'
+import { nudge, profile } from '../lib/profile'
 import { createdRooms } from '../lib/session'
 import Create from './Create.svelte'
 
@@ -44,7 +46,8 @@ beforeEach(() => {
     expires_at: '2099-01-01T00:00:00Z',
     player: { id: 'p', display_name: 'Zezima', role: 'admin', connected: false },
   })
-  saveProfile('Zezima')
+  profile.set({ name: 'Zezima', head: 3 })
+  nudge.set(null)
 })
 
 async function submitted(): Promise<api.NewRoomSettings> {
@@ -60,34 +63,44 @@ async function loaded(): Promise<void> {
 }
 
 describe('Create', () => {
-  it('stops a browser with no name at a popup that one tap gets past', async () => {
-    profile.set(null)
-    render(Create, { navigate: () => {} })
-    const dialog = screen.getByRole('dialog', { name: 'What do we call you?' }) as HTMLDialogElement
-    const offered = (within(dialog).getByRole('textbox') as HTMLInputElement).value
-    const host = within(dialog).getByRole('button', { name: `Host as ${offered}` })
-    expect(document.activeElement).toBe(host)
-    await fireEvent.click(host)
-    expect(dialog.open).toBe(false)
-    expect(get(profile)?.name).toBe(offered)
-    expect((screen.getByLabelText('Your name', { selector: '#name' }) as HTMLInputElement).value).toBe(
-      offered,
-    )
+  it('has no name field', async () => {
+    await loaded()
+    expect(screen.queryAllByRole('textbox')).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: 'Roll a random name' })).toBeNull()
   })
 
-  it('asks a returning browser nothing, and one tap lands the host in the lobby', async () => {
+  it('creates under the profile, and one tap lands the host in the lobby un-nudged', async () => {
+    const navigate = vi.fn()
+    render(Create, { navigate })
+    await screen.findByRole('checkbox', { name: /^More or Less/ })
+    await submitted()
+    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 3])
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(get(profile)).toEqual({ name: 'Zezima', head: 3 })
+    expect(get(nudge)).toBeNull()
+  })
+
+  it('gives a browser with no profile one in one tap, creates as it, and nudges once', async () => {
+    profile.set(null)
     const navigate = vi.fn()
     render(Create, { navigate })
     expect(document.querySelector('dialog')).toBeNull()
     await screen.findByRole('checkbox', { name: /^More or Less/ })
     await submitted()
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    const [name, , head] = vi.mocked(api.createRoom).mock.calls[0]!
+    expect(get(profile)).toEqual({ name, head })
+    expect(get(nudge)).toBe('ABYSSAL')
   })
 
-  it('gives its one text field a die', async () => {
+  it('keeps no generated profile from a create that failed, so the next one still nudges', async () => {
+    profile.set(null)
+    vi.mocked(api.createRoom).mockRejectedValueOnce(new api.ApiFailure(503, 'db_unavailable', 'down'))
     await loaded()
-    expect(screen.getAllByRole('textbox')).toHaveLength(1)
-    expect(screen.getByRole('button', { name: 'Roll a random name' })).toBeTruthy()
+    await submitted()
+    expect(await screen.findByRole('alert')).toBeTruthy()
+    expect(get(profile)).toBeNull()
+    expect(get(nudge)).toBeNull()
   })
 
   it('offers every mode but custom as a round', async () => {

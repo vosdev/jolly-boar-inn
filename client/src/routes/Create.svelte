@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Name first, then the rounds. One POST creates the room, its questions and you as its
+   * The rounds, then one tap. One POST creates the room, its questions and you as its
    * admin, and the response carries your session — so this screen navigates straight
    * into the lobby, which is already the best "room created" screen there is: the code
    * to read out, the link to share, and the players arriving.
@@ -12,11 +12,10 @@
    * numbers are held to come from `GET /api/modes`, which is the server's own mode
    * registry — the form never invents a number the server would refuse.
    *
-   * The name comes from the profile (D3). A browser with none is stopped by the popup
-   * before the form, which then arrives filled in: the host's name is the one read aloud
-   * and put at the top of the standings, so a beat to choose it is well spent, and here it
-   * is free — no room exists yet, so there is nothing to check it against or undo. What
-   * the host creates with becomes the profile, so the next room starts from it.
+   * The host is the profile, name and head, and the form never asks: the name lives in
+   * the top bar. A browser with none is handled the way Join handles one: it is given a
+   * generated name and head, which become its profile, and the chip nudges it once in
+   * the lobby. Nothing stands between a first-time host and their room.
    *
    * `/api/modes` lists `custom` and `random_event` too, with no round length: their
    * questions are never a round but random events, an NPC interrupting a round with one
@@ -27,7 +26,8 @@
    * (T30); until it lands `custom_questions` is always the empty list `api.createRoom`
    * sends, and every event is an NPC asking a question of their own.
    */
-  import { onMount, untrack } from 'svelte'
+  import { onMount } from 'svelte'
+  import { get } from 'svelte/store'
 
   import {
     ApiFailure,
@@ -36,11 +36,10 @@
     type ModePacing,
     type NewRoomSettings,
   } from '../lib/api'
-  import NameField from '../components/NameField.svelte'
-  import NamePrompt from '../components/NamePrompt.svelte'
+  import { randomHead } from '../lib/heads'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
-  import { nameProblem } from '../lib/names'
-  import { profile, saveProfile } from '../lib/profile'
+  import { generateName } from '../lib/names'
+  import { nudge, profile, saveProfile } from '../lib/profile'
   import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
   import { rememberCreated, setSession } from '../lib/session'
 
@@ -49,7 +48,6 @@
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
-  let displayName = $state($profile?.name ?? '')
   let revealSeconds = $state(3)
   /** How long the standings hold between rounds (D9); 0 runs the rounds straight on. */
   let standingsSeconds = $state(10)
@@ -103,23 +101,13 @@
     Number.isInteger(standingsSeconds) && 0 <= standingsSeconds && standingsSeconds <= 30,
   )
   const ready = $derived(
-    nameProblem(displayName) === null &&
-      rounds.length > 0 &&
+    rounds.length > 0 &&
       roundsInRange &&
       revealInRange &&
       questionCount >= 1 &&
       totalCount <= MAX_QUESTIONS &&
       standingsInRange,
   )
-
-  // Filled in the moment the popup saves one. Only ever from empty, so a name the host
-  // is typing is never pulled out from under them.
-  $effect(() => {
-    const saved = $profile
-    untrack(() => {
-      if (displayName === '' && saved !== null) displayName = saved.name
-    })
-  })
 
   onMount(async () => {
     try {
@@ -194,11 +182,18 @@
       close_when_all_answered: closeWhenAllAnswered,
       name_wrong_answers: nameWrongAnswers,
     }
+    const saved = get(profile)
+    const host = saved ?? { name: generateName(), head: randomHead() }
     try {
-      const created = await createRoom(displayName.trim(), settings, $profile?.head)
+      const created = await createRoom(host.name, settings, host.head)
       setSession(created.code, created.session)
-      saveProfile(displayName)
       rememberCreated(created.code, created.expires_at)
+      // Only once the room exists, so a failed create leaves a browser that is still
+      // nudged when it does get one.
+      if (saved === null) {
+        saveProfile(host.name, host.head)
+        nudge.set(created.code)
+      }
       navigate(`/r/${created.code}`)
     } catch (error) {
       failure =
@@ -209,19 +204,10 @@
   }
 </script>
 
-{#if $profile === null}
-  <NamePrompt action="Host" onBack={() => navigate('/')} />
-{/if}
-
 <h1>Create a room</h1>
 <p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created.</p>
 
 <form onsubmit={submit}>
-  <section class="panel">
-    <h2>You</h2>
-    <NameField id="name" bind:value={displayName} />
-  </section>
-
   <section class="panel">
     <h2>Game modes</h2>
     <p class="note">Each mode you pick is one round. Each round opens with a screen introducing it.</p>
