@@ -43,10 +43,10 @@ containers and a 30-bot load test, with More or Less.
 
 Loose ends:
 
-- [ ] T31. Loose ends
-- [ ] T32. Six options, at most
+- [x] T31. Loose ends
+- [x] T32. Six options, at most
 - [ ] T33. Limits that mean one client, and IPv6 *(server half landed)*
-- [ ] T34. The wiki's rules, enforced *(must land before T23 makes its first request)*
+- [x] T34. The wiki's rules, enforced *(must land before T23 makes its first request)*
 
 Who gets into a room, what they keep when it ends:
 

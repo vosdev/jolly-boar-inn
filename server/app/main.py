@@ -21,6 +21,7 @@ from app.heads import load_head_count
 from app.http import modes, players, rooms, vocab
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
+from app.http.head import HeadAsGet
 from app.http.headers import SecurityHeaders
 from app.http.jsonbody import JsonBody
 from app.http.ratelimit import JOINS_PER_HOUR, LOOKUP_MISSES, LOOKUP_WINDOW, RateLimiter
@@ -219,6 +220,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour)
     app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW)
     app.state.joins = RateLimiter(JOINS_PER_HOUR)
+    app.add_middleware(HeadAsGet)
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)
     app.add_middleware(UntrustedForwardWarning)

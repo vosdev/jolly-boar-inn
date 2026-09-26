@@ -126,9 +126,9 @@ def test_a_failed_player_insert_leaves_no_room(
 
 
 def test_the_claim_endpoint_is_gone(client: TestClient) -> None:
-    """405, not 404: the SPA catch-all claims every path, but only for GET and HEAD."""
+    """404: no route has the path, and the SPA catch-all stays out of ``/api``."""
     code, _ = create(client)
-    assert client.post(f"/api/rooms/{code}/claim", json={}).status_code == 405
+    assert client.post(f"/api/rooms/{code}/claim", json={}).status_code == 404
 
 
 def test_code_is_an_uppercase_room_word(client: TestClient) -> None:
@@ -423,6 +423,15 @@ def test_a_custom_question_that_fails_the_schema_is_refused_by_field(
     response = post(client, [own_question(), bad])
     assert response.status_code == 422
     assert f"custom_questions[1] {field}" in response.text, response.text
+    assert_no_room(db)
+
+
+def test_a_seven_option_custom_question_is_a_422_naming_the_field(client: TestClient, db) -> None:
+    seven = own_question()
+    seven["payload"]["options"] = ["Zulrah", "Vorkath", "Jad", "Kraken", "Hydra", "Kree", "Sire"]
+    response = post(client, [seven])
+    assert response.status_code == 422
+    assert "custom_questions[0] $.payload.options" in response.text, response.text
     assert_no_room(db)
 
 

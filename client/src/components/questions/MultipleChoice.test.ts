@@ -7,6 +7,7 @@ import { fireEvent, render, screen } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
+import { GEMS } from './GemButton.svelte'
 import { viewFor } from './index'
 import Question from './Question.svelte'
 import TextStem from './stems/TextStem.svelte'
@@ -19,7 +20,7 @@ const VIEW = {
 
 const REVEAL = { ...VIEW, answer_index: 0, explanation: 'One of Zulrah’s uniques.' }
 
-function open(youCanAnswer = true): OpenQuestion {
+function open(youCanAnswer = true, view: typeof VIEW = VIEW): OpenQuestion {
   return {
     question_id: 'q1',
     index: 3,
@@ -28,7 +29,7 @@ function open(youCanAnswer = true): OpenQuestion {
     mode: 'custom',
     // The round it interrupts. `RandomEvent` draws the NPC around this; the question is this.
     segment: { mode: 'more_less', index: 1, total: 3, start: 2, count: 5 },
-    view: VIEW,
+    view,
     opened_at: '2026-09-21T20:00:00Z',
     ends_at: '2026-09-21T20:00:20Z',
     you_can_answer: youCanAnswer,
@@ -47,6 +48,16 @@ describe('multiple_choice', () => {
     expect(screen.getAllByText(VIEW.prompt)).toHaveLength(1)
     expect(answers()).toEqual(['Zulrah', 'Vorkath', 'Jad'])
     expect(screen.queryByText('correct')).toBeNull()
+  })
+
+  it('draws six options, the most there are, on six different gems', () => {
+    const six = { ...VIEW, options: ['Zulrah', 'Vorkath', 'Jad', 'Kraken', 'Hydra', 'Sire'] }
+    render(Question, { question: open(true, six), yourValue: null, onAnswer: () => {} })
+    const gems = screen
+      .getAllByRole('button')
+      .map((b) => GEMS.find((gem) => b.classList.contains(gem)))
+    expect(gems).toEqual([...GEMS])
+    expect(new Set(gems).size).toBe(6)
   })
 
   it('answers with the index of the option picked', async () => {

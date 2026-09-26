@@ -39,6 +39,10 @@
       "then": { "properties": { "payload": { "$ref": "#/$defs/pick_from_list" } } } }
   ],
   "$defs": {
+    "choices": {
+      "$comment": "One gem per answer (design §3). Every array of choices references this and may only narrow it.",
+      "type": "array", "minItems": 2, "maxItems": 6
+    },
     "asset": { "type": "string", "pattern": "^(item|npc):[0-9]{1,7}$" },
     "short_text": { "type": "string", "minLength": 1, "maxLength": 120 },
     "prompt": { "type": "string", "minLength": 1, "maxLength": 300 },
@@ -70,9 +74,7 @@
       "properties": {
         "metric": { "$ref": "#/$defs/metric" },
         "direction": { "enum": ["more", "less"] },
-        "options": {
-          "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/priced" }
-        },
+        "options": { "$ref": "#/$defs/choices", "maxItems": 2, "items": { "$ref": "#/$defs/priced" } },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 1 },
         "as_of": { "$ref": "#/$defs/date" }
       }
@@ -85,7 +87,10 @@
       "properties": {
         "subject": { "$ref": "#/$defs/subject" },
         "value": { "type": "integer", "minimum": 0 },
-        "options": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "integer", "minimum": 0 } },
+        "options": {
+          "$ref": "#/$defs/choices", "minItems": 4, "maxItems": 4,
+          "items": { "type": "integer", "minimum": 0 }
+        },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 3 },
         "as_of": { "$ref": "#/$defs/date" }
       }
@@ -98,7 +103,7 @@
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
         "image": { "$ref": "#/$defs/asset" },
-        "options": { "type": "array", "minItems": 2, "maxItems": 6, "items": { "$ref": "#/$defs/short_text" } },
+        "options": { "$ref": "#/$defs/choices", "items": { "$ref": "#/$defs/short_text" } },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 5 },
         "explanation": { "type": "string", "maxLength": 300 }
       }

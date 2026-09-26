@@ -115,13 +115,10 @@ inside one: one popover, two save paths.
 The profile, `localStorage["jbi:profile"]`, holds this browser's name and head permanently. A
 player is per room and temporary. There are no accounts.
 
-- **Create** is blocked by a name popup while the profile is empty. It is pre-filled, so it costs
-  one tap. The form then carries a name field, pre-filled from the profile, and the name used
-  becomes the profile. The host's name is read aloud and tops the standings, so it gets a beat.
-  T31 removes the field.
-- **Join** never asks. A browser with no profile joins as a generated name, which becomes its
-  profile, and the chip nudges once: *"You're Cow31337Killer42 — tap to change."* The moment a
-  link is tapped is when a distracted person puts the phone down, so nothing stands in the way.
+- **Join and Create** never ask. A browser with no profile joins or hosts as a generated name,
+  which becomes its profile, and the chip nudges once: *"You're Cow31337Killer42 — tap to
+  change."* The moment a link is tapped is when a distracted person puts the phone down, so
+  nothing stands in the way; a host renames from the lobby like anyone else.
 - **Renaming** is `set_profile`. A player who never taps the nudge stays a joke name, so every
   generated name must be one you are happy to see win.
 

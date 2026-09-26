@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * A name input with a re-roll button beside it: the one name field in the app, used by
-   * Create's blocking popup, Create, Join's fallback form and the identity popover.
+   * Join's fallback form and the identity popover.
    *
    * The re-roll keeps focus where it was. Somebody halfway through typing who taps the
    * die wants to see the next name, not to have the keyboard drop and the page jump, so
