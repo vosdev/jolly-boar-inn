@@ -2117,6 +2117,33 @@ def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     assert_memory_matches_db(game, db)
 
 
+def test_a_six_option_question_plays_and_its_sixth_option_can_be_the_answer(
+    table, second_mode, db
+) -> None:
+    """Six options, one per gem, is the most a question offers, and all six are live."""
+    six = {
+        "type": "multiple_choice",
+        "payload": {
+            "prompt": "Which of these is a gem?",
+            "options": ["Bronze", "Iron", "Steel", "Mithril", "Adamant", "Zenyte"],
+            "answer_index": 5,
+        },
+    }
+    game = table("Zezima", "Woox", custom=[six], reveal_seconds=1, **event_rooms(second_mode))
+    admin, zezima, woox = game.seats
+    event = the_event(game)
+    frames = reach(game, event.position)
+    assert frames["Zezima"]["view"]["options"] == six["payload"]["options"]
+    game.answer(zezima, event.position, 5)
+    game.answer(woox, event.position, 0)
+    zezima.take("answer_ack")
+    woox.take("answer_ack")
+    results = admin.take("question_closed")["results"]
+    assert results[zezima.id]["correct"] is True
+    assert results[woox.id]["correct"] is False
+    assert_memory_matches_db(game, db)
+
+
 def test_two_identical_custom_questions_each_take_their_own_answers(table, second_mode, db) -> None:
     """The same words give the same content id, but each is its own row: an answer to the
     first that arrives once the second is open is refused, not counted for the second."""

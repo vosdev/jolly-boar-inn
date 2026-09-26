@@ -355,6 +355,16 @@ def test_an_npcs_file_is_loaded_with_its_npc_on_every_question(tmp_path: Path) -
     assert "random_events/sandwich_lady.json: 1 question(s) ok" in result.stdout
 
 
+def test_validate_packs_fails_a_seven_option_question(tmp_path: Path) -> None:
+    seven = copy.deepcopy(NPC_QUESTION)
+    seven["payload"]["options"] = ["70", "76", "80", "85", "90", "94", "99"]
+    seven["id"] = schema.content_id(seven)
+    _write_npc(tmp_path, "sandwich_lady", [seven])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    assert "sandwich_lady.json: questions[0] $.payload.options" in result.stderr, result.stderr
+
+
 def test_validate_packs_fails_an_npcs_file_named_after_nobody_on_the_roster(
     tmp_path: Path,
 ) -> None:

@@ -188,7 +188,7 @@ wheels = [
 
 [[package]]
 name = "jolly-boar-inn"
-version = "0.7.0"
+version = "0.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "asyncpg" },

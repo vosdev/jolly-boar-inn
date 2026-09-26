@@ -132,7 +132,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Numeric facts are embedded with `as_of`. Play needs no dataset.
 - `id` is `q_` plus 16 hex of `sha256(type + "\n" + canonical_json(payload))`. `mode` and the other
   envelope fields stay out, so a mode rename rewrites no id.
-- Length caps live in the schema, not only in forms. No choice array exceeds six, one per gem.
+- Length caps live in the schema, not only in forms. Every choice array references
+  `$defs/choices`, six at most, one per gem; `ordering.entries` (T27) must too.
 - Assets are `item:<id>` or `npc:<id>`, never a URL. `pick_from_list` withholds `image` while open
   ("Needs decision").
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.

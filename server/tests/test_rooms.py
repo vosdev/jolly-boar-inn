@@ -426,6 +426,15 @@ def test_a_custom_question_that_fails_the_schema_is_refused_by_field(
     assert_no_room(db)
 
 
+def test_a_seven_option_custom_question_is_a_422_naming_the_field(client: TestClient, db) -> None:
+    seven = own_question()
+    seven["payload"]["options"] = ["Zulrah", "Vorkath", "Jad", "Kraken", "Hydra", "Kree", "Sire"]
+    response = post(client, [seven])
+    assert response.status_code == 422
+    assert "custom_questions[0] $.payload.options" in response.text, response.text
+    assert_no_room(db)
+
+
 def test_a_bad_custom_question_costs_no_rate_limit_quota(client: TestClient) -> None:
     """Checked while the body is parsed, before the limiter counts anything."""
     for _ in range(11):
