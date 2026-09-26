@@ -1,47 +1,36 @@
 <script lang="ts">
   /**
-   * The app shell's bar (D2, section 4 of ideas/design.md). One of these, above every
-   * screen, 56px and sticky:
+   * The app shell's bar (section 5 of ideas/design.md). One of these, above every screen,
+   * 56px and sticky:
    *
-   *     ┌────────────────────────────────────────────────────────┐
-   *     │ [sign] The Jolly Boar Inn             [◍] Name  [♪] [◑] │
-   *     └────────────────────────────────────────────────────────┘
+   *     ┌────────────────────────────────────────────────────────────┐
+   *     │ [sign] The Jolly Boar Inn        [⌥]  [◍] Name  [♪] [◑] │
+   *     └────────────────────────────────────────────────────────────┘
    *
-   * **No room code up here**, and section 4 says why: a code in this app is a word —
-   * `SaradominGodsword`, `ThermonuclearSmokeDevil` — and one of those in 56px beside four
-   * controls either truncates to something worse than useless or pushes the controls off
-   * a phone. The lobby shows the code big with the link to share it, and Join keeps its
-   * own heading. The bar is therefore the same width in every room.
+   * **No room code up here**: a code in this app is a word — `SaradominGodsword`,
+   * `ThermonuclearSmokeDevil` — and one of those in 56px beside the controls either
+   * truncates to something worse than useless or pushes the controls off a phone. The
+   * lobby shows the code big with the link to share it, and Join keeps its own heading.
    *
-   * **Three named slots**, in the order section 4 puts them: identity (D3, then D4), sound
-   * (D6) and theme (D5, `ThemePicker`). Each falls back to a placeholder control, because the shell is
-   * what D2 delivers and the controls are other tasks — a placeholder holds the exact
-   * space the real one will take, so neither of those tasks has to come back and rework
-   * the bar. GitHub is deliberately not a slot here: it is D10's, along with the footer
-   * it really belongs to (section 9.3).
+   * **Three named slots** after GitHub: identity, sound and theme. Each falls back to a
+   * placeholder that holds the exact space the real control takes, so the bar is the
+   * same bar whichever are filled. GitHub is `--muted`, the one control not about the
+   * game, and it is a link rather than a slot because it is the same on every screen.
    *
    * **The player's name is the bar's priority.** Nothing collapses into a popover: under
-   * 26rem the wordmark goes, and whatever width is left belongs to the name, which
-   * ellipsises rather than disappearing. Sound, theme and the sign keep their size.
+   * 26rem the wordmark and GitHub go, and whatever width is left belongs to the name,
+   * which ellipsises rather than disappearing. Sound, theme and the sign keep their size.
    *
-   * The sign links home. The mark is a placeholder shape (section 9.1): D10 swaps it for
-   * `PUBLIC_SITE_LOGO` and the wordmark for `PUBLIC_SITE_NAME`, and neither needs a change
-   * here to do it.
-   *
-   * The version sits beside the wordmark, in its own element rather than in `SITE_NAME`,
-   * so a selfhoster's name never swallows it. It is here only until the footer of section
-   * 9.2 exists, which is where it belongs; D10 moves it. `0.1.0` reads as `0.1`, and a fix
-   * release shows its patch number: `0.1.1`.
+   * The sign links home. It is the selfhoster's `PUBLIC_SITE_LOGO` when there is one, and
+   * the bundled sign when there is not or when the file will not load. The version is in
+   * the footer, not here.
    */
   import type { Snippet } from 'svelte'
+  import { initial, logo, siteName } from 'virtual:branding'
 
-  const SITE_NAME = 'The Jolly Boar Inn'
+  import { REPO_URL } from '../lib/links'
 
-  const VERSION = __APP_VERSION__.replace(/\.0$/, '')
-
-  /** The letter on the placeholder sign. A leading article is not what an inn is called,
-      so the Jolly Boar Inn gets a J and the Dancing Donkey a D. */
-  const INITIAL = SITE_NAME.replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase()
+  let logoBroken = $state(false)
 
   let {
     navigate,
@@ -116,24 +105,45 @@
       <!-- The sign is the way home, and never hides however narrow the screen gets. The
            room is not lost by following it: the session stays in this browser, and the
            room's link brings you straight back in. -->
-      <a class="home" href="/" aria-label="{SITE_NAME}, home" onclick={goHome}>
-        <!-- The placeholder sign (section 9.1): a shape, drawn in tokens, sized for the
-             file that replaces it. -->
-        <svg class="sign" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-          <path class="sign-hanger" d="M16 2v5" />
-          <rect class="sign-board" x="3" y="7" width="26" height="20" rx="4" />
-          <text class="sign-letter" x="16" y="18" text-anchor="middle" dominant-baseline="central">
-            {INITIAL}
-          </text>
-        </svg>
+      <a class="home" href="/" aria-label="{siteName}, home" onclick={goHome}>
+        {#if logo !== null && !logoBroken}
+          <img class="sign" src={logo} alt="" onerror={() => (logoBroken = true)} />
+        {:else}
+          <!-- Drawn in tokens, so it follows the theme as a file could not. -->
+          <svg class="sign" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+            <path class="sign-hanger" d="M16 2v5" />
+            <rect class="sign-board" x="3" y="7" width="26" height="20" rx="4" />
+            <text
+              class="sign-letter"
+              x="16"
+              y="18"
+              text-anchor="middle"
+              dominant-baseline="central"
+            >
+              {initial}
+            </text>
+          </svg>
+        {/if}
       </a>
       <!-- Not a heading: the screen below owns the page title. -->
-      <p class="wordmark" aria-hidden="true">
-        {SITE_NAME} <span class="version">{VERSION}</span>
-      </p>
+      <p class="wordmark" aria-hidden="true">{siteName}</p>
     </div>
 
     <div class="controls">
+      <a
+        class="control github"
+        href={REPO_URL}
+        target="_blank"
+        rel="noopener"
+        aria-label="Source code on GitHub"
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path
+            fill="currentColor"
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+          />
+        </svg>
+      </a>
       <div class="identity-slot">{@render (identity ?? identityPlaceholder)()}</div>
       {@render (sound ?? soundPlaceholder)()}
       {@render (theme ?? themePlaceholder)()}
@@ -188,6 +198,7 @@
     width: 32px;
     height: 32px;
     flex: none;
+    object-fit: contain;
   }
 
   .sign-hanger {
@@ -202,9 +213,6 @@
     stroke-width: 2;
   }
 
-  /* Section 9.1's placeholder mark, literally: the wordmark's first letter in whatever
-     face is loaded, on a plain sign. It follows PUBLIC_SITE_NAME when D10 wires it up,
-     and it is a file's worth of art away from being the real sign. */
   .sign-letter {
     fill: var(--accent-ink);
     font-family: var(--font-display);
@@ -221,12 +229,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .version {
-    color: var(--muted);
-    font-size: 0.8em;
-    font-weight: 400;
   }
 
   /* Takes whatever the mark leaves, right-aligned. min-width lets the name inside be the
@@ -273,6 +275,10 @@
     cursor: default;
   }
 
+  .controls .github {
+    color: var(--muted);
+  }
+
   .controls :global(.control svg) {
     width: 20px;
     height: 20px;
@@ -303,9 +309,10 @@
     stroke: currentColor;
   }
 
-  /* Section 4: the wordmark gives way under 26rem, the sign never does. */
+  /* The wordmark and GitHub give way under 26rem; the sign never does. */
   @media (max-width: 26rem) {
-    .wordmark {
+    .wordmark,
+    .controls .github {
       display: none;
     }
   }

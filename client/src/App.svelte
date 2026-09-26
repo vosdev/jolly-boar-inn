@@ -17,6 +17,7 @@
    */
   import { onMount } from 'svelte'
 
+  import Footer from './components/Footer.svelte'
   import IdentityChip from './components/IdentityChip.svelte'
   import ThemePicker from './components/ThemePicker.svelte'
   import TimerBar from './components/TimerBar.svelte'
@@ -110,3 +111,5 @@
     {/key}
   {/if}
 </main>
+
+<Footer />

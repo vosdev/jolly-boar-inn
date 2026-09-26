@@ -10,6 +10,7 @@
    */
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import { ApiFailure, deleteRoom } from '../lib/api'
+  import { REPO_URL } from '../lib/links'
   import {
     createdRooms,
     forgetCreated,
@@ -145,6 +146,14 @@
     </p>
   </section>
 {/if}
+
+<section class="panel">
+  <h2>Open source</h2>
+  <p class="note">
+    This quiz is free software. Read the code, report a bug, or host your own for your clan.
+  </p>
+  <a class="link" href={REPO_URL} target="_blank" rel="noopener">jolly-boar-inn on GitHub</a>
+</section>
 
 {#if confirming !== null}
   {@const room = confirming}
