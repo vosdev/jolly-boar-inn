@@ -41,6 +41,7 @@
   import { generateName } from '../lib/names'
   import { nudge, profile, saveProfile } from '../lib/profile'
   import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
+  import { atRoomLimit } from '../lib/roomLimit'
   import { rememberCreated, setSession } from '../lib/session'
 
   /** The server's cap on a room, over every round. `NewRoomSettings` checks the same. */
@@ -67,6 +68,8 @@
   let pacingFailure = $state<string | null>(null)
   let busy = $state(false)
   let failure = $state<string | null>(null)
+  /** Whether this browser already hosts as many rooms as it may, or null until known. */
+  let full = $state<boolean | null>(null)
 
   /** The modes a host can pick as rounds: every one with a round length to set. */
   const roundModes = $derived(pacing?.filter((mode) => mode.questions !== null) ?? [])
@@ -106,10 +109,12 @@
       revealInRange &&
       questionCount >= 1 &&
       totalCount <= MAX_QUESTIONS &&
-      standingsInRange,
+      standingsInRange &&
+      full === false,
   )
 
   onMount(async () => {
+    void atRoomLimit().then((limited) => (full = limited))
     try {
       pacing = await getModes()
       rounds = roundModes.map(roundFor)
@@ -167,11 +172,26 @@
     rounds = moved
   }
 
+  function goHome(event: MouseEvent): void {
+    // A modified click is somebody asking for a new tab; let the browser have it.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return
+    }
+    event.preventDefault()
+    navigate('/')
+  }
+
   async function submit(event: SubmitEvent): Promise<void> {
     event.preventDefault()
     if (busy || !ready) return
     busy = true
     failure = null
+    // Another tab may have created a room since this one loaded.
+    if (await atRoomLimit()) {
+      full = true
+      busy = false
+      return
+    }
     const settings: NewRoomSettings = {
       modes: rounds,
       mode_order: modeOrder,
@@ -359,10 +379,18 @@
     </label>
   </section>
 
+  {#if full === true}
+    <p class="banner">
+      You already have five rooms. Remove one on the <a href="/" onclick={goHome}>homepage</a>
+      to make another.
+    </p>
+  {/if}
   <div class="row">
-    <button class="primary" type="submit" disabled={busy || !ready}>
-      {busy ? 'Creating…' : 'Create room'}
-    </button>
+    {#if full !== true}
+      <button class="primary" type="submit" disabled={busy || !ready}>
+        {busy ? 'Creating…' : 'Create room'}
+      </button>
+    {/if}
     <button type="button" onclick={() => navigate('/')}>Back</button>
   </div>
   {#if failure !== null}

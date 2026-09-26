@@ -431,11 +431,15 @@ Limits:
 - 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 30 lookups of missing rooms per
   10 minutes. Past those, every room request is 429 (1008 on a socket), so a refusal never reveals
   which codes are live.
+- Create refuses a sixth room while `jbi:created` holds five the server still has; one that
+  answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the
+  backstop.
 - Trusted proxies come only from `FORWARDED_ALLOW_IPS`. The first ignored `X-Forwarded-For` logs one
   warning.
 - `/api/*` bodies over 256 KiB get 413. Writes not declared `application/json` get 415, because a
   cross-site `no-cors` fetch sends an untyped body without a preflight.
-- uvicorn runs `--ws-max-size 65536 --limit-concurrency 1000 --workers 1`.
+- uvicorn runs `--host "" --ws-max-size 65536 --limit-concurrency 1000 --workers 1`. The empty
+  host listens on `0.0.0.0` and, where there is IPv6, `::` too.
 - `/ws` checks no `Origin`, because nothing ambient logs a socket in. Add an allow-list with any
   cookie.
 - Display names have no word filter until Phase 4.
