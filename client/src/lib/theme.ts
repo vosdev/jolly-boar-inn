@@ -6,14 +6,17 @@
  * 'unsafe-inline', so nothing may write a palette onto an element from JavaScript.
  *
  * The theme is a per-player preference, never a room setting — no protocol message, no
- * server field. `jolly` is the default for a browser that has never chosen, always:
- * nothing here consults `prefers-color-scheme`, so there is one code path to get right
- * before the first paint and a first-time visitor on a dark phone still sees the inn.
+ * server field. A browser that has never chosen gets the selfhoster's
+ * `PUBLIC_DEFAULT_THEME`, else `jolly`: nothing here consults `prefers-color-scheme`, so
+ * there is one code path to get right before the first paint and a first-time visitor on
+ * a dark phone still sees the inn.
  *
  * Storage may throw — Safari in private mode, a browser with site data blocked — and a
  * quiz that cannot be played without storage is worse than one that forgets you, so every
  * accessor tolerates it and the theme simply lasts for the page.
  */
+
+import { defaultTheme } from 'virtual:branding'
 
 /** Every theme `app.css` defines, in menu order. D12 adds party_room. */
 export const THEMES = ['jolly', 'pollnivneach', 'wilderness'] as const
@@ -27,7 +30,12 @@ export const THEME_LABELS: Record<Theme, { name: string; mood: string }> = {
   wilderness: { name: 'Wilderness', mood: 'Cold stone. Nothing cosy.' },
 }
 
-export const DEFAULT_THEME: Theme = 'jolly'
+/** `configured` if it names a theme this build paints, else `jolly`, never an unstyled page. */
+export function pickDefault(configured: string): Theme {
+  return isTheme(configured) ? configured : 'jolly'
+}
+
+export const DEFAULT_THEME: Theme = pickDefault(defaultTheme)
 
 const THEME_KEY = 'jbi:theme'
 
@@ -35,7 +43,7 @@ function isTheme(value: string | null): value is Theme {
   return value !== null && (THEMES as readonly string[]).includes(value)
 }
 
-/** The stored theme, or `jolly` when there is none, it is unreadable, or it is unknown. */
+/** The stored theme, or the default when there is none, it is unreadable, or it is unknown. */
 export function getTheme(): Theme {
   let stored: string | null = null
   try {

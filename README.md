@@ -4,6 +4,13 @@ Quiz night at the Jolly Boar Inn!
 The version is in [`VERSION`](VERSION). Each release is a `v<version>` git tag, created by
 CI on main, and `make image` builds `jolly-boar-inn:<version>` locally.
 
+## Branding
+
+Three variables in `.env` give your instance its own name, logo and default theme:
+`PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO` and `PUBLIC_DEFAULT_THEME`, described in
+[`.env.example`](.env.example). They are baked into the client, so run `docker compose build`
+after changing them. The footer's GitHub link always points here.
+
 ## License
 
 The code is licensed under the [GNU AGPL v3](LICENSE). You can host it for your clan as is; if you

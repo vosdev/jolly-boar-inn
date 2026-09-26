@@ -26,6 +26,7 @@ Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*-questions, imag
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/<npc>.json
 data/                              examines, popular-items, player-names, room-words (.json), heads/
+branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, heads, random_events
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
                                    ready, codes
@@ -449,8 +450,9 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
   code.
 - One process per database: the app holds `pg_try_advisory_lock` on its own connection. A second
   process fails to start or answers `503 db_unavailable`, so stop the old container first.
-- The app's env vars and defaults are in `config.py`. `.env.example` documents them and the
-  scripts' `WIKI_USER_AGENT`. `PUBLIC_BASE_URL` has no
+- The app's env vars and defaults are in `config.py`. `.env.example` documents them, the
+  scripts' `WIKI_USER_AGENT`, and the client's build-time `PUBLIC_SITE_*` and
+  `PUBLIC_DEFAULT_THEME` (`client/site-branding.ts`). `PUBLIC_BASE_URL` has no
   consumer yet; the client links from `location.origin`.
 
 ## 11. Database

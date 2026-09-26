@@ -14,6 +14,9 @@ COPY data/player-names.json ../data/player-names.json
 COPY data/heads/ ../data/heads/
 # The app's version, which the top bar shows (ideas/architecture.md, Versioning).
 COPY VERSION ../VERSION
+# A selfhoster's name, logo and default theme are baked into the bundle (.env.example).
+ARG PUBLIC_SITE_NAME PUBLIC_SITE_LOGO PUBLIC_DEFAULT_THEME
+COPY branding/ ../branding/
 RUN pnpm build
 
 # ---- Stage 2: build the server venv with uv --------------------------------

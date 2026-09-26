@@ -262,8 +262,16 @@ body {
   line-height: 1.5;
 }
 
+/* A short screen still puts the footer at the bottom of the window. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 /* Text on the page takes the page inks: a heading, a tagline, a note between panels. */
 main {
+  flex: 1 0 auto;
   --ink: var(--bg-ink);
   --muted: var(--bg-muted);
   color: var(--ink);

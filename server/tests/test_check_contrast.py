@@ -68,7 +68,8 @@ def test_theme_ids_match_the_stylesheet() -> None:
     ids = re.findall(r"'([\w-]+)'", listed.group(1))
     assert ids, "THEMES is empty"
     assert set(ids) == set(check.parse_themes(APP_CSS.read_text(encoding="utf-8")))
-    assert re.search(r"DEFAULT_THEME: Theme = 'jolly'", theme_ts)
+    # A selfhoster may set another default, but anything unknown falls back to :root's.
+    assert re.search(r"return isTheme\(configured\) \? configured : 'jolly'", theme_ts)
 
 
 # --- the script has teeth ------------------------------------------------------------

@@ -5,6 +5,7 @@ import { svelteTesting } from '@testing-library/svelte/vite'
 import { defineConfig } from 'vitest/config'
 
 import { headsSprite } from './heads-sprite.ts'
+import { siteBranding } from './site-branding.ts'
 
 // Dev server proxies /api and /ws to the FastAPI server on :8000.
 //
@@ -22,11 +23,11 @@ import { headsSprite } from './heads-sprite.ts'
 const APP_VERSION = readFileSync(new URL('../VERSION', import.meta.url), 'utf-8').trim()
 
 export default defineConfig({
-  plugins: [svelte(), svelteTesting(), headsSprite()],
+  plugins: [svelte(), svelteTesting(), headsSprite(), siteBranding()],
   define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'site-branding.test.ts'],
     setupFiles: ['src/test-setup.ts'],
   },
   server: {

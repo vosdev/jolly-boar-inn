@@ -2,7 +2,7 @@
 
 What the bar does is ``App.test.ts`` and ``TopBar.test.ts``. What is left has no layout
 in jsdom to measure: the 56px sticky measurement in one place, and a single breakpoint
-that hides the wordmark and nothing else.
+that hides the wordmark and GitHub and nothing else.
 
 What a browser confirmed, and a test cannot: at 320px the bar is exactly 56px and
 leaves ``scrollWidth == clientWidth`` on Home, Create, Join, the lobby, a question, a
@@ -65,11 +65,12 @@ def test_the_bar_has_one_breakpoint_and_it_is_stylesheet_only() -> None:
     assert widths == {BREAKPOINT}, f"more than one breakpoint in the bar: {widths}"
 
 
-def test_the_wordmark_gives_way_and_nothing_else_does() -> None:
-    """Section 4: under 26rem the wordmark hides; sign, name, sound and theme all stay."""
+def test_the_wordmark_and_github_give_way_and_nothing_else_does() -> None:
+    """Section 5: under 26rem the wordmark and GitHub hide; sign, name, sound and theme stay."""
     narrow = block_after(read(TOP_BAR), f"@media (max-width: {BREAKPOINT})")
-    hidden = [selector.strip() for selector in re.findall(r"([^{}]+)\{[^{}]*display: none", narrow)]
-    assert hidden == [".wordmark"], f"hidden under {BREAKPOINT}: {hidden}"
+    rules = re.findall(r"([^{}]+)\{[^{}]*display: none", narrow)
+    hidden = sorted(selector.strip() for rule in rules for selector in rule.split(","))
+    assert hidden == [".controls .github", ".wordmark"], f"hidden under {BREAKPOINT}: {hidden}"
 
 
 # --- the name, at every width -------------------------------------------------------

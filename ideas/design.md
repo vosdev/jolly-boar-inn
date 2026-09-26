@@ -16,9 +16,8 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
 | `party_room` | Party Room (D12) | Loud. A drop party. | Deep purple | Gold, partyhat cyan/pink |
 
-- `jolly` is the default, always. There is no `auto` theme and nothing reads
-  `prefers-color-scheme`: jolly sits between light and dark, and a phone in dark mode should still
-  meet the inn first.
+- `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
+  theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
 - Variety between rounds comes from the round's host (§8), never from the palette. A palette that
   shifts under a question changes what the buttons mean.
 - `party_room` is its own task, built last and cut if it fails the contract.
@@ -93,13 +92,13 @@ learns the position, which is worth more than variety.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [sign] The Jolly Boar Inn 0.6   [⌥]  [head] Name   [🔊] [🎨] │  56px, sticky
+│ [sign] The Jolly Boar Inn       [⌥]  [head] Name   [🔊] [🎨] │  56px, sticky
 └──────────────────────────────────────────────────────────────┘
 ```
 
 - **Left:** the sign, a plain `href="/"` link home, then the wordmark. Both are configurable (§14).
-  The version sits beside the wordmark until D10 moves it to the footer.
-- **Right, in order:** GitHub (D10), identity, sound (D6), theme. The name is the bar's priority: it
+  The version is in the footer.
+- **Right, in order:** GitHub, identity, sound (D6), theme. The name is the bar's priority: it
   shows at every width, and it is the one item that shrinks, ellipsising. Sound and theme are 36px
   each at the outer edge. GitHub is `--muted`, as the one control not about the game.
 - **Under 26rem** the wordmark and GitHub hide, and nothing folds into a `⋯` menu. At 320px the name
@@ -329,15 +328,18 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 - Every art slot takes a file with no code change: the sign, the trophies, the heads, the NPCs. The
   display face, the logo and `make fetch-assets` are the owner's, and no D task waits on them.
 
-**Footer (D10).** One small `--muted` line on every screen: *RuneScape and RuneScape Old School
-are the trademarks of Jagex Limited.* Beside it: GitHub (`https://github.com/vosdev/jolly-boar-inn`),
-the licence, and the version. The AGPL wants a source link reachable from the service, and this
-is it. GitHub is also a muted icon in the bar (§5), in every phase, and a louder mention on Home.
+**Footer.** One small `--muted` line on every screen, in the flow and never fixed, so it cannot
+cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Beside
+it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA) and the version, linked to its release. The
+AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
+the bar (§5) and an "Open source" panel on Home. Every link opens a new tab, so a room is never
+left.
 
-**Selfhoster branding (D10).** Three build-time env vars: `PUBLIC_SITE_NAME` (default *The Jolly
-Boar Inn*), `PUBLIC_SITE_LOGO` (default the bundled sign) and `PUBLIC_DEFAULT_THEME` (a theme id,
-only for browsers that never chose). The GitHub link is not configurable: a fork's footer should
-still point upstream.
+**Selfhoster branding.** Three build-time env vars, which compose passes as build args:
+`PUBLIC_SITE_NAME` (default *The Jolly Boar Inn*; also the tab title), `PUBLIC_SITE_LOGO` (an image
+in `branding/`, also the tab icon; missing or unloadable, the bundled sign) and `PUBLIC_DEFAULT_THEME`
+(a theme id for browsers that never chose; unknown, `jolly`). The GitHub link is not configurable:
+a fork's footer should still point upstream.
 
 A host cannot pin a room's theme, even as a suggestion: the theme is the one thing purely the
 player's.
@@ -346,7 +348,6 @@ player's.
 
 ```
 D6 sound switches            (the bar exists)
-D10 selfhoster branding      (the bar exists)
 D12 party_room               (D5's themes)
 D13 the stage ──┬─▶ D14 hosts + their voice ──▶ D15 the event NPCs
                 └─▶ D16 the interlude  (needs D15)
@@ -365,21 +366,6 @@ muting question audio shows the warning copy; a fresh tab that has not been tapp
 an autoplay error; a player who reloaded mid-game, or who is in a room with `splash_seconds: 0`, has
 working audio from their second question onwards; an audio-only question that cannot play its audio
 says so instead of showing a silent prompt; the CSP change is covered by the existing headers test.
-
-### D10. Selfhoster branding
-
-`PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO`, `PUBLIC_DEFAULT_THEME` through Vite into the client,
-documented in `.env.example` and the README. Plus the footer (§14: the trademark line, the GitHub
-link, the licence link, the version) and the GitHub icon in the top bar (§5). The version moves out
-of the top bar and into the footer.
-
-**Accept:** an instance with all three set shows its own name, logo and default theme with no code
-change; an instance with none set is identical to today; a `PUBLIC_DEFAULT_THEME` naming a theme
-that does not exist falls back to `jolly` rather than rendering untokenised; a missing logo file
-falls back to the bundled sign rather than a broken image; the footer is present on every screen
-including mid-question and never overlaps an answer button on a 375px screen; the GitHub link works
-from both the footer and the top bar, and the bar icon hides under 26rem; the version shows in the
-footer on every screen, including under 26rem, and nowhere in the bar.
 
 ### D11. Motion and the reduced-motion pass
 

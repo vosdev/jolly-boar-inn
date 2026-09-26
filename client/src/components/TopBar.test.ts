@@ -1,12 +1,14 @@
 /**
- * The bar: a sign that goes home, the version beside the name rather than in it, and
- * identity, sound and theme slots in that order, each a dead placeholder until filled.
+ * The bar: a sign that goes home, the name with no version, GitHub, and identity, sound
+ * and theme slots in that order, each a dead placeholder until filled. The stock branding;
+ * `TopBar.branding.test.ts` has a selfhoster's.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
 import { createRawSnippet } from 'svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { REPO_URL, VERSION_LABEL } from '../lib/links'
 import TopBar from './TopBar.svelte'
 
 const navigate = vi.fn()
@@ -35,12 +37,19 @@ describe('TopBar', () => {
     expect(navigate).toHaveBeenCalledWith('/')
   })
 
-  it('puts the version beside the name, in its own element', () => {
+  it('names the inn on the bundled sign, and leaves the version to the footer', () => {
     render(TopBar, { navigate })
-    const wordmark = document.querySelector('.wordmark')!
-    const version = wordmark.querySelector('.version')!
-    expect(version.textContent).toBe(__APP_VERSION__.replace(/\.0$/, ''))
-    expect(wordmark.textContent?.replace(version.textContent!, '').trim()).toBe('The Jolly Boar Inn')
+    expect(document.querySelector('.wordmark')!.textContent!.trim()).toBe('The Jolly Boar Inn')
+    expect(document.querySelector('.sign-letter')!.textContent!.trim()).toBe('J')
+    expect(document.querySelector('header img')).toBeNull()
+    expect(document.querySelector('header')!.textContent).not.toContain(VERSION_LABEL)
+  })
+
+  it('links to the source on GitHub, in a new tab', () => {
+    render(TopBar, { navigate })
+    const github = screen.getByRole('link', { name: 'Source code on GitHub' })
+    expect(github.getAttribute('href')).toBe(REPO_URL)
+    expect(github.getAttribute('target')).toBe('_blank')
   })
 
   it('offers a way past the bar to the screen', () => {
@@ -52,7 +61,7 @@ describe('TopBar', () => {
 
   it('holds identity, sound and theme with placeholders nobody can press', () => {
     render(TopBar, { navigate })
-    expect(controls()).toEqual(['You', 'Sound', 'Theme'])
+    expect(controls()).toEqual(['Source code on GitHub', 'You', 'Sound', 'Theme'])
     for (const name of ['Sound', 'Theme']) {
       expect((screen.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(true)
     }
@@ -66,7 +75,7 @@ describe('TopBar', () => {
       sound: slot('volume'),
       identity: slot('chip'),
     })
-    expect(controls()).toEqual(['chip', 'volume', 'picker'])
+    expect(controls()).toEqual(['Source code on GitHub', 'chip', 'volume', 'picker'])
     expect(screen.queryByText('Guest')).toBeNull()
   })
 })

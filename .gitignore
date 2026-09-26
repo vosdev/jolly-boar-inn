@@ -14,6 +14,10 @@ client/dist/
 # Env
 .env
 
+# A selfhoster's logo
+branding/*
+!branding/README.md
+
 # OS / editors
 .DS_Store
 .idea/
