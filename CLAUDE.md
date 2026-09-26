@@ -23,6 +23,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 - Before starting a T or D task, read its spec and the architecture.md sections it touches. Tell me where they look wrong or underspecified for this task, and wait for my answers before coding.
 - Ask before deciding anything a player can see, or anything in the websocket protocol, the database schema, scoring or room settings. Decide internal details yourself and list them in your reply.
 - Departing from architecture.md needs my OK. Then update architecture.md in the same PR.
+- As long as we are on major version 0, there is no need to take compatibility with previous versions into account.
 
 ## Tests
 - Behavior changes come with tests. A bug fix starts with a test that fails without the fix. Each accept criterion in a task spec is a test unless it says "manual".
