@@ -11,29 +11,7 @@ after a whole task, never halfway, and reports per task.
 
 ## T31 + T32 + T34. Loose ends, six options, and the wiki's rules
 
-First, because T34 must land before T23 sends anything to the wiki.
-
-```text
-Tasks T31, T32 and T34 in ideas/phase2.md, in that order.
-
-T31:
-- HEAD on /api: do it once, in the router setup or one small middleware, not per decorator.
-- Create's name: read ideas/design.md §6 and the docstring of client/src/routes/Join.svelte
-  first. Create should end up handling an empty profile exactly as Join does. Update
-  design.md §6 in the same PR.
-
-T32:
-- The test that walks the schema must say how it recognises "an array of choices", so a future
-  type cannot slip past by naming its field differently.
-- If ordering (T27) does not exist yet, add a line to ideas/architecture.md §4 that its entries
-  must reference the shared cap.
-
-T34:
-- Give wiki.py an injectable clock, so the throttle is tested without sleeping.
-- Makefile targets that fetch pass the environment through.
-- The .env.example example follows the wiki's shape: project name plus contact, e.g.
-  "jolly-boar-quiz-importer - yourname on Discord".
-```
+done
 
 ## T33. Limits that mean one client, and IPv6
 
