@@ -7,13 +7,17 @@ on:
 
 # Actions are pinned to commit SHAs, since a tag can be moved to other code. Only the
 # release job may write.
+#
+# Jobs run on the runner named by the RUNNER repository variable. Forks lack the variable,
+# and pull requests from forks must never reach a self-hosted runner, so both fall back to
+# GitHub-hosted runners.
 permissions:
   contents: read
 
 jobs:
   server:
     name: Server (ruff, pytest, packs, contrast)
-    runs-on: ubuntu-latest
+    runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     defaults:
       run:
@@ -49,7 +53,7 @@ jobs:
 
   client:
     name: Client (svelte-check, vitest, build)
-    runs-on: ubuntu-latest
+    runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     defaults:
       run:
@@ -71,7 +75,7 @@ jobs:
 
   containers:
     name: Containers (build, compose smoke test)
-    runs-on: ubuntu-latest
+    runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     # docker-compose.yml requires this rather than defaulting to the dev password.
     env:
@@ -127,7 +131,7 @@ jobs:
     name: Release (tag when VERSION changes)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [server, client, containers]
-    runs-on: ubuntu-latest
+    runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     permissions:
       contents: write
