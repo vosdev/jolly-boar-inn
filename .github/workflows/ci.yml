@@ -97,14 +97,14 @@ jobs:
           body=$(curl -fsS http://localhost:8000/api/health)
           echo "health: $body"
           test "$body" = '{"ok":true,"db":true}'
-          curl -fsS http://localhost:8000/ | grep -q '<title>Jolly Boar Inn</title>'
+          curl -fsS http://localhost:8000/ | grep -q '<title>The Jolly Boar Inn</title>'
 
       # A player opening the host's link lands on /r/CODE, which exists only in the
       # client router: the server has to answer it with index.html or the link is dead
       # for everyone who did not arrive via the home page.
       - name: Check SPA deep link and API caching
         run: |
-          curl -fsS http://localhost:8000/r/TEST | grep -q '<title>Jolly Boar Inn</title>'
+          curl -fsS http://localhost:8000/r/TEST | grep -q '<title>The Jolly Boar Inn</title>'
           test "$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8000/api/rooms/TEST)" = 404
           curl -fsS -D - -o /dev/null http://localhost:8000/api/modes | grep -qi '^cache-control: no-store'
 
