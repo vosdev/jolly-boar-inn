@@ -191,8 +191,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
   the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only along its
   length. `jolly` and `pollnivneach` have their own paper; `wilderness` uses `jolly`'s.
 - **Below the line** is the page: on the splash the round's count and pace and the ready check;
-  on a question only the answers, in a panel. Where the game is and the points slot join them for
-  the reveal. Gems never sit on parchment, so every gem check still measures against `--panel`.
+  on a question only the answers, in a panel. Gems never sit on parchment, so every gem check
+  still measures against `--panel`. The round is said on the splash only.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
   `lib/modes.ts`. The splash scroll holds only the mode's name, the line and the blurb. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
@@ -214,12 +214,12 @@ countdowns and take-back rule are architecture §7.
 
 ## 10. The question screen and the reveal
 
-- The timer is a thin bar under the top bar. Answer buttons are 56px tall and full width on a
-  phone: thumb targets at a pub table.
+- The timer is a thin bar under the top bar, with the seconds in a tab at the stage's right edge
+  and the question's number (`2/3`) in one at its left. Answer buttons are 56px tall and full
+  width on a phone: thumb targets at a pub table.
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
-  `--scroll-ink`, and the answers, combobox, waiting state, tally and points slot are under the
-  line. While a question is open the screen is the stage and the answers: the round and question
-  number are for a screen reader only until the reveal.
+  `--scroll-ink`, and the answers, combobox, waiting state and tally are under the line. The
+  question's heading is for a screen reader only.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
   face, with a 56px Submit under it. On a phone its list opens *above* the field so the keyboard
   never covers it. Typed text reads as a search; only a selection lights Submit.
@@ -227,20 +227,21 @@ countdowns and take-back rule are architecture §7.
   count.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
-picked or numeric answer fades beside the correct value. Points sit in one slot, under the line
-beside the question number, in the same place in every mode, in display tabular numerals:
+picked or numeric answer fades beside the correct value. The host says your points at the foot of
+the scroll, a line held from the start so nothing under the sheet moves, the same in every mode,
+in display tabular numerals and the scroll's ink:
 
 | Outcome | Slot shows |
 |---|---|
-| Right | `+850`, `--ok` and a ✓ |
-| Wrong | `+0`, `--bad` and a ✗ |
+| Right | `+850` and a ✓ |
+| Wrong | `+0` and a ✗ |
 | No answer | `No answer · +0`, muted, no ✗ |
 | Graded (closest guess) | `+340`, the number carries the verdict |
 
-- A timeout is not a wrong answer, and the slot says so. Layer 3 lives here now, on the slot and
-  its glyphs, not on buttons.
-- Under the points, in `--muted`, the running total: `+850` over `9,270`. The slot never explains a
-  number; a speed bonus explained mid-reveal is a second thing to read.
+- A timeout is not a wrong answer, and the slot says so. The glyph is the verdict: `--ok` and
+  `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (D16).
+- Only what you earned: the total waits for the standings. The slot never explains a number; a
+  speed bonus explained mid-reveal is a second thing to read.
 - No standings under a reveal: a board every question makes the game a spreadsheet.
 
 ## 11. Standings
@@ -425,7 +426,8 @@ and `assets/scenes/` goes.
 **Accept:** the splash and every question type render on the stage; prompts on the scroll reach 7:1
 and muted text 4.5:1 in every theme, checked by the script, and the script fails a deliberately
 washed-out `--scroll-ink`; the scroll reads as parchment in all three themes, with screenshots in
-the PR; no gem button, combobox or points slot sits on the parchment; the scroll opens from the
+the PR; no gem button or combobox sits on the parchment, and the points you earned do, with nothing
+under the sheet moving for them; the scroll opens from the
 middle in 300ms on the splash, stays put into the round's first question, and simply appears with
 reduced motion; under 448px the screen's edges cut the rolls in half and nothing scrolls sideways,
 at 320px included; the knobs do not stretch at any width; the sheet is at least four prompt lines

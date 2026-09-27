@@ -153,7 +153,7 @@ describe('Room', () => {
     expect(document.querySelector('.hiscores')).toBeNull()
   })
 
-  it('puts the points slot on the reveal, with the total the standings will show', async () => {
+  it('writes what we earned on the scroll for the reveal, without the total', async () => {
     const open: OpenQuestion = {
       question_id: 'q1',
       index: 0,
@@ -203,12 +203,15 @@ describe('Room', () => {
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 8_000).toISOString(),
     })
-    await screen.findByText('1,850')
+    await waitFor(() => expect(document.querySelector('.slot')).toBeTruthy())
     expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('✓+850')
+    // What we earned, and only that: the total waits for the standings.
+    expect(document.querySelector('.slot .total')).toBeNull()
+    expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)
     expect(get(timerBar)?.label).toBe('to the next question')
   })
 
-  it('keeps where we are and what we scored off the screen until the reveal', async () => {
+  it('says which question it is in the timer bar’s tab, and the round only on the splash', async () => {
     const open: OpenQuestion = {
       question_id: 'q1',
       index: 0,
@@ -228,9 +231,9 @@ describe('Room', () => {
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
-    const hidden = await screen.findByRole('heading', { level: 1 })
-    expect(hidden.classList.contains('visually-hidden')).toBe(true)
-    expect(document.querySelector('.stage')).toBeTruthy()
+    const heading = await screen.findByRole('heading', { level: 1 })
+    expect(heading.classList.contains('sr')).toBe(true)
+    expect(get(timerBar)?.progress).toBe('1/2')
 
     applyServerMessage({
       t: 'question_closed',
@@ -240,14 +243,17 @@ describe('Room', () => {
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 8_000).toISOString(),
     })
-    await screen.findByText('1,850')
-    const headings = screen.getAllByRole('heading', { level: 1 })
-    expect(headings).toHaveLength(1)
-    const under = document.querySelector('.under') as HTMLElement
-    expect(under.contains(headings[0]!)).toBe(true)
-    expect(headings[0]!.classList.contains('visually-hidden')).toBe(false)
-    expect(under.contains(document.querySelector('.slot'))).toBe(true)
-    expect(document.querySelector('.paper .slot')).toBeNull()
+    await waitFor(() => expect(document.querySelector('.paper .slot')).toBeTruthy())
+    expect(get(timerBar)?.progress).toBe('1/2')
+    expect(screen.getByRole('heading', { level: 1 }).classList.contains('sr')).toBe(true)
+    const drawnRound = [...document.body.querySelectorAll('*')].filter(
+      (node) =>
+        node.closest('.sr') === null &&
+        [...node.childNodes].some(
+          (child) => child.nodeType === Node.TEXT_NODE && /Round 1 of/.test(child.textContent ?? ''),
+        ),
+    )
+    expect(drawnRound).toEqual([])
     expect(document.querySelector('.award')).toBeTruthy()
   })
 

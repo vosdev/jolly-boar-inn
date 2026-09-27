@@ -448,20 +448,6 @@ button.small {
   flex-wrap: wrap;
 }
 
-/* Read by a screen reader and focusable, but not drawn: a question's heading, which the
-   stage leaves off the screen. */
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  border: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 .spread {
   display: flex;
   justify-content: space-between;

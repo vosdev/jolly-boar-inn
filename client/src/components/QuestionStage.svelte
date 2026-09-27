@@ -11,18 +11,19 @@
    *
    * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
    * scroll, and under the line the answers in a panel, with the waiting line below them.
-   * Anything we scored pins the ribbon on the sheet. A random event keeps its card until
-   * D16 brings it onto the stage.
+   * On the reveal the host says what we earned at the foot of the sheet, and anything we
+   * scored pins the ribbon. The line the points go on is held from the start, so the
+   * answers under the sheet do not move when they arrive. A random event keeps its card,
+   * and the points their plaque above it, until D16 brings it onto the stage.
    *
-   * `verdict` is the reveal's row of where we are and what we scored, drawn under the
-   * line above the answers, or above the card. `children` goes inside the panel under the
-   * answers: the reveal's tally.
+   * `children` goes inside the panel under the answers: the reveal's tally.
    */
   import type { Snippet } from 'svelte'
 
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { awardFor } from '../lib/award'
   import { answerAck, answerCount } from '../lib/stores'
+  import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import Question from './questions/Question.svelte'
   import Stage from './stage/Stage.svelte'
@@ -33,7 +34,6 @@
     yourValue,
     result = null,
     onAnswer,
-    verdict,
     children,
   }: {
     /** The question as it was sent open, which still picks the view once it has closed. */
@@ -43,7 +43,6 @@
     yourValue: unknown
     result?: PlayerResult | null
     onAnswer: (value: unknown) => void
-    verdict?: Snippet
     children?: Snippet
   } = $props()
 
@@ -69,8 +68,15 @@
 </script>
 
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
-  <Stage paper={stem} award={reveal === null ? 'none' : awardFor(result)}>
-    {@render verdict?.()}
+  {#snippet sheet()}
+    {@render stem()}
+    <div class="said">
+      {#if reveal !== null}
+        <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
+      {/if}
+    </div>
+  {/snippet}
+  <Stage paper={sheet} award={reveal === null ? 'none' : awardFor(result)}>
     {#if answers !== null || children}
       <section class="panel answers">
         {@render answers?.()}
@@ -104,7 +110,11 @@
 {/snippet}
 
 {#if question.random_event}
-  {@render verdict?.()}
+  {#if reveal !== null}
+    <div class="plaque">
+      <PointsSlot {result} canAnswer={question.you_can_answer} />
+    </div>
+  {/if}
   <section class="panel">
     <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} />
     {@render children?.()}
@@ -115,6 +125,19 @@
 {/if}
 
 <style>
+  /* The foot of the sheet, one line of points tall whether or not they are in yet. */
+  .said {
+    margin-top: auto;
+    padding-top: 0.2rem;
+    min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+  }
+
+  .plaque {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+  }
+
   /* On a phone the panel gives its padding to the gems: six of them at 56px and a
      two-line prompt have to fit in the 650px a 375x812 phone shows. */
   @container (max-width: 26rem) {

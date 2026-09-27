@@ -325,7 +325,7 @@ describe('every type on the stage', () => {
 
   const paper = () => document.querySelector('.paper') as HTMLElement
   const under = () => document.querySelector('.under') as HTMLElement
-  const pressable = 'button, input, [role="combobox"], .slot'
+  const pressable = 'button, input, [role="combobox"]'
 
   for (const { type, mode, view, reveal } of EVERY_TYPE) {
     it(`puts ${type}'s stem on the scroll and its answers under the line`, async () => {
@@ -344,8 +344,16 @@ describe('every type on the stage', () => {
       })
       expect(paper().textContent?.trim()).not.toBe('')
       expect(paper().querySelector(pressable)).toBeNull()
+      expect(paper().querySelector('.slot')?.textContent).toContain('No answer · +0')
     })
   }
+
+  it('holds the line the points go on, so the answers do not move for them', () => {
+    render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
+    const said = paper().querySelector('.said')
+    expect(said).toBeTruthy()
+    expect(said!.textContent?.trim()).toBe('')
+  })
 
   it('does not unroll the scroll again: it opened on the splash', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })

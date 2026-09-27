@@ -45,7 +45,7 @@
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import ErrorBanner from '../components/ErrorBanner.svelte'
   import Lobby from '../components/Lobby.svelte'
-  import PointsSlot, { verdictSentence } from '../components/PointsSlot.svelte'
+  import { verdictSentence } from '../components/PointsSlot.svelte'
   import QuestionStage from '../components/QuestionStage.svelte'
   import RevealTally from '../components/RevealTally.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
@@ -173,7 +173,12 @@
     if (departure !== null || current === null || current.status !== 'playing') {
       timerBar.set(null)
     } else if (current.phase === 'open' && open !== null) {
-      timerBar.set({ endsAt: open.ends_at, totalSeconds: questionSeconds, label: 'to answer' })
+      timerBar.set({
+        endsAt: open.ends_at,
+        totalSeconds: questionSeconds,
+        label: 'to answer',
+        progress: `${number}/${total}`,
+      })
     } else if (
       (current.phase === 'reveal' || current.phase === 'standings') &&
       current.next_at !== null
@@ -185,15 +190,16 @@
           ? current.settings.standings_seconds
           : current.settings.reveal_seconds,
         label: standing ? 'to the next round' : 'to the next question',
+        ...(standing ? {} : { progress: `${number}/${total}` }),
       })
     } else {
       timerBar.set(null)
     }
   })
   /**
-   * Our points after the question just closed, for the points slot. From `standings`,
-   * which `question_closed` carries and the standings screen draws, so the slot's total
-   * and the next board cannot disagree.
+   * Our points after the question just closed, for the announcer. From `standings`,
+   * which `question_closed` carries and the standings screen draws, so the two cannot
+   * disagree.
    */
   const yourTotal = $derived(
     $you === null
@@ -209,8 +215,6 @@
     )
   }
   /** Our own row in the reveal, if we answered. */
-  /** A reveal with its question in hand, which is when the verdict row is drawn. */
-  const revealed = $derived($room?.phase === 'reveal' && ($lastClosed?.was ?? null) !== null)
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
@@ -398,8 +402,7 @@
       onSkip={isAdmin ? skip : null}
     />
   {:else}
-    <!-- playing. A question's screen is the stage and nothing to read past it: where we
-         are in the game and what we scored wait under the line for the reveal. -->
+    <!-- playing. A question's screen is the stage and nothing to read past it. -->
     <div class:column={$room.phase !== 'standings'}>
     {#if $room.phase === 'standings'}
       <div class="head">
@@ -410,8 +413,10 @@
           Standings
         </h1>
       </div>
-    {:else if !revealed}
-      <h1 class="visually-hidden" bind:this={heading} tabindex="-1">
+    {:else}
+      <!-- The splash said which round this is, and the timer bar's tab says which
+           question: the heading is only for a screen reader and for focus. -->
+      <h1 class="sr" bind:this={heading} tabindex="-1">
         {#if segment !== null && segment.total > 1}
           <span class="round">Round {segment.index + 1} of {segment.total}</span>
         {/if}
@@ -421,26 +426,6 @@
 
     <ErrorBanner />
 
-    {#snippet verdict()}
-      <!-- The heading comes out from behind the stage for the reveal, and the points slot
-           (D8) beside it is in the same place in every mode, so the eye learns where the
-           verdict is. -->
-      {#if revealed && $lastClosed?.was}
-        <div class="spread verdict">
-          <h1>
-            {#if segment !== null && segment.total > 1}
-              <span class="round">Round {segment.index + 1} of {segment.total}</span>
-            {/if}
-            {questionTitle}
-          </h1>
-          <PointsSlot
-            result={yourResult}
-            canAnswer={$lastClosed.was.you_can_answer}
-            total={yourTotal}
-          />
-        </div>
-      {/if}
-    {/snippet}
 
     {#if $room.phase === 'standings'}
       <Scoreboard standings={$standings} youId={$you?.id ?? null} />
@@ -453,7 +438,6 @@
         yourValue={$yourAnswer}
         result={yourResult}
         onAnswer={() => {}}
-        {verdict}
       >
         <RevealTally
           results={$lastClosed.results}
@@ -522,15 +506,6 @@
     margin-inline: auto;
   }
 
-  .verdict {
-    align-items: flex-end;
-    margin-bottom: 1rem;
-  }
-
-  .verdict h1 {
-    margin: 0;
-    font-size: 1.3rem;
-  }
 
   .round {
     display: block;
