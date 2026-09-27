@@ -98,8 +98,7 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     index a test counts on, and at one event per twenty round questions a room this short
     has none. There is no off switch, so a test room of twenty questions or more gets
     events; the tests that are about events ask for ``more`` and enough questions to hold
-    the host's own. And ``random_event_seconds`` is zero, which plays an event as a plain
-    question, so only the tests about the NPC's hold have to wait it out.
+    the host's own.
     """
     seconds = overrides.pop("seconds", 1)
     questions = overrides.pop("questions", 3)
@@ -116,7 +115,6 @@ def fast_settings(**overrides: Any) -> RoomSettings:
             "splash_seconds": 0,
             "standings_seconds": 0,
             "random_event_frequency": "less",
-            "random_event_seconds": 0,
             **overrides,
         }
     )

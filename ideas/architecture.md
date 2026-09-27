@@ -235,8 +235,9 @@ PlayerResult { value, correct, credit, points }
 - `OpenQuestion.mode` sits beside `type` because the pair picks the view (`viewFor`), and an event's
   mode differs from its segment's.
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.
-- `answerable_at` is `opened_at` plus `random_event_seconds` for an event. Answers before it are
-  `not_open`, and `ends_at` and timing count from it, so the NPC's entrance costs nobody points.
+- `answerable_at` is `opened_at` plus a fixed 3.5 s (`RANDOM_EVENT_HOLD`) for an event. Answers
+  before it are `not_open`, and `ends_at` and timing count from it, so the NPC's entrance costs
+  nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
 - `band` is the speed bucket for SPEED, the step for STEP, null for RANK. `of` is every connected
   player who can answer, plus anyone who answered and dropped.
@@ -321,7 +322,6 @@ Settings (`rooms.settings`, fixed at creation):
   "random_event_frequency": "default",   // "less" | "default" | "more"
   "reveal_seconds": 8,                   // 2..30
   "splash_seconds": 8,                   // 0..30; 0 turns splashes off
-  "random_event_seconds": 2,             // 0..10
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
   "name_wrong_answers": false,           // name who got it wrong under the reveal

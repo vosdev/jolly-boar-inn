@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clue scroll prototype</title>
+<link rel="stylesheet" href="/src/app.css" />
+<style>
+  /* Layer 8, proposed. */
+  [data-theme='jolly'] {
+    --scroll-paper: #cfbb88;
+    --scroll-edge: #7a5e30;
+    --scroll-ink: #241708;
+    --scroll-muted: #4f3a1c;
+    --scroll-facet-light: 0.08;
+  }
+  [data-theme='pollnivneach'] {
+    --scroll-paper: #efe0b2;
+    --scroll-edge: #9c7238;
+    --scroll-ink: #2b2319;
+    --scroll-muted: #5a4629;
+    --scroll-facet-light: 0.08;
+  }
+  /* The Wilderness borrows the inn's scroll: parchment, not a dark sheet. */
+  [data-theme='wilderness'] {
+    --scroll-paper: #cfbb88;
+    --scroll-edge: #7a5e30;
+    --scroll-ink: #241708;
+    --scroll-muted: #4f3a1c;
+    --scroll-facet-light: 0.08;
+  }
+
+  /* ---------- the scroll ---------- */
+  /* Two numbers size the scroll, both set on any ancestor: --scroll-scale for the rolls,
+     margins and ribbon, --scroll-text for the words on it. Everything else follows. */
+  /* The NPC beside the scroll needs the roll sizes too, so its row carries them as well. */
+  .stage-row,
+  .scroll {
+    --k: var(--scroll-scale, 1);
+    --roll-w: calc(26px * var(--k));
+    --finial: calc(22px * var(--k));
+    --tuck: calc(5px * var(--k));
+  }
+  .scroll {
+    position: relative;
+    padding: calc(var(--finial) * 0.75) calc(var(--roll-w) - var(--tuck));
+    color: var(--scroll-ink);
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.22));
+  }
+
+  .roll {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    bottom: 0;
+    width: var(--roll-w);
+    display: flex;
+    flex-direction: column;
+  }
+  .roll.left { left: 0; }
+  .roll.right { right: 0; transform: scaleX(-1); }
+  .roll svg { display: block; width: 100%; flex: none; }
+  .roll .finial { height: var(--finial); }
+  .roll .finial.bottom { transform: scaleY(-1); }
+  .roll .body { flex: 1; height: 0; min-height: 0; }
+
+  .reveal { position: relative; }
+  .paper {
+    position: relative;
+    padding: calc(1.1rem * var(--k)) calc(0.9rem * var(--k) + var(--tuck)) calc(1rem * var(--k));
+    /* At least --scroll-lines lines of prompt, so a one-liner still makes a sheet. */
+    min-height: calc(var(--scroll-lines, 4) * 1.3 * max(1rem, 1.2rem * var(--scroll-text, 1)) + 2.1rem * var(--k));
+    background: var(--scroll-paper);
+    box-shadow:
+      inset 14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent),
+      inset -14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent);
+    /* Torn top and bottom: the notches keep their depth in px, and spread across in %. */
+    clip-path: polygon(
+      0 7px, 7% 3px, 15% 6px, 24% 1px, 29% 3px, 31% 13px, 33.5% 3px, 45% 5px, 57% 0,
+      66% 4px, 72% 1px, 74% 10px, 76.5% 2px, 88% 6px, 100% 3px,
+      100% calc(100% - 6px), 92% calc(100% - 2px), 81% calc(100% - 5px), 69% calc(100% - 1px),
+      61% calc(100% - 4px), 49% calc(100% - 3px), 47% calc(100% - 12px), 45% calc(100% - 2px),
+      33% calc(100% - 6px), 22% calc(100% - 1px), 12% calc(100% - 5px), 0 calc(100% - 2px)
+    );
+  }
+  .facets {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .fl { fill: #fff; fill-opacity: var(--scroll-facet-light); }
+  .fd { fill: var(--scroll-edge); fill-opacity: 0.08; }
+  .paper > :not(.facets) { position: relative; }
+
+  /* Wood-and-paper shading of the rolls: flat bands, like the game's own shading. */
+  .p   { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 12%); }
+  .hi  { fill: #fff; fill-opacity: 0.3; }
+  .sh1 { fill: var(--scroll-edge); fill-opacity: 0.25; }
+  .sh2 { fill: var(--scroll-edge); fill-opacity: 0.5; }
+  .ln  { fill: var(--scroll-edge); }
+  .wood  { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 45%); }
+  .wood2 { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 70%); }
+  .rim   { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 25%); }
+  .stroke { fill: none; stroke: var(--scroll-edge); stroke-width: 1.3; }
+  /* Open and close from the middle: the rolls travel, the sheet is uncovered between them. */
+  .scroll.opening .roll.left  { animation: roll-left var(--scroll-ms, 300ms) ease-out; }
+  .scroll.opening .roll.right { animation: roll-right var(--scroll-ms, 300ms) ease-out; }
+  .scroll.opening .reveal     { animation: uncover var(--scroll-ms, 300ms) ease-out; }
+  .scroll.closing .roll.left  { animation: roll-left var(--scroll-ms, 300ms) ease-in reverse forwards; }
+  .scroll.closing .roll.right { animation: roll-right var(--scroll-ms, 300ms) ease-in reverse forwards; }
+  .scroll.closing .reveal     { animation: uncover var(--scroll-ms, 300ms) ease-in reverse forwards; }
+  .scroll.closing .award      { visibility: hidden; }
+  @keyframes roll-left  { from { left: calc(50% - var(--roll-w)); } }
+  @keyframes roll-right { from { right: calc(50% - var(--roll-w)); } }
+  @keyframes uncover    { from { clip-path: inset(0 50%); } to { clip-path: inset(0 0); } }
+
+
+  /* The reward ribbon, for a right answer: on the sheet's bottom edge, --ribbon-x across it. */
+  .award {
+    position: absolute;
+    z-index: 2;
+    left: var(--ribbon-x, 65%);
+    bottom: calc(-42px * var(--k));
+    width: calc(42px * var(--k));
+    height: calc(66px * var(--k));
+    transform: translateX(-50%);
+  }
+  .award[hidden] { display: none; }
+  .ribbon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.3));
+    transform-origin: 50% 30%;
+    animation: pin 200ms ease-out;
+  }
+  @keyframes pin { from { transform: scale(0.4) rotate(-20deg); opacity: 0; } }
+
+  /* Confetti out of the rosette: sixteen fixed flakes, each thrown its own way. */
+  .confetti { position: absolute; left: 50%; top: 30%; pointer-events: none; }
+  .confetti i {
+    position: absolute;
+    width: 6px;
+    height: 9px;
+    margin: -4px -3px;
+    border-radius: 1px;
+    opacity: 0;
+    animation: confetti var(--confetti-ms, 900ms) cubic-bezier(0.2, 0.7, 0.4, 1) both;
+  }
+  @keyframes confetti {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+    40% { opacity: 1; transform: translate(calc(var(--dx) * 0.75), var(--dy)) rotate(calc(var(--r) * 0.4)); }
+    100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 70px)) rotate(var(--r)); }
+  }
+  .confetti i:nth-child(1) { --dx: -43px; --dy: -3px; --r: -217deg; background: #f2c230; animation-delay: 152ms; }
+  .confetti i:nth-child(2) { --dx: -47px; --dy: -15px; --r: -439deg; background: #b3261e; animation-delay: 113ms; }
+  .confetti i:nth-child(3) { --dx: -48px; --dy: -20px; --r: -303deg; background: #d9a41c; animation-delay: 105ms; }
+  .confetti i:nth-child(4) { --dx: -31px; --dy: -26px; --r: -294deg; background: #8fd3a4; animation-delay: 140ms; }
+  .confetti i:nth-child(5) { --dx: -42px; --dy: -54px; --r: 205deg; background: #a8cbef; animation-delay: 114ms; }
+  .confetti i:nth-child(6) { --dx: -36px; --dy: -55px; --r: 394deg; background: #f390c0; animation-delay: 109ms; }
+  .confetti i:nth-child(7) { --dx: -16px; --dy: -54px; --r: -232deg; background: #fff4c8; animation-delay: 137ms; }
+  .confetti i:nth-child(8) { --dx: -4px; --dy: -44px; --r: -460deg; background: #dfb3e8; animation-delay: 145ms; }
+  .confetti i:nth-child(9) { --dx: 0px; --dy: -40px; --r: -434deg; background: #f2c230; animation-delay: 143ms; }
+  .confetti i:nth-child(10) { --dx: 19px; --dy: -60px; --r: 479deg; background: #b3261e; animation-delay: 159ms; }
+  .confetti i:nth-child(11) { --dx: 22px; --dy: -42px; --r: -537deg; background: #d9a41c; animation-delay: 149ms; }
+  .confetti i:nth-child(12) { --dx: 33px; --dy: -45px; --r: 355deg; background: #8fd3a4; animation-delay: 146ms; }
+  .confetti i:nth-child(13) { --dx: 44px; --dy: -37px; --r: -240deg; background: #a8cbef; animation-delay: 132ms; }
+  .confetti i:nth-child(14) { --dx: 54px; --dy: -30px; --r: -430deg; background: #f390c0; animation-delay: 126ms; }
+  .confetti i:nth-child(15) { --dx: 55px; --dy: -23px; --r: 354deg; background: #fff4c8; animation-delay: 144ms; }
+  .confetti i:nth-child(16) { --dx: 53px; --dy: -7px; --r: 215deg; background: #dfb3e8; animation-delay: 153ms; }
+
+  /* ---------- text on the paper ---------- */
+  .paper h2 {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-display);
+    font-size: max(1.15rem, 1.5rem * var(--scroll-text, 1));
+    line-height: 1.15;
+    color: var(--scroll-ink);
+  }
+  .who {
+    margin: 0 0 0.15rem;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--scroll-muted);
+  }
+  .says { margin: 0 0 0.4rem; font-size: max(0.9rem, 1rem * var(--scroll-text, 1)); font-style: italic; }
+  .blurb { margin: 0; font-size: max(0.9rem, 1rem * var(--scroll-text, 1)); }
+  .prompt { margin: 0; font-size: max(1rem, 1.2rem * var(--scroll-text, 1)); line-height: 1.3; }
+  .examine { margin-block: auto; padding-top: 0.35rem; color: var(--scroll-muted); font-style: italic; }
+  /* The sheet is a column, so a line can centre itself in whatever height is left. */
+  .paper { display: flex; flex-direction: column; }
+  .content { flex: 1; display: flex; flex-direction: column; }
+  .stem::after { content: ''; display: block; clear: both; }
+  .item {
+    float: left;
+    margin: 0.15rem 0.75rem 0.25rem 0;
+    width: 48px; height: 48px;
+    display: grid; place-items: center;
+    border: 1px dashed var(--scroll-muted);
+    color: var(--scroll-muted);
+    font-size: 0.7rem;
+  }
+
+  /* ---------- the stage: an NPC's upper body beside the scroll, overlapping it ---------- */
+  .stage {
+    container-type: inline-size;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+  .stage-row {
+    --npc-w: 124px;
+    --npc-lap: 30px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+  }
+  .stage-row > .scroll { flex: 1; min-width: 0; }
+  .npc {
+    flex: none;
+    position: relative;
+    z-index: 3;
+    width: var(--npc-w);
+    margin-right: calc(-1 * var(--npc-lap));
+  }
+  .npc img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.25));
+  }
+  /* A random event: the guest stands right, facing in, and the host has left the stage. */
+  .stage-row.event .npc.guest { order: 2; margin-right: 0; margin-left: calc(-1 * var(--npc-lap)); }
+  .stage-row.event .npc.guest img { transform: scaleX(-1); }
+  .stage-row.event .npc.host { position: absolute; left: 0; bottom: 0; margin: 0; opacity: 0; }
+
+  /* A phone: the numbers picked in the playground. */
+  @container (max-width: 26rem) {
+    .stage-row { --npc-w: 68px; --npc-lap: 32px; --scroll-scale: 0.8; --scroll-text: 0.9; }
+  }
+
+  .under {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid color-mix(in srgb, var(--bg-muted) 45%, transparent);
+    color: var(--bg-ink);
+  }
+  .meta { margin: 0 0 0.75rem; font-size: 0.85rem; color: var(--bg-muted); }
+
+  /* ---------- the interlude, played ---------- */
+  .stage.play .npc.host { animation: fade-out 200ms ease-in both; }
+  .stage.play .stage-row > .scroll { animation: slide-left 250ms ease-out both; }
+  .stage.play .npc.guest { animation: guest-in 250ms ease-out 150ms both; }
+  /* The name is there from the first frame; only the prompt types. */
+  .stage.play .typed span { animation: appear 1ms linear both; }
+  .stage.play .under .gems { animation: appear 150ms ease-out var(--hold, 3500ms) both; }
+  .stage-row:not(.event) .npc.guest { display: none; }
+
+  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes slide-left { from { transform: translateX(calc(var(--npc-w) - var(--npc-lap))); } }
+  @keyframes guest-in { from { opacity: 0; transform: translateX(16px); } }
+  @keyframes appear { from { opacity: 0; } }
+
+  /* ---------- gems, beneath the line ---------- */
+  .gems { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .gem {
+    min-height: 56px;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius);
+    border: var(--border-width) solid var(--line);
+    color: var(--gem-ink);
+    font: 600 1rem var(--font-body);
+  }
+  .gem:nth-child(1) { background: var(--gem-sapphire); }
+  .gem:nth-child(2) { background: var(--gem-emerald); }
+  .gem:nth-child(3) { background: var(--gem-ruby); }
+  .gem:nth-child(4) { background: var(--gem-red-topaz); }
+  .gem:nth-child(5) { background: var(--gem-dragonstone); }
+  .gem:nth-child(6) { background: var(--gem-zenyte); }
+  @container (max-width: 26rem) { .gems { grid-template-columns: 1fr; } }
+
+  .ready { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll .roll, .scroll .reveal, .ribbon, .stage.play * { animation: none !important; }
+    .confetti { display: none; }
+  }
+
+  /* ---------- rolls at or past the screen's edge ---------- */
+  /* The sheet runs to the screen's edges. "off" parks the rolls just past them; "half" cuts
+     them down the middle at the edge. Opening and closing still play either way. The NPC
+     stands on the sheet, which keeps a column clear for it. */
+  .stage.rolls-off .stage-row { --edge: 0px; }
+  .stage.rolls-half .stage-row { --edge: calc(var(--roll-w) / 2); --in-half: 1; }
+  .stage:is(.rolls-off, .rolls-half) .stage-row { margin-inline: calc(-1 * var(--gutter, 16px)); }
+  .stage:is(.rolls-off, .rolls-half) .scroll { padding-inline: 0; }
+  .stage.rolls-off .scroll { padding-block: 0; }
+  .stage.rolls-off .roll { top: calc(-0.75 * var(--finial)); bottom: calc(-0.75 * var(--finial)); }
+  .stage.rolls-off .roll.left { left: calc(-1 * var(--roll-w)); }
+  .stage.rolls-off .roll.right { right: calc(-1 * var(--roll-w)); }
+  .stage.rolls-half .roll.left { left: calc(-0.5 * var(--roll-w)); }
+  .stage.rolls-half .roll.right { right: calc(-0.5 * var(--roll-w)); }
+  .stage:is(.rolls-off, .rolls-half) .paper {
+    padding-left: calc(var(--edge) + var(--npc-w) + 1.1rem);
+    padding-right: calc(var(--edge) + 1rem);
+  }
+  .stage:is(.rolls-off, .rolls-half) .stage-row .npc {
+    position: absolute;
+    left: calc(var(--edge) + 6px);
+    bottom: calc(var(--finial) * 0.75 * var(--in-half, 0));
+    margin: 0;
+  }
+  .stage:is(.rolls-off, .rolls-half) .stage-row.event .npc.guest { left: auto; right: calc(var(--edge) + 6px); }
+  .stage:is(.rolls-off, .rolls-half) .stage-row.event .paper {
+    padding-left: calc(var(--edge) + 1rem);
+    padding-right: calc(var(--edge) + var(--npc-w) + 1.1rem);
+  }
+  .stage:is(.rolls-off, .rolls-half).play .stage-row > .scroll { animation: none; }
+
+  .readout { margin: 0.6rem 0 0; font: 0.75rem ui-monospace, monospace; color: var(--bg-muted); }
+  .readout.over { color: #ff9a8a; }
+  .knobs { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin: 0 0 1rem; color: var(--bg-ink); font-size: 0.85rem; }
+  .knobs label { color: var(--bg-ink); }
+  .knobs label { display: flex; align-items: center; gap: 0.5rem; }
+  .knobs output { font: 0.8rem ui-monospace, monospace; min-width: 3.5rem; }
+  .knobs code { font-size: 0.8rem; color: var(--bg-muted); }
+
+  /* ---------- the prototype page ---------- */
+  body { margin: 0; }
+  .theme { padding: 2rem 1rem 3rem; background-color: var(--bg); background-image: var(--texture-bg); }
+  .theme > h1 { color: var(--bg-ink); font-size: 1rem; margin: 0 0 1rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .label { color: var(--bg-muted); font-size: 0.8rem; margin: 2rem 0 1rem; }
+  .frames { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start; }
+  .frame { flex: none; overflow-x: clip; padding: 20px 16px 16px; outline: 1px dashed color-mix(in srgb, var(--bg-muted) 40%, transparent); }
+  .frame.w560 { width: 560px; }
+  .frame.w375 { width: 375px; }
+  .frame.w320 { width: 320px; }
+  .controls { position: fixed; right: 1rem; bottom: 1rem; z-index: 10; display: flex; gap: 0.5rem; }
+</style>
+</head>
+<body>
+<!--
+  The stage for D13 and D16, as agreed on 2026-09-27: the scroll, the NPC beside it, the
+  ribbon and the random event. With `make dev` running it is at
+  http://localhost:5173/prototypes/clue-scroll.html, on the real theme tokens from app.css.
+  The sliders' starting values are the chosen ones. The chatheads are the wiki's, linked for
+  the test only: D14's drawings replace them, and the CSP would block them in the app.
+-->
+<template id="scroll-tpl">
+  <div class="scroll">
+    <div class="roll left" aria-hidden="true">
+      <svg class="finial top" viewBox="0 0 40 34"><use href="#finial" /></svg>
+      <svg class="body" viewBox="0 0 40 10" preserveAspectRatio="none"><use href="#roll-body" /></svg>
+      <svg class="finial bottom" viewBox="0 0 40 34"><use href="#finial" /></svg>
+    </div>
+    <div class="reveal">
+      <div class="paper">
+        <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true"><use href="#facets" /></svg>
+        <slot></slot>
+      </div>
+      <div class="award" hidden>
+        <svg class="ribbon" viewBox="0 0 64 100" role="img" aria-label="Correct"><use href="#ribbon" /></svg>
+        <span class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+    </div>
+    <div class="roll right" aria-hidden="true">
+      <svg class="finial top" viewBox="0 0 40 34"><use href="#finial" /></svg>
+      <svg class="body" viewBox="0 0 40 10" preserveAspectRatio="none"><use href="#roll-body" /></svg>
+      <svg class="finial bottom" viewBox="0 0 40 34"><use href="#finial" /></svg>
+    </div>
+  </div>
+</template>
+
+<!-- Shared pieces. In the component each is drawn inline in its own piece. -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- A roll along its length: the bands run lengthwise, so stretching it distorts nothing. -->
+    <g id="roll-body">
+      <rect class="p" x="1.5" y="0" width="37" height="10" />
+      <rect class="sh2" x="1.5" y="0" width="7.5" height="10" />
+      <rect class="sh1" x="9" y="0" width="7" height="10" />
+      <rect class="hi" x="22" y="0" width="6" height="10" />
+      <rect class="sh1" x="32" y="0" width="6.5" height="10" />
+      <rect class="ln" x="0" y="0" width="1.5" height="10" />
+      <rect class="ln" x="38.5" y="0" width="1.5" height="10" />
+    </g>
+    <!-- The top end of a roll, fixed size: knob, neck, rim, and the start of the roll. -->
+    <g id="finial">
+      <rect class="p" x="1.5" y="25" width="37" height="9" />
+      <rect class="sh2" x="1.5" y="25" width="7.5" height="9" />
+      <rect class="sh1" x="9" y="25" width="7" height="9" />
+      <rect class="hi" x="22" y="25" width="6" height="9" />
+      <rect class="sh1" x="32" y="25" width="6.5" height="9" />
+      <rect class="ln" x="0" y="25" width="1.5" height="9" />
+      <rect class="ln" x="38.5" y="25" width="1.5" height="9" />
+      <path class="rim" d="M0 19h40v6.5H0z" />
+      <path class="wood2" d="M20 19h20v6.5H20z" opacity="0.5" />
+      <path class="stroke" d="M0 19h40v6.5H0z" />
+      <rect class="wood" x="13" y="14" width="14" height="5" />
+      <rect class="wood2" x="20" y="14" width="7" height="5" />
+      <path class="wood" d="M8 14.5C8 8 13 3.5 20 3.5S32 8 32 14.5z" />
+      <path class="wood2" d="M20 3.5c7 0 12 4.5 12 11H20z" />
+      <rect class="wood2" x="17" y="0.8" width="6" height="3" />
+      <path class="stroke" d="M8 14.5C8 8 13 3.5 20 3.5S32 8 32 14.5zM13 14h14v5H13zM17 0.8h6v2.7h-6z" />
+    </g>
+    <!-- Creases: faint facets over the sheet, stretched with it. -->
+    <g id="facets">
+      <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
+      <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
+      <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
+      <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
+      <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
+      <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
+      <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
+      <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
+      <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
+    </g>
+    <g id="ribbon">
+      <path fill="#8a1a14" d="M24 38L34 42L28 84L14 80Z" />
+      <path fill="#b3261e" d="M32 42L42 38L52 80L38 84Z" />
+      <path fill="#f2c230" d="M14 80L28 84L26 97L21 91L12 94Z" />
+      <path fill="#d9a41c" d="M38 84L52 80L54 94L45 91L40 97Z" />
+      <path fill="#b3261e" d="M42.0 30.0 L57.0 30.0 L58.6 34.7 L55.5 38.6 L41.4 33.4Z M39.7 36.4 L51.2 46.1 L49.4 50.7 L44.5 51.7 L37.0 38.7Z M33.7 39.8 L36.3 54.6 L32.0 57.0 L27.7 54.6 L30.3 39.8Z M27.0 38.7 L19.5 51.7 L14.6 50.7 L12.8 46.1 L24.3 36.4Z M22.6 33.4 L8.5 38.6 L5.4 34.7 L7.0 30.0 L22.0 30.0Z M22.6 26.6 L8.5 21.4 L8.6 16.5 L12.8 13.9 L24.3 23.6Z M27.0 21.3 L19.5 8.3 L22.8 4.6 L27.7 5.4 L30.3 20.2Z M33.7 20.2 L36.3 5.4 L41.2 4.6 L44.5 8.3 L37.0 21.3Z M39.7 23.6 L51.2 13.9 L55.4 16.5 L55.5 21.4 L41.4 26.6Z" />
+      <path fill="#8f1c16" d="M41.4 33.4 L55.5 38.6 L55.4 43.5 L51.2 46.1 L39.7 36.4Z M37.0 38.7 L44.5 51.7 L41.2 55.4 L36.3 54.6 L33.7 39.8Z M30.3 39.8 L27.7 54.6 L22.8 55.4 L19.5 51.7 L27.0 38.7Z M24.3 36.4 L12.8 46.1 L8.6 43.5 L8.5 38.6 L22.6 33.4Z M22.0 30.0 L7.0 30.0 L5.4 25.3 L8.5 21.4 L22.6 26.6Z M24.3 23.6 L12.8 13.9 L14.6 9.3 L19.5 8.3 L27.0 21.3Z M30.3 20.2 L27.7 5.4 L32.0 3.0 L36.3 5.4 L33.7 20.2Z M37.0 21.3 L44.5 8.3 L49.4 9.3 L51.2 13.9 L39.7 23.6Z M41.4 26.6 L55.5 21.4 L58.6 25.3 L57.0 30.0 L42.0 30.0Z" />
+      <path fill="#f4c531" d="M32.0 30.0 L43.0 30.0 L41.5 35.5Z M32.0 30.0 L37.5 39.5 L32.0 41.0Z M32.0 30.0 L26.5 39.5 L22.5 35.5Z M32.0 30.0 L21.0 30.0 L22.5 24.5Z M32.0 30.0 L26.5 20.5 L32.0 19.0Z M32.0 30.0 L37.5 20.5 L41.5 24.5Z" />
+      <path fill="#d8a21e" d="M32.0 30.0 L41.5 35.5 L37.5 39.5Z M32.0 30.0 L32.0 41.0 L26.5 39.5Z M32.0 30.0 L22.5 35.5 L21.0 30.0Z M32.0 30.0 L22.5 24.5 L26.5 20.5Z M32.0 30.0 L32.0 19.0 L37.5 20.5Z M32.0 30.0 L41.5 24.5 L43.0 30.0Z" />
+    </g>
+  </defs>
+</svg>
+
+<div class="controls">
+  <button type="button" data-do="open">Open</button>
+  <button type="button" data-do="close">Close</button>
+  <button type="button" data-do="ribbon">Pop ribbon</button>
+  <button type="button" data-do="unribbon">Hide ribbons</button>
+  <button type="button" data-do="interlude">Play random event</button>
+</div>
+<div id="out"></div>
+
+<script>
+  const GNOME = 'https://oldschool.runescape.wiki/images/Gnome_child_%28blue%29_chathead.png?cebcd'
+  const JEKYLL = 'https://oldschool.runescape.wiki/images/Dr_Jekyll_chathead.png'
+  const themes = [['jolly', 'Jolly Boar Inn'], ['pollnivneach', 'Pollnivneach'], ['wilderness', 'Wilderness']]
+  const npc = (src, cls) => `<div class="npc ${cls}" aria-hidden="true"><img src="${src}" alt="" /></div>`
+
+  const jekyllPrompt =
+    'I feel Hyde trying to force his way out, you must hurry! Which secondary ingredient is required to brew a Super Defence potion?'
+  const typed = (text) =>
+    [...text].map((c) => `<span>${c}</span>`).join('')
+
+  const scenes = {
+    splash: {
+      label: 'Splash',
+      paper: `<h2>Know Your Content Creator</h2>
+        <p class="says">“Psst. Seen this one before?”</p>
+        <p class="blurb">Are you sure you are a fan?</p>`,
+      under: `<p class="meta">Round 2 of 5 · 5 questions · 20 seconds each</p>
+        <div class="ready"><button class="primary" type="button">✓ I'm ready</button><span>Waiting for 2 more</span></div>`,
+    },
+    right: {
+      label: 'Question revealed, answered right',
+      ribbon: true,
+      paper: `<div class="stem"><div class="item">item</div>
+        <p class="prompt">What does a Dragon scimitar sell for on the Grand Exchange?</p></div>`,
+      gems: ['14,200 gp', '59,800 gp', '102,000 gp', '61,500 gp'],
+    },
+    six: {
+      label: 'Two-line prompt, six gems',
+      paper: `<p class="prompt">Which item has this examine text?</p>
+        <p class="examine">“A vicious, curved sword.”</p>`,
+      gems: ['Dragon scimitar', 'Rune scimitar', 'Granite maul', "Verac's flail", 'Abyssal whip', 'Dragon dagger'],
+    },
+    event: {
+      label: 'Random event: Dr Jekyll (press “Play random event”)',
+      event: true,
+      paper: `<p class="who">Dr Jekyll</p>
+        <p class="prompt typed" aria-label="${jekyllPrompt}">${typed(jekyllPrompt)}</p>`,
+      gems: ['White berries', 'Poison ivy berries', "Red spiders' eggs", 'Jangerberries'],
+    },
+  }
+
+  function scroll(content, ribbon) {
+    const node = document.getElementById('scroll-tpl').content.cloneNode(true)
+    node.querySelector('slot').outerHTML = `<div class="content">${content}</div>`
+    if (ribbon) node.querySelector('.award').removeAttribute('hidden')
+    const wrap = document.createElement('div')
+    wrap.appendChild(node)
+    return wrap.innerHTML
+  }
+  const gems = (labels) =>
+    `<div class="gems">${labels.map((l) => `<button class="gem" type="button">${l}</button>`).join('')}</div>`
+  const stage = (s, v = '') => `
+    <div class="stage ${v}${s.event ? ' event' : ''}">
+      <div class="stage-row${s.event ? ' event' : ''}">
+        ${npc(GNOME, 'host')}${scroll(s.paper, s.ribbon)}${s.event ? npc(JEKYLL, 'guest') : ''}
+      </div>
+      <div class="under">${s.under ?? gems(s.gems)}</div>
+    </div>`
+
+  const phones = [414, 390, 375, 360, 320]
+  const frame = (w, s) =>
+    `<div class="frame" style="width:${w}px" data-w="${w}">${stage(s)}<p class="readout"></p></div>`
+  // A global knob goes on <html> and moves every stage; the rest move this section's.
+  const knob = (name, min, max, step, value, unit, global = false) =>
+    `<label>${name} <input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-var="${name}" data-unit="${unit}"${global ? ' data-global' : ''}><output></output></label>`
+
+  document.getElementById('out').innerHTML = `
+    <section class="theme" data-theme="jolly" id="phones">
+      <h1>Phones: 414, 390, 375, 360 and 320px</h1>
+      <div class="knobs">
+        <label>Rolls
+          <select id="mode"><option value="half">half off the edge</option><option value="off">off-screen</option></select>
+        </label>
+        <label>below
+          <select id="bp">${[[0, 'never'], [360, '360px'], [375, '375px'], [400, '400px'], [448, '448px'], [99999, 'every width']].map(([v, t]) =>
+            `<option value="${v}"${v === 448 ? ' selected' : ''}>${t}</option>`).join('')}</select>
+        </label>
+        ${knob('--scroll-ms', 100, 2000, 50, 300, 'ms', true)}
+        ${knob('--scroll-lines', 0, 6, 1, 4, '', true)}
+        ${knob('--ribbon-x', 30, 90, 1, 65, '%', true)}
+        ${knob('--confetti-ms', 300, 2000, 50, 900, 'ms', true)}
+        ${knob('--npc-w', 0, 128, 1, 68, 'px')}
+        ${knob('--npc-lap', 0, 40, 1, 32, 'px')}
+        ${knob('--scroll-scale', 0.6, 1.4, 0.05, 0.8, '')}
+        ${knob('--scroll-text', 0.8, 1.2, 0.02, 0.9, '')}
+      </div>
+      <div class="knobs">
+        ${knob('--type-delay', 0, 2000, 50, 900, 'ms', true)}
+        ${knob('--type-cps', 10, 150, 5, 60, '', true)}
+        ${knob('--hold', 1000, 6000, 250, 3500, 'ms', true)}
+        <code id="typeinfo"></code>
+      </div>
+      <p class="knobs"><code>Readout: the stage's height, then the page's with the 56px top bar and main's 32px top padding. The rolls, speed, lines, ribbon and confetti settings move every stage; the NPC and scale sliders move this section only.</code></p>
+      ${[scenes.splash, scenes.right, scenes.six, scenes.event].map((s) =>
+        `<p class="label">${s.label}</p><div class="frames">${phones.map((w) => frame(w, s)).join('')}</div>`).join('')}
+    </section>
+    ${themes.map(([id, name]) => `
+    <section class="theme" data-theme="${id}">
+      <h1>${name}: 480, 390 and 360px</h1>
+      ${Object.values(scenes).map((s) => `
+        <p class="label">${s.label}</p>
+        <div class="frames">${[480, 390, 360].map((w) => frame(w, s)).join('')}</div>`).join('')}
+    </section>`).join('')}`
+
+  function applyKnobs() {
+    for (const input of document.querySelectorAll('.knobs input')) {
+      const value = input.value + input.dataset.unit
+      input.nextElementSibling.value = value
+      if ('global' in input.dataset) document.documentElement.style.setProperty(input.dataset.var, value)
+      else document.querySelectorAll('#phones .stage-row').forEach((row) => row.style.setProperty(input.dataset.var, value))
+    }
+    describeTyping()
+    measure()
+  }
+  function applyBreakpoint() {
+    const bp = Number(document.getElementById('bp').value)
+    const mode = document.getElementById('mode').value
+    for (const f of document.querySelectorAll('.frame')) {
+      const st = f.querySelector('.stage')
+      const edge = Number(f.dataset.w) < bp
+      st.classList.toggle('rolls-off', edge && mode === 'off')
+      st.classList.toggle('rolls-half', edge && mode === 'half')
+    }
+    measure()
+  }
+  function measure() {
+    for (const out of document.querySelectorAll('.readout')) {
+      const h = Math.round(out.previousElementSibling.getBoundingClientRect().height)
+      out.textContent = `stage ${h}px · page ${h + 88}px`
+    }
+  }
+  document.querySelectorAll('.knobs input').forEach((i) => i.addEventListener('input', applyKnobs))
+  document.getElementById('bp').addEventListener('change', applyBreakpoint)
+  document.getElementById('mode').addEventListener('change', applyBreakpoint)
+
+  const knobValue = (name) => parseFloat(document.querySelector(`.knobs input[data-var="${name}"]`).value)
+
+  /**
+   * When each letter of the prompt shows: from --type-delay, at --type-cps letters a second,
+   * but always done 200ms before the answers at --hold, so a long prompt types faster
+   * rather than run over them. A hold too short for the delay starts it sooner too.
+   */
+  function typing(chars) {
+    const room = knobValue('--hold') - 200
+    const delay = Math.min(knobValue('--type-delay'), room * 0.45)
+    const wanted = (chars / knobValue('--type-cps')) * 1000
+    const ms = Math.max(0, Math.min(wanted, room - delay))
+    return { delay, ms, capped: ms < wanted, cps: ms ? Math.round((chars / ms) * 1000) : Infinity }
+  }
+  function describeTyping() {
+    const t = typing(jekyllPrompt.length)
+    document.getElementById('typeinfo').textContent =
+      `Dr Jekyll's ${jekyllPrompt.length} letters: ${t.delay}ms to ${Math.round(t.delay + t.ms)}ms` +
+      (t.capped ? `, sped up to ${t.cps}/s to finish before the answers` : '')
+  }
+
+  /** From the previous question, still on the host's scroll, into the random event. */
+  function playEvent(st) {
+    const row = st.querySelector('.stage-row')
+    const content = row.querySelector('.content')
+    const under = st.querySelector('.under')
+    st.classList.remove('play')
+    row.classList.remove('event')
+    content.innerHTML = scenes.right.paper
+    under.innerHTML = gems(scenes.right.gems)
+    setTimeout(() => {
+      content.innerHTML = scenes.event.paper
+      under.innerHTML = gems(scenes.event.gems)
+      row.classList.add('event')
+      const spans = [...content.querySelectorAll('.typed span')]
+      const t = typing(spans.length)
+      spans.forEach((span, i) => { span.style.animationDelay = `${Math.round(t.delay + (t.ms * i) / spans.length)}ms` })
+      void st.offsetWidth
+      st.classList.add('play')
+    }, 700)
+  }
+  applyKnobs()
+  applyBreakpoint()
+  document.querySelectorAll('img').forEach((img) => img.addEventListener('load', measure))
+
+  const restart = (el, cls) => { el.classList.remove(cls, 'opening', 'closing'); void el.offsetWidth; el.classList.add(cls) }
+  document.querySelector('.controls').addEventListener('click', (e) => {
+    const what = e.target.dataset.do
+    if (what === 'open') document.querySelectorAll('.scroll').forEach((s) => restart(s, 'opening'))
+    if (what === 'close') document.querySelectorAll('.scroll').forEach((s) => restart(s, 'closing'))
+    if (what === 'ribbon') document.querySelectorAll('.award').forEach((r) => { r.hidden = true; void r.offsetWidth; r.hidden = false })
+    if (what === 'unribbon') document.querySelectorAll('.award').forEach((r) => { r.hidden = true })
+    if (what === 'interlude') document.querySelectorAll('.stage.event').forEach(playEvent)
+  })
+</script>
+</body>
+</html>

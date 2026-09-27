@@ -127,7 +127,7 @@ class OpenQuestion(_Message):
     random_event: str | None = None
     opened_at: datetime
     # When the buttons appear and the clock starts: ``opened_at`` for every question but a
-    # random event, where the NPC holds the floor for ``random_event_seconds`` first. An
+    # random event, where the NPC holds the floor for ``RANDOM_EVENT_HOLD`` first. An
     # answer before it is ``not_open``, and ``ends_at`` is this plus the question's seconds.
     answerable_at: datetime
     ends_at: datetime

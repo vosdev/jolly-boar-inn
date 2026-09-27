@@ -97,7 +97,7 @@ describe('RandomEvent', () => {
   })
 
   it('offers the answers at once when there is no hold', () => {
-    // `random_event_seconds: 0`, and a server from before the field existed.
+    // A question the server opened with no hold, and one from before `answerable_at` existed.
     render(RandomEvent, {
       question: event({ answerable_at: new Date(NOW).toISOString() }),
       yourValue: null,

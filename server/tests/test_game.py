@@ -45,7 +45,7 @@ from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
 from app.rooms import state
 from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
-from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, RoomQuestion
+from app.rooms.state import CHANGE_COOLDOWN, RANDOM_EVENT_HOLD, BadState, Excluded, RoomQuestion
 from app.ws.outbox import SEND_TIMEOUT
 from tests.game_api import (
     AFTER,
@@ -2320,17 +2320,19 @@ def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
     assert (at(question, "ends_at") - at(question, "answerable_at")).total_seconds() == 10
 
 
-def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db) -> None:
+def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, monkeypatch) -> None:
     """T22 Accept, on the server: an answer inside the NPC's hold is ``not_open``, and
-    ``ends_at - answerable_at`` is its type's own seconds -- the hold comes on top.
+    ``ends_at - answerable_at`` is its type's own seconds -- the hold comes on top. The
+    hold is the server's own three and a half seconds, which the interlude is timed to.
     The event here is an NPC asking its own question, in the ``random_event`` mode."""
-    game = table("Zezima", random_event_seconds=5, **event_rooms(second_mode))
+    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", RANDOM_EVENT_HOLD)
+    game = table("Zezima", **event_rooms(second_mode))
     event = the_event(game)
     assert (event.mode, event.source) == ("random_event", "pack")
     frames = reach(game, event.position)
     opened = frames["Zezima"]
     assert opened["random_event"] == event.random_event
-    assert (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds() == 5
+    assert (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds() == 3.5
     seconds = (at(opened, "ends_at") - at(opened, "answerable_at")).total_seconds()
     assert seconds == type_seconds(event.type).default
 
@@ -2342,11 +2344,14 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db) -
     assert db("select count(*) as n from answers")[0]["n"] == 0
 
 
-def test_answering_the_instant_the_buttons_appear_is_bucket_1(table, second_mode, clock) -> None:
+def test_answering_the_instant_the_buttons_appear_is_bucket_1(
+    table, second_mode, clock, monkeypatch
+) -> None:
     """T22 Accept: the wait costs nobody a point. Two seconds on a twenty-second question
     would be bucket 2 counted from the open (0.1025 of it); from ``answerable_at`` it is
     the fastest there is."""
-    game = table("Zezima", custom=[TANZANITE], random_event_seconds=2, **event_rooms(second_mode))
+    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 2)
+    game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
     # Just past the hold on the manager's clock, which is what the band is measured on.
@@ -2360,12 +2365,15 @@ def test_answering_the_instant_the_buttons_appear_is_bucket_1(table, second_mode
     assert closed["results"][zezima.id]["points"] == 1000
 
 
-def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(table, second_mode, client) -> None:
+def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(
+    table, second_mode, client, monkeypatch
+) -> None:
     """T22 Accept, the server's half: ``welcome`` carries the event, its NPC and when the
     buttons appear, against its own ``server_time``, so the client can count the rest of
     the hold down without a message of its own. The client's half is RandomEvent.test.ts.
     """
-    game = table("Zezima", random_event_seconds=5, **event_rooms(second_mode))
+    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 5)
+    game = table("Zezima", **event_rooms(second_mode))
     event = the_event(game)
     frames = reach(game, event.position)
     with client.websocket_connect(f"/ws/{game.code}") as again:
@@ -2379,8 +2387,9 @@ def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(table, second_mode
     assert welcome["room"]["phase"] == "open"
 
 
-def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db) -> None:
-    game = table("Zezima", random_event_seconds=5, **event_rooms(second_mode))
+def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db, monkeypatch) -> None:
+    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 5)
+    game = table("Zezima", **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
     game.admin.send(t="end_game")
@@ -2392,9 +2401,10 @@ def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db) -> Non
 
 
 def test_a_restart_inside_the_hold_voids_the_event_and_resumes_after_it(
-    table, second_mode, client, db, evict
+    table, second_mode, client, db, evict, monkeypatch
 ) -> None:
-    game = table("Zezima", random_event_seconds=5, reveal_seconds=30, **event_rooms(second_mode))
+    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 5)
+    game = table("Zezima", reveal_seconds=30, **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
     assert evict(game.code) is True
@@ -2415,10 +2425,10 @@ def test_a_restart_inside_the_hold_voids_the_event_and_resumes_after_it(
     assert [row["position"] for row in rows if row["voided"]] == [event.position]
 
 
-def test_random_event_seconds_zero_plays_an_event_as_a_plain_question(table, second_mode) -> None:
+def test_no_hold_plays_an_event_as_a_plain_question(table, second_mode) -> None:
     """What the rest of the suite runs on: the NPC is there, and the buttons with it."""
     game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
-    assert game.room.settings.random_event_seconds == 0
+    assert state.RANDOM_EVENT_HOLD == 0
     event = the_event(game)
     frames = reach(game, event.position)
     assert frames["Zezima"]["random_event"] == event.random_event

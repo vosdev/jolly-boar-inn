@@ -240,11 +240,12 @@ def test_one_question_rounds_make_no_room_for_the_hosts_questions(more_modes: li
         longer.check_custom_questions(2)
 
 
-@pytest.mark.parametrize("seconds", [-1, 11])
-def test_the_npc_holds_the_floor_for_zero_to_ten_seconds(seconds: int) -> None:
-    assert NewRoomSettings(random_event_seconds=10).random_event_seconds == 10
-    with pytest.raises(ValidationError):
-        NewRoomSettings(random_event_seconds=seconds)
+def test_the_npc_hold_is_no_longer_a_setting() -> None:
+    """A new room cannot ask for one, and a room stored with one still loads."""
+    with pytest.raises(ValidationError, match="random_event_seconds"):
+        NewRoomSettings(random_event_seconds=2)
+    stored = RoomSettings.stored({"modes": [{"mode": "more_less"}], "random_event_seconds": 2})
+    assert "random_event_seconds" not in stored.model_dump()
 
 
 @pytest.mark.parametrize("seconds", [-1, 31])

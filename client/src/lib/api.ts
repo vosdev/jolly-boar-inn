@@ -48,17 +48,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 /**
  * What a host may ask for. The server's `NewRoomSettings` checks the same ranges, and
- * fills in what is left out: `random_event_seconds` has no field on the form, so every
- * room gets the server's two seconds. A new room always has a frequency; only a stored
- * one can be without.
+ * fills in what is left out. A new room always has a frequency; only a stored one can be
+ * without.
  */
-export type NewRoomSettings = Omit<
-  RoomSettings,
-  'max_players' | 'random_event_seconds' | 'random_event_frequency'
-> & {
+export type NewRoomSettings = Omit<RoomSettings, 'max_players' | 'random_event_frequency'> & {
   random_event_frequency: EventFrequency
   max_players?: number | null
-  random_event_seconds?: number
 }
 
 /** One number a mode's round is set with: what to offer, and what the server accepts. */
