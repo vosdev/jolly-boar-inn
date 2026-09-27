@@ -274,22 +274,22 @@ Everything happens inside the hold before `answerable_at` (`random_event_seconds
 so the wait costs nobody points and the server times nothing:
 
 ```
-  0 ms   the host fades out; the scroll slides left into the space it leaves   ≤ 250 ms
+  0 ms   the NPC's name is on the scroll, whole; the scroll takes the prompt's height
+         the host fades out; the scroll slides left into the space it leaves   ≤ 250 ms
 150 ms   the event NPC fades in on the right                                   ≤ 250 ms
-400 ms   the NPC's name and opening line appear on the scroll, whole
-         the prompt "types" in, in a fixed 800 ms whatever its length           800 ms
-~1.2 s   settled: nothing moves again until the answers appear
-2.0 s    answerable_at: the answers appear under the line and the timer bar starts
+900 ms   the prompt "types" in at 60 letters a second
+−200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
+answerable_at: the answers appear under the line and the timer bar starts
 ```
 
-- The typing is capped by time, not paced by character, so a long prompt is never still typing
-  when the answers arrive. A shorter hold compresses the sequence; at 0 the NPC is simply there.
+- The typing always ends 200 ms before `answerable_at`: a prompt too long for 60 a second types
+  faster, and a hold too short for the 900 ms start starts sooner. At 0 the NPC is simply there.
 - The typing is a mask, not a mutation: the whole prompt is in the DOM from the first frame. A
   screen reader reads it once, and a polite live region announces who interrupted.
 - The NPC's `explanation` goes on the scroll in the reveal.
 - The return mirrors the entrance in the reveal's last 250 ms, off `next_at`; a skipped reveal gets
   a 200 ms cross-fade.
-- On a phone the heads swap corners and the scroll stays put.
+- On a phone the NPCs swap sides and the scroll stays put.
 - With reduced motion the NPC replaces the host in one frame and the prompt shows whole. The
   answers still wait, because that is a rule of the game, not an animation.
 - An NPC this build does not know is drawn as the Mysterious Old Man.
@@ -373,8 +373,9 @@ Every transition audited, a `prefers-reduced-motion` branch for each, and the an
 written down so it stays small.
 
 **Accept:** with reduced motion on, nothing moves except the timer bar and it does so by changing
-width without easing; no animation exceeds 250ms, except the interlude's typed prompt at 800ms
-(§12), which is the one written exception; no animation runs while a question's answers are open
+width without easing; no animation exceeds 250ms, except three written ones: the scroll opening
+and closing at 300ms and the ribbon's confetti at 900ms (D13), and the interlude's typed prompt at
+60 letters a second (§12); no animation runs while a question's answers are open
 except the timer — the interlude plays inside the hold before `answerable_at` and in the reveal,
 never over live answers.
 
@@ -450,17 +451,18 @@ mistaken for the host of a mode; replacing one needs no code change.
 ### D16. The interlude
 
 The sequence of §12, built on `answerable_at`, `random_event` and D13's stage: the host out, the
-scroll across, the event NPC in on the right, the name and opening line, the typed prompt, the
+scroll across, the event NPC in on the right, its name, the typed prompt, the
 answers at `answerable_at`, and the return in the last 250ms of the reveal. It turns today's
 `RandomEvent.svelte` card into the stage. T30's NPC picker previews through it. Its entrance sting
 is D6's; without D6 it is silent and nothing else changes.
 
 **Accept:** the answers never appear before `answerable_at`, and the stage is settled — nothing
 moving — by then, at the default 2 seconds and at 1; at `random_event_seconds: 0` the event NPC is
-simply in place when the question opens; the typed prompt takes 800ms whatever its length, and a
-200-character prompt is fully shown by 1.2s; a screen reader reads the prompt once, whole, and
-hears who interrupted; with reduced motion nothing slides, fades or types and the answers still
-wait; on a phone the head swaps corners and the scroll does not move; a reconnect inside the hold
+simply in place when the question opens; the NPC's name shows from the first frame; the prompt
+types at 60 letters a second from 900ms, and any prompt, 200 characters included, is whole 200ms
+before `answerable_at`; a screen reader reads the prompt once, whole, and hears who interrupted;
+with reduced motion nothing slides, fades or types and the answers still wait; on a phone the NPCs
+swap sides and the scroll does not move; a reconnect inside the hold
 lands on the settled stage with the right delay and no replay; the host is back in place for
 whatever follows the event, the standings included; an unknown NPC id shows the Mysterious Old Man;
 the `explanation` shows on the scroll in the reveal.
