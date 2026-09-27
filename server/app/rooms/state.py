@@ -115,6 +115,10 @@ _NAME_MARKS = frozenset("0123456789 _-")
 _SPACES = re.compile(" {2,}")
 # Seconds between one player's lobby ready changes, and between their profile changes.
 CHANGE_COOLDOWN = 1.0
+# Seconds a random event's NPC holds the floor before the buttons appear. Fixed rather than
+# a room setting: the client's interlude is timed to it, the prompt typing in at a set pace
+# and finishing just before the answers (section 12 of ideas/design.md).
+RANDOM_EVENT_HOLD = 3.5
 # Close codes the manager itself uses (the handler owns the handshake codes).
 CLOSE_REPLACED = 4000  # a newer socket for the same player took over
 CLOSE_RESTART = 1012  # the room left memory; reconnect and you get a fresh welcome
@@ -324,7 +328,7 @@ class RoomQuestion:
 
     ``answerable_at`` is when answers are taken from, and so when ``seconds`` starts. It is
     ``shown_at`` for every question but a random event, where the NPC holds the floor with
-    the question for ``random_event_seconds`` before the buttons appear. Deriving it rather
+    the question for ``RANDOM_EVENT_HOLD`` before the buttons appear. Deriving it rather
     than storing it is what leaves rehydrate as it was: a question that was open at a
     restart is voided either way, so nothing ever needs it back from the database.
 
@@ -1689,7 +1693,7 @@ class RoomManager:
             question = room.questions[index]
             shown_at, now = datetime.now(UTC), self.clock()
             seconds = room.question_seconds(question)
-            hold = room.settings.random_event_seconds if question.random_event else 0
+            hold = RANDOM_EVENT_HOLD if question.random_event else 0
             async with pool.acquire() as conn:
                 await conn.execute(
                     "update questions set shown_at = $1 where id = $2", shown_at, question.id

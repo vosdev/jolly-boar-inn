@@ -7,6 +7,7 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import asyncpg
 import pytest
@@ -285,7 +286,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     # the room meets on its way back into a release: 0007 is where ``order`` went.
     assert await run_migrations(pool) == [5, 6, 7, 8]
     loaded = RoomSettings.model_validate(
-        await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
+        without_the_hold(await pool.fetchval("select settings from rooms where code = 'ABYSSAL'"))
     )
     assert loaded.mode_ids == ["more_less"]
     assert loaded.question_count == 5
@@ -426,6 +427,14 @@ def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
     ]
 
 
+def without_the_hold(settings: dict[str, Any]) -> dict[str, Any]:
+    """A stored room's settings less ``random_event_seconds``, which 0007 wrote into every
+    room and which stopped being a setting when the hold became the server's. The app's
+    ``RoomSettings.stored`` drops it; these tests read strictly, so a key a migration
+    should have removed still fails them."""
+    return {k: v for k, v in settings.items() if k != "random_event_seconds"}
+
+
 async def test_0007_swaps_order_for_the_event_settings_once(
     pool: asyncpg.Pool, tmp_path: Path
 ) -> None:
@@ -439,7 +448,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         (tmp_path / path.name).write_text(path.read_text())
     assert await run_migrations(pool, tmp_path) == [1, 2, 3, 4, 5, 6]
     before = {**fast_settings().model_dump(), "order": "custom_last"}
-    del before["random_event_frequency"], before["random_event_seconds"]
+    del before["random_event_frequency"]
     await pool.execute(
         "insert into rooms (code, status, settings, expires_at)"
         " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
@@ -451,7 +460,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}
     # Since T22 that reads as "the host's questions only", which is what it always meant.
-    assert RoomSettings.model_validate(after).random_event_frequency is None
+    assert RoomSettings.model_validate(without_the_hold(after)).random_event_frequency is None
 
     # As T21 wrote it; since T22 the flag is a frequency, which 0007 never looks at.
     created_after = {

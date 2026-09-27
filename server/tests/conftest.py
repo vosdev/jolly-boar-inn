@@ -19,6 +19,7 @@ from app.main import create_app
 from app.modes import MODES, Mode
 from app.questions.packs import Pack
 from app.questions.types.bounds import Bounds
+from app.rooms import state
 from app.ws import handler as ws_handler
 from tests.game_api import Faults, Game, seat_table
 from tests.rooms_api import create, join
@@ -32,6 +33,16 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store_true",
         help="fail, rather than skip, the database tests when DATABASE_URL_TEST is unset",
     )
+
+
+@pytest.fixture(autouse=True)
+def no_event_hold(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Play a random event as a plain question, its buttons there as it opens.
+
+    An event dropped into a game would otherwise hold every test that meets one for the
+    server's three and a half seconds; the tests about the hold set their own.
+    """
+    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 0)
 
 
 @pytest.fixture

@@ -36,8 +36,7 @@ The host's own questions are not a round and have no entry in ``modes``: each ta
 those event slots. So the slot count is also their cap, and
 ``NewRoomSettings.check_custom_questions`` refuses a room that asks for more, naming the
 count, the limit and the frequency, rather than letting selection drop the overflow where
-the host would only find out during the game. ``random_event_seconds`` is how long the NPC
-holds the floor before the buttons appear.
+the host would only find out during the game.
 
 Until T22 the choice was a boolean, ``random_events``: whether the packs could interrupt
 as well as the host. A stored room still says so, and reads back as ``default`` for true
@@ -163,10 +162,6 @@ class RoomSettings(BaseModel):
     # the number is no longer a length -- a splash ends when the room is ready or the host
     # skips it (``rooms/ready.py``) -- but it stays an int so every stored room still reads.
     splash_seconds: int = Field(default=8, ge=0)
-    # How long an event's NPC holds the floor before the buttons appear: the question is on
-    # screen and nobody can answer it yet. Zero plays an event as a plain question, which
-    # is what the test suite runs with.
-    random_event_seconds: int = Field(default=2, ge=0)
     # How long the standings hold the floor between two rounds (D9). Zero turns them off,
     # as ``splash_seconds`` does for the splash; the game's last round never has them,
     # because the final screen is its standings. Defaulted, so a room stored before the
@@ -271,7 +266,6 @@ class NewRoomSettings(RoomSettings):
     random_event_frequency: Frequency = "default"
     reveal_seconds: int = Field(default=8, ge=2, le=30)
     splash_seconds: int = Field(default=8, ge=0, le=30)
-    random_event_seconds: int = Field(default=2, ge=0, le=10)
     standings_seconds: int = Field(default=10, ge=0, le=30)
 
     @field_validator("modes")

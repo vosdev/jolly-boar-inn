@@ -202,7 +202,6 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         "modes": [{"mode": "more_less", "questions": 5, "seconds": 15}],
         "mode_order": "listed",
         "random_event_frequency": "default",
-        "random_event_seconds": 2,
         "reveal_seconds": 5,
         "splash_seconds": 8,
         "standings_seconds": 10,
@@ -229,7 +228,7 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"random_events": "sometimes"},
         {"random_events": False},  # T21's "host's questions only": a stored room's, never new
         {"random_event_frequency": "never"},  # there is no off switch; "less" is the fewest
-        {"random_event_seconds": 11},
+        {"random_event_seconds": 2},  # gone: the NPC's hold is the server's, not the room's
         {"reveal_seconds": 60},
         {"splash_seconds": -1},
         {"splash_seconds": 31},
