@@ -167,7 +167,7 @@ D13 lands, the splash shows a placeholder tavern scene, which D13 removes. The a
    ▄▄   ║ "Psst. Seen this one before?"  ║   the host's line, body face
   (••)  ║ Are you sure you are a fan?    ║   the blurb, in the host's voice
  ▟████▙ ║                                ║
-        ╨──────────────────────✿─────────╨   the ribbon, for a right answer
+        ╨──────────────────────✿─────────╨   the ribbon, for any points
 ──────────────────────────────────────────────
 Round 2 of 5 · 5 questions · 20 seconds each
 [ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
@@ -184,8 +184,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
   and faint facets crease it. An examine line sits centred in the height the prompt leaves.
 - **It opens and closes from the middle**, both rolls travelling outward, in 300 ms. It opens on
   the splash and stays put into the round's first question.
-- **A right answer** pins a red rosette ribbon on the sheet's bottom edge, 65% across, with a burst
-  of confetti (900 ms). A wrong answer or none gets nothing.
+- **Any answer that scores** pins a red rosette ribbon on the sheet's bottom edge, 65% across, with
+  a burst of confetti (900 ms): right, partial credit or a graded guess alike. `+0` gets nothing.
 - **The scroll** is an original inline SVG component in layer 8's tokens. An `<img>` could not read
   the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only along its
   length. `jolly` and `pollnivneach` have their own paper; `wilderness` uses `jolly`'s.
@@ -425,7 +425,7 @@ the PR; no gem button, combobox or points slot sits on the parchment; the scroll
 middle in 300ms on the splash, stays put into the round's first question, and simply appears with
 reduced motion; under 448px the screen's edges cut the rolls in half and nothing scrolls sideways,
 at 320px included; the knobs do not stretch at any width; the sheet is at least four prompt lines
-tall; a right answer pins the ribbon 65% across with confetti, a wrong or missing one does not,
+tall; any answer worth points pins the ribbon 65% across with confetti, and `+0` does not,
 and with reduced motion the ribbon comes without confetti; at 375px, six gem buttons at 56px and a
 two-line prompt fit in the 650px a 375×812 phone shows; no scroll colour is set by an inline style
 or a `style:` directive; the existing ready-check and gem tests pass unchanged.
