@@ -208,6 +208,49 @@ describe('Room', () => {
     expect(get(timerBar)?.label).toBe('to the next question')
   })
 
+  it('keeps where we are and what we scored off the screen until the reveal', async () => {
+    const open: OpenQuestion = {
+      question_id: 'q1',
+      index: 0,
+      total: 2,
+      type: 'more_less',
+      mode: 'more_less',
+      segment: { ...SEGMENT, count: 2 },
+      view: {
+        metric: 'ge_price',
+        direction: 'more',
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+        as_of: '2026-09-01',
+      },
+      opened_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 10_000).toISOString(),
+      you_can_answer: true,
+    }
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: open })
+    const hidden = await screen.findByRole('heading', { level: 1 })
+    expect(hidden.classList.contains('visually-hidden')).toBe(true)
+    expect(document.querySelector('.stage')).toBeTruthy()
+
+    applyServerMessage({
+      t: 'question_closed',
+      question_id: 'q1',
+      reveal: { ...open.view, answer_index: 0 },
+      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
+      standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
+      next_at: new Date(Date.now() + 8_000).toISOString(),
+    })
+    await screen.findByText('1,850')
+    const headings = screen.getAllByRole('heading', { level: 1 })
+    expect(headings).toHaveLength(1)
+    const under = document.querySelector('.under') as HTMLElement
+    expect(under.contains(headings[0]!)).toBe(true)
+    expect(headings[0]!.classList.contains('visually-hidden')).toBe(false)
+    expect(under.contains(document.querySelector('.slot'))).toBe(true)
+    expect(document.querySelector('.paper .slot')).toBeNull()
+    expect(document.querySelector('.award')).toBeTruthy()
+  })
+
   it('lands a reconnect inside an NPC’s hold on the card, with what is left of it', async () => {
     // T22 Accept: rebuilt from the welcome alone. The server's clock is a minute ahead of
     // this one and the hold has 1.5 seconds to go, so the buttons wait 1.5 seconds.

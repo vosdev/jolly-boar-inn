@@ -1,6 +1,6 @@
 /**
- * `price_is_right` on screen: the item from `AssetStem`, then four prices written the way
- * the game writes coins, then — after close — which of them it was.
+ * `price_is_right` on screen: the item and the question from `PriceStem`, then four prices
+ * written the way the game writes coins, then — after close — which of them it was.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
@@ -11,6 +11,7 @@ import type { OpenQuestion } from '../../lib/protocol'
 import { viewFor } from './index'
 import Question from './Question.svelte'
 import AssetStem from './stems/AssetStem.svelte'
+import PriceStem from './stems/PriceStem.svelte'
 import PriceIsRight from './types/PriceIsRight.svelte'
 
 const VIEW = {
@@ -39,9 +40,9 @@ function open(view: Record<string, unknown> = VIEW): OpenQuestion {
 const prices = () => screen.getAllByRole('button').map((button) => button.textContent?.trim())
 
 describe('price_is_right', () => {
-  it('is drawn by the asset stem over its own view', () => {
+  it('is drawn by the price stem over its own view', () => {
     expect(viewFor('price_is_right', 'price_is_right')).toEqual({
-      stem: AssetStem,
+      stem: PriceStem,
       view: PriceIsRight,
     })
   })

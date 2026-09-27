@@ -35,9 +35,10 @@
 
 <style>
   .subject {
-    font-size: 1.6rem;
+    margin: 0 0 0.3rem;
+    font-size: max(1.15rem, 1.45rem * var(--scroll-text, 1));
     font-weight: 700;
-    margin: 0 0 0.5rem;
+    line-height: 1.2;
     overflow-wrap: anywhere;
   }
 </style>

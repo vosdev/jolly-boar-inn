@@ -5,8 +5,7 @@
  * fetched rather than committed (`make fetch-assets`, when it exists). Until one is in
  * `assets/trophies/<tier>.<ext>`, the podium draws the committed placeholder for that
  * tier, `assets/trophies/placeholder/<tier>.svg`: one plain cup, tinted per tier.
- * Dropping a render in replaces it on the next build with no code change, the same
- * arrangement the splash scenes have (`lib/modes.ts`).
+ * Dropping a render in replaces it on the next build with no code change.
  *
  * The tiers are art, not tokens, which is why the placeholders are files: their tints
  * live in the pictures, add no token layer, and never touch the verdict or semantic
@@ -15,7 +14,7 @@
 
 import type { Tier } from './podium'
 
-// As with the scenes: an empty folder is an empty object, so a trophy with no file is
+// An empty folder is an empty object, so a trophy with no file is
 // known to have none before the page asks, and nothing ever 404s.
 const trophyFiles = import.meta.glob<string>('../assets/trophies/*.{avif,webp,png,jpg,jpeg,svg}', {
   eager: true,

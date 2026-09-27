@@ -2,12 +2,11 @@
   /**
    * `more_less`: of two items, which one costs more — or less?
    *
-   * The screen while a question is open is one line and two names, and that is the whole
-   * point of it. The one thing that line cannot leave out is the metric: a pack mixes
-   * `ge_price` and `high_alch` questions, and the two disagree wildly for the same item
-   * — often enough to flip which of the pair is the answer — so "which costs more?" on
-   * its own is a question nobody can answer. Each metric names its own source instead.
-   * The date the values come from is not needed to answer, so it stays on the reveal.
+   * The question is one line and two names. The line is `MoreLessStem`'s, on the scroll,
+   * and names the metric: a pack mixes `ge_price` and `high_alch` questions, and the two
+   * disagree wildly for the same item, so "which costs more?" alone is unanswerable. This
+   * view is the two names under it. The date the values come from is not needed to
+   * answer, so it stays on the reveal.
    *
    * `data` is whatever the server sent, and it arrives in two shapes from the same
    * module in `questions/types/more_less.py`:
@@ -29,6 +28,7 @@
   import { asOfDate } from '../../../lib/dates'
   import GemButton, { gemState, indexSet } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
+  import { phrasingFor } from './moreLess'
 
   /** An option index: the two buttons are `options[0]` and `options[1]`. */
   type Index = 0 | 1
@@ -60,40 +60,7 @@
   // what the keys mean, which is why the type map lives one level up and not in here.
   const q = $derived(data as unknown as Data)
 
-  /** How one metric reads: in the question while it is open, and on the reveal after. */
-  interface Phrasing {
-    /** Verb for "Which … MORE": a price is something an item costs, alchemy is worth. */
-    verb: string
-    /** Where the value comes from, e.g. `on the Grand Exchange`. Empty reads as before. */
-    source: string
-    /** The noun the reveal footnote names it by. */
-    label: string
-  }
-
-  // One table and not two: a metric added later cannot end up phrased in the question and
-  // nameless on the reveal, or the other way round.
-  const METRICS: Record<string, Phrasing> = {
-    ge_price: {
-      verb: 'costs',
-      source: 'on the Grand Exchange',
-      label: 'Grand Exchange price',
-    },
-    high_alch: {
-      verb: 'is worth',
-      source: 'through High Alchemy',
-      label: 'high alchemy value',
-    },
-    shop_price: { verb: 'costs', source: 'in a shop', label: 'shop price' },
-  }
-
-  // A room can be playing a pack written against a newer schema than this client knows,
-  // so an unknown metric still has to ask something: the bare question it asked before
-  // any of this, and the raw id on the reveal.
-  const phrasing = $derived(
-    METRICS[q.metric] ?? { verb: 'costs', source: '', label: q.metric },
-  )
-  const metric = $derived(phrasing.label)
-  const source = $derived(phrasing.source ? ` ${phrasing.source}` : '')
+  const metric = $derived(phrasingFor(q.metric).label)
   const answer = $derived(revealed ? (q.answer_index ?? null) : null)
   const picked = $derived(yourValue === 0 || yourValue === 1 ? (yourValue as Index) : null)
 
@@ -103,10 +70,6 @@
     return value === undefined ? '?' : `${gp.format(value)} gp`
   }
 </script>
-
-<p class="ask">
-  Which {phrasing.verb} <span class="word {q.direction}">{q.direction}</span>{source}?
-</p>
 
 <div class="choices">
   <!-- Keyed by position: nothing stops a pair naming one item twice, and a duplicate key
@@ -134,27 +97,6 @@
 {/if}
 
 <style>
-  .ask {
-    font-size: 1.35rem;
-    font-weight: 600;
-    margin: 0 0 1.25rem;
-  }
-
-  /* `--ok` and `--bad` mean right and wrong in the reveal below; a direction that
-     borrowed them would sit next to a button using them to mean something else. */
-  .word {
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .word.more {
-    color: var(--more);
-  }
-
-  .word.less {
-    color: var(--less);
-  }
-
   .choices {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -1,7 +1,7 @@
 """CI check: every theme in ``client/src/app.css`` keeps the D1 token contract.
 
-Section 2 of ``ideas/design.md`` splits the custom properties into seven layers and makes
-layers 3 and 4 a contract: a theme sets them, but the values have to survive a check. This
+Section 2 of ``ideas/design.md`` splits the custom properties into eight layers and makes
+layers 3, 4 and 8 a contract: a theme sets them, but the values have to survive a check. This
 is that check. It parses the stylesheet rather than running a browser, so it stays a plain
 stdlib script that anyone can run in a second.
 
@@ -25,6 +25,9 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
   pick and of the wait for everyone else, so a gem too close to its panel shows nothing.
   Diamond on a cream panel is why red topaz replaced it, and black onyx on a near-black
   one is why the gems are six;
+* ``--scroll-ink`` reaches 7:1 and ``--scroll-muted`` 4.5:1 against ``--scroll-paper``, and
+  the paper stands a colour difference of ``MIN_SCROLL_DELTA_E`` from ``--bg`` and
+  ``--panel`` (D13), so the clue scroll reads as a sheet laid on the page, not a panel;
 * each ``--texture-*`` is ``none`` or a local ``url()`` (D5): the CSP would block a remote
   one anyway, and this says so at build time rather than as a blank page background.
 
@@ -44,7 +47,7 @@ from pathlib import Path
 
 DEFAULT_CSS = Path(__file__).resolve().parents[2] / "client" / "src" / "app.css"
 
-# The seven layers of section 2. Everything here has to resolve for every theme; the
+# The eight layers of section 2. Everything here has to resolve for every theme; the
 # colour tokens additionally have to parse as a colour.
 SURFACE = (
     "--bg",
@@ -77,9 +80,10 @@ SHAPE = (
     "--font-numeric",
 )
 TEXTURE = ("--texture-panel", "--texture-bg")
+SCROLL = ("--scroll-paper", "--scroll-edge", "--scroll-ink", "--scroll-muted")
 
-COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK
-REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE
+COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL
+REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + ("--scroll-facet-light",)
 
 TEXT_RATIO = 4.5
 BODY_TEXT_RATIO = 7.0
@@ -90,6 +94,8 @@ FADED_GEM_SHARE = 0.25
 # D8: how far a lit gem must be from its faded self. Diamond at 18 looked the same both
 # ways on jolly's cream panel; everything that reads well is above 20.
 MIN_FADE_DELTA_E = 20.0
+# D13: how far the scroll's paper must be from the page and the panels around it.
+MIN_SCROLL_DELTA_E = 10.0
 
 _COMMENTS = re.compile(r"/\*.*?\*/", re.DOTALL)
 _RULES = re.compile(r"([^{}]+)\{([^{}]*)\}", re.DOTALL)
@@ -267,8 +273,18 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
     ratio("--bg-muted", "--bg", TEXT_RATIO)
     ratio("--more", "--panel", TEXT_RATIO)
     ratio("--less", "--panel", TEXT_RATIO)
+    ratio("--scroll-ink", "--scroll-paper", BODY_TEXT_RATIO)
+    ratio("--scroll-muted", "--scroll-paper", TEXT_RATIO)
     apart("--ok", "--bad")
     apart("--more", "--less")
+    for ground in ("--bg", "--panel"):
+        if "--scroll-paper" in colours and ground in colours:
+            difference = delta_e(colours["--scroll-paper"], colours[ground])
+            if difference < MIN_SCROLL_DELTA_E:
+                problems.append(
+                    f"{name}: --scroll-paper is only {difference:.1f} from {ground}, "
+                    f"needs {MIN_SCROLL_DELTA_E:.0f}: the scroll would not stand off it"
+                )
     # The reveal: the answer stays lit and the rest fade into the panel.
     for gem in GEMS:
         ratio("--gem-ink", gem, TEXT_RATIO)

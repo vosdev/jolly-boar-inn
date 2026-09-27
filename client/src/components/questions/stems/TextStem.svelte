@@ -30,4 +30,12 @@
     margin: 0 0 1.25rem;
     overflow-wrap: anywhere;
   }
+
+  /* On the scroll the sheet is the frame, so the prompt keeps no margin of its own. A
+     random event's card still draws it off the scroll, as above. */
+  :global(.paper) .ask {
+    margin: 0;
+    font-size: max(1rem, 1.2rem * var(--scroll-text, 1));
+    line-height: 1.3;
+  }
 </style>

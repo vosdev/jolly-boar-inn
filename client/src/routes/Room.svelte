@@ -209,6 +209,8 @@
     )
   }
   /** Our own row in the reveal, if we answered. */
+  /** A reveal with its question in hand, which is when the verdict row is drawn. */
+  const revealed = $derived($room?.phase === 'reveal' && ($lastClosed?.was ?? null) !== null)
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
@@ -396,35 +398,49 @@
       onSkip={isAdmin ? skip : null}
     />
   {:else}
-    <!-- playing -->
-    <div class="spread head">
-      {#if $room.phase === 'standings'}
+    <!-- playing. A question's screen is the stage and nothing to read past it: where we
+         are in the game and what we scored wait under the line for the reveal. -->
+    <div class:column={$room.phase !== 'standings'}>
+    {#if $room.phase === 'standings'}
+      <div class="head">
         <h1>
           {#if segment !== null}
             <span class="round">After round {segment.index + 1} of {segment.total}</span>
           {/if}
           Standings
         </h1>
-      {:else}
-        <h1 bind:this={heading} tabindex="-1">
-          {#if segment !== null && segment.total > 1}
-            <span class="round">Round {segment.index + 1} of {segment.total}</span>
-          {/if}
-          {questionTitle}
-        </h1>
-      {/if}
-      <!-- The points slot (D8): always here, in every mode, so the eye learns where the
-           verdict is. The clock that used to sit here is the bar under the top bar. -->
-      {#if $room.phase === 'reveal' && $lastClosed !== null && $lastClosed.was !== null}
-        <PointsSlot
-          result={yourResult}
-          canAnswer={$lastClosed.was.you_can_answer}
-          total={yourTotal}
-        />
-      {/if}
-    </div>
+      </div>
+    {:else if !revealed}
+      <h1 class="visually-hidden" bind:this={heading} tabindex="-1">
+        {#if segment !== null && segment.total > 1}
+          <span class="round">Round {segment.index + 1} of {segment.total}</span>
+        {/if}
+        {questionTitle}
+      </h1>
+    {/if}
 
     <ErrorBanner />
+
+    {#snippet verdict()}
+      <!-- The heading comes out from behind the stage for the reveal, and the points slot
+           (D8) beside it is in the same place in every mode, so the eye learns where the
+           verdict is. -->
+      {#if revealed && $lastClosed?.was}
+        <div class="spread verdict">
+          <h1>
+            {#if segment !== null && segment.total > 1}
+              <span class="round">Round {segment.index + 1} of {segment.total}</span>
+            {/if}
+            {questionTitle}
+          </h1>
+          <PointsSlot
+            result={yourResult}
+            canAnswer={$lastClosed.was.you_can_answer}
+            total={yourTotal}
+          />
+        </div>
+      {/if}
+    {/snippet}
 
     {#if $room.phase === 'standings'}
       <Scoreboard standings={$standings} youId={$you?.id ?? null} />
@@ -437,6 +453,7 @@
         yourValue={$yourAnswer}
         result={yourResult}
         onAnswer={() => {}}
+        {verdict}
       >
         <RevealTally
           results={$lastClosed.results}
@@ -487,12 +504,12 @@
         />
       {/if}
     {/if}
+    </div>
   {/if}
 {/if}
 
 <style>
   .head {
-    align-items: flex-end;
     margin-bottom: 1rem;
   }
 
@@ -500,9 +517,19 @@
     margin: 0;
   }
 
-  /* Focus lands here so the next Tab reaches the answers; a heading is not a control. */
-  .head h1:focus {
-    outline: none;
+  .column {
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+
+  .verdict {
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+
+  .verdict h1 {
+    margin: 0;
+    font-size: 1.3rem;
   }
 
   .round {

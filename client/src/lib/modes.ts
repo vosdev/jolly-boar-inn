@@ -2,9 +2,9 @@
  * What each game mode is called and how it is explained, in one place.
  *
  * The server sends a mode id and nothing else — no label, no blurb. Copy is a client
- * concern: it is what the create form's checkboxes read, what the lobby lists, what the
- * splash screen says before a round, and where the artwork will hang when there is some.
- * Keeping all of it on one object is what stops them drifting apart as modes are added.
+ * concern: it is what the create form's checkboxes read, what the lobby lists and what the
+ * splash's scroll says before a round. Keeping all of it on one object is what stops them
+ * drifting apart as modes are added.
  *
  * Which modes exist, which types each plays and how a round of each is paced is the
  * server's to say: `GET /api/modes` (see `lib/api.ts`) is what the create form lists, so a
@@ -15,14 +15,6 @@
  *
  * Plain TypeScript with no `.svelte` imports, so every screen can use it. The components
  * that *draw* a question live in `components/questions/index.ts` instead.
- *
- * The splash's artwork is here too (D7, section 7.1 of ideas/design.md): six tavern
- * scenes, each mode assigned one, plus a small per-mode mark in the foreground that says
- * what the round is. Modes share scenes; a new mode costs a mark, not an illustration.
- * The art is a file, never code: `assets/scenes/<scene id>.<ext>` and
- * `assets/scenes/marks/<mode id>.<ext>`, found by name at build time. A scene with no file
- * yet is drawn as a placeholder by `Splash.svelte`, and dropping the file in replaces it
- * with nothing else to change. `assets/scenes/README.md` has the sizes.
  */
 
 export interface Mode {
@@ -33,11 +25,9 @@ export interface Mode {
   hint: string
   /** One or two sentences, for the splash. Say what to do, not how it is scored. */
   blurb: string
-  /** Which of the six scenes the splash hangs behind this mode's name. */
-  scene: SceneId
   /**
-   * What sits above the answer buttons, or null for a mode whose type view draws the
-   * whole question itself. Named here and drawn in `components/questions/index.ts`, so
+   * What goes on the clue scroll above the answers, or null for a mode drawn by its
+   * view alone. Named here and drawn in `components/questions/index.ts`, so
    * this file stays free of `.svelte` imports.
    */
   stem: StemId | null
@@ -49,26 +39,7 @@ export interface Mode {
  * item, Who Said That? a line in a chatbox. Each id is one component under
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
-export type StemId = 'text' | 'asset' | 'examine'
-
-/**
- * The six pubs of the crawl. Each is one scene, drawn once and shared by every mode
- * assigned to it; the variety between rounds comes from these rather than the palette,
- * which stays the one the player picked (section 1).
- */
-export const SCENES = {
-  jolly_boar: 'The Jolly Boar Inn',
-  blue_moon: 'The Blue Moon Inn',
-  rusty_anchor: 'The Rusty Anchor',
-  dead_mans_chest: "The Dead Man's Chest",
-  rising_sun: 'The Rising Sun',
-  dragon_inn: 'The Dragon Inn',
-} as const
-
-export type SceneId = keyof typeof SCENES
-
-/** The scene for a mode this build has no entry for: the inn the app is named after. */
-export const DEFAULT_SCENE: SceneId = 'jolly_boar'
+export type StemId = 'text' | 'asset' | 'examine' | 'more_less' | 'price'
 
 export const MODES: Record<string, Mode> = {
   more_less: {
@@ -77,28 +48,22 @@ export const MODES: Record<string, Mode> = {
     hint: 'A mix of Grand Exchange, High Alchemy and NPC prices.',
     blurb:
       'Two items, one question: which one is worth more or less?',
-    // Varrock's pub, a short walk from the Grand Exchange whose prices this round is about.
-    scene: 'blue_moon',
-    // The question is the two buttons: a stem above them would say the names twice.
-    stem: null,
+    // Which of the two costs more, on the scroll; the names are the buttons below it.
+    stem: 'more_less',
   },
   price_is_right: {
     id: 'price_is_right',
     label: 'The Price is Right',
     hint: 'Test your Grand Exchange knowledge.',
     blurb: 'One item, four prices. Which one does it really go for on the Grand Exchange?',
-    // Mos Le'Harmless, where a chest of coins is the thing everyone is pricing up.
-    scene: 'dead_mans_chest',
-    // The item, above four prices that would otherwise not say what they are prices of.
-    stem: 'asset',
+    // The item and the question, above four prices that would not say what they price.
+    stem: 'price',
   },
   guess_examine: {
     id: 'guess_examine',
     label: 'Guess the Examine',
     hint: 'Name the thing from the line you get when you examine it.',
     blurb: 'An examine line from the game. Search the list and pick what it belongs to.',
-    // Falador's pub, where half the White Knights stand about waiting to be examined.
-    scene: 'rising_sun',
     // The examine line is the question; the list below it is only how you answer.
     stem: 'examine',
   },
@@ -110,8 +75,6 @@ export const MODES: Record<string, Mode> = {
     label: "Host's Questions",
     hint: 'Questions the host wrote for this room.',
     blurb: 'The host wrote these ones. Whatever they ask, answer it.',
-    // The inn the app is named after, where the host is the one behind the bar.
-    scene: 'jolly_boar',
     // Every type a host can write asks in a sentence; the view below it is the answer.
     stem: 'text',
   },
@@ -122,7 +85,6 @@ export const MODES: Record<string, Mode> = {
     label: 'Random Event',
     hint: 'An NPC interrupts the round with a question of their own.',
     blurb: 'Someone has turned up with a question. Answer it, and they will be on their way.',
-    scene: 'jolly_boar',
     // In character, and still a sentence.
     stem: 'text',
   },
@@ -157,53 +119,4 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string }[] = [
  */
 export function modeLabel(id: string): string {
   return MODES[id]?.label ?? id
-}
-
-/** What the splash draws for a round: the scene, and the art for it where there is some. */
-export interface SplashArt {
-  scene: SceneId
-  /** The scene's name, which is what a placeholder carries below the mode's. */
-  sceneName: string
-  /** The scene's image, or null while it has not been drawn yet. */
-  sceneUrl: string | null
-  /** The mode's foreground mark, or null: a scene is a whole picture without one. */
-  markUrl: string | null
-}
-
-// Every art file present at build time, as URL by path. A folder with no files in it is
-// an empty object, which is today, and which is why a missing picture is never a request
-// that 404s: a scene with no file is known to have none before the page asks. Vite wants
-// the patterns as literals, so the extensions are spelled out twice.
-const sceneFiles = import.meta.glob<string>('../assets/scenes/*.{avif,webp,png,jpg,jpeg,svg}', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-})
-const markFiles = import.meta.glob<string>('../assets/scenes/marks/*.{avif,webp,png,jpg,jpeg,svg}', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-})
-
-/** The file named `id` in a glob, whatever its extension. */
-function fileNamed(files: Record<string, string>, id: string): string | null {
-  for (const [path, url] of Object.entries(files)) {
-    const base = path.slice(path.lastIndexOf('/') + 1)
-    if (base.slice(0, base.lastIndexOf('.')) === id) return url
-  }
-  return null
-}
-
-/**
- * The splash art for a mode. A mode this build does not know gets the default scene and
- * no mark, so a round from a newer server still has somewhere to be.
- */
-export function splashArt(modeId: string): SplashArt {
-  const scene = MODES[modeId]?.scene ?? DEFAULT_SCENE
-  return {
-    scene,
-    sceneName: SCENES[scene],
-    sceneUrl: fileNamed(sceneFiles, scene),
-    markUrl: MODES[modeId] === undefined ? null : fileNamed(markFiles, modeId),
-  }
 }

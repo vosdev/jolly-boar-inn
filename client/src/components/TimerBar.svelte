@@ -46,13 +46,15 @@
 </div>
 
 <style>
-  /* Sticky under the top bar, and taking no height from the page beyond the track: the
-     tab hangs into the space above the first heading. */
+  /* Sticky under the top bar, and taking no height from the page: the track lies over
+     main's top padding and the tab hangs into it, so the stage does not drop six pixels
+     from the splash, which has no bar, into the round's first question. */
   .timerbar {
     position: sticky;
     top: var(--topbar-height);
     z-index: 19;
     height: 6px;
+    margin-bottom: -6px;
   }
 
   .track {
