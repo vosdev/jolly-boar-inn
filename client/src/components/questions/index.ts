@@ -12,7 +12,7 @@
  * first thing to fall out of step with the server's registry.
  *
  * Either half missing is not an error. A mode with no stem is drawn by its view alone,
- * which is what `more_less` wants and what a mode this build has no copy for gets. A type
+ * which is what a mode this build has no copy for gets. A type
  * with no view means a room is playing a pack from a newer server than this client, and
  * `Question.svelte` says so and the game carries on.
  */
@@ -23,6 +23,8 @@ import { MODES, type StemId } from '../../lib/modes'
 import type { StemProps, TypeViewProps } from './props'
 import AssetStem from './stems/AssetStem.svelte'
 import ExamineStem from './stems/ExamineStem.svelte'
+import MoreLessStem from './stems/MoreLessStem.svelte'
+import PriceStem from './stems/PriceStem.svelte'
 import TextStem from './stems/TextStem.svelte'
 import ClosestNumber from './types/ClosestNumber.svelte'
 import FreeText from './types/FreeText.svelte'
@@ -46,6 +48,8 @@ export const STEMS: Record<StemId, Component<StemProps>> = {
   text: TextStem,
   asset: AssetStem,
   examine: ExamineStem,
+  more_less: MoreLessStem,
+  price: PriceStem,
 }
 
 export interface QuestionPair {

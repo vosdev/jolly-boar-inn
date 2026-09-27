@@ -23,7 +23,16 @@
    *
    * `held` is a random event's hold (T22): the stem is up, and the view waits for the
    * question's `answerable_at`. `RandomEvent` does the counting and says when.
+   *
+   * `frame` lays the two halves out: it gets the stem and the answers as snippets, which
+   * is how the stage puts one on the scroll and the other under the line. The answers are
+   * null for a question with nothing to answer on, whose fallback is then the stem. With
+   * no frame they simply follow each other, which is a random event's card. A question
+   * that throws keeps its frame, with the fallback for a stem, so the stage and whatever
+   * the frame draws around it stay up.
    */
+  import type { Snippet } from 'svelte'
+
   import { serverNow } from '../../lib/clock'
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
   import { viewFor } from './index'
@@ -36,6 +45,7 @@
     result = null,
     onAnswer,
     held = false,
+    frame,
   }: {
     /** The question as it was sent open. After close it is still what picks the pair. */
     question: OpenQuestion
@@ -46,6 +56,7 @@
     onAnswer: (value: unknown) => void
     /** Draw the stem only: the answers are not being taken yet. */
     held?: boolean
+    frame?: Snippet<[Snippet, Snippet | null]>
   } = $props()
 
   const pair = $derived(viewFor(question.type, question.mode))
@@ -66,26 +77,29 @@
   })
 </script>
 
-<!-- Keyed on the question so a view with state of its own — the combobox's search, its
-     selection — starts clean for each question even if nothing between them unmounts it. -->
-{#key question.question_id}
-<svelte:boundary onerror={(error) => console.error('The question could not be drawn:', error)}>
-{#if View === null}
-  {#if revealed}
-    <p class="note">That question is closed.</p>
-  {:else}
-    <!-- A pack from a newer server than this build knows would otherwise show nothing
-         at all, which reads as a broken room rather than a missing component. -->
-    <p>This question is a <code>{question.type}</code>, which this version cannot show.</p>
-    <p class="note">Sit this one out — the game carries on.</p>
-  {/if}
-{:else}
-  {#if Stem !== null}
+{#snippet stem()}
+  {#if View === null}
+    {#if revealed}
+      <p class="note">That question is closed.</p>
+    {:else}
+      <!-- A pack from a newer server than this build knows would otherwise show nothing
+           at all, which reads as a broken room rather than a missing component. -->
+      <p>This question is a <code>{question.type}</code>, which this version cannot show.</p>
+      <p class="note">Sit this one out — the game carries on.</p>
+    {/if}
+  {:else if Stem !== null}
     <Stem {data} {revealed} {timing} />
   {/if}
-  {#if held}
+{/snippet}
+
+{#snippet broken()}
+  <p>This question can't be shown in this version. Refresh to update.</p>
+{/snippet}
+
+{#snippet answers()}
+  {#if View !== null && held}
     <p class="note" role="status">The answers appear in a moment.</p>
-  {:else}
+  {:else if View !== null}
     <View
       {data}
       {revealed}
@@ -101,9 +115,24 @@
       <p class="explanation">{explanation}</p>
     {/if}
   {/if}
+{/snippet}
+
+<!-- Keyed on the question so a view with state of its own — the combobox's search, its
+     selection — starts clean for each question even if nothing between them unmounts it. -->
+{#key question.question_id}
+<svelte:boundary onerror={(error) => console.error('The question could not be drawn:', error)}>
+{#if frame}
+  {@render frame(stem, View === null ? null : answers)}
+{:else}
+  {@render stem()}
+  {@render answers()}
 {/if}
 {#snippet failed()}
-  <p>This question can't be shown in this version. Refresh to update.</p>
+  {#if frame}
+    {@render frame(broken, null)}
+  {:else}
+    {@render broken()}
+  {/if}
 {/snippet}
 </svelte:boundary>
 {/key}

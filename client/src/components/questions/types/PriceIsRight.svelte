@@ -2,8 +2,8 @@
   /**
    * `price_is_right`: four prices for one item, and which one it goes for.
    *
-   * The item is the stem's to show (`AssetStem`, above this); this view is the question
-   * line and the four prices. The options arrive as integers and are written here, with
+   * The item and the question line are the stem's to show (`PriceStem`, on the scroll);
+   * this view is the four prices. The options arrive as integers and are written here, with
    * `lib/gp.ts`, the way the game writes a stack — which is the reason the server keeps
    * them numbers at all (architecture section 2). The generator rounds every price to two
    * figures, and two figures is exactly what that notation shows, so no two buttons ever
@@ -45,8 +45,6 @@
   )
 </script>
 
-<p class="ask">What does it go for on the Grand Exchange?</p>
-
 <GemChoices
   options={q.options}
   {picked}
@@ -65,12 +63,6 @@
 {/if}
 
 <style>
-  .ask {
-    font-size: 1.1rem;
-    margin: 0 0 1.25rem;
-    color: var(--muted);
-  }
-
   /* In em, so the price grows with the answer's button on a reveal and shrinks with the
      rest beneath it. */
   .price {

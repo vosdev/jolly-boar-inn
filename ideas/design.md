@@ -156,10 +156,9 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
 Every round is presented by an NPC, the **host**, standing beside a **clue scroll** drawn after the
 game's quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. The scroll
 carries the round's introduction on the splash and then every question; the answers sit under it.
-Create lists each mode under its host: *Grand Exchange Clerk presents: The Price is Right*. Until
-D13 lands, the splash shows a placeholder tavern scene, which D13 removes. The agreed stage is
-`client/prototypes/clue-scroll.html` on the real tokens; under `make dev` it is at
-`/prototypes/clue-scroll.html`.
+Create lists each mode under its host: *Grand Exchange Clerk presents: The Price is Right*. The
+stage was agreed in `client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it
+is at `/prototypes/clue-scroll.html`.
 
 ```
         ╥────────────────────────────────╥
@@ -182,21 +181,24 @@ Round 2 of 5 · 5 questions · 20 seconds each
   edges. The host then stands on the sheet, which keeps a column clear for it.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
   and faint facets crease it. An examine line sits centred in the height the prompt leaves.
-- **It opens and closes from the middle**, both rolls travelling outward, in 300 ms. It opens on
-  the splash and stays put into the round's first question.
-- **Any answer that scores** pins a red rosette ribbon on the sheet's bottom edge, 65% across, with
-  a burst of confetti (900 ms): right, partial credit or a graded guess alike. `+0` gets nothing.
+- **It opens from the middle**, both rolls travelling outward, in 300 ms. It opens on the splash
+  and stays put into the round's first question; anywhere else it is simply there. When it closes
+  again is not decided, so for now it does not.
+- **Any answer that scores** pins a red rosette ribbon on the sheet's bottom edge, 65% across:
+  right, partial credit or a graded guess alike. Full credit alone adds a burst of confetti
+  (900 ms) in the theme's gem colours. `+0` gets nothing.
 - **The scroll** is an original inline SVG component in layer 8's tokens. An `<img>` could not read
   the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only along its
   length. `jolly` and `pollnivneach` have their own paper; `wilderness` uses `jolly`'s.
-- **Below the line** is the page: the round's count and pace, the ready check, then the answers.
-  Gems never sit on parchment, so every gem check still measures against `--panel`.
+- **Below the line** is the page: on the splash the round's count and pace and the ready check;
+  on a question only the answers, in a panel. Gems never sit on parchment, so every gem check
+  still measures against `--panel`. The round is said on the splash only.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
   `lib/modes.ts`. The splash scroll holds only the mode's name, the line and the blurb. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is original, fixed-colour SVG on one shared rig (D14), so some thirty NPCs look like
-  one cast. A mode with no host gets a generic innkeeper.
+  one cast. A mode with no host gets a generic innkeeper, who until D14 hosts every round.
 
 ## 9. The splash and the ready check
 
@@ -212,10 +214,12 @@ countdowns and take-back rule are architecture §7.
 
 ## 10. The question screen and the reveal
 
-- The timer is a thin bar under the top bar. The prompt is 1.4rem body. Answer buttons are 56px tall
-  and full width on a phone: thumb targets at a pub table.
-- From D13 the stem (prompt, item picture, examine line) is on the scroll in `--scroll-ink`, and the
-  answers, combobox, waiting state, tally and points slot are under the line.
+- The timer is a thin bar under the top bar, with the seconds in a tab at the stage's right edge
+  and the question's number (`2/3`) in one at its left. Answer buttons are 56px tall and full
+  width on a phone: thumb targets at a pub table.
+- The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
+  `--scroll-ink`, and the answers, combobox, waiting state and tally are under the line. The
+  question's heading is for a screen reader only.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
   face, with a 56px Submit under it. On a phone its list opens *above* the field so the keyboard
   never covers it. Typed text reads as a search; only a selection lights Submit.
@@ -223,20 +227,21 @@ countdowns and take-back rule are architecture §7.
   count.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
-picked or numeric answer fades beside the correct value. Points sit in one slot, in the same place
-in every mode, in display tabular numerals:
+picked or numeric answer fades beside the correct value. The host says your points at the foot of
+the scroll, a line held from the start so nothing under the sheet moves, the same in every mode,
+in display tabular numerals and the scroll's ink:
 
 | Outcome | Slot shows |
 |---|---|
-| Right | `+850`, `--ok` and a ✓ |
-| Wrong | `+0`, `--bad` and a ✗ |
+| Right | `+850` and a ✓ |
+| Wrong | `+0` and a ✗ |
 | No answer | `No answer · +0`, muted, no ✗ |
 | Graded (closest guess) | `+340`, the number carries the verdict |
 
-- A timeout is not a wrong answer, and the slot says so. Layer 3 lives here now, on the slot and
-  its glyphs, not on buttons.
-- Under the points, in `--muted`, the running total: `+850` over `9,270`. The slot never explains a
-  number; a speed bonus explained mid-reveal is a second thing to read.
+- A timeout is not a wrong answer, and the slot says so. The glyph is the verdict: `--ok` and
+  `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (D16).
+- Only what you earned: the total waits for the standings. The slot never explains a number; a
+  speed bonus explained mid-reveal is a second thing to read.
 - No standings under a reveal: a board every question makes the game a spreadsheet.
 
 ## 11. Standings
@@ -421,7 +426,8 @@ and `assets/scenes/` goes.
 **Accept:** the splash and every question type render on the stage; prompts on the scroll reach 7:1
 and muted text 4.5:1 in every theme, checked by the script, and the script fails a deliberately
 washed-out `--scroll-ink`; the scroll reads as parchment in all three themes, with screenshots in
-the PR; no gem button, combobox or points slot sits on the parchment; the scroll opens from the
+the PR; no gem button or combobox sits on the parchment, and the points you earned do, with nothing
+under the sheet moving for them; the scroll opens from the
 middle in 300ms on the splash, stays put into the round's first question, and simply appears with
 reduced motion; under 448px the screen's edges cut the rolls in half and nothing scrolls sideways,
 at 320px included; the knobs do not stretch at any width; the sheet is at least four prompt lines

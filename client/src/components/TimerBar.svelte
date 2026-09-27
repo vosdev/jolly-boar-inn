@@ -16,10 +16,12 @@
     endsAt,
     totalSeconds,
     label,
+    progress,
   }: {
     endsAt: string
     totalSeconds: number
     label: string
+    progress?: string
   } = $props()
 
   /** Where the bar turns urgent, in seconds. */
@@ -40,19 +42,26 @@
   <div class="track" aria-hidden="true">
     <div class="fill" style:width="{fraction * 100}%"></div>
   </div>
-  <div class="column" aria-hidden="true">
-    <span class="seconds">{seconds}s</span>
+  <!-- A question's screen is the stage's 30rem column, so its tabs hang at the stage's
+       edges. The question's number is the heading's to say to a screen reader. -->
+  <div class="column" class:stage={progress !== undefined} aria-hidden="true">
+    {#if progress !== undefined}
+      <span class="tab progress">{progress}</span>
+    {/if}
+    <span class="tab seconds">{seconds}s</span>
   </div>
 </div>
 
 <style>
-  /* Sticky under the top bar, and taking no height from the page beyond the track: the
-     tab hangs into the space above the first heading. */
+  /* Sticky under the top bar, and taking no height from the page: the track lies over
+     main's top padding and the tab hangs into it, so the stage does not drop six pixels
+     from the splash, which has no bar, into the round's first question. */
   .timerbar {
     position: sticky;
     top: var(--topbar-height);
     z-index: 19;
     height: 6px;
+    margin-bottom: -6px;
   }
 
   .track {
@@ -80,10 +89,18 @@
     width: min(42rem, 100% - 2rem);
     margin-inline: auto;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+  }
+
+  .column.stage {
+    width: min(30rem, 100% - 2rem);
   }
 
   .seconds {
+    margin-left: auto;
+  }
+
+  .tab {
     padding: 0 0.45rem;
     background: var(--panel);
     color: var(--surface-ink);

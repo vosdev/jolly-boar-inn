@@ -1,13 +1,13 @@
 /**
- * The splash: its mode's scene, or the default one for a mode this build does not know;
- * a ready check that counts heads and never names anyone; one take-back per splash; and
- * a countdown bar that a `pong` moving the clock offset does not fill up again.
+ * The splash: its mode on the clue scroll as it unrolls, and under the line a ready check
+ * that counts heads and never names anyone; one take-back per splash; and a countdown bar
+ * that a `pong` moving the clock offset does not fill up again.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { DEFAULT_SCENE, MODES, SCENES } from '../lib/modes'
+import { MODES } from '../lib/modes'
 import type { PlayerView, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import Splash from './Splash.svelte'
@@ -38,23 +38,36 @@ function splash(segment: Segment = SEGMENT, youReady = false) {
   })
 }
 
-const scene = () => document.querySelector('.scene') as HTMLElement
+const paper = () => document.querySelector('.paper') as HTMLElement
+const under = () => document.querySelector('.under') as HTMLElement
 
-describe('Splash scene', () => {
-  it("hangs the round's own scene behind its name", () => {
+describe('Splash stage', () => {
+  it("writes the mode's name and blurb on the scroll, and its count and pace under the line", () => {
     splash()
-    const own = MODES.more_less!.scene
-    expect(own).not.toBe(DEFAULT_SCENE)
-    expect(scene().dataset.scene).toBe(own)
-    expect(scene().textContent).toContain(SCENES[own])
-    expect(screen.getByRole('heading', { name: 'More or Less' })).toBeTruthy()
+    const heading = screen.getByRole('heading', { name: 'More or Less' })
+    expect(paper().contains(heading)).toBe(true)
+    expect(paper().textContent).toContain(MODES.more_less!.blurb)
+    expect(under().textContent).toContain('Round 1 of 2 · 5 questions · 10 seconds each')
+    expect(paper().textContent).not.toContain('Round 1 of 2')
   })
 
-  it('falls back to the default scene, headed by the id, for a mode this build lacks', () => {
+  it('heads a mode this build lacks with its id, and makes up no blurb', () => {
     splash({ ...SEGMENT, mode: 'zoom_quiz' })
-    expect(scene().dataset.scene).toBe(DEFAULT_SCENE)
-    expect(scene().textContent).toContain(SCENES[DEFAULT_SCENE])
     expect(screen.getByRole('heading', { name: 'zoom_quiz' })).toBeTruthy()
+    expect(paper().querySelector('.blurb')).toBeNull()
+  })
+
+  it('unrolls the scroll as it comes up, with the host beside it', () => {
+    splash()
+    expect(document.querySelector('.scroll')!.classList.contains('opening')).toBe(true)
+    expect(document.querySelector('.stage-row .npc.host img')).toBeTruthy()
+  })
+
+  it('keeps the ready check off the parchment', () => {
+    splash()
+    const button = screen.getByRole('button', { name: "✓ I'm ready" })
+    expect(under().contains(button)).toBe(true)
+    expect(paper().querySelector('button, ul')).toBeNull()
   })
 })
 

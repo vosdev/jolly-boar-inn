@@ -72,3 +72,25 @@ describe('more_less', () => {
     expect(onAnswer).toHaveBeenCalledWith(1)
   })
 })
+
+describe('more_less’s question', () => {
+  const asked = () => document.querySelector('.ask')?.textContent?.replace(/\s+/g, ' ').trim()
+
+  it('names the metric’s source, with the direction set apart', () => {
+    render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    expect(asked()).toBe('Which costs more on the Grand Exchange?')
+    expect(screen.getByText('more').classList.contains('word')).toBe(true)
+  })
+
+  it('says what high alchemy is worth, and asks for less', () => {
+    const view = { ...VIEW, metric: 'high_alch', direction: 'less' }
+    render(Question, { question: open({ view }), yourValue: null, onAnswer: () => {} })
+    expect(asked()).toBe('Which is worth less through High Alchemy?')
+  })
+
+  it('still asks the bare question for a metric this build does not know', () => {
+    const view = { ...VIEW, metric: 'from_a_newer_schema' }
+    render(Question, { question: open({ view }), yourValue: null, onAnswer: () => {} })
+    expect(asked()).toBe('Which costs more?')
+  })
+})

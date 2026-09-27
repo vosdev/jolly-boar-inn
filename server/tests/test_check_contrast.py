@@ -1,9 +1,9 @@
 """D1 Accept: the token contract holds, and the script that enforces it has teeth.
 
 The palette itself is not a matter of taste the tests can judge, so what is asserted here
-is the contract from section 2 of ideas/design.md: both shipped themes pass, a deliberately
-broken ``--bad`` fails, a gem that looks the same lit as faded fails, and
-the stylesheet stays the only place a colour is set.
+is the contract from section 2 of ideas/design.md: every shipped theme passes, a deliberately
+broken ``--bad`` fails, a gem that looks the same lit as faded fails, washed-out scroll ink
+fails, and the stylesheet stays the only place a colour is set.
 """
 
 import re
@@ -94,6 +94,26 @@ def test_gem_ink_that_cannot_be_read_on_a_faded_gem_fails(css: str) -> None:
     broken = _swap(css, "wilderness", "--gem-ink", "#3a3330")
     problems = check.check(broken)
     assert any("--gem-ink" in line and "faded" in line for line in problems)
+
+
+def test_washed_out_scroll_ink_fails(css: str) -> None:
+    """D13: a prompt on the scroll is read against the clock, so it gets the body 7:1."""
+    broken = _swap(css, "pollnivneach", "--scroll-ink", "#9c8a66")
+    problems = check.check(broken)
+    assert any("--scroll-ink" in line and "--scroll-paper" in line for line in problems)
+
+
+def test_scroll_muted_that_cannot_be_read_fails(css: str) -> None:
+    broken = _swap(css, "wilderness", "--scroll-muted", "#b09c6c")
+    problems = check.check(broken)
+    assert any("--scroll-muted" in line and "--scroll-paper" in line for line in problems)
+
+
+def test_a_scroll_the_colour_of_the_panel_fails(css: str) -> None:
+    """D13: paper that matches the panel is just another panel, not a scroll laid on it."""
+    broken = _swap(css, "pollnivneach", "--scroll-paper", "#f4f1e6")
+    problems = check.check(broken)
+    assert any("--scroll-paper" in line and "--panel" in line for line in problems)
 
 
 def test_ok_and_bad_of_the_same_hue_fail(css: str) -> None:

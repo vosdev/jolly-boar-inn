@@ -17,6 +17,8 @@ export interface TimerBarState {
   totalSeconds: number
   /** What the time is for, for a screen reader: "to answer", "to the next question". */
   label: string
+  /** Which question of the round this is, as `2/3`, for the tab on the bar's left end. */
+  progress?: string
 }
 
 export const timerBar = writable<TimerBarState | null>(null)

@@ -1,9 +1,9 @@
 /*
  * Tokens (D1, section 2 of ideas/design.md), and the themes built from them (D5).
  *
- * Seven layers, and a contract. A theme may repaint the furniture — surface, brand, gems,
+ * Eight layers, and a contract. A theme may repaint the furniture — surface, brand, gems,
  * shape, texture — freely. It may not repaint what "you got it wrong" looks like: the
- * verdict and semantic layers are checked in CI by `server/scripts/check_contrast.py`,
+ * verdict, semantic and scroll layers are checked in CI by `server/scripts/check_contrast.py`,
  * which reads this file.
  *
  * Themes switch by setting `data-theme` on <html> (see `lib/theme.ts`). They can only ever
@@ -109,6 +109,15 @@
   --texture-panel: url('./assets/textures/inn-trim.svg');
   --texture-bg: url('./assets/textures/inn-rug.svg');
 
+  /* 8. Scroll (D13): the clue scroll's parchment, its brown edge and the ink on it. Checked
+     like a panel: --scroll-ink 7:1 and --scroll-muted 4.5:1 on the paper, which also has to
+     stand off --bg and --panel. --scroll-facet-light is how much white the creases catch. */
+  --scroll-paper: #cfbb88;
+  --scroll-edge: #7a5e30;
+  --scroll-ink: #241708;
+  --scroll-muted: #4f3a1c;
+  --scroll-facet-light: 0.08;
+
   color-scheme: light;
 }
 
@@ -166,6 +175,13 @@
   --texture-panel: url('./assets/textures/town-dentils.svg');
   --texture-bg: url('./assets/textures/town-sand.svg');
 
+  /* A paler sheet, bleached by the noon. */
+  --scroll-paper: #efe0b2;
+  --scroll-edge: #9c7238;
+  --scroll-ink: #2b2319;
+  --scroll-muted: #5a4629;
+  --scroll-facet-light: 0.08;
+
   color-scheme: light;
 }
 
@@ -218,6 +234,13 @@
   /* The wall: irregular blocks, a shade off the mortar. The panels stay plain stone. */
   --texture-panel: none;
   --texture-bg: url('./assets/textures/wild-wall.svg');
+
+  /* The inn's scroll: parchment reads as parchment, where a dark sheet would read as slate. */
+  --scroll-paper: #cfbb88;
+  --scroll-edge: #7a5e30;
+  --scroll-ink: #241708;
+  --scroll-muted: #4f3a1c;
+  --scroll-facet-light: 0.08;
 
   color-scheme: dark;
 }

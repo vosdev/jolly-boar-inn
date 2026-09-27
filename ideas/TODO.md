@@ -82,7 +82,7 @@ Running an instance:
 - [x] D10. Selfhoster branding
 - [ ] D11. Motion and the reduced-motion pass
 - [ ] D12. The Party Room theme
-- [ ] D13. The stage: the host slot and the clue scroll
+- [x] D13. The stage: the host slot and the clue scroll
 - [ ] D14. Hosts, and the voice they speak in
 - [ ] D15. The random-event NPCs
 - [ ] D16. The interlude

@@ -1,23 +1,24 @@
 /**
  * `viewFor` and `Question.svelte`: which pair draws a question, and in what order.
  *
- * `more_less` draws itself, and the one shipped mode with a stem (`price_is_right`) has
- * tests of its own in `PriceIsRight.test.ts`, so the composed case here plays a made-up
- * mode, `stemmed`, putting the text stem on the `more_less` view. It is added to the
+ * Every shipped mode's stem has tests of its own beside its view, so the composed case
+ * here plays a made-up mode, `stemmed`, putting the text stem on the `more_less` view. It is added to the
  * registry through the module mock below rather than to `lib/modes.ts`, where it would
  * be a mode the create form offers.
  */
 
-import { render, screen } from '@testing-library/svelte'
+import { cleanup, render, screen, waitFor } from '@testing-library/svelte'
 import type { Component } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { serverNow } from '../../lib/clock'
-import type { OpenQuestion } from '../../lib/protocol'
+import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
 import { clearVocabCache } from '../../lib/vocab'
+import QuestionStage from '../QuestionStage.svelte'
 import { STEMS, TYPE_VIEWS, viewFor } from './index'
 import type { StemProps, StemTiming, TypeViewProps } from './props'
 import Question from './Question.svelte'
+import MoreLessStem from './stems/MoreLessStem.svelte'
 import TextStem from './stems/TextStem.svelte'
 import MoreLess from './types/MoreLess.svelte'
 
@@ -78,8 +79,8 @@ describe('viewFor', () => {
     expect(viewFor('more_less', 'stemmed')).toEqual({ stem: TextStem, view: MoreLess })
   })
 
-  it('gives more_less its view and no stem', () => {
-    expect(viewFor('more_less', 'more_less')).toEqual({ stem: null, view: MoreLess })
+  it('gives more_less its own stem, which asks the question on the scroll', () => {
+    expect(viewFor('more_less', 'more_less')).toEqual({ stem: MoreLessStem, view: MoreLess })
   })
 
   it('leaves out whichever half this build does not know', () => {
@@ -91,7 +92,7 @@ describe('viewFor', () => {
 describe('Question', () => {
   it('draws a mode with no stem as its view alone, markup and all', () => {
     const composed = render(Question, {
-      question: open('more_less', 'more_less'),
+      question: open('more_less', 'from_a_newer_server'),
       yourValue: null,
       onAnswer,
     })
@@ -306,5 +307,88 @@ describe('the stem’s schedule', () => {
   it('opens at `opened_at` with no hold sent, and has no steps with none in the view', () => {
     render(Question, { question: open('more_less', 'stemmed'), yourValue: null, onAnswer })
     expect(seen).toMatchObject({ answerableAt: '2026-09-21T20:00:00Z', steps: null })
+  })
+})
+
+describe('every type on the stage', () => {
+  beforeEach(() => {
+    clearVocabCache()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ vocab: 'items', version: 'v1', entries }))),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const paper = () => document.querySelector('.paper') as HTMLElement
+  const under = () => document.querySelector('.under') as HTMLElement
+  const pressable = 'button, input, [role="combobox"]'
+
+  for (const { type, mode, view, reveal } of EVERY_TYPE) {
+    it(`puts ${type}'s stem on the scroll and its answers under the line`, async () => {
+      const question = { ...open(type, mode), view: view as Record<string, unknown> }
+      const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+      await waitFor(() => expect(under().querySelector('button, input')).toBeTruthy())
+      expect(paper().textContent?.trim()).not.toBe('')
+      expect(paper().querySelector(pressable)).toBeNull()
+      unmount()
+
+      render(QuestionStage, {
+        question,
+        reveal: reveal as Record<string, unknown>,
+        yourValue: null,
+        onAnswer,
+      })
+      expect(paper().textContent?.trim()).not.toBe('')
+      expect(paper().querySelector(pressable)).toBeNull()
+      expect(paper().querySelector('.slot')?.textContent).toContain('No answer · +0')
+    })
+  }
+
+  it('holds the line the points go on, so the answers do not move for them', () => {
+    render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
+    const said = paper().querySelector('.said')
+    expect(said).toBeTruthy()
+    expect(said!.textContent?.trim()).toBe('')
+  })
+
+  it('does not unroll the scroll again: it opened on the splash', () => {
+    render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
+    expect(document.querySelector('.scroll')!.classList.contains('opening')).toBe(false)
+  })
+})
+
+describe('the ribbon', () => {
+  const question = open('more_less', 'more_less')
+  const award = () => document.querySelector('.award') as HTMLElement | null
+
+  function revealed(result: PlayerResult | null) {
+    render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
+  }
+
+  it('is pinned with confetti for a right answer', () => {
+    revealed({ value: 0, correct: true, credit: 1, points: 850 })
+    expect(award()?.dataset.award).toBe('confetti')
+    expect(award()!.querySelectorAll('.confetti i')).toHaveLength(16)
+  })
+
+  it('is pinned without confetti for partial credit', () => {
+    revealed({ value: 0, correct: false, credit: 0.9, points: 300 })
+    expect(award()?.dataset.award).toBe('ribbon')
+    expect(award()!.querySelector('.confetti')).toBeNull()
+  })
+
+  it('is not pinned for +0, for no answer, or while the question is open', () => {
+    revealed({ value: 1, correct: false, credit: 0, points: 0 })
+    expect(award()).toBeNull()
+    cleanup()
+    revealed(null)
+    expect(award()).toBeNull()
+    cleanup()
+    render(QuestionStage, { question, yourValue: 0, onAnswer })
+    expect(award()).toBeNull()
   })
 })

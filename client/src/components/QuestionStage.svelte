@@ -9,14 +9,24 @@
    * rather than one flat line. The band is all `answer_ack` carries, how fast or how
    * early, never whether it was right. Correctness is nobody's until `question_closed`.
    *
-   * `children` goes inside the panel under the question: the reveal's tally.
+   * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
+   * scroll, and under the line the answers in a panel, with the waiting line below them.
+   * On the reveal the host says what we earned at the foot of the sheet, and anything we
+   * scored pins the ribbon. The line the points go on is held from the start, so the
+   * answers under the sheet do not move when they arrive. A random event keeps its card,
+   * and the points their plaque above it, until D16 brings it onto the stage.
+   *
+   * `children` goes inside the panel under the answers: the reveal's tally.
    */
   import type { Snippet } from 'svelte'
 
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
+  import { awardFor } from '../lib/award'
   import { answerAck, answerCount } from '../lib/stores'
+  import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import Question from './questions/Question.svelte'
+  import Stage from './stage/Stage.svelte'
 
   let {
     question,
@@ -57,36 +67,85 @@
   })
 </script>
 
-<section class="panel">
-  {#if question.random_event}
-    <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} />
-  {:else}
-    <Question {question} {reveal} {yourValue} {result} {onAnswer} />
-  {/if}
-  {@render children?.()}
-</section>
-
-{#if reveal === null && yourValue !== null}
-  <div class="waiting" role="status">
-    <p class="held">
-      Answer in{#if landed !== null}<span
-          class="band"
-          title={landed.sentence}
-          aria-label={landed.sentence}>{landed.badge}</span
-        >{/if}
-    </p>
-    <p class="room">
-      {#if $answerCount !== null && $answerCount.of > 0}
-        <span class="count">{$answerCount.answered} of {$answerCount.of}</span>
-        answered — waiting for the room
-      {:else}
-        Waiting for the room
+{#snippet staged(stem: Snippet, answers: Snippet | null)}
+  {#snippet sheet()}
+    {@render stem()}
+    <div class="said">
+      {#if reveal !== null}
+        <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
       {/if}
-    </p>
-  </div>
+    </div>
+  {/snippet}
+  <Stage paper={sheet} award={reveal === null ? 'none' : awardFor(result)}>
+    {#if answers !== null || children}
+      <section class="panel answers">
+        {@render answers?.()}
+        {@render children?.()}
+      </section>
+    {/if}
+    {@render waiting()}
+  </Stage>
+{/snippet}
+
+{#snippet waiting()}
+  {#if reveal === null && yourValue !== null}
+    <div class="waiting" role="status">
+      <p class="held">
+        Answer in{#if landed !== null}<span
+            class="band"
+            title={landed.sentence}
+            aria-label={landed.sentence}>{landed.badge}</span
+          >{/if}
+      </p>
+      <p class="room">
+        {#if $answerCount !== null && $answerCount.of > 0}
+          <span class="count">{$answerCount.answered} of {$answerCount.of}</span>
+          answered — waiting for the room
+        {:else}
+          Waiting for the room
+        {/if}
+      </p>
+    </div>
+  {/if}
+{/snippet}
+
+{#if question.random_event}
+  {#if reveal !== null}
+    <div class="plaque">
+      <PointsSlot {result} canAnswer={question.you_can_answer} />
+    </div>
+  {/if}
+  <section class="panel">
+    <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} />
+    {@render children?.()}
+  </section>
+  {@render waiting()}
+{:else}
+  <Question {question} {reveal} {yourValue} {result} {onAnswer} frame={staged} />
 {/if}
 
 <style>
+  /* The foot of the sheet, one line of points tall whether or not they are in yet. */
+  .said {
+    margin-top: auto;
+    padding-top: 0.2rem;
+    min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+  }
+
+  .plaque {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+  }
+
+  /* On a phone the panel gives its padding to the gems: six of them at 56px and a
+     two-line prompt have to fit in the 650px a 375x812 phone shows. */
+  @container (max-width: 26rem) {
+    .answers {
+      padding: calc(0.5rem - var(--border-give));
+    }
+  }
+
   .waiting {
     display: flex;
     align-items: baseline;
