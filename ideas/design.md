@@ -53,7 +53,7 @@ The script asserts, per `[data-theme]` block:
   own lightness.
 - Layer 8 (D13): `--scroll-ink` at 7:1 and `--scroll-muted` at 4.5:1 on `--scroll-paper`, and the
   paper at least 10 ΔE from `--bg` and `--panel`, so the scroll stands off the page. `wilderness`
-  gets a dark, smoke-stained scroll with pale ink, not a cream rectangle glowing in the dark.
+  borrows `jolly`'s scroll: parchment reads as parchment, not as a dark sheet.
 
 ## 3. Gems and the reveal
 
@@ -153,35 +153,48 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
 
 ## 8. The stage: a host and a clue scroll (D13, D14)
 
-Every round is presented by an NPC, the **host**, standing beside a **clue scroll**. The scroll
+Every round is presented by an NPC, the **host**, standing beside a **clue scroll** drawn after the
+game's quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. The scroll
 carries the round's introduction on the splash and then every question; the answers sit under it.
 Create lists each mode under its host: *Grand Exchange Clerk presents: The Price is Right*. Until
-D13 lands, the splash shows a placeholder tavern scene, which D13 removes.
+D13 lands, the splash shows a placeholder tavern scene, which D13 removes. The agreed stage is
+`client/prototypes/clue-scroll.html` on the real tokens; under `make dev` it is at
+`/prototypes/clue-scroll.html`.
 
 ```
-          ╭────────────────────────────────────────────╮
-          │  ROUND 2 OF 5                              │  display face, --scroll-muted
-   ▄▄     │  The Price is Right                        │  display face
-  (••)    │  "Welcome, welcome! Step up to my counter."│  the host's line, body face
- ▟████▙   │  One item, four prices. Which one does it  │  the blurb, in the host's voice
-  host    │  really go for on the Grand Exchange?      │
-          ╰────────────────────────────────────────────╯
-──────────────────────────────────────────────────────────────
-         [ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
+        ╥────────────────────────────────╥
+        ║ Know Your Content Creator      ║   display face
+   ▄▄   ║ "Psst. Seen this one before?"  ║   the host's line, body face
+  (••)  ║ Are you sure you are a fan?    ║   the blurb, in the host's voice
+ ▟████▙ ║                                ║
+        ╨──────────────────────✿─────────╨   the ribbon, for a right answer
+──────────────────────────────────────────────
+Round 2 of 5 · 5 questions · 20 seconds each
+[ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
 ```
 
-- **Wide (40rem up):** the host takes about a fifth of a 56rem stage, overlapping the scroll's left
-  edge. The stage is wider than the lobby's 42rem, because a fifth of 42rem is a head, not a person.
-- **Narrow:** the scroll is full width and the host shrinks to a 64px head on its top-left corner,
-  like a chat head on a dialogue box. No host is worth a line of question text on a phone.
+- **One size.** The stage is at most 30rem wide at every width, and the answers under it take the
+  same width. `--scroll-scale` sizes the rolls, margins and ribbon, `--scroll-text` the words; a
+  stage under 26rem, a phone, sets 0.8 and 0.9.
+- **The host** stands at the scroll's bottom-left, over its left roll: 124px wide overlapping 30px,
+  and 68px overlapping 32px on a phone. Heads until D14 draws head and upper body.
+- **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
+  edges. The host then stands on the sheet, which keeps a column clear for it.
+- **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
+  and faint facets crease it. An examine line sits centred in the height the prompt leaves.
+- **It opens and closes from the middle**, both rolls travelling outward, in 300 ms. It opens on
+  the splash and stays put into the round's first question.
+- **A right answer** pins a red rosette ribbon on the sheet's bottom edge, 65% across, with a burst
+  of confetti (900 ms). A wrong answer or none gets nothing.
 - **The scroll** is an original inline SVG component in layer 8's tokens. An `<img>` could not read
-  the theme's custom properties (§13). Its rolled ends are fixed pieces; only the paper stretches.
-- **Below the line** is the page: the ready check, then the answers. Gems never sit on parchment, so
-  every gem check still measures against `--panel`.
+  the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only along its
+  length. `jolly` and `pollnivneach` have their own paper; `wilderness` uses `jolly`'s.
+- **Below the line** is the page: the round's count and pace, the ready check, then the answers.
+  Gems never sit on parchment, so every gem check still measures against `--panel`.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
-  `lib/modes.ts`. Question prompts stay plain: a prompt is parsed against the clock, and a joke
-  around it is a second thing to read. Random events are the exception, already written in their
-  NPC's voice.
+  `lib/modes.ts`. The splash scroll holds only the mode's name, the line and the blurb. Question
+  prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
+  to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is original, fixed-colour SVG on one shared rig (D14), so some thirty NPCs look like
   one cast. A mode with no host gets a generic innkeeper.
 
@@ -270,8 +283,8 @@ asks what are architecture §5 and `ideas/random-events.md`. This is how it look
 **The event NPC stands on the right.** The host always stands left, so position says "this is not
 the round's question" before a word is read.
 
-Everything happens inside the hold before `answerable_at` (`random_event_seconds`, 2 by default),
-so the wait costs nobody points and the server times nothing:
+Everything happens inside the server's fixed 3.5 s hold before `answerable_at`, so the wait costs
+nobody points and the server times nothing:
 
 ```
   0 ms   the NPC's name is on the scroll, whole; the scroll takes the prompt's height
@@ -393,12 +406,12 @@ the other themes are unaffected either way.
 
 ### D13. The stage: the host slot and the clue scroll
 
-The layout of §8, used by the splash and by every question screen: the host slot on the left, the
-clue scroll, and the line the ready check and the answers sit below. The scroll is an inline SVG
-component — paper, rolled ends, a wax seal — whose ends are fixed pieces and whose paper stretches.
-Layer 8 (`--scroll-*`) is written for `jolly`, `pollnivneach` and `wilderness`, and
-`scripts/check_contrast.py` learns its assertions (§2). The stage is 56rem at its widest, and under
-40rem it collapses to a full-width scroll with a 64px head on its corner.
+The stage of §8, as the prototype has it, used by the splash and by every question screen: the
+host slot, the clue scroll, and the line the round's count, the ready check and the answers sit
+below. The scroll is an inline SVG component — rolls with knobs, a torn and faceted sheet, the
+ribbon and its confetti — sized by `--scroll-scale` and `--scroll-text`. Layer 8 (`--scroll-*`) is
+written for `jolly` and `pollnivneach`, `wilderness` takes `jolly`'s, and
+`scripts/check_contrast.py` learns its assertions (§2). A random event keeps today's card until D16 turns it into the stage.
 
 The host slot ships holding the generic innkeeper (a placeholder until D14 lands the rig), so this
 task is not blocked on art. It removes the splash's tavern scene: the `scene` field, `SCENES`,
@@ -407,13 +420,15 @@ and `assets/scenes/` goes.
 
 **Accept:** the splash and every question type render on the stage; prompts on the scroll reach 7:1
 and muted text 4.5:1 in every theme, checked by the script, and the script fails a deliberately
-washed-out `--scroll-ink`; the scroll reads as parchment in `wilderness` as well as `jolly`, with
-screenshots of all three in the PR; no gem button, combobox or points slot sits on the parchment;
-the scroll unrolls in 200ms on the splash, stays put into the round's first question, and simply
-appears with reduced motion; at 375px, six gem buttons at 56px and a two-line prompt fit without
-scrolling; the rolled ends do not stretch at any width; there is no horizontal scroll at 320px; no
-scroll colour is set by an inline style or a `style:` directive; the existing ready-check and gem
-tests pass unchanged.
+washed-out `--scroll-ink`; the scroll reads as parchment in all three themes, with screenshots in
+the PR; no gem button, combobox or points slot sits on the parchment; the scroll opens from the
+middle in 300ms on the splash, stays put into the round's first question, and simply appears with
+reduced motion; under 448px the screen's edges cut the rolls in half and nothing scrolls sideways,
+at 320px included; the knobs do not stretch at any width; the sheet is at least four prompt lines
+tall; a right answer pins the ribbon 65% across with confetti, a wrong or missing one does not,
+and with reduced motion the ribbon comes without confetti; at 375px, six gem buttons at 56px and a
+two-line prompt fit in the 650px a 375×812 phone shows; no scroll colour is set by an inline style
+or a `style:` directive; the existing ready-check and gem tests pass unchanged.
 
 ### D14. Hosts, and the voice they speak in
 
@@ -457,8 +472,8 @@ answers at `answerable_at`, and the return in the last 250ms of the reveal. It t
 is D6's; without D6 it is silent and nothing else changes.
 
 **Accept:** the answers never appear before `answerable_at`, and the stage is settled — nothing
-moving — by then, at the default 2 seconds and at 1; at `random_event_seconds: 0` the event NPC is
-simply in place when the question opens; the NPC's name shows from the first frame; the prompt
+moving — by then, at the 3.5 s hold and at 1 s; with no hold the event NPC is simply in place when
+the question opens; the NPC's name shows from the first frame; the prompt
 types at 60 letters a second from 900ms, and any prompt, 200 characters included, is whole 200ms
 before `answerable_at`; a screen reader reads the prompt once, whole, and hears who interrupted;
 with reduced motion nothing slides, fades or types and the answers still wait; on a phone the NPCs
