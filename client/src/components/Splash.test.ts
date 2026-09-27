@@ -7,7 +7,8 @@
 import { fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { MODES } from '../lib/modes'
+import { GENERIC_HOST, MODES } from '../lib/modes'
+import { FALLBACK_NPC, npcArt } from '../lib/npcs'
 import type { PlayerView, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import Splash from './Splash.svelte'
@@ -55,6 +56,20 @@ describe('Splash stage', () => {
     splash({ ...SEGMENT, mode: 'zoom_quiz' })
     expect(screen.getByRole('heading', { name: 'zoom_quiz' })).toBeTruthy()
     expect(paper().querySelector('.blurb')).toBeNull()
+  })
+
+  it("has the mode's host greet the room on the scroll, between the name and the blurb", () => {
+    splash()
+    const lines = [...paper().querySelectorAll('h2, p')].map((line) => line.textContent)
+    expect(lines).toEqual(['More or Less', `“${MODES.more_less!.greeting}”`, MODES.more_less!.blurb])
+  })
+
+  it('has the innkeeper present a mode this build lacks, in the generic greeting', () => {
+    splash({ ...SEGMENT, mode: 'zoom_quiz' })
+    expect(paper().textContent).toContain(GENERIC_HOST.greeting)
+    for (const img of document.querySelectorAll<HTMLImageElement>('.npc.host img')) {
+      expect(img.getAttribute('src')).toBe(npcArt(FALLBACK_NPC).body.url)
+    }
   })
 
   it('unrolls the scroll as it comes up, with the host beside it', () => {

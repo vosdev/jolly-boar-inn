@@ -114,6 +114,14 @@ describe('Create', () => {
     expect(screen.getByText('Rounds (2)')).toBeTruthy()
   })
 
+  it("names each mode's host above its checkbox, outside the checkbox's name", async () => {
+    await loaded()
+    const presents = screen.getByText('Ali Morrisane presents:')
+    const box = screen.getByRole('checkbox', { name: /^More or Less/ })
+    expect(presents.nextElementSibling?.contains(box)).toBe(true)
+    expect(screen.getByText('Grand Exchange Clerk presents:')).toBeTruthy()
+  })
+
   it('lists the modes still coming, ticked off and disabled', async () => {
     await loaded()
     for (const name of [/^Who is That NPC\?/, /^Name that spell/, /^Minimap Guesser/]) {

@@ -11,20 +11,25 @@
    * the smaller numbers the prototype settled on. Under 448px of screen the row runs out
    * to the screen's edges, which cut the rolls in half, and the host steps onto the sheet.
    *
-   * The host is the generic innkeeper until D14 gives every mode its own.
+   * The host is head and upper body at full size and a chathead on a phone. Both pictures
+   * are in the page and a container query shows one, because the phone size is the
+   * stage's width and not the screen's, which a `<picture>` could not ask about.
    */
   import type { Snippet } from 'svelte'
 
-  import innkeeperUrl from '../../assets/npcs/innkeeper.svg'
   import type { Award } from '../../lib/award'
+  import { FALLBACK_NPC, npcArt } from '../../lib/npcs'
   import ClueScroll from './ClueScroll.svelte'
 
   let {
+    host = FALLBACK_NPC,
     paper,
     opening = false,
     award = 'none',
     children,
   }: {
+    /** The NPC id of the round's host, from `hostOf` in `lib/modes.ts`. */
+    host?: string
     /** What is written on the sheet. */
     paper: Snippet
     opening?: boolean
@@ -32,12 +37,15 @@
     /** What sits under the line. */
     children?: Snippet
   } = $props()
+
+  const art = $derived(npcArt(host))
 </script>
 
 <div class="stage">
   <div class="stage-row">
     <div class="npc host" aria-hidden="true">
-      <img src={innkeeperUrl} alt="" draggable="false" />
+      <img class="body {art.body.cut}" src={art.body.url} alt="" draggable="false" />
+      <img class="head {art.head.cut}" src={art.head.url} alt="" draggable="false" />
     </div>
     <ClueScroll {opening} {award}>
       {@render paper()}
@@ -90,12 +98,41 @@
     filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.25));
   }
 
+  .npc .head {
+    display: none;
+  }
+
+  /* A wiki render is the whole NPC, facing left: the top of it, head and upper body, cut
+     at the same height for every NPC so the cast stands level, and turned to the sheet. */
+  .npc .body.render {
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: top;
+    transform: scaleX(-1);
+  }
+
   @container (max-width: 26rem) {
     .stage-row {
       --npc-w: 68px;
       --npc-lap: 32px;
       --scroll-scale: 0.8;
       --scroll-text: 0.9;
+    }
+
+    .npc .body {
+      display: none;
+    }
+
+    .npc .head {
+      display: block;
+    }
+
+    /* An NPC with no chathead shows its render here too: then only its head. */
+    .npc .head.render {
+      aspect-ratio: 1;
+      object-fit: cover;
+      object-position: top;
+      transform: scaleX(-1);
     }
   }
 

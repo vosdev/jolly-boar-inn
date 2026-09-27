@@ -237,6 +237,8 @@
       <p class="note">Loading the game modes…</p>
     {:else}
       {#each roundModes as mode (mode.id)}
+        <!-- Outside the label, so the checkbox is still named for its mode first. -->
+        {#if MODES[mode.id]}<p class="presents">{MODES[mode.id]?.host.name} presents:</p>{/if}
         <label class="check">
           <input
             type="checkbox"
@@ -401,6 +403,16 @@
 </form>
 
 <style>
+  /* Level with the mode's name: past the checkbox, its default side margins and the gap
+     `.check` puts after it. */
+  .presents {
+    margin: 0.6rem 0 0 calc(1.55rem + 7px);
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-style: italic;
+    line-height: 1.2;
+  }
+
   .upcoming {
     opacity: 0.55;
     cursor: not-allowed;
