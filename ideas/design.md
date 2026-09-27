@@ -465,7 +465,7 @@ lands on the settled stage with the right delay and no replay; the host is back 
 whatever follows the event, the standings included; an unknown NPC id shows the Mysterious Old Man;
 the `explanation` shows on the scroll in the reveal.
 
-## Needs decision
+## NPC Hosts
 
 **Who hosts each mode.** The owner picks, before D14 for the modes that exist and inside each T
 task for the rest. A host must not also be on the random-event roster, or the face that means
@@ -473,11 +473,16 @@ task for the rest. A host must not also be on the random-event roster, or the fa
 
 | Mode | Host | |
 |---|---|---|
-| `price_is_right` | Grand Exchange Clerk | chosen |
-| `clipped` (Know Your Content Creator) | Gnome Child | chosen |
-| `more_less` | Bob Barter, the Grand Exchange's price-watcher | suggestion |
-| `guess_examine` | The Examiner, from the Dig Site | suggestion |
-| `custom` | The Jolly Boar Inn's bartender, since it is the host's inn | suggestion |
-| `release_order` | Historian Minas, Varrock Museum | suggestion |
-| `drop_table`, `bestiary` | A Slayer master (Konar, Duradel) | suggestion |
-| `who_said_that`, `odd_one_out`, `sort_it_out` | — | open |
+| `price_is_right` | Grand Exchange Clerk
+| `clipped` (Know Your Content Creator) | Gnome Child
+| `more_less` | Ali Morrisane
+| `pixel_hunt` | Sherlock
+| `guess_examine` | The Examiner, from the Dig Site 
+| `who_is_that_npc` | Postie Pete
+| `custom` | The Jolly Boar Inn's bartender, since it is the host's inn 
+| `release_order` & `sort_it_out` | Historian Minas, Varrock Museum 
+| `drop_table` | Nieve 
+| `bestiary` | Ardougne Zoo keeper 
+| `who_said_that` | Parroty Pete (Parrot)
+| `odd_one_out` | Wise Old Man or Sandwich Lady
+| `minimap_guesser` | Captain Errdo |
