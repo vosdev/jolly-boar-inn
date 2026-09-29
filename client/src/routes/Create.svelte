@@ -239,21 +239,25 @@
       {#each roundModes as mode (mode.id)}
         <!-- Outside the label, so the checkbox is still named for its mode first. -->
         {#if MODES[mode.id]}<p class="presents">{MODES[mode.id]?.host.name} presents:</p>{/if}
-        <label class="check">
+        <label class="check mode">
           <input
             type="checkbox"
             checked={rounds.some((round) => round.mode === mode.id)}
             onchange={(event) => toggle(mode, event.currentTarget.checked)}
           />
-          {modeLabel(mode.id)}
-          {#if MODES[mode.id]}<span class="note">— {MODES[mode.id]?.hint}</span>{/if}
+          <span>
+            {modeLabel(mode.id)}
+            {#if MODES[mode.id]}<span class="note">{MODES[mode.id]?.hint}</span>{/if}
+          </span>
         </label>
       {/each}
       {#each upcomingModes as mode (mode.id)}
-        <label class="check upcoming">
+        <label class="check mode upcoming">
           <input type="checkbox" checked={false} disabled />
-          {mode.label}
-          <span class="note">— coming soon: {mode.hint}</span>
+          <span>
+            {mode.label}
+            <span class="note">Coming soon: {mode.hint}</span>
+          </span>
         </label>
       {/each}
       {#if rounds.length === 0}
@@ -411,6 +415,21 @@
     font-size: 0.8rem;
     font-style: italic;
     line-height: 1.2;
+  }
+
+  /* The hint gets its own line, so a long one wraps under itself and not under the box. */
+  .mode {
+    align-items: flex-start;
+  }
+
+  /* Without `flex-shrink`, a wrapping hint squeezes the box and pulls its row out of line. */
+  .mode input {
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+  }
+
+  .mode .note {
+    display: block;
   }
 
   .upcoming {

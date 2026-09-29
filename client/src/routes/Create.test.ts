@@ -122,6 +122,15 @@ describe('Create', () => {
     expect(screen.getByText('Grand Exchange Clerk presents:')).toBeTruthy()
   })
 
+  it("puts each mode's hint in its own element, with no dash run into the name", async () => {
+    await loaded()
+    const box = screen.getByRole('checkbox', { name: /^More or Less/ })
+    const hint = screen.getByText('A mix of Grand Exchange, High Alchemy and NPC prices.')
+    expect(box.closest('label')?.contains(hint)).toBe(true)
+    expect(hint.classList.contains('note')).toBe(true)
+    expect(box.closest('label')?.textContent).not.toContain('—')
+  })
+
   it('lists the modes still coming, ticked off and disabled', async () => {
     await loaded()
     for (const name of [/^Who is That NPC\?/, /^Name that spell/, /^Minimap Guesser/]) {
