@@ -68,7 +68,7 @@ describe('Splash stage', () => {
     splash({ ...SEGMENT, mode: 'zoom_quiz' })
     expect(paper().textContent).toContain(GENERIC_HOST.greeting)
     for (const img of document.querySelectorAll<HTMLImageElement>('.npc.host img')) {
-      expect(img.getAttribute('src')).toBe(npcArt(FALLBACK_NPC).body.url)
+      expect(img.getAttribute('src')).toBe(npcArt(FALLBACK_NPC).url)
     }
   })
 

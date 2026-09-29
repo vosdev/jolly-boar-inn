@@ -23,5 +23,5 @@ branding/*
 .idea/
 .vscode/
 
-# NPC renders and chatheads from the wiki: not yet decided whether they are committed
+# NPC renders and chatheads from the wiki: game assets, fetched and not committed
 client/src/assets/npcs/*.png

@@ -175,8 +175,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
 - **One size.** The stage is at most 30rem wide at every width, and the answers under it take the
   same width. `--scroll-scale` sizes the rolls, margins and ribbon, `--scroll-text` the words; a
   stage under 26rem, a phone, sets 0.8 and 0.9.
-- **The host** stands at the scroll's bottom-left, over its left roll: 124px wide overlapping 30px,
-  and 68px overlapping 32px on a phone. Head and upper body, and its chathead on a phone.
+- **The host** stands at the scroll's bottom-left, over its left roll: 78px wide overlapping 30px,
+  and 68px overlapping 32px on a phone. Its chathead at both.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
   edges. The host then stands on the sheet, which keeps a column clear for it.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
@@ -198,8 +198,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
   reveal lines go at the sheet's foot, the reveal's beside the points. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
-- **The art** is the wiki's render, its top half mirrored to face the sheet, and its chathead on
-  a phone (D14). A mode with no host, or a host with no art, gets the generic innkeeper.
+- **The art** is the wiki's chathead (D14), or the head of its render, mirrored to face the
+  sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
 
 ## 9. The splash and the ready check
 
@@ -337,7 +337,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Speedrunning trophies | Game renders | No, fetched; D9 shipped placeholders |
 | Display font | Self-hosted, once chosen | No, fetched |
 | Chat heads | 50 hand-picked (§6) | **Yes** |
-| Hosts and event NPCs | Wiki renders and chatheads (§8) | Undecided; the innkeeper is |
+| Hosts and event NPCs | Wiki chatheads (§8) | No, fetched; the innkeeper is committed |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
 - Fetching keeps the checkout small. Fetch scripts refuse to run without the operator's own
@@ -438,9 +438,9 @@ or a `style:` directive; the existing ready-check and gem tests pass unchanged.
 
 ### D14. Hosts, and the voice they speak in
 
-Each NPC is two wiki files in `client/src/assets/npcs/`, found by id: `<id>.png`, the full render,
-shown as its top half mirrored, and `<id>_chathead.png` for the phone (§8). The README there has
-the conventions. An NPC with one file shows it at both sizes; with neither, the innkeeper SVG.
+Each NPC is a wiki chathead in `client/src/assets/npcs/`, found by id: `<id>_chathead.png` (§8).
+The README there has the conventions. Without one the stage shows the head of `<id>.png`, the full
+render, mirrored; with neither, the innkeeper SVG.
 
 Then the hosts for every mode that exists when this task lands (see *NPC Hosts*), plus the generic
 innkeeper for a mode this build does not know. `lib/modes.ts` gains `host` (an NPC id with the name
@@ -450,13 +450,13 @@ prompts are not rewritten (§8).
 
 **Accept:** every mode in `MODES` has a host and all four lines, and a test holds them to it; a
 mode id with no entry gets the innkeeper and its generic lines; each host reads as its NPC at the
-phone's head size, judged side by side in the PR; replacing a file needs no code change; Create
+stage's head size, judged side by side in the PR; replacing a file needs no code change; Create
 shows *<Host> presents:* above each mode's label without pushing its checkbox row past one line at
 375px.
 
 ### D15. The random-event NPCs
 
-Art as D14's, a render and a chathead, for every id in `server/app/random_events.py` (sixteen
+Art as D14's, a chathead, for every id in `server/app/random_events.py` (sixteen
 today), plus the Mysterious Old Man, who stands in for an id this build does not know (§12). Art
 only: the NPCs' names and lines are `lib/randomEvents.ts`. Art whose NPC is not on the roster yet
 may land early.
