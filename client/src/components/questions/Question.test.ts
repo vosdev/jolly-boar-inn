@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { serverNow } from '../../lib/clock'
 import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
+import { MODES } from '../../lib/modes'
 import { clearVocabCache } from '../../lib/vocab'
 import QuestionStage from '../QuestionStage.svelte'
 import { STEMS, TYPE_VIEWS, viewFor } from './index'
@@ -353,6 +354,20 @@ describe('every type on the stage', () => {
     const said = paper().querySelector('.said')
     expect(said).toBeTruthy()
     expect(said!.textContent?.trim()).toBe('')
+  })
+
+  it("has the host say its waiting line at the foot of the sheet once you have answered", () => {
+    render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: 0, onAnswer })
+    expect(paper().querySelector('.said')!.textContent?.trim()).toBe(MODES.more_less!.waiting)
+  })
+
+  it('has the host say its reveal line beside your points', () => {
+    const question = open('more_less', 'more_less')
+    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
+    const said = paper().querySelector('.said')!
+    expect(said.querySelector('.line')?.textContent).toBe(MODES.more_less!.reveal)
+    expect(said.querySelector('.slot')?.textContent).toContain('+850')
   })
 
   it('does not unroll the scroll again: it opened on the splash', () => {

@@ -11,8 +11,8 @@
    *
    * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
    * scroll, and under the line the answers in a panel, with the waiting line below them.
-   * On the reveal the host says what we earned at the foot of the sheet, and anything we
-   * scored pins the ribbon. The line the points go on is held from the start, so the
+   * Once we have answered the host says its waiting line at the foot of the sheet, and on
+   * the reveal its reveal line and what we earned, and anything we scored pins the ribbon. The line the points go on is held from the start, so the
    * answers under the sheet do not move when they arrive. A random event keeps its card,
    * and the points their plaque above it, until D16 brings it onto the stage.
    *
@@ -22,6 +22,7 @@
 
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { awardFor } from '../lib/award'
+  import { hostOf } from '../lib/modes'
   import { answerAck, answerCount } from '../lib/stores'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
@@ -45,6 +46,8 @@
     onAnswer: (value: unknown) => void
     children?: Snippet
   } = $props()
+
+  const host = $derived(hostOf(question.mode))
 
   /**
    * Where the answer landed, from `answer_ack`. A ranked question has no band, since a
@@ -72,11 +75,14 @@
     {@render stem()}
     <div class="said">
       {#if reveal !== null}
+        <p class="line">{host.reveal}</p>
         <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
+      {:else if yourValue !== null}
+        <p class="line">{host.waiting}</p>
       {/if}
     </div>
   {/snippet}
-  <Stage paper={sheet} award={reveal === null ? 'none' : awardFor(result)}>
+  <Stage host={host.host.id} paper={sheet} award={reveal === null ? 'none' : awardFor(result)}>
     {#if answers !== null || children}
       <section class="panel answers">
         {@render answers?.()}
@@ -127,9 +133,19 @@
 <style>
   /* The foot of the sheet, one line of points tall whether or not they are in yet. */
   .said {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
     margin-top: auto;
     padding-top: 0.2rem;
     min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+  }
+
+  .line {
+    margin: 0;
+    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
+    font-style: italic;
   }
 
   .plaque {

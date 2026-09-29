@@ -175,8 +175,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
 - **One size.** The stage is at most 30rem wide at every width, and the answers under it take the
   same width. `--scroll-scale` sizes the rolls, margins and ribbon, `--scroll-text` the words; a
   stage under 26rem, a phone, sets 0.8 and 0.9.
-- **The host** stands at the scroll's bottom-left, over its left roll: 124px wide overlapping 30px,
-  and 68px overlapping 32px on a phone. Heads until D14 draws head and upper body.
+- **The host** stands at the scroll's bottom-left, over its left roll: 78px wide overlapping 30px,
+  and 68px overlapping 32px on a phone. Its chathead at both.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
   edges. The host then stands on the sheet, which keeps a column clear for it.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
@@ -194,11 +194,12 @@ Round 2 of 5 · 5 questions · 20 seconds each
   on a question only the answers, in a panel. Gems never sit on parchment, so every gem check
   still measures against `--panel`. The round is said on the splash only.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
-  `lib/modes.ts`. The splash scroll holds only the mode's name, the line and the blurb. Question
+  `lib/modes.ts`. The splash scroll holds the mode's name, greeting and blurb; the waiting and
+  reveal lines go at the sheet's foot, the reveal's beside the points. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
-- **The art** is original, fixed-colour SVG on one shared rig (D14), so some thirty NPCs look like
-  one cast. A mode with no host gets a generic innkeeper, who until D14 hosts every round.
+- **The art** is the wiki's chathead (D14), or the head of its render, mirrored to face the
+  sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
 
 ## 9. The splash and the ready check
 
@@ -336,13 +337,12 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Speedrunning trophies | Game renders | No, fetched; D9 shipped placeholders |
 | Display font | Self-hosted, once chosen | No, fetched |
 | Chat heads | 50 hand-picked (§6) | **Yes** |
-| Hosts and event NPCs | Original SVG on one rig (§8) | **Yes** |
+| Hosts and event NPCs | Wiki chatheads (§8) | No, fetched; the innkeeper is committed |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
 - Fetching keeps the checkout small. Fetch scripts refuse to run without the operator's own
   User-Agent, per the wiki's terms.
-- Heads are committed because curation is a person's judgement. NPCs are drawn because renders
-  come in thirty scales and poses.
+- Heads are committed because curation is a person's judgement.
 - Every art slot takes a file with no code change: the sign, the trophies, the heads, the NPCs. The
   display face, the logo and `make fetch-assets` are the owner's, and no D task waits on them.
 
@@ -418,7 +418,7 @@ ribbon and its confetti — sized by `--scroll-scale` and `--scroll-text`. Layer
 written for `jolly` and `pollnivneach`, `wilderness` takes `jolly`'s, and
 `scripts/check_contrast.py` learns its assertions (§2). A random event keeps today's card until D16 turns it into the stage.
 
-The host slot ships holding the generic innkeeper (a placeholder until D14 lands the rig), so this
+The host slot ships holding the generic innkeeper (a placeholder until D14 lands the hosts), so this
 task is not blocked on art. It removes the splash's tavern scene: the `scene` field, `SCENES`,
 `splashArt` and the scene globs come out of `lib/modes.ts`, the scene slot out of `Splash.svelte`,
 and `assets/scenes/` goes.
@@ -438,36 +438,32 @@ or a `style:` directive; the existing ready-check and gem tests pass unchanged.
 
 ### D14. Hosts, and the voice they speak in
 
-The rig: one SVG construction every NPC is built on, with a shared head, proportions, outline weight
-and two-tone shading, and the hat, hair, beard, clothing and palette as the parts that vary. The rig
-is saved as a template with its conventions in `client/src/assets/npcs/README.md`, so drawing the
-next NPC is filling it in. Each NPC is drawn once, head and upper body, and cropped to its head for
-the phone corner (§8), so there is one file per NPC.
+Each NPC is a wiki chathead in `client/src/assets/npcs/`, found by id: `<id>_chathead.png` (§8).
+The README there has the conventions. Without one the stage shows the head of `<id>.png`, the full
+render, mirrored; with neither, the innkeeper SVG.
 
-Then the hosts for every mode that exists when this task lands: the Grand Exchange Clerk for The
-Price is Right, and one each for More or Less, Guess the Examine and the host's own questions (the
-innkeeper, whose inn it is), plus the generic innkeeper for a mode this build does not know.
-`lib/modes.ts` gains `host` (an NPC id with the name to print) and the host's lines: the splash
-greeting, the blurb rewritten in the host's voice, the waiting line and a short reveal line. Create
-lists each mode as *<Host> presents: <Mode>*. Question prompts are not rewritten (§8).
+Then the hosts for every mode that exists when this task lands (see *NPC Hosts*), plus the generic
+innkeeper for a mode this build does not know. `lib/modes.ts` gains `host` (an NPC id with the name
+to print) and the host's lines: the splash greeting, the blurb rewritten in the host's voice, the
+waiting line and a short reveal line. Create lists each mode as *<Host> presents: <Mode>*. Question
+prompts are not rewritten (§8).
 
-**Accept:** every mode in `MODES` has a host with a drawing and all four lines, and a test holds
-them to it; a mode id with no entry gets the innkeeper and its generic lines; each drawing is
-legible as its NPC at the 64px head crop, judged side by side in the PR; the hosts look like one
-cast, with the same outline and shading; a drawing is a file found by name, and replacing one needs
-no code change; the SVGs are optimised, and all of them together weigh under 60kB; Create shows
-*<Host> presents:* above each mode's label without pushing its checkbox row past one line at 375px.
+**Accept:** every mode in `MODES` has a host and all four lines, and a test holds them to it; a
+mode id with no entry gets the innkeeper and its generic lines; each host reads as its NPC at the
+stage's head size, judged side by side in the PR; replacing a file needs no code change; Create
+shows *<Host> presents:* above each mode's label without pushing its checkbox row past one line at
+375px.
 
 ### D15. The random-event NPCs
 
-A drawing on D14's rig for every id in `server/app/random_events.py` (sixteen today), plus the
-Mysterious Old Man, who stands in for an id this build does not know (§12). Art only: the NPCs'
-names and lines are `lib/randomEvents.ts`. A drawing whose NPC is not on the roster yet may land
-early.
+Art as D14's, a chathead, for every id in `server/app/random_events.py` (sixteen
+today), plus the Mysterious Old Man, who stands in for an id this build does not know (§12). Art
+only: the NPCs' names and lines are `lib/randomEvents.ts`. Art whose NPC is not on the roster yet
+may land early.
 
-**Accept:** every roster id has a drawing, and a test fails on one that does not; each reads as its
-NPC at the 64px head crop; they sit in the same cast as the hosts, and no event NPC could be
-mistaken for the host of a mode; replacing one needs no code change.
+**Accept:** every roster id has art, and a test fails on one that does not; each reads as its
+NPC at the phone's head size; no event NPC could be mistaken for the host of a mode; replacing
+one needs no code change.
 
 ### D16. The interlude
 

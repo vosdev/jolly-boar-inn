@@ -13,17 +13,39 @@
  * A mode is a round, not a question type: several modes may be answered the same way.
  * A question on the wire carries its own `type`, and that is what draws it.
  *
+ * Every round is presented by an NPC, its host, and the host's lines are the mode's voice
+ * (section 8 of ideas/design.md). Question prompts stay plain: they are read against the
+ * clock, and a joke around them is a second thing to read.
+ *
  * Plain TypeScript with no `.svelte` imports, so every screen can use it. The components
  * that *draw* a question live in `components/questions/index.ts` instead.
  */
 
-export interface Mode {
+/** An NPC who presents a round: its art is `lib/npcs.ts`, found by `id`. */
+export interface Host {
+  id: string
+  /** As Create prints it: "<name> presents:". */
+  name: string
+}
+
+/** Who presents a round, and what they say through it. */
+export interface HostLines {
+  host: Host
+  /** On the splash's scroll, between the mode's name and the blurb. */
+  greeting: string
+  /** At the foot of the scroll once you have answered, while the room catches up. */
+  waiting: string
+  /** At the foot of the scroll on the reveal, before your points. */
+  reveal: string
+}
+
+export interface Mode extends HostLines {
   id: string
   /** Two or three words. The splash headline and the checkbox label. */
   label: string
   /** One line, for the create form. */
   hint: string
-  /** One or two sentences, for the splash. Say what to do, not how it is scored. */
+  /** One or two sentences, for the splash, in the host's voice. Say what to do, not how it is scored. */
   blurb: string
   /**
    * What goes on the clue scroll above the answers, or null for a mode drawn by its
@@ -41,13 +63,28 @@ export interface Mode {
  */
 export type StemId = 'text' | 'asset' | 'examine' | 'more_less' | 'price'
 
+/** The inn's own: the host's questions, and any round this build has no host for. */
+export const INNKEEPER: Host = { id: 'innkeeper', name: 'The Innkeeper' }
+
+/** What a mode this build does not know is presented with. It makes up no blurb. */
+export const GENERIC_HOST: HostLines = {
+  host: INNKEEPER,
+  greeting: 'Welcome to the Jolly Boar Inn. This round is on the house.',
+  waiting: 'Waiting on the rest of the table.',
+  reveal: "Let's see how you did.",
+}
+
 export const MODES: Record<string, Mode> = {
   more_less: {
     id: 'more_less',
     label: 'More or Less',
     hint: 'A mix of Grand Exchange, High Alchemy and NPC prices.',
+    host: { id: 'ali_morrisane', name: 'Ali Morrisane' },
+    greeting: 'Ah, my friend! Come, come, see what Ali has on his stall today.',
     blurb:
-      'Two items, one question: which one is worth more or less?',
+      'Two items, one question: which is worth more, or less? Ali is always honest. Mostly.',
+    waiting: 'Patience, my friend. A good trade is never rushed.',
+    reveal: 'Now, who knows the value of things?',
     // Which of the two costs more, on the scroll; the names are the buttons below it.
     stem: 'more_less',
   },
@@ -55,7 +92,11 @@ export const MODES: Record<string, Mode> = {
     id: 'price_is_right',
     label: 'The Price is Right',
     hint: 'Test your Grand Exchange knowledge.',
-    blurb: 'One item, four prices. Which one does it really go for on the Grand Exchange?',
+    host: { id: 'grand_exchange_clerk', name: 'Grand Exchange Clerk' },
+    greeting: 'Welcome to the Grand Exchange. How may I help you today?',
+    blurb: 'One item, four prices. Tell me which one it really trades for on the Exchange.',
+    waiting: 'Your offer has been placed. Please wait while the market catches up.',
+    reveal: 'Your offer has completed.',
     // The item and the question, above four prices that would not say what they price.
     stem: 'price',
   },
@@ -63,7 +104,11 @@ export const MODES: Record<string, Mode> = {
     id: 'guess_examine',
     label: 'Guess the Examine',
     hint: 'Name the thing from the line you get when you examine it.',
-    blurb: 'An examine line from the game. Search the list and pick what it belongs to.',
+    host: { id: 'examiner', name: 'The Examiner' },
+    greeting: 'Pens down, eyes up. Your examination begins now.',
+    blurb: 'I shall read you an examine line. Find what it belongs to on the list, and no copying.',
+    waiting: 'No talking while the others finish, please.',
+    reveal: 'Let us mark your paper.',
     // The examine line is the question; the list below it is only how you answer.
     stem: 'examine',
   },
@@ -74,7 +119,11 @@ export const MODES: Record<string, Mode> = {
     id: 'custom',
     label: "Host's Questions",
     hint: 'Questions the host wrote for this room.',
-    blurb: 'The host wrote these ones. Whatever they ask, answer it.',
+    host: INNKEEPER,
+    greeting: 'Pull up a stool. The house has a few questions of its own.',
+    blurb: 'Your host wrote these ones behind my bar. Whatever they ask, answer it.',
+    waiting: 'Another drink while we wait?',
+    reveal: "Let's see who's buying the next round.",
     // Every type a host can write asks in a sentence; the view below it is the answer.
     stem: 'text',
   },
@@ -84,7 +133,11 @@ export const MODES: Record<string, Mode> = {
     id: 'random_event',
     label: 'Random Event',
     hint: 'An NPC interrupts the round with a question of their own.',
+    host: INNKEEPER,
+    greeting: 'Someone has come in off the road, and they want a word.',
     blurb: 'Someone has turned up with a question. Answer it, and they will be on their way.',
+    waiting: "They'll be on their way once everyone has answered.",
+    reveal: 'And off they go.',
     // In character, and still a sentence.
     stem: 'text',
   },
@@ -119,4 +172,9 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string }[] = [
  */
 export function modeLabel(id: string): string {
   return MODES[id]?.label ?? id
+}
+
+/** Who presents mode `id`, and their lines: the innkeeper's generic ones for a mode this build lacks. */
+export function hostOf(id: string): HostLines {
+  return MODES[id] ?? GENERIC_HOST
 }

@@ -11,9 +11,9 @@
    * the countdown once one runs, so everybody sees the same number. The host's skip is
    * the override, and ends it for everyone at once.
    *
-   * The scroll unrolls here, holding only the mode's name and blurb, and stays up into the
-   * round's first question. The round's count and pace, the ready check and the countdown
-   * go under the line (section 8 of ideas/design.md).
+   * The scroll unrolls here, holding only the mode's name, its host's greeting and the
+   * blurb, and stays up into the round's first question. The round's count and pace, the
+   * ready check and the countdown go under the line (section 8 of ideas/design.md).
    *
    * The ready check (D7, section 7.1 of ideas/design.md) is a row of heads, dim until
    * their player taps ready, and never a list of names: a splash comes round up to
@@ -26,7 +26,7 @@
   import { get } from 'svelte/store'
 
   import { headOf } from '../lib/heads'
-  import { MODES } from '../lib/modes'
+  import { MODES, hostOf } from '../lib/modes'
   import type { PlayerView, Segment } from '../lib/protocol'
   import { readyThreshold } from '../lib/ready'
   import { serverOffsetMs } from '../lib/stores'
@@ -60,6 +60,7 @@
   // id is a poor headline, but it is honest, and the round still runs.
   const mode = $derived(MODES[segment.mode] ?? null)
   const label = $derived(mode?.label ?? segment.mode)
+  const host = $derived(hostOf(segment.mode))
 
   /**
    * The heads to wait on: whoever is connected, which is who the server counts. A player
@@ -104,9 +105,10 @@
 </script>
 
 <section class="splash">
-  <Stage opening>
+  <Stage host={host.host.id} opening>
     {#snippet paper()}
       <h2>{label}</h2>
+      <p class="greeting">“{host.greeting}”</p>
       {#if mode !== null}
         <p class="blurb">{mode.blurb}</p>
       {/if}
@@ -167,6 +169,12 @@
     font-size: max(1.15rem, 1.5rem * var(--scroll-text, 1));
     line-height: 1.15;
     overflow-wrap: anywhere;
+  }
+
+  .greeting {
+    margin: 0 0 0.4rem;
+    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+    font-style: italic;
   }
 
   .blurb {

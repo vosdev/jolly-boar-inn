@@ -9,7 +9,7 @@ What is left: six modes and the data they need (T23–T29), the host's question 
 fourteen tasks that are not modes (T31–T45). Each task is one session and leaves the app playable.
 Each accept criterion is a test unless it says "manual".
 
-- **Every mode from T25 on brings its host**: a drawing on design D14's rig and the host's lines in
+- **Every mode from T25 on brings its host**: its art as in design D14 and the host's lines in
   `lib/modes.ts`, the way it already brings its blurb.
 - **Pack sizes are roster-bound, not targets.** `data/popular-items.json` holds 176 items, and every
   item-derived mode scales off it. So a generator reports what it used and what it rejected rather
