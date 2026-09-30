@@ -6,16 +6,17 @@ prompts that hand each task to a session are `ideas/phase2-prompts.md`, and `ide
 which tasks have landed. T16–T22 are done, and T42 went to design D13; the numbers keep their gaps.
 
 What is left: six modes and the data they need (T23–T29), the host's question editor (T30), and
-fourteen tasks that are not modes (T31–T45). Each task is one session and leaves the app playable.
+fifteen tasks that are not modes (T31–T46). Each task is one session and leaves the app playable.
 Each accept criterion is a test unless it says "manual".
 
-- **Every mode from T25 on brings its host**: its art as in design D14 and the host's lines in
-  `lib/modes.ts`, the way it already brings its blurb.
+- **Every mode from T25 on brings its host**: its art as in design D14 (an entry in T46's
+  `data/assets.json`) and the host's lines in `lib/modes.ts`, the way it already brings its blurb.
 - **Pack sizes are roster-bound, not targets.** `data/popular-items.json` holds 176 items, and every
   item-derived mode scales off it. So a generator reports what it used and what it rejected rather
   than chasing a number. Growing the roster improves six modes at once and needs no code.
 - **T34 lands before T23 sends its first request to the wiki.**
-- **Images stay in Phase 3.** Every mode here plays on text alone.
+- **Images of items stay in Phase 3.** Every mode here plays on text alone; T46 only fetches the
+  hosts' art and the trophies.
 
 ## Dependencies
 
@@ -30,7 +31,8 @@ T35 invite key ─▶ T36 public lobbies
 T37 picking a name…, T38 hidden rounds, T39 finished rooms go home   (none)
 T40 one top-bar menu ─▶ T41 TzHaar theme      (T40 builds on design D6 if it has landed)
 T44 metrics ─▶ T45 admin view
-T43 README                     (last of T33, T34, T44, T45: it documents their env vars)
+T34 wiki rules ─▶ T46 fetch-assets   (blocks nothing; D15's art waits on its manifest)
+T43 README                     (last of T33, T34, T44, T45, T46: it documents their env vars and commands)
 ```
 
 T23 is the long pole: the one task with a network dependency and an unknown.
@@ -423,6 +425,48 @@ startup with the reason; a wrong or missing bearer is 401 with a constant-time c
 never appears in the access log, in a `Referer`, or in the address bar after the first load; the room
 list matches the room manager's in-memory state; no admin payload contains a display name, an answer
 or a question payload, asserted.
+
+### T46. `make fetch-assets`
+
+The art the client wants and the repo does not carry: the hosts' and event NPCs' chatheads and
+renders, and the five podium trophies. `scripts/fetch_assets.py` reads `data/assets.json`, a
+committed, sorted map of target path to wiki file title, and writes each file where the client
+already looks for it: `client/src/assets/npcs/<id>_chathead.png`, `npcs/<id>.png`,
+`trophies/<tier>.png`. Titles are explicit and never derived from an id, because the wiki has
+several chatheads for some NPCs and the owner picks which.
+
+- **Through `wiki.py`**, which gains `get_bytes`. One MediaWiki `imageinfo` query resolves up to 50
+  titles to upload URLs (`redirects=1`); each file is then one throttled request, so N files cost
+  N + ⌈N/50⌉ seconds at least, and it says so before it starts.
+- **Resumable, never destructive.** A target that exists is skipped, so a file the owner picked by
+  hand survives; `--force` refetches. A file is written to a temp name and renamed, so an
+  interrupted run leaves no truncated image.
+- **It trusts nothing it downloaded.** A body that is not an image (an HTML error page under a
+  `.png` name) is refused and not written. A title the wiki does not have is named in the report
+  and the rest still fetch; the run then exits non-zero.
+- **Flags:** `--only npcs|trophies`, `--dry-run` (lists what is missing, sends nothing) and
+  `--from-dir` (replays saved responses, as T23's does). Neither needs a User-Agent.
+- **Never committed.** Every target must be git-ignored; the script refuses one that is not, and
+  `.gitignore` covers `npcs/` and `trophies/` for every extension the globs accept, `placeholder/`
+  and the innkeeper excepted.
+- **The manifest is held to the code.** Every host in `MODES` bar the innkeeper, every id in
+  `RANDOM_EVENTS`, the Mysterious Old Man and the five tiers has an entry. So a mode's T task adds
+  its host's entry with its host, and D15's "every roster id has art" means "has an entry", since a
+  fresh checkout has no files.
+
+Docs move with it: design §14 stops calling `make fetch-assets` the owner's and "Phase 3's
+importer", architecture §12 gains a line, the two asset READMEs and `trophies.ts` say to run it,
+and `make image` builds what is on disk, so T43's README says to run it first.
+
+**Accept:** a run with `WIKI_USER_AGENT` unset exits non-zero before its first request, while
+`--dry-run` and `--from-dir` run without one; a full run against recorded fixtures writes every
+manifest entry, and a second run writes and sends nothing; the throttle is asserted with a fake
+clock across the query and every download; a non-image body and a missing title are handled as
+above; an interrupted write leaves no file; an existing file survives without `--force`; every
+target is git-ignored (`git check-ignore`) and under `client/src/assets/`; the manifest covers the
+hosts, the roster and the tiers, in a server test for the roster and a client test for `MODES`; no
+test hits the network; manual: a real run on the owner's machine fetches every entry, and the task
+says what you ran and which titles you had to correct.
 
 ## Not in Phase 2
 

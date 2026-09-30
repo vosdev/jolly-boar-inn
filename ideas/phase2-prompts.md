@@ -191,6 +191,17 @@ target and env var the README names exists. Then follow it from a fresh clone in
 directory, and list what tripped you up and how you fixed the README for it.
 ```
 
+## T46. `make fetch-assets`
+
+```text
+Task T46 in ideas/phase2.md. Read server/scripts/wiki.py, client/src/lib/npcs.ts, trophies.ts and
+the two READMEs under client/src/assets/ first: the file names they expect are the contract.
+
+I have not checked the wiki titles. Look each one up (the wiki's File: pages) before it goes in
+data/assets.json, and say which host or event NPC has more than one chathead so I can pick. Never
+run the script against the live wiki without WIKI_USER_AGENT, and never commit a fetched file.
+```
+
 ## After T45
 
 - **Phase 3** is the asset pipeline, then Who's That NPC? and Pixel Hunt: two stems and a
