@@ -77,9 +77,9 @@ def test_the_wordmark_and_github_give_way_and_nothing_else_does() -> None:
 
 
 def test_the_name_is_shown_at_every_width() -> None:
-    """Section 4: the name ellipsises on a phone; it never drops to just the head."""
-    chip = read(CLIENT_SRC / "components" / "IdentityChip.svelte")
-    assert "narrow" not in chip, "the chip still changes shape with the bar's width"
+    """Section 5: the name ellipsises on a phone; it never drops to just the head."""
+    chip = read(CLIENT_SRC / "components" / "SettingsMenu.svelte")
+    assert "narrow" not in chip, "the control still changes shape with the bar's width"
     assert '<span class="chip-name">' in chip
     # And the bar tells the slot nothing about its width.
-    assert re.search(r"^\s*identity\?: Snippet$", read(TOP_BAR), re.MULTILINE)
+    assert re.search(r"^\s*menu\?: Snippet$", read(TOP_BAR), re.MULTILINE)

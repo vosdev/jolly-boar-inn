@@ -127,8 +127,8 @@ def test_the_image_can_see_the_corpus() -> None:
 # --- the shell -----------------------------------------------------------------------
 
 
-def test_the_top_bar_is_given_an_identity_chip() -> None:
-    """D2 left the slot; D3 fills it, once, in the shell."""
+def test_the_top_bar_is_given_the_menu() -> None:
+    """The bar has one slot, and the shell fills it once with the menu."""
     app = read("App.svelte")
-    assert app.count("<IdentityChip") == 1
-    assert "{#snippet identity(" in app
+    assert app.count("<SettingsMenu") == 1
+    assert "{#snippet menu(" in app

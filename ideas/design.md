@@ -91,22 +91,26 @@ learns the position, which is worth more than variety.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [sign] The Jolly Boar Inn       [⌥]  [head] Name   [🔊] [🎨] │  56px, sticky
+│ [sign] The Jolly Boar Inn            [⌥]  [head Name emblem] │  56px, sticky
 └──────────────────────────────────────────────────────────────┘
 ```
 
 - **Left:** the sign, a plain `href="/"` link home, then the wordmark. Both are configurable (§14).
   The version is in the footer.
-- **Right, in order:** GitHub, identity, sound (#102), theme. The name is the bar's priority: it
-  shows at every width, and it is the one item that shrinks, ellipsising. Sound and theme are 36px
-  each at the outer edge. GitHub is `--muted`, as the one control not about the game.
-- **Under 26rem** the wordmark and GitHub hide, and nothing folds into a `⋯` menu. At 320px the name
-  keeps about 125px.
+- **Right:** GitHub (`--muted`, the one control not about the game), then one control: the head,
+  the name and the current theme's **emblem**. One thumb target, not three. The name is the bar's
+  priority: it shows at every width and is the one item that shrinks, ellipsising.
+- **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 165px.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead.
 
-The identity chip edits the local profile outside a room and the live player (`set_profile`)
-inside one: one popover, two save paths.
+The control opens one panel: **You** (name and head; the local profile outside a room, the live
+player via `set_profile` inside one), **Sound** (§7) and **Theme**, a column of emblems beside their
+names, the chosen one ringed. Picking a theme repaints at once and the panel stays open. Escape, a
+tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
+elsewhere. An emblem is the Leagues flag of the theme's area (§14); until one is dropped in, a flat
+mark in the theme's `--accent` stands in. `party_room` and `tzhaar` are listed already, disabled,
+until their palettes exist.
 
 ## 6. Names and heads
 
@@ -114,7 +118,7 @@ The profile, `localStorage["jbi:profile"]`, holds this browser's name and head p
 player is per room and temporary. There are no accounts.
 
 - **Join and Create** never ask. A browser with no profile joins or hosts as a generated name,
-  which becomes its profile, and the chip nudges once: *"You're Cow31337Killer42 — tap to
+  which becomes its profile, and the bar's control nudges once: *"You're Cow31337Killer42 — tap to
   change."* The moment a link is tapped is when a distracted person puts the phone down, so
   nothing stands in the way; a host renames from the lobby like anyone else.
 - **Renaming** is `set_profile`. A player who never taps the nudge stays a joke name, so every
@@ -142,8 +146,8 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
 | **Music & effects** | Splash stings, the countdown tick, the reveal chime, lobby music, a random event's entrance | Yes. Decorative. |
 | **Question audio** | Audio that is the question (Name that spell, a music round) | **No.** Those rounds become unplayable. |
 
-- One mute button could not warn anyone, so there are two. Muting question audio says: *"Some
-  rounds are audio-only. You will not be able to answer those."*
+- One mute button could not warn anyone, so there are two, in the bar menu's Sound section (§5).
+  Muting question audio says: *"Some rounds are audio-only. You will not be able to answer those."*
 - The CSP has no `media-src` yet, so audio is blocked until #102 adds `media-src 'self'`.
 - Browsers block audio until a gesture. The ready tap (§9) unlocks it. A player who never sees a
   splash (`splash_seconds: 0`, or a reload mid-game) unlocks it with their first answer tap. An
@@ -339,13 +343,15 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Display font | Self-hosted, once chosen | No, fetched |
 | Chat heads | 50 hand-picked (§6) | **Yes** |
 | Hosts and event NPCs | Wiki chatheads (§8) | No, fetched; the innkeeper is committed |
+| Theme emblems | Leagues area flags | No, fetched; inline placeholder marks |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
 - Fetching keeps the checkout small. Fetch scripts refuse to run without the operator's own
   User-Agent, per the wiki's terms.
 - Heads are committed because curation is a person's judgement.
-- Every art slot takes a file with no code change: the sign, the trophies, the heads, the NPCs. The
-  display face, the logo and `make fetch-assets` are the owner's, and no D task waits on them.
+- Every art slot takes a file with no code change: the sign, the trophies, the heads, the NPCs, the
+  emblems (`client/src/assets/themes/<theme>.<ext>`). The display face, the logo and
+  `make fetch-assets` are the owner's, and no D task waits on them.
 
 **Footer.** One small `--muted` line on every screen, in the flow and never fixed, so it cannot
 cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Beside

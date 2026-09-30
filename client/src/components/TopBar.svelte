@@ -4,7 +4,7 @@
    * 56px and sticky:
    *
    *     ┌────────────────────────────────────────────────────────────┐
-   *     │ [sign] The Jolly Boar Inn        [⌥]  [◍] Name  [♪] [◑] │
+   *     │ [sign] The Jolly Boar Inn           [⌥]  [◍ Name ✦] │
    *     └────────────────────────────────────────────────────────────┘
    *
    * **No room code up here**: a code in this app is a word — `SaradominGodsword`,
@@ -12,14 +12,14 @@
    * truncates to something worse than useless or pushes the controls off a phone. The
    * lobby shows the code big with the link to share it, and Join keeps its own heading.
    *
-   * **Three named slots** after GitHub: identity, sound and theme. Each falls back to a
-   * placeholder that holds the exact space the real control takes, so the bar is the
-   * same bar whichever are filled. GitHub is `--muted`, the one control not about the
+   * **One slot** after GitHub, for the menu: head, name and theme emblem in one control,
+   * which opens who you are, sound and theme. It falls back to a placeholder that holds
+   * the space the real control takes. GitHub is `--muted`, the one control not about the
    * game, and it is a link rather than a slot because it is the same on every screen.
    *
-   * **The player's name is the bar's priority.** Nothing collapses into a popover: under
-   * 26rem the wordmark and GitHub go, and whatever width is left belongs to the name,
-   * which ellipsises rather than disappearing. Sound, theme and the sign keep their size.
+   * **The player's name is the bar's priority.** Under 26rem the wordmark and GitHub go,
+   * and whatever width is left belongs to the name, which ellipsises rather than
+   * disappearing. The sign keeps its size.
    *
    * The sign links home. It is the selfhoster's `PUBLIC_SITE_LOGO` when there is one, and
    * the bundled sign when there is not or when the file will not load. The version is in
@@ -34,14 +34,10 @@
 
   let {
     navigate,
-    identity,
-    sound,
-    theme,
+    menu,
   }: {
     navigate: (to: string) => void
-    identity?: Snippet
-    sound?: Snippet
-    theme?: Snippet
+    menu?: Snippet
   } = $props()
 
   function goHome(event: MouseEvent): void {
@@ -54,39 +50,8 @@
   }
 </script>
 
-{#snippet soundPlaceholder()}
-  <!-- Placeholders, not controls: D6 and D5 pass the real ones in as slots. Disabled
-       rather than dead, so nobody taps one expecting it to do something. -->
-  <button type="button" class="control" disabled aria-label="Sound">
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path
-        d="M4 9h4l5-4v14l-5-4H4z"
-        fill="currentColor"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linejoin="round"
-      />
-      <path
-        d="M16.5 8.5a5 5 0 0 1 0 7"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-      />
-    </svg>
-  </button>
-{/snippet}
-
-{#snippet themePlaceholder()}
-  <button type="button" class="control" disabled aria-label="Theme">
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.5" />
-      <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" />
-    </svg>
-  </button>
-{/snippet}
-
-{#snippet identityPlaceholder()}
+{#snippet menuPlaceholder()}
+  <!-- Not a control: App passes the real menu in. -->
   <span class="control chip" aria-label="You">
     <svg class="head" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <circle class="head-face" cx="12" cy="12" r="11" />
@@ -94,6 +59,7 @@
       <path d="M5 21a7 7 0 0 1 14 0z" fill="currentColor" />
     </svg>
     <span class="chip-name">Guest</span>
+    <span class="emblem-space"></span>
   </span>
 {/snippet}
 
@@ -144,9 +110,7 @@
           />
         </svg>
       </a>
-      <div class="identity-slot">{@render (identity ?? identityPlaceholder)()}</div>
-      {@render (sound ?? soundPlaceholder)()}
-      {@render (theme ?? themePlaceholder)()}
+      <div class="menu-slot">{@render (menu ?? menuPlaceholder)()}</div>
     </div>
   </div>
 </header>
@@ -173,8 +137,8 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    /* The identity popover's anchor, so it opens flush with the column's right edge
-       wherever the chip itself sits. */
+    /* The menu's anchor, so it opens flush with the column's right edge wherever the
+       control itself sits. */
     position: relative;
   }
 
@@ -233,7 +197,7 @@
 
   /* Takes whatever the mark leaves, right-aligned. min-width lets the name inside be the
      one thing here that shrinks, which is what keeps a 320px screen from scrolling
-     sideways; sound and theme never do. */
+     sideways. */
   .controls {
     display: flex;
     align-items: center;
@@ -243,7 +207,7 @@
     min-width: 0;
   }
 
-  .identity-slot {
+  .menu-slot {
     display: flex;
     min-width: 0;
   }
@@ -252,8 +216,7 @@
     flex: none;
   }
 
-  /* One size for every control the slots pass in, so a bar of placeholders and a bar of
-     real controls are the same bar. */
+  /* One size for every control, so the placeholder and the real menu are the same bar. */
   .controls :global(.control) {
     display: inline-flex;
     align-items: center;
@@ -266,13 +229,6 @@
     border-radius: var(--radius);
     background: none;
     color: var(--ink);
-  }
-
-  .controls :global(.control:disabled) {
-    /* A placeholder is not a broken button: it reads as quiet furniture rather than as
-       something that failed to load. D5 and D6 replace these outright. */
-    opacity: 0.55;
-    cursor: default;
   }
 
   .controls .github {
@@ -304,6 +260,11 @@
     height: 32px;
   }
 
+  .emblem-space {
+    flex: none;
+    width: 24px;
+  }
+
   .head-face {
     fill: var(--panel-raised);
     stroke: currentColor;
@@ -317,8 +278,8 @@
     }
   }
 
-  /* The bar puts four controls in front of the screen for anyone on a keyboard,
-     on every screen. This jumps them. */
+  /* The bar puts its controls in front of the screen for anyone on a keyboard, on every
+     screen. This jumps them. */
   .skip {
     position: absolute;
     left: -9999px;

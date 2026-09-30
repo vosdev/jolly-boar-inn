@@ -1,7 +1,7 @@
 /**
- * The bar: a sign that goes home, the name with no version, GitHub, and identity, sound
- * and theme slots in that order, each a dead placeholder until filled. The stock branding;
- * `TopBar.branding.test.ts` has a selfhoster's.
+ * The bar: a sign that goes home, the name with no version, GitHub, and one slot for the
+ * menu, a dead placeholder until filled. The stock branding; `TopBar.branding.test.ts` has
+ * a selfhoster's.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
@@ -59,23 +59,16 @@ describe('TopBar', () => {
     )
   })
 
-  it('holds identity, sound and theme with placeholders nobody can press', () => {
+  it('holds GitHub and one control, a placeholder nobody can press', () => {
     render(TopBar, { navigate })
-    expect(controls()).toEqual(['Source code on GitHub', 'You', 'Sound', 'Theme'])
-    for (const name of ['Sound', 'Theme']) {
-      expect((screen.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(true)
-    }
+    expect(controls()).toEqual(['Source code on GitHub', 'You'])
+    expect(document.querySelector('.controls button')).toBeNull()
     expect(screen.getByText('Guest')).toBeTruthy()
   })
 
-  it('draws what each slot is given in place of its placeholder, in the same order', () => {
-    render(TopBar, {
-      navigate,
-      theme: slot('picker'),
-      sound: slot('volume'),
-      identity: slot('chip'),
-    })
-    expect(controls()).toEqual(['Source code on GitHub', 'chip', 'volume', 'picker'])
+  it('draws the menu it is given in place of the placeholder', () => {
+    render(TopBar, { navigate, menu: slot('menu') })
+    expect(controls()).toEqual(['Source code on GitHub', 'menu'])
     expect(screen.queryByText('Guest')).toBeNull()
   })
 })

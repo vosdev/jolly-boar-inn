@@ -123,10 +123,13 @@ describe('App', () => {
     underOneBar()
   })
 
-  it('fills the theme slot with the picker and the identity slot with the chip', () => {
+  it('fills the bar with GitHub and the one menu control, and nothing else', () => {
     at('/')
-    expect(within(bar()).getByRole('button', { name: /^Theme: / })).toBeTruthy()
-    expect(within(bar()).getByRole('button', { name: /^You are Zezima/ })).toBeTruthy()
+    const controls = within(bar()).getAllByRole('button')
+    expect(controls.map((control) => control.getAttribute('aria-label'))).toEqual([
+      'You are Zezima, theme Jolly Boar Inn. Open settings',
+    ])
+    expect(within(bar()).getByRole('link', { name: 'Source code on GitHub' })).toBeTruthy()
   })
 
   it('lets the keyboard skip the bar to the screen', () => {

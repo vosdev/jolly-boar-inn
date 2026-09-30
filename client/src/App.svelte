@@ -18,8 +18,7 @@
   import { onMount } from 'svelte'
 
   import Footer from './components/Footer.svelte'
-  import IdentityChip from './components/IdentityChip.svelte'
-  import ThemePicker from './components/ThemePicker.svelte'
+  import SettingsMenu from './components/SettingsMenu.svelte'
   import TimerBar from './components/TimerBar.svelte'
   import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
@@ -75,15 +74,12 @@
   })
 </script>
 
-<!-- Inside a room the chip is the player the server knows; anywhere else it is the
+<!-- Inside a room the menu's You is the player the server knows; anywhere else it is the
      profile. `you` outlives the Room screen until the next one resets it, so the route
      decides which, not the store. -->
 <TopBar {navigate}>
-  {#snippet identity()}
-    <IdentityChip live={route.name === 'room' ? $you : null} />
-  {/snippet}
-  {#snippet theme()}
-    <ThemePicker />
+  {#snippet menu()}
+    <SettingsMenu live={route.name === 'room' ? $you : null} />
   {/snippet}
 </TopBar>
 

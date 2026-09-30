@@ -38,11 +38,11 @@ export function tierName(tier: Tier): string {
   return tier.charAt(0).toUpperCase() + tier.slice(1)
 }
 
-/** The file named `tier` in a glob, whatever its extension. */
-function fileNamed(files: Record<string, string>, tier: Tier): string | null {
+/** The file called `name` in a glob, whatever its extension. */
+export function fileNamed(files: Record<string, string>, name: string): string | null {
   for (const [path, url] of Object.entries(files)) {
     const base = path.slice(path.lastIndexOf('/') + 1)
-    if (base.slice(0, base.lastIndexOf('.')) === tier) return url
+    if (base.slice(0, base.lastIndexOf('.')) === name) return url
   }
   return null
 }
