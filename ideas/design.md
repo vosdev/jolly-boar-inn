@@ -109,7 +109,8 @@ player via `set_profile` inside one), **Sound** (§7) and **Theme**, a column of
 names, the chosen one ringed. Picking a theme repaints at once and the panel stays open. Escape, a
 tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
 elsewhere. An emblem is the Leagues flag of the theme's area (§14); until one is dropped in, a flat
-mark in the theme's `--accent` stands in. `party_room` and a future `tzhaar` have marks already.
+mark in the theme's `--accent` stands in. `party_room` and `tzhaar` are listed already, disabled,
+until their palettes exist.
 
 ## 6. Names and heads
 

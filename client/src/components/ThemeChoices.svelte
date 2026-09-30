@@ -4,8 +4,9 @@
    * on the left and its name on the right, the chosen one ringed.
    *
    * One row per theme `app.css` defines — `THEMES`, which a test holds to the stylesheet —
-   * and nothing else: no "follow my device", because nothing in this app follows the
-   * device. A browser that has never chosen is on `jolly`, and the list says so.
+   * then the themes still to come, disabled, so players see what is on its way. Nothing
+   * else: no "follow my device", because nothing in this app follows the device. A
+   * browser that has never chosen is on `jolly`, and the list says so.
    *
    * Each emblem sits on a tile carrying its own `data-theme`, so the tile is that theme's
    * panel and the mark is in that theme's accent, whatever the page is painted in.
@@ -15,7 +16,8 @@
    * `data-theme` on <html> changes, so nothing remounts: a question stays open and its
    * timer keeps running on the server's clock.
    */
-  import { THEME_LABELS, THEMES, type Theme } from '../lib/theme'
+  import { EMBLEMS, isBuilt, UNBUILT_THEMES } from '../lib/emblems'
+  import { THEME_LABELS, type Theme } from '../lib/theme'
   import Emblem from './Emblem.svelte'
 
   let { current, onpick }: { current: Theme; onpick: (theme: Theme) => void } = $props()
@@ -23,17 +25,21 @@
 
 <fieldset>
   <legend class="section-title">Theme</legend>
-  {#each THEMES as theme (theme)}
-    <label class="option" class:selected={theme === current}>
+  {#each EMBLEMS as theme (theme)}
+    {@const built = isBuilt(theme)}
+    <label class="option" class:selected={theme === current} class:unbuilt={!built}>
       <input
         type="radio"
         name="theme"
         value={theme}
+        disabled={!built}
         checked={theme === current}
-        onchange={() => onpick(theme)}
+        onchange={() => isBuilt(theme) && onpick(theme)}
       />
       <span class="tile" data-theme={theme} aria-hidden="true"><Emblem {theme} /></span>
-      <span class="theme-name">{THEME_LABELS[theme].name}</span>
+      <span class="theme-name">
+        {isBuilt(theme) ? THEME_LABELS[theme].name : UNBUILT_THEMES[theme]}
+      </span>
     </label>
   {/each}
 </fieldset>
@@ -61,8 +67,13 @@
     cursor: pointer;
   }
 
-  .option:hover {
+  .option:hover:not(.unbuilt) {
     border-color: var(--line);
+  }
+
+  .option.unbuilt {
+    opacity: 0.55;
+    cursor: default;
   }
 
   .option.selected {

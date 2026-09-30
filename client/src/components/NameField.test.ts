@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { NAME_MAX } from '../lib/names'
 import NameField from './NameField.svelte'
 
-const field = () => screen.getByRole('textbox', { name: 'Your name' }) as HTMLInputElement
+const field = () => screen.getByRole('textbox', { name: 'Your display name' }) as HTMLInputElement
 const die = () => screen.getByRole('button', { name: 'Roll a random name' })
 
 describe('NameField', () => {

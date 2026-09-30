@@ -14,9 +14,9 @@
   let {
     id,
     value = $bindable(),
-    label = 'Your name',
+    label = 'Your display name',
     avoid = '',
-    hint = '1–24 characters. This is what the room sees.',
+    hint = '1–24 characters.',
   }: {
     id: string
     value: string

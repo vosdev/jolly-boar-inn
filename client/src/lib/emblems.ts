@@ -11,13 +11,23 @@
 import { THEMES, type Theme } from './theme'
 import { fileNamed } from './trophies'
 
-/** Themes that have an emblem ahead of their palette in `app.css`. */
-export const UNBUILT_THEMES = ['party_room', 'tzhaar'] as const
+/** Themes the menu lists, disabled, ahead of their palette in `app.css`, by name. */
+export const UNBUILT_THEMES = { party_room: 'Party Room', tzhaar: 'TzHaar' } as const
 
-export type EmblemId = Theme | (typeof UNBUILT_THEMES)[number]
+export type UnbuiltTheme = keyof typeof UNBUILT_THEMES
+
+export type EmblemId = Theme | UnbuiltTheme
 
 /** Every emblem with a placeholder: the built themes, then the ones still to come. */
-export const EMBLEMS: readonly EmblemId[] = [...THEMES, ...UNBUILT_THEMES]
+export const EMBLEMS: readonly EmblemId[] = [
+  ...THEMES,
+  ...(Object.keys(UNBUILT_THEMES) as UnbuiltTheme[]),
+]
+
+/** Whether `id` has a palette to paint with yet. */
+export function isBuilt(id: EmblemId): id is Theme {
+  return (THEMES as readonly string[]).includes(id)
+}
 
 const emblemFiles = import.meta.glob<string>('../assets/themes/*.{avif,webp,png,jpg,jpeg,svg}', {
   eager: true,

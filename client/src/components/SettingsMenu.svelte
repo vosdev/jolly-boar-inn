@@ -272,9 +272,6 @@
             id="profile-name"
             bind:value={draft}
             avoid={$room?.code ?? ''}
-            hint={inRoom
-              ? 'Everyone in the room sees the change, and the next room gets it too.'
-              : 'Filled in whenever you create or join a room.'}
           />
           <div class="row">
             <button class="primary small" type="submit" disabled={!ok || pending !== null}>

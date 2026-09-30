@@ -17,6 +17,7 @@ import { derivedHead } from '../lib/heads'
 import { nudge, profile } from '../lib/profile'
 import type { ClientMessage, PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, resetRoom, roomSend } from '../lib/stores'
+import { EMBLEMS } from '../lib/emblems'
 import { THEME_LABELS, THEMES } from '../lib/theme'
 import { headsDrawn } from '../test-heads'
 import SettingsMenu from './SettingsMenu.svelte'
@@ -227,7 +228,7 @@ describe('SettingsMenu, the menu', () => {
     expect(panel.getByRole('button', { name: 'Music & effects' })).toBeTruthy()
     expect(panel.getByRole('button', { name: 'Question audio' })).toBeTruthy()
     expect(panel.getByRole('group', { name: 'Theme' })).toBeTruthy()
-    expect(panel.getAllByRole('radio')).toHaveLength(THEMES.length)
+    expect(panel.getAllByRole('radio')).toHaveLength(EMBLEMS.length)
   })
 
   it('saves the local profile outside a room, from the panel', async () => {
@@ -297,9 +298,24 @@ describe('SettingsMenu, the themes', () => {
 
   it('offers exactly the themes, by name and in order, and no follow-my-device entry', async () => {
     await opened()
-    expect(radios().map((radio) => radio.value)).toEqual([...THEMES])
-    const names = [...document.querySelectorAll('.theme-name')].map((name) => name.textContent)
+    const offered = radios().filter((radio) => !radio.disabled)
+    expect(offered.map((radio) => radio.value)).toEqual([...THEMES])
+    const names = offered.map((radio) => radio.closest('label')!.textContent!.trim())
     expect(names).toEqual(THEMES.map((theme) => THEME_LABELS[theme].name))
+  })
+
+  it('lists Party Room and TzHaar after them, disabled, and picking one does nothing', async () => {
+    await opened()
+    const soon = radios().filter((radio) => radio.disabled)
+    expect(soon.map((radio) => radio.value)).toEqual(['party_room', 'tzhaar'])
+    expect(soon.map((radio) => radio.closest('label')!.textContent!.trim())).toEqual([
+      'Party Room',
+      'TzHaar',
+    ])
+    await fireEvent.click(soon[0]!.closest('label')!)
+    expect(document.documentElement.dataset.theme).toBeUndefined()
+    expect(localStorage.getItem('jbi:theme')).toBeNull()
+    expect(radios().find((radio) => radio.checked)?.value).toBe('jolly')
   })
 
   it('shows jolly selected to a browser that never chose, on a dark device too', async () => {
@@ -319,11 +335,11 @@ describe('SettingsMenu, the themes', () => {
     await opened()
     const rows = radios().map((radio) => radio.closest('label')!)
     expect(rows.map((row) => row.querySelector<HTMLElement>('.tile')?.dataset.theme)).toEqual([
-      ...THEMES,
+      ...EMBLEMS,
     ])
     expect(
       rows.map((row) => row.querySelector<SVGElement>('[data-placeholder]')?.dataset.placeholder),
-    ).toEqual([...THEMES])
+    ).toEqual([...EMBLEMS])
   })
 
   it('repaints at once, changes the bar’s emblem, stays open, and remembers', async () => {
