@@ -17,7 +17,7 @@ This is what turns a clan quiz into a party game: a round about the GE, a round 
 
 Custom questions are about real people. Keep those rooms unlisted by default, never index them, and delete them with the room. If uploads ever arrive, expire the files with the room too and cap the size.
 
-A host keeps at most five rooms at once (T33).
+A host keeps at most five rooms at once (#90).
 
 ## Community submissions (Phase 6)
 
@@ -62,7 +62,7 @@ Licensing and credits: wiki text is CC BY-NC-SA, game assets remain Jagex proper
 
 Host at the datacenter, not at home. Not for bandwidth, but because of who gets woken up during an outage, and because a public service ties your home IP to strangers.
 
-- Ingress through Cloudflare Tunnel or a plain Caddy config; the README documents both (T43).
+- Ingress through Cloudflare Tunnel or a plain Caddy config; the README documents both (#98).
 - Serve media from a separate path with long cache headers.
 - One replica, a PodDisruptionBudget, and do not drain that node during a quiz night.
 - Postgres on a PVC with a nightly `pg_dump` to the NAS.

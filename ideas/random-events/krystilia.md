@@ -15,7 +15,7 @@ other options: None
 
 Question: "It pays to know the lay of the land so you don't wander deeper than you're prepared for. Can you order these Wilderness landmarks from lowest Wilderness level to highest (South to North)?"
 type: ordering
-skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
+skipped: until the ordering type lands (#82); not in data/packs/random_events/ yet
 answer:
 
     Dark Warriors' Fortress (~Level 14)
@@ -42,7 +42,7 @@ answer: 51
 
 Question: "The Wilderness Slayer Cave has plenty of great targets to hunt, provided you've trained enough. Order these Slayer monsters by the level required to harm them, from lowest to highest!"
 type: ordering
-skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
+skipped: until the ordering type lands (#82); not in data/packs/random_events/ yet
 answer:
 
     Jelly (Level 52)

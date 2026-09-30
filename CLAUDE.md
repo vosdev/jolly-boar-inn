@@ -16,26 +16,26 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 
 ## Docs
 - `ideas/architecture.md` describes the current architecture and wins over older notes. Read the section you need, not the whole file.
-- Read `ideas/design.md` only for frontend work. T tasks are specified in `ideas/phase2.md`, D tasks in `ideas/design.md`.
+- Read `ideas/design.md` only for frontend work. Tasks are GitHub issues (`gh issue view <N>`), labelled `feature`, `design` or both, with their dependencies as "blocked by" links.
 - When updating a doc, the result must be the same length or shorter unless new functionality requires more. Replace outdated text; never append next to it.
 
 ## Decisions
-- Before starting a T or D task, read its spec and the architecture.md sections it touches. Tell me where they look wrong or underspecified for this task, and wait for my answers before coding.
+- Before starting an issue, read it and the architecture.md sections it touches. Tell me where they look wrong or underspecified for this task, and wait for my answers before coding.
 - Ask before deciding anything a player can see, or anything in the websocket protocol, the database schema, scoring or room settings. Decide internal details yourself and list them in your reply.
 - Departing from architecture.md needs my OK. Then update architecture.md in the same PR.
 - As long as we are on major version 0, there is no need to take compatibility with previous versions into account.
 
 ## Tests
-- Behavior changes come with tests. A bug fix starts with a test that fails without the fix. Each accept criterion in a task spec is a test unless it says "manual".
+- Behavior changes come with tests. A bug fix starts with a test that fails without the fix. Each accept criterion in an issue is a test unless it says "manual".
 - Never weaken, skip or delete a test to get green. If a test looks wrong, tell me.
 
 ## Code style
-- Comments explain why, never what. No comments restating the code, no commented-out code, no task IDs (T22, D9).
+- Comments explain why, never what. No comments restating the code, no commented-out code, no issue numbers or old task IDs (T22, D9).
 - Docstrings on public functions, one line where possible.
 
 ## Git and PRs
-- Always branch: `phase2-t<N>` for T tasks, `design-d<N>` for D tasks, a short descriptive name otherwise.
-- Every PR bumps the version: minor for a T or D task, patch for anything else. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`.
+- Always branch: `<N>-<slug>` for issue N (`82-release-order`), a short descriptive name otherwise. A PR for an issue says `Closes #N`.
+- Every PR bumps the version: minor for a `feature` or `design` issue, patch for anything else. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`.
 - PR descriptions under 10 lines.
 
 ## Subagents

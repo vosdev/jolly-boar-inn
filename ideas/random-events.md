@@ -27,7 +27,7 @@ Every question is one entry in the NPC's file. The file names the NPC once, as
 | `closest_number` | `prompt`, `answer`, optional `unit` | none; nearest wins |
 | `free_text` | `prompt`, `accepted` (1–20) | `accepted` holds the alternative spellings, not wrong answers |
 | `pick_from_list` | `prompt`, `vocab` (`items` or `examines`), `answer_id` | the whole list; the answer must be an entry of it |
-| `ordering` | `prompt`, `entries` with `rank`, `answer`, `ends` | none; it is an order. Only after T27 |
+| `ordering` | `prompt`, `entries` with `rank`, `answer`, `ends` | none; it is an order. Only after #82 |
 
 Every type may also carry an `explanation`, which is shown in the reveal. Use it: a random
 event is the place for the one fact nobody knew.
@@ -69,7 +69,7 @@ NPCs who would make a fine event, not on the roster:
 - **Certer** (Giles, Miles, Niles): "which of these is a helmet?" as `multiple_choice` now,
   and "what is this item?" from its outline as `pick_from_list` in Phase 3.
 - **Frog prince / princess**: romance and swamps, Lumbridge Swamp.
-- **Beekeeper**: farming, and building things in the right order (`ordering`, after T27).
+- **Beekeeper**: farming, and building things in the right order (`ordering`, after #82).
 - **Postie Pete**: places and cities: "where would you deliver this?".
 - **Capt' Arnav**: treasure and chests, the combination is the answer.
 - **Leo the gravedigger**: death, gravestones, Prayer.

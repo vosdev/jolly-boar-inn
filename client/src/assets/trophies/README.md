@@ -1,6 +1,6 @@
 # Podium trophies
 
-The trophies on the standings podium (D9, section 7.3 of `ideas/design.md`): the five
+The trophies on the standings podium (section 7.3 of `ideas/design.md`): the five
 Quest Speedrunning trophies, one per rank from first to fifth. None are here yet; until
 they are, the podium draws `placeholder/<tier>.svg`, a plain cup tinted for the tier.
 
