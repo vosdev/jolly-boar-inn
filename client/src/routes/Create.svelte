@@ -41,6 +41,8 @@
     type NewRoomSettings,
   } from '../lib/api'
   import ModeCard from '../components/ModeCard.svelte'
+  import Segmented from '../components/Segmented.svelte'
+  import Stepper from '../components/Stepper.svelte'
   import { randomHead } from '../lib/heads'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
   import { generateName } from '../lib/names'
@@ -51,6 +53,11 @@
 
   /** The server's cap on a room, over every round. `NewRoomSettings` checks the same. */
   const MAX_QUESTIONS = 100
+
+  const OFF_ON = [
+    { value: false, label: 'Off' },
+    { value: true, label: 'On' },
+  ]
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
@@ -88,25 +95,10 @@
    * `EVENT_EVERY` round questions. They are questions the room will play, so they are in
    * the total and under the cap.
    */
-  const eventCount = $derived(
-    Number.isInteger(questionCount) ? Math.floor(questionCount / EVENT_EVERY[frequency]) : 0,
-  )
+  const eventCount = $derived(Math.floor(questionCount / EVENT_EVERY[frequency]))
   const totalCount = $derived(questionCount + eventCount)
-  /** `NewRoomSettings`' 2..30, and an integer: a cleared field binds `null`. */
-  const revealInRange = $derived(
-    Number.isInteger(revealSeconds) && 2 <= revealSeconds && revealSeconds <= 30,
-  )
-  /** `NewRoomSettings`' 0..30, and an integer: a cleared field binds `null`. */
-  const standingsInRange = $derived(
-    Number.isInteger(standingsSeconds) && 0 <= standingsSeconds && standingsSeconds <= 30,
-  )
   const ready = $derived(
-    rounds.length > 0 &&
-      revealInRange &&
-      questionCount >= 1 &&
-      totalCount <= MAX_QUESTIONS &&
-      standingsInRange &&
-      full === false,
+    rounds.length > 0 && questionCount >= 1 && totalCount <= MAX_QUESTIONS && full === false,
   )
 
   onMount(async () => {
@@ -209,34 +201,34 @@
 
 <form onsubmit={submit}>
   <section class="panel modes">
+    <!-- Always the same furniture, so picking the first mode or dropping the last one
+         never moves the cards under the host's pointer. -->
     <div class="head spread">
       <h2>Game modes</h2>
-      {#if pacing !== null && rounds.length === 0}
-        <p class="error">Pick at least one type; a room with no rounds is no game.</p>
-      {:else if pacing !== null}
-        <div class="summary">
-          <p class="count" class:error={totalCount > MAX_QUESTIONS}>
-            {rounds.length} round{rounds.length === 1 ? '' : 's'}, {totalCount} question{totalCount === 1
+      <div class="summary">
+        <p class="count" class:error={rounds.length === 0 || totalCount > MAX_QUESTIONS}>
+          {#if pacing === null}
+            &nbsp;
+          {:else if rounds.length === 0}
+            Pick at least one type; a room with no rounds is no game.
+          {:else}
+            {rounds.length} round{rounds.length === 1 ? '' : 's'}, {totalCount} question{totalCount ===
+            1
               ? ''
               : 's'}{eventCount > 0
               ? ` (${questionCount} in the rounds, ${eventCount} random event${eventCount === 1 ? '' : 's'})`
               : ''}{totalCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
-          </p>
-          <fieldset class="order">
-            <legend>Round order</legend>
-            <span class="segments">
-              <label>
-                <input type="radio" name="mode-order" value="listed" bind:group={modeOrder} />
-                As numbered
-              </label>
-              <label>
-                <input type="radio" name="mode-order" value="random" bind:group={modeOrder} />
-                Random
-              </label>
-            </span>
-          </fieldset>
-        </div>
-      {/if}
+          {/if}
+        </p>
+        <Segmented
+          legend="Round order"
+          options={[
+            { value: 'listed', label: 'As numbered' },
+            { value: 'random', label: 'Random' },
+          ]}
+          bind:value={modeOrder}
+        />
+      </div>
     </div>
     {#if pacingFailure !== null}
       <p class="error">{pacingFailure}</p>
@@ -268,43 +260,49 @@
     {/if}
   </section>
 
-  <section class="panel">
+  <section class="panel rest">
     <h2>The rest of the game</h2>
-    <div class="grid">
+    <div class="settings">
+      <Stepper
+        label="Reveal answers, seconds"
+        noun="reveal seconds"
+        value={revealSeconds}
+        min={2}
+        max={30}
+        onchange={(value) => (revealSeconds = value)}
+      />
+      <Stepper
+        label="Standings between rounds, seconds"
+        noun="standings seconds"
+        value={standingsSeconds}
+        min={0}
+        max={30}
+        step={5}
+        onchange={(value) => (standingsSeconds = value)}
+      />
       <div>
-        <label for="reveal">Reveal answers seconds</label>
-        <input id="reveal" type="number" min="2" max="30" bind:value={revealSeconds} />
-        <p class="note" class:error={!revealInRange}>2–30</p>
+        <Segmented
+          legend="Random events frequency"
+          options={[
+            { value: 'less', label: 'Less' },
+            { value: 'default', label: 'Default' },
+            { value: 'more', label: 'More' },
+          ]}
+          bind:value={frequency}
+        />
+        <p class="note">
+          An NPC interrupts on average once every {EVENT_EVERY[frequency]} questions, on top of
+          the round's.
+        </p>
       </div>
-      <div>
-        <label for="standings">Standings between rounds, seconds</label>
-        <input id="standings" type="number" min="0" max="30" bind:value={standingsSeconds} />
-        <p class="note" class:error={!standingsInRange}>0–30, and 0 for none</p>
-      </div>
+      <Segmented legend="Introduce each round" options={OFF_ON} bind:value={introduceRounds} />
+      <Segmented
+        legend="Close when everyone has answered"
+        options={OFF_ON}
+        bind:value={closeWhenAllAnswered}
+      />
+      <Segmented legend="Name who got it wrong" options={OFF_ON} bind:value={nameWrongAnswers} />
     </div>
-    <div class="field">
-      <label for="random-events">Random events</label>
-      <select id="random-events" bind:value={frequency}>
-        <option value="less">Less often: one every {EVENT_EVERY.less} questions</option>
-        <option value="default">Default: one every {EVENT_EVERY.default} questions</option>
-        <option value="more">More often: one every {EVENT_EVERY.more} questions</option>
-      </select>
-      <p class="note">
-        An NPC interrupts a round with a question of their own, on top of the round's.
-      </p>
-    </div>
-    <label class="check">
-      <input type="checkbox" bind:checked={introduceRounds} />
-      Introduce each round, and start it when most of the room is ready
-    </label>
-    <label class="check">
-      <input type="checkbox" bind:checked={closeWhenAllAnswered} />
-      Close a question as soon as everyone has answered
-    </label>
-    <label class="check">
-      <input type="checkbox" bind:checked={nameWrongAnswers} />
-      Name who got it wrong under each answer
-    </label>
   </section>
 
   {#if full === true}
@@ -377,52 +375,24 @@
     font-weight: 700;
   }
 
-  .order {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem 0.75rem;
-    margin: 0;
-    padding: 0;
-    border: none;
+  /* Two columns of settings where the page is wide, so a label and its control are not
+     a whole panel apart. */
+  .rest {
+    container-type: inline-size;
   }
 
-  .order legend {
-    float: left;
-    padding: 0;
-    color: var(--muted);
-    white-space: nowrap;
+  .rest .settings {
+    display: grid;
+    gap: 0.9rem 2.5rem;
   }
 
-  .segments {
-    display: flex;
-    border: var(--border-width) solid var(--line);
-    border-radius: min(var(--radius), 8px);
-    overflow: hidden;
+  @container (min-width: 44rem) {
+    .rest .settings {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
-  .segments label {
-    margin: 0;
-    padding: calc(0.45rem - var(--border-give)) 0.9rem;
-    color: var(--ink);
-    font-size: 0.95rem;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-
-  .segments label:has(:checked) {
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-
-  .segments label:has(:focus-visible) {
-    outline: 2px solid var(--accent);
-    outline-offset: -4px;
-  }
-
-  .segments input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
+  .rest .note {
+    margin: 0.3rem 0 0;
   }
 </style>

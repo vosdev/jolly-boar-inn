@@ -3,11 +3,12 @@
    * One game mode on the create form: its host's chathead, name and hint, and once it
    * is picked, its round's settings on the card itself.
    *
-   * Only the box in the corner picks a mode. A whole card as the target would be one
-   * stray tap on a phone away from dropping a round and its settings with it. Picked, the
-   * box becomes the round's number in the running order, with the arrows that change it
-   * beside it, or a plain dot when the order is random and a number would promise
-   * something the room will not keep.
+   * A tap anywhere on the card picks it, except on its buttons and the steppers' rows of
+   * controls, where a near miss would otherwise drop the round being set. The box in the
+   * corner is the same choice for a keyboard and a screen reader. Picked, the box becomes
+   * the round's number in the running order, with the arrows that change it beside it,
+   * or a plain dot when the order is random and a number would promise something the
+   * room will not keep.
    *
    * A mode still being built is the same card, faded, with a lock where its host would
    * stand and nothing to press.
@@ -16,6 +17,7 @@
   import { hostOf } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
   import type { ModeSettings } from '../lib/protocol'
+  import Stepper from './Stepper.svelte'
 
   const SECONDS_STEP = 5
 
@@ -57,38 +59,23 @@
   /** Numbered, with arrows to renumber it: only among several rounds in the host's order. */
   const ordered = $derived(round !== null && !shuffled && count > 1 && position !== null)
 
-  /** `value` moved by `by`, held inside the server's bounds. */
-  function stepped(limits: ModeBounds | null, value: number, by: number): number {
-    if (limits === null) return value
-    return Math.min(limits.max, Math.max(limits.min, value + by))
+  function pickFromCard(event: MouseEvent): void {
+    if (upcoming || !(event.target instanceof Element)) return
+    if (event.target.closest('button, label, input, .controls')) return
+    onpick?.(round === null)
   }
 </script>
 
-{#snippet stepper(field: 'questions' | 'seconds', name: string, step: number, limits: ModeBounds | null)}
-  {@const value = round?.[field] ?? 0}
-  <div class="setting" role="group" aria-labelledby="{titleId}-{field}">
-    <span id="{titleId}-{field}">{name}</span>
-    <span class="controls">
-      <button
-        type="button"
-        class="square"
-        aria-label="Fewer {field}"
-        disabled={limits === null || value <= limits.min}
-        onclick={() => onset?.(field, stepped(limits, value, -step))}>−</button
-      >
-      <output class="value" aria-live="polite">{value}</output>
-      <button
-        type="button"
-        class="square"
-        aria-label="More {field}"
-        disabled={limits === null || value >= limits.max}
-        onclick={() => onset?.(field, stepped(limits, value, step))}>+</button
-      >
-    </span>
-  </div>
-{/snippet}
-
-<li class="card" class:on={round !== null} class:upcoming aria-labelledby={titleId}>
+<!-- The box in the corner is the card's keyboard and screen reader control; this is
+     only a bigger target for a pointer. -->
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+<li
+  class="card"
+  class:on={round !== null}
+  class:upcoming
+  aria-labelledby={titleId}
+  onclick={pickFromCard}
+>
   <div class="about">
     <div class="face" aria-hidden="true">
       {#if upcoming}
@@ -140,8 +127,27 @@
   </div>
   {#if round !== null}
     <div class="settings">
-      {@render stepper('questions', 'Questions', 1, questions)}
-      {@render stepper('seconds', 'Seconds', SECONDS_STEP, seconds)}
+      {#if questions}
+        <Stepper
+          label="Questions"
+          noun="questions"
+          value={round.questions}
+          min={questions.min}
+          max={questions.max}
+          onchange={(value) => onset?.('questions', value)}
+        />
+      {/if}
+      {#if seconds}
+        <Stepper
+          label="Seconds"
+          noun="seconds"
+          value={round.seconds}
+          min={seconds.min}
+          max={seconds.max}
+          step={SECONDS_STEP}
+          onchange={(value) => onset?.('seconds', value)}
+        />
+      {/if}
     </div>
   {/if}
 </li>
@@ -161,6 +167,10 @@
   .card.on {
     border-color: var(--accent);
     box-shadow: inset 0 0 0 2px var(--accent);
+  }
+
+  .card:not(.upcoming) {
+    cursor: pointer;
   }
 
   .card.upcoming {
@@ -313,21 +323,6 @@
     gap: 0.5rem;
   }
 
-  .setting {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
   .square {
     width: 2.25rem;
     height: 2.25rem;
@@ -336,14 +331,5 @@
     place-items: center;
     font-size: 1.1rem;
     line-height: 1;
-  }
-
-  .value {
-    min-width: 2ch;
-    text-align: center;
-    color: var(--ink);
-    font-family: var(--font-numeric);
-    font-weight: 700;
-    font-size: 1.05rem;
   }
 </style>
