@@ -67,6 +67,7 @@ Running an instance:
 - [ ] T43. README
 - [ ] T44. Metrics
 - [ ] T45. The admin view
+- [ ] T46. `make fetch-assets`
 
 ### Design track (interleaves with T16–T30, [design.md](design.md))
 

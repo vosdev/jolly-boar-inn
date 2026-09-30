@@ -312,6 +312,8 @@ answerable_at: the answers appear under the line and the timer bar starts
 - With reduced motion the NPC replaces the host in one frame and the prompt shows whole. The
   answers still wait, because that is a rule of the game, not an animation.
 - An NPC this build does not know is drawn as the Mysterious Old Man.
+- The panel holding the answers exists, with the buttons faded out.
+- When the answers appear, they fade in (200ms)
 
 ## 13. What the build constrains
 
