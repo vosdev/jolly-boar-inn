@@ -303,6 +303,11 @@ main {
   padding: 2rem 0 4rem;
 }
 
+/* Create lays its modes out three abreast, which the reading column has no room for. */
+main.wide {
+  width: min(64rem, 100% - 2rem);
+}
+
 h1 {
   font-size: 1.9rem;
   margin: 0 0 0.25rem;
@@ -567,24 +572,12 @@ ul.players li:first-child {
   color: var(--bad);
 }
 
-/* The lobby's rounds, and the create form's. One row a round: what it is, then its
-   numbers, which wrap under the name on a narrow screen. */
-ul.modes,
-ul.rounds {
+/* The lobby's rounds. One row a round: what it is, then its numbers, which wrap under
+   the name on a narrow screen. */
+ul.modes {
   list-style: none;
   margin: 0 0 0.75rem;
   padding: 0;
-}
-
-ul.modes li,
-ul.rounds li {
-  padding: 0.6rem 0;
-  border-top: 1px solid var(--line);
-}
-
-ul.modes li:first-child,
-ul.rounds li:first-child {
-  border-top: none;
 }
 
 ul.modes li {
@@ -592,4 +585,10 @@ ul.modes li {
   gap: 0.5rem;
   align-items: baseline;
   flex-wrap: wrap;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--line);
+}
+
+ul.modes li:first-child {
+  border-top: none;
 }

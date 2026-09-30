@@ -159,9 +159,9 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
 Every round is presented by an NPC, the **host**, standing beside a **clue scroll** drawn after the
 game's quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. The scroll
 carries the round's introduction on the splash and then every question; the answers sit under it.
-Create lists each mode under its host: *Grand Exchange Clerk presents: The Price is Right*. The
-stage was agreed in `client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it
-is at `/prototypes/clue-scroll.html`.
+Create shows each mode on a card with its host's chathead. The stage was agreed in
+`client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it is at
+`/prototypes/clue-scroll.html`.
 
 ```
         ╥────────────────────────────────╥

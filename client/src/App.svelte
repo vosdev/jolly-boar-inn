@@ -92,7 +92,7 @@
   {/key}
 {/if}
 
-<main id="content" tabindex="-1">
+<main id="content" tabindex="-1" class:wide={route.name === 'create'}>
   {#if route.name === 'home'}
     <Home {navigate} />
   {:else if route.name === 'create'}

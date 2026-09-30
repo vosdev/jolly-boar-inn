@@ -24,7 +24,7 @@
 /** An NPC who presents a round: its art is `lib/npcs.ts`, found by `id`. */
 export interface Host {
   id: string
-  /** As Create prints it: "<name> presents:". */
+  /** The NPC as the game names it. */
   name: string
 }
 
