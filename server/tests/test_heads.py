@@ -6,7 +6,7 @@ sizes it is drawn at, which is what "crisp, not blurred, at 32px and 48px" is ma
 ``image-rendering: pixelated`` is on.
 
 The ``avatar ?? derived`` rule and the sizes each screen draws at are the client's tests
-(``heads.test.ts``, and Lobby's, Scoreboard's and IdentityChip's). What is left here is
+(``heads.test.ts``, and Lobby's, Scoreboard's and SettingsMenu's). What is left here is
 source: one sheet, drawn pixelated, and the protocol mirror.
 
 What a browser confirmed, and a test cannot: two browsers on two origins draw the same

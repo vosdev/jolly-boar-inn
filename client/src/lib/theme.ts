@@ -23,11 +23,11 @@ export const THEMES = ['jolly', 'pollnivneach', 'wilderness'] as const
 
 export type Theme = (typeof THEMES)[number]
 
-/** What the picker calls each theme, and the one line that says what it is like. */
-export const THEME_LABELS: Record<Theme, { name: string; mood: string }> = {
-  jolly: { name: 'Jolly Boar Inn', mood: 'Oak floor, plaster walls, green windows.' },
-  pollnivneach: { name: 'Pollnivneach', mood: 'Whitewashed stone and sand.' },
-  wilderness: { name: 'Wilderness', mood: 'Cold stone. Nothing cosy.' },
+/** What the menu calls each theme. */
+export const THEME_LABELS: Record<Theme, { name: string }> = {
+  jolly: { name: 'Jolly Boar Inn' },
+  pollnivneach: { name: 'Pollnivneach' },
+  wilderness: { name: 'Wilderness' },
 }
 
 /** `configured` if it names a theme this build paints, else `jolly`, never an unstyled page. */

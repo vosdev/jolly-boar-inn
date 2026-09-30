@@ -2,7 +2,7 @@
 
 This reads the stylesheet. The contract itself — all three themes passing the D1 check —
 is ``test_check_contrast.py``'s ``test_every_shipped_theme_passes``, and the picker is
-``ThemePicker.test.ts``'s.
+``SettingsMenu.test.ts``'s.
 
 What a browser confirmed, and a test cannot: the arrow keys walk the list; switching
 through all three mid-question leaves every button, panel and top bar control at the same

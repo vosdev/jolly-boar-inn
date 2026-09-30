@@ -25,3 +25,5 @@ branding/*
 
 # NPC renders and chatheads from the wiki: game assets, fetched and not committed
 client/src/assets/npcs/*.png
+# Leagues area flags, the themes' emblems: game assets too
+client/src/assets/themes/*.png
