@@ -2,7 +2,7 @@
 
 Fifty heads, one per seat in a full room (section 5.2 of `ideas/design.md`).
 
-**These are placeholders**, generated for D4 so the feature ships before the real picks
+**These are placeholders**, generated so the feature ships before the real picks
 exist. Replace them file for file:
 
 - Keep the id. `heads.json` is an array whose index is the id, and `players.avatar`

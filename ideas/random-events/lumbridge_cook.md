@@ -22,7 +22,7 @@ Questions:
   other options: Ground Seaweed, Crushed Oyster Pearl, White Pearl Seed
 
 - type: ordering
-  skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
+  skipped: until the ordering type lands (#82); not in data/packs/random_events/ yet
   question: Skrach Uglogwee is starving and threatening to eat me! Put the steps to prepare his Jubbly in the correct order!
   correct answer:
     - Inflate a swamp toad
@@ -32,7 +32,7 @@ Questions:
     - Spir-roast the bird with an iron spit
 
 - type: ordering
-  skipped: until the ordering type lands (T27); not in data/packs/random_events/ yet
+  skipped: until the ordering type lands (#82); not in data/packs/random_events/ yet
   question: Help! I have all the weird ingredients for Sir Amik's dessert, but I can't remember how to layer them together!
   correct answer:
   - Mix vanilla into cornflour

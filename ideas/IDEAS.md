@@ -21,7 +21,7 @@ Similar to a splash page, we can have an NPC show up and 1 second later ask the 
 
 Ideally, the question that is asked is a different type and/or gamemode. To make it truly a random event.
 
-Random events get their own question list, themed per NPC: the Sandwich Lady asks cooking questions. Each question names its NPC, and the NPC decides the graphics. A custom question can pick its NPC, or leave it random (the default). The roster and the questions go in `ideas/random-events.md`, one file per NPC in `data/packs/random_events/`. This is T22, with the NPC picker in T30.
+Random events get their own question list, themed per NPC: the Sandwich Lady asks cooking questions. Each question names its NPC, and the NPC decides the graphics. A custom question can pick its NPC, or leave it random (the default). The roster and the questions go in `ideas/random-events.md`, one file per NPC in `data/packs/random_events/`. The NPC picker is #89.
 
 # Custom font?
 

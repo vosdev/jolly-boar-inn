@@ -1,9 +1,8 @@
 # Design
 
 What the app looks like and why. The architecture under it is `ideas/architecture.md`, which this
-file links to rather than repeats. Tasks are D1–D16, numbered apart from the T tasks because they
-touch different files; `ideas/TODO.md` says which have landed. Sections describe the built app,
-and name the open D task where one will change it.
+file links to rather than repeats. Sections describe the built app, and name the open issue
+where one will change it.
 
 ## 1. Themes
 
@@ -14,7 +13,7 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `jolly` | Jolly Boar Inn | Default. Oak, candlelight, spilled ale. | Warm mid-brown, cream panels | Ale amber / hearth orange |
 | `pollnivneach` | Pollnivneach | Bright desert noon. | Sandstone, off-white panels | Terracotta, indigo shade |
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
-| `party_room` | Party Room (D12) | Loud. A drop party. | Deep purple | Gold, partyhat cyan/pink |
+| `party_room` | Party Room (#104) | Loud. A drop party. | Deep purple | Gold, partyhat cyan/pink |
 
 - `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
@@ -36,7 +35,7 @@ and 7. Layers 3, 4 and 8 are a contract that `scripts/check_contrast.py` enforce
 | 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-zenyte` `--gem-ink` | Freely, within the gem checks |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
-| 8. Scroll (D13) | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` | Must pass contrast; must still read as parchment |
+| 8. Scroll | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` | Must pass contrast; must still read as parchment |
 
 `--more` and `--less` are not right and wrong, so they never borrow layer 3's colours. Layer 6 is
 what makes a theme a different place: `wilderness` has a 2px radius and a hard border.
@@ -51,7 +50,7 @@ The script asserts, per `[data-theme]` block:
 - Every gem at least 20 apart (CIE76 ΔE) from its own faded self, because lit against faded is the
   whole reveal. That is why there is no diamond or onyx: white and black wash into a panel of their
   own lightness.
-- Layer 8 (D13): `--scroll-ink` at 7:1 and `--scroll-muted` at 4.5:1 on `--scroll-paper`, and the
+- Layer 8: `--scroll-ink` at 7:1 and `--scroll-muted` at 4.5:1 on `--scroll-paper`, and the
   paper at least 10 ΔE from `--bg` and `--panel`, so the scroll stands off the page. `wilderness`
   borrows `jolly`'s scroll: parchment reads as parchment, not as a dark sheet.
 
@@ -73,7 +72,7 @@ learns the position, which is worth more than variety.
 - Under every reveal: "3 of 5 got it right", then a line per partial-credit band (90%, 80%, 70%)
   that has someone in it. With `name_wrong_answers` on, the names of everyone under 70% follow. A
   player who did not answer is not wrong.
-- Six gems means no question offers more than six options (T32).
+- Six gems means no question offers more than six options.
 - Gems are for `multiple_choice`, `price_is_right` and `ordering`. `more_less` keeps `--more` and
   `--less`, because its buttons carry item pictures, which a gem fill would drown.
   `pick_from_list` has a list of hundreds, answered through a combobox, with no gems.
@@ -98,7 +97,7 @@ learns the position, which is worth more than variety.
 
 - **Left:** the sign, a plain `href="/"` link home, then the wordmark. Both are configurable (§14).
   The version is in the footer.
-- **Right, in order:** GitHub, identity, sound (D6), theme. The name is the bar's priority: it
+- **Right, in order:** GitHub, identity, sound (#102), theme. The name is the bar's priority: it
   shows at every width, and it is the one item that shrinks, ellipsising. Sound and theme are 36px
   each at the outer edge. GitHub is `--muted`, as the one control not about the game.
 - **Under 26rem** the wordmark and GitHub hide, and nothing folds into a `⋯` menu. At 320px the name
@@ -136,7 +135,7 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
 - One sprite sheet, rendered pixelated at 32px and 48px, so each head is 16×16. The fifty shipped
   are placeholders the owner replaces file for file.
 
-## 7. Sound (D6)
+## 7. Sound (#102)
 
 | Switch | Covers | Safe to mute? |
 |---|---|---|
@@ -145,13 +144,13 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
 
 - One mute button could not warn anyone, so there are two. Muting question audio says: *"Some
   rounds are audio-only. You will not be able to answer those."*
-- The CSP has no `media-src` yet, so audio is blocked until D6 adds `media-src 'self'`.
+- The CSP has no `media-src` yet, so audio is blocked until #102 adds `media-src 'self'`.
 - Browsers block audio until a gesture. The ready tap (§9) unlocks it. A player who never sees a
   splash (`splash_seconds: 0`, or a reload mid-game) unlocks it with their first answer tap. An
   audio-only question that cannot play says so rather than sitting silent.
-- `prefers-reduced-motion` is the sibling setting: anything that moves has a static fallback (D11).
+- `prefers-reduced-motion` is the sibling setting: anything that moves has a static fallback (#103).
 
-## 8. The stage: a host and a clue scroll (D13, D14)
+## 8. The stage: a host and a clue scroll
 
 Every round is presented by an NPC, the **host**, standing beside a **clue scroll** drawn after the
 game's quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. The scroll
@@ -198,7 +197,7 @@ Round 2 of 5 · 5 questions · 20 seconds each
   reveal lines go at the sheet's foot, the reveal's beside the points. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
-- **The art** is the wiki's chathead (D14), or the head of its render, mirrored to face the
+- **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
 
 ## 9. The splash and the ready check
@@ -240,7 +239,7 @@ in display tabular numerals and the scroll's ink:
 | Graded (closest guess) | `+340`, the number carries the verdict |
 
 - A timeout is not a wrong answer, and the slot says so. The glyph is the verdict: `--ok` and
-  `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (D16).
+  `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (#106).
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.
 - No standings under a reveal: a board every question makes the game a spreadsheet.
@@ -281,7 +280,7 @@ fold. The final screen's table lists everyone, ranks 1–5 included.
 
 The steps rise once when the phase opens, and nothing else moves. Trophies are art, not tokens.
 
-## 12. Random events: the interlude (D16)
+## 12. Random events: the interlude (#106)
 
 A random event is a question from an NPC who has nothing to do with the round. How often and who
 asks what are architecture §5 and `ideas/random-events.md`. This is how it looks.
@@ -325,7 +324,7 @@ All from the CSP in `server/app/http/headers.py`:
    component with classes, because an SVG loaded by `<img>` or `url()` cannot see custom
    properties.
 2. **`font-src 'self'`.** Self-hosted fonts only. No Google Fonts, no CDN.
-3. **No `media-src`**, so audio is blocked until D6.
+3. **No `media-src`**, so audio is blocked until #102.
 4. **`img-src 'self' data:`** covers local art and Vite's inlined assets.
 
 The theme must be set before first paint, and `script-src 'self'` forbids an inline script. So
@@ -336,7 +335,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Art | Source | In the repo? |
 |---|---|---|
 | Item and NPC renders | Game assets, fetched by Phase 3's importer | No, fetched |
-| Speedrunning trophies | Game renders | No, fetched; D9 shipped placeholders |
+| Speedrunning trophies | Game renders | No, fetched; placeholders ship |
 | Display font | Self-hosted, once chosen | No, fetched |
 | Chat heads | 50 hand-picked (§6) | **Yes** |
 | Hosts and event NPCs | Wiki chatheads (§8) | No, fetched; the innkeeper is committed |
@@ -366,130 +365,13 @@ player's.
 
 ## 15. Open tasks
 
-```
-D6 sound switches            (the bar exists)
-D12 party_room               (D5's themes)
-D13 the stage ──┬─▶ D14 hosts + their voice ──▶ D15 the event NPCs
-                └─▶ D16 the interlude  (needs D15)
-D11 motion + reduced-motion pass  (last, after D16)
-```
-
-### D6. Sound
-
-`media-src 'self'` in the CSP; the two switches, the volume slider, the three-state icon; the
-unlock gesture wired to the ready-check tap **and to the first answer tap**, for the players who
-never see a splash (§7); `lib/audio.ts` with a null implementation so the switches work before any
-audio file exists.
-
-**Accept:** with no audio assets present, both switches persist and no console error appears;
-muting question audio shows the warning copy; a fresh tab that has not been tapped does not throw
-an autoplay error; a player who reloaded mid-game, or who is in a room with `splash_seconds: 0`, has
-working audio from their second question onwards; an audio-only question that cannot play its audio
-says so instead of showing a silent prompt; the CSP change is covered by the existing headers test.
-
-### D11. Motion and the reduced-motion pass
-
-Every transition audited, a `prefers-reduced-motion` branch for each, and the animation budget
-written down so it stays small.
-
-**Accept:** with reduced motion on, nothing moves except the timer bar and it does so by changing
-width without easing; no animation exceeds 250ms, except three written ones: the scroll opening
-and closing at 300ms and the ribbon's confetti at 900ms (D13), and the interlude's typed prompt at
-60 letters a second (§12); no animation runs while a question's answers are open
-except the timer — the interlude plays inside the hold before `answerable_at` and in the reveal,
-never over live answers.
-
-### D12. The Party Room theme
-
-`party_room` on its own, against the contract: deep purple base, gold and partyhat accents, a wide
-radius, no border. Its accent most wants to be used everywhere, which §2 forbids, so it must be able
-to fail, or be cut, without taking the other themes with it. Small balloons on the background. Sometimes a partyhat.
-
-**Accept:** it passes the contrast script unmodified, `--gem-ink` against every gem and layer 8's
-scroll included, and its scroll still reads as parchment; no `party_room` rule touches a layer-3 or
-layer-4 token outside its own `[data-theme='party_room']` block; a reveal is readable on a phone at
-low brightness in a dark room; if it cannot do those things it is deleted rather than exempted, and
-the other themes are unaffected either way.
-
-### D13. The stage: the host slot and the clue scroll
-
-The stage of §8, as the prototype has it, used by the splash and by every question screen: the
-host slot, the clue scroll, and the line the round's count, the ready check and the answers sit
-below. The scroll is an inline SVG component — rolls with knobs, a torn and faceted sheet, the
-ribbon and its confetti — sized by `--scroll-scale` and `--scroll-text`. Layer 8 (`--scroll-*`) is
-written for `jolly` and `pollnivneach`, `wilderness` takes `jolly`'s, and
-`scripts/check_contrast.py` learns its assertions (§2). A random event keeps today's card until D16 turns it into the stage.
-
-The host slot ships holding the generic innkeeper (a placeholder until D14 lands the hosts), so this
-task is not blocked on art. It removes the splash's tavern scene: the `scene` field, `SCENES`,
-`splashArt` and the scene globs come out of `lib/modes.ts`, the scene slot out of `Splash.svelte`,
-and `assets/scenes/` goes.
-
-**Accept:** the splash and every question type render on the stage; prompts on the scroll reach 7:1
-and muted text 4.5:1 in every theme, checked by the script, and the script fails a deliberately
-washed-out `--scroll-ink`; the scroll reads as parchment in all three themes, with screenshots in
-the PR; no gem button or combobox sits on the parchment, and the points you earned do, with nothing
-under the sheet moving for them; the scroll opens from the
-middle in 300ms on the splash, stays put into the round's first question, and simply appears with
-reduced motion; under 448px the screen's edges cut the rolls in half and nothing scrolls sideways,
-at 320px included; the knobs do not stretch at any width; the sheet is at least four prompt lines
-tall; any answer worth points pins the ribbon 65% across with confetti, and `+0` does not,
-and with reduced motion the ribbon comes without confetti; at 375px, six gem buttons at 56px and a
-two-line prompt fit in the 650px a 375×812 phone shows; no scroll colour is set by an inline style
-or a `style:` directive; the existing ready-check and gem tests pass unchanged.
-
-### D14. Hosts, and the voice they speak in
-
-Each NPC is a wiki chathead in `client/src/assets/npcs/`, found by id: `<id>_chathead.png` (§8).
-The README there has the conventions. Without one the stage shows the head of `<id>.png`, the full
-render, mirrored; with neither, the innkeeper SVG.
-
-Then the hosts for every mode that exists when this task lands (see *NPC Hosts*), plus the generic
-innkeeper for a mode this build does not know. `lib/modes.ts` gains `host` (an NPC id with the name
-to print) and the host's lines: the splash greeting, the blurb rewritten in the host's voice, the
-waiting line and a short reveal line. Create lists each mode as *<Host> presents: <Mode>*. Question
-prompts are not rewritten (§8).
-
-**Accept:** every mode in `MODES` has a host and all four lines, and a test holds them to it; a
-mode id with no entry gets the innkeeper and its generic lines; each host reads as its NPC at the
-stage's head size, judged side by side in the PR; replacing a file needs no code change; Create
-shows *<Host> presents:* above each mode's label without pushing its checkbox row past one line at
-375px.
-
-### D15. The random-event NPCs
-
-Art as D14's, a chathead, for every id in `server/app/random_events.py` (sixteen
-today), plus the Mysterious Old Man, who stands in for an id this build does not know (§12). Art
-only: the NPCs' names and lines are `lib/randomEvents.ts`. Art whose NPC is not on the roster yet
-may land early.
-
-**Accept:** every roster id has art, and a test fails on one that does not; each reads as its
-NPC at the phone's head size; no event NPC could be mistaken for the host of a mode; replacing
-one needs no code change.
-
-### D16. The interlude
-
-The sequence of §12, built on `answerable_at`, `random_event` and D13's stage: the host out, the
-scroll across, the event NPC in on the right, its name, the typed prompt, the
-answers at `answerable_at`, and the return in the last 250ms of the reveal. It turns today's
-`RandomEvent.svelte` card into the stage. T30's NPC picker previews through it. Its entrance sting
-is D6's; without D6 it is silent and nothing else changes.
-
-**Accept:** the answers never appear before `answerable_at`, and the stage is settled — nothing
-moving — by then, at the 3.5 s hold and at 1 s; with no hold the event NPC is simply in place when
-the question opens; the NPC's name shows from the first frame; the prompt
-types at 60 letters a second from 900ms, and any prompt, 200 characters included, is whole 200ms
-before `answerable_at`; a screen reader reads the prompt once, whole, and hears who interrupted;
-with reduced motion nothing slides, fades or types and the answers still wait; on a phone the NPCs
-swap sides and the scroll does not move; a reconnect inside the hold
-lands on the settled stage with the right delay and no replay; the host is back in place for
-whatever follows the event, the standings included; an unknown NPC id shows the Mysterious Old Man;
-the `explanation` shows on the scroll in the reveal.
+The open design tasks are GitHub issues labelled
+[`design`](https://github.com/vosdev/jolly-boar-inn/issues?q=is%3Aopen+label%3Adesign), with their
+dependencies, on the [project board](https://github.com/users/vosdev/projects/3).
 
 ## NPC Hosts
 
-**Who hosts each mode.** The owner picks, before D14 for the modes that exist and inside each T
-task for the rest. A host must not also be on the random-event roster, or the face that means
+**Who hosts each mode.** The owner picks, in each new mode's issue. A host must not also be on the random-event roster, or the face that means
 "interruption" would sometimes mean "the round".
 
 | Mode | Host | |

@@ -1,7 +1,7 @@
 # NPC art
 
-The hosts on the stage (D14, section 8 of `ideas/design.md`), and later the random-event NPCs
-(D15). Each NPC is named by its id and has up to two files from the OSRS Wiki:
+The hosts on the stage (section 8 of `ideas/design.md`), and later the random-event NPCs
+(#105). Each NPC is named by its id and has up to two files from the OSRS Wiki:
 
 | File | Wiki file | Shown |
 |---|---|---|
