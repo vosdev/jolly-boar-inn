@@ -5,7 +5,8 @@
  * leaving the room ends. Then the menu as a whole: every setting the three old popovers
  * held, the keyboard, and the theme list, which offers the themes and nothing that follows
  * the device, shows jolly to a browser that never chose, and repaints the moment one is
- * picked, emblem and all.
+ * picked, emblem and all. In a room it renames only in the lobby, and tells the room while
+ * its name field has focus there, so the others see "picking a name…".
  */
 
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
@@ -16,7 +17,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { derivedHead } from '../lib/heads'
 import { nudge, profile } from '../lib/profile'
 import type { ClientMessage, PlayerView, RoomView } from '../lib/protocol'
-import { applyServerMessage, resetRoom, roomSend } from '../lib/stores'
+import { applyServerMessage, connection, resetRoom, roomSend } from '../lib/stores'
 import { EMBLEMS } from '../lib/emblems'
 import { THEME_LABELS, THEMES } from '../lib/theme'
 import { headsDrawn } from '../test-heads'
@@ -43,7 +44,7 @@ async function rename(to: string): Promise<void> {
 }
 
 beforeEach(() => {
-  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] })
   resetRoom()
   sent = []
   roomSend.set((message) => {
@@ -81,10 +82,10 @@ const LOBBY: RoomView = {
   segment: null,
 }
 
-function welcome(you: PlayerView): void {
+function welcome(you: PlayerView, room: RoomView = LOBBY): void {
   applyServerMessage({
     t: 'welcome',
-    room: LOBBY,
+    room,
     you,
     players: [you],
     question: null,
@@ -113,6 +114,7 @@ describe('SettingsMenu', () => {
 
   it('answers a name the room already has in the menu, and keeps the old one', async () => {
     profile.set({ name: 'Zezima', head: 3 })
+    welcome(me)
     render(SettingsMenu, { live: me })
     await rename('Woox')
     applyServerMessage({ t: 'error', code: 'name_taken', message: 'that name is taken' })
@@ -134,6 +136,8 @@ describe('SettingsMenu', () => {
 })
 
 describe('SettingsMenu in a room', () => {
+  beforeEach(() => welcome(me))
+
   it('stops waiting on a rename nobody answers, says so, and lets it be tried again', async () => {
     render(SettingsMenu, { live: me })
     await rename('Woox')
@@ -185,6 +189,112 @@ describe('SettingsMenu in a room', () => {
     expect(waiting()).toBeTruthy()
     await chip.rerender({ live: null })
     expect(waiting()).toBeNull()
+  })
+})
+
+describe('SettingsMenu, picking a name', () => {
+  const editing = () => sent.filter((message) => message.t === 'editing')
+
+  beforeEach(() => {
+    welcome(me)
+    connection.set('open')
+    // Like the real socket, which sends nothing until it is welcomed again.
+    roomSend.set((message) => get(connection) === 'open' && sent.push(message) > 0)
+  })
+
+  afterEach(() => connection.set('connecting'))
+
+  async function focusName(): Promise<void> {
+    screen.getByRole('textbox').focus()
+    await tick()
+  }
+
+  it('says nothing for an open menu, only while the name field has focus', async () => {
+    render(SettingsMenu, { live: me })
+    await fireEvent.click(control())
+    expect(editing()).toEqual([])
+    await focusName()
+    expect(editing()).toEqual([{ t: 'editing', on: true }])
+    screen.getByRole('textbox').blur()
+    await tick()
+    expect(editing()).toEqual([
+      { t: 'editing', on: true },
+      { t: 'editing', on: false },
+    ])
+  })
+
+  it('takes it back when the menu closes with the name field in focus', async () => {
+    render(SettingsMenu, { live: me })
+    await fireEvent.click(control())
+    await focusName()
+    await fireEvent.keyDown(window, { key: 'Escape' })
+    expect(editing().at(-1)).toEqual({ t: 'editing', on: false })
+  })
+
+  it('says it again every 30 seconds while focused, so it never lapses', async () => {
+    render(SettingsMenu, { live: me })
+    await fireEvent.click(control())
+    await focusName()
+    await vi.advanceTimersByTimeAsync(29_999)
+    expect(editing()).toHaveLength(1)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(editing()).toHaveLength(2)
+    await fireEvent.keyDown(window, { key: 'Escape' })
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(editing()).toHaveLength(3) // the off, and nothing after it
+  })
+
+  it('says it again after a reconnect, which cleared it on the server', async () => {
+    render(SettingsMenu, { live: me })
+    await fireEvent.click(control())
+    await focusName()
+    connection.set('reconnecting')
+    await tick()
+    connection.set('open')
+    await tick()
+    expect(editing().map((message) => message.t === 'editing' && message.on)).toEqual([
+      true,
+      true,
+    ])
+  })
+
+  it('goes quiet after a save the room accepts, until the name is touched again', async () => {
+    const chip = render(SettingsMenu, { live: me })
+    await fireEvent.click(control())
+    await focusName()
+    await fireEvent.input(screen.getByRole('textbox'), { target: { value: 'Woox' } })
+    await fireEvent.submit(save().form!)
+    const renamed = { ...me, display_name: 'Woox' }
+    applyServerMessage({ t: 'room_updated', room: LOBBY, players: [renamed] })
+    await chip.rerender({ live: renamed })
+    await tick()
+    expect(editing().at(-1)).toEqual({ t: 'editing', on: false })
+    const quiet = editing().length
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(editing()).toHaveLength(quiet)
+    await fireEvent.input(screen.getByRole('textbox'), { target: { value: 'Woox Jr' } })
+    expect(editing().at(-1)).toEqual({ t: 'editing', on: true })
+  })
+
+  it('disables the rename once the game has started, and tells the room nothing', async () => {
+    welcome(me, { ...LOBBY, status: 'playing', phase: 'open', current_index: 0 })
+    render(SettingsMenu, { live: me })
+    await fireEvent.click(control())
+    const name = screen.getByRole('textbox') as HTMLInputElement
+    expect(name.value).toBe('Zezima')
+    expect(name.matches(':disabled')).toBe(true)
+    expect(save().matches(':disabled')).toBe(true)
+    const reroll = screen.getByRole('button', { name: /New head/ })
+    expect(reroll.matches(':disabled')).toBe(true)
+    expect(screen.getByText('Names are fixed once the game has started.')).toBeTruthy()
+    await fireEvent.submit(save().form!)
+    expect(sent).toEqual([])
+  })
+
+  it('tells the room nothing outside one', async () => {
+    render(SettingsMenu, { live: null })
+    await fireEvent.click(control())
+    expect(editing()).toEqual([])
   })
 })
 

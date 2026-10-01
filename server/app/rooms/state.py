@@ -115,6 +115,9 @@ _NAME_MARKS = frozenset("0123456789 _-")
 _SPACES = re.compile(" {2,}")
 # Seconds between one player's lobby ready changes, and between their profile changes.
 CHANGE_COOLDOWN = 1.0
+# Seconds an ``editing`` flag lasts without being sent again. A tab that froze or lost its
+# socket half-way would otherwise leave "picking a name…" up for the rest of the lobby.
+EDITING_SECONDS = 60.0
 # Seconds a random event's NPC holds the floor before the buttons appear. Fixed rather than
 # a room setting: the client's interlude is timed to it, the prompt typing in at a set pace
 # and finishing just before the answers (section 12 of ideas/design.md).
@@ -275,6 +278,12 @@ class Player:
     # monotonic clock. Each change is a broadcast to every socket in the room.
     ready_changed_at: float = field(default=-math.inf, repr=False)
     profile_changed_at: float = field(default=-math.inf, repr=False)
+    # Has the name field focused in the lobby. In memory only, like ``ready``, and advice only:
+    # it holds up neither the ready check nor Start.
+    editing: bool = False
+    editing_changed_at: float = field(default=-math.inf, repr=False)
+    # Clears ``editing`` once it has gone ``EDITING_SECONDS`` without being sent again.
+    editing_expiry: asyncio.Task[None] | None = field(default=None, repr=False)
 
     def view(self) -> PlayerView:
         return PlayerView(
@@ -284,7 +293,16 @@ class Player:
             role=self.role,  # type: ignore[arg-type]  # the column's check constraint
             connected=self.connected,
             ready=self.ready,
+            editing=self.editing,
         )
+
+    def stop_editing(self) -> bool:
+        """Clear ``editing`` and its expiry. ``True`` if it was on."""
+        if self.editing_expiry is not None:
+            self.editing_expiry.cancel()
+            self.editing_expiry = None
+        was, self.editing = self.editing, False
+        return was
 
 
 @dataclass(slots=True)
@@ -661,6 +679,7 @@ class RoomManager:
         # from enough of its past ones, and a code is only as private as its successors.
         self.code_rng: random.Random = secrets.SystemRandom()
         self.clock = clock
+        self.editing_seconds = EDITING_SECONDS
         self.rooms: dict[str, Room] = {}
         # A room in memory shares its code's lock. The entry outlives the room while
         # anyone holds or waits on it, so an eviction and a rehydrate of the same code
@@ -1042,6 +1061,7 @@ class RoomManager:
             player = room.players.get(player_id)
             if player is not None:
                 player.connected = False
+                player.stop_editing()
             # Somebody leaving lowers the threshold rather than stalling the splash, and can
             # be the last player the open question was waiting on.
             _recount_splash(room, self.clock())
@@ -1202,9 +1222,10 @@ class RoomManager:
         Held to exactly what a join is: the same name rules, the same case-insensitive
         uniqueness in the room -- the unique index is what decides, so a rename racing a
         join cannot both win -- and a head from the manifest. A rejected change leaves
-        the row and the room exactly as they were. Allowed in any status: standings are
-        keyed on the player's id, so a mid-game rename moves no points and no answer.
-        A change within ``CHANGE_COOLDOWN`` of the last one is ``bad_state``.
+        the row and the room exactly as they were. Only in the lobby: a name that changes
+        mid-game leaves the others unsure who is ahead of them. A change within
+        ``CHANGE_COOLDOWN`` of the last one is ``bad_state``. A rename lands with the
+        player's ``editing`` already off.
 
         Nothing changed is nothing broadcast. Everybody else hears about a real change
         through ``room_updated``, the sender included, like every other command.
@@ -1220,6 +1241,8 @@ class RoomManager:
             target = room.players.get(player.id)
             if target is None:
                 raise BadState("you are no longer in this room")
+            if room.status != "lobby":
+                raise BadState("names are fixed once the game has started")
             new_name = target.display_name if name is None else name
             new_avatar = target.avatar if avatar is None else avatar
             if (new_name, new_avatar) == (target.display_name, target.avatar):
@@ -1239,6 +1262,7 @@ class RoomManager:
             target.display_name = new_name
             target.avatar = new_avatar
             target.profile_changed_at = now
+            target.stop_editing()
             update = self._room_updated(room)
         self._broadcast(update)
 
@@ -1286,6 +1310,56 @@ class RoomManager:
             update = self._players_updated(room, before)
         self._broadcast(update)
 
+    async def set_editing(self, code: str, player: Player, on: bool) -> None:
+        """Say the player is in the name field in the lobby, or has left it.
+
+        Advice for the others, never a gate. An ``on`` for a flag that is already on only
+        restarts its ``EDITING_SECONDS``. A change is broadcast; spam is held to two a
+        second by ignoring an ``on`` within ``CHANGE_COOLDOWN`` of the last change, while
+        an ``off`` always lands so a flag never outlives the focus. Outside the lobby it is
+        ignored rather than refused: the client sends it on its own, not on a tap.
+        """
+        code = code.upper()
+        async with self._locked(code):
+            room = await self._room(code)
+            target = room.players.get(player.id)
+            if target is None:
+                raise BadState("you are no longer in this room")
+            now = self.clock()
+            if not on:
+                if not target.stop_editing():
+                    return
+            elif room.status != "lobby":
+                return
+            elif target.editing:
+                self._expire_editing_later(room, target)
+                return
+            elif now - target.editing_changed_at < CHANGE_COOLDOWN:
+                return
+            else:
+                target.editing = True
+                self._expire_editing_later(room, target)
+            target.editing_changed_at = now
+            update = self._players_updated(room, room.view())
+        self._broadcast(update)
+
+    def _expire_editing_later(self, room: Room, player: Player) -> None:
+        """(Re)start the countdown that clears ``player.editing``. Lock held."""
+        if player.editing_expiry is not None:
+            player.editing_expiry.cancel()
+        player.editing_expiry = asyncio.create_task(self._expire_editing(room, player))
+
+    async def _expire_editing(self, room: Room, player: Player) -> None:
+        await asyncio.sleep(self.editing_seconds)
+        async with room.lock:
+            # A kick or the room leaving memory keeps the task going but drops the player.
+            if self.rooms.get(room.code) is not room or room.players.get(player.id) is not player:
+                return
+            player.editing_expiry = None
+            player.editing = False
+            update = self._players_updated(room, room.view())
+        self._broadcast(update)
+
     # --- Game loop ------------------------------------------------------------------
 
     async def start_game(self, code: str, by: Player) -> None:
@@ -1321,6 +1395,7 @@ class RoomManager:
             # "Ready to start" has been answered by starting. The first splash asks again.
             for player in room.players.values():
                 player.ready = False
+                player.stop_editing()
             update = self._room_updated(room)
         self._broadcast(update)
         self._start_timer(room, 0)

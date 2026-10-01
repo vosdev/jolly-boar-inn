@@ -165,15 +165,16 @@
   </button>
   <ul class="players">
     {#each $players as player (player.id)}
-      <li>
+      <li class:editing={player.editing === true}>
         <span
           class="dot"
           class:off={!player.connected}
           title={player.connected ? 'connected' : 'not connected'}
         ></span>
-        <Head head={headOf(player)} size={32} label="" />
+        <span class="face"><Head head={headOf(player)} size={32} label="" /></span>
         <span class="name">
           {player.display_name}{#if player.id === $you?.id}<span class="note"> (you)</span>{/if}
+          {#if player.editing === true}<span class="picking">picking a name…</span>{/if}
         </span>
         {#if player.role === 'admin'}<span class="tag">host</span>{/if}
         {#if player.ready === true}<span class="tag ready">✓ ready</span>{/if}
@@ -245,6 +246,25 @@
   .tag.ready {
     border-color: var(--accent);
     color: var(--ink);
+  }
+
+  /* Dimmed by ink rather than opacity, so the name and its note keep their contrast. */
+  .face {
+    display: inline-flex;
+  }
+
+  .editing .face {
+    opacity: 0.5;
+  }
+
+  .editing .name {
+    color: var(--muted);
+  }
+
+  .picking {
+    display: block;
+    font-size: 0.85rem;
+    font-style: italic;
   }
 
   /* Apart and full height: Promote cannot be undone, so it must not be a near miss for Kick. */

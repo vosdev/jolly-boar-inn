@@ -49,10 +49,11 @@ The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds tha
 `rooms`, `players`, `questions` or `answers` after creation.
 
 `RoomManager` methods: `get` (rehydrates, section 9), `create`, `join`, `connect`, `disconnect`,
-`set_profile`, `set_ready`, `start_game`, `submit_answer`, `skip(phase, index)`, `promote`, `kick`,
-`end_game`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `questions`, `totals`,
-`current_index`, `phase`, `next_at` (wall clock) with `next_mono` (monotonic), `sockets` (one
-`Outbox` each), `timer`, the `advance` and `rescheduled` events, and `lock`.
+`set_profile`, `set_ready`, `set_editing`, `start_game`, `submit_answer`, `skip(phase, index)`,
+`promote`, `kick`, `end_game`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`,
+`questions`, `totals`, `current_index`, `phase`, `next_at` (wall clock) with `next_mono`
+(monotonic), `sockets` (one `Outbox` each), `timer`, the `advance` and `rescheduled` events, and
+`lock`.
 
 - One `asyncio.Lock` per room. Every public method takes it. Nothing locks across rooms.
 - A method writes to Postgres before it changes memory, so a failed write leaves memory as it was.
@@ -201,7 +202,8 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `ping` | | all | Replies `pong`. |
 | `answer` | `question_id`, `value` | all | Stored if open, unanswered and allowed. `answer_ack` or `error`. |
 | `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. |
-| `set_profile` | `display_name?`, `avatar?` | all | Validated exactly like a join. One change a second. |
+| `set_profile` | `display_name?`, `avatar?` | all | Lobby only. Validated exactly like a join. One change a second. Clears `editing`. |
+| `editing` | `on: bool` | all | Name field focused. Lobby only, else ignored. An `on` within 1 s of a change is ignored; 60 s unsent, a disconnect or `start_game` clears it. |
 | `start_game` | | admin | `lobby → playing`. |
 | `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
 | `promote` | `player_id` | admin | Makes them admin. There is no demote. |
@@ -212,7 +214,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
 | `room_updated` | `room`, `players` | Join, leave, promote, kick, rename, status change, a splash or standings starting, a ready change that moves `next_at`. |
-| `players_updated` | `players` | A ready, connect or disconnect that changed players only. |
+| `players_updated` | `players` | A ready, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
@@ -223,7 +225,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 
 ```
 RoomView     { code, status, settings, current_index, total, phase, next_at, segment }
-PlayerView   { id, display_name, avatar, role, connected, ready }
+PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, random_event,

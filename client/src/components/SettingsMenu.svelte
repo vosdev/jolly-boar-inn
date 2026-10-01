@@ -27,6 +27,12 @@
    * `PENDING_MS` with no word, which says so. This component stays mounted with the menu
    * shut, so a change the room accepts after it closes still reaches the profile.
    *
+   * Names are fixed once the game starts, so in a room past its lobby the You section is
+   * disabled. In the lobby, the others see "picking a name…" while the name field has
+   * focus: the menu sends `editing` on focus, again every `EDITING_REFRESH_MS` and after a
+   * reconnect, since the server lets it lapse, and off on blur. A save the room accepts
+   * clears it on the server, and it stays off until the name is typed in again.
+   *
    * A player who joined first and never chose a name (section 6) is nudged here, once:
    * the control pulses and says who they are and that a tap changes it. It stays for as
    * long as the lobby does, until they open the menu or dismiss it.
@@ -41,7 +47,14 @@
   import { nameProblem } from '../lib/names'
   import { nudge, profile, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
-  import { players, profileError, requestsSettled, room, roomSend } from '../lib/stores'
+  import {
+    connection,
+    players,
+    profileError,
+    requestsSettled,
+    room,
+    roomSend,
+  } from '../lib/stores'
   import { getTheme, setTheme, THEME_LABELS, type Theme } from '../lib/theme'
   import Die from './Die.svelte'
   import Emblem from './Emblem.svelte'
@@ -52,6 +65,8 @@
 
   /** How long a `set_profile` may go unanswered before the popover stops waiting. */
   const PENDING_MS = 5_000
+  /** Well inside the server's 60 s, so a menu held open never lapses. */
+  const EDITING_REFRESH_MS = 30_000
 
   let {
     live = null,
@@ -74,14 +89,31 @@
   /** `$requestsSettled` when it was sent: once that moves, the reply is not coming. */
   let sentAt = 0
   let unanswered = $state(false)
+  /** Saved and untouched since: nothing to tell the room about. */
+  let resting = $state(false)
+  let nameFocused = $state(false)
+  /** The room was told `editing` is on, and not told it is off again. */
+  let editingSent = false
 
   const inRoom = $derived(live !== null)
+  const canRename = $derived(!inRoom || $room?.status === 'lobby')
+  const editing = $derived(
+    open &&
+      nameFocused &&
+      inRoom &&
+      canRename &&
+      !resting &&
+      $connection === 'open' &&
+      $roomSend !== null,
+  )
   const shownName = $derived(live?.display_name ?? $profile?.name ?? null)
   const shownHead = $derived(live !== null ? headOf(live) : ($profile?.head ?? null))
   const currentName = $derived(live?.display_name ?? $profile?.name ?? '')
   const nameChanged = $derived(draft.trim() !== currentName)
   const headChanged = $derived(draftHead !== null && draftHead !== shownHead)
-  const ok = $derived(nameProblem(draft) === null && (nameChanged || headChanged))
+  const ok = $derived(
+    canRename && nameProblem(draft) === null && (nameChanged || headChanged),
+  )
   const nudging = $derived(
     live !== null && $nudge !== null && $nudge === $room?.code && $room?.status === 'lobby',
   )
@@ -107,6 +139,20 @@
     saveProfile(live.display_name, headOf(live))
     saved = 'Saved.'
     pending = null
+    resting = true
+  })
+
+  $effect(() => {
+    const send = $roomSend
+    if (send === null) return
+    if (!editing) {
+      if (editingSent) send({ t: 'editing', on: false })
+      editingSent = false
+      return
+    }
+    editingSent = send({ t: 'editing', on: true })
+    const refresh = setInterval(() => send({ t: 'editing', on: true }), EDITING_REFRESH_MS)
+    return () => clearInterval(refresh)
   })
 
   // The room said no. The error is the menu's to show; what was pending is not coming.
@@ -136,6 +182,7 @@
     draftHead = shownHead
     saved = null
     unanswered = false
+    resting = false
     profileError.set(null)
     await tick()
     panel?.focus()
@@ -143,6 +190,11 @@
 
   function close(): void {
     open = false
+    nameFocused = false
+  }
+
+  function isNameField(target: EventTarget | null): boolean {
+    return target instanceof HTMLElement && target.id === 'profile-name'
   }
 
   function pickTheme(picked: Theme): void {
@@ -183,6 +235,7 @@
     if (pending !== null) return
     draftHead = randomHead(taken, draftHead ?? shownHead)
     saved = null
+    resting = false
   }
 
   function onWindowPointerDown(event: PointerEvent): void {
@@ -254,40 +307,50 @@
     <div class="panel-menu" role="dialog" aria-label="Settings" tabindex="-1" bind:this={panel}>
       <section aria-labelledby="menu-you">
         <h2 class="section-title" id="menu-you">You</h2>
-        {#if draftHead !== null}
-          <div class="face">
-            <Head head={draftHead} size={48} />
-            <button
-              type="button"
-              class="small reroll-head"
-              disabled={pending !== null}
-              onclick={rerollHead}
-            >
-              <Die /> New head
-            </button>
-          </div>
-        {/if}
-        <form onsubmit={submit}>
-          <NameField
-            id="profile-name"
-            bind:value={draft}
-            avoid={$room?.code ?? ''}
-          />
-          <div class="row">
-            <button class="primary small" type="submit" disabled={!ok || pending !== null}>
-              Save
-            </button>
-            {#if pending !== null}
-              <span class="note" role="status">Asking the room…</span>
-            {:else if refusal !== null}
-              <span class="error" role="alert">{refusal}</span>
-            {:else if unanswered}
-              <span class="error" role="alert">The room didn't answer. Try again.</span>
-            {:else if saved !== null}
-              <span class="note" role="status">{saved}</span>
-            {/if}
-          </div>
-        </form>
+        <fieldset class="you" disabled={!canRename}>
+          {#if draftHead !== null}
+            <div class="face">
+              <Head head={draftHead} size={48} />
+              <button
+                type="button"
+                class="small reroll-head"
+                disabled={pending !== null}
+                onclick={rerollHead}
+              >
+                <Die /> New head
+              </button>
+            </div>
+          {/if}
+          <form
+            onsubmit={submit}
+            oninput={() => (resting = false)}
+            onfocusin={(event) => (nameFocused = isNameField(event.target))}
+            onfocusout={() => (nameFocused = false)}
+          >
+            <NameField
+              id="profile-name"
+              bind:value={draft}
+              avoid={$room?.code ?? ''}
+            />
+            <div class="row">
+              <button class="primary small" type="submit" disabled={!ok || pending !== null}>
+                Save
+              </button>
+              {#if pending !== null}
+                <span class="note" role="status">Asking the room…</span>
+              {:else if refusal !== null}
+                <span class="error" role="alert">{refusal}</span>
+              {:else if unanswered}
+                <span class="error" role="alert">The room didn't answer. Try again.</span>
+              {:else if saved !== null}
+                <span class="note" role="status">{saved}</span>
+              {/if}
+            </div>
+          </form>
+          {#if !canRename}
+            <p class="note">Names are fixed once the game has started.</p>
+          {/if}
+        </fieldset>
       </section>
       <SoundSettings />
       <ThemeChoices current={theme} onpick={pickTheme} />
@@ -296,6 +359,13 @@
 </div>
 
 <style>
+  .you {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
   /* Deliberately not positioned: the menu anchors to the top bar's column instead
      (TopBar's `.inner`) and opens flush with its right edge, so at 320px it has the whole
      width less the gutter however wide the name is. */

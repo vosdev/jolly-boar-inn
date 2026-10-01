@@ -1004,35 +1004,17 @@ def test_a_player_who_first_connects_mid_question_counts_and_is_scored(table, cl
 # --- D4: set_profile mid-game ---------------------------------------------------------
 
 
-def test_a_rename_mid_game_disturbs_neither_the_standings_nor_an_open_answer(game, db) -> None:
-    """D4 Accept: a rename mid-game does not disturb standings or an open answer."""
+def test_a_rename_mid_game_is_refused_and_changes_nothing(game, db) -> None:
+    """Names are fixed once the game starts, so nobody loses track of who is ahead."""
     game.start()
     game.opened(0)
-    player, other = game.players
-    game.answer(player, 0, game.right(0))
-    player.take("answer_ack")
-
+    player = game.players[0]
     player.send(t="set_profile", display_name="RenamedMidGame", avatar=7)
-    update = other.take("room_updated")
-    assert update["room"]["phase"] == "open"  # the question is still up
-    renamed = next(p for p in update["players"] if p["id"] == player.id)
-    assert (renamed["display_name"], renamed["avatar"]) == ("RenamedMidGame", 7)
-    # The answer given under the old name is still this player's, and still counts.
-    assert game.question(0).answers[UUID(player.id)].value == game.right(0)
-    player.send(t="answer", question_id=str(game.question(0).id), value=game.right(0))
-    assert player.take("error")["code"] == "already_answered"
-
-    game.skip()
-    closed = other.take("question_closed")
-    assert closed["results"][player.id]["points"] == 1000
-    top = closed["standings"][0]
-    assert (top["player_id"], top["display_name"], top["avatar"], top["points"]) == (
-        player.id,
-        "RenamedMidGame",
-        7,
-        1000,
-    )
-    assert_memory_matches_db(game, db)
+    assert player.take("error")["code"] == "bad_state"
+    renamed = game.room.players[UUID(player.id)]
+    assert (renamed.display_name, renamed.avatar) == ("Zezima", None)
+    row = db("select display_name, avatar from players where id = $1", UUID(player.id))
+    assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", None)
 
 
 # --- T11: restart recovery -----------------------------------------------------------

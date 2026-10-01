@@ -7,7 +7,7 @@ name already taken in the room is rejected and the old name survives unchanged; 
 50 can be given 50 different heads; a client from before this task, which sends no
 ``avatar`` and never sends ``set_profile``, still creates, joins and plays.
 
-The mid-game rename is in ``test_game.py`` beside the other in-game commands, a room from
+The refused mid-game rename is in ``test_game.py`` beside the other in-game commands, a room from
 before the migration is in ``test_migrations.py``, the manifest is in ``test_heads.py``, and
 the client's half in its own tests.
 """

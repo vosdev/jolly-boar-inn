@@ -94,6 +94,8 @@ class PlayerView(_Message):
     # The ready check (D7): ready to start in the lobby, ready for this round on a splash.
     # Every splash starts it false for everyone again.
     ready: bool
+    # Is typing a name in the lobby: "picking a name…". Advice, never a gate.
+    editing: bool
 
 
 class Standing(_Message):
@@ -204,8 +206,25 @@ class Ready(_Message):
     ready: bool = Field(strict=True)
 
 
+class Editing(_Message):
+    """The name field gained focus (``on``), or lost it. Lobby only; ignored anywhere else."""
+
+    t: Literal["editing"]
+    on: bool = Field(strict=True)
+
+
 ClientMessage = Annotated[
-    Hello | Ping | Answer | StartGame | Skip | Promote | Kick | EndGame | SetProfile | Ready,
+    Hello
+    | Ping
+    | Answer
+    | StartGame
+    | Skip
+    | Promote
+    | Kick
+    | EndGame
+    | SetProfile
+    | Ready
+    | Editing,
     Field(discriminator="t"),
 ]
 _client_message = TypeAdapter[ClientMessage](ClientMessage)
@@ -246,7 +265,8 @@ class RoomUpdated(_Message):
 
 
 class PlayersUpdated(_Message):
-    """A ready tap, connect or disconnect that changed the players and nothing else."""
+    """A ready tap, an ``editing`` change, connect or disconnect that changed the players
+    and nothing else."""
 
     t: Literal["players_updated"] = "players_updated"
     players: list[PlayerView]
