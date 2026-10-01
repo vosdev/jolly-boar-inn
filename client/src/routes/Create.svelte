@@ -46,7 +46,7 @@
   import { randomHead } from '../lib/heads'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
   import { generateName } from '../lib/names'
-  import { nudge, profile, saveProfile } from '../lib/profile'
+  import { nudge, profile, returningVisitor, saveProfile } from '../lib/profile'
   import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
   import { rememberCreated, setSession } from '../lib/session'
@@ -177,7 +177,7 @@
     const saved = get(profile)
     const host = saved ?? { name: generateName(), head: randomHead() }
     try {
-      const created = await createRoom(host.name, settings, host.head)
+      const created = await createRoom(host.name, settings, host.head, returningVisitor)
       setSession(created.code, created.session)
       rememberCreated(created.code, created.expires_at)
       // Only once the room exists, so a failed create leaves a browser that is still

@@ -451,6 +451,7 @@ def create_room(base_url: str, run: Run, name: str) -> tuple[str, str, str]:
         f"{base_url}/api/rooms",
         {
             "display_name": name,
+            "returning": False,
             "settings": {
                 "modes": [
                     {
@@ -470,7 +471,7 @@ def create_room(base_url: str, run: Run, name: str) -> tuple[str, str, str]:
 
 
 def join_room(base_url: str, code: str, name: str) -> tuple[str, str]:
-    joined = post(f"{base_url}/api/rooms/{code}/join", {"display_name": name})
+    joined = post(f"{base_url}/api/rooms/{code}/join", {"returning": False, "display_name": name})
     return joined["session"], joined["player"]["id"]
 
 

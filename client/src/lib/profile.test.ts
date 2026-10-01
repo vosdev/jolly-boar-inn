@@ -50,3 +50,24 @@ describe('profile', () => {
     expect(get((await visit()).profile)).toBeNull()
   })
 })
+
+describe('returningVisitor', () => {
+  it('is false on a first visit, even once this visit has saved a name', async () => {
+    const first = await visit()
+    first.saveProfile('Zezima', 4)
+    expect(first.returningVisitor).toBe(false)
+    expect((await visit()).returningVisitor).toBe(true)
+  })
+
+  it('counts a stored profile whose name the rules no longer take', async () => {
+    localStorage.setItem('jbi:profile', JSON.stringify({ name: '<b>bold</b>' }))
+    const page = await visit()
+    expect(get(page.profile)).toBeNull()
+    expect(page.returningVisitor).toBe(true)
+  })
+
+  it('is false when storage throws', async () => {
+    storageThrows()
+    expect((await visit()).returningVisitor).toBe(false)
+  })
+})

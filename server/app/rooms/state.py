@@ -80,6 +80,7 @@ from app.questions.types import TYPES, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from app.rooms import codes, ready, scoring, segments, selection
 from app.rooms.settings import RoomSettings
+from app.stats import Metric, bump, joined
 from app.ws.outbox import Outbox
 from app.ws.protocol import (
     AnswerCount,
@@ -803,8 +804,11 @@ class RoomManager:
         elif question.closed_at is None:
             closed_at = datetime.now(UTC)
             pool = await self._pool()
-            async with pool.acquire() as conn:
+            async with pool.acquire() as conn, conn.transaction():
                 await _void_question(conn, question, closed_at)
+                # The game plays on after a restart, so a round whose last question it
+                # voided was played through, not cut short.
+                await _count_round_finished(conn, room, question.position)
             question.closed_at, question.voided = closed_at, True
             log.warning(
                 "room %s: question %d was open at the restart, voided", room.code, question.position
@@ -1091,6 +1095,7 @@ class RoomManager:
         settings: RoomSettings,
         custom_questions: Sequence[dict[str, Any]],
         avatar: int | None = None,
+        returning: bool = False,
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
 
@@ -1163,6 +1168,8 @@ class RoomManager:
                 avatar,
             )
             assert player_row is not None
+            await bump(conn, Metric.ROOMS_CREATED)
+            await joined(conn, returning)
             await conn.executemany(
                 "insert into questions (room_id, position, question_id, type, mode, source,"
                 " payload, host_only, round, random_event, author_player_id)"
@@ -1187,7 +1194,7 @@ class RoomManager:
         return room, player, session
 
     async def join(
-        self, code: str, display_name: str, avatar: int | None = None
+        self, code: str, display_name: str, avatar: int | None = None, returning: bool = False
     ) -> tuple[Player, str]:
         """Add a player to a room in its lobby. Returns the player and their session token, once.
 
@@ -1221,6 +1228,7 @@ class RoomManager:
                     )
                 except asyncpg.UniqueViolationError:
                     raise NameTaken(f"the name {name!r} is taken in room {code}") from None
+                await joined(conn, returning)
             assert row is not None
             player = _player_from_row(row)
             room.players[player.id] = player
@@ -1396,13 +1404,14 @@ class RoomManager:
             # A room made near its expiry must not expire mid-game, so it gets a full
             # lifetime from here.
             expires_at = datetime.now(UTC) + timedelta(days=self.settings.room_ttl_days)
-            async with pool.acquire() as conn:
+            async with pool.acquire() as conn, conn.transaction():
                 await conn.execute(
                     "update rooms set status = 'playing', current_index = 0, expires_at = $2"
                     " where id = $1",
                     room.id,
                     expires_at,
                 )
+                await bump(conn, Metric.GAMES_STARTED)
             room.status = "playing"
             room.expires_at = expires_at
             room.current_index = 0
@@ -1576,6 +1585,7 @@ class RoomManager:
                 raise BadState(f"room {code} is {room.status}, not playing")
             question = room.open_question()
             voiding = question if question is not None and question.closed_at is None else None
+            cut_short = _round_under_way(room)
             closed_at = datetime.now(UTC)
             async with pool.acquire() as conn, conn.transaction():
                 if voiding is not None:
@@ -1585,6 +1595,9 @@ class RoomManager:
                     room.id,
                     closed_at,
                 )
+                await bump(conn, Metric.GAMES_ENDED_EARLY)
+                if cut_short is not None:
+                    await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
             _stop_timer(room)
             if voiding is not None:
                 voiding.closed_at, voiding.voided = closed_at, True
@@ -1787,10 +1800,14 @@ class RoomManager:
             shown_at, now = datetime.now(UTC), self.clock()
             seconds = room.question_seconds(question)
             hold = RANDOM_EVENT_HOLD if question.random_event else 0
-            async with pool.acquire() as conn:
+            segment = room.segment_at(index)
+            assert segment is not None  # every question belongs to a round
+            async with pool.acquire() as conn, conn.transaction():
                 await conn.execute(
                     "update questions set shown_at = $1 where id = $2", shown_at, question.id
                 )
+                if index == segment.start:
+                    await bump(conn, Metric.ROUNDS_STARTED, segment.mode)
             question.shown_at = shown_at
             question.seconds = seconds
             question.answerable_at = shown_at + timedelta(seconds=hold)
@@ -1801,8 +1818,6 @@ class RoomManager:
             room.phase = "open"
             room.next_at = room.next_mono = None
             room.advance.clear()
-            segment = room.segment_at(index)
-            assert segment is not None  # every question belongs to a round
             count = _answer_count(room, question)
             opened = Broadcast.per_player(
                 room,
@@ -1852,6 +1867,7 @@ class RoomManager:
                 await conn.execute(
                     "update questions set closed_at = $1 where id = $2", closed_at, question.id
                 )
+                await _count_round_finished(conn, room, question.position)
                 if graded:
                     await conn.executemany(
                         "update answers set correct = $1, points = $2"
@@ -1903,7 +1919,7 @@ class RoomManager:
             if self.rooms.get(room.code) is not room or room.status != "playing":
                 return None
             following = index + 1
-            async with pool.acquire() as conn:
+            async with pool.acquire() as conn, conn.transaction():
                 if following < len(room.questions):
                     await conn.execute(
                         "update rooms set current_index = $1 where id = $2", following, room.id
@@ -1917,6 +1933,7 @@ class RoomManager:
                     room.id,
                     finished_at,
                 )
+                await bump(conn, Metric.GAMES_FINISHED)
             broadcasts = self._finish(room, finished_at)
         for broadcast in broadcasts:
             self._broadcast(broadcast)
@@ -2057,6 +2074,23 @@ def _stop_timer(room: Room) -> None:
     timer, room.timer = room.timer, None
     if timer is not None and timer is not asyncio.current_task():
         timer.cancel()
+
+
+def _round_under_way(room: Room) -> Segment | None:
+    """The round whose first question has opened and whose last has not closed, if any."""
+    segment = room.segment_at(room.current_index or 0)
+    if segment is None:
+        return None
+    first = room.questions[segment.start]
+    last = room.questions[segment.start + segment.count - 1]
+    return segment if first.shown_at is not None and last.closed_at is None else None
+
+
+async def _count_round_finished(conn: asyncpg.Connection, room: Room, position: int) -> None:
+    """Count the round as finished if ``position``, now closing, is its last question."""
+    segment = room.segment_at(position)
+    if segment is not None and position == segment.start + segment.count - 1:
+        await bump(conn, Metric.ROUNDS_FINISHED, segment.mode)
 
 
 async def _void_question(conn: asyncpg.Connection, question: RoomQuestion, at: datetime) -> None:

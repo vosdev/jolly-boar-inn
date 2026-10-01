@@ -197,7 +197,7 @@ def test_a_write_that_is_not_json_is_415(
 def test_a_json_write_with_a_charset_reaches_the_route(client: TestClient) -> None:
     response = client.post(
         "/api/rooms",
-        content=b'{"display_name": "Zezima"}',
+        content=b'{"returning": false, "display_name": "Zezima"}',
         headers={"content-type": "application/json; charset=utf-8"},
     )
     assert response.status_code == 201
@@ -248,7 +248,7 @@ def test_create_counts_an_ipv6_client_by_its_64(app: FastAPI) -> None:
         app.state.ratelimiter = RateLimiter(limit=1)
 
         def create_from(address: str) -> int:
-            body = {"display_name": "Admin"}
+            body = {"returning": False, "display_name": "Admin"}
             headers = {"X-Forwarded-For": address}
             return proxied.post("/api/rooms", json=body, headers=headers).status_code
 
