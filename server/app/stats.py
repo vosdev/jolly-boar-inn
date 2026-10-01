@@ -7,7 +7,7 @@ what that room counted.
 A game ends exactly one way: early, finished, or abandoned when its room is deleted or
 expires mid-game. A round, keyed by its mode, starts when its first question opens and
 finishes when its last one closes, graded or voided by a restart; ``end_game`` between
-those two ends it early.
+those two ends it early, and its room going then abandons it.
 """
 
 from enum import StrEnum
@@ -27,6 +27,7 @@ class Metric(StrEnum):
     ROUNDS_STARTED = "rounds_started"
     ROUNDS_ENDED_EARLY = "rounds_ended_early"
     ROUNDS_FINISHED = "rounds_finished"
+    ROUNDS_ABANDONED = "rounds_abandoned"
 
 
 async def bump(conn: asyncpg.Connection, metric: Metric, key: str = "", by: int = 1) -> None:

@@ -133,6 +133,22 @@ CLOSE_GONE = 4004
 # Expired rooms deleted per statement: small enough that a batch never nears the pool's
 # ``command_timeout``, whatever the backlog.
 PURGE_BATCH = 200
+# ``_round_under_way`` in SQL, per mode, for the playing rooms among $1. Questions open
+# and close in order, so a round is under way while some of its questions have been
+# shown and some are not closed. It is named as ``segments_of`` names it.
+_ROUNDS_UNDER_WAY = (
+    "select (select q.mode from questions q"
+    "        where q.room_id = r.id and q.round = cur.round"
+    "        order by q.random_event is not null, q.position limit 1) as mode,"
+    " count(*) as n"
+    " from rooms r join questions cur on cur.room_id = r.id and cur.position = r.current_index"
+    " where r.id = any($1) and r.status = 'playing'"
+    " and exists (select 1 from questions s where s.room_id = r.id and s.round = cur.round"
+    "             and s.shown_at is not null)"
+    " and exists (select 1 from questions c where c.room_id = r.id and c.round = cur.round"
+    "             and c.closed_at is null)"
+    " group by 1"
+)
 # Envelope keys that have their own column in ``questions``; the rest is the payload jsonb.
 # ``random_event`` is the NPC asking it: the envelope's own for an NPC's question or a host's
 # that names one, a face ``selection`` draws for the rest, and a column either way.
@@ -896,19 +912,27 @@ class RoomManager:
         async with pool.acquire() as conn:
             while True:
                 async with conn.transaction():
-                    row = await conn.fetchrow(
-                        "with gone as (delete from rooms where id in (select id from rooms"
+                    ids = await conn.fetch(
+                        "select id from rooms"
                         " where expires_at < now() or finished_at < now() - $2::interval"
-                        " limit $1) returning status)"
-                        " select count(*) as batch,"
-                        " count(*) filter (where status = 'playing') as abandoned from gone",
+                        " limit $1 for update",
                         PURGE_BATCH,
                         self._grace,
                     )
-                    assert row is not None
-                    if row["abandoned"]:
-                        await bump(conn, Metric.GAMES_ABANDONED, by=row["abandoned"])
-                batch = row["batch"]
+                    ids = [row["id"] for row in ids]
+                    # Most of these rooms are not in memory, so the database says what
+                    # was under way in them, read before the delete takes it.
+                    abandoned = await conn.fetchval(
+                        "select count(*) from rooms where id = any($1) and status = 'playing'",
+                        ids,
+                    )
+                    rounds = await conn.fetch(_ROUNDS_UNDER_WAY, ids)
+                    await conn.execute("delete from rooms where id = any($1)", ids)
+                    if abandoned:
+                        await bump(conn, Metric.GAMES_ABANDONED, by=abandoned)
+                    for row in rounds:
+                        await bump(conn, Metric.ROUNDS_ABANDONED, row["mode"], row["n"])
+                batch = len(ids)
                 deleted += batch
                 if batch < PURGE_BATCH:
                     break
@@ -961,6 +985,8 @@ class RoomManager:
                 await conn.execute("delete from rooms where id = $1", room.id)
                 if room.status == "playing":
                     await bump(conn, Metric.GAMES_ABANDONED)
+                    if (cut_short := _round_under_way(room)) is not None:
+                        await bump(conn, Metric.ROUNDS_ABANDONED, cut_short.mode)
             sockets = self._forget(room)
             log.info("room %s deleted by %s", code, player.display_name)
         for outbox in sockets:

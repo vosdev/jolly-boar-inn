@@ -134,36 +134,72 @@ def test_a_restart_that_voids_a_rounds_last_question_finishes_it_once(
     assert Metric.ROUNDS_ENDED_EARLY not in {m for m, _ in stats}
 
 
-def test_deleting_a_room_mid_game_abandons_it(table, client: TestClient, db) -> None:
-    game = table("Zezima", seconds=30)
+def mid_round(table, name: str = "Zezima", **settings) -> Game:
+    """A game on the first of a round's two questions."""
+    game = table(name, seconds=30, questions=2, **settings)
     game.start()
     game.opened(0)
+    return game
+
+
+def in_splash(table, name: str = "Zezima") -> Game:
+    """A game waiting in the splash before its first round."""
+    game = table(name, seconds=30, splash_seconds=8)
+    game.start()
+    game.splash()
+    return game
+
+
+def ended_mid_round(table, name: str = "Zezima") -> Game:
+    """A game the host ended on the first of a round's two questions."""
+    game = mid_round(table, name)
+    game.admin.send(t="end_game")
+    game.admin.take("game_finished")
+    return game
+
+
+def abandoned(db) -> dict[tuple[Metric, str], int]:
+    return {k: n for k, n in counts(db).items() if k[0] in ABANDONED}
+
+
+ABANDONED = {Metric.GAMES_ABANDONED, Metric.ROUNDS_ABANDONED}
+
+
+@pytest.mark.parametrize(
+    ("setup", "expected"),
+    [
+        (
+            mid_round,
+            {(Metric.GAMES_ABANDONED, ""): 1, (Metric.ROUNDS_ABANDONED, MORE_LESS): 1},
+        ),
+        (in_splash, {(Metric.GAMES_ABANDONED, ""): 1}),
+        (ended_mid_round, {}),
+    ],
+)
+def test_deleting_a_room_abandons_what_was_under_way(
+    table, client: TestClient, db, setup, expected
+) -> None:
+    game = setup(table)
     session = game.admin.session
     deleted = client.request("DELETE", f"/api/rooms/{game.code}", json={"session": session})
     assert deleted.status_code == 204
-    stats = counts(db)
-    assert stats[(Metric.GAMES_ABANDONED, "")] == 1
-    assert not {Metric.GAMES_ENDED_EARLY, Metric.GAMES_FINISHED} & {m for m, _ in stats}
+    assert abandoned(db) == expected
 
 
-def test_cleanup_abandons_only_the_games_still_playing(
-    app: FastAPI, table, client: TestClient, db
+def test_cleanup_abandons_only_what_was_under_way(
+    app: FastAPI, table, client: TestClient, db, second_mode: str
 ) -> None:
-    """Three rooms past their time: one mid-game, one in the lobby, one finished."""
-    playing = table("Zezima", seconds=30)
-    playing.start()
-    playing.opened(0)
+    """Four rooms past their time: mid-round, in a splash, in the lobby, ended mid-round."""
+    mid_round(table, "Zezima", modes=[second_mode])
+    in_splash(table, "Woox")
     create(client)
-    finished = table("Woox", seconds=30)
-    finished.start()
-    finished.opened(0)
-    finished.admin.send(t="end_game")
-    finished.admin.take("game_finished")
+    ended_mid_round(table, "Lynx")
     db("update rooms set expires_at = now() - interval '1 minute'")
-    assert call(client, app.state.rooms.purge_expired) == 3
-    stats = counts(db)
-    assert stats[(Metric.GAMES_ABANDONED, "")] == 1
-    assert stats[(Metric.GAMES_ENDED_EARLY, "")] == 1
+    assert call(client, app.state.rooms.purge_expired) == 4
+    assert abandoned(db) == {
+        (Metric.GAMES_ABANDONED, ""): 2,
+        (Metric.ROUNDS_ABANDONED, second_mode): 1,
+    }
 
 
 def test_a_rolled_back_creation_counts_nothing(
