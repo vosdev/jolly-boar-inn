@@ -4,9 +4,10 @@ Each counter is bumped inside the transaction of the event it counts, so an even
 rolls back counts nothing. The table has no foreign key, so cleanup deleting a room leaves
 what that room counted.
 
-A game ends exactly one way, early or finished, and so does a round, keyed by its mode. A
-round starts when its first question opens and finishes when its last one closes, graded
-or voided by a restart; ``end_game`` between those two ends it early.
+A game ends exactly one way: early, finished, or abandoned when its room is deleted or
+expires mid-game. A round, keyed by its mode, starts when its first question opens and
+finishes when its last one closes, graded or voided by a restart; ``end_game`` between
+those two ends it early.
 """
 
 from enum import StrEnum
@@ -19,6 +20,7 @@ class Metric(StrEnum):
     GAMES_STARTED = "games_started"
     GAMES_ENDED_EARLY = "games_ended_early"
     GAMES_FINISHED = "games_finished"
+    GAMES_ABANDONED = "games_abandoned"
     # The host counts as a joined player too, so returning can never outnumber joined.
     PLAYERS_JOINED = "players_joined"
     PLAYERS_RETURNING = "players_returning"
@@ -27,14 +29,15 @@ class Metric(StrEnum):
     ROUNDS_FINISHED = "rounds_finished"
 
 
-async def bump(conn: asyncpg.Connection, metric: Metric, key: str = "") -> None:
-    """Add one to today's (UTC) ``metric`` under ``key``; call inside the event's transaction."""
+async def bump(conn: asyncpg.Connection, metric: Metric, key: str = "", by: int = 1) -> None:
+    """Add ``by`` to today's (UTC) ``metric`` under ``key``; call inside the event's transaction."""
     await conn.execute(
         "insert into daily_stats (day, metric, key, count)"
-        " values ((now() at time zone 'utc')::date, $1, $2, 1)"
-        " on conflict (day, metric, key) do update set count = daily_stats.count + 1",
+        " values ((now() at time zone 'utc')::date, $1, $2, $3)"
+        " on conflict (day, metric, key) do update set count = daily_stats.count + $3",
         metric.value,
         key,
+        by,
     )
 
 

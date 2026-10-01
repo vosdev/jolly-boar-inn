@@ -895,14 +895,20 @@ class RoomManager:
         deleted = 0
         async with pool.acquire() as conn:
             while True:
-                status = await conn.execute(
-                    "delete from rooms where id in (select id from rooms"
-                    " where expires_at < now() or finished_at < now() - $2::interval"
-                    " limit $1)",
-                    PURGE_BATCH,
-                    self._grace,
-                )
-                batch = _rows_affected(status)
+                async with conn.transaction():
+                    row = await conn.fetchrow(
+                        "with gone as (delete from rooms where id in (select id from rooms"
+                        " where expires_at < now() or finished_at < now() - $2::interval"
+                        " limit $1) returning status)"
+                        " select count(*) as batch,"
+                        " count(*) filter (where status = 'playing') as abandoned from gone",
+                        PURGE_BATCH,
+                        self._grace,
+                    )
+                    assert row is not None
+                    if row["abandoned"]:
+                        await bump(conn, Metric.GAMES_ABANDONED, by=row["abandoned"])
+                batch = row["batch"]
                 deleted += batch
                 if batch < PURGE_BATCH:
                     break
@@ -951,8 +957,10 @@ class RoomManager:
             if player is None:
                 raise BadSession(f"that session is not a player in room {code}")
             _require_admin(player)
-            async with pool.acquire() as conn:
+            async with pool.acquire() as conn, conn.transaction():
                 await conn.execute("delete from rooms where id = $1", room.id)
+                if room.status == "playing":
+                    await bump(conn, Metric.GAMES_ABANDONED)
             sockets = self._forget(room)
             log.info("room %s deleted by %s", code, player.display_name)
         for outbox in sockets:
@@ -1964,12 +1972,6 @@ class RoomManager:
             for outbox in room.sockets.values():
                 outbox.cancel()
         await asyncio.gather(*timers, return_exceptions=True)
-
-
-def _rows_affected(status: str) -> int:
-    """The row count out of an asyncpg command tag, which for a delete is ``DELETE 3``."""
-    _, _, count = status.rpartition(" ")
-    return int(count) if count.isdigit() else 0
 
 
 def _require_admin(player: Player) -> None:

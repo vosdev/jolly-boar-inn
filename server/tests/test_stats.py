@@ -134,6 +134,38 @@ def test_a_restart_that_voids_a_rounds_last_question_finishes_it_once(
     assert Metric.ROUNDS_ENDED_EARLY not in {m for m, _ in stats}
 
 
+def test_deleting_a_room_mid_game_abandons_it(table, client: TestClient, db) -> None:
+    game = table("Zezima", seconds=30)
+    game.start()
+    game.opened(0)
+    session = game.admin.session
+    deleted = client.request("DELETE", f"/api/rooms/{game.code}", json={"session": session})
+    assert deleted.status_code == 204
+    stats = counts(db)
+    assert stats[(Metric.GAMES_ABANDONED, "")] == 1
+    assert not {Metric.GAMES_ENDED_EARLY, Metric.GAMES_FINISHED} & {m for m, _ in stats}
+
+
+def test_cleanup_abandons_only_the_games_still_playing(
+    app: FastAPI, table, client: TestClient, db
+) -> None:
+    """Three rooms past their time: one mid-game, one in the lobby, one finished."""
+    playing = table("Zezima", seconds=30)
+    playing.start()
+    playing.opened(0)
+    create(client)
+    finished = table("Woox", seconds=30)
+    finished.start()
+    finished.opened(0)
+    finished.admin.send(t="end_game")
+    finished.admin.take("game_finished")
+    db("update rooms set expires_at = now() - interval '1 minute'")
+    assert call(client, app.state.rooms.purge_expired) == 3
+    stats = counts(db)
+    assert stats[(Metric.GAMES_ABANDONED, "")] == 1
+    assert stats[(Metric.GAMES_ENDED_EARLY, "")] == 1
+
+
 def test_a_rolled_back_creation_counts_nothing(
     app: FastAPI, client: TestClient, db, monkeypatch: pytest.MonkeyPatch
 ) -> None:

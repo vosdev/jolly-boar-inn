@@ -481,7 +481,8 @@ key into them, so cleanup leaves it.
 
 - `daily_stats (day, metric, key, count)` counts per UTC day, in the transaction of the event
   counted (`app/stats.py` names the metrics). Games and rounds (keyed by mode) are started, then
-  ended early or finished. No IP, name, room code or player id ever goes in it.
+  ended early or finished; a game whose room is deleted or expires mid-game is abandoned. No IP,
+  name, room code or player id ever goes in it.
 
 - `answers.points` is written once, at close, and standings are its sum. Memory keeps the same sum
   and reloads it on rehydrate. Scores are never tracked separately.
