@@ -29,6 +29,7 @@
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
   import Room from './routes/Room.svelte'
+  import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
   import { you } from './lib/stores'
   import { timerBar } from './lib/timerbar'
@@ -70,13 +71,15 @@
   }
 
   onMount(() => {
-    // `/r/:code/admin` and its `#t=` fragment are both dead. Nothing strips fragments
-    // any more, so tidy the address bar once rather than leave a spent link looking
-    // like it still means something. `/admin` reads its own fragment.
+    // `/r/:code/admin` and its `#t=` fragment are both dead, so tidy the address bar
+    // once rather than leave a spent link looking like it still means something.
+    // `/admin` reads its own fragment, and Join an invite link's `#k=`.
+    const invite = route.name === 'join' && keyFromHash(location.hash) !== null
     if (
       route.name !== 'create' &&
       route.name !== 'history' &&
       route.name !== 'admin' &&
+      !invite &&
       (location.hash !== '' || currentPath().endsWith('/admin'))
     ) {
       history.replaceState(null, '', route.name === 'home' ? '/' : `/r/${route.code}`)

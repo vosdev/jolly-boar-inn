@@ -185,6 +185,18 @@ class BadAvatar(ApiError):
     status, code = 422, "bad_avatar"
 
 
+class KeyRequired(ApiError):
+    """A join to an invite-only room without its key."""
+
+    status, code = 403, "key_required"
+
+
+class BadKey(ApiError):
+    """A join to an invite-only room with a key that is not, or is no longer, its own."""
+
+    status, code = 403, "bad_key"
+
+
 class BadSettings(ApiError):
     status, code = 422, "bad_settings"
 
@@ -233,6 +245,11 @@ def hash_token(token: str) -> str:
 
 def new_token() -> str:
     return secrets.token_urlsafe(32)
+
+
+def new_invite_key() -> str:
+    """A door code for an invite link: short enough for a URL, too long to guess."""
+    return secrets.token_urlsafe(9)
 
 
 def normalize_name(raw: str) -> str:
@@ -468,6 +485,8 @@ class Room:
     expires_at: datetime
     lock: asyncio.Lock = field(repr=False)
     finished_at: datetime | None = None
+    # Only a join carrying it gets in. Sent to admins, never stored in ``settings``.
+    invite_key: str | None = field(default=None, repr=False)
     players: dict[UUID, Player] = field(default_factory=dict)  # in join order
     sockets: dict[UUID, Outbox] = field(default_factory=dict, repr=False)
     questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
@@ -525,13 +544,18 @@ class Room:
         assert self.settings.max_players is not None  # resolved by ``RoomManager.create``
         return self.settings.max_players
 
-    def withholds_from(self, player_id: UUID) -> bool:
-        """Whether ``player_id`` is sent the room with its unstarted rounds left out."""
+    def is_admin(self, player_id: UUID) -> bool:
         player = self.players.get(player_id)
-        return self.settings.hide_rounds and (player is None or player.role != "admin")
+        return player is not None and player.role == "admin"
 
-    def view(self, withhold: bool = False) -> RoomView:
-        """The room as a client sees it; ``withhold`` is the view for ``withholds_from``.
+    def view_for(self, player_id: UUID) -> RoomView:
+        """The room as ``player_id`` is sent it: admins get the key, the rest the rounds so far."""
+        if self.is_admin(player_id):
+            return self.view(key=True)
+        return self.view(withhold=self.settings.hide_rounds)
+
+    def view(self, withhold: bool = False, key: bool = False) -> RoomView:
+        """The room as a client sees it: ``withhold`` the unstarted rounds, add ``key`` or not.
 
         A round has started once ``current_index`` reaches it, which its splash does, or
         its first question when splashes are off. A game ended early keeps the rest hidden.
@@ -556,6 +580,7 @@ class Room:
             segment=self.current_segment,
             finished_at=self.finished_at,
             rounds=rounds,
+            key=self.invite_key if key else None,
         )
 
     def gone(self, grace: timedelta, now: datetime) -> bool:
@@ -620,8 +645,8 @@ class Broadcast:
 
     One entry per socket, because ``question_open`` is not the same frame for everyone:
     ``you_can_answer`` is false for the author of a room question and for ``host_only``
-    ones. ``room_updated`` differs too in a room with ``hide_rounds``: only admins are sent
-    the rounds still to come.
+    ones. ``room_updated`` differs too: only admins are sent the key and, with
+    ``hide_rounds``, the rounds still to come.
     """
 
     targets: list[tuple[Outbox, dict[str, Any]]]
@@ -658,6 +683,7 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
         expires_at=row["expires_at"],
         lock=lock,
         finished_at=row["finished_at"],
+        invite_key=row["invite_key"],
     )
 
 
@@ -1024,14 +1050,14 @@ class RoomManager:
         check's countdown is that ``next_at``, so it travels in the same frame.
         """
         players = room.player_views()
-        full = RoomUpdated(room=room.view(), players=players).model_dump(mode="json")
-        if not room.settings.hide_rounds:
-            return Broadcast.to_all(room, full, exclude)
-        withheld = RoomUpdated(room=room.view(withhold=True), players=players)
-        rendered = withheld.model_dump(mode="json")
+        everyone = RoomUpdated(room=room.view(withhold=room.settings.hide_rounds), players=players)
+        admins = RoomUpdated(room=room.view(key=True), players=players)
+        if admins == everyone:
+            return Broadcast.to_all(room, everyone.model_dump(mode="json"), exclude)
+        rendered = {False: everyone.model_dump(mode="json"), True: admins.model_dump(mode="json")}
         return Broadcast(
             [
-                (out, rendered if room.withholds_from(pid) else full)
+                (out, rendered[room.is_admin(pid)])
                 for pid, out in room.sockets.items()
                 if pid != exclude
             ]
@@ -1107,7 +1133,7 @@ class RoomManager:
                 else None
             )
             welcome = Welcome(
-                room=room.view(withhold=room.withholds_from(player.id)),
+                room=room.view_for(player.id),
                 you=player.view(),
                 players=room.player_views(),
                 question=open_view,
@@ -1162,6 +1188,7 @@ class RoomManager:
         custom_questions: Sequence[dict[str, Any]],
         avatar: int | None = None,
         returning: bool = False,
+        invite_only: bool = False,
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
 
@@ -1202,13 +1229,14 @@ class RoomManager:
                 try:
                     async with conn.transaction():  # savepoint, so a collision is retryable
                         room_row = await conn.fetchrow(
-                            "insert into rooms (code, status, settings, expires_at)"
-                            " values ($1, 'lobby', $2, $3)"
+                            "insert into rooms (code, status, settings, expires_at, invite_key)"
+                            " values ($1, 'lobby', $2, $3, $4)"
                             " returning id, code, status, settings, current_index,"
-                            " created_at, expires_at, finished_at",
+                            " created_at, expires_at, finished_at, invite_key",
                             code,
                             settings.model_dump(),
                             expires_at,
+                            new_invite_key() if invite_only else None,
                         )
                 except asyncpg.UniqueViolationError:
                     return False
@@ -1260,11 +1288,18 @@ class RoomManager:
         return room, player, session
 
     async def join(
-        self, code: str, display_name: str, avatar: int | None = None, returning: bool = False
+        self,
+        code: str,
+        display_name: str,
+        avatar: int | None = None,
+        returning: bool = False,
+        key: str | None = None,
     ) -> tuple[Player, str]:
         """Add a player to a room in its lobby. Returns the player and their session token, once.
 
-        Connected sockets learn about the newcomer through ``room_updated``.
+        Connected sockets learn about the newcomer through ``room_updated``. An
+        invite-only room wants its ``key``, checked before anything else about the room
+        is said.
         """
         code = code.upper()
         name = normalize_name(display_name)
@@ -1273,6 +1308,7 @@ class RoomManager:
         pool = await self._pool()
         async with self._locked(code):
             room = await self._room(code)
+            _check_key(room, key)
             # A player who is already in comes back through ``connect`` with their
             # session; a join is a new player, and a game under way is too late for one.
             if room.status == "playing":
@@ -1584,6 +1620,27 @@ class RoomManager:
             _require_admin(by)
             if room.status == "playing" and (room.phase, room.current_index) == (phase, index):
                 room.advance.set()
+
+    async def rotate_key(self, code: str, by: Player) -> None:
+        """Admin: replace an invite-only room's key, so links holding the old one stop working.
+
+        Players already in keep their sessions; a key nobody else has yet locks the room.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            if room.invite_key is None:
+                raise BadState("this room takes anyone with its code")
+            if room.status != "lobby":
+                raise BadState("only a room in its lobby can be joined")
+            key = new_invite_key()
+            async with pool.acquire() as conn:
+                await conn.execute("update rooms set invite_key = $1 where id = $2", key, room.id)
+            room.invite_key = key
+            update = self._room_updated(room)
+        self._broadcast(update)
 
     async def promote(self, code: str, by: Player, player_id: UUID) -> None:
         """Admin: make another player an admin too. There is no demote."""
@@ -2032,6 +2089,15 @@ class RoomManager:
         await asyncio.gather(*timers, return_exceptions=True)
 
 
+def _check_key(room: Room, key: str | None) -> None:
+    if room.invite_key is None:
+        return
+    if key is None:
+        raise KeyRequired(f"room {room.code} takes players with an invite link only")
+    if not hmac.compare_digest(key.encode(), room.invite_key.encode()):
+        raise BadKey("that invite link is out of date or mistyped")
+
+
 def _require_admin(player: Player) -> None:
     if player.role != "admin":
         raise NotAdmin("only an admin can do that")
@@ -2219,8 +2285,8 @@ def _gone(
 
 async def _fetch_room(conn: asyncpg.Connection, code: str, grace: timedelta) -> asyncpg.Record:
     row = await conn.fetchrow(
-        "select id, code, status, settings, current_index, created_at, expires_at, finished_at"
-        " from rooms where code = $1",
+        "select id, code, status, settings, current_index, created_at, expires_at, finished_at,"
+        " invite_key from rooms where code = $1",
         code,
     )
     if row is None:

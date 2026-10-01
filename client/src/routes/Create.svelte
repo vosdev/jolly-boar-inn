@@ -74,6 +74,7 @@
   let nameWrongAnswers = $state(false)
   /** Players learn each round's mode as it starts; the server holds the rest back. */
   let hideRounds = $state(false)
+  let inviteOnly = $state(false)
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
 
@@ -180,7 +181,13 @@
     const saved = get(profile)
     const host = saved ?? { name: generateName(), head: randomHead() }
     try {
-      const created = await createRoom(host.name, settings, host.head, returningVisitor)
+      const created = await createRoom(
+        host.name,
+        settings,
+        host.head,
+        returningVisitor,
+        inviteOnly,
+      )
       setSession(created.code, created.session)
       rememberCreated(created.code, created.expires_at)
       // Only once the room exists, so a failed create leaves a browser that is still
@@ -302,6 +309,10 @@
       <div>
         <Segmented legend="Surprise rounds" options={OFF_ON} bind:value={hideRounds} />
         <p class="note">Hide the game modes in the lobby from the players</p>
+      </div>
+      <div>
+        <Segmented legend="Invite link only" options={OFF_ON} bind:value={inviteOnly} />
+        <p class="note">The room code alone won't let anyone in; they need the link.</p>
       </div>
       <Segmented
         legend="Close when everyone has answered"

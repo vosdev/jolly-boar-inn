@@ -88,6 +88,8 @@ class RoomView(_Message):
     # rest of ``settings.modes`` from a non-admin. Counted off the stored questions, so it
     # agrees with ``Segment.total``.
     rounds: int | None = Field(default=None, exclude_if=lambda rounds: rounds is None)
+    # An invite-only room's key, sent to its admins only: settings reach every player.
+    key: str | None = Field(default=None, exclude_if=lambda key: key is None)
 
 
 class PlayerView(_Message):
@@ -193,6 +195,12 @@ class EndGame(_Message):
     t: Literal["end_game"]
 
 
+class RotateKey(_Message):
+    """Replace an invite-only room's key. Lobby only."""
+
+    t: Literal["rotate_key"]
+
+
 class SetProfile(_Message):
     """Rename, re-roll the head, or both (D4). One message for both, because they are the
     same operation on the same row: validated like a join, broadcast as ``room_updated``.
@@ -229,6 +237,7 @@ ClientMessage = Annotated[
     | Promote
     | Kick
     | EndGame
+    | RotateKey
     | SetProfile
     | Ready
     | Editing,

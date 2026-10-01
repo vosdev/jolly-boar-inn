@@ -138,6 +138,7 @@ export function createRoom(
   settings: NewRoomSettings,
   avatar: number | undefined,
   returning: boolean,
+  inviteOnly = false,
 ): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
@@ -145,22 +146,24 @@ export function createRoom(
       display_name: displayName,
       avatar,
       returning,
+      invite_only: inviteOnly,
       settings,
       custom_questions: [],
     }),
   })
 }
 
-/** As `createRoom`, for a room that already exists. */
+/** As `createRoom`, for a room that already exists. `key` is the invite link's, if it had one. */
 export function joinRoom(
   code: string,
   displayName: string,
   avatar: number | undefined,
   returning: boolean,
+  key: string | null = null,
 ): Promise<Credentials> {
   return request<Credentials>(`/api/rooms/${encodeURIComponent(code)}/join`, {
     method: 'POST',
-    body: JSON.stringify({ display_name: displayName, avatar, returning }),
+    body: JSON.stringify({ display_name: displayName, avatar, returning, key }),
   })
 }
 

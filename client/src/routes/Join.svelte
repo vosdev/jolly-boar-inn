@@ -24,6 +24,10 @@
    * all. The profile keeps the name it had; only this room sees the new number. Anything
    * else that goes wrong — the room filled up, the name was refused — falls back to a
    * form, pre-filled with the name that was tried.
+   *
+   * An invite-only room wants the key from its link's `#k=` fragment. A missing or wrong
+   * one is a prompt for the link, not an error: the player was most likely sent the code
+   * alone, or an old link. The fragment is replaced away once they are in.
    */
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
@@ -32,6 +36,7 @@
   import { ApiFailure, getRoom, joinRoom, type Credentials, type RoomSnapshot } from '../lib/api'
   import { randomHead } from '../lib/heads'
   import { historyPath, latestPastGame } from '../lib/history'
+  import { keyFromHash, keyFromInput } from '../lib/invite'
   import { generateName, nameProblem, resuffix } from '../lib/names'
   import { nudge, profile, returningVisitor, saveProfile } from '../lib/profile'
   import { setSession } from '../lib/session'
@@ -46,6 +51,12 @@
   let joiningAs = $state<string | null>(null)
   let displayName = $state('')
   let failure = $state<string | null>(null)
+  let key = keyFromHash(location.hash)
+  /** Why the room wants its link, while it does: `key_required` or `bad_key`. */
+  let keyProblem = $state<string | null>(null)
+  let pasted = $state('')
+  /** The join the key prompt interrupted, retried once a key is pasted. */
+  let interrupted: { name: string; remember: boolean } | null = null
 
   const status = $derived(snapshot?.status ?? null)
   const joinable = $derived(status === 'lobby')
@@ -92,7 +103,7 @@
     for (let attempt = 0; ; attempt++) {
       joiningAs = tried
       try {
-        return await joinRoom(code, tried, $profile?.head, returningVisitor)
+        return await joinRoom(code, tried, $profile?.head, returningVisitor, key)
       } catch (error) {
         if (!(error instanceof ApiFailure && error.code === 'name_taken') || attempt >= REROLLS) {
           throw error
@@ -109,13 +120,29 @@
       const credentials = await joinAs(name)
       setSession(code, credentials.session)
       if (remember) saveProfile(name)
+      history.replaceState(null, '', `/r/${code}`)
       navigate(`/r/${code}`)
     } catch (error) {
+      if (error instanceof ApiFailure && (error.code === 'key_required' || error.code === 'bad_key')) {
+        keyProblem = error.code
+        interrupted = { name, remember }
+        return
+      }
+      keyProblem = null
       displayName = joiningAs ?? name
       failure = error instanceof ApiFailure ? error.message : 'could not join, try again'
     } finally {
       joiningAs = null
     }
+  }
+
+  const pastedKey = $derived(keyFromInput(pasted))
+
+  function submitKey(event: SubmitEvent): void {
+    event.preventDefault()
+    if (busy || pastedKey === null || interrupted === null) return
+    key = pastedKey
+    void join(interrupted.name, interrupted.remember)
   }
 
   function submit(event: SubmitEvent): void {
@@ -146,7 +173,23 @@
     {snapshot.players}
     {snapshot.players === 1 ? 'player' : 'players'} in so far.
   </p>
-  {#if failure === null}
+  {#if keyProblem !== null}
+    <section class="panel">
+      <form onsubmit={submitKey}>
+        <div class="field">
+          <label for="invite">Invite link</label>
+          <input id="invite" type="text" autocomplete="off" spellcheck="false" bind:value={pasted} />
+          <p class="note">This room is invite-only. Paste the link the host shared.</p>
+        </div>
+        <button class="primary" type="submit" disabled={busy || pastedKey === null}>
+          {busy ? 'Joining…' : 'Join'}
+        </button>
+        {#if keyProblem === 'bad_key'}
+          <p class="error">That link is out of date or mistyped.</p>
+        {/if}
+      </form>
+    </section>
+  {:else if failure === null}
     <p class="note" role="status">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>
   {:else}
     <section class="panel">

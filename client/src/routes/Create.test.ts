@@ -92,7 +92,7 @@ describe('Create', () => {
     render(Create, { navigate })
     await screen.findByRole('checkbox', { name: /^More or Less/ })
     await submitted()
-    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 3, false])
+    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 3, false, false])
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(get(profile)).toEqual({ name: 'Zezima', head: 3 })
     expect(get(nudge)).toBeNull()
@@ -296,6 +296,18 @@ describe('Create', () => {
     expect(choice.nextElementSibling?.textContent).toBe('Hide the game modes in the lobby from the players')
     await fireEvent.click(within(choice).getByRole('radio', { name: 'On' }))
     expect((await submitted()).hide_rounds).toBe(true)
+  })
+
+  it('makes the room invite-only only when the host asks for it', async () => {
+    await loaded()
+    const choice = screen.getByRole('group', { name: 'Invite link only' })
+    expect((within(choice).getByRole('radio', { name: 'Off' }) as HTMLInputElement).checked).toBe(true)
+    expect(choice.nextElementSibling?.textContent).toBe(
+      "The room code alone won't let anyone in; they need the link.",
+    )
+    await fireEvent.click(within(choice).getByRole('radio', { name: 'On' }))
+    await submitted()
+    expect(vi.mocked(api.createRoom).mock.calls[0]![4]).toBe(true)
   })
 
   it('says how many questions the room plays, events included, before it exists', async () => {

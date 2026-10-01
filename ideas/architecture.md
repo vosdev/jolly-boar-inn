@@ -53,7 +53,7 @@ The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds tha
 
 `RoomManager` methods: `get` (rehydrates, section 9), `create`, `join`, `connect`, `disconnect`,
 `set_profile`, `set_ready`, `set_editing`, `start_game`, `submit_answer`, `skip(phase, index)`,
-`promote`, `kick`, `end_game`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`,
+`rotate_key`, `promote`, `kick`, `end_game`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`,
 `questions`, `totals`, `current_index`, `phase`, `next_at` (wall clock) with `next_mono`
 (monotonic), `sockets` (one `Outbox` each), `timer`, the `advance` and `rescheduled` events, and
 `lock`.
@@ -212,6 +212,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `promote` | `player_id` | admin | Makes them admin. There is no demote. |
 | `kick` | `player_id` | admin | Deletes the player and their answers; closes 4003. Not on admins. |
 | `end_game` | | admin | Voids an open question, `playing → finished`. |
+| `rotate_key` | | admin | Lobby, invite-only room. New key; the old link stops joining, nobody leaves. |
 
 | Server `t` | Fields | When |
 |---|---|---|
@@ -228,7 +229,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 
 ```
 RoomView     { code, status, settings, current_index, total, phase, next_at, segment,
-               finished_at, rounds? }
+               finished_at, rounds?, key? }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank }
 Segment      { mode, index, total, start, count }
@@ -247,6 +248,7 @@ PlayerResult { value, correct, credit, points }
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` itself only when true.
+- `key` is an invite-only room's, sent only to its admins (section 10).
 - `band` is the speed bucket for SPEED, the step for STEP, null for RANK. `of` is every connected
   player who can answer, plus anyone who answered and dropped.
 - `credit` lets a reveal say "3 of 5 in place". `correct` is `credit >= 1.0`.
@@ -262,6 +264,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 - With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
   rounds `current_index` has reached. The lobby names none, admins' included: screens get shared.
 - An admin can read the room's custom questions before the game. They cannot score on them.
+- An invite-only room's key reaches admins only. It is a column, not a setting.
 
 | Close | Meaning | Client |
 |---|---|---|
@@ -431,7 +434,7 @@ compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fr
 log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
 away. Both return chosen fields only, never a name, an answer or a question.
 
-`POST /api/rooms {display_name, avatar?, returning, settings, custom_questions}`, in one transaction:
+`POST /api/rooms {display_name, avatar?, returning, invite_only?, settings, custom_questions}`, in one transaction:
 
 1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
    spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
@@ -443,7 +446,12 @@ away. Both return chosen fields only, never a name, an answer or a question.
 5. Return `201 {code, session, player, expires_at}`. The plain session is returned once and never
    logged. Any failure rolls everything back.
 
-- Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning}` → `{session, player}`.
+- Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning, key?}` → `{session, player}`.
+- Create's `invite_only` gives the room a key, `secrets.token_urlsafe(9)` in `rooms.invite_key`.
+  A join then needs it before anything else is checked: 403 `key_required` or `bad_key`, compared
+  with `hmac.compare_digest`. It is a door code, not a credential, so it travels in the link's
+  fragment, `/r/CODE#k=…`; Join moves it to the body and `replaceState`s it away. Sessions never
+  need it. Rotating it is the room lock; there is no other.
 - `returning` says the browser had a `jbi:profile` when the page loaded. It is counted, never stored.
 - The client keeps sessions and the rooms it created in localStorage, never a cookie, so nothing
   ambient authenticates a request.
