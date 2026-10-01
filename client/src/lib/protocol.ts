@@ -79,6 +79,11 @@ export interface RoomSettings {
    * not send it, and that reads as off.
    */
   name_wrong_answers?: boolean
+  /**
+   * Surprise rounds: a player is sent only the `modes` that have started, an admin all of
+   * them. Absent means off.
+   */
+  hide_rounds?: boolean
   max_players: number | null
 }
 
@@ -119,6 +124,8 @@ export interface RoomView {
   segment: Segment | null
   /** When the game ended, by the server's clock; null until it has. */
   finished_at: string | null
+  /** How many rounds the room plays; sent only with `settings.hide_rounds`. */
+  rounds?: number
 }
 
 export interface PlayerView {

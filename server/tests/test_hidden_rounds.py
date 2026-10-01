@@ -1,0 +1,228 @@
+"""Surprise rounds: a player is sent a round's mode only once that round has started.
+
+The checks search the serialised frames for the mode ids rather than reading one field,
+so a mode leaking through any part of any frame fails them.
+"""
+
+import json
+from typing import Any
+
+from app.rooms.settings import RoomSettings
+from tests.game_api import Game, Seat, reseat
+from tests.rooms_api import hello
+
+# Three real modes, played in this order. Neither later id is also a question type an
+# event could carry, so finding one in a frame means the round leaked.
+PLAYED = ["more_less", "price_is_right", "guess_examine"]
+ROOM_KEYS = {
+    "code",
+    "status",
+    "settings",
+    "current_index",
+    "total",
+    "phase",
+    "next_at",
+    "segment",
+    "finished_at",
+}
+SETTINGS_KEYS = {
+    "modes",
+    "mode_order",
+    "random_event_frequency",
+    "reveal_seconds",
+    "splash_seconds",
+    "standings_seconds",
+    "close_when_all_answered",
+    "name_wrong_answers",
+    "max_players",
+}
+
+
+def surprise(table: Any, hide_rounds: bool = True) -> Game:
+    """Three rounds of five, listed, with events in them and nothing moving unless skipped.
+
+    Zezima's socket stays up for the whole game; Woox is the one a test reconnects.
+    """
+    return table(
+        "Zezima",
+        "Woox",
+        hide_rounds=hide_rounds,
+        mode_order="listed",
+        random_event_frequency="more",
+        reveal_seconds=30,
+        splash_seconds=8,
+        standings_seconds=30,
+        modes=[{"mode": mode, "questions": 5, "seconds": 30} for mode in PLAYED],
+    )
+
+
+def step(game: Game) -> dict[str, Any]:
+    """Skip the phase the room is in; the admin's frame announcing the next one."""
+    room = game.room
+    phase, index = room.phase, room.current_index
+    assert index is not None
+    game.admin.skip(phase, index)
+    while True:
+        message = game.admin.ws.receive_json()
+        game.admin.seen.append(message)
+        if message["t"] in {"question_open", "question_closed", "game_finished"}:
+            return message
+        if message["t"] == "room_updated" and message["room"]["phase"] != phase:
+            return message
+
+
+def play_until(game: Game, done: Any) -> None:
+    """Start the game and skip through it until ``done(frame)`` holds for the admin's."""
+    game.start()
+    if done(game.splash()):
+        return
+    while not done(step(game)):
+        pass
+
+
+def finished(message: dict[str, Any]) -> bool:
+    return message["t"] == "game_finished"
+
+
+def frames_until_finished(seat: Seat) -> list[dict[str, Any]]:
+    frames = []
+    while not frames or frames[-1]["t"] != "game_finished":
+        frames.append(seat.ws.receive_json())
+    return frames
+
+
+def round_starts(frame: dict[str, Any], index: int) -> bool:
+    """Whether ``frame`` is the first to name round ``index``: its splash."""
+    return frame["t"] == "room_updated" and (frame["room"]["segment"] or {}).get("index") == index
+
+
+def before_round(frames: list[dict[str, Any]], index: int) -> str:
+    """Every frame before round ``index`` started, serialised."""
+    start = next(at for at, frame in enumerate(frames) if round_starts(frame, index))
+    return json.dumps(frames[:start])
+
+
+def played_modes(room: dict[str, Any]) -> list[str]:
+    return [entry["mode"] for entry in room["settings"]["modes"]]
+
+
+def test_a_player_hears_of_no_round_before_it_starts(table) -> None:
+    game = surprise(table)
+    play_until(game, finished)
+    frames = frames_until_finished(game.players[0])
+    first = before_round(frames, 1)
+    assert "price_is_right" not in first
+    assert "guess_examine" not in first
+    assert "guess_examine" not in before_round(frames, 2)
+    # Then the splash reveals it, and every round has been played by the end.
+    last = [m["room"] for m in frames if m["t"] == "room_updated"][-1]
+    assert played_modes(last) == PLAYED
+
+
+def test_a_random_event_inside_a_hidden_round_names_no_later_round(table) -> None:
+    game = surprise(table)
+    play_until(game, finished)
+    frames = frames_until_finished(game.players[0])
+    round_three = next(s.start for s in game.room.segments if s.index == 2)
+    events = [
+        frame
+        for frame in frames
+        if frame["t"] == "question_open"
+        and frame["question"]["random_event"] is not None
+        and frame["question"]["index"] < round_three
+    ]
+    assert events, "the room was meant to have an event before its last round"
+    for event in events:
+        question = event["question"]
+        assert question["segment"]["index"] < 2
+        assert question["mode"] not in PLAYED
+        assert "guess_examine" not in json.dumps(event)
+
+
+def test_an_admin_is_sent_every_round_all_along(table) -> None:
+    game = surprise(table)
+    play_until(game, finished)
+    rooms = [m["room"] for m in game.admin.seen if m["t"] == "room_updated"]
+    assert rooms
+    for room in rooms:
+        assert played_modes(room) == PLAYED
+        assert room["rounds"] == 3
+        assert room["settings"]["hide_rounds"] is True
+
+
+def test_rounds_are_counted_for_a_player_who_sees_none_of_them(table, client) -> None:
+    game = surprise(table)
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        room = hello(ws, game.players[1].session)["room"]
+    assert room["settings"]["modes"] == []
+    assert room["rounds"] == 3
+    assert room["settings"]["hide_rounds"] is True
+    play_until(game, finished)
+    segments = [
+        m["question"]["segment"]
+        for m in frames_until_finished(game.players[0])
+        if m["t"] == "question_open"
+    ]
+    assert {segment["total"] for segment in segments} == {3}
+    assert [s["index"] for s in segments] == sorted(s["index"] for s in segments)
+
+
+def test_a_reconnect_reveals_the_rounds_played_and_the_current_one(table, client) -> None:
+    game = surprise(table)
+
+    def second_round_open(message: dict[str, Any]) -> bool:
+        return message["t"] == "question_open" and message["question"]["segment"]["index"] == 1
+
+    play_until(game, second_round_open)
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        again = reseat(game.players[1], ws)
+        welcome = again.take("welcome")
+    assert played_modes(welcome["room"]) == PLAYED[:2]
+    assert "guess_examine" not in json.dumps(welcome)
+
+
+def test_a_game_ended_early_keeps_its_unplayed_rounds_hidden(table, client) -> None:
+    game = surprise(table)
+    play_until(game, lambda message: message["t"] == "question_open")
+    game.admin.send(t="end_game")
+    game.admin.take("game_finished")
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        welcome = hello(ws, game.players[1].session)
+    assert welcome["room"]["status"] == "finished"
+    assert played_modes(welcome["room"]) == PLAYED[:1]
+
+
+def test_a_promoted_player_is_sent_every_round(table) -> None:
+    game = surprise(table)
+    zezima = game.players[0]
+    game.admin.send(t="promote", player_id=zezima.id)
+    assert played_modes(zezima.take("room_updated")["room"]) == PLAYED
+
+
+def test_the_room_lookup_names_no_round(table, client) -> None:
+    game = surprise(table)
+    assert client.get(f"/api/rooms/{game.code}").json() == {"status": "lobby", "players": 3}
+
+
+def test_a_room_without_surprise_rounds_sends_what_it_always_sent(table, client) -> None:
+    game = surprise(table, hide_rounds=False)
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        welcome = hello(ws, game.players[1].session)
+    play_until(game, finished)
+    frames = frames_until_finished(game.players[0])
+    rooms = [welcome["room"]] + [m["room"] for m in frames if m["t"] == "room_updated"]
+    for room in rooms:
+        assert set(room) == ROOM_KEYS
+        assert set(room["settings"]) == SETTINGS_KEYS
+        assert played_modes(room) == PLAYED
+    assert [m for m in frames if m["t"] == "room_updated"] == [
+        m for m in game.admin.seen if m["t"] == "room_updated"
+    ]
+    assert game.room.view(withhold=True) == game.room.view()
+
+
+def test_hide_rounds_reads_as_off_from_a_room_stored_without_it() -> None:
+    stored = RoomSettings.stored({"modes": [{"mode": "more_less"}]})
+    assert stored.hide_rounds is False
+    assert "hide_rounds" not in stored.model_dump()
+    assert stored.model_copy(update={"hide_rounds": True}).model_dump()["hide_rounds"] is True

@@ -32,8 +32,16 @@
   const isAdmin = $derived($you?.role === 'admin')
   const canStart = $derived(isAdmin && $room?.status === 'lobby' && $players.length > 0)
   const settings = $derived($room?.settings ?? null)
-  /** A mode is a round, so the modes picked are the rounds the room will play. */
-  const rounds = $derived(settings?.modes.length ?? 0)
+  /**
+   * Surprise rounds, hidden from the host as well: a lobby on a shared screen or a stream
+   * would give them away.
+   */
+  const secret = $derived(settings?.hide_rounds === true)
+  /**
+   * A mode is a round, so the modes picked are the rounds the room will play. A secret
+   * room's `modes` holds only rounds that have started, so the server counts them.
+   */
+  const rounds = $derived(secret ? ($room?.rounds ?? 0) : (settings?.modes.length ?? 0))
   /**
    * Every question the room actually holds, which the server counted off the questions it
    * stored rather than off the settings. The two disagree whenever the plan and the
@@ -118,7 +126,7 @@
     </div>
     {#if settings !== null}
       <p class="note">
-        {rounds}
+        {rounds}{secret ? ' secret' : ''}
         {rounds === 1 ? 'round' : 'rounds'} · {questions}
         {questions === 1 ? 'question' : 'questions'} · {settings.reveal_seconds}s reveal
       </p>
@@ -130,19 +138,23 @@
 {#if settings !== null}
   <section class="panel">
     <h2>Tonight's rounds</h2>
-    <ul class="modes">
-      {#each listed as round (round.mode)}
-        <li>
-          <span class="name">{modeLabel(round.mode)}</span>
-          <span class="note">
-            {round.questions}
-            {round.questions === 1 ? 'question' : 'questions'} · {round.seconds}s each
-          </span>
-        </li>
-      {/each}
-    </ul>
-    {#if rounds > 1}
-      <p class="note">One round each, listed A–Z rather than in the order they play.</p>
+    {#if secret}
+      <p class="note">Tonight's rounds are a surprise. Each one is revealed when it starts.</p>
+    {:else}
+      <ul class="modes">
+        {#each listed as round (round.mode)}
+          <li>
+            <span class="name">{modeLabel(round.mode)}</span>
+            <span class="note">
+              {round.questions}
+              {round.questions === 1 ? 'question' : 'questions'} · {round.seconds}s each
+            </span>
+          </li>
+        {/each}
+      </ul>
+      {#if rounds > 1}
+        <p class="note">One round each, listed A–Z rather than in the order they play.</p>
+      {/if}
     {/if}
   </section>
 {/if}

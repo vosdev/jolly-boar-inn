@@ -72,6 +72,8 @@
   let closeWhenAllAnswered = $state(true)
   /** List who got it wrong under each reveal (D8). The count of who got it right always shows. */
   let nameWrongAnswers = $state(false)
+  /** Players learn each round's mode as it starts; the server holds the rest back. */
+  let hideRounds = $state(false)
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
 
@@ -173,6 +175,7 @@
       standings_seconds: standingsSeconds,
       close_when_all_answered: closeWhenAllAnswered,
       name_wrong_answers: nameWrongAnswers,
+      hide_rounds: hideRounds,
     }
     const saved = get(profile)
     const host = saved ?? { name: generateName(), head: randomHead() }
@@ -296,6 +299,10 @@
         </p>
       </div>
       <Segmented legend="Introduce each round" options={OFF_ON} bind:value={introduceRounds} />
+      <div>
+        <Segmented legend="Surprise rounds" options={OFF_ON} bind:value={hideRounds} />
+        <p class="note">Hide the game modes in the lobby from the players</p>
+      </div>
       <Segmented
         legend="Close when everyone has answered"
         options={OFF_ON}

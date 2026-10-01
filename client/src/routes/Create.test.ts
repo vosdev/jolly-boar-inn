@@ -289,6 +289,15 @@ describe('Create', () => {
     expect(settings.name_wrong_answers).toBe(true)
   })
 
+  it('keeps the rounds out of the lobby only when the host asks for surprise rounds', async () => {
+    await loaded()
+    const choice = screen.getByRole('group', { name: 'Surprise rounds' })
+    expect((within(choice).getByRole('radio', { name: 'Off' }) as HTMLInputElement).checked).toBe(true)
+    expect(choice.nextElementSibling?.textContent).toBe('Hide the game modes in the lobby from the players')
+    await fireEvent.click(within(choice).getByRole('radio', { name: 'On' }))
+    expect((await submitted()).hide_rounds).toBe(true)
+  })
+
   it('says how many questions the room plays, events included, before it exists', async () => {
     // T22 Accept: one mode of ten at the default plays eleven, and Create says so.
     await loaded()

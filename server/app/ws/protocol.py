@@ -84,6 +84,10 @@ class RoomView(_Message):
     # When the game ended, null until it has. Every browser files the result under it, so
     # it comes from the server's clock and not each one's own.
     finished_at: datetime | None
+    # How many rounds the room plays, sent only when ``settings.hide_rounds`` keeps the
+    # rest of ``settings.modes`` from a non-admin. Counted off the stored questions, so it
+    # agrees with ``Segment.total``.
+    rounds: int | None = Field(default=None, exclude_if=lambda rounds: rounds is None)
 
 
 class PlayerView(_Message):

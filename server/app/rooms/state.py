@@ -525,17 +525,37 @@ class Room:
         assert self.settings.max_players is not None  # resolved by ``RoomManager.create``
         return self.settings.max_players
 
-    def view(self) -> RoomView:
+    def withholds_from(self, player_id: UUID) -> bool:
+        """Whether ``player_id`` is sent the room with its unstarted rounds left out."""
+        player = self.players.get(player_id)
+        return self.settings.hide_rounds and (player is None or player.role != "admin")
+
+    def view(self, withhold: bool = False) -> RoomView:
+        """The room as a client sees it; ``withhold`` is the view for ``withholds_from``.
+
+        A round has started once ``current_index`` reaches it, which its splash does, or
+        its first question when splashes are off. A game ended early keeps the rest hidden.
+        """
+        settings = self.settings
+        rounds = None
+        if settings.hide_rounds:
+            rounds = len(self.segments)
+            if withhold:
+                current = self.current_segment
+                started = {s.mode for s in self.segments[: current.index + 1]} if current else set()
+                kept = [entry for entry in settings.modes if entry.mode in started]
+                settings = settings.model_copy(update={"modes": kept})
         return RoomView(
             code=self.code,
             status=self.status,  # type: ignore[arg-type]  # the column's check constraint
-            settings=self.settings,
+            settings=settings,
             current_index=self.current_index,
             total=self.total,
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
             segment=self.current_segment,
             finished_at=self.finished_at,
+            rounds=rounds,
         )
 
     def gone(self, grace: timedelta, now: datetime) -> bool:
@@ -600,7 +620,8 @@ class Broadcast:
 
     One entry per socket, because ``question_open`` is not the same frame for everyone:
     ``you_can_answer`` is false for the author of a room question and for ``host_only``
-    ones. Nothing else in the frame differs, and nothing in it depends on being admin.
+    ones. ``room_updated`` differs too in a room with ``hide_rounds``: only admins are sent
+    the rounds still to come.
     """
 
     targets: list[tuple[Outbox, dict[str, Any]]]
@@ -1002,8 +1023,19 @@ class RoomManager:
         everything a client needs: the phase, the round, and when it ends. The ready
         check's countdown is that ``next_at``, so it travels in the same frame.
         """
-        message = RoomUpdated(room=room.view(), players=room.player_views())
-        return Broadcast.to_all(room, message.model_dump(mode="json"), exclude)
+        players = room.player_views()
+        full = RoomUpdated(room=room.view(), players=players).model_dump(mode="json")
+        if not room.settings.hide_rounds:
+            return Broadcast.to_all(room, full, exclude)
+        withheld = RoomUpdated(room=room.view(withhold=True), players=players)
+        rendered = withheld.model_dump(mode="json")
+        return Broadcast(
+            [
+                (out, rendered if room.withholds_from(pid) else full)
+                for pid, out in room.sockets.items()
+                if pid != exclude
+            ]
+        )
 
     def _players_updated(
         self, room: Room, before: RoomView, exclude: UUID | None = None
@@ -1075,7 +1107,7 @@ class RoomManager:
                 else None
             )
             welcome = Welcome(
-                room=room.view(),
+                room=room.view(withhold=room.withholds_from(player.id)),
                 you=player.view(),
                 players=room.player_views(),
                 question=open_view,

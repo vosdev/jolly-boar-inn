@@ -39,12 +39,20 @@ const ROOM: RoomView = {
 
 let sent: unknown[] = []
 
-function lobby(players: PlayerView[] = [HOST, WOOX]): void {
+/** A surprise room as a player is sent it: no modes, until a round starts. */
+const SECRET: RoomView = {
+  ...ROOM,
+  settings: { ...ROOM.settings, modes: [], hide_rounds: true },
+  total: 42,
+  rounds: 5,
+}
+
+function lobby(players: PlayerView[] = [HOST, WOOX], room: RoomView = ROOM, you: PlayerView = HOST): void {
   resetRoom()
   applyServerMessage({
     t: 'welcome',
-    room: ROOM,
-    you: HOST,
+    room,
+    you,
     players,
     question: null,
     your_answer: null,
@@ -152,6 +160,25 @@ describe('Lobby', () => {
     ])
     expect(screen.queryByLabelText('Room code')).toBeNull()
     expect(screen.getByText('Room code')).toBeTruthy()
+  })
+
+  it('lists the rounds A–Z in a room without surprise rounds', () => {
+    lobby()
+    expect(screen.getByText('1 round · 5 questions · 8s reveal')).toBeTruthy()
+    expect(screen.getByText('More or Less')).toBeTruthy()
+  })
+
+  it.each([
+    ['player', WOOX, SECRET],
+    // The host is sent every round, and the lobby still keeps them off a shared screen.
+    ['host', HOST, { ...SECRET, settings: { ...SECRET.settings, modes: ROOM.settings.modes } }],
+  ])('counts surprise rounds for the %s and names none', (_, you, room) => {
+    lobby([HOST, WOOX], room, you)
+    expect(screen.getByText('5 secret rounds · 42 questions · 8s reveal')).toBeTruthy()
+    expect(
+      screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
+    ).toBeTruthy()
+    expect(screen.queryByText('More or Less')).toBeNull()
   })
 
   it('says a refusal in its own words', async () => {
