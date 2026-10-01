@@ -11,7 +11,7 @@ Drop a file in and it is used on the next build. No code changes.
 | `jolly.<ext>` | Jolly Boar Inn (Varrock) | Misthalin | A tankard |
 | `pollnivneach.<ext>` | Pollnivneach | Desert | A domed house and a palm |
 | `wilderness.<ext>` | Wilderness | Wilderness | A skull |
-| `party_room.<ext>` | Party Room, not built yet | Asgarnia | A partyhat |
+| `party_room.<ext>` | Party Room | Asgarnia | A partyhat |
 | `tzhaar.<ext>` | TzHaar, not built yet | Karamja | A volcano |
 
 `<ext>` is any of `avif`, `webp`, `png`, `jpg`, `jpeg` or `svg`. Square and transparent;

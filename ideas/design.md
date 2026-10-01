@@ -13,13 +13,14 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `jolly` | Jolly Boar Inn | Default. Oak, candlelight, spilled ale. | Warm mid-brown, cream panels | Ale amber / hearth orange |
 | `pollnivneach` | Pollnivneach | Bright desert noon. | Sandstone, off-white panels | Terracotta, indigo shade |
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
-| `party_room` | Party Room (#104) | Loud. A drop party. | Deep purple | Gold, partyhat cyan/pink |
+| `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
 
 - `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
 - Variety between rounds comes from the round's host (§8), never from the palette. A palette that
   shifts under a question changes what the buttons mean.
-- `party_room` is its own task, built last and cut if it fails the contract.
+- `party_room` scatters balloons and red partyhats across its floor afresh each visit
+  (`PartyFloor.svelte`), the one theme whose page is not a static texture.
 
 ## 2. Colour: the token contract
 
@@ -109,8 +110,8 @@ player via `set_profile` inside one), **Sound** (§7) and **Theme**, a column of
 names, the chosen one ringed. Picking a theme repaints at once and the panel stays open. Escape, a
 tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
 elsewhere. An emblem is the Leagues flag of the theme's area (§14); until one is dropped in, a flat
-mark in the theme's `--accent` stands in. `party_room` and `tzhaar` are listed already, disabled,
-until their palettes exist.
+mark in the theme's `--accent` stands in. `tzhaar` is listed already, disabled, until its
+palette exists.
 
 ## 6. Names and heads
 

@@ -20,7 +20,7 @@ describe('emblemFile', () => {
   })
 
   it('covers every built theme and the two still to come', () => {
-    expect(EMBLEMS).toEqual([...THEMES, 'party_room', 'tzhaar'])
+    expect(EMBLEMS).toEqual([...THEMES, 'tzhaar'])
   })
 
   it('has no files in this checkout, so every emblem draws its placeholder', () => {

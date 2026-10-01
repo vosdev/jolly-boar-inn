@@ -18,8 +18,8 @@
 
 import { defaultTheme } from 'virtual:branding'
 
-/** Every theme `app.css` defines, in menu order. D12 adds party_room. */
-export const THEMES = ['jolly', 'pollnivneach', 'wilderness'] as const
+/** Every theme `app.css` defines, in menu order. */
+export const THEMES = ['jolly', 'pollnivneach', 'wilderness', 'party_room'] as const
 
 export type Theme = (typeof THEMES)[number]
 
@@ -28,6 +28,7 @@ export const THEME_LABELS: Record<Theme, { name: string }> = {
   jolly: { name: 'Jolly Boar Inn' },
   pollnivneach: { name: 'Pollnivneach' },
   wilderness: { name: 'Wilderness' },
+  party_room: { name: 'Party Room' },
 }
 
 /** `configured` if it names a theme this build paints, else `jolly`, never an unstyled page. */

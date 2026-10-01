@@ -415,14 +415,11 @@ describe('SettingsMenu, the themes', () => {
     expect(names).toEqual(THEMES.map((theme) => THEME_LABELS[theme].name))
   })
 
-  it('lists Party Room and TzHaar after them, disabled, and picking one does nothing', async () => {
+  it('lists TzHaar after them, disabled, and picking it does nothing', async () => {
     await opened()
     const soon = radios().filter((radio) => radio.disabled)
-    expect(soon.map((radio) => radio.value)).toEqual(['party_room', 'tzhaar'])
-    expect(soon.map((radio) => radio.closest('label')!.textContent!.trim())).toEqual([
-      'Party Room',
-      'TzHaar',
-    ])
+    expect(soon.map((radio) => radio.value)).toEqual(['tzhaar'])
+    expect(soon.map((radio) => radio.closest('label')!.textContent!.trim())).toEqual(['TzHaar'])
     await fireEvent.click(soon[0]!.closest('label')!)
     expect(document.documentElement.dataset.theme).toBeUndefined()
     expect(localStorage.getItem('jbi:theme')).toBeNull()
