@@ -14,20 +14,26 @@ from app.rooms.settings import RoomSettings
 from app.rooms.state import Player, Room
 
 
-def create(client: TestClient, name: str = "Admin", **settings: Any) -> tuple[str, dict[str, Any]]:
+def create(
+    client: TestClient, name: str = "Admin", returning: bool = False, **settings: Any
+) -> tuple[str, dict[str, Any]]:
     """Create a room; its creator is its admin. Returns ``(code, {session, player})``.
 
     The second element is shaped exactly like ``join(...).json()``, so a fixture can
     hold admins and players in the same list.
     """
-    response = client.post("/api/rooms", json={"display_name": name, "settings": settings})
+    response = client.post(
+        "/api/rooms", json={"returning": returning, "display_name": name, "settings": settings}
+    )
     assert response.status_code == 201, response.text
     body = response.json()
     return body["code"], {"session": body["session"], "player": body["player"]}
 
 
-def join(client: TestClient, code: str, name: str) -> httpx.Response:
-    return client.post(f"/api/rooms/{code}/join", json={"display_name": name})
+def join(client: TestClient, code: str, name: str, returning: bool = False) -> httpx.Response:
+    return client.post(
+        f"/api/rooms/{code}/join", json={"returning": returning, "display_name": name}
+    )
 
 
 def hello(ws: WebSocketTestSession, session: str) -> dict[str, Any]:

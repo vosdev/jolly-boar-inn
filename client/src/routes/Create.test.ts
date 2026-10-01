@@ -92,7 +92,7 @@ describe('Create', () => {
     render(Create, { navigate })
     await screen.findByRole('checkbox', { name: /^More or Less/ })
     await submitted()
-    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 3])
+    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 3, false])
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(get(profile)).toEqual({ name: 'Zezima', head: 3 })
     expect(get(nudge)).toBeNull()

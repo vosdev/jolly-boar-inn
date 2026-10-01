@@ -33,7 +33,7 @@
   import { randomHead } from '../lib/heads'
   import { historyPath, latestPastGame } from '../lib/history'
   import { generateName, nameProblem, resuffix } from '../lib/names'
-  import { nudge, profile, saveProfile } from '../lib/profile'
+  import { nudge, profile, returningVisitor, saveProfile } from '../lib/profile'
   import { setSession } from '../lib/session'
 
   /** Fresh numbers tried after the first `name_taken`, before giving up. */
@@ -92,7 +92,7 @@
     for (let attempt = 0; ; attempt++) {
       joiningAs = tried
       try {
-        return await joinRoom(code, tried, $profile?.head)
+        return await joinRoom(code, tried, $profile?.head, returningVisitor)
       } catch (error) {
         if (!(error instanceof ApiFailure && error.code === 'name_taken') || attempt >= REROLLS) {
           throw error

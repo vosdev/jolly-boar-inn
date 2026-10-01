@@ -27,6 +27,7 @@ def create_room() -> tuple[str, str]:
     body = json.dumps(
         {
             "display_name": "Smoke",
+            "returning": False,
             "settings": {"modes": [{"mode": "more_less", "questions": 2, "seconds": 5}]},
             "custom_questions": [],
         }

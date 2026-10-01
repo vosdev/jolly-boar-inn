@@ -57,7 +57,12 @@ def test_an_instance_that_started_without_the_database_does_not_share_it(
         late.state.settings = Settings(_env_file=None, database_url=test_db_dsn)
         with TestClient(_app(test_db_dsn, dist)):
             assert client.get("/api/health").status_code == 503
-            assert client.post("/api/rooms", json={"display_name": "Zezima"}).status_code == 503
+            assert (
+                client.post(
+                    "/api/rooms", json={"returning": False, "display_name": "Zezima"}
+                ).status_code
+                == 503
+            )
         assert client.get("/api/health").status_code == 200
 
 

@@ -35,13 +35,15 @@ def by_id(players: list[dict[str, Any]], player_id: str) -> dict[str, Any]:
 
 def test_create_and_join_store_the_head_they_were_sent(client: TestClient, db) -> None:
     response = client.post(
-        "/api/rooms", json={"display_name": "Admin", "avatar": 3, "settings": {}}
+        "/api/rooms",
+        json={"returning": False, "display_name": "Admin", "avatar": 3, "settings": {}},
     )
     assert response.status_code == 201, response.text
     body = response.json()
     assert body["player"]["avatar"] == 3
     joined = client.post(
-        f"/api/rooms/{body['code']}/join", json={"display_name": "Zezima", "avatar": HEADS - 1}
+        f"/api/rooms/{body['code']}/join",
+        json={"returning": False, "display_name": "Zezima", "avatar": HEADS - 1},
     )
     assert joined.status_code == 200, joined.text
     assert joined.json()["player"]["avatar"] == HEADS - 1
@@ -59,7 +61,8 @@ def test_a_head_outside_the_manifest_is_refused_at_create_and_join(
     client: TestClient, db, avatar: int
 ) -> None:
     response = client.post(
-        "/api/rooms", json={"display_name": "Admin", "avatar": avatar, "settings": {}}
+        "/api/rooms",
+        json={"returning": False, "display_name": "Admin", "avatar": avatar, "settings": {}},
     )
     assert response.status_code == 422
     assert response.json()["code"] == "bad_avatar"
@@ -67,7 +70,8 @@ def test_a_head_outside_the_manifest_is_refused_at_create_and_join(
 
     code, _ = create(client)
     response = client.post(
-        f"/api/rooms/{code}/join", json={"display_name": "Zezima", "avatar": avatar}
+        f"/api/rooms/{code}/join",
+        json={"returning": False, "display_name": "Zezima", "avatar": avatar},
     )
     assert response.status_code == 422
     assert response.json()["code"] == "bad_avatar"
@@ -77,7 +81,8 @@ def test_a_head_outside_the_manifest_is_refused_at_create_and_join(
 @pytest.mark.parametrize("avatar", [-1, 32768, "3", 1.5])
 def test_a_head_that_is_not_a_small_int_fails_validation(client: TestClient, avatar) -> None:
     response = client.post(
-        "/api/rooms", json={"display_name": "Admin", "avatar": avatar, "settings": {}}
+        "/api/rooms",
+        json={"returning": False, "display_name": "Admin", "avatar": avatar, "settings": {}},
     )
     assert response.status_code == 422
 
@@ -87,12 +92,14 @@ def test_a_full_room_can_have_fifty_different_heads(app: FastAPI, client: TestCl
     cap = app.state.settings.max_players_per_room
     assert HEADS >= cap
     response = client.post(
-        "/api/rooms", json={"display_name": "Player0", "avatar": 0, "settings": {}}
+        "/api/rooms",
+        json={"returning": False, "display_name": "Player0", "avatar": 0, "settings": {}},
     )
     code = response.json()["code"]
     for seat in range(1, cap):
         joined = client.post(
-            f"/api/rooms/{code}/join", json={"display_name": f"Player{seat}", "avatar": seat}
+            f"/api/rooms/{code}/join",
+            json={"returning": False, "display_name": f"Player{seat}", "avatar": seat},
         )
         assert joined.status_code == 200, joined.text
     players = held(client, code)["players"]
@@ -223,11 +230,14 @@ def test_a_client_from_before_heads_still_joins_and_plays(client: TestClient) ->
     which its TypeScript never reads. Its players are the derived-head players.
     """
     response = client.post(
-        "/api/rooms", json={"display_name": "Admin", "settings": {}, "custom_questions": []}
+        "/api/rooms",
+        json={"returning": False, "display_name": "Admin", "settings": {}, "custom_questions": []},
     )
     assert response.status_code == 201
     code, admin = response.json()["code"], response.json()
-    joined = client.post(f"/api/rooms/{code}/join", json={"display_name": "Zezima"})
+    joined = client.post(
+        f"/api/rooms/{code}/join", json={"returning": False, "display_name": "Zezima"}
+    )
     assert joined.status_code == 200
     with client.websocket_connect(f"/ws/{code}") as ws:
         welcome = hello(ws, admin["session"])

@@ -419,7 +419,7 @@ The creator is the first admin. Every identity is one session token. Tokens trav
 (create and join return one; `DELETE /api/rooms/{code}` sends one) and the first websocket frame.
 Admin rights come from `player.role`, checked per message.
 
-`POST /api/rooms {display_name, avatar?, settings, custom_questions}`, in one transaction:
+`POST /api/rooms {display_name, avatar?, returning, settings, custom_questions}`, in one transaction:
 
 1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
    spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
@@ -431,7 +431,8 @@ Admin rights come from `player.role`, checked per message.
 5. Return `201 {code, session, player, expires_at}`. The plain session is returned once and never
    logged. Any failure rolls everything back.
 
-- Join is `POST /api/rooms/{code}/join {display_name, avatar?}` → `{session, player}`.
+- Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning}` → `{session, player}`.
+- `returning` says the browser had a `jbi:profile` when the page loaded. It is counted, never stored.
 - The client keeps sessions and the rooms it created in localStorage, never a cookie, so nothing
   ambient authenticates a request.
 - A second admin is a join plus `promote`. A room whose last admin lost their session stays stuck
@@ -474,8 +475,14 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 ## 11. Database
 
 The schema is the sum of `server/app/migrations/`; this file keeps no copy. Add a migration, never
-edit one. Four tables: `rooms`, `players`, `questions` (every question the room will play, fixed at
-creation) and `answers` (one per player per question). The last three cascade from `rooms`.
+edit one. `rooms`, `players`, `questions` (every question the room will play, fixed at creation) and
+`answers` (one per player per question); the last three cascade from `rooms`. `daily_stats` has no
+key into them, so cleanup leaves it.
+
+- `daily_stats (day, metric, key, count)` counts per UTC day, in the transaction of the event
+  counted (`app/stats.py` names the metrics). Games and rounds (keyed by mode) are started, then
+  ended early or finished, or abandoned when their room is deleted or expires under them. No IP,
+  name, room code or player id ever goes in it.
 
 - `answers.points` is written once, at close, and standings are its sum. Memory keeps the same sum
   and reloads it on rehydrate. Scores are never tracked separately.

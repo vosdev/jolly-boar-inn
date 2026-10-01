@@ -49,7 +49,7 @@ describe('Join', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(api.joinRoom).toHaveBeenCalledTimes(1)
-    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3)
+    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3, false)
     expect(getSession('ABYSSAL')).toBe('token')
     expect(get(nudge)).toBeNull()
   })
@@ -61,6 +61,8 @@ describe('Join', () => {
     const made = get(profile)
     expect(made).not.toBeNull()
     expect(joinedAs()).toEqual([made?.name])
+    // The profile was made just before the join, so this is still a first visit.
+    expect(vi.mocked(api.joinRoom).mock.calls[0]![3]).toBe(false)
     expect(get(nudge)).toBe('ABYSSAL')
     expect(document.querySelector('dialog')).toBeNull()
   })

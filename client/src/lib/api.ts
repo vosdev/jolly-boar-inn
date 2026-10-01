@@ -129,22 +129,38 @@ export interface RoomSnapshot {
   players: number
 }
 
-/** `avatar` is the profile's head (D4); left out, the room draws the one derived from the id. */
+/**
+ * `avatar` is the profile's head; undefined, the room draws the one derived from the id.
+ * `returning` is `returningVisitor`, counted by the server and never stored.
+ */
 export function createRoom(
   displayName: string,
   settings: NewRoomSettings,
-  avatar?: number,
+  avatar: number | undefined,
+  returning: boolean,
 ): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
-    body: JSON.stringify({ display_name: displayName, avatar, settings, custom_questions: [] }),
+    body: JSON.stringify({
+      display_name: displayName,
+      avatar,
+      returning,
+      settings,
+      custom_questions: [],
+    }),
   })
 }
 
-export function joinRoom(code: string, displayName: string, avatar?: number): Promise<Credentials> {
+/** As `createRoom`, for a room that already exists. */
+export function joinRoom(
+  code: string,
+  displayName: string,
+  avatar: number | undefined,
+  returning: boolean,
+): Promise<Credentials> {
   return request<Credentials>(`/api/rooms/${encodeURIComponent(code)}/join`, {
     method: 'POST',
-    body: JSON.stringify({ display_name: displayName, avatar }),
+    body: JSON.stringify({ display_name: displayName, avatar, returning }),
   })
 }
 

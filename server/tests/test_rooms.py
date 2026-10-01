@@ -44,7 +44,13 @@ def sha256(token: str) -> str:
 def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> None:
     """T6: the creator is the admin; the session is hashed at rest."""
     response = client.post(
-        "/api/rooms", json={"display_name": "  Zezima  ", "settings": {}, "custom_questions": []}
+        "/api/rooms",
+        json={
+            "returning": False,
+            "display_name": "  Zezima  ",
+            "settings": {},
+            "custom_questions": [],
+        },
     )
     assert response.status_code == 201
     body = response.json()
@@ -71,7 +77,7 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
 
 def test_create_returns_when_the_room_expires(client: TestClient, db) -> None:
     """The host's list of rooms needs the stored expiry to know when a code is no longer theirs."""
-    response = client.post("/api/rooms", json={"display_name": "Zezima"})
+    response = client.post("/api/rooms", json={"returning": False, "display_name": "Zezima"})
     assert response.status_code == 201
     (room,) = db("select expires_at from rooms")
     assert datetime.fromisoformat(response.json()["expires_at"]) == room["expires_at"]
@@ -95,7 +101,9 @@ def test_create_registers_the_room_in_memory_with_its_admin(
 def test_a_bad_display_name_creates_no_room(client: TestClient, db) -> None:
     """The name is validated before anything is written, so nothing is left behind."""
     for name in ("", "   ", "x" * 25, "<b>bold</b>", "two\nlines", "tab\there"):
-        response = client.post("/api/rooms", json={"display_name": name, "settings": {}})
+        response = client.post(
+            "/api/rooms", json={"returning": False, "display_name": name, "settings": {}}
+        )
         assert response.status_code == 422, name
         assert response.json()["code"] == "bad_name", name
     for table in ("rooms", "questions", "players"):
@@ -105,9 +113,14 @@ def test_a_bad_display_name_creates_no_room(client: TestClient, db) -> None:
 def test_a_bad_display_name_costs_no_rate_limit_quota(client: TestClient) -> None:
     """The limiter records a hit on every call it allows, so it runs after the name."""
     for _ in range(6):
-        response = client.post("/api/rooms", json={"display_name": "", "settings": {}})
+        response = client.post(
+            "/api/rooms", json={"returning": False, "display_name": "", "settings": {}}
+        )
         assert response.status_code == 422
-    assert client.post("/api/rooms", json={"display_name": "Zezima"}).status_code == 201
+    assert (
+        client.post("/api/rooms", json={"returning": False, "display_name": "Zezima"}).status_code
+        == 201
+    )
 
 
 def test_a_failed_player_insert_leaves_no_room(
@@ -190,7 +203,7 @@ def test_one_create_over_the_hourly_limit_from_one_ip_is_429(app, client: TestCl
     """One create more than ``ROOMS_PER_IP_PER_HOUR`` from one address is 429."""
     for _ in range(app.state.settings.rooms_per_ip_per_hour):
         create(client)
-    response = client.post("/api/rooms", json={"display_name": "Zezima"})
+    response = client.post("/api/rooms", json={"returning": False, "display_name": "Zezima"})
     assert response.status_code == 429
     assert response.json()["code"] == "rate_limited"
 
@@ -239,16 +252,23 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"bogus": 1},
     ]
     for settings in bad:
-        response = client.post("/api/rooms", json={"display_name": "Zezima", "settings": settings})
+        response = client.post(
+            "/api/rooms", json={"returning": False, "display_name": "Zezima", "settings": settings}
+        )
         assert response.status_code == 422, settings
     response = client.post(
-        "/api/rooms", json={"display_name": "Zezima", "settings": {"max_players": 51}}
+        "/api/rooms",
+        json={"returning": False, "display_name": "Zezima", "settings": {"max_players": 51}},
     )
     assert response.status_code == 422
     assert response.json()["code"] == "bad_settings"
     response = client.post(
         "/api/rooms",
-        json={"display_name": "Zezima", "custom_questions": [{"type": "more_less"}]},
+        json={
+            "returning": False,
+            "display_name": "Zezima",
+            "custom_questions": [{"type": "more_less"}],
+        },
     )
     assert response.status_code == 422
 
@@ -275,6 +295,7 @@ def post(
         "/api/rooms",
         json={
             "display_name": "Zezima",
+            "returning": False,
             "settings": {"modes": modes, **settings},
             "custom_questions": custom,
         },
@@ -292,7 +313,12 @@ def test_a_custom_question_postgres_cannot_store_is_a_422_and_no_room(
 ) -> None:
     """Both are valid JSON escapes, so the body is sent as written rather than re-encoded."""
     body = json.dumps(
-        {"display_name": "Zezima", "settings": {}, "custom_questions": [own_question("X")]}
+        {
+            "returning": False,
+            "display_name": "Zezima",
+            "settings": {},
+            "custom_questions": [own_question("X")],
+        }
     ).replace('"X"', f'"X{escape}"')
     response = client.post("/api/rooms", content=body, headers={"content-type": "application/json"})
     assert response.status_code == 422, response.text

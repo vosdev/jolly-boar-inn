@@ -61,6 +61,19 @@ function load(): Profile | null {
   }
 }
 
+/**
+ * Whether this browser had a profile before this page loaded: the server counts returning
+ * players by it, and stores it nowhere. Read once, so naming yourself on this visit and
+ * then creating a room is still a first visit.
+ */
+export const returningVisitor: boolean = (() => {
+  try {
+    return localStorage.getItem(PROFILE_KEY) !== null
+  } catch {
+    return false
+  }
+})()
+
 /** Null until this browser has a name. The top bar reads "Set your name" until then. */
 export const profile = writable<Profile | null>(load())
 

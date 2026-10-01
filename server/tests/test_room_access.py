@@ -57,7 +57,9 @@ def test_past_the_miss_budget_every_lookup_from_that_address_is_refused(
     assert refused.status_code == 429
     assert refused.json()["code"] == "rate_limited"
     joined = proxied.post(
-        f"/api/rooms/{code}/join", json={"display_name": "Zezima"}, headers=at("192.0.2.1")
+        f"/api/rooms/{code}/join",
+        json={"returning": False, "display_name": "Zezima"},
+        headers=at("192.0.2.1"),
     )
     assert joined.status_code == 429
     removed = proxied.request(
@@ -107,7 +109,7 @@ def test_joins_past_the_cap_are_refused_per_address(app: FastAPI, proxied: TestC
     app.state.joins = RateLimiter(2)
 
     def join_from(address: str, name: str) -> int:
-        body = {"display_name": name}
+        body = {"returning": False, "display_name": name}
         return proxied.post(f"/api/rooms/{code}/join", json=body, headers=at(address)).status_code
 
     assert join_from("192.0.2.1", "Zezima") == 200

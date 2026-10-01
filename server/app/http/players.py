@@ -17,6 +17,7 @@ class Join(BaseModel):
 
     display_name: str = Field(max_length=200)
     avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)  # as on ``CreateRoom``
+    returning: bool = Field(strict=True)  # as on ``CreateRoom``
 
 
 @router.post("/{code}/join")
@@ -29,7 +30,9 @@ async def join(code: str, body: Join, request: Request) -> dict[str, Any]:
         if not request.app.state.joins.allow(key, now):
             raise RateLimited("too many joins from this address, try again later")
         try:
-            player, session = await manager(request).join(code, body.display_name, body.avatar)
+            player, session = await manager(request).join(
+                code, body.display_name, body.avatar, body.returning
+            )
         except BaseException:
             request.app.state.joins.refund(key, now)
             raise
