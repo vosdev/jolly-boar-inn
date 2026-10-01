@@ -278,7 +278,7 @@ class Player:
     # monotonic clock. Each change is a broadcast to every socket in the room.
     ready_changed_at: float = field(default=-math.inf, repr=False)
     profile_changed_at: float = field(default=-math.inf, repr=False)
-    # Has the name menu open in the lobby. In memory only, like ``ready``, and advice only:
+    # Has the name field focused in the lobby. In memory only, like ``ready``, and advice only:
     # it holds up neither the ready check nor Start.
     editing: bool = False
     editing_changed_at: float = field(default=-math.inf, repr=False)
@@ -1311,12 +1311,12 @@ class RoomManager:
         self._broadcast(update)
 
     async def set_editing(self, code: str, player: Player, on: bool) -> None:
-        """Say the player has the name menu open in the lobby, or has closed it.
+        """Say the player is in the name field in the lobby, or has left it.
 
         Advice for the others, never a gate. An ``on`` for a flag that is already on only
         restarts its ``EDITING_SECONDS``. A change is broadcast; spam is held to two a
         second by ignoring an ``on`` within ``CHANGE_COOLDOWN`` of the last change, while
-        an ``off`` always lands so a flag never outlives the menu. Outside the lobby it is
+        an ``off`` always lands so a flag never outlives the focus. Outside the lobby it is
         ignored rather than refused: the client sends it on its own, not on a tap.
         """
         code = code.upper()

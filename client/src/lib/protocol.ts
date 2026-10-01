@@ -136,7 +136,7 @@ export interface PlayerView {
    * before D7 does not send it, and a player it does not mention is not ready.
    */
   ready?: boolean
-  /** Has the name menu open in the lobby: "picking a name…". Advice, never a gate. */
+  /** Is typing a name in the lobby: "picking a name…". Advice, never a gate. */
   editing?: boolean
 }
 
@@ -248,7 +248,7 @@ export interface Ready {
   ready: boolean
 }
 
-/** The name menu opened in the lobby, or closed. Re-sent while open, or it lapses. */
+/** The name field gained focus in the lobby, or lost it. Re-sent while focused, or it lapses. */
 export interface Editing {
   t: 'editing'
   on: boolean

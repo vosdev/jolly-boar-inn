@@ -6,7 +6,7 @@
  * held, the keyboard, and the theme list, which offers the themes and nothing that follows
  * the device, shows jolly to a browser that never chose, and repaints the moment one is
  * picked, emblem and all. In a room it renames only in the lobby, and tells the room while
- * it is open there, so the others see "picking a name…".
+ * its name field has focus there, so the others see "picking a name…".
  */
 
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
@@ -204,20 +204,37 @@ describe('SettingsMenu, picking a name', () => {
 
   afterEach(() => connection.set('connecting'))
 
-  it('tells the room when it opens in the lobby, and again when it closes', async () => {
+  async function focusName(): Promise<void> {
+    screen.getByRole('textbox').focus()
+    await tick()
+  }
+
+  it('says nothing for an open menu, only while the name field has focus', async () => {
     render(SettingsMenu, { live: me })
     await fireEvent.click(control())
+    expect(editing()).toEqual([])
+    await focusName()
     expect(editing()).toEqual([{ t: 'editing', on: true }])
-    await fireEvent.keyDown(window, { key: 'Escape' })
+    screen.getByRole('textbox').blur()
+    await tick()
     expect(editing()).toEqual([
       { t: 'editing', on: true },
       { t: 'editing', on: false },
     ])
   })
 
-  it('says it again every 30 seconds while open, so it never lapses', async () => {
+  it('takes it back when the menu closes with the name field in focus', async () => {
     render(SettingsMenu, { live: me })
     await fireEvent.click(control())
+    await focusName()
+    await fireEvent.keyDown(window, { key: 'Escape' })
+    expect(editing().at(-1)).toEqual({ t: 'editing', on: false })
+  })
+
+  it('says it again every 30 seconds while focused, so it never lapses', async () => {
+    render(SettingsMenu, { live: me })
+    await fireEvent.click(control())
+    await focusName()
     await vi.advanceTimersByTimeAsync(29_999)
     expect(editing()).toHaveLength(1)
     await vi.advanceTimersByTimeAsync(1)
@@ -230,6 +247,7 @@ describe('SettingsMenu, picking a name', () => {
   it('says it again after a reconnect, which cleared it on the server', async () => {
     render(SettingsMenu, { live: me })
     await fireEvent.click(control())
+    await focusName()
     connection.set('reconnecting')
     await tick()
     connection.set('open')
@@ -242,7 +260,10 @@ describe('SettingsMenu, picking a name', () => {
 
   it('goes quiet after a save the room accepts, until the name is touched again', async () => {
     const chip = render(SettingsMenu, { live: me })
-    await rename('Woox')
+    await fireEvent.click(control())
+    await focusName()
+    await fireEvent.input(screen.getByRole('textbox'), { target: { value: 'Woox' } })
+    await fireEvent.submit(save().form!)
     const renamed = { ...me, display_name: 'Woox' }
     applyServerMessage({ t: 'room_updated', room: LOBBY, players: [renamed] })
     await chip.rerender({ live: renamed })
@@ -255,13 +276,19 @@ describe('SettingsMenu, picking a name', () => {
     expect(editing().at(-1)).toEqual({ t: 'editing', on: true })
   })
 
-  it('offers no rename once the game has started, and tells the room nothing', async () => {
+  it('disables the rename once the game has started, and tells the room nothing', async () => {
     welcome(me, { ...LOBBY, status: 'playing', phase: 'open', current_index: 0 })
     render(SettingsMenu, { live: me })
     await fireEvent.click(control())
-    expect(screen.queryByRole('textbox')).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull()
-    expect(editing()).toEqual([])
+    const name = screen.getByRole('textbox') as HTMLInputElement
+    expect(name.value).toBe('Zezima')
+    expect(name.matches(':disabled')).toBe(true)
+    expect(save().matches(':disabled')).toBe(true)
+    const reroll = screen.getByRole('button', { name: /New head/ })
+    expect(reroll.matches(':disabled')).toBe(true)
+    expect(screen.getByText('Names are fixed once the game has started.')).toBeTruthy()
+    await fireEvent.submit(save().form!)
+    expect(sent).toEqual([])
   })
 
   it('tells the room nothing outside one', async () => {

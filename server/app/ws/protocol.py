@@ -94,7 +94,7 @@ class PlayerView(_Message):
     # The ready check (D7): ready to start in the lobby, ready for this round on a splash.
     # Every splash starts it false for everyone again.
     ready: bool
-    # Has the name menu open in the lobby: "picking a name…". Advice, never a gate.
+    # Is typing a name in the lobby: "picking a name…". Advice, never a gate.
     editing: bool
 
 
@@ -207,7 +207,7 @@ class Ready(_Message):
 
 
 class Editing(_Message):
-    """The name menu opened (``on``), or closed. Lobby only; ignored anywhere else."""
+    """The name field gained focus (``on``), or lost it. Lobby only; ignored anywhere else."""
 
     t: Literal["editing"]
     on: bool = Field(strict=True)

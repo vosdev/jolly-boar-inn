@@ -27,11 +27,11 @@
    * `PENDING_MS` with no word, which says so. This component stays mounted with the menu
    * shut, so a change the room accepts after it closes still reaches the profile.
    *
-   * Names are fixed once the game starts, so in a room past its lobby the menu has no
-   * You section. In the lobby, the others see "picking a name…" while it is open: the
-   * menu sends `editing` on opening, again every `EDITING_REFRESH_MS` and after a
-   * reconnect, since the server lets it lapse, and off on closing. A save the room
-   * accepts clears it on the server, and it stays off until the name or head is touched.
+   * Names are fixed once the game starts, so in a room past its lobby the You section is
+   * disabled. In the lobby, the others see "picking a name…" while the name field has
+   * focus: the menu sends `editing` on focus, again every `EDITING_REFRESH_MS` and after a
+   * reconnect, since the server lets it lapse, and off on blur. A save the room accepts
+   * clears it on the server, and it stays off until the name is typed in again.
    *
    * A player who joined first and never chose a name (section 6) is nudged here, once:
    * the control pulses and says who they are and that a tap changes it. It stays for as
@@ -91,20 +91,29 @@
   let unanswered = $state(false)
   /** Saved and untouched since: nothing to tell the room about. */
   let resting = $state(false)
+  let nameFocused = $state(false)
   /** The room was told `editing` is on, and not told it is off again. */
   let editingSent = false
 
   const inRoom = $derived(live !== null)
   const canRename = $derived(!inRoom || $room?.status === 'lobby')
   const editing = $derived(
-    open && inRoom && canRename && !resting && $connection === 'open' && $roomSend !== null,
+    open &&
+      nameFocused &&
+      inRoom &&
+      canRename &&
+      !resting &&
+      $connection === 'open' &&
+      $roomSend !== null,
   )
   const shownName = $derived(live?.display_name ?? $profile?.name ?? null)
   const shownHead = $derived(live !== null ? headOf(live) : ($profile?.head ?? null))
   const currentName = $derived(live?.display_name ?? $profile?.name ?? '')
   const nameChanged = $derived(draft.trim() !== currentName)
   const headChanged = $derived(draftHead !== null && draftHead !== shownHead)
-  const ok = $derived(nameProblem(draft) === null && (nameChanged || headChanged))
+  const ok = $derived(
+    canRename && nameProblem(draft) === null && (nameChanged || headChanged),
+  )
   const nudging = $derived(
     live !== null && $nudge !== null && $nudge === $room?.code && $room?.status === 'lobby',
   )
@@ -181,6 +190,11 @@
 
   function close(): void {
     open = false
+    nameFocused = false
+  }
+
+  function isNameField(target: EventTarget | null): boolean {
+    return target instanceof HTMLElement && target.id === 'profile-name'
   }
 
   function pickTheme(picked: Theme): void {
@@ -291,9 +305,9 @@
 
   {#if open}
     <div class="panel-menu" role="dialog" aria-label="Settings" tabindex="-1" bind:this={panel}>
-      {#if canRename}
-        <section aria-labelledby="menu-you">
-          <h2 class="section-title" id="menu-you">You</h2>
+      <section aria-labelledby="menu-you">
+        <h2 class="section-title" id="menu-you">You</h2>
+        <fieldset class="you" disabled={!canRename}>
           {#if draftHead !== null}
             <div class="face">
               <Head head={draftHead} size={48} />
@@ -307,7 +321,12 @@
               </button>
             </div>
           {/if}
-          <form onsubmit={submit} oninput={() => (resting = false)}>
+          <form
+            onsubmit={submit}
+            oninput={() => (resting = false)}
+            onfocusin={(event) => (nameFocused = isNameField(event.target))}
+            onfocusout={() => (nameFocused = false)}
+          >
             <NameField
               id="profile-name"
               bind:value={draft}
@@ -328,8 +347,11 @@
               {/if}
             </div>
           </form>
-        </section>
-      {/if}
+          {#if !canRename}
+            <p class="note">Names are fixed once the game has started.</p>
+          {/if}
+        </fieldset>
+      </section>
       <SoundSettings />
       <ThemeChoices current={theme} onpick={pickTheme} />
     </div>
@@ -337,6 +359,13 @@
 </div>
 
 <style>
+  .you {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
   /* Deliberately not positioned: the menu anchors to the top bar's column instead
      (TopBar's `.inner`) and opens flush with its right edge, so at 320px it has the whole
      width less the gutter however wide the name is. */
