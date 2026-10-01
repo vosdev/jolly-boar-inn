@@ -39,6 +39,7 @@
     getModes,
     type ModePacing,
     type NewRoomSettings,
+    type RoomAccess,
   } from '../lib/api'
   import ModeCard from '../components/ModeCard.svelte'
   import Segmented from '../components/Segmented.svelte'
@@ -59,6 +60,20 @@
     { value: true, label: 'On' },
   ]
 
+  const ACCESS: { value: RoomAccess; label: string; note: string }[] = [
+    { value: 'code', label: 'Room code', note: 'Anyone you give the room code to can join.' },
+    {
+      value: 'link',
+      label: 'Invite link',
+      note: "The room code alone won't let anyone in; they need the link.",
+    },
+    {
+      value: 'public',
+      label: 'Public',
+      note: "Listed on this site's homepage, where anyone can join it.",
+    },
+  ]
+
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   let revealSeconds = $state(3)
@@ -74,7 +89,7 @@
   let nameWrongAnswers = $state(false)
   /** Players learn each round's mode as it starts; the server holds the rest back. */
   let hideRounds = $state(false)
-  let inviteOnly = $state(false)
+  let access = $state<RoomAccess>('code')
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
 
@@ -186,7 +201,7 @@
         settings,
         host.head,
         returningVisitor,
-        inviteOnly,
+        access,
       )
       setSession(created.code, created.session)
       rememberCreated(created.code, created.expires_at)
@@ -270,6 +285,12 @@
     {/if}
   </section>
 
+  <section class="panel access">
+    <h2>Who can join</h2>
+    <Segmented legend="Access" options={ACCESS} bind:value={access} />
+    <p class="note">{ACCESS.find((option) => option.value === access)?.note}</p>
+  </section>
+
   <section class="panel rest">
     <h2>The rest of the game</h2>
     <div class="settings">
@@ -309,10 +330,6 @@
       <div>
         <Segmented legend="Surprise rounds" options={OFF_ON} bind:value={hideRounds} />
         <p class="note">Hide the game modes in the lobby from the players</p>
-      </div>
-      <div>
-        <Segmented legend="Invite link only" options={OFF_ON} bind:value={inviteOnly} />
-        <p class="note">The room code alone won't let anyone in; they need the link.</p>
       </div>
       <Segmented
         legend="Close when everyone has answered"
@@ -410,7 +427,8 @@
     }
   }
 
-  .rest .note {
+  .rest .note,
+  .access .note {
     margin: 0.3rem 0 0;
   }
 </style>

@@ -260,7 +260,8 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 - `question_id` is the row uuid, never the content id, which hashes the answer and could be
   brute-forced.
 - Results and correct answers first appear in `question_closed`, to everyone at once.
-- The question list is never sent. `GET /api/rooms/{code}` returns only `{status, players}`, a count.
+- The question list is never sent. `GET /api/rooms/{code}` returns only `{status, players}`, a count;
+  `GET /api/rooms/public` is in section 10.
 - With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
   rounds `current_index` has reached. The lobby names none, admins' included: screens get shared.
 - An admin can read the room's custom questions before the game. They cannot score on them.
@@ -434,7 +435,7 @@ compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fr
 log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
 away. Both return chosen fields only, never a name, an answer or a question.
 
-`POST /api/rooms {display_name, avatar?, returning, invite_only?, settings, custom_questions}`, in one transaction:
+`POST /api/rooms {display_name, avatar?, returning, invite_only?, public?, settings, custom_questions}`, in one transaction:
 
 1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
    spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
@@ -452,6 +453,12 @@ away. Both return chosen fields only, never a name, an answer or a question.
   with `hmac.compare_digest`. It is a door code, not a credential, so it travels in the link's
   fragment, `/r/CODE#k=…`; Join moves it to the body and `replaceState`s it away. Sessions never
   need it. Rotating it is the room lock; there is no other.
+- `public` lists the room on Home (`rooms.public`); with `invite_only` too it is a 422.
+  `GET /api/rooms/public` is the one route that shows a stranger rooms they were not given, so it
+  carries only what a join would: the 50 newest public lobbies in memory with a connected player
+  and a free seat, as `{code, host: {id, display_name, avatar}, players, max_players, rounds,
+  modes?}`, `modes` left out with `hide_rounds`. Every caller shares one copy for 5 s.
+  `PUBLIC_ROOMS=false` makes it `[]`.
 - `returning` says the browser had a `jbi:profile` when the page loaded. It is counted, never stored.
 - The client keeps sessions and the rooms it created in localStorage, never a cookie, so nothing
   ambient authenticates a request.
