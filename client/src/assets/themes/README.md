@@ -12,7 +12,7 @@ Drop a file in and it is used on the next build. No code changes.
 | `pollnivneach.<ext>` | Pollnivneach | Desert | A domed house and a palm |
 | `wilderness.<ext>` | Wilderness | Wilderness | A skull |
 | `party_room.<ext>` | Party Room | Asgarnia | A partyhat |
-| `tzhaar.<ext>` | TzHaar, not built yet | Karamja | A volcano |
+| `tzhaar.<ext>` | TzHaar | Karamja | A volcano |
 
 `<ext>` is any of `avif`, `webp`, `png`, `jpg`, `jpeg` or `svg`. Square and transparent;
 it is drawn at 24px in the bar and 32px in the menu. A flag cannot follow the theme's tokens,

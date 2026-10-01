@@ -12,7 +12,7 @@ import { THEMES, type Theme } from './theme'
 import { fileNamed } from './trophies'
 
 /** Themes the menu lists, disabled, ahead of their palette in `app.css`, by name. */
-export const UNBUILT_THEMES = { tzhaar: 'TzHaar' } as const
+export const UNBUILT_THEMES = {} as const
 
 export type UnbuiltTheme = keyof typeof UNBUILT_THEMES
 

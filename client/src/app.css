@@ -308,6 +308,69 @@
   color-scheme: light;
 }
 
+/* The TzHaar volcano: an obsidian floor split by lava, and the fight cave's heat. Warm where
+   the Wilderness is cold: brown-black, not slate, and a red edge where it has grey stone.
+   The accent is molten orange, far enough from the red of a wrong answer that the two stay
+   apart with any of the three colour blindnesses simulated. */
+[data-theme='tzhaar'] {
+  /* The obsidian floor, and the near-black rock of the city walls. */
+  --bg: #140c0a;
+  --panel: #1c1210;
+  --panel-raised: #2a1914;
+  --line: #c42a16;
+  --ink: #fbeee2;
+  --muted: #c9a993;
+  --bg-ink: #fbeee2;
+  --bg-muted: #c9a993;
+
+  /* Lava. */
+  --accent: #ff9a2e;
+  --accent-ink: #140c0a;
+  --accent-hover: #ffb04f;
+
+  --ok: #8ad27e;
+  --ok-ink: #140c0a;
+  --bad: #f25c4a;
+  --bad-ink: #140c0a;
+  --warn: #f0c75a;
+  --warn-ink: #140c0a;
+
+  /* Blue and violet: the cave has neither, so neither reads as a verdict or as lava. */
+  --more: #8ab4f0;
+  --less: #d29cf0;
+
+  --gem-sapphire: #1e3f7a;
+  --gem-emerald: #15613a;
+  --gem-ruby: #7d1c22;
+  --gem-red-topaz: #9a2f6e;
+  --gem-dragonstone: #5a2172;
+  --gem-zenyte: #7c4510;
+  --gem-ink: #fbeee2;
+
+  /* Cut basalt: no rounding, a hard edge, and the lava's glow under it. */
+  --radius: 0;
+  --border-width: 2px;
+  --shadow: 0 0 14px rgb(255 90 30 / 0.16);
+  --scrim: rgb(0 0 0 / 0.6);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* Obsidian slabs between glowing seams, on a tile wide enough to hide its repeat. The
+     panels stay plain rock. */
+  --texture-panel: none;
+  --texture-bg: url('./assets/textures/tzhaar-cracks.svg');
+
+  /* Parchment lit by the lava, on rolls scorched red. */
+  --scroll-paper: #e6c88e;
+  --scroll-edge: #9a2e12;
+  --scroll-ink: #2a1206;
+  --scroll-muted: #5a2a10;
+  --scroll-facet-light: 0.08;
+
+  color-scheme: dark;
+}
+
 :root {
   font-family: var(--font-body);
   color: var(--ink);

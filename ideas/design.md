@@ -14,6 +14,7 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `pollnivneach` | Pollnivneach | Bright desert noon. | Sandstone, off-white panels | Terracotta, indigo shade |
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
 | `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
+| `tzhaar` | TzHaar | Hot. The volcano's cracked obsidian floor. | Brown-black, red seams, near-black panels | Lava orange |
 
 - `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
@@ -110,8 +111,7 @@ player via `set_profile` inside one), **Sound** (§7) and **Theme**, a column of
 names, the chosen one ringed. Picking a theme repaints at once and the panel stays open. Escape, a
 tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
 elsewhere. An emblem is the Leagues flag of the theme's area (§14); until one is dropped in, a flat
-mark in the theme's `--accent` stands in. `tzhaar` is listed already, disabled, until its
-palette exists.
+mark in the theme's `--accent` stands in.
 
 ## 6. Names and heads
 
@@ -193,7 +193,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
   (900 ms) in the theme's gem colours. `+0` gets nothing.
 - **The scroll** is an original inline SVG component in layer 8's tokens. An `<img>` could not read
   the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only along its
-  length. `jolly` and `pollnivneach` have their own paper; `wilderness` uses `jolly`'s.
+  length. `jolly`, `pollnivneach`, `party_room` and `tzhaar` have their own paper; `wilderness` uses
+  `jolly`'s.
 - **Below the line** is the page: on the splash the round's count and pace and the ready check;
   on a question only the answers, in a panel. Gems never sit on parchment, so every gem check
   still measures against `--panel`. The round is said on the splash only.

@@ -46,9 +46,10 @@ def listed_themes() -> list[str]:
 # --- the themes ----------------------------------------------------------------------
 
 
-def test_the_four_themes_in_menu_order() -> None:
-    """party_room comes last: built against the contract on its own, and cut if it ever fails."""
-    assert listed_themes() == ["jolly", "pollnivneach", "wilderness", "party_room"]
+def test_the_five_themes_in_menu_order() -> None:
+    """party_room and tzhaar come last: each built against the contract on its own, and cut
+    if it ever fails."""
+    assert listed_themes() == ["jolly", "pollnivneach", "wilderness", "party_room", "tzhaar"]
 
 
 def test_each_theme_is_one_contiguous_block() -> None:
@@ -149,3 +150,89 @@ def test_the_panel_texture_is_a_band_along_the_top() -> None:
     panel = re.search(r"(?m)^\.panel \{([^}]*)\}", rules)
     assert panel is not None
     assert "background-repeat: repeat-x" in panel.group(1)
+
+
+# --- tzhaar --------------------------------------------------------------------------
+
+# Machado, Oliveira and Fernandes (2009) at full severity, applied to linear RGB.
+DICHROMACY = {
+    "protanopia": (
+        (0.152286, 1.052583, -0.204868),
+        (0.114503, 0.786281, 0.099216),
+        (-0.003882, -0.048116, 1.051998),
+    ),
+    "deuteranopia": (
+        (0.367322, 0.860646, -0.227968),
+        (0.280085, 0.672501, 0.047413),
+        (-0.011820, 0.042940, 0.968881),
+    ),
+    "tritanopia": (
+        (1.255528, -0.076749, -0.178779),
+        (-0.078411, 0.930809, 0.147602),
+        (0.004733, 0.691367, 0.303900),
+    ),
+}
+
+
+def simulate(
+    rgb: tuple[int, int, int], matrix: tuple[tuple[float, ...], ...]
+) -> tuple[int, int, int]:
+    """``rgb`` as a dichromat sees it."""
+    linear = [check._channel(value) for value in rgb]
+    seen = [
+        min(max(sum(m * v for m, v in zip(row, linear, strict=True)), 0.0), 1.0) for row in matrix
+    ]
+    encoded = [12.92 * v if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055 for v in seen]
+    r, g, b = (round(255 * v) for v in encoded)
+    return (r, g, b)
+
+
+def colour(theme: str, token: str) -> tuple[int, int, int]:
+    rgb = check._rgb(dict(theme_blocks())[theme][token].strip())
+    assert rgb is not None, f"{theme} {token}"
+    return rgb
+
+
+def test_tzhaar_keeps_wrong_apart_from_lava_with_colour_blindness_simulated() -> None:
+    """Red means wrong, and the lava accent is the colour most likely to blur into it."""
+    bad, accent = colour("tzhaar", "--bad"), colour("tzhaar", "--accent")
+    for name, matrix in DICHROMACY.items():
+        gap = check.delta_e(simulate(bad, matrix), simulate(accent, matrix))
+        assert gap >= check.MIN_FADE_DELTA_E, f"{name}: --bad and --accent only {gap:.1f} apart"
+
+
+def test_tzhaar_is_not_the_wilderness_twice() -> None:
+    """Both are near-black, so the floor alone barely differs: the red edge and the lava
+    accent are what tell them apart, with the cracks under them."""
+    floors = {
+        token: check.delta_e(colour("tzhaar", token), colour("wilderness", token))
+        for token in ("--bg", "--panel", "--line", "--accent")
+    }
+    assert floors["--bg"] >= 5
+    assert floors["--panel"] >= 12
+    assert floors["--line"] >= 70
+    assert floors["--accent"] >= 15
+
+
+def test_the_crack_texture_tiles_on_all_four_edges() -> None:
+    """A crack that leaves the tile on one side comes back in on the other."""
+    svg = read(APP_CSS.parent / "assets" / "textures" / "tzhaar-cracks.svg")
+    size = int(re.search(r'viewBox="0 0 (\d+) \1"', svg).group(1))  # type: ignore[union-attr]
+    for d in re.findall(r' d="([^"]+)"', svg):
+        paths = {
+            tuple(tuple(int(n) for n in point.split()) for point in sub.split("L"))
+            for sub in d.split("M")
+            if sub
+        }
+        for path in paths:
+            xs = [x for x, _ in path]
+            ys = [y for _, y in path]
+            for dx, dy, out in (
+                (size, 0, min(xs) < 0),
+                (-size, 0, max(xs) > size),
+                (0, size, min(ys) < 0),
+                (0, -size, max(ys) > size),
+            ):
+                if out:
+                    twin = tuple((x + dx, y + dy) for x, y in path)
+                    assert twin in paths, f"a crack leaves the tile and never comes back: {path[0]}"
