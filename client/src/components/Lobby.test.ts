@@ -4,7 +4,7 @@
  */
 
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { derivedHead } from '../lib/heads'
 import type { PlayerView, RoomView } from '../lib/protocol'
@@ -106,6 +106,33 @@ describe('Lobby', () => {
     await fireEvent(dialog(), new Event('cancel'))
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(sent).toEqual([])
+  })
+
+  it('shows an invite-only room’s link with its key as asterisks, and copies the real one', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
+    const field = screen.getByRole('textbox', { name: 'Link for players' }) as HTMLInputElement
+    expect(field.value).toBe(`${location.origin}/r/ABYSSAL#k=${'*'.repeat(11)}`)
+    await fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
+    expect(writeText).toHaveBeenCalledWith(`${location.origin}/r/ABYSSAL#k=abc_DEF-123`)
+    expect(field.value).not.toContain('abc_DEF-123')
+  })
+
+  it('sends rotate_key only once the host confirms a new link', async () => {
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc' })
+    await fireEvent.click(screen.getByRole('button', { name: 'New link' }))
+    expect(sent).toEqual([])
+    expect(dialog().textContent).toContain('The current one stops working. Players already here stay.')
+    await fireEvent.click(within(dialog()).getByRole('button', { name: 'New link' }))
+    expect(sent).toEqual([{ t: 'rotate_key' }])
+  })
+
+  it('offers no new link for a room without a key', () => {
+    lobby()
+    expect(screen.queryByRole('button', { name: 'New link' })).toBeNull()
+    const field = screen.getByRole('textbox', { name: 'Link for players' }) as HTMLInputElement
+    expect(field.value).toBe(`${location.origin}/r/ABYSSAL`)
   })
 
   it('starts at once, asking nothing, when enough of the room is ready', async () => {

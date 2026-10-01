@@ -15,6 +15,10 @@
    *
    * Promote asks first as well as Kick: there is no demote, and an admin cannot be kicked,
    * so one slip of the thumb would make a permanent co-host.
+   *
+   * An invite-only room's link carries its key, which only admins are sent, and shows it
+   * as asterisks because lobbies get streamed. New link replaces the key. That is also the
+   * room lock: a key nobody else has yet lets nobody in, so there is no separate one.
    */
   import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
@@ -23,6 +27,7 @@
   import { players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
   import ConfirmDialog from './ConfirmDialog.svelte'
+  import { inviteLink, maskedLink } from '../lib/invite'
   import CopyLink from './CopyLink.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import Head from './Head.svelte'
@@ -107,6 +112,14 @@
     }
   }
 
+  function rotateKey(): void {
+    asking = {
+      message: 'Make a new link? The current one stops working. Players already here stay.',
+      label: 'New link',
+      act: () => socket.send({ t: 'rotate_key' }),
+    }
+  }
+
   function promote(player: PlayerView): void {
     asking = {
       message: `Make ${player.display_name} a host? This can't be undone.`,
@@ -132,7 +145,15 @@
       </p>
     {/if}
   </div>
-  <CopyLink id="join-link" label="Link for players" value={`${location.origin}/r/${$room?.code ?? ''}`} />
+  <CopyLink
+    id="join-link"
+    label="Link for players"
+    value={inviteLink(location.origin, $room?.code ?? '', $room?.key)}
+    shown={maskedLink(location.origin, $room?.code ?? '', $room?.key)}
+  />
+  {#if isAdmin && $room?.key !== undefined}
+    <button type="button" class="small" onclick={rotateKey}>New link</button>
+  {/if}
 </section>
 
 {#if settings !== null}

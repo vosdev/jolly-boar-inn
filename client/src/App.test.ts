@@ -202,6 +202,17 @@ describe('App', () => {
     ).toBe(REPO_URL)
   })
 
+  it('leaves an invite link in the address bar for Join to read', async () => {
+    at('/r/ABYSSAL#k=abc')
+    await waitFor(() => expect(api.joinRoom).toHaveBeenCalledOnce())
+    expect(vi.mocked(api.joinRoom).mock.calls[0]![4]).toBe('abc')
+  })
+
+  it('tidies any other fragment away', () => {
+    at('/r/ABYSSAL#t=old')
+    expect(location.hash).toBe('')
+  })
+
   it('with storage throwing, lets a first visit join a room and play in it', async () => {
     const denied = (): never => {
       throw new DOMException('The operation is insecure.', 'SecurityError')

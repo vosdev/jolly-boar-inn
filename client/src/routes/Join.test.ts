@@ -4,7 +4,7 @@
  * number on the end for a name the room already has.
  */
 
-import { render, screen, waitFor } from '@testing-library/svelte'
+import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
 import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -36,6 +36,7 @@ beforeEach(() => {
   nudge.set(null)
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 2 })
   vi.mocked(api.joinRoom).mockResolvedValue(CREDENTIALS)
+  history.replaceState(null, '', '/r/ABYSSAL')
 })
 
 describe('Join', () => {
@@ -49,7 +50,7 @@ describe('Join', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(api.joinRoom).toHaveBeenCalledTimes(1)
-    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3, false)
+    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3, false, null)
     expect(getSession('ABYSSAL')).toBe('token')
     expect(get(nudge)).toBeNull()
   })
@@ -114,6 +115,67 @@ describe('Join', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     expect(await screen.findByText('This game has already started.')).toBeTruthy()
     expect(api.joinRoom).not.toHaveBeenCalled()
+  })
+})
+
+describe('Join for an invite-only room', () => {
+  const refused = (code: string) => new ApiFailure(403, code, 'refused')
+  const keysSent = () => vi.mocked(api.joinRoom).mock.calls.map((call) => call[4])
+  const field = () => screen.findByRole('textbox', { name: 'Invite link' })
+
+  it('joins with the key from the link, and takes it out of the address bar', async () => {
+    history.replaceState(null, '', '/r/ABYSSAL#k=abc_DEF-123')
+    render(Join, { code: 'ABYSSAL', navigate })
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(keysSent()).toEqual(['abc_DEF-123'])
+    expect(location.hash).toBe('')
+    expect(location.pathname).toBe('/r/ABYSSAL')
+  })
+
+  it('keeps the key while it turns the number over', async () => {
+    history.replaceState(null, '', '/r/ABYSSAL#k=abc')
+    vi.mocked(api.joinRoom).mockRejectedValueOnce(taken()).mockResolvedValueOnce(CREDENTIALS)
+    render(Join, { code: 'ABYSSAL', navigate })
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(keysSent()).toEqual(['abc', 'abc'])
+  })
+
+  it('asks for the link, rather than erroring, when the room wants a key', async () => {
+    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('key_required'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await field()
+    expect(screen.getByText('This room is invite-only. Paste the link the host shared.')).toBeTruthy()
+    expect(screen.queryByText('refused')).toBeNull()
+    expect(document.querySelector('.error')).toBeNull()
+    expect(screen.queryByRole('textbox', { name: /name/i })).toBeNull()
+  })
+
+  it('says a wrong key is out of date, and asks again', async () => {
+    history.replaceState(null, '', '/r/ABYSSAL#k=stale')
+    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('bad_key'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await field()
+    expect(screen.getByText('That link is out of date or mistyped.')).toBeTruthy()
+  })
+
+  it.each([
+    ['the whole link', 'https://inn.example/r/ABYSSAL#k=fresh'],
+    ['the key alone', '  fresh '],
+  ])('joins with %s pasted, under the name it was trying', async (_, text) => {
+    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('key_required'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.input(await field(), { target: { value: text } })
+    await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(keysSent()).toEqual([null, 'fresh'])
+    expect(joinedAs()).toEqual(['Zezima', 'Zezima'])
+  })
+
+  it('will not send what is no key at all', async () => {
+    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('key_required'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.input(await field(), { target: { value: 'https://inn.example/r/ABYSSAL' } })
+    expect((screen.getByRole('button', { name: 'Join' }) as HTMLButtonElement).disabled).toBe(true)
   })
 })
 

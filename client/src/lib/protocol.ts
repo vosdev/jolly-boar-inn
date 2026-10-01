@@ -126,6 +126,8 @@ export interface RoomView {
   finished_at: string | null
   /** How many rounds the room plays; sent only with `settings.hide_rounds`. */
   rounds?: number
+  /** An invite-only room's key; sent to its admins only. */
+  key?: string
 }
 
 export interface PlayerView {
@@ -244,6 +246,11 @@ export interface EndGame {
   t: 'end_game'
 }
 
+/** Replace an invite-only room's key, so the old link stops working. Lobby only. */
+export interface RotateKey {
+  t: 'rotate_key'
+}
+
 /** Rename, re-roll the head, or both. An omitted field is left alone (D4). */
 export interface SetProfile {
   t: 'set_profile'
@@ -272,6 +279,7 @@ export type ClientMessage =
   | Promote
   | Kick
   | EndGame
+  | RotateKey
   | SetProfile
   | Ready
   | Editing
