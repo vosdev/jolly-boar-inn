@@ -4,11 +4,12 @@
  * version, and a first visit that can join and play with storage that throws.
  */
 
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App.svelte'
 import * as api from './lib/api'
+import { savePastGame } from './lib/history'
 import { LICENSE_URL, RELEASE_URL, REPO_URL, VERSION_LABEL } from './lib/links'
 import { profile } from './lib/profile'
 import type { OpenQuestion, RoomView } from './lib/protocol'
@@ -74,6 +75,7 @@ const LIVE: RoomView = {
   phase: 'open',
   next_at: null,
   segment: SEGMENT,
+  finished_at: null,
 }
 
 const QUESTION: OpenQuestion = {
@@ -212,5 +214,22 @@ describe('App', () => {
     await waitFor(() => expect(api.joinRoom).toHaveBeenCalledOnce())
     expect(await screen.findByText('Connecting…')).toBeTruthy()
     expect(within(bar()).getByRole('button', { name: /^You are / })).toBeTruthy()
+  })
+
+  it('draws a past game from this browser alone, and says so for one it never kept', async () => {
+    savePastGame({
+      code: 'ABYSSAL',
+      finishedAt: '2026-10-01T20:05:00Z',
+      standings: [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1 }],
+      youId: 'a',
+    })
+    at('/history/ABYSSAL/2610012005')
+    await screen.findByRole('heading', { level: 1, name: 'Final standings' })
+    expect(screen.getByText(/Zezima\s+wins/)).toBeTruthy()
+    expect(screen.getByText(/The room has closed/)).toBeTruthy()
+    cleanup()
+
+    at('/history/ABYSSAL/2610012006')
+    await screen.findByText('This browser kept no result for that game.')
   })
 })

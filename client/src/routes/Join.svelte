@@ -31,6 +31,7 @@
   import NameField from '../components/NameField.svelte'
   import { ApiFailure, getRoom, joinRoom, type Credentials, type RoomSnapshot } from '../lib/api'
   import { randomHead } from '../lib/heads'
+  import { historyPath, latestPastGame } from '../lib/history'
   import { generateName, nameProblem, resuffix } from '../lib/names'
   import { nudge, profile, saveProfile } from '../lib/profile'
   import { setSession } from '../lib/session'
@@ -54,6 +55,12 @@
     try {
       snapshot = await getRoom(code)
     } catch (error) {
+      const gone = error instanceof ApiFailure && (error.status === 404 || error.status === 410)
+      const past = gone ? latestPastGame(code) : null
+      if (past !== null) {
+        navigate(historyPath(past))
+        return
+      }
       lookupError =
         error instanceof ApiFailure && error.code === 'not_found'
           ? `There is no room ${code}.`

@@ -450,6 +450,7 @@ class Room:
     created_at: datetime
     expires_at: datetime
     lock: asyncio.Lock = field(repr=False)
+    finished_at: datetime | None = None
     players: dict[UUID, Player] = field(default_factory=dict)  # in join order
     sockets: dict[UUID, Outbox] = field(default_factory=dict, repr=False)
     questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
@@ -517,7 +518,12 @@ class Room:
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
             segment=self.current_segment,
+            finished_at=self.finished_at,
         )
+
+    def gone(self, grace: timedelta, now: datetime) -> bool:
+        """Past ``expires_at``, or finished longer ago than ``grace``: cleanup's to delete."""
+        return _gone(self.expires_at, self.finished_at, grace, now)
 
     def player_views(self) -> list[PlayerView]:
         return [p.view() for p in self.players.values()]
@@ -613,6 +619,7 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
         created_at=row["created_at"],
         expires_at=row["expires_at"],
         lock=lock,
+        finished_at=row["finished_at"],
     )
 
 
@@ -704,6 +711,10 @@ class RoomManager:
             if slot.users == 0 and code not in self.rooms:
                 del self._locks[code]
 
+    @property
+    def _grace(self) -> timedelta:
+        return timedelta(minutes=self.settings.finished_room_grace_minutes)
+
     # --- Loading ------------------------------------------------------------------
 
     async def get(self, code: str) -> Room:
@@ -722,7 +733,7 @@ class RoomManager:
             room = await self._load(code)
             room.awaiting_player = room.status == "playing"
             self.rooms[code] = room
-        elif room.expires_at <= datetime.now(UTC):
+        elif room.gone(self._grace, datetime.now(UTC)):
             raise RoomExpired(f"room {code} has expired")
         return room
 
@@ -739,7 +750,7 @@ class RoomManager:
         """
         pool = await self._pool()
         async with pool.acquire() as conn:
-            row = await _fetch_room(conn, code)
+            row = await _fetch_room(conn, code, self._grace)
             questions = await _fetch_questions(conn, row["id"])
             players = await conn.fetch(
                 "select id, display_name, avatar, role, joined_at, session_token_hash from players"
@@ -859,7 +870,8 @@ class RoomManager:
     # --- Removal --------------------------------------------------------------------
 
     async def purge_expired(self) -> int:
-        """Section 4's ``any → deleted``: delete every room past its ``expires_at``.
+        """Section 4's ``any → deleted``: delete every room past its ``expires_at``, and
+        every finished room past its grace (``FINISHED_ROOM_GRACE_MINUTES``).
 
         ``on delete cascade`` takes the players, questions and answers with it. The rooms
         go ``PURGE_BATCH`` at a time, each batch its own statement under the pool's
@@ -870,7 +882,7 @@ class RoomManager:
 
         The order is deliberate. Between the delete and the eviction an expired room is
         still in ``self.rooms``, and every way in refuses it anyway: ``_room`` checks
-        ``expires_at`` on a cached room and ``_fetch_room`` checks it on a loaded one, so
+        ``Room.gone`` on a cached room and ``_fetch_room`` the same on a loaded one, so
         there is no window in which a purged room can still be joined or played.
 
         The caller is the cleanup task in ``main.py``; the tests run a pass directly.
@@ -881,8 +893,10 @@ class RoomManager:
             while True:
                 status = await conn.execute(
                     "delete from rooms where id in (select id from rooms"
-                    " where expires_at < now() order by expires_at limit $1)",
+                    " where expires_at < now() or finished_at < now() - $2::interval"
+                    " limit $1)",
                     PURGE_BATCH,
+                    self._grace,
                 )
                 batch = _rows_affected(status)
                 deleted += batch
@@ -900,10 +914,10 @@ class RoomManager:
         is what 4004 tells the client: the room is gone, not restarting.
         """
         now = datetime.now(UTC)
-        for code in [c for c, room in self.rooms.items() if room.expires_at <= now]:
+        for code in [c for c, room in self.rooms.items() if room.gone(self._grace, now)]:
             async with self._locked(code):
                 room = self.rooms.get(code)
-                if room is None or room.expires_at > now:
+                if room is None or not room.gone(self._grace, now):
                     continue
                 sockets = self._forget(room)
                 log.info("room %s expired and left memory", code)
@@ -1120,7 +1134,7 @@ class RoomManager:
                             "insert into rooms (code, status, settings, expires_at)"
                             " values ($1, 'lobby', $2, $3)"
                             " returning id, code, status, settings, current_index,"
-                            " created_at, expires_at",
+                            " created_at, expires_at, finished_at",
                             code,
                             settings.model_dump(),
                             expires_at,
@@ -1566,11 +1580,15 @@ class RoomManager:
             async with pool.acquire() as conn, conn.transaction():
                 if voiding is not None:
                     await _void_question(conn, voiding, closed_at)
-                await conn.execute("update rooms set status = 'finished' where id = $1", room.id)
+                await conn.execute(
+                    "update rooms set status = 'finished', finished_at = $2 where id = $1",
+                    room.id,
+                    closed_at,
+                )
             _stop_timer(room)
             if voiding is not None:
                 voiding.closed_at, voiding.voided = closed_at, True
-            broadcasts = self._finish(room)
+            broadcasts = self._finish(room, closed_at)
         for broadcast in broadcasts:
             self._broadcast(broadcast)
 
@@ -1893,13 +1911,18 @@ class RoomManager:
                     room.current_index = following
                     room.next_at = room.next_mono = None
                     return following
-                await conn.execute("update rooms set status = 'finished' where id = $1", room.id)
-            broadcasts = self._finish(room)
+                finished_at = datetime.now(UTC)
+                await conn.execute(
+                    "update rooms set status = 'finished', finished_at = $2 where id = $1",
+                    room.id,
+                    finished_at,
+                )
+            broadcasts = self._finish(room, finished_at)
         for broadcast in broadcasts:
             self._broadcast(broadcast)
         return None
 
-    def _finish(self, room: Room) -> list[Broadcast]:
+    def _finish(self, room: Room, finished_at: datetime) -> list[Broadcast]:
         """``playing → finished`` in memory, once the database says so. Lock held; send
         what it returns.
 
@@ -1907,6 +1930,7 @@ class RoomManager:
         standings land.
         """
         room.status = "finished"
+        room.finished_at = finished_at
         room.phase = "idle"
         room.next_at = room.next_mono = None
         finished = GameFinished(standings=room.standings())
@@ -2093,14 +2117,20 @@ async def _fetch_totals(conn: asyncpg.Connection, room_id: UUID) -> dict[UUID, T
     return {row["player_id"]: Totals(points=row["points"], correct=row["correct"]) for row in rows}
 
 
-async def _fetch_room(conn: asyncpg.Connection, code: str) -> asyncpg.Record:
+def _gone(
+    expires_at: datetime, finished_at: datetime | None, grace: timedelta, now: datetime
+) -> bool:
+    return expires_at <= now or (finished_at is not None and finished_at + grace <= now)
+
+
+async def _fetch_room(conn: asyncpg.Connection, code: str, grace: timedelta) -> asyncpg.Record:
     row = await conn.fetchrow(
-        "select id, code, status, settings, current_index, created_at, expires_at"
+        "select id, code, status, settings, current_index, created_at, expires_at, finished_at"
         " from rooms where code = $1",
         code,
     )
     if row is None:
         raise RoomNotFound(f"no room {code}")
-    if row["expires_at"] <= datetime.now(UTC):
+    if _gone(row["expires_at"], row["finished_at"], grace, datetime.now(UTC)):
         raise RoomExpired(f"room {code} has expired")
     return row

@@ -117,6 +117,8 @@ export interface RoomView {
   next_at: string | null
   /** The round in progress; null before the first question and once the game is over. */
   segment: Segment | null
+  /** When the game ended, by the server's clock; null until it has. */
+  finished_at: string | null
 }
 
 export interface PlayerView {

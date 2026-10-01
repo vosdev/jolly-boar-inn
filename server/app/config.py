@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     # loop into a spin issuing a delete as fast as the pool can serve one, so a typo
     # here refuses to start the app rather than hammering Postgres for its lifetime.
     room_cleanup_interval_seconds: int = Field(default=3600, gt=0)
+    # How long a finished room outlives its game before cleanup deletes it. Players keep
+    # the result in their own browser, saved when the final standings arrive; the grace
+    # is for the phone that locked on the last question and reconnects later to receive
+    # them. Zero is not free: such a player finds the room gone and no result kept.
+    finished_room_grace_minutes: int = Field(default=60, ge=0)
     rooms_per_ip_per_hour: int = 30
     max_players_per_room: int = 50
     packs_dir: Path = Path("../data/packs")

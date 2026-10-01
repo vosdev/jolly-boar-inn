@@ -44,12 +44,14 @@
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import ErrorBanner from '../components/ErrorBanner.svelte'
+  import FinalStandings from '../components/FinalStandings.svelte'
   import Lobby from '../components/Lobby.svelte'
   import { verdictSentence } from '../components/PointsSlot.svelte'
   import QuestionStage from '../components/QuestionStage.svelte'
   import RevealTally from '../components/RevealTally.svelte'
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
+  import { historyPath, latestPastGame } from '../lib/history'
   import { clearSession, getSession } from '../lib/session'
   import {
     applyServerMessage,
@@ -90,6 +92,12 @@
       },
       onState: (state) => connection.set(state),
       onClosed: (reason, detail) => {
+        // A deleted room's players kept its result; that is what this link means now.
+        const past = reason === 'no_room' ? latestPastGame(code) : null
+        if (past !== null) {
+          navigate(historyPath(past))
+          return
+        }
         // A session the room will not accept is worth nothing; drop it so the next
         // visit offers a fresh join rather than failing the same way forever.
         if (reason === 'bad_session' || reason === 'kicked') clearSession(code)
@@ -218,11 +226,6 @@
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
-  const winners = $derived($standings.filter((standing) => standing.rank === 1))
-  const topScore = $derived(winners[0]?.points ?? 0)
-  /** Same grouping as the scoreboard, so the headline and the table agree. */
-  const numbers = new Intl.NumberFormat()
-
   /** The question's own heading, for the heading line, the announcer and the title. */
   const questionTitle = $derived(`Question ${number} of ${total}`)
   /** What the announcer says as a question opens: the heading, round and all. */
@@ -368,26 +371,9 @@
       <Lobby {socket} />
     {/if}
   {:else if $room.status === 'finished'}
-    <h1>Final standings</h1>
-    {#if winners.length > 0}
-      <p class="tagline">
-        {winners.map((w) => w.display_name).join(' and ')}
-        {winners.length === 1 ? 'wins' : 'tie for first'} with {numbers.format(topScore)}
-        points.
-      </p>
-    {:else}
-      <p class="tagline">Nobody scored. A quiet night at the inn.</p>
-    {/if}
-    <Scoreboard standings={$standings} youId={$you?.id ?? null} final />
-    <section class="panel">
-      <!-- Rank is dense (section 6), so level scores genuinely share a place; what the
-           sort settles is the order they are listed in, not the rank. -->
-      <p class="note">
-        Level scores share a place. Between them, more correct answers comes first, and
-        after that the earliest to join.
-      </p>
+    <FinalStandings standings={$standings} youId={$you?.id ?? null}>
       <button type="button" onclick={leave}>Home</button>
-    </section>
+    </FinalStandings>
   {:else if $room.phase === 'splash' && $room.segment !== null}
     <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past.
          The host's skip is on the card, small, for the same reason. -->

@@ -34,6 +34,7 @@ const ROOM: RoomView = {
   phase: 'idle',
   next_at: null,
   segment: null,
+  finished_at: null,
 }
 
 let sent: unknown[] = []

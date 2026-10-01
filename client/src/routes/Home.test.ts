@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/sve
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
+import { savePastGame } from '../lib/history'
 import { rememberCreated, setSession } from '../lib/session'
 import Home from './Home.svelte'
 
@@ -90,5 +91,31 @@ describe('Home', () => {
       expect(api.deleteRoom).not.toHaveBeenCalled()
       expect(screen.getByText('RUNE')).toBeTruthy()
     })
+  })
+})
+
+describe('Past games', () => {
+  it('lists each game with its room, when it finished and our place, and opens it', async () => {
+    savePastGame({
+      code: 'ABYSSAL',
+      finishedAt: '2026-10-01T20:05:00Z',
+      standings: [
+        { player_id: 'a', display_name: 'Zezima', points: 900, rank: 1 },
+        { player_id: 'b', display_name: 'Woox', points: 400, rank: 2 },
+      ],
+      youId: 'b',
+    })
+    render(Home, { navigate })
+    const section = screen.getByRole('heading', { name: 'Past games' }).closest('section')!
+    const row = within(section).getByText('ABYSSAL').closest('li')!
+    expect(row.textContent).toContain('2nd of 2')
+    expect(row.textContent).toContain('2026')
+    await fireEvent.click(within(row).getByRole('button', { name: 'Open' }))
+    expect(navigate).toHaveBeenCalledWith('/history/ABYSSAL/2610012005')
+  })
+
+  it('is not there before a game has finished here', () => {
+    render(Home, { navigate })
+    expect(screen.queryByRole('heading', { name: 'Past games' })).toBeNull()
   })
 })
