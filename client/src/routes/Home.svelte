@@ -9,6 +9,7 @@
    * it expires, so the button asks first.
    */
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import { hasAdminToken } from '../lib/admin'
   import { ApiFailure, deleteRoom } from '../lib/api'
   import { finishedTime } from '../lib/dates'
   import { historyPath, pastGames, placeIn } from '../lib/history'
@@ -25,6 +26,7 @@
 
   let hosted = $state(createdRooms())
   const past = pastGames()
+  const admin = hasAdminToken()
   let code = $state('')
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
@@ -181,6 +183,13 @@
   <a class="link" href={REPO_URL} target="_blank" rel="noopener">jolly-boar-inn on GitHub</a>
 </section>
 
+<!-- Only for the operator, whose browser kept the token from their first `/admin#token=` visit. -->
+{#if admin}
+  <p class="admin">
+    <button type="button" class="link" onclick={() => navigate('/admin')}>Admin</button>
+  </p>
+{/if}
+
 {#if confirming !== null}
   {@const room = confirming}
   <ConfirmDialog
@@ -205,5 +214,15 @@
 
   .place {
     font-weight: 600;
+  }
+
+  .admin {
+    text-align: center;
+    margin: 0;
+  }
+
+  /* On the page's floor rather than a panel, where the accent would be dark on dark. */
+  .admin .link {
+    color: var(--bg-muted);
   }
 </style>

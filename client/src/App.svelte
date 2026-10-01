@@ -7,7 +7,7 @@
    *   /r/:code         Room if this browser has a session for it, otherwise Join
    *   /r/:code/create  Create
    *   /history/:code/:stamp  A finished game from this browser's history
-   *   /admin           The operator's view, linked from nowhere
+   *   /admin           The operator's view, linked from Home once this browser has its token
    *
    * `/r/:code/admin` was the claim screen. It still matches, and now resolves like
    * `/r/:code`: somebody holding a stale host link knows the code, and sending them to

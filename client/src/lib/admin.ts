@@ -4,7 +4,7 @@
  * The token arrives once, in the fragment of `/admin#token=…`. A fragment never reaches
  * the server, so it stays out of the access log and out of any `Referer`. It is moved into
  * localStorage and out of the address bar on that first load, and from then on travels
- * only as `Authorization: Bearer`. Nothing in the app links here.
+ * only as `Authorization: Bearer`. Home links here only for a browser that holds one.
  */
 
 import { ApiFailure } from './api'
@@ -56,6 +56,11 @@ export function takeAdminToken(): string | null {
     return fromLink
   }
   return readStored(TOKEN_KEY)
+}
+
+/** Whether this browser holds a token, which is not to say the server still takes it. */
+export function hasAdminToken(): boolean {
+  return readStored(TOKEN_KEY) !== null
 }
 
 export function forgetAdminToken(): void {

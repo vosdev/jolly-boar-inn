@@ -42,7 +42,8 @@ client/src/components/questions/   viewFor(type, mode), Question, gem buttons; t
 
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
-`YYMMDDHHMM`), and `/admin` (the operator's view, section 10), which nothing links to.
+`YYMMDDHHMM`), and `/admin` (the operator's view, section 10), linked from Home only once this
+browser holds the admin token.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state

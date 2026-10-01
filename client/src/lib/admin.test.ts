@@ -2,7 +2,14 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { forgetAdminToken, getCounts, getLive, takeAdminToken, timeUntil } from './admin'
+import {
+  forgetAdminToken,
+  getCounts,
+  getLive,
+  hasAdminToken,
+  takeAdminToken,
+  timeUntil,
+} from './admin'
 
 const TOKEN = '0123456789abcdef0123456789abcdef'
 
@@ -38,7 +45,9 @@ describe('takeAdminToken', () => {
 
   it('forgets the token', () => {
     localStorage.setItem('jbi:admin', TOKEN)
+    expect(hasAdminToken()).toBe(true)
     forgetAdminToken()
+    expect(hasAdminToken()).toBe(false)
     expect(takeAdminToken()).toBeNull()
   })
 })

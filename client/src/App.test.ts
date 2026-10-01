@@ -246,7 +246,7 @@ describe('App', () => {
     }
   })
 
-  it('links to /admin from nowhere', () => {
+  it('links to /admin from Home alone, which shows it only to a browser holding the token', () => {
     const sources = import.meta.glob(['./**/*.svelte', './**/*.ts', '!./**/*.test.ts'], {
       query: '?raw',
       import: 'default',
@@ -256,6 +256,6 @@ describe('App', () => {
     const linking = Object.entries(sources)
       .filter(([, text]) => /(href=|navigate\(|pushState\([^)]*)['"`{]?\/admin\b/.test(String(text)))
       .map(([path]) => path)
-    expect(linking).toEqual([])
+    expect(linking).toEqual(['./routes/Home.svelte'])
   })
 })
