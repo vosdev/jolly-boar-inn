@@ -228,7 +228,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 
 ```
 RoomView     { code, status, settings, current_index, total, phase, next_at, segment,
-               finished_at }
+               finished_at, rounds? }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank }
 Segment      { mode, index, total, start, count }
@@ -246,6 +246,7 @@ PlayerResult { value, correct, credit, points }
   nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
+- `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` itself only when true.
 - `band` is the speed bucket for SPEED, the step for STEP, null for RANK. `of` is every connected
   player who can answer, plus anyone who answered and dropped.
 - `credit` lets a reveal say "3 of 5 in place". `correct` is `credit >= 1.0`.
@@ -258,6 +259,8 @@ What the server withholds. The admin is a player with a flag; there is no admin 
   brute-forced.
 - Results and correct answers first appear in `question_closed`, to everyone at once.
 - The question list is never sent. `GET /api/rooms/{code}` returns only `{status, players}`, a count.
+- With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
+  rounds `current_index` has reached. The lobby names none, admins' included: screens get shared.
 - An admin can read the room's custom questions before the game. They cannot score on them.
 
 | Close | Meaning | Client |
@@ -338,6 +341,7 @@ Settings (`rooms.settings`, fixed at creation):
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
   "name_wrong_answers": false,           // name who got it wrong under the reveal
+  "hide_rounds": false,                  // surprise rounds, section 6
   "max_players": null                    // null: MAX_PLAYERS_PER_ROOM, stored at create
 }
 ```

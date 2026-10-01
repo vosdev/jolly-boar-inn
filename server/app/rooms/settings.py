@@ -174,6 +174,10 @@ class RoomSettings(BaseModel):
     # carries every row; the setting only says whether the client prints the names.
     # Defaulted, so a room stored before it existed reads as one that does not.
     name_wrong_answers: bool = False
+    # Surprise rounds: a non-admin is sent only the rounds that have started
+    # (``Room.view``). Left off the wire while false, so a room without it reads exactly
+    # as one created before it existed.
+    hide_rounds: bool = Field(default=False, exclude_if=lambda hide: not hide)
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
     # so a stored room always has a number here.
     max_players: int | None = Field(default=None, ge=1)
