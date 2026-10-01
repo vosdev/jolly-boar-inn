@@ -36,13 +36,13 @@ server/app/ws/, http/              handler, protocol, outbox; one module per rou
 server/scripts/                    wiki, gen_price_questions, gen_examine_questions,
                                    validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
-client/src/routes/, components/    Home, Create, Join, Room, History; TopBar, Lobby, stage/, …
+client/src/routes/, components/    Home, Create, Join, Room, History, Admin; TopBar, Lobby, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
 ```
 
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
-`YYMMDDHHMM`).
+`YYMMDDHHMM`), and `/admin` (the operator's view, section 10), which nothing links to.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state
@@ -415,9 +415,16 @@ Rehydrate (`get` on a room not in memory):
 
 ## 10. Identity and security
 
-The creator is the first admin. Every identity is one session token. Tokens travel only in bodies
-(create and join return one; `DELETE /api/rooms/{code}` sends one) and the first websocket frame.
-Admin rights come from `player.role`, checked per message.
+The creator is the first admin. Every identity is one session token. Session tokens travel only in
+bodies (create and join return one; `DELETE /api/rooms/{code}` sends one) and the first websocket
+frame. Admin rights come from `player.role`, checked per message.
+
+The operator's `ADMIN_TOKEN` is separate from all that. Unset, `/api/admin/*` is not mounted and
+answers 404; shorter than 32 URL-safe characters, the app refuses to start. `GET /api/admin/rooms`
+(rooms in memory) and `/stats` (every `daily_stats` row) want it as `Authorization: Bearer`,
+compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fragment so no access
+log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
+away. Both return chosen fields only, never a name, an answer or a question.
 
 `POST /api/rooms {display_name, avatar?, returning, settings, custom_questions}`, in one transaction:
 

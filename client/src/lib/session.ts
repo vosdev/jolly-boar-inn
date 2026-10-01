@@ -33,7 +33,8 @@ export function writeStored(key: string, value: string): void {
   }
 }
 
-function drop(key: string): void {
+/** Forget a stored value, wherever it was kept. */
+export function dropStored(key: string): void {
   unstored.delete(key)
   try {
     localStorage.removeItem(key)
@@ -64,7 +65,7 @@ export function setSession(code: string, session: string): void {
 }
 
 export function clearSession(code: string): void {
-  drop(SESSION_PREFIX + normalizeCode(code))
+  dropStored(SESSION_PREFIX + normalizeCode(code))
 }
 
 interface CreatedRoom {

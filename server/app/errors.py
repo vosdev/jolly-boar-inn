@@ -11,6 +11,7 @@ class ApiError(Exception):
 
     status: int = 400
     code: str = "bad_request"
+    headers: dict[str, str] | None = None
 
     def __init__(self, message: str) -> None:
         super().__init__(message)

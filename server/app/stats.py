@@ -47,3 +47,10 @@ async def joined(conn: asyncpg.Connection, returning: bool) -> None:
     await bump(conn, Metric.PLAYERS_JOINED)
     if returning:
         await bump(conn, Metric.PLAYERS_RETURNING)
+
+
+async def history(pool: asyncpg.Pool) -> list[asyncpg.Record]:
+    """Every counter ever kept, oldest day first: ``day``, ``metric``, ``key``, ``count``."""
+    return await pool.fetch(
+        "select day, metric, key, count from daily_stats order by day, metric, key"
+    )

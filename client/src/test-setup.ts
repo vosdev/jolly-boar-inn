@@ -11,3 +11,12 @@ if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
     this.open = false
   }
 }
+
+/** jsdom lays nothing out, so there is never a size to observe; `bind:clientWidth` needs the class. */
+if (typeof globalThis.ResizeObserver !== 'function') {
+  globalThis.ResizeObserver = class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  }
+}
