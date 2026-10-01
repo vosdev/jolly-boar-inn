@@ -7,6 +7,7 @@
    *   /r/:code         Room if this browser has a session for it, otherwise Join
    *   /r/:code/create  Create
    *   /history/:code/:stamp  A finished game from this browser's history
+   *   /admin           The operator's view, linked from Home once this browser has its token
    *
    * `/r/:code/admin` was the claim screen. It still matches, and now resolves like
    * `/r/:code`: somebody holding a stale host link knows the code, and sending them to
@@ -22,6 +23,7 @@
   import SettingsMenu from './components/SettingsMenu.svelte'
   import TimerBar from './components/TimerBar.svelte'
   import TopBar from './components/TopBar.svelte'
+  import Admin from './routes/Admin.svelte'
   import Create from './routes/Create.svelte'
   import History from './routes/History.svelte'
   import Home from './routes/Home.svelte'
@@ -37,6 +39,7 @@
     | { name: 'join'; code: string }
     | { name: 'room'; code: string }
     | { name: 'history'; code: string; stamp: string }
+    | { name: 'admin' }
 
   // Section 1 lists `/r/:code/create` as well; it resolves to the same Create screen.
   const ROOM_PATH = /^\/r\/([A-Za-z0-9]{1,32})(?:\/(admin|create))?$/
@@ -49,6 +52,7 @@
 
   function resolve(path: string): Route {
     if (path === '/create') return { name: 'create' }
+    if (path === '/admin') return { name: 'admin' }
     const past = HISTORY_PATH.exec(path)
     if (past !== null) return { name: 'history', code: normalizeCode(past[1] ?? ''), stamp: past[2] ?? '' }
     const match = ROOM_PATH.exec(path)
@@ -68,10 +72,11 @@
   onMount(() => {
     // `/r/:code/admin` and its `#t=` fragment are both dead. Nothing strips fragments
     // any more, so tidy the address bar once rather than leave a spent link looking
-    // like it still means something.
+    // like it still means something. `/admin` reads its own fragment.
     if (
       route.name !== 'create' &&
       route.name !== 'history' &&
+      route.name !== 'admin' &&
       (location.hash !== '' || currentPath().endsWith('/admin'))
     ) {
       history.replaceState(null, '', route.name === 'home' ? '/' : `/r/${route.code}`)
@@ -102,11 +107,13 @@
   {/key}
 {/if}
 
-<main id="content" tabindex="-1" class:wide={route.name === 'create'}>
+<main id="content" tabindex="-1" class:wide={route.name === 'create' || route.name === 'admin'}>
   {#if route.name === 'home'}
     <Home {navigate} />
   {:else if route.name === 'create'}
     <Create {navigate} />
+  {:else if route.name === 'admin'}
+    <Admin />
   {:else if route.name === 'history'}
     {#key `${route.code}/${route.stamp}`}
       <History code={route.code} stamp={route.stamp} {navigate} />

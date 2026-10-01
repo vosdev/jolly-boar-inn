@@ -18,7 +18,7 @@ from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
 from app.heads import load_head_count
-from app.http import modes, players, rooms, vocab
+from app.http import admin, modes, players, rooms, vocab
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
 from app.http.head import HeadAsGet
@@ -149,7 +149,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         log.warning("no question packs loaded: %s", exc)
         app.state.packs = []
     app.state.rooms = RoomManager(
-        pool=lambda: ensure_pool(app),
+        pool=app.state.database,
         packs=app.state.packs,
         settings=settings,
         words=load_words(),
@@ -185,7 +185,9 @@ async def _db_ok(request: Request) -> bool:
 
 
 async def _api_error(request: Request, exc: ApiError) -> JSONResponse:
-    return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.status)
+    return JSONResponse(
+        {"code": exc.code, "message": exc.message}, status_code=exc.status, headers=exc.headers
+    )
 
 
 class _AsciiJSONResponse(JSONResponse):
@@ -214,6 +216,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.pool = None
     app.state.instance_lock = None
     app.state.connecting = asyncio.Lock()
+    app.state.database = lambda: ensure_pool(app)
     app.state.packs = []
     app.state.rooms = None
     app.state.cleanup = None
@@ -237,6 +240,9 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.include_router(players.router)
     app.include_router(modes.router)
     app.include_router(vocab.router)
+    # Unset, the admin routes are not there at all, so each is the 404 of any unknown path.
+    if app.state.settings.admin_token:
+        app.include_router(admin.router)
     app.include_router(ws_handler.router)
     mount_client(app, client_dist)
     return app

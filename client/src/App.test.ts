@@ -232,4 +232,30 @@ describe('App', () => {
     at('/history/ABYSSAL/2610012006')
     await screen.findByText('This browser kept no result for that game.')
   })
+
+  it('opens the admin view at /admin, taking the token out of the address bar', async () => {
+    const token = '0123456789abcdef0123456789abcdef'
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 401 })))
+    try {
+      at(`/admin#token=${token}`)
+      await screen.findByText('That admin token was refused.')
+      expect(location.pathname).toBe('/admin')
+      expect(location.href).not.toContain(token)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('links to /admin from Home alone, which shows it only to a browser holding the token', () => {
+    const sources = import.meta.glob(['./**/*.svelte', './**/*.ts', '!./**/*.test.ts'], {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    })
+    expect(Object.keys(sources).length).toBeGreaterThan(20)
+    const linking = Object.entries(sources)
+      .filter(([, text]) => /(href=|navigate\(|pushState\([^)]*)['"`{]?\/admin\b/.test(String(text)))
+      .map(([path]) => path)
+    expect(linking).toEqual(['./routes/Home.svelte'])
+  })
 })

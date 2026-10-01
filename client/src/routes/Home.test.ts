@@ -1,6 +1,6 @@
 /** The front page: a code typed the way it was shouted, and the rooms created here. */
 
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
@@ -49,6 +49,17 @@ describe('Home', () => {
     expect(navigate).not.toHaveBeenCalled()
     await fireEvent.input(screen.getByLabelText('Room code'), { target: { value: 'dragon' } })
     expect(screen.queryByText('That is not a room code.')).toBeNull()
+  })
+
+  it('links to the admin view only for a browser that holds the admin token', async () => {
+    render(Home, { navigate })
+    expect(screen.queryByRole('button', { name: 'Admin' })).toBeNull()
+    cleanup()
+
+    localStorage.setItem('jbi:admin', '0123456789abcdef0123456789abcdef')
+    render(Home, { navigate })
+    await fireEvent.click(screen.getByRole('button', { name: 'Admin' }))
+    expect(navigate).toHaveBeenCalledWith('/admin')
   })
 
   it('lists only the rooms created here that have not expired', () => {

@@ -7,8 +7,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# ``uuidgen`` prints 36 characters, so its output is long enough.
+ADMIN_TOKEN_MIN = 32
+# The characters a URL fragment carries without escaping, so ``/admin#token=...`` arrives as typed.
+_TOKEN_CHARS = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 # The app's one version (ideas/architecture.md, Versioning), sent in every ``welcome``.
@@ -41,6 +46,25 @@ class Settings(BaseSettings):
     max_players_per_room: int = 50
     packs_dir: Path = Path("../data/packs")
     log_level: Literal["debug", "info", "warning", "error"] = "info"
+    # The operator's key to ``/admin``. Empty, the admin routes do not exist.
+    admin_token: str = ""
+
+    @field_validator("admin_token")
+    @classmethod
+    def _admin_token_strong_enough(cls, token: str) -> str:
+        if not token:
+            return token
+        if len(token) < ADMIN_TOKEN_MIN:
+            raise ValueError(
+                f"ADMIN_TOKEN is {len(token)} characters; it needs at least {ADMIN_TOKEN_MIN}."
+                " Make one with `openssl rand -hex 32`, or unset it to turn /admin off"
+            )
+        if not set(token) <= _TOKEN_CHARS:
+            raise ValueError(
+                "ADMIN_TOKEN may only hold letters, digits and - . _ ~,"
+                " so it survives a URL fragment as typed"
+            )
+        return token
 
 
 @lru_cache
