@@ -27,7 +27,7 @@ export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.ts', 'site-branding.test.ts'],
+    include: ['src/**/*.test.ts', 'site-branding.test.ts', 'theme-contract.test.ts'],
     setupFiles: ['src/test-setup.ts'],
   },
   server: {

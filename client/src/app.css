@@ -245,6 +245,69 @@
   color-scheme: dark;
 }
 
+/* The Falador Party Room, as it is in game: a checkered floor strewn with balloons, whitewashed walls, and the long table under its blue cloth. The page is
+   the floor, a panel is the wall, and the blue is the cloth. The floor is two blues, not
+   the game's grey and sand, because sand next to the clue scroll reads as more scroll. The balloons and Party
+   Pete's red partyhats are scattered by `PartyFloor.svelte`, fresh each visit, because a
+   tile repeats and the floor of a drop party never does. */
+[data-theme='party_room'] {
+  /* The lighter flagstone, and the wall. */
+  --bg: #c6d5f2;
+  --panel: #f4f4f8;
+  --panel-raised: #ffffff;
+  --line: #9aa2b6;
+  --ink: #23263a;
+  --muted: #565c73;
+  --bg-ink: #1b1e2c;
+  --bg-muted: #353a4c;
+
+  /* The tablecloth, a shade deeper so white reads on it. */
+  --accent: #3f5f99;
+  --accent-ink: #ffffff;
+  --accent-hover: #314c80;
+
+  --ok: #1f6b4c;
+  --ok-ink: #ffffff;
+  --bad: #ad2333;
+  --bad-ink: #ffffff;
+  --warn: #855400;
+  --warn-ink: #ffffff;
+
+  /* Blue and brick, neither of them a verdict colour. */
+  --more: #2c5a94;
+  --less: #9a3b16;
+
+  /* Pale stones, like the whitewash they sit on. */
+  --gem-sapphire: #a6c4ee;
+  --gem-emerald: #a0dbb1;
+  --gem-ruby: #f4aaa3;
+  --gem-red-topaz: #f08fc0;
+  --gem-dragonstone: #dab3ea;
+  --gem-zenyte: #f2c47e;
+  --gem-ink: #23263a;
+
+  /* Round, soft and bright: balloons, not stone. */
+  --radius: 14px;
+  --border-width: 2px;
+  --shadow: 0 4px 12px rgb(40 48 80 / 0.22);
+  --scrim: rgb(27 30 44 / 0.45);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* The checkered floor. The walls are plain. */
+  --texture-panel: none;
+  --texture-bg: url('./assets/textures/party-floor.svg');
+
+  --scroll-paper: #e6d3a0;
+  --scroll-edge: #9c7238;
+  --scroll-ink: #2a1c08;
+  --scroll-muted: #5a4629;
+  --scroll-facet-light: 0.08;
+
+  color-scheme: light;
+}
+
 :root {
   font-family: var(--font-body);
   color: var(--ink);
@@ -290,6 +353,9 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  /* The party_room floor is drawn at z-index -1 in here, above <body>'s texture. */
+  position: relative;
+  isolation: isolate;
 }
 
 /* Text on the page takes the page inks: a heading, a tagline, a note between panels. */

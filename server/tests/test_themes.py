@@ -43,12 +43,12 @@ def listed_themes() -> list[str]:
     return re.findall(r"'([\w-]+)'", listed.group(1))
 
 
-# --- the three themes ----------------------------------------------------------------
+# --- the themes ----------------------------------------------------------------------
 
 
-def test_the_three_themes_and_not_party_room() -> None:
-    """party_room is D12, built against the contract on its own and cut if it cannot pass."""
-    assert listed_themes() == ["jolly", "pollnivneach", "wilderness"]
+def test_the_four_themes_in_menu_order() -> None:
+    """party_room comes last: built against the contract on its own, and cut if it ever fails."""
+    assert listed_themes() == ["jolly", "pollnivneach", "wilderness", "party_room"]
 
 
 def test_each_theme_is_one_contiguous_block() -> None:
