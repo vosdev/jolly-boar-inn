@@ -1,6 +1,6 @@
 /**
  * A flag dropped into `assets/themes/` is that theme's emblem by name, and a checkout
- * without one draws every placeholder, including the two themes still to come.
+ * without one draws every placeholder.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -19,8 +19,8 @@ describe('emblemFile', () => {
     expect(emblemFile('pollnivneach', files)).toBeNull()
   })
 
-  it('covers every built theme and the two still to come', () => {
-    expect(EMBLEMS).toEqual([...THEMES, 'tzhaar'])
+  it('covers every built theme, with none still to come', () => {
+    expect(EMBLEMS).toEqual([...THEMES])
   })
 
   it('has no files in this checkout, so every emblem draws its placeholder', () => {

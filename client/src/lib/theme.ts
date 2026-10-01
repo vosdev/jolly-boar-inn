@@ -19,7 +19,7 @@
 import { defaultTheme } from 'virtual:branding'
 
 /** Every theme `app.css` defines, in menu order. */
-export const THEMES = ['jolly', 'pollnivneach', 'wilderness', 'party_room'] as const
+export const THEMES = ['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar'] as const
 
 export type Theme = (typeof THEMES)[number]
 
@@ -29,6 +29,7 @@ export const THEME_LABELS: Record<Theme, { name: string }> = {
   pollnivneach: { name: 'Pollnivneach' },
   wilderness: { name: 'Wilderness' },
   party_room: { name: 'Party Room' },
+  tzhaar: { name: 'TzHaar' },
 }
 
 /** `configured` if it names a theme this build paints, else `jolly`, never an unstyled page. */

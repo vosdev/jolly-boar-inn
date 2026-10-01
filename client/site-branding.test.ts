@@ -76,7 +76,7 @@ describe('readBranding', () => {
 
 describe('definedThemes', () => {
   it('finds every theme app.css paints', () => {
-    expect(definedThemes()).toEqual(new Set(['jolly', 'pollnivneach', 'wilderness', 'party_room']))
+    expect(definedThemes()).toEqual(new Set(['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar']))
   })
 })
 

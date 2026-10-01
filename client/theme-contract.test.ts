@@ -25,14 +25,16 @@ function rules(text: string): { selector: string; body: string }[] {
   }))
 }
 
-describe('party_room', () => {
+describe.each(['party_room', 'tzhaar'])('%s', (theme) => {
+  const own = `[data-theme='${theme}']`
+
   it('sets the verdict and semantic tokens nowhere but its own block', () => {
     expect(Object.keys(sources).length).toBeGreaterThan(20)
     const contract = /--(ok|bad|warn)(-ink)?\s*:|--(more|less)\s*:/
     const strays = Object.entries(sources).flatMap(([path, text]) =>
       rules(text)
-        .filter(({ selector }) => selector.includes('party_room'))
-        .filter(({ selector }) => selector !== "[data-theme='party_room']")
+        .filter(({ selector }) => selector.includes(theme))
+        .filter(({ selector }) => selector !== own)
         .filter(({ body }) => contract.test(body))
         .map(({ selector }) => `${path}: ${selector}`),
     )
@@ -41,7 +43,7 @@ describe('party_room', () => {
 
   it('has exactly one block of its own', () => {
     const blocks = Object.values(sources).flatMap((text) =>
-      rules(text).filter(({ selector }) => selector === "[data-theme='party_room']"),
+      rules(text).filter(({ selector }) => selector === own),
     )
     expect(blocks).toHaveLength(1)
   })

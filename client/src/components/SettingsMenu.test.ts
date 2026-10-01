@@ -415,15 +415,15 @@ describe('SettingsMenu, the themes', () => {
     expect(names).toEqual(THEMES.map((theme) => THEME_LABELS[theme].name))
   })
 
-  it('lists TzHaar after them, disabled, and picking it does nothing', async () => {
+  it('offers TzHaar last, with its placeholder emblem, and nothing disabled', async () => {
     await opened()
-    const soon = radios().filter((radio) => radio.disabled)
-    expect(soon.map((radio) => radio.value)).toEqual(['tzhaar'])
-    expect(soon.map((radio) => radio.closest('label')!.textContent!.trim())).toEqual(['TzHaar'])
-    await fireEvent.click(soon[0]!.closest('label')!)
-    expect(document.documentElement.dataset.theme).toBeUndefined()
-    expect(localStorage.getItem('jbi:theme')).toBeNull()
-    expect(radios().find((radio) => radio.checked)?.value).toBe('jolly')
+    expect(radios().filter((radio) => radio.disabled)).toEqual([])
+    const tzhaar = radios().at(-1)!
+    expect(tzhaar.value).toBe('tzhaar')
+    expect(tzhaar.closest('label')!.textContent!.trim()).toBe('TzHaar')
+    await fireEvent.click(tzhaar)
+    expect(document.documentElement.dataset.theme).toBe('tzhaar')
+    expect(barEmblem()).toBe('tzhaar')
   })
 
   it('shows jolly selected to a browser that never chose, on a dark device too', async () => {
