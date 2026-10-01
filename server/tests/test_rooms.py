@@ -200,7 +200,7 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
     assert row["settings"] == {
         # ``questions`` was left out, so the mode's own default filled it in.
         "modes": [{"mode": "more_less", "questions": 5, "seconds": 15}],
-        "mode_order": "listed",
+        "mode_order": "random",
         "random_event_frequency": "default",
         "reveal_seconds": 5,
         "splash_seconds": 8,

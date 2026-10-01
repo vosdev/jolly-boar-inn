@@ -318,7 +318,7 @@ Settings (`rooms.settings`, fixed at creation):
 ```jsonc
 {
   "modes": [{"mode": "more_less", "questions": 5, "seconds": 10}],  // one round each
-  "mode_order": "listed",                // or "random"
+  "mode_order": "random",                // or "listed"
   "random_event_frequency": "default",   // "less" | "default" | "more"
   "reveal_seconds": 8,                   // 2..30
   "splash_seconds": 8,                   // 0..30; 0 turns splashes off

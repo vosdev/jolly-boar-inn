@@ -49,6 +49,11 @@ def test_the_default_room_is_one_round_of_the_first_type() -> None:
     assert settings.mode_order == "listed"
 
 
+def test_a_new_room_shuffles_its_rounds_unless_told_otherwise() -> None:
+    assert NewRoomSettings().mode_order == "random"
+    assert NewRoomSettings(mode_order="listed").mode_order == "listed"
+
+
 def test_rounds_are_the_modes(more_modes: list[str]) -> None:
     settings = NewRoomSettings(
         modes=[{"mode": "more_less", "questions": 8}, {"mode": more_modes[0], "questions": 3}]

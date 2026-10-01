@@ -10,7 +10,11 @@
    * `more_less` is two names and one word to read, so its round runs long and quick,
    * where a release-date round is short and slow. The defaults and the ranges those
    * numbers are held to come from `GET /api/modes`, which is the server's own mode
-   * registry — the form never invents a number the server would refuse.
+   * registry — the form never invents a number the server would refuse, and its
+   * steppers stop at them.
+   *
+   * The rounds play in a random order unless the host numbers them: a quiz night is
+   * rarely improved by always opening on the same round.
    *
    * The host is the profile, name and head, and the form never asks: the name lives in
    * the top bar. A browser with none is handled the way Join handles one: it is given a
@@ -36,6 +40,9 @@
     type ModePacing,
     type NewRoomSettings,
   } from '../lib/api'
+  import ModeCard from '../components/ModeCard.svelte'
+  import Segmented from '../components/Segmented.svelte'
+  import Stepper from '../components/Stepper.svelte'
   import { randomHead } from '../lib/heads'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
   import { generateName } from '../lib/names'
@@ -47,6 +54,11 @@
   /** The server's cap on a room, over every round. `NewRoomSettings` checks the same. */
   const MAX_QUESTIONS = 100
 
+  const OFF_ON = [
+    { value: false, label: 'Off' },
+    { value: true, label: 'On' },
+  ]
+
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   let revealSeconds = $state(3)
@@ -56,7 +68,7 @@
   let introduceRounds = $state(true)
   /** How often an NPC interrupts a round: one per 20, 10 or 5 round questions. */
   let frequency = $state<EventFrequency>('default')
-  let modeOrder = $state<'listed' | 'random'>('listed')
+  let modeOrder = $state<'listed' | 'random'>('random')
   let closeWhenAllAnswered = $state(true)
   /** List who got it wrong under each reveal (D8). The count of who got it right always shows. */
   let nameWrongAnswers = $state(false)
@@ -83,34 +95,10 @@
    * `EVENT_EVERY` round questions. They are questions the room will play, so they are in
    * the total and under the cap.
    */
-  const eventCount = $derived(
-    Number.isInteger(questionCount) ? Math.floor(questionCount / EVENT_EVERY[frequency]) : 0,
-  )
+  const eventCount = $derived(Math.floor(questionCount / EVENT_EVERY[frequency]))
   const totalCount = $derived(questionCount + eventCount)
-  /** Every round's two numbers inside what `/api/modes` said the server would take. */
-  const roundsInRange = $derived(
-    rounds.every(
-      (round) =>
-        inRange(round.mode, 'questions', round.questions) &&
-        inRange(round.mode, 'seconds', round.seconds),
-    ),
-  )
-  /** `NewRoomSettings`' 2..30, and an integer: a cleared field binds `null`. */
-  const revealInRange = $derived(
-    Number.isInteger(revealSeconds) && 2 <= revealSeconds && revealSeconds <= 30,
-  )
-  /** `NewRoomSettings`' 0..30, and an integer: a cleared field binds `null`. */
-  const standingsInRange = $derived(
-    Number.isInteger(standingsSeconds) && 0 <= standingsSeconds && standingsSeconds <= 30,
-  )
   const ready = $derived(
-    rounds.length > 0 &&
-      roundsInRange &&
-      revealInRange &&
-      questionCount >= 1 &&
-      totalCount <= MAX_QUESTIONS &&
-      standingsInRange &&
-      full === false,
+    rounds.length > 0 && questionCount >= 1 && totalCount <= MAX_QUESTIONS && full === false,
   )
 
   onMount(async () => {
@@ -133,32 +121,16 @@
     }
   }
 
-  function bounds(mode: string): ModePacing | null {
-    return pacing?.find((entry) => entry.id === mode) ?? null
-  }
-
-  /**
-   * Would the server take this number for this round? The `min` and `max` attributes are
-   * a nudge, not a gate — a host may type 45 into a field that says 5–20 — so the same
-   * bounds gate the submit button and colour the hint under the field.
-   *
-   * A mode `/api/modes` did not list answers no rather than yes: without its bounds there
-   * is nothing to check against, and the server is the one holding the opinion. A field
-   * the host cleared answers no too, because `bind:value` writes `null` into an empty
-   * number input and posting that earns a complaint about integers instead of a range.
-   */
-  function inRange(mode: string, field: 'questions' | 'seconds', value: number): boolean {
-    const limits = bounds(mode)?.[field]
-    if (limits === undefined || limits === null || !Number.isInteger(value)) return false
-    return limits.min <= value && value <= limits.max
-  }
-
   function toggle(mode: ModePacing, on: boolean): void {
-    // Click order, deliberately: the list is the running order now, so a mode ticked
-    // last plays last — until the host moves it, or hands the order to `random`.
+    // Click order, deliberately: the list is the running order, so a mode ticked last
+    // plays last — until the host moves it, or hands the order to `random`.
     rounds = on
       ? [...rounds, roundFor(mode)]
       : rounds.filter((round) => round.mode !== mode.id)
+  }
+
+  function setRound(mode: string, field: 'questions' | 'seconds', value: number): void {
+    rounds = rounds.map((round) => (round.mode === mode ? { ...round, [field]: value } : round))
   }
 
   /** Move round `index` one place `by` (-1 up, 1 down); the ends stay put. */
@@ -228,161 +200,109 @@
 <p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created.</p>
 
 <form onsubmit={submit}>
-  <section class="panel">
-    <h2>Game modes</h2>
-    <p class="note">Each mode you pick is one round. Each round opens with a screen introducing it.</p>
+  <section class="panel modes">
+    <!-- Always the same furniture, so picking the first mode or dropping the last one
+         never moves the cards under the host's pointer. -->
+    <div class="head spread">
+      <h2>Game modes</h2>
+      <div class="summary">
+        <p class="count" class:error={rounds.length === 0 || totalCount > MAX_QUESTIONS}>
+          {#if pacing === null}
+            &nbsp;
+          {:else if rounds.length === 0}
+            Pick at least one type; a room with no rounds is no game.
+          {:else}
+            {rounds.length} round{rounds.length === 1 ? '' : 's'}, {totalCount} question{totalCount ===
+            1
+              ? ''
+              : 's'}{eventCount > 0
+              ? ` (${questionCount} in the rounds, ${eventCount} random event${eventCount === 1 ? '' : 's'})`
+              : ''}{totalCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
+          {/if}
+        </p>
+        <Segmented
+          legend="Round order"
+          options={[
+            { value: 'listed', label: 'As numbered' },
+            { value: 'random', label: 'Random' },
+          ]}
+          bind:value={modeOrder}
+        />
+      </div>
+    </div>
     {#if pacingFailure !== null}
       <p class="error">{pacingFailure}</p>
     {:else if pacing === null}
       <p class="note">Loading the game modes…</p>
     {:else}
-      {#each roundModes as mode (mode.id)}
-        <!-- Outside the label, so the checkbox is still named for its mode first. -->
-        {#if MODES[mode.id]}<p class="presents">{MODES[mode.id]?.host.name} presents:</p>{/if}
-        <label class="check mode">
-          <input
-            type="checkbox"
-            checked={rounds.some((round) => round.mode === mode.id)}
-            onchange={(event) => toggle(mode, event.currentTarget.checked)}
+      <ul class="cards">
+        {#each roundModes as mode (mode.id)}
+          {@const position = rounds.findIndex((round) => round.mode === mode.id)}
+          <ModeCard
+            id={mode.id}
+            label={modeLabel(mode.id)}
+            hint={MODES[mode.id]?.hint ?? null}
+            round={rounds[position] ?? null}
+            position={position < 0 ? null : position}
+            count={rounds.length}
+            shuffled={modeOrder === 'random'}
+            questions={mode.questions}
+            seconds={mode.seconds}
+            onpick={(on) => toggle(mode, on)}
+            onset={(field, value) => setRound(mode.id, field, value)}
+            onmove={(by) => move(position, by)}
           />
-          <span>
-            {modeLabel(mode.id)}
-            {#if MODES[mode.id]}<span class="note">{MODES[mode.id]?.hint}</span>{/if}
-          </span>
-        </label>
-      {/each}
-      {#each upcomingModes as mode (mode.id)}
-        <label class="check mode upcoming">
-          <input type="checkbox" checked={false} disabled />
-          <span>
-            {mode.label}
-            <span class="note">Coming soon: {mode.hint}</span>
-          </span>
-        </label>
-      {/each}
-      {#if rounds.length === 0}
-        <p class="error">Pick at least one type; a room with no rounds is no game.</p>
-      {/if}
+        {/each}
+        {#each upcomingModes as mode (mode.id)}
+          <ModeCard id={mode.id} label={mode.label} hint={mode.hint} upcoming />
+        {/each}
+      </ul>
     {/if}
   </section>
 
-  {#if rounds.length > 0}
-    <section class="panel">
-      <h2>Rounds ({rounds.length})</h2>
-      <div class="field">
-        <label for="mode-order">Round order</label>
-        <select id="mode-order" bind:value={modeOrder}>
-          <option value="listed">The order below</option>
-          <option value="random">Random</option>
-        </select>
-      </div>
-      <ul class="rounds">
-        {#each rounds as round, index (round.mode)}
-          <li>
-            <div class="spread">
-              <span class="name">
-                {#if modeOrder === 'listed'}<span class="tag">{index + 1}</span>{/if}
-                {modeLabel(round.mode)}
-              </span>
-              {#if modeOrder === 'listed' && rounds.length > 1}
-                <span class="row">
-                  <button
-                    type="button"
-                    class="small"
-                    disabled={index === 0}
-                    aria-label="Move {modeLabel(round.mode)} earlier"
-                    onclick={() => move(index, -1)}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    class="small"
-                    disabled={index === rounds.length - 1}
-                    aria-label="Move {modeLabel(round.mode)} later"
-                    onclick={() => move(index, 1)}
-                  >
-                    ↓
-                  </button>
-                </span>
-              {/if}
-            </div>
-            <div class="grid">
-              <div>
-                <label for="questions-{round.mode}">Questions</label>
-                <input
-                  id="questions-{round.mode}"
-                  type="number"
-                  min={bounds(round.mode)?.questions?.min ?? 1}
-                  max={bounds(round.mode)?.questions?.max ?? 30}
-                  bind:value={round.questions}
-                />
-                <p class="note" class:error={!inRange(round.mode, 'questions', round.questions)}>
-                  {bounds(round.mode)?.questions?.min}–{bounds(round.mode)?.questions?.max}
-                </p>
-              </div>
-              <div>
-                <label for="seconds-{round.mode}">Seconds per question</label>
-                <input
-                  id="seconds-{round.mode}"
-                  type="number"
-                  min={bounds(round.mode)?.seconds?.min ?? 5}
-                  max={bounds(round.mode)?.seconds?.max ?? 120}
-                  bind:value={round.seconds}
-                />
-                <p class="note" class:error={!inRange(round.mode, 'seconds', round.seconds)}>
-                  {bounds(round.mode)?.seconds?.min}–{bounds(round.mode)?.seconds?.max}
-                </p>
-              </div>
-            </div>
-          </li>
-        {/each}
-      </ul>
-      <p class="note" class:error={totalCount > MAX_QUESTIONS}>
-        <strong>{totalCount} question{totalCount === 1 ? '' : 's'}</strong>{eventCount > 0
-          ? `: ${questionCount} in the rounds and ${eventCount} random event${eventCount === 1 ? '' : 's'}`
-          : ''}{totalCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
-      </p>
-    </section>
-  {/if}
-
-  <section class="panel">
+  <section class="panel rest">
     <h2>The rest of the game</h2>
-    <div class="grid">
+    <div class="settings">
+      <Stepper
+        label="Reveal answers, seconds"
+        noun="reveal seconds"
+        value={revealSeconds}
+        min={2}
+        max={30}
+        onchange={(value) => (revealSeconds = value)}
+      />
+      <Stepper
+        label="Standings between rounds, seconds"
+        noun="standings seconds"
+        value={standingsSeconds}
+        min={0}
+        max={30}
+        step={5}
+        onchange={(value) => (standingsSeconds = value)}
+      />
       <div>
-        <label for="reveal">Reveal answers seconds</label>
-        <input id="reveal" type="number" min="2" max="30" bind:value={revealSeconds} />
-        <p class="note" class:error={!revealInRange}>2–30</p>
+        <Segmented
+          legend="Random events frequency"
+          options={[
+            { value: 'less', label: 'Less' },
+            { value: 'default', label: 'Default' },
+            { value: 'more', label: 'More' },
+          ]}
+          bind:value={frequency}
+        />
+        <p class="note">
+          An NPC interrupts on average once every {EVENT_EVERY[frequency]} questions, on top of
+          the round's.
+        </p>
       </div>
-      <div>
-        <label for="standings">Standings between rounds, seconds</label>
-        <input id="standings" type="number" min="0" max="30" bind:value={standingsSeconds} />
-        <p class="note" class:error={!standingsInRange}>0–30, and 0 for none</p>
-      </div>
+      <Segmented legend="Introduce each round" options={OFF_ON} bind:value={introduceRounds} />
+      <Segmented
+        legend="Close when everyone has answered"
+        options={OFF_ON}
+        bind:value={closeWhenAllAnswered}
+      />
+      <Segmented legend="Name who got it wrong" options={OFF_ON} bind:value={nameWrongAnswers} />
     </div>
-    <div class="field">
-      <label for="random-events">Random events</label>
-      <select id="random-events" bind:value={frequency}>
-        <option value="less">Less often: one every {EVENT_EVERY.less} questions</option>
-        <option value="default">Default: one every {EVENT_EVERY.default} questions</option>
-        <option value="more">More often: one every {EVENT_EVERY.more} questions</option>
-      </select>
-      <p class="note">
-        An NPC interrupts a round with a question of their own, on top of the round's.
-      </p>
-    </div>
-    <label class="check">
-      <input type="checkbox" bind:checked={introduceRounds} />
-      Introduce each round, and start it when most of the room is ready
-    </label>
-    <label class="check">
-      <input type="checkbox" bind:checked={closeWhenAllAnswered} />
-      Close a question as soon as everyone has answered
-    </label>
-    <label class="check">
-      <input type="checkbox" bind:checked={nameWrongAnswers} />
-      Name who got it wrong under each answer
-    </label>
   </section>
 
   {#if full === true}
@@ -407,33 +327,72 @@
 </form>
 
 <style>
-  /* Level with the mode's name: past the checkbox, its default side margins and the gap
-     `.check` puts after it. */
-  .presents {
-    margin: 0.6rem 0 0 calc(1.55rem + 7px);
-    color: var(--muted);
-    font-size: 0.8rem;
-    font-style: italic;
-    line-height: 1.2;
+  /* One card a row on a phone, two on a tablet, three once the page is wide enough. */
+  .modes {
+    container-type: inline-size;
   }
 
-  /* The hint gets its own line, so a long one wraps under itself and not under the box. */
-  .mode {
-    align-items: flex-start;
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  /* Without `flex-shrink`, a wrapping hint squeezes the box and pulls its row out of line. */
-  .mode input {
-    flex-shrink: 0;
-    margin-top: 0.2rem;
+  @container (min-width: 34rem) {
+    .cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
-  .mode .note {
-    display: block;
+  @container (min-width: 52rem) {
+    .cards {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 
-  .upcoming {
-    opacity: 0.55;
-    cursor: not-allowed;
+  .head {
+    align-items: baseline;
+    margin-bottom: 1rem;
+  }
+
+  .head h2,
+  .head .error {
+    margin: 0;
+  }
+
+  .summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+  }
+
+  .count {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  /* Two columns of settings where the page is wide, so a label and its control are not
+     a whole panel apart. */
+  .rest {
+    container-type: inline-size;
+  }
+
+  .rest .settings {
+    display: grid;
+    gap: 0.9rem 2.5rem;
+  }
+
+  @container (min-width: 44rem) {
+    .rest .settings {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .rest .note {
+    margin: 0.3rem 0 0;
   }
 </style>

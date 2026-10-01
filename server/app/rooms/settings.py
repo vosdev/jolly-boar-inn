@@ -263,6 +263,8 @@ class RoomSettings(BaseModel):
 class NewRoomSettings(RoomSettings):
     """What ``POST /api/rooms`` accepts: section 4's ranges, checked on the way in."""
 
+    # A new room shuffles unless its host numbers the rounds; a stored one says which.
+    mode_order: Literal["listed", "random"] = "random"
     random_event_frequency: Frequency = "default"
     reveal_seconds: int = Field(default=8, ge=2, le=30)
     splash_seconds: int = Field(default=8, ge=0, le=30)
