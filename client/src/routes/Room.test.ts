@@ -19,6 +19,7 @@ import type { TypeViewProps } from '../components/questions/props'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
 import { clearVocabCache } from '../lib/vocab'
+import { savePastGame } from '../lib/history'
 import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
 
@@ -68,6 +69,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
     phase: 'standings',
     next_at: new Date(Date.now() + 10_000).toISOString(),
     segment: SEGMENT,
+    finished_at: null,
     ...patch,
   }
 }
@@ -381,6 +383,36 @@ describe('the room’s own headings', () => {
     closeSocket('no_room', '')
     await screen.findByRole('heading', { level: 1, name: 'Disconnected' })
     expect(titles()).toEqual(['Disconnected'])
+  })
+})
+
+describe('a room that is gone', () => {
+  const FINAL = [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1 }]
+
+  beforeEach(() => {
+    resetRoom()
+    localStorage.clear()
+  })
+
+  it('opens the result this browser kept, when it kept one', () => {
+    savePastGame({
+      code: 'ABYSSAL',
+      finishedAt: '2026-10-01T20:05:00Z',
+      standings: FINAL,
+      youId: 'a',
+    })
+    const navigate = vi.fn()
+    render(Room, { code: 'ABYSSAL', navigate })
+    closeSocket('no_room', '')
+    expect(navigate).toHaveBeenCalledWith('/history/ABYSSAL/2610012005')
+  })
+
+  it('says the room is gone, when it kept none', async () => {
+    const navigate = vi.fn()
+    render(Room, { code: 'ABYSSAL', navigate })
+    closeSocket('no_room', '')
+    await screen.findByText(/That room is gone/)
+    expect(navigate).not.toHaveBeenCalled()
   })
 })
 

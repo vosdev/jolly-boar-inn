@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
-   * The front page: join a room by code, host a new one, and manage the rooms this
-   * browser created.
+   * The front page: join a room by code, host a new one, manage the rooms this browser
+   * created, and look back at the games it finished.
    *
    * "Rooms you created here" is the list in localStorage, and removing one really
    * removes it: the server deletes the row, its players and their answers, and the code
@@ -10,6 +10,8 @@
    */
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import { ApiFailure, deleteRoom } from '../lib/api'
+  import { finishedTime } from '../lib/dates'
+  import { historyPath, pastGames, placeIn } from '../lib/history'
   import { REPO_URL } from '../lib/links'
   import {
     createdRooms,
@@ -22,6 +24,7 @@
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   let hosted = $state(createdRooms())
+  const past = pastGames()
   let code = $state('')
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
@@ -147,6 +150,29 @@
   </section>
 {/if}
 
+{#if past.length > 0}
+  <section class="panel">
+    <h2>Past games</h2>
+    <ul class="players">
+      {#each past as game (historyPath(game))}
+        {@const place = placeIn(game)}
+        <li>
+          <span class="name">
+            <span class="code-small">{game.code}</span>
+            <span class="when">{finishedTime(game.finishedAt)}</span>
+          </span>
+          {#if place !== null}
+            <span class="place">{place}</span>
+          {/if}
+          <button type="button" class="small" onclick={() => navigate(historyPath(game))}>
+            Open
+          </button>
+        </li>
+      {/each}
+    </ul>
+  </section>
+{/if}
+
 <section class="panel">
   <h2>Open source</h2>
   <p class="note">
@@ -169,6 +195,15 @@
   .code-small {
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
     letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .when {
+    color: var(--muted);
+    margin-left: 0.5rem;
+  }
+
+  .place {
     font-weight: 600;
   }
 </style>

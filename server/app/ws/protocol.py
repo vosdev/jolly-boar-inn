@@ -81,6 +81,9 @@ class RoomView(_Message):
     next_at: datetime | None
     # The round in progress, null before the first question and once the game is over.
     segment: Segment | None
+    # When the game ended, null until it has. Every browser files the result under it, so
+    # it comes from the server's clock and not each one's own.
+    finished_at: datetime | None
 
 
 class PlayerView(_Message):

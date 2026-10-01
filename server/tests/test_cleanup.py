@@ -213,6 +213,112 @@ def test_an_expired_room_is_refused_before_the_purge_reaches_it(
     assert response.status_code == 410
 
 
+# --- finished rooms ------------------------------------------------------------------
+
+
+def finish(app: FastAPI, db, code: str, when: datetime) -> None:
+    """Mark a room finished at ``when``, in the database and in the copy the app holds."""
+    db("update rooms set status = 'finished', finished_at = $2 where code = $1", code, when)
+    room = app.state.rooms.rooms[code]
+    room.status, room.finished_at = "finished", when
+
+
+def test_ending_a_game_stamps_finished_at_and_sends_it(table, db) -> None:
+    """Every browser files the result under the server's time, so the frame carries it."""
+    game = table("Zezima", "Woox")
+    game.start()
+    game.opened(0)
+    game.admin.send(t="end_game")
+    game.admin.take("game_finished")
+    game.players[0].take("game_finished")
+    updates = [
+        frame["room"]
+        for seat in (game.admin, game.players[0])
+        for frame in seat.seen
+        if frame["t"] == "room_updated" and frame["room"]["status"] == "finished"
+    ]
+
+    (row,) = db("select finished_at from rooms where code = $1", game.code)
+    assert len(updates) == 2
+    assert {datetime.fromisoformat(room["finished_at"]) for room in updates} == {row["finished_at"]}
+    assert game.room.finished_at == row["finished_at"]
+
+
+def test_the_last_question_stamps_finished_at(table, db) -> None:
+    """The other way a game ends: its last reveal, not the host."""
+    game = table("Zezima", questions=1)
+    game.start()
+    game.opened(0)
+    game.skip()
+    game.admin.take("game_finished")
+    (row,) = db("select finished_at from rooms where code = $1", game.code)
+    assert row["finished_at"] is not None
+    assert game.room.finished_at == row["finished_at"]
+
+
+def test_purge_deletes_a_finished_room_after_its_grace_and_frees_its_code(
+    app: FastAPI, client: TestClient, db
+) -> None:
+    """Days before ``expires_at``: the players already took the result home."""
+    done, _ = create(client, "Host")
+    recent, _ = create(client, "Host")
+    grace = timedelta(minutes=app.state.settings.finished_room_grace_minutes)
+    finish(app, db, done, datetime.now(UTC) - grace - timedelta(minutes=1))
+    finish(app, db, recent, datetime.now(UTC) - grace + timedelta(minutes=5))
+
+    assert call(client, app.state.rooms.purge_expired) == 1
+
+    assert [row["code"] for row in db("select code from rooms")] == [recent]
+    assert done not in app.state.rooms.rooms
+    assert recent in app.state.rooms.rooms
+    db(
+        "insert into rooms (code, status, settings, expires_at) values ($1, 'lobby', $2, now())",
+        done,
+        {},
+    )
+
+
+def test_purge_closes_the_sockets_of_a_finished_room_past_its_grace(
+    app: FastAPI, client: TestClient, db
+) -> None:
+    code, admin = create(client, "Host")
+    grace = timedelta(minutes=app.state.settings.finished_room_grace_minutes)
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, admin["session"])
+        finish(app, db, code, datetime.now(UTC) - grace - timedelta(minutes=1))
+        assert call(client, app.state.rooms.purge_expired) == 1
+        with pytest.raises(WebSocketDisconnect) as info:
+            while True:
+                ws.receive_json()
+    assert info.value.code == 4004
+
+
+def test_the_grace_leaves_lobby_and_playing_rooms_alone(
+    app: FastAPI, client: TestClient, db
+) -> None:
+    """Only ``finished_at`` starts the grace; an old room still in play keeps its days."""
+    lobby, _ = create(client, "Host")
+    playing, _ = create(client, "Host")
+    db("update rooms set status = 'playing' where code = $1", playing)
+    long_ago = datetime.now(UTC) - timedelta(days=2)
+    db("update rooms set created_at = $1", long_ago)
+
+    assert call(client, app.state.rooms.purge_expired) == 0
+    assert sorted(row["code"] for row in db("select code from rooms")) == sorted([lobby, playing])
+
+
+def test_a_finished_room_past_its_grace_is_refused_before_the_purge(
+    app: FastAPI, client: TestClient, db, evict
+) -> None:
+    code, _ = create(client, "Host")
+    grace = timedelta(minutes=app.state.settings.finished_room_grace_minutes)
+    past = datetime.now(UTC) - grace - timedelta(minutes=1)
+    finish(app, db, code, past)
+    assert client.get(f"/api/rooms/{code}").status_code == 410
+    evict(code)
+    assert client.get(f"/api/rooms/{code}").status_code == 410
+
+
 # --- the task in the lifespan -------------------------------------------------------
 
 

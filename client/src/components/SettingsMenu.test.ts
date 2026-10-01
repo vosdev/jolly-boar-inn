@@ -80,6 +80,7 @@ const LOBBY: RoomView = {
   phase: 'idle',
   next_at: null,
   segment: null,
+  finished_at: null,
 }
 
 function welcome(you: PlayerView, room: RoomView = LOBBY): void {

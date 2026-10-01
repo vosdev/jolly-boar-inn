@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
+import { savePastGame } from '../lib/history'
 import { nudge, profile } from '../lib/profile'
 import { getSession } from '../lib/session'
 import Join from './Join.svelte'
@@ -111,5 +112,33 @@ describe('Join', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     expect(await screen.findByText('This game has already started.')).toBeTruthy()
     expect(api.joinRoom).not.toHaveBeenCalled()
+  })
+})
+
+describe('Join for a room that is gone', () => {
+  const kept = () =>
+    savePastGame({
+      code: 'ABYSSAL',
+      finishedAt: '2026-10-01T20:05:00Z',
+      standings: [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1 }],
+      youId: 'a',
+    })
+
+  it.each([
+    [404, 'not_found'],
+    [410, 'expired'],
+  ])('opens the result this browser kept on a %i', async (status, code) => {
+    kept()
+    vi.mocked(api.getRoom).mockRejectedValue(new ApiFailure(status, code, 'gone'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/history/ABYSSAL/2610012005'))
+    expect(api.joinRoom).not.toHaveBeenCalled()
+  })
+
+  it('says there is no room, when it kept none', async () => {
+    vi.mocked(api.getRoom).mockRejectedValue(new ApiFailure(404, 'not_found', 'no room'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await screen.findByText('There is no room ABYSSAL.')
+    expect(navigate).not.toHaveBeenCalled()
   })
 })

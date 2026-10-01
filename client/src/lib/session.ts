@@ -1,5 +1,6 @@
 /**
  * localStorage: one session token per room, plus the list of rooms created here.
+ * `lib/history.ts` keeps the finished games through `readStored` and `writeStored`.
  *
  * Every accessor tolerates localStorage throwing. Safari in private mode and a browser
  * with site data blocked both raise on `getItem`, and a quiz that cannot be played
@@ -12,7 +13,8 @@ const CREATED_KEY = 'jbi:created'
 /** What storage would not take, so a browser that stores nothing keeps it for the page. */
 const unstored = new Map<string, string>()
 
-function read(key: string): string | null {
+/** A stored value, or null when there is none or storage refuses. */
+export function readStored(key: string): string | null {
   try {
     return localStorage.getItem(key) ?? unstored.get(key) ?? null
   } catch {
@@ -20,7 +22,8 @@ function read(key: string): string | null {
   }
 }
 
-function write(key: string, value: string): void {
+/** Store a value, kept for this page alone when storage refuses it. */
+export function writeStored(key: string, value: string): void {
   try {
     localStorage.setItem(key, value)
     unstored.delete(key)
@@ -53,11 +56,11 @@ export function isRoomCode(code: string): boolean {
 }
 
 export function getSession(code: string): string | null {
-  return read(SESSION_PREFIX + normalizeCode(code))
+  return readStored(SESSION_PREFIX + normalizeCode(code))
 }
 
 export function setSession(code: string, session: string): void {
-  write(SESSION_PREFIX + normalizeCode(code), session)
+  writeStored(SESSION_PREFIX + normalizeCode(code), session)
 }
 
 export function clearSession(code: string): void {
@@ -82,7 +85,7 @@ function entryOf(raw: unknown): CreatedRoom | null {
 }
 
 function readCreated(now: number): CreatedRoom[] {
-  const raw = read(CREATED_KEY)
+  const raw = readStored(CREATED_KEY)
   if (raw === null) return []
   try {
     const parsed: unknown = JSON.parse(raw)
@@ -100,7 +103,7 @@ function writeCreated(rooms: CreatedRoom[]): void {
     code: room.code,
     expires_at: new Date(room.expiresAt).toISOString(),
   }))
-  write(CREATED_KEY, JSON.stringify(stored))
+  writeStored(CREATED_KEY, JSON.stringify(stored))
 }
 
 /**
@@ -113,9 +116,14 @@ export function createdRooms(now: number = Date.now()): string[] {
 
 /** Drop a room from the created list and forget its session; used after deleting it. */
 export function forgetCreated(code: string): void {
+  dropCreated(code)
+  clearSession(code)
+}
+
+/** Drop a room from the created list but keep its session; used once its game is over. */
+export function dropCreated(code: string): void {
   const normalized = normalizeCode(code)
   writeCreated(readCreated(Date.now()).filter((room) => room.code !== normalized))
-  clearSession(normalized)
 }
 
 /** Put a room at the top of the created list until `expiresAt`, the server's ISO time. */

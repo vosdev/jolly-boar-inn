@@ -6,6 +6,7 @@
    *   /create          Create
    *   /r/:code         Room if this browser has a session for it, otherwise Join
    *   /r/:code/create  Create
+   *   /history/:code/:stamp  A finished game from this browser's history
    *
    * `/r/:code/admin` was the claim screen. It still matches, and now resolves like
    * `/r/:code`: somebody holding a stale host link knows the code, and sending them to
@@ -22,6 +23,7 @@
   import TimerBar from './components/TimerBar.svelte'
   import TopBar from './components/TopBar.svelte'
   import Create from './routes/Create.svelte'
+  import History from './routes/History.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
   import Room from './routes/Room.svelte'
@@ -34,9 +36,11 @@
     | { name: 'create' }
     | { name: 'join'; code: string }
     | { name: 'room'; code: string }
+    | { name: 'history'; code: string; stamp: string }
 
   // Section 1 lists `/r/:code/create` as well; it resolves to the same Create screen.
   const ROOM_PATH = /^\/r\/([A-Za-z0-9]{1,32})(?:\/(admin|create))?$/
+  const HISTORY_PATH = /^\/history\/([A-Za-z0-9]{1,32})\/(\d{10})$/
 
   function currentPath(): string {
     const path = location.pathname
@@ -45,6 +49,8 @@
 
   function resolve(path: string): Route {
     if (path === '/create') return { name: 'create' }
+    const past = HISTORY_PATH.exec(path)
+    if (past !== null) return { name: 'history', code: normalizeCode(past[1] ?? ''), stamp: past[2] ?? '' }
     const match = ROOM_PATH.exec(path)
     if (match === null) return { name: 'home' }
     const code = normalizeCode(match[1] ?? '')
@@ -63,7 +69,11 @@
     // `/r/:code/admin` and its `#t=` fragment are both dead. Nothing strips fragments
     // any more, so tidy the address bar once rather than leave a spent link looking
     // like it still means something.
-    if (route.name !== 'create' && (location.hash !== '' || currentPath().endsWith('/admin'))) {
+    if (
+      route.name !== 'create' &&
+      route.name !== 'history' &&
+      (location.hash !== '' || currentPath().endsWith('/admin'))
+    ) {
       history.replaceState(null, '', route.name === 'home' ? '/' : `/r/${route.code}`)
     }
     const onPop = (): void => {
@@ -97,6 +107,10 @@
     <Home {navigate} />
   {:else if route.name === 'create'}
     <Create {navigate} />
+  {:else if route.name === 'history'}
+    {#key `${route.code}/${route.stamp}`}
+      <History code={route.code} stamp={route.stamp} {navigate} />
+    {/key}
   {:else if route.name === 'join'}
     {#key route.code}
       <Join code={route.code} {navigate} />

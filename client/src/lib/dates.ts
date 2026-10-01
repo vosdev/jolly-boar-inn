@@ -16,3 +16,11 @@ export function asOfDate(date: string): string {
         timeZone: 'UTC',
       })
 }
+
+/** When a game ended, in the reader's own zone and locale: "1 Oct 2026, 21:05". */
+export function finishedTime(iso: string): string {
+  const parsed = new Date(iso)
+  return Number.isNaN(parsed.getTime())
+    ? iso
+    : parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+}

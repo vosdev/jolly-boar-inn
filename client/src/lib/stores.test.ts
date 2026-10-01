@@ -4,7 +4,8 @@ import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { errorText } from './errors'
-import type { OpenQuestion, PlayerView, RoomView, ServerMessage } from './protocol'
+import { pastGames } from './history'
+import type { OpenQuestion, PlayerView, RoomView, ServerMessage, Standing } from './protocol'
 import {
   answerAck,
   answerCount,
@@ -36,6 +37,7 @@ const lobby: RoomView = {
   phase: 'idle',
   next_at: null,
   segment: null,
+  finished_at: null,
 }
 
 function open(id: string): OpenQuestion {
@@ -145,5 +147,48 @@ describe('applyServerMessage', () => {
     })
     applyServerMessage({ t: 'error', code: 'not_open', message: 'no question is open' })
     expect(errorText(get(lastError)!)).toBe('Too late, that question had closed.')
+  })
+})
+
+describe('a finished game', () => {
+  const FINISHED: RoomView = {
+    ...lobby,
+    status: 'finished',
+    finished_at: '2026-10-01T20:05:00.123456Z',
+  }
+  const FINAL: Standing[] = [
+    { player_id: 'p0', display_name: 'Host', points: 900, rank: 1 },
+    { player_id: 'p1', display_name: 'Zezima', points: 400, rank: 2 },
+  ]
+
+  beforeEach(() => {
+    resetRoom()
+    localStorage.clear()
+  })
+
+  it('is filed the same in every browser, whether it saw the end or slept through it', () => {
+    // The host saw the last question close.
+    applyServerMessage(welcome({ you: host, room: { ...lobby, status: 'playing' } }))
+    applyServerMessage({ t: 'room_updated', room: FINISHED, players: [host, me] })
+    applyServerMessage({ t: 'game_finished', standings: FINAL })
+    const there = pastGames()
+
+    // Another browser: its phone locked, and it reconnects into the finished room.
+    resetRoom()
+    localStorage.clear()
+    applyServerMessage(welcome({ room: FINISHED, standings: FINAL }))
+    const asleep = pastGames()
+
+    expect(there).toHaveLength(1)
+    expect(asleep).toHaveLength(1)
+    expect(asleep[0]?.standings).toEqual(there[0]?.standings)
+    expect(asleep[0]?.standings).toEqual(FINAL)
+    expect(asleep[0]?.finishedAt).toBe(there[0]?.finishedAt)
+    expect([there[0]?.youId, asleep[0]?.youId]).toEqual(['p0', 'p1'])
+  })
+
+  it('is not filed while the room is still being played', () => {
+    applyServerMessage(welcome({ room: { ...lobby, status: 'playing' }, standings: FINAL }))
+    expect(pastGames()).toEqual([])
   })
 })

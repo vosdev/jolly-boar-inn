@@ -13,6 +13,7 @@
 import { get, writable } from 'svelte/store'
 
 import { type Refusal, refusedEarly } from './errors'
+import { savePastGame } from './history'
 import type {
   AnswerAck,
   ClientMessage,
@@ -148,6 +149,21 @@ export function noteAnswerSent(value: unknown): void {
  */
 const ANSWER_REJECTED: ReadonlySet<string> = new Set(['not_open', 'excluded', 'bad_value'])
 
+/**
+ * Keep the final standings in this browser once the room is over. A `welcome` into a
+ * finished room counts too: that is the phone that slept through the last question.
+ */
+function fileFinishedGame(): void {
+  const current = get(room)
+  if (current?.status !== 'finished' || current.finished_at === null) return
+  savePastGame({
+    code: current.code,
+    finishedAt: current.finished_at,
+    standings: get(standings),
+    youId: get(you)?.id ?? null,
+  })
+}
+
 /** Drop everything. Called when leaving a room, so the next one starts clean. */
 export function resetRoom(): void {
   room.set(null)
@@ -193,6 +209,7 @@ export function applyServerMessage(message: ServerMessage): void {
       lastError.set(null)
       noteServerTime(message.server_time)
       requestsSettled.update((n) => n + 1)
+      fileFinishedGame()
       break
 
     case 'room_updated':
@@ -244,6 +261,7 @@ export function applyServerMessage(message: ServerMessage): void {
       // The `room_updated` that precedes this frame already says `finished`; saying it
       // again costs nothing and means the final screen never waits on frame order.
       patchRoom({ status: 'finished', phase: 'idle', next_at: null })
+      fileFinishedGame()
       break
 
     case 'answer_ack':

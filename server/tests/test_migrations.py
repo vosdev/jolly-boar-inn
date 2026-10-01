@@ -5,7 +5,7 @@ against a throwaway database (the ``test_db_dsn`` fixture, driven by ``DATABASE_
 import asyncio
 import hashlib
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +34,7 @@ TABLES = {
         "current_index",
         "created_at",
         "expires_at",
+        "finished_at",
     },
     "players": {
         "id",
@@ -63,10 +64,11 @@ TABLES = {
     },
     "answers": {"id", "question_id", "player_id", "value", "received_at", "correct", "points"},
 }
-ALL = [1, 2, 3, 4, 5, 6, 7, 8]
+ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 INDEXES = {
     "rooms_code_idx",
     "rooms_expires_at_idx",
+    "rooms_finished_at_idx",
     "players_session_idx",
     "players_room_name_idx",
     "answers_player_idx",
@@ -83,6 +85,7 @@ SHA256 = {
     6: "d4bb6f0371b27acbd957fd12fb3ea473b1758c5c8668117a28509c03d07a0d75",
     7: "6dc1a2306e272a3aeab96d4fbe23f8fd97e1e4c25255c72bc9042b743efc65ba",
     8: "a6ec4722f4118bc7181679896f2715abca78b753ce6920e635846e05432c9ec2",
+    9: "43d5a0abf02e2771222f4a21b536341e7d8e672475a67e9aad3597809668f0bb",
 }
 
 
@@ -123,6 +126,7 @@ def test_migration_files_are_numbered_and_ordered() -> None:
         "0006_question_mode.sql",
         "0007_random_events.sql",
         "0008_purge_index_drop_unused.sql",
+        "0009_room_finished_at.sql",
     ]
 
 
@@ -205,7 +209,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
 ) -> None:
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
-    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7, 8\]"):
+    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7, 8, 9\]"):
         await run_migrations(pool, tmp_path)
 
 
@@ -284,7 +288,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     }
     # Loaded by today's model once the migrations after it have run too, which is what
     # the room meets on its way back into a release: 0007 is where ``order`` went.
-    assert await run_migrations(pool) == [5, 6, 7, 8]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9]
     loaded = RoomSettings.model_validate(
         without_the_hold(await pool.fetchval("select settings from rooms where code = 'ABYSSAL'"))
     )
@@ -332,7 +336,7 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
         room_id,
     )
 
-    assert await run_migrations(pool) == [5, 6, 7, 8]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9]
     rows = await pool.fetch("select display_name, avatar from players order by display_name")
     assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
     with pytest.raises(asyncpg.CheckViolationError):
@@ -455,7 +459,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         before,
     )
 
-    assert await run_migrations(pool) == [7, 8]
+    assert await run_migrations(pool) == [7, 8, 9]
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}
@@ -619,3 +623,59 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
     assert sorted((row["position"], str(row["player_id"])) for row in rows) == sorted(
         [(0, host_id), (0, player_id), (1, host_id), (1, player_id), (2, player_id), (3, player_id)]
     )
+
+
+async def test_0009_dates_a_room_finished_before_it_from_its_last_close(
+    pool: asyncpg.Pool, tmp_path: Path
+) -> None:
+    """0009: a finished room ended when its last question closed; others stay unfinished.
+
+    Without a closed question it falls back to the last ``shown_at``, then to creation.
+    """
+    for _, path in migration_files(MIGRATIONS_DIR)[:8]:
+        (tmp_path / path.name).write_text(path.read_text())
+    assert await run_migrations(pool, tmp_path) == [1, 2, 3, 4, 5, 6, 7, 8]
+    settings = NewRoomSettings().model_dump()
+    last_close = datetime(2026, 9, 1, 20, 15, tzinfo=UTC)
+    shown = datetime(2026, 9, 2, 20, 0, tzinfo=UTC)
+    created = datetime(2026, 9, 3, 19, 0, tzinfo=UTC)
+    ids = {}
+    for code, status in [
+        ("CLOSED", "finished"),
+        ("SHOWN", "finished"),
+        ("BARE", "finished"),
+        ("PLAYING", "playing"),
+    ]:
+        ids[code] = await pool.fetchval(
+            "insert into rooms (code, status, settings, created_at, expires_at)"
+            " values ($1, $2, $3, $4, now() + interval '1 day') returning id",
+            code,
+            status,
+            settings,
+            created,
+        )
+    questions = [
+        ("CLOSED", 0, last_close - timedelta(minutes=1), last_close - timedelta(seconds=30)),
+        ("CLOSED", 1, last_close - timedelta(seconds=20), last_close),
+        ("SHOWN", 0, shown, None),
+        ("PLAYING", 0, shown, shown),
+    ]
+    for code, position, shown_at, closed_at in questions:
+        await pool.execute(
+            "insert into questions (room_id, position, question_id, type, mode, source,"
+            " payload, round, shown_at, closed_at)"
+            " values ($1, $2, 'q', 'more_less', 'more_less', 'pack', '{}', 0, $3, $4)",
+            ids[code],
+            position,
+            shown_at,
+            closed_at,
+        )
+
+    assert await run_migrations(pool) == [9]
+    rows = await pool.fetch("select code, finished_at from rooms")
+    assert {row["code"]: row["finished_at"] for row in rows} == {
+        "CLOSED": last_close,
+        "SHOWN": shown,
+        "BARE": created,
+        "PLAYING": None,
+    }

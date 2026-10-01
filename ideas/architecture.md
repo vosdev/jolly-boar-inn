@@ -35,12 +35,14 @@ server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normali
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, gen_examine_questions,
                                    validate_packs, check_contrast, smoke_ws, loadtest
-client/src/lib/                    api, ws, protocol, stores, session, profile, modes, vocab, …
-client/src/routes/, components/    Home, Create, Join, Room; TopBar, Lobby, Splash, stage/, …
+client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
+client/src/routes/, components/    Home, Create, Join, Room, History; TopBar, Lobby, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
 ```
 
-Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without) and `/r/:code/create`.
+Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
+`/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
+`YYMMDDHHMM`).
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state
@@ -224,7 +226,8 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
 
 ```
-RoomView     { code, status, settings, current_index, total, phase, next_at, segment }
+RoomView     { code, status, settings, current_index, total, phase, next_at, segment,
+               finished_at }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank }
 Segment      { mode, index, total, start, count }
@@ -241,6 +244,7 @@ PlayerResult { value, correct, credit, points }
   before it are `not_open`, and `ends_at` and timing count from it, so the NPC's entrance costs
   nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
+- `finished_at` is the server's end of the game, so every browser files it under the same link.
 - `band` is the speed bucket for SPEED, the step for STEP, null for RANK. `of` is every connected
   player who can answer, plus anyone who answered and dropped.
 - `credit` lets a reveal say "3 of 5 in place". `correct` is `credit >= 1.0`.
@@ -278,7 +282,13 @@ entry, not the question's options.
 ```
 POST /api/rooms ─▶ lobby ─start_game─▶ playing ─last reveal / end_game─▶ finished
 any state ─▶ deleted: expires_at passes (cleanup), or an admin sends DELETE /api/rooms/{code}
+finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cleanup)
 ```
+
+- Each browser saves the final standings in `jbi:history` (newest 20) on `game_finished`, or on a
+  `welcome` into a finished room: the grace is for the phone that slept through the end. Home
+  lists them under Past games. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
+  for that code, if any.
 
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable.
 - `start_game` needs an admin, a question and a connected player. It resets `expires_at`.
@@ -474,8 +484,9 @@ creation) and `answers` (one per player per question). The last three cascade fr
 - `questions.round` and `questions.mode` are stored; neither can be derived (section 5).
 - `players.avatar` indexes `heads.json`; null is a head derived from the id. The server checks the
   upper bound, because the manifest grows without a migration.
-- Cleanup deletes expired rooms 200 at a time, at startup and every `ROOM_CLEANUP_INTERVAL_SECONDS`,
-  then drops them from memory. A failed pass is logged and the next runs. There is no external cron.
+- Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
+  and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
+  and the next runs. There is no external cron.
 - `suggestions` (Phase 6) is created only when needed.
 
 ## 12. Data pipeline
