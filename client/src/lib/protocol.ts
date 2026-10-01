@@ -136,6 +136,8 @@ export interface PlayerView {
    * before D7 does not send it, and a player it does not mention is not ready.
    */
   ready?: boolean
+  /** Has the name menu open in the lobby: "picking a name…". Advice, never a gate. */
+  editing?: boolean
 }
 
 export interface Standing {
@@ -246,6 +248,12 @@ export interface Ready {
   ready: boolean
 }
 
+/** The name menu opened in the lobby, or closed. Re-sent while open, or it lapses. */
+export interface Editing {
+  t: 'editing'
+  on: boolean
+}
+
 export type ClientMessage =
   | Hello
   | Ping
@@ -257,6 +265,7 @@ export type ClientMessage =
   | EndGame
   | SetProfile
   | Ready
+  | Editing
 
 // --- Server → client --------------------------------------------------------------
 

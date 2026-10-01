@@ -275,6 +275,8 @@ async def _dispatch(
             await manager.set_profile(code, player, message.display_name, message.avatar)
         case protocol.Ready():
             await manager.set_ready(code, player, message.ready)
+        case protocol.Editing():
+            await manager.set_editing(code, player, message.on)
     return None
 
 

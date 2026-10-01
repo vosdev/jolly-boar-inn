@@ -133,6 +133,16 @@ describe('Lobby', () => {
     ])
   })
 
+  it('says who is picking a name, dims them, and counts them as before', () => {
+    lobby([{ ...HOST, ready: true }, { ...WOOX, editing: true }])
+    const [host, woox] = within(screen.getAllByRole('list').at(-1)!).getAllByRole('listitem')
+    expect(woox?.textContent).toContain('picking a name…')
+    expect(woox?.classList.contains('editing')).toBe(true)
+    expect(host?.textContent).not.toContain('picking a name…')
+    expect(screen.getByText('1 of 2 ready')).toBeTruthy()
+    expect(screen.getByText('Waiting on Woox.')).toBeTruthy()
+  })
+
   it('names the players link by its own label alone, not the room code', () => {
     lobby()
     const field = screen.getByLabelText('Link for players') as HTMLInputElement
