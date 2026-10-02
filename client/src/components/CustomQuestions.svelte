@@ -104,10 +104,10 @@
 </script>
 
 <section class="panel own" aria-labelledby="own-title">
-  <h2 id="own-title">Your own questions</h2>
+  <h2 id="own-title">Personalized questions</h2>
   <p class="note">
-    Each one is a random event: an NPC interrupts a round to ask it. Your rounds make room for
-    {slots} random event{slots === 1 ? '' : 's'}, and NPCs ask their own questions in the rest.
+    Add your own questions to the game. A great way to customize OSRS trivia night for your friends or clan!<br>
+    These will be asked in place of a random event. Your rounds make room for <b>{slots}</b> random event{slots === 1 ? '' : 's'} and/or custom question{slots === 1 ? '' : 's'}.
   </p>
 
   {#if questions.length > 0}
