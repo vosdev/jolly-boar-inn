@@ -65,6 +65,7 @@
   }
 
   let route = $state<Route>(resolve(currentPath()))
+  const wide = $derived(route.name === 'home' || route.name === 'create' || route.name === 'admin')
 
   function navigate(to: string): void {
     if (to !== location.pathname) history.pushState(null, '', to)
@@ -98,7 +99,7 @@
      decides which, not the store. -->
 <PartyFloor />
 
-<TopBar {navigate}>
+<TopBar {navigate} {wide}>
   {#snippet menu()}
     <SettingsMenu live={route.name === 'room' ? $you : null} />
   {/snippet}
@@ -113,7 +114,7 @@
   {/key}
 {/if}
 
-<main id="content" tabindex="-1" class:wide={route.name === 'create' || route.name === 'admin'}>
+<main id="content" tabindex="-1" class:wide>
   {#if route.name === 'home'}
     <Home {navigate} />
   {:else if route.name === 'create'}
@@ -135,4 +136,4 @@
   {/if}
 </main>
 
-<Footer />
+<Footer {wide} />

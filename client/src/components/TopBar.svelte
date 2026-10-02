@@ -35,9 +35,12 @@
   let {
     navigate,
     menu,
+    wide = false,
   }: {
     navigate: (to: string) => void
     menu?: Snippet
+    /** The screen under the bar uses the wide page, so the bar's ends follow it. */
+    wide?: boolean
   } = $props()
 
   function goHome(event: MouseEvent): void {
@@ -64,7 +67,7 @@
 {/snippet}
 
 <header class="bar">
-  <div class="inner">
+  <div class="inner" class:wide>
     <a class="skip" href="#content">Skip to the game</a>
 
     <div class="mark">
@@ -130,8 +133,12 @@
 
   /* The same column the screens use, so the bar's ends line up with the panels under it
      rather than with the window. */
+  .inner.wide {
+    width: min(var(--page-wide), 100% - 2rem);
+  }
+
   .inner {
-    width: min(42rem, 100% - 2rem);
+    width: min(var(--page-width), 100% - 2rem);
     height: 100%;
     margin-inline: auto;
     display: flex;

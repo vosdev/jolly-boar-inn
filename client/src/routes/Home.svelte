@@ -9,9 +9,11 @@
    * it expires, so the button asks first.
    */
   import { onMount } from 'svelte'
+  import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import Head from '../components/Head.svelte'
+  import Stage from '../components/stage/Stage.svelte'
   import { hasAdminToken } from '../lib/admin'
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { finishedTime } from '../lib/dates'
@@ -122,127 +124,135 @@
   }
 </script>
 
-<!-- The inn's name is in the top bar on every screen, so the front page says what
-     you are here for instead of saying it twice. -->
-<section class="panel">
-  <h1>Welcome in</h1>
-  <p class="tagline">Quiz night. One host, a room code, and everybody's phone.</p>
-</section>
+<div class="intro">
+  <Stage host="wise_old_man">
+    {#snippet paper()}
+      <h1>Think you know Gielinor? Prove it at {siteName}.</h1>
+      <p class="tagline">
+        Every question is OSRS and every second counts. Join a room and race for the top of the
+        leaderboard.
+      </p>
+    {/snippet}
+  </Stage>
+</div>
 
-<section class="panel">
-  <h2>Join a room</h2>
-  <form onsubmit={join}>
-    <div class="field">
-      <label for="code">Room code</label>
-      <input
-        id="code"
-        type="text"
-        bind:value={code}
-        oninput={() => (codeProblem = null)}
-        aria-invalid={codeProblem !== null}
-        aria-describedby={codeProblem === null ? undefined : 'code-problem'}
-        placeholder="DRAGON"
-        autocomplete="off"
-        autocapitalize="characters"
-        spellcheck="false"
-      />
-      {#if codeProblem !== null}
-        <p id="code-problem" class="error">{codeProblem}</p>
-      {/if}
-    </div>
-    <button class="primary" type="submit" disabled={code.trim() === ''}>Join</button>
-  </form>
-</section>
-
-<section class="panel">
-  <h2>Public rooms</h2>
-  {#if open.length === 0}
-    <p class="note">There are no public rooms right now.</p>
-  {:else}
-    <ul class="players">
-      {#each open as room (room.code)}
-        <li>
-          <Head head={headOf(room.host)} size={32} label="" />
-          <span class="name">
-            <span class="code-small">{room.code}</span>
-            <span class="host">{room.host.display_name}</span>
-            <span class="about">{describe(room)}</span>
-          </span>
-          <button
-            type="button"
-            class="small"
-            aria-label={`Join ${room.code}`}
-            onclick={() => navigate(`/r/${room.code}`)}
-          >
-            Join
-          </button>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-</section>
-
-<section class="panel">
-  <h2>Host a room</h2>
-  <p class="note">
-    Pick your name and the settings. You are the host, and you get a room code to read out.
-  </p>
-  <button type="button" onclick={() => navigate('/create')}>Create a room</button>
-</section>
-
-{#if hosted.length > 0}
-  <section class="panel">
-    <h2>Rooms you created here</h2>
-    {#if notice !== null}
-      <div class="banner" class:bad={notice.bad}>
-        {notice.text}
-        <button type="button" class="link" onclick={() => (notice = null)}>dismiss</button>
-      </div>
-    {/if}
-    <ul class="players">
-      {#each hosted as room (room)}
-        <li>
-          <span class="name code-small">{room}</span>
-          <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}>Open</button>
-          <button
-            type="button"
-            class="small"
-            disabled={removing === room}
-            onclick={() => (confirming = room)}
-          >
-            {removing === room ? 'Removing…' : 'Remove'}
-          </button>
-        </li>
-      {/each}
-    </ul>
-    <p class="note">
-      Removing a room deletes it and its scores for everyone, and frees the code.
-    </p>
-  </section>
-{/if}
-
-{#if past.length > 0}
-  <section class="panel">
-    <h2>Past games</h2>
-    <ul class="players">
-      {#each past as game (historyPath(game))}
-        {@const place = placeIn(game)}
-        <li>
-          <span class="name">
-            <span class="code-small">{game.code}</span>
-            <span class="when">{finishedTime(game.finishedAt)}</span>
-          </span>
-          {#if place !== null}
-            <span class="place">{place}</span>
+<div class="columns">
+  <div class="column">
+    <section class="panel">
+      <h2>Join a room</h2>
+      <form onsubmit={join}>
+        <div class="field">
+          <label for="code">Room code</label>
+          <input
+            id="code"
+            type="text"
+            bind:value={code}
+            oninput={() => (codeProblem = null)}
+            aria-invalid={codeProblem !== null}
+            aria-describedby={codeProblem === null ? undefined : 'code-problem'}
+            placeholder="DRAGON"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+          />
+          {#if codeProblem !== null}
+            <p id="code-problem" class="error">{codeProblem}</p>
           {/if}
-          <button type="button" class="small" onclick={() => navigate(historyPath(game))}>
-            Open
-          </button>
-        </li>
-      {/each}
-    </ul>
-  </section>
-{/if}
+        </div>
+        <button class="primary" type="submit" disabled={code.trim() === ''}>Join</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Host a room</h2>
+      <p class="note">
+        Create a game room for your friends, your stream or your clan. Pick the rounds and game
+        modes, or add your own questions.
+      </p>
+      <button type="button" onclick={() => navigate('/create')}>Create a room</button>
+    </section>
+  </div>
+  <div class="column">
+    <section class="panel">
+      <h2>Public rooms</h2>
+      {#if open.length === 0}
+        <p class="note">There are no public rooms right now.</p>
+      {:else}
+        <ul class="players">
+          {#each open as room (room.code)}
+            <li>
+              <Head head={headOf(room.host)} size={32} label="" />
+              <span class="name">
+                <span class="code-small">{room.code}</span>
+                <span class="host">{room.host.display_name}</span>
+                <span class="about">{describe(room)}</span>
+              </span>
+              <button
+                type="button"
+                class="small"
+                aria-label={`Join ${room.code}`}
+                onclick={() => navigate(`/r/${room.code}`)}
+              >
+                Join
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </section>
+
+    {#if hosted.length > 0}
+      <section class="panel">
+        <h2>Rooms you created here</h2>
+        {#if notice !== null}
+          <div class="banner" class:bad={notice.bad}>
+            {notice.text}
+            <button type="button" class="link" onclick={() => (notice = null)}>dismiss</button>
+          </div>
+        {/if}
+        <ul class="players">
+          {#each hosted as room (room)}
+            <li>
+              <span class="name code-small">{room}</span>
+              <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}>Open</button>
+              <button
+                type="button"
+                class="small"
+                disabled={removing === room}
+                onclick={() => (confirming = room)}
+              >
+                {removing === room ? 'Removing…' : 'Remove'}
+              </button>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+
+    {#if past.length > 0}
+      <section class="panel">
+        <h2>Past games</h2>
+        <ul class="players">
+          {#each past as game (historyPath(game))}
+            {@const place = placeIn(game)}
+            <li>
+              <span class="name">
+                <span class="code-small">{game.code}</span>
+                <span class="when">{finishedTime(game.finishedAt)}</span>
+              </span>
+              {#if place !== null}
+                <span class="place">{place}</span>
+              {/if}
+              <button type="button" class="small" onclick={() => navigate(historyPath(game))}>
+                Open
+              </button>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+  </div>
+</div>
 
 <section class="panel">
   <h2>Open source</h2>
@@ -269,6 +279,32 @@
 {/if}
 
 <style>
+  .intro {
+    margin-bottom: 1rem;
+  }
+
+  .intro h1 {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-display);
+    font-size: max(1.15rem, 1.5rem * var(--scroll-text, 1));
+    line-height: 1.15;
+  }
+
+  .intro .tagline {
+    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+  }
+
+  /* Join and Host are what you come to do, so they stand apart from the lists of rooms.
+     The DOM order is the phone order, so a screen reader and the tab key follow it. */
+  @media (min-width: 50rem) {
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 1.25rem;
+      align-items: start;
+    }
+  }
+
   .code-small {
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
     letter-spacing: 0.08em;
