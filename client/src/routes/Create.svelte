@@ -236,7 +236,7 @@
 
 <section class="panel">
   <h1>Create a room</h1>
-  <p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created.</p>
+  <p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created. After creation, rooms exist for up to 48 hours to let you prepare in time for a clan event.</p>
 </section>
 
 <form onsubmit={submit}>
