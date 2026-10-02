@@ -86,12 +86,12 @@ describe('Home', () => {
     expect(screen.queryByText('BRONZE')).toBeNull()
   })
 
-  describe('Open rooms', () => {
+  describe('Public rooms', () => {
     it('lists each public lobby with its host, head and rounds, and joins it', async () => {
       vi.mocked(api.getPublicRooms).mockResolvedValue([LOBBY])
       render(Home, { navigate })
       const row = (await screen.findByText('DRAGON')).closest('li')!
-      expect(screen.getByRole('heading', { name: 'Open rooms' })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
       expect(within(row).getByText('Zezima')).toBeTruthy()
       expect(within(row).getByText('3/50 players · 2 rounds: More or Less, The Price is Right')).toBeTruthy()
       expect(headsDrawn(row)).toEqual([{ head: 3, size: 32 }])
@@ -106,16 +106,18 @@ describe('Home', () => {
       expect(await screen.findByText('3/50 players · 1 round')).toBeTruthy()
     })
 
-    it('shows nothing at all when the list is empty or unreachable', async () => {
+    it('says there are none when the list is empty or unreachable', async () => {
       render(Home, { navigate })
       await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalledOnce())
-      expect(screen.queryByRole('heading', { name: 'Open rooms' })).toBeNull()
+      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
+      expect(screen.getByText('There are no public rooms right now.')).toBeTruthy()
       cleanup()
 
       vi.mocked(api.getPublicRooms).mockRejectedValue(new api.ApiFailure(0, 'unreachable', 'down'))
       render(Home, { navigate })
       await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalledTimes(2))
-      expect(screen.queryByRole('heading', { name: 'Open rooms' })).toBeNull()
+      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
+      expect(screen.getByText('There are no public rooms right now.')).toBeTruthy()
     })
   })
 

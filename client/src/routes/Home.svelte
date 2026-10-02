@@ -152,9 +152,11 @@
   </form>
 </section>
 
-{#if open.length > 0}
-  <section class="panel">
-    <h2>Open rooms</h2>
+<section class="panel">
+  <h2>Public rooms</h2>
+  {#if open.length === 0}
+    <p class="note">There are no public rooms right now.</p>
+  {:else}
     <ul class="players">
       {#each open as room (room.code)}
         <li>
@@ -175,8 +177,8 @@
         </li>
       {/each}
     </ul>
-  </section>
-{/if}
+  {/if}
+</section>
 
 <section class="panel">
   <h2>Host a room</h2>

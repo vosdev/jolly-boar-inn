@@ -287,7 +287,7 @@
 
   <section class="panel access">
     <h2>Who can join</h2>
-    <Segmented legend="Access" options={ACCESS} bind:value={access} />
+    <Segmented legend="Access" hideLegend options={ACCESS} bind:value={access} />
     <p class="note">{ACCESS.find((option) => option.value === access)?.note}</p>
   </section>
 
