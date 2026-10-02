@@ -280,6 +280,24 @@ describe('Create', () => {
     expect((await submitted()).random_event_frequency).toBe('more')
   })
 
+  it('gives random events their own panel, and keeps the rest under a closed Advanced', async () => {
+    await loaded()
+    const events = screen.getByRole('heading', { name: 'Random events' }).closest('section')
+    expect(events?.contains(screen.getByRole('group', { name: 'Random events frequency' }))).toBe(true)
+    expect(events?.textContent).toMatch(/\d+ random events? in this game/)
+    const advanced = screen.getByRole('heading', { name: 'Advanced' }).closest('details')
+    expect(advanced?.open).toBe(false)
+    for (const name of ['Name who got it wrong', 'Surprise rounds', 'Introduce each round']) {
+      expect(advanced?.contains(screen.getByRole('group', { name }))).toBe(true)
+    }
+    expect(advanced?.contains(screen.getByRole('group', { name: 'Access' }))).toBe(false)
+  })
+
+  it('names who got it wrong unless the host turns it off', async () => {
+    await loaded()
+    expect((await submitted()).name_wrong_answers).toBe(true)
+  })
+
   it('sends the three switches as set', async () => {
     await loaded()
     const flip = async (group: string, to: 'Off' | 'On'): Promise<void> => {
@@ -288,11 +306,11 @@ describe('Create', () => {
     }
     await flip('Introduce each round', 'Off')
     await flip('Close when everyone has answered', 'Off')
-    await flip('Name who got it wrong', 'On')
+    await flip('Name who got it wrong', 'Off')
     const settings = await submitted()
     expect(settings.splash_seconds).toBe(0)
     expect(settings.close_when_all_answered).toBe(false)
-    expect(settings.name_wrong_answers).toBe(true)
+    expect(settings.name_wrong_answers).toBe(false)
   })
 
   it('keeps the rounds out of the lobby only when the host asks for surprise rounds', async () => {

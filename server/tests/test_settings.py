@@ -271,13 +271,13 @@ def test_a_room_stored_before_the_standings_reads_as_having_them() -> None:
     assert RoomSettings.model_validate(stored).standings_seconds == 10
 
 
-def test_naming_wrong_answers_is_off_unless_the_host_asks() -> None:
-    """The names under a reveal are opt-in, and a stored room without the key reads."""
-    assert NewRoomSettings().name_wrong_answers is False
-    assert NewRoomSettings(name_wrong_answers=True).name_wrong_answers is True
+def test_naming_wrong_answers_is_on_unless_the_host_opts_out() -> None:
+    """The names under a reveal are the default, and a stored room without the key reads."""
+    assert NewRoomSettings().name_wrong_answers is True
+    assert NewRoomSettings(name_wrong_answers=False).name_wrong_answers is False
     stored = RoomSettings().model_dump()
     del stored["name_wrong_answers"]
-    assert RoomSettings.model_validate(stored).name_wrong_answers is False
+    assert RoomSettings.model_validate(stored).name_wrong_answers is True
 
 
 def test_seconds_for_clamps_a_stored_room_into_the_types_range() -> None:

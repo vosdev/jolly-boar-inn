@@ -347,7 +347,7 @@ Settings (`rooms.settings`, fixed at creation):
   "splash_seconds": 8,                   // 0..30; 0 turns splashes off
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
-  "name_wrong_answers": false,           // name who got it wrong under the reveal
+  "name_wrong_answers": true,            // name who got it wrong under the reveal
   "hide_rounds": false,                  // surprise rounds, section 6
   "max_players": null                    // null: MAX_PLAYERS_PER_ROOM, stored at create
 }

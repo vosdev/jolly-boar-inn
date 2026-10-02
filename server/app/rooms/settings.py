@@ -168,12 +168,11 @@ class RoomSettings(BaseModel):
     # field existed reads as a room that has them.
     standings_seconds: int = Field(default=10, ge=0)
     close_when_all_answered: bool = True
-    # Name the players who answered wrong under a reveal. The host's call, off unless
-    # they turn it on: the count of who got it right is always shown, the names are a
+    # Name the players who answered wrong under a reveal. The host's call, on unless
+    # they turn it off: the count of who got it right is always shown, the names are a
     # room's taste. Nothing on the wire changes, since ``question_closed.results`` already
     # carries every row; the setting only says whether the client prints the names.
-    # Defaulted, so a room stored before it existed reads as one that does not.
-    name_wrong_answers: bool = False
+    name_wrong_answers: bool = True
     # Surprise rounds: a non-admin is sent only the rounds that have started
     # (``Room.view``). Left off the wire while false, so a room without it reads exactly
     # as one created before it existed.
