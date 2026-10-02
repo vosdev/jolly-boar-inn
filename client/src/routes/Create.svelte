@@ -301,9 +301,10 @@
   </section>
 
   <section class="panel events">
-    <h2>Random events</h2>
+    <h2>Random events frequency</h2>
     <Segmented
       legend="Random events frequency"
+      hideLegend
       options={[
         { value: 'less', label: 'Less' },
         { value: 'default', label: 'Default' },

@@ -282,7 +282,7 @@ describe('Create', () => {
 
   it('gives random events their own panel, and keeps the rest under a closed Advanced', async () => {
     await loaded()
-    const events = screen.getByRole('heading', { name: 'Random events' }).closest('section')
+    const events = screen.getByRole('heading', { name: 'Random events frequency' }).closest('section')
     expect(events?.contains(screen.getByRole('group', { name: 'Random events frequency' }))).toBe(true)
     expect(events?.textContent).toMatch(/\d+ random events? in this game/)
     const advanced = screen.getByRole('heading', { name: 'Advanced' }).closest('details')
