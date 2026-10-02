@@ -20,7 +20,7 @@
    *
    * The reveal's points are the rank table, not a bucket: 1000 for exact, then 750, 500,
    * 250 for the three closest misses and nothing further off. The points slot in `Room`
-   * shows them (D8); this view says how far off the guess was, which is the answer, not
+   * shows them; this view says how far off the guess was, which is the answer, not
    * the reason for the number.
    */
   import { parseAmount } from '../../../lib/gp'

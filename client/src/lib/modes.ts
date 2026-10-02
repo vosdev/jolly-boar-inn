@@ -114,7 +114,7 @@ export const MODES: Record<string, Mode> = {
   },
   // Never offered as a round: the host's questions are random events inside other rounds.
   // It is here for the stem those questions are drawn with, and for the splash of a room
-  // created before T21, whose custom questions still play as a round of their own.
+  // created when custom questions were a round of their own, and still plays them as one.
   custom: {
     id: 'custom',
     label: "Host's Questions",

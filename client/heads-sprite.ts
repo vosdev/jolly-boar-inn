@@ -1,5 +1,5 @@
 /**
- * `virtual:heads`: the fifty chat heads in `data/heads/` as one sprite sheet (D4, section
+ * `virtual:heads`: the fifty chat heads in `data/heads/` as one sprite sheet (section
  * 5.2 of ideas/design.md).
  *
  * The heads are committed one file each, because each was picked by a person and review

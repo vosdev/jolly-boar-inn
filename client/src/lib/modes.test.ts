@@ -1,5 +1,5 @@
 /**
- * D14: every mode is presented by a host who speaks all four of its lines, and a mode
+ * Every mode is presented by a host who speaks all four of its lines, and a mode
  * this build does not know is presented by the innkeeper, in lines that fit any round.
  */
 

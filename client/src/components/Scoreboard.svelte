@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * The standings: a podium for the top five, then the OSRS hiscores (D9, section 7.3).
+   * The standings: a podium for the top five, then the OSRS hiscores (section 7.3).
    *
    * One component for both places standings appear — the `standings` phase between rounds
    * and the final screen — so the two can never draw the same numbers differently. What
@@ -13,7 +13,7 @@
    * then `joined_at` asc, dense rank). Nothing is sorted or re-ranked here — two clients
    * disagreeing about who is second is exactly the bug this avoids.
    *
-   * Names and heads come from the live player list when the player is in it (D4): a
+   * Names and heads come from the live player list when the player is in it: a
    * rename or a re-roll mid-game arrives in `room_updated` straight away, and the
    * standings frames only at the next close. The row, its rank and its points are the
    * standing's either way — a rename never moves anybody.

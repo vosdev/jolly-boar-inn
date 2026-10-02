@@ -1,4 +1,4 @@
-"""T3 Accept: fresh DB gets all tables; second start is a no-op; migrations are applied
+"""Fresh DB gets all tables; second start is a no-op; migrations are applied
 against a throwaway database (the ``test_db_dsn`` fixture, driven by ``DATABASE_URL_TEST``).
 """
 
@@ -84,9 +84,9 @@ SHA256 = {
     2: "ad5c919f962fc09fee3653437444c5ef3977c5602d8e5f190e244e0dc863133a",
     3: "d0733d31a40a29722161eaf6f5366e37528237266b3daaf81faf78c8f7a9e1ba",
     4: "cf97795fdd41e6b828f055f4be180d925e2029b33064c9606e25c837cb0532cb",
-    5: "99c1dbe28efaa1add1c564db0889532db5c348c75aea6ea0c21e4809d7c964b1",
-    6: "d4bb6f0371b27acbd957fd12fb3ea473b1758c5c8668117a28509c03d07a0d75",
-    7: "6dc1a2306e272a3aeab96d4fbe23f8fd97e1e4c25255c72bc9042b743efc65ba",
+    5: "af8dd452c53482eded317da83c0206727393d26f352509ddf4397f0d342b3a9c",
+    6: "bbec7d48543d0b1f22a9802f64e741f10b4a11307b8dfeeb549f30971633fd74",
+    7: "60f12c5f4c085d303b469ca979dd0943258568dc02ea2f58d3ea0c8c69595c3f",
     8: "a6ec4722f4118bc7181679896f2715abca78b753ce6920e635846e05432c9ec2",
     9: "43d5a0abf02e2771222f4a21b536341e7d8e672475a67e9aad3597809668f0bb",
     10: "5c9e9836ba4f035d12c2fe365e513e67ba1d57f0a227c6ccf3f11884b7a065dd",
@@ -151,7 +151,7 @@ def test_applied_migrations_are_unchanged() -> None:
 
 
 async def test_fresh_db_gets_all_tables(pool: asyncpg.Pool) -> None:
-    """T3: fresh DB gets all tables (and indexes) from section 5."""
+    """Fresh DB gets all tables (and indexes) from section 5."""
     assert await run_migrations(pool) == ALL
     assert await _columns(pool) == TABLES
     rows = await pool.fetch("select indexname from pg_indexes where schemaname = 'public'")
@@ -160,7 +160,7 @@ async def test_fresh_db_gets_all_tables(pool: asyncpg.Pool) -> None:
 
 
 async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
-    """T3: the schema is section 5, not just tables with those names."""
+    """The schema is section 5, not just tables with those names."""
     await run_migrations(pool)
     with pytest.raises(asyncpg.CheckViolationError):
         await pool.execute(
@@ -204,7 +204,7 @@ async def test_section_5_constraints_hold(pool: asyncpg.Pool) -> None:
 
 
 async def test_second_start_is_noop(pool: asyncpg.Pool) -> None:
-    """T3: second start is a no-op."""
+    """Second start is a no-op."""
     assert await run_migrations(pool) == ALL
     before = await pool.fetch("select version, applied_at from schema_migrations")
     assert await run_migrations(pool) == []
@@ -236,7 +236,7 @@ async def test_lexical_order_and_one_transaction_per_file(
 
 
 def test_lifespan_runs_migrations(test_db_dsn: str, dist: Path) -> None:
-    """T3: run at startup in lifespan."""
+    """Run at startup in lifespan."""
     settings = Settings(_env_file=None, database_url=test_db_dsn)
     with TestClient(create_app(settings, dist)) as client:
         assert client.get("/api/health").json() == {"ok": True, "db": True}
@@ -325,7 +325,7 @@ async def test_0004_leaves_a_room_created_after_it_alone(pool: asyncpg.Pool) -> 
 async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
     pool: asyncpg.Pool, tmp_path: Path
 ) -> None:
-    """0005 (D4): players who predate heads come through with ``avatar`` null.
+    """0005: players who predate heads come through with ``avatar`` null.
 
     Null is "never chosen", which the client draws as the head derived from the player's
     id -- so a room from before the migration still shows a head for everyone, and a
@@ -356,7 +356,7 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
 def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
     test_db_dsn: str, dist: Path, tmp_path: Path, db
 ) -> None:
-    """0006 (T16): a room the previous release was mid-game in when the upgrade restarted it.
+    """0006: a room the previous release was mid-game in when the upgrade restarted it.
 
     Its rows are written on 0001..0005 the way that release wrote them -- no ``mode``
     anywhere, question 0 open when the process went down -- and then an app starts on the
@@ -451,7 +451,7 @@ def without_the_hold(settings: dict[str, Any]) -> dict[str, Any]:
 async def test_0007_swaps_order_for_the_event_settings_once(
     pool: asyncpg.Pool, tmp_path: Path
 ) -> None:
-    """0007 (T21): ``order`` goes, ``random_events`` and ``random_event_seconds`` arrive.
+    """0007: ``order`` goes, ``random_events`` and ``random_event_seconds`` arrive.
 
     A room from before it had no pack question placed as an event and never will, so it
     says ``random_events: false``. A room created after it already has both fields, and
@@ -472,10 +472,10 @@ async def test_0007_swaps_order_for_the_event_settings_once(
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}
-    # Since T22 that reads as "the host's questions only", which is what it always meant.
+    # Now that reads as "the host's questions only", which is what it always meant.
     assert RoomSettings.model_validate(without_the_hold(after)).random_event_frequency is None
 
-    # As T21 wrote it; since T22 the flag is a frequency, which 0007 never looks at.
+    # As 0007 wrote it; the flag has since become a frequency, which 0007 never looks at.
     created_after = {
         **{
             k: v for k, v in NewRoomSettings().model_dump().items() if k != "random_event_frequency"
@@ -498,7 +498,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
 def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
     test_db_dsn: str, dist: Path, tmp_path: Path, db
 ) -> None:
-    """0007 (T21): a room made while the host's questions were still a round of their own.
+    """0007: a room made while the host's questions were still a round of their own.
 
     Its rows are written on 0001..0006 the way the previous release wrote them: a round of
     pack questions, then a trailing round of the host's own (``order: custom_last``), and
@@ -614,7 +614,7 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
                 next_of(player, "question_closed", limit=30)
                 assert set(results) == ({player_id} if own else {host_id, player_id})
                 if index == 1:
-                    # D9: stored before ``standings_seconds`` existed, it reads as the
+                    # Stored before ``standings_seconds`` existed, it reads as the
                     # default, and the first round ends in standings the host can skip.
                     update = next_of(host, "room_updated", limit=30)
                     while update["room"]["phase"] != "standings":

@@ -1,12 +1,12 @@
-"""T6 Accept: create returns ``{code, session, player}`` and the creator is the room's
+"""Create returns ``{code, session, player}`` and the creator is the room's
 admin; a bad display name creates no room row; the sixth create from one IP in an hour is
 429; ``questions`` rows equal what the modes asked for (the code collision retry is in
 test_codes.py plus an end-to-end check here).
 
-T7 Accept: join a finished room is 409; duplicate name is 409; over ``max_players`` is
+Join a finished room is 409; duplicate name is 409; over ``max_players`` is
 409; success returns a session; the player appears in ``GET /api/rooms/{code}``.
 
-T21 Accept (the creation half): five custom questions in a three-mode room give 422
+The creation half of custom questions: five custom questions in a three-mode room give 422
 naming the limit and the count and create no room; a custom question that fails the schema
 gives 422 naming the field and creates no room.
 
@@ -38,11 +38,11 @@ def sha256(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-# --- T6: create -------------------------------------------------------------------
+# --- create -----------------------------------------------------------------------
 
 
 def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> None:
-    """T6: the creator is the admin; the session is hashed at rest."""
+    """The creator is the admin; the session is hashed at rest."""
     response = client.post(
         "/api/rooms",
         json={
@@ -151,7 +151,7 @@ def test_code_is_an_uppercase_room_word(client: TestClient) -> None:
 
 
 def test_code_collision_retries_then_appends_digits(app: FastAPI, client: TestClient) -> None:
-    """T6: collision retry end to end, with a one-word list."""
+    """Collision retry end to end, with a one-word list."""
     app.state.rooms.words = ("Cabbage",)
     first, _ = create(client)
     second, _ = create(client)
@@ -160,7 +160,7 @@ def test_code_collision_retries_then_appends_digits(app: FastAPI, client: TestCl
 
 
 def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -> None:
-    """T6: a mode is a round, and its ``questions`` is how long that round is."""
+    """A mode is a round, and its ``questions`` is how long that round is."""
     code, _ = create(client, modes=[{"mode": "more_less", "questions": 7}])
     (room,) = db("select id from rooms where code = $1", code)
     rows = db(
@@ -237,10 +237,10 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"modes": [{"mode": "more_less", "rounds": 2}]},  # not a field
         {"modes": ["more_less"]},  # the old shape: a name, not a round
         {"mode_order": "listed_or_not"},
-        {"order": "shuffle"},  # gone since T21: the host's questions are random events
+        {"order": "shuffle"},  # gone: the host's questions are random events
         {"modes": [{"mode": "custom"}]},  # never a round
         {"random_events": "sometimes"},
-        {"random_events": False},  # T21's "host's questions only": a stored room's, never new
+        {"random_events": False},  # The old "host's questions only": a stored room's, never new
         {"random_event_frequency": "never"},  # there is no off switch; "less" is the fewest
         {"random_event_seconds": 2},  # gone: the NPC's hold is the server's, not the room's
         {"reveal_seconds": 60},
@@ -273,7 +273,7 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
     assert response.status_code == 422
 
 
-# --- T21: the host's own questions ----------------------------------------------------
+# --- the host's own questions ---------------------------------------------------------
 
 THREE_MODES = [{"mode": "more_less"}, {"mode": "price_is_right"}, {"mode": "guess_examine"}]
 
@@ -366,7 +366,7 @@ def test_custom_questions_are_stored_as_the_hosts_own_random_events(client: Test
 
 
 def test_a_custom_question_is_asked_by_the_npc_it_names(client: TestClient, db) -> None:
-    """T22 Accept: the named NPC asks it, and two questions naming one NPC are both
+    """The named NPC asks it, and two questions naming one NPC are both
     honoured -- even back to back, which a drawn face never is."""
     named = [own_question("Who?", random_event="death"), own_question("Why?", random_event="death")]
     response = post(client, named, random_event_frequency="more")
@@ -385,7 +385,7 @@ def test_a_custom_question_naming_nobody_on_the_roster_is_refused(client: TestCl
 
 
 def test_too_many_custom_questions_are_refused_naming_the_frequency(client: TestClient, db) -> None:
-    """T22 Accept: fifteen questions at ``default`` make one slot. Refused, never truncated,
+    """Fifteen questions at ``default`` make one slot. Refused, never truncated,
     and the refusal says which frequency would make room."""
     response = post(client, [own_question(f"Question {n}?") for n in range(2)])
     assert response.status_code == 422
@@ -445,7 +445,7 @@ def test_rounds_too_short_for_the_hosts_questions_are_refused_as_the_body_is_rea
 def test_a_custom_question_that_fails_the_schema_is_refused_by_field(
     client: TestClient, db, bad: dict[str, Any], field: str
 ) -> None:
-    """T21 Accept: the 422 names the question by its place and the field by its path."""
+    """The 422 names the question by its place and the field by its path."""
     response = post(client, [own_question(), bad])
     assert response.status_code == 422
     assert f"custom_questions[1] {field}" in response.text, response.text
@@ -505,7 +505,7 @@ def test_the_author_is_whoever_wrote_the_question_not_the_source_it_carries() ->
     assert [row[-1] for row in rows] == [None, author]
 
 
-# --- T6: read back ----------------------------------------------------------------
+# --- read back --------------------------------------------------------------------
 
 
 def test_get_room_says_only_the_status_and_count_and_ignores_case(client: TestClient) -> None:
@@ -520,7 +520,7 @@ def test_get_room_says_only_the_status_and_count_and_ignores_case(client: TestCl
     assert client.get("/api/rooms/NOSUCHROOM").status_code == 404
 
 
-# --- T7: join ---------------------------------------------------------------------
+# --- join -------------------------------------------------------------------------
 
 
 def test_join_a_finished_room_is_409(client: TestClient, db, evict) -> None:
@@ -533,7 +533,7 @@ def test_join_a_finished_room_is_409(client: TestClient, db, evict) -> None:
 
 
 def test_join_success_returns_session_and_appears_in_get(client: TestClient, db) -> None:
-    """T7: success returns a session; the count in GET /api/rooms/{code} goes up."""
+    """Success returns a session; the count in GET /api/rooms/{code} goes up."""
     code, admin = create(client)
     response = join(client, code, "  Zezima ")
     assert response.status_code == 200, response.text
@@ -558,7 +558,7 @@ def test_join_success_returns_session_and_appears_in_get(client: TestClient, db)
 
 
 def test_duplicate_name_is_409(client: TestClient) -> None:
-    """T7: duplicate name is 409, case-insensitively, after trimming."""
+    """Duplicate name is 409, case-insensitively, after trimming."""
     code, _ = create(client)
     assert join(client, code, "Zezima").status_code == 200
     for name in ("Zezima", "zezima", "ZEZIMA", " Zezima "):
@@ -569,7 +569,7 @@ def test_duplicate_name_is_409(client: TestClient) -> None:
 
 
 def test_over_max_players_is_409(client: TestClient) -> None:
-    """T7: over ``max_players`` is 409. The admin is one of the players."""
+    """Over ``max_players`` is 409. The admin is one of the players."""
     code, _ = create(client, max_players=2)
     assert join(client, code, "One").status_code == 200
     response = join(client, code, "Two")

@@ -1,6 +1,6 @@
 """``closest_number``: a number for an answer, ranked against everyone else's guess.
 
-T21 Accept (the type half; the game half is in ``test_game.py``): two players the same
+The type half (the game half is in ``test_game.py``): two players the same
 distance away share the better rank; an exact match beats a guess one off; a player who
 did not answer scores 0.
 """

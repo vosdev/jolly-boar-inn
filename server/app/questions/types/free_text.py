@@ -9,7 +9,7 @@ No round plays this, and none should. Guess the Examine started here and left fo
 ``pick_from_list`` once every item needed an alias list and every typo needed a ruling
 (section 2). It stays for the host's own questions, whose answers -- a clan member's name,
 the boss somebody's pet came from -- are in no list the game could ship, and for the NPCs'
-(T22): a hand-written question with one answer, where whoever writes it lists the
+random-event questions: a hand-written question with one answer, where whoever writes it lists the
 spellings once, which is the job that sank a whole generated round of them. The price of
 that is ``questions/normalize.py``: case, accents, punctuation and spacing are not what a
 player is being asked about, and a typo on a long answer is not a wrong answer.

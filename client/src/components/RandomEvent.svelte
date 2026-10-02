@@ -14,8 +14,8 @@
    * and the card simply waits out whatever is left.
    *
    * It is the plain version of the card. The NPC taking the stage from the round's host —
-   * the picture on the right, the scroll moving across, the prompt typed out — is design
-   * D16, and the pictures are D15. Until then the card is text: a name, a line and the
+   * the picture on the right, the scroll moving across, the prompt typed out — is still to
+   * come, and so are the pictures. Until then the card is text: a name, a line and the
    * question, with the picture's slot left empty rather than filled with a stand-in.
    *
    * An NPC this build has no copy for is the Mysterious Old Man (`randomEventFor`), the
@@ -88,7 +88,7 @@
       <h2 class="name">{npc.name}</h2>
       <p class="line">{npc.line}</p>
     </div>
-    <!-- D15's picture goes here, found by `npc.asset`. Empty until there is one. -->
+    <!-- The NPC's picture goes here, found by `npc.asset`. Empty until there is one. -->
     <div class="portrait" aria-hidden="true"></div>
   </header>
   <Question {question} {reveal} {yourValue} {result} {onAnswer} {held} />

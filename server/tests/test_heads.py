@@ -1,4 +1,4 @@
-"""D4 Accept: the manifest, and the client half of heads.
+"""The manifest, and the client half of heads.
 
 The manifest is a contract (section 5.2): ids are positions, every file exists, and there
 are enough heads for a full room. Every head is a square PNG whose side divides both

@@ -1,4 +1,4 @@
-"""D3 Accept: names, and a corpus the server will accept every one of.
+"""Names, and a corpus the server will accept every one of.
 
 The rules, the corpus, and a generator bounded the way the server is. The popup, the
 re-roll, the profile and a ``localStorage`` that throws are the client's own tests:

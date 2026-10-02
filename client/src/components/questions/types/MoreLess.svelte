@@ -19,7 +19,7 @@
    * `revealed` says which one it is, so the cast below only reads the values and the
    * answer once the server has actually sent them.
    *
-   * The two buttons are `GemButton`'s plain variant (D8): panel-coloured, never a gem,
+   * The two buttons are `GemButton`'s plain variant: panel-coloured, never a gem,
    * because they will carry the item picture, but with the same five states as every
    * other answer button. So the right answer on the reveal gets a ✓ and an `--ok` ring
    * and nothing that looks like a press, and a question left unanswered shows neither

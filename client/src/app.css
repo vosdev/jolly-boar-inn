@@ -1,5 +1,5 @@
 /*
- * Tokens (D1, section 2 of ideas/design.md), and the themes built from them (D5).
+ * Tokens (section 2 of ideas/design.md), and the themes built from them.
  *
  * Eight layers, and a contract. A theme may repaint the furniture — surface, brand, gems,
  * shape, texture — freely. It may not repaint what "you got it wrong" looks like: the
@@ -109,7 +109,7 @@
   --texture-panel: url('./assets/textures/inn-trim.svg');
   --texture-bg: url('./assets/textures/inn-rug.svg');
 
-  /* 8. Scroll (D13): the clue scroll's parchment, its brown edge and the ink on it. Checked
+  /* 8. Scroll: the clue scroll's parchment, its brown edge and the ink on it. Checked
      like a panel: --scroll-ink 7:1 and --scroll-muted 4.5:1 on the paper, which also has to
      stand off --bg and --panel. --scroll-facet-light is how much white the creases catch. */
   --scroll-paper: #cfbb88;
@@ -376,7 +376,7 @@
   color: var(--ink);
   background: var(--bg);
 
-  /* D2, section 4. Shell measurement rather than a theme token: a theme repaints the
+  /* Section 4. Shell measurement rather than a theme token: a theme repaints the
      bar, it does not get to decide how tall it is. */
   --topbar-height: 56px;
 
@@ -385,7 +385,7 @@
      under it. */
   scroll-padding-top: calc(var(--topbar-height) + 0.75rem);
 
-  /* D5. Themes draw their edges at different widths — wilderness at 2px, the others at
+  /* Themes draw their edges at different widths — wilderness at 2px, the others at
      1px — and a player can switch mid-question. Anything with a themed border takes
      this off its padding, so the border grows inward and a theme switch never moves a
      button under somebody's thumb. */
@@ -588,7 +588,7 @@ button.small {
   align-items: center;
   gap: 0.75rem;
   /* Like .row: at 320px the pair either wraps or pushes the page sideways, and the top
-     bar (D2) is not the only thing that has to survive a narrow screen. */
+     bar is not the only thing that has to survive a narrow screen. */
   flex-wrap: wrap;
 }
 

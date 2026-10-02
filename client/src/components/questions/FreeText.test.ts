@@ -78,7 +78,7 @@ describe('free_text', () => {
     })
     expect(screen.getByText('Zezima')).toBeTruthy()
     expect(screen.getByText('Also accepted: Zezima the Great')).toBeTruthy()
-    // Ours recedes beside it; whether it counted is the points slot's to say (D8).
+    // Ours recedes beside it; whether it counted is the points slot's to say.
     expect(screen.getByText('Zezma').closest('p')?.classList.contains('picked')).toBe(true)
     expect(screen.queryByText(/900/)).toBeNull()
   })

@@ -1,4 +1,4 @@
--- T21: a room's own questions stop being a round and become random events -- one question
+-- A room's own questions stop being a round and become random events -- one question
 -- asked inside a round it does not belong to, by an NPC who turns up for it and leaves.
 --
 -- `questions.random_event` is that NPC's id (app/random_events.py), and null for every

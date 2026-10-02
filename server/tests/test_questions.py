@@ -1,4 +1,4 @@
-"""T4 Accept: the hand-written sample pack validates; a mutated ``answer`` fails the
+"""The hand-written sample pack validates; a mutated ``answer`` fails the
 consistency check; ``content_id`` is stable across key order; ``client_view`` has no
 ``answer``; ``grade`` works. Plus the schema file, the loader, and the CI script.
 """
@@ -80,7 +80,7 @@ def _write_pack(path: Path, questions: list[dict[str, Any]], name: str = "test")
 
 
 def test_sample_pack_validates() -> None:
-    """T4: a hand-written sample.json with 5 higher/lower questions validates."""
+    """A hand-written sample.json with 5 higher/lower questions validates."""
     packs = load_packs(PACKS_DIR)
     sample = next(pack for pack in packs if pack.path.name == "sample.json")
     assert sample.name == "sample"
@@ -92,7 +92,7 @@ def test_sample_pack_validates() -> None:
 
 
 def test_validate_packs_script_passes_on_shipped_packs() -> None:
-    """T4: scripts/validate_packs.py, the check CI runs."""
+    """Scripts/validate_packs.py, the check CI runs."""
     result = _validate_packs(PACKS_DIR)
     assert result.returncode == 0, result.stderr
     assert "sample.json: 5 question(s) ok" in result.stdout
@@ -120,7 +120,7 @@ def test_validate_packs_script_fails_on_broken_pack(tmp_path: Path) -> None:
 
 
 def test_validate_packs_script_fails_on_a_mode_this_build_does_not_play(tmp_path: Path) -> None:
-    """T16: a ``more_less`` question claiming to be Drop Table is refused, by name.
+    """A ``more_less`` question claiming to be Drop Table is refused, by name.
 
     Everything else about it is right, the id included, so the mode is the only thing
     the script can be complaining about.
@@ -136,7 +136,7 @@ def test_validate_packs_script_fails_on_a_mode_this_build_does_not_play(tmp_path
 
 
 def test_mutated_answer_fails_consistency_check() -> None:
-    """T4: a mutated ``answer_index`` fails the consistency check."""
+    """A mutated ``answer_index`` fails the consistency check."""
     mutated = question()
     mutated["payload"]["answer_index"] = 1
     assert schema.schema_errors(mutated) == []  # still a well-formed question
@@ -178,7 +178,7 @@ def test_wrong_id_fails_consistency_check() -> None:
 
 def test_unsupported_type_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
     """A type the schema knows and this build cannot play is refused, so packs cannot ship
-    one ahead of its module. Since T21 every type in the schema file has a module, so one
+    one ahead of its module. Now every type in the schema file has a module, so one
     is taken out of the registry to show it."""
     monkeypatch.delitem(TYPES, "closest_number")
     q = {
@@ -203,7 +203,7 @@ def test_an_unknown_mode_is_reported() -> None:
 
 
 def test_a_type_that_disagrees_with_its_mode_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The other half of T16's pack rule, once Drop Table exists and is multiple choice."""
+    """The other half of the pack rule, once Drop Table exists and is multiple choice."""
     monkeypatch.setitem(
         MODES, "drop_table", Mode(id="drop_table", types=frozenset({"multiple_choice"}))
     )
@@ -249,7 +249,7 @@ def own(**changes: Any) -> dict[str, Any]:
 
 
 def test_custom_is_the_mode_of_a_rooms_own_questions_and_nothing_else() -> None:
-    """T21: ``custom`` has no type to agree with, and it is the other half of ``room``."""
+    """``custom`` has no type to agree with, and it is the other half of ``room``."""
     schema.validate(own())
     message = "a room's own questions, and only they, are 'custom'"
     for wrong in (question(mode="custom"), question(source="room")):
@@ -314,7 +314,7 @@ def test_no_shipped_event_is_of_a_price_type() -> None:
     assert {q["type"] for q in events}.isdisjoint({"more_less", "price_is_right"})
 
 
-# --- T22: the NPCs' own questions -----------------------------------------------------
+# --- the NPCs' own questions ----------------------------------------------------------
 
 NPC_QUESTION: dict[str, Any] = {
     "type": "multiple_choice",
@@ -453,7 +453,7 @@ def test_the_shipped_npc_files_are_every_npcs_own() -> None:
 
 
 def test_content_id_is_stable_across_key_order() -> None:
-    """T4: ``content_id`` is stable across key order."""
+    """``content_id`` is stable across key order."""
     reordered = json.loads(
         json.dumps(
             {
@@ -544,7 +544,7 @@ def test_a_type_without_a_pace_of_its_own_gets_the_fallbacks() -> None:
 
 
 def test_client_view_has_no_answer() -> None:
-    """T4: unit test for ``client_view`` (no ``answer_index``, and no values at all)."""
+    """Unit test for ``client_view`` (no ``answer_index``, and no values at all)."""
     payload = EXAMPLE["payload"]
     view = more_less.client_view(payload)
     assert "answer_index" not in view
@@ -568,7 +568,7 @@ def test_reveal_has_answer_and_both_values() -> None:
 
 
 def test_grade() -> None:
-    """T4: unit test for ``grade``. T17: it returns credit, and ``more_less`` has no
+    """Unit test for ``grade``: it returns credit, and ``more_less`` has no
     partial answers, so every credit is all or nothing."""
     right, wrong, odd = uuid4(), uuid4(), uuid4()
     submissions = [Submission(right, 0), Submission(wrong, 1), Submission(odd, "0")]

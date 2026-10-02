@@ -43,7 +43,7 @@
 </div>
 
 <style>
-  /* A small plaque of its own (D5): the timer sits on the page, and a theme's page may be
+  /* A small plaque of its own: the timer sits on the page, and a theme's page may be
      a dark floor that neither the accent bar nor an urgent --bad would read against. */
   .timer {
     margin-bottom: 1rem;

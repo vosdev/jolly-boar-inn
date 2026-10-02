@@ -1,5 +1,5 @@
 /**
- * D8: the lines under a reveal. The count always, and one per partial-credit band that
+ * The lines under a reveal. The count always, and one per partial-credit band that
  * anyone reached; the names of who got it wrong only when the host asked for them, and
  * never a player who came within 70% or did not answer.
  */

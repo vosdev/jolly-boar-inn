@@ -21,7 +21,7 @@
    * throws gets the same treatment from the boundary, for a payload this build misreads:
    * without it the error takes the whole room screen down with the question.
    *
-   * `held` is a random event's hold (T22): the stem is up, and the view waits for the
+   * `held` is a random event's hold: the stem is up, and the view waits for the
    * question's `answerable_at`. `RandomEvent` does the counting and says when.
    *
    * `frame` lays the two halves out: it gets the stem and the answers as snippets, which

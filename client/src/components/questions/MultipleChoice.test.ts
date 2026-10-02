@@ -72,7 +72,7 @@ describe('multiple_choice', () => {
     const disabled = () =>
       screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)
     expect(disabled()).toBe(true)
-    // D8's waiting state: our pick held, and only ours, as pressed.
+    // The waiting state: our pick held, and only ours, as pressed.
     const pressed = screen.getAllByRole('button').map((b) => b.getAttribute('aria-pressed'))
     expect(pressed).toEqual(['false', 'true', 'false'])
     expect(screen.getByText('you')).toBeTruthy()

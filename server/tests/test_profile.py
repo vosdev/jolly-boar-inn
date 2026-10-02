@@ -1,4 +1,4 @@
-"""D4 Accept, the server half: heads through create and join, and ``set_profile``.
+"""The server half: heads through create and join, and ``set_profile``.
 
 Two browsers see each other's heads identically (the ``PlayerView`` both are sent); a
 re-roll or a rename in one reaches the other in the next ``room_updated``; a rename to a
@@ -88,7 +88,7 @@ def test_a_head_that_is_not_a_small_int_fails_validation(client: TestClient, ava
 
 
 def test_a_full_room_can_have_fifty_different_heads(app: FastAPI, client: TestClient) -> None:
-    """D4 Accept: fifty is ``max_players_per_room``, and every seat can have its own face."""
+    """Fifty is ``max_players_per_room``, and every seat can have its own face."""
     cap = app.state.settings.max_players_per_room
     assert HEADS >= cap
     response = client.post(
@@ -113,7 +113,7 @@ def test_a_full_room_can_have_fifty_different_heads(app: FastAPI, client: TestCl
 def test_a_reroll_and_a_rename_reach_the_other_browser(
     client: TestClient, lobby, db, clock
 ) -> None:
-    """D4 Accept: both browsers see the same heads, and a change in one reaches the other."""
+    """Both browsers see the same heads, and a change in one reaches the other."""
     code, admin, player = lobby["code"], lobby["admin"], lobby["player"]
     with (
         client.websocket_connect(f"/ws/{code}") as one,
@@ -224,7 +224,7 @@ def test_the_change_survives_the_room_leaving_memory(client: TestClient, lobby, 
 
 
 def test_a_client_from_before_heads_still_joins_and_plays(client: TestClient) -> None:
-    """D4 Accept: the old client sends no ``avatar`` and never ``set_profile``.
+    """The old client sends no ``avatar`` and never ``set_profile``.
 
     Everything it sends is still valid, and everything it is sent only gained a field,
     which its TypeScript never reads. Its players are the derived-head players.

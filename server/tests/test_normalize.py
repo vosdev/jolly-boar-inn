@@ -1,6 +1,6 @@
 """``questions/normalize.py``: when two typed answers are the same answer.
 
-T21 Accept: case, accents, punctuation and whitespace are normalised away; an accepted
+Case, accents, punctuation and whitespace are normalised away; an accepted
 answer under four characters takes no typo, so "Jad" does not accept "Jam"; a one-character
 typo on a full accepted answer is accepted and a different answer is not.
 """

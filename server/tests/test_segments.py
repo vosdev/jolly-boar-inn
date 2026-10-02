@@ -1,6 +1,6 @@
 """``rooms/segments.py``: rounds grouped back out of the questions that carry them.
 
-T21 Accept: ``segments_of`` reports four rounds, not seven, for a four-mode room holding
+``segments_of`` reports four rounds, not seven, for a four-mode room holding
 three random events.
 """
 
@@ -83,7 +83,7 @@ def test_segment_at_finds_the_round_a_position_falls_in() -> None:
 
 
 def test_an_event_is_grouped_into_the_round_it_interrupts() -> None:
-    """T21 Accept: four modes, three events, four rounds -- not seven.
+    """Four modes, three events, four rounds -- not seven.
 
     Each event is a question of another mode sitting inside a round, carrying that round's
     number. Runs of equal mode would split every interrupted round in three; grouping on

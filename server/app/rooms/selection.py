@@ -12,9 +12,9 @@ type, "wherever the custom round goes". Both were answers to where a host's ques
 belongs, and the answer turned out to be nowhere in particular, which is the point of an
 interruption. So ``order`` and the custom round went, and this is what replaced them.
 
-T21's version of it was rare by construction -- one event per round, never the first --
+The first version of it was rare by construction -- one event per round, never the first --
 and put a random face on a question borrowed from a mode the host had not picked, which
-made for a Sandwich Lady asking a Drop Table question. Since T22 the frequency says how
+made for a Sandwich Lady asking a Drop Table question. Now the frequency says how
 many events a room gets, and a pack event is an NPC asking its own question.
 """
 

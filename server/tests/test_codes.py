@@ -1,4 +1,4 @@
-"""T6: room codes from ``data/room-words.json``; collision retry unit-tested with a
+"""Room codes from ``data/room-words.json``; collision retry unit-tested with a
 stubbed word list (section 7: five plain tries, then two digits appended)."""
 
 import random
@@ -45,7 +45,7 @@ def test_candidates_plain_then_digit_suffixed() -> None:
 
 
 async def test_allocate_retries_on_collision_then_appends_digits() -> None:
-    """T6 Accept: code collision retry with a stubbed word list."""
+    """Code collision retry with a stubbed word list."""
     tried: list[str] = []
 
     async def insert(code: str) -> bool:

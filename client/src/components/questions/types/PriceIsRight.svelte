@@ -17,7 +17,7 @@
    *
    * The options come in ascending order and are drawn in that order. That is not a hint:
    * the pack deals the answer into every slot about equally often, and a ladder of prices
-   * is how anyone would lay out a guess at one. The rungs are gems (D8), sapphire at the
+   * is how anyone would lay out a guess at one. The rungs are gems, sapphire at the
    * cheapest, and the verdict is the points slot's.
    */
   import { asOfDate } from '../../../lib/dates'

@@ -4,7 +4,7 @@
    *
    * It picks the random event's card or the plain question once, for both halves of the
    * question's life, so a change to either half cannot miss the other. While the question
-   * is open and you have answered, the waiting line goes under it (D8): up to fifteen
+   * is open and you have answered, the waiting line goes under it: up to fifteen
    * seconds in which people look up at each other, so it says how the room is doing
    * rather than one flat line. The band is all `answer_ack` carries, how fast or how
    * early, never whether it was right. Correctness is nobody's until `question_closed`.
@@ -14,7 +14,7 @@
    * Once we have answered the host says its waiting line at the foot of the sheet, and on
    * the reveal its reveal line and what we earned, and anything we scored pins the ribbon. The line the points go on is held from the start, so the
    * answers under the sheet do not move when they arrive. A random event keeps its card,
-   * and the points their plaque above it, until D16 brings it onto the stage.
+   * and the points their plaque above it, until the event takes the stage too.
    *
    * `children` goes inside the panel under the answers: the reveal's tally.
    */

@@ -9,7 +9,7 @@ vocabularies").
 Knowing the list gives nothing away. It is every item in the roster, not the question's
 options, and the answer to any one question is one entry among all of them.
 
-A vocabulary this build does not have -- ``npcs`` before T23 writes its facts, or a name
+A vocabulary this build does not have -- ``npcs`` before its facts are written, or a name
 nobody registered -- is a 404, not an empty list: an empty list is a combobox with
 nothing in it, which reads as a bug in the round rather than a round this build cannot
 play.

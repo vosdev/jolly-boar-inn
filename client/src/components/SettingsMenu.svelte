@@ -412,7 +412,7 @@
     height: 24px;
   }
 
-  /* Once, and only for somebody who has not said they mind (D11 owns motion as a whole). */
+  /* Once, and only for somebody who has not said they mind. */
   .chip.nudging {
     border-color: var(--accent);
   }

@@ -1,4 +1,4 @@
--- D4: a player's chat head, as an id in `data/heads/heads.json` (section 5.2 of
+-- A player's chat head, as an id in `data/heads/heads.json` (section 5.2 of
 -- ideas/design.md). The manifest's index is the contract, so this stores the index.
 --
 -- Nullable, not `not null default 0`: null is "never chosen", and the client draws that

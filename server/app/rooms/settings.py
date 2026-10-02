@@ -38,7 +38,7 @@ those event slots. So the slot count is also their cap, and
 count, the limit and the frequency, rather than letting selection drop the overflow where
 the host would only find out during the game.
 
-Until T22 the choice was a boolean, ``random_events``: whether the packs could interrupt
+The choice used to be a boolean, ``random_events``: whether the packs could interrupt
 as well as the host. A stored room still says so, and reads back as ``default`` for true
 and as ``None`` for false -- "the host's questions only, one per round after the first",
 the rules it was created under. ``NewRoomSettings`` never takes ``None``, so no new room
@@ -65,7 +65,7 @@ from app.modes import MODES, questions_bounds, seconds_bounds, type_seconds
 MAX_QUESTIONS_PER_ROOM = 100
 
 Frequency = Literal["less", "default", "more"]
-# One random event per this many round questions (ideas/phase2.md T22, "How often"). Ten is
+# One random event per this many round questions (ideas/phase2.md, "How often"). Ten is
 # roughly once a round at the default round lengths, which is about as often as the game
 # itself interrupts anyone; five is a room that came for the NPCs.
 EVENT_EVERY: dict[str, int] = {"less": 20, "default": 10, "more": 5}
@@ -152,23 +152,23 @@ class RoomSettings(BaseModel):
     # ``"listed"``: the rounds play in the order the host arranged them, which is the
     # order this list is in. ``"random"``: shuffled once, at creation.
     mode_order: Literal["listed", "random"] = "listed"
-    # One random event per 20, 10 or 5 round questions. ``None`` is a room stored before
-    # T22 with ``random_events: false``: its host's questions only (see the module
+    # One random event per 20, 10 or 5 round questions. ``None`` is a room stored while the
+    # choice was a boolean, with ``random_events: false``: its host's questions only (see the module
     # docstring). Never ``None`` for a room created since.
     random_event_frequency: Frequency | None = "default"
     reveal_seconds: int = Field(default=8, ge=0)
     # Whether a round's mode is introduced before its first question: zero turns the splash
-    # off, which is what the test suite runs with, and anything else turns it on. Since D7
+    # off, which is what the test suite runs with, and anything else turns it on. Now
     # the number is no longer a length -- a splash ends when the room is ready or the host
     # skips it (``rooms/ready.py``) -- but it stays an int so every stored room still reads.
     splash_seconds: int = Field(default=8, ge=0)
-    # How long the standings hold the floor between two rounds (D9). Zero turns them off,
+    # How long the standings hold the floor between two rounds. Zero turns them off,
     # as ``splash_seconds`` does for the splash; the game's last round never has them,
     # because the final screen is its standings. Defaulted, so a room stored before the
     # field existed reads as a room that has them.
     standings_seconds: int = Field(default=10, ge=0)
     close_when_all_answered: bool = True
-    # Name the players who answered wrong under a reveal (D8). The host's call, off unless
+    # Name the players who answered wrong under a reveal. The host's call, off unless
     # they turn it on: the count of who got it right is always shown, the names are a
     # room's taste. Nothing on the wire changes, since ``question_closed.results`` already
     # carries every row; the setting only says whether the client prints the names.
@@ -190,7 +190,7 @@ class RoomSettings(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _frequency_from_the_boolean(cls, data: Any, info: ValidationInfo) -> Any:
-        """Read a room stored with T21's ``random_events`` as the frequency it meant.
+        """Read a room stored with the boolean ``random_events`` as the frequency it meant.
 
         Only a real boolean is translated. Anything else is left where it is, for
         ``extra="forbid"`` to refuse by name, or for ``stored`` to drop.

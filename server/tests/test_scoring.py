@@ -1,13 +1,13 @@
-"""T10 Accept: table-driven tests for every bucket edge (exactly 0.10 is bucket 1,
+"""Table-driven tests for every bucket edge (exactly 0.10 is bucket 1,
 0.1001 is bucket 2, anything past 1.0 clamps to bucket 5), the points each bucket is
 worth, and the standings tie-break order. Section 6 of ideas/architecture.md is the table
 all of this encodes; the sums those standings are built from are test_game.py's job.
 
-T17 Accept: a table per scoring. ``SPEED`` pays a bucket's points times the credit, so
+A table per scoring. ``SPEED`` pays a bucket's points times the credit, so
 0.6 in bucket 2 is 540; ``STEP`` pays 1000 down to 400 across the steps, 1000 for a
 one-step question, and clamps a step past the last; ``RANK`` pays a share of 1000 for the
 rung the credit reached and never looks at the clock. The bucket edges above them are
-T10's, untouched.
+the original ones, untouched.
 
 The bucket edges are inclusive and are fractions of the room's ``question_seconds``, so
 the same answer speed buckets the same way whatever the question length.
@@ -336,7 +336,7 @@ def test_rank_points(credit: float, points: int) -> None:
 
 @pytest.mark.parametrize(("credit", "points"), RANK)
 def test_rank_ignores_elapsed_time_entirely(credit: float, points: int) -> None:
-    """T17 Accept: the same answer scored one second in and at twenty-nine is worth the
+    """The same answer scored one second in and at twenty-nine is worth the
     same. There is no band to carry the difference, so there is nothing to pay it on."""
     early = band(Scoring.RANK, 1.0, 30, None)
     late = band(Scoring.RANK, 29.0, 30, None)

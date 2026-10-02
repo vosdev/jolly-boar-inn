@@ -58,7 +58,7 @@ export const lastClosed = writable<ClosedQuestion | null>(null)
  */
 export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(null)
 /**
- * How many of the room have answered the open question, of how many can (D8). Seeded by
+ * How many of the room have answered the open question, of how many can. Seeded by
  * the question's own frame and moved on by `answer_count` and our `answer_ack`; null with
  * no question open, or from a server that does not count.
  */
@@ -67,7 +67,7 @@ export const connection = writable<ConnectionState>('connecting')
 /** The last rejected message, until dismissed or the next question opens. */
 export const lastError = writable<Refusal | null>(null)
 /**
- * The last rejected `set_profile` (D4). Kept apart from `lastError` because the answer
+ * The last rejected `set_profile`. Kept apart from `lastError` because the answer
  * belongs in the popover that sent it — "that name is taken" under the name field — not
  * in a banner across the lobby.
  */
@@ -82,7 +82,7 @@ export const requestsSettled = writable(0)
 
 /**
  * Send on the room's socket, from outside the Room screen: the top bar's identity chip
- * renames and re-rolls with `set_profile` (D4). Room sets this while its socket is open
+ * renames and re-rolls with `set_profile`. Room sets this while its socket is open
  * and clears it on the way out; null means there is no room to send to.
  */
 export const roomSend = writable<((message: ClientMessage) => boolean) | null>(null)

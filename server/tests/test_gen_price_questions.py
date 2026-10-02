@@ -1,8 +1,8 @@
-"""T5 Accept: the generator produces about 100 valid questions, ``validate_packs.py``
+"""The generator produces about 100 valid questions, ``validate_packs.py``
 passes on the output, the script is idempotent, and nothing runs it at app startup or in
 CI. The generator is exercised on saved-response fixtures; the network is never touched.
 
-T19 Accept, the generator half: it emits ``price_is_right`` from the same fetch, rounded
+The generator half: it emits ``price_is_right`` from the same fetch, rounded
 and on one of the four shapes per question, without moving a single ``more_less``
 question; it stays idempotent and offline-capable. The type and the shipped pack's
 properties are in ``test_price_is_right.py``.
@@ -119,7 +119,7 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_shipped_prices_pack_is_full_of_valid_questions() -> None:
-    """T5: produces the asked-for count of valid questions; validate_packs.py passes."""
+    """Produces the asked-for count of valid questions; validate_packs.py passes."""
     packs = load_packs(PACKS_DIR)
     prices = next(pack for pack in packs if pack.path.name == "prices.json")
     assert prices.name == gen.PACK_NAME
@@ -143,7 +143,7 @@ def test_shipped_prices_pack_is_full_of_valid_questions() -> None:
 
 
 def test_generate_is_valid_and_deterministic() -> None:
-    """T5: idempotent, given the same inputs the output is identical."""
+    """Idempotent, given the same inputs the output is identical."""
     pack, notes = gen.generate(ROSTER, MAPPING, LATEST, count=10)
     again, _ = gen.generate(ROSTER, MAPPING, LATEST, count=10)
     assert gen.render(pack) == gen.render(again)
@@ -305,7 +305,7 @@ def test_make_question_matches_more_less_contract() -> None:
 
 
 def test_price_is_right_does_not_move_a_single_more_less_question() -> None:
-    """T19: "do not change the more_less questions". Its own stream is what makes it so."""
+    """Its own stream is what keeps "do not change the more_less questions" true."""
     with_pir, _ = gen.generate(ROSTER, MAPPING, LATEST, count=40)
     without, _ = gen.generate(ROSTER, MAPPING, LATEST, count=40, pir_count=0)
     assert _mode(with_pir, "more_less") == without["questions"]
@@ -423,7 +423,7 @@ def test_price_is_right_difficulty_is_the_closest_wrong_price() -> None:
 
 
 def test_cli_writes_validates_and_is_idempotent(tmp_path: Path) -> None:
-    """T5: the script output passes validate_packs.py; a second run is a no-op."""
+    """The script output passes validate_packs.py; a second run is a no-op."""
     inputs = _write_inputs(tmp_path)
     out_dir = tmp_path / "packs"
     out = out_dir / "prices.json"
@@ -560,7 +560,7 @@ def test_main_fetches_through_wiki_py_under_the_operators_user_agent(
 
 
 def test_generator_never_runs_at_startup_or_in_ci() -> None:
-    """T5: the script never runs at app startup or in CI."""
+    """The script never runs at app startup or in CI."""
     ci = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text()
     assert "gen_price" not in ci and "gen-price" not in ci
     makefile = (REPO_ROOT / "Makefile").read_text()

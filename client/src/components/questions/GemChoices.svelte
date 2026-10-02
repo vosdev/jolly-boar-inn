@@ -1,6 +1,6 @@
 <script lang="ts" generics="Option">
   /**
-   * The options of a "pick one of these" question, one gem each, in position order (D8).
+   * The options of a "pick one of these" question, one gem each, in position order.
    *
    * One column on a phone and as many as fit beside each other above that, so six
    * 56px buttons stack to about 380px on a 375px screen, which leaves the prompt on it.

@@ -9,7 +9,7 @@ to under the lock (``Broadcast``) and queues it on each, and the outbox's own ta
 sending. One stalled client cannot hold up the room, and a socket whose queue overflows or
 whose send times out is closed and detached like a disconnect.
 
-The game loop (T9) is one ``asyncio.Task`` per room, ``Room.timer``, running
+The game loop is one ``asyncio.Task`` per room, ``Room.timer``, running
 ``_run_questions``: open a question, sleep until it closes, close and grade it, sleep
 through the reveal, move on. Nothing else drives time. ``skip`` and an early close on
 all-answered cut a sleep short through ``Room.advance``, an ``asyncio.Event``, never by
@@ -24,19 +24,19 @@ recovery below.
 Every step writes to the database before it changes memory, so whatever the failure left
 behind, the database holds a state recovery knows how to resume.
 
-Between two rounds the loop holds the room in ``standings`` (D9) for
+Between two rounds the loop holds the room in ``standings`` for
 ``standings_seconds``: the reveal of a round's last question gives way to it, and it gives
 way to the next round's splash or first question. It is only ever between rounds. The
 game's last question goes straight to ``finished``, whose final standings are the same
 picture, and a question inside a round never stops for one.
 
-Scoring (T10, T17) is ``rooms/scoring.py``. An answer's band -- its speed bucket, or its
+Scoring is ``rooms/scoring.py``. An answer's band -- its speed bucket, or its
 step -- is fixed when it arrives; at the close the type's ``grade`` gives credit, and
 ``points_for`` pays out on the two. The answers table is the source of truth for
 standings: close writes ``correct`` and ``points``, then re-reads ``sum(points)`` per
 player into ``Room.totals``. Nothing adds to a running total in memory.
 
-Restart recovery (T11) is the rest of the rehydrate: ``_load`` brings back the room, its
+Restart recovery is the rest of the rehydrate: ``_load`` brings back the room, its
 players, its questions and the standings sum, and ``_recover`` voids whatever question was
 open when the process died, puts the room in ``reveal`` and hands it to a timer task that
 starts there, so a crash costs one question and nobody is asked another one on arrival.
@@ -298,9 +298,9 @@ class Player:
     session_hash: str = field(repr=False)  # sha256 hex of the session token, never plaintext
     connected: bool = False
     # A head from the manifest, or ``None`` for "never chosen": the client draws the one
-    # derived from ``id`` then, which is also what every player from before D4 has.
+    # derived from ``id`` then, which is also what every player stored before heads existed has.
     avatar: int | None = None
-    # The ready check (D7), in memory only: it means "ready to start" in the lobby and
+    # The ready check, in memory only: it means "ready to start" in the lobby and
     # "ready for this round" on a splash, and every splash starts everybody afresh. A
     # restart forgets it, which costs one tap -- the same as the splash it replays.
     ready: bool = False
@@ -510,7 +510,7 @@ class Room:
     awaiting_player: bool = False
     # Set to cut the current sleep short: ``skip``, or everyone has answered.
     advance: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
-    # Set when the ready check (D7) starts, shortens or stops a splash's countdown, so the
+    # Set when the ready check starts, shortens or stops a splash's countdown, so the
     # timer task wakes and sleeps to the new ``next_mono`` rather than the old one.
     rescheduled: asyncio.Event = field(default_factory=asyncio.Event, repr=False)
 
@@ -838,7 +838,7 @@ class RoomManager:
         return room
 
     async def _recover(self, room: Room) -> None:
-        """T11: pick a ``playing`` room that left memory mid-game back up, in ``reveal``.
+        """Pick a ``playing`` room that left memory mid-game back up, in ``reveal``.
 
         Section 3's restart rules. A question with ``shown_at`` set and ``closed_at`` null
         was open when the process died, so it is closed now and voided, ungraded: that is
@@ -909,7 +909,7 @@ class RoomManager:
         rehydrates it. Attached sockets are closed with 1012 so clients reconnect and
         receive a fresh ``welcome``. Returns whether the room was in memory.
 
-        This exists for the rehydrate tests (T8 accept, T11 accept); nothing in the app
+        This exists for the rehydrate tests (rehydrate and restart recovery); nothing in the app
         calls it. The room rows stay: ``purge_expired`` and ``delete`` are the two ways
         a room really goes away.
         """
@@ -1349,7 +1349,7 @@ class RoomManager:
     async def set_profile(
         self, code: str, player: Player, display_name: str | None, avatar: int | None
     ) -> None:
-        """Rename, re-roll the head, or both (D4, section 5.1.1 of ideas/design.md).
+        """Rename, re-roll the head, or both (section 5.1.1 of ideas/design.md).
 
         Held to exactly what a join is: the same name rules, the same case-insensitive
         uniqueness in the room -- the unique index is what decides, so a rename racing a
@@ -1404,7 +1404,7 @@ class RoomManager:
             raise BadAvatar(f"avatar must be a head id from 0 to {self.heads - 1}")
 
     async def set_ready(self, code: str, player: Player, is_ready: bool) -> None:
-        """Tap ready, or take it back (D7, section 7.1 of ideas/design.md).
+        """Tap ready, or take it back (section 7.1 of ideas/design.md).
 
         In the lobby it is what the host's Start waits on. On a splash it is what ends the
         splash (``rooms/ready.py``): the threshold starts a countdown, everyone ready
@@ -1539,7 +1539,7 @@ class RoomManager:
         """Store one answer and return how the question is scored, its band there, and
         the room's answer count with it in.
 
-        Everyone else hears the new count as ``answer_count`` (D8), broadcast from here;
+        Everyone else hears the new count as ``answer_count``, broadcast from here;
         the answerer is left out of it, since the handler's ``answer_ack`` carries it.
 
         The row is committed before this returns and the handler sends ``answer_ack``
@@ -1742,7 +1742,7 @@ class RoomManager:
         """Hand the room to its one timer task, starting at ``index``.
 
         ``start_game`` calls this with the lock released, right after its own broadcast,
-        so the first thing the task does cannot overtake it. T11's ``_recover`` calls it
+        so the first thing the task does cannot overtake it. ``_recover`` calls it
         under the lock instead, passing the ``resume_at`` that starts the task in a reveal
         rather than on an open: there is nothing to overtake in a room that has no sockets
         yet, and the task's first move is to sleep anyway.
@@ -1760,7 +1760,7 @@ class RoomManager:
         live one and still playing, so a game that ends underneath the task (``end_game``,
         eviction) stops it at the next step whether or not the cancellation lands first.
 
-        ``resume_at`` (T11) enters the loop one step in, in a reveal that ends then, and
+        ``resume_at`` enters the loop one step in, in a reveal that ends then, and
         ``index`` is the question that reveal belongs to rather than one to open. It
         rejoins at the top of the loop, so a recovered room that owes the first question
         of a round introduces that round again before opening it.
@@ -2231,7 +2231,7 @@ async def _void_question(conn: asyncpg.Connection, question: RoomQuestion, at: d
     """Write ``open → voided`` (section 4): the question closes at ``at``, graded nothing.
 
     Both ways in are a question nobody gets to score: ``end_game``, and a restart that
-    found it open (T11). Answers already in the table stay exactly as they arrived, with
+    found it open. Answers already in the table stay exactly as they arrived, with
     ``correct`` and ``points`` null, which is what ``_fetch_totals`` sums as nothing. The
     caller marks the question voided in memory once the write has committed.
     """

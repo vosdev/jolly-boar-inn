@@ -1,4 +1,4 @@
-"""T15 load test: 30 bots play one room over websockets and check what came back.
+"""Load test: 30 bots play one room over websockets and check what came back.
 
 Not a unit test and not part of CI: it needs a live server and a live database, and it
 takes as long as the game it plays (about six and a half minutes at the defaults). Run it
@@ -11,7 +11,7 @@ the script has to run on the same side of the bridge as the app::
 
     docker compose exec app python scripts/loadtest.py
 
-What it asserts, in the order the report prints them (section 8, T15):
+What it asserts, in the order the report prints them (section 8):
 
 1. Thirty questions at ``--question-seconds`` complete with zero ``error`` frames.
 2. p99 from sending ``answer`` to receiving ``answer_ack`` is under ``--p99-ms``.

@@ -1,7 +1,7 @@
 /**
  * The create form against `/api/modes`: `custom` is listed there, with no round length,
  * because the host's questions are random events rather than a round. The form must not
- * offer it as one — ticked by default, it would have every room refused. Since T22 it
+ * offer it as one — ticked by default, it would have every room refused. It
  * sends how often the NPCs interrupt, and counts their questions in the total it shows.
  * It never asks for a name: the host is the profile, and a browser with none gets one
  * the way Join gives one.
@@ -319,7 +319,7 @@ describe('Create', () => {
   })
 
   it('says how many questions the room plays, events included, before it exists', async () => {
-    // T22 Accept: one mode of ten at the default plays eleven, and Create says so.
+    // One mode of ten at the default plays eleven, and Create says so.
     await loaded()
     await fireEvent.click(screen.getByRole('checkbox', { name: /^The Price is Right/ }))
     await press(card('More or Less'), 'More questions', 5)
@@ -336,7 +336,7 @@ describe('Create', () => {
     expect(summary()).toBe('2 rounds, 38 questions (35 in the rounds, 3 random events)')
   })
 
-  it('sends how long the standings hold between rounds, 10 unless changed (D9)', async () => {
+  it('sends how long the standings hold between rounds, 10 unless changed', async () => {
     await loaded()
     expect((await submitted()).standings_seconds).toBe(10)
   })

@@ -1,6 +1,6 @@
-"""T20 Accept, the vocabulary half: a roster with two entries of the same name refuses to
+"""The vocabulary half: a roster with two entries of the same name refuses to
 load, and ``GET /api/vocab/{name}`` serves the list a ``pick_from_list`` round answers
-from -- ``items`` from the roster, ``npcs`` a 404 until T23 writes its facts.
+from -- ``items`` from the roster, ``npcs`` a 404 until its facts are written.
 """
 
 import json
@@ -34,7 +34,7 @@ def test_entries_open_in_alphabetical_order_whatever_the_roster_order() -> None:
 
 @pytest.mark.parametrize("twin", ["Abyssal whip", "abyssal WHIP", "Abyssal whíp"])
 def test_two_entries_of_the_same_name_refuse_to_load(twin: str) -> None:
-    """T20 Accept. A player could not tell them apart in the list, and the grader would
+    """A player could not tell them apart in the list, and the grader would
     accept only one of them."""
     with pytest.raises(VocabError) as info:
         build("items", [*ROSTER, {"id": 12773, "name": twin}], "roster")
@@ -111,7 +111,7 @@ def test_api_vocab_items_serves_the_roster(client: TestClient) -> None:
 def test_api_vocab_is_a_404_for_a_list_this_build_does_not_have(
     client: TestClient, name: str
 ) -> None:
-    """``npcs`` until T23 writes ``data/facts/npcs.json``; anything else always."""
+    """``npcs`` until ``data/facts/npcs.json`` is written; anything else always."""
     if name == "npcs" and vocab.get("npcs") is not None:
         pytest.skip("npcs.json exists now")
     response = client.get(f"/api/vocab/{name}")

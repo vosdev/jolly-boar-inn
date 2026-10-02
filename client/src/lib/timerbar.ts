@@ -1,5 +1,5 @@
 /**
- * What the timer bar under the top bar is counting down, if anything (D8, section 7.2).
+ * What the timer bar under the top bar is counting down, if anything (section 7.2).
  *
  * The bar is drawn by `App.svelte`, directly under `TopBar`, because that is where the
  * design puts it: full width, outside the 42rem column every screen sits in, and sticky

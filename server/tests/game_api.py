@@ -250,7 +250,7 @@ def db_totals(db, code: str) -> dict[UUID, int]:
 
 
 def assert_memory_matches_db(game: Game, db) -> None:
-    """T10: the sum kept in memory is the one the database holds, after every close.
+    """The sum kept in memory is the one the database holds, after every close.
 
     A player with no graded answer is 0 either way: absent from ``totals``, or present in
     the query with an ungraded (voided) row that sums to nothing.

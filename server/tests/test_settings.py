@@ -73,7 +73,7 @@ def test_only_modes_this_build_plays() -> None:
 
 
 def test_custom_is_not_a_round() -> None:
-    """T21: the host's questions go in ``custom_questions`` and land as random events."""
+    """The host's questions go in ``custom_questions`` and land as random events."""
     with pytest.raises(ValidationError, match="cannot be picked as a round"):
         RoomSettings(modes=[{"mode": "more_less"}, {"mode": "custom"}])
     with pytest.raises(ValidationError, match="cannot be picked as a round"):
@@ -167,7 +167,7 @@ def test_a_room_stored_with_t21s_boolean_reads_as_the_frequency_it_meant() -> No
     ).random_event_frequency == ("default")
     quiet = RoomSettings.model_validate({**stored, "random_events": False})
     assert quiet.random_event_frequency is None
-    assert quiet.random_event_slots == len(quiet.modes) - 1  # T21's count
+    assert quiet.random_event_slots == len(quiet.modes) - 1  # the boolean-era count
     assert "random_events" not in quiet.model_dump()
     with pytest.raises(ValidationError, match="random_event_frequency"):
         NewRoomSettings.model_validate({**stored, "random_events": False})
@@ -255,7 +255,7 @@ def test_the_npc_hold_is_no_longer_a_setting() -> None:
 
 @pytest.mark.parametrize("seconds", [-1, 31])
 def test_the_standings_hold_for_zero_to_thirty_seconds(seconds: int) -> None:
-    """D9: default 10, 0..30 at creation, zero turning the phase off."""
+    """Default 10, 0..30 at creation, zero turning the phase off."""
     assert NewRoomSettings().standings_seconds == 10
     assert NewRoomSettings(standings_seconds=0).standings_seconds == 0
     assert NewRoomSettings(standings_seconds=30).standings_seconds == 30
@@ -264,7 +264,7 @@ def test_the_standings_hold_for_zero_to_thirty_seconds(seconds: int) -> None:
 
 
 def test_a_room_stored_before_the_standings_reads_as_having_them() -> None:
-    """D9 Accept: a room created before the field existed still loads, and plays with the
+    """A room created before the field existed still loads, and plays with the
     default rather than being refused for a missing key."""
     stored = RoomSettings().model_dump()
     del stored["standings_seconds"]
@@ -272,7 +272,7 @@ def test_a_room_stored_before_the_standings_reads_as_having_them() -> None:
 
 
 def test_naming_wrong_answers_is_off_unless_the_host_asks() -> None:
-    """D8: the names under a reveal are opt-in, and a stored room without the key reads."""
+    """The names under a reveal are opt-in, and a stored room without the key reads."""
     assert NewRoomSettings().name_wrong_answers is False
     assert NewRoomSettings(name_wrong_answers=True).name_wrong_answers is True
     stored = RoomSettings().model_dump()

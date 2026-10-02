@@ -6,12 +6,12 @@
    * player just thought about. `GET /api/rooms/{code}` says only the room's status and
    * how many players are in it.
    *
-   * Then, with a room still in its lobby (D3, section 5.1):
+   * Then, with a room still in its lobby (section 5.1):
    *
    * - **A profile** joins straight through under its name and head. A returning player
    *   taps a link and is in the lobby; they are never asked again.
    * - **No profile** joins straight through too, as a random name and a random head
-   *   (D4, section 5.1.1 option B). The link is tapped at the exact moment a distracted
+   *   (section 5.1.1 option B). The link is tapped at the exact moment a distracted
    *   person at a party puts their phone down, so nothing stands between it and the
    *   room: they are in, seeing the others arrive, and the top bar's chip nudges them
    *   once — "You're Cow31337Killer42 — tap to change" — where `set_profile` renames them
@@ -152,7 +152,7 @@
   }
 </script>
 
-<!-- The code is not in the top bar (D2, section 4), and this is the one screen where
+<!-- The code is not in the top bar (section 4), and this is the one screen where
      nothing else says which room you are about to join. -->
 <h1>Room {code}</h1>
 

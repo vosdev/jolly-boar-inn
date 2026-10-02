@@ -1,5 +1,5 @@
 /**
- * D9: a trophy render dropped into `assets/trophies/` replaces the tier's committed
+ * A trophy render dropped into `assets/trophies/` replaces the tier's committed
  * placeholder by name, and until then the placeholder is always there to draw.
  */
 

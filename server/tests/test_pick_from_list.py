@@ -1,4 +1,4 @@
-"""T20 Accept, the type half: an answer that is not an id in the vocabulary is
+"""The type half: an answer that is not an id in the vocabulary is
 ``bad_value``, and so is a string; ``validate-packs`` fails a question whose ``answer_id``
 is not in its vocabulary. Plus the rest of the six exports, how it scores, and the
 shipped ``guess_examine`` pack.
@@ -162,7 +162,7 @@ def _validate_packs(directory: Path) -> subprocess.CompletedProcess[str]:
 
 
 def test_validate_packs_fails_an_answer_id_missing_from_its_vocabulary(tmp_path: Path) -> None:
-    """T20 Accept: a roster edit that drops an item fails CI, not a quiz night. The id
+    """A roster edit that drops an item fails CI, not a quiz night. The id
     matches the content, so the vocabulary is the only thing left to complain about."""
     dropped = envelope(answer_id=999999)
     del dropped["payload"]["subject"]

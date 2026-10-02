@@ -1,4 +1,4 @@
-"""T8 Accept: test client connects, sends ``hello``, gets ``welcome`` with ``players`` and
+"""Test client connects, sends ``hello``, gets ``welcome`` with ``players`` and
 ``you``; second socket for the same player closes the first with 4000; bad session is
 4001; disconnect flips ``connected`` in a broadcast to the remaining socket; a room
 evicted from memory (test hook) rehydrates identically.
@@ -51,7 +51,7 @@ def snapshot(room: Room) -> dict[str, Any]:
 
 
 def test_hello_gets_welcome_with_players_and_you(client: TestClient, lobby) -> None:
-    """T8: connect, send hello, get welcome with players and you."""
+    """Connect, send hello, get welcome with players and you."""
     code, player = lobby["code"], lobby["player"]
     with client.websocket_connect(f"/ws/{code}") as ws:
         welcome = hello(ws, player["session"])
@@ -112,7 +112,7 @@ def test_code_in_url_is_case_insensitive(client: TestClient, lobby) -> None:
 
 
 def test_second_socket_for_same_player_closes_first_with_4000(client: TestClient, lobby) -> None:
-    """T8: second socket for the same player closes the first with 4000."""
+    """Second socket for the same player closes the first with 4000."""
     code, session = lobby["code"], lobby["player"]["session"]
     with (
         client.websocket_connect(f"/ws/{code}") as first,
@@ -134,7 +134,7 @@ def test_second_socket_for_same_player_closes_first_with_4000(client: TestClient
 
 
 def test_bad_session_closes_4001(client: TestClient, lobby) -> None:
-    """T8: bad session is 4001, after one ``error bad_hello``."""
+    """Bad session is 4001, after one ``error bad_hello``."""
     with client.websocket_connect(f"/ws/{lobby['code']}") as ws:
         ws.send_json({"t": "hello", "session": "not-a-session"})
         error = ws.receive_json()
@@ -188,7 +188,7 @@ def test_unknown_or_expired_room_closes_4004(client: TestClient, lobby, db, evic
 def test_disconnect_flips_connected_in_broadcast_to_remaining_socket(
     client: TestClient, lobby
 ) -> None:
-    """T8: disconnect flips ``connected`` in a broadcast to the remaining socket."""
+    """Disconnect flips ``connected`` in a broadcast to the remaining socket."""
     code = lobby["code"]
     with client.websocket_connect(f"/ws/{code}") as admin_ws:
         hello(admin_ws, lobby["admin"]["session"])
@@ -495,7 +495,7 @@ async def _never() -> None:
 
 
 def test_evicted_room_rehydrates_identically(app: FastAPI, client: TestClient, lobby) -> None:
-    """T8: a room evicted from memory (test hook) rehydrates identically."""
+    """A room evicted from memory (test hook) rehydrates identically."""
     manager: RoomManager = app.state.rooms
     code = lobby["code"]
     before = call(client, manager.get, code)

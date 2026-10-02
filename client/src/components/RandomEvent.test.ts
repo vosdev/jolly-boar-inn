@@ -1,5 +1,5 @@
 /**
- * T22's card: the NPC, their line and their question, with the answers held back until
+ * The card: the NPC, their line and their question, with the answers held back until
  * `answerable_at` on the server's clock -- and an NPC this build has never heard of drawn
  * as the Mysterious Old Man, quietly.
  *

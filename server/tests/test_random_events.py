@@ -1,7 +1,7 @@
 """``app/random_events.py``: the roster of NPCs who may interrupt a round, by id.
 
-T22 Accept: every roster id has an event file with at least two questions and a copy entry
-in ``client/src/lib/randomEvents.ts``. Only six NPCs had questions written when T22
+Every roster id has an event file with at least two questions and a copy entry
+in ``client/src/lib/randomEvents.ts``. Only six NPCs had questions written when random events
 landed, so the rest are named in ``AWAITING_QUESTIONS``, and the test holds that list to
 the truth in both directions: an NPC on it may not have a file, and one off it must have a
 proper one. Writing an NPC's questions means taking it off the list, and the list only
