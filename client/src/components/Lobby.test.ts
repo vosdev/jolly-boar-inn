@@ -128,6 +128,32 @@ describe('Lobby', () => {
     expect(sent).toEqual([{ t: 'rotate_key' }])
   })
 
+  it('lists who is asking to join, and lets them in or turns them away without asking', async () => {
+    const requests = [
+      { id: 'r1', display_name: 'Lynx Titan', avatar: 4 },
+      { id: 'r2', display_name: 'Durial', avatar: null },
+    ]
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc', requests })
+    const panel = screen.getByRole('region', { name: 'Asking to join (2)' })
+    const rows = within(panel).getAllByRole('listitem')
+    expect(rows.map((row) => row.textContent)).toEqual([
+      expect.stringContaining('Lynx Titan'),
+      expect.stringContaining('Durial'),
+    ])
+    await fireEvent.click(within(rows[0]!).getByRole('button', { name: 'Let in' }))
+    await fireEvent.click(within(rows[1]!).getByRole('button', { name: 'Turn away' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(sent).toEqual([
+      { t: 'decide_request', request_id: 'r1', accept: true },
+      { t: 'decide_request', request_id: 'r2', accept: false },
+    ])
+  })
+
+  it('shows no request panel when nobody is asking', () => {
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc', requests: [] })
+    expect(screen.queryByText(/Asking to join/)).toBeNull()
+  })
+
   it('offers no new link for a room without a key', () => {
     lobby()
     expect(screen.queryByRole('button', { name: 'New link' })).toBeNull()

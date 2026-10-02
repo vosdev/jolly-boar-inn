@@ -19,11 +19,14 @@
    * An invite-only room's link carries its key, which only admins are sent, and shows it
    * as asterisks because lobbies get streamed. New link replaces the key. That is also the
    * room lock: a key nobody else has yet lets nobody in, so there is no separate one.
+   * Somebody without the link can still ask; they wait on Join until a host lets them in or
+   * turns them away here, with no confirm, since either can be put right by Kick or by
+   * asking again.
    */
   import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
   import { readyThreshold } from '../lib/ready'
-  import type { PlayerView } from '../lib/protocol'
+  import type { JoinRequestView, PlayerView } from '../lib/protocol'
   import { players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
   import ConfirmDialog from './ConfirmDialog.svelte'
@@ -120,6 +123,12 @@
     }
   }
 
+  const requests = $derived(isAdmin ? ($room?.requests ?? []) : [])
+
+  function decide(request: JoinRequestView, accept: boolean): void {
+    socket.send({ t: 'decide_request', request_id: request.id, accept })
+  }
+
   function promote(player: PlayerView): void {
     asking = {
       message: `Make ${player.display_name} a host? This can't be undone.`,
@@ -177,6 +186,24 @@
         <p class="note">One round each, listed A–Z rather than in the order they play.</p>
       {/if}
     {/if}
+  </section>
+{/if}
+
+{#if requests.length > 0}
+  <section class="panel" aria-labelledby="asking">
+    <h2 id="asking">Asking to join ({requests.length})</h2>
+    <ul class="players">
+      {#each requests as request (request.id)}
+        <li>
+          <span class="face"><Head head={headOf(request)} size={32} label="" /></span>
+          <span class="name">{request.display_name}</span>
+          <span class="admin">
+            <button type="button" class="primary" onclick={() => decide(request, true)}>Let in</button>
+            <button type="button" onclick={() => decide(request, false)}>Turn away</button>
+          </span>
+        </li>
+      {/each}
+    </ul>
   </section>
 {/if}
 

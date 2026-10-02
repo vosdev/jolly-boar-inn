@@ -331,7 +331,7 @@ describe('Create', () => {
     expect(choice.nextElementSibling?.textContent).toBe('Anyone you give the room code to can join.')
     await fireEvent.click(radio('Invite link'))
     expect(choice.nextElementSibling?.textContent).toBe(
-      "The room code alone won't let anyone in; they need the link.",
+      "The room code alone won't let anyone in; they need the link, or be manually approved by you.",
     )
     await fireEvent.click(radio('Public'))
     expect(radio('Invite link').checked).toBe(false)

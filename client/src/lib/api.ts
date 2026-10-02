@@ -178,6 +178,41 @@ export function joinRoom(
   })
 }
 
+/**
+ * Ask an invite-only room's host to let you in without its key. The ticket answers to
+ * `pollRequest` and `cancelRequest`, in their bodies only, like a session.
+ */
+export function askToJoin(
+  code: string,
+  displayName: string,
+  avatar: number | undefined,
+  returning: boolean,
+): Promise<{ ticket: string }> {
+  return request<{ ticket: string }>(`/api/rooms/${encodeURIComponent(code)}/requests`, {
+    method: 'POST',
+    body: JSON.stringify({ display_name: displayName, avatar, returning }),
+  })
+}
+
+/** Still waiting, or let in with what a join returns. Turned away is `request_denied`. */
+export type RequestStatus = { status: 'waiting' } | ({ status: 'accepted' } & Credentials)
+
+export function pollRequest(code: string, ticket: string): Promise<RequestStatus> {
+  return request<RequestStatus>(`/api/rooms/${encodeURIComponent(code)}/requests/poll`, {
+    method: 'POST',
+    body: JSON.stringify({ ticket }),
+  })
+}
+
+/** Withdraw a request. `keepalive`, so it still goes when the page is on its way out. */
+export function cancelRequest(code: string, ticket: string): Promise<void> {
+  return request<void>(`/api/rooms/${encodeURIComponent(code)}/requests/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ ticket }),
+    keepalive: true,
+  })
+}
+
 /** A lobby on Home's list: what joining it would show anyway, and no more. */
 export interface PublicRoom {
   code: string

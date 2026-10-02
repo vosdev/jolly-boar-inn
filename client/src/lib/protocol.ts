@@ -128,6 +128,14 @@ export interface RoomView {
   rounds?: number
   /** An invite-only room's key; sent to its admins only. */
   key?: string
+  /** Who is asking to be let in without the key, oldest first; an invite-only room's admins only. */
+  requests?: JoinRequestView[]
+}
+
+export interface JoinRequestView {
+  id: string
+  display_name: string
+  avatar: number | null
 }
 
 export interface PlayerView {
@@ -251,6 +259,13 @@ export interface RotateKey {
   t: 'rotate_key'
 }
 
+/** Let a join request in, or turn it away. */
+export interface DecideRequest {
+  t: 'decide_request'
+  request_id: string
+  accept: boolean
+}
+
 /** Rename, re-roll the head, or both. An omitted field is left alone. */
 export interface SetProfile {
   t: 'set_profile'
@@ -280,6 +295,7 @@ export type ClientMessage =
   | Kick
   | EndGame
   | RotateKey
+  | DecideRequest
   | SetProfile
   | Ready
   | Editing
