@@ -23,7 +23,12 @@ branding/*
 .idea/
 .vscode/
 
-# NPC renders and chatheads from the wiki: game assets, fetched and not committed
-client/src/assets/npcs/*.png
+# NPC and trophy art from the wiki (make fetch-assets): game assets, fetched and not committed
+client/src/assets/npcs/*
+!client/src/assets/npcs/README.md
+!client/src/assets/npcs/innkeeper.svg
+client/src/assets/trophies/*
+!client/src/assets/trophies/README.md
+!client/src/assets/trophies/placeholder/
 # Leagues area flags, the themes' emblems: game assets too
 client/src/assets/themes/*.png

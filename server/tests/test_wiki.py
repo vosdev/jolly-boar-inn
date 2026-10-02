@@ -99,7 +99,7 @@ def test_every_request_waits_for_the_throttle_and_carries_the_user_agent(
         def __exit__(self, *exc: object) -> None:
             pass
 
-        def read(self) -> bytes:
+        def read(self, size: int = -1) -> bytes:
             return b'{"ok": true}'
 
     def urlopen(request: Any, timeout: float) -> Response:
@@ -151,3 +151,27 @@ def test_the_scan_sees_each_way_of_importing(tmp_path: Path) -> None:
         path.write_text(source)
         assert network_imports(path), source
     assert network_imports(SCRIPTS / "wiki.py") == {"urllib.request"}
+
+
+def test_get_bytes_returns_the_body_and_refuses_one_past_the_cap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    body = b"\x89PNG"
+
+    class Response:
+        def __enter__(self) -> Response:
+            return self
+
+        def __exit__(self, *exc: object) -> None:
+            pass
+
+        def read(self, size: int = -1) -> bytes:
+            return body[:size] if size >= 0 else body
+
+    monkeypatch.setattr(wiki.urllib.request, "urlopen", lambda request, timeout: Response())
+    fake = FakeClock()
+    source = wiki.Wiki("quiz-importer - Zezima", wiki.Throttle(clock=fake.clock, sleep=fake.sleep))
+    assert source.get_bytes("https://example.test/a.png") == b"\x89PNG"
+    body = b"x" * (wiki.MAX_BYTES + 10)
+    with pytest.raises(wiki.TooLarge):
+        source.get_bytes("https://example.test/b.png")

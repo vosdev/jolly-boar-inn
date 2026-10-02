@@ -13,6 +13,7 @@ Usage::
 
     wiki = connect()  # MissingUserAgent when unset
     mapping = wiki.get_json("https://prices.runescape.wiki/api/v1/osrs/mapping")
+    png = wiki.get_bytes("https://oldschool.runescape.wiki/images/Bob_chathead.png")
 """
 
 import json
@@ -30,10 +31,16 @@ VARIABLE = "WIKI_USER_AGENT"
 EXAMPLE = "jolly-boar-quiz-importer - yourname on Discord"
 INTERVAL_SECONDS = 1.0
 TIMEOUT_SECONDS = 30
+# Far above any chathead or render; a body past it is something else, and is not kept.
+MAX_BYTES = 5_000_000
 
 
 class MissingUserAgent(RuntimeError):
     """``WIKI_USER_AGENT`` is unset, blank, or still the example."""
+
+
+class TooLarge(ValueError):
+    """A response body over ``MAX_BYTES``."""
 
 
 class _Env(BaseSettings):
@@ -83,10 +90,17 @@ class Wiki:
 
     def get_json(self, url: str) -> Any:
         """``url`` fetched and parsed, after the throttle lets it go."""
+        return json.loads(self.get_bytes(url).decode("utf-8"))
+
+    def get_bytes(self, url: str) -> bytes:
+        """``url``'s body, after the throttle lets it go. ``TooLarge`` past ``MAX_BYTES``."""
         self.throttle.wait()
         request = urllib.request.Request(url, headers={"User-Agent": self.user_agent})
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # noqa: S310
-            return json.loads(response.read().decode("utf-8"))
+            body = response.read(MAX_BYTES + 1)
+        if len(body) > MAX_BYTES:
+            raise TooLarge(f"{url}: more than {MAX_BYTES} bytes")
+        return body
 
 
 def connect(env_file: Path | None = None) -> Wiki:

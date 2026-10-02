@@ -12,5 +12,6 @@ Drop the wiki file in unchanged: the stage crops and mirrors a render itself, be
 renders face left and the host has to face the scroll. `<ext>` may be any of `avif`, `webp`, `png`,
 `jpg` or `jpeg`. An `.svg` is an original drawing and is shown as it is, uncropped.
 
-An NPC with neither file is the committed `innkeeper.svg`. The PNGs are game assets and not
-committed (`.gitignore`), so a fresh checkout has every host as the innkeeper.
+An NPC with neither file is the committed `innkeeper.svg`. The wiki files are game assets and not
+committed (`.gitignore`), so a fresh checkout has every host as the innkeeper until you run
+`make fetch-assets`, which fetches the file `data/assets.json` names for each NPC.

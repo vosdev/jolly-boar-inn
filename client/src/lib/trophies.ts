@@ -2,7 +2,7 @@
  * The podium's trophy art, found by name at build time (sections 7.3 and 9.1).
  *
  * The trophies are the five Quest Speedrunning renders, which are game assets and so
- * fetched rather than committed (`make fetch-assets`, when it exists). Until one is in
+ * fetched rather than committed (`make fetch-assets`). Until one is in
  * `assets/trophies/<tier>.<ext>`, the podium draws the committed placeholder for that
  * tier, `assets/trophies/placeholder/<tier>.svg`: one plain cup, tinted per tier.
  * Dropping a render in replaces it on the next build with no code change.

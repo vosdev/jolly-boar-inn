@@ -4,6 +4,9 @@ Quiz night at the Jolly Boar Inn!
 The version is in [`VERSION`](VERSION). Each release is a `v<version>` git tag, created by
 CI on main, and `make image` builds `jolly-boar-inn:<version>` locally.
 
+The NPC and trophy art is fetched, not committed. Set `WIKI_USER_AGENT` in `.env` and run
+`make fetch-assets` before `make image` or `docker compose build`, which bundle what is on disk.
+
 ## Branding
 
 Three variables in `.env` give your instance its own name, logo and default theme:

@@ -79,13 +79,6 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
     asset: 'npc:drunken_dwarf',
   },
   {
-    id: 'alfred',
-    name: 'Alfred Grimhand',
-    theme: 'Ales and pubs',
-    line: "Finished the barcrawl, have you? Let's see if you remember a single pint of it.",
-    asset: 'npc:alfred',
-  },
-  {
     id: 'thurgo',
     name: 'Thurgo',
     theme: 'Mining and Smithing',

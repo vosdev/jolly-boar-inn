@@ -24,7 +24,6 @@ AWAITING_QUESTIONS = {
     "sandwich_lady",
     "tree_spirit",
     "drunken_dwarf",
-    "alfred",
     "thurgo",
     "genie",
     "sergeant_damien",
