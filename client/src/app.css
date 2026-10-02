@@ -421,7 +421,8 @@ body {
   isolation: isolate;
 }
 
-/* Text on the page takes the page inks: a heading, a tagline, a note between panels. */
+/* Every screen puts its text on a panel, since no one ink reads on every floor. The page
+   inks are the fallback for anything that still lands on the bare page. */
 main {
   flex: 1 0 auto;
   --ink: var(--bg-ink);
@@ -474,7 +475,11 @@ main select {
 
 .tagline {
   color: var(--muted);
-  margin: 0 0 2rem;
+  margin: 0;
+}
+
+.tagline + .tagline {
+  margin-top: 0.25rem;
 }
 
 .panel {

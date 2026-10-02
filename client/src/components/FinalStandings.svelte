@@ -25,16 +25,18 @@
   const numbers = new Intl.NumberFormat()
 </script>
 
-<h1>Final standings</h1>
-{#if winners.length > 0}
-  <p class="tagline">
-    {winners.map((w) => w.display_name).join(' and ')}
-    {winners.length === 1 ? 'wins' : 'tie for first'} with {numbers.format(topScore)}
-    points.
-  </p>
-{:else}
-  <p class="tagline">Nobody scored. A quiet night at the inn.</p>
-{/if}
+<section class="panel">
+  <h1>Final standings</h1>
+  {#if winners.length > 0}
+    <p class="tagline">
+      {winners.map((w) => w.display_name).join(' and ')}
+      {winners.length === 1 ? 'wins' : 'tie for first'} with {numbers.format(topScore)}
+      points.
+    </p>
+  {:else}
+    <p class="tagline">Nobody scored. A quiet night at the inn.</p>
+  {/if}
+</section>
 <Scoreboard {standings} {youId} final />
 <section class="panel">
   <!-- Rank is dense (section 6), so level scores genuinely share a place; what the

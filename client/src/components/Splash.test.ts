@@ -84,6 +84,13 @@ describe('Splash stage', () => {
     expect(under().contains(button)).toBe(true)
     expect(paper().querySelector('button, ul')).toBeNull()
   })
+
+  it('puts the count and the ready check on a panel, never on the bare page', () => {
+    splash()
+    const panel = under().querySelector('.panel')!
+    expect(panel.textContent).toContain('Round 1 of 2 · 5 questions · 10 seconds each')
+    expect(panel.contains(screen.getByRole('button', { name: "✓ I'm ready" }))).toBe(true)
+  })
 })
 
 describe('Splash ready check', () => {

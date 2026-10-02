@@ -348,8 +348,8 @@
 {#if departure !== null}
   <!-- The room's code is in the top bar (section 4). These headings say which screen
        you are on, which is what the code used to be crowding out. -->
-  <h1>Disconnected</h1>
   <section class="panel">
+    <h1>Disconnected</h1>
     <p>{FAREWELL[departure.reason]}</p>
     <div class="row">
       {#if RETRY !== null}
@@ -364,9 +364,8 @@
   {/if}
 
   {#if $room === null}
-    <p class="note">Connecting…</p>
+    <section class="panel"><p class="note">Connecting…</p></section>
   {:else if $room.status === 'lobby'}
-    <h1>Lobby</h1>
     {#if socket !== null}
       <Lobby {socket} />
     {/if}
@@ -391,7 +390,7 @@
     <!-- playing. A question's screen is the stage and nothing to read past it. -->
     <div class:column={$room.phase !== 'standings'}>
     {#if $room.phase === 'standings'}
-      <div class="head">
+      <div class="panel head">
         <h1>
           {#if segment !== null}
             <span class="round">After round {segment.index + 1} of {segment.total}</span>
@@ -479,10 +478,6 @@
 {/if}
 
 <style>
-  .head {
-    margin-bottom: 1rem;
-  }
-
   .head h1 {
     margin: 0;
   }

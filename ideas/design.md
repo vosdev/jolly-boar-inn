@@ -39,7 +39,9 @@ and 7. Layers 3, 4 and 8 are a contract that `scripts/check_contrast.py` enforce
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
 | 8. Scroll | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` | Must pass contrast; must still read as parchment |
 
-`--more` and `--less` are not right and wrong, so they never borrow layer 3's colours. Layer 6 is
+No text sits on the bare page: each screen opens with its heading and tagline on a panel, and the
+`--bg-ink` page inks are only a fallback. `--more` and `--less` are not right and wrong, so they
+never borrow layer 3's colours. Layer 6 is
 what makes a theme a different place: `wilderness` has a 2px radius and a hard border.
 
 The script asserts, per `[data-theme]` block:
@@ -195,8 +197,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
   the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only along its
   length. `jolly`, `pollnivneach`, `party_room` and `tzhaar` have their own paper; `wilderness` uses
   `jolly`'s.
-- **Below the line** is the page: on the splash the round's count and pace and the ready check;
-  on a question only the answers, in a panel. Gems never sit on parchment, so every gem check
+- **Below the scroll** is a panel: on the splash the round's count and pace and the ready check;
+  on a question the answers, and once answered a slim panel saying who is in. Gems never sit on parchment, so every gem check
   still measures against `--panel`. The round is said on the splash only.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
   `lib/modes.ts`. The splash scroll holds the mode's name, greeting and blurb; the waiting and
@@ -224,7 +226,7 @@ countdowns and take-back rule are architecture §7.
   and the question's number (`2/3`) in one at its left. Answer buttons are 56px tall and full
   width on a phone: thumb targets at a pub table.
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
-  `--scroll-ink`, and the answers, combobox, waiting state and tally are under the line. The
+  `--scroll-ink`, and the answers, combobox, waiting state and tally are under the scroll. The
   question's heading is for a screen reader only.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
   face, with a 56px Submit under it. On a phone its list opens *above* the field so the keyboard
@@ -355,8 +357,8 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
   emblems (`client/src/assets/themes/<theme>.<ext>`). The display face, the logo and
   `make fetch-assets` are the owner's, and no D task waits on them.
 
-**Footer.** One small `--muted` line on every screen, in the flow and never fixed, so it cannot
-cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Beside
+**Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
+never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Beside
 it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA) and the version, linked to its release. The
 AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
 the bar (§5) and an "Open source" panel on Home. Every link opens a new tab, so a room is never

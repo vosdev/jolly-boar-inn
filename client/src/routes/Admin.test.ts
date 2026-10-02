@@ -63,6 +63,22 @@ afterEach(() => {
 })
 
 describe('Admin', () => {
+  it('heads a panel, its refresh button counting the seconds since the last fetch', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+    try {
+      serve()
+      render(Admin)
+      const refresh = await screen.findByRole('button', { name: 'Refresh · 0s ago' })
+      expect(screen.getByRole('heading', { level: 1, name: 'Admin' }).closest('.panel')).toBe(
+        refresh.closest('.panel'),
+      )
+      await vi.advanceTimersByTimeAsync(3_000)
+      expect(refresh.textContent).toBe('Refresh · 3s ago')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('lists the live rooms and the totals', async () => {
     serve()
     render(Admin)

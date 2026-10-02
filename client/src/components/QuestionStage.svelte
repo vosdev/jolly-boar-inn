@@ -95,7 +95,7 @@
 
 {#snippet waiting()}
   {#if reveal === null && yourValue !== null}
-    <div class="waiting" role="status">
+    <div class="panel waiting" role="status">
       <p class="held">
         Answer in{#if landed !== null}<span
             class="band"
@@ -168,7 +168,7 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.25rem 1rem;
-    margin: -0.5rem 0 1.25rem;
+    padding: calc(0.6rem - var(--border-give)) calc(1rem - var(--border-give));
     font-size: 0.9rem;
   }
 

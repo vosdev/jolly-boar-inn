@@ -42,7 +42,9 @@ beforeEach(() => {
 describe('Join', () => {
   it('says which room it is, since the top bar does not', async () => {
     render(Join, { code: 'ABYSSAL', navigate })
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Room ABYSSAL')
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(heading.textContent).toBe('Room ABYSSAL')
+    expect(heading.closest('.panel')?.textContent).toContain('Looking for the room…')
     await waitFor(() => expect(navigate).toHaveBeenCalled())
   })
 

@@ -234,8 +234,10 @@
   }
 </script>
 
-<h1>Create a room</h1>
-<p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created.</p>
+<section class="panel">
+  <h1>Create a room</h1>
+  <p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created.</p>
+</section>
 
 <form onsubmit={submit}>
   <section class="panel modes">

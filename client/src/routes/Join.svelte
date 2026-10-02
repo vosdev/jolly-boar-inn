@@ -154,25 +154,32 @@
 
 <!-- The code is not in the top bar (section 4), and this is the one screen where
      nothing else says which room you are about to join. -->
-<h1>Room {code}</h1>
+<section class="panel">
+  <h1>Room {code}</h1>
+  {#if lookupError === null && snapshot === null}
+    <p class="tagline">Looking for the room…</p>
+  {:else if joinable && snapshot !== null}
+    <p class="tagline">
+      {snapshot.players}
+      {snapshot.players === 1 ? 'player' : 'players'} in so far.
+    </p>
+    {#if keyProblem === null && failure === null}
+      <p class="tagline" role="status">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>
+    {/if}
+  {/if}
+</section>
 
 {#if lookupError !== null}
   <section class="panel">
     <p>{lookupError}</p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
-{:else if snapshot === null}
-  <p class="note">Looking for the room…</p>
-{:else if !joinable}
+{:else if snapshot !== null && !joinable}
   <section class="panel">
     <p>{status === 'playing' ? 'This game has already started.' : 'This game has finished.'}</p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
-{:else}
-  <p class="tagline">
-    {snapshot.players}
-    {snapshot.players === 1 ? 'player' : 'players'} in so far.
-  </p>
+{:else if snapshot !== null}
   {#if keyProblem !== null}
     <section class="panel">
       <form onsubmit={submitKey}>
@@ -189,9 +196,7 @@
         {/if}
       </form>
     </section>
-  {:else if failure === null}
-    <p class="note" role="status">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>
-  {:else}
+  {:else if failure !== null}
     <section class="panel">
       <form onsubmit={submit}>
         <NameField

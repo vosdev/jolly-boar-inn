@@ -88,6 +88,12 @@ export async function getCounts(token: string): Promise<Count[]> {
   return (await adminGet<{ counts: Count[] }>('/api/admin/stats', token)).counts
 }
 
+/** The refresh button's label: how many seconds ago the data was fetched, once it has been. */
+export function refreshLabel(updatedAt: number | null, now: number): string {
+  if (updatedAt === null) return 'Refresh'
+  return `Refresh · ${Math.max(0, Math.floor((now - updatedAt) / 1000))}s ago`
+}
+
 /** How long until `iso`, coarsely: "41 min", "2 d 23 h", "now". */
 export function timeUntil(iso: string, now: number): string {
   const minutes = Math.floor((Date.parse(iso) - now) / 60_000)

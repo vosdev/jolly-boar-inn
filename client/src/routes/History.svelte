@@ -17,8 +17,8 @@
 </script>
 
 {#if game === null}
-  <h1>Room {code}</h1>
   <section class="panel">
+    <h1>Room {code}</h1>
     <p>This browser kept no result for that game.</p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>

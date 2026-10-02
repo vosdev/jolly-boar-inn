@@ -186,7 +186,12 @@ describe('Lobby', () => {
       'Link for players',
     ])
     expect(screen.queryByLabelText('Room code')).toBeNull()
-    expect(screen.getByText('Room code')).toBeTruthy()
+  })
+
+  it('heads the room code panel with the lobby itself', () => {
+    lobby()
+    const panel = screen.getByRole('heading', { level: 1, name: 'Lobby' }).closest('.panel')
+    expect(panel?.querySelector('.code')?.textContent).toBe('ABYSSAL')
   })
 
   it('lists the rounds A–Z in a room without surprise rounds', () => {
