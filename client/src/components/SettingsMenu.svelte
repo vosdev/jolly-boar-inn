@@ -33,10 +33,6 @@
    * reconnect, since the server lets it lapse, and off on blur. A save the room accepts
    * clears it on the server, and it stays off until the name is typed in again.
    *
-   * A player who joined first and never chose a name (section 6) is nudged here, once:
-   * the control pulses and says who they are and that a tap changes it. It stays for as
-   * long as the lobby does, until they open the menu or dismiss it.
-   *
    * The menu is a non-modal dialog. Escape, a tap outside, or tabbing out of it closes
    * it; Escape hands focus back to the control, and so does a tap outside that landed on
    * nothing focusable, so a tap on an answer button keeps its focus.
@@ -45,7 +41,7 @@
 
   import { headOf, randomHead } from '../lib/heads'
   import { nameProblem } from '../lib/names'
-  import { nudge, profile, saveProfile } from '../lib/profile'
+  import { profile, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
   import {
     connection,
@@ -114,9 +110,6 @@
   const ok = $derived(
     canRename && nameProblem(draft) === null && (nameChanged || headChanged),
   )
-  const nudging = $derived(
-    live !== null && $nudge !== null && $nudge === $room?.code && $room?.status === 'lobby',
-  )
   /** The room's refusal, in words for the person holding the phone. */
   const refusal = $derived(
     $profileError === null
@@ -177,7 +170,6 @@
 
   async function openMenu(): Promise<void> {
     open = true
-    nudge.set(null)
     draft = currentName
     draftHead = shownHead
     saved = null
@@ -271,7 +263,6 @@
     type="button"
     class="control chip"
     class:unset={shownName === null}
-    class:nudging
     aria-haspopup="dialog"
     aria-expanded={open}
     aria-label="{shownName === null
@@ -293,15 +284,6 @@
     <span class="chip-name">{shownName ?? 'Set your display name'}</span>
     <span class="bar-emblem" aria-hidden="true"><Emblem {theme} /></span>
   </button>
-
-  {#if nudging && !open}
-    <p class="nudge" role="status">
-      <span>You're <strong>{shownName}</strong> — tap to change.</span>
-      <button type="button" class="link" aria-label="Dismiss" onclick={() => nudge.set(null)}>
-        ✕
-      </button>
-    </p>
-  {/if}
 
   {#if open}
     <div class="panel-menu" role="dialog" aria-label="Settings" tabindex="-1" bind:this={panel}>
@@ -410,42 +392,6 @@
     flex: none;
     width: 24px;
     height: 24px;
-  }
-
-  /* Once, and only for somebody who has not said they mind. */
-  .chip.nudging {
-    border-color: var(--accent);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .chip.nudging {
-      animation: nudge 0.9s ease-in-out 2;
-    }
-  }
-
-  @keyframes nudge {
-    50% {
-      transform: scale(1.06);
-    }
-  }
-
-  .nudge {
-    position: absolute;
-    top: calc(100% + 0.35rem);
-    right: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: max-content;
-    max-width: min(20rem, 100vw - 2rem);
-    margin: 0;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
-    background: var(--panel-raised);
-    border: var(--border-width) solid var(--accent);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow-wrap: anywhere;
   }
 
   /* Never wider than the screen it opens on, and never taller: a phone held sideways

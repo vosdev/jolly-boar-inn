@@ -1,7 +1,7 @@
 /**
  * Join for a browser with no session: the room is looked up, then joined straight
- * through under the profile's name, a fresh one for a browser with none, and a new
- * number on the end for a name the room already has.
+ * through under the profile's name, after a prompt for one when a browser has none, and a
+ * new number on the end for a name the room already has.
  */
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
@@ -11,7 +11,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
 import { savePastGame } from '../lib/history'
-import { nudge, profile } from '../lib/profile'
+import { nameProblem } from '../lib/names'
+import { profile } from '../lib/profile'
 import { getSession } from '../lib/session'
 import Join from './Join.svelte'
 
@@ -40,7 +41,6 @@ beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
   profile.set({ name: 'Zezima', head: 3 })
-  nudge.set(null)
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 2 })
   vi.mocked(api.joinRoom).mockResolvedValue(CREDENTIALS)
   history.replaceState(null, '', '/r/ABYSSAL')
@@ -61,19 +61,58 @@ describe('Join', () => {
     expect(api.joinRoom).toHaveBeenCalledTimes(1)
     expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3, false, null)
     expect(getSession('ABYSSAL')).toBe('token')
-    expect(get(nudge)).toBeNull()
   })
 
-  it('gives a browser with no profile one, joins as it, and nudges about it', async () => {
+  it('asks a browser with no profile for a name first, and joins nothing until it has one', async () => {
     profile.set(null)
     render(Join, { code: 'ABYSSAL', navigate })
+    const field = (await screen.findByRole('textbox')) as HTMLInputElement
+    expect(field.closest('dialog')?.open).toBe(true)
+    expect(nameProblem(field.value)).toBeNull()
+    expect(screen.queryByText(/^Joining as/)).toBeNull()
+    expect(api.joinRoom).not.toHaveBeenCalled()
+    expect(get(profile)).toBeNull()
+  })
+
+  it('cannot be dismissed with Escape', async () => {
+    profile.set(null)
+    render(Join, { code: 'ABYSSAL', navigate })
+    const dialog = (await screen.findByRole('textbox')).closest('dialog')!
+    const cancel = new Event('cancel', { cancelable: true })
+    dialog.dispatchEvent(cancel)
+    expect(cancel.defaultPrevented).toBe(true)
+    expect(document.querySelector('dialog')?.open).toBe(true)
+  })
+
+  it('joins as the name and head confirmed, and keeps them as the profile', async () => {
+    profile.set(null)
+    render(Join, { code: 'ABYSSAL', navigate })
+    const field = (await screen.findByRole('textbox')) as HTMLInputElement
+    await fireEvent.input(field, { target: { value: 'Zezima' } })
+    await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     const made = get(profile)
-    expect(made).not.toBeNull()
-    expect(joinedAs()).toEqual([made?.name])
-    // The profile was made just before the join, so this is still a first visit.
-    expect(vi.mocked(api.joinRoom).mock.calls[0]![3]).toBe(false)
-    expect(get(nudge)).toBe('ABYSSAL')
+    expect(made?.name).toBe('Zezima')
+    expect(vi.mocked(api.joinRoom).mock.calls[0]).toEqual(['ABYSSAL', 'Zezima', made?.head, false, null])
+    expect(document.querySelector('dialog')).toBeNull()
+  })
+
+  it('joins as the generated name when it is confirmed untouched', async () => {
+    profile.set(null)
+    render(Join, { code: 'ABYSSAL', navigate })
+    const field = (await screen.findByRole('textbox')) as HTMLInputElement
+    const offered = field.value
+    await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(joinedAs()).toEqual([offered])
+    expect(get(profile)?.name).toBe(offered)
+  })
+
+  it('does not ask for a name when the game has already started', async () => {
+    profile.set(null)
+    vi.mocked(api.getRoom).mockResolvedValue({ status: 'playing', players: 4 })
+    render(Join, { code: 'ABYSSAL', navigate })
+    expect(await screen.findByText('This game has already started.')).toBeTruthy()
     expect(document.querySelector('dialog')).toBeNull()
   })
 

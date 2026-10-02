@@ -12,7 +12,7 @@ import { get } from 'svelte/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
-import { nudge, profile } from '../lib/profile'
+import { profile } from '../lib/profile'
 import { createdRooms, rememberCreated, setSession } from '../lib/session'
 import Create from './Create.svelte'
 import Home from './Home.svelte'
@@ -51,7 +51,6 @@ beforeEach(() => {
     player: { id: 'p', display_name: 'Zezima', role: 'admin', connected: false },
   })
   profile.set({ name: 'Zezima', head: 3 })
-  nudge.set(null)
 })
 
 async function submitted(): Promise<api.NewRoomSettings> {
@@ -93,7 +92,7 @@ describe('Create', () => {
     expect(screen.queryByRole('button', { name: 'Roll a random name' })).toBeNull()
   })
 
-  it('creates under the profile, and one tap lands the host in the lobby un-nudged', async () => {
+  it('creates under the profile, and one tap lands the host in the lobby', async () => {
     const navigate = vi.fn()
     render(Create, { navigate })
     await screen.findByRole('checkbox', { name: /^More or Less/ })
@@ -101,30 +100,45 @@ describe('Create', () => {
     expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 3, false, 'code', []])
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(get(profile)).toEqual({ name: 'Zezima', head: 3 })
-    expect(get(nudge)).toBeNull()
   })
 
-  it('gives a browser with no profile one in one tap, creates as it, and nudges once', async () => {
+  it('asks a browser with no profile for a name on Create, and makes no room until it has one', async () => {
+    profile.set(null)
+    await loaded()
+    expect(document.querySelector('dialog')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+    const field = (await screen.findByRole('textbox')) as HTMLInputElement
+    expect(field.closest('dialog')?.open).toBe(true)
+    expect(api.createRoom).not.toHaveBeenCalled()
+    expect(get(profile)).toBeNull()
+  })
+
+  it('creates as the name and head confirmed, and keeps them as the profile', async () => {
     profile.set(null)
     const navigate = vi.fn()
     render(Create, { navigate })
-    expect(document.querySelector('dialog')).toBeNull()
     await screen.findByRole('checkbox', { name: /^More or Less/ })
-    await submitted()
+    await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+    const field = (await screen.findByRole('textbox')) as HTMLInputElement
+    await fireEvent.input(field, { target: { value: 'Zezima' } })
+    await fireEvent.click(within(field.closest('dialog')!).getByRole('button', { name: 'Create room' }))
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
-    const [name, , head] = vi.mocked(api.createRoom).mock.calls[0]!
-    expect(get(profile)).toEqual({ name, head })
-    expect(get(nudge)).toBe('ABYSSAL')
+    const [name, , head, returning] = vi.mocked(api.createRoom).mock.calls[0]!
+    expect(name).toBe('Zezima')
+    expect(returning).toBe(false)
+    expect(get(profile)).toEqual({ name: 'Zezima', head })
   })
 
-  it('keeps no generated profile from a create that failed, so the next one still nudges', async () => {
+  it('keeps the name chosen through a create that failed, so the next one does not ask again', async () => {
     profile.set(null)
     vi.mocked(api.createRoom).mockRejectedValueOnce(new api.ApiFailure(503, 'db_unavailable', 'down'))
     await loaded()
-    await submitted()
+    await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+    const field = await screen.findByRole('textbox')
+    await fireEvent.click(within(field.closest('dialog')!).getByRole('button', { name: 'Create room' }))
     expect(await screen.findByRole('alert')).toBeTruthy()
-    expect(get(profile)).toBeNull()
-    expect(get(nudge)).toBeNull()
+    expect(get(profile)).not.toBeNull()
+    expect(document.querySelector('dialog')).toBeNull()
   })
 
   it('offers every mode but custom as a round', async () => {

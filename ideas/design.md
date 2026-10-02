@@ -122,12 +122,12 @@ mark in the theme's `--accent` stands in.
 The profile, `localStorage["jbi:profile"]`, holds this browser's name and head permanently. A
 player is per room and temporary. There are no accounts.
 
-- **Join and Create** never ask. A browser with no profile joins or hosts as a generated name,
-  which becomes its profile, and the bar's control nudges once: *"You're Cow31337Killer42 — tap to
-  change."* The moment a link is tapped is when a distracted person puts the phone down, so
-  nothing stands in the way; a host renames from the lobby like anyone else.
-- **Renaming** is `set_profile`. A player who never taps the nudge stays a joke name, so every
-  generated name must be one you are happy to see win.
+- **Join and Create** ask once. A browser with no profile gets a modal before its first room (on
+  Create, when the button is pressed): a generated name and head, pre-filled so one tap on *Join*
+  or *Create room* is an answer. Nothing dismisses it, the room is joined or made only on that tap,
+  and the answer becomes the profile. A browser with a profile is never asked.
+- **Renaming** is `set_profile`. Most players take the pre-filled name, so every generated name
+  must be one you are happy to see win.
 
 Generated names come from `data/player-names.json`: invented usernames in the register of a 2007
 friends list (`ScapeRune77`, `AFKFisher`). Never NPC names, or somebody is called Hans while
