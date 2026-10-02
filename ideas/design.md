@@ -346,11 +346,11 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 
 | Art | Source | In the repo? |
 |---|---|---|
-| Item and NPC renders | Game assets, fetched by Phase 3's importer | No, fetched |
-| Speedrunning trophies | Game renders | No, fetched; placeholders ship |
+| Item renders | Game assets, no importer yet | No |
+| Speedrunning trophies | Game renders, `make fetch-assets` | No, fetched; placeholders ship |
 | Display font | Self-hosted, once chosen | No, fetched |
 | Chat heads | 50 hand-picked (§6) | **Yes** |
-| Hosts and event NPCs | Wiki chatheads (§8) | No, fetched; the innkeeper is committed |
+| Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |
 | Theme emblems | Leagues area flags | No, fetched; inline placeholder marks |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
@@ -358,8 +358,8 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
   User-Agent, per the wiki's terms.
 - Heads are committed because curation is a person's judgement.
 - Every art slot takes a file with no code change: the sign, the trophies, the heads, the NPCs, the
-  emblems (`client/src/assets/themes/<theme>.<ext>`). The display face, the logo and
-  `make fetch-assets` are the owner's, and no D task waits on them.
+  emblems (`client/src/assets/themes/<theme>.<ext>`). The display face and the logo are the
+  owner's, and no D task waits on them.
 
 **Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
 never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Beside

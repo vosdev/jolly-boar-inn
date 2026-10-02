@@ -54,7 +54,6 @@ target.
 | `sandwich_lady` | Cooking and food |
 | `tree_spirit` | Woodcutting, Hunter and Firemaking |
 | `drunken_dwarf` | Ales, kebabs, dwarves and pubs |
-| `alfred` | Ales and pubs |
 | `thurgo` | Mining and Smithing |
 | `genie` | Skills and experience |
 | `sergeant_damien` | Combat: gear, styles and bosses |

@@ -31,7 +31,6 @@ RANDOM_EVENTS: tuple[str, ...] = (
     "bob",
     "tree_spirit",
     "drunken_dwarf",
-    "alfred",
     "thurgo",
     "genie",
     "sergeant_damien",

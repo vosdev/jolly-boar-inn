@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions gen-examine-questions loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions gen-examine-questions fetch-assets loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -84,6 +84,14 @@ gen-price-questions:
 # examine and commit both files; the test suite fails when the two disagree.
 gen-examine-questions:
 	cd server && uv run python scripts/gen_examine_questions.py
+
+# Fetch the NPC and trophy art in data/assets.json from the wiki into client/src/assets/, where
+# the client looks for it. Never part of test, CI or the image build, and never committed: run it
+# before `make image`, which bundles what is on disk. Skips files that are there, so a re-run sends
+# nothing. Needs WIKI_USER_AGENT (.env.example). Pass flags through with FETCH_ASSETS_ARGS, e.g.
+#   make fetch-assets FETCH_ASSETS_ARGS="--dry-run"
+fetch-assets:
+	cd server && uv run python scripts/fetch_assets.py $(FETCH_ASSETS_ARGS)
 
 # Build the production image, tagged with the version and as latest. Releases themselves are
 # git tags, which CI creates on main when VERSION changes; this is the local image to match.

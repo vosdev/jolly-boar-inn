@@ -22,10 +22,10 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 
 ```
 Dockerfile, docker-compose.yml     three-stage image; app + postgres:18 (dev: docker-compose.dev.yml)
-Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*-questions, image; CI adds release
+Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, fetch-assets, image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/<npc>.json
-data/                              examines, popular-items, player-names, room-words (.json), heads/
+data/                              assets, examines, popular-items, player-names, room-words, heads/
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, heads, random_events
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
@@ -33,7 +33,7 @@ server/app/rooms/                  state (RoomManager), settings, selection, seg
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
-server/scripts/                    wiki, gen_price_questions, gen_examine_questions,
+server/scripts/                    wiki, gen_price_questions, gen_examine_questions, fetch_assets,
                                    validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin; TopBar, Lobby, stage/, …
@@ -552,8 +552,9 @@ Packs are committed, so a clone plays without a network; only prices and examine
   random events. No importer fetches wiki facts, so the owner picks every monster and question.
 - #84 adds `make gen-packs`: the roster and `examines.json` into packs, offline and seeded, with
   `CHECK=1` diffing in CI. It never derives `examines.json`.
-- Images are never committed; a selfhoster fetches them under their own User-Agent. Questions
-  written from the wiki keep its attribution and CC BY-NC-SA notice, which the README (#98) carries.
+- `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)
+  into place, skipping files that exist. Images are never committed: every target must be
+  git-ignored. Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
 
 ## 13. Versioning
 
