@@ -4,11 +4,14 @@ A server has no uv, and the runtime image must not get it, so these targets go t
 ``docker-compose.data.yml`` and the Dockerfile's ``data`` stage, which the runtime never uses.
 """
 
+import os
 import re
+import subprocess
 
 from app.config import REPO_ROOT
 
 DATA_TARGETS = ("fetch-assets", "gen-price-questions", "gen-examine-questions")
+FETCH_ASSETS_VARIABLES = ("FORCE", "DRY_RUN", "ONLY", "FROM_DIR")
 
 
 def _recipe(makefile: str, target: str) -> list[str]:
@@ -31,6 +34,32 @@ def test_the_data_targets_run_in_the_data_container() -> None:
         recipe = _recipe(makefile, target)
         assert recipe and all(ln.startswith("$(DATA) scripts/") for ln in recipe), target
         assert not any("uv" in ln.split() for ln in recipe), target
+
+
+def _fetch_assets_command(*assignments: str) -> str:
+    """What ``make fetch-assets`` would run, with nothing set but ``assignments``."""
+    env = {k: v for k, v in os.environ.items() if k not in FETCH_ASSETS_VARIABLES}
+    done = subprocess.run(
+        ["make", "-s", "-n", "-C", str(REPO_ROOT), "fetch-assets", *assignments],
+        capture_output=True,
+        text=True,
+        env=env,
+        check=True,
+    )
+    return done.stdout.strip()
+
+
+def test_fetch_assets_takes_its_flags_as_variables() -> None:
+    """``make fetch-assets --force`` is make's own flag, so each script flag is a variable."""
+    command = _fetch_assets_command("FORCE=1", "DRY_RUN=1", "ONLY=npcs trophies", "FROM_DIR=saved")
+    assert command.endswith(
+        "scripts/fetch_assets.py --force --dry-run --only npcs --only trophies --from-dir saved"
+    )
+
+
+def test_fetch_assets_without_variables_passes_no_flags() -> None:
+    assert _fetch_assets_command().endswith("scripts/fetch_assets.py")
+    assert _fetch_assets_command("FORCE=0", "DRY_RUN=0").endswith("scripts/fetch_assets.py")
 
 
 def test_the_compose_service_builds_the_data_stage() -> None:
