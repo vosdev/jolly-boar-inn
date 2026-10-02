@@ -38,6 +38,25 @@ COPY server/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
+# ---- Data: the scripts that write into a checkout (docker-compose.data.yml) --
+# Never part of the runtime: that stage does not copy from this one, so `make image` skips it,
+# and runtime must stay last for a plain `docker build`. git is here because a script asks it
+# what the checkout ignores; Docker Desktop shows the mount point as root's, so git is told to
+# trust it. The scripts and the app package come from the mounted repo, so a run uses the
+# checkout's code rather than the code this image was built with.
+FROM python:3.14.2-slim-bookworm AS data
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/* \
+    && git config --system --add safe.directory /repo
+COPY --from=builder /app/server/.venv /app/server/.venv
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HOME=/tmp \
+    PYTHONPATH=/repo/server \
+    PATH="/app/server/.venv/bin:$PATH"
+WORKDIR /repo/server
+
 # ---- Stage 3: runtime ------------------------------------------------------
 # Same image the uv base is built from, so the venv's interpreter symlink into
 # /usr/local and the absolute shebang in .venv/bin/uvicorn still resolve.

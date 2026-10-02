@@ -21,7 +21,7 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 ## 1. Repo layout
 
 ```
-Dockerfile, docker-compose.yml     three-stage image; app + postgres:18 (dev: docker-compose.dev.yml)
+Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, fetch-assets, image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/<npc>.json
@@ -541,6 +541,9 @@ key into them, so cleanup leaves it.
 
 Packs are committed, so a clone plays without a network; only prices and examines are generated.
 
+- The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`) run them in
+  `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is the
+  builder's venv plus git, which the runtime never copies; the repo is mounted, run as the host user.
 - Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).

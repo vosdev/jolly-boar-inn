@@ -6,6 +6,10 @@ VERSION := $(shell cat VERSION)
 # Dev Postgres: own compose project so it never collides with `docker compose up`.
 DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
 
+# The data scripts run in a container (docker-compose.data.yml), so a server needs no uv. As
+# the host user, so what they write is yours; --build keeps the image on the current uv.lock.
+DATA := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.data.yml run --rm --build data python
+
 # Postgres server the test suite creates throwaway databases on. Defaults to the dev
 # database above; override with `make test DATABASE_URL_TEST=...`.
 DATABASE_URL_TEST ?= postgresql://jbi:jbi@localhost:5432/jbi
@@ -78,20 +82,22 @@ loadtest:
 # commit the result. Idempotent, so a re-run against unchanged prices is a no-op. Needs
 # WIKI_USER_AGENT, from .env or the environment (.env.example).
 gen-price-questions:
-	cd server && uv run python scripts/gen_price_questions.py
+	$(DATA) scripts/gen_price_questions.py
 
 # Regenerate data/packs/examine.json from data/examines.json, offline. Run it after adding an
 # examine and commit both files; the test suite fails when the two disagree.
 gen-examine-questions:
-	cd server && uv run python scripts/gen_examine_questions.py
+	$(DATA) scripts/gen_examine_questions.py
 
 # Fetch the NPC and trophy art in data/assets.json from the wiki into client/src/assets/, where
-# the client looks for it. Never part of test, CI or the image build, and never committed: run it
-# before `make image`, which bundles what is on disk. Skips files that are there, so a re-run sends
-# nothing. Needs WIKI_USER_AGENT (.env.example). Pass flags through with FETCH_ASSETS_ARGS, e.g.
+# the client looks for it. Never part of test or the image build (CI only dry-runs it), and never
+# committed: run it before `make image`, which bundles what is on disk. Skips files that are
+# there, so a re-run sends nothing. Needs WIKI_USER_AGENT (.env.example). Pass flags through with
+# FETCH_ASSETS_ARGS, e.g.
 #   make fetch-assets FETCH_ASSETS_ARGS="--dry-run"
+# Only the repo is mounted, so --from-dir takes a folder inside it, relative to server/.
 fetch-assets:
-	cd server && uv run python scripts/fetch_assets.py $(FETCH_ASSETS_ARGS)
+	$(DATA) scripts/fetch_assets.py $(FETCH_ASSETS_ARGS)
 
 # Build the production image, tagged with the version and as latest. Releases themselves are
 # git tags, which CI creates on main when VERSION changes; this is the local image to match.
