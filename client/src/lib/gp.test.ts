@@ -1,5 +1,5 @@
 /**
- * `formatGp`: T19 asks for the band edges — 99,999 / 100,000 and 9,999,999 / 10,000,000 —
+ * `formatGp`: the band edges — 99,999 / 100,000 and 9,999,999 / 10,000,000 —
  * and zero, and each edge is here from both sides.
  */
 

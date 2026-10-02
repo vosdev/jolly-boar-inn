@@ -1,4 +1,4 @@
-"""D2 Accept: the parts of the shell that are stylesheet, not behaviour.
+"""The parts of the shell that are stylesheet, not behaviour.
 
 What the bar does is ``App.test.ts`` and ``TopBar.test.ts``. What is left has no layout
 in jsdom to measure: the 56px sticky measurement in one place, and a single breakpoint

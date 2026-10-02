@@ -1,9 +1,9 @@
 /**
  * Player names: the rules the server holds them to, and a generator for people who would
- * rather not think of one (D3, section 5.1.2 of ideas/design.md).
+ * rather not think of one (section 5.1.2 of ideas/design.md).
  *
  * The corpus is `data/player-names.json`: invented usernames in the register of a 2007
- * friends list, never NPC names, so that D4 can never seat somebody called Hans behind a
+ * friends list, never NPC names, so that a chat head can never seat somebody called Hans behind a
  * goblin's face. It is a different corpus from `room-words.json` and neither is shaped by
  * the other.
  *

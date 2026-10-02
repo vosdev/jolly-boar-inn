@@ -1,4 +1,4 @@
-"""CI check: every theme in ``client/src/app.css`` keeps the D1 token contract.
+"""CI check: every theme in ``client/src/app.css`` keeps the token contract.
 
 Section 2 of ``ideas/design.md`` splits the custom properties into eight layers and makes
 layers 3, 4 and 8 a contract: a theme sets them, but the values have to survive a check. This
@@ -11,24 +11,24 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 * every token of every layer is defined, so a theme cannot half-exist;
 * ``--ok`` and ``--bad`` reach 4.5:1 against ``--panel``;
 * ``--ink`` reaches 7:1 against ``--panel`` and ``--panel-raised``, and ``--bg-ink`` 7:1
-  against ``--bg`` — two inks, because a theme may put light panels on a dark page (D5);
+  against ``--bg`` — two inks, because a theme may put light panels on a dark page;
 * ``--muted`` reaches 4.5:1 against ``--panel``, and ``--bg-muted`` 4.5:1 against ``--bg``;
 * ``--more`` and ``--less`` reach 4.5:1 against ``--panel``;
 * ``--ok`` and ``--bad`` are at least 60 degrees apart in hue, and so are ``--more`` and
   ``--less``, so neither pair collapses for a player who does not see red and green;
 * ``--gem-ink`` reaches 4.5:1 against every ``--gem-*``, and against every gem as the
-  reveal fades it (D8): the fill mixed ``FADED_GEM_SHARE`` gem to the rest ``--panel``,
+  reveal fades it: the fill mixed ``FADED_GEM_SHARE`` gem to the rest ``--panel``,
   exactly as ``GemButton.svelte``'s ``color-mix(in srgb, ...)`` does. The other options
   recede, but people want to read what they said;
 * every ``--gem-*`` stands a colour difference (CIE76 delta E) of at least
-  ``MIN_FADE_DELTA_E`` from its own faded self (D8). Lit against faded is the whole of the
+  ``MIN_FADE_DELTA_E`` from its own faded self. Lit against faded is the whole of the
   pick and of the wait for everyone else, so a gem too close to its panel shows nothing.
   Diamond on a cream panel is why red topaz replaced it, and black onyx on a near-black
   one is why the gems are six;
 * ``--scroll-ink`` reaches 7:1 and ``--scroll-muted`` 4.5:1 against ``--scroll-paper``, and
   the paper stands a colour difference of ``MIN_SCROLL_DELTA_E`` from ``--bg`` and
-  ``--panel`` (D13), so the clue scroll reads as a sheet laid on the page, not a panel;
-* each ``--texture-*`` is ``none`` or a local ``url()`` (D5): the CSP would block a remote
+  ``--panel``, so the clue scroll reads as a sheet laid on the page, not a panel;
+* each ``--texture-*`` is ``none`` or a local ``url()``: the CSP would block a remote
   one anyway, and this says so at build time rather than as a blank page background.
 
 Layer 4 is allowed to reuse layer 3's colours: ``--more`` is not "right" and ``--less`` is
@@ -88,13 +88,13 @@ REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + ("--scroll-facet-light",)
 TEXT_RATIO = 4.5
 BODY_TEXT_RATIO = 7.0
 MIN_HUE_GAP = 60.0
-# D8: how much gem is left in a faded gem button's fill, the rest being --panel. The same
+# How much gem is left in a faded gem button's fill, the rest being --panel. The same
 # number is in ``client/src/components/questions/GemButton.svelte``; change both.
 FADED_GEM_SHARE = 0.25
-# D8: how far a lit gem must be from its faded self. Diamond at 18 looked the same both
+# How far a lit gem must be from its faded self. Diamond at 18 looked the same both
 # ways on jolly's cream panel; everything that reads well is above 20.
 MIN_FADE_DELTA_E = 20.0
-# D13: how far the scroll's paper must be from the page and the panels around it.
+# How far the scroll's paper must be from the page and the panels around it.
 MIN_SCROLL_DELTA_E = 10.0
 
 _COMMENTS = re.compile(r"/\*.*?\*/", re.DOTALL)

@@ -4,7 +4,7 @@
    *
    * The box is the caller's, passed as `children`, because what it takes is the question's
    * — a spelling, a number the way the game writes one — and so are its attributes. What
-   * is shared is the shape around it: the row, the 56px thumb targets (D8), and a Submit
+   * is shared is the shape around it: the row, the 56px thumb targets, and a Submit
    * that only the form's own `onsubmit` answers through, so Enter and a tap do the same.
    */
   import type { Snippet } from 'svelte'
@@ -68,7 +68,7 @@
     font-size: 1.1rem;
   }
 
-  /* Thumb targets (D8): the box and its button are as tall as an answer button. */
+  /* Thumb targets: the box and its button are as tall as an answer button. */
   .row > :global(input),
   .row button {
     min-height: 56px;

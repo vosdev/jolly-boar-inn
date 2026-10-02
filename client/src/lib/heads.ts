@@ -1,5 +1,5 @@
 /**
- * Chat heads (D4, section 5.2 of ideas/design.md): which one a player wears, and a fresh
+ * Chat heads (section 5.2 of ideas/design.md): which one a player wears, and a fresh
  * one for somebody re-rolling.
  *
  * A head is an id in `data/heads/heads.json`, and the id is the index into the manifest.
@@ -7,8 +7,8 @@
  * theme, a head is for other people to see.
  *
  * `avatar ?? derived(id)` is the whole rule. Null is a player who never chose: every
- * player from before the column existed, and every player a pre-D4 client created. Those
- * are drawn the head their id hashes to, which every client in the room computes the same
+ * player from before the column existed, and every one a client from before heads created.
+ * Those are drawn the head their id hashes to, which every client in the room computes the same
  * way, so two browsers never disagree about a face. An id this build's manifest does not
  * have — a server whose manifest has grown since this client was built — falls back the
  * same way rather than drawing a gap.

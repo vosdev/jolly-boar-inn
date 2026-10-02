@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * The question's clock as a thin bar under the top bar (D8, section 7.2).
+   * The question's clock as a thin bar under the top bar (section 7.2).
    *
    * Full width and draining from the left, so it is something to glance at rather than a
    * number to stare at, and it costs a phone six pixels where `Timer`'s plaque cost a
@@ -29,7 +29,7 @@
 
   const remainingMs = $derived(msUntil(endsAt, $serverNow))
   // Ceil, so the last whole second on screen is "1" and not a flash of "0". Never more
-  // than the whole: a random event's clock starts after its NPC's hold (T22), and until
+  // than the whole: a random event's clock starts after its NPC's hold, and until
   // then the bar sits full on the question's own length rather than counting the hold.
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(

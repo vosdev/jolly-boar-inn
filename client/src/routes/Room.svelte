@@ -23,13 +23,13 @@
    * random event, which is a question inside a round, never gets one and neither does the
    * question after it. The event draws its own announcement instead: `RandomEvent`, the NPC
    * and their question, with the answers held back until `answerable_at`. The standings
-   * (D9) follow every round but the last, whatever the splash does, and only between
+   * follow every round but the last, whatever the splash does, and only between
    * rounds: inside one, there is no board under the reveal, and the last round's
    * standings are the final screen, which draws the same `<Scoreboard>`.
    *
    * `playing` with no question and nothing revealed is the gap between a reveal ending
    * and the next question opening. It is a frame or two wide in practice, and after a
-   * restart (T11) it is however long the recovery reveal has left, so it gets a screen
+   * restart it is however long the recovery reveal has left, so it gets a screen
    * of its own rather than a blank panel. A phase this build does not know lands there
    * too, which is how a build from before `standings` existed rides one out.
    *
@@ -105,7 +105,7 @@
       },
     })
     socket = live
-    // The identity chip in the top bar renames and re-rolls through this socket (D4).
+    // The identity chip in the top bar renames and re-rolls through this socket.
     roomSend.set((message) => live.send(message))
     live.open()
     return () => {
@@ -171,7 +171,7 @@
     if (vocab !== null) prefetchVocab(vocab)
   })
   /**
-   * The bar under the top bar (D8): the open question's clock, or the reveal's or the
+   * The bar under the top bar: the open question's clock, or the reveal's or the
    * standings' countdown to what comes next. The splash draws its own, and nothing else
    * in a room is timed.
    */
@@ -346,7 +346,7 @@
 <p class="sr" aria-live="polite">{announcement}</p>
 
 {#if departure !== null}
-  <!-- The room's code is in the top bar (D2, section 4). These headings say which screen
+  <!-- The room's code is in the top bar (section 4). These headings say which screen
        you are on, which is what the code used to be crowding out. -->
   <h1>Disconnected</h1>
   <section class="panel">
@@ -440,7 +440,7 @@
       <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
            back from a restart. No `question_closed` reached this client, so there is
            nothing to reveal. There is no board here either: inside a round, where
-           everyone stands waits for the round's end (D9). -->
+           everyone stands waits for the round's end. -->
       <section class="panel">
         <p class="note">
           {$room.phase === 'reveal'

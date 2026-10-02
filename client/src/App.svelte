@@ -104,7 +104,7 @@
   {/snippet}
 </TopBar>
 
-<!-- D8: the clock of whatever a room is timing, under the bar and outside the column.
+<!-- The clock of whatever a room is timing, under the bar and outside the column.
      Keyed on the deadline, so a new question starts a full bar rather than easing up to
      one from the last question's empty. -->
 {#if $timerBar !== null}

@@ -1,4 +1,4 @@
-"""D7: the ready check's threshold and the countdown it starts, shortens and stops. Pure.
+"""The ready check's threshold and the countdown it starts, shortens and stops. Pure.
 
 The game half -- taps over the socket, disconnects, the splash actually ending -- is in
 test_game.py beside the rest of the splash.

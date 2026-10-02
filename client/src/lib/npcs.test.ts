@@ -1,5 +1,5 @@
 /**
- * D14: an NPC's art is found by name, its chathead first, then its render, then the
+ * An NPC's art is found by name, its chathead first, then its render, then the
  * innkeeper.
  */
 

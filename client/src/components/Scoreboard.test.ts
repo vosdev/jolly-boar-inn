@@ -1,5 +1,5 @@
 /**
- * D9: the podium and the hiscores as one component, between rounds and on the final
+ * The podium and the hiscores as one component, between rounds and on the final
  * screen. The arranging is `lib/podium.ts`'s and tested there; this is what reaches the
  * page: the steps in order, the full name in each step's label, the table's rows, and a
  * placeholder trophy that is drawn rather than missing.

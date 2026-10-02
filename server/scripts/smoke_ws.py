@@ -63,7 +63,7 @@ async def main() -> None:
         print(f"welcome: {welcome['room']['total']} questions, phase {welcome['room']['phase']}")
 
         # start_game proves the packs loaded: a room with no questions never opens one.
-        # The default settings introduce the round, and since D7 a splash has no clock:
+        # The default settings introduce the round, and a splash has no clock:
         # it waits for the room. The only player tapping ready is everyone ready, which
         # opens the question three seconds later.
         await socket.send(json.dumps({"t": "start_game"}))

@@ -1,23 +1,23 @@
-"""T9 Accept: with one-second questions and ``reveal_seconds = 1`` a 3-question room
+"""With one-second questions and ``reveal_seconds = 1`` a 3-question room
 runs to ``finished`` unattended; an answer after the close is ``not_open``; a second
 answer is ``already_answered``; all-answered closes early; ``start_game`` from a
 non-admin is ``not_admin``; ``skip`` during a question closes within 100 ms.
 
-T10 Accept (the database half; the bucket and standings tables are in test_scoring.py):
+The database half of scoring (the bucket and standings tables are in test_scoring.py):
 grading writes ``correct`` and ``points``, ``question_closed`` carries the per-player
 results, the sum held in memory equals ``sum(points)`` from the database after every
 close, and ``host_only`` and the author of a room question cannot answer.
 
-T11 Accept: a game is killed mid-question (the room dropped from memory and its timer
+Restart recovery: a game is killed mid-question (the room dropped from memory and its timer
 cancelled, which is what the next ``get`` sees after a process restart); the question comes
 back voided, a reconnecting player's ``welcome`` has ``question = null`` and
 ``phase = reveal``, and the next question opens ``reveal_seconds`` later.
 
-T17 Accept (the game half; the tables are in test_scoring.py): a ``more_less`` game scores
+The game half of credit (the tables are in test_scoring.py): a ``more_less`` game scores
 the same fixed standings it scored before credit existed, and a type's ``SCORING`` reaches
 both ``answer_ack`` and the close.
 
-Plus the rest of the section 3 and 4 surface these two tasks own: ``question_open`` (and
+Plus the rest of the section 3 and 4 surface this file owns: ``question_open`` (and
 what it withholds), ``answer_ack``, auto-advance, ``game_finished``, reconnecting
 mid-question, ``skip`` during a reveal, ``end_game``, ``promote`` and ``kick``. And what the
 timer does when a step fails, when it loses a race for the lock, and when the wall clock
@@ -75,11 +75,11 @@ def game(table) -> Game:
     return table("Zezima", "Woox", seconds=10, reveal_seconds=1)
 
 
-# --- T9: the loop runs itself --------------------------------------------------------
+# --- the loop runs itself ------------------------------------------------------------
 
 
 def test_a_three_question_game_runs_to_finished_unattended(table, quick_mode, db) -> None:
-    """T9: one-second questions and reveals, three questions, nobody touching anything."""
+    """One-second questions and reveals, three questions, nobody touching anything."""
     game = table("Zezima", "Woox", modes=[quick_mode], seconds=1, reveal_seconds=1)
     game.start()
     started = time.monotonic()
@@ -180,7 +180,7 @@ def test_frames_name_a_question_by_its_row_id_and_never_its_content_id(game) -> 
 
 
 def test_non_admin_cannot_start_the_game(game) -> None:
-    """T9: ``start_game`` from a player is ``not_admin``."""
+    """``start_game`` from a player is ``not_admin``."""
     player = game.players[0]
     player.send(t="start_game")
     assert player.take("error") == {
@@ -238,11 +238,11 @@ def test_start_game_needs_questions(app, client) -> None:
     assert call(client, manager.get, room.code).status == "lobby"
 
 
-# --- T9: answering -------------------------------------------------------------------
+# --- answering -----------------------------------------------------------------------
 
 
 def test_the_answer_row_is_committed_before_the_ack(game, db) -> None:
-    """T9/T10: the ack means the row is in Postgres, ungraded until the close."""
+    """The ack means the row is in Postgres, ungraded until the close."""
     game.start()
     game.opened(0)
     player = game.players[0]
@@ -266,7 +266,7 @@ def test_the_answer_row_is_committed_before_the_ack(game, db) -> None:
 
 
 def test_everyone_else_hears_the_answer_count(game) -> None:
-    """D8: the waiting state's "2 of 3 answered", as a count and nothing else.
+    """The waiting state's "2 of 3 answered", as a count and nothing else.
 
     The answerer hears it on their ack, so the broadcast leaves them out; nobody hears who
     answered or what.
@@ -295,7 +295,7 @@ def test_everyone_else_hears_the_answer_count(game) -> None:
 
 
 def test_a_second_answer_is_already_answered(game) -> None:
-    """T9: one answer per player per question."""
+    """One answer per player per question."""
     game.start()
     game.opened(0)
     player = game.players[0]
@@ -307,7 +307,7 @@ def test_a_second_answer_is_already_answered(game) -> None:
 
 
 def test_an_answer_after_the_close_is_not_open(table, quick_mode) -> None:
-    """T9: answering a question that has closed is ``not_open``, never scored."""
+    """Answering a question that has closed is ``not_open``, never scored."""
     game = table("Zezima", modes=[quick_mode], seconds=1, reveal_seconds=30)
     game.start()
     game.opened(0)
@@ -338,7 +338,7 @@ def test_an_answer_that_is_not_a_valid_value_is_bad_value(game) -> None:
 
 
 def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table) -> None:
-    """T20: typed text is a search, never an answer, and an id the list does not hold is
+    """Typed text is a search, never an answer, and an id the list does not hold is
     as malformed as a string. A real entry that is not the answer is merely wrong, and a
     question with no ``steps`` acks on speed."""
     game = table("Zezima", "Woox", modes=["guess_examine"], seconds=10)
@@ -370,7 +370,7 @@ def test_answering_before_the_game_starts_is_not_open(game) -> None:
 
 
 def test_all_answered_closes_the_question_early(game) -> None:
-    """T9: with ``close_when_all_answered`` the question closes when everyone has answered."""
+    """With ``close_when_all_answered`` the question closes when everyone has answered."""
     game.start()
     game.opened(0)
     started = time.monotonic()
@@ -480,11 +480,11 @@ def test_a_stalled_socket_holds_up_nobody_else(table, quick_mode, client) -> Non
     assert stalled.sends == 1  # still on its welcome
 
 
-# --- T9: skip ------------------------------------------------------------------------
+# --- skip ----------------------------------------------------------------------------
 
 
 def test_skip_closes_the_open_question_within_100ms(game) -> None:
-    """T9 Accept: ``skip`` during a question closes it within 100 ms."""
+    """``skip`` during a question closes it within 100 ms."""
     game.start()
     game.opened(0)
     started = time.monotonic()
@@ -595,7 +595,7 @@ def test_a_skip_for_another_phase_or_question_does_nothing(table) -> None:
     assert game.admin.take("question_closed")["question_id"] == str(game.question(1).id)
 
 
-# --- T9: reconnecting mid-game -------------------------------------------------------
+# --- reconnecting mid-game -----------------------------------------------------------
 
 
 def test_welcome_mid_question_carries_the_question_and_your_answer(game, client) -> None:
@@ -609,7 +609,7 @@ def test_welcome_mid_question_carries_the_question_and_your_answer(game, client)
         again.send_json({"t": "hello", "session": player.session})
         welcome = again.receive_json()
         assert welcome["t"] == "welcome"
-        # The same question, with the count as it stands now rather than at open (D8).
+        # The same question, with the count as it stands now rather than at open.
         assert welcome["question"] == opened["question"] | {"answered": 1}
         assert welcome["your_answer"] == game.right(0)
         assert welcome["room"]["phase"] == "open"
@@ -634,11 +634,11 @@ def test_welcome_after_the_game_still_serves_the_final_standings(table, quick_mo
         assert welcome["question"] is None
 
 
-# --- T10: grading and standings ------------------------------------------------------
+# --- grading and standings -----------------------------------------------------------
 
 
 def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None:
-    """T10: ``correct`` and ``points`` are written at the close and sent with the reveal."""
+    """``correct`` and ``points`` are written at the close and sent with the reveal."""
     game.start()
     game.opened(0)
     right, wrong = game.players
@@ -672,7 +672,7 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
 
 
 def test_the_sum_in_memory_matches_the_database_after_every_close(game, db) -> None:
-    """T10 Accept: after each close, the in-memory total is ``sum(points)`` from the table."""
+    """After each close, the in-memory total is ``sum(points)`` from the table."""
     game.start()
     for index in range(3):
         game.opened(index)
@@ -740,7 +740,7 @@ def test_a_player_cannot_end_the_game(game) -> None:
     assert game.room.status == "playing"
 
 
-# --- T10: exclusions -----------------------------------------------------------------
+# --- exclusions ----------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -772,7 +772,7 @@ def test_can_answer(host_only: bool, source: str, is_author: bool, expected: boo
 
 
 def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
-    """T10: ``host_only`` scores nobody, and the question still shows and closes normally."""
+    """``host_only`` scores nobody, and the question still shows and closes normally."""
     game.room.questions[0].host_only = True  # what the Phase 2 editor will store
     game.start()
     opened = game.opened(0)
@@ -790,7 +790,7 @@ def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
 
 
 def test_the_author_of_a_room_question_cannot_answer_it(game) -> None:
-    """T10: the author exclusion. Phase 2 sets ``author_player_id``; T9 honours it now."""
+    """The author exclusion. Phase 2 sets ``author_player_id``; the loop honours it already."""
     author, other = game.players
     question = game.room.questions[0]
     question.source = "room"
@@ -816,7 +816,7 @@ def test_the_author_of_a_room_question_cannot_answer_it(game) -> None:
     ]
 
 
-# --- T9: promote and kick ------------------------------------------------------------
+# --- promote and kick ----------------------------------------------------------------
 
 
 def test_promote_makes_a_player_an_admin(game, db) -> None:
@@ -1001,7 +1001,7 @@ def test_a_player_who_first_connects_mid_question_counts_and_is_scored(table, cl
     assert result["points"] > 0
 
 
-# --- D4: set_profile mid-game ---------------------------------------------------------
+# --- set_profile mid-game -------------------------------------------------------------
 
 
 def test_a_rename_mid_game_is_refused_and_changes_nothing(game, db) -> None:
@@ -1017,11 +1017,11 @@ def test_a_rename_mid_game_is_refused_and_changes_nothing(game, db) -> None:
     assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", None)
 
 
-# --- T11: restart recovery -----------------------------------------------------------
+# --- restart recovery ----------------------------------------------------------------
 
 
 def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db, evict) -> None:
-    """T11 Accept: the process dies with a question open.
+    """The process dies with a question open.
 
     ``evict`` is the crash: the room leaves memory and its timer task is cancelled, so the
     next lookup rehydrates from Postgres exactly as a fresh process would, and the first
@@ -1033,7 +1033,7 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
     player = game.players[0]
     game.answer(player, 0, game.right(0))
     player.take("answer_ack")
-    game.admin.take("answer_count")  # D8: read, so the close below is the next frame
+    game.admin.take("answer_count")  # read, so the close below is the next frame
     question_id = str(game.question(0).id)
 
     assert evict(game.code) is True
@@ -1086,7 +1086,7 @@ def test_a_restart_mid_question_voids_it_and_resumes_in_reveal(table, client, db
 def test_a_restart_between_questions_voids_nothing_and_still_reveals(
     table, client, db, evict
 ) -> None:
-    """T11: no question was open at the restart, so there is nothing to void, and nobody
+    """No question was open at the restart, so there is nothing to void, and nobody
     has a question opened on them the instant they reconnect either."""
     game = table("Zezima", seconds=10, reveal_seconds=30)
     game.start()
@@ -1124,7 +1124,7 @@ def test_a_restart_between_questions_voids_nothing_and_still_reveals(
 def test_a_restart_before_the_first_question_opened_still_plays_it(
     table, client, db, evict
 ) -> None:
-    """T11: the gap inside ``start_game``, where ``playing`` and ``current_index = 0`` are
+    """The gap inside ``start_game``, where ``playing`` and ``current_index = 0`` are
     in the database before question 0 is stamped ``shown_at``.
 
     A restart in there has nothing to void and is still owed that question, so the reveal
@@ -1262,7 +1262,7 @@ def test_a_mode_is_a_round_and_every_round_is_introduced(table, second_mode) -> 
 
 
 def test_question_open_carries_its_mode_beside_its_type(table, second_mode) -> None:
-    """T16: two rounds that answer the same way are still two modes, and every question
+    """Two rounds that answer the same way are still two modes, and every question
     says which one it belongs to as well as how it is answered."""
     game = table(
         "Zezima",
@@ -1454,7 +1454,7 @@ def test_nobody_new_joins_a_game_under_way(game, client) -> None:
         assert again.take("welcome")["question"]["index"] == 0
 
 
-# --- D7: the ready check ------------------------------------------------------------
+# --- the ready check ----------------------------------------------------------------
 
 
 def test_ready_in_the_lobby_is_broadcast_by_name(table, clock) -> None:
@@ -1703,7 +1703,7 @@ def test_speed_buckets_scale_to_the_questions_own_length(game) -> None:
     assert answer_after(game, player, 0, game.right(0), AFTER[2])["band"] == 2
 
 
-# --- T17: credit changed how points are computed, not what a game is worth ------------
+# --- credit changed how points are computed, not what a game is worth -----------------
 
 
 # Question, player, right or wrong, bucket. Lynx and Zezima finish level on points and
@@ -1722,12 +1722,12 @@ PLAYED = [
 
 
 def test_a_game_of_more_less_scores_what_it_always_scored(table, db) -> None:
-    """T17 Accept: credit replaced ``correct`` inside grading, and a ``more_less`` game
+    """Credit replaced ``correct`` inside grading, and a ``more_less`` game
     comes out exactly as it did before, to the point and to the rank.
 
     The numbers are written out, not worked out: a test that recomputed them with the
     formula would agree with any formula at all. They are what this game scored on the
-    ``points_for(correct, bucket)`` that T17 replaced.
+    ``points_for(correct, bucket)`` that credit replaced.
     """
     game = table("Zezima", "Woox", "Lynx", "Dorn", seconds=10, close_when_all_answered=False)
     seat = {s.name: s for s in game.seats}
@@ -1774,9 +1774,9 @@ def points_by_name(game: Game, closed: dict[str, Any]) -> dict[str, int]:
 
 
 def test_a_type_scored_on_rank_pays_the_same_early_or_late(table, monkeypatch) -> None:
-    """T17: ``SCORING = RANK`` reaches the ack and the close, and the clock does not.
+    """``SCORING = RANK`` reaches the ack and the close, and the clock does not.
 
-    Nothing ships a ``RANK`` type until ``closest_number`` (T21), so ``more_less`` wears
+    Nothing ships a ``RANK`` type until ``closest_number``, so ``more_less`` wears
     it here. Its all-or-nothing credit is the top and bottom of the rank table.
     """
     monkeypatch.setattr(more_less, "SCORING", Scoring.RANK, raising=False)
@@ -1795,7 +1795,7 @@ def test_a_type_scored_on_rank_pays_the_same_early_or_late(table, monkeypatch) -
 
 
 def test_a_type_scored_on_steps_pays_the_frame_the_answer_arrived_on(table, monkeypatch) -> None:
-    """T17: ``SCORING = STEP`` with ``steps`` in the payload pays by the step, and without
+    """``SCORING = STEP`` with ``steps`` in the payload pays by the step, and without
     them it is ``SPEED`` -- in the ack as well as the points, so a client is never told a
     step number for a question that has no steps.
 
@@ -1828,7 +1828,7 @@ def test_a_type_scored_on_steps_pays_the_frame_the_answer_arrived_on(table, monk
 
 
 def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> None:
-    """T17: the road ``ordering`` (T27) will drive on, driven early.
+    """The road a future ``ordering`` type will drive on, driven early.
 
     No type returns credit between nothing and everything yet, so ``more_less`` is handed
     a ``grade`` that does, and the rest of the close has to carry it: 0.6 in bucket 2 is
@@ -1995,7 +1995,7 @@ def test_a_game_of_two_real_modes_changes_type_between_rounds(table, db) -> None
     assert_memory_matches_db(game, db)
 
 
-# --- T21 and T22: random events, the host's own questions and the NPCs' --------------------
+# --- random events, the host's own questions and the NPCs' ---------------------------------
 
 TANZANITE = {
     "type": "multiple_choice",
@@ -2055,7 +2055,7 @@ def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
 def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     table, second_mode, db
 ) -> None:
-    """T21 Accept: author exclusion's first real caller. The host who wrote it cannot
+    """Author exclusion's first real caller. The host who wrote it cannot
     answer it and scores nothing on it; everyone else is graded as on any question.
 
     It plays in the middle of the round it interrupts -- its own mode on the question, the
@@ -2175,7 +2175,7 @@ def test_two_identical_custom_questions_each_take_their_own_answers(table, secon
 def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
     table, second_mode, db, monkeypatch
 ) -> None:
-    """T21 Accept: ``host_only`` is for a question the host reads out and nobody plays.
+    """``host_only`` is for a question the host reads out and nobody plays.
     It opens for everyone, takes no answer from anyone, and closes on its own clock --
     shortened here from its type's fifteen seconds to one."""
     monkeypatch.setattr(multiple_choice, "SECONDS", Bounds(1, 1, 60))
@@ -2199,7 +2199,7 @@ def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
 
 
 def test_closest_number_ranks_every_guess_against_the_others(table, second_mode, db) -> None:
-    """T21 Accept: the exact guess beats the two one off, who tie for closest and share
+    """The exact guess beats the two one off, who tie for closest and share
     its rung; the guess behind them is second closest; a player who sent nothing scores
     nothing."""
     number = {
@@ -2239,7 +2239,7 @@ def test_closest_number_ranks_every_guess_against_the_others(table, second_mode,
 
 
 def test_no_splash_for_an_event_or_for_the_question_after_it(table, second_mode) -> None:
-    """T22 Accept: the splash introduces a segment, and an event is inside one.
+    """The splash introduces a segment, and an event is inside one.
 
     Two rounds of five at ``more`` hold two events, and with no host's questions both are
     NPCs asking their own. Every question is played through; only the two rounds' first
@@ -2289,7 +2289,7 @@ def next_open(seat: Seat) -> tuple[dict[str, Any], bool]:
     raise AssertionError(f"{seat.name} never got question_open; saw {seat.kinds}")
 
 
-# --- T22: the NPC holds the floor before the buttons appear ---------------------------------
+# --- the NPC holds the floor before the buttons appear --------------------------------------
 
 
 def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
@@ -2303,7 +2303,7 @@ def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
 
 
 def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, monkeypatch) -> None:
-    """T22 Accept, on the server: an answer inside the NPC's hold is ``not_open``, and
+    """On the server: an answer inside the NPC's hold is ``not_open``, and
     ``ends_at - answerable_at`` is its type's own seconds -- the hold comes on top. The
     hold is the server's own three and a half seconds, which the interlude is timed to.
     The event here is an NPC asking its own question, in the ``random_event`` mode."""
@@ -2329,7 +2329,7 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, m
 def test_answering_the_instant_the_buttons_appear_is_bucket_1(
     table, second_mode, clock, monkeypatch
 ) -> None:
-    """T22 Accept: the wait costs nobody a point. Two seconds on a twenty-second question
+    """The wait costs nobody a point. Two seconds on a twenty-second question
     would be bucket 2 counted from the open (0.1025 of it); from ``answerable_at`` it is
     the fastest there is."""
     monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 2)
@@ -2350,7 +2350,7 @@ def test_answering_the_instant_the_buttons_appear_is_bucket_1(
 def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(
     table, second_mode, client, monkeypatch
 ) -> None:
-    """T22 Accept, the server's half: ``welcome`` carries the event, its NPC and when the
+    """The server's half: ``welcome`` carries the event, its NPC and when the
     buttons appear, against its own ``server_time``, so the client can count the rest of
     the hold down without a message of its own. The client's half is RandomEvent.test.ts.
     """
@@ -2420,7 +2420,7 @@ def test_no_hold_plays_an_event_as_a_plain_question(table, second_mode) -> None:
     assert zezima.take("answer_ack")["band"] == 1
 
 
-# --- D9: the standings, between rounds and only there --------------------------------
+# --- the standings, between rounds and only there ------------------------------------
 
 
 def two_rounds(second_mode: str) -> dict[str, Any]:
@@ -2542,7 +2542,7 @@ def play_out(game: Game, count: int) -> dict[str, Any]:
 
 
 def test_standings_end_every_round_but_the_last(table, second_mode) -> None:
-    """D9 Accept: none between two questions of one round; one after each round but the
+    """None between two questions of one round; one after each round but the
     last, lasting ``standings_seconds``; the last round goes straight to ``finished``."""
     game = table(
         "Zezima",
@@ -2677,7 +2677,7 @@ def test_skip_during_the_reveal_does_not_also_skip_the_standings(table, second_m
 
 
 def test_a_player_arriving_during_the_standings_sees_them(table, client, second_mode) -> None:
-    """D9 Accept: a first connect or a reconnect during ``standings`` gets the phase, the
+    """A first connect or a reconnect during ``standings`` gets the phase, the
     standings and the ``next_at`` a live socket was sent."""
     game = table(
         "Zezima",

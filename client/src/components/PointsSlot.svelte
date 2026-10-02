@@ -32,7 +32,7 @@
 
 <script lang="ts">
   /**
-   * Your points for the question just revealed (D8, section 10).
+   * Your points for the question just revealed (section 10).
    *
    * One slot, in the same place in every mode, so the player learns where to look once:
    * on the clue scroll, where the host says it at the foot of the sheet, and on a plaque

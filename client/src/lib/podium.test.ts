@@ -1,5 +1,5 @@
 /**
- * D9: the podium's arrangement. Ranks 4 · 2 · 1 · 3 · 5 from left to right, tied players
+ * The podium's arrangement. Ranks 4 · 2 · 1 · 3 · 5 from left to right, tied players
  * sharing a step and spilling into `+N` past three, and nobody on 0 points standing on it.
  */
 

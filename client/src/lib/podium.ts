@@ -1,5 +1,5 @@
 /**
- * The standings split into a podium and a hiscores table (D9, section 7.3). Pure.
+ * The standings split into a podium and a hiscores table (section 7.3). Pure.
  *
  * The server ranks; this only arranges. Ranks are dense (section 6), so a rank is a step
  * and everyone holding it stands on it together: two players level on first share the

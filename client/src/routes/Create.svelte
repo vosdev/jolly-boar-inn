@@ -26,8 +26,8 @@
    * question and leaving. So the form offers every mode but those two. How often that
    * happens is the host's one choice about events: once per 20, 10 or 5 round questions,
    * on top of the rounds, so the total the form shows counts them. There is no "never";
-   * "less often" is the quiet end. Writing the host's own questions is the editor's job
-   * (T30); until it lands `custom_questions` is always the empty list `api.createRoom`
+   * "less often" is the quiet end. Writing the host's own questions is the editor's job;
+   * until it lands `custom_questions` is always the empty list `api.createRoom`
    * sends, and every event is an NPC asking a question of their own.
    */
   import { onMount } from 'svelte'
@@ -77,15 +77,15 @@
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   let revealSeconds = $state(3)
-  /** How long the standings hold between rounds (D9); 0 runs the rounds straight on. */
+  /** How long the standings hold between rounds; 0 runs the rounds straight on. */
   let standingsSeconds = $state(10)
-  /** `splash_seconds` on the wire: 0 is off, anything else on (D7: it is no longer a length). */
+  /** `splash_seconds` on the wire: 0 is off, anything else on (no longer a length). */
   let introduceRounds = $state(true)
   /** How often an NPC interrupts a round: one per 20, 10 or 5 round questions. */
   let frequency = $state<EventFrequency>('default')
   let modeOrder = $state<'listed' | 'random'>('random')
   let closeWhenAllAnswered = $state(true)
-  /** List who got it wrong under each reveal (D8). The count of who got it right always shows. */
+  /** List who got it wrong under each reveal. The count of who got it right always shows. */
   let nameWrongAnswers = $state(false)
   /** Players learn each round's mode as it starts; the server holds the rest back. */
   let hideRounds = $state(false)

@@ -1,5 +1,5 @@
 /**
- * The podium's trophy art, found by name at build time (D9, sections 7.3 and 9.1).
+ * The podium's trophy art, found by name at build time (sections 7.3 and 9.1).
  *
  * The trophies are the five Quest Speedrunning renders, which are game assets and so
  * fetched rather than committed (`make fetch-assets`, when it exists). Until one is in

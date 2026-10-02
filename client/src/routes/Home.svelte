@@ -122,7 +122,7 @@
   }
 </script>
 
-<!-- The inn's name is in the top bar on every screen (D2), so the front page says what
+<!-- The inn's name is in the top bar on every screen, so the front page says what
      you are here for instead of saying it twice. -->
 <h1>Welcome in</h1>
 <p class="tagline">Quiz night. One host, a room code, and everybody's phone.</p>

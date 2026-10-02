@@ -1,4 +1,4 @@
-"""D13 Accept, the parts that live in the stage's stylesheet rather than its behaviour.
+"""The parts that live in the stage's stylesheet rather than its behaviour.
 
 The component tests (``Splash.test.ts``, ``Question.test.ts``, ``Room.test.ts``) cover what
 goes on the scroll and what under the line, and the ribbon. This reads the source for the

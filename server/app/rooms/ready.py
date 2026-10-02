@@ -1,4 +1,4 @@
-"""The splash's ready check (D7, section 7.1 of ideas/design.md). Pure and testable.
+"""The splash's ready check (section 7.1 of ideas/design.md). Pure and testable.
 
 A splash has no clock of its own. It waits for the room, and the room says when:
 

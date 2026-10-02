@@ -1,4 +1,4 @@
-"""T19 Accept, the type half: ``check()`` rejects a payload whose ``answer_index`` does not
+"""The type half: ``check()`` rejects a payload whose ``answer_index`` does not
 point at the stored price; no shipped question has two options within 5% of each other;
 the answer's slot is spread evenly over the pack; about 100 valid questions ship. The
 generator half is in ``test_gen_price_questions.py``.
@@ -69,7 +69,7 @@ def test_example_validates() -> None:
 
 @pytest.mark.parametrize("wrong", [0, 2, 3])
 def test_check_rejects_an_answer_index_that_is_not_the_stored_price(wrong: int) -> None:
-    """T19 Accept. The whole reason this is not ``multiple_choice``."""
+    """The whole reason this is not ``multiple_choice``."""
     errors = price_is_right.check(payload(answer_index=wrong))
     assert errors == [
         f"answer_index: points at {EXAMPLE['payload']['options'][wrong]}"
@@ -165,7 +165,7 @@ def test_parse_value(value: Any, ok: bool) -> None:
 
 
 def test_about_a_hundred_valid_questions_ship() -> None:
-    """T19 Accept: ~100 questions, every one valid (``load_packs`` ran the checks)."""
+    """~100 questions, every one valid (``load_packs`` ran the checks)."""
     questions = shipped()
     assert 90 <= len(questions) <= 110
     for q in questions:
@@ -176,7 +176,7 @@ def test_about_a_hundred_valid_questions_ship() -> None:
 
 
 def test_no_shipped_question_has_two_options_within_five_percent() -> None:
-    """T19 Accept: two options that close read as the same answer."""
+    """Two options that close read as the same answer."""
     for q in shipped():
         options = q["payload"]["options"]
         assert options == sorted(options), q["id"]
@@ -185,7 +185,7 @@ def test_no_shipped_question_has_two_options_within_five_percent() -> None:
 
 
 def test_the_answer_is_spread_over_every_slot() -> None:
-    """T19 Accept: roughly uniform, not exact -- every slot within 40% of its fair share."""
+    """Roughly uniform, not exact -- every slot within 40% of its fair share."""
     questions = shipped()
     slots = Counter(q["payload"]["answer_index"] for q in questions)
     expected = len(questions) / 4

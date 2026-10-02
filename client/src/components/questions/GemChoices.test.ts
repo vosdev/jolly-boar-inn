@@ -1,5 +1,5 @@
 /**
- * D8: the gem buttons and the reveal rule from section 2.
+ * The gem buttons and the reveal rule from section 2.
  *
  * What the accept criteria ask of a reveal: whichever gem is correct, it is the only one
  * not faded; our own pick, right or wrong, carries a "you"; and with no answer from us,

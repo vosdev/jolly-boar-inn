@@ -1,5 +1,5 @@
 /**
- * The search a `pick_from_list` round is answered with (T20 Accept): case, accents,
+ * The search a `pick_from_list` round is answered with: case, accents,
  * word-prefix ("whip" finds "Abyssal whip"), and names that start with the query first.
  * Plus the once-per-session fetch.
  */

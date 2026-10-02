@@ -19,7 +19,7 @@ from app.questions.types.scoring import Scoring
 from app.rooms.settings import RoomSettings
 
 RoomStatus = Literal["lobby", "playing", "finished"]
-# ``standings`` (D9) sits between a round's last reveal and the next round, never between
+# ``standings`` sits between a round's last reveal and the next round, never between
 # two questions of one round, and never after the game's last: that goes to ``finished``.
 Phase = Literal["idle", "splash", "open", "reveal", "standings"]
 # Every timed phase: each one is a wait the host can cut short.
@@ -34,7 +34,7 @@ ErrorCode = Literal[
     "excluded",
     "bad_value",
     "bad_state",
-    # ``set_profile`` (D4), which is validated exactly like a join, and says so with the
+    # ``set_profile``, which is validated exactly like a join, and says so with the
     # same codes ``POST /api/rooms/{code}/join`` answers with.
     "bad_name",
     "name_taken",
@@ -75,7 +75,7 @@ class RoomView(_Message):
     # When the current timed phase ends: a splash gives way to its first question, a
     # reveal to the next question or to the standings, the standings to the next round.
     # Null while a question is open, during a splash still waiting for the room to be
-    # ready (D7), and in a room that is not playing. Also on ``question_closed``, but a
+    # ready, and in a room that is not playing. Also on ``question_closed``, but a
     # splash, reveal or standings a client arrives into (a reconnect, or a room that just
     # came back from a restart) has no frame of its own to carry it.
     next_at: datetime | None
@@ -96,11 +96,11 @@ class PlayerView(_Message):
     id: UUID
     display_name: str
     # An id in ``data/heads/heads.json``, or null for a player who never chose one: the
-    # client then draws the head derived from ``id`` (D4, section 5.2).
+    # client then draws the head derived from ``id`` (section 5.2).
     avatar: int | None
     role: Role
     connected: bool
-    # The ready check (D7): ready to start in the lobby, ready for this round on a splash.
+    # The ready check: ready to start in the lobby, ready for this round on a splash.
     # Every splash starts it false for everyone again.
     ready: bool
     # Is typing a name in the lobby: "picking a name…". Advice, never a gate.
@@ -124,7 +124,7 @@ class OpenQuestion(_Message):
     index: int
     total: int
     type: str  # how it is answered: the key into ``questions/types``
-    # Which mode it was drawn for (``app/modes``); since T16 not the same string as ``type``.
+    # Which mode it was drawn for (``app/modes``); not always the same string as ``type``.
     # On the question itself rather than only on ``segment``, because it is a fact about
     # the question, and the round it sits in is a different fact that merely agrees today.
     mode: str
@@ -143,7 +143,7 @@ class OpenQuestion(_Message):
     answerable_at: datetime
     ends_at: datetime
     you_can_answer: bool
-    # How many have answered, of how many can (D8's waiting state). Current as of this
+    # How many have answered, of how many can, for the waiting state. Current as of this
     # frame: zero on ``question_open``, the live count in a ``welcome``, and kept up to
     # date after that by ``answer_count`` and the answerer's own ``answer_ack``.
     answered: int = 0
@@ -202,7 +202,7 @@ class RotateKey(_Message):
 
 
 class SetProfile(_Message):
-    """Rename, re-roll the head, or both (D4). One message for both, because they are the
+    """Rename, re-roll the head, or both. One message for both, because they are the
     same operation on the same row: validated like a join, broadcast as ``room_updated``.
 
     An omitted field is left as it is. The bounds here are only the outer ones; the name
@@ -215,7 +215,7 @@ class SetProfile(_Message):
 
 
 class Ready(_Message):
-    """Tap ready, or take it back (D7). In the lobby and on a splash; nowhere else."""
+    """Tap ready, or take it back. In the lobby and on a splash; nowhere else."""
 
     t: Literal["ready"]
     ready: bool = Field(strict=True)
@@ -314,7 +314,7 @@ class AnswerAck(_Message):
 class AnswerCount(_Message):
     """Somebody else has answered the open question: how many have, of how many can.
 
-    Only a count, never who, and never what: the waiting state (D8) shows "4 of 6
+    Only a count, never who, and never what: the waiting state shows "4 of 6
     answered" and nothing a player could read an answer off. ``of`` is every connected
     player allowed to answer plus anyone who answered and has since dropped, so the count
     never reads more than the total. A disconnect does not send a fresh count; the next

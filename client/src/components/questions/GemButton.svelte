@@ -53,7 +53,7 @@
 
 <script lang="ts">
   /**
-   * One answer on a gem (D8): the button `multiple_choice` and `price_is_right` answer with.
+   * One answer on a gem: the button `multiple_choice` and `price_is_right` answer with.
    *
    * **On reveal no button changes colour.** That is the whole of section 2's rule, and
    * everything here serves it. The answer stays lit in its own gem and every other button

@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Under a reveal's buttons: how many of the room got it right, and, if the host turned
-   * it on, who got it wrong (D8).
+   * it on, who got it wrong.
    *
    * Everything here comes from `question_closed.results`, which already carries every
    * player's row; nothing new crosses the wire. "Right" is `correct`, full credit. Partial

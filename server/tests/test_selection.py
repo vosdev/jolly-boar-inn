@@ -1,6 +1,6 @@
 """``rooms/selection.py`` contract: pure, seeded, without replacement, one round per mode.
 
-T22 Accept, the selection half: at ``default`` one mode of 10 questions plays 11, and
+The selection half: at ``default`` one mode of 10 questions plays 11, and
 ``less`` and ``more`` give the counts in phase2.md's table; seeded, no two events share a
 window of N and none is a round's or the game's first question; a one-mode room gets
 events; a custom question's named NPC is the one that asks it, and two naming one NPC are
@@ -500,7 +500,7 @@ def test_a_hosts_unnamed_question_may_be_asked_by_an_npc_with_no_questions_yet(
     assert faces == set(selection.RANDOM_EVENTS)
 
 
-# --- rooms stored before T22 ---------------------------------------------------------------
+# --- rooms stored before the frequency setting ----------------------------------------------
 
 
 def test_a_room_stored_with_random_events_true_reads_as_default() -> None:

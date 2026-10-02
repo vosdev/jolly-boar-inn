@@ -15,7 +15,7 @@
    * - after close, `reveal(payload)`: the same plus `answer_index` and, if the author
    *   gave one, an `explanation` of why, which `Question` draws.
    *
-   * The answers are text of any length up to a line, one gem each (D8), stacked on a phone
+   * The answers are text of any length up to a line, one gem each, stacked on a phone
    * and two abreast where there is room. Whether you were right is the points slot's to
    * say, over in `Room`; this only shows which answer it was.
    */

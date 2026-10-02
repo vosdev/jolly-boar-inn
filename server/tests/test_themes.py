@@ -1,6 +1,6 @@
-"""D5 Accept: three themes, each one block a selfhoster can copy.
+"""Three themes, each one block a selfhoster can copy.
 
-This reads the stylesheet. The contract itself — all three themes passing the D1 check —
+This reads the stylesheet. The contract itself — all three themes passing the token contract —
 is ``test_check_contrast.py``'s ``test_every_shipped_theme_passes``, and the picker is
 ``SettingsMenu.test.ts``'s.
 
@@ -114,7 +114,7 @@ def test_a_thicker_edge_never_moves_the_layout() -> None:
 
 
 def test_a_focused_button_draws_a_ring_in_every_theme() -> None:
-    """D8: every button is operable by keyboard with a visible focus ring. The reach is
+    """Every button is operable by keyboard with a visible focus ring. The reach is
     ``GemChoices.test.ts``'s; the ring is this rule, in the theme's own accent."""
     rules = check.strip_comments(read(APP_CSS))
     body = re.search(r"button:focus-visible\s*\{([^}]*)\}", rules)

@@ -1,4 +1,4 @@
-"""Chat heads: the manifest in ``data/heads/heads.json`` (D4, section 5.2 of ideas/design.md).
+"""Chat heads: the manifest in ``data/heads/heads.json`` (section 5.2 of ideas/design.md).
 
 The manifest is an array of ``{"id", "file", "name"}``, and **the index is the contract**:
 ``players.avatar`` stores an ``id``, so a head may be redrawn in place and the list may

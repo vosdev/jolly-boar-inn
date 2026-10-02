@@ -1,4 +1,4 @@
-"""D1 Accept: the token contract holds, and the script that enforces it has teeth.
+"""The token contract holds, and the script that enforces it has teeth.
 
 The palette itself is not a matter of taste the tests can judge, so what is asserted here
 is the contract from section 2 of ideas/design.md: every shipped theme passes, a deliberately
@@ -83,21 +83,21 @@ def test_a_broken_bad_fails(css: str) -> None:
 
 
 def test_a_gem_that_looks_the_same_faded_fails(css: str) -> None:
-    """D8: lit against faded is the reveal. Diamond on jolly's cream panel is why."""
+    """Lit against faded is the reveal. Diamond on jolly's cream panel is why."""
     broken = _swap(css, "pollnivneach", "--gem-red-topaz", "#e4f0f5")
     problems = check.check(broken)
     assert any("--gem-red-topaz" in line and "look alike" in line for line in problems)
 
 
 def test_gem_ink_that_cannot_be_read_on_a_faded_gem_fails(css: str) -> None:
-    """D8: a faded option still has to be read. Dark ink on a dark panel's fade does not."""
+    """A faded option still has to be read. Dark ink on a dark panel's fade does not."""
     broken = _swap(css, "wilderness", "--gem-ink", "#3a3330")
     problems = check.check(broken)
     assert any("--gem-ink" in line and "faded" in line for line in problems)
 
 
 def test_washed_out_scroll_ink_fails(css: str) -> None:
-    """D13: a prompt on the scroll is read against the clock, so it gets the body 7:1."""
+    """A prompt on the scroll is read against the clock, so it gets the body 7:1."""
     broken = _swap(css, "pollnivneach", "--scroll-ink", "#9c8a66")
     problems = check.check(broken)
     assert any("--scroll-ink" in line and "--scroll-paper" in line for line in problems)
@@ -110,7 +110,7 @@ def test_scroll_muted_that_cannot_be_read_fails(css: str) -> None:
 
 
 def test_a_scroll_the_colour_of_the_panel_fails(css: str) -> None:
-    """D13: paper that matches the panel is just another panel, not a scroll laid on it."""
+    """Paper that matches the panel is just another panel, not a scroll laid on it."""
     broken = _swap(css, "pollnivneach", "--scroll-paper", "#f4f1e6")
     problems = check.check(broken)
     assert any("--scroll-paper" in line and "--panel" in line for line in problems)

@@ -6,7 +6,7 @@
    * That is a convenience, not a check: the server decides per message (section 7
    * step 7), so a player who forges the flag gets `not_admin` back and nothing else.
    *
-   * The ready check here is the named one (D7, section 7.1 of ideas/design.md): the host
+   * The ready check here is the named one (section 7.1 of ideas/design.md): the host
    * needs to know *who* is missing before pressing Start, because the answer is usually
    * somebody at the bar, and a name is something you can shout. The host is a player like
    * any other and taps too. Start is the plain button once the room reaches the same

@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * One chat head, cut from the sheet `heads-sprite.ts` builds (D4, section 5.2).
+   * One chat head, cut from the sheet `heads-sprite.ts` builds (section 5.2).
    *
    * A window onto the whole sheet rather than a CSS background: the sheet is an `<img>`
    * scaled so one cell is `size` pixels, and shifted so the right cell sits in the

@@ -1,5 +1,5 @@
 /**
- * `pick_from_list` on screen (T20 Accept): the strict combobox. Typed text with no
+ * `pick_from_list` on screen: the strict combobox. Typed text with no
  * selection leaves Submit disabled; selecting enables it; editing the text after selecting
  * clears the selection; no match selects nothing and says so; the value sent is the entry's
  * id; and all of it works from the keyboard alone. Guess the Examine draws it under the

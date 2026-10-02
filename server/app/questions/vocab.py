@@ -12,8 +12,8 @@ sound, and this module is where it is held to that:
 - **Ids are distinct**, because the id is the answer.
 
 ``items`` is the curated roster, ``data/popular-items.json``, which exists before any
-importer does, so Guess the Examine does not wait for T23. ``npcs`` is
-``data/facts/npcs.json``, which T23 writes; until then it is simply absent, and
+importer does, so Guess the Examine does not wait for the NPC facts. ``npcs`` is
+``data/facts/npcs.json``, which an importer writes; until then it is simply absent, and
 ``GET /api/vocab/npcs`` is a 404 rather than an empty list that would look like a
 vocabulary with nobody in it. ``examines`` is ``data/examines.json``, the hand-written lines
 Guess the Examine is played from: items, NPCs and scenery alike, so it is a list of its

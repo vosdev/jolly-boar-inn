@@ -16,7 +16,7 @@
 
 export type RoomStatus = 'lobby' | 'playing' | 'finished'
 /**
- * `standings` (D9) sits between a round's last reveal and the next round, and nowhere
+ * `standings` sits between a round's last reveal and the next round, and nowhere
  * else. A screen that does not know a phase shows its waiting state, which is what a
  * build from before one arrived does with it.
  */
@@ -34,7 +34,7 @@ export type ErrorCode =
   | 'excluded'
   | 'bad_value'
   | 'bad_state'
-  // `set_profile` (D4), validated like a join and refused with the codes join uses.
+  // `set_profile`, validated like a join and refused with the codes join uses.
   | 'bad_name'
   | 'name_taken'
   | 'bad_avatar'
@@ -61,21 +61,21 @@ export interface RoomSettings {
   mode_order: 'listed' | 'random'
   /**
    * One random event per 20, 10 or 5 round questions (`EVENT_EVERY`), added on top of the
-   * rounds. Null only for a room stored before T22 with its host's questions and nothing
-   * else, which the server still loads but never creates.
+   * rounds. Null only for a room stored before frequency was a choice, with its host's
+   * questions and nothing else, which the server still loads but never creates.
    */
   random_event_frequency: EventFrequency | null
   reveal_seconds: number
   /**
    * Zero means no splash at all; anything else, a splash that waits for the room to be
-   * ready (D7). No longer a length, but still a number so every stored room reads.
+   * ready. No longer a length, but still a number so every stored room reads.
    */
   splash_seconds: number
-  /** How long the standings hold between two rounds (D9). Zero turns them off. */
+  /** How long the standings hold between two rounds. Zero turns them off. */
   standings_seconds: number
   close_when_all_answered: boolean
   /**
-   * Name who answered wrong under a reveal (D8). Optional: a server from before it does
+   * Name who answered wrong under a reveal. Optional: a server from before it does
    * not send it, and that reads as off.
    */
   name_wrong_answers?: boolean
@@ -135,16 +135,16 @@ export interface PlayerView {
   display_name: string
   /**
    * A head id in `data/heads/heads.json`, or null for a player who never chose one.
-   * Optional because a server from before D4 does not send it; `lib/heads.ts` draws the
+   * Optional because a server from before heads does not send it; `lib/heads.ts` draws the
    * head derived from `id` for both.
    */
   avatar?: number | null
   role: Role
   connected: boolean
   /**
-   * The ready check (D7): ready to start in the lobby, ready for this round on a splash.
+   * The ready check: ready to start in the lobby, ready for this round on a splash.
    * Every splash starts it false for everyone again. Optional because a server from
-   * before D7 does not send it, and a player it does not mention is not ready.
+   * before the ready check does not send it, and a player it does not mention is not ready.
    */
   ready?: boolean
   /** Is typing a name in the lobby: "picking a name…". Advice, never a gate. */
@@ -166,7 +166,7 @@ export interface OpenQuestion {
   total: number
   /** How it is answered: the key into `components/questions/index.ts`. */
   type: string
-  /** Which mode it was drawn for; not the same string as `type` since T16. */
+  /** Which mode it was drawn for; no longer the same string as `type`. */
   mode: string
   /**
    * Repeated from `RoomView` because `stores.ts` patches its room from this frame rather
@@ -178,7 +178,7 @@ export interface OpenQuestion {
   /**
    * The NPC interrupting the round with this question, looked up in `lib/randomEvents.ts`;
    * null for a question that belongs to its round. Optional because a server from before
-   * T22 does not send it, and that reads as nobody interrupting.
+   * random events does not send it, and that reads as nobody interrupting.
    */
   random_event?: string | null
   opened_at: string
@@ -192,9 +192,9 @@ export interface OpenQuestion {
   ends_at: string
   you_can_answer: boolean
   /**
-   * How many have answered, of how many can (D8's waiting state), as of this frame: zero
+   * How many have answered, of how many can (for the waiting state), as of this frame: zero
    * on `question_open`, the live count in a `welcome`. `answer_count` and our own
-   * `answer_ack` keep it current after that. Optional because a server from before D8
+   * `answer_ack` keep it current after that. Optional because a server from before the count
    * does not send it, and the waiting state then goes without the count.
    */
   answered?: number
@@ -251,14 +251,14 @@ export interface RotateKey {
   t: 'rotate_key'
 }
 
-/** Rename, re-roll the head, or both. An omitted field is left alone (D4). */
+/** Rename, re-roll the head, or both. An omitted field is left alone. */
 export interface SetProfile {
   t: 'set_profile'
   display_name?: string
   avatar?: number
 }
 
-/** Tap ready, or take it back (D7). In the lobby and on a splash; nowhere else. */
+/** Tap ready, or take it back. In the lobby and on a splash; nowhere else. */
 export interface Ready {
   t: 'ready'
   ready: boolean
@@ -326,12 +326,12 @@ export interface AnswerAck {
   question_id: string
   scoring: Scoring
   band: number | null
-  /** The room's count with our answer in it. Optional: a server from before D8. */
+  /** The room's count with our answer in it. Optional: a server from before the count. */
   answered?: number
   of?: number
 }
 
-/** Somebody else answered the open question. A count, never who or what (D8). */
+/** Somebody else answered the open question. A count, never who or what. */
 export interface AnswerCount {
   t: 'answer_count'
   question_id: string

@@ -1,5 +1,5 @@
 /**
- * D8: the points slot's four outcomes (section 7.2), and the running total under them.
+ * The points slot's four outcomes (section 7.2), and the running total under them.
  * A timeout must not read as a wrong answer: it says "No answer" and carries no ✗.
  */
 

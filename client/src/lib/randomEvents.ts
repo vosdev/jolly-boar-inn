@@ -11,10 +11,10 @@
  * One flat array, one entry per NPC, so adding one is an entry here, an id there and a
  * file of questions, with no cleverness anywhere. The line is the NPC speaking, before
  * the question: short, in the game's voice, the way its dialogue boxes put it. `theme` is
- * the rule its questions are written to (`ideas/random-events.md`), and T30's NPC picker
+ * the rule its questions are written to (`ideas/random-events.md`), and the NPC picker
  * shows it next to the name.
  *
- * `asset` is the picture's reference. The drawings are design D15, and until they land the
+ * `asset` is the picture's reference. The drawings are still to come, and until they land the
  * card leaves the picture's slot empty rather than drawing a stand-in.
  *
  * An id this build has no entry for gets the Mysterious Old Man (`randomEventFor`): the NPC
@@ -31,7 +31,7 @@ export interface RandomEventNpc {
   theme: string
   /** What it says before the question. */
   line: string
-  /** `npc:<id>`: the picture, once there is one (D15). */
+  /** `npc:<id>`: the picture, once there is one. */
   asset: string
 }
 
@@ -152,7 +152,7 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
 
 const BY_ID = new Map(RANDOM_EVENTS.map((npc) => [npc.id, npc]))
 
-/** The card for an id this build has no entry for (design D15, §7.4 of ideas/design.md). */
+/** The card for an id this build has no entry for (§7.4 of ideas/design.md). */
 function stranger(id: string): RandomEventNpc {
   return {
     id,

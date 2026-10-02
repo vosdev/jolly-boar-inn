@@ -6,7 +6,7 @@
  * returning player is never asked their name again, while the server never learns that
  * two players in two rooms were the same person, and has no need to (section 5.1).
  *
- * The head arrived in D4, beside the name. A profile stored before then has a name and
+ * The head arrived after the name. A profile stored before it has a name and
  * no head, and reads as that name with a fresh random head, kept from then on.
  *
  * Like `session.ts`, every accessor tolerates localStorage throwing — Safari in private

@@ -1,5 +1,5 @@
 /**
- * The ready check's threshold (D7), the same rule as `server/app/rooms/ready.py`.
+ * The ready check's threshold, the same rule as `server/app/rooms/ready.py`.
  *
  * The server is what acts on it — a splash's countdown starts there — so this copy only
  * decides what the screens say: whether the lobby's Start is the plain button or the

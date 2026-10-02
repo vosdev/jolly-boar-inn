@@ -15,7 +15,7 @@
    * blurb, and stays up into the round's first question. The round's count and pace, the
    * ready check and the countdown go under the line (section 8 of ideas/design.md).
    *
-   * The ready check (D7, section 7.1 of ideas/design.md) is a row of heads, dim until
+   * The ready check (section 7.1 of ideas/design.md) is a row of heads, dim until
    * their player taps ready, and never a list of names: a splash comes round up to
    * thirteen times a game, and naming who is holding things up each time turns an
    * short beat into a negotiation. The lobby is where names are listed. A tap can be

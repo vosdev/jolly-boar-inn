@@ -1,5 +1,5 @@
 /**
- * D9: the room screen in and around the `standings` phase, fed frames straight through
+ * The room screen in and around the `standings` phase, fed frames straight through
  * `applyServerMessage` with the socket mocked out.
  *
  * Between rounds the podium is the screen, under a timer to the next round. Inside a
@@ -110,7 +110,7 @@ describe('Room', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(
       /After round 1 of 2\s*Standings/,
     )
-    // The countdown is the bar under the top bar (D8), which App draws from this store.
+    // The countdown is the bar under the top bar, which App draws from this store.
     expect(get(timerBar)?.label).toBe('to the next round')
     expect(document.querySelector('.podium')).not.toBeNull()
     expect(screen.getByText('1st, Diamond trophy: Zezima, 1,000 points')).toBeTruthy()
@@ -260,7 +260,7 @@ describe('Room', () => {
   })
 
   it('lands a reconnect inside an NPC’s hold on the card, with what is left of it', async () => {
-    // T22 Accept: rebuilt from the welcome alone. The server's clock is a minute ahead of
+    // Rebuilt from the welcome alone. The server's clock is a minute ahead of
     // this one and the hold has 1.5 seconds to go, so the buttons wait 1.5 seconds.
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
     try {

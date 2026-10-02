@@ -1,5 +1,5 @@
 /**
- * The NPC art on the stage, found by name at build time (D14, section 8 of ideas/design.md).
+ * The NPC art on the stage, found by name at build time (section 8 of ideas/design.md).
  *
  * An NPC is up to two wiki files in `assets/npcs/`: `<id>_chathead.<ext>`, its chathead,
  * and `<id>.<ext>`, the full-body render. The stage shows the chathead: the render's upper

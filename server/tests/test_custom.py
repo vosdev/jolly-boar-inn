@@ -49,7 +49,7 @@ def test_a_question_with_no_type_is_refused_rather_than_hashed() -> None:
 
 
 def test_a_host_may_name_the_npc_who_asks_it_if_it_is_on_the_roster() -> None:
-    """T22: the NPC is a placement, so it is kept and left out of the content id."""
+    """The NPC is a placement, so it is kept and left out of the content id."""
     (named,) = custom.envelopes([{**WRITTEN, "random_event": "death"}])
     assert named["random_event"] == "death"
     assert named["id"] == schema.content_id(WRITTEN)
