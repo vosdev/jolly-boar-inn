@@ -1,0 +1,23 @@
+# The scripts that write data into this checkout: `make fetch-assets`, `make gen-*`. They run
+# here so a host needs only git, docker and make. Never started by `docker compose up`; the
+# Makefile runs one script per container:
+#   docker compose -f docker-compose.data.yml run --rm --build data python scripts/<script>.py
+#
+# Its own project, so a run on a host that also serves the app neither touches nor warns
+# about the app's containers.
+name: jbi-data
+
+services:
+  data:
+    build:
+      context: .
+      target: data
+    image: jolly-boar-inn-data:latest
+    # The host user, so what a script writes belongs to whoever ran it, and git trusts a
+    # checkout owned by the same user. The Makefile sets both.
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - .:/repo
+    # The scripts read the repo's .env themselves; this passes a value set in the shell.
+    environment:
+      - WIKI_USER_AGENT

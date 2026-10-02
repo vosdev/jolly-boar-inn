@@ -6,6 +6,7 @@ CI on main, and `make image` builds `jolly-boar-inn:<version>` locally.
 
 The NPC and trophy art is fetched, not committed. Set `WIKI_USER_AGENT` in `.env` and run
 `make fetch-assets` before `make image` or `docker compose build`, which bundle what is on disk.
+It runs in a container, like every script that writes data, so it needs only git, docker and make.
 
 ## Branding
 

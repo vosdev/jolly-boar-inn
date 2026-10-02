@@ -311,7 +311,7 @@ def fetch(
         else:
             todo[target] = title
     if report.skipped:
-        out(f"{len(report.skipped)} already there, kept (--force fetches them again)")
+        out(f"{len(report.skipped)} already there, kept (FORCE=1 fetches them again)")
     if not todo:
         out("nothing to fetch")
         return report

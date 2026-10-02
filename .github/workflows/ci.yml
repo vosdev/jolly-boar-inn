@@ -97,6 +97,24 @@ jobs:
             jolly-boar-inn:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # The data stage reads the builder layers above but writes its own scope, since a second
+      # export to the same one would replace the app's cache.
+      - name: Build data image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          target: data
+          load: true
+          tags: jolly-boar-inn-data:latest
+          cache-from: |
+            type=gha
+            type=gha,scope=data
+          cache-to: type=gha,mode=max,scope=data
+      # Proves the container has git, the venv and the mounted checkout; sends nothing.
+      - name: Data scripts run in the data container
+        run: |
+          HOST_UID=$(id -u) HOST_GID=$(id -g) \
+            docker compose -f docker-compose.data.yml run --rm data python scripts/fetch_assets.py --dry-run
       - name: Compose up and check health
         run: |
           docker compose up -d --wait --wait-timeout 120
