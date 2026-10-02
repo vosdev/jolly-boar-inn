@@ -88,7 +88,7 @@
   let modeOrder = $state<'listed' | 'random'>('random')
   let closeWhenAllAnswered = $state(true)
   /** List who got it wrong under each reveal. The count of who got it right always shows. */
-  let nameWrongAnswers = $state(false)
+  let nameWrongAnswers = $state(true)
   /** Players learn each round's mode as it starts; the server holds the rest back. */
   let hideRounds = $state(false)
   let access = $state<RoomAccess>('code')
@@ -300,6 +300,32 @@
     {/if}
   </section>
 
+  <section class="panel events">
+    <h2>Random events frequency</h2>
+    <Segmented
+      legend="Random events frequency"
+      hideLegend
+      options={[
+        { value: 'less', label: 'Less' },
+        { value: 'default', label: 'Default' },
+        { value: 'more', label: 'More' },
+      ]}
+      bind:value={frequency}
+    />
+    <p class="note">
+      An NPC interrupts on average once every {EVENT_EVERY[frequency]} questions, on top of the
+      round's.
+    </p>
+    {#if rounds.length > 0}
+      <p class="count">
+        {eventCount} random event{eventCount === 1 ? '' : 's'} in this game
+      </p>
+    {/if}
+    {#if tooManyOwn !== null}
+      <p class="error">{tooManyOwn}</p>
+    {/if}
+  </section>
+
   <CustomQuestions
     bind:questions={customQuestions}
     bind:editing={editingQuestion}
@@ -314,8 +340,8 @@
     <p class="note">{ACCESS.find((option) => option.value === access)?.note}</p>
   </section>
 
-  <section class="panel rest">
-    <h2>The rest of the game</h2>
+  <details class="panel rest">
+    <summary><h2>Advanced</h2></summary>
     <div class="settings">
       <Stepper
         label="Reveal answers, seconds"
@@ -334,24 +360,6 @@
         step={5}
         onchange={(value) => (standingsSeconds = value)}
       />
-      <div>
-        <Segmented
-          legend="Random events frequency"
-          options={[
-            { value: 'less', label: 'Less' },
-            { value: 'default', label: 'Default' },
-            { value: 'more', label: 'More' },
-          ]}
-          bind:value={frequency}
-        />
-        <p class="note">
-          An NPC interrupts on average once every {EVENT_EVERY[frequency]} questions, on top of
-          the round's.
-        </p>
-        {#if tooManyOwn !== null}
-          <p class="error">{tooManyOwn}</p>
-        {/if}
-      </div>
       <Segmented legend="Introduce each round" options={OFF_ON} bind:value={introduceRounds} />
       <div>
         <Segmented legend="Surprise rounds" options={OFF_ON} bind:value={hideRounds} />
@@ -364,7 +372,7 @@
       />
       <Segmented legend="Name who got it wrong" options={OFF_ON} bind:value={nameWrongAnswers} />
     </div>
-  </section>
+  </details>
 
   {#if full === true}
     <p class="banner">
@@ -456,7 +464,21 @@
     }
   }
 
+  .rest summary {
+    cursor: pointer;
+  }
+
+  .rest summary h2 {
+    display: inline;
+  }
+
+  .rest[open] summary {
+    margin-bottom: 1rem;
+  }
+
   .rest .note,
+  .events .note,
+  .events .count,
   .access .note {
     margin: 0.3rem 0 0;
   }

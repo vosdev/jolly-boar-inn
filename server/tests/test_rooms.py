@@ -220,7 +220,7 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         "splash_seconds": 8,
         "standings_seconds": 10,
         "close_when_all_answered": True,
-        "name_wrong_answers": False,
+        "name_wrong_answers": True,
         "max_players": 50,
     }
 
