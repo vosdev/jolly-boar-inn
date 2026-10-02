@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { inviteLink, keyFromHash, keyFromInput, maskedLink } from './invite'
+import { inviteLink, keyFromHash, maskedLink } from './invite'
 
 describe('invite links', () => {
   it('put the key after #, where no request carries it', () => {
@@ -30,14 +30,5 @@ describe('invite links', () => {
     ['', null],
   ])('read %j as %j', (hash, key) => {
     expect(keyFromHash(hash)).toBe(key)
-  })
-
-  it.each([
-    ['https://inn.example/r/ABYSSAL#k=abc', 'abc'],
-    ['  abc_DEF-123  ', 'abc_DEF-123'],
-    ['https://inn.example/r/ABYSSAL', null],
-    ['', null],
-  ])('take %j pasted as %j', (text, key) => {
-    expect(keyFromInput(text)).toBe(key)
   })
 })

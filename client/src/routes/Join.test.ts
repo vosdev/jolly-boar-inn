@@ -130,7 +130,6 @@ describe('Join', () => {
 describe('Join for an invite-only room', () => {
   const refused = (code: string) => new ApiFailure(403, code, 'refused')
   const keysSent = () => vi.mocked(api.joinRoom).mock.calls.map((call) => call[4])
-  const field = () => screen.findByRole('textbox', { name: 'Invite link' })
 
   it('joins with the key from the link, and takes it out of the address bar', async () => {
     history.replaceState(null, '', '/r/ABYSSAL#k=abc_DEF-123')
@@ -149,43 +148,18 @@ describe('Join for an invite-only room', () => {
     expect(keysSent()).toEqual(['abc', 'abc'])
   })
 
-  it('asks for the link, rather than erroring, when the room wants a key', async () => {
-    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('key_required'))
-    render(Join, { code: 'ABYSSAL', navigate })
-    await field()
-    expect(screen.getByText('This room is invite-only. Paste the link the host shared.')).toBeTruthy()
-    expect(screen.queryByText('refused')).toBeNull()
-    expect(document.querySelector('.error')).toBeNull()
-    expect(screen.queryByRole('textbox', { name: /name/i })).toBeNull()
-  })
-
-  it('says a wrong key is out of date, and asks again', async () => {
-    history.replaceState(null, '', '/r/ABYSSAL#k=stale')
-    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('bad_key'))
-    render(Join, { code: 'ABYSSAL', navigate })
-    await field()
-    expect(screen.getByText('That link is out of date or mistyped.')).toBeTruthy()
-  })
-
-  it.each([
-    ['the whole link', 'https://inn.example/r/ABYSSAL#k=fresh'],
-    ['the key alone', '  fresh '],
-  ])('joins with %s pasted, under the name it was trying', async (_, text) => {
-    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('key_required'))
-    render(Join, { code: 'ABYSSAL', navigate })
-    await fireEvent.input(await field(), { target: { value: text } })
-    await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
-    expect(keysSent()).toEqual([null, 'fresh'])
-    expect(joinedAs()).toEqual(['Zezima', 'Zezima'])
-  })
-
-  it('will not send what is no key at all', async () => {
-    vi.mocked(api.joinRoom).mockRejectedValueOnce(refused('key_required'))
-    render(Join, { code: 'ABYSSAL', navigate })
-    await fireEvent.input(await field(), { target: { value: 'https://inn.example/r/ABYSSAL' } })
-    expect((screen.getByRole('button', { name: 'Join' }) as HTMLButtonElement).disabled).toBe(true)
-  })
+  it.each(['key_required', 'bad_key'])(
+    'offers to ask the host, rather than erroring or asking for a link, on %s',
+    async (code) => {
+      vi.mocked(api.joinRoom).mockRejectedValueOnce(refused(code))
+      render(Join, { code: 'ABYSSAL', navigate })
+      await screen.findByRole('button', { name: 'Ask the host to let you in' })
+      expect(screen.getByText('This room is invite-only.')).toBeTruthy()
+      expect(screen.queryByRole('textbox')).toBeNull()
+      expect(screen.queryByText('refused')).toBeNull()
+      expect(document.querySelector('.error')).toBeNull()
+    },
+  )
 })
 
 describe('Asking the host to let you in', () => {

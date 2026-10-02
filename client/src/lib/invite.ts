@@ -11,14 +11,6 @@ export function keyFromHash(hash: string): string | null {
   return key !== null && KEY.test(key) ? key : null
 }
 
-/** The key from what a player pasted: the whole invite link, or the key alone. */
-export function keyFromInput(text: string): string | null {
-  const trimmed = text.trim()
-  const hash = trimmed.indexOf('#')
-  if (hash !== -1) return keyFromHash(trimmed.slice(hash))
-  return KEY.test(trimmed) ? trimmed : null
-}
-
 /** The link players join by, carrying `key` when the room has one. */
 export function inviteLink(origin: string, code: string, key?: string): string {
   const link = `${origin}/r/${code}`

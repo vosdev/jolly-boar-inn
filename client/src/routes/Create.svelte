@@ -67,7 +67,7 @@
     {
       value: 'link',
       label: 'Invite link',
-      note: "The room code alone won't let anyone in; they need the link.",
+      note: "The room code alone won't let anyone in; they need the link, or be manually approved by you.",
     },
     {
       value: 'public',
