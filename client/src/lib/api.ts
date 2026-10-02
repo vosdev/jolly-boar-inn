@@ -11,6 +11,7 @@
  * the first websocket frame and nowhere else.
  */
 
+import type { CustomQuestion } from './customQuestions'
 import type { EventFrequency, PlayerView, RoomSettings, RoomView } from './protocol'
 
 export class ApiFailure extends Error {
@@ -139,6 +140,7 @@ export type RoomAccess = 'code' | 'link' | 'public'
 /**
  * `avatar` is the profile's head; undefined, the room draws the one derived from the id.
  * `returning` is `returningVisitor`, counted by the server and never stored.
+ * `customQuestions` are the host's own, each a random event (`lib/customQuestions.ts`).
  */
 export function createRoom(
   displayName: string,
@@ -146,6 +148,7 @@ export function createRoom(
   avatar: number | undefined,
   returning: boolean,
   access: RoomAccess = 'code',
+  customQuestions: readonly CustomQuestion[] = [],
 ): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
@@ -156,7 +159,7 @@ export function createRoom(
       invite_only: access === 'link',
       public: access === 'public',
       settings,
-      custom_questions: [],
+      custom_questions: customQuestions,
     }),
   })
 }

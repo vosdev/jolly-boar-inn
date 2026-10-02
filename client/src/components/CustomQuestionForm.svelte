@@ -1,0 +1,362 @@
+<script lang="ts">
+  /**
+   * One of the host's questions being written: its type's fields, who asks it, and beside
+   * them the random event as players will see it.
+   *
+   * Save only hands back a question `problems` passes. Until the first try, only the
+   * limits show (too long, too many, a repeated answer); what is still empty waits for
+   * Save, so a fresh form is not a page of red.
+   */
+  import {
+    CUSTOM_TYPES,
+    TYPE_LABELS,
+    draftOf,
+    previewOf,
+    problems,
+    questionOf,
+    type CustomQuestion,
+  } from '../lib/customQuestions'
+  import { codePoints, field, limit } from '../lib/questionSchema'
+  import { RANDOM_EVENTS } from '../lib/randomEvents'
+  import RandomEvent from './RandomEvent.svelte'
+  import Segmented from './Segmented.svelte'
+
+  let {
+    question = undefined,
+    onsave,
+    oncancel,
+  }: {
+    /** The question to edit, or none for a new one. */
+    question?: CustomQuestion
+    onsave: (question: CustomQuestion) => void
+    oncancel: () => void
+  } = $props()
+
+  const OPTIONS_MIN = limit(field('multiple_choice', 'options'), 'minItems') ?? 0
+  const OPTIONS_MAX = limit(field('multiple_choice', 'options'), 'maxItems') ?? 0
+  const ACCEPTED_MIN = limit(field('free_text', 'accepted'), 'minItems') ?? 0
+  const ACCEPTED_MAX = limit(field('free_text', 'accepted'), 'maxItems') ?? 0
+  const DISTANCE_MIN = limit(field('free_text', 'max_distance'), 'minimum') ?? 0
+  const DISTANCE_MAX = limit(field('free_text', 'max_distance'), 'maximum') ?? 0
+  const DISTANCES = Array.from({ length: DISTANCE_MAX - DISTANCE_MIN + 1 }, (_, i) => ({
+    value: String(DISTANCE_MIN + i),
+    label: String(DISTANCE_MIN + i),
+  }))
+  const TYPES = CUSTOM_TYPES.map((type) => ({ value: type, label: TYPE_LABELS[type] }))
+
+  // The form starts from the question it was opened on and owns the draft from then on.
+  // svelte-ignore state_referenced_locally
+  let draft = $state(draftOf(question))
+  let attempted = $state(false)
+  const id = $props.id()
+
+  const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
+  const explanationMax = $derived(limit(field(draft.type, 'explanation'), 'maxLength'))
+  const built = $derived(questionOf(draft))
+  const found = $derived(problems(built))
+  const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
+
+  /** Paths the form has a place for; anything else is listed under the form. */
+  const PLACED =
+    /^(payload\.(prompt|options|answer_index|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
+  const unplaced = $derived(shown.filter((problem) => !PLACED.test(problem.path)))
+
+  function errorsAt(path: string): string[] {
+    return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
+  }
+
+  function save(): void {
+    attempted = true
+    if (found.length === 0) onsave(built)
+  }
+
+  // Enter in a field would submit Create's form, and with it the room. Here it saves the
+  // question instead, as it would in a form of its own.
+  function enter(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' || !(event.target instanceof HTMLInputElement)) return
+    if (event.target.type === 'radio') return
+    event.preventDefault()
+    save()
+  }
+
+  function enterSaves(node: HTMLElement): () => void {
+    node.addEventListener('keydown', enter)
+    return () => node.removeEventListener('keydown', enter)
+  }
+
+  function addOption(): void {
+    draft.options.push('')
+  }
+
+  function removeOption(index: number): void {
+    draft.options.splice(index, 1)
+    if (draft.answerIndex === index) draft.answerIndex = 0
+    else if (draft.answerIndex > index) draft.answerIndex -= 1
+  }
+</script>
+
+{#snippet errors(path: string)}
+  {#each errorsAt(path) as message (message)}
+    <p class="error">{message}</p>
+  {/each}
+{/snippet}
+
+<!-- A form of its own would nest inside Create's, which HTML does not allow, so this is a
+     group whose Save button does the submitting. -->
+<div class="editor surface" role="group" aria-labelledby="{id}-title" {@attach enterSaves}>
+  <div class="layout">
+    <div class="fields">
+      <h3 id="{id}-title">{question === undefined ? 'New question' : 'Edit question'}</h3>
+      <Segmented legend="Type" options={TYPES} bind:value={draft.type} />
+
+      <div class="field">
+        <label for="{id}-prompt">Question</label>
+        <textarea id="{id}-prompt" rows="3" bind:value={draft.prompt}></textarea>
+        <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
+        {@render errors('payload.prompt')}
+      </div>
+
+      {#if draft.type === 'multiple_choice'}
+        <fieldset class="field">
+          <legend>Answers, with the right one marked</legend>
+          {#each draft.options as _, index (index)}
+            <div class="option">
+              <input
+                type="radio"
+                name="{id}-correct"
+                aria-label="Answer {index + 1} is right"
+                checked={draft.answerIndex === index}
+                onchange={() => (draft.answerIndex = index)}
+              />
+              <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
+              <button
+                type="button"
+                class="small"
+                aria-label="Remove answer {index + 1}"
+                disabled={draft.options.length <= OPTIONS_MIN}
+                onclick={() => removeOption(index)}>✕</button
+              >
+            </div>
+            {@render errors(`payload.options[${index}]`)}
+          {/each}
+          <button
+            type="button"
+            class="small"
+            disabled={draft.options.length >= OPTIONS_MAX}
+            onclick={addOption}>Add an answer</button
+          >
+          <p class="note">{OPTIONS_MIN} to {OPTIONS_MAX} answers.</p>
+          {@render errors('payload.options')}
+          {@render errors('payload.answer_index')}
+        </fieldset>
+      {:else if draft.type === 'free_text'}
+        <fieldset class="field">
+          <legend>Answers that count</legend>
+          {#each draft.accepted as _, index (index)}
+            <div class="option">
+              <input
+                type="text"
+                aria-label="Accepted answer {index + 1}"
+                bind:value={draft.accepted[index]}
+              />
+              <button
+                type="button"
+                class="small"
+                aria-label="Remove accepted answer {index + 1}"
+                disabled={draft.accepted.length <= ACCEPTED_MIN}
+                onclick={() => draft.accepted.splice(index, 1)}>✕</button
+              >
+            </div>
+            {@render errors(`payload.accepted[${index}]`)}
+          {/each}
+          <button
+            type="button"
+            class="small"
+            disabled={draft.accepted.length >= ACCEPTED_MAX}
+            onclick={() => draft.accepted.push('')}>Add another spelling</button
+          >
+          <p class="note">Case, accents, punctuation and spacing never count against a player.</p>
+          {@render errors('payload.accepted')}
+        </fieldset>
+        <div class="field">
+          <Segmented
+            legend="Typos allowed"
+            options={DISTANCES}
+            bind:value={
+              () => String(draft.maxDistance), (value) => (draft.maxDistance = Number(value))
+            }
+          />
+          <p class="note">Answers under four letters must always match exactly.</p>
+          {@render errors('payload.max_distance')}
+        </div>
+      {:else}
+        <div class="pair">
+          <div class="field">
+            <label for="{id}-answer">Answer</label>
+            <input id="{id}-answer" type="text" inputmode="decimal" bind:value={draft.answer} />
+            {@render errors('payload.answer')}
+          </div>
+          <div class="field">
+            <label for="{id}-unit">Unit, if any</label>
+            <input id="{id}-unit" type="text" placeholder="gp" bind:value={draft.unit} />
+            {@render errors('payload.unit')}
+          </div>
+        </div>
+        <p class="note closest">The closest guess wins, ties included.</p>
+      {/if}
+
+      <div class="field">
+        <label for="{id}-explanation">Explanation shown after, if any</label>
+        <textarea id="{id}-explanation" rows="2" bind:value={draft.explanation}></textarea>
+        <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
+        {@render errors('payload.explanation')}
+      </div>
+
+      <div class="field">
+        <label for="{id}-npc">Who asks it</label>
+        <select id="{id}-npc" bind:value={draft.npc}>
+          <option value="">Random</option>
+          {#each RANDOM_EVENTS as npc (npc.id)}
+            <option value={npc.id}>{npc.name}: {npc.theme}</option>
+          {/each}
+        </select>
+        {@render errors('random_event')}
+      </div>
+
+      {#each unplaced as problem (problem.path + problem.message)}
+        <p class="error">{problem.path}: {problem.message}</p>
+      {/each}
+
+      <div class="row">
+        <button type="button" class="primary" onclick={save}>
+          {question === undefined ? 'Add question' : 'Save question'}
+        </button>
+        <button type="button" onclick={oncancel}>Cancel</button>
+      </div>
+    </div>
+
+    <section class="preview" aria-label="Preview">
+      <p class="note">What players will see</p>
+      <RandomEvent question={previewOf(built)} yourValue={null} onAnswer={() => {}} />
+    </section>
+  </div>
+</div>
+
+<style>
+  .editor {
+    container-type: inline-size;
+    padding: 1rem;
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 8px);
+    background: var(--panel-raised);
+  }
+
+  /* The preview beside the fields where there is room, under them on a phone. */
+  .layout {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  @container (min-width: 46rem) {
+    .layout {
+      grid-template-columns: 3fr 2fr;
+      align-items: start;
+    }
+  }
+
+  .fields {
+    min-width: 0;
+  }
+
+  h3 {
+    margin: 0 0 0.75rem;
+  }
+
+  .fields > :global(.segmented) {
+    margin-bottom: 1rem;
+  }
+
+  /* Three type names do not fit a phone on one line each; they wrap inside their buttons. */
+  @container (max-width: 26rem) {
+    .fields > :global(.segmented label) {
+      flex: 1;
+      white-space: normal;
+      text-align: center;
+    }
+  }
+
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    min-width: 0;
+  }
+
+  legend {
+    padding: 0;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  textarea {
+    width: 100%;
+    font: inherit;
+    padding: calc(0.55rem - var(--border-give)) calc(0.7rem - var(--border-give));
+    color: var(--ink);
+    background: var(--panel);
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 8px);
+    resize: vertical;
+  }
+
+  textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .counter {
+    margin: 0.2rem 0 0;
+    text-align: right;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .option input[type='radio'] {
+    flex: none;
+    width: 1.05rem;
+    height: 1.05rem;
+    accent-color: var(--accent);
+  }
+
+  .option button {
+    flex: none;
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+  }
+
+  .preview {
+    min-width: 0;
+  }
+
+  .preview > .note {
+    margin: 0 0 0.5rem;
+  }
+
+  .fields .note {
+    margin: 0.3rem 0 0;
+  }
+
+  .fields .closest {
+    margin: -0.5rem 0 1rem;
+  }
+</style>

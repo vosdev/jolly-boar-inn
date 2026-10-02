@@ -26,9 +26,9 @@
    * question and leaving. So the form offers every mode but those two. How often that
    * happens is the host's one choice about events: once per 20, 10 or 5 round questions,
    * on top of the rounds, so the total the form shows counts them. There is no "never";
-   * "less often" is the quiet end. Writing the host's own questions is the editor's job;
-   * until it lands `custom_questions` is always the empty list `api.createRoom`
-   * sends, and every event is an NPC asking a question of their own.
+   * "less often" is the quiet end. The host's own questions (`CustomQuestions`) each take
+   * one of those events, so the form will not submit more of them than there are, nor
+   * while one is still open in the editor, where it would be lost.
    */
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
@@ -41,10 +41,12 @@
     type NewRoomSettings,
     type RoomAccess,
   } from '../lib/api'
+  import CustomQuestions from '../components/CustomQuestions.svelte'
   import ModeCard from '../components/ModeCard.svelte'
   import Segmented from '../components/Segmented.svelte'
   import Stepper from '../components/Stepper.svelte'
   import { randomHead } from '../lib/heads'
+  import { eventSlots, overCap, type CustomQuestion } from '../lib/customQuestions'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
   import { generateName } from '../lib/names'
   import { nudge, profile, returningVisitor, saveProfile } from '../lib/profile'
@@ -92,6 +94,9 @@
   let access = $state<RoomAccess>('code')
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
+  let customQuestions = $state<CustomQuestion[]>([])
+  /** A question open in the editor, unsaved: submitting now would leave it behind. */
+  let editingQuestion = $state(false)
 
   /** What the server will play and what it will accept for each, or null until it says. */
   let pacing = $state<ModePacing[] | null>(null)
@@ -109,14 +114,21 @@
   )
   const questionCount = $derived(rounds.reduce((total, round) => total + round.questions, 0))
   /**
-   * The events the room adds to that, counted as the server counts them: one per whole
-   * `EVENT_EVERY` round questions. They are questions the room will play, so they are in
-   * the total and under the cap.
+   * The events the room adds to that, counted as the server counts them (`eventSlots`).
+   * They are questions the room will play, so they are in the total and under the cap.
    */
-  const eventCount = $derived(Math.floor(questionCount / EVENT_EVERY[frequency]))
+  const lengths = $derived(rounds.map((round) => round.questions))
+  const eventCount = $derived(eventSlots(lengths, EVENT_EVERY[frequency]))
   const totalCount = $derived(questionCount + eventCount)
+  const eventsAtMore = $derived(eventSlots(lengths, EVENT_EVERY.more))
+  const tooManyOwn = $derived(overCap(customQuestions.length, eventCount, frequency, eventsAtMore))
   const ready = $derived(
-    rounds.length > 0 && questionCount >= 1 && totalCount <= MAX_QUESTIONS && full === false,
+    rounds.length > 0 &&
+      questionCount >= 1 &&
+      totalCount <= MAX_QUESTIONS &&
+      tooManyOwn === null &&
+      !editingQuestion &&
+      full === false,
   )
 
   onMount(async () => {
@@ -202,6 +214,7 @@
         host.head,
         returningVisitor,
         access,
+        customQuestions,
       )
       setSession(created.code, created.session)
       rememberCreated(created.code, created.expires_at)
@@ -285,6 +298,14 @@
     {/if}
   </section>
 
+  <CustomQuestions
+    bind:questions={customQuestions}
+    bind:editing={editingQuestion}
+    slots={eventCount}
+    {frequency}
+    atMore={eventsAtMore}
+  />
+
   <section class="panel access">
     <h2>Who can join</h2>
     <Segmented legend="Access" hideLegend options={ACCESS} bind:value={access} />
@@ -325,6 +346,9 @@
           An NPC interrupts on average once every {EVENT_EVERY[frequency]} questions, on top of
           the round's.
         </p>
+        {#if tooManyOwn !== null}
+          <p class="error">{tooManyOwn}</p>
+        {/if}
       </div>
       <Segmented legend="Introduce each round" options={OFF_ON} bind:value={introduceRounds} />
       <div>
@@ -354,6 +378,9 @@
     {/if}
     <button type="button" onclick={() => navigate('/')}>Back</button>
   </div>
+  {#if editingQuestion && full !== true}
+    <p class="note">Add or cancel the question you are writing before you create the room.</p>
+  {/if}
   {#if failure !== null}
     <!-- A banner rather than a bare .error: this sits on the page, under the buttons,
          and a theme's page may be a floor --bad does not read against. -->
