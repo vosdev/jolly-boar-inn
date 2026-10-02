@@ -1,4 +1,4 @@
--- T16: a question's round is no longer its type. `type` stays "how is this answered";
+-- A question's round is no longer its type. `type` stays "how is this answered";
 -- `mode` is "what is this round" -- the pool it was drawn from, the round segments.py
 -- groups it into, the mode its splash introduces. Phase 2 puts five modes on the one
 -- `multiple_choice` type, so from here on neither can be derived from the other.
