@@ -167,6 +167,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `validate_packs.py` fails CI on a schema error, a duplicate or mismatched id, an unknown mode, a
   type its mode does not allow, a stray `random_event`, or a price type filed as an event.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
+- Create's editor writes `multiple_choice`, `free_text` and `closest_number` with limits read from
+  the schema, refuses what the server would 422, the slot cap included, and exports
+  `[{type, payload, random_event?}]`, which Import reads back byte for byte.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:
 

@@ -8,9 +8,10 @@ COPY client/package.json client/pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY client/ ./
-# What the client reads from outside client/: the random-name corpus (D3), and the chat
-# heads, which the build packs into one sprite sheet (D4).
+# What the client reads from outside client/: the random-name corpus, the question schema
+# the editor's limits come from, and the chat heads, which the build packs into one sheet.
 COPY data/player-names.json ../data/player-names.json
+COPY schema/question.schema.json ../schema/question.schema.json
 COPY data/heads/ ../data/heads/
 # The app's version, which the top bar shows (ideas/architecture.md, Versioning).
 COPY VERSION ../VERSION

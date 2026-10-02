@@ -9,9 +9,9 @@ import { siteBranding } from './site-branding.ts'
 
 // Dev server proxies /api and /ws to the FastAPI server on :8000.
 //
-// `lib/names.ts` imports `data/player-names.json` from outside the client, so the dev
-// server is allowed that one file as well as its own root. A build needs nothing: Rollup
-// reads it straight off the disk. The chat heads in `data/heads/` never go through the
+// `lib/names.ts` imports `data/player-names.json` and `lib/questionSchema.ts` the question
+// schema from outside the client, so the dev server is allowed those two files as well as
+// its own root. A build needs nothing: Rollup reads them straight off the disk. The chat heads in `data/heads/` never go through the
 // dev server at all: `headsSprite` reads them and serves one sheet.
 //
 // `pnpm test` runs the component tests in jsdom. `svelteTesting` resolves Svelte's
@@ -33,7 +33,7 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    fs: { allow: ['.', '../data/player-names.json'] },
+    fs: { allow: ['.', '../data/player-names.json', '../schema/question.schema.json'] },
     proxy: {
       '/api': { target: 'http://localhost:8000', changeOrigin: true },
       '/ws': { target: 'ws://localhost:8000', ws: true, changeOrigin: true },
