@@ -89,11 +89,3 @@ export function saveProfile(name: string, head?: number): void {
     return next
   })
 }
-
-/**
- * The room a join-first player landed in under a name they never chose (section 5.1.1,
- * option B), or null. The identity chip nudges them once there — "You're AFKFisher42 —
- * tap to change" — for as long as that room's lobby lasts, or until they tap it or
- * dismiss it. Memory only: a reload is not a second first visit.
- */
-export const nudge = writable<string | null>(null)

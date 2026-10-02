@@ -17,9 +17,9 @@
    * rarely improved by always opening on the same round.
    *
    * The host is the profile, name and head, and the form never asks: the name lives in
-   * the top bar. A browser with none is handled the way Join handles one: it is given a
-   * generated name and head, which become its profile, and the chip nudges it once in
-   * the lobby. Nothing stands between a first-time host and their room.
+   * the top bar. A browser with none is handled the way Join handles one: pressing
+   * Create opens `NamePrompt` first, and what is confirmed becomes the profile and the
+   * host's name. The room is not made until then.
    *
    * `/api/modes` lists `custom` and `random_event` too, with no round length: their
    * questions are never a round but random events, an NPC interrupting a round with one
@@ -43,13 +43,12 @@
   } from '../lib/api'
   import CustomQuestions from '../components/CustomQuestions.svelte'
   import ModeCard from '../components/ModeCard.svelte'
+  import NamePrompt from '../components/NamePrompt.svelte'
   import Segmented from '../components/Segmented.svelte'
   import Stepper from '../components/Stepper.svelte'
-  import { randomHead } from '../lib/heads'
   import { eventSlots, overCap, type CustomQuestion } from '../lib/customQuestions'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
-  import { generateName } from '../lib/names'
-  import { nudge, profile, returningVisitor, saveProfile } from '../lib/profile'
+  import { profile, returningVisitor, saveProfile } from '../lib/profile'
   import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
   import { rememberCreated, setSession } from '../lib/session'
@@ -102,6 +101,8 @@
   let pacing = $state<ModePacing[] | null>(null)
   let pacingFailure = $state<string | null>(null)
   let busy = $state(false)
+  /** A browser with no profile is being asked for one before the room is made. */
+  let naming = $state(false)
   let failure = $state<string | null>(null)
   /** Whether this browser already hosts as many rooms as it may, or null until known. */
   let full = $state<boolean | null>(null)
@@ -183,9 +184,26 @@
     navigate('/')
   }
 
-  async function submit(event: SubmitEvent): Promise<void> {
+  function submit(event: SubmitEvent): void {
     event.preventDefault()
     if (busy || !ready) return
+    if (get(profile) === null) {
+      naming = true
+      return
+    }
+    void create()
+  }
+
+  /** The prompt's answer is the profile before it is the host. */
+  function named(name: string, head: number): void {
+    saveProfile(name, head)
+    naming = false
+    void create()
+  }
+
+  async function create(): Promise<void> {
+    const host = get(profile)
+    if (host === null) return
     busy = true
     failure = null
     // Another tab may have created a room since this one loaded.
@@ -205,8 +223,6 @@
       name_wrong_answers: nameWrongAnswers,
       hide_rounds: hideRounds,
     }
-    const saved = get(profile)
-    const host = saved ?? { name: generateName(), head: randomHead() }
     try {
       const created = await createRoom(
         host.name,
@@ -218,12 +234,6 @@
       )
       setSession(created.code, created.session)
       rememberCreated(created.code, created.expires_at)
-      // Only once the room exists, so a failed create leaves a browser that is still
-      // nudged when it does get one.
-      if (saved === null) {
-        saveProfile(host.name, host.head)
-        nudge.set(created.code)
-      }
       navigate(`/r/${created.code}`)
     } catch (error) {
       failure =
@@ -397,6 +407,10 @@
     <p class="banner bad" role="alert">{failure}</p>
   {/if}
 </form>
+
+{#if naming}
+  <NamePrompt action="Create room" onConfirm={named} />
+{/if}
 
 <style>
   /* One card a row on a phone, two on a tablet, three once the page is wide enough. */

@@ -10,13 +10,10 @@
    *
    * - **A profile** joins straight through under its name and head. A returning player
    *   taps a link and is in the lobby; they are never asked again.
-   * - **No profile** joins straight through too, as a random name and a random head
-   *   (section 5.1.1 option B). The link is tapped at the exact moment a distracted
-   *   person at a party puts their phone down, so nothing stands between it and the
-   *   room: they are in, seeing the others arrive, and the top bar's chip nudges them
-   *   once — "You're Cow31337Killer42 — tap to change" — where `set_profile` renames them
-   *   in place. What they were given becomes the profile, so the next room is the same
-   *   face and the same name, and never nudges again.
+   * - **No profile** gets `NamePrompt` first, pre-filled with a generated name and head,
+   *   and cannot dismiss it. The join happens on its button, so nobody in the lobby ever
+   *   sees a name the player did not at least look at. What they confirm becomes the
+   *   profile, so the next room is the same face and the same name.
    *
    * A `name_taken` turns the number on the end over and tries again, up to three times,
    * before it is the player's problem: two people who rolled the same base name in one
@@ -36,6 +33,7 @@
   import { get } from 'svelte/store'
 
   import NameField from '../components/NameField.svelte'
+  import NamePrompt from '../components/NamePrompt.svelte'
   import {
     ApiFailure,
     askToJoin,
@@ -46,11 +44,10 @@
     type Credentials,
     type RoomSnapshot,
   } from '../lib/api'
-  import { randomHead } from '../lib/heads'
   import { historyPath, latestPastGame } from '../lib/history'
   import { keyFromHash } from '../lib/invite'
-  import { generateName, nameProblem, resuffix } from '../lib/names'
-  import { nudge, profile, returningVisitor, saveProfile } from '../lib/profile'
+  import { nameProblem, resuffix } from '../lib/names'
+  import { profile, returningVisitor, saveProfile } from '../lib/profile'
   import { setSession } from '../lib/session'
 
   /** Fresh numbers tried after the first `name_taken`, before giving up. */
@@ -73,6 +70,8 @@
   let snapshot = $state<RoomSnapshot | null>(null)
   let lookupError = $state<string | null>(null)
   let joiningAs = $state<string | null>(null)
+  /** A browser with no profile is being asked for one before it joins. */
+  let naming = $state(false)
   let displayName = $state('')
   let failure = $state<string | null>(null)
   const key = keyFromHash(location.hash)
@@ -112,18 +111,21 @@
     if (snapshot.status === 'lobby') await enter()
   })
 
-  /**
-   * Straight through with the profile, once. A browser with none is given one first
-   * (join-first), and nudged about it in the lobby.
-   */
+  /** Straight through with the profile, once. A browser with none is asked for one first. */
   async function enter(): Promise<void> {
-    let current = get(profile)
+    const current = get(profile)
     if (current === null) {
-      saveProfile(generateName(code), randomHead())
-      nudge.set(code)
-      current = get(profile)
+      naming = true
+      return
     }
-    if (current !== null) await join(current.name)
+    await join(current.name)
+  }
+
+  /** The prompt's answer is the profile before it is a join, so the head goes with it. */
+  function named(name: string, head: number): void {
+    saveProfile(name, head)
+    naming = false
+    void join(name)
   }
 
   /** `attempt` as `name`, turning its number over on `name_taken`. Throws what is left. */
@@ -248,7 +250,7 @@
       {snapshot.players}
       {snapshot.players === 1 ? 'player' : 'players'} in so far.
     </p>
-    {#if !inviteOnly && failure === null}
+    {#if !naming && !inviteOnly && failure === null}
       <p class="tagline" role="status">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>
     {/if}
   {/if}
@@ -301,4 +303,8 @@
       </form>
     </section>
   {/if}
+{/if}
+
+{#if naming}
+  <NamePrompt action="Join" avoid={code} onConfirm={named} />
 {/if}

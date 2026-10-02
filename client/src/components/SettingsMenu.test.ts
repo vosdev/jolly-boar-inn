@@ -1,6 +1,6 @@
 /**
  * The bar's one control and its menu: the head it draws, a rename the room refuses, the
- * join-first nudge, and a rename the room never answers, which the menu waits a few
+ * and a rename the room never answers, which the menu waits a few
  * seconds for, says so and lets the player try again, and which any `welcome`, `error` or
  * leaving the room ends. Then the menu as a whole: every setting the three old popovers
  * held, the keyboard, and the theme list, which offers the themes and nothing that follows
@@ -15,7 +15,7 @@ import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { derivedHead } from '../lib/heads'
-import { nudge, profile } from '../lib/profile'
+import { profile } from '../lib/profile'
 import type { ClientMessage, PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, connection, resetRoom, roomSend } from '../lib/stores'
 import { EMBLEMS } from '../lib/emblems'
@@ -55,7 +55,6 @@ beforeEach(() => {
 
 afterEach(() => {
   roomSend.set(null)
-  nudge.set(null)
   profile.set(null)
   vi.useRealTimers()
   vi.unstubAllGlobals()
@@ -123,16 +122,6 @@ describe('SettingsMenu', () => {
     expect(screen.getByRole('alert').textContent).toBe('Somebody in this room already has that name.')
     expect(screen.getByRole('button', { name: /^You are Zezima/ })).toBeTruthy()
     expect(get(profile)?.name).toBe('Zezima')
-  })
-
-  it('nudges a player who joined first, in that room’s lobby, until dismissed', async () => {
-    welcome(me)
-    nudge.set('ABYSSAL')
-    render(SettingsMenu, { live: me })
-    expect(screen.getByRole('status').textContent).toContain("You're Zezima — tap to change.")
-    await fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
-    expect(screen.queryByRole('status')).toBeNull()
-    expect(get(nudge)).toBeNull()
   })
 })
 

@@ -290,6 +290,7 @@ describe("App", () => {
     }
     profile.set(null);
     at("/r/CABBAGE");
+    await fireEvent.click(await screen.findByRole("button", { name: "Join" }));
     await waitFor(() => expect(api.joinRoom).toHaveBeenCalledOnce());
     expect(await screen.findByText("Connecting…")).toBeTruthy();
     expect(
