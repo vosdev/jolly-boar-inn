@@ -53,7 +53,8 @@ The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds tha
 
 `RoomManager` methods: `get` (rehydrates, section 9), `create`, `join`, `connect`, `disconnect`,
 `set_profile`, `set_ready`, `set_editing`, `start_game`, `submit_answer`, `skip(phase, index)`,
-`rotate_key`, `promote`, `kick`, `end_game`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`,
+`rotate_key`, `request_join`, `poll_request`, `cancel_request`, `decide_request`, `promote`, `kick`,
+`end_game`, `delete`, `purge_expired`, `evict`. A `Room` holds `players`, `requests`,
 `questions`, `totals`, `current_index`, `phase`, `next_at` (wall clock) with `next_mono`
 (monotonic), `sockets` (one `Outbox` each), `timer`, the `advance` and `rescheduled` events, and
 `lock`.
@@ -216,6 +217,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `kick` | `player_id` | admin | Deletes the player and their answers; closes 4003. Not on admins. |
 | `end_game` | | admin | Voids an open question, `playing → finished`. |
 | `rotate_key` | | admin | Lobby, invite-only room. New key; the old link stops joining, nobody leaves. |
+| `decide_request` | `request_id`, `accept` | admin | Lets a waiting join request in or turns it away, once (section 10). |
 
 | Server `t` | Fields | When |
 |---|---|---|
@@ -232,7 +234,8 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 
 ```
 RoomView     { code, status, settings, current_index, total, phase, next_at, segment,
-               finished_at, rounds?, key? }
+               finished_at, rounds?, key?, requests? }
+JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank }
 Segment      { mode, index, total, start, count }
@@ -251,7 +254,8 @@ PlayerResult { value, correct, credit, points }
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` itself only when true.
-- `key` is an invite-only room's, sent only to its admins (section 10).
+- `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
+  to its admins (section 10).
 - `band` is the speed bucket for SPEED, the step for STEP, null for RANK. `of` is every connected
   player who can answer, plus anyone who answered and dropped.
 - `credit` lets a reveal say "3 of 5 in place". `correct` is `credit >= 1.0`.
@@ -268,7 +272,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 - With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
   rounds `current_index` has reached. The lobby names none, admins' included: screens get shared.
 - An admin can read the room's custom questions before the game. They cannot score on them.
-- An invite-only room's key reaches admins only. It is a column, not a setting.
+- An invite-only room's key and join requests reach admins only. The key is a column, not a setting.
 
 | Close | Meaning | Client |
 |---|---|---|
@@ -456,6 +460,13 @@ away. Both return chosen fields only, never a name, an answer or a question.
   with `hmac.compare_digest`. It is a door code, not a credential, so it travels in the link's
   fragment, `/r/CODE#k=…`; Join moves it to the body and `replaceState`s it away. Sessions never
   need it. Rotating it is the room lock; there is no other.
+- Without the key, `POST /api/rooms/{code}/requests {display_name, avatar?, returning}` asks the
+  admins instead → `201 {ticket}`, charged as a join and refused for what would refuse one. A
+  request is memory only, at most 5 a room (409 `requests_full`), and its name is taken like a
+  player's. The ticket travels like a session: `.../requests/poll {ticket}` answers `waiting`, or
+  `accepted` with a join's `{session, player}`, created only then; 403 `request_denied`; 410
+  `request_gone` once withdrawn (`.../requests/cancel`), unpolled for 10 s, or 5 minutes old.
+  `start_game` drops every request.
 - `public` lists the room on Home (`rooms.public`); with `invite_only` too it is a 422.
   `GET /api/rooms/public` is the one route that shows a stranger rooms they were not given, so it
   carries only what a join would: the 50 newest public lobbies in memory with a connected player

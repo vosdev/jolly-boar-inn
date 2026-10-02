@@ -6,7 +6,7 @@
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
 import { get } from 'svelte/store'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
@@ -17,7 +17,14 @@ import Join from './Join.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getRoom: vi.fn(), joinRoom: vi.fn() }
+  return {
+    ...real,
+    getRoom: vi.fn(),
+    joinRoom: vi.fn(),
+    askToJoin: vi.fn(),
+    pollRequest: vi.fn(),
+    cancelRequest: vi.fn(),
+  }
 })
 
 const navigate = vi.fn()
@@ -178,6 +185,101 @@ describe('Join for an invite-only room', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await fireEvent.input(await field(), { target: { value: 'https://inn.example/r/ABYSSAL' } })
     expect((screen.getByRole('button', { name: 'Join' }) as HTMLButtonElement).disabled).toBe(true)
+  })
+})
+
+describe('Asking the host to let you in', () => {
+  const askButton = () => screen.findByRole('button', { name: 'Ask the host to let you in' })
+
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.mocked(api.joinRoom).mockRejectedValue(new ApiFailure(403, 'key_required', 'refused'))
+    vi.mocked(api.askToJoin).mockResolvedValue({ ticket: 'ticket' })
+    vi.mocked(api.cancelRequest).mockResolvedValue(undefined)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  async function asked(): Promise<void> {
+    render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.click(await askButton())
+    await screen.findByText('Waiting for the host to let you in as Zezima…')
+  }
+
+  it('waits for the host beside the link prompt, then lands in the room once let in', async () => {
+    vi.mocked(api.pollRequest)
+      .mockResolvedValueOnce({ status: 'waiting' })
+      .mockResolvedValueOnce({ status: 'accepted', ...CREDENTIALS })
+    await asked()
+    expect(api.askToJoin).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3, false)
+    await vi.advanceTimersByTimeAsync(2000)
+    expect(api.pollRequest).toHaveBeenCalledWith('ABYSSAL', 'ticket')
+    expect(navigate).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(2000)
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(getSession('ABYSSAL')).toBe('token')
+    expect(api.cancelRequest).not.toHaveBeenCalled()
+  })
+
+  it('turns the number over when the name is taken, and says which it asked as', async () => {
+    vi.mocked(api.askToJoin)
+      .mockRejectedValueOnce(taken())
+      .mockResolvedValueOnce({ ticket: 'ticket' })
+    vi.mocked(api.pollRequest).mockResolvedValue({ status: 'waiting' })
+    render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.click(await askButton())
+    const names = vi.mocked(api.askToJoin).mock.calls.map(([, name]) => name)
+    expect(names[0]).toBe('Zezima')
+    await screen.findByText(`Waiting for the host to let you in as ${names[1]}…`)
+  })
+
+  it.each([
+    ['request_denied', 403, "The host didn't let you in."],
+    ['request_gone', 410, 'Nobody answered in time. You can ask again.'],
+  ])('says so on %s, and offers to ask again', async (code, status, text) => {
+    vi.mocked(api.pollRequest).mockRejectedValueOnce(new ApiFailure(status, code, 'no'))
+    await asked()
+    await vi.advanceTimersByTimeAsync(2000)
+    await screen.findByText(text)
+    expect(await askButton()).toBeTruthy()
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('keeps polling through a dropped connection', async () => {
+    vi.mocked(api.pollRequest)
+      .mockRejectedValueOnce(new ApiFailure(0, 'unreachable', 'offline'))
+      .mockResolvedValueOnce({ status: 'accepted', ...CREDENTIALS })
+    await asked()
+    await vi.advanceTimersByTimeAsync(4000)
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+  })
+
+  it('says a full queue in its own words', async () => {
+    vi.mocked(api.askToJoin).mockRejectedValueOnce(new ApiFailure(409, 'requests_full', 'full'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.click(await askButton())
+    await screen.findByText('Too many people are waiting to be let in. Try again in a minute.')
+  })
+
+  it('withdraws the request on Cancel, and stops polling', async () => {
+    vi.mocked(api.pollRequest).mockResolvedValue({ status: 'waiting' })
+    await asked()
+    await fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(api.cancelRequest).toHaveBeenCalledWith('ABYSSAL', 'ticket')
+    await vi.advanceTimersByTimeAsync(4000)
+    expect(api.pollRequest).not.toHaveBeenCalled()
+    expect(await askButton()).toBeTruthy()
+  })
+
+  it('withdraws the request when the page goes away', async () => {
+    vi.mocked(api.pollRequest).mockResolvedValue({ status: 'waiting' })
+    const { unmount } = render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.click(await askButton())
+    await screen.findByText('Waiting for the host to let you in as Zezima…')
+    unmount()
+    expect(api.cancelRequest).toHaveBeenCalledWith('ABYSSAL', 'ticket')
   })
 })
 

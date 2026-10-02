@@ -273,6 +273,8 @@ async def _dispatch(
             await manager.end_game(code, player)
         case protocol.RotateKey():
             await manager.rotate_key(code, player)
+        case protocol.DecideRequest():
+            await manager.decide_request(code, player, message.request_id, message.accept)
         case protocol.SetProfile():
             await manager.set_profile(code, player, message.display_name, message.avatar)
         case protocol.Ready():

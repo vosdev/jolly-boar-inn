@@ -65,6 +65,12 @@ class Segment(_Message):
     count: int  # questions in the round
 
 
+class JoinRequestView(_Message):
+    id: UUID
+    display_name: str
+    avatar: int | None  # as on ``PlayerView``
+
+
 class RoomView(_Message):
     code: str
     status: RoomStatus
@@ -90,6 +96,11 @@ class RoomView(_Message):
     rounds: int | None = Field(default=None, exclude_if=lambda rounds: rounds is None)
     # An invite-only room's key, sent to its admins only: settings reach every player.
     key: str | None = Field(default=None, exclude_if=lambda key: key is None)
+    # Who is asking to be let in without the key, oldest first: an invite-only room's,
+    # sent to its admins only, as the key is.
+    requests: list[JoinRequestView] | None = Field(
+        default=None, exclude_if=lambda requests: requests is None
+    )
 
 
 class PlayerView(_Message):
@@ -201,6 +212,14 @@ class RotateKey(_Message):
     t: Literal["rotate_key"]
 
 
+class DecideRequest(_Message):
+    """Let a join request in, or turn it away. Lobby of an invite-only room only."""
+
+    t: Literal["decide_request"]
+    request_id: UUID
+    accept: bool = Field(strict=True)
+
+
 class SetProfile(_Message):
     """Rename, re-roll the head, or both. One message for both, because they are the
     same operation on the same row: validated like a join, broadcast as ``room_updated``.
@@ -238,6 +257,7 @@ ClientMessage = Annotated[
     | Kick
     | EndGame
     | RotateKey
+    | DecideRequest
     | SetProfile
     | Ready
     | Editing,

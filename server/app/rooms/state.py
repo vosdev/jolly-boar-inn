@@ -65,7 +65,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import asyncpg
 from starlette.websockets import WebSocket
@@ -85,6 +85,7 @@ from app.ws.outbox import Outbox
 from app.ws.protocol import (
     AnswerCount,
     GameFinished,
+    JoinRequestView,
     OpenQuestion,
     PlayerResult,
     PlayersUpdated,
@@ -123,6 +124,12 @@ EDITING_SECONDS = 60.0
 # a room setting: the client's interlude is timed to it, the prompt typing in at a set pace
 # and finishing just before the answers (section 12 of ideas/design.md).
 RANDOM_EVENT_HOLD = 3.5
+# Requests waiting on an admin at once, so somebody guessing codes cannot bury a lobby.
+MAX_JOIN_REQUESTS = 5
+# Seconds a request outlives its requester's last poll; the waiting page polls every two.
+REQUEST_STALE_SECONDS = 10.0
+# Seconds a request waits for an answer before it lapses and frees its place.
+REQUEST_LIFETIME_SECONDS = 300.0
 # Close codes the manager itself uses (the handler owns the handshake codes).
 CLOSE_REPLACED = 4000  # a newer socket for the same player took over
 CLOSE_RESTART = 1012  # the room left memory; reconnect and you get a fresh welcome
@@ -195,6 +202,24 @@ class BadKey(ApiError):
     """A join to an invite-only room with a key that is not, or is no longer, its own."""
 
     status, code = 403, "bad_key"
+
+
+class RequestsFull(ApiError):
+    """``MAX_JOIN_REQUESTS`` are already waiting on this room's admins."""
+
+    status, code = 409, "requests_full"
+
+
+class RequestDenied(ApiError):
+    """An admin turned the join request away."""
+
+    status, code = 403, "request_denied"
+
+
+class RequestGone(ApiError):
+    """A join request that lapsed, was withdrawn, or never existed."""
+
+    status, code = 410, "request_gone"
 
 
 class BadSettings(ApiError):
@@ -337,6 +362,36 @@ class Player:
             self.editing_expiry = None
         was, self.editing = self.editing, False
         return was
+
+
+@dataclass(slots=True)
+class JoinRequest:
+    """Somebody without an invite-only room's key, asking its admins to let them in.
+
+    Not a player and not a row: memory only, so a restart forgets it and the waiting page
+    says to ask again. The requester holds a ticket, which works like a session until an
+    admin answers and the next poll turns it into one.
+    """
+
+    id: UUID
+    ticket_hash: str = field(repr=False)
+    display_name: str
+    avatar: int | None
+    returning: bool
+    asked_at: float  # on the manager's monotonic clock
+    # ``None`` while waiting, then the admin's answer, which the next poll acts on.
+    accepted: bool | None = None
+    # Drops the request once its requester stops polling or it outlives its lifetime.
+    expiry: asyncio.Task[None] | None = field(default=None, repr=False)
+
+    def view(self) -> JoinRequestView:
+        return JoinRequestView(id=self.id, display_name=self.display_name, avatar=self.avatar)
+
+    def drop(self) -> None:
+        """Cancel the expiry; the caller takes the request out of the room."""
+        if self.expiry is not None:
+            self.expiry.cancel()
+            self.expiry = None
 
 
 @dataclass(slots=True)
@@ -490,6 +545,8 @@ class Room:
     # Listed on Home for anyone to join while it is a lobby (``RoomManager.public_rooms``).
     public: bool = False
     players: dict[UUID, Player] = field(default_factory=dict)  # in join order
+    # Join requests by ticket hash, oldest first. Only an invite-only lobby has any.
+    requests: dict[str, JoinRequest] = field(default_factory=dict, repr=False)
     sockets: dict[UUID, Outbox] = field(default_factory=dict, repr=False)
     questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.
@@ -553,11 +610,12 @@ class Room:
     def view_for(self, player_id: UUID) -> RoomView:
         """The room as ``player_id`` is sent it: admins get the key, the rest the rounds so far."""
         if self.is_admin(player_id):
-            return self.view(key=True)
+            return self.view(admin=True)
         return self.view(withhold=self.settings.hide_rounds)
 
-    def view(self, withhold: bool = False, key: bool = False) -> RoomView:
-        """The room as a client sees it: ``withhold`` the unstarted rounds, add ``key`` or not.
+    def view(self, withhold: bool = False, admin: bool = False) -> RoomView:
+        """The room as a client sees it: ``withhold`` the unstarted rounds, and add the key
+        and the waiting join requests for an ``admin``.
 
         A round has started once ``current_index`` reaches it, which its splash does, or
         its first question when splashes are off. A game ended early keeps the rest hidden.
@@ -582,8 +640,18 @@ class Room:
             segment=self.current_segment,
             finished_at=self.finished_at,
             rounds=rounds,
-            key=self.invite_key if key else None,
+            key=self.invite_key if admin else None,
+            requests=self.waiting_requests() if admin and self.invite_key is not None else None,
         )
+
+    def waiting_requests(self) -> list[JoinRequestView]:
+        """The join requests no admin has answered yet, oldest first."""
+        return [r.view() for r in self.requests.values() if r.accepted is None]
+
+    def drop_requests(self) -> None:
+        for request in self.requests.values():
+            request.drop()
+        self.requests.clear()
 
     def gone(self, grace: timedelta, now: datetime) -> bool:
         """Past ``expires_at``, or finished longer ago than ``grace``: cleanup's to delete."""
@@ -754,6 +822,7 @@ class RoomManager:
         self.code_rng: random.Random = secrets.SystemRandom()
         self.clock = clock
         self.editing_seconds = EDITING_SECONDS
+        self.request_stale_seconds = REQUEST_STALE_SECONDS
         self.rooms: dict[str, Room] = {}
         # A room in memory shares its code's lock. The entry outlives the room while
         # anyone holds or waits on it, so an eviction and a rehydrate of the same code
@@ -898,6 +967,7 @@ class RoomManager:
         if self.rooms.get(room.code) is room:
             del self.rooms[room.code]
         _stop_timer(room)
+        room.drop_requests()
         sockets = list(room.sockets.values())
         room.sockets.clear()
         for player in room.players.values():
@@ -1054,7 +1124,7 @@ class RoomManager:
         """
         players = room.player_views()
         everyone = RoomUpdated(room=room.view(withhold=room.settings.hide_rounds), players=players)
-        admins = RoomUpdated(room=room.view(key=True), players=players)
+        admins = RoomUpdated(room=room.view(admin=True), players=players)
         if admins == everyone:
             return Broadcast.to_all(room, everyone.model_dump(mode="json"), exclude)
         rendered = {False: everyone.model_dump(mode="json"), True: admins.model_dump(mode="json")}
@@ -1312,39 +1382,154 @@ class RoomManager:
         code = code.upper()
         name = normalize_name(display_name)
         self.check_avatar(avatar)
-        session = new_token()
-        pool = await self._pool()
         async with self._locked(code):
             room = await self._room(code)
             _check_key(room, key)
-            # A player who is already in comes back through ``connect`` with their
-            # session; a join is a new player, and a game under way is too late for one.
-            if room.status == "playing":
-                raise NotOpen(f"the game in room {code} has already started")
-            if room.status != "lobby":
-                raise NotOpen(f"room {code} has finished")
-            if len(room.players) >= room.max_players:
-                raise RoomFull(f"room {code} is full")
-            async with pool.acquire() as conn, conn.transaction():
-                try:
-                    row = await conn.fetchrow(
-                        "insert into players (room_id, display_name, session_token_hash, avatar)"
-                        " values ($1, $2, $3, $4)"
-                        " returning id, display_name, avatar, role, joined_at, session_token_hash",
-                        room.id,
-                        name,
-                        hash_token(session),
-                        avatar,
-                    )
-                except asyncpg.UniqueViolationError:
-                    raise NameTaken(f"the name {name!r} is taken in room {code}") from None
-                await joined(conn, returning)
-            assert row is not None
-            player = _player_from_row(row)
-            room.players[player.id] = player
+            _check_joinable(room)
+            player, session = await self._admit(room, name, avatar, returning)
             update = self._room_updated(room)
         self._broadcast(update)
         return player, session
+
+    async def _admit(
+        self, room: Room, name: str, avatar: int | None, returning: bool
+    ) -> tuple[Player, str]:
+        """Insert a player into a lobby with room for them. Call with the room lock held."""
+        session = new_token()
+        pool = await self._pool()
+        async with pool.acquire() as conn, conn.transaction():
+            try:
+                row = await conn.fetchrow(
+                    "insert into players (room_id, display_name, session_token_hash, avatar)"
+                    " values ($1, $2, $3, $4)"
+                    " returning id, display_name, avatar, role, joined_at, session_token_hash",
+                    room.id,
+                    name,
+                    hash_token(session),
+                    avatar,
+                )
+            except asyncpg.UniqueViolationError:
+                raise NameTaken(f"the name {name!r} is taken in room {room.code}") from None
+            await joined(conn, returning)
+        assert row is not None
+        player = _player_from_row(row)
+        room.players[player.id] = player
+        return player, session
+
+    async def request_join(
+        self, code: str, display_name: str, avatar: int | None = None, returning: bool = False
+    ) -> str:
+        """Ask an invite-only room's admins to let ``display_name`` in. Returns the ticket, once.
+
+        Refused up front for whatever would refuse the join itself, so nobody waits on an
+        answer that could never let them in.
+        """
+        code = code.upper()
+        name = normalize_name(display_name)
+        self.check_avatar(avatar)
+        ticket = new_token()
+        async with self._locked(code):
+            room = await self._room(code)
+            if room.invite_key is None:
+                raise BadState(f"room {code} takes anyone with its code")
+            _check_joinable(room)
+            folded = name.casefold()
+            taken = [p.display_name for p in room.players.values()]
+            taken += [r.display_name for r in room.requests.values()]
+            if any(other.casefold() == folded for other in taken):
+                raise NameTaken(f"the name {name!r} is taken in room {code}")
+            if len(room.requests) >= MAX_JOIN_REQUESTS:
+                raise RequestsFull(f"room {code} has too many requests waiting, try again later")
+            request = JoinRequest(
+                id=uuid4(),
+                ticket_hash=hash_token(ticket),
+                display_name=name,
+                avatar=avatar,
+                returning=returning,
+                asked_at=self.clock(),
+            )
+            room.requests[request.ticket_hash] = request
+            self._expire_request_later(room, request)
+            update = self._room_updated(room)
+        self._broadcast(update)
+        return ticket
+
+    async def poll_request(self, code: str, ticket: str) -> tuple[Player, str] | None:
+        """The requester asking how it went: ``None`` while it waits, their player and
+        session once an admin let them in. Turned away raises ``RequestDenied``.
+        """
+        code = code.upper()
+        async with self._locked(code):
+            room = await self._room(code)
+            _check_lobby(room)
+            request = room.requests.get(hash_token(ticket))
+            if request is None:
+                raise RequestGone("this request is no longer waiting, ask again")
+            if request.accepted is None:
+                # Restarted at once by a lapsed request, which drops it and tells the admins.
+                self._expire_request_later(room, request)
+                if self.clock() - request.asked_at >= REQUEST_LIFETIME_SECONDS:
+                    raise RequestGone("nobody let you in in time, ask again")
+                return None
+            request.drop()
+            del room.requests[request.ticket_hash]
+            if not request.accepted:
+                raise RequestDenied("the host did not let you in")
+            _check_seat(room)
+            admitted = await self._admit(
+                room, request.display_name, request.avatar, request.returning
+            )
+            update = self._room_updated(room)
+        self._broadcast(update)
+        return admitted
+
+    async def cancel_request(self, code: str, ticket: str) -> None:
+        """The requester gave up. A ticket that is no longer waiting is nothing to cancel."""
+        code = code.upper()
+        async with self._locked(code):
+            room = await self._room(code)
+            request = room.requests.pop(hash_token(ticket), None)
+            if request is None:
+                return
+            request.drop()
+            update = self._room_updated(room)
+        self._broadcast(update)
+
+    async def decide_request(self, code: str, by: Player, request_id: UUID, accept: bool) -> None:
+        """Admin: let a requester in or turn them away; their next poll hears which.
+
+        That poll creates the player, so a session is only ever made in the response that
+        hands it over.
+        """
+        code = code.upper()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            request = next((r for r in room.requests.values() if r.id == request_id), None)
+            if request is None or request.accepted is not None:
+                raise BadState("that request is no longer waiting")
+            if accept and len(room.players) >= room.max_players:
+                raise BadState(f"room {code} is full")
+            request.accepted = accept
+            update = self._room_updated(room)
+        self._broadcast(update)
+
+    def _expire_request_later(self, room: Room, request: JoinRequest) -> None:
+        """(Re)start the countdown that drops ``request``. Lock held."""
+        request.drop()
+        left = REQUEST_LIFETIME_SECONDS - (self.clock() - request.asked_at)
+        seconds = max(0.0, min(self.request_stale_seconds, left))
+        request.expiry = asyncio.create_task(self._expire_request(room, request, seconds))
+
+    async def _expire_request(self, room: Room, request: JoinRequest, seconds: float) -> None:
+        await asyncio.sleep(seconds)
+        async with room.lock:
+            if room.requests.get(request.ticket_hash) is not request:
+                return
+            request.expiry = None
+            del room.requests[request.ticket_hash]
+            update = self._room_updated(room)
+        self._broadcast(update)
 
     async def set_profile(
         self, code: str, player: Player, display_name: str | None, avatar: int | None
@@ -1529,6 +1714,8 @@ class RoomManager:
             for player in room.players.values():
                 player.ready = False
                 player.stop_editing()
+            # Too late to let anyone in; each requester's next poll is told so.
+            room.drop_requests()
             update = self._room_updated(room)
         self._broadcast(update)
         self._start_timer(room, 0)
@@ -2104,6 +2291,25 @@ def _check_key(room: Room, key: str | None) -> None:
         raise KeyRequired(f"room {room.code} takes players with an invite link only")
     if not hmac.compare_digest(key.encode(), room.invite_key.encode()):
         raise BadKey("that invite link is out of date or mistyped")
+
+
+def _check_joinable(room: Room) -> None:
+    _check_lobby(room)
+    _check_seat(room)
+
+
+def _check_lobby(room: Room) -> None:
+    # A player who is already in comes back through ``connect`` with their session; a
+    # join is a new player, and a game under way is too late for one.
+    if room.status == "playing":
+        raise NotOpen(f"the game in room {room.code} has already started")
+    if room.status != "lobby":
+        raise NotOpen(f"room {room.code} has finished")
+
+
+def _check_seat(room: Room) -> None:
+    if len(room.players) >= room.max_players:
+        raise RoomFull(f"room {room.code} is full")
 
 
 def _require_admin(player: Player) -> None:
