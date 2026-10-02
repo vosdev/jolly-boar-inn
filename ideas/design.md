@@ -105,6 +105,8 @@ learns the position, which is worth more than variety.
   the name and the current theme's **emblem**. One thumb target, not three. The name is the bar's
   priority: it shows at every width and is the one item that shrinks, ellipsising.
 - **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 165px.
+- **Width:** the bar and the footer are as wide as the screen under them: 42rem, or 64rem on Home,
+  Create and Admin, where Home puts Join and Host beside the room lists from 50rem.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead.
 
@@ -207,6 +209,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
+- **Home** opens with the same stage, the Wise Old Man on the scroll with the site's challenge, in
+  place of a panel.
 
 ## 9. The splash and the ready check
 

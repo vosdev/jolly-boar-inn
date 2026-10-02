@@ -372,6 +372,10 @@
 }
 
 :root {
+  /* The reading column, and the wide page that Home, Create and Admin take. The bar and
+     footer follow whichever the screen under them uses. */
+  --page-width: 42rem;
+  --page-wide: 64rem;
   font-family: var(--font-body);
   color: var(--ink);
   background: var(--bg);
@@ -428,14 +432,15 @@ main {
   --ink: var(--bg-ink);
   --muted: var(--bg-muted);
   color: var(--ink);
-  width: min(42rem, 100% - 2rem);
+  width: min(var(--page-width), 100% - 2rem);
   margin-inline: auto;
   padding: 2rem 0 4rem;
 }
 
-/* Create lays its modes out three abreast, which the reading column has no room for. */
+/* Create lays its modes out three abreast and Home two columns, which the reading column
+   has no room for. */
 main.wide {
-  width: min(64rem, 100% - 2rem);
+  width: min(var(--page-wide), 100% - 2rem);
 }
 
 h1 {

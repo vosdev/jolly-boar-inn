@@ -7,10 +7,13 @@
    * answer rather than over it, and on a short one the shell pushes it to the bottom.
    */
   import { LICENSE_URL, RELEASE_URL, REPO_URL, VERSION_LABEL, WIKI_URL } from '../lib/links'
+
+  /** The screen above uses the wide page, so the footer's text follows it. */
+  let { wide = false }: { wide?: boolean } = $props()
 </script>
 
 <footer class="footer">
-  <div class="inner">
+  <div class="inner" class:wide>
     <p>RuneScape and RuneScape Old School are the trademarks of Jagex Limited.</p>
     <ul>
       <li><a href={REPO_URL} target="_blank" rel="noopener">Source on GitHub</a></li>
@@ -36,8 +39,12 @@
   }
 
   /* The screens' column, so the text lines up with the panels above it. */
+  .inner.wide {
+    width: min(var(--page-wide), 100% - 2rem);
+  }
+
   .inner {
-    width: min(42rem, 100% - 2rem);
+    width: min(var(--page-width), 100% - 2rem);
     margin-inline: auto;
     padding: 1rem 0 1.5rem;
   }
