@@ -43,6 +43,8 @@ describe('Home', () => {
     const heading = screen.getByRole('heading', { level: 1 }).textContent ?? ''
     expect(heading.trim()).not.toBe('')
     expect(heading).not.toContain('Jolly Boar Inn')
+    const intro = screen.getByRole('heading', { level: 1 }).closest('.panel')
+    expect(intro?.textContent).toContain("Quiz night. One host, a room code, and everybody's phone.")
     await fireEvent.click(screen.getByRole('button', { name: 'Create a room' }))
     expect(navigate).toHaveBeenCalledWith('/create')
   })
@@ -69,7 +71,9 @@ describe('Home', () => {
 
     localStorage.setItem('jbi:admin', '0123456789abcdef0123456789abcdef')
     render(Home, { navigate })
-    await fireEvent.click(screen.getByRole('button', { name: 'Admin' }))
+    const admin = screen.getByRole('button', { name: 'Admin' })
+    expect(admin.closest('.panel')?.querySelector('h2')?.textContent).toBe('Open source')
+    await fireEvent.click(admin)
     expect(navigate).toHaveBeenCalledWith('/admin')
   })
 

@@ -124,8 +124,10 @@
 
 <!-- The inn's name is in the top bar on every screen, so the front page says what
      you are here for instead of saying it twice. -->
-<h1>Welcome in</h1>
-<p class="tagline">Quiz night. One host, a room code, and everybody's phone.</p>
+<section class="panel">
+  <h1>Welcome in</h1>
+  <p class="tagline">Quiz night. One host, a room code, and everybody's phone.</p>
+</section>
 
 <section class="panel">
   <h2>Join a room</h2>
@@ -247,15 +249,14 @@
   <p class="note">
     This quiz is free software. Read the code, report a bug, or host your own for your clan.
   </p>
-  <a class="link" href={REPO_URL} target="_blank" rel="noopener">jolly-boar-inn on GitHub</a>
-</section>
-
-<!-- Only for the operator, whose browser kept the token from their first `/admin#token=` visit. -->
-{#if admin}
-  <p class="admin">
-    <button type="button" class="link" onclick={() => navigate('/admin')}>Admin</button>
+  <p class="links">
+    <a class="link" href={REPO_URL} target="_blank" rel="noopener">jolly-boar-inn on GitHub</a>
+    <!-- Only for the operator, whose browser kept the token from their first `/admin#token=` visit. -->
+    {#if admin}
+      <button type="button" class="link" onclick={() => navigate('/admin')}>Admin</button>
+    {/if}
   </p>
-{/if}
+</section>
 
 {#if confirming !== null}
   {@const room = confirming}
@@ -290,13 +291,11 @@
     font-weight: 600;
   }
 
-  .admin {
-    text-align: center;
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
     margin: 0;
-  }
-
-  /* On the page's floor rather than a panel, where the accent would be dark on dark. */
-  .admin .link {
-    color: var(--bg-muted);
   }
 </style>

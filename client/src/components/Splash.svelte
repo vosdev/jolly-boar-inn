@@ -114,51 +114,54 @@
       {/if}
     {/snippet}
 
-    <p class="count">{pace}</p>
+    <div class="panel board">
+      <p class="count">{pace}</p>
 
-    <div class="ready">
-      <button
-        type="button"
-        class:primary={!youReady}
-        aria-pressed={youReady}
-        disabled={youReady && undone}
-        onclick={press}
-      >
-        {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
-      </button>
-      <ul class="heads" aria-label={summary}>
-        {#each present as player (player.id)}
-          <li class:lit={player.ready === true}>
-            <Head head={headOf(player)} size={32} label="" />
-          </li>
-        {/each}
-      </ul>
-      <span class="note tally" aria-hidden="true">{summary}</span>
+      <div class="ready">
+        <button
+          type="button"
+          class:primary={!youReady}
+          aria-pressed={youReady}
+          disabled={youReady && undone}
+          onclick={press}
+        >
+          {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
+        </button>
+        <ul class="heads" aria-label={summary}>
+          {#each present as player (player.id)}
+            <li class:lit={player.ready === true}>
+              <Head head={headOf(player)} size={32} label="" />
+            </li>
+          {/each}
+        </ul>
+        <span class="note tally" aria-hidden="true">{summary}</span>
+      </div>
+
+      {#if endsAt !== null}
+        <Timer {endsAt} totalSeconds={span} label="until the round starts" />
+      {:else}
+        <p class="waiting surface" aria-live="polite">
+          {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
+        </p>
+      {/if}
+      {#if onSkip !== null}
+        <button type="button" class="small skip" onclick={onSkip}>Start the round now</button>
+      {/if}
     </div>
-
-    {#if endsAt !== null}
-      <Timer {endsAt} totalSeconds={span} label="until the round starts" />
-    {:else}
-      <p class="waiting surface" aria-live="polite">
-        {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
-      </p>
-    {/if}
-    {#if onSkip !== null}
-      <button type="button" class="small skip" onclick={onSkip}>Start the round now</button>
-    {/if}
   </Stage>
 </section>
 
 <style>
-  /* Under the line: a column, with the countdown and the waiting plaque at full width. */
-  .splash :global(.under) {
+  /* Under the scroll: a column, with the countdown and the waiting plaque at full width. */
+  .board {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.6rem;
+    margin-bottom: 0;
   }
 
-  .splash :global(.under > .timer) {
+  .board > :global(.timer) {
     align-self: stretch;
     margin-bottom: 0;
   }

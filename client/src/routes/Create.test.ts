@@ -81,6 +81,12 @@ function summary(): string {
 }
 
 describe('Create', () => {
+  it('puts its heading and what it is for on a panel', async () => {
+    await loaded()
+    const intro = screen.getByRole('heading', { level: 1, name: 'Create a room' }).closest('.panel')
+    expect(intro?.querySelector('.tagline')?.textContent).toContain('cannot be changed')
+  })
+
   it('has no name field', async () => {
     await loaded()
     expect(screen.queryAllByRole('textbox')).toHaveLength(0)

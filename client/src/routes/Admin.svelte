@@ -11,7 +11,14 @@
 
   import HistoryChart from '../components/admin/HistoryChart.svelte'
   import Segmented from '../components/Segmented.svelte'
-  import { forgetAdminToken, getCounts, getLive, takeAdminToken, timeUntil } from '../lib/admin'
+  import {
+    forgetAdminToken,
+    getCounts,
+    getLive,
+    refreshLabel,
+    takeAdminToken,
+    timeUntil,
+  } from '../lib/admin'
   import type { Count, Live, LiveRoom } from '../lib/admin'
   import { buckets, modeRanking, utcToday, type Range } from '../lib/adminCharts'
   import { ApiFailure } from '../lib/api'
@@ -33,6 +40,8 @@
   let live = $state<Live | null>(null)
   let counts = $state<Count[]>([])
   let updatedAt = $state<number | null>(null)
+  /** Ticks each second, so the button's age counts up between refreshes. */
+  let now = $state(Date.now())
   let range = $state<Range>('90')
   let busy = false
 
@@ -65,6 +74,7 @@
       live = nextLive
       counts = nextCounts
       updatedAt = Date.now()
+      now = updatedAt
       view = 'ready'
       failure = null
     } catch (error) {
@@ -92,30 +102,33 @@
     const timer = setInterval(() => {
       if (document.visibilityState === 'visible') void refresh()
     }, REFRESH_MS)
+    const ticker = setInterval(() => (now = Date.now()), 1000)
     const onVisible = (): void => {
       if (document.visibilityState === 'visible') void refresh()
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => {
       clearInterval(timer)
+      clearInterval(ticker)
       document.removeEventListener('visibilitychange', onVisible)
     }
   })
 </script>
 
 {#if view === 'absent'}
-  <h1>Not found</h1>
-  <section class="panel"><p>There is no admin view on this server.</p></section>
+  <section class="panel">
+    <h1>Not found</h1>
+    <p>There is no admin view on this server.</p>
+  </section>
 {:else if view === 'refused'}
-  <h1>Admin</h1>
-  <section class="panel"><p>That admin token was refused.</p></section>
-{:else}
-  <div class="heading">
+  <section class="panel">
     <h1>Admin</h1>
-    {#if updatedAt !== null}
-      <span class="updated">updated {clock(updatedAt)}</span>
-    {/if}
-    <button type="button" onclick={() => void refresh()}>Refresh</button>
+    <p>That admin token was refused.</p>
+  </section>
+{:else}
+  <div class="panel heading">
+    <h1>Admin</h1>
+    <button type="button" onclick={() => void refresh()}>{refreshLabel(updatedAt, now)}</button>
   </div>
   {#if failure !== null}
     <div class="banner bad" role="alert">{failure}</div>
@@ -222,16 +235,20 @@
 <style>
   .heading {
     display: flex;
-    align-items: baseline;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 0.75rem;
-    margin-bottom: 1rem;
   }
 
   .heading h1 {
     flex: 1;
+    margin: 0;
   }
 
-  .updated,
+  .heading button {
+    font-variant-numeric: tabular-nums;
+  }
+
   .note {
     color: var(--muted);
     font-size: 0.85rem;

@@ -52,7 +52,7 @@ afterEach(cleanup)
 async function loaded(): Promise<HTMLElement> {
   render(Create, { navigate: () => {} })
   await screen.findByRole('checkbox', { name: /^More or Less/ })
-  return screen.getByRole('region', { name: 'Your own questions' })
+  return screen.getByRole('region', { name: 'Personalized questions' })
 }
 
 function editor(): HTMLElement {

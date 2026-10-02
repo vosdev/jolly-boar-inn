@@ -7,6 +7,7 @@ import {
   getCounts,
   getLive,
   hasAdminToken,
+  refreshLabel,
   takeAdminToken,
   timeUntil,
 } from './admin'
@@ -82,5 +83,17 @@ describe('timeUntil', () => {
     ['2026-10-04T11:00:00Z', '2 d 23 h'],
   ])('%s is %s away', (iso, label) => {
     expect(timeUntil(iso, now)).toBe(label)
+  })
+})
+
+describe('refreshLabel', () => {
+  const now = Date.parse('2026-10-01T12:00:00Z')
+  it.each([
+    [null, 'Refresh'],
+    [now, 'Refresh · 0s ago'],
+    [now - 7_900, 'Refresh · 7s ago'],
+    [now + 500, 'Refresh · 0s ago'],
+  ])('fetched at %s reads %s', (updatedAt, label) => {
+    expect(refreshLabel(updatedAt, now)).toBe(label)
   })
 })

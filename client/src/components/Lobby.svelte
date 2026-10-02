@@ -134,7 +134,7 @@
 <section class="panel">
   <div class="spread">
     <div>
-      <p class="code-label">Room code</p>
+      <h1>Lobby</h1>
       <p class="code">{$room?.code ?? ''}</p>
     </div>
     {#if settings !== null}
@@ -238,7 +238,7 @@
     </button>
   </section>
 {:else}
-  <p class="note">Waiting for the host to start…</p>
+  <section class="panel"><p class="note">Waiting for the host to start…</p></section>
 {/if}
 
 {#if asking !== null}
@@ -254,13 +254,6 @@
 {/if}
 
 <style>
-  /* Drawn as the global label is, but it names text, not a field. */
-  .code-label {
-    margin: 0 0 0.3rem;
-    font-size: 0.9rem;
-    color: var(--muted);
-  }
-
   .ready-head h2 {
     margin: 0;
   }

@@ -137,7 +137,5 @@
 
   .under {
     margin-top: 1rem;
-    padding-top: 0.9rem;
-    border-top: 1px solid color-mix(in srgb, var(--bg-muted) 45%, transparent);
   }
 </style>

@@ -361,7 +361,9 @@ describe('Room', () => {
 
   it('draws the same podium on the final screen, with everyone in the table', async () => {
     await arrive(welcome(roomView({ status: 'finished', phase: 'idle', next_at: null, segment: null })))
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Final standings')
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(heading.textContent).toBe('Final standings')
+    expect(heading.closest('.panel')?.querySelector('.tagline')?.textContent).toContain('Zezima')
     expect(document.querySelector('.podium')).not.toBeNull()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(2)
   })
@@ -383,6 +385,20 @@ describe('the room’s own headings', () => {
     closeSocket('no_room', '')
     await screen.findByRole('heading', { level: 1, name: 'Disconnected' })
     expect(titles()).toEqual(['Disconnected'])
+  })
+
+  it('sit on panels, as does the line while it connects', async () => {
+    const onPanel = (element: Element) => element.closest('.panel') !== null
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    expect(onPanel(screen.getByText('Connecting…'))).toBe(true)
+    applyServerMessage(
+      welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
+    )
+    expect(onPanel(await screen.findByRole('heading', { level: 1, name: 'Lobby' }))).toBe(true)
+    closeSocket('no_room', '')
+    expect(onPanel(await screen.findByRole('heading', { level: 1, name: 'Disconnected' }))).toBe(
+      true,
+    )
   })
 })
 
