@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     finished_room_grace_minutes: int = Field(default=60, ge=0)
     rooms_per_ip_per_hour: int = 30
     max_players_per_room: int = 50
+    # Whether hosts can list a room on Home. Off, the list is always empty.
+    public_rooms: bool = True
     packs_dir: Path = Path("../data/packs")
     log_level: Literal["debug", "info", "warning", "error"] = "info"
     # The operator's key to ``/admin``. Empty, the admin routes do not exist.

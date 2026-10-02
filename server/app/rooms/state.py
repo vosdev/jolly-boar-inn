@@ -487,6 +487,8 @@ class Room:
     finished_at: datetime | None = None
     # Only a join carrying it gets in. Sent to admins, never stored in ``settings``.
     invite_key: str | None = field(default=None, repr=False)
+    # Listed on Home for anyone to join while it is a lobby (``RoomManager.public_rooms``).
+    public: bool = False
     players: dict[UUID, Player] = field(default_factory=dict)  # in join order
     sockets: dict[UUID, Outbox] = field(default_factory=dict, repr=False)
     questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
@@ -684,6 +686,7 @@ def _room_from_row(row: asyncpg.Record, total: int, lock: asyncio.Lock) -> Room:
         lock=lock,
         finished_at=row["finished_at"],
         invite_key=row["invite_key"],
+        public=row["public"],
     )
 
 
@@ -1189,6 +1192,7 @@ class RoomManager:
         avatar: int | None = None,
         returning: bool = False,
         invite_only: bool = False,
+        public: bool = False,
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
 
@@ -1201,6 +1205,8 @@ class RoomManager:
         """
         # First, before the pool is even touched: a bad name leaves no room behind.
         name = normalize_name(display_name)
+        if public and invite_only:
+            raise BadSettings("a public room cannot be invite-only")
         self.check_avatar(avatar)
         try:
             own = custom.envelopes(custom_questions)
@@ -1229,14 +1235,16 @@ class RoomManager:
                 try:
                     async with conn.transaction():  # savepoint, so a collision is retryable
                         room_row = await conn.fetchrow(
-                            "insert into rooms (code, status, settings, expires_at, invite_key)"
-                            " values ($1, 'lobby', $2, $3, $4)"
+                            "insert into rooms"
+                            " (code, status, settings, expires_at, invite_key, public)"
+                            " values ($1, 'lobby', $2, $3, $4, $5)"
                             " returning id, code, status, settings, current_index,"
-                            " created_at, expires_at, finished_at, invite_key",
+                            " created_at, expires_at, finished_at, invite_key, public",
                             code,
                             settings.model_dump(),
                             expires_at,
                             new_invite_key() if invite_only else None,
+                            public,
                         )
                 except asyncpg.UniqueViolationError:
                     return False
@@ -2286,7 +2294,7 @@ def _gone(
 async def _fetch_room(conn: asyncpg.Connection, code: str, grace: timedelta) -> asyncpg.Record:
     row = await conn.fetchrow(
         "select id, code, status, settings, current_index, created_at, expires_at, finished_at,"
-        " invite_key from rooms where code = $1",
+        " invite_key, public from rooms where code = $1",
         code,
     )
     if row is None:

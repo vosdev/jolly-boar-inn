@@ -36,6 +36,7 @@ TABLES = {
         "expires_at",
         "finished_at",
         "invite_key",
+        "public",
     },
     "players": {
         "id",
@@ -66,7 +67,7 @@ TABLES = {
     "answers": {"id", "question_id", "player_id", "value", "received_at", "correct", "points"},
     "daily_stats": {"day", "metric", "key", "count"},
 }
-ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 INDEXES = {
     "rooms_code_idx",
     "rooms_expires_at_idx",
@@ -90,6 +91,7 @@ SHA256 = {
     9: "43d5a0abf02e2771222f4a21b536341e7d8e672475a67e9aad3597809668f0bb",
     10: "5c9e9836ba4f035d12c2fe365e513e67ba1d57f0a227c6ccf3f11884b7a065dd",
     11: "d8241c7d75ef13fd4b43cdf868980ec80dbf2e011d0ec47250bf3d969e60e835",
+    12: "638b6d6735b9f54ea81a8bfa3f6e3caed87a67573efee809d9527665b0bfb7eb",
 }
 
 
@@ -133,6 +135,7 @@ def test_migration_files_are_numbered_and_ordered() -> None:
         "0009_room_finished_at.sql",
         "0010_daily_stats.sql",
         "0011_invite_key.sql",
+        "0012_public_rooms.sql",
     ]
 
 
@@ -215,7 +218,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
 ) -> None:
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
-    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11\]"):
+    with pytest.raises(MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12\]"):
         await run_migrations(pool, tmp_path)
 
 
@@ -294,7 +297,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     }
     # Loaded by today's model once the migrations after it have run too, which is what
     # the room meets on its way back into a release: 0007 is where ``order`` went.
-    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12]
     loaded = RoomSettings.model_validate(
         without_the_hold(await pool.fetchval("select settings from rooms where code = 'ABYSSAL'"))
     )
@@ -342,7 +345,7 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
         room_id,
     )
 
-    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12]
     rows = await pool.fetch("select display_name, avatar from players order by display_name")
     assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
     with pytest.raises(asyncpg.CheckViolationError):
@@ -465,7 +468,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         before,
     )
 
-    assert await run_migrations(pool) == [7, 8, 9, 10, 11]
+    assert await run_migrations(pool) == [7, 8, 9, 10, 11, 12]
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}
@@ -677,7 +680,7 @@ async def test_0009_dates_a_room_finished_before_it_from_its_last_close(
             closed_at,
         )
 
-    assert await run_migrations(pool) == [9, 10, 11]
+    assert await run_migrations(pool) == [9, 10, 11, 12]
     rows = await pool.fetch("select code, finished_at from rooms")
     assert {row["code"]: row["finished_at"] for row in rows} == {
         "CLOSED": last_close,
@@ -699,5 +702,21 @@ async def test_0011_leaves_a_room_from_before_it_without_a_key(
         " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
         NewRoomSettings().model_dump(),
     )
-    assert await run_migrations(pool) == [11]
+    assert await run_migrations(pool) == [11, 12]
     assert await pool.fetchval("select invite_key from rooms where code = 'ABYSSAL'") is None
+
+
+async def test_0012_leaves_a_room_from_before_it_unlisted(
+    pool: asyncpg.Pool, tmp_path: Path
+) -> None:
+    """A room created before public lobbies stays off Home's list."""
+    for _, path in migration_files(MIGRATIONS_DIR)[:11]:
+        (tmp_path / path.name).write_text(path.read_text())
+    assert await run_migrations(pool, tmp_path) == ALL[:11]
+    await pool.execute(
+        "insert into rooms (code, status, settings, expires_at)"
+        " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
+        NewRoomSettings().model_dump(),
+    )
+    assert await run_migrations(pool) == [12]
+    assert await pool.fetchval("select public from rooms where code = 'ABYSSAL'") is False

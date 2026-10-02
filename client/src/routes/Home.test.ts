@@ -1,4 +1,4 @@
-/** The front page: a code typed the way it was shouted, and the rooms created here. */
+/** The front page: a code typed the way it was shouted, the public lobbies, and the rooms created here. */
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -6,11 +6,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { savePastGame } from '../lib/history'
 import { rememberCreated, setSession } from '../lib/session'
+import { headsDrawn } from '../test-heads'
 import Home from './Home.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, deleteRoom: vi.fn() }
+  return { ...real, deleteRoom: vi.fn(), getPublicRooms: vi.fn() }
 })
 
 const navigate = vi.fn()
@@ -19,7 +20,17 @@ beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined)
+  vi.mocked(api.getPublicRooms).mockResolvedValue([])
 })
+
+const LOBBY: api.PublicRoom = {
+  code: 'DRAGON',
+  host: { id: '7da6f39a-535d-46db-9c02-801eff2c2eb1', display_name: 'Zezima', avatar: 3 },
+  players: 3,
+  max_players: 50,
+  rounds: 2,
+  modes: ['more_less', 'price_is_right'],
+}
 
 async function typeCode(typed: string): Promise<void> {
   await fireEvent.input(screen.getByLabelText('Room code'), { target: { value: typed } })
@@ -73,6 +84,41 @@ describe('Home', () => {
     render(Home, { navigate })
     expect(screen.getByText('RUNE')).toBeTruthy()
     expect(screen.queryByText('BRONZE')).toBeNull()
+  })
+
+  describe('Public rooms', () => {
+    it('lists each public lobby with its host, head and rounds, and joins it', async () => {
+      vi.mocked(api.getPublicRooms).mockResolvedValue([LOBBY])
+      render(Home, { navigate })
+      const row = (await screen.findByText('DRAGON')).closest('li')!
+      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
+      expect(within(row).getByText('Zezima')).toBeTruthy()
+      expect(within(row).getByText('3/50 players · 2 rounds: More or Less, The Price is Right')).toBeTruthy()
+      expect(headsDrawn(row)).toEqual([{ head: 3, size: 32 }])
+      await fireEvent.click(within(row).getByRole('button', { name: 'Join DRAGON' }))
+      expect(navigate).toHaveBeenCalledWith('/r/DRAGON')
+    })
+
+    it('names no rounds for a room that keeps them a surprise', async () => {
+      const { modes: _, ...hidden } = LOBBY
+      vi.mocked(api.getPublicRooms).mockResolvedValue([{ ...hidden, rounds: 1 }])
+      render(Home, { navigate })
+      expect(await screen.findByText('3/50 players · 1 round')).toBeTruthy()
+    })
+
+    it('says there are none when the list is empty or unreachable', async () => {
+      render(Home, { navigate })
+      await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalledOnce())
+      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
+      expect(screen.getByText('There are no public rooms right now.')).toBeTruthy()
+      cleanup()
+
+      vi.mocked(api.getPublicRooms).mockRejectedValue(new api.ApiFailure(0, 'unreachable', 'down'))
+      render(Home, { navigate })
+      await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalledTimes(2))
+      expect(screen.getByRole('heading', { name: 'Public rooms' })).toBeTruthy()
+      expect(screen.getByText('There are no public rooms right now.')).toBeTruthy()
+    })
   })
 
   describe('Remove', () => {

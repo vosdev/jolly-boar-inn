@@ -1,19 +1,24 @@
 <script lang="ts">
   /**
-   * The front page: join a room by code, host a new one, manage the rooms this browser
-   * created, and look back at the games it finished.
+   * The front page: join a room by code or from the public list, host a new one, manage
+   * the rooms this browser created, and look back at the games it finished.
    *
    * "Rooms you created here" is the list in localStorage, and removing one really
    * removes it: the server deletes the row, its players and their answers, and the code
    * is free again the moment it answers. That is the only way to be rid of a room before
    * it expires, so the button asks first.
    */
+  import { onMount } from 'svelte'
+
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import Head from '../components/Head.svelte'
   import { hasAdminToken } from '../lib/admin'
-  import { ApiFailure, deleteRoom } from '../lib/api'
+  import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { finishedTime } from '../lib/dates'
+  import { headOf } from '../lib/heads'
   import { historyPath, pastGames, placeIn } from '../lib/history'
   import { REPO_URL } from '../lib/links'
+  import { modeLabel } from '../lib/modes'
   import {
     createdRooms,
     forgetCreated,
@@ -24,6 +29,9 @@
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
+  /** The server caches the list for 5 s; twice that keeps a Home left open current. */
+  const PUBLIC_REFRESH_MS = 10_000
+
   let hosted = $state(createdRooms())
   const past = pastGames()
   const admin = hasAdminToken()
@@ -33,8 +41,39 @@
   let confirming = $state<string | null>(null)
   let codeProblem = $state<string | null>(null)
   let notice = $state<{ text: string; bad: boolean } | null>(null)
+  let open = $state<PublicRoom[]>([])
 
   const target = $derived(normalizeCode(code))
+
+  /** A failed fetch keeps the last list: it is a convenience, never worth an error. */
+  async function refreshOpen(): Promise<void> {
+    try {
+      open = await getPublicRooms()
+    } catch {
+      return
+    }
+  }
+
+  onMount(() => {
+    void refreshOpen()
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void refreshOpen()
+    }, PUBLIC_REFRESH_MS)
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') void refreshOpen()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  })
+
+  function describe(room: PublicRoom): string {
+    const rounds = `${room.rounds} round${room.rounds === 1 ? '' : 's'}`
+    const modes = room.modes === undefined ? '' : `: ${room.modes.map(modeLabel).join(', ')}`
+    return `${room.players}/${room.max_players} players · ${rounds}${modes}`
+  }
 
   /** Anything the router cannot match would leave Home on screen with no word said. */
   function join(event: SubmitEvent): void {
@@ -111,6 +150,34 @@
     </div>
     <button class="primary" type="submit" disabled={code.trim() === ''}>Join</button>
   </form>
+</section>
+
+<section class="panel">
+  <h2>Public rooms</h2>
+  {#if open.length === 0}
+    <p class="note">There are no public rooms right now.</p>
+  {:else}
+    <ul class="players">
+      {#each open as room (room.code)}
+        <li>
+          <Head head={headOf(room.host)} size={32} label="" />
+          <span class="name">
+            <span class="code-small">{room.code}</span>
+            <span class="host">{room.host.display_name}</span>
+            <span class="about">{describe(room)}</span>
+          </span>
+          <button
+            type="button"
+            class="small"
+            aria-label={`Join ${room.code}`}
+            onclick={() => navigate(`/r/${room.code}`)}
+          >
+            Join
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
 </section>
 
 <section class="panel">
@@ -207,9 +274,16 @@
     font-weight: 600;
   }
 
-  .when {
+  .when,
+  .host {
     color: var(--muted);
     margin-left: 0.5rem;
+  }
+
+  .about {
+    display: block;
+    color: var(--muted);
+    font-size: 0.9rem;
   }
 
   .place {

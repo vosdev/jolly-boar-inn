@@ -5,10 +5,12 @@
    */
   let {
     legend,
+    hideLegend = false,
     options,
     value = $bindable(),
   }: {
     legend: string
+    hideLegend?: boolean
     options: { value: T; label: string }[]
     value: T
   } = $props()
@@ -16,8 +18,8 @@
   const name = $props.id()
 </script>
 
-<fieldset class="segmented">
-  <legend>{legend}</legend>
+<fieldset class="segmented" class:left={hideLegend}>
+  <legend class:visually-hidden={hideLegend}>{legend}</legend>
   <span class="segments">
     {#each options as option (option.value)}
       <label>
@@ -46,6 +48,18 @@
     padding: 0;
     color: var(--muted);
     font-size: 0.95rem;
+  }
+
+  .left {
+    justify-content: flex-start;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 
   .segments {

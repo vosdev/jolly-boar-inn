@@ -130,6 +130,13 @@ export interface RoomSnapshot {
 }
 
 /**
+ * Who can join a new room: anyone with its code, only those with its invite link, or
+ * anyone at all, from the list on Home. The server takes the last two as flags it
+ * refuses together.
+ */
+export type RoomAccess = 'code' | 'link' | 'public'
+
+/**
  * `avatar` is the profile's head; undefined, the room draws the one derived from the id.
  * `returning` is `returningVisitor`, counted by the server and never stored.
  */
@@ -138,7 +145,7 @@ export function createRoom(
   settings: NewRoomSettings,
   avatar: number | undefined,
   returning: boolean,
-  inviteOnly = false,
+  access: RoomAccess = 'code',
 ): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
@@ -146,7 +153,8 @@ export function createRoom(
       display_name: displayName,
       avatar,
       returning,
-      invite_only: inviteOnly,
+      invite_only: access === 'link',
+      public: access === 'public',
       settings,
       custom_questions: [],
     }),
@@ -165,6 +173,22 @@ export function joinRoom(
     method: 'POST',
     body: JSON.stringify({ display_name: displayName, avatar, returning, key }),
   })
+}
+
+/** A lobby on Home's list: what joining it would show anyway, and no more. */
+export interface PublicRoom {
+  code: string
+  host: { id: string; display_name: string; avatar: number | null }
+  players: number
+  max_players: number
+  rounds: number
+  /** Left out when the room keeps its rounds a surprise. */
+  modes?: string[]
+}
+
+/** Newest first. Empty when the server has the list turned off. */
+export function getPublicRooms(): Promise<PublicRoom[]> {
+  return request<PublicRoom[]>('/api/rooms/public')
 }
 
 export function getRoom(code: string): Promise<RoomSnapshot> {

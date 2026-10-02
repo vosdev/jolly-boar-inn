@@ -1,6 +1,8 @@
-"""``POST /api/rooms``, ``GET /api/rooms/{code}``, ``DELETE /api/rooms/{code}``."""
+"""``POST /api/rooms``, ``GET /api/rooms/public``, ``GET /api/rooms/{code}``,
+``DELETE /api/rooms/{code}``."""
 
 from typing import Any, Self
+from uuid import UUID
 
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -8,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from app.http.ratelimit import RateLimited, client_key, room_lookup
 from app.questions import custom
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
-from app.rooms.state import RoomManager, normalize_name
+from app.rooms.state import Room, RoomManager, normalize_name
 
 router = APIRouter(prefix="/api/rooms")
 
@@ -26,6 +28,8 @@ class CreateRoom(BaseModel):
     returning: bool = Field(strict=True)
     # Only a link carrying the room's key joins it. Not a setting: settings reach everyone.
     invite_only: bool = Field(default=False, strict=True)
+    # Listed on Home for anyone to join; a key would defeat that, so it excludes one.
+    public: bool = Field(default=False, strict=True)
     settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
     # The host's own questions, each a random event in a round it does not belong to. The
     # bound is only the outer one; ``settings`` decides how many this room has room for.
@@ -43,6 +47,12 @@ class CreateRoom(BaseModel):
     @model_validator(mode="after")
     def _room_for_them(self) -> Self:
         self.settings.check_custom_questions(len(self.custom_questions))
+        return self
+
+    @model_validator(mode="after")
+    def _public_or_keyed(self) -> Self:
+        if self.public and self.invite_only:
+            raise ValueError("a public room cannot be invite-only")
         return self
 
 
@@ -72,7 +82,13 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     if not request.app.state.ratelimiter.allow(client_key(ip)):
         raise RateLimited("too many rooms created from this address, try again later")
     room, player, session = await manager(request).create(
-        name, body.settings, body.custom_questions, body.avatar, body.returning, body.invite_only
+        name,
+        body.settings,
+        body.custom_questions,
+        body.avatar,
+        body.returning,
+        body.invite_only,
+        body.public,
     )
     # ``expires_at`` lets the host's "rooms you created" list drop a room once its code
     # may belong to someone else.
@@ -82,6 +98,77 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
         "player": player.view(),
         "expires_at": room.expires_at,
     }
+
+
+class PublicHost(BaseModel):
+    id: UUID
+    display_name: str
+    avatar: int | None
+
+
+class PublicRoom(BaseModel):
+    """One room on Home's list: only what joining it would show anyway."""
+
+    code: str
+    host: PublicHost
+    players: int
+    max_players: int
+    rounds: int
+    # Left out of a room with ``hide_rounds``, whose lobby names none either.
+    modes: list[str] | None = None
+
+
+PUBLIC_ROOMS_MAX = 50
+# Long enough that a crowd of open Home pages costs one walk over the rooms per window.
+PUBLIC_ROOMS_TTL = 5.0
+
+
+def public_room(room: Room) -> PublicRoom:
+    host = next(p for p in room.players.values() if p.role == "admin")
+    return PublicRoom(
+        code=room.code,
+        host=PublicHost(id=host.id, display_name=host.display_name, avatar=host.avatar),
+        players=len(room.players),
+        max_players=room.max_players,
+        rounds=len(room.segments),
+        **({} if room.settings.hide_rounds else {"modes": [m.mode for m in room.settings.modes]}),
+    )
+
+
+def listable(room: Room) -> bool:
+    """Public, joinable, and somebody is there to play with."""
+    return (
+        room.public
+        and room.status == "lobby"
+        and len(room.players) < room.max_players
+        and any(player.connected for player in room.players.values())
+    )
+
+
+def public_rooms(rooms: RoomManager) -> list[PublicRoom]:
+    """The listable rooms in memory, newest first.
+
+    Memory rather than Postgres, because a lobby nobody is connected to is not worth a
+    stranger's visit, and a room only has connected players while it is in memory.
+    """
+    newest = sorted(
+        filter(listable, rooms.rooms.values()), key=lambda room: room.created_at, reverse=True
+    )
+    return [public_room(room) for room in newest[:PUBLIC_ROOMS_MAX]]
+
+
+@router.get("/public", response_model_exclude_unset=True)
+async def list_public_rooms(request: Request) -> list[PublicRoom]:
+    """Home's list of rooms anyone may join, shared by every caller for a few seconds."""
+    rooms = manager(request)
+    if not rooms.settings.public_rooms:
+        return []
+    now = rooms.clock()
+    cached: tuple[float, list[PublicRoom]] | None = getattr(request.app.state, "public_rooms", None)
+    if cached is None or now >= cached[0]:
+        cached = (now + PUBLIC_ROOMS_TTL, public_rooms(rooms))
+        request.app.state.public_rooms = cached
+    return cached[1]
 
 
 @router.get("/{code}")
