@@ -111,10 +111,10 @@ SECONDS: Bounds                       # optional
 | `guess_examine` | Guess the Examine | `pick_from_list` | `data/examines.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
-| `bestiary`, `drop_table` | Bestiary, Drop Table | `multiple_choice` | `facts/npcs.json` | #85 |
-| `odd_one_out` | Odd One Out | `multiple_choice` | `facts/items.json` | #86 |
-| `release_order` | Release Order | `ordering` | quest and NPC dates | #82 |
-| `sort_it_out` | Sort It Out | `ordering` | `facts/sequences.json`, levels | #87 |
+| `bestiary`, `drop_table` | Bestiary, Drop Table | `multiple_choice` | hand-written | #85 |
+| `odd_one_out` | Odd One Out | `multiple_choice` | hand-written | #86 |
+| `release_order` | Release Order | `ordering` | hand-written | #82 |
+| `sort_it_out` | Sort It Out | `ordering` | hand-written | #87 |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | #88 |
 | `clipped` | Know Your Content Creator | `multiple_choice` | hand-written | #88 |
 | `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Phase 3 |
@@ -287,7 +287,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
 
 `GET /api/vocab/{name}` serves `items` (`popular-items.json`), `examines` (`examines.json`) and
-`npcs` (`facts/npcs.json`, 404 until #83) as `{vocab, version, entries: [{id, name}]}`, built at
+`npcs` (404 until Who's That NPC? writes its list) as `{vocab, version, entries: [{id, name}]}`, built at
 startup. Two entries with one name refuse to load. The client fetches a list once, when a question
 first names it; per question it would resend the list every time. It gives nothing away: it is every
 entry, not the question's options.
@@ -539,7 +539,7 @@ key into them, so cleanup leaves it.
 
 ## 12. Data pipeline
 
-Packs are generated offline and committed, so a clone plays without a network.
+Packs are committed, so a clone plays without a network; only prices and examines are generated.
 
 - Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
@@ -548,12 +548,12 @@ Packs are generated offline and committed, so a clone plays without a network.
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - `make gen-examine-questions` builds `examine.json` from the hand-written `data/examines.json`. A
   test fails when they disagree.
-- #83 adds `make fetch-facts` on `wiki.py`: resumable, into `data/facts/`.
-- #84 adds `make gen-packs`: facts, the roster and `examines.json` into packs, offline and seeded,
-  with `CHECK=1` diffing in CI. It never derives `examines.json`.
-- Facts are committed so generators run offline and reproducibly. Images are never committed; a
-  selfhoster fetches them under their own User-Agent. `data/facts/README.md` carries the wiki's
-  attribution and CC BY-NC-SA notice.
+- Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs, like the
+  random events. No importer fetches wiki facts, so the owner picks every monster and question.
+- #84 adds `make gen-packs`: the roster and `examines.json` into packs, offline and seeded, with
+  `CHECK=1` diffing in CI. It never derives `examines.json`.
+- Images are never committed; a selfhoster fetches them under their own User-Agent. Questions
+  written from the wiki keep its attribution and CC BY-NC-SA notice, which the README (#98) carries.
 
 ## 13. Versioning
 
