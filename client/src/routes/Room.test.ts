@@ -290,6 +290,8 @@ describe('Room', () => {
       expect(screen.getByRole('heading', { name: 'Bob' })).toBeTruthy()
       expect(screen.getByText('What amulet lets you talk to cats?')).toBeTruthy()
       expect(screen.queryByRole('button', { name: 'Catspeak' })).toBeNull()
+      // The settled stage: no entrance replayed, no prompt typed again.
+      expect(document.querySelector('.stage-row')?.classList.contains('entering')).toBe(false)
       // The bar under the top bar counts the question's twenty seconds, not the hold.
       expect(get(timerBar)?.totalSeconds).toBe(20)
 
@@ -526,6 +528,136 @@ describe('the list a question is answered from', () => {
   })
 })
 
+describe('a random event’s way out', () => {
+  const PROMPT = 'What amulet lets you talk to cats?'
+
+  function bob(patch: Partial<OpenQuestion> = {}): OpenQuestion {
+    return {
+      question_id: 'q_bob',
+      index: 0,
+      total: 2,
+      type: 'multiple_choice',
+      mode: 'random_event',
+      segment: { ...SEGMENT, count: 2 },
+      view: { prompt: PROMPT, options: ['Catspeak', 'Camulet'] },
+      random_event: 'bob',
+      opened_at: new Date().toISOString(),
+      answerable_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 10_000).toISOString(),
+      you_can_answer: true,
+      ...patch,
+    }
+  }
+
+  function close(nextAt: number): void {
+    applyServerMessage({
+      t: 'question_closed',
+      question_id: 'q_bob',
+      reveal: { prompt: PROMPT, options: ['Catspeak', 'Camulet'], answer_index: 0 },
+      results: {},
+      standings: STANDINGS,
+      next_at: new Date(nextAt).toISOString(),
+    })
+  }
+
+  const WHIP = {
+    question_id: 'q2',
+    index: 1,
+    total: 2,
+    type: 'more_less',
+    mode: 'more_less',
+    segment: { ...SEGMENT, count: 2 },
+    view: {
+      metric: 'ge_price',
+      direction: 'more',
+      options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+      as_of: '2026-09-01',
+    },
+    opened_at: new Date().toISOString(),
+    ends_at: new Date(Date.now() + 10_000).toISOString(),
+    you_can_answer: true,
+  } satisfies OpenQuestion
+
+  beforeEach(() => {
+    resetRoom()
+  })
+
+  it('hands the stage back to the host before the standings', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    try {
+      await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+      applyServerMessage({ t: 'question_open', question: bob() })
+      await tick()
+      close(Date.now() + 8000)
+      await tick()
+      const row = document.querySelector('.stage-row')!
+      expect(row.classList.contains('returning')).toBe(false)
+      await vi.advanceTimersByTimeAsync(7760)
+      await tick()
+      expect(row.classList.contains('returning')).toBe(true)
+      await vi.advanceTimersByTimeAsync(240)
+      applyServerMessage({
+        t: 'room_updated',
+        room: roomView({ phase: 'standings', current_index: 0 }),
+        players: [],
+      })
+      await tick()
+      expect(document.querySelector('.podium')).not.toBeNull()
+      expect(document.querySelector('.stage-row')).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  describe('when the host skips it', () => {
+    const animate = Element.prototype.animate
+
+    beforeEach(() => {
+      // jsdom has no Web Animations; Svelte's transitions need one that finishes.
+      Element.prototype.animate = function (
+        _keyframes: Keyframe[] | PropertyIndexedKeyframes | null,
+        options?: number | KeyframeAnimationOptions,
+      ): Animation {
+        const duration = typeof options === 'number' ? options : Number(options?.duration ?? 0)
+        const running = { onfinish: null as (() => void) | null, cancel() {}, currentTime: 0 }
+        setTimeout(() => running.onfinish?.(), duration)
+        return running as unknown as Animation
+      }
+    })
+
+    afterEach(() => {
+      Element.prototype.animate = animate
+    })
+
+    const screens = () => document.querySelectorAll('.screens > .screen')
+
+    it('cross-fades the reveal into the next question', async () => {
+      await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+      applyServerMessage({ t: 'question_open', question: bob() })
+      await tick()
+      close(Date.now() + 8000)
+      await tick()
+      applyServerMessage({ t: 'question_open', question: WHIP })
+      await tick()
+      expect(screens()).toHaveLength(2)
+      expect(screen.getByText('Abyssal whip')).toBeTruthy()
+      await waitFor(() => expect(screens()).toHaveLength(1))
+      expect(screen.queryByRole('heading', { name: 'Bob' })).toBeNull()
+    })
+
+    it('does not, once the return has played', async () => {
+      await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+      applyServerMessage({ t: 'question_open', question: bob() })
+      await tick()
+      close(Date.now() - 1)
+      await tick()
+      applyServerMessage({ t: 'question_open', question: WHIP })
+      await tick()
+      expect(screens()).toHaveLength(1)
+    })
+  })
+})
+
 describe('the host’s skip', () => {
   /** Two rounds of two: positions 1 and 3 end a round, and 3 ends the game. */
   function reveal(index: number, standingsSeconds = 10): RoomView {
@@ -629,6 +761,27 @@ describe('what a screen reader and the tab hear', () => {
     expect(heading.textContent).toMatch(/Question 1 of 2/)
     expect(document.activeElement).toBe(heading)
     expect(live()).toBe(region)
+  })
+
+  it('says who interrupts as a random event opens, and not again on a reconnect', async () => {
+    applyServerMessage(welcome(roomView({ phase: 'reveal', next_at: null })))
+    const bob: OpenQuestion = {
+      ...WHIP,
+      question_id: 'q_bob',
+      type: 'multiple_choice',
+      mode: 'random_event',
+      view: { prompt: 'What amulet lets you talk to cats?', options: ['Catspeak', 'Camulet'] },
+      random_event: 'bob',
+    }
+    applyServerMessage({ t: 'question_open', question: bob })
+    await waitFor(() =>
+      expect(live()?.textContent).toBe('Random event: Bob interrupts the round.'),
+    )
+    applyServerMessage({
+      ...welcome(roomView({ phase: 'open', next_at: null })),
+      question: { ...bob, question_id: 'q_bob_again' },
+    })
+    await waitFor(() => expect(live()?.textContent).toBe('Round 1 of 2, question 1 of 2'))
   })
 
   it('says a round of its own without the round', async () => {

@@ -18,6 +18,7 @@
    * slides left into the space it leaves, and the guest fades in. Without it the guest is
    * simply there, which is what a reveal or a reconnect late in the hold wants. On a phone
    * the scroll stays put and the guest takes the host's column, on the sheet's other side.
+   * `returning` mirrors it at the reveal's end, so the host is in place for what follows.
    */
   import type { Snippet } from 'svelte'
 
@@ -33,6 +34,7 @@
     award = 'none',
     guest = null,
     entering = false,
+    returning = false,
     children,
   }: {
     /** The NPC id of the round's host, from `hostOf` in `lib/modes.ts`. */
@@ -45,6 +47,8 @@
     guest?: string | null
     /** Play the guest's entrance rather than start with it in place. */
     entering?: boolean
+    /** Hand the stage back: the guest leaves and the host returns. */
+    returning?: boolean
     /** What sits under the line. */
     children?: Snippet
   } = $props()
@@ -55,7 +59,12 @@
 </script>
 
 <div class="stage">
-  <div class="stage-row" class:event={guestArt !== null} class:entering={guestArt !== null && entering}>
+  <div
+    class="stage-row"
+    class:event={guestArt !== null && !returning}
+    class:entering={guestArt !== null && entering && !returning}
+    class:returning={guestArt !== null && returning}
+  >
     <div class="npc host" aria-hidden="true">
       <img class={art.cut} src={art.url} alt="" draggable="false" />
     </div>
@@ -159,9 +168,39 @@
     animation: guest-in 250ms ease-out 150ms both;
   }
 
+  /* The way back: the guest leaves where it stood, and the scroll slides home under it. */
+  .returning .guest {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    opacity: 0;
+    animation: fade-out 150ms ease-in both;
+  }
+
+  .returning .host {
+    animation: fade-in 200ms ease-out 50ms both;
+  }
+
+  .returning > :global(.scroll) {
+    animation: slide-right 250ms ease-out both;
+  }
+
   @keyframes fade-out {
     from {
       opacity: 1;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-right {
+    from {
+      transform: translateX(calc(var(--npc-lap) - var(--npc-w)));
     }
   }
 
@@ -179,8 +218,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .entering :is(.host, .guest),
-    .entering > :global(.scroll) {
+    :is(.entering, .returning) :is(.host, .guest),
+    :is(.entering, .returning) > :global(.scroll) {
       animation: none;
     }
   }
@@ -226,12 +265,13 @@
       bottom: calc(var(--finial) * 0.75);
     }
 
-    .event .guest {
+    :is(.event, .returning) .guest {
       left: auto;
       right: calc(var(--roll-w) / 2 + 6px);
+      bottom: calc(var(--finial) * 0.75);
     }
 
-    .entering > :global(.scroll) {
+    :is(.entering, .returning) > :global(.scroll) {
       animation: none;
     }
   }

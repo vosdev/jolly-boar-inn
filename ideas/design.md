@@ -312,14 +312,14 @@ nobody points and the server times nothing:
 answerable_at: the answers appear under the line and the timer bar starts
 ```
 
-- The typing always ends 200 ms before `answerable_at`: a prompt too long for 60 a second types
-  faster, and a hold too short for the 900 ms start starts sooner. At 0 the NPC is simply there.
+- The typing always ends 200 ms before `answerable_at`: a prompt too long for 60 a second starts
+  sooner, never before 400 ms, then types faster. Under 600 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole prompt is in the DOM from the first frame. A
   screen reader reads it once, and a polite live region announces who interrupted.
-- The NPC's `explanation` goes on the scroll in the reveal.
+- The `explanation` goes on the scroll in the reveal, in two lines the sheet keeps from the start.
 - The return mirrors the entrance in the reveal's last 250 ms, off `next_at`; a skipped reveal gets
   a 200 ms cross-fade.
-- On a phone the NPCs swap sides and the scroll stays put.
+- A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
 - With reduced motion the NPC replaces the host in one frame and the prompt shows whole. The
   answers still wait, because that is a rule of the game, not an animation.
 - An NPC this build does not know is drawn as the Mysterious Old Man.
