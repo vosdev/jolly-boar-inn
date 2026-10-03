@@ -8,9 +8,10 @@
  * committed, so a file may be missing: dropping one in replaces it on the next build with
  * no code change.
  *
- * Chatheads face right, toward the scroll. The wiki's renders face left, so a render is
- * drawn mirrored. An `.svg` is an original drawing, already facing the right way and
- * already cropped, so it is drawn as it is.
+ * Chatheads face right, toward the scroll from the host's side. The wiki's renders face
+ * left, so a host's render is drawn mirrored. An `.svg` is an original drawing, already
+ * facing right and already cropped. A random event's NPC stands on the other side, so
+ * there it is the other way round: its chathead or drawing is mirrored, its render not.
  */
 
 // An empty folder is an empty object, so an NPC with no file is known
@@ -42,12 +43,17 @@ function fileNamed(files: Record<string, string>, name: string): { url: string; 
   return null
 }
 
-/** The picture for NPC `id`: its chathead, else its render, else the innkeeper. */
-export function npcArt(id: string, files: Record<string, string> = npcFiles): NpcPicture {
+/** The picture for NPC `id`: its chathead, else its render, else `fallback`'s, else the innkeeper. */
+export function npcArt(
+  id: string,
+  files: Record<string, string> = npcFiles,
+  fallback: string = FALLBACK_NPC,
+): NpcPicture {
   const head = fileNamed(files, `${id}_chathead`)
   if (head !== null) return { url: head.url, cut: head.ext === 'svg' ? 'drawing' : 'chathead' }
   const body = fileNamed(files, id)
   if (body !== null) return { url: body.url, cut: body.ext === 'svg' ? 'drawing' : 'render' }
+  if (id !== fallback) return npcArt(fallback, files)
   if (id !== FALLBACK_NPC) return npcArt(FALLBACK_NPC, files)
   // The innkeeper is committed, so this is never the empty string in a real build.
   return { url: '', cut: 'drawing' }

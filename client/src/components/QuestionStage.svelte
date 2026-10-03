@@ -13,8 +13,8 @@
    * scroll, and under the line the answers in a panel, with the waiting line below them.
    * Once we have answered the host says its waiting line at the foot of the sheet, and on
    * the reveal its reveal line and what we earned, and anything we scored pins the ribbon. The line the points go on is held from the start, so the
-   * answers under the sheet do not move when they arrive. A random event keeps its card,
-   * and the points their plaque above it, until the event takes the stage too.
+   * answers under the sheet do not move when they arrive. A random event draws its own
+   * stage, with its NPC in the host's place.
    *
    * `children` goes inside the panel under the answers: the reveal's tally.
    */
@@ -116,16 +116,9 @@
 {/snippet}
 
 {#if question.random_event}
-  {#if reveal !== null}
-    <div class="plaque">
-      <PointsSlot {result} canAnswer={question.you_can_answer} />
-    </div>
-  {/if}
-  <section class="panel">
-    <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} />
+  <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} below={waiting}>
     {@render children?.()}
-  </section>
-  {@render waiting()}
+  </RandomEvent>
 {:else}
   <Question {question} {reveal} {yourValue} {result} {onAnswer} frame={staged} />
 {/if}
@@ -146,12 +139,6 @@
     margin: 0;
     font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
     font-style: italic;
-  }
-
-  .plaque {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 1rem;
   }
 
   /* On a phone the panel gives its padding to the gems: six of them at 56px and a

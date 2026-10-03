@@ -22,7 +22,7 @@ CLIENT_COPY = REPO_ROOT / "client" / "src" / "lib" / "randomEvents.ts"
 # Until they have some, these NPCs only ever ask a host's own question.
 AWAITING_QUESTIONS = {
     "sandwich_lady",
-    "tree_spirit",
+    "survival_expert",
     "drunken_dwarf",
     "thurgo",
     "genie",

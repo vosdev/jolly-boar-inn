@@ -32,6 +32,12 @@ describe('npcArt', () => {
     expect(npcArt('examiner', INNKEEPER).url).toBe('/assets/innkeeper.svg')
   })
 
+  it('stands the given fallback in before the innkeeper, then the innkeeper', () => {
+    const files = { ...INNKEEPER, '../assets/npcs/stranger_chathead.png': '/assets/stranger.png' }
+    expect(npcArt('death', files, 'stranger').url).toBe('/assets/stranger.png')
+    expect(npcArt('death', INNKEEPER, 'stranger').url).toBe('/assets/innkeeper.svg')
+  })
+
   it('does not take one NPC for another whose id starts the same', () => {
     const files = { ...INNKEEPER, '../assets/npcs/grand_exchange_clerk_2.png': '/assets/other.png' }
     expect(npcArt('grand_exchange_clerk', files).url).toBe('/assets/innkeeper.svg')
