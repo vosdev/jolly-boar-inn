@@ -177,6 +177,13 @@ describe('Create', () => {
     }
   })
 
+  it('stands its host on a mode still coming, where a lock used to be', async () => {
+    await loaded()
+    const soon = screen.getByText('Name that spell').closest('li')!
+    expect(soon.querySelector('.face img')).toBeTruthy()
+    expect(soon.querySelector('.lock')).toBeNull()
+  })
+
   it('picks a mode by a tap anywhere on its card but its controls', async () => {
     await loaded()
     const box = (): HTMLInputElement =>

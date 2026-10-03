@@ -6,13 +6,20 @@
  */
 
 import { render, screen, within } from '@testing-library/svelte'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { derivedHead } from '../lib/heads'
 import type { Standing } from '../lib/protocol'
 import { players } from '../lib/stores'
 import { headsDrawn } from '../test-heads'
 import Scoreboard from './Scoreboard.svelte'
+
+// Fetched trophy renders would replace the placeholders this file checks for, so the
+// renders are taken as absent whatever this checkout has fetched.
+vi.mock('../lib/trophies', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../lib/trophies')>()
+  return { ...original, trophyArt: (tier: Parameters<typeof original.trophyArt>[0]) => original.trophyArt(tier, {}) }
+})
 
 const LONG = 'Cow31337Killer42Forever1' // 24 characters, the longest a name may be
 

@@ -29,9 +29,9 @@ describe('trophyArt', () => {
     })
   })
 
-  it('has a committed placeholder for every tier, and no renders in this checkout', () => {
+  it('has a committed placeholder for every tier, whatever renders this checkout has fetched', () => {
     for (const tier of TIERS) {
-      const art = trophyArt(tier)
+      const art = trophyArt(tier, {})
       expect(art.placeholder).toBe(true)
       expect(art.url).not.toBe('')
     }

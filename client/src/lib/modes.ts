@@ -117,7 +117,7 @@ export const MODES: Record<string, Mode> = {
     id: 'random_events_only',
     label: 'Random Events Only',
     hint: 'Nothing but random NPCs turning up with random questions.',
-    host: INNKEEPER,
+    host: { id: 'crowned_frog', name: 'The Frog' },
     greeting: 'The whole road has come in tonight, and every one of them wants a word.',
     blurb: 'One visitor after another, each with a question. Answer them all.',
     waiting: 'Another visitor will be along shortly.',
@@ -156,23 +156,25 @@ export const MODES: Record<string, Mode> = {
 }
 
 /**
- * Modes still being built, shown on the create form ticked off and disabled so players
- * can see what is coming. Copy only: once a mode ships it gets a full `MODES` entry and
- * `/api/modes` lists it, and the form stops treating it as upcoming — so an entry left
- * here after that is harmless, but belongs deleted.
+ * Modes still being built, shown on the create form faded and with nothing to press, their
+ * host standing on the card as it will on the stage, so players can see who is coming. Copy
+ * only: once a mode ships it gets a full `MODES` entry and `/api/modes` lists it, and the
+ * form stops treating it as upcoming — so an entry left here after that is harmless, but
+ * belongs deleted. A host here is never on the random-event roster: that face means an
+ * interruption.
  */
-export const UPCOMING_MODES: { id: string; label: string; hint: string }[] = [
-  { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!" },
-  { id: 'bestiary', label: 'Bestiary', hint: 'Combat levels, weaknesses and haunts of the monsters.' },
-  { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.' },
-  { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.' },
-  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.' },
-  { id: 'sort_it_out', label: 'Sort It Out', hint: 'Are you a skiller or a slacker?' },
-  { id: 'who_said_that', label: 'Who Said That?', hint: 'Name the character behind the line.' },
-  { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?' },
-  { id: 'clipped', label: 'Know Your Content Creator', hint: 'Are you sure you are a fan?' },
-  { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!' },
-  { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?' },
+export const UPCOMING_MODES: { id: string; label: string; hint: string; host: string }[] = [
+  { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!", host: 'postie_pete' },
+  { id: 'bestiary', label: 'Bestiary', hint: 'Combat levels, weaknesses and haunts of the monsters.', host: 'zoo_keeper' },
+  { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.', host: 'nieve' },
+  { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.', host: 'aris' },
+  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'dunce' },
+  { id: 'sort_it_out', label: 'Sort It Out', hint: 'Are you a skiller or a slacker?', host: 'historian_minas' },
+  { id: 'who_said_that', label: 'Who Said That?', hint: 'Name the character behind the line.', host: 'cracked_jennys_tea_cup' },
+  { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
+  { id: 'clipped', label: 'Know Your Content Creator', hint: 'Are you sure you are a fan?', host: 'gnome_child' },
+  { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!', host: 'aubury' },
+  { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?', host: 'captain_errdo' },
 ]
 
 /**
