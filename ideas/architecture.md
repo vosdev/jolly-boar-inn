@@ -73,8 +73,8 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 **mode** is a round: what the host picks, what a splash introduces, what a pack pools by. Five
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
-`Mode(id, types, is_round=True, questions=None, seconds=None)` in `modes/`, registered in `MODES` in
-the create form's order.
+`Mode(id, types, is_round=True, questions=None, seconds=None, pool=None, setting=None)` in `modes/`,
+registered in `MODES` in the create form's order.
 
 - `id` is `questions.mode` and the settings key. It is never renamed once shipped.
 - A round may mix types. The game loop reads only `question.type`. A round whose types disagree on
@@ -82,6 +82,9 @@ the create form's order.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
 - Copy (label, hint, blurb, host lines) lives on the client in `lib/modes.ts`.
+- `pool` names the mode whose pack questions a round draws, restamped with its own id. `setting` names
+  the `Settings` flag that offers the mode; off, `/api/modes` omits it and `POST /api/rooms` is a 403
+  `mode_not_offered`. A stored room keeps playing it.
 
 Each module in `questions/types/` exports:
 
@@ -111,6 +114,7 @@ SECONDS: Bounds                       # optional
 | `guess_examine` | Guess the Examine | `pick_from_list` | `data/examines.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
+| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
 | `bestiary`, `drop_table` | Bestiary, Drop Table | `multiple_choice` | hand-written | #85 |
 | `odd_one_out` | Odd One Out | `multiple_choice` | hand-written | #86 |
 | `release_order` | Release Order | `ordering` | hand-written | #82 |

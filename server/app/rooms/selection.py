@@ -88,7 +88,7 @@ def select(
     A pool is every pack question carrying that ``mode``, never that ``type``. Modes share
     types -- five of them will be ``multiple_choice`` -- and pooling by type would have
     each of those rounds drawing the other four's questions. The NPCs' questions are the
-    ``random_event`` pool, which no round draws from.
+    ``random_event`` pool, which only a mode with that ``pool`` draws a round from.
     """
     pools: dict[str, list[dict[str, Any]]] = {}
     for pack in packs:
@@ -102,11 +102,17 @@ def select(
 
     rounds: list[Round] = []
     for entry in order:
-        pool = pools.get(entry.mode, [])
+        mode = MODES.get(entry.mode)
+        pool = pools.get(mode.pool if mode and mode.pool else entry.mode, [])
         take = min(entry.questions, len(pool))
         if take <= 0:
             continue  # this mode has nothing to play; a round with no questions is not a round
-        rounds.append(Round(mode=entry.mode, questions=[pool.pop() for _ in range(take)]))
+        # Restamped, so the round is named for its mode rather than for the pool it borrowed.
+        rounds.append(
+            Round(
+                mode=entry.mode, questions=[{**pool.pop(), "mode": entry.mode} for _ in range(take)]
+            )
+        )
 
     return place_random_events(rounds, custom, pools.get(EVENT_MODE, []), settings, rng)
 

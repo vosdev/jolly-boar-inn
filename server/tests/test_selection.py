@@ -541,3 +541,24 @@ def test_an_event_carries_the_number_of_the_round_it_interrupts(stubs: tuple[str
     (at,) = [i for i, (_, q) in enumerate(flat) if "random_event" in q]
     assert flat[at][1]["mode"] == "custom"
     assert flat[at - 1][0] == flat[at][0] == flat[at + 1][0]
+
+
+def test_a_mode_with_a_pool_draws_its_round_from_that_pool() -> None:
+    """Random Events Only plays the NPCs' questions as a round, named for itself, and the
+    events the room adds draw from what is left rather than repeating one."""
+    settings = _settings(("random_events_only", 12), random_event_frequency="default")
+    for seed in range(20):
+        rounds = select(PACKS + EVENT_PACKS, [], settings, random.Random(seed))
+        assert [r.mode for r in rounds] == ["random_events_only"]
+        questions = rounds[0].questions
+        assert len(questions) == 13
+        assert all(q["random_event"] in ASKERS for q in questions)
+        assert [q["mode"] for q in questions].count("random_events_only") == 12
+        assert {q["mode"] for q in questions} == {"random_events_only", "random_event"}
+        assert len({q["id"] for q in questions}) == 13
+
+
+def test_a_mode_with_a_pool_gives_a_short_round_when_the_pool_runs_dry() -> None:
+    settings = _settings(("random_events_only", 20), random_event_frequency="less")
+    rounds = select(PACKS + EVENT_PACKS[:1], [], settings, random.Random(1))
+    assert len(rounds[0].questions) == 10  # one NPC's ten questions, and no event left to add

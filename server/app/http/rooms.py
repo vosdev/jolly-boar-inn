@@ -7,7 +7,9 @@ from uuid import UUID
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.errors import ApiError
 from app.http.ratelimit import RateLimited, client_key, room_lookup
+from app.modes import offered
 from app.questions import custom
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
 from app.rooms.state import Room, RoomManager, normalize_name
@@ -72,9 +74,18 @@ def client_host(request: Request) -> str:
     return request.client.host if request.client else ""
 
 
+class ModeNotOffered(ApiError):
+    status, code = 403, "mode_not_offered"
+
+
 @router.post("", status_code=201)
 async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     ip = client_host(request)
+    available = {mode.id for mode in offered(request.app.state.settings)}
+    unavailable = [e.mode for e in body.settings.modes if e.mode not in available]
+    if unavailable:
+        # Like a bad name, before the limiter has counted the attempt.
+        raise ModeNotOffered(f"this server does not offer {', '.join(unavailable)}")
     # Before the limiter, which records a hit on every call it allows: a handful of
     # typos in the name field should not cost a host their hourly quota.
     name = normalize_name(body.display_name)
