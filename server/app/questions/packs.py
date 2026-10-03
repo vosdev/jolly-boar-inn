@@ -1,10 +1,10 @@
 """Load the shipped question packs into memory at startup.
 
-Two kinds of file. ``data/packs/*.json`` is ``{"pack": str, "generated_at": str,
-"questions": [Question, ...]}``, and most of them are generated. The NPCs' own questions
-are hand-written, one file per NPC in ``data/packs/random_events/``: ``{"pack": str,
-"random_event": str, "questions": [...]}``, where ``random_event`` is the roster id the
-file is named after (``app/random_events.py``).
+Two kinds of file. ``data/packs/*.json`` is ``{"pack": str, "generated_at"?: str,
+"questions": [Question, ...]}``, where only a generated pack carries ``generated_at``. The
+NPCs' own questions are hand-written, one file per NPC in ``data/packs/random_events/``:
+``{"pack": str, "random_event": str, "questions": [...]}``, where ``random_event`` is the
+roster id the file is named after (``app/random_events.py``).
 
 The file says who asks, once, so its questions do not: the loader stamps ``random_event``
 onto each of them, which is what ``selection`` reads to put the right face on the event.
@@ -18,7 +18,9 @@ Three ways to get that wrong, each refused by name:
   pack question anywhere else belongs to a round.
 
 Loading validates every question completely (schema, content id, consistency) and rejects
-duplicate ids within and across packs, the event folder included. ``random_event`` is an
+duplicate ids within and across packs, the event folder included. It also refuses one
+``pick_from_list`` prompt asked twice of a vocabulary, compared folded, because a line asked
+under two answers has two right entries in the list. ``random_event`` is an
 envelope field and stays out of the content id, so a question moved from one NPC to
 another keeps its id. Any problem raises ``PackError``: the app must not start with a
 broken pack, and CI runs the same check via ``scripts/validate_packs.py``.
@@ -30,9 +32,12 @@ from pathlib import Path
 from typing import Any
 
 from app.questions import schema
+from app.questions.vocab import fold
 from app.random_events import RANDOM_EVENTS
 
-PACK_KEYS = {"pack", "generated_at", "questions"}
+PACK_KEYS = {"pack", "questions"}
+# Only a generated pack has one: a hand-edited file would carry a date nobody updates.
+OPTIONAL_PACK_KEYS = {"generated_at"}
 EVENT_PACK_KEYS = {"pack", "random_event", "questions"}
 # The NPCs' own questions, one file each, under the packs directory.
 EVENTS_DIR = "random_events"
@@ -50,7 +55,7 @@ class PackError(ValueError):
 @dataclass(frozen=True, slots=True)
 class Pack:
     name: str
-    # ``None`` for an NPC's file: it was written, not generated.
+    # ``None`` for a hand-written file.
     generated_at: str | None
     questions: tuple[dict[str, Any], ...]
     path: Path
@@ -66,11 +71,13 @@ def pack_errors(data: Any, label: str, npc: str | None = None) -> list[str]:
     stamped on, so a question in it gets exactly the checks one in a round's pack does.
     """
     keys = PACK_KEYS if npc is None else EVENT_PACK_KEYS
+    optional = OPTIONAL_PACK_KEYS if npc is None else set()
     if not isinstance(data, dict):
         return [f"{label}: pack must be a JSON object"]
-    if set(data) != keys or not isinstance(data["pack"], str):
-        return [f"{label}: pack must have exactly the keys {sorted(keys)}"]
-    if npc is None and not isinstance(data["generated_at"], str):
+    if not keys <= set(data) <= keys | optional or not isinstance(data["pack"], str):
+        extra = f", and may have {sorted(optional)}" if optional else ""
+        return [f"{label}: pack must have exactly the keys {sorted(keys)}{extra}"]
+    if not isinstance(data.get("generated_at", ""), str):
         return [f"{label}: generated_at must be a string"]
     if npc is not None and data["random_event"] != npc:
         return [f"{label}: random_event must be {npc!r}, the NPC the file is named after"]
@@ -119,6 +126,28 @@ def _asked_by(question: Any, npc: str | None) -> Any:
     return {**question, "random_event": npc} if npc is not None else question
 
 
+def _repeated_prompts(
+    questions: list[dict[str, Any]], label: str, seen: dict[tuple[str, str], tuple[int, str]]
+) -> list[str]:
+    """``pick_from_list`` prompts already asked of the same vocabulary, recorded in ``seen``."""
+    errors: list[str] = []
+    for index, question in enumerate(questions):
+        if question["type"] != "pick_from_list":
+            continue
+        payload = question["payload"]
+        key = (payload["vocab"], fold(" ".join(payload["prompt"].split())))
+        if key in seen:
+            answer, where = seen[key]
+            errors.append(
+                f"{label}: questions[{index}] prompt {payload['prompt']!r} is also asked in"
+                f" {where}, answered {answer} there and {payload['answer_id']} here; a line"
+                " may have only one answer"
+            )
+        else:
+            seen[key] = (payload["answer_id"], f"{label} questions[{index}]")
+    return errors
+
+
 def load_packs(directory: Path) -> list[Pack]:
     """Load every ``*.json`` in ``directory`` and in its ``random_events/``.
 
@@ -134,6 +163,7 @@ def load_packs(directory: Path) -> list[Pack]:
     packs: list[Pack] = []
     errors: list[str] = []
     seen: dict[str, str] = {}
+    prompts: dict[tuple[str, str], tuple[int, str]] = {}
     for path, npc in files:
         label = path.name if npc is None else f"{EVENTS_DIR}/{path.name}"
         if npc is not None and npc not in RANDOM_EVENTS:
@@ -157,6 +187,7 @@ def load_packs(directory: Path) -> list[Pack]:
                     f"{label}: id {question['id']} also appears in {seen[question['id']]}"
                 )
             seen[question["id"]] = label
+        errors.extend(_repeated_prompts(data["questions"], label, prompts))
         packs.append(
             Pack(
                 name=data["pack"],

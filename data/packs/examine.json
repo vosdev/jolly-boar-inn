@@ -1,6 +1,5 @@
 {
   "pack": "examine",
-  "generated_at": "2026-09-23T10:19:50Z",
   "questions": [
     {
       "id": "q_6b7230aaa9df1eae",
@@ -10,6 +9,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pet_rock",
       "payload": {
         "prompt": "The lowest maintenance pet you will ever have.",
         "vocab": "examines",
@@ -27,6 +27,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Repugnant_spectre",
       "payload": {
         "prompt": "I'd smell better after completing 3145 laps of an agility course dressed as a monkey.",
         "vocab": "examines",
@@ -44,6 +45,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ectophial",
       "payload": {
         "prompt": "The ectophial.",
         "vocab": "examines",
@@ -61,6 +63,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Meat_pie#Half",
       "payload": {
         "prompt": "Half of it is suitable for vegetarians",
         "vocab": "examines",
@@ -78,6 +81,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Depths_of_Despair",
       "payload": {
         "prompt": "I don't understand, why didn't he return to Lumby?",
         "vocab": "examines",
@@ -95,6 +99,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Big_beer_barrel",
       "payload": {
         "prompt": "It's full of beer, a state to which many people aspire",
         "vocab": "examines",
@@ -112,6 +117,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bear_droppings",
       "payload": {
         "prompt": "Well now you know.",
         "vocab": "examines",
@@ -129,6 +135,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ring_of_endurance",
       "payload": {
         "prompt": "I wonder if this ring helps with...",
         "vocab": "examines",
@@ -146,6 +153,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Wilting_wheat",
       "payload": {
         "prompt": "Life is short and then we die.",
         "vocab": "examines",
@@ -163,6 +171,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/An_ogre_standard",
       "payload": {
         "prompt": "Not very high.",
         "vocab": "examines",
@@ -180,6 +189,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Spider_eggs_(scenery)",
       "payload": {
         "prompt": "Future web developers.",
         "vocab": "examines",
@@ -197,6 +207,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Rocky",
       "payload": {
         "prompt": "Raccoons, like pandas but worse.",
         "vocab": "examines",
@@ -214,6 +225,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Chicken",
       "payload": {
         "prompt": "Yep. Definitely a chicken.",
         "vocab": "examines",
@@ -231,6 +243,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Marble_gargoyle",
       "payload": {
         "prompt": "Am I losing my marbles?",
         "vocab": "examines",
@@ -248,6 +261,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ancient_machinery_(Great_Kourend)",
       "payload": {
         "prompt": "Some form of ancient terraforming device. Oh deere it looks broken.",
         "vocab": "examines",
@@ -265,6 +279,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Rock_lobster",
       "payload": {
         "prompt": "It wasn't a rock... it was a rock lobster!",
         "vocab": "examines",
@@ -282,6 +297,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Stray_dog",
       "payload": {
         "prompt": "Are those fleas all over it?",
         "vocab": "examines",
@@ -299,6 +315,7 @@
       "tags": [
         "examine"
       ],
+      "wiki": "https://oldschool.runescape.wiki/w/Party_Pete",
       "payload": {
         "prompt": "He likes to paaaarty!",
         "vocab": "examines",

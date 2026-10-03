@@ -15,9 +15,11 @@ sound, and this module is where it is held to that:
 importer does, so Guess the Examine does not wait for the NPC facts. ``npcs`` is
 ``data/facts/npcs.json``, which an importer writes; until then it is simply absent, and
 ``GET /api/vocab/npcs`` is a 404 rather than an empty list that would look like a
-vocabulary with nobody in it. ``examines`` is ``data/examines.json``, the hand-written lines
-Guess the Examine is played from: items, NPCs and scenery alike, so it is a list of its
-own rather than a slice of the other two, and its answers are exactly its entries.
+vocabulary with nobody in it. ``examines`` is read off ``data/packs/examine.json``, the
+hand-written questions Guess the Examine is played from: items, NPCs and scenery alike, so it
+is a list of its own rather than a slice of the other two. One entry per ``answer_id``, named
+by its ``subject.name``, so its entries are exactly the answers asked. An id under two names,
+or a name under two ids, refuses to load like any other pair a player could not tell apart.
 
 Both are read once and never change while the process runs. ``version`` is a hash of the
 entries, so a client holding a list from one build can tell it is not this build's. It is
@@ -38,7 +40,7 @@ from app.config import REPO_ROOT
 SOURCES: dict[str, Path] = {
     "items": REPO_ROOT / "data" / "popular-items.json",
     "npcs": REPO_ROOT / "data" / "facts" / "npcs.json",
-    "examines": REPO_ROOT / "data" / "examines.json",
+    "examines": REPO_ROOT / "data" / "packs" / "examine.json",
 }
 
 
@@ -136,17 +138,47 @@ def build(name: str, records: Any, label: str) -> Vocab:
     )
 
 
+def from_questions(name: str, questions: Any, label: str) -> list[dict[str, Any]]:
+    """One ``{id, name}`` record per ``answer_id`` that pack questions answer from ``name``.
+
+    Raises ``VocabError`` when one id goes by two names; ``build`` catches the reverse.
+    """
+    if not isinstance(questions, list):
+        raise VocabError([f"{label}: questions must be a list"])
+    names: dict[Any, Any] = {}
+    errors: list[str] = []
+    for index, question in enumerate(questions):
+        payload = question.get("payload") if isinstance(question, dict) else None
+        if not isinstance(payload, dict) or payload.get("vocab") != name:
+            continue
+        entry_id = payload.get("answer_id")
+        subject = payload.get("subject")
+        entry_name = subject.get("name") if isinstance(subject, dict) else None
+        if entry_id in names and names[entry_id] != entry_name:
+            errors.append(
+                f"{label}: questions[{index}] calls answer {entry_id} {entry_name!r},"
+                f" but another question calls it {names[entry_id]!r}"
+            )
+        names.setdefault(entry_id, entry_name)
+    if errors:
+        raise VocabError(errors)
+    return [{"id": entry_id, "name": entry_name} for entry_id, entry_name in names.items()]
+
+
 def read(name: str, path: Path) -> Vocab | None:
     """The vocabulary in ``path``, or ``None`` if the file does not exist yet.
 
-    The roster keeps its entries under ``"items"`` and ``examines.json`` under
-    ``"examines"``, each next to a ``_comment``; the importer's files under a key named
-    after the vocabulary. A bare list is accepted too.
+    The roster keeps its entries under ``"items"``, next to a ``_comment``; the importer's
+    files under a key named after the vocabulary. A bare list is accepted too, and a pack
+    (an object with ``"questions"``) gives the answers its questions name.
     """
     if not path.is_file():
         return None
     data = json.loads(path.read_text(encoding="utf-8"))
-    records = data.get(name) if isinstance(data, dict) else data
+    if isinstance(data, dict) and "questions" in data:
+        records = from_questions(name, data["questions"], path.name)
+    else:
+        records = data.get(name) if isinstance(data, dict) else data
     return build(name, records, path.name)
 
 
