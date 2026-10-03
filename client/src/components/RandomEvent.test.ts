@@ -331,7 +331,7 @@ describe('the NPC’s own words', () => {
   const death = RANDOM_EVENTS.find((npc) => npc.id === 'death')!
   const introduced = (patch: Partial<OpenQuestion> = {}) =>
     event({
-      answerable_at: new Date(NOW + 3500).toISOString(),
+      answerable_at: new Date(NOW + 6000).toISOString(),
       view: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'] },
       ...patch,
     })
@@ -351,14 +351,31 @@ describe('the NPC’s own words', () => {
     return copy.textContent ?? ''
   }
 
-  it('types the intro, with the plain question whole in bold from the first frame', async () => {
+  it('types the intro, waits, then types the question, all settled before the answers', async () => {
+    // 73 letters of intro from 900 ms are typed by 2117 ms; then the longest pause, two
+    // seconds; then 34 letters of question by 4684 ms.
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
     expect(seen(intro())).toBe('')
-    expect(ask().textContent).toBe(PROMPT)
-    expect(spoken(intro())).toBe(INTRO)
-    await after(3300)
+    expect(seen(ask())).toBe('')
+    await after(2117)
     expect(seen(intro())).toBe(INTRO)
-    expect(ask().textContent).toBe(PROMPT)
+    expect(seen(ask())).toBe('')
+    await after(1999)
+    expect(seen(ask())).toBe('')
+    await after(300)
+    expect(seen(ask()).length).toBeGreaterThan(0)
+    expect(PROMPT.startsWith(seen(ask()))).toBe(true)
+    await after(6000 - 200 - 4416)
+    expect(seen(ask())).toBe(PROMPT)
+    expect(buttons()).toHaveLength(0)
+    await after(200)
+    expect(buttons()).toHaveLength(3)
+  })
+
+  it('gives a screen reader the intro and the question once each, whole, from the first frame', () => {
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
+    expect(spoken(intro())).toBe(INTRO)
+    expect(spoken(ask())).toBe(PROMPT)
   })
 
   it('keeps the intro on the sheet in the reveal', () => {

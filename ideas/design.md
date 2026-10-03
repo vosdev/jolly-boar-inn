@@ -300,22 +300,24 @@ asks what are architecture §5 and `ideas/random-events.md`. This is how it look
 **The event NPC stands on the right.** The host always stands left, so position says "this is not
 the round's question" before a word is read.
 
-Everything happens inside the server's fixed 3.5 s hold before `answerable_at`, so the wait costs
+Everything happens inside the server's fixed 6 s hold before `answerable_at`, so the wait costs
 nobody points and the server times nothing:
 
 ```
-  0 ms   the NPC's name and the plain question, in bold, are on the scroll, whole
+  0 ms   the NPC's name is on the scroll, whole; the scroll takes the text's height
          the host fades out; the scroll slides left into the space it leaves   ≤ 250 ms
 150 ms   the event NPC fades in on the right                                   ≤ 250 ms
-900 ms   the NPC's `intro` "types" in above the question at 60 letters a second
+900 ms   the NPC's `intro` "types" in at 60 letters a second
+then     a pause of 1–2 s, and the plain question types in under it, in bold
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
 answerable_at: the answers appear under the line and the timer bar starts
 ```
 
-- The bold question is all a hurried player reads; the intro is the character. A question with no
-  intro types its prompt instead.
-- The typing always ends 200 ms before `answerable_at`: text too long for 60 a second starts
-  sooner, never before 400 ms, then types faster. Under 600 ms of hold the NPC is simply there.
+- The intro is the character; the bold question is all a hurried player needs. A question with no
+  intro types its prompt alone.
+- The typing ends 200 ms before `answerable_at` at the latest. Spare time lengthens the pause to
+  2 s, then waits settled. Text too long for 60 a second and a 1 s pause starts sooner, never
+  before 400 ms, then types faster. Under 600 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame. A
   screen reader reads it once, and a polite live region announces who interrupted.
 - In the reveal the NPC says its `right` or `wrong` line beside the points, and the `explanation`
@@ -323,7 +325,7 @@ answerable_at: the answers appear under the line and the timer bar starts
 - The return mirrors the entrance in the reveal's last 250 ms, off `next_at`; a skipped reveal gets
   a 200 ms cross-fade.
 - A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
-- With reduced motion the NPC replaces the host in one frame and the intro shows whole. The
+- With reduced motion the NPC replaces the host in one frame and the text shows whole. The
   answers still wait, because that is a rule of the game, not an animation.
 - An NPC this build does not know is drawn as the Mysterious Old Man.
 - The panel holding the answers exists, with the buttons faded out.

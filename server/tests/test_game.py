@@ -2308,7 +2308,7 @@ def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
 def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, monkeypatch) -> None:
     """On the server: an answer inside the NPC's hold is ``not_open``, and
     ``ends_at - answerable_at`` is its type's own seconds -- the hold comes on top. The
-    hold is the server's own three and a half seconds, which the interlude is timed to.
+    hold is the server's own six seconds, which the interlude is timed to.
     The event here is an NPC asking its own question, in the ``random_event`` mode."""
     monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", RANDOM_EVENT_HOLD)
     game = table("Zezima", **event_rooms(second_mode))
@@ -2317,7 +2317,7 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, m
     frames = reach(game, event.position)
     opened = frames["Zezima"]
     assert opened["random_event"] == event.random_event
-    assert (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds() == 3.5
+    assert (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds() == 6
     seconds = (at(opened, "ends_at") - at(opened, "answerable_at")).total_seconds()
     assert seconds == type_seconds(event.type).default
 

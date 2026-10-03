@@ -14,9 +14,10 @@
    * and the card simply waits out whatever is left.
    *
    * It is drawn on the stage as the interlude of section 12 of ideas/design.md: the NPC
-   * stands on the right of the round's host's scroll, their name on the sheet and the
-   * plain question in bold from the first frame, their `intro` typed in above it, and the
-   * answers under the line. A question with no intro types its prompt instead. The
+   * stands on the right of the round's host's scroll, their name on the sheet from the
+   * first frame, their `intro` typed in, a pause, then the plain question typed in bold
+   * under it, and the answers under the line. A question with no intro types its prompt
+   * alone. The
    * timing is `lib/interlude.ts`'s, planned once from what is left of the hold when the
    * event takes the stage, and only for a question that arrived `live`: a reconnect, a
    * reveal and reduced motion get the settled stage. The typing is a mask over text that
@@ -79,10 +80,11 @@
   const answerableMs = $derived(Date.parse(question.answerable_at ?? question.opened_at))
   const prompt = $derived(typeof question.view.prompt === 'string' ? question.view.prompt : '')
   const intro = $derived(typeof question.view.intro === 'string' ? question.view.intro : '')
-  /** What the NPC types: their intro, or the prompt of a question that has none. */
-  const spoken = $derived(intro !== '' ? intro : prompt)
-  /** By code point, so an emoji or an accent is one letter typed, never half of one. */
-  const letters = $derived([...spoken])
+  /**
+   * What the NPC types, in order: their intro and the question, or the question alone. By
+   * code point, so an emoji or an accent is one letter typed, never half of one.
+   */
+  const lines = $derived((intro !== '' ? [intro, prompt] : [prompt]).map((text) => [...text]))
   const explanation = $derived(
     reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
   )
@@ -99,7 +101,10 @@
   const startedAt = Date.now()
   const interlude = untrack(() =>
     live && reveal === null && !reducedMotion()
-      ? interludeFor(answerableMs - (startedAt + get(serverOffsetMs)), letters.length)
+      ? interludeFor(
+          answerableMs - (startedAt + get(serverOffsetMs)),
+          lines.map((line) => line.length),
+        )
       : SETTLED,
   )
 
@@ -108,8 +113,13 @@
   const held = $derived(
     reveal === null && !Number.isNaN(answerableMs) && answerableMs - serverMs > 0,
   )
-  const shown = $derived(typedAt(interlude, letters.length, nowMs - startedAt))
-  const typing = $derived(reveal === null && shown < letters.length)
+  /** How many letters of each line show. */
+  const shown = $derived(
+    lines.map((line, i) => typedAt(interlude.lines[i], line.length, nowMs - startedAt)),
+  )
+  const typing = $derived(
+    reveal === null && lines.some((line, i) => (shown[i] ?? 0) < line.length),
+  )
   const returnMs = $derived(nextAt === null ? NaN : Date.parse(nextAt) - RETURN_MS)
   const returning = $derived(reveal !== null && returnMs - serverMs <= 0)
 
@@ -146,11 +156,16 @@
   })
 
   // Typing runs on this browser's clock from the arrival, as the plan does: a letter at a
-  // time, each at the moment it is due.
+  // time, each at the moment it is due, whichever line it is in.
   $effect(() => {
     if (!typing) return
-    const due =
-      startedAt + interlude.typeFrom + ((shown + 1) / letters.length) * interlude.typeFor
+    let due = Infinity
+    lines.forEach((line, i) => {
+      const plan = interlude.lines[i]
+      const count = shown[i] ?? 0
+      if (plan === undefined || count >= line.length) return
+      due = Math.min(due, startedAt + plan.from + ((count + 1) / line.length) * plan.for)
+    })
     return wakeIn(due - Math.max(nowMs, Date.now()))
   })
 
@@ -161,13 +176,15 @@
   })
 </script>
 
-{#snippet typed(text: string, kind: string)}
-  {#if typing}
-    <p class={kind}><span class="sr">{text}</span><span aria-hidden="true">{letters
-          .slice(0, shown)
-          .join('')}<span class="untyped">{letters.slice(shown).join('')}</span></span></p>
+{#snippet typed(i: number, kind: string)}
+  {@const line = lines[i] ?? []}
+  {@const count = shown[i] ?? line.length}
+  {#if reveal === null && count < line.length}
+    <p class={kind}><span class="sr">{line.join('')}</span><span aria-hidden="true">{line
+          .slice(0, count)
+          .join('')}<span class="untyped">{line.slice(count).join('')}</span></span></p>
   {:else}
-    <p class={kind}>{text}</p>
+    <p class={kind}>{line.join('')}</p>
   {/if}
 {/snippet}
 
@@ -178,10 +195,10 @@
     {#if answers === null || prompt === ''}
       {@render stem()}
     {:else if intro !== ''}
-      {@render typed(intro, 'intro')}
-      <p class="ask">{prompt}</p>
+      {@render typed(0, 'intro')}
+      {@render typed(1, 'ask')}
     {:else}
-      {@render typed(prompt, 'ask')}
+      {@render typed(0, 'ask')}
     {/if}
     <div class="foot">
       <p class="explanation">{explanation}</p>
@@ -240,7 +257,7 @@
     overflow-wrap: anywhere;
   }
 
-  /* The NPC's voice; the bold question under it is all a player in a hurry needs. */
+  /* The NPC's voice, before the bold question that is all a player in a hurry needs. */
   .intro {
     margin: 0 0 0.5rem;
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
