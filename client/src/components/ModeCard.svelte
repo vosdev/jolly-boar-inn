@@ -10,8 +10,8 @@
    * or a plain dot when the order is random and a number would promise something the
    * room will not keep.
    *
-   * A mode still being built is the same card, faded, with a lock where its host would
-   * stand and nothing to press.
+   * A mode still being built is the same card, faded, with its host standing as on the
+   * others and nothing to press.
    */
   import type { ModeBounds } from '../lib/api'
   import { hostOf } from '../lib/modes'
@@ -25,6 +25,7 @@
     id,
     label,
     hint,
+    host = null,
     upcoming = false,
     round = null,
     position = null,
@@ -39,6 +40,8 @@
     id: string
     label: string
     hint: string | null
+    /** The NPC standing on the card, for a mode that has no host of its own yet. */
+    host?: string | null
     upcoming?: boolean
     /** This mode's round, or null while it is not picked. */
     round?: ModeSettings | null
@@ -54,7 +57,7 @@
     onmove?: (by: number) => void
   } = $props()
 
-  const art = $derived(npcArt(hostOf(id).host.id))
+  const art = $derived(npcArt(host ?? hostOf(id).host.id))
   const titleId = $derived(`mode-${id}`)
   /** Numbered, with arrows to renumber it: only among several rounds in the host's order. */
   const ordered = $derived(round !== null && !shuffled && count > 1 && position !== null)
@@ -78,16 +81,7 @@
 >
   <div class="about">
     <div class="face" aria-hidden="true">
-      {#if upcoming}
-        <span class="lock">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <rect x="5" y="11" width="14" height="10" rx="2" />
-            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-          </svg>
-        </span>
-      {:else}
-        <img class={art.cut} src={art.url} alt="" draggable="false" />
-      {/if}
+      <img class={art.cut} src={art.url} alt="" draggable="false" />
     </div>
     <div class="corner">
       {#if upcoming}
@@ -219,22 +213,6 @@
     object-fit: cover;
     object-position: top;
     transform: scaleX(-1);
-  }
-
-  .lock {
-    display: grid;
-    place-items: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    border: var(--border-width) dashed var(--line);
-    border-radius: 50%;
-  }
-
-  .lock svg {
-    fill: none;
-    stroke: var(--muted);
-    stroke-width: 2;
-    stroke-linecap: round;
   }
 
   .corner {

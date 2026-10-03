@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import MANIFEST from '../../../data/assets.json'
-import { INNKEEPER, MODES } from './modes'
+import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
 import { TIERS } from './podium'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 
@@ -27,6 +27,12 @@ describe('the asset manifest', () => {
     const hosts = new Set(Object.values(MODES).map((mode) => mode.host.id))
     hosts.delete(INNKEEPER.id)
     expect([...hosts].filter((id) => !hasNpc(id))).toEqual([])
+  })
+
+  it('has art for every upcoming mode host, none of whom is a random-event NPC', () => {
+    const hosts = new Set(UPCOMING_MODES.map((mode) => mode.host))
+    expect([...hosts].filter((id) => !hasNpc(id))).toEqual([])
+    expect(RANDOM_EVENTS.filter((npc) => hosts.has(npc.id)).map((npc) => npc.id)).toEqual([])
   })
 
   it('has art for the Mysterious Old Man, who stands in for an unknown event NPC', () => {

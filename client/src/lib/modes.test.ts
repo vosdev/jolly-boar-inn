@@ -23,6 +23,7 @@ describe('hosts', () => {
     expect(hostOf('more_less').host.name).toBe('Ali Morrisane')
     expect(hostOf('guess_examine').host.name).toBe('The Examiner')
     expect(hostOf('custom').host).toEqual(INNKEEPER)
+    expect(hostOf('random_events_only').host.id).toBe('crowned_frog')
   })
 
   it('has the innkeeper present a mode with no entry, in its generic lines', () => {

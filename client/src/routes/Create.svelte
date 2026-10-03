@@ -304,7 +304,7 @@
           />
         {/each}
         {#each upcomingModes as mode (mode.id)}
-          <ModeCard id={mode.id} label={mode.label} hint={mode.hint} upcoming />
+          <ModeCard id={mode.id} label={mode.label} hint={mode.hint} host={mode.host} upcoming />
         {/each}
       </ul>
     {/if}
