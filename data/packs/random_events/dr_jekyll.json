@@ -3,7 +3,7 @@
   "random_event": "dr_jekyll",
   "questions": [
     {
-      "id": "q_bea872c6598ff231",
+      "id": "q_1fd0c86e67b13c09",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -11,13 +11,14 @@
         "herblore"
       ],
       "payload": {
-        "prompt": "My mind is slipping... tell me! How many doses does a standard, newly created potion vial hold before it is sipped?!",
+        "intro": "My mind is slipping... tell me, quickly!",
+        "prompt": "How many doses does a newly made potion hold?",
         "answer": 3,
         "unit": "doses"
       }
     },
     {
-      "id": "q_d3628c22c965ff79",
+      "id": "q_0c6e1495face755e",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -25,7 +26,8 @@
         "herblore"
       ],
       "payload": {
-        "prompt": "If an adventurer offers me a clean Torstol when I desperately ask for aid on the road, what do I hand them in return before fleeing?",
+        "intro": "Please, I desperately need aid on the road! I always repay a kindness... before I flee.",
+        "prompt": "What does Dr Jekyll give you for a clean Torstol?",
         "options": [
           "Saradomin brew",
           "Extended antifire",
@@ -36,7 +38,7 @@
       }
     },
     {
-      "id": "q_1cd5446115af8c1c",
+      "id": "q_6532c5a009f80e99",
       "type": "free_text",
       "mode": "random_event",
       "source": "pack",
@@ -44,7 +46,8 @@
         "herblore"
       ],
       "payload": {
-        "prompt": "I must crush these dragon scales into fine powder! Name the two-piece tool every herbalist uses to grind ingredients into dust!",
+        "intro": "I must crush these dragon scales into fine powder!",
+        "prompt": "Which two-piece tool does every herbalist use to grind ingredients into dust?",
         "accepted": [
           "Pestle and mortar",
           "Pestle & mortar",
@@ -53,7 +56,7 @@
       }
     },
     {
-      "id": "q_24e7b250ef258a72",
+      "id": "q_180dfd16c08c4ebb",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -61,7 +64,8 @@
         "herblore"
       ],
       "payload": {
-        "prompt": "Please, quickly. I need an Antifire potion to steady myself before I transform into Hyde. What secondary ingredient is combined with a Lantadyme potion (unf)?",
+        "intro": "Please, quickly. I need an Antifire potion to steady myself before I transform into Hyde.",
+        "prompt": "Which secondary ingredient goes into a Lantadyme potion (unf) to make an Antifire potion?",
         "options": [
           "Red spiders' eggs",
           "Dragon scale dust",
@@ -72,7 +76,7 @@
       }
     },
     {
-      "id": "q_0a46cddb5a998261",
+      "id": "q_47ca897691774aa0",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -80,7 +84,8 @@
         "herblore"
       ],
       "payload": {
-        "prompt": "I need to stay nimble and clear-headed before I lose myself to that brute Hyde. What secondary ingredient is added to a Toadflax potion (unf) to brew an Agility potion?",
+        "intro": "I need to stay nimble and clear-headed before I lose myself to that brute Hyde.",
+        "prompt": "Which secondary ingredient turns a Toadflax potion (unf) into an Agility potion?",
         "options": [
           "Frog legs",
           "Swamp weed",
@@ -91,7 +96,7 @@
       }
     },
     {
-      "id": "q_c9a0eacd0326272e",
+      "id": "q_f527ed62e02e91b1",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -99,7 +104,8 @@
         "herblore"
       ],
       "payload": {
-        "prompt": "I feel Hyde trying to force his way out, you must hurry! Which secondary ingredient is required to brew a Super Defence potion?",
+        "intro": "I feel Hyde trying to force his way out, you must hurry!",
+        "prompt": "Which secondary ingredient is needed to brew a Super defence potion?",
         "options": [
           "White berries",
           "Poison ivy berries",

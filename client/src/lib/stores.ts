@@ -31,6 +31,12 @@ export const room = writable<RoomView | null>(null)
 export const you = writable<PlayerView | null>(null)
 export const players = writable<PlayerView[]>([])
 export const question = writable<OpenQuestion | null>(null)
+/**
+ * Whether `question` arrived as it opened, in a `question_open`, rather than in a
+ * `welcome`. A random event plays its entrance only for the first: a reconnect lands on
+ * the settled stage.
+ */
+export const questionLive = writable(false)
 export const yourAnswer = writable<unknown>(null)
 export const standings = writable<Standing[]>([])
 /**
@@ -170,6 +176,7 @@ export function resetRoom(): void {
   you.set(null)
   players.set([])
   question.set(null)
+  questionLive.set(false)
   standings.set([])
   forgetQuestion()
   lastError.set(null)
@@ -200,6 +207,7 @@ export function applyServerMessage(message: ServerMessage): void {
       you.set(message.you)
       players.set(message.players)
       question.set(message.question)
+      questionLive.set(false)
       standings.set(message.standings)
       // No reveal and no ack in a snapshot: a client that arrives mid-reveal shows
       // the scoreboard, not the answer it never saw revealed.
@@ -223,6 +231,7 @@ export function applyServerMessage(message: ServerMessage): void {
 
     case 'question_open':
       question.set(message.question)
+      questionLive.set(true)
       forgetQuestion()
       countFrom(message.question)
       // A refusal was about a moment that has passed; left up, "too late" would hang over

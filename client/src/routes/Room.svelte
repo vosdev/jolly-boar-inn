@@ -22,7 +22,9 @@
    * The splash comes round before each round's first question and before no other, so a
    * random event, which is a question inside a round, never gets one and neither does the
    * question after it. The event draws its own announcement instead: `RandomEvent`, the NPC
-   * and their question, with the answers held back until `answerable_at`. The standings
+   * and their question, with the answers held back until `answerable_at`. Its reveal hands
+   * the stage back to the host as it ends; one skipped before that cross-fades into
+   * whatever follows, the screens stacked in one cell while it does. The standings
    * follow every round but the last, whatever the splash does, and only between
    * rounds: inside one, there is no board under the reveal, and the last round's
    * standings are the final screen, which draws the same `<Scoreboard>`.
@@ -35,12 +37,15 @@
    *
    * A screen reader hears the changes through one polite live region that stays mounted
    * for the whole visit, because a region inserted already filled is often never read: a
-   * question opening, the verdict on it, and a lost connection. Focus moves to the
+   * question opening, or who interrupts with a random event, the verdict on it, and a
+   * lost connection. Focus moves to the
    * question's heading as it opens, since the answer just pressed is disabled or gone and
    * would otherwise drop focus back to the top of the page. The tab's title names the
    * screen.
    */
   import { onMount, tick, untrack } from 'svelte'
+  import { get } from 'svelte/store'
+  import type { TransitionConfig } from 'svelte/transition'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import ErrorBanner from '../components/ErrorBanner.svelte'
@@ -52,6 +57,8 @@
   import Scoreboard from '../components/Scoreboard.svelte'
   import Splash from '../components/Splash.svelte'
   import { historyPath, latestPastGame } from '../lib/history'
+  import { CROSSFADE_MS, reducedMotion } from '../lib/interlude'
+  import { randomEventFor } from '../lib/randomEvents'
   import { clearSession, getSession } from '../lib/session'
   import {
     applyServerMessage,
@@ -60,9 +67,11 @@
     noteAnswerSent,
     players,
     question,
+    questionLive,
     resetRoom,
     room,
     roomSend,
+    serverOffsetMs,
     standings,
     you,
     yourAnswer,
@@ -260,7 +269,11 @@
     if (open === null || open.question_id === spokenQuestion) return
     spokenQuestion = open.question_id
     untrack(() => {
-      void announce(questionSpoken)
+      void announce(
+        open.random_event && $questionLive
+          ? `Random event: ${randomEventFor(open.random_event).name} interrupts the round.`
+          : questionSpoken,
+      )
       void tick().then(() => {
         if (!typing()) heading?.focus()
       })
@@ -330,6 +343,30 @@
       ? 'Show the standings now'
       : 'Start the next round now'
   })
+
+  /**
+   * Where a random event's reveal on screen ends, in server ms; null for any other reveal.
+   * Kept from the reveal itself, because by the time a skip takes it off screen the frame
+   * that did so has already cleared `next_at`.
+   */
+  let eventRevealEnds: number | null = null
+  $effect.pre(() => {
+    const current = $room
+    if (current?.phase !== 'reveal') return
+    eventRevealEnds =
+      $lastClosed?.was?.random_event && current.next_at !== null
+        ? Date.parse(current.next_at)
+        : null
+  })
+
+  /** The cross-fade out of an event's reveal that ended before its return was over. */
+  function crossfade(_node: Element): TransitionConfig {
+    const skipped =
+      eventRevealEnds !== null &&
+      Date.now() + get(serverOffsetMs) < eventRevealEnds &&
+      !reducedMotion()
+    return skipped ? { duration: CROSSFADE_MS, css: (t) => `opacity: ${t}` } : { duration: 0 }
+  }
 
   function answer(value: unknown): void {
     const open = $question
@@ -412,27 +449,40 @@
     <ErrorBanner />
 
 
+    <div class="screens">
     {#if $room.phase === 'standings'}
-      <Scoreboard standings={$standings} youId={$you?.id ?? null} />
+      <div class="screen" in:crossfade>
+        <Scoreboard standings={$standings} youId={$you?.id ?? null} />
+      </div>
     {:else if $room.phase === 'open' && $question !== null}
-      <QuestionStage question={$question} yourValue={$yourAnswer} onAnswer={answer} />
-    {:else if $lastClosed !== null && $lastClosed.was !== null}
-      <QuestionStage
-        question={$lastClosed.was}
-        reveal={$lastClosed.reveal}
-        yourValue={$yourAnswer}
-        result={yourResult}
-        onAnswer={() => {}}
-      >
-        <RevealTally
-          results={$lastClosed.results}
-          {nameOf}
-          youId={$you?.id ?? null}
-          showNames={$room.settings.name_wrong_answers === true}
+      <div class="screen" in:crossfade>
+        <QuestionStage
+          question={$question}
+          yourValue={$yourAnswer}
+          onAnswer={answer}
+          live={$questionLive}
         />
-      </QuestionStage>
+      </div>
+    {:else if $lastClosed !== null && $lastClosed.was !== null}
+      <div class="screen" out:crossfade>
+        <QuestionStage
+          question={$lastClosed.was}
+          reveal={$lastClosed.reveal}
+          yourValue={$yourAnswer}
+          result={yourResult}
+          onAnswer={() => {}}
+          nextAt={$room.next_at}
+        >
+          <RevealTally
+            results={$lastClosed.results}
+            {nameOf}
+            youId={$you?.id ?? null}
+            showNames={$room.settings.name_wrong_answers === true}
+          />
+        </QuestionStage>
+      </div>
     {:else if $lastClosed !== null}
-      <section class="panel">
+      <section class="panel screen">
         <p class="note">That question is closed.</p>
       </section>
     {:else}
@@ -440,7 +490,7 @@
            back from a restart. No `question_closed` reached this client, so there is
            nothing to reveal. There is no board here either: inside a round, where
            everyone stands waits for the round's end. -->
-      <section class="panel">
+      <section class="panel screen">
         <p class="note">
           {$room.phase === 'reveal'
             ? 'Between questions — the next one opens shortly.'
@@ -448,6 +498,7 @@
         </p>
       </section>
     {/if}
+    </div>
 
     {#if isAdmin && socket !== null}
       <section class="panel">
@@ -485,6 +536,16 @@
   .column {
     max-width: 30rem;
     margin-inline: auto;
+  }
+
+  /* One cell, so a screen cross-fading out sits under the one fading in. */
+  .screens {
+    display: grid;
+  }
+
+  .screen {
+    grid-area: 1 / 1;
+    min-width: 0;
   }
 
 

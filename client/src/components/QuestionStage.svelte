@@ -35,6 +35,8 @@
     yourValue,
     result = null,
     onAnswer,
+    live = false,
+    nextAt = null,
     children,
   }: {
     /** The question as it was sent open, which still picks the view once it has closed. */
@@ -44,6 +46,10 @@
     yourValue: unknown
     result?: PlayerResult | null
     onAnswer: (value: unknown) => void
+    /** The question arrived in `question_open`, not a `welcome`: a random event's entrance plays. */
+    live?: boolean
+    /** The reveal's end, for a random event's return. */
+    nextAt?: string | null
     children?: Snippet
   } = $props()
 
@@ -116,7 +122,7 @@
 {/snippet}
 
 {#if question.random_event}
-  <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} below={waiting}>
+  <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} {live} {nextAt} below={waiting}>
     {@render children?.()}
   </RandomEvent>
 {:else}

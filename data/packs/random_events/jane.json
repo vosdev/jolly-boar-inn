@@ -3,7 +3,7 @@
   "random_event": "jane",
   "questions": [
     {
-      "id": "q_9e33e84cd2bbd256",
+      "id": "q_26629fa82f7c7f0e",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -11,7 +11,8 @@
         "farming"
       ],
       "payload": {
-        "prompt": "My back aches just watching you hack away at herbs with rusty garden shears! Tell me, what enchanted tool should any self-respecting herbalist wield to guarantee a 10% increase to their crop yield?",
+        "intro": "My back aches just watching you hack away at herbs with rusty garden shears!",
+        "prompt": "Which enchanted tool increases your herb yield by 10%?",
         "options": [
           "Farmer's fork",
           "Magic secateurs",
@@ -22,7 +23,7 @@
       }
     },
     {
-      "id": "q_05c49fe74d3fc1a6",
+      "id": "q_3096c24e221a9626",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -30,7 +31,8 @@
         "farming"
       ],
       "payload": {
-        "prompt": "Good labor doesn't come cheap, adventurer, and neither do my colleagues. If you expect a fellow gardener to keep watchful eyes on a growing Magic tree so it doesn't rot, what will that cost you?",
+        "intro": "Good labour doesn't come cheap, adventurer, and neither do my colleagues.",
+        "prompt": "What does a gardener charge to watch over a growing Magic tree?",
         "options": [
           "10 cactus spines",
           "5 baskets of oranges",
@@ -41,7 +43,7 @@
       }
     },
     {
-      "id": "q_28b5df753cc00ab3",
+      "id": "q_4e56e388d53c407a",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -49,7 +51,8 @@
         "farming"
       ],
       "payload": {
-        "prompt": "I just packed a Tier 5 seed pack for a farmer who actually bothered finishing their contract. Out of these seeds, which one has the absolute lowest chance of appearing in my top-tier pack?",
+        "intro": "I just packed a Tier 5 seed pack for a farmer who actually bothered finishing their contract.",
+        "prompt": "Which of these seeds is least likely to be in a Tier 5 seed pack?",
         "options": [
           "Redwood tree seed",
           "Cadantine seed",
@@ -62,7 +65,7 @@
       }
     },
     {
-      "id": "q_76fba719e0508c61",
+      "id": "q_221dfe168380b217",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -70,7 +73,8 @@
         "farming"
       ],
       "payload": {
-        "prompt": "Don't just stand there trampling my petunias! I have a clipboard full of work to assign! If I request you grow a patch of Kwuarm, which tier of Farming contract are you taking on?",
+        "intro": "Don't just stand there trampling my petunias! I have a clipboard full of work to assign!",
+        "prompt": "Which tier of Farming contract asks you to grow Kwuarm?",
         "options": [
           "Easy",
           "Medium",
@@ -80,7 +84,7 @@
       }
     },
     {
-      "id": "q_6dace378071bd07c",
+      "id": "q_295de04077d64ace",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -89,12 +93,13 @@
         "bosses"
       ],
       "payload": {
-        "prompt": "The mighty Hespori rests in a cave in my Guild. Its roots can snap a man in two, and you look like you'd faint at the first sign of poison. Tell me its combat level before you go embarrass yourself again!",
+        "intro": "The mighty Hespori rests in a cave in my Guild. Its roots can snap a man in two, and you look like you'd faint at the first sign of poison.",
+        "prompt": "What is Hespori's combat level?",
         "answer": 284
       }
     },
     {
-      "id": "q_cbdee77a26af4974",
+      "id": "q_4ff93766002d174c",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -102,7 +107,8 @@
         "farming"
       ],
       "payload": {
-        "prompt": "Exclusive to the master tier of my guild, this unique tree takes over 13 hours to grow and produces bark coveted by fletchers making battlestaves. What tree is it?",
+        "intro": "Only the master tier of my guild grows this one. It takes over 13 hours, and fletchers covet its bark.",
+        "prompt": "Which tree's bark is used to make battlestaves?",
         "options": [
           "Blisterwood tree",
           "Celastrus tree",

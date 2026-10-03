@@ -262,6 +262,20 @@ def test_the_open_view_has_none_of_what_the_reveal_adds(type_id: str) -> None:
 
 
 @per_type
+def test_an_npc_s_intro_is_shown_open_and_in_the_reveal(type_id: str) -> None:
+    """Every type whose schema takes an ``intro`` puts it on the wire from the first frame."""
+    if "intro" not in schema.load_schema()["$defs"][type_id]["properties"]:
+        return
+    ex, module = example(type_id), TYPES[type_id]
+    payload = {**ex.payload, "intro": "Don't just stand there on my allotment."}
+    envelope = {"type": type_id, "mode": "custom", "source": "room", "tags": [], "payload": payload}
+    envelope["id"] = schema.content_id(envelope)
+    assert schema.schema_errors(envelope) == []
+    assert module.client_view(payload)["intro"] == payload["intro"]
+    assert module.reveal(payload)["intro"] == payload["intro"]
+
+
+@per_type
 def test_each_type_states_its_pace_and_its_scoring(type_id: str) -> None:
     ex = example(type_id)
     assert scoring_of(type_id) is ex.scoring

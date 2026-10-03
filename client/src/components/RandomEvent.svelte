@@ -4,7 +4,7 @@
    * the answers held back until the question's `answerable_at`.
    *
    * The hold is the server's, not a flourish of this card's. The server takes no answer
-   * before `answerable_at` (`not_open`) and starts the question's clock there, so the two
+   * before `answerable_at` (`not_open`) and starts the question's clock there, so the
    * seconds the NPC holds the floor cost nobody a speed bucket. All this card does is not
    * offer buttons the server would refuse. It counts to `answerable_at` the way `Timer`
    * counts to a close: the server's timestamp against this browser's clock corrected by
@@ -13,11 +13,19 @@
    * `welcome` snapshot carries the same `answerable_at` and a `server_time` to correct by,
    * and the card simply waits out whatever is left.
    *
-   * It is drawn on the stage (section 12 of ideas/design.md): the NPC stands on the right
-   * of the round's host's scroll, with their name, line and question on the sheet and the
-   * answers under the line. Their entrance plays only for a question that opens with most
-   * of the hold still ahead; on a reveal, or a reconnect near its end, they are simply
-   * there. The typed prompt and the return to the host are still to come.
+   * It is drawn on the stage as the interlude of section 12 of ideas/design.md: the NPC
+   * stands on the right of the round's host's scroll, their name on the sheet and the
+   * plain question in bold from the first frame, their `intro` typed in above it, and the
+   * answers under the line. A question with no intro types its prompt instead. The
+   * timing is `lib/interlude.ts`'s, planned once from what is left of the hold when the
+   * event takes the stage, and only for a question that arrived `live`: a reconnect, a
+   * reveal and reduced motion get the settled stage. The typing is a mask over text that
+   * is whole in the DOM, and whole for a screen reader, from the first frame. In the
+   * reveal the NPC says `right` or `wrong` to your answer beside the points, and hands
+   * the stage back in its last `RETURN_MS`, counted to `nextAt`.
+   *
+   * The sheet keeps room for two lines of the reveal's `explanation` and for the points
+   * from the start, so the answers under it do not move when they arrive.
    *
    * An NPC this build has no copy for is the Mysterious Old Man (`randomEventFor`), the
    * same honest fallback `viewFor` makes for a mode it cannot draw.
@@ -29,6 +37,7 @@
   import { get } from 'svelte/store'
 
   import { awardFor } from '../lib/award'
+  import { RETURN_MS, SETTLED, interludeFor, reducedMotion, typedAt } from '../lib/interlude'
   import { hostOf } from '../lib/modes'
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { randomEventFor } from '../lib/randomEvents'
@@ -43,6 +52,8 @@
     yourValue,
     result = null,
     onAnswer,
+    live = false,
+    nextAt = null,
     children,
     below,
   }: {
@@ -53,6 +64,10 @@
     yourValue: unknown
     result?: PlayerResult | null
     onAnswer: (value: unknown) => void
+    /** The question arrived as it opened, so its entrance is the room's to see. */
+    live?: boolean
+    /** The reveal's end, `room.next_at`; null when nothing follows it. */
+    nextAt?: string | null
     /** In the panel under the answers: the reveal's tally. */
     children?: Snippet
     /** Under that panel: the waiting line. */
@@ -62,38 +77,81 @@
   const npc = $derived(randomEventFor(question.random_event ?? ''))
   /** A server from before the hold existed sends none, and then there is none. */
   const answerableMs = $derived(Date.parse(question.answerable_at ?? question.opened_at))
-
-  // An entrance needs the hold to play in: the swap takes 400 ms.
-  const ENTRANCE_MS = 400
+  const prompt = $derived(typeof question.view.prompt === 'string' ? question.view.prompt : '')
+  const intro = $derived(typeof question.view.intro === 'string' ? question.view.intro : '')
+  /** What the NPC types: their intro, or the prompt of a question that has none. */
+  const spoken = $derived(intro !== '' ? intro : prompt)
+  /** By code point, so an emoji or an accent is one letter typed, never half of one. */
+  const letters = $derived([...spoken])
+  const explanation = $derived(
+    reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
+  )
+  /** Nothing for somebody the question was never theirs to answer. */
+  const reaction = $derived(
+    reveal === null || !question.you_can_answer
+      ? null
+      : (result?.points ?? 0) > 0
+        ? npc.right
+        : npc.wrong,
+  )
 
   /** Decided once, when the event takes the stage, so a tick cannot cut it short. */
-  const entering = untrack(
-    () =>
-      reveal === null &&
-      answerableMs - (Date.now() + get(serverOffsetMs)) > ENTRANCE_MS,
+  const startedAt = Date.now()
+  const interlude = untrack(() =>
+    live && reveal === null && !reducedMotion()
+      ? interludeFor(answerableMs - (startedAt + get(serverOffsetMs)), letters.length)
+      : SETTLED,
   )
 
   let nowMs = $state(Date.now())
+  const serverMs = $derived(nowMs + $serverOffsetMs)
   const held = $derived(
-    reveal === null &&
-      !Number.isNaN(answerableMs) &&
-      answerableMs - (nowMs + $serverOffsetMs) > 0,
+    reveal === null && !Number.isNaN(answerableMs) && answerableMs - serverMs > 0,
   )
+  const shown = $derived(typedAt(interlude, letters.length, nowMs - startedAt))
+  const typing = $derived(reveal === null && shown < letters.length)
+  const returnMs = $derived(nextAt === null ? NaN : Date.parse(nextAt) - RETURN_MS)
+  const returning = $derived(reveal !== null && returnMs - serverMs <= 0)
 
   function tick(): void {
     nowMs = Date.now()
   }
 
-  // One wake-up, when the buttons are due, rather than a tick every 100ms for two seconds.
-  // It is measured from the moment it is armed and not from `nowMs`, which is only as fresh
-  // as the last tick: every `pong` moves the offset and arms it again mid-hold, and the part
-  // of the hold already waited must not be waited twice. It reads `nowMs` all the same, so
-  // each tick arms it again, and a timer that fires a hair early sets another.
-  $effect(() => {
-    if (!held) return
-    const armed = Math.max(nowMs, Date.now())
-    const timer = setTimeout(tick, answerableMs - (armed + $serverOffsetMs))
+  /**
+   * One wake-up at the server's `at`, rather than a tick every 100ms. It is measured from
+   * the moment it is armed and not from `nowMs`, which is only as fresh as the last tick:
+   * every `pong` moves the offset and arms it again, and the part already waited must not
+   * be waited twice. Each tick arms it again, and a timer that fires a hair early sets
+   * another.
+   */
+  function wakeAt(at: number): () => void {
+    return wakeIn(at - (Math.max(nowMs, Date.now()) + $serverOffsetMs))
+  }
+
+  /**
+   * A whole millisecond at least: a timer that fires inside the millisecond it was armed
+   * in leaves `nowMs` as it was, and then nothing arms the next one.
+   */
+  function wakeIn(ms: number): () => void {
+    const timer = setTimeout(tick, Math.max(1, Math.ceil(ms)))
     return () => clearTimeout(timer)
+  }
+
+  $effect(() => {
+    if (held) return wakeAt(answerableMs)
+  })
+
+  $effect(() => {
+    if (reveal !== null && !returning && !Number.isNaN(returnMs)) return wakeAt(returnMs)
+  })
+
+  // Typing runs on this browser's clock from the arrival, as the plan does: a letter at a
+  // time, each at the moment it is due.
+  $effect(() => {
+    if (!typing) return
+    const due =
+      startedAt + interlude.typeFrom + ((shown + 1) / letters.length) * interlude.typeFor
+    return wakeIn(due - Math.max(nowMs, Date.now()))
   })
 
   // A backgrounded tab's timers are throttled; coming back to it should not wait on one.
@@ -103,22 +161,45 @@
   })
 </script>
 
+{#snippet typed(text: string, kind: string)}
+  {#if typing}
+    <p class={kind}><span class="sr">{text}</span><span aria-hidden="true">{letters
+          .slice(0, shown)
+          .join('')}<span class="untyped">{letters.slice(shown).join('')}</span></span></p>
+  {:else}
+    <p class={kind}>{text}</p>
+  {/if}
+{/snippet}
+
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
   {#snippet sheet()}
     <p class="kicker">Random event</p>
-    <h2 class="name">{npc.name}</h2>
-    <p class="line">{npc.line}</p>
-    {@render stem()}
-    {#if reveal !== null}
-      <div class="said">
-        <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
-      </div>
+    <h2 class="who">{npc.name}</h2>
+    {#if answers === null || prompt === ''}
+      {@render stem()}
+    {:else if intro !== ''}
+      {@render typed(intro, 'intro')}
+      <p class="ask">{prompt}</p>
+    {:else}
+      {@render typed(prompt, 'ask')}
     {/if}
+    <div class="foot">
+      <p class="explanation">{explanation}</p>
+      <div class="said">
+        {#if reaction !== null}
+          <p class="reaction">{reaction}</p>
+        {/if}
+        {#if reveal !== null}
+          <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
+        {/if}
+      </div>
+    </div>
   {/snippet}
   <Stage
     host={hostOf(question.segment.mode).host.id}
     guest={npc.asset.replace(/^npc:/, '')}
-    {entering}
+    entering={interlude.enter}
+    {returning}
     paper={sheet}
     award={reveal === null ? 'none' : awardFor(result)}
   >
@@ -132,7 +213,16 @@
   </Stage>
 {/snippet}
 
-<Question {question} {reveal} {yourValue} {result} {onAnswer} {held} frame={staged} />
+<Question
+  {question}
+  {reveal}
+  {yourValue}
+  {result}
+  {onAnswer}
+  {held}
+  explain={false}
+  frame={staged}
+/>
 
 <style>
   .kicker {
@@ -142,7 +232,7 @@
     letter-spacing: 0.12em;
   }
 
-  .name {
+  .who {
     margin: 0.1rem 0 0.3rem;
     font-family: var(--font-display);
     font-size: max(1.15rem, 1.5rem * var(--scroll-text, 1));
@@ -150,19 +240,58 @@
     overflow-wrap: anywhere;
   }
 
-  .line {
+  /* The NPC's voice; the bold question under it is all a player in a hurry needs. */
+  .intro {
     margin: 0 0 0.5rem;
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
     font-style: italic;
+    line-height: 1.3;
     overflow-wrap: anywhere;
   }
 
-  /* The foot of the sheet, where a round's points go too. */
+  /* As a round's prompt on the scroll (`TextStem`), so the handwriting does not change. */
+  .ask {
+    margin: 0;
+    font-size: max(1rem, 1.2rem * var(--scroll-text, 1));
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  /* Laid out and invisible: the prompt holds its full height while it types. */
+  .untyped {
+    color: transparent;
+  }
+
+  .foot {
+    margin-top: auto;
+    padding-top: 0.4rem;
+  }
+
+  /* Two lines kept from the start, so a reveal that explains moves nothing below. */
+  .explanation {
+    margin: 0;
+    min-height: 2.6em;
+    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  /* The foot of the sheet, one line of points tall whether or not they are in yet. */
   .said {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
-    margin-top: auto;
+    gap: 0.75rem;
     padding-top: 0.2rem;
+    min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+  }
+
+  .reaction {
+    margin: 0 auto 0 0;
+    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
+    font-style: italic;
+    overflow-wrap: anywhere;
   }
 
   @container (max-width: 26rem) {

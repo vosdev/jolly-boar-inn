@@ -22,7 +22,11 @@
    * without it the error takes the whole room screen down with the question.
    *
    * `held` is a random event's hold: the stem is up, and the view waits for the
-   * question's `answerable_at`. `RandomEvent` does the counting and says when.
+   * question's `answerable_at`, drawn but invisible and out of reach, so the panel is its
+   * full size from the first frame and nothing moves when the answers fade in. Left out,
+   * for a question with no hold, the view gets no wrapper at all.
+   * `RandomEvent` does the counting and says when, and it puts the `explanation` on its
+   * scroll itself (`explain` false).
    *
    * `frame` lays the two halves out: it gets the stem and the answers as snippets, which
    * is how the stage puts one on the scroll and the other under the line. The answers are
@@ -44,7 +48,8 @@
     yourValue,
     result = null,
     onAnswer,
-    held = false,
+    held = undefined,
+    explain = true,
     frame,
   }: {
     /** The question as it was sent open. After close it is still what picks the pair. */
@@ -54,8 +59,10 @@
     yourValue: unknown
     result?: PlayerResult | null
     onAnswer: (value: unknown) => void
-    /** Draw the stem only: the answers are not being taken yet. */
+    /** The answers are not being taken yet; undefined for a question with no hold. */
     held?: boolean
+    /** Show the reveal's `explanation` under the view. */
+    explain?: boolean
     frame?: Snippet<[Snippet, Snippet | null]>
   } = $props()
 
@@ -65,7 +72,7 @@
   const revealed = $derived(reveal !== null)
   const data = $derived(reveal ?? question.view)
   const explanation = $derived(
-    revealed && typeof data.explanation === 'string' && data.explanation !== ''
+    explain && revealed && typeof data.explanation === 'string' && data.explanation !== ''
       ? data.explanation
       : null,
   )
@@ -97,9 +104,17 @@
 {/snippet}
 
 {#snippet answers()}
-  {#if View !== null && held}
-    <p class="note" role="status">The answers appear in a moment.</p>
+  {#if View !== null && held !== undefined}
+    <div class="gate" class:held inert={held} aria-hidden={held ? 'true' : undefined}>
+      {@render view()}
+    </div>
   {:else if View !== null}
+    {@render view()}
+  {/if}
+{/snippet}
+
+{#snippet view()}
+  {#if View !== null}
     <View
       {data}
       {revealed}
@@ -138,6 +153,20 @@
 {/key}
 
 <style>
+  .gate {
+    transition: opacity 200ms ease-out;
+  }
+
+  .gate.held {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gate {
+      transition: none;
+    }
+  }
+
   .unscored,
   .explanation {
     margin: 1rem 0 0;

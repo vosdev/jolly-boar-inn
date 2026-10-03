@@ -55,20 +55,23 @@ afterEach(() => {
 })
 
 describe('RandomEvent', () => {
-  it('draws the NPC, their line and the question, and holds the answers back', async () => {
+  it('draws the NPC and the question, and holds the answers back', async () => {
     render(RandomEvent, { question: event(), yourValue: null, onAnswer: () => {} })
-    const death = RANDOM_EVENTS.find((npc) => npc.id === 'death')!
     expect(screen.getByRole('heading', { name: 'Death' })).toBeTruthy()
-    expect(screen.getByText(death.line)).toBeTruthy()
     expect(screen.getByText('Which prayer level unlocks Augury?')).toBeTruthy()
     expect(buttons()).toHaveLength(0)
-    expect(screen.getByRole('status').textContent).toBe('The answers appear in a moment.')
+    // The panel is there at its full size, its buttons drawn and out of reach.
+    const gate = document.querySelector('.answers .gate')!
+    expect(gate.classList.contains('held')).toBe(true)
+    expect((gate as HTMLElement).inert).toBe(true)
+    expect(gate.querySelectorAll('button')).toHaveLength(3)
 
     await after(1990)
     expect(buttons()).toHaveLength(0)
     await after(20)
     expect(buttons().map((b) => b.textContent?.trim())).toEqual(['70', '77', '74'])
-    expect(screen.queryByRole('status')).toBeNull()
+    expect(gate.classList.contains('held')).toBe(false)
+    expect((gate as HTMLElement).inert).toBe(false)
   })
 
   it('counts the hold on the server clock, not this browser’s', async () => {
@@ -144,13 +147,18 @@ describe('RandomEvent', () => {
     expect(row.querySelector('.paper')?.textContent).toContain('Which prayer level unlocks Augury?')
   })
 
-  it('plays the entrance only with the hold still ahead', () => {
-    const entering = (patch: Partial<OpenQuestion>, reveal: Record<string, unknown> | null = null) => {
+  it('plays the entrance only for a question that just opened, with the hold still ahead', () => {
+    const entering = (
+      patch: Partial<OpenQuestion>,
+      reveal: Record<string, unknown> | null = null,
+      live = true,
+    ) => {
       const { container, unmount } = render(RandomEvent, {
         question: event(patch),
         reveal,
         yourValue: null,
         onAnswer: () => {},
+        live,
       })
       const played = container.querySelector('.stage-row')!.classList.contains('entering')
       unmount()
@@ -160,6 +168,235 @@ describe('RandomEvent', () => {
     // A reconnect with 300 ms of hold left, and a question with no hold, start in place.
     expect(entering({ answerable_at: new Date(NOW + 300).toISOString() })).toBe(false)
     expect(entering({ answerable_at: new Date(NOW).toISOString() })).toBe(false)
+    // A reconnect with all the hold ahead lands settled too: no replay.
+    expect(entering({}, null, false)).toBe(false)
     expect(entering({}, { prompt: 'Which prayer level unlocks Augury?', options: ['70', '77', '74'], answer_index: 1 })).toBe(false)
+  })
+})
+
+describe('the interlude', () => {
+  const PROMPT = 'Which prayer level unlocks Augury?'
+  const HOLD = 3500
+
+  function live(patch: Partial<OpenQuestion> = {}, hold = HOLD) {
+    return render(RandomEvent, {
+      question: event({ answerable_at: new Date(NOW + hold).toISOString(), ...patch }),
+      yourValue: null,
+      onAnswer: () => {},
+      live: true,
+    })
+  }
+
+  const ask = () => document.querySelector('.paper .ask')!
+  /** What a screen reader gets of the prompt: everything not hidden from it. */
+  function spoken(): string {
+    const copy = ask().cloneNode(true) as Element
+    copy.querySelectorAll('[aria-hidden="true"]').forEach((hidden) => hidden.remove())
+    return copy.textContent ?? ''
+  }
+  /** What the eye gets of it: the letters typed so far. */
+  function seen(): string {
+    const mask = ask().querySelector('[aria-hidden="true"]')
+    if (mask === null) return ask().textContent ?? ''
+    return [...mask.childNodes]
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .map((node) => node.textContent)
+      .join('')
+  }
+  const row = () => document.querySelector('.stage-row')!
+
+  it('shows the NPC’s name from the first frame, and types the prompt from 900 ms', async () => {
+    live()
+    expect(screen.getByRole('heading', { name: 'Death' })).toBeTruthy()
+    expect(row().classList.contains('entering')).toBe(true)
+    expect(seen()).toBe('')
+    await after(899)
+    expect(seen()).toBe('')
+    // 60 letters a second: 30 of them half a second in.
+    await after(501)
+    expect(seen()).toBe([...PROMPT].slice(0, 30).join(''))
+  })
+
+  it('gives a screen reader the whole prompt once, from the first frame', async () => {
+    live()
+    expect(spoken()).toBe(PROMPT)
+    await after(1000)
+    expect(spoken()).toBe(PROMPT)
+    await after(2000)
+    expect(spoken()).toBe(PROMPT)
+    expect(ask().textContent).toBe(PROMPT)
+  })
+
+  it.each([HOLD, 1000])(
+    'is settled 200 ms before the answers at a %i ms hold, which wait for answerable_at',
+    async (hold) => {
+      const long = 'x'.repeat(300)
+      live({ view: { prompt: long, options: ['70', '77', '74'] } }, hold)
+      await after(hold - 201)
+      expect(seen()).not.toBe(long)
+      await after(1)
+      expect(seen()).toBe(long)
+      expect(ask().querySelector('[aria-hidden]')).toBeNull()
+      await after(198)
+      expect(buttons()).toHaveLength(0)
+      await after(2)
+      expect(buttons()).toHaveLength(3)
+    },
+  )
+
+  it('has the NPC simply in place when there is no hold', () => {
+    live({}, 0)
+    expect(row().classList.contains('entering')).toBe(false)
+    expect(seen()).toBe(PROMPT)
+    expect(buttons()).toHaveLength(3)
+  })
+
+  it('lands a reconnect inside the hold on the settled stage, still waiting', async () => {
+    render(RandomEvent, {
+      question: event({ answerable_at: new Date(NOW + 1500).toISOString() }),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(row().classList.contains('entering')).toBe(false)
+    expect(seen()).toBe(PROMPT)
+    await after(1490)
+    expect(buttons()).toHaveLength(0)
+    await after(20)
+    expect(buttons()).toHaveLength(3)
+  })
+
+  it('with reduced motion, neither slides nor types, and the answers still wait', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+    }))
+    try {
+      live()
+      expect(row().classList.contains('entering')).toBe(false)
+      expect(seen()).toBe(PROMPT)
+      expect(buttons()).toHaveLength(0)
+      await after(HOLD)
+      expect(buttons()).toHaveLength(3)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('hands the stage back to the host in the reveal’s last 250 ms', async () => {
+    render(RandomEvent, {
+      question: event(),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: 1,
+      onAnswer: () => {},
+      nextAt: new Date(NOW + 8000).toISOString(),
+    })
+    expect(row().classList.contains('event')).toBe(true)
+    expect(row().classList.contains('returning')).toBe(false)
+    await after(7740)
+    expect(row().classList.contains('returning')).toBe(false)
+    await after(20)
+    expect(row().classList.contains('returning')).toBe(true)
+    expect(row().classList.contains('event')).toBe(false)
+  })
+
+  it('keeps the NPC to the end of a reveal nothing follows', async () => {
+    render(RandomEvent, {
+      question: event(),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: 1,
+      onAnswer: () => {},
+      nextAt: null,
+    })
+    await after(60_000)
+    expect(row().classList.contains('returning')).toBe(false)
+  })
+
+  it('puts the explanation on the scroll in the reveal, not under it', () => {
+    const why = 'Augury needs 77 Prayer and Sins of the Father.'
+    render(RandomEvent, {
+      question: event(),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1, explanation: why },
+      yourValue: 1,
+      onAnswer: () => {},
+    })
+    expect(screen.getAllByText(why)).toHaveLength(1)
+    expect(document.querySelector('.paper')?.textContent).toContain(why)
+    expect(document.querySelector('.answers')?.textContent).not.toContain(why)
+  })
+})
+
+describe('the NPC’s own words', () => {
+  const INTRO = 'Mortals spend millions on ancient scrolls just to bolster their defences.'
+  const PROMPT = 'Which prayer level unlocks Augury?'
+  const death = RANDOM_EVENTS.find((npc) => npc.id === 'death')!
+  const introduced = (patch: Partial<OpenQuestion> = {}) =>
+    event({
+      answerable_at: new Date(NOW + 3500).toISOString(),
+      view: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'] },
+      ...patch,
+    })
+  const intro = () => document.querySelector('.paper .intro')!
+  const ask = () => document.querySelector('.paper .ask')!
+  function seen(line: Element): string {
+    const mask = line.querySelector('[aria-hidden="true"]')
+    if (mask === null) return line.textContent ?? ''
+    return [...mask.childNodes]
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .map((node) => node.textContent)
+      .join('')
+  }
+  function spoken(line: Element): string {
+    const copy = line.cloneNode(true) as Element
+    copy.querySelectorAll('[aria-hidden="true"]').forEach((hidden) => hidden.remove())
+    return copy.textContent ?? ''
+  }
+
+  it('types the intro, with the plain question whole in bold from the first frame', async () => {
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
+    expect(seen(intro())).toBe('')
+    expect(ask().textContent).toBe(PROMPT)
+    expect(spoken(intro())).toBe(INTRO)
+    await after(3300)
+    expect(seen(intro())).toBe(INTRO)
+    expect(ask().textContent).toBe(PROMPT)
+  })
+
+  it('keeps the intro on the sheet in the reveal', () => {
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: 1,
+      onAnswer: () => {},
+    })
+    expect(intro().textContent).toBe(INTRO)
+    expect(ask().textContent).toBe(PROMPT)
+  })
+
+  it.each([
+    ['an answer that scored', { value: 1, correct: true, credit: 1, points: 900 }, death.right],
+    ['a wrong answer', { value: 0, correct: false, credit: 0, points: 0 }, death.wrong],
+    ['no answer', null, death.wrong],
+  ])('says its verdict on %s beside the points', (_, result, words) => {
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: result?.value ?? null,
+      result,
+      onAnswer: () => {},
+    })
+    expect(document.querySelector('.said .reaction')?.textContent).toBe(words)
+  })
+
+  it('says nothing to somebody the question was not theirs to answer, nor while it is open', () => {
+    const { unmount } = render(RandomEvent, {
+      question: introduced({ you_can_answer: false }),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(document.querySelector('.reaction')).toBeNull()
+    unmount()
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
+    expect(document.querySelector('.reaction')).toBeNull()
   })
 })

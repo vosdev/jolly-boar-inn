@@ -1,6 +1,6 @@
 /**
- * Who interrupts a round, in words: the NPC's name, what it asks about, the line it opens
- * with, and where its picture will come from.
+ * Who interrupts a round, in words: the NPC's name, what it asks about, what it says to
+ * your answer, and where its picture will come from.
  *
  * The server knows these NPCs by id and nothing else (`server/app/random_events.py`), and
  * sends the id as `OpenQuestion.random_event`. Everything a player reads about them is
@@ -9,8 +9,9 @@
  * when the two lists disagree.
  *
  * One flat array, one entry per NPC, so adding one is an entry here, an id there and a
- * file of questions, with no cleverness anywhere. The line is the NPC speaking, before
- * the question: short, in the game's voice, the way its dialogue boxes put it. `theme` is
+ * file of questions, with no cleverness anywhere. Each question opens with its own
+ * `intro`, so the NPC's lines here are for the reveal, where there is time to read them:
+ * `right` or `wrong`, short, in the game's voice, the way its dialogue boxes put it. `theme` is
  * the rule its questions are written to (`ideas/random-events.md`), and the NPC picker
  * shows it next to the name.
  *
@@ -28,8 +29,10 @@ export interface RandomEventNpc {
   name: string
   /** What it asks about, in a few words. */
   theme: string
-  /** What it says before the question. */
-  line: string
+  /** What it says in the reveal to anybody whose answer scored. */
+  right: string
+  /** What it says to anybody whose answer scored nothing, or who gave none. */
+  wrong: string
   /** `npc:<id>`: the picture, once there is one. */
   asset: string
 }
@@ -39,105 +42,120 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
     id: 'sandwich_lady',
     name: 'Sandwich Lady',
     theme: 'Cooking and food',
-    line: 'You look hungry to me. I tell you what - answer me this, and the next one is on me.',
+    right: 'See? Brain food. Have a baguette, dear.',
+    wrong: 'No sandwich for you, then. Not even a chocolate bar.',
     asset: 'npc:sandwich_lady',
   },
   {
     id: 'lumbridge_cook',
     name: 'Lumbridge Cook',
     theme: 'Cooking, and Recipe for Disaster',
-    line: "What am I to do? The council is frozen solid and I can't remember a thing!",
+    right: 'You remembered! The council might be saved yet!',
+    wrong: 'Oh dear, oh dear. The council stays frozen.',
     asset: 'npc:lumbridge_cook',
   },
   {
     id: 'dr_jekyll',
     name: 'Dr Jekyll',
     theme: 'Herblore: potions and their secondaries',
-    line: 'Quickly, before he wakes! Help me with my... medicines.',
+    right: "Yes, yes, that's it! Hyde stays put... for now.",
+    wrong: 'No, no, NO! I can feel him coming...',
     asset: 'npc:dr_jekyll',
   },
   {
     id: 'bob',
     name: 'Bob',
     theme: 'Fishing, and cats',
-    line: "Meow. Oh, it's you. Fine, I'll speak slowly, human.",
+    right: 'Hmph. Not entirely useless, for a two-legs.',
+    wrong: 'As expected. Humans.',
     asset: 'npc:bob',
   },
   {
     id: 'survival_expert',
     name: 'Survival Expert',
     theme: 'Woodcutting, Hunter and Firemaking',
-    line: "Hello again. Let's see if you still remember how to survive out there.",
+    right: "Good. You'd last a night out there.",
+    wrong: "You wouldn't last a night out there.",
     asset: 'npc:survival_expert',
   },
   {
     id: 'drunken_dwarf',
     name: 'Drunken Dwarf',
     theme: 'Ales, kebabs, dwarves and pubs',
-    line: "'Ere, ish you! Me besht mate! Anshwer me thish one...",
+    right: 'Thatsh my mate! Have a kebab!',
+    wrong: 'Ish wrong! Ah, never mind. Have a kebab anyway.',
     asset: 'npc:drunken_dwarf',
   },
   {
     id: 'thurgo',
     name: 'Thurgo',
     theme: 'Mining and Smithing',
-    line: "Oh, a visitor! You haven't got a redberry pie on you, have you?",
+    right: "Clever! That's worth a redberry pie, that is.",
+    wrong: 'Hmph. Not even worth a redberry pie.',
     asset: 'npc:thurgo',
   },
   {
     id: 'genie',
     name: 'Genie',
     theme: 'Skills and experience',
-    line: 'Greetings, master! Answer well, and perhaps a lamp will find its way to you.',
+    right: 'Splendid, master! A lamp may yet find you.',
+    wrong: 'Alas, master. No lamp for you today.',
     asset: 'npc:genie',
   },
   {
     id: 'sergeant_damien',
     name: 'Sergeant Damien',
     theme: 'Combat: gear, styles and bosses',
-    line: 'Private! On your feet! Answer me this, maggot!',
+    right: "Not bad, maggot! Don't let it go to your head!",
+    wrong: 'Drop and give me fifty, maggot!',
     asset: 'npc:sergeant_damien',
   },
   {
     id: 'wise_old_man',
     name: 'Wise Old Man',
     theme: 'Quests and lore',
-    line: 'Ah, a young adventurer. Let us see what all that questing has taught you.',
+    right: 'Well remembered. There is hope for you yet.',
+    wrong: 'Hmm. Perhaps read your quest journal next time.',
     asset: 'npc:wise_old_man',
   },
   {
     id: 'krystilia',
     name: 'Krystilia',
     theme: 'Slayer and the Wilderness',
-    line: 'Heading over the ditch? Answer me this first. It might save your life.',
+    right: 'Good. You might survive past the ditch.',
+    wrong: 'Stay on this side of the ditch for now.',
     asset: 'npc:krystilia',
   },
   {
     id: 'ned',
     name: 'Ned',
     theme: 'Sailing',
-    line: 'Why, hello there! Before we set sail, tell me what you know of the sea.',
+    right: "Ha! You've got your sea legs after all!",
+    wrong: 'Best stay ashore, I think.',
     asset: 'npc:ned',
   },
   {
     id: 'death',
     name: 'Death',
     theme: 'Death and Prayer',
-    line: "Ah. You again. Sit down, mortal - this won't take long.",
+    right: 'Hm. Another time, then.',
+    wrong: "I'll be seeing you soon.",
     asset: 'npc:death',
   },
   {
     id: 'jane',
     name: 'Guildmaster Jane',
     theme: 'Farming',
-    line: "Don't just stand there on my allotment. Answer me this!",
+    right: "Hmph. Maybe you won't faint after all.",
+    wrong: 'Off my allotment. Go and read a seed packet.',
     asset: 'npc:jane',
   },
   {
     id: 'baba_yaga',
     name: 'Baba Yaga',
     theme: 'Magic and Runecrafting',
-    line: 'Come in, come in! My hut is in a good mood today. Let us talk runes.',
+    right: 'Wonderful! My hut does a little dance for you.',
+    wrong: 'Tsk. Even my hut knew that one.',
     asset: 'npc:baba_yaga',
   },
 ]
@@ -153,7 +171,8 @@ function stranger(id: string): RandomEventNpc {
     id,
     name: 'Mysterious Old Man',
     theme: 'Anything at all',
-    line: 'Oh, hello there. You don’t mind if I ask you something?',
+    right: 'Very good. I’ll be on my way, then.',
+    wrong: 'Oh dear. I’ll be on my way, then.',
     asset: `npc:${STRANGER}`,
   }
 }

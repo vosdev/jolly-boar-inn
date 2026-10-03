@@ -2,7 +2,8 @@
 
 Payload shape (schema ``$defs/closest_number``)::
 
-    {"prompt": str, "answer": number, "unit"?: str, "image"?: asset, "explanation"?: str}
+    {"intro"?: str, "prompt": str, "answer": number, "unit"?: str, "image"?: asset,
+     "explanation"?: str}
 
 The host's favourite question -- how many Zulrah kills does the clan's worst pker have, how
 many hours did the Inferno cape take -- and the one type nobody is expected to get right.
@@ -47,7 +48,7 @@ EXACT = 1.0
 LADDER = (0.9, 0.8, 0.7)
 FURTHER = 0.0
 
-_OPEN_KEYS = ("prompt", "image", "unit")
+_OPEN_KEYS = ("intro", "prompt", "image", "unit")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

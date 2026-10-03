@@ -3,7 +3,7 @@
   "random_event": "krystilia",
   "questions": [
     {
-      "id": "q_2a6d451254a3af30",
+      "id": "q_149dc855ab3497e4",
       "type": "free_text",
       "mode": "random_event",
       "source": "pack",
@@ -12,14 +12,15 @@
         "wilderness"
       ],
       "payload": {
-        "prompt": "If you take on my slayer assignments out past the ditch, the beasts might leave behind a special key to open pirate chests hidden deep in the Wilderness. What is this key called?",
+        "intro": "Take on my assignments out past the ditch, and the beasts might leave you something special.",
+        "prompt": "Which key opens the pirate chests hidden deep in the Wilderness?",
         "accepted": [
           "Larran's key"
         ]
       }
     },
     {
-      "id": "q_c4a358289f7bb2ef",
+      "id": "q_6721e7e1cc684e36",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -27,13 +28,14 @@
         "slayer"
       ],
       "payload": {
-        "prompt": "Braving the Wilderness carries real risks, so I always make sure the payoff is worth your time. How many Slayer points do I hand out as a base reward for finishing one of my tasks?",
+        "intro": "Braving the Wilderness carries real risks, so I always make sure the payoff is worth your time.",
+        "prompt": "How many Slayer points does Krystilia give as a base reward for a task?",
         "answer": 25,
         "unit": "points"
       }
     },
     {
-      "id": "q_41c4bd3748ec5e38",
+      "id": "q_a45601098209cda0",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -41,7 +43,8 @@
         "wilderness"
       ],
       "payload": {
-        "prompt": "Be careful out there in the wilderness! A Teleblock can really ruin an escape! If a player doesn't have Protect from Magic active when it lands, how many minutes does the full block last?",
+        "intro": "Be careful out there in the Wilderness! A Teleblock can really ruin an escape!",
+        "prompt": "Without Protect from Magic, how many minutes does a full Teleblock last?",
         "options": [
           "3 minutes",
           "2.5 minutes",
@@ -52,7 +55,7 @@
       }
     },
     {
-      "id": "q_806fe28f19ee216f",
+      "id": "q_cc339f4d4e4759d8",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -60,12 +63,13 @@
         "wilderness"
       ],
       "payload": {
-        "prompt": "Be careful pulling strange levers! The one tucked behind the Ardougne tavern sends an unwary traveler straight to the Deserted Keep. At exactly what Wilderness level will you arrive?",
+        "intro": "Be careful pulling strange levers! The one behind the Ardougne tavern sends an unwary traveller straight to the Deserted Keep.",
+        "prompt": "At what Wilderness level does the Ardougne lever drop you?",
         "answer": 51
       }
     },
     {
-      "id": "q_113f4f5de21f1532",
+      "id": "q_7797859381eefa16",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -73,13 +77,14 @@
         "wilderness"
       ],
       "payload": {
-        "prompt": "Mandro runs a handy resource haven out past the lava, though he asks for a little toll at the gate. Without any Wilderness Diary perks, how many coins does entry cost?",
+        "intro": "Mandro runs a handy resource haven out past the lava, though he asks for a little toll at the gate.",
+        "prompt": "Without diary perks, how many coins does it cost to enter the Resource Area?",
         "answer": 7500,
         "unit": "coins"
       }
     },
     {
-      "id": "q_61ff11f1881d92d9",
+      "id": "q_7e69dfccca2f9d5b",
       "type": "free_text",
       "mode": "random_event",
       "source": "pack",
@@ -88,7 +93,8 @@
         "magic"
       ],
       "payload": {
-        "prompt": "Ancient Magicks can be a real lifesaver when you need to make a getaway. Which combat spell keeps a pursuer completely frozen in place for a solid 20 seconds?",
+        "intro": "Ancient Magicks can be a real lifesaver when you need to make a getaway.",
+        "prompt": "Which spell freezes a pursuer in place for 20 seconds?",
         "accepted": [
           "Ice Barrage"
         ]
