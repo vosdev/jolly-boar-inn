@@ -1950,7 +1950,10 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
     return closed
 
 
-@pytest.mark.parametrize("mode", [mode.id for mode in round_modes()])
+# A mode that borrows another's pool mixes types, and a wrong ``closest_number`` still earns
+# rank credit, so it cannot be held to "wrong scores nothing". Its own test is in
+# ``test_random_events_only.py``.
+@pytest.mark.parametrize("mode", [mode.id for mode in round_modes() if mode.pool is None])
 def test_a_round_of_every_mode_takes_a_right_and_a_wrong_answer_and_closes(
     table, db, mode: str
 ) -> None:

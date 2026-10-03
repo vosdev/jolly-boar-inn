@@ -25,6 +25,11 @@ class Mode:
     pools of random events: each of their questions carries a type of its own, and is
     paced by it, so they state no types and no numbers.
 
+    ``pool`` names the mode whose pack questions this round draws instead of its own, so
+    ``random_events_only`` can play the NPCs' questions as a round. ``setting`` names the
+    boolean ``Settings`` field that has to be on for a host to pick the mode: the way a
+    round that is not ready for everyone is kept off a public instance.
+
     ``questions`` and ``seconds`` are the numbers a round disagrees with its types about.
     ``None`` means "whatever the types say", which is what ``questions_bounds`` and
     ``seconds_bounds`` fall back to; a round whose types disagree must state the number
@@ -36,6 +41,8 @@ class Mode:
     is_round: bool = True
     questions: Bounds | None = None
     seconds: Bounds | None = None
+    pool: str | None = None
+    setting: str | None = None
 
     def __post_init__(self) -> None:
         # A bare string would be read as a set of its letters.

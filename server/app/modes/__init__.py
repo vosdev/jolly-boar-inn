@@ -22,6 +22,7 @@ client, in ``lib/modes.ts``.
 """
 
 from collections.abc import Callable
+from typing import Any
 
 from app.modes.mode import Mode
 from app.questions.types import TYPES
@@ -37,6 +38,17 @@ MODES: dict[str, Mode] = {
     "more_less": Mode(id="more_less", types=frozenset({"more_less"})),
     "price_is_right": Mode(id="price_is_right", types=frozenset({"price_is_right"})),
     "guess_examine": Mode(id="guess_examine", types=frozenset({"pick_from_list"})),
+    # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
+    "random_events_only": Mode(
+        id="random_events_only",
+        types=frozenset({"multiple_choice", "free_text", "closest_number"}),
+        # Its types disagree on both, and the pool is small: 20 leaves room for the events
+        # the room adds on top.
+        questions=Bounds(default=10, minimum=1, maximum=20),
+        seconds=Bounds(default=20, minimum=10, maximum=60),
+        pool="random_event",
+        setting="random_event_game_mode",
+    ),
     "custom": Mode(id="custom", types=frozenset(), is_round=False),
     "random_event": Mode(id="random_event", types=frozenset(), is_round=False),
 }
@@ -45,6 +57,11 @@ MODES: dict[str, Mode] = {
 def round_modes() -> list[Mode]:
     """The modes a host may pick as rounds, in the create form's order."""
     return [mode for mode in MODES.values() if mode.is_round]
+
+
+def offered(settings: Any) -> list[Mode]:
+    """The modes this instance lets a host pick: every one whose ``setting`` is on."""
+    return [m for m in MODES.values() if m.setting is None or getattr(settings, m.setting)]
 
 
 def type_questions(type_id: str) -> Bounds:

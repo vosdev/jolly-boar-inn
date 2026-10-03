@@ -112,6 +112,18 @@ export const MODES: Record<string, Mode> = {
     // The examine line is the question; the list below it is only how you answer.
     stem: 'examine',
   },
+  // Only on a server that switched it on, for testing the NPCs' questions in a row.
+  random_events_only: {
+    id: 'random_events_only',
+    label: 'Random Events Only',
+    hint: 'Nothing but random NPCs turning up with random questions.',
+    host: INNKEEPER,
+    greeting: 'The whole road has come in tonight, and every one of them wants a word.',
+    blurb: 'One visitor after another, each with a question. Answer them all.',
+    waiting: 'Another visitor will be along shortly.',
+    reveal: 'And off they go.',
+    stem: 'text',
+  },
   // Never offered as a round: the host's questions are random events inside other rounds.
   // It is here for the stem those questions are drawn with, and for the splash of a room
   // created when custom questions were a round of their own, and still plays them as one.

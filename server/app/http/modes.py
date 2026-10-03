@@ -15,16 +15,20 @@ paced by its own type. The create form offers as a round every mode that has
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
-from app.modes import MODES, questions_bounds, seconds_bounds
+from app.modes import offered, questions_bounds, seconds_bounds
 
 router = APIRouter(prefix="/api/modes")
 
 
 @router.get("")
-def list_modes() -> list[dict[str, Any]]:
-    """Registry order, which is the order the create form lists them in."""
+def list_modes(request: Request) -> list[dict[str, Any]]:
+    """Registry order, which is the order the create form lists them in.
+
+    A mode the instance has not switched on (``Mode.setting``) is left out, so the form
+    never offers what ``POST /api/rooms`` would refuse.
+    """
     return [
         {
             "id": mode.id,
@@ -32,5 +36,5 @@ def list_modes() -> list[dict[str, Any]]:
             "questions": questions_bounds(mode.id).view() if mode.is_round else None,
             "seconds": seconds_bounds(mode.id).view() if mode.is_round else None,
         }
-        for mode in MODES.values()
+        for mode in offered(request.app.state.settings)
     ]
