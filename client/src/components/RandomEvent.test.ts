@@ -12,6 +12,7 @@ import { render, screen } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { interludeFor } from '../lib/interlude'
 import type { OpenQuestion } from '../lib/protocol'
 import { RANDOM_EVENTS } from '../lib/randomEvents'
 import { serverOffsetMs } from '../lib/stores'
@@ -352,20 +353,24 @@ describe('the NPC’s own words', () => {
   }
 
   it('types the intro, waits, then types the question, all settled before the answers', async () => {
-    // 73 letters of intro from 900 ms are typed by 2117 ms; reading the rest of it takes
-    // 1703 ms more; then 34 letters of question by 4387 ms.
+    // The card keeps to the plan `lib/interlude.ts` makes, which its own tests hold to the
+    // design; here it is only the card's clock.
+    const [said, asked] = interludeFor(6000, [[...INTRO].length, [...PROMPT].length]).lines
+    const introDone = Math.ceil(said!.from + said!.for)
+    const askFrom = Math.floor(asked!.from)
+    const halfway = Math.ceil(asked!.for / 2)
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
     expect(seen(intro())).toBe('')
     expect(seen(ask())).toBe('')
-    await after(2117)
+    await after(introDone)
     expect(seen(intro())).toBe(INTRO)
     expect(seen(ask())).toBe('')
-    await after(1702)
+    await after(askFrom - introDone)
     expect(seen(ask())).toBe('')
-    await after(300)
+    await after(halfway)
     expect(seen(ask()).length).toBeGreaterThan(0)
     expect(PROMPT.startsWith(seen(ask()))).toBe(true)
-    await after(6000 - 200 - 4119)
+    await after(6000 - 200 - askFrom - halfway)
     expect(seen(ask())).toBe(PROMPT)
     expect(buttons()).toHaveLength(0)
     await after(200)

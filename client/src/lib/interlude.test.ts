@@ -8,8 +8,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   ENTRANCE_MS,
+  LETTERS_PER_SECOND,
   PAUSE_MAX_MS,
   PAUSE_MIN_MS,
+  READ_LETTERS_PER_SECOND,
   SETTLE_MS,
   SETTLED,
   TYPE_FROM_MS,
@@ -18,6 +20,18 @@ import {
 } from './interlude'
 
 const HOLD = 6000
+
+/** How long a line types at the natural pace. */
+const typing = (letters: number) => (letters * 1000) / LETTERS_PER_SECOND
+/** What reading a line still needs once it has typed, per letter. */
+const READ_MS_PER_LETTER = 1000 / READ_LETTERS_PER_SECOND - 1000 / LETTERS_PER_SECOND
+/** The pause a line's reading asks for, within the shortest and the longest. */
+const wanted = (letters: number) =>
+  Math.max(PAUSE_MIN_MS, Math.min(PAUSE_MAX_MS, letters * READ_MS_PER_LETTER))
+/** Intros whose reading falls short of the shortest pause, inside the range, and past it. */
+const BELOW = Math.floor(PAUSE_MIN_MS / READ_MS_PER_LETTER) - 1
+const BETWEEN = Math.round((PAUSE_MIN_MS + PAUSE_MAX_MS) / 2 / READ_MS_PER_LETTER)
+const ABOVE = Math.ceil(PAUSE_MAX_MS / READ_MS_PER_LETTER) + 1
 
 /** Where a plan's last line stops typing. */
 const done = (lines: { from: number; for: number }[]) =>
@@ -63,22 +77,27 @@ describe('interludeFor, one line', () => {
 
 describe('interludeFor, an intro and its question', () => {
   it('types the intro, pauses as long as reading it takes, then types the question', () => {
-    // The median question: 93 and 61 letters, 1550 and 1017 ms.
+    // The median question: 93 and 61 letters.
     const [intro, ask] = interludeFor(HOLD, [93, 61]).lines
     expect(intro!.from).toBe(TYPE_FROM_MS)
-    expect(intro!.for).toBeCloseTo(1550)
-    expect(ask!.from - (intro!.from + intro!.for)).toBe(PAUSE_MAX_MS)
-    expect(ask!.for).toBeCloseTo(1016.67)
+    expect(intro!.for).toBeCloseTo(typing(93))
+    expect(ask!.from - (intro!.from + intro!.for)).toBeCloseTo(wanted(93))
+    expect(ask!.for).toBeCloseTo(typing(61))
   })
 
-  it('shortens the pause, not the speed, for the longest intro and question', () => {
-    // 139 and 89 letters: 4800 ms at 60 a second with a one-second pause, of 4900.
-    const [intro, ask] = interludeFor(HOLD, [139, 89]).lines
+  it('shortens the pause, not the speed, when the longest pause does not fit', () => {
+    // A question sized so the lines fit with the shortest pause and not with the longest.
+    const room = HOLD - SETTLE_MS - TYPE_FROM_MS
+    const asked = Math.floor(
+      ((room - typing(ABOVE) - (PAUSE_MIN_MS + PAUSE_MAX_MS) / 2) * LETTERS_PER_SECOND) / 1000,
+    )
+    const [intro, ask] = interludeFor(HOLD, [ABOVE, asked]).lines
     const pause = ask!.from - (intro!.from + intro!.for)
-    expect(pause).toBeGreaterThanOrEqual(PAUSE_MIN_MS)
-    expect(pause).toBeCloseTo(1100)
-    expect(intro!.for).toBeCloseTo((139 * 1000) / 60)
-    expect(done([intro!, ask!])).toBeLessThanOrEqual(HOLD - SETTLE_MS)
+    expect(pause).toBeGreaterThan(PAUSE_MIN_MS)
+    expect(pause).toBeLessThan(PAUSE_MAX_MS)
+    expect(intro!.for).toBeCloseTo(typing(ABOVE))
+    expect(ask!.for).toBeCloseTo(typing(asked))
+    expect(done([intro!, ask!])).toBeCloseTo(HOLD - SETTLE_MS)
   })
 
   it.each([HOLD, 3500, 1000])('still settles 200 ms before the answers at %i ms', (hold) => {
@@ -89,9 +108,9 @@ describe('interludeFor, an intro and its question', () => {
   })
 
   it.each([
-    [39, PAUSE_MIN_MS],
-    [60, 1400],
-    [93, PAUSE_MAX_MS],
+    [BELOW, PAUSE_MIN_MS],
+    [BETWEEN, BETWEEN * READ_MS_PER_LETTER],
+    [ABOVE, PAUSE_MAX_MS],
   ])('waits after a %i-letter intro for %i ms, whatever time is left over', (letters, pause) => {
     const [intro, ask] = interludeFor(HOLD, [letters, 40]).lines
     expect(ask!.from - (intro!.from + intro!.for)).toBeCloseTo(pause)
@@ -99,6 +118,7 @@ describe('interludeFor, an intro and its question', () => {
 
   it('shows the question not at all until its turn', () => {
     const [intro, ask] = interludeFor(HOLD, [93, 61]).lines
-    expect(typedAt(ask, 61, intro!.from + intro!.for + PAUSE_MAX_MS - 1)).toBe(0)
+    expect(ask!.from).toBeGreaterThanOrEqual(intro!.from + intro!.for + PAUSE_MIN_MS)
+    expect(typedAt(ask, 61, ask!.from - 1)).toBe(0)
   })
 })

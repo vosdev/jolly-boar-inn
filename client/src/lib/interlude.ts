@@ -18,8 +18,8 @@ export const LETTERS_PER_SECOND = 60
  * Between the intro and the question: what is left of reading the intro once it has typed,
  * at a reading pace slower than the typing, and never less or more than these.
  */
-export const PAUSE_MIN_MS = 1000
-export const PAUSE_MAX_MS = 2000
+export const PAUSE_MIN_MS = 500
+export const PAUSE_MAX_MS = 1000
 export const READ_LETTERS_PER_SECOND = 25
 /** The return mirrors the entrance in the reveal's last 250 ms. */
 export const RETURN_MS = 250

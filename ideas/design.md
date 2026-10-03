@@ -308,14 +308,14 @@ nobody points and the server times nothing:
          the host fades out; the scroll slides left into the space it leaves   ≤ 250 ms
 150 ms   the event NPC fades in on the right                                   ≤ 250 ms
 900 ms   the NPC's `intro` "types" in at 60 letters a second
-then     a pause of 1–2 s, and the plain question types in under it, in bold
+then     a pause of 0.5–1 s, and the plain question types in under it, in bold
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
 answerable_at: the answers appear under the line and the timer bar starts
 ```
 
 - The intro is the character; the bold question is all a hurried player needs. A question with no
   intro types its prompt alone.
-- The pause is what reading the intro still needs once typed, at 25 letters a second: 1–2 s.
+- The pause is what reading the intro still needs once typed, at 25 letters a second: 0.5–1 s.
   Spare time waits at the end, settled. Text too long for the hold starts sooner, never before
   400 ms, then pauses less, then types faster. Under 600 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame. A
