@@ -121,9 +121,10 @@ CHANGE_COOLDOWN = 1.0
 # socket half-way would otherwise leave "picking a name…" up for the rest of the lobby.
 EDITING_SECONDS = 60.0
 # Seconds a random event's NPC holds the floor before the buttons appear. Fixed rather than
-# a room setting: the client's interlude is timed to it, the prompt typing in at a set pace
-# and finishing just before the answers (section 12 of ideas/design.md).
-RANDOM_EVENT_HOLD = 3.5
+# a room setting: the client's interlude is timed to it, the NPC's intro and then the
+# question typing in at a set pace, a pause between them, and finishing just before the
+# answers (section 12 of ideas/design.md).
+RANDOM_EVENT_HOLD = 6.0
 # Requests waiting on an admin at once, so somebody guessing codes cannot bury a lobby.
 MAX_JOIN_REQUESTS = 5
 # Seconds a request outlives its requester's last poll; the waiting page polls every two.

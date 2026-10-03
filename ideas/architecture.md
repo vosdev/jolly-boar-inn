@@ -254,7 +254,7 @@ PlayerResult { value, correct, credit, points }
 - `OpenQuestion.mode` sits beside `type` because the pair picks the view (`viewFor`), and an event's
   mode differs from its segment's.
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.
-- `answerable_at` is `opened_at` plus a fixed 3.5 s (`RANDOM_EVENT_HOLD`) for an event. Answers
+- `answerable_at` is `opened_at` plus a fixed 6 s (`RANDOM_EVENT_HOLD`) for an event. Answers
   before it are `not_open`, and `ends_at` and timing count from it, so the NPC's entrance costs
   nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.

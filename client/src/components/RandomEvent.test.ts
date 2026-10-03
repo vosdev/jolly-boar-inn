@@ -12,6 +12,7 @@ import { render, screen } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { interludeFor } from '../lib/interlude'
 import type { OpenQuestion } from '../lib/protocol'
 import { RANDOM_EVENTS } from '../lib/randomEvents'
 import { serverOffsetMs } from '../lib/stores'
@@ -331,7 +332,7 @@ describe('the NPC’s own words', () => {
   const death = RANDOM_EVENTS.find((npc) => npc.id === 'death')!
   const introduced = (patch: Partial<OpenQuestion> = {}) =>
     event({
-      answerable_at: new Date(NOW + 3500).toISOString(),
+      answerable_at: new Date(NOW + 6000).toISOString(),
       view: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'] },
       ...patch,
     })
@@ -351,14 +352,35 @@ describe('the NPC’s own words', () => {
     return copy.textContent ?? ''
   }
 
-  it('types the intro, with the plain question whole in bold from the first frame', async () => {
+  it('types the intro, waits, then types the question, all settled before the answers', async () => {
+    // The card keeps to the plan `lib/interlude.ts` makes, which its own tests hold to the
+    // design; here it is only the card's clock.
+    const [said, asked] = interludeFor(6000, [[...INTRO].length, [...PROMPT].length]).lines
+    const introDone = Math.ceil(said!.from + said!.for)
+    const askFrom = Math.floor(asked!.from)
+    const halfway = Math.ceil(asked!.for / 2)
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
     expect(seen(intro())).toBe('')
-    expect(ask().textContent).toBe(PROMPT)
-    expect(spoken(intro())).toBe(INTRO)
-    await after(3300)
+    expect(seen(ask())).toBe('')
+    await after(introDone)
     expect(seen(intro())).toBe(INTRO)
-    expect(ask().textContent).toBe(PROMPT)
+    expect(seen(ask())).toBe('')
+    await after(askFrom - introDone)
+    expect(seen(ask())).toBe('')
+    await after(halfway)
+    expect(seen(ask()).length).toBeGreaterThan(0)
+    expect(PROMPT.startsWith(seen(ask()))).toBe(true)
+    await after(6000 - 200 - askFrom - halfway)
+    expect(seen(ask())).toBe(PROMPT)
+    expect(buttons()).toHaveLength(0)
+    await after(200)
+    expect(buttons()).toHaveLength(3)
+  })
+
+  it('gives a screen reader the intro and the question once each, whole, from the first frame', () => {
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
+    expect(spoken(intro())).toBe(INTRO)
+    expect(spoken(ask())).toBe(PROMPT)
   })
 
   it('keeps the intro on the sheet in the reveal', () => {
