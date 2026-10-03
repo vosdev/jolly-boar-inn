@@ -116,7 +116,7 @@ export const MODES: Record<string, Mode> = {
   random_events_only: {
     id: 'random_events_only',
     label: 'Random Events Only',
-    hint: 'Nothing but random NPCs turning up with randomquestions.',
+    hint: 'Nothing but random NPCs turning up with random questions.',
     host: INNKEEPER,
     greeting: 'The whole road has come in tonight, and every one of them wants a word.',
     blurb: 'One visitor after another, each with a question. Answer them all.',
