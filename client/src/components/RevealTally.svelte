@@ -6,8 +6,10 @@
    * Everything here comes from `question_closed.results`, which already carries every
    * player's row; nothing new crosses the wire. "Right" is `correct`, full credit. Partial
    * credit gets a line per band under it, so a closest-number question, where almost
-   * nobody is exact, does not read as "0 of 6". "Wrong" is under the lowest band, which
-   * is also where closest number stops paying. A player who did not answer is neither:
+   * nobody is exact, does not read as "0 of 6". There the bands are ranks, not accuracy:
+   * the closest guess earns 0.9 however far off it was, so it says "closest" rather than
+   * "90% right". "Wrong" is under the lowest band, which is also where closest number
+   * stops paying. A player who did not answer is neither:
    * sitting a question out is not getting it wrong (the points slot makes the same
    * distinction).
    *
@@ -18,11 +20,14 @@
   import type { PlayerResult } from '../lib/protocol'
 
   let {
+    type,
     results,
     nameOf,
     youId,
     showNames,
   }: {
+    /** The question's type, which decides what partial credit means. */
+    type: string
     results: Record<string, PlayerResult>
     /** A player's name by id; null for somebody the room no longer knows. */
     nameOf: (id: string) => string | null
@@ -33,17 +38,25 @@
   // Highest first: a player counts once, in the first band their credit reaches.
   const BANDS = [0.9, 0.8, 0.7]
   const LOWEST = BANDS[BANDS.length - 1] ?? 0
+  // Closest number's ladder (`closest_number.LADDER` on the server), one rung per band.
+  const RANKS = ['closest', 'second closest', 'third closest']
 
+  const ranked = $derived(type === 'closest_number')
   const rows = $derived(Object.entries(results))
   const right = $derived(rows.filter(([, result]) => result.correct).length)
   const bands = $derived(
-    BANDS.map((least, index) => ({
-      percent: Math.round(least * 100),
-      count: rows.filter(
+    BANDS.map((least, index) => {
+      const count = rows.filter(
         ([, { correct, credit }]) =>
           !correct && credit >= least && credit < (BANDS[index - 1] ?? Infinity),
-      ).length,
-    })).filter((band) => band.count > 0),
+      ).length
+      const verb = count === 1 ? 'was' : 'were'
+      return {
+        key: least,
+        count,
+        said: ranked ? `${verb} ${RANKS[index]}` : `${verb} at least ${Math.round(least * 100)}% right`,
+      }
+    }).filter((band) => band.count > 0),
   )
   const wrong = $derived(
     rows
@@ -58,12 +71,13 @@
     <p class="count">Nobody answered this one.</p>
   {:else}
     <p class="count">
-      <strong class="number">{right} of {rows.length}</strong> got it right
+      <strong class="number">{right} of {rows.length}</strong>
+      {ranked ? 'guessed it exactly' : 'got it right'}
     </p>
-    {#each bands as band (band.percent)}
+    {#each bands as band (band.key)}
       <p class="count band">
         <strong class="number">{band.count} of {rows.length}</strong>
-        {band.count === 1 ? 'was' : 'were'} at least {band.percent}% right
+        {band.said}
       </p>
     {/each}
     {#if showNames && wrong.length > 0}

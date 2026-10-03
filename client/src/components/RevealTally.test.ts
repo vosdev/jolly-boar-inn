@@ -1,7 +1,8 @@
 /**
  * The lines under a reveal. The count always, and one per partial-credit band that
  * anyone reached; the names of who got it wrong only when the host asked for them, and
- * never a player who came within 70% or did not answer.
+ * never a player who came within 70% or did not answer. A closest-number question counts
+ * its bands as ranks, since its credit is a rank and not how near the guess was.
  */
 
 import { render } from '@testing-library/svelte'
@@ -32,8 +33,13 @@ const partly = (credit: number): PlayerResult => ({
 const lines = (container: HTMLElement) =>
   [...container.querySelectorAll('.count')].map((p) => p.textContent?.replace(/\s+/g, ' ').trim())
 
-function draw(results: Record<string, PlayerResult>, showNames: boolean, youId = 'a') {
-  return render(RevealTally, { results, nameOf, youId, showNames })
+function draw(
+  results: Record<string, PlayerResult>,
+  showNames: boolean,
+  youId = 'a',
+  type = 'multiple_choice',
+) {
+  return render(RevealTally, { type, results, nameOf, youId, showNames })
 }
 
 describe('RevealTally', () => {
@@ -92,6 +98,36 @@ describe('RevealTally', () => {
     const { container } = draw({ a: partly(0.7), b: partly(0.69), c: wrong, d: right() }, true)
     expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       'Got it wrong: Lynx, Woox',
+    )
+  })
+
+  it('counts a closest-number guess by its rank, not as a share right', () => {
+    const { container } = draw(
+      {
+        a: right(1000),
+        b: partly(0.9),
+        c: partly(0.8),
+        d: partly(0.7),
+        e: partly(0.7),
+        f: wrong,
+      },
+      false,
+      'a',
+      'closest_number',
+    )
+    expect(lines(container)).toEqual([
+      '1 of 6 guessed it exactly',
+      '1 of 6 was closest',
+      '1 of 6 was second closest',
+      '2 of 6 were third closest',
+    ])
+    expect(container.textContent).not.toContain('%')
+  })
+
+  it('names as wrong a closest-number guess off the podium', () => {
+    const { container } = draw({ a: partly(0.9), b: wrong }, true, 'a', 'closest_number')
+    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Got it wrong: Woox',
     )
   })
 

@@ -474,6 +474,7 @@
           nextAt={$room.next_at}
         >
           <RevealTally
+            type={$lastClosed.was.type}
             results={$lastClosed.results}
             {nameOf}
             youId={$you?.id ?? null}
