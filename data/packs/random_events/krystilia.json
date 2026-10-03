@@ -99,6 +99,33 @@
           "Ice Barrage"
         ]
       }
+    },
+    {
+      "id": "q_671b55e2aa7f7077",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "bosses",
+        "wilderness"
+      ],
+      "payload": {
+        "intro": "Some of my assignments end at a boss's lair, deep past the ditch. Know where you're going before you go.",
+        "prompt": "Which of these bosses lurk in the Wilderness?",
+        "options": [
+          "Callisto",
+          "Zulrah",
+          "Venenatis",
+          "Cerberus",
+          "Scorpia",
+          "Vorkath"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ]
+      }
     }
   ]
 }

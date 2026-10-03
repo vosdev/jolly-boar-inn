@@ -56,7 +56,12 @@ def test_off_it_is_left_out_of_the_create_form(client: TestClient) -> None:
 
 def test_on_the_create_form_gets_its_pace(on: TestClient) -> None:
     entry = next(m for m in on.get("/api/modes").json() if m["id"] == MODE)
-    assert entry["types"] == ["closest_number", "free_text", "multiple_choice"]
+    assert entry["types"] == [
+        "closest_number",
+        "free_text",
+        "multiple_choice",
+        "pick_all_that_apply",
+    ]
     assert entry["questions"] == {"default": 10, "min": 1, "max": 20}
     assert entry["seconds"] == {"default": 20, "min": 10, "max": 60}
 
@@ -106,7 +111,9 @@ def test_a_round_of_it_plays_through_every_question_type(table, db) -> None:
     game = table("Zezima", "Woox", modes=[MODE], questions=20, seconds=10)
     zezima, woox = game.players
     questions = game.room.questions
-    assert {q.type for q in questions} == {"multiple_choice", "free_text", "closest_number"}
+    # The pool's one ``pick_all_that_apply`` may or may not be drawn; its own end-to-end
+    # test is in ``test_pick_all_that_apply.py``.
+    assert {q.type for q in questions} >= {"multiple_choice", "free_text", "closest_number"}
     game.start()
     for index in range(len(questions)):
         game.opened(index)

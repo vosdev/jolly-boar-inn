@@ -209,10 +209,26 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
     view: { prompt: 'A very powerful onyx amulet.', vocab: 'items' },
     reveal: { prompt: 'A very powerful onyx amulet.', vocab: 'items', answer_id: 6585 },
   },
+  {
+    type: 'pick_all_that_apply',
+    mode: 'custom',
+    view: { prompt: 'Which?', options: ['Sarachnis', 'Venenatis', 'Scorpia'] },
+    reveal: {
+      prompt: 'Which?',
+      options: ['Sarachnis', 'Venenatis', 'Scorpia'],
+      answer_indices: [0, 1],
+    },
+  },
 ]
 
 /** The types whose `reveal` carries the author's `explanation` (`questions/types/*.py`). */
-const EXPLAINED = ['multiple_choice', 'closest_number', 'free_text', 'pick_from_list']
+const EXPLAINED = [
+  'multiple_choice',
+  'closest_number',
+  'free_text',
+  'pick_from_list',
+  'pick_all_that_apply',
+]
 
 const entries = [{ id: 6585, name: 'Amulet of fury' }]
 const NOTE = 'This one is not scored for you — sit back and watch.'

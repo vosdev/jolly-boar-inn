@@ -75,6 +75,10 @@
    * which are `small`, because a gem's hue is not the only thing that should say which
    * one was right. Everywhere else a button is `normal`.
    *
+   * `checked` is for a question answered with several options: a box in the top right
+   * corner, ticked or not, like a round's box on the create form. Ticking fades nothing,
+   * so every option stays readable until the ticks are submitted.
+   *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
    * `FADED_GEM_SHARE`; change the two together.
@@ -86,6 +90,7 @@
     status,
     mine = false,
     size = 'normal',
+    checked = null,
     disabled,
     onclick,
     children,
@@ -99,6 +104,8 @@
      */
     mine?: boolean
     size?: 'normal' | 'large' | 'small'
+    /** Ticked or not, before a several-option answer is submitted; null for no box. */
+    checked?: boolean | null
     disabled: boolean
     onclick: () => void
     children: Snippet
@@ -120,11 +127,15 @@
 <button
   type="button"
   class="gem {gem ?? 'plain'} {status} {size}"
-  aria-pressed={yours}
+  class:ticks={checked !== null}
+  aria-pressed={checked ?? yours}
   {disabled}
   {onclick}
 >
   <span class="content">{@render children()}</span>
+  {#if checked !== null}
+    <span class="tick" class:checked aria-hidden="true">{checked ? '✓' : ''}</span>
+  {/if}
   {#if yours}
     <span class="you" aria-hidden="true">you</span>
   {/if}
@@ -230,6 +241,30 @@
   .plain.wrong {
     color: var(--muted);
     border-style: dashed;
+  }
+
+  /* Clear of the box, on both sides so the text stays centred. */
+  .ticks {
+    padding-inline: calc(2.5rem - var(--border-give));
+  }
+
+  .tick {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: var(--border-width) solid var(--mark);
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .tick.checked {
+    background: var(--mark);
+    color: var(--fill);
   }
 
   .you {

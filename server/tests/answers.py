@@ -16,6 +16,13 @@ def _another_option(payload: dict[str, Any]) -> int:
     return next(i for i in range(len(payload["options"])) if i != payload["answer_index"])
 
 
+def _one_swapped(payload: dict[str, Any]) -> list[int]:
+    # One right option traded for a wrong one: still ``picks`` long, and short of full credit.
+    right = payload["answer_indices"]
+    wrong = next(i for i in range(len(payload["options"])) if i not in right)
+    return sorted([*right[:-1], wrong])
+
+
 def _another_entry(payload: dict[str, Any]) -> int:
     names = vocab.get(payload["vocab"])
     assert names is not None, f"this build has no {payload['vocab']} vocabulary"
@@ -35,6 +42,7 @@ _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "pick_from_list": lambda payload: payload["answer_id"],
     "closest_number": lambda payload: payload["answer"],
     "free_text": lambda payload: payload["accepted"][0],
+    "pick_all_that_apply": lambda payload: payload["answer_indices"],
 }
 
 _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
@@ -44,6 +52,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "pick_from_list": _another_entry,
     "closest_number": lambda payload: payload["answer"] + 1,
     "free_text": _nothing_like_it,
+    "pick_all_that_apply": _one_swapped,
 }
 
 

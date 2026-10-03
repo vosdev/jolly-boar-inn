@@ -141,6 +141,23 @@ EXAMPLES: dict[str, Example] = {
         scoring=Scoring.SPEED,
         seconds=(20, 10, 60),
     ),
+    "pick_all_that_apply": Example(
+        payload={
+            "prompt": "Which of these are spiders?",
+            "options": ["Kalphite Queen", "Sarachnis", "Venenatis", "Scorpia"],
+            "answer_indices": [1, 2],
+            "picks": 2,
+            "image": "npc:8713",
+            "explanation": "Scorpia is a scorpion and the Kalphite Queen an insect.",
+        },
+        valid=[[1, 2], [3, 0], [0, 1]],
+        invalid=[[1], [1, 2, 3], [1, 1], [1, 4], [-1, 1], [1, True], 1, "1,2", [1.0, 2.0], []],
+        right=[1, 2],
+        wrong=[0, 2],
+        secret=frozenset({"answer_indices", "explanation"}),
+        scoring=Scoring.SPEED,
+        seconds=(20, 5, 30),
+    ),
 }
 
 # Refused by every type, whatever its shape: ``true`` is ``1`` to Python, ``null`` is
