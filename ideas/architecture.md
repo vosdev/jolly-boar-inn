@@ -24,8 +24,8 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, fetch-assets, image; CI: release
 schema/question.schema.json        the question schema (section 4)
-data/packs/                        prices, examine, sample (the tests'), random_events/<npc>.json
-data/                              assets, examines, popular-items, player-names, room-words, heads/
+data/packs/                        prices, examine, sample (the tests'), random_events/, AUTHORING.md
+data/                              assets, popular-items, player-names, room-words, heads/
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, heads, random_events
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
@@ -33,8 +33,8 @@ server/app/rooms/                  state (RoomManager), settings, selection, seg
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
-server/scripts/                    wiki, gen_price_questions, gen_examine_questions, fetch_assets,
-                                   validate_packs, check_contrast, smoke_ws, loadtest
+server/scripts/                    wiki, gen_price_questions, fetch_assets, validate_packs,
+                                   check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin; TopBar, Lobby, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
@@ -111,7 +111,7 @@ SECONDS: Bounds                       # optional
 |---|---|---|---|---|
 | `more_less` | More or Less | `more_less` | `/mapping` + `/latest` | done |
 | `price_is_right` | The Price is Right | `price_is_right` | `/mapping` + `/latest` | done |
-| `guess_examine` | Guess the Examine | `pick_from_list` | `data/examines.json` | done |
+| `guess_examine` | Guess the Examine | `pick_from_list` | `examine.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
@@ -147,6 +147,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Assets are `item:<id>` or `npc:<id>`, never a URL. `pick_from_list` withholds `image` while open
   ("Needs decision").
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
+- `wiki` on the envelope is the page an author checked. Players never get it.
 
 | Type | `value` | Credit |
 |---|---|---|
@@ -166,11 +167,12 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 
 ## 5. Packs, selection, segments
 
-- A pack file is `{pack, generated_at, questions}`, and may hold several modes. An event file,
+- A pack file is `{pack, generated_at?, questions}`, the stamp only if generated, and may hold several modes. An event file,
   `data/packs/random_events/<npc>.json`, is `{pack, random_event, questions}`; the loader stamps
   the NPC on each question and refuses a file named after nobody on the roster.
 - `validate_packs.py` fails CI on a schema error, a duplicate or mismatched id, an unknown mode, a
-  type its mode does not allow, a stray `random_event`, or a price type filed as an event.
+  type its mode does not allow, a stray `random_event`, a price type filed as an event, or one
+  `pick_from_list` prompt under two answers.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
 - Create's editor writes `multiple_choice`, `free_text` and `closest_number` with limits read from
   the schema, refuses what the server would 422, the slot cap included, and exports
@@ -290,9 +292,9 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 1011 | a send failed or timed out, or the database was down on connect | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
 
-`GET /api/vocab/{name}` serves `items` (`popular-items.json`), `examines` (`examines.json`) and
+`GET /api/vocab/{name}` serves `items` (`popular-items.json`), `examines` (`examine.json`'s answers) and
 `npcs` (404 until Who's That NPC? writes its list) as `{vocab, version, entries: [{id, name}]}`, built at
-startup. Two entries with one name refuse to load. The client fetches a list once, when a question
+startup. One name under two ids, or one id under two names, refuses to load. The client fetches a list once, when a question
 first names it; per question it would resend the list every time. It gives nothing away: it is every
 entry, not the question's options.
 
@@ -543,7 +545,7 @@ key into them, so cleanup leaves it.
 
 ## 12. Data pipeline
 
-Packs are committed, so a clone plays without a network; only prices and examines are generated.
+Packs are committed, so a clone plays without a network; only prices are generated.
 
 - The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`) run them in
   `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is the
@@ -553,12 +555,10 @@ Packs are committed, so a clone plays without a network; only prices and examine
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
 - `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
-- `make gen-examine-questions` builds `examine.json` from the hand-written `data/examines.json`. A
-  test fails when they disagree.
-- Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs, like the
-  random events. No importer fetches wiki facts, so the owner picks every monster and question.
-- #84 adds `make gen-packs`: the roster and `examines.json` into packs, offline and seeded, with
-  `CHECK=1` diffing in CI. It never derives `examines.json`.
+- Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
+  like the random events, with the rules in `data/packs/AUTHORING.md`. No importer fetches wiki
+  facts, so the owner picks every monster and question.
+- #84 adds `make gen-packs`: generated packs, offline and seeded, with `CHECK=1` diffing in CI.
 - `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)
   into place, skipping files that exist. Images are never committed: every target must be
   git-ignored. Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.

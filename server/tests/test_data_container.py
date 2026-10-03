@@ -10,7 +10,7 @@ import subprocess
 
 from app.config import REPO_ROOT
 
-DATA_TARGETS = ("fetch-assets", "gen-price-questions", "gen-examine-questions")
+DATA_TARGETS = ("fetch-assets", "gen-price-questions")
 FETCH_ASSETS_VARIABLES = ("FORCE", "DRY_RUN", "ONLY", "FROM_DIR")
 
 

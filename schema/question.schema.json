@@ -22,7 +22,11 @@
     "author": { "type": "string", "maxLength": 64 },
     "added_at": { "type": "string", "format": "date" },
     "host_only": { "type": "boolean", "default": false },
-    "random_event": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" }
+    "random_event": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
+    "wiki": {
+      "$comment": "Where an author checked the question, for the next author. Never sent to players.",
+      "type": "string", "maxLength": 300, "pattern": "^https://oldschool\\.runescape\\.wiki/w/\\S+$"
+    }
   },
   "allOf": [
     { "if": { "properties": { "type": { "const": "more_less" } } },

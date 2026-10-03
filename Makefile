@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions gen-examine-questions fetch-assets loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions fetch-assets loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -83,11 +83,6 @@ loadtest:
 # WIKI_USER_AGENT, from .env or the environment (.env.example).
 gen-price-questions:
 	$(DATA) scripts/gen_price_questions.py
-
-# Regenerate data/packs/examine.json from data/examines.json, offline. Run it after adding an
-# examine and commit both files; the test suite fails when the two disagree.
-gen-examine-questions:
-	$(DATA) scripts/gen_examine_questions.py
 
 # Fetch the NPC and trophy art in data/assets.json from the wiki into client/src/assets/, where
 # the client looks for it. Never part of test or the image build (CI only dry-runs it), and never

@@ -733,8 +733,9 @@ PACK_BODY = {"pack": "p", "generated_at": "2026-09-18T00:00:00Z", "questions": [
             "p.json: questions[0] $.random_event: only a question in random_events/<npc>.json",
         ),
         ({**PACK_BODY, "questions": ["q"]}, "p.json: questions[0] $: 'q' is not of type"),
+        ({**PACK_BODY, "made_by": "me"}, "p.json: pack must have exactly the keys"),
     ],
-    ids=["not an object", "generated_at", "questions", "event mode", "not a question"],
+    ids=["not an object", "generated_at", "questions", "event mode", "not a question", "extra key"],
 )
 def test_load_packs_names_what_is_wrong_with_a_pack(tmp_path: Path, body: Any, error: str) -> None:
     (tmp_path / "p.json").write_text(json.dumps(body))
@@ -742,6 +743,52 @@ def test_load_packs_names_what_is_wrong_with_a_pack(tmp_path: Path, body: Any, e
         load_packs(tmp_path)
     (found,) = info.value.errors
     assert found.startswith(error), found
+
+
+def test_a_hand_written_pack_needs_no_generated_at(tmp_path: Path) -> None:
+    (tmp_path / "p.json").write_text(json.dumps({"pack": "p", "questions": [EXAMPLE]}))
+    (loaded,) = load_packs(tmp_path)
+    assert (loaded.generated_at, len(loaded.questions)) == (None, 1)
+
+
+def _examine(prompt: str, answer_id: int, name: str) -> dict[str, Any]:
+    q: dict[str, Any] = {
+        "type": "pick_from_list",
+        "mode": "guess_examine",
+        "source": "pack",
+        "tags": ["examine"],
+        "payload": {
+            "prompt": prompt,
+            "vocab": "examines",
+            "answer_id": answer_id,
+            "subject": {"name": name},
+        },
+    }
+    q["id"] = schema.content_id(q)
+    return q
+
+
+def test_validate_packs_fails_one_prompt_under_two_answers(tmp_path: Path) -> None:
+    """Both entries would be right, and the grader accepts one of them."""
+    first = _examine("The lowest maintenance pet you will ever have.", 1, "Pet rock")
+    second = _examine("the lowest  maintenance pet you will ever have.", 3, "Ectophial")
+    _write_pack(tmp_path / "a.json", [first])
+    _write_pack(tmp_path / "b.json", [second])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 1
+    assert (
+        "b.json: questions[0] prompt 'the lowest  maintenance pet you will ever have.' is also"
+        " asked in a.json questions[0], answered 1 there and 3 here; a line may have only one"
+        " answer"
+    ) in result.stderr
+
+
+def test_one_answer_may_be_asked_in_several_lines(tmp_path: Path) -> None:
+    _write_pack(
+        tmp_path / "a.json",
+        [_examine("One line.", 1, "Pet rock"), _examine("Another line.", 1, "Pet rock")],
+    )
+    assert _validate_packs(tmp_path).returncode == 0
 
 
 @pytest.mark.parametrize(
