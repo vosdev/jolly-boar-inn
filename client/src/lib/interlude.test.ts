@@ -62,7 +62,7 @@ describe('interludeFor, one line', () => {
 })
 
 describe('interludeFor, an intro and its question', () => {
-  it('types the intro, pauses as long as there is room for, then types the question', () => {
+  it('types the intro, pauses as long as reading it takes, then types the question', () => {
     // The median question: 93 and 61 letters, 1550 and 1017 ms.
     const [intro, ask] = interludeFor(HOLD, [93, 61]).lines
     expect(intro!.from).toBe(TYPE_FROM_MS)
@@ -86,6 +86,15 @@ describe('interludeFor, an intro and its question', () => {
     expect(plan.lines[0]!.from).toBeGreaterThanOrEqual(ENTRANCE_MS)
     expect(plan.lines[1]!.from).toBeGreaterThan(plan.lines[0]!.from + plan.lines[0]!.for)
     expect(done(plan.lines)).toBeLessThanOrEqual(hold - SETTLE_MS + 1e-9)
+  })
+
+  it.each([
+    [39, PAUSE_MIN_MS],
+    [60, 1400],
+    [93, PAUSE_MAX_MS],
+  ])('waits after a %i-letter intro for %i ms, whatever time is left over', (letters, pause) => {
+    const [intro, ask] = interludeFor(HOLD, [letters, 40]).lines
+    expect(ask!.from - (intro!.from + intro!.for)).toBeCloseTo(pause)
   })
 
   it('shows the question not at all until its turn', () => {

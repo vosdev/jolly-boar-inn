@@ -315,9 +315,9 @@ answerable_at: the answers appear under the line and the timer bar starts
 
 - The intro is the character; the bold question is all a hurried player needs. A question with no
   intro types its prompt alone.
-- The typing ends 200 ms before `answerable_at` at the latest. Spare time lengthens the pause to
-  2 s, then waits settled. Text too long for 60 a second and a 1 s pause starts sooner, never
-  before 400 ms, then types faster. Under 600 ms of hold the NPC is simply there.
+- The pause is what reading the intro still needs once typed, at 25 letters a second: 1–2 s.
+  Spare time waits at the end, settled. Text too long for the hold starts sooner, never before
+  400 ms, then pauses less, then types faster. Under 600 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame. A
   screen reader reads it once, and a polite live region announces who interrupted.
 - In the reveal the NPC says its `right` or `wrong` line beside the points, and the `explanation`

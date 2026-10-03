@@ -352,20 +352,20 @@ describe('the NPC’s own words', () => {
   }
 
   it('types the intro, waits, then types the question, all settled before the answers', async () => {
-    // 73 letters of intro from 900 ms are typed by 2117 ms; then the longest pause, two
-    // seconds; then 34 letters of question by 4684 ms.
+    // 73 letters of intro from 900 ms are typed by 2117 ms; reading the rest of it takes
+    // 1703 ms more; then 34 letters of question by 4387 ms.
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
     expect(seen(intro())).toBe('')
     expect(seen(ask())).toBe('')
     await after(2117)
     expect(seen(intro())).toBe(INTRO)
     expect(seen(ask())).toBe('')
-    await after(1999)
+    await after(1702)
     expect(seen(ask())).toBe('')
     await after(300)
     expect(seen(ask()).length).toBeGreaterThan(0)
     expect(PROMPT.startsWith(seen(ask()))).toBe(true)
-    await after(6000 - 200 - 4416)
+    await after(6000 - 200 - 4119)
     expect(seen(ask())).toBe(PROMPT)
     expect(buttons()).toHaveLength(0)
     await after(200)
