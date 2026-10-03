@@ -6,7 +6,8 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
+import { MODES } from './modes'
+import { RANDOM_EVENTS, STRANGER, randomEventFor } from './randomEvents'
 
 describe('randomEvents', () => {
   it('gives every NPC a name, a theme, a line and its picture’s reference', () => {
@@ -28,5 +29,11 @@ describe('randomEvents', () => {
     expect(stranger.name).toBe('Mysterious Old Man')
     expect(stranger.id).toBe('rick_turpentine')
     expect(randomEventFor('').name).toBe('Mysterious Old Man')
+  })
+
+  it('has no NPC who also hosts a mode, so an interruption never looks like the round', () => {
+    const faces = new Set([...RANDOM_EVENTS.map((npc) => npc.id), STRANGER])
+    const hosts = Object.values(MODES).map((mode) => mode.host.id)
+    expect(hosts.filter((id) => faces.has(id))).toEqual([])
   })
 })

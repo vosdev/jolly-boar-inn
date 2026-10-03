@@ -52,7 +52,7 @@ target.
 | id | Theme |
 |---|---|
 | `sandwich_lady` | Cooking and food |
-| `tree_spirit` | Woodcutting, Hunter and Firemaking |
+| `survival_expert` | Woodcutting, Hunter and Firemaking |
 | `drunken_dwarf` | Ales, kebabs, dwarves and pubs |
 | `thurgo` | Mining and Smithing |
 | `genie` | Skills and experience |

@@ -134,4 +134,32 @@ describe('RandomEvent', () => {
     expect(warn).not.toHaveBeenCalled()
     expect(error).not.toHaveBeenCalled()
   })
+
+  it('stands the NPC on the right of the round host’s scroll, the host gone', () => {
+    const { container } = render(RandomEvent, { question: event(), yourValue: null, onAnswer: () => {} })
+    const row = container.querySelector('.stage-row')!
+    expect(row.classList.contains('event')).toBe(true)
+    const npcs = [...row.querySelectorAll('.npc')].map((npc) => npc.classList[1])
+    expect(npcs).toEqual(['host', 'guest'])
+    expect(row.querySelector('.paper')?.textContent).toContain('Which prayer level unlocks Augury?')
+  })
+
+  it('plays the entrance only with the hold still ahead', () => {
+    const entering = (patch: Partial<OpenQuestion>, reveal: Record<string, unknown> | null = null) => {
+      const { container, unmount } = render(RandomEvent, {
+        question: event(patch),
+        reveal,
+        yourValue: null,
+        onAnswer: () => {},
+      })
+      const played = container.querySelector('.stage-row')!.classList.contains('entering')
+      unmount()
+      return played
+    }
+    expect(entering({})).toBe(true)
+    // A reconnect with 300 ms of hold left, and a question with no hold, start in place.
+    expect(entering({ answerable_at: new Date(NOW + 300).toISOString() })).toBe(false)
+    expect(entering({ answerable_at: new Date(NOW).toISOString() })).toBe(false)
+    expect(entering({}, { prompt: 'Which prayer level unlocks Augury?', options: ['70', '77', '74'], answer_index: 1 })).toBe(false)
+  })
 })

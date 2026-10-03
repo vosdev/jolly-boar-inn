@@ -14,8 +14,7 @@
  * the rule its questions are written to (`ideas/random-events.md`), and the NPC picker
  * shows it next to the name.
  *
- * `asset` is the picture's reference. The drawings are still to come, and until they land the
- * card leaves the picture's slot empty rather than drawing a stand-in.
+ * `asset` is the picture's reference, `npc:<id>`: `lib/npcs.ts` finds the file by that id.
  *
  * An id this build has no entry for gets the Mysterious Old Man (`randomEventFor`): the NPC
  * who, in the game, turns up to take you away to a random event, and here stands in for
@@ -65,11 +64,11 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
     asset: 'npc:bob',
   },
   {
-    id: 'tree_spirit',
-    name: 'Tree Spirit',
+    id: 'survival_expert',
+    name: 'Survival Expert',
     theme: 'Woodcutting, Hunter and Firemaking',
-    line: 'You dare take an axe to my forest? Prove you know it first!',
-    asset: 'npc:tree_spirit',
+    line: "Hello again. Let's see if you still remember how to survive out there.",
+    asset: 'npc:survival_expert',
   },
   {
     id: 'drunken_dwarf',
@@ -143,6 +142,9 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
   },
 ]
 
+/** The Mysterious Old Man's id: the face of an NPC this build has no entry or art for. */
+export const STRANGER = 'mysterious_old_man'
+
 const BY_ID = new Map(RANDOM_EVENTS.map((npc) => [npc.id, npc]))
 
 /** The card for an id this build has no entry for (§7.4 of ideas/design.md). */
@@ -152,7 +154,7 @@ function stranger(id: string): RandomEventNpc {
     name: 'Mysterious Old Man',
     theme: 'Anything at all',
     line: 'Oh, hello there. You don’t mind if I ask you something?',
-    asset: 'npc:mysterious_old_man',
+    asset: `npc:${STRANGER}`,
   }
 }
 

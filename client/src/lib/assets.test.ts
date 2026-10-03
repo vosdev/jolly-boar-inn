@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 import MANIFEST from '../../../data/assets.json'
 import { INNKEEPER, MODES } from './modes'
 import { TIERS } from './podium'
-import { randomEventFor } from './randomEvents'
+import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 
 const targets = Object.keys(MANIFEST)
 
@@ -32,6 +32,10 @@ describe('the asset manifest', () => {
   it('has art for the Mysterious Old Man, who stands in for an unknown event NPC', () => {
     const stranger = randomEventFor('no_such_npc').asset.replace(/^npc:/, '')
     expect(hasNpc(stranger)).toBe(true)
+  })
+
+  it('has a chathead for every random-event NPC, since the stage mirrors it to face left', () => {
+    expect(RANDOM_EVENTS.filter((npc) => !hasEntry('npcs', `${npc.id}_chathead`)).map((npc) => npc.id)).toEqual([])
   })
 
   it('has a trophy for every podium tier', () => {
