@@ -10,17 +10,20 @@ import { MODES } from './modes'
 import { RANDOM_EVENTS, STRANGER, randomEventFor } from './randomEvents'
 
 describe('randomEvents', () => {
-  it('gives every NPC a name, a theme, a line and its picture’s reference', () => {
+  it('gives every NPC a name, a theme, a word for each verdict and its picture’s reference', () => {
     expect(new Set(RANDOM_EVENTS.map((npc) => npc.id)).size).toBe(RANDOM_EVENTS.length)
-    for (const npc of RANDOM_EVENTS) {
+    for (const npc of [...RANDOM_EVENTS, randomEventFor('rick_turpentine')]) {
       expect(npc.id).toMatch(/^[a-z][a-z0-9_]{0,31}$/)
       expect(npc.name.trim()).not.toBe('')
       expect(npc.theme.trim()).not.toBe('')
-      // One short sentence or two, as a dialogue box would hold it.
-      expect(npc.line.length).toBeGreaterThan(0)
-      expect(npc.line.length).toBeLessThanOrEqual(90)
-      expect(npc.asset).toBe(`npc:${npc.id}`)
+      // Short enough to sit beside the points at the foot of a phone's sheet.
+      for (const said of [npc.right, npc.wrong]) {
+        expect(said.trim()).not.toBe('')
+        expect(said.length).toBeLessThanOrEqual(60)
+      }
+      expect(npc.right).not.toBe(npc.wrong)
     }
+    for (const npc of RANDOM_EVENTS) expect(npc.asset).toBe(`npc:${npc.id}`)
   })
 
   it('finds an NPC by id, and stands the Mysterious Old Man in for one it does not know', () => {

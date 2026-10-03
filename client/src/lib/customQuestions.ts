@@ -231,9 +231,9 @@ export function questionOf(draft: Draft): CustomQuestion {
 
 /** What players see while it is open: each type's `client_view` on the server. */
 const OPEN_KEYS: Record<CustomType, string[]> = {
-  multiple_choice: ['prompt', 'image', 'options'],
-  free_text: ['prompt', 'image'],
-  closest_number: ['prompt', 'image', 'unit'],
+  multiple_choice: ['intro', 'prompt', 'image', 'options'],
+  free_text: ['intro', 'prompt', 'image'],
+  closest_number: ['intro', 'prompt', 'image', 'unit'],
 }
 
 /** The question as an open random event, for `RandomEvent` to draw as a preview. */

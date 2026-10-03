@@ -55,11 +55,9 @@ afterEach(() => {
 })
 
 describe('RandomEvent', () => {
-  it('draws the NPC, their line and the question, and holds the answers back', async () => {
+  it('draws the NPC and the question, and holds the answers back', async () => {
     render(RandomEvent, { question: event(), yourValue: null, onAnswer: () => {} })
-    const death = RANDOM_EVENTS.find((npc) => npc.id === 'death')!
     expect(screen.getByRole('heading', { name: 'Death' })).toBeTruthy()
-    expect(screen.getByText(death.line)).toBeTruthy()
     expect(screen.getByText('Which prayer level unlocks Augury?')).toBeTruthy()
     expect(buttons()).toHaveLength(0)
     // The panel is there at its full size, its buttons drawn and out of reach.
@@ -324,5 +322,81 @@ describe('the interlude', () => {
     expect(screen.getAllByText(why)).toHaveLength(1)
     expect(document.querySelector('.paper')?.textContent).toContain(why)
     expect(document.querySelector('.answers')?.textContent).not.toContain(why)
+  })
+})
+
+describe('the NPC’s own words', () => {
+  const INTRO = 'Mortals spend millions on ancient scrolls just to bolster their defences.'
+  const PROMPT = 'Which prayer level unlocks Augury?'
+  const death = RANDOM_EVENTS.find((npc) => npc.id === 'death')!
+  const introduced = (patch: Partial<OpenQuestion> = {}) =>
+    event({
+      answerable_at: new Date(NOW + 3500).toISOString(),
+      view: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'] },
+      ...patch,
+    })
+  const intro = () => document.querySelector('.paper .intro')!
+  const ask = () => document.querySelector('.paper .ask')!
+  function seen(line: Element): string {
+    const mask = line.querySelector('[aria-hidden="true"]')
+    if (mask === null) return line.textContent ?? ''
+    return [...mask.childNodes]
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .map((node) => node.textContent)
+      .join('')
+  }
+  function spoken(line: Element): string {
+    const copy = line.cloneNode(true) as Element
+    copy.querySelectorAll('[aria-hidden="true"]').forEach((hidden) => hidden.remove())
+    return copy.textContent ?? ''
+  }
+
+  it('types the intro, with the plain question whole in bold from the first frame', async () => {
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {}, live: true })
+    expect(seen(intro())).toBe('')
+    expect(ask().textContent).toBe(PROMPT)
+    expect(spoken(intro())).toBe(INTRO)
+    await after(3300)
+    expect(seen(intro())).toBe(INTRO)
+    expect(ask().textContent).toBe(PROMPT)
+  })
+
+  it('keeps the intro on the sheet in the reveal', () => {
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: 1,
+      onAnswer: () => {},
+    })
+    expect(intro().textContent).toBe(INTRO)
+    expect(ask().textContent).toBe(PROMPT)
+  })
+
+  it.each([
+    ['an answer that scored', { value: 1, correct: true, credit: 1, points: 900 }, death.right],
+    ['a wrong answer', { value: 0, correct: false, credit: 0, points: 0 }, death.wrong],
+    ['no answer', null, death.wrong],
+  ])('says its verdict on %s beside the points', (_, result, words) => {
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: result?.value ?? null,
+      result,
+      onAnswer: () => {},
+    })
+    expect(document.querySelector('.said .reaction')?.textContent).toBe(words)
+  })
+
+  it('says nothing to somebody the question was not theirs to answer, nor while it is open', () => {
+    const { unmount } = render(RandomEvent, {
+      question: introduced({ you_can_answer: false }),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(document.querySelector('.reaction')).toBeNull()
+    unmount()
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
+    expect(document.querySelector('.reaction')).toBeNull()
   })
 })

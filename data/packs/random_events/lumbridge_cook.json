@@ -3,7 +3,7 @@
   "random_event": "lumbridge_cook",
   "questions": [
     {
-      "id": "q_71e3f1fd03705071",
+      "id": "q_a8c3db55875d0bd5",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -12,7 +12,8 @@
         "quests"
       ],
       "payload": {
-        "prompt": "Quick, adventurer! The council members are freezing in time! Who on Gielinor asked me for a Fishcake?!",
+        "intro": "Quick, adventurer! The council members are freezing in time!",
+        "prompt": "Who asked me for a Fishcake?",
         "options": [
           "Pirate Pete",
           "Skrach Uglogwee",
@@ -25,7 +26,7 @@
       }
     },
     {
-      "id": "q_6217b8df98f8ff7f",
+      "id": "q_0bf02b0ae992ae04",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -34,7 +35,8 @@
         "quests"
       ],
       "payload": {
-        "prompt": "I have a raw stuffed snake stuffed with red banana and tchiki nuts... who am I supposed to serve this monstrosity to?",
+        "intro": "I have a raw snake stuffed with red banana and tchiki nuts... what a monstrosity!",
+        "prompt": "Who am I supposed to serve stuffed snake to?",
         "options": [
           "General Bentnoze",
           "King Awowogei",
@@ -46,7 +48,7 @@
       }
     },
     {
-      "id": "q_246a0f4307917c19",
+      "id": "q_b6c40f0ab935fa4e",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -55,7 +57,8 @@
         "quests"
       ],
       "payload": {
-        "prompt": "To make Pirate Pete's fishcake, I pounded giant crab meat, raw cod and breadcrumbs in my pestle and mortar. What was the fourth ingredient?!",
+        "intro": "For Pirate Pete's fishcake, I pounded giant crab meat, raw cod and breadcrumbs in my pestle and mortar.",
+        "prompt": "What was the fourth ingredient of Pirate Pete's fishcake?",
         "options": [
           "Ground Kelp",
           "White Pearl Seed",
@@ -66,7 +69,7 @@
       }
     },
     {
-      "id": "q_dbbdae78c7f42a89",
+      "id": "q_5e1485c2187b3763",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -74,13 +77,14 @@
         "quests"
       ],
       "payload": {
-        "prompt": "The gypsy says the magic barrier protecting the Culinaromancer will only drop for seasoned adventurers. Exactly how many Quest Points are required to enter the final portal?",
+        "intro": "The gypsy says the magic barrier protecting the Culinaromancer will only drop for seasoned adventurers.",
+        "prompt": "How many Quest Points do you need to enter the final portal?",
         "answer": 175,
         "unit": "quest points"
       }
     },
     {
-      "id": "q_968647bf61fc502b",
+      "id": "q_968ef52b591694df",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -88,13 +92,14 @@
         "quests"
       ],
       "payload": {
-        "prompt": "After saving the entire world from being eaten by a rogue wizard, how many coins (GP) does that cheeky chest in my basement charge you for a pair of Barrows Gloves?",
+        "intro": "You save the whole world from a rogue wizard, and that cheeky chest in my basement still wants paying!",
+        "prompt": "How many coins do Barrows gloves cost from the chest?",
         "answer": 130000,
         "unit": "coins"
       }
     },
     {
-      "id": "q_e585ab87f4b5a446",
+      "id": "q_9a7cb197b9f8d2f6",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -103,7 +108,8 @@
         "quests"
       ],
       "payload": {
-        "prompt": "Rohak's Rock Cake is way too hot to handle right out of the furnace. If you don't bring Ice Gloves, which monster can cool it down for you?",
+        "intro": "Rohak's Rock Cake is way too hot to handle right out of the furnace.",
+        "prompt": "Without Ice gloves, which monster can cool Rohak's Rock Cake down for you?",
         "options": [
           "Ice Queen",
           "Ice Troll",

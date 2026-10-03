@@ -2,7 +2,7 @@
 
 Payload shape (schema ``$defs/pick_from_list``)::
 
-    {"prompt": str, "vocab": "items" | "npcs" | "examines", "answer_id": int,
+    {"intro"?: str, "prompt": str, "vocab": "items" | "npcs" | "examines", "answer_id": int,
      "subject"?: {"name", "asset"?}, "image"?: asset, "steps"?: 1..12, "explanation"?: str}
 
 Three modes answer this way -- Guess the Examine now, Who's That NPC? and Pixel Hunt in
@@ -44,7 +44,7 @@ SCORING = Scoring.STEP
 # long as it stays a question about knowing rather than about scrolling.
 SECONDS = Bounds(default=20, minimum=10, maximum=60)
 
-_OPEN_KEYS = ("prompt", "vocab", "steps")
+_OPEN_KEYS = ("intro", "prompt", "vocab", "steps")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

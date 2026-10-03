@@ -3,7 +3,7 @@
   "random_event": "bob",
   "questions": [
     {
-      "id": "q_43d64358886f5fd9",
+      "id": "q_167269f7bf57aae5",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -11,7 +11,8 @@
         "cats"
       ],
       "payload": {
-        "prompt": "Yawn... Look, two-legs, I don't usually waste my breath on hairless apes unless they have the decency to wear the proper jewellery. What amulet do you need around your neck just to comprehend my supreme feline intellect?",
+        "intro": "Yawn... Look, two-legs, I don't waste my breath on hairless apes unless they wear the proper jewellery.",
+        "prompt": "Which amulet lets you understand what a cat says?",
         "options": [
           "Amulet of catspeak",
           "Camulet",
@@ -22,7 +23,7 @@
       }
     },
     {
-      "id": "q_e3143d34176c489c",
+      "id": "q_26335a572547f055",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -31,7 +32,8 @@
         "quests"
       ],
       "payload": {
-        "prompt": "Humans are so desperate to bribe us with food. Back in Varrock, when Gertrude's cat Fluffs refused to cooperate, what seasoned seafood snack did you have to prepare to win her over?",
+        "intro": "Humans are so desperate to bribe us with food. Gertrude's cat Fluffs was no different.",
+        "prompt": "Which seasoned seafood snack did you make to win over Fluffs?",
         "options": [
           "Doogle sardine",
           "Poisoned karambwan",
@@ -42,7 +44,7 @@
       }
     },
     {
-      "id": "q_3510d574cab03942",
+      "id": "q_5b15920af3446a51",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -51,7 +53,8 @@
         "lore"
       ],
       "payload": {
-        "prompt": "You look at me and see four paws and whiskers, but before I was cursed into this magnificent form, I was Robert the Strong! Which ancient, winged terror-creatures of the Fourth Age was I famous for fighting?",
+        "intro": "You see four paws and whiskers, but before I was cursed into this magnificent form, I was Robert the Strong!",
+        "prompt": "Which winged creatures of the Fourth Age was Robert the Strong famous for fighting?",
         "options": [
           "TzHaar",
           "Dragonkin",
@@ -62,7 +65,7 @@
       }
     },
     {
-      "id": "q_f7ac7b0679805e6c",
+      "id": "q_c54204188854661d",
       "type": "free_text",
       "mode": "random_event",
       "source": "pack",
@@ -70,14 +73,15 @@
         "cats"
       ],
       "payload": {
-        "prompt": "What is the name of the eccentric old cat lady living just west of Varrock who constantly claims she 'owns' me? As if a free spirit like me could ever be owned.",
+        "intro": "There's an eccentric old cat lady west of Varrock who claims she 'owns' me. As if a free spirit like me could ever be owned.",
+        "prompt": "What is the name of the cat lady west of Varrock?",
         "accepted": [
           "Gertrude"
         ]
       }
     },
     {
-      "id": "q_5ced8368868ed203",
+      "id": "q_dad7e9109ee5bf6d",
       "type": "free_text",
       "mode": "random_event",
       "source": "pack",
@@ -85,14 +89,15 @@
         "fishing"
       ],
       "payload": {
-        "prompt": "I fancy a feast from the Karamja coast. What notorious eight-legged, slippery sea creature can only be trapped in a special vessel?",
+        "intro": "I fancy a feast from the Karamja coast.",
+        "prompt": "Which eight-legged, slippery sea creature can only be trapped in a special vessel?",
         "accepted": [
           "Karambwan"
         ]
       }
     },
     {
-      "id": "q_5d48a17ecf7b0bce",
+      "id": "q_af66ad2c60bdd7c0",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -100,12 +105,13 @@
         "fishing"
       ],
       "payload": {
-        "prompt": "*Stretches claws* I'm in the mood to hunt a real beast of the deep. Tell me, human: what base Fishing level do you need before you're even allowed to harpoon a raw Shark out of the water?",
+        "intro": "*Stretches claws* I'm in the mood to hunt a real beast of the deep.",
+        "prompt": "What Fishing level do you need to harpoon a Shark?",
         "answer": 76
       }
     },
     {
-      "id": "q_ed1393d3a3638ecb",
+      "id": "q_843724d18c9efa4e",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -113,13 +119,14 @@
         "cats"
       ],
       "payload": {
-        "prompt": "Those desperate citizens over in plague-ridden West Ardougne love to trade for our kind. Without any of their fancy local diary perks, exactly how many Death Runes will a civilian hand you in exchange for one adult cat?",
+        "intro": "Those desperate citizens over in plague-ridden West Ardougne love to trade for our kind.",
+        "prompt": "Without diary perks, how many death runes does a civilian give for one adult cat?",
         "answer": 100,
         "unit": "death runes"
       }
     },
     {
-      "id": "q_c2949acd4095c788",
+      "id": "q_ff359e0d2ba429e1",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -127,7 +134,8 @@
         "fishing"
       ],
       "payload": {
-        "prompt": "What is the minimum Fishing level required to catch an Anglerfish, assuming you aren't chugging fishing potions like a coward?",
+        "intro": "Now that's a meal worth hunting. Just don't go chugging fishing potions like a coward.",
+        "prompt": "What Fishing level do you need to catch an Anglerfish, without a boost?",
         "answer": 82
       }
     }

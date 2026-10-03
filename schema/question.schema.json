@@ -46,6 +46,10 @@
     "asset": { "type": "string", "pattern": "^(item|npc):[0-9]{1,7}$" },
     "short_text": { "type": "string", "minLength": 1, "maxLength": 120 },
     "prompt": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "intro": {
+      "$comment": "A random event's NPC, in their own voice, before the plain question in prompt (design §12).",
+      "type": "string", "minLength": 1, "maxLength": 150
+    },
     "date": { "type": "string", "format": "date" },
     "subject": {
       "type": "object",
@@ -102,6 +106,7 @@
       "additionalProperties": false,
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
+        "intro": { "$ref": "#/$defs/intro" },
         "image": { "$ref": "#/$defs/asset" },
         "options": { "$ref": "#/$defs/choices", "items": { "$ref": "#/$defs/short_text" } },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 5 },
@@ -115,6 +120,7 @@
       "additionalProperties": false,
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
+        "intro": { "$ref": "#/$defs/intro" },
         "image": { "$ref": "#/$defs/asset" },
         "accepted": { "$ref": "#/$defs/accepted" },
         "max_distance": { "type": "integer", "minimum": 0, "maximum": 2, "default": 1 },
@@ -129,6 +135,7 @@
       "additionalProperties": false,
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
+        "intro": { "$ref": "#/$defs/intro" },
         "image": { "$ref": "#/$defs/asset" },
         "answer": { "type": "number" },
         "unit": { "type": "string", "maxLength": 16 },
@@ -142,6 +149,7 @@
       "additionalProperties": false,
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
+        "intro": { "$ref": "#/$defs/intro" },
         "vocab": { "enum": ["items", "npcs", "examines"] },
         "answer_id": { "type": "integer", "minimum": 0 },
         "image": { "$ref": "#/$defs/asset" },

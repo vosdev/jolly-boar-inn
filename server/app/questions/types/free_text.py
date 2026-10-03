@@ -2,7 +2,7 @@
 
 Payload shape (schema ``$defs/free_text``)::
 
-    {"prompt": str, "accepted": [str, ...], "max_distance"?: 0..2,
+    {"intro"?: str, "prompt": str, "accepted": [str, ...], "max_distance"?: 0..2,
      "image"?: asset, "subject"?: {"name", "asset"?}, "explanation"?: str}
 
 No round plays this, and none should. Guess the Examine started here and left for
@@ -40,7 +40,7 @@ DEFAULT_DISTANCE = 1
 # seconds, and a minute at most before the round is waiting on the slowest thumbs.
 SECONDS = Bounds(default=20, minimum=10, maximum=60)
 
-_OPEN_KEYS = ("prompt", "image")
+_OPEN_KEYS = ("intro", "prompt", "image")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

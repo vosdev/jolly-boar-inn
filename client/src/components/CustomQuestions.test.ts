@@ -177,7 +177,6 @@ describe('CustomQuestions', () => {
       target: { value: 'wise_old_man' },
     })
     expect(within(preview).getByRole('heading', { name: 'Wise Old Man' })).toBeTruthy()
-    expect(preview.textContent).toContain('Let us see what all that questing has taught you.')
     expect(preview.textContent).toContain('Who runs the inn?')
     expect(within(preview).getByRole('button', { name: /Hans/ })).toBeTruthy()
   })

@@ -2,7 +2,7 @@
 
 Payload shape (schema ``$defs/multiple_choice``)::
 
-    {"prompt": str, "options": [str, ...], "answer_index": int,
+    {"intro"?: str, "prompt": str, "options": [str, ...], "answer_index": int,
      "image"?: asset, "explanation"?: str}
 
 The most shared answer shape in the game: Bestiary, Drop Table, Odd One Out, Who Said
@@ -35,7 +35,7 @@ SCORING = Scoring.SPEED
 # re-reading rather than knowing.
 SECONDS = Bounds(default=15, minimum=5, maximum=30)
 
-_OPEN_KEYS = ("prompt", "image", "options")
+_OPEN_KEYS = ("intro", "prompt", "image", "options")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

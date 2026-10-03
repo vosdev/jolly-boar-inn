@@ -14,13 +14,15 @@
    * and the card simply waits out whatever is left.
    *
    * It is drawn on the stage as the interlude of section 12 of ideas/design.md: the NPC
-   * stands on the right of the round's host's scroll, their name and line on the sheet
-   * from the first frame, then the prompt typed in, and the answers under the line. The
+   * stands on the right of the round's host's scroll, their name on the sheet and the
+   * plain question in bold from the first frame, their `intro` typed in above it, and the
+   * answers under the line. A question with no intro types its prompt instead. The
    * timing is `lib/interlude.ts`'s, planned once from what is left of the hold when the
    * event takes the stage, and only for a question that arrived `live`: a reconnect, a
-   * reveal and reduced motion get the settled stage. The typing is a mask over a prompt
-   * that is whole in the DOM, and whole for a screen reader, from the first frame. In the
-   * reveal the NPC hands the stage back in its last `RETURN_MS`, counted to `nextAt`.
+   * reveal and reduced motion get the settled stage. The typing is a mask over text that
+   * is whole in the DOM, and whole for a screen reader, from the first frame. In the
+   * reveal the NPC says `right` or `wrong` to your answer beside the points, and hands
+   * the stage back in its last `RETURN_MS`, counted to `nextAt`.
    *
    * The sheet keeps room for two lines of the reveal's `explanation` and for the points
    * from the start, so the answers under it do not move when they arrive.
@@ -76,10 +78,21 @@
   /** A server from before the hold existed sends none, and then there is none. */
   const answerableMs = $derived(Date.parse(question.answerable_at ?? question.opened_at))
   const prompt = $derived(typeof question.view.prompt === 'string' ? question.view.prompt : '')
+  const intro = $derived(typeof question.view.intro === 'string' ? question.view.intro : '')
+  /** What the NPC types: their intro, or the prompt of a question that has none. */
+  const spoken = $derived(intro !== '' ? intro : prompt)
   /** By code point, so an emoji or an accent is one letter typed, never half of one. */
-  const letters = $derived([...prompt])
+  const letters = $derived([...spoken])
   const explanation = $derived(
     reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
+  )
+  /** Nothing for somebody the question was never theirs to answer. */
+  const reaction = $derived(
+    reveal === null || !question.you_can_answer
+      ? null
+      : (result?.points ?? 0) > 0
+        ? npc.right
+        : npc.wrong,
   )
 
   /** Decided once, when the event takes the stage, so a tick cannot cut it short. */
@@ -148,23 +161,34 @@
   })
 </script>
 
+{#snippet typed(text: string, kind: string)}
+  {#if typing}
+    <p class={kind}><span class="sr">{text}</span><span aria-hidden="true">{letters
+          .slice(0, shown)
+          .join('')}<span class="untyped">{letters.slice(shown).join('')}</span></span></p>
+  {:else}
+    <p class={kind}>{text}</p>
+  {/if}
+{/snippet}
+
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
   {#snippet sheet()}
     <p class="kicker">Random event</p>
     <h2 class="who">{npc.name}</h2>
-    <p class="line">{npc.line}</p>
     {#if answers === null || prompt === ''}
       {@render stem()}
-    {:else if typing}
-      <p class="ask"><span class="sr">{prompt}</span><span aria-hidden="true">{letters
-            .slice(0, shown)
-            .join('')}<span class="untyped">{letters.slice(shown).join('')}</span></span></p>
-    {:else}
+    {:else if intro !== ''}
+      {@render typed(intro, 'intro')}
       <p class="ask">{prompt}</p>
+    {:else}
+      {@render typed(prompt, 'ask')}
     {/if}
     <div class="foot">
       <p class="explanation">{explanation}</p>
       <div class="said">
+        {#if reaction !== null}
+          <p class="reaction">{reaction}</p>
+        {/if}
         {#if reveal !== null}
           <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
         {/if}
@@ -216,10 +240,12 @@
     overflow-wrap: anywhere;
   }
 
-  .line {
+  /* The NPC's voice; the bold question under it is all a player in a hurry needs. */
+  .intro {
     margin: 0 0 0.5rem;
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
     font-style: italic;
+    line-height: 1.3;
     overflow-wrap: anywhere;
   }
 
@@ -256,8 +282,16 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    gap: 0.75rem;
     padding-top: 0.2rem;
     min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+  }
+
+  .reaction {
+    margin: 0 auto 0 0;
+    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
+    font-style: italic;
+    overflow-wrap: anywhere;
   }
 
   @container (max-width: 26rem) {

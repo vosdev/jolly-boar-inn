@@ -12,7 +12,7 @@ questions in `data/packs/random_events/<id>.json`, one file per NPC.
 | `id` | `a-z0-9_`, at most 32 characters. Stored in `questions.random_event`, and the name of its question file. Never renamed after it ships. |
 | name | As shown on the card: "Sandwich Lady". |
 | theme | What it asks about, in a few words. This is the rule for writing its questions. |
-| opening line | What it says before the question, in the game's voice. One short sentence. |
+| right, wrong | What it says in the reveal to an answer that scored, and to one that did not or none. At most 60 characters each. |
 | asset | `npc:<id>` for the card's picture. The picture itself is Phase 3; until then the card is text. |
 
 ## One question
@@ -23,11 +23,15 @@ Every question is one entry in the NPC's file. The file names the NPC once, as
 
 | Type | You write | The other answers |
 |---|---|---|
-| `multiple_choice` | `prompt`, `options` (2–6), `answer_index` | the wrong `options` |
-| `closest_number` | `prompt`, `answer`, optional `unit` | none; nearest wins |
-| `free_text` | `prompt`, `accepted` (1–20) | `accepted` holds the alternative spellings, not wrong answers |
-| `pick_from_list` | `prompt`, `vocab` (`items` or `examines`), `answer_id` | the whole list; the answer must be an entry of it |
+| `multiple_choice` | `intro`, `prompt`, `options` (2–6), `answer_index` | the wrong `options` |
+| `closest_number` | `intro`, `prompt`, `answer`, optional `unit` | none; nearest wins |
+| `free_text` | `intro`, `prompt`, `accepted` (1–20) | `accepted` holds the alternative spellings, not wrong answers |
+| `pick_from_list` | `intro`, `prompt`, `vocab` (`items` or `examines`), `answer_id` | the whole list; the answer must be an entry of it |
 | `ordering` | `prompt`, `entries` with `rank`, `answer`, `ends` | none; it is an order. Only after #82 |
+
+`intro` is the NPC talking, at most 150 characters, typed in while the question waits: the
+character goes here. `prompt` is the plain question, shown whole in bold from the start, and
+it makes sense without the intro: "What is Hespori's combat level?".
 
 Every type may also carry an `explanation`, which is shown in the reveal. Use it: a random
 event is the place for the one fact nobody knew.
