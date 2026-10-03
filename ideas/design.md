@@ -403,6 +403,6 @@ dependencies, on the [project board](https://github.com/users/vosdev/projects/3)
 | `drop_table` | Nieve 
 | `bestiary` | Ardougne Zoo keeper 
 | `who_said_that` | Cracked Jenny's Tea Cup, the parrot in Brimhaven
-| `odd_one_out` | Gypsy Aris
+| `odd_one_out` | Aris
 | `name_that_spell` | Aubury
 | `minimap_guesser` | Captain Errdo |

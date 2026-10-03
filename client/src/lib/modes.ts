@@ -167,7 +167,7 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string; host: st
   { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!", host: 'postie_pete' },
   { id: 'bestiary', label: 'Bestiary', hint: 'Combat levels, weaknesses and haunts of the monsters.', host: 'zoo_keeper' },
   { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.', host: 'nieve' },
-  { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.', host: 'gypsy_aris' },
+  { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.', host: 'aris' },
   { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'dunce' },
   { id: 'sort_it_out', label: 'Sort It Out', hint: 'Are you a skiller or a slacker?', host: 'historian_minas' },
   { id: 'who_said_that', label: 'Who Said That?', hint: 'Name the character behind the line.', host: 'cracked_jennys_tea_cup' },
