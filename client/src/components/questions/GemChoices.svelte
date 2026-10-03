@@ -13,6 +13,11 @@
    * What an option says is the caller's — a written answer, a price — through `label`;
    * which gem it is, and what state it is in, is decided here, the same way for every
    * mode that uses it.
+   *
+   * With `ticked`, a tap ticks or unticks an option instead of answering with it, and
+   * `full` holds the unticked ones once as many are ticked as the question takes. An
+   * answer of several options reveals with all of them lit across the top at their usual
+   * size, since several large ones would push the rest off a phone.
    */
   import type { Snippet } from 'svelte'
 
@@ -26,9 +31,11 @@
     canAnswer,
     onAnswer,
     label,
+    ticked = null,
+    full = false,
   }: {
     options: Option[]
-    /** Our pick: empty, or one index. */
+    /** What we answered: empty until it is sent. */
     picked: ReadonlySet<number>
     /** The right option's index; empty until the reveal. */
     answer: ReadonlySet<number>
@@ -36,6 +43,10 @@
     canAnswer: boolean
     onAnswer: (index: number) => void
     label: Snippet<[Option, number]>
+    /** The options ticked so far, before submitting; null where a tap answers. */
+    ticked?: ReadonlySet<number> | null
+    /** As many are ticked as may be: the rest are held. */
+    full?: boolean
   } = $props()
 
   // Six is the cap (section 2), and a pack that broke it must still draw something: a
@@ -47,10 +58,13 @@
   )
   /** The rows under the answer: three across at most, and four as two by two. */
   const columns = $derived.by(() => {
-    const rest = options.length - 1
+    const rest = options.length - answer.size
     return rest === 4 ? 2 : Math.max(1, Math.min(rest, 3))
   })
-  const sizeAt = (index: number) => (!settled ? 'normal' : answer.has(index) ? 'large' : 'small')
+  const sizeAt = (index: number) =>
+    !settled ? 'normal' : !answer.has(index) ? 'small' : answer.size > 1 ? 'normal' : 'large'
+  const heldAt = (index: number) =>
+    revealed || !canAnswer || picked.size > 0 || (full && !ticked?.has(index))
 </script>
 
 <div class="gems" class:settled style:--columns={columns}>
@@ -60,7 +74,10 @@
       status={gemState(index, picked, answer, revealed)}
       mine={picked.has(index)}
       size={sizeAt(index)}
-      disabled={revealed || !canAnswer || picked.size > 0}
+      checked={ticked === null || picked.size > 0 || revealed || !canAnswer
+        ? null
+        : ticked.has(index)}
+      disabled={heldAt(index)}
       onclick={() => onAnswer(index)}
     >
       {@render label(option, index)}
@@ -79,7 +96,7 @@
     grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
   }
 
-  .settled > :global(.large) {
+  .settled > :global(.correct) {
     grid-column: 1 / -1;
     order: -1;
   }

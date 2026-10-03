@@ -9,7 +9,7 @@
     "id": { "type": "string", "pattern": "^q_[0-9a-f]{16}$" },
     "type": {
       "enum": ["more_less", "price_is_right", "multiple_choice", "free_text",
-               "closest_number", "pick_from_list"]
+               "closest_number", "pick_from_list", "pick_all_that_apply"]
     },
     "mode": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
     "payload": { "type": "object" },
@@ -40,7 +40,9 @@
     { "if": { "properties": { "type": { "const": "closest_number" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/closest_number" } } } },
     { "if": { "properties": { "type": { "const": "pick_from_list" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/pick_from_list" } } } }
+      "then": { "properties": { "payload": { "$ref": "#/$defs/pick_from_list" } } } },
+    { "if": { "properties": { "type": { "const": "pick_all_that_apply" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/pick_all_that_apply" } } } }
   ],
   "$defs": {
     "choices": {
@@ -114,6 +116,24 @@
         "image": { "$ref": "#/$defs/asset" },
         "options": { "$ref": "#/$defs/choices", "items": { "$ref": "#/$defs/short_text" } },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "explanation": { "type": "string", "maxLength": 300 }
+      }
+    },
+
+    "pick_all_that_apply": {
+      "type": "object",
+      "required": ["prompt", "options", "answer_indices"],
+      "additionalProperties": false,
+      "properties": {
+        "prompt": { "$ref": "#/$defs/prompt" },
+        "intro": { "$ref": "#/$defs/intro" },
+        "image": { "$ref": "#/$defs/asset" },
+        "options": { "$ref": "#/$defs/choices", "minItems": 3, "items": { "$ref": "#/$defs/short_text" } },
+        "answer_indices": {
+          "type": "array", "minItems": 1, "maxItems": 5, "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 0, "maximum": 5 }
+        },
+        "picks": { "type": "integer", "minimum": 1, "maximum": 5 },
         "explanation": { "type": "string", "maxLength": 300 }
       }
     },

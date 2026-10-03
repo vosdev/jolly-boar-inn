@@ -77,7 +77,10 @@ learns the position, which is worth more than variety.
   that has someone in it. With `name_wrong_answers` on, the names of everyone under 70% follow. A
   player who did not answer is not wrong.
 - Six gems means no question offers more than six options.
-- Gems are for `multiple_choice`, `price_is_right` and `ordering`. `more_less` keeps `--more` and
+- `pick_all_that_apply` ticks rather than picks: a box in each gem's top right corner, as on a
+  Create round, and nothing fades until Submit sends the ticks. Every right gem goes across the top
+  at normal size.
+- Gems are for `multiple_choice`, `price_is_right`, `pick_all_that_apply` and `ordering`. `more_less` keeps `--more` and
   `--less`, because its buttons carry item pictures, which a gem fill would drown.
   `pick_from_list` has a list of hundreds, answered through a combobox, with no gems.
 

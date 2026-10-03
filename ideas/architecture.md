@@ -114,7 +114,7 @@ SECONDS: Bounds                       # optional
 | `guess_examine` | Guess the Examine | `pick_from_list` | `examine.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
-| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
+| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
 | `bestiary`, `drop_table` | Bestiary, Drop Table | `multiple_choice` | hand-written | #85 |
 | `odd_one_out` | Odd One Out | `multiple_choice` | hand-written | #86 |
 | `release_order` | Release Order | `ordering` | hand-written | #82 |
@@ -155,6 +155,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `free_text` | string, at most 80 characters, no NUL or lone surrogate | 1 or 0 |
 | `closest_number` | number | by rank (section 8) |
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
+| `pick_all_that_apply` | distinct option indices, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
 | `ordering` (#82) | every entry key once | fraction in the right place |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
@@ -162,6 +163,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   stays linear on the event loop. Answers under four characters need an exact match ("Jad", "Jam").
 - `ordering` stores a `rank` per entry, which allows ties, and an `answer` list for display.
   `check()` rejects an `answer` that does not sort by `rank`, and a payload where everything ties.
+- `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
+  rejects none or every option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
   prefix, ignoring case and accents. Only a selected entry can be submitted, with its own button.
 
@@ -375,7 +378,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 
 | `SCORING` | Points | Types |
 |---|---|---|
-| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `multiple_choice`, `free_text`, `ordering` |
+| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering` |
 | `RANK` | the rank's share of 1000 | `closest_number` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` with `steps` |
 

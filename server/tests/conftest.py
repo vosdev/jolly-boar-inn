@@ -214,15 +214,17 @@ def lobby(client: TestClient) -> dict[str, Any]:
     return {"code": code, "admin": admin, "player": player}
 
 
-def _stub_mode(app: FastAPI, name: str, seconds: Bounds | None = None) -> Iterator[str]:
-    """Register mode ``name`` over the ``more_less`` type, with a pack of its own.
+def stub_mode(
+    app: FastAPI, name: str, seconds: Bounds | None = None, type_id: str = "more_less"
+) -> Iterator[str]:
+    """Register mode ``name`` over the ``type_id`` type, with a pack of its own.
 
     The pack is questions copied from the shipped ones and relabelled with the mode.
     """
     shipped = [q for pack in app.state.packs for q in pack.questions]
-    borrowed = [q for q in shipped if q["type"] == "more_less"][:20]
+    borrowed = [q for q in shipped if q["type"] == type_id][:20]
     assert borrowed, "the shipped packs are the questions this stub copies"
-    MODES[name] = Mode(id=name, types=frozenset({"more_less"}), seconds=seconds)
+    MODES[name] = Mode(id=name, types=frozenset({type_id}), seconds=seconds)
     app.state.packs.append(
         Pack(
             name=name,
@@ -254,7 +256,7 @@ def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     Takes ``client`` because the packs are loaded in the app's lifespan, which is what
     entering the test client runs.
     """
-    yield from _stub_mode(app, "second_round")
+    yield from stub_mode(app, "second_round")
 
 
 @pytest.fixture
@@ -265,7 +267,7 @@ def quick_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     at five or more, so this is the only round that plays the one-second questions the
     tests about the unattended clock ask for.
     """
-    yield from _stub_mode(app, "quick_round", Bounds(default=1, minimum=1, maximum=20))
+    yield from stub_mode(app, "quick_round", Bounds(default=1, minimum=1, maximum=20))
 
 
 @pytest.fixture

@@ -41,7 +41,7 @@ MODES: dict[str, Mode] = {
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
-        types=frozenset({"multiple_choice", "free_text", "closest_number"}),
+        types=frozenset({"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}),
         # Its types disagree on both, and the pool is small: 20 leaves room for the events
         # the room adds on top.
         questions=Bounds(default=10, minimum=1, maximum=20),
