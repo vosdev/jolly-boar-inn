@@ -475,6 +475,7 @@
         >
           <RevealTally
             type={$lastClosed.was.type}
+            reveal={$lastClosed.reveal}
             results={$lastClosed.results}
             {nameOf}
             youId={$you?.id ?? null}
