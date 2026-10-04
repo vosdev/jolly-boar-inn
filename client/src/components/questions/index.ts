@@ -30,6 +30,7 @@ import ClosestNumber from './types/ClosestNumber.svelte'
 import FreeText from './types/FreeText.svelte'
 import MoreLess from './types/MoreLess.svelte'
 import MultipleChoice from './types/MultipleChoice.svelte'
+import Ordering from './types/Ordering.svelte'
 import PickAllThatApply from './types/PickAllThatApply.svelte'
 import PickFromList from './types/PickFromList.svelte'
 import PriceIsRight from './types/PriceIsRight.svelte'
@@ -42,6 +43,7 @@ export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
   closest_number: ClosestNumber,
   free_text: FreeText,
   pick_all_that_apply: PickAllThatApply,
+  ordering: Ordering,
 }
 
 // Keyed on `StemId` rather than `string`, so naming a stem in `lib/modes.ts` that has no

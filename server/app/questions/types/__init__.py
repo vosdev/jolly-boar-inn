@@ -25,6 +25,7 @@ from app.questions.types import (
     free_text,
     more_less,
     multiple_choice,
+    ordering,
     pick_all_that_apply,
     pick_from_list,
     price_is_right,
@@ -39,6 +40,7 @@ TYPES: dict[str, ModuleType] = {
     "closest_number": closest_number,
     "free_text": free_text,
     "pick_all_that_apply": pick_all_that_apply,
+    "ordering": ordering,
 }
 
 

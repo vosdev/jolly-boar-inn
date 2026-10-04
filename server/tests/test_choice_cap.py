@@ -21,6 +21,8 @@ NOT_CHOICES = {
     "/$defs/accepted": "free_text's accepted spellings, typed rather than picked",
     "/$defs/choices": "the cap itself",
     "/$defs/pick_all_that_apply/properties/answer_indices": "the right options, never buttons",
+    "/$defs/ordering/properties/ends": "the labels at either end, never buttons",
+    "/$defs/ordering/properties/answer": "the right order of the entries, never buttons",
 }
 
 
@@ -56,8 +58,11 @@ def test_every_choice_array_references_the_six_gem_cap() -> None:
 def test_the_walk_finds_the_choice_arrays_there_are() -> None:
     found = {pointer for pointer, _ in arrays(schema.load_schema())} - set(NOT_CHOICES)
     assert found == {
-        f"/$defs/{kind}/properties/options"
-        for kind in ("more_less", "price_is_right", "multiple_choice", "pick_all_that_apply")
+        *(
+            f"/$defs/{kind}/properties/options"
+            for kind in ("more_less", "price_is_right", "multiple_choice", "pick_all_that_apply")
+        ),
+        "/$defs/ordering/properties/entries",
     }
 
 

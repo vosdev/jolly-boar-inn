@@ -9,6 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 from app.questions import normalize, vocab
+from app.questions.types import ordering
 from app.questions.types.free_text import MAX_LENGTH
 
 
@@ -21,6 +22,12 @@ def _one_swapped(payload: dict[str, Any]) -> list[int]:
     right = payload["answer_indices"]
     wrong = next(i for i in range(len(payload["options"])) if i not in right)
     return sorted([*right[:-1], wrong])
+
+
+def _ends_swapped(payload: dict[str, Any]) -> list[int]:
+    # The first and last places hold the lowest and highest rank, which never tie.
+    right = ordering.reveal(payload)["answer"]
+    return [right[-1], *right[1:-1], right[0]]
 
 
 def _another_entry(payload: dict[str, Any]) -> int:
@@ -43,6 +50,7 @@ _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "closest_number": lambda payload: payload["answer"],
     "free_text": lambda payload: payload["accepted"][0],
     "pick_all_that_apply": lambda payload: payload["answer_indices"],
+    "ordering": lambda payload: ordering.reveal(payload)["answer"],
 }
 
 _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
@@ -53,6 +61,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "closest_number": lambda payload: payload["answer"] + 1,
     "free_text": _nothing_like_it,
     "pick_all_that_apply": _one_swapped,
+    "ordering": _ends_swapped,
 }
 
 
