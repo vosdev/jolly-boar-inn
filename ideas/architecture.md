@@ -159,17 +159,19 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `closest_number` | number | by rank (section 8) |
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
 | `pick_all_that_apply` | distinct option indices, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
-| `ordering` | every shown position once, first end first | fraction of places holding their rank |
+| `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
   matched within `max_distance` of an accepted answer. Levenshtein runs only inside that band, so it
   stays linear on the event loop. Answers under four characters need an exact match ("Jad", "Jam").
 - `ordering` is `ends` (two labels), three to six `entries` of `text`, `rank` and an optional
-  reveal-only `detail`, and `answer`, entry indices sorted by `rank`. Equal ranks tie and score in
-  either order; `answer` only orders them for the reveal. `check()` rejects an `answer` that does not
-  sort by `rank`, and a payload where everything ties. `client_view` shows the entries without rank
-  in a shuffle seeded by the payload, rotated by one if it lands in order, so an authored order never
-  leaks. A value names shown positions, never payload indices.
+  reveal-only `detail`, `answer`, entry indices sorted by `rank`, and an optional `picks`: order only
+  the top that many, shown open. Equal ranks tie and score in either order; `answer` only orders
+  them for the reveal. `check()` rejects an `answer` that does not sort by `rank`, and a payload whose
+  first `picks + 1` (or all) ranks tie. `client_view` shows the entries without rank in a shuffle
+  seeded by the payload, rotated by one if its played places land in order, so an authored order
+  never leaks. A value names shown positions, never payload indices. The half credit needs `picks`:
+  without it every entry belongs somewhere, so the half would pay for any answer.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects none or every option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word

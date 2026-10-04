@@ -8,6 +8,31 @@
   export function inPlace(credit: number, count: number): number {
     return Math.round(credit * count)
   }
+
+  /**
+   * A value against a `picks` reveal: places holding their rank, and picks that belong
+   * among the picked but sit elsewhere, which earn half. Credit cannot tell one in place
+   * and two halves from two in place, so this reads the value, as the server grades it.
+   */
+  export function placement(
+    reveal: Record<string, unknown>,
+    value: unknown,
+  ): { inPlace: number; outOfPlace: number } {
+    const entries = (reveal.entries as { rank?: number }[] | undefined) ?? []
+    const picks = Number(reveal.picks)
+    const ranks = entries.map((entry) => entry.rank ?? 0)
+    const wanted = [...ranks].sort((a, b) => a - b).slice(0, picks)
+    const cut = wanted[wanted.length - 1] ?? -Infinity
+    let placed = 0
+    let elsewhere = 0
+    ;(Array.isArray(value) ? (value as number[]) : []).forEach((shown, index) => {
+      const rank = ranks[shown]
+      if (rank === undefined) return
+      if (rank === wanted[index]) placed += 1
+      else if (rank <= cut) elsewhere += 1
+    })
+    return { inPlace: placed, outOfPlace: elsewhere }
+  }
 </script>
 
 <script lang="ts">
@@ -17,7 +42,7 @@
    * `data` arrives in the two shapes `questions/types/ordering.py` sends:
    *
    * - while open, `client_view(payload)`: the prompt, `ends` and the entries, shuffled
-   *   the same way for everyone.
+   *   the same way for everyone, and `picks` if only that many are to be ordered.
    * - after close, `reveal(payload)`: the same entries with each `rank` and `detail`, and
    *   `answer`, the shown positions in the right order.
    *
@@ -25,11 +50,13 @@
    * answer rather than a fallback for dragging: one tap per entry works one-thumbed on a
    * phone and from a keyboard, and every entry stays where it was shown, on the gem of its
    * position (design section 3), with its number in the corner box. A placed entry is
-   * held, and the rewind button starts over. Submit waits for every entry.
+   * held, and the rewind button starts over. Submit waits for every entry, or for
+   * `picks` of them, after which the rest are held.
    *
    * The reveal lists the entries in the right order, numbered so that ties share a
-   * number, each with its `detail`. One we put in its place stays lit; one we did not
-   * fades and says where we had it, which is the verdict without a colour.
+   * number, each with its `detail`; with `picks` only that many, and any tied with the
+   * last of them. One we put in its place stays lit; one we put elsewhere fades and says
+   * where we had it, which is the verdict without a colour, and one we left out fades.
    */
   import { SvelteMap } from 'svelte/reactivity'
 
@@ -50,6 +77,8 @@
   interface Data {
     ends: [string, string]
     entries: Entry[]
+    /** How many to order, from the first end; every entry if absent. */
+    picks?: number
     /** Reveal only. */
     answer?: Positions
   }
@@ -68,10 +97,11 @@
   const sent = $derived(positions(yourValue))
   /** Shown position to its number in what we sent. */
   const ours = $derived(new Map(sent.map((shown, index) => [shown, index + 1])))
-  const ready = $derived(tapped.size === q.entries.length)
+  const places = $derived(q.picks ?? q.entries.length)
+  const ready = $derived(tapped.size === places)
 
   function place(shown: number): void {
-    if (!tapped.has(shown)) tapped.set(shown, tapped.size + 1)
+    if (!tapped.has(shown) && tapped.size < places) tapped.set(shown, tapped.size + 1)
   }
 
   function submit(): void {
@@ -79,26 +109,34 @@
     onAnswer([...tapped].sort((a, b) => a[1] - b[1]).map(([shown]) => shown))
   }
 
+  const rankAt = (shown: number | undefined) => q.entries[shown ?? -1]?.rank
   const answer = $derived(revealed ? positions(q.answer) : [])
-  const numbers = $derived(placeNumbers(answer.map((shown) => q.entries[shown]?.rank ?? 0)))
-  /** Whether what we put at `number` has the rank that belongs there. */
+  /** The places played, and any entry tied with the last of them. */
+  const shownAnswer = $derived(
+    answer.filter((shown, index) => index < places || rankAt(shown) === rankAt(answer[places - 1])),
+  )
+  const numbers = $derived(placeNumbers(answer.map(rankAt).map((rank) => rank ?? 0)))
+  /** Whether it is lit: ours in a place of its rank, or any, if we sent nothing. */
   function placedRight(shown: number): boolean {
     const had = ours.get(shown)
-    if (had === undefined) return true
-    return q.entries[answer[had - 1] ?? -1]?.rank === q.entries[shown]?.rank
+    if (had === undefined) return sent.length === 0
+    return rankAt(answer[had - 1]) === rankAt(shown)
   }
-  const yourCount = $derived(
-    result != null && answer.length > 0 ? inPlace(result.credit, answer.length) : null,
-  )
+  const verdict = $derived.by(() => {
+    if (result == null || answer.length === 0) return null
+    if (q.picks === undefined) return `You had ${inPlace(result.credit, places)} of ${places} in place`
+    const { inPlace: placed, outOfPlace } = placement(data, result.value)
+    return `You had ${placed} of ${places} in place${outOfPlace > 0 ? `, ${outOfPlace} out of place` : ''}`
+  })
 </script>
 
 {#if revealed && answer.length > 0}
-  {#if yourCount !== null}
-    <p class="ask">You had {yourCount} of {answer.length} in place</p>
+  {#if verdict !== null}
+    <p class="ask">{verdict}</p>
   {/if}
   <p class="end">{q.ends[0]}</p>
   <ol class="entries">
-    {#each answer as shown, index (shown)}
+    {#each shownAnswer as shown, index (shown)}
       {@const entry = q.entries[shown]}
       {@const right = placedRight(shown)}
       {@const had = ours.get(shown)}
@@ -119,9 +157,11 @@
       </li>
     {/each}
   </ol>
-  <p class="end">{q.ends[1]}</p>
+  {#if q.picks === undefined}<p class="end">{q.ends[1]}</p>{/if}
 {:else}
-  <p class="ask">Tap in order: {q.ends[0]} → {q.ends[1]}</p>
+  <p class="ask">
+    Tap {q.picks === undefined ? '' : `${q.picks} `}in order: {q.ends[0]} → {q.ends[1]}
+  </p>
   <ol class="entries">
     {#each q.entries as entry, shown (shown)}
       {@const number = sent.length > 0 ? ours.get(shown) : tapped.get(shown)}
@@ -131,7 +171,11 @@
           status="idle"
           place={canAnswer ? (number ?? null) : undefined}
           said={number === undefined ? '' : `, number ${number}`}
-          disabled={revealed || !canAnswer || sent.length > 0 || number !== undefined}
+          disabled={revealed ||
+            !canAnswer ||
+            sent.length > 0 ||
+            number !== undefined ||
+            tapped.size >= places}
           onclick={() => place(shown)}
         >
           {entry.text}

@@ -12,8 +12,9 @@
    * stops paying. Pick all that apply instead counts right picks against the reveal's
    * `answer_indices`, a line per outcome, because its credit punishes misses and extras
    * alike and half the right options can sit far under 70%; only a player with no right
-   * pick is wrong. Ordering likewise has a line per number of entries in place, out of the
-   * reveal's entries, read off `credit`; none in place is wrong. A player who did not
+   * pick is wrong. Ordering likewise has a line per number of entries in place, read off
+   * `credit`, and with `picks` also those out of place, read off the value; no credit is
+   * wrong. A player who did not
    * answer is neither:
    * sitting a question out is not getting it wrong (the points slot makes the same
    * distinction).
@@ -26,7 +27,7 @@
    * the scroll and under everything else, so the reveal reads the same with or without it.
    */
   import type { PlayerResult } from '../lib/protocol'
-  import { inPlace } from './questions/types/Ordering.svelte'
+  import { inPlace, placement } from './questions/types/Ordering.svelte'
 
   let {
     type,
@@ -65,7 +66,17 @@
   const ranked = $derived(type === 'closest_number')
   const picking = $derived(type === 'pick_all_that_apply')
   const ordering = $derived(type === 'ordering')
-  const entryCount = $derived((reveal.entries as unknown[] | undefined)?.length ?? 0)
+  const places = $derived(
+    typeof reveal.picks === 'number'
+      ? reveal.picks
+      : ((reveal.entries as unknown[] | undefined)?.length ?? 0),
+  )
+  /** An ordering answer's places right and, with `picks`, its right picks out of place. */
+  function placed(credit: number, value: unknown): { inPlace: number; outOfPlace: number } {
+    return 'picks' in reveal
+      ? placement(reveal, value)
+      : { inPlace: inPlace(credit, places), outOfPlace: 0 }
+  }
   const rows = $derived(Object.entries(results))
   const right = $derived(rows.filter(([, result]) => result.correct).length)
   const was = (count: number) => (count === 1 ? 'was' : 'were')
@@ -80,16 +91,17 @@
 
   const bands = $derived.by((): Line[] => {
     if (ordering) {
-      const lines = new Map<number, Line>()
-      for (const [, { correct, credit }] of rows) {
-        const placed = inPlace(credit, entryCount)
-        if (correct || placed === 0) continue
-        const said = `had ${placed} of ${entryCount} in place`
-        const line = lines.get(placed) ?? { key: String(placed), count: 0, said }
+      const lines = new Map<string, Line & { credit: number; hits: number }>()
+      for (const [, { correct, credit, value }] of rows) {
+        if (correct || credit === 0) continue
+        const { inPlace: hits, outOfPlace } = placed(credit, value)
+        const key = `${hits}/${outOfPlace}`
+        const said = `had ${hits} of ${places} in place${outOfPlace > 0 ? `, ${outOfPlace} out of place` : ''}`
+        const line = lines.get(key) ?? { key, count: 0, said, credit, hits }
         line.count += 1
-        lines.set(placed, line)
+        lines.set(key, line)
       }
-      return [...lines.entries()].sort((a, b) => b[0] - a[0]).map(([, line]) => line)
+      return [...lines.values()].sort((a, b) => b.credit - a.credit || b.hits - a.hits)
     }
     if (picking) {
       const lines = new Map<string, Line & { credit: number; hits: number }>()
@@ -122,7 +134,7 @@
     rows
       .filter(([, result]) =>
         ordering
-          ? !result.correct && inPlace(result.credit, entryCount) === 0
+          ? !result.correct && result.credit === 0
           : picking
             ? !result.correct && picked(result.value).hits === 0
             : !result.correct && result.credit < LOWEST,

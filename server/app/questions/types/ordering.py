@@ -1,23 +1,28 @@
-"""Ordering: three to six entries, and the player puts them in order.
+"""Ordering: three to six entries, and the player puts them, or the first few, in order.
 
 Payload shape (schema ``$defs/ordering``)::
 
     {"intro"?: str, "prompt": str, "image"?: asset, "ends": [first, last],
      "entries": [{"text": str, "rank": int, "detail"?: str}, ...], "answer": [int, ...],
-     "explanation"?: str}
+     "picks"?: int, "explanation"?: str}
 
 ``rank`` is what grading reads: a lower rank comes first, and equal ranks are a tie that
 may go either way round, such as two quests released on one day. ``answer`` is the order
 the reveal shows, entry indices sorted by ``rank``, which only adds the author's choice
 among ties. ``ends`` labels the two ends ("Weakest", "Strongest") so the direction is
-never in doubt, and ``detail`` is the fact the reveal puts beside an entry.
+never in doubt, and ``detail`` is the fact the reveal puts beside an entry. With
+``picks``, shown open, the player orders only that many, from the first end: the top
+three of six, say, with the other three there to be left out.
 
 The open view shows the entries in a shuffle seeded from the payload's content, so every
 socket and every reconnect sees one order, and a value is that shown order's positions,
 first end first. The entries themselves carry no key: an author writes them in answer
 order, so any index or key from the payload would give the answer away.
 
-Credit is the fraction of places holding an entry of the rank that belongs there.
+Credit is per place, over the places played: 1 for an entry of the rank that belongs
+there. With ``picks``, an entry that belongs among the picked but in another place earns
+half, so the right three in the wrong order is not scored like three wrong ones. Without
+``picks`` every entry belongs somewhere, so the half would pay for any answer at all.
 """
 
 import hashlib
@@ -36,7 +41,12 @@ SCORING = Scoring.SPEED
 # player tapping them in needs the slack more than anyone.
 SECONDS = Bounds(default=25, minimum=10, maximum=45)
 
-_OPEN_KEYS = ("intro", "prompt", "image", "ends")
+_OPEN_KEYS = ("intro", "prompt", "image", "ends", "picks")
+
+
+def places(payload: dict[str, Any]) -> int:
+    """How many places a value fills: ``picks``, or every entry."""
+    return payload.get("picks", len(payload["entries"]))
 
 
 def shown_order(payload: dict[str, Any]) -> list[int]:
@@ -47,9 +57,11 @@ def shown_order(payload: dict[str, Any]) -> list[int]:
     order = list(range(len(payload["entries"])))
     random.Random(hashlib.sha256(material).digest()).shuffle(order)
     ranks = [payload["entries"][index]["rank"] for index in order]
+    played = places(payload)
     # Already in order would hand out full credit for tapping top to bottom. Moving the
-    # first to the end cannot leave it in order, since ``check`` refuses all ties.
-    if ranks == sorted(ranks):
+    # first to the end leaves the played places in order only if the first ``played + 1``
+    # ranks tie, which ``check`` refuses.
+    if ranks[:played] == sorted(ranks)[:played]:
         order = order[1:] + order[:1]
     return order
 
@@ -78,21 +90,29 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
-    """The fraction of places holding an entry of the rank that belongs there."""
+    """Per place played, 1 for the rank that belongs there, and with ``picks`` half for one
+    that belongs in another."""
     ranks = [payload["entries"][index]["rank"] for index in shown_order(payload)]
-    wanted = sorted(ranks)
+    wanted = sorted(ranks)[: places(payload)]
+    # Ties at the cut count as picked: either of two equal fourths may be the third.
+    half = 0.5 if "picks" in payload else 0.0
     credit: dict[UUID, float] = {}
     for s in submissions:
-        placed = sum(ranks[shown] == rank for shown, rank in zip(s.value, wanted, strict=True))
-        credit[s.player_id] = placed / len(wanted)
+        earned = 0.0
+        for shown, rank in zip(s.value, wanted, strict=True):
+            if ranks[shown] == rank:
+                earned += 1.0
+            elif ranks[shown] <= wanted[-1]:
+                earned += half
+        credit[s.player_id] = earned / len(wanted)
     return credit
 
 
 def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
-    """Every shown position once, first end first; else ``None``."""
+    """``places`` distinct shown positions, first end first; else ``None``."""
     count = len(payload["entries"])
     # Measured before anything is read, so a huge list is refused without walking it.
-    if not isinstance(value, list) or len(value) != count:
+    if not isinstance(value, list) or len(value) != places(payload):
         return None
     positions: list[int] = []
     for raw in value:
@@ -100,13 +120,14 @@ def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
         if shown is None:
             return None
         positions.append(shown)
-    if sorted(positions) != list(range(count)):
+    if len(set(positions)) != len(positions) or not all(0 <= p < count for p in positions):
         return None
     return positions
 
 
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: ``answer`` lists every entry once, sorted by rank, and not all ranks tie."""
+    """Consistency: ``answer`` lists every entry once, sorted by rank, and the places played
+    are not all ties."""
     errors: list[str] = []
     entries, answer = payload["entries"], payload["answer"]
     if sorted(answer) != list(range(len(entries))):
@@ -118,7 +139,17 @@ def check(payload: dict[str, Any]) -> list[str]:
                     f"answer: entries[{after}] (rank {entries[after]['rank']}) comes after "
                     f"entries[{before}] (rank {entries[before]['rank']})"
                 )
-    if len({entry["rank"] for entry in entries}) == 1:
+    ranks = sorted(entry["rank"] for entry in entries)
+    picks = payload.get("picks")
+    if picks is not None and picks >= len(entries):
+        errors.append(
+            f"picks: is {picks} but there are {len(entries)} entries; leave it out to order all"
+        )
+    elif picks is not None and len(set(ranks[: picks + 1])) == 1:
+        errors.append(
+            f"entries: the first {picks + 1} ranks tie, so any {picks} of them in any order win"
+        )
+    if len(set(ranks)) == 1:
         errors.append("entries: every rank is the same, so any order is right")
     seen: dict[str, int] = {}
     for index, entry in enumerate(entries):

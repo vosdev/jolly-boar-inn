@@ -217,6 +217,37 @@ describe('RevealTally', () => {
     )
   })
 
+  it('with picks, counts an ordering answer by its value, in place and out of place', () => {
+    const entries = [1, 2, 3, 4, 5, 6].map((rank) => ({ text: String(rank), rank }))
+    const answered = (value: number[], credit: number): PlayerResult => ({
+      value,
+      correct: credit === 1,
+      credit,
+      points: Math.round(900 * credit),
+    })
+    const { container } = draw(
+      {
+        a: answered([0, 2, 1], 2 / 3),
+        b: answered([0, 1, 5], 2 / 3),
+        c: answered([1, 0, 4], 1 / 3),
+        d: answered([3, 4, 5], 0),
+      },
+      true,
+      'a',
+      'ordering',
+      { entries, answer: [0, 1, 2, 3, 4, 5], picks: 3 },
+    )
+    expect(lines(container)).toEqual([
+      '0 of 4 got it right',
+      '1 of 4 had 2 of 3 in place',
+      '1 of 4 had 1 of 3 in place, 2 out of place',
+      '1 of 4 had 0 of 3 in place, 2 out of place',
+    ])
+    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Got it wrong: Dorn',
+    )
+  })
+
   it('says so when nobody answered', () => {
     const { container } = draw({}, true)
     expect(container.textContent?.trim()).toBe('Nobody answered this one.')

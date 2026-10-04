@@ -12,7 +12,7 @@ import { GEMS } from './GemButton.svelte'
 import { viewFor } from './index'
 import Question from './Question.svelte'
 import TextStem from './stems/TextStem.svelte'
-import Ordering, { placeNumbers } from './types/Ordering.svelte'
+import Ordering, { placeNumbers, placement } from './types/Ordering.svelte'
 
 // As the server shuffles them: Bronze is first by rank, Adamant last.
 const SHOWN = ['Mithril', 'Bronze', 'Adamant', 'Iron', 'Steel']
@@ -26,6 +26,21 @@ const REVEAL = {
   ...VIEW,
   entries: SHOWN.map((text, index) => ({ text, rank: RANKS[index], detail: `Rank ${RANKS[index]}` })),
   answer: [1, 3, 4, 0, 2],
+}
+
+// The top three of six, as the server shuffles them.
+const ITEMS = ['Lobster', 'Twisted bow', 'Abyssal whip', 'Scythe of vitur', 'Rune platebody', 'Tumeken']
+const VALUES = [6, 1, 4, 2, 5, 3]
+const PICKED = {
+  prompt: 'The three most valuable.',
+  ends: ['Most valuable', 'Least valuable'],
+  entries: ITEMS.map((text) => ({ text })),
+  picks: 3,
+}
+const PICKED_REVEAL = {
+  ...PICKED,
+  entries: ITEMS.map((text, index) => ({ text, rank: VALUES[index] })),
+  answer: [1, 3, 5, 2, 4, 0],
 }
 
 function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQuestion {
@@ -153,6 +168,83 @@ describe('ordering', () => {
     expect(document.querySelector('.tick')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Submit' })).toBeNull()
     expect(screen.getByText('Tap in order: Weakest → Strongest')).toBeTruthy()
+  })
+
+  describe('with picks', () => {
+    const item = (name: string) => screen.getByText(name).closest('button') as HTMLButtonElement
+    const revealed = () => [...document.querySelectorAll('.entries .text')].map((t) => t.textContent)
+
+    it('asks for that many and holds the rest once they are tapped', async () => {
+      const onAnswer = vi.fn()
+      render(Question, { question: open(PICKED), yourValue: null, onAnswer })
+      expect(screen.getByText('Tap 3 in order: Most valuable → Least valuable')).toBeTruthy()
+      for (const name of ['Scythe of vitur', 'Twisted bow']) await fireEvent.click(item(name))
+      expect(submit().disabled).toBe(true)
+      expect(item('Lobster').disabled).toBe(false)
+      await fireEvent.click(item('Tumeken'))
+      expect(ITEMS.map((name) => item(name).disabled)).toEqual([true, true, true, true, true, true])
+      await fireEvent.click(item('Lobster'))
+      expect(item('Lobster').querySelector('.tick')?.textContent).toBe('')
+      await fireEvent.click(submit())
+      expect(onAnswer).toHaveBeenCalledExactlyOnceWith([3, 1, 5])
+    })
+
+    it('frees the held entries on Start over', async () => {
+      render(Question, { question: open(PICKED), yourValue: null, onAnswer: () => {} })
+      for (const name of ['Lobster', 'Twisted bow', 'Tumeken']) await fireEvent.click(item(name))
+      await fireEvent.click(rewind())
+      expect(ITEMS.every((name) => !item(name).disabled)).toBe(true)
+    })
+
+    it('reveals only the top ones, and says how many were in and out of place', () => {
+      render(Question, {
+        question: open(PICKED),
+        reveal: PICKED_REVEAL,
+        yourValue: [1, 5, 3],
+        result: { value: [1, 5, 3], correct: false, credit: 2 / 3, points: 600 },
+        onAnswer: () => {},
+      })
+      expect(revealed()).toEqual(['Twisted bow', 'Scythe of vitur', 'Tumeken'])
+      expect(screen.getByText('You had 1 of 3 in place, 2 out of place')).toBeTruthy()
+      expect(item('Scythe of vitur').textContent).toContain('you: 3')
+      expect(item('Tumeken').textContent).toContain('you: 2')
+      expect(screen.getByText('Most valuable')).toBeTruthy()
+      expect(screen.queryByText('Least valuable')).toBeNull()
+    })
+
+    it('fades a top entry we left out, without a "you"', () => {
+      render(Question, {
+        question: open(PICKED),
+        reveal: PICKED_REVEAL,
+        yourValue: [1, 3, 0],
+        result: { value: [1, 3, 0], correct: false, credit: 2 / 3, points: 600 },
+        onAnswer: () => {},
+      })
+      expect(screen.getByText('You had 2 of 3 in place')).toBeTruthy()
+      expect(item('Tumeken').classList.contains('faded')).toBe(true)
+      expect(item('Tumeken').textContent).not.toContain('you')
+      expect(item('Twisted bow').classList.contains('faded')).toBe(false)
+    })
+
+    it('reveals an entry tied with the last pick as well', () => {
+      const tied = { ...PICKED_REVEAL, entries: PICKED_REVEAL.entries.map((e) => ({ ...e })) }
+      tied.entries[2]!.rank = 3
+      render(Question, {
+        question: open(PICKED),
+        reveal: { ...tied, answer: [1, 3, 5, 2, 4, 0] },
+        yourValue: null,
+        onAnswer: () => {},
+      })
+      expect(revealed()).toEqual(['Twisted bow', 'Scythe of vitur', 'Tumeken', 'Abyssal whip'])
+      const boxes = [...document.querySelectorAll('.entries .tick')].map((t) => t.textContent)
+      expect(boxes).toEqual(['1', '2', '3', '3'])
+    })
+
+    it('counts places and right picks elsewhere off the value, as the server grades', () => {
+      expect(placement(PICKED_REVEAL, [1, 5, 3])).toEqual({ inPlace: 1, outOfPlace: 2 })
+      expect(placement(PICKED_REVEAL, [1, 3, 0])).toEqual({ inPlace: 2, outOfPlace: 0 })
+      expect(placement(PICKED_REVEAL, [0, 4, 2])).toEqual({ inPlace: 0, outOfPlace: 0 })
+    })
   })
 
   it('numbers ties by the first place they share', () => {

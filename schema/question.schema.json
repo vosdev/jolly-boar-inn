@@ -181,6 +181,7 @@
           "type": "array", "minItems": 3, "maxItems": 6, "uniqueItems": true,
           "items": { "type": "integer", "minimum": 0, "maximum": 5 }
         },
+        "picks": { "$comment": "Order only this many, from the first end; fewer than the entries.", "type": "integer", "minimum": 2, "maximum": 5 },
         "explanation": { "type": "string", "maxLength": 300 }
       }
     },

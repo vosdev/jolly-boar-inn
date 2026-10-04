@@ -54,6 +54,30 @@ TIED: dict[str, Any] = {
 }
 
 
+# The top three of six, the other three there to be left out.
+PICKED: dict[str, Any] = {
+    "prompt": "The three most valuable, most first.",
+    "ends": ["Most valuable", "Least valuable"],
+    "entries": [
+        {"text": name, "rank": rank}
+        for rank, name in enumerate(
+            [
+                "Twisted bow",
+                "Scythe of vitur",
+                "Tumeken's shadow",
+                "Abyssal whip",
+                "Rune platebody",
+                "Lobster",
+            ],
+            start=1,
+        )
+    ],
+    "answer": [0, 1, 2, 3, 4, 5],
+    "picks": 3,
+}
+TOP = ["Twisted bow", "Scythe of vitur", "Tumeken's shadow"]
+
+
 def payload(**changes: Any) -> dict[str, Any]:
     p = copy.deepcopy(EXAMPLE["payload"])
     p.update(changes)
@@ -241,6 +265,97 @@ def test_check_rejects_two_entries_that_read_the_same() -> None:
     assert ordering.check(payload(entries=entries)) == ["entries[4]: ' bronze' repeats entries[0]"]
 
 
+def test_with_picks_the_example_validates_and_shows_how_many() -> None:
+    picked = {**EXAMPLE, "payload": PICKED}
+    schema.validate({**picked, "id": schema.content_id(picked)})
+    assert ordering.client_view(PICKED)["picks"] == 3
+    assert ordering.check(PICKED) == []
+
+
+@pytest.mark.parametrize(
+    ("order", "credit"),
+    [
+        (TOP, 1.0),
+        (
+            ["Scythe of vitur", "Tumeken's shadow", "Twisted bow"],
+            0.5,
+        ),  # the right three, each misplaced
+        (["Twisted bow", "Tumeken's shadow", "Scythe of vitur"], 2 / 3),  # one in place, two half
+        (["Twisted bow", "Scythe of vitur", "Lobster"], 2 / 3),  # two in place, one left out
+        (["Scythe of vitur", "Abyssal whip", "Tumeken's shadow"], 0.5),  # one in place, one half
+        (["Abyssal whip", "Rune platebody", "Lobster"], 0.0),
+    ],
+)
+def test_with_picks_a_right_entry_in_the_wrong_place_earns_half(
+    order: list[str], credit: float
+) -> None:
+    assert credit_for(PICKED, value_for(PICKED, order)) == pytest.approx(credit)
+
+
+def test_without_picks_a_misplaced_entry_earns_nothing() -> None:
+    order = ["Iron", "Steel", "Mithril", "Adamant", "Bronze"]
+    assert credit_for(EXAMPLE["payload"], value_for(EXAMPLE["payload"], order)) == 0.0
+
+
+def test_with_picks_a_tie_at_the_cut_counts_as_picked() -> None:
+    entries = copy.deepcopy(PICKED["entries"])
+    entries[3]["rank"] = 3
+    tied = {**PICKED, "entries": entries}
+    assert ordering.check(tied) == []
+    either = ["Twisted bow", "Scythe of vitur", "Abyssal whip"]
+    assert credit_for(tied, value_for(tied, either)) == 1.0
+    early = ["Abyssal whip", "Scythe of vitur", "Lobster"]
+    assert credit_for(tied, value_for(tied, early)) == pytest.approx(1.5 / 3)
+
+
+def test_with_picks_exactly_that_many_distinct_positions_are_taken() -> None:
+    assert ordering.parse_value(PICKED, [5, 0, 2]) == [5, 0, 2]
+    assert ordering.parse_value(PICKED, [5, 0, 2, 1]) is None
+    assert ordering.parse_value(PICKED, [5, 0]) is None
+    assert ordering.parse_value(PICKED, [5, 5, 2]) is None
+    assert ordering.parse_value(PICKED, [5, 0, 6]) is None
+    assert ordering.parse_value(PICKED, list(range(6))) is None
+
+
+def test_with_picks_the_shown_order_never_starts_with_the_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for seed in range(300):
+        rng = random.Random(seed)
+        count = rng.randint(3, 6)
+        picks = rng.randint(2, count - 1)
+        ranks = sorted(rng.randint(1, 4) for _ in range(count))
+        p = {
+            "prompt": f"Question {seed}",
+            "ends": ["First", "Last"],
+            "entries": [{"text": f"Entry {i}", "rank": r} for i, r in enumerate(ranks)],
+            "answer": list(range(count)),
+            "picks": picks,
+        }
+        if ordering.check(p):
+            continue
+        assert credit_for(p, list(range(picks))) < 1.0, p
+    monkeypatch.setattr(random.Random, "shuffle", lambda self, items: None)
+    assert shown(PICKED)[:3] == ["Scythe of vitur", "Tumeken's shadow", "Abyssal whip"]
+
+
+def test_check_rejects_picks_that_is_not_fewer_than_the_entries() -> None:
+    assert ordering.check(payload(picks=5)) == [
+        "picks: is 5 but there are 5 entries; leave it out to order all"
+    ]
+
+
+def test_check_rejects_picks_where_one_more_than_picked_all_tie() -> None:
+    def ranked(*ranks: int) -> dict[str, Any]:
+        entries = [{**e, "rank": r} for e, r in zip(PICKED["entries"], ranks, strict=True)]
+        return {**PICKED, "entries": entries, "picks": 2}
+
+    assert ordering.check(ranked(1, 2, 2, 2, 5, 6)) == []
+    assert ordering.check(ranked(2, 2, 2, 4, 5, 6)) == [
+        "entries: the first 3 ranks tie, so any 2 of them in any order win"
+    ]
+
+
 @pytest.mark.parametrize(
     ("mutate", "path"),
     [
@@ -257,6 +372,8 @@ def test_check_rejects_two_entries_that_read_the_same() -> None:
         (lambda p: p.update(ends=["Weakest", ""]), "$.payload.ends[1]"),
         (lambda p: p.update(answer=[0, 0, 1, 2, 3]), "$.payload.answer"),
         (lambda p: p.pop("ends"), "$.payload"),
+        (lambda p: p.update(picks=1), "$.payload.picks"),
+        (lambda p: p.update(picks=6), "$.payload.picks"),
     ],
 )
 def test_schema_rejects(mutate: Any, path: str) -> None:
