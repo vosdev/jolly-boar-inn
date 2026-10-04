@@ -9,10 +9,11 @@ Payload shape (schema ``$defs/ordering``)::
 ``rank`` is what grading reads: a lower rank comes first, and equal ranks are a tie that
 may go either way round, such as two quests released on one day. Ranks run from 1 with no
 gap, so a tie at 1 is followed by 2. ``answer`` is the order the reveal shows, entry
-indices sorted by ``rank``, which only adds the author's choice among ties. ``ends`` labels the two ends ("Weakest", "Strongest") so the direction is
-never in doubt, and ``detail`` is the fact the reveal puts beside an entry. With
-``picks``, shown open, the player orders only that many, from the first end: the top
-three of six, say, with the other three there to be left out.
+indices sorted by ``rank``, which only adds the author's choice among ties. ``ends``
+labels the two ends ("Weakest", "Strongest") so the direction is never in doubt, and
+``detail`` is the fact the reveal puts beside an entry. With ``picks``, shown open, the
+player orders only that many, from the first end: the top three of six, say, with the
+other three there to be left out.
 
 The open view shows the entries in a shuffle seeded from the payload's content, so every
 socket and every reconnect sees one order, and a value is that shown order's positions,
