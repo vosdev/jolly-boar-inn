@@ -18,7 +18,7 @@
   import Stage from '../components/stage/Stage.svelte'
   import { hasAdminToken } from '../lib/admin'
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
-  import { finishedTime } from '../lib/dates'
+  import { expiresIn, finishedTime } from '../lib/dates'
   import { headOf } from '../lib/heads'
   import { historyPath, pastGames, placeIn, removePastGame, type PastGame } from '../lib/history'
   import { REPO_URL } from '../lib/links'
@@ -26,7 +26,7 @@
   import { maySuggest } from '../lib/suggestions'
   import { modeLabel } from '../lib/modes'
   import {
-    createdRooms,
+    createdRoomExpiries,
     forgetCreated,
     getSession,
     isRoomCode,
@@ -38,7 +38,9 @@
   /** The server caches the list for 5 s; twice that keeps a Home left open current. */
   const PUBLIC_REFRESH_MS = 10_000
 
-  let hosted = $state(createdRooms())
+  /** Moved on with the refresh below, so a Home left open keeps its countdowns honest. */
+  let now = $state(Date.now())
+  let hosted = $state(createdRoomExpiries())
   let past = $state(pastGames())
   const admin = hasAdminToken()
   const suggesting = maySuggest()
@@ -73,10 +75,16 @@
     void refreshOpen()
     void refreshFull()
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') void refreshOpen()
+      if (document.visibilityState === 'visible') {
+        now = Date.now()
+        void refreshOpen()
+      }
     }, PUBLIC_REFRESH_MS)
     const onVisible = (): void => {
-      if (document.visibilityState === 'visible') void refreshOpen()
+      if (document.visibilityState === 'visible') {
+        now = Date.now()
+        void refreshOpen()
+      }
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => {
@@ -101,7 +109,7 @@
   /** Forget the room here. The list is re-read rather than spliced, so it cannot drift. */
   function forget(room: string): void {
     forgetCreated(room)
-    hosted = createdRooms()
+    hosted = createdRoomExpiries()
     void refreshFull()
   }
 
@@ -245,9 +253,12 @@
           </div>
         {/if}
         <ul class="players">
-          {#each hosted as room (room)}
+          {#each hosted as { code: room, expiresAt } (room)}
             <li>
-              <span class="name code-small">{room}</span>
+              <span class="name">
+                <span class="code-small">{room}</span>
+                <span class="when">Expires {expiresIn(expiresAt, now)}</span>
+              </span>
               <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}>Open</button>
               <button
                 type="button"
