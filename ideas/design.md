@@ -164,7 +164,7 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
 - Browsers block audio until a gesture. The ready tap (§9) unlocks it. A player who never sees a
   splash (`splash_seconds: 0`, or a reload mid-game) unlocks it with their first answer tap. An
   audio-only question that cannot play says so rather than sitting silent.
-- `prefers-reduced-motion` is the sibling setting: anything that moves has a static fallback (#103).
+- `prefers-reduced-motion` is the sibling setting: anything that moves has a static fallback.
 
 ## 8. The stage: a host and a clue scroll
 
