@@ -9,7 +9,10 @@
    * nobody is exact, does not read as "0 of 6". There the bands are ranks, not accuracy:
    * the closest guess earns 0.9 however far off it was, so it says "closest" rather than
    * "90% right". "Wrong" is under the lowest band, which is also where closest number
-   * stops paying. A player who did not answer is neither:
+   * stops paying. Pick all that apply instead counts right picks against the reveal's
+   * `answer_indices`, a line per outcome, because its credit punishes misses and extras
+   * alike and half the right options can sit far under 70%; only a player with no right
+   * pick is wrong. A player who did not answer is neither:
    * sitting a question out is not getting it wrong (the points slot makes the same
    * distinction).
    *
@@ -21,6 +24,7 @@
 
   let {
     type,
+    reveal,
     results,
     nameOf,
     youId,
@@ -28,6 +32,8 @@
   }: {
     /** The question's type, which decides what partial credit means. */
     type: string
+    /** `question_closed.reveal`, where pick all that apply's right options are. */
+    reveal: Record<string, unknown>
     results: Record<string, PlayerResult>
     /** A player's name by id; null for somebody the room no longer knows. */
     nameOf: (id: string) => string | null
@@ -41,26 +47,61 @@
   // Closest number's ladder (`closest_number.LADDER` on the server), one rung per band.
   const RANKS = ['closest', 'second closest', 'third closest']
 
+  interface Line {
+    key: string
+    count: number
+    said: string
+  }
+
   const ranked = $derived(type === 'closest_number')
+  const picking = $derived(type === 'pick_all_that_apply')
   const rows = $derived(Object.entries(results))
   const right = $derived(rows.filter(([, result]) => result.correct).length)
-  const bands = $derived(
-    BANDS.map((least, index) => {
+  const was = (count: number) => (count === 1 ? 'was' : 'were')
+
+  const answers = $derived(new Set((reveal.answer_indices as number[] | undefined) ?? []))
+  /** A pick-all answer's right picks and, unless `picks` made it pick that many, its wrong ones. */
+  function picked(value: unknown): { hits: number; extras: number } {
+    const indices = Array.isArray(value) ? (value as number[]) : []
+    const hits = indices.filter((index) => answers.has(index)).length
+    return { hits, extras: 'picks' in reveal ? 0 : indices.length - hits }
+  }
+
+  const bands = $derived.by((): Line[] => {
+    if (picking) {
+      const lines = new Map<string, Line & { credit: number; hits: number }>()
+      for (const [, { correct, credit, value }] of rows) {
+        const { hits, extras } = picked(value)
+        if (correct || hits === 0) continue
+        const key = `${hits}/${extras}`
+        const said = `got ${hits} of ${answers.size} right${extras > 0 ? `, ${extras} wrong` : ''}`
+        const line = lines.get(key) ?? { key, count: 0, said, credit, hits }
+        line.count += 1
+        lines.set(key, line)
+      }
+      return [...lines.values()].sort((a, b) => b.credit - a.credit || b.hits - a.hits)
+    }
+    return BANDS.map((least, index) => {
       const count = rows.filter(
         ([, { correct, credit }]) =>
           !correct && credit >= least && credit < (BANDS[index - 1] ?? Infinity),
       ).length
-      const verb = count === 1 ? 'was' : 'were'
       return {
-        key: least,
+        key: String(least),
         count,
-        said: ranked ? `${verb} ${RANKS[index]}` : `${verb} at least ${Math.round(least * 100)}% right`,
+        said: ranked
+          ? `${was(count)} ${RANKS[index]}`
+          : `${was(count)} at least ${Math.round(least * 100)}% right`,
       }
-    }).filter((band) => band.count > 0),
-  )
+    }).filter((band) => band.count > 0)
+  })
   const wrong = $derived(
     rows
-      .filter(([, result]) => !result.correct && result.credit < LOWEST)
+      .filter(([, result]) =>
+        picking
+          ? !result.correct && picked(result.value).hits === 0
+          : !result.correct && result.credit < LOWEST,
+      )
       .map(([id]) => ({ id, name: nameOf(id) ?? 'Someone who left', you: id === youId }))
       .sort((a, b) => a.name.localeCompare(b.name)),
   )
