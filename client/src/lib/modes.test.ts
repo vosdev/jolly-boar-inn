@@ -7,6 +7,12 @@ import { describe, expect, it } from 'vitest'
 
 import { GENERIC_HOST, INNKEEPER, MODES, hostOf } from './modes'
 
+// The longest waiting and reveal lines measured to fit two lines at the scroll's foot on a
+// 350px screen, the narrowest supported; the reveal line shares its row with the points.
+// The foot holds two lines, so a longer one would grow the sheet and move the answers.
+const WAITING_MAX = 68
+const REVEAL_MAX = 30
+
 describe('hosts', () => {
   it('gives every mode a host and all four lines', () => {
     for (const mode of Object.values(MODES)) {
@@ -15,6 +21,13 @@ describe('hosts', () => {
       for (const line of [mode.greeting, mode.blurb, mode.waiting, mode.reveal]) {
         expect(line.trim(), mode.id).not.toBe('')
       }
+    }
+  })
+
+  it('keeps every waiting and reveal line to two lines at the foot of the scroll', () => {
+    for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
+      expect(lines.waiting.length, lines.waiting).toBeLessThanOrEqual(WAITING_MAX)
+      expect(lines.reveal.length, lines.reveal).toBeLessThanOrEqual(REVEAL_MAX)
     }
   })
 
