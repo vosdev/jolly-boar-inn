@@ -571,7 +571,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
   they hold, keeping `credit`. An examine name gets the highest answer id plus one; an item's id
-  comes from `/mapping`. One refused entry, or packs that would not load, writes nothing.
+  comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
+  that would not load, writes nothing.
 - Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
   like the random events, with the rules in `data/packs/AUTHORING.md`. No importer fetches wiki
   facts, so the owner picks every monster and question.

@@ -7,7 +7,8 @@ The file is ``{"questions": [...], "examines": [...], "items": [...]}``, as
   any other into the pack already holding that mode, or a new ``<mode>.json``;
 - an examine becomes a Guess the Examine question. Its name keeps the answer id it already
   has in the list; a new name gets the highest id plus one;
-- an item joins ``data/popular-items.json`` under the id ``/mapping`` gives its name.
+- an item joins ``data/popular-items.json`` under the id the wiki's item infobox gives its
+  name, tradeable or not.
 
 Each keeps its ``credit``, and ``credit_shown`` when it is true. Anything a pack or the
 roster already holds is skipped: a question or examine by content id or by its examine
@@ -17,13 +18,15 @@ Every entry is checked before anything is written, and the packs as they would b
 loaded the way the app loads them. One refused entry, or a pack that would not load,
 writes nothing and names the problem.
 
-``/mapping`` is fetched once, through ``wiki.py``, only when an item is not on the roster
-yet, so that needs ``WIKI_USER_AGENT``. ``--mapping-file`` reads a saved response instead.
+An item's id is asked of the wiki's ``infobox_item`` bucket through ``wiki.py``, once per item
+not on the roster yet, so that needs ``WIKI_USER_AGENT``. The row on the item's own page wins
+over one on another page (Fire cape's animation item), and a name that still means several ids
+is refused, to be edited in ``/admin``. ``--items-file`` reads saved rows instead.
 
 Usage (from ``server/``)::
 
     uv run python scripts/import_suggestions.py FILE [--packs-dir DIR] [--roster PATH]
-        [--mapping-file PATH]
+        [--items-file PATH]
 """
 
 import argparse
@@ -31,11 +34,12 @@ import json
 import shutil
 import sys
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 import wiki
 
@@ -50,7 +54,7 @@ from app.rooms.state import normalize_name
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PACKS = REPO_ROOT / "data" / "packs"
 DEFAULT_ROSTER = REPO_ROOT / "data" / "popular-items.json"
-MAPPING_URL = "https://prices.runescape.wiki/api/v1/osrs/mapping"
+WIKI_API = "https://oldschool.runescape.wiki/api.php"
 SECTIONS = ("questions", "examines", "items")
 CREDIT_KEYS = {"credit", "credit_shown"}
 
@@ -186,11 +190,44 @@ def plan_examines(entries: list[Any], packs_dir: Path, ids: set[str], plan: Plan
         plan.added.append(f"{where}: {name!r} as answer {answer}")
 
 
-def plan_items(entries: list[Any], mapping_source: Any, plan: Plan) -> None:
-    """``mapping_source`` is called for ``/mapping`` the first time an item needs it."""
+def bucket_query(name: str) -> str:
+    """The Bucket query for the item infobox rows named ``name``, quoted as a Lua string."""
+    literal = name.replace("\\", "\\\\").replace("'", "\\'")
+    return (
+        "bucket('infobox_item').select('page_name','item_name','item_id')"
+        f".where('item_name','{literal}').run()"
+    )
+
+
+def wiki_rows(source: wiki.Wiki) -> Callable[[str], list[dict[str, Any]]]:
+    """Asks the wiki for the infobox rows of one item name, spelled exactly."""
+
+    def rows(name: str) -> list[dict[str, Any]]:
+        query = urlencode({"action": "bucket", "format": "json", "query": bucket_query(name)})
+        return source.get_json(f"{WIKI_API}?{query}").get("bucket", [])
+
+    return rows
+
+
+def item_id(name: str, rows: list[dict[str, Any]]) -> tuple[int, str] | str:
+    """The one id the wiki gives ``name`` and its spelling there, or why there is not one."""
+    named = [row for row in rows if fold(str(row.get("item_name", ""))) == fold(name)]
+    own_page = [row for row in named if fold(str(row.get("page_name", ""))) == fold(name)]
+    chosen = own_page or named
+    ids = sorted({int(i) for row in chosen for i in row.get("item_id", []) if str(i).isdigit()})
+    if not ids:
+        return "is not an item on the wiki; correct its name in /admin and export again"
+    if len(ids) > 1:
+        return f"names several items on the wiki (ids {ids}); edit it in /admin or add it by hand"
+    return ids[0], str(chosen[0]["item_name"])
+
+
+def plan_items(
+    entries: list[Any], lookup: Callable[[str], list[dict[str, Any]]], plan: Plan
+) -> None:
+    """``lookup`` gives the wiki's rows for a name, as typed and then capitalised."""
     names = {fold(item["name"]) for item in plan.items}
     on_roster = {item["id"] for item in plan.items}
-    by_name: dict[str, dict[str, Any]] | None = None
     for index, entry in enumerate(entries):
         where = f"items[{index}]"
         if not isinstance(entry, dict):
@@ -206,22 +243,21 @@ def plan_items(entries: list[Any], mapping_source: Any, plan: Plan) -> None:
         if fold(name) in names:
             plan.skipped.append(f"{where}: {name!r} is already on the roster")
             continue
-        if by_name is None:
-            by_name = {fold(item["name"]): item for item in mapping_source()}
-        known = by_name.get(fold(name))
-        if known is None:
-            plan.refused.append(
-                f"{where}: {name!r} is not on the Grand Exchange's /mapping; add it by hand"
-                " with its id from the wiki"
-            )
+        known = item_id(name, lookup(name))
+        if isinstance(known, str) and name[:1].islower():
+            # The wiki matches names exactly, and every item name there starts with a capital.
+            known = item_id(name, lookup(name[:1].upper() + name[1:]))
+        if isinstance(known, str):
+            plan.refused.append(f"{where}: {name!r} {known}")
             continue
-        if known["id"] in on_roster:
-            plan.skipped.append(f"{where}: id {known['id']} is already on the roster")
+        number, spelled = known
+        if number in on_roster:
+            plan.skipped.append(f"{where}: id {number} is already on the roster")
             continue
-        names.add(fold(known["name"]))
-        on_roster.add(known["id"])
-        plan.items.append({"id": known["id"], "name": known["name"]})
-        plan.added.append(f"{where}: {known['name']!r} as id {known['id']}")
+        names.add(fold(spelled))
+        on_roster.add(number)
+        plan.items.append({"id": number, "name": spelled})
+        plan.added.append(f"{where}: {spelled!r} as id {number}")
 
 
 def insert_sorted(items: list[dict[str, Any]], new: dict[str, Any]) -> None:
@@ -236,7 +272,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("file", type=Path, help="the file /admin exported")
     parser.add_argument("--packs-dir", type=Path, default=DEFAULT_PACKS)
     parser.add_argument("--roster", type=Path, default=DEFAULT_ROSTER)
-    parser.add_argument("--mapping-file", type=Path, help="a saved /mapping response")
+    parser.add_argument("--items-file", type=Path, help="saved infobox_item rows, for offline runs")
     return parser.parse_args(argv)
 
 
@@ -264,10 +300,15 @@ def main(argv: list[str]) -> int:
         print(f"FAILED: {exc}", file=sys.stderr)
         return 1
 
-    def mapping() -> list[dict[str, Any]]:
-        if args.mapping_file is not None:
-            return json.loads(args.mapping_file.read_text(encoding="utf-8"))
-        return wiki.connect().get_json(MAPPING_URL)
+    source: wiki.Wiki | None = None
+
+    def lookup(name: str) -> list[dict[str, Any]]:
+        nonlocal source
+        if args.items_file is not None:
+            saved = json.loads(args.items_file.read_text(encoding="utf-8"))
+            return [row for row in saved if row.get("item_name") == name]
+        source = source or wiki.connect()
+        return wiki_rows(source)(name)
 
     plan = Plan(items=list(json.loads(roster_text)["items"]))
     for pack in loaded:
@@ -278,7 +319,7 @@ def main(argv: list[str]) -> int:
     try:
         plan_questions(data.get("questions", []), args.packs_dir, ids, plan)
         plan_examines(data.get("examines", []), args.packs_dir, ids, plan)
-        plan_items(data.get("items", []), mapping, plan)
+        plan_items(data.get("items", []), lookup, plan)
     except (wiki.MissingUserAgent, OSError, ValueError) as exc:
         print(f"FAILED: {exc}", file=sys.stderr)
         return 1

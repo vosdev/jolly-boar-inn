@@ -187,11 +187,11 @@
           {@render wikiField(attempted)}
         {:else}
           <p class="note">
-            An item players will recognise, for More or Less and The Price is Right. Its price
-            comes from the Grand Exchange, so it has to be tradeable.
+            An item players will recognise, for More or Less and The Price is Right. Untradeable
+            items are welcome: those rounds use alch and shop prices too.
           </p>
           <div class="field">
-            <label for="{id}-item">Item name, as the Grand Exchange spells it</label>
+            <label for="{id}-item">Item name, as the wiki spells it</label>
             <input id="{id}-item" type="text" bind:value={name} />
             {@render problem(itemError, attempted)}
           </div>

@@ -47,7 +47,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
 
 EXAMINE_MODE = "guess_examine"
 EXAMINE_VOCAB = "examines"
-# The longest item name on the wiki's /mapping is about 50 characters.
+# The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
 
 _QUESTION_KEYS = {"type", "payload", "mode", "wiki"}

@@ -35,30 +35,32 @@ NEW_EXAMINE = {
     "credit": "AFKFisher",
     "credit_shown": False,
 }
-MAPPING = [
-    {"id": 1704, "name": "Amulet of glory"},
-    {"id": 13576, "name": "Dragon warhammer"},
-    {"id": 4151, "name": "Abyssal whip"},
+# The wiki's infobox_item rows, as its Bucket API answers them.
+ITEM_ROWS = [
+    {"page_name": "Amulet of glory", "item_name": "Amulet of glory", "item_id": ["1704"]},
+    {"page_name": "Abyssal whip", "item_name": "Abyssal whip", "item_id": ["4151"]},
+    {"page_name": "Fighter torso", "item_name": "Fighter torso", "item_id": ["10551"]},
+    {"page_name": "Mystery box", "item_name": "Mystery box", "item_id": ["6199", "6200"]},
 ]
 
 
 @pytest.fixture
 def repo(tmp_path: Path) -> dict[str, Path]:
-    """A copy of the shipped packs and roster, and a saved /mapping."""
+    """A copy of the shipped packs and roster, and saved wiki rows."""
     packs = tmp_path / "packs"
     shutil.copytree(REPO_ROOT / "data" / "packs", packs)
     roster = tmp_path / "popular-items.json"
     shutil.copy(REPO_ROOT / "data" / "popular-items.json", roster)
-    mapping = tmp_path / "mapping.json"
-    mapping.write_text(json.dumps(MAPPING))
-    return {"packs": packs, "roster": roster, "mapping": mapping, "dir": tmp_path}
+    rows = tmp_path / "items.json"
+    rows.write_text(json.dumps(ITEM_ROWS))
+    return {"packs": packs, "roster": roster, "items": rows, "dir": tmp_path}
 
 
 def run(repo: dict[str, Path], export: dict[str, Any]) -> int:
     file = repo["dir"] / "export.json"
     file.write_text(json.dumps(export))
     args = [str(file), "--packs-dir", str(repo["packs"]), "--roster", str(repo["roster"])]
-    return import_suggestions.main([*args, "--mapping-file", str(repo["mapping"])])
+    return import_suggestions.main([*args, "--items-file", str(repo["items"])])
 
 
 def loads(repo: dict[str, Path]) -> bool:
@@ -105,9 +107,9 @@ def test_an_examine_gets_the_highest_id_plus_one(repo: dict[str, Path]) -> None:
     assert loads(repo)
 
 
-def test_an_item_takes_its_id_from_mapping_in_name_order(repo: dict[str, Path]) -> None:
+def test_an_item_takes_its_id_from_the_wiki_in_name_order(repo: dict[str, Path]) -> None:
     assert '"Amulet of glory"' not in repo["roster"].read_text()
-    export = {"items": [{"name": "amulet OF glory", "credit": "Woox", "credit_shown": False}]}
+    export = {"items": [{"name": "amulet of glory", "credit": "Woox", "credit_shown": False}]}
     assert run(repo, export) == 0
     items = json.loads(repo["roster"].read_text())["items"]
     at = items.index({"id": 1704, "name": "Amulet of glory"})
@@ -165,17 +167,41 @@ def test_a_round_not_built_yet_is_refused(
     assert "not a round this build plays" in capsys.readouterr().err
 
 
-def test_an_item_mapping_does_not_know_writes_nothing(
-    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+def test_an_untradeable_item_takes_its_id_from_the_wiki(repo: dict[str, Path]) -> None:
+    assert '"Fighter torso"' not in repo["roster"].read_text()
+    export = {"items": [{"name": "Fighter torso", "credit": "Woox", "credit_shown": True}]}
+    assert run(repo, export) == 0
+    assert {"id": 10551, "name": "Fighter torso"} in json.loads(repo["roster"].read_text())["items"]
+
+
+def test_the_row_on_the_items_own_page_wins() -> None:
+    fire_cape = [
+        {"page_name": "Fire cape", "item_name": "Fire cape", "item_id": ["6570"]},
+        {"page_name": "Fire cape (animation item)", "item_name": "Fire cape", "item_id": ["10566"]},
+    ]
+    assert import_suggestions.item_id("fire cape", fire_cape) == (6570, "Fire cape")
+
+
+@pytest.mark.parametrize(
+    ("name", "why"),
+    [("Not an item", "is not an item on the wiki"), ("Mystery box", "names several items")],
+)
+def test_an_item_the_wiki_cannot_pin_down_writes_nothing(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str], name: str, why: str
 ) -> None:
     before = snapshot(repo)
     export = {
         "examines": [NEW_EXAMINE],
-        "items": [{"name": "Golden gnome", "credit": "Woox", "credit_shown": True}],
+        "items": [{"name": name, "credit": "Woox", "credit_shown": True}],
     }
     assert run(repo, export) == 1
     assert snapshot(repo) == before
-    assert "items[0]: 'Golden gnome' is not on the Grand Exchange" in capsys.readouterr().err
+    assert f"items[0]: {name!r} {why}" in capsys.readouterr().err
+
+
+def test_the_wiki_is_asked_for_the_name_quoted() -> None:
+    query = import_suggestions.bucket_query("Zulrah's scales")
+    assert ".where('item_name','Zulrah\\'s scales')" in query
 
 
 def test_a_file_that_is_not_an_export_writes_nothing(repo: dict[str, Path]) -> None:
