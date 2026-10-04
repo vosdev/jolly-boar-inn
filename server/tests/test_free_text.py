@@ -45,15 +45,15 @@ def test_it_is_registered_and_scored_on_speed() -> None:
     assert scoring_of("free_text") is Scoring.SPEED
 
 
-def test_no_round_plays_it() -> None:
+def test_only_hand_written_one_answer_questions_play_it() -> None:
     """It is for the host's own questions, whose answers no shipped list could hold, and
-    for the NPCs' random-event questions, written by hand one at a time with their spellings listed.
-    No round's own pool has one: only a mode that borrows the NPCs' pool plays it."""
-    assert "free_text" not in {
-        t for mode in MODES.values() if mode.pool is None for t in mode.types
-    }
+    for questions written by hand one at a time with their spellings listed: the NPCs' and
+    Bestiary's. No other round's own pool has one."""
+    assert {
+        mode.id for mode in MODES.values() if mode.pool is None and "free_text" in mode.types
+    } == {"bestiary"}
     shipped = [q for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
-    assert {q["mode"] for q in shipped if q["type"] == "free_text"} == {"random_event"}
+    assert {q["mode"] for q in shipped if q["type"] == "free_text"} == {"random_event", "bestiary"}
 
 
 def test_example_validates() -> None:

@@ -32,7 +32,8 @@ from app.questions.types.bounds import Bounds
 # mode or a type that cares says so, next to the thing that makes it quick or slow.
 QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=30, minimum=5, maximum=120)
-# The quote rounds' pace: ``multiple_choice``'s limits, five seconds longer by default.
+# The quote rounds' and Drop Table's pace: ``multiple_choice``'s limits, five seconds longer
+# by default.
 QUOTE_SECONDS = Bounds(default=20, minimum=5, maximum=30)
 
 # In the order the create form lists them.
@@ -47,6 +48,16 @@ MODES: dict[str, Mode] = {
     ),
     "know_your_content_creator": Mode(
         id="know_your_content_creator", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
+    ),
+    # Its types disagree on seconds; twenty is what the slower two of them default to.
+    "bestiary": Mode(
+        id="bestiary",
+        types=frozenset({"multiple_choice", "closest_number", "free_text"}),
+        seconds=Bounds(default=20, minimum=10, maximum=60),
+    ),
+    # Four boss names weighed against one item read like four quotes, not four prices.
+    "drop_table": Mode(
+        id="drop_table", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
     ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(

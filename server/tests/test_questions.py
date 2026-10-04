@@ -122,15 +122,15 @@ def test_validate_packs_script_fails_on_broken_pack(tmp_path: Path) -> None:
 
 
 def test_validate_packs_script_fails_on_a_mode_this_build_does_not_play(tmp_path: Path) -> None:
-    """A ``more_less`` question claiming to be Drop Table is refused, by name.
+    """A ``more_less`` question claiming a mode nobody plays is refused, by name.
 
     Everything else about it is right, the id included, so the mode is the only thing
     the script can be complaining about.
     """
-    _write_pack(tmp_path / "drops.json", [question(mode="drop_table")])
+    _write_pack(tmp_path / "zoom.json", [question(mode="zoom_quiz")])
     result = _validate_packs(tmp_path)
     assert result.returncode == 1
-    assert "drops.json: questions[0] $.mode: 'drop_table' is not a mode" in result.stderr
+    assert "zoom.json: questions[0] $.mode: 'zoom_quiz' is not a mode" in result.stderr
     assert "FAILED: 1 problem(s)" in result.stderr
 
 
@@ -196,20 +196,18 @@ def test_unsupported_type_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_an_unknown_mode_is_reported() -> None:
-    q = question(mode="drop_table")
+    q = question(mode="zoom_quiz")
     assert schema.schema_errors(q) == []  # the schema holds a mode to a pattern, no more
     assert schema.consistency_errors(q) == [
-        "$.mode: 'drop_table' is not a mode this build plays"
+        "$.mode: 'zoom_quiz' is not a mode this build plays"
         " (it plays more_less, price_is_right, guess_examine, sort_it_out, who_said_that,"
-        " know_your_content_creator, random_events_only, custom, random_event)"
+        " know_your_content_creator, bestiary, drop_table, random_events_only, custom,"
+        " random_event)"
     ]
 
 
-def test_a_type_that_disagrees_with_its_mode_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The other half of the pack rule, once Drop Table exists and is multiple choice."""
-    monkeypatch.setitem(
-        MODES, "drop_table", Mode(id="drop_table", types=frozenset({"multiple_choice"}))
-    )
+def test_a_type_that_disagrees_with_its_mode_is_reported() -> None:
+    """The other half of the pack rule: Drop Table is multiple choice only."""
     q = question(mode="drop_table")
     assert schema.consistency_errors(q) == [
         "$.type: 'more_less' disagrees with its mode: 'drop_table' plays as 'multiple_choice'"

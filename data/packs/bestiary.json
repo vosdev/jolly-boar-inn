@@ -1,0 +1,372 @@
+{
+  "pack": "bestiary",
+  "questions": [
+    {
+      "id": "q_0e4d39742def508e",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "General Graardor wears Bandosian war armour, but what is he wearing on his feet?",
+        "options": [
+          "Nothing",
+          "Bandos boots",
+          "Dragon boots",
+          "Rune boots"
+        ],
+        "answer_index": 0,
+        "explanation": "Nothing at all: his model on the OSRS Wiki shows bare feet below the armour."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+    },
+    {
+      "id": "q_b336742da7a480ac",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which of Vorkath's eyes is torn out and scarred shut?",
+        "options": [
+          "His right",
+          "His left",
+          "Both",
+          "Neither"
+        ],
+        "answer_index": 1,
+        "explanation": "His left, as his model on the OSRS Wiki shows."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+    },
+    {
+      "id": "q_8ad17f3eabcfcdcb",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "How many toes does the King Black Dragon have?",
+        "answer": 12,
+        "unit": "toes",
+        "explanation": "Twelve: three clawed toes on each of his four feet, counted on his model on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon"
+    },
+    {
+      "id": "q_cec00708556f86a1",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "payload": {
+        "prompt": "What is Zulrah's combat level?",
+        "answer": 725,
+        "explanation": "725, per Zulrah's infobox on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    },
+    {
+      "id": "q_bcba5bd06fb34d8b",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "In what year was Vorkath released?",
+        "answer": 2018,
+        "explanation": "4 January 2018, together with Dragon Slayer II, per Vorkath's infobox on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+    },
+    {
+      "id": "q_11869567e0db0f5a",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "location"
+      ],
+      "payload": {
+        "prompt": "On which island does Elvarg, the dragon from Dragon Slayer I, live?",
+        "accepted": [
+          "Crandor"
+        ],
+        "explanation": "Crandor: she lives in the dungeon below it, per her OSRS Wiki page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Elvarg"
+    },
+    {
+      "id": "q_772bbf4e133605b2",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "location"
+      ],
+      "payload": {
+        "prompt": "Where does the Giant Mole live?",
+        "options": [
+          "Under Lumbridge Swamp",
+          "Under Draynor Manor",
+          "Under Falador Park",
+          "Under Port Sarim jail"
+        ],
+        "answer_index": 2,
+        "explanation": "In the Mole Hole under Falador Park, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
+    },
+    {
+      "id": "q_810cbf0eda986419",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "weakness"
+      ],
+      "payload": {
+        "prompt": "Which weapons hit the Corporeal Beast for full damage when they stab?",
+        "options": [
+          "Daggers and rapiers",
+          "Maces and warhammers",
+          "Claws and scimitars",
+          "Spears and halberds"
+        ],
+        "answer_index": 3,
+        "explanation": "Spears and halberds, with Osmumten's fang and a few others. Every other melee weapon does half, per the OSRS Wiki's Corpbane weapons page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corpbane_weapons"
+    },
+    {
+      "id": "q_701ea3778e10e4a0",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "race"
+      ],
+      "payload": {
+        "prompt": "What race is General Graardor?",
+        "options": [
+          "Ourg",
+          "Ogre",
+          "Goblin",
+          "Troll"
+        ],
+        "answer_index": 0,
+        "explanation": "An ourg, and the only known living one, per his OSRS Wiki page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+    },
+    {
+      "id": "q_71d24862370f3916",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "payload": {
+        "prompt": "What is the King Black Dragon's combat level?",
+        "answer": 276,
+        "explanation": "276, per his infobox on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon"
+    },
+    {
+      "id": "q_c9050c2e4d4c2ffe",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "What spawns during the Corporeal Beast fight and leeches Hitpoints from players near it?",
+        "accepted": [
+          "Dark energy core",
+          "Dark core",
+          "Energy core"
+        ],
+        "explanation": "The dark energy core, per the OSRS Wiki's Corporeal Beast page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+    },
+    {
+      "id": "q_823c6edc5a2742ef",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "payload": {
+        "prompt": "Which god does Nex serve?",
+        "options": [
+          "Zamorak",
+          "Saradomin",
+          "Armadyl",
+          "Zaros"
+        ],
+        "answer_index": 3,
+        "explanation": "Zaros: she is one of his most powerful followers, per her OSRS Wiki page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Nex"
+    },
+    {
+      "id": "q_51f4a87bc6692c73",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "location"
+      ],
+      "payload": {
+        "prompt": "Which demon, imprisoned beneath Prifddinas, is fought with a pickaxe instead of a weapon?",
+        "accepted": [
+          "Zalcano"
+        ],
+        "explanation": "Zalcano, a skilling boss, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zalcano"
+    },
+    {
+      "id": "q_7f8869ca1a8888d4",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "In what year was Zulrah released?",
+        "answer": 2015,
+        "explanation": "8 January 2015, per Zulrah's infobox on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    },
+    {
+      "id": "q_74c4f2318926279b",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "payload": {
+        "prompt": "What Slayer level do you need to fight the Alchemical Hydra?",
+        "answer": 95,
+        "explanation": "95 Slayer, per the Alchemical Hydra's infobox on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
+    },
+    {
+      "id": "q_6b25eab57b0cc5a8",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which item shows where the Giant Mole has burrowed to?",
+        "options": [
+          "Explorer's ring 3",
+          "Karamja gloves 3",
+          "Ardougne cloak 3",
+          "Falador shield 3"
+        ],
+        "answer_index": 3,
+        "explanation": "A Falador shield 3 or better in your inventory, per the OSRS Wiki's Giant Mole page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
+    },
+    {
+      "id": "q_9ac707288092b4c3",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "quest"
+      ],
+      "payload": {
+        "prompt": "Which quest unlocks the fight against Vorkath?",
+        "options": [
+          "Dragon Slayer II",
+          "Dragon Slayer I",
+          "Legends' Quest",
+          "Monkey Madness II"
+        ],
+        "answer_index": 0,
+        "explanation": "Dragon Slayer II: Vorkath is fought after it, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+    },
+    {
+      "id": "q_a296bf6e8b6f4cb8",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which of these is not one of Zulrah's forms?",
+        "options": [
+          "Serpentine",
+          "Venom",
+          "Magma",
+          "Tanzanite"
+        ],
+        "answer_index": 1,
+        "explanation": "Venom. Zulrah switches between its serpentine, magma and tanzanite forms, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    },
+    {
+      "id": "q_b1a2beab68d04cba",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "hitpoints"
+      ],
+      "payload": {
+        "prompt": "How many Hitpoints does the Corporeal Beast have?",
+        "answer": 2000,
+        "explanation": "2,000, per the Corporeal Beast's infobox on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+    },
+    {
+      "id": "q_1b60c6c7ce61a0dc",
+      "type": "free_text",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "location"
+      ],
+      "payload": {
+        "prompt": "Which boss waits at the end of the TzHaar Fight Cave?",
+        "accepted": [
+          "TzTok-Jad",
+          "TzTok Jad",
+          "Jad"
+        ],
+        "explanation": "TzTok-Jad, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/TzTok-Jad"
+    }
+  ]
+}

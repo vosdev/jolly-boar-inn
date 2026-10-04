@@ -147,6 +147,31 @@ export const MODES: Record<string, Mode> = {
     // Quotes and plain trivia share the round; the stem tells them apart by `quote`.
     stem: 'quote',
   },
+  bestiary: {
+    id: 'bestiary',
+    label: 'Bestiary',
+    hint: 'Combat levels, weaknesses and haunts of the monsters.',
+    host: { id: 'zoo_keeper', name: 'Zoo keeper' },
+    greeting: 'Welcome to the zoo! Mind the bars, some of these bite.',
+    blurb: 'Every beast in Gielinor has a page in my book. Tell me what you know about them.',
+    waiting: 'Feeding time. Back in a moment.',
+    reveal: "Let's check the plaque.",
+    // Every question names its monster in the sentence, whatever answers it below.
+    stem: 'text',
+  },
+  drop_table: {
+    id: 'drop_table',
+    label: 'Drop Table',
+    hint: 'Ironmen should know this.',
+    host: { id: 'nieve', name: 'Nieve' },
+    greeting: 'Got a task for you. Not a kill, a question.',
+    blurb: 'Something dropped. Tell me which boss it came from.',
+    waiting: 'Patience. Good drops take time.',
+    reveal: 'The loot is on the floor.',
+    // The prompt names the item, because there is no render to show yet; its `image` waits
+    // in the payload for `asset` to draw.
+    stem: 'text',
+  },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {
     id: 'random_events_only',
@@ -200,8 +225,6 @@ export const MODES: Record<string, Mode> = {
  */
 export const UPCOMING_MODES: { id: string; label: string; hint: string; host: string }[] = [
   { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!", host: 'postie_pete' },
-  { id: 'bestiary', label: 'Bestiary', hint: 'Combat levels, weaknesses and haunts of the monsters.', host: 'zoo_keeper' },
-  { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.', host: 'nieve' },
   { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.', host: 'aris' },
   { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'dunce' },
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
