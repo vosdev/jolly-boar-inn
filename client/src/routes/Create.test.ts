@@ -432,6 +432,9 @@ describe('Create with five rooms already', () => {
       'You already have five rooms. Remove one on the homepage to make another.',
     )
     expect(screen.queryByRole('button', { name: 'Create room' })).toBeNull()
+    // The top of the page, above the form, not under the buttons where it goes unseen.
+    const form = document.querySelector('form')!
+    expect(banner.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     await fireEvent.click(within(banner).getByRole('link', { name: 'homepage' }))
     expect(navigate).toHaveBeenCalledWith('/')
     expect(api.createRoom).not.toHaveBeenCalled()
