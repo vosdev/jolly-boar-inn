@@ -77,7 +77,8 @@
    *
    * `checked` is for a question answered with several options: a box in the top right
    * corner, ticked or not, like a round's box on the create form. Ticking fades nothing,
-   * so every option stays readable until the ticks are submitted.
+   * so every option stays readable until the ticks are submitted. `place` puts a number in
+   * the same box instead, for a question answered by tapping its options in order.
    *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
@@ -91,6 +92,8 @@
     mine = false,
     size = 'normal',
     checked = null,
+    place,
+    said,
     disabled,
     onclick,
     children,
@@ -106,6 +109,10 @@
     size?: 'normal' | 'large' | 'small'
     /** Ticked or not, before a several-option answer is submitted; null for no box. */
     checked?: boolean | null
+    /** Its number in a tapped order, null while untapped; leave it out for no box. */
+    place?: number | null
+    /** What a screen reader hears after the label, in place of what `status` says. */
+    said?: string
     disabled: boolean
     onclick: () => void
     children: Snippet
@@ -114,6 +121,7 @@
   const yours = $derived(mine || status === 'waiting' || status === 'wrong')
   /** What lit, faded and the "you" say, in words, for a screen reader. */
   const spoken = $derived(
+    said ??
     {
       idle: '',
       waiting: ', your answer',
@@ -127,14 +135,16 @@
 <button
   type="button"
   class="gem {gem ?? 'plain'} {status} {size}"
-  class:ticks={checked !== null}
-  aria-pressed={checked ?? yours}
+  class:ticks={checked !== null || place !== undefined}
+  aria-pressed={checked ?? (place === undefined ? yours : place !== null)}
   {disabled}
   {onclick}
 >
   <span class="content">{@render children()}</span>
   {#if checked !== null}
     <span class="tick" class:checked aria-hidden="true">{checked ? '✓' : ''}</span>
+  {:else if place !== undefined}
+    <span class="tick" class:checked={place !== null} aria-hidden="true">{place ?? ''}</span>
   {/if}
   {#if yours}
     <span class="you" aria-hidden="true">you</span>
@@ -265,6 +275,12 @@
   .tick.checked {
     background: var(--mark);
     color: var(--fill);
+  }
+
+  /* Filled in the lit gem's colour, a faded button's number would be its brightest part. */
+  .faded .tick.checked {
+    background: none;
+    color: var(--mark);
   }
 
   .you {

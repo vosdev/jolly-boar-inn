@@ -158,6 +158,40 @@ EXAMPLES: dict[str, Example] = {
         scoring=Scoring.SPEED,
         seconds=(20, 5, 30),
     ),
+    "ordering": Example(
+        payload={
+            "prompt": "Put these metals in order.",
+            "ends": ["Weakest", "Strongest"],
+            "entries": [
+                {"text": "Bronze", "rank": 1, "detail": "Level 1"},
+                {"text": "Iron", "rank": 2, "detail": "Level 10"},
+                {"text": "Steel", "rank": 3, "detail": "Level 20"},
+                {"text": "Mithril", "rank": 4, "detail": "Level 30"},
+            ],
+            "answer": [0, 1, 2, 3],
+            "image": "item:2349",
+            "explanation": "Each needs ten more Smithing than the last.",
+        },
+        # Shown as Bronze, Iron, Mithril, Steel.
+        valid=[[0, 1, 2, 3], [3, 2, 1, 0], [2, 0, 3, 1]],
+        invalid=[
+            [0, 1, 2],
+            [0, 1, 2, 2],
+            [0, 1, 2, 4],
+            [-1, 0, 1, 2],
+            [0, 1, 2, True],
+            [0.0, 1, 2, 3],
+            [0, 1, 2, 3, 0],
+            [],
+            "0132",
+            0,
+        ],
+        right=[0, 1, 3, 2],
+        wrong=[1, 0, 3, 2],
+        secret=frozenset({"rank", "detail", "answer", "explanation"}),
+        scoring=Scoring.SPEED,
+        seconds=(25, 10, 45),
+    ),
 }
 
 # Refused by every type, whatever its shape: ``true`` is ``1`` to Python, ``null`` is

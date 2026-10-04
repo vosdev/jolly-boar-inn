@@ -2,8 +2,9 @@
  * The lines under a reveal. The count always, and one per partial-credit band that
  * anyone reached; the names of who got it wrong only when the host asked for them, and
  * never a player who came within 70% or did not answer. A closest-number question counts
- * its bands as ranks, since its credit is a rank and not how near the guess was, and a
- * pick-all-that-apply question its right picks.
+ * its bands as ranks, since its credit is a rank and not how near the guess was, a
+ * pick-all-that-apply question its right picks, and an ordering question its entries in
+ * place.
  */
 
 import { render } from '@testing-library/svelte'
@@ -194,6 +195,56 @@ describe('RevealTally', () => {
     )
     expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       'Got it wrong: Woox',
+    )
+  })
+
+  it('counts an ordering answer by its entries in place, read off its credit', () => {
+    const entries = ['a', 'b', 'c', 'd', 'e'].map((text) => ({ text }))
+    const { container } = draw(
+      { a: partly(0.6), b: right(), c: partly(0.6), d: partly(0.2), e: wrong },
+      true,
+      'a',
+      'ordering',
+      { entries, answer: [0, 1, 2, 3, 4] },
+    )
+    expect(lines(container)).toEqual([
+      '1 of 5 got it right',
+      '2 of 5 had 3 of 5 in place',
+      '1 of 5 had 1 of 5 in place',
+    ])
+    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Got it wrong: Alkan',
+    )
+  })
+
+  it('with picks, counts an ordering answer by its value, in place and out of place', () => {
+    const entries = [1, 2, 3, 4, 5, 6].map((rank) => ({ text: String(rank), rank }))
+    const answered = (value: number[], credit: number): PlayerResult => ({
+      value,
+      correct: credit === 1,
+      credit,
+      points: Math.round(900 * credit),
+    })
+    const { container } = draw(
+      {
+        a: answered([0, 2, 1], 2 / 3),
+        b: answered([0, 1, 5], 2 / 3),
+        c: answered([1, 0, 4], 1 / 3),
+        d: answered([3, 4, 5], 0),
+      },
+      true,
+      'a',
+      'ordering',
+      { entries, answer: [0, 1, 2, 3, 4, 5], picks: 3 },
+    )
+    expect(lines(container)).toEqual([
+      '0 of 4 got it right',
+      '1 of 4 had 2 of 3 in place',
+      '1 of 4 had 1 of 3 in place, 2 out of place',
+      '1 of 4 had 0 of 3 in place, 2 out of place',
+    ])
+    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Got it wrong: Dorn',
     )
   })
 

@@ -9,7 +9,8 @@
     "id": { "type": "string", "pattern": "^q_[0-9a-f]{16}$" },
     "type": {
       "enum": ["more_less", "price_is_right", "multiple_choice", "free_text",
-               "closest_number", "pick_from_list", "pick_all_that_apply"]
+               "closest_number", "pick_from_list", "pick_all_that_apply",
+              "ordering"]
     },
     "mode": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
     "payload": { "type": "object" },
@@ -51,7 +52,9 @@
     { "if": { "properties": { "type": { "const": "pick_from_list" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/pick_from_list" } } } },
     { "if": { "properties": { "type": { "const": "pick_all_that_apply" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/pick_all_that_apply" } } } }
+      "then": { "properties": { "payload": { "$ref": "#/$defs/pick_all_that_apply" } } } },
+    { "if": { "properties": { "type": { "const": "ordering" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/ordering" } } } }
   ],
   "$defs": {
     "choices": {
@@ -143,6 +146,42 @@
           "items": { "type": "integer", "minimum": 0, "maximum": 5 }
         },
         "picks": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "explanation": { "type": "string", "maxLength": 300 }
+      }
+    },
+
+    "ordering": {
+      "type": "object",
+      "required": ["prompt", "ends", "entries", "answer"],
+      "additionalProperties": false,
+      "properties": {
+        "prompt": { "$ref": "#/$defs/prompt" },
+        "intro": { "$ref": "#/$defs/intro" },
+        "image": { "$ref": "#/$defs/asset" },
+        "ends": {
+          "$comment": "What the first and the last entry are, such as Weakest and Strongest.",
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "type": "string", "minLength": 1, "maxLength": 40 }
+        },
+        "entries": {
+          "$ref": "#/$defs/choices", "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["text", "rank"],
+            "additionalProperties": false,
+            "properties": {
+              "text": { "$ref": "#/$defs/short_text" },
+              "rank": { "$comment": "Lower comes first; equal ranks tie.", "type": "integer", "minimum": 1, "maximum": 6 },
+              "detail": { "$comment": "Shown beside the entry in the reveal.", "type": "string", "minLength": 1, "maxLength": 40 }
+            }
+          }
+        },
+        "answer": {
+          "$comment": "Entry indices in the order the reveal shows, sorted by rank.",
+          "type": "array", "minItems": 3, "maxItems": 6, "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 0, "maximum": 5 }
+        },
+        "picks": { "$comment": "Order only this many, from the first end; fewer than the entries.", "type": "integer", "minimum": 2, "maximum": 5 },
         "explanation": { "type": "string", "maxLength": 300 }
       }
     },

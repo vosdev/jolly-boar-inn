@@ -80,6 +80,10 @@ learns the position, which is worth more than variety.
 - `pick_all_that_apply` ticks rather than picks: a box in each gem's top right corner, as on a
   Create round, and nothing fades until Submit sends the ticks. Every right gem goes across the top
   at normal size.
+- `ordering` is answered by tapping the entries first to last: each keeps its place and gem, and
+  takes its number in the corner box. Rewind, beside Submit, starts over. The reveal lists the right
+  order, ties sharing a number, with each `detail`; a misplaced entry fades and says where you had it.
+  With `picks` the rest are held once that many are tapped, and the reveal lists only the top ones.
 - Gems are for `multiple_choice`, `price_is_right`, `pick_all_that_apply` and `ordering`. `more_less` keeps `--more` and
   `--less`, because its buttons carry item pictures, which a gem fill would drown.
   `pick_from_list` has a list of hundreds, answered through a combobox, with no gems.

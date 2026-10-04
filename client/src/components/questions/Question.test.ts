@@ -219,6 +219,25 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
       answer_indices: [0, 1],
     },
   },
+  {
+    type: 'ordering',
+    mode: 'custom',
+    view: {
+      prompt: 'Which?',
+      ends: ['Weakest', 'Strongest'],
+      entries: [{ text: 'Iron' }, { text: 'Bronze' }, { text: 'Steel' }],
+    },
+    reveal: {
+      prompt: 'Which?',
+      ends: ['Weakest', 'Strongest'],
+      entries: [
+        { text: 'Iron', rank: 2 },
+        { text: 'Bronze', rank: 1 },
+        { text: 'Steel', rank: 3 },
+      ],
+      answer: [1, 0, 2],
+    },
+  },
 ]
 
 /** The types whose `reveal` carries the author's `explanation` (`questions/types/*.py`). */
@@ -228,6 +247,7 @@ const EXPLAINED = [
   'free_text',
   'pick_from_list',
   'pick_all_that_apply',
+  'ordering',
 ]
 
 const entries = [{ id: 6585, name: 'Amulet of fury' }]

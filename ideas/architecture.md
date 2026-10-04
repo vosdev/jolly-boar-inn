@@ -119,8 +119,8 @@ SECONDS: Bounds                       # optional
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
 | `bestiary`, `drop_table` | Bestiary, Drop Table | `multiple_choice` | hand-written | #85 |
 | `odd_one_out` | Odd One Out | `multiple_choice` | hand-written | #86 |
-| `release_order` | Release Order | `ordering` | hand-written | #82 |
-| `sort_it_out` | Sort It Out | `ordering` | hand-written | #87 |
+| `release_order` | Release Order | `ordering` | hand-written | on hold, too few questions |
+| `sort_it_out` | Sort It Out | `ordering` | hand-written | #87, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | #88 |
 | `clipped` | Know Your Content Creator | `multiple_choice` | hand-written | #88 |
 | `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Phase 3 |
@@ -145,7 +145,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `id` is `q_` plus 16 hex of `sha256(type + "\n" + canonical_json(payload))`. `mode` and the other
   envelope fields stay out, so a mode rename rewrites no id.
 - Length caps live in the schema, not only in forms. Every choice array references
-  `$defs/choices`, six at most, one per gem; `ordering.entries` (#82) must too.
+  `$defs/choices`, six at most, one per gem; `ordering.entries` does too.
 - Assets are `item:<id>` or `npc:<id>`, never a URL. `pick_from_list` withholds `image` while open
   ("Needs decision").
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
@@ -159,13 +159,19 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `closest_number` | number | by rank (section 8) |
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
 | `pick_all_that_apply` | distinct option indices, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
-| `ordering` (#82) | every entry key once | fraction in the right place |
+| `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
   matched within `max_distance` of an accepted answer. Levenshtein runs only inside that band, so it
   stays linear on the event loop. Answers under four characters need an exact match ("Jad", "Jam").
-- `ordering` stores a `rank` per entry, which allows ties, and an `answer` list for display.
-  `check()` rejects an `answer` that does not sort by `rank`, and a payload where everything ties.
+- `ordering` is `ends` (two labels), three to six `entries` of `text`, `rank` and an optional
+  reveal-only `detail`, `answer`, entry indices sorted by `rank`, and an optional `picks`: order only
+  the top that many, shown open. Equal ranks tie and score in either order; `answer` only orders
+  them for the reveal. `check()` rejects an `answer` that does not sort by `rank`, and a payload whose
+  first `picks + 1` (or all) ranks tie. `client_view` shows the entries without rank in a shuffle
+  seeded by the payload, rotated by one if its played places land in order, so an authored order
+  never leaks. A value names shown positions, never payload indices. The half credit needs `picks`:
+  without it every entry belongs somewhere, so the half would pay for any answer.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects none or every option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word

@@ -150,8 +150,8 @@ def test_a_round_needs_a_type() -> None:
 
 
 def test_a_round_may_only_play_registered_types() -> None:
-    assert problems(Mode(id="odd", types=frozenset({"ordering"}))) == [
-        "odd: plays 'ordering', which no type module has"
+    assert problems(Mode(id="odd", types=frozenset({"word_search"}))) == [
+        "odd: plays 'word_search', which no type module has"
     ]
 
 
