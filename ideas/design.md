@@ -259,6 +259,8 @@ in display tabular numerals and the scroll's ink:
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.
 - No standings under a reveal: a board every question makes the game a spreadsheet.
+- A suggested question whose player asked to be named ends the tally with "Question by Name",
+  muted and off the scroll, so the reveal reads the same without it.
 
 ## 11. Standings
 

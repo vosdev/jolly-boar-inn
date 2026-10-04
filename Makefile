@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions fetch-assets loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions fetch-assets loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -83,6 +83,16 @@ loadtest:
 # WIKI_USER_AGENT, from .env or the environment (.env.example).
 gen-price-questions:
 	$(DATA) scripts/gen_price_questions.py
+
+# Add an export from /admin's suggestion queue to the packs and the roster, then review the
+# diff and commit it. FILE may be anywhere, such as ~/Downloads: it is copied into the
+# mounted repo for the run. A file with any refused entry writes nothing, and importing the
+# same file twice changes nothing. Needs WIKI_USER_AGENT when the file suggests new items.
+import-suggestions:
+	@test -n "$(FILE)" || { echo "usage: make import-suggestions FILE=path/to/export.json"; exit 1; }
+	cp "$(FILE)" server/.import-suggestions.json
+	$(DATA) scripts/import_suggestions.py .import-suggestions.json; status=$$?; \
+		rm -f server/.import-suggestions.json; exit $$status
 
 # Fetch the NPC and trophy art in data/assets.json from the wiki into client/src/assets/, where
 # the client looks for it. Never part of test or the image build (CI only dry-runs it), and never

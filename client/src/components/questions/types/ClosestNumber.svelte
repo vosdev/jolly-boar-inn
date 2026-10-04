@@ -73,7 +73,7 @@
 {:else}
   <AnswerForm
     id="{uid}-guess"
-    label="Your best guess{unitAside} — the closest one wins, however late"
+    label="Your best guess{unitAside} — the closest one wins"
     ready={guess !== null}
     onsubmit={submit}
   >

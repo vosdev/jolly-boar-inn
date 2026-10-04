@@ -1,6 +1,7 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Three of them: room creation, joins, and lookups of rooms that turn out not to exist.
+Four of them: room creation, joins, suggestions, and lookups of rooms that turn out not to
+exist.
 The last is what keeps the room list private. The live codes are a few of a few hundred
 words, and every request that names a room answers whether it exists, so an address
 that keeps asking for rooms that are not there is scanning and is refused for a while.
@@ -21,6 +22,8 @@ LOOKUP_WINDOW = timedelta(minutes=10)
 # High enough for a pub on one address, with every player's name clash retried; low
 # enough that a kicked player's script cannot keep coming back all evening.
 JOINS_PER_HOUR = 100
+# Plenty for a player with a notebook of ideas; a script filling the queue stops quickly.
+SUGGESTIONS_PER_HOUR = 10
 
 
 class RateLimited(ApiError):
@@ -45,6 +48,14 @@ class RateLimiter:
             return False
         hits.append(now)
         return True
+
+    def left(self, key: str, now: datetime | None = None) -> tuple[int, datetime | None]:
+        """How many hits ``key`` has left, and when the next frees up if none. Records nothing."""
+        now = now or datetime.now(UTC)
+        hits = self._hits.get(key, deque())
+        _expire(hits, now - self.window)
+        left = max(0, self.limit - len(hits))
+        return left, (hits[0] + self.window if left == 0 and hits else None)
 
     def refund(self, key: str, at: datetime) -> None:
         """Take back the hit ``allow`` recorded for ``key`` at ``at``."""

@@ -22,28 +22,30 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
-Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, fetch-assets, image; CI: release
+Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, fetch-assets,
+                                   image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/, AUTHORING.md
 data/                              assets, popular-items, player-names, room-words, heads/
 branding/                          a selfhoster's logo, gitignored
-server/app/                        main, config, db, static, accesslog, errors, heads, random_events
+server/app/                        main, config, db, static, accesslog, errors, heads, random_events,
+                                   suggestions
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
                                    ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
-server/scripts/                    wiki, gen_price_questions, fetch_assets, validate_packs,
-                                   check_contrast, smoke_ws, loadtest
+server/scripts/                    wiki, gen_price_questions, import_suggestions, fetch_assets,
+                                   validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
-client/src/routes/, components/    Home, Create, Join, Room, History, Admin; TopBar, Lobby, stage/, …
+client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest; TopBar, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
 ```
 
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
-`YYMMDDHHMM`), and `/admin` (the operator's view, section 10), linked from Home only once this
-browser holds the admin token.
+`YYMMDDHHMM`), `/admin` (the operator's view, section 10), linked from Home only once this
+browser holds the admin token, and `/suggest` (section 11), linked once it has finished a game.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state
@@ -148,6 +150,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   ("Needs decision").
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
 - `wiki` on the envelope is the page an author checked. Players never get it.
+- `credit` names the player who suggested a pack question; with `credit_shown` the reveal says it.
 
 | Type | `value` | Credit |
 |---|---|---|
@@ -236,7 +239,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
-| `question_closed` | `question_id`, `reveal`, `results`, `standings`, `next_at` | Closed. `next_at` ends the reveal; null after the last question. |
+| `question_closed` | `question_id`, `reveal`, `results`, `standings`, `next_at`, `suggested_by`? | Closed. `next_at` ends the reveal; null after the last question. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings` | Final. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
@@ -449,7 +452,9 @@ answers 404; shorter than 32 URL-safe characters, the app refuses to start. `GET
 (rooms in memory) and `/stats` (every `daily_stats` row) want it as `Authorization: Bearer`,
 compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fragment so no access
 log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
-away. Both return chosen fields only, never a name, an answer or a question.
+away. Both return chosen fields only, never a name, an answer or a question. The suggestion
+queue (section 11) is the one admin route that returns questions, answers included: players'
+suggestions, never a room's.
 
 `POST /api/rooms {display_name, avatar?, returning, invite_only?, public?, settings, custom_questions}`, in one transaction:
 
@@ -544,7 +549,14 @@ key into them, so cleanup leaves it.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.
-- `suggestions` (Phase 6) is created only when needed.
+- `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
+  `question` in Create's shape plus `mode` and `wiki`, an `examine` (line, name, wiki) or an `item`
+  (a name not on the roster), with a `credit` held to the name rules and `credit_shown`, never
+  true for an item. Pending, approved, rejected or imported. A round not built yet takes
+  questions; they wait in approved. The client offers the form after a finished game; 10 an hour
+  per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
+- `/api/admin/suggestions` lists, edits and moves them. Export downloads the playable approved ones
+  and stamps `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
 
 ## 12. Data pipeline
 
@@ -558,6 +570,10 @@ Packs are committed, so a clone plays without a network; only prices are generat
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
 - `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
+- `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
+  they hold, keeping `credit`. An examine name gets the highest answer id plus one; an item's id
+  comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
+  that would not load, writes nothing.
 - Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
   like the random events, with the rules in `data/packs/AUTHORING.md`. No importer fetches wiki
   facts, so the owner picks every monster and question.

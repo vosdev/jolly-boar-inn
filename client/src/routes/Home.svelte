@@ -7,6 +7,8 @@
    * removes it: the server deletes the row, its players and their answers, and the code
    * is free again the moment it answers. That is the only way to be rid of a room before
    * it expires, so the button asks first.
+   *
+   * A browser that has finished a game is asked for its questions too (`lib/suggestions.ts`).
    */
   import { onMount } from 'svelte'
   import { siteName } from 'virtual:branding'
@@ -20,6 +22,7 @@
   import { headOf } from '../lib/heads'
   import { historyPath, pastGames, placeIn } from '../lib/history'
   import { REPO_URL } from '../lib/links'
+  import { maySuggest } from '../lib/suggestions'
   import { modeLabel } from '../lib/modes'
   import {
     createdRooms,
@@ -37,6 +40,7 @@
   let hosted = $state(createdRooms())
   const past = pastGames()
   const admin = hasAdminToken()
+  const suggesting = maySuggest()
   let code = $state('')
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
@@ -249,6 +253,17 @@
             </li>
           {/each}
         </ul>
+      </section>
+    {/if}
+
+    {#if suggesting}
+      <section class="panel">
+        <h2>Suggest a question</h2>
+        <p class="note">
+          Know something the inn doesn't ask yet? Write a question, an examine line or an item for
+          the Grand Exchange rounds. The innkeeper reads every one.
+        </p>
+        <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
       </section>
     {/if}
   </div>

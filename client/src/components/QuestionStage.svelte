@@ -16,7 +16,8 @@
    * answers under the sheet do not move when they arrive. A random event draws its own
    * stage, with its NPC in the host's place.
    *
-   * `children` goes inside the panel under the answers: the reveal's tally.
+   * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
+   * leaves the answers out, for a preview whose answers a player cannot try yet.
    */
   import type { Snippet } from 'svelte'
 
@@ -37,6 +38,7 @@
     onAnswer,
     live = false,
     nextAt = null,
+    stemOnly = false,
     children,
   }: {
     /** The question as it was sent open, which still picks the view once it has closed. */
@@ -50,6 +52,7 @@
     live?: boolean
     /** The reveal's end, for a random event's return. */
     nextAt?: string | null
+    stemOnly?: boolean
     children?: Snippet
   } = $props()
 
@@ -89,9 +92,9 @@
     </div>
   {/snippet}
   <Stage host={host.host.id} paper={sheet} award={reveal === null ? 'none' : awardFor(result)}>
-    {#if answers !== null || children}
+    {#if (answers !== null && !stemOnly) || children}
       <section class="panel answers">
-        {@render answers?.()}
+        {#if !stemOnly}{@render answers?.()}{/if}
         {@render children?.()}
       </section>
     {/if}

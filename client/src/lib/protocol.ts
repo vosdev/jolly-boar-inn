@@ -371,6 +371,8 @@ export interface QuestionClosed {
   results: Record<string, PlayerResult>
   standings: Standing[]
   next_at: string | null
+  /** The player who suggested the question, when they asked to be named; left out otherwise. */
+  suggested_by?: string
 }
 
 export interface GameFinished {
