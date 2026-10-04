@@ -1,5 +1,5 @@
 /**
- * The operator's admin view: its token, and the two reads behind it.
+ * The operator's admin view: its token, the two reads behind it, and the suggestion queue.
  *
  * The token arrives once, in the fragment of `/admin#token=…`. A fragment never reaches
  * the server, so it stays out of the access log and out of any `Referer`. It is moved into
@@ -9,6 +9,7 @@
 
 import { ApiFailure } from './api'
 import { dropStored, readStored, writeStored } from './session'
+import type { QueuedSuggestion, SuggestionBody, SuggestionStatus } from './suggestions'
 
 const TOKEN_KEY = 'jbi:admin'
 
@@ -67,17 +68,40 @@ export function forgetAdminToken(): void {
   dropStored(TOKEN_KEY)
 }
 
-async function adminGet<T>(path: string, token: string): Promise<T> {
+async function adminRequest<T>(
+  path: string,
+  token: string,
+  method = 'GET',
+  body?: unknown,
+): Promise<T> {
+  const headers: Record<string, string> = { authorization: `Bearer ${token}` }
+  if (body !== undefined) headers['content-type'] = 'application/json'
   let response: Response
   try {
-    response = await fetch(path, { headers: { authorization: `Bearer ${token}` } })
+    response = await fetch(path, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
   } catch {
     throw new ApiFailure(0, 'unreachable', 'cannot reach the server')
   }
   if (!response.ok) {
-    throw new ApiFailure(response.status, 'error', `request failed (${response.status})`)
+    const fault = ((await response.json().catch(() => null)) ?? {}) as {
+      code?: unknown
+      message?: unknown
+    }
+    throw new ApiFailure(
+      response.status,
+      typeof fault.code === 'string' ? fault.code : 'error',
+      typeof fault.message === 'string' ? fault.message : `request failed (${response.status})`,
+    )
   }
   return (await response.json()) as T
+}
+
+function adminGet<T>(path: string, token: string): Promise<T> {
+  return adminRequest<T>(path, token)
 }
 
 export function getLive(token: string): Promise<Live> {
@@ -86,6 +110,47 @@ export function getLive(token: string): Promise<Live> {
 
 export async function getCounts(token: string): Promise<Count[]> {
   return (await adminGet<{ counts: Count[] }>('/api/admin/stats', token)).counts
+}
+
+export interface Queue {
+  suggestions: QueuedSuggestion[]
+  counts: Record<SuggestionStatus, number>
+}
+
+export function getQueue(token: string, status: SuggestionStatus): Promise<Queue> {
+  return adminGet(`/api/admin/suggestions?status=${status}`, token)
+}
+
+export function editSuggestion(
+  token: string,
+  id: string,
+  body: Omit<SuggestionBody, 'kind'>,
+): Promise<QueuedSuggestion> {
+  return adminRequest(`/api/admin/suggestions/${encodeURIComponent(id)}`, token, 'PUT', body)
+}
+
+export function setSuggestionStatus(
+  token: string,
+  id: string,
+  status: 'pending' | 'approved' | 'rejected',
+): Promise<QueuedSuggestion> {
+  return adminRequest(`/api/admin/suggestions/${encodeURIComponent(id)}/status`, token, 'POST', {
+    status,
+  })
+}
+
+/** The file for `make import-suggestions`. Exporting the approved ones marks them exported. */
+export function exportSuggestions(
+  token: string,
+  status: 'approved' | 'imported',
+): Promise<unknown> {
+  return adminRequest('/api/admin/suggestions/export', token, 'POST', { status })
+}
+
+/** Move what the last export downloaded to imported. */
+export async function markImported(token: string): Promise<number> {
+  const path = '/api/admin/suggestions/imported'
+  return (await adminRequest<{ imported: number }>(path, token, 'POST', {})).imported
 }
 
 /** The refresh button's label: how many seconds ago the data was fetched, once it has been. */

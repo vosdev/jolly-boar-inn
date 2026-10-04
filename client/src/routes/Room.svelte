@@ -480,6 +480,7 @@
             {nameOf}
             youId={$you?.id ?? null}
             showNames={$room.settings.name_wrong_answers === true}
+            suggestedBy={$lastClosed.suggested_by ?? null}
           />
         </QuestionStage>
       </div>

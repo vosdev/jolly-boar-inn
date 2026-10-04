@@ -32,3 +32,6 @@ client/src/assets/trophies/*
 !client/src/assets/trophies/placeholder/
 # Leagues area flags, the themes' emblems: game assets too
 client/src/assets/themes/*.png
+
+# The copy `make import-suggestions` runs on.
+server/.import-suggestions.json

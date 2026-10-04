@@ -236,8 +236,11 @@ const OPEN_KEYS: Record<CustomType, string[]> = {
   closest_number: ['intro', 'prompt', 'image', 'unit'],
 }
 
-/** The question as an open random event, for `RandomEvent` to draw as a preview. */
-export function previewOf(question: CustomQuestion): OpenQuestion {
+/**
+ * The question as players will see it open, for a preview: a random event, or with
+ * `mode` and no NPC, a question of that round.
+ */
+export function previewOf(question: CustomQuestion, mode = 'custom'): OpenQuestion {
   // Fixed times, long past and far ahead: a preview rebuilt on every keystroke must never
   // land inside the event's hold, or its answers would blink out while the host types.
   const opened = new Date(0).toISOString()
@@ -251,8 +254,8 @@ export function previewOf(question: CustomQuestion): OpenQuestion {
     index: 0,
     total: 1,
     type: question.type,
-    mode: 'custom',
-    segment: { mode: 'custom', index: 0, total: 1, start: 0, count: 1 },
+    mode,
+    segment: { mode, index: 0, total: 1, start: 0, count: 1 },
     view,
     random_event: question.random_event ?? '',
     opened_at: opened,

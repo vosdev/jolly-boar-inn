@@ -26,8 +26,17 @@
     "wiki": {
       "$comment": "Where an author checked the question, for the next author. Never sent to players.",
       "type": "string", "maxLength": 300, "pattern": "^https://oldschool\\.runescape\\.wiki/w/\\S+$"
+    },
+    "credit": {
+      "$comment": "The player who suggested it, under the name rules of a display name.",
+      "type": "string", "minLength": 1, "maxLength": 24
+    },
+    "credit_shown": {
+      "$comment": "Whether a reveal names `credit` to players. Only a pack question's is honoured.",
+      "type": "boolean", "default": false
     }
   },
+  "dependentRequired": { "credit_shown": ["credit"] },
   "allOf": [
     { "if": { "properties": { "type": { "const": "more_less" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/more_less" } } } },

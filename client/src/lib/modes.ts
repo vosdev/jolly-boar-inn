@@ -188,7 +188,15 @@ export function modeLabel(id: string): string {
   return MODES[id]?.label ?? id
 }
 
-/** Who presents mode `id`, and their lines: the innkeeper's generic ones for a mode this build lacks. */
+/**
+ * Who presents mode `id`, and their lines: the innkeeper's generic ones for a mode this
+ * build lacks, said by its host-to-be if it is one still being built.
+ */
 export function hostOf(id: string): HostLines {
-  return MODES[id] ?? GENERIC_HOST
+  const mode = MODES[id]
+  if (mode !== undefined) return mode
+  const upcoming = UPCOMING_MODES.find((entry) => entry.id === id)
+  if (upcoming === undefined) return GENERIC_HOST
+  const name = upcoming.host.replace(/_/g, ' ').replace(/^./, (first) => first.toUpperCase())
+  return { ...GENERIC_HOST, host: { id: upcoming.host, name } }
 }

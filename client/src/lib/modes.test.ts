@@ -39,6 +39,11 @@ describe('hosts', () => {
     expect(hostOf('random_events_only').host.id).toBe('crowned_frog')
   })
 
+  it('has a mode still being built presented by its host-to-be, in the generic lines', () => {
+    expect(hostOf('odd_one_out').host).toEqual({ id: 'aris', name: 'Aris' })
+    expect(hostOf('odd_one_out').reveal).toBe(GENERIC_HOST.reveal)
+  })
+
   it('has the innkeeper present a mode with no entry, in its generic lines', () => {
     expect(hostOf('zoom_quiz')).toBe(GENERIC_HOST)
     expect(GENERIC_HOST.host).toEqual(INNKEEPER)

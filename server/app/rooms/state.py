@@ -452,6 +452,10 @@ class RoomQuestion:
     ``random_event`` is the NPC interrupting ``round`` with this question, or ``None`` for
     a question that belongs to its round. An event's ``mode`` is its own and its ``round``
     is the one it interrupts; ``segments.py`` reads the pair.
+
+    ``suggested_by`` is the envelope's ``credit`` when the player who suggested a pack
+    question let players see it, and goes out with the reveal. A host's own question never
+    has one: a host could otherwise sign it with anybody's name.
     """
 
     id: UUID
@@ -465,6 +469,7 @@ class RoomQuestion:
     author_player_id: UUID | None
     round: int = 0
     random_event: str | None = None
+    suggested_by: str | None = None
     shown_at: datetime | None = None
     closed_at: datetime | None = None
     voided: bool = False
@@ -2221,6 +2226,7 @@ class RoomManager:
                 },
                 standings=room.standings(),
                 next_at=room.next_at if more else None,
+                suggested_by=question.suggested_by,
             )
             closed = Broadcast.to_all(room, message.model_dump(mode="json"))
         self._broadcast(closed)
@@ -2447,6 +2453,13 @@ async def _void_question(conn: asyncpg.Connection, question: RoomQuestion, at: d
     )
 
 
+def _suggested_by(source: str, envelope: dict[str, Any]) -> str | None:
+    """Who to name in the reveal: a pack question's ``credit``, if ``credit_shown``."""
+    if source != "pack" or envelope.get("credit_shown") is not True:
+        return None
+    return envelope.get("credit")
+
+
 async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[RoomQuestion]:
     rows = await conn.fetch(
         "select id, position, question_id, type, mode, source, payload, host_only, round,"
@@ -2466,6 +2479,7 @@ async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[Room
             host_only=row["host_only"],
             round=row["round"],
             random_event=row["random_event"],
+            suggested_by=_suggested_by(row["source"], row["payload"]),
             author_player_id=row["author_player_id"],
             shown_at=row["shown_at"],
             closed_at=row["closed_at"],

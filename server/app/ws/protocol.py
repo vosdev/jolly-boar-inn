@@ -368,6 +368,8 @@ class QuestionClosed(_Message):
     results: dict[UUID, PlayerResult]
     standings: list[Standing]
     next_at: datetime | None
+    # The player who suggested the question, when they asked to be named. Left out otherwise.
+    suggested_by: str | None = Field(default=None, exclude_if=lambda name: name is None)
 
 
 class GameFinished(_Message):

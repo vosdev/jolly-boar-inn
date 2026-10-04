@@ -20,6 +20,8 @@ Each line is one question:
 - Things that share a name but not an examine, like the eleven Miners of the Motherlode Mine,
   are one answer with a question per line: same `answer_id`, same name.
 - `wiki` is the OSRS Wiki page you checked the line on. Players never see it.
+- `credit` is the player who suggested it; `make import-suggestions` writes it. With
+  `credit_shown: true` the reveal names them.
 - `id` is `q_` plus a hash of the type and payload; `validate-packs` prints the expected one.
   Leave `type`, `mode`, `source`, `tags` and `payload.vocab` as the other questions have them.
 

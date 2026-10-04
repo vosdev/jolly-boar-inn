@@ -207,3 +207,36 @@ describe('RevealTally', () => {
     expect(container.querySelector('.wrong')?.textContent).toContain('Someone who left')
   })
 })
+
+describe('the suggester', () => {
+  it('is named under the tally when they asked to be', () => {
+    const { container } = render(RevealTally, {
+      type: 'multiple_choice',
+      reveal: {},
+      results: { a: right() },
+      nameOf,
+      youId: 'a',
+      showNames: false,
+      suggestedBy: 'AFKFisher',
+    })
+    expect(container.querySelector('.credit')?.textContent).toBe('Question by AFKFisher')
+  })
+
+  it('is named even when nobody answered', () => {
+    const { container } = render(RevealTally, {
+      type: 'multiple_choice',
+      reveal: {},
+      results: {},
+      nameOf,
+      youId: 'a',
+      showNames: false,
+      suggestedBy: 'AFKFisher',
+    })
+    expect(container.querySelector('.credit')?.textContent).toBe('Question by AFKFisher')
+  })
+
+  it('is not there for a question nobody is credited for', () => {
+    const { container } = draw({ a: right() }, false)
+    expect(container.querySelector('.credit')).toBeNull()
+  })
+})

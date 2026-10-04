@@ -3,10 +3,17 @@
    * One of the host's questions being written: its type's fields, who asks it, and beside
    * them the random event as players will see it.
    *
+   * A suggestion is written in it too (`routes/Suggest.svelte`): there the types may be
+   * fewer, the NPC may be required or, for a round's question, not asked at all, and
+   * `fields` adds the suggestion's own below. `onattempt` checks those on every Save, and
+   * the question is handed back only when both pass.
+   *
    * Save only hands back a question `problems` passes. Until the first try, only the
    * limits show (too long, too many, a repeated answer); what is still empty waits for
    * Save, so a fresh form is not a page of red.
    */
+  import type { Snippet } from 'svelte'
+
   import {
     CUSTOM_TYPES,
     TYPE_LABELS,
@@ -15,19 +22,40 @@
     problems,
     questionOf,
     type CustomQuestion,
+    type CustomType,
   } from '../lib/customQuestions'
-  import { codePoints, field, limit } from '../lib/questionSchema'
+  import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
   import { RANDOM_EVENTS } from '../lib/randomEvents'
+  import QuestionStage from './QuestionStage.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import Segmented from './Segmented.svelte'
 
   let {
     question = undefined,
+    title = undefined,
+    types = CUSTOM_TYPES,
+    asker = 'optional',
+    mode = 'custom',
+    saveLabel = undefined,
+    fields: more = undefined,
+    onattempt = () => true,
     onsave,
     oncancel,
   }: {
     /** The question to edit, or none for a new one. */
     question?: CustomQuestion
+    title?: string
+    /** The types offered, the first of them for a new question. */
+    types?: readonly CustomType[]
+    /** Who asks it: an NPC or the room's draw, an NPC that must be named, or the round. */
+    asker?: 'optional' | 'required' | 'none'
+    /** The round a question with no NPC is previewed in. */
+    mode?: string
+    saveLabel?: string
+    /** More fields, under the question's own. */
+    fields?: Snippet<[boolean]>
+    /** Whether those fields are fine, asked on every Save. */
+    onattempt?: () => boolean
     onsave: (question: CustomQuestion) => void
     oncancel: () => void
   } = $props()
@@ -42,18 +70,24 @@
     value: String(DISTANCE_MIN + i),
     label: String(DISTANCE_MIN + i),
   }))
-  const TYPES = CUSTOM_TYPES.map((type) => ({ value: type, label: TYPE_LABELS[type] }))
+  const offered = $derived(types.map((type) => ({ value: type, label: TYPE_LABELS[type] })))
 
   // The form starts from the question it was opened on and owns the draft from then on.
   // svelte-ignore state_referenced_locally
   let draft = $state(draftOf(question))
+  // svelte-ignore state_referenced_locally
+  if (!types.includes(draft.type)) draft.type = types[0] ?? draft.type
   let attempted = $state(false)
   const id = $props.id()
 
   const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
   const explanationMax = $derived(limit(field(draft.type, 'explanation'), 'maxLength'))
   const built = $derived(questionOf(draft))
-  const found = $derived(problems(built))
+  const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
+  const found = $derived([
+    ...problems(built),
+    ...(asker === 'required' && draft.npc === '' ? [unnamed] : []),
+  ])
   const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
 
   /** Paths the form has a place for; anything else is listed under the form. */
@@ -67,7 +101,8 @@
 
   function save(): void {
     attempted = true
-    if (found.length === 0) onsave(built)
+    const rest = onattempt()
+    if (found.length === 0 && rest) onsave(built)
   }
 
   // Enter in a field would submit Create's form, and with it the room. Here it saves the
@@ -106,8 +141,12 @@
 <div class="editor surface" role="group" aria-labelledby="{id}-title" {@attach enterSaves}>
   <div class="layout">
     <div class="fields">
-      <h3 id="{id}-title">{question === undefined ? 'New question' : 'Edit question'}</h3>
-      <Segmented legend="Type" options={TYPES} bind:value={draft.type} />
+      <h3 id="{id}-title">
+        {title ?? (question === undefined ? 'New question' : 'Edit question')}
+      </h3>
+      {#if offered.length > 1}
+        <Segmented legend="Type" options={offered} bind:value={draft.type} />
+      {/if}
 
       <div class="field">
         <label for="{id}-prompt">Question</label>
@@ -212,16 +251,24 @@
         {@render errors('payload.explanation')}
       </div>
 
-      <div class="field">
-        <label for="{id}-npc">Who asks it</label>
-        <select id="{id}-npc" bind:value={draft.npc}>
-          <option value="">Random</option>
-          {#each RANDOM_EVENTS as npc (npc.id)}
-            <option value={npc.id}>{npc.name}: {npc.theme}</option>
-          {/each}
-        </select>
-        {@render errors('random_event')}
-      </div>
+      {#if asker !== 'none'}
+        <div class="field">
+          <label for="{id}-npc">Who asks it</label>
+          <select id="{id}-npc" bind:value={draft.npc}>
+            {#if asker === 'optional'}
+              <option value="">Random</option>
+            {:else}
+              <option value="" disabled>Pick an NPC</option>
+            {/if}
+            {#each RANDOM_EVENTS as npc (npc.id)}
+              <option value={npc.id}>{npc.name}: {npc.theme}</option>
+            {/each}
+          </select>
+          {@render errors('random_event')}
+        </div>
+      {/if}
+
+      {@render more?.(attempted)}
 
       {#each unplaced as problem (problem.path + problem.message)}
         <p class="error">{problem.path}: {problem.message}</p>
@@ -229,7 +276,7 @@
 
       <div class="row">
         <button type="button" class="primary" onclick={save}>
-          {question === undefined ? 'Add question' : 'Save question'}
+          {saveLabel ?? (question === undefined ? 'Add question' : 'Save question')}
         </button>
         <button type="button" onclick={oncancel}>Cancel</button>
       </div>
@@ -237,7 +284,11 @@
 
     <section class="preview" aria-label="Preview">
       <p class="note">What players will see</p>
-      <RandomEvent question={previewOf(built)} yourValue={null} onAnswer={() => {}} />
+      {#if asker === 'none'}
+        <QuestionStage question={previewOf(built, mode)} yourValue={null} onAnswer={() => {}} />
+      {:else}
+        <RandomEvent question={previewOf(built)} yourValue={null} onAnswer={() => {}} />
+      {/if}
     </section>
   </div>
 </div>

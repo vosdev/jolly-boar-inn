@@ -19,6 +19,9 @@
    * The names are the room's taste, so they are `settings.name_wrong_answers`, off unless
    * the host asks. The count is always there: it is the answer to "was that a hard one?",
    * which is what people ask each other across the table while the reveal runs.
+   *
+   * Last, the player who suggested the question, when they asked to be named. It sits off
+   * the scroll and under everything else, so the reveal reads the same with or without it.
    */
   import type { PlayerResult } from '../lib/protocol'
 
@@ -29,6 +32,7 @@
     nameOf,
     youId,
     showNames,
+    suggestedBy = null,
   }: {
     /** The question's type, which decides what partial credit means. */
     type: string
@@ -39,6 +43,8 @@
     nameOf: (id: string) => string | null
     youId: string | null
     showNames: boolean
+    /** `question_closed.suggested_by`. */
+    suggestedBy?: string | null
   } = $props()
 
   // Highest first: a player counts once, in the first band their credit reaches.
@@ -131,6 +137,9 @@
       </p>
     {/if}
   {/if}
+  {#if suggestedBy !== null}
+    <p class="credit">Question by {suggestedBy}</p>
+  {/if}
 </div>
 
 <style>
@@ -170,5 +179,12 @@
 
   .who.you {
     font-weight: 600;
+  }
+
+  .credit {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    font-style: italic;
+    overflow-wrap: anywhere;
   }
 </style>

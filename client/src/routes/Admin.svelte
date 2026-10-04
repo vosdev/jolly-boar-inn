@@ -1,15 +1,17 @@
 <script lang="ts">
   /**
-   * `/admin`: the operator's read-only view of the instance. Live rooms from the server's
-   * memory, and the daily counters over a range.
+   * `/admin`: the operator's view of the instance. The queue of player suggestions, live
+   * rooms from the server's memory, and the daily counters over a range.
    *
    * It never shows what a room holds: no names, answers or questions. The server never
-   * sends them, so there is nothing here to hide. A refused token is forgotten, so the
+   * sends them, so there is nothing here to hide. The suggestions are the one thing here
+   * with answers in them, and they are the players' to the operator, not a room's. A refused token is forgotten, so the
    * next visit starts from a fresh link rather than replaying a dead one.
    */
   import { onMount } from 'svelte'
 
   import HistoryChart from '../components/admin/HistoryChart.svelte'
+  import SuggestionQueue from '../components/admin/SuggestionQueue.svelte'
   import Segmented from '../components/Segmented.svelte'
   import {
     forgetAdminToken,
@@ -34,7 +36,7 @@
     { value: 'all', label: 'All' },
   ]
 
-  let token: string | null = null
+  let token = $state<string | null>(null)
   let view = $state<'loading' | 'ready' | 'refused' | 'absent'>('loading')
   let failure = $state<string | null>(null)
   let live = $state<Live | null>(null)
@@ -66,6 +68,12 @@
     return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
   }
 
+  function refuse(): void {
+    forgetAdminToken()
+    token = null
+    view = 'refused'
+  }
+
   async function refresh(): Promise<void> {
     if (token === null || busy) return
     busy = true
@@ -79,9 +87,7 @@
       failure = null
     } catch (error) {
       if (error instanceof ApiFailure && error.status === 401) {
-        forgetAdminToken()
-        token = null
-        view = 'refused'
+        refuse()
       } else if (error instanceof ApiFailure && error.status === 404) {
         view = 'absent'
       } else {
@@ -132,6 +138,10 @@
   </div>
   {#if failure !== null}
     <div class="banner bad" role="alert">{failure}</div>
+  {/if}
+
+  {#if view === 'ready' && token !== null}
+    <SuggestionQueue {token} onrefused={refuse} />
   {/if}
 
   {#if live !== null}

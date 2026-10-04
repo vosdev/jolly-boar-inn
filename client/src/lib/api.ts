@@ -13,6 +13,7 @@
 
 import type { CustomQuestion } from './customQuestions'
 import type { EventFrequency, PlayerView, RoomSettings, RoomView } from './protocol'
+import type { SuggestionBody } from './suggestions'
 
 export class ApiFailure extends Error {
   readonly status: number
@@ -246,5 +247,23 @@ export function deleteRoom(code: string, session: string): Promise<void> {
   return request<void>(`/api/rooms/${encodeURIComponent(code)}`, {
     method: 'DELETE',
     body: JSON.stringify({ session }),
+  })
+}
+
+/** How many more suggestions this address may send this hour, and when one frees up if none. */
+export interface Allowance {
+  left: number
+  retry_at: string | null
+}
+
+export function getSuggestionAllowance(): Promise<Allowance> {
+  return request<Allowance>('/api/suggestions/allowance')
+}
+
+/** `bad_suggestion` or `bad_name` for what the server refuses; `rate_limited` past the limit. */
+export function sendSuggestion(body: SuggestionBody): Promise<{ id: string }> {
+  return request<{ id: string }>('/api/suggestions', {
+    method: 'POST',
+    body: JSON.stringify(body),
   })
 }
