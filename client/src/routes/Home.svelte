@@ -38,15 +38,10 @@
   /** The server caches the list for 5 s; twice that keeps a Home left open current. */
   const PUBLIC_REFRESH_MS = 10_000
 
-<<<<<<< HEAD
-  let hosted = $state(createdRooms())
-  let past = $state(pastGames())
-=======
   /** Moved on with the refresh below, so a Home left open keeps its countdowns honest. */
   let now = $state(Date.now())
   let hosted = $state(createdRoomExpiries())
-  const past = pastGames()
->>>>>>> a213570 (Show roughly when each created room is cleaned up)
+  let past = $state(pastGames())
   const admin = hasAdminToken()
   const suggesting = maySuggest()
   let code = $state('')
@@ -114,8 +109,7 @@
   /** Forget the room here. The list is re-read rather than spliced, so it cannot drift. */
   function forget(room: string): void {
     forgetCreated(room)
-<<<<<<< HEAD
-    hosted = createdRooms()
+    hosted = createdRoomExpiries()
     void refreshFull()
   }
 
@@ -124,9 +118,6 @@
     confirmingPast = null
     removePastGame(game)
     past = pastGames()
-=======
-    hosted = createdRoomExpiries()
->>>>>>> a213570 (Show roughly when each created room is cleaned up)
   }
 
   async function remove(room: string): Promise<void> {
