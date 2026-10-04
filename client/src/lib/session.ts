@@ -68,7 +68,7 @@ export function clearSession(code: string): void {
   dropStored(SESSION_PREFIX + normalizeCode(code))
 }
 
-interface CreatedRoom {
+export interface CreatedRoom {
   code: string
   expiresAt: number
 }
@@ -113,6 +113,11 @@ function writeCreated(rooms: CreatedRoom[]): void {
  */
 export function createdRooms(now: number = Date.now()): string[] {
   return readCreated(now).map((room) => room.code)
+}
+
+/** The unexpired created rooms with their stored expiry in ms, newest first. */
+export function createdRoomExpiries(now: number = Date.now()): CreatedRoom[] {
+  return readCreated(now)
 }
 
 /** Drop a room from the created list and forget its session; used after deleting it. */

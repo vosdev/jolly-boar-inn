@@ -112,6 +112,34 @@ describe("Home", () => {
     expect(screen.queryByText("BRONZE")).toBeNull();
   });
 
+  it("tells each created room roughly how long it has left", () => {
+    const left = (hours: number): string =>
+      new Date(Date.now() + hours * 3_600_000 + 60_000).toISOString();
+    rememberCreated("RUNE", left(31));
+    rememberCreated("DRAGON", left(0.5));
+    render(Home, { navigate });
+    expect(
+      screen.getByText("RUNE").closest("li")!.textContent,
+    ).toContain("Expires in 31 hours");
+    expect(
+      screen.getByText("DRAGON").closest("li")!.textContent,
+    ).toContain("Expires in under an hour");
+  });
+
+  it("tells each created room roughly how long it has left", () => {
+    const left = (hours: number): string =>
+      new Date(Date.now() + hours * 3_600_000 + 60_000).toISOString();
+    rememberCreated("RUNE", left(31));
+    rememberCreated("DRAGON", left(0.5));
+    render(Home, { navigate });
+    expect(
+      screen.getByText("RUNE").closest("li")!.textContent,
+    ).toContain("Expires in 31 hours");
+    expect(
+      screen.getByText("DRAGON").closest("li")!.textContent,
+    ).toContain("Expires in under an hour");
+  });
+
   describe("Public rooms", () => {
     it("lists each public lobby with its host, head and rounds, and joins it", async () => {
       vi.mocked(api.getPublicRooms).mockResolvedValue([LOBBY]);

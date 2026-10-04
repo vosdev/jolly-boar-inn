@@ -24,3 +24,19 @@ export function finishedTime(iso: string): string {
     ? iso
     : parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
+
+const HOUR_MS = 3_600_000
+
+/**
+ * How long a room has left, roughly: "in 31 hours", never a clock time. The stored expiry
+ * is the one from creation and starting a game pushes the real one later, so this errs
+ * early rather than late.
+ */
+export function expiresIn(expiresAt: number, now: number = Date.now()): string {
+  const hours = Math.floor((expiresAt - now) / HOUR_MS)
+  if (hours < 1) return 'in under an hour'
+  if (hours === 1) return 'in 1 hour'
+  if (hours < 48) return `in ${hours} hours`
+  const days = Math.floor(hours / 24)
+  return `in ${days} days`
+}
