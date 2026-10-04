@@ -200,7 +200,7 @@ def test_an_unknown_mode_is_reported() -> None:
     assert schema.schema_errors(q) == []  # the schema holds a mode to a pattern, no more
     assert schema.consistency_errors(q) == [
         "$.mode: 'drop_table' is not a mode this build plays"
-        " (it plays more_less, price_is_right, guess_examine, random_events_only,"
+        " (it plays more_less, price_is_right, guess_examine, sort_it_out, random_events_only,"
         " custom, random_event)"
     ]
 

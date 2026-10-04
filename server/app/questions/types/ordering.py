@@ -7,12 +7,13 @@ Payload shape (schema ``$defs/ordering``)::
      "picks"?: int, "explanation"?: str}
 
 ``rank`` is what grading reads: a lower rank comes first, and equal ranks are a tie that
-may go either way round, such as two quests released on one day. ``answer`` is the order
-the reveal shows, entry indices sorted by ``rank``, which only adds the author's choice
-among ties. ``ends`` labels the two ends ("Weakest", "Strongest") so the direction is
-never in doubt, and ``detail`` is the fact the reveal puts beside an entry. With
-``picks``, shown open, the player orders only that many, from the first end: the top
-three of six, say, with the other three there to be left out.
+may go either way round, such as two quests released on one day. Ranks run from 1 with no
+gap, so a tie at 1 is followed by 2. ``answer`` is the order the reveal shows, entry
+indices sorted by ``rank``, which only adds the author's choice among ties. ``ends``
+labels the two ends ("Weakest", "Strongest") so the direction is never in doubt, and
+``detail`` is the fact the reveal puts beside an entry. With ``picks``, shown open, the
+player orders only that many, from the first end: the top three of six, say, with the
+other three there to be left out.
 
 The open view shows the entries in a shuffle seeded from the payload's content, so every
 socket and every reconnect sees one order, and a value is that shown order's positions,
@@ -126,8 +127,8 @@ def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
 
 
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: ``answer`` lists every entry once, sorted by rank, and the places played
-    are not all ties."""
+    """Consistency: ``answer`` lists every entry once, sorted by rank, the ranks run from 1
+    without a gap, and the places played are not all ties."""
     errors: list[str] = []
     entries, answer = payload["entries"], payload["answer"]
     if sorted(answer) != list(range(len(entries))):
@@ -140,6 +141,10 @@ def check(payload: dict[str, Any]) -> list[str]:
                     f"entries[{before}] (rank {entries[before]['rank']})"
                 )
     ranks = sorted(entry["rank"] for entry in entries)
+    # A skipped rank reads as a place nobody fills; ties take one rank and the next follows.
+    missing = sorted(set(range(1, ranks[-1] + 1)) - set(ranks))
+    if missing:
+        errors.append(f"entries: no entry has rank {', '.join(map(str, missing))}")
     picks = payload.get("picks")
     if picks is not None and picks >= len(entries):
         errors.append(

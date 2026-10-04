@@ -120,7 +120,7 @@ SECONDS: Bounds                       # optional
 | `bestiary`, `drop_table` | Bestiary, Drop Table | `multiple_choice` | hand-written | #85 |
 | `odd_one_out` | Odd One Out | `multiple_choice` | hand-written | #86 |
 | `release_order` | Release Order | `ordering` | hand-written | on hold, too few questions |
-| `sort_it_out` | Sort It Out | `ordering` | hand-written | #87, the first on `ordering` |
+| `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | #88 |
 | `clipped` | Know Your Content Creator | `multiple_choice` | hand-written | #88 |
 | `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Phase 3 |
@@ -167,10 +167,10 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `ordering` is `ends` (two labels), three to six `entries` of `text`, `rank` and an optional
   reveal-only `detail`, `answer`, entry indices sorted by `rank`, and an optional `picks`: order only
   the top that many, shown open. Equal ranks tie and score in either order; `answer` only orders
-  them for the reveal. `check()` rejects an `answer` that does not sort by `rank`, and a payload whose
-  first `picks + 1` (or all) ranks tie. `client_view` shows the entries without rank in a shuffle
-  seeded by the payload, rotated by one if its played places land in order, so an authored order
-  never leaks. A value names shown positions, never payload indices. The half credit needs `picks`:
+  them for the reveal. `check()` rejects an `answer` that does not sort by `rank`, a skipped rank
+  (1, 1, 2, never 1, 1, 3), and a payload whose first `picks + 1` (or all) ranks tie.
+  `client_view` shows the entries without rank in a shuffle seeded by the payload, rotated by one
+  if its played places land in order, so an authored order never leaks. A value names shown positions, never payload indices. The half credit needs `picks`:
   without it every entry belongs somewhere, so the half would pay for any answer.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects none or every option right, and a `picks` that is not their count.

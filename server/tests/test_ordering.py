@@ -2,7 +2,7 @@
 
 import copy
 import random
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -93,6 +93,13 @@ def value_for(p: dict[str, Any], texts: list[str]) -> list[int]:
     return [shown(p).index(text) for text in texts]
 
 
+def dense(raw: Iterable[int]) -> list[int]:
+    """``raw`` sorted, renumbered from 1 without a gap, ties kept."""
+    values = sorted(raw)
+    distinct = sorted(set(values))
+    return [distinct.index(value) + 1 for value in values]
+
+
 def credit_for(p: dict[str, Any], value: list[int]) -> float:
     player = uuid4()
     parsed = ordering.parse_value(p, value)
@@ -159,7 +166,7 @@ def test_a_payload_in_answer_order_is_not_shown_in_answer_order() -> None:
     for seed in range(300):
         rng = random.Random(seed)
         count = rng.randint(3, 6)
-        ranks = sorted(rng.randint(1, 3) for _ in range(count))
+        ranks = dense(rng.randint(1, 3) for _ in range(count))
         if len(set(ranks)) == 1:
             continue
         p = {
@@ -253,9 +260,30 @@ def test_check_rejects_an_answer_that_is_not_every_entry_once() -> None:
 
 
 def test_check_rejects_a_payload_that_is_all_ties() -> None:
-    entries = [{"text": name, "rank": 2} for name in METALS[:3]]
+    entries = [{"text": name, "rank": 1} for name in METALS[:3]]
     assert ordering.check(payload(entries=entries, answer=[0, 1, 2])) == [
         "entries: every rank is the same, so any order is right"
+    ]
+
+
+def test_check_rejects_a_rank_no_entry_has() -> None:
+    def ranked(*ranks: int) -> dict[str, Any]:
+        entries = [
+            {**e, "rank": r} for e, r in zip(EXAMPLE["payload"]["entries"], ranks, strict=True)
+        ]
+        return payload(entries=entries)
+
+    assert ordering.check(ranked(1, 1, 3, 4, 5)) == ["entries: no entry has rank 2"]
+    assert ordering.check(ranked(2, 3, 4, 5, 6)) == ["entries: no entry has rank 1"]
+    assert ordering.check(ranked(1, 2, 4, 4, 6)) == ["entries: no entry has rank 3, 5"]
+
+
+def test_check_rejects_a_duplicate_rank_only_as_a_tie_it_cannot_play() -> None:
+    """Equal ranks are a tie, so a shared rank is refused only where it decides nothing."""
+    assert ordering.check(payload(entries=TIED["entries"], answer=[0, 1, 2, 3])) == []
+    entries = [{**e, "rank": 1 if i < 3 else 2} for i, e in enumerate(TIED["entries"])]
+    assert ordering.check({**TIED, "entries": entries, "picks": 2}) == [
+        "entries: the first 3 ranks tie, so any 2 of them in any order win"
     ]
 
 
@@ -299,7 +327,8 @@ def test_without_picks_a_misplaced_entry_earns_nothing() -> None:
 
 def test_with_picks_a_tie_at_the_cut_counts_as_picked() -> None:
     entries = copy.deepcopy(PICKED["entries"])
-    entries[3]["rank"] = 3
+    for entry, rank in zip(entries[3:], [3, 4, 5], strict=True):
+        entry["rank"] = rank
     tied = {**PICKED, "entries": entries}
     assert ordering.check(tied) == []
     either = ["Twisted bow", "Scythe of vitur", "Abyssal whip"]
@@ -324,7 +353,7 @@ def test_with_picks_the_shown_order_never_starts_with_the_answer(
         rng = random.Random(seed)
         count = rng.randint(3, 6)
         picks = rng.randint(2, count - 1)
-        ranks = sorted(rng.randint(1, 4) for _ in range(count))
+        ranks = dense(rng.randint(1, 4) for _ in range(count))
         p = {
             "prompt": f"Question {seed}",
             "ends": ["First", "Last"],
@@ -350,8 +379,8 @@ def test_check_rejects_picks_where_one_more_than_picked_all_tie() -> None:
         entries = [{**e, "rank": r} for e, r in zip(PICKED["entries"], ranks, strict=True)]
         return {**PICKED, "entries": entries, "picks": 2}
 
-    assert ordering.check(ranked(1, 2, 2, 2, 5, 6)) == []
-    assert ordering.check(ranked(2, 2, 2, 4, 5, 6)) == [
+    assert ordering.check(ranked(1, 2, 2, 2, 3, 4)) == []
+    assert ordering.check(ranked(1, 1, 1, 2, 3, 4)) == [
         "entries: the first 3 ranks tie, so any 2 of them in any order win"
     ]
 
@@ -386,7 +415,7 @@ def test_schema_rejects(mutate: Any, path: str) -> None:
 
 @pytest.fixture
 def ordering_round(app: FastAPI, client: TestClient) -> Iterator[str]:
-    """A round over ``ordering``, which no shipped mode plays yet."""
+    """A round of the one ``EXAMPLE`` question, so the shipped pack's draw cannot vary it."""
     name = "ordering_round"
     MODES[name] = Mode(id=name, types=frozenset({"ordering"}))
     question = {**EXAMPLE, "mode": name}

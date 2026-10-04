@@ -35,6 +35,7 @@ describe('hosts', () => {
     expect(hostOf('price_is_right').host.name).toBe('Grand Exchange Clerk')
     expect(hostOf('more_less').host.name).toBe('Ali Morrisane')
     expect(hostOf('guess_examine').host.name).toBe('The Examiner')
+    expect(hostOf('sort_it_out').host).toEqual({ id: 'historian_minas', name: 'Historian Minas' })
     expect(hostOf('custom').host).toEqual(INNKEEPER)
     expect(hostOf('random_events_only').host.id).toBe('crowned_frog')
   })

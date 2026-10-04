@@ -112,6 +112,18 @@ export const MODES: Record<string, Mode> = {
     // The examine line is the question; the list below it is only how you answer.
     stem: 'examine',
   },
+  sort_it_out: {
+    id: 'sort_it_out',
+    label: 'Sort It Out',
+    hint: 'Are you a skiller or a slacker?',
+    host: { id: 'historian_minas', name: 'Historian Minas' },
+    greeting: 'Welcome to the Varrock Museum. Mind the display cases.',
+    blurb: 'I have muddled up my exhibits again. Put them back in order before the curator notices.',
+    waiting: 'Take your time. History is not going anywhere.',
+    reveal: 'Let us check the records.',
+    // Each question says what it sorts by; the entries below it are only what gets sorted.
+    stem: 'text',
+  },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {
     id: 'random_events_only',
@@ -169,7 +181,6 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string; host: st
   { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.', host: 'nieve' },
   { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.', host: 'aris' },
   { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'dunce' },
-  { id: 'sort_it_out', label: 'Sort It Out', hint: 'Are you a skiller or a slacker?', host: 'historian_minas' },
   { id: 'who_said_that', label: 'Who Said That?', hint: 'Name the character behind the line.', host: 'cracked_jennys_tea_cup' },
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
   { id: 'clipped', label: 'Know Your Content Creator', hint: 'Are you sure you are a fan?', host: 'gnome_child' },
