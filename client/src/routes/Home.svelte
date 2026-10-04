@@ -42,6 +42,11 @@
   let now = $state(Date.now())
   let hosted = $state(createdRoomExpiries())
   let past = $state(pastGames())
+  /** Twenty games are kept, and a column that long buries what sits under it. */
+  const PAST_PAGE = 5
+  let pastPage = $state(0)
+  const pastPages = $derived(Math.ceil(past.length / PAST_PAGE))
+  const pastShown = $derived(past.slice(pastPage * PAST_PAGE, (pastPage + 1) * PAST_PAGE))
   const admin = hasAdminToken()
   const suggesting = maySuggest()
   let code = $state('')
@@ -118,6 +123,8 @@
     confirmingPast = null
     removePastGame(game)
     past = pastGames()
+    // Removing the last game on a page would otherwise leave an empty one showing.
+    pastPage = Math.max(0, Math.min(pastPage, Math.ceil(past.length / PAST_PAGE) - 1))
   }
 
   async function remove(room: string): Promise<void> {
@@ -278,7 +285,7 @@
       <section class="panel">
         <h2>Past games</h2>
         <ul class="players">
-          {#each past as game (historyPath(game))}
+          {#each pastShown as game (historyPath(game))}
             {@const place = placeIn(game)}
             <li>
               <span class="name">
@@ -307,6 +314,27 @@
             </li>
           {/each}
         </ul>
+        {#if pastPages > 1}
+          <nav class="paging" aria-label="Past games pages">
+            <button
+              type="button"
+              class="small"
+              disabled={pastPage === 0}
+              onclick={() => pastPage--}
+            >
+              Newer
+            </button>
+            <span class="when">Page {pastPage + 1} of {pastPages}</span>
+            <button
+              type="button"
+              class="small"
+              disabled={pastPage === pastPages - 1}
+              onclick={() => pastPage++}
+            >
+              Older
+            </button>
+          </nav>
+        {/if}
       </section>
     {/if}
 
@@ -404,6 +432,18 @@
 
   .place {
     font-weight: 600;
+  }
+
+  .paging {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .paging .when {
+    margin: 0;
   }
 
   .links {
