@@ -5,11 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { savePastGame } from '../lib/history'
+import { clearVocabCache } from '../lib/vocab'
 import Suggest from './Suggest.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getSuggestionAllowance: vi.fn(), sendSuggestion: vi.fn() }
+  return { ...real, getSuggestionAllowance: vi.fn(), sendSuggestion: vi.fn(), getVocab: vi.fn() }
 })
 
 const navigate = vi.fn()
@@ -22,9 +23,17 @@ async function type(label: string | RegExp, value: string): Promise<void> {
   await fireEvent.input(screen.getByLabelText(label), { target: { value } })
 }
 
+const ROSTER = [
+  { id: 4151, name: 'Abyssal whip' },
+  { id: 13263, name: 'Abyssal bludgeon' },
+  { id: 11802, name: 'Armadyl godsword' },
+]
+
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
+  clearVocabCache()
+  vi.mocked(api.getVocab).mockResolvedValue({ vocab: 'items', version: 'v', entries: ROSTER })
   vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 10, retry_at: null })
   vi.mocked(api.sendSuggestion).mockResolvedValue({ id: 'x' })
 })
@@ -49,7 +58,7 @@ describe('Suggest', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
-  it('sends an item under the player’s credit, and thanks them', async () => {
+  it('sends an item under the player’s credit, never shown, and thanks them', async () => {
     played()
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
@@ -58,17 +67,51 @@ describe('Suggest', () => {
     expect(screen.getByText(/Required: a name to credit/)).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
-    await type(/Item name/, ' Abyssal whip ')
+    const shown = screen.getByLabelText(/Show my name to players/) as HTMLInputElement
+    expect(shown.disabled).toBe(true)
+    expect(shown.checked).toBe(false)
+    expect(screen.getByText(/don't show who suggested an item/)).toBeTruthy()
+
+    await type(/Item name/, ' Ancient mace ')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByLabelText(/Show my name to players/))
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'item',
-      content: { name: 'Abyssal whip' },
+      content: { name: 'Ancient mace' },
       credit: 'AFKFisher',
-      credit_shown: true,
+      credit_shown: false,
     })
     await screen.findByRole('heading', { name: /on the innkeeper's desk/ })
+  })
+
+  it('lists the items already in the game, searchable, and refuses one of them', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
+    const roster = screen.getByRole('region', { name: 'Already in the game' })
+    await waitFor(() => expect(roster.querySelectorAll('li')).toHaveLength(3))
+    await fireEvent.input(screen.getByLabelText('Search the items already in the game'), {
+      target: { value: 'abys' },
+    })
+    const listed = [...roster.querySelectorAll('li')].map((li) => li.textContent)
+    expect(listed).toEqual(['Abyssal bludgeon', 'Abyssal whip'])
+
+    await type(/Item name/, 'abyssal WHIP ')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Already in the game.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+  })
+
+  it('previews an examine without the list to answer from', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /An examine line/ }))
+    await type(/The examine text/, 'Yuck, I don’t like cabbage.')
+    const preview = screen.getByRole('region', { name: 'Preview' })
+    expect(preview.textContent).toContain('Yuck, I don’t like cabbage.')
+    expect(preview.querySelector('[role="combobox"], input')).toBeNull()
+    expect(api.getVocab).not.toHaveBeenCalled()
   })
 
   it('writes a round’s question with no NPC, one type and its wiki page', async () => {
@@ -122,7 +165,7 @@ describe('Suggest', () => {
     )
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
-    await type(/Item name/, 'Abyssal whip')
+    await type(/Item name/, 'Ancient mace')
     await type('Your name', 'AFKFisher')
     vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 0, retry_at: null })
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))

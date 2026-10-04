@@ -551,9 +551,10 @@ key into them, so cleanup leaves it.
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus `mode` and `wiki`, an `examine` (line, name, wiki) or an `item`
-  (a name), with a `credit` held to the name rules and `credit_shown`. Pending, approved, rejected
-  or imported. A round not built yet takes questions; they wait in approved. The client offers
-  the form after a finished game; 10 an hour per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
+  (a name not on the roster), with a `credit` held to the name rules and `credit_shown`, never
+  true for an item. Pending, approved, rejected or imported. A round not built yet takes
+  questions; they wait in approved. The client offers the form after a finished game; 10 an hour
+  per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
 - `/api/admin/suggestions` lists, edits and moves them. Export downloads the playable approved ones
   and stamps `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
 

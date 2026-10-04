@@ -54,9 +54,9 @@ EXAMINE = {
 }
 ITEM = {
     "kind": "item",
-    "content": {"name": " Dragon warhammer "},
+    "content": {"name": " Ancient mace "},
     "credit": "Woox",
-    "credit_shown": True,
+    "credit_shown": False,
 }
 
 ADMIN_ROUTES = (
@@ -122,7 +122,7 @@ def test_each_kind_is_stored_as_pending_with_its_credit(client: TestClient) -> N
     rows = queue(client)["suggestions"]
     assert [row["kind"] for row in rows] == ["question", "question", "examine", "item"]
     assert [row["playable"] for row in rows] == [True, False, True, True]
-    assert rows[3]["content"] == {"name": "Dragon warhammer"}
+    assert rows[3]["content"] == {"name": "Ancient mace"}
     assert (rows[0]["credit"], rows[0]["credit_shown"]) == ("AFKFisher", True)
     assert queue(client)["counts"] == {"pending": 4, "approved": 0, "rejected": 0, "imported": 0}
 
@@ -160,6 +160,8 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(ITEM, name=""),
         _with(ITEM, name="x" * 81),
         _with(ITEM, name="Nul\x00"),
+        _with(ITEM, name=" abyssal WHIP "),
+        {**ITEM, "credit_shown": True},
     ],
 )
 def test_what_the_schema_refuses_is_a_422(client: TestClient, body: dict[str, Any]) -> None:
@@ -271,7 +273,7 @@ def test_export_holds_approved_playable_suggestions_in_creates_format(client: Te
             }
         ],
         "examines": [{**EXAMINE["content"], "credit": "AFKFisher", "credit_shown": False}],
-        "items": [{"name": "Dragon warhammer", "credit": "Woox", "credit_shown": True}],
+        "items": [{"name": "Ancient mace", "credit": "Woox", "credit_shown": False}],
     }
     approved = {row["id"]: row for row in queue(client, "approved")["suggestions"]}
     assert approved[unbuilt]["exported_at"] is None
@@ -282,14 +284,14 @@ def test_marking_imported_moves_only_what_was_exported(client: TestClient) -> No
     first = suggest(client, ITEM)
     approve(client, first)
     export(client)
-    later = suggest(client, _with(ITEM, name="Abyssal whip"))
+    later = suggest(client, _with(ITEM, name="Ahrim's hood"))
     approve(client, later)
     response = client.post("/api/admin/suggestions/imported", headers=BEARER, json={})
     assert response.json() == {"imported": 1}
     assert [row["id"] for row in queue(client, "imported")["suggestions"]] == [first]
     assert [row["id"] for row in queue(client, "approved")["suggestions"]] == [later]
     again = export(client, "imported")
-    assert again["items"] == [{"name": "Dragon warhammer", "credit": "Woox", "credit_shown": True}]
+    assert again["items"] == [{"name": "Ancient mace", "credit": "Woox", "credit_shown": False}]
     assert queue(client, "approved")["suggestions"][0]["exported_at"] is None
 
 
@@ -316,6 +318,16 @@ def test_an_edit_is_checked_and_must_be_exported_again(client: TestClient) -> No
         "/api/admin/suggestions/00000000-0000-0000-0000-000000000000", headers=BEARER, json=edited
     )
     assert missing.status_code == 404
+
+
+def test_an_edit_holds_an_item_to_the_same_rules(client: TestClient) -> None:
+    url = f"/api/admin/suggestions/{suggest(client, ITEM)}"
+    body = {"content": ITEM["content"], "credit": "Woox", "credit_shown": False}
+    assert client.put(url, headers=BEARER, json=body).status_code == 200
+    shown = client.put(url, headers=BEARER, json={**body, "credit_shown": True})
+    assert shown.status_code == 422, shown.text
+    on_roster = client.put(url, headers=BEARER, json={**body, "content": {"name": "Abyssal whip"}})
+    assert on_roster.status_code == 422, on_roster.text
 
 
 def test_reject_and_reopen(client: TestClient) -> None:

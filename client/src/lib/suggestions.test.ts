@@ -90,6 +90,9 @@ describe('the checks', () => {
     expect(itemProblem({ name: ' ' })).toMatch(/Required/)
     expect(itemProblem({ name: 'x'.repeat(81) })).toMatch(/At most 80/)
     expect(itemProblem({ name: 'Abyssal whip' })).toBeNull()
+    const roster = [{ id: 4151, name: 'Abyssal whip' }]
+    expect(itemProblem({ name: ' ABYSSAL whip' }, roster)).toBe('Already in the game.')
+    expect(itemProblem({ name: 'Abyssal dagger' }, roster)).toBeNull()
   })
 })
 

@@ -52,7 +52,7 @@ async def allowance(request: Request) -> dict[str, Any]:
 @router.post("", status_code=201)
 async def suggest(body: Suggestion, request: Request) -> dict[str, Any]:
     credit = normalize_name(body.credit)
-    content = suggestions.check(body.kind, body.content)
+    content = suggestions.check(body.kind, body.content, body.credit_shown)
     if not request.app.state.suggestions.allow(client_key(_host(request))):
         raise RateLimited("too many suggestions from this address, try again later")
     pool = await request.app.state.database()

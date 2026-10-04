@@ -4,8 +4,9 @@
  *
  * Three kinds. A `question` is what Create's editor writes, for a mode, with the wiki
  * page that proves it. An `examine` is a line for Guess the Examine and the name it
- * belongs to. An `item` is only a name: the import script finds its id. Every one carries
- * a credit, a name held to a display name's rules, and whether players may see it.
+ * belongs to. An `item` is only a name not on the roster yet: the import script finds its
+ * id. Every one carries a credit, a name held to a display name's rules, and whether
+ * players may see it, which an item's never may: its rounds name no author.
  *
  * The form shows only once this browser has finished a game. That is a courtesy, as
  * Create's room cap is, and clearing storage gets round it; the server's hourly limit is
@@ -19,6 +20,7 @@ import { MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
 import type { OpenQuestion } from './protocol'
 import { codePoints, definition, envelopeProperty, limit } from './questionSchema'
+import { fold, type VocabEntry } from './vocab'
 
 /** How many finished games this browser needs before it is offered the form. */
 export const SUGGEST_AFTER_GAMES = 1
@@ -167,7 +169,10 @@ export function examineProblems(
   }
 }
 
-export function itemProblem(content: ItemContent): string | null {
+/** `roster` is the `items` list, so a name already in the game is refused before it is sent. */
+export function itemProblem(content: ItemContent, roster: readonly VocabEntry[] = []): string | null {
+  const wanted = fold(content.name.trim())
+  if (roster.some((entry) => fold(entry.name) === wanted)) return 'Already in the game.'
   return textProblem(content.name, ITEM_NAME_MAX, 'the item’s name')
 }
 

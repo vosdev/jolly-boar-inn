@@ -6,12 +6,13 @@ A player who has finished a game may suggest one of three kinds of content:
   mode it is for and the wiki page that proves it. A round not built yet takes them too,
   so its pack is ready when it opens; such a suggestion waits in the queue until it is.
 - ``examine``: a line for Guess the Examine, the name it belongs to and its wiki page.
-- ``item``: an item name for the roster (``data/popular-items.json``). The import script
-  finds its id, so a player needs to know no more than the name.
+- ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
+  The import script finds its id, so a player needs to know no more than the name.
 
 Every suggestion carries a ``credit``, a name held to a display name's rules, and whether
-players may see it. Nothing here plays: an approved suggestion reaches a game only through
-an export, ``scripts/import_suggestions.py`` and a release, so packs stay in git.
+players may see it. An item's is kept but never shown: the rounds it feeds have no reveal
+that names a question's author. Nothing here plays: an approved suggestion reaches a game
+only through an export, ``scripts/import_suggestions.py`` and a release, so packs stay in git.
 
 Validation is the packs' own wherever a pack question results: the schema, the type's
 ``check`` and, for a built mode, the mode and NPC rules. Content the server stores goes
@@ -26,7 +27,7 @@ import asyncpg
 
 from app.errors import ApiError
 from app.modes import MODES
-from app.questions import schema, text
+from app.questions import schema, text, vocab
 from app.questions.types import TYPES
 
 Kind = Literal["question", "examine", "item"]
@@ -178,7 +179,22 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
     return content
 
 
-def check(kind: str, content: Any) -> dict[str, Any]:
+def _submission_errors(kind: str, content: dict[str, Any], shown: bool) -> list[str]:
+    # Not part of ``errors``: the import script reads an item already on the roster as one
+    # to skip, not one to refuse.
+    if kind != "item":
+        return []
+    found = []
+    if shown:
+        found.append("$.credit_shown: an item's credit is never shown to players")
+    roster = vocab.get("items")
+    names = {vocab.fold(entry.name) for entry in roster.entries} if roster else set()
+    if vocab.fold(content["name"]) in names:
+        found.append(f"$.name: {content['name']!r} is already on the roster")
+    return found
+
+
+def check(kind: str, content: Any, shown: bool) -> dict[str, Any]:
     """``content`` tidied, or ``BadSuggestion`` naming everything wrong with it.
 
     Checked again once tidied, so a name of only spaces is refused as empty.
@@ -186,7 +202,7 @@ def check(kind: str, content: Any) -> dict[str, Any]:
     found = errors(kind, content)
     if not found:
         content = tidy(kind, content)
-        found = errors(kind, content)
+        found = errors(kind, content) or _submission_errors(kind, content, shown)
     if found:
         raise BadSuggestion("; ".join(found))
     return content
@@ -248,7 +264,7 @@ async def edit(
     kind = await pool.fetchval("select kind from suggestions where id = $1", suggestion)
     if kind is None:
         raise SuggestionNotFound("no such suggestion")
-    content = check(kind, content)
+    content = check(kind, content, shown)
     row = await pool.fetchrow(
         "update suggestions set content = $2, credit = $3, credit_shown = $4, exported_at = null"
         f" where id = $1 returning {_COLUMNS}",

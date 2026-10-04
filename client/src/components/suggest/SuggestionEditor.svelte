@@ -5,11 +5,14 @@
    *
    * A question is Create's editor, held to the types its mode offers: an NPC's question
    * names its NPC, a round's names none and is previewed in its round. An examine is
-   * previewed as Guess the Examine shows it. An item is only a name, since the import
-   * script finds its id; nothing on the wiki is needed to check one.
+   * previewed as Guess the Examine shows it, stem only: its name joins the list only once
+   * it is imported. An item is only a name, since the import script finds its id; nothing
+   * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
+   * up an item the game already has; its credit is kept but cannot be shown.
    *
    * Nothing is red until the first Save, and Save hands back only a body the server takes.
    */
+  import { onMount } from 'svelte'
   import { get } from 'svelte/store'
 
   import type { CustomQuestion } from '../../lib/customQuestions'
@@ -28,6 +31,7 @@
     type SuggestionBody,
     type SuggestionContent,
   } from '../../lib/suggestions'
+  import { loadVocab, search, type VocabEntry } from '../../lib/vocab'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import QuestionStage from '../QuestionStage.svelte'
 
@@ -54,11 +58,21 @@
   // svelte-ignore state_referenced_locally
   let credit = $state(initial?.credit ?? get(profile)?.name ?? '')
   // svelte-ignore state_referenced_locally
-  let shown = $state(initial?.credit_shown ?? false)
+  let shown = $state(choice.kind !== 'item' && (initial?.credit_shown ?? false))
   let wiki = $state(start?.wiki ?? '')
   let name = $state(start?.name ?? '')
   let prompt = $state(start?.prompt ?? '')
   let attempted = $state(false)
+  let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
+  let rosterQuery = $state('')
+
+  onMount(() => {
+    if (choice.kind !== 'item') return
+    loadVocab('items').then(
+      (list) => (roster = list.entries),
+      () => (roster = 'failed'),
+    )
+  })
 
   const question: CustomQuestion | undefined =
     start?.type === undefined
@@ -72,7 +86,8 @@
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
   const examineErrors = $derived(examineProblems({ name, prompt, wiki }))
-  const itemError = $derived(itemProblem({ name }))
+  const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
+  const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
 
   function send(content: SuggestionContent): void {
     onsave({ kind: choice.kind, content, credit: credit.trim(), credit_shown: shown })
@@ -134,9 +149,15 @@
       {@render problem(creditError, show)}
     </div>
     <label class="check">
-      <input type="checkbox" bind:checked={shown} />
+      <input type="checkbox" bind:checked={shown} disabled={choice.kind === 'item'} />
       Show my name to players when this comes up in a game
     </label>
+    {#if choice.kind === 'item'}
+      <p class="note hint">
+        More or Less and The Price is Right don't show who suggested an item. The innkeeper
+        still sees your name.
+      </p>
+    {/if}
   </fieldset>
 {/snippet}
 
@@ -167,7 +188,7 @@
   />
 {:else}
   <div class="editor surface" role="group" aria-labelledby="{id}-title">
-    <div class="layout" class:single={choice.kind === 'item'}>
+    <div class="layout">
       <div class="fields">
         <h3 id="{id}-title">{choice.label}</h3>
         {#if choice.kind === 'examine'}
@@ -202,7 +223,35 @@
       {#if choice.kind === 'examine'}
         <section class="preview" aria-label="Preview">
           <p class="note">What players will see</p>
-          <QuestionStage question={examinePreview(prompt)} yourValue={null} onAnswer={() => {}} />
+          <QuestionStage
+            question={examinePreview(prompt)}
+            yourValue={null}
+            onAnswer={() => {}}
+            stemOnly
+          />
+        </section>
+      {:else}
+        <section class="roster" aria-labelledby="{id}-roster">
+          <h4 id="{id}-roster">Already in the game</h4>
+          <input
+            type="search"
+            aria-label="Search the items already in the game"
+            placeholder="Search"
+            bind:value={rosterQuery}
+          />
+          {#if roster === 'loading'}
+            <p class="note">Fetching the list…</p>
+          {:else if roster === 'failed'}
+            <p class="note">The list didn't load. An item the game has is still turned away.</p>
+          {:else if rosterFound.length === 0}
+            <p class="note">None of them match.</p>
+          {:else}
+            <ul>
+              {#each rosterFound as entry (entry.id)}
+                <li>{entry.name}</li>
+              {/each}
+            </ul>
+          {/if}
         </section>
       {/if}
     </div>
@@ -222,10 +271,6 @@
     grid-template-columns: 3fr 2fr;
     gap: 1.25rem;
     align-items: start;
-  }
-
-  .layout.single {
-    grid-template-columns: minmax(0, 32rem);
   }
 
   .fields {
@@ -279,5 +324,38 @@
 
   .preview > .note {
     margin: 0 0 0.5rem;
+  }
+
+  .roster {
+    min-width: 0;
+  }
+
+  .roster h4 {
+    margin: 0 0 0.5rem;
+  }
+
+  .roster input {
+    width: 100%;
+  }
+
+  /* The fields beside it set the height; the list scrolls inside that rather than
+     stretching the editor to every item on the roster. */
+  .roster ul {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    max-height: 20rem;
+    overflow-y: auto;
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 8px);
+    background: var(--panel);
+  }
+
+  .roster li {
+    padding: 0.3rem 0.7rem;
+  }
+
+  .roster li + li {
+    border-top: var(--border-width) solid var(--line);
   }
 </style>
