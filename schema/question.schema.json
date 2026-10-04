@@ -171,7 +171,7 @@
             "additionalProperties": false,
             "properties": {
               "text": { "$ref": "#/$defs/short_text" },
-              "rank": { "$comment": "Lower comes first; equal ranks tie.", "type": "integer", "minimum": 1, "maximum": 6 },
+              "rank": { "$comment": "Lower comes first; equal ranks tie, and the next rank follows without a gap.", "type": "integer", "minimum": 1, "maximum": 6 },
               "detail": { "$comment": "Shown beside the entry in the reveal.", "type": "string", "minLength": 1, "maxLength": 40 }
             }
           }

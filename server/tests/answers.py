@@ -24,10 +24,15 @@ def _one_swapped(payload: dict[str, Any]) -> list[int]:
     return sorted([*right[:-1], wrong])
 
 
-def _ends_swapped(payload: dict[str, Any]) -> list[int]:
-    # The first and last places hold the lowest and highest rank, which never tie.
-    right = ordering.reveal(payload)["answer"]
-    return [right[-1], *right[1:-1], right[0]]
+def _rotated_past_ties(payload: dict[str, Any]) -> list[int]:
+    # Rotated by its largest tie, the right order moves every rank off its place, so a round
+    # can expect no points; that holds wherever the entries number twice that tie or more.
+    # The first place is always wrong, so it grades below 1.0 even then, picks or not.
+    shown = ordering.reveal(payload)
+    right = shown["answer"]
+    ranks = [shown["entries"][index]["rank"] for index in right]
+    tie = max(ranks.count(rank) for rank in ranks)
+    return (right[tie:] + right[:tie])[: ordering.places(payload)]
 
 
 def _another_entry(payload: dict[str, Any]) -> int:
@@ -61,7 +66,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "closest_number": lambda payload: payload["answer"] + 1,
     "free_text": _nothing_like_it,
     "pick_all_that_apply": _one_swapped,
-    "ordering": _ends_swapped,
+    "ordering": _rotated_past_ties,
 }
 
 

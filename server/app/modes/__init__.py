@@ -38,6 +38,7 @@ MODES: dict[str, Mode] = {
     "more_less": Mode(id="more_less", types=frozenset({"more_less"})),
     "price_is_right": Mode(id="price_is_right", types=frozenset({"price_is_right"})),
     "guess_examine": Mode(id="guess_examine", types=frozenset({"pick_from_list"})),
+    "sort_it_out": Mode(id="sort_it_out", types=frozenset({"ordering"})),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",

@@ -320,6 +320,12 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "seconds": {"default": 20, "min": 10, "max": 60},
         },
         {
+            "id": "sort_it_out",
+            "types": ["ordering"],
+            "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 25, "min": 10, "max": 45},
+        },
+        {
             # Never a round, so no round length; its questions carry and pace by their types.
             "id": "custom",
             "types": [],

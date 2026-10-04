@@ -1,0 +1,272 @@
+{
+  "pack": "sort_it_out",
+  "questions": [
+    {
+      "id": "q_cc2bd81ed7fe3ba4",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort the gems by required crafting level, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Sapphire",
+            "rank": 1,
+            "detail": "Level 20"
+          },
+          {
+            "text": "Emerald",
+            "rank": 2,
+            "detail": "Level 27"
+          },
+          {
+            "text": "Ruby",
+            "rank": 3,
+            "detail": "Level 34"
+          },
+          {
+            "text": "Diamond",
+            "rank": 4,
+            "detail": "Level 43"
+          },
+          {
+            "text": "Dragonstone",
+            "rank": 5,
+            "detail": "Level 55"
+          },
+          {
+            "text": "Onyx",
+            "rank": 6,
+            "detail": "Level 67"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Cutting a sapphire takes 20 Crafting, an emerald 27, a ruby 34, a diamond 43, a dragonstone 55 and an onyx 67."
+      }
+    },
+    {
+      "id": "q_ad8a424e2320f594",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort the metals by required attack level, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Iron",
+            "rank": 1,
+            "detail": "Level 1"
+          },
+          {
+            "text": "Steel",
+            "rank": 2,
+            "detail": "Level 5"
+          },
+          {
+            "text": "Black",
+            "rank": 3,
+            "detail": "Level 10"
+          },
+          {
+            "text": "White",
+            "rank": 3,
+            "detail": "Level 10"
+          },
+          {
+            "text": "Mithril",
+            "rank": 4,
+            "detail": "Level 20"
+          },
+          {
+            "text": "Adamant",
+            "rank": 5,
+            "detail": "Level 30"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Iron needs no Attack at all and steel needs 5. Black and white both need 10, so either may come first. Mithril needs 20 and adamant 30."
+      }
+    },
+    {
+      "id": "q_6a884d6b2ce283ff",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "payload": {
+        "prompt": "Sort these monsters by combat level, lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Obor",
+            "rank": 1,
+            "detail": "Level 106"
+          },
+          {
+            "text": "Giant Mole",
+            "rank": 2,
+            "detail": "Level 230"
+          },
+          {
+            "text": "King Black Dragon",
+            "rank": 3,
+            "detail": "Level 276"
+          },
+          {
+            "text": "General Graardor",
+            "rank": 4,
+            "detail": "Level 624"
+          },
+          {
+            "text": "Vorkath",
+            "rank": 5,
+            "detail": "Level 732"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Vorkath is level 732 on Ungael. The one you meet during Dragon Slayer II is only 392."
+      }
+    },
+    {
+      "id": "q_567236348aeeeb87",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "Sort these quests by release date, from oldest to newest.",
+        "ends": [
+          "Oldest",
+          "Newest"
+        ],
+        "entries": [
+          {
+            "text": "Monkey Madness II",
+            "rank": 1,
+            "detail": "6 May 2016"
+          },
+          {
+            "text": "Dragon Slayer II",
+            "rank": 2,
+            "detail": "4 January 2018"
+          },
+          {
+            "text": "Song of the Elves",
+            "rank": 3,
+            "detail": "25 July 2019"
+          },
+          {
+            "text": "Sins of the Father",
+            "rank": 4,
+            "detail": "4 June 2020"
+          },
+          {
+            "text": "Desert Treasure II",
+            "rank": 5,
+            "detail": "26 July 2023"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Monkey Madness II came out on 6 May 2016, Dragon Slayer II on 4 January 2018, Song of the Elves on 25 July 2019, Sins of the Father on 4 June 2020 and Desert Treasure II on 26 July 2023."
+      }
+    },
+    {
+      "id": "q_455035bb99374299",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "Sort this free-to-play content by release date, from oldest to newest.",
+        "ends": [
+          "Oldest",
+          "Newest"
+        ],
+        "entries": [
+          {
+            "text": "Misthalin Mystery",
+            "rank": 1,
+            "detail": "26 January 2017"
+          },
+          {
+            "text": "The Corsair Curse",
+            "rank": 2,
+            "detail": "7 December 2017"
+          },
+          {
+            "text": "Bryophyta",
+            "rank": 3,
+            "detail": "3 May 2018"
+          },
+          {
+            "text": "X Marks the Spot",
+            "rank": 4,
+            "detail": "7 February 2019"
+          },
+          {
+            "text": "Below Ice Mountain",
+            "rank": 5,
+            "detail": "14 April 2021"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Misthalin Mystery came out on 26 January 2017, The Corsair Curse on 7 December 2017, the moss giant boss Bryophyta on 3 May 2018, X Marks the Spot on 7 February 2019 and Below Ice Mountain on 14 April 2021."
+      }
+    }
+  ]
+}
