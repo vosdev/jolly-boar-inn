@@ -320,7 +320,7 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
 
 - Each browser saves the final standings in `jbi:history` (newest 20) on `game_finished`, or on a
   `welcome` into a finished room: the grace is for the phone that slept through the end. Home
-  lists them under Past games, where each can be removed. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
+  lists them under Past games, five to a page, where each can be removed. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
   for that code, if any.
 
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable.

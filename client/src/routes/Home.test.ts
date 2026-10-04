@@ -411,6 +411,68 @@ describe("Past games", () => {
     render(Home, { navigate });
     expect(screen.queryByRole("heading", { name: "Past games" })).toBeNull();
   });
+
+  describe("paging", () => {
+    function file(count: number): void {
+      for (let minute = 1; minute <= count; minute++) {
+        savePastGame({
+          code: `ROOM${String(minute).padStart(2, "0")}`,
+          finishedAt: new Date(Date.UTC(2026, 9, 1, 20, minute)).toISOString(),
+          standings: [],
+          youId: null,
+        });
+      }
+    }
+
+    const section = (): HTMLElement =>
+      screen.getByRole("heading", { name: "Past games" }).closest("section")!;
+    const shown = (): string[] =>
+      within(section())
+        .getAllByText(/^ROOM\d+$/)
+        .map((node) => node.textContent!);
+
+    it("shows the newest five, with no controls when they all fit", () => {
+      file(5);
+      render(Home, { navigate });
+      expect(shown()).toEqual(["ROOM05", "ROOM04", "ROOM03", "ROOM02", "ROOM01"]);
+      expect(within(section()).queryByRole("navigation")).toBeNull();
+    });
+
+    it("steps back a page when the last game on it is removed", async () => {
+      file(6);
+      render(Home, { navigate });
+      await fireEvent.click(within(section()).getByRole("button", { name: "Older" }));
+      expect(shown()).toEqual(["ROOM01"]);
+      await fireEvent.click(
+        within(section()).getByRole("button", { name: "Remove ROOM01 from past games" }),
+      );
+      await fireEvent.click(
+        within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }),
+      );
+      expect(shown()).toEqual(["ROOM06", "ROOM05", "ROOM04", "ROOM03", "ROOM02"]);
+      expect(within(section()).queryByRole("navigation")).toBeNull();
+    });
+
+    it("steps through older games and back, and stops at either end", async () => {
+      file(12);
+      render(Home, { navigate });
+      const newer = (): HTMLButtonElement =>
+        within(section()).getByRole("button", { name: "Newer" });
+      const older = (): HTMLButtonElement =>
+        within(section()).getByRole("button", { name: "Older" });
+      expect(within(section()).getByText("Page 1 of 3")).toBeTruthy();
+      expect(shown()).toEqual(["ROOM12", "ROOM11", "ROOM10", "ROOM09", "ROOM08"]);
+      expect(newer().disabled).toBe(true);
+      await fireEvent.click(older());
+      expect(shown()).toEqual(["ROOM07", "ROOM06", "ROOM05", "ROOM04", "ROOM03"]);
+      await fireEvent.click(older());
+      expect(shown()).toEqual(["ROOM02", "ROOM01"]);
+      expect(within(section()).getByText("Page 3 of 3")).toBeTruthy();
+      expect(older().disabled).toBe(true);
+      await fireEvent.click(newer());
+      expect(within(section()).getByText("Page 2 of 3")).toBeTruthy();
+    });
+  });
 });
 
 describe("Suggest a question", () => {
