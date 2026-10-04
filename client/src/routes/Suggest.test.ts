@@ -129,7 +129,7 @@ describe('Suggest', () => {
     expect(screen.getByText(/Required: the page you checked it on/)).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
-    await type('Wiki page that proves it', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',

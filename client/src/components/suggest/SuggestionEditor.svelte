@@ -126,7 +126,7 @@
 
 {#snippet wikiField(show: boolean)}
   <div class="field">
-    <label for="{id}-wiki">Wiki page that proves it</label>
+    <label for="{id}-wiki">Relevant Wiki page</label>
     <input
       id="{id}-wiki"
       type="text"
@@ -134,7 +134,7 @@
       placeholder="https://oldschool.runescape.wiki/w/…"
       bind:value={wiki}
     />
-    <p class="note hint">The innkeeper checks every suggestion against it. Players never see it.</p>
+    <p class="note hint">All submissions are fact-checked by the innkeeper against the OSRS wiki.</p>
     {@render problem(wikiError, show)}
   </div>
 {/snippet}
@@ -154,7 +154,7 @@
     </label>
     {#if choice.kind === 'item'}
       <p class="note hint">
-        More or Less and The Price is Right don't show who suggested an item. The innkeeper
+        More or Less and The Price is Right do not support displaying the author of a question. The innkeeper
         still sees your name.
       </p>
     {/if}

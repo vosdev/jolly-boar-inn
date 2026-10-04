@@ -157,7 +157,7 @@
 
       {#if draft.type === 'multiple_choice'}
         <fieldset class="field">
-          <legend>Answers, with the right one marked</legend>
+          <legend>Possible answers, with the correct one selected.</legend>
           {#each draft.options as _, index (index)}
             <div class="option">
               <input
@@ -245,7 +245,7 @@
       {/if}
 
       <div class="field">
-        <label for="{id}-explanation">Explanation shown after, if any</label>
+        <label for="{id}-explanation">Explanation shown after the question finished.</label>
         <textarea id="{id}-explanation" rows="2" bind:value={draft.explanation}></textarea>
         <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
         {@render errors('payload.explanation')}
