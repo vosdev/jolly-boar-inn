@@ -43,7 +43,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "drop_table": _CHOICE,
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
-    "clipped": _CHOICE,
+    "know_your_content_creator": _CHOICE,
 }
 
 EXAMINE_MODE = "guess_examine"

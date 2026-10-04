@@ -1,0 +1,111 @@
+{
+  "pack": "know_your_content_creator",
+  "questions": [
+    {
+      "id": "q_a1e3ebfe19208442",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "payload": {
+        "prompt": "Whose video series opens with these words?",
+        "quote": "Forge my own journey from scratch.",
+        "options": [
+          "B0aty",
+          "Settled",
+          "Solo Mission",
+          "Framed"
+        ],
+        "answer_index": 1,
+        "explanation": "Settled's Swampletics, an Ultimate Ironman who never left Morytania."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Soggy_journal"
+    },
+    {
+      "id": "q_679b3fd2f4b79986",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Adam, the Ironman tutor in Lumbridge, had his hair dyed purple after which creator did the same for charity?",
+        "options": [
+          "Settled",
+          "Solo Mission",
+          "B0aty",
+          "C Engineer"
+        ],
+        "answer_index": 2,
+        "explanation": "B0aty, known for their Ironman videos. Adam is a nod to them."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ironman_tutor"
+    },
+    {
+      "id": "q_0797f6e67083fde3",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "The tick-perfect way to keep hitting Vorkath while dodging his dragonfire is named after which player?",
+        "options": [
+          "Odablock",
+          "Torvesta",
+          "B0aty",
+          "Woox"
+        ],
+        "answer_index": 3,
+        "explanation": "The Woox Walk, named after the player who devised it."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath/Strategies"
+    },
+    {
+      "id": "q_794436f314d8b1b3",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "In Deadman Mansions, who captained TeamLUL?",
+        "options": [
+          "Faux",
+          "B0aty",
+          "Torvesta",
+          "Sick Nerd"
+        ],
+        "answer_index": 0,
+        "explanation": "Faux. B0aty captained TeamCBS, and Torvesta and Sick Nerd played under Faux."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Mansions"
+    },
+    {
+      "id": "q_06e05e70b5dfb4df",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Who was the guest on the seventh episode of the Official OSRS Podcast?",
+        "options": [
+          "Torvesta",
+          "Solo Mission",
+          "Settled",
+          "Woox"
+        ],
+        "answer_index": 1,
+        "explanation": "Solo Mission, in 2025. B0aty followed in episode 8."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/2025"
+    }
+  ]
+}

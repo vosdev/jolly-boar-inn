@@ -61,7 +61,7 @@ export interface Mode extends HostLines {
  * item, Who Said That? a line in a chatbox. Each id is one component under
  * `components/questions/stems/`, and a new one lands with the first mode that needs it.
  */
-export type StemId = 'text' | 'asset' | 'examine' | 'more_less' | 'price'
+export type StemId = 'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price'
 
 /** The inn's own: the host's questions, and any round this build has no host for. */
 export const INNKEEPER: Host = { id: 'innkeeper', name: 'The Innkeeper' }
@@ -124,6 +124,29 @@ export const MODES: Record<string, Mode> = {
     // Each question says what it sorts by; the entries below it are only what gets sorted.
     stem: 'text',
   },
+  who_said_that: {
+    id: 'who_said_that',
+    label: 'Who Said That?',
+    hint: 'Name the character behind the line.',
+    host: { id: 'cracked_jennys_tea_cup', name: "Cracked Jenny's Tea Cup" },
+    greeting: 'Squawk! Who said that? Who said that?',
+    blurb: 'I repeat everything I hear. Tell me who said it first.',
+    waiting: 'Pretty Polly waits. Pretty Polly waits.',
+    reveal: 'Squawk! The answer!',
+    stem: 'quote',
+  },
+  know_your_content_creator: {
+    id: 'know_your_content_creator',
+    label: 'Know Your Content Creator',
+    hint: 'Are you sure you are a fan?',
+    host: { id: 'gnome_child', name: 'Gnome child' },
+    greeting: 'Do you ever think about what it means to watch someone else play?',
+    blurb: 'Streamers say things, and things are said about streamers. Show me what you know.',
+    waiting: 'Time is a construct. So is waiting.',
+    reveal: 'Now you know. Or always knew.',
+    // Quotes and plain trivia share the round; the stem tells them apart by `quote`.
+    stem: 'quote',
+  },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {
     id: 'random_events_only',
@@ -181,9 +204,7 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string; host: st
   { id: 'drop_table', label: 'Drop Table', hint: 'Ironmen should know this.', host: 'nieve' },
   { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.', host: 'aris' },
   { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'dunce' },
-  { id: 'who_said_that', label: 'Who Said That?', hint: 'Name the character behind the line.', host: 'cracked_jennys_tea_cup' },
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
-  { id: 'clipped', label: 'Know Your Content Creator', hint: 'Are you sure you are a fan?', host: 'gnome_child' },
   { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!', host: 'aubury' },
   { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?', host: 'captain_errdo' },
 ]

@@ -28,6 +28,10 @@
       "$comment": "Where an author checked the question, for the next author. Never sent to players.",
       "type": "string", "maxLength": 300, "pattern": "^https://oldschool\\.runescape\\.wiki/w/\\S+$"
     },
+    "source_url": {
+      "$comment": "Where an author checked what the wiki cannot prove, such as a clip. Never sent to players.",
+      "type": "string", "maxLength": 300, "pattern": "^https://\\S+$"
+    },
     "credit": {
       "$comment": "The player who suggested it, under the name rules of a display name.",
       "type": "string", "minLength": 1, "maxLength": 24
@@ -125,6 +129,10 @@
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
         "intro": { "$ref": "#/$defs/intro" },
+        "quote": {
+          "$comment": "Words someone said, shown as a quotation under the prompt that asks about them.",
+          "type": "string", "minLength": 1, "maxLength": 300
+        },
         "image": { "$ref": "#/$defs/asset" },
         "options": { "$ref": "#/$defs/choices", "items": { "$ref": "#/$defs/short_text" } },
         "answer_index": { "type": "integer", "minimum": 0, "maximum": 5 },

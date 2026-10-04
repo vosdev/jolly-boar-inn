@@ -79,8 +79,20 @@ export interface Choice {
   types: readonly CustomType[]
 }
 
-/** Rounds still to be built that take four-button questions: `QUESTION_MODES` on the server. */
-const CHOICE_ROUNDS = ['bestiary', 'drop_table', 'odd_one_out', 'who_said_that', 'clipped']
+/** Rounds that take four-button questions, built or not: `QUESTION_MODES` on the server. */
+const CHOICE_ROUNDS = [
+  'bestiary',
+  'drop_table',
+  'odd_one_out',
+  'who_said_that',
+  'know_your_content_creator',
+]
+
+function choiceRound(id: string): { id: string; label: string; hint: string; host: string } | undefined {
+  const built = MODES[id]
+  if (built !== undefined) return { id, label: built.label, hint: built.hint, host: built.host.id }
+  return UPCOMING_MODES.find((mode) => mode.id === id)
+}
 
 export const CHOICES: readonly Choice[] = [
   {
@@ -107,7 +119,7 @@ export const CHOICES: readonly Choice[] = [
     host: 'sandwich_lady',
     types: CUSTOM_TYPES,
   },
-  ...UPCOMING_MODES.filter((mode) => CHOICE_ROUNDS.includes(mode.id)).map(
+  ...CHOICE_ROUNDS.map(choiceRound).filter((mode) => mode !== undefined).map(
     (mode): Choice => ({
       id: mode.id,
       kind: 'question',

@@ -44,7 +44,7 @@ describe('the choices', () => {
       'drop_table',
       'odd_one_out',
       'who_said_that',
-      'clipped',
+      'know_your_content_creator',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
     expect(CHOICES.find((c) => c.id === 'random_event')?.types).toEqual([

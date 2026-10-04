@@ -38,6 +38,8 @@ describe('hosts', () => {
     expect(hostOf('sort_it_out').host).toEqual({ id: 'historian_minas', name: 'Historian Minas' })
     expect(hostOf('custom').host).toEqual(INNKEEPER)
     expect(hostOf('random_events_only').host.id).toBe('crowned_frog')
+    expect(hostOf('who_said_that').host.id).toBe('cracked_jennys_tea_cup')
+    expect(hostOf('know_your_content_creator').host.id).toBe('gnome_child')
   })
 
   it('has a mode still being built presented by its host-to-be, in the generic lines', () => {

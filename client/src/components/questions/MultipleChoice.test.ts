@@ -10,6 +10,7 @@ import type { OpenQuestion } from '../../lib/protocol'
 import { GEMS } from './GemButton.svelte'
 import { viewFor } from './index'
 import Question from './Question.svelte'
+import QuoteStem from './stems/QuoteStem.svelte'
 import TextStem from './stems/TextStem.svelte'
 import MultipleChoice from './types/MultipleChoice.svelte'
 
@@ -20,13 +21,17 @@ const VIEW = {
 
 const REVEAL = { ...VIEW, answer_index: 0, explanation: 'One of Zulrah’s uniques.' }
 
-function open(youCanAnswer = true, view: typeof VIEW = VIEW): OpenQuestion {
+function open(
+  youCanAnswer = true,
+  view: Record<string, unknown> = VIEW,
+  mode = 'custom',
+): OpenQuestion {
   return {
     question_id: 'q1',
     index: 3,
     total: 10,
     type: 'multiple_choice',
-    mode: 'custom',
+    mode,
     // The round it interrupts. `RandomEvent` draws the NPC around this; the question is this.
     segment: { mode: 'more_less', index: 1, total: 3, start: 2, count: 5 },
     view,
@@ -109,5 +114,40 @@ describe('multiple_choice', () => {
     })
     expect(screen.getAllByRole('button')[0]!.classList.contains('correct')).toBe(true)
     expect(document.querySelector('.explanation')).toBeNull()
+  })
+})
+
+describe('multiple_choice in a quote round', () => {
+  const QUOTE = { prompt: 'Who said this?', quote: 'What am I to do?', options: ['Cook', 'Hans'] }
+
+  it('is drawn by the quote stem for both quote rounds', () => {
+    for (const mode of ['who_said_that', 'know_your_content_creator']) {
+      expect(viewFor('multiple_choice', mode)).toEqual({ stem: QuoteStem, view: MultipleChoice })
+    }
+  })
+
+  it('sets the quote apart below the prompt, above the options', () => {
+    render(Question, {
+      question: open(true, QUOTE, 'who_said_that'),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    const quote = screen.getByText('What am I to do?')
+    expect(quote.tagName).toBe('BLOCKQUOTE')
+    expect(screen.getByText('Who said this?').tagName).toBe('FIGCAPTION')
+    expect(quote.compareDocumentPosition(screen.getByText('Cook'))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+  })
+
+  it('asks a question without a quote as plain text', () => {
+    const { quote: _, ...trivia } = QUOTE
+    render(Question, {
+      question: open(true, trivia, 'know_your_content_creator'),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(screen.getByText('Who said this?').tagName).toBe('P')
+    expect(document.querySelector('blockquote')).toBeNull()
   })
 })

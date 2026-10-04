@@ -1,0 +1,115 @@
+{
+  "pack": "who_said_that",
+  "questions": [
+    {
+      "id": "q_d73886de3961d116",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "What am I to do?",
+        "options": [
+          "Cook",
+          "Hans",
+          "Duke Horacio",
+          "Father Aereck"
+        ],
+        "answer_index": 0,
+        "explanation": "The Lumbridge Cook, who needs an egg, milk and flour for the Duke's birthday cake."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Cook%27s_Assistant"
+    },
+    {
+      "id": "q_e8577cbcb40b10c5",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "By Guthix! THAT was good pie! Anyone who makes pie like THAT has got to be alright!",
+        "options": [
+          "Romily Weaklax",
+          "Thurgo",
+          "Doric",
+          "Wise Old Man"
+        ],
+        "answer_index": 1,
+        "explanation": "Thurgo, the Imcando dwarf, once you bring him a redberry pie in The Knight's Sword."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:The_Knight%27s_Sword"
+    },
+    {
+      "id": "q_963d6423c72acca1",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Seriously, you'll be a monkey's uncle before you'll ever hold a dragon scimitar.",
+        "options": [
+          "Daga",
+          "King Awowogei",
+          "Zeke",
+          "Monkey Child"
+        ],
+        "answer_index": 2,
+        "explanation": "Zeke, of Al Kharid's scimitar shop, when asked about dragon scimitars."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zeke"
+    },
+    {
+      "id": "q_5ff3cd895b2af5a7",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Do you seek passage to holy Entrana? If so, you must leave your weaponry and armour behind. This is Saradomin's will.",
+        "options": [
+          "Brother Jered",
+          "Captain Tobias",
+          "Drezel",
+          "Monk of Entrana"
+        ],
+        "answer_index": 3,
+        "explanation": "The Monks of Entrana, on the docks at Port Sarim."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Monk_of_Entrana"
+    },
+    {
+      "id": "q_1eca4030f7be7fad",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Welcome adventurer, to the world renowned Wizards' Tower, home to the Order of Wizards.",
+        "options": [
+          "Archmage Sedridor",
+          "Wizard Traiborn",
+          "Aubury",
+          "Wizard Mizgog"
+        ],
+        "answer_index": 0,
+        "explanation": "Archmage Sedridor, in the Wizards' Tower basement, during Rune Mysteries."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Rune_Mysteries"
+    }
+  ]
+}

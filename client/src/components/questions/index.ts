@@ -25,6 +25,7 @@ import AssetStem from './stems/AssetStem.svelte'
 import ExamineStem from './stems/ExamineStem.svelte'
 import MoreLessStem from './stems/MoreLessStem.svelte'
 import PriceStem from './stems/PriceStem.svelte'
+import QuoteStem from './stems/QuoteStem.svelte'
 import TextStem from './stems/TextStem.svelte'
 import ClosestNumber from './types/ClosestNumber.svelte'
 import FreeText from './types/FreeText.svelte'
@@ -52,6 +53,7 @@ export const STEMS: Record<StemId, Component<StemProps>> = {
   text: TextStem,
   asset: AssetStem,
   examine: ExamineStem,
+  quote: QuoteStem,
   more_less: MoreLessStem,
   price: PriceStem,
 }
