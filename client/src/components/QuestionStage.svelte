@@ -130,20 +130,30 @@
 {/if}
 
 <style>
-  /* The foot of the sheet, one line of points tall whether or not they are in yet. */
+  /* The foot of the sheet, two host lines tall whatever is on it yet: a waiting line that
+     wraps would otherwise grow the sheet, and the shorter reveal line shrink it again. */
   .said {
+    --line-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
     margin-top: auto;
     padding-top: 0.2rem;
-    min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+    min-height: calc(0.2rem + 2 * 1.5 * var(--line-size));
+  }
+
+  /* The points keep their width, so the host's line is what wraps; a squeezed
+     "No answer · +0" would break onto a second line and grow the foot. */
+  .said > :global(.slot) {
+    flex: none;
+    white-space: nowrap;
   }
 
   .line {
     margin: 0;
-    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
+    font-size: var(--line-size);
+    line-height: 1.5;
     font-style: italic;
   }
 

@@ -1,7 +1,9 @@
 /**
  * The lines under a reveal. The count always, and one per partial-credit band that
  * anyone reached; the names of who got it wrong only when the host asked for them, and
- * never a player who came within 70% or did not answer.
+ * never a player who came within 70% or did not answer. A closest-number question counts
+ * its bands as ranks, since its credit is a rank and not how near the guess was, and a
+ * pick-all-that-apply question its right picks.
  */
 
 import { render } from '@testing-library/svelte'
@@ -32,8 +34,21 @@ const partly = (credit: number): PlayerResult => ({
 const lines = (container: HTMLElement) =>
   [...container.querySelectorAll('.count')].map((p) => p.textContent?.replace(/\s+/g, ' ').trim())
 
-function draw(results: Record<string, PlayerResult>, showNames: boolean, youId = 'a') {
-  return render(RevealTally, { results, nameOf, youId, showNames })
+function draw(
+  results: Record<string, PlayerResult>,
+  showNames: boolean,
+  youId = 'a',
+  type = 'multiple_choice',
+  reveal: Record<string, unknown> = {},
+) {
+  return render(RevealTally, { type, reveal, results, nameOf, youId, showNames })
+}
+
+/** A pick-all answer graded as the server does: right picks over right or picked. */
+const picks = (answer: number[], value: number[]): PlayerResult => {
+  const hits = value.filter((index) => answer.includes(index)).length
+  const credit = hits / new Set([...answer, ...value]).size
+  return { value, correct: credit === 1, credit, points: Math.round(900 * credit) }
 }
 
 describe('RevealTally', () => {
@@ -92,6 +107,93 @@ describe('RevealTally', () => {
     const { container } = draw({ a: partly(0.7), b: partly(0.69), c: wrong, d: right() }, true)
     expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       'Got it wrong: Lynx, Woox',
+    )
+  })
+
+  it('counts a closest-number guess by its rank, not as a share right', () => {
+    const { container } = draw(
+      {
+        a: right(1000),
+        b: partly(0.9),
+        c: partly(0.8),
+        d: partly(0.7),
+        e: partly(0.7),
+        f: wrong,
+      },
+      false,
+      'a',
+      'closest_number',
+    )
+    expect(lines(container)).toEqual([
+      '1 of 6 guessed it exactly',
+      '1 of 6 was closest',
+      '1 of 6 was second closest',
+      '2 of 6 were third closest',
+    ])
+    expect(container.textContent).not.toContain('%')
+  })
+
+  it('names as wrong a closest-number guess off the podium', () => {
+    const { container } = draw({ a: partly(0.9), b: wrong }, true, 'a', 'closest_number')
+    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Got it wrong: Woox',
+    )
+  })
+
+  it('counts a pick-all answer by its right picks, with picks set', () => {
+    const answer = [0, 1, 2, 3]
+    const { container } = draw(
+      {
+        a: picks(answer, [0, 1, 4, 5]),
+        b: picks(answer, [0, 1, 2, 3]),
+        c: picks(answer, [0, 1, 2, 4]),
+        d: picks(answer, [1, 2, 4, 5]),
+        e: picks(answer, [0, 1, 2, 5]),
+      },
+      false,
+      'a',
+      'pick_all_that_apply',
+      { options: ['a', 'b', 'c', 'd', 'e', 'f'], answer_indices: answer, picks: 4 },
+    )
+    expect(lines(container)).toEqual([
+      '1 of 5 got it right',
+      '2 of 5 got 3 of 4 right',
+      '2 of 5 got 2 of 4 right',
+    ])
+  })
+
+  it('says how many a pick-all answer got wrong when any number could be picked', () => {
+    const answer = [0, 2]
+    const { container } = draw(
+      {
+        a: picks(answer, [0, 1, 2]),
+        b: picks(answer, [0]),
+        c: picks(answer, [0, 1, 2, 3]),
+      },
+      false,
+      'a',
+      'pick_all_that_apply',
+      { options: ['a', 'b', 'c', 'd'], answer_indices: answer },
+    )
+    expect(lines(container)).toEqual([
+      '0 of 3 got it right',
+      '1 of 3 got 2 of 2 right, 1 wrong',
+      '1 of 3 got 2 of 2 right, 2 wrong',
+      '1 of 3 got 1 of 2 right',
+    ])
+  })
+
+  it('names as wrong only a pick-all answer with no right pick', () => {
+    const answer = [0, 1]
+    const { container } = draw(
+      { a: picks(answer, [0, 4]), b: picks(answer, [4, 5]), c: picks(answer, answer) },
+      true,
+      'a',
+      'pick_all_that_apply',
+      { options: ['a', 'b', 'c', 'd', 'e', 'f'], answer_indices: answer, picks: 2 },
+    )
+    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Got it wrong: Woox',
     )
   })
 

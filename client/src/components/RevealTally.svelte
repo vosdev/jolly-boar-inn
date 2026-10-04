@@ -6,8 +6,13 @@
    * Everything here comes from `question_closed.results`, which already carries every
    * player's row; nothing new crosses the wire. "Right" is `correct`, full credit. Partial
    * credit gets a line per band under it, so a closest-number question, where almost
-   * nobody is exact, does not read as "0 of 6". "Wrong" is under the lowest band, which
-   * is also where closest number stops paying. A player who did not answer is neither:
+   * nobody is exact, does not read as "0 of 6". There the bands are ranks, not accuracy:
+   * the closest guess earns 0.9 however far off it was, so it says "closest" rather than
+   * "90% right". "Wrong" is under the lowest band, which is also where closest number
+   * stops paying. Pick all that apply instead counts right picks against the reveal's
+   * `answer_indices`, a line per outcome, because its credit punishes misses and extras
+   * alike and half the right options can sit far under 70%; only a player with no right
+   * pick is wrong. A player who did not answer is neither:
    * sitting a question out is not getting it wrong (the points slot makes the same
    * distinction).
    *
@@ -18,11 +23,17 @@
   import type { PlayerResult } from '../lib/protocol'
 
   let {
+    type,
+    reveal,
     results,
     nameOf,
     youId,
     showNames,
   }: {
+    /** The question's type, which decides what partial credit means. */
+    type: string
+    /** `question_closed.reveal`, where pick all that apply's right options are. */
+    reveal: Record<string, unknown>
     results: Record<string, PlayerResult>
     /** A player's name by id; null for somebody the room no longer knows. */
     nameOf: (id: string) => string | null
@@ -33,21 +44,64 @@
   // Highest first: a player counts once, in the first band their credit reaches.
   const BANDS = [0.9, 0.8, 0.7]
   const LOWEST = BANDS[BANDS.length - 1] ?? 0
+  // Closest number's ladder (`closest_number.LADDER` on the server), one rung per band.
+  const RANKS = ['closest', 'second closest', 'third closest']
 
+  interface Line {
+    key: string
+    count: number
+    said: string
+  }
+
+  const ranked = $derived(type === 'closest_number')
+  const picking = $derived(type === 'pick_all_that_apply')
   const rows = $derived(Object.entries(results))
   const right = $derived(rows.filter(([, result]) => result.correct).length)
-  const bands = $derived(
-    BANDS.map((least, index) => ({
-      percent: Math.round(least * 100),
-      count: rows.filter(
+  const was = (count: number) => (count === 1 ? 'was' : 'were')
+
+  const answers = $derived(new Set((reveal.answer_indices as number[] | undefined) ?? []))
+  /** A pick-all answer's right picks and, unless `picks` made it pick that many, its wrong ones. */
+  function picked(value: unknown): { hits: number; extras: number } {
+    const indices = Array.isArray(value) ? (value as number[]) : []
+    const hits = indices.filter((index) => answers.has(index)).length
+    return { hits, extras: 'picks' in reveal ? 0 : indices.length - hits }
+  }
+
+  const bands = $derived.by((): Line[] => {
+    if (picking) {
+      const lines = new Map<string, Line & { credit: number; hits: number }>()
+      for (const [, { correct, credit, value }] of rows) {
+        const { hits, extras } = picked(value)
+        if (correct || hits === 0) continue
+        const key = `${hits}/${extras}`
+        const said = `got ${hits} of ${answers.size} right${extras > 0 ? `, ${extras} wrong` : ''}`
+        const line = lines.get(key) ?? { key, count: 0, said, credit, hits }
+        line.count += 1
+        lines.set(key, line)
+      }
+      return [...lines.values()].sort((a, b) => b.credit - a.credit || b.hits - a.hits)
+    }
+    return BANDS.map((least, index) => {
+      const count = rows.filter(
         ([, { correct, credit }]) =>
           !correct && credit >= least && credit < (BANDS[index - 1] ?? Infinity),
-      ).length,
-    })).filter((band) => band.count > 0),
-  )
+      ).length
+      return {
+        key: String(least),
+        count,
+        said: ranked
+          ? `${was(count)} ${RANKS[index]}`
+          : `${was(count)} at least ${Math.round(least * 100)}% right`,
+      }
+    }).filter((band) => band.count > 0)
+  })
   const wrong = $derived(
     rows
-      .filter(([, result]) => !result.correct && result.credit < LOWEST)
+      .filter(([, result]) =>
+        picking
+          ? !result.correct && picked(result.value).hits === 0
+          : !result.correct && result.credit < LOWEST,
+      )
       .map(([id]) => ({ id, name: nameOf(id) ?? 'Someone who left', you: id === youId }))
       .sort((a, b) => a.name.localeCompare(b.name)),
   )
@@ -58,12 +112,13 @@
     <p class="count">Nobody answered this one.</p>
   {:else}
     <p class="count">
-      <strong class="number">{right} of {rows.length}</strong> got it right
+      <strong class="number">{right} of {rows.length}</strong>
+      {ranked ? 'guessed it exactly' : 'got it right'}
     </p>
-    {#each bands as band (band.percent)}
+    {#each bands as band (band.key)}
       <p class="count band">
         <strong class="number">{band.count} of {rows.length}</strong>
-        {band.count === 1 ? 'was' : 'were'} at least {band.percent}% right
+        {band.said}
       </p>
     {/each}
     {#if showNames && wrong.length > 0}

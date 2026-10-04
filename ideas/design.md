@@ -207,7 +207,8 @@ Round 2 of 5 · 5 questions · 20 seconds each
   still measures against `--panel`. The round is said on the splash only.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
   `lib/modes.ts`. The splash scroll holds the mode's name, greeting and blurb; the waiting and
-  reveal lines go at the sheet's foot, the reveal's beside the points. Question
+  reveal lines go at the sheet's foot, the reveal's beside the points. The foot holds two lines
+  either way, and each line fits in two at 350px, the narrowest screen supported. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
@@ -243,7 +244,7 @@ countdowns and take-back rule are architecture §7.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
 picked or numeric answer fades beside the correct value. The host says your points at the foot of
-the scroll, a line held from the start so nothing under the sheet moves, the same in every mode,
+the scroll, in a foot held from the start so nothing under the sheet moves, the same in every mode,
 in display tabular numerals and the scroll's ink:
 
 | Outcome | Slot shows |

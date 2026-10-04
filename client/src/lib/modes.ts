@@ -84,7 +84,7 @@ export const MODES: Record<string, Mode> = {
     blurb:
       'Two items, one question: which is worth more, or less? Ali is always honest. Mostly.',
     waiting: 'Patience, my friend. A good trade is never rushed.',
-    reveal: 'Now, who knows the value of things?',
+    reveal: 'Who knows the value of things?',
     // Which of the two costs more, on the scroll; the names are the buttons below it.
     stem: 'more_less',
   },
@@ -135,7 +135,7 @@ export const MODES: Record<string, Mode> = {
     greeting: 'Pull up a stool. The house has a few questions of its own.',
     blurb: 'Your host wrote these ones behind my bar. Whatever they ask, answer it.',
     waiting: 'Another drink while we wait?',
-    reveal: "Let's see who's buying the next round.",
+    reveal: "Who's buying the next round?",
     // Every type a host can write asks in a sentence; the view below it is the answer.
     stem: 'text',
   },
