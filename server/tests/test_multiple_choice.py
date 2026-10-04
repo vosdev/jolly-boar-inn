@@ -52,6 +52,12 @@ def test_client_view_shows_the_options_and_withholds_the_answer() -> None:
     assert "answer_index" not in view and "explanation" not in view
 
 
+def test_client_view_shows_a_quote_while_open() -> None:
+    view = multiple_choice.client_view(payload(prompt="Who said this?", quote="What am I to do?"))
+    assert view["quote"] == "What am I to do?"
+    assert schema.schema_errors({**EXAMPLE, "payload": payload(quote="")}) != []
+
+
 def test_reveal_adds_the_answer_and_why() -> None:
     assert multiple_choice.reveal(EXAMPLE["payload"]) == {
         **multiple_choice.client_view(EXAMPLE["payload"]),

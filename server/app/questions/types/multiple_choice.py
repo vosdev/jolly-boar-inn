@@ -2,11 +2,11 @@
 
 Payload shape (schema ``$defs/multiple_choice``)::
 
-    {"intro"?: str, "prompt": str, "options": [str, ...], "answer_index": int,
-     "image"?: asset, "explanation"?: str}
+    {"intro"?: str, "prompt": str, "quote"?: str, "options": [str, ...],
+     "answer_index": int, "image"?: asset, "explanation"?: str}
 
 The most shared answer shape in the game: Bestiary, Drop Table, Odd One Out, Who Said
-That? and Clipped are all this, and so is most of what a host writes for their own
+That? and Know Your Content Creator are all this, and so is most of what a host writes for their own
 questions. None of those rounds differ in how they are answered, only in what they ask and
 how the question looks, which is why they are modes over one type (``app/modes``) and why
 nothing here knows which round it is in. The stem above the buttons is the mode's business
@@ -35,7 +35,7 @@ SCORING = Scoring.SPEED
 # re-reading rather than knowing.
 SECONDS = Bounds(default=15, minimum=5, maximum=30)
 
-_OPEN_KEYS = ("intro", "prompt", "image", "options")
+_OPEN_KEYS = ("intro", "prompt", "quote", "image", "options")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

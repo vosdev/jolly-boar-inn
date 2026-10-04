@@ -3,10 +3,10 @@
 A mode is a round -- the thing a host ticks on the create form, the thing a splash
 introduces, the thing ``questions.mode`` records. A type (``questions/types``) is only the
 shape of the answer: what a player sends, how it is checked, what it earns. Several rounds
-share one shape (Drop Table, Bestiary, Odd One Out, Who Said That? and Clipped are all four
-buttons and one index), and one round may mix shapes (four buttons, and pick all that
-apply). So a question carries both: ``type`` for how it is answered, ``mode`` for which
-pool it came from and which round it plays in.
+share one shape (Drop Table, Bestiary, Odd One Out, Who Said That? and Know Your Content
+Creator are all four buttons and one index), and one round may mix shapes (four buttons,
+and pick all that apply). So a question carries both: ``type`` for how it is answered,
+``mode`` for which pool it came from and which round it plays in.
 
 Pace is the one thing both have an opinion on, so ``questions_bounds`` and
 ``seconds_bounds`` read the mode, then its types, then the fallbacks below. A mode states
@@ -32,6 +32,8 @@ from app.questions.types.bounds import Bounds
 # mode or a type that cares says so, next to the thing that makes it quick or slow.
 QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=30, minimum=5, maximum=120)
+# The quote rounds' pace: ``multiple_choice``'s limits, five seconds longer by default.
+QUOTE_SECONDS = Bounds(default=20, minimum=5, maximum=30)
 
 # In the order the create form lists them.
 MODES: dict[str, Mode] = {
@@ -39,6 +41,13 @@ MODES: dict[str, Mode] = {
     "price_is_right": Mode(id="price_is_right", types=frozenset({"price_is_right"})),
     "guess_examine": Mode(id="guess_examine", types=frozenset({"pick_from_list"})),
     "sort_it_out": Mode(id="sort_it_out", types=frozenset({"ordering"})),
+    # A quote is read before it is placed, which takes longer than a question about an item.
+    "who_said_that": Mode(
+        id="who_said_that", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
+    ),
+    "know_your_content_creator": Mode(
+        id="know_your_content_creator", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",

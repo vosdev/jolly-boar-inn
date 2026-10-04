@@ -326,6 +326,18 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "seconds": {"default": 25, "min": 10, "max": 45},
         },
         {
+            "id": "who_said_that",
+            "types": ["multiple_choice"],
+            "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 20, "min": 5, "max": 30},
+        },
+        {
+            "id": "know_your_content_creator",
+            "types": ["multiple_choice"],
+            "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 20, "min": 5, "max": 30},
+        },
+        {
             # Never a round, so no round length; its questions carry and pace by their types.
             "id": "custom",
             "types": [],

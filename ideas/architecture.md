@@ -121,8 +121,8 @@ SECONDS: Bounds                       # optional
 | `odd_one_out` | Odd One Out | `multiple_choice` | hand-written | #86 |
 | `release_order` | Release Order | `ordering` | hand-written | on hold, too few questions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
-| `who_said_that` | Who Said That? | `multiple_choice` | hand-written | #88 |
-| `clipped` | Know Your Content Creator | `multiple_choice` | hand-written | #88 |
+| `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done, 20 s |
+| `know_your_content_creator` | Know Your Content Creator | `multiple_choice` | hand-written | done, 20 s |
 | `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Phase 3 |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | not scheduled |
 
@@ -149,7 +149,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Assets are `item:<id>` or `npc:<id>`, never a URL. `pick_from_list` withholds `image` while open
   ("Needs decision").
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
-- `wiki` on the envelope is the page an author checked. Players never get it.
+- `wiki` on the envelope is the page an author checked; `source_url` is any https link, for what
+  the wiki cannot prove. Players never get either.
+- An optional `multiple_choice.quote` is shown as a quotation under `prompt`.
 - `credit` names the player who suggested a pack question; with `credit_shown` the reveal says it.
 
 | Type | `value` | Credit |

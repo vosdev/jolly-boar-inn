@@ -406,7 +406,7 @@ dependencies, on the [project board](https://github.com/users/vosdev/projects/3)
 | Mode | Host | |
 |---|---|---|
 | `price_is_right` | Grand Exchange Clerk
-| `clipped` (Know Your Content Creator) | Gnome Child
+| `know_your_content_creator` | Gnome Child
 | `more_less` | Ali Morrisane
 | `pixel_hunt` | Sherlock
 | `guess_examine` | The Examiner, from the Dig Site 
