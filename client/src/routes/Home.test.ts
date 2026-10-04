@@ -11,7 +11,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as api from "../lib/api";
-import { savePastGame } from "../lib/history";
+import { pastGames, savePastGame } from "../lib/history";
 import { rememberCreated, setSession } from "../lib/session";
 import { headsDrawn } from "../test-heads";
 import Home from "./Home.svelte";
@@ -320,8 +320,63 @@ describe("Past games", () => {
     const row = within(section).getByText("ABYSSAL").closest("li")!;
     expect(row.textContent).toContain("2nd of 2");
     expect(row.textContent).toContain("2026");
-    await fireEvent.click(within(row).getByRole("button", { name: "Open" }));
+    await fireEvent.click(
+      within(row).getByRole("button", { name: "Hi-scores for ABYSSAL" }),
+    );
     expect(navigate).toHaveBeenCalledWith("/history/ABYSSAL/2610012005");
+  });
+
+  describe("removing one", () => {
+    const standings = [
+      { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
+    ];
+
+    beforeEach(() => {
+      savePastGame({ code: "ABYSSAL", finishedAt: "2026-10-01T20:05:00Z", standings, youId: "a" });
+      savePastGame({ code: "RUNE", finishedAt: "2026-10-02T20:05:00Z", standings, youId: "a" });
+    });
+
+    const section = (): HTMLElement =>
+      screen.getByRole("heading", { name: "Past games" }).closest("section")!;
+
+    async function askToRemove(code: string): Promise<void> {
+      await fireEvent.click(
+        within(section()).getByRole("button", { name: `Remove ${code} from past games` }),
+      );
+    }
+
+    it("asks first, and keeps the game when the answer is cancel", async () => {
+      render(Home, { navigate });
+      await askToRemove("ABYSSAL");
+      const dialog = screen.getByRole("dialog");
+      expect(dialog.textContent).toContain("ABYSSAL");
+      await fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(within(section()).getByText("ABYSSAL")).toBeTruthy();
+      expect(pastGames()).toHaveLength(2);
+    });
+
+    it("drops only that game from the list and from storage on yes", async () => {
+      render(Home, { navigate });
+      await askToRemove("ABYSSAL");
+      await fireEvent.click(
+        within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }),
+      );
+      expect(within(section()).queryByText("ABYSSAL")).toBeNull();
+      expect(within(section()).getByText("RUNE")).toBeTruthy();
+      expect(pastGames().map((game) => game.code)).toEqual(["RUNE"]);
+    });
+
+    it("takes the section away with the last game", async () => {
+      render(Home, { navigate });
+      for (const code of ["ABYSSAL", "RUNE"]) {
+        await askToRemove(code);
+        await fireEvent.click(
+          within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }),
+        );
+      }
+      expect(screen.queryByRole("heading", { name: "Past games" })).toBeNull();
+    });
   });
 
   it("is not there before a game has finished here", () => {

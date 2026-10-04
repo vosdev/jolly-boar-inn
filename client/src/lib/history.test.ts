@@ -10,6 +10,7 @@ import {
   latestPastGame,
   pastGames,
   placeIn,
+  removePastGame,
   savePastGame,
   type PastGame,
 } from './history'
@@ -78,6 +79,24 @@ describe('savePastGame', () => {
     expect(pastGames()).toEqual([])
     localStorage.setItem('jbi:history', JSON.stringify([{ code: 'DRAGON' }, game(1)]))
     expect(pastGames()).toEqual([game(1)])
+  })
+})
+
+describe('removePastGame', () => {
+  it('drops that game and leaves the rest in order', () => {
+    savePastGame(game(1))
+    savePastGame(game(2))
+    savePastGame(game(3))
+    removePastGame(game(2))
+    expect(pastGames().map((past) => past.finishedAt)).toEqual([game(3).finishedAt, game(1).finishedAt])
+  })
+
+  it('tells two games under one code apart by when they finished', () => {
+    savePastGame(game(1))
+    savePastGame(game(2))
+    removePastGame(game(1))
+    expect(findPastGame('DRAGON', historyStamp(game(2).finishedAt))).not.toBeNull()
+    expect(findPastGame('DRAGON', historyStamp(game(1).finishedAt))).toBeNull()
   })
 })
 

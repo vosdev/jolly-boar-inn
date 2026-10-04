@@ -72,6 +72,12 @@ export function savePastGame(game: PastGame): void {
   dropCreated(entry.code)
 }
 
+/** Take one game off the list; it is the only copy, so it is gone for good. */
+export function removePastGame(game: Pick<PastGame, 'code' | 'finishedAt'>): void {
+  const path = historyPath(game)
+  writeStored(HISTORY_KEY, JSON.stringify(pastGames().filter((other) => historyPath(other) !== path)))
+}
+
 /** The game a history link names, or null if this browser never filed it. */
 export function findPastGame(code: string, stamp: string): PastGame | null {
   const normalized = normalizeCode(code)

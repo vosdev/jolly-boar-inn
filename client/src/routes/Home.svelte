@@ -20,7 +20,7 @@
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { finishedTime } from '../lib/dates'
   import { headOf } from '../lib/heads'
-  import { historyPath, pastGames, placeIn } from '../lib/history'
+  import { historyPath, pastGames, placeIn, removePastGame, type PastGame } from '../lib/history'
   import { REPO_URL } from '../lib/links'
   import { atRoomLimit } from '../lib/roomLimit'
   import { maySuggest } from '../lib/suggestions'
@@ -39,13 +39,15 @@
   const PUBLIC_REFRESH_MS = 10_000
 
   let hosted = $state(createdRooms())
-  const past = pastGames()
+  let past = $state(pastGames())
   const admin = hasAdminToken()
   const suggesting = maySuggest()
   let code = $state('')
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
   let confirming = $state<string | null>(null)
+  /** The past game whose Remove is waiting on a yes. */
+  let confirmingPast = $state<PastGame | null>(null)
   let codeProblem = $state<string | null>(null)
   let notice = $state<{ text: string; bad: boolean } | null>(null)
   let open = $state<PublicRoom[]>([])
@@ -101,6 +103,13 @@
     forgetCreated(room)
     hosted = createdRooms()
     void refreshFull()
+  }
+
+  /** The list is re-read, as with the created rooms, so it cannot drift from storage. */
+  function removePast(game: PastGame): void {
+    confirmingPast = null
+    removePastGame(game)
+    past = pastGames()
   }
 
   async function remove(room: string): Promise<void> {
@@ -268,8 +277,21 @@
               {#if place !== null}
                 <span class="place">{place}</span>
               {/if}
-              <button type="button" class="small" onclick={() => navigate(historyPath(game))}>
-                Open
+              <button
+                type="button"
+                class="small"
+                aria-label={`Hi-scores for ${game.code}`}
+                onclick={() => navigate(historyPath(game))}
+              >
+                Hi-scores
+              </button>
+              <button
+                type="button"
+                class="small"
+                aria-label={`Remove ${game.code} from past games`}
+                onclick={() => (confirmingPast = game)}
+              >
+                Remove
               </button>
             </li>
           {/each}
@@ -311,6 +333,16 @@
     confirmLabel="Remove"
     onConfirm={() => remove(room)}
     onCancel={() => (confirming = null)}
+  />
+{/if}
+
+{#if confirmingPast !== null}
+  {@const game = confirmingPast}
+  <ConfirmDialog
+    message={`Remove ${game.code} from your past games? Its hi-scores are not kept anywhere else, and this cannot be undone.`}
+    confirmLabel="Remove"
+    onConfirm={() => removePast(game)}
+    onCancel={() => (confirmingPast = null)}
   />
 {/if}
 
