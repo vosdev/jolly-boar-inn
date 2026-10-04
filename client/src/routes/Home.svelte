@@ -22,6 +22,7 @@
   import { headOf } from '../lib/heads'
   import { historyPath, pastGames, placeIn } from '../lib/history'
   import { REPO_URL } from '../lib/links'
+  import { atRoomLimit } from '../lib/roomLimit'
   import { maySuggest } from '../lib/suggestions'
   import { modeLabel } from '../lib/modes'
   import {
@@ -48,6 +49,8 @@
   let codeProblem = $state<string | null>(null)
   let notice = $state<{ text: string; bad: boolean } | null>(null)
   let open = $state<PublicRoom[]>([])
+  /** Null until the list has been checked against the server, so Create is not refused early. */
+  let full = $state<boolean | null>(null)
 
   const target = $derived(normalizeCode(code))
 
@@ -60,8 +63,13 @@
     }
   }
 
+  async function refreshFull(): Promise<void> {
+    full = await atRoomLimit()
+  }
+
   onMount(() => {
     void refreshOpen()
+    void refreshFull()
     const timer = setInterval(() => {
       if (document.visibilityState === 'visible') void refreshOpen()
     }, PUBLIC_REFRESH_MS)
@@ -92,6 +100,7 @@
   function forget(room: string): void {
     forgetCreated(room)
     hosted = createdRooms()
+    void refreshFull()
   }
 
   async function remove(room: string): Promise<void> {
@@ -173,7 +182,19 @@
         Create a game room for your friends, your stream or your clan. Pick the rounds and game
         modes, or add your own questions.
       </p>
-      <button type="button" onclick={() => navigate('/create')}>Create a room</button>
+      {#if full === true}
+        <p id="room-limit" class="banner">
+          You already have five rooms. Remove one under "Rooms you created here" to make another.
+        </p>
+      {/if}
+      <button
+        type="button"
+        disabled={full === true}
+        aria-describedby={full === true ? 'room-limit' : undefined}
+        onclick={() => navigate('/create')}
+      >
+        Create a room
+      </button>
     </section>
   </div>
   <div class="column">

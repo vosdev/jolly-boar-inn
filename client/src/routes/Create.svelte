@@ -249,6 +249,13 @@
   <p class="tagline">Choose and configure the settings for your room. They cannot be changed once the room is created. After creation, rooms exist for up to 48 hours to let you prepare in time for a clan event.</p>
 </section>
 
+  {#if full === true}
+    <p class="banner">
+      You already have five rooms. Remove one on the <a href="/" onclick={goHome}>homepage</a>
+      to make another.
+    </p>
+  {/if}
+
 <form onsubmit={submit}>
   <section class="panel modes">
     <!-- Always the same furniture, so picking the first mode or dropping the last one
@@ -384,12 +391,6 @@
     </div>
   </details>
 
-  {#if full === true}
-    <p class="banner">
-      You already have five rooms. Remove one on the <a href="/" onclick={goHome}>homepage</a>
-      to make another.
-    </p>
-  {/if}
   <div class="row">
     {#if full !== true}
       <button class="primary" type="submit" disabled={busy || !ready}>

@@ -18,7 +18,7 @@ import Home from "./Home.svelte";
 
 vi.mock("../lib/api", async (importOriginal) => {
   const real = await importOriginal<typeof import("../lib/api")>();
-  return { ...real, deleteRoom: vi.fn(), getPublicRooms: vi.fn() };
+  return { ...real, deleteRoom: vi.fn(), getPublicRooms: vi.fn(), getRoom: vi.fn() };
 });
 
 const navigate = vi.fn();
@@ -28,6 +28,7 @@ beforeEach(() => {
   localStorage.clear();
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined);
   vi.mocked(api.getPublicRooms).mockResolvedValue([]);
+  vi.mocked(api.getRoom).mockResolvedValue({ status: "lobby", players: 1 });
 });
 
 const LOBBY: api.PublicRoom = {
@@ -199,6 +200,61 @@ describe("Home", () => {
       expect(api.deleteRoom).not.toHaveBeenCalled();
       expect(screen.getByText("RUNE")).toBeTruthy();
     });
+  });
+});
+
+describe("Room limit", () => {
+  const HOSTED = ["RUNE", "DRAGON", "BARROWS", "ZULRAH", "VORKATH"];
+
+  function host(codes: string[]): void {
+    for (const code of codes) {
+      rememberCreated(code, "2099-01-01T00:00:00Z");
+      setSession(code, `s-${code}`);
+    }
+  }
+
+  const create = (): HTMLButtonElement =>
+    screen.getByRole("button", { name: "Create a room" });
+
+  it("disables Create with a reason once five rooms are hosted here", async () => {
+    host(HOSTED);
+    render(Home, { navigate });
+    const banner = await screen.findByText(/You already have five rooms/);
+    expect(create().disabled).toBe(true);
+    expect(create().getAttribute("aria-describedby")).toBe(banner.id);
+  });
+
+  it("leaves Create alone under five rooms, and asks the server nothing", async () => {
+    host(HOSTED.slice(1));
+    render(Home, { navigate });
+    await waitFor(() => expect(api.getPublicRooms).toHaveBeenCalled());
+    expect(create().disabled).toBe(false);
+    expect(screen.queryByText(/You already have five rooms/)).toBeNull();
+    expect(api.getRoom).not.toHaveBeenCalled();
+  });
+
+  it("does not count a room the server has already dropped", async () => {
+    host(HOSTED);
+    vi.mocked(api.getRoom).mockImplementation(async (code) => {
+      if (code === "ZULRAH") throw new api.ApiFailure(410, "gone", "gone");
+      return { status: "lobby", players: 1 };
+    });
+    render(Home, { navigate });
+    await waitFor(() => expect(api.getRoom).toHaveBeenCalledTimes(5));
+    await waitFor(() => expect(create().disabled).toBe(false));
+  });
+
+  it("frees Create the moment a room is removed", async () => {
+    host(HOSTED);
+    render(Home, { navigate });
+    await screen.findByText(/You already have five rooms/);
+    const rune = screen.getByText("RUNE").closest("li")!;
+    await fireEvent.click(within(rune).getByRole("button", { name: "Remove" }));
+    await fireEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }),
+    );
+    await waitFor(() => expect(create().disabled).toBe(false));
+    expect(screen.queryByText(/You already have five rooms/)).toBeNull();
   });
 });
 
