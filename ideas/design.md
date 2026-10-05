@@ -366,6 +366,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Display font | Self-hosted, once chosen | No, fetched |
 | Chat heads | 50 hand-picked (§6) | **Yes** |
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |
+| Pet icons | Wiki inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the head |
 | Theme emblems | Leagues area flags | No, fetched; inline placeholder marks |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
