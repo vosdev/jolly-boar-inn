@@ -286,7 +286,7 @@ describe('Room', () => {
         server_time: new Date(server).toISOString(),
       })
       await tick()
-      expect(screen.getByRole('heading', { name: 'Bob' })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: 'Evil Bob' })).toBeTruthy()
       expect(screen.getByText('What amulet lets you talk to cats?')).toBeTruthy()
       expect(screen.queryByRole('button', { name: 'Catspeak' })).toBeNull()
       // The settled stage: no entrance replayed, no prompt typed again.
@@ -488,7 +488,7 @@ describe('the list a question is answered from', () => {
     })
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
     applyServerMessage({ ...welcome(roomView({ phase: 'open', next_at: null })), question: event })
-    await screen.findByRole('heading', { name: 'Bob' })
+    await screen.findByRole('heading', { name: 'Evil Bob' })
     expect(screen.queryByRole('combobox')).toBeNull()
     expect(fetched).toEqual(['/api/vocab/examines'])
   })
@@ -641,7 +641,7 @@ describe('a random event’s way out', () => {
       expect(screens()).toHaveLength(2)
       expect(screen.getByText('Abyssal whip')).toBeTruthy()
       await waitFor(() => expect(screens()).toHaveLength(1))
-      expect(screen.queryByRole('heading', { name: 'Bob' })).toBeNull()
+      expect(screen.queryByRole('heading', { name: 'Evil Bob' })).toBeNull()
     })
 
     it('does not, once the return has played', async () => {
@@ -774,7 +774,7 @@ describe('what a screen reader and the tab hear', () => {
     }
     applyServerMessage({ t: 'question_open', question: bob })
     await waitFor(() =>
-      expect(live()?.textContent).toBe('Random event: Bob interrupts the round.'),
+      expect(live()?.textContent).toBe('Random event: Evil Bob interrupts the round.'),
     )
     applyServerMessage({
       ...welcome(roomView({ phase: 'open', next_at: null })),

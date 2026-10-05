@@ -283,7 +283,7 @@ describe('CustomQuestions', () => {
     ]
     await chooseFile(panel, exportText(file))
     await waitFor(() => expect(listed(panel)).toEqual(['New']))
-    expect(panel.textContent).toContain('Type the answer · Bob')
+    expect(panel.textContent).toContain('Type the answer · Evil Bob')
     expect(await submitted()).toEqual(file)
   })
 
