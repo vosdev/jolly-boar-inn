@@ -49,6 +49,35 @@ export const TEXT_MAX = limit(definition('short_text'), 'maxLength') ?? 0
 export const DETAIL_MAX =
   limit(((ENTRIES.items as Schema).properties as Record<string, Schema>).detail ?? {}, 'maxLength') ?? 0
 
+/** What an ordering round's form says to its author, where the generic wording would not do. */
+export interface OrderingWording {
+  prompt: string
+  ends: [string, string]
+  detail: string
+  /** Whether every entry needs its detail: for Release Order it is the date. */
+  detailRequired: boolean
+}
+
+const GENERIC: OrderingWording = {
+  prompt: 'What are they sorted by?',
+  ends: ['Lowest', 'Highest'],
+  detail: 'Shown at the reveal, such as Level 20',
+  detailRequired: false,
+}
+
+const WORDING: Record<string, OrderingWording> = {
+  release_order: {
+    prompt: 'What are they put in order of?',
+    ends: ['Oldest', 'Newest'],
+    detail: 'The date it came out, such as 4 January 2001',
+    detailRequired: true,
+  },
+}
+
+export function wordingOf(mode: string): OrderingWording {
+  return WORDING[mode] ?? GENERIC
+}
+
 const EDITED = new Set(['prompt', 'ends', 'entries', 'answer', 'picks', 'explanation'])
 
 const blank = (): OrderingEntry => ({ text: '', detail: '', tied: false })
@@ -168,8 +197,12 @@ function consistency(payload: Record<string, unknown>): Problem[] {
   return found
 }
 
-/** Everything the server would refuse about `question`, or none. */
-export function problems(question: unknown): Problem[] {
+/**
+ * Everything the server would refuse about `question`, or none. With `detailRequired`, also
+ * an entry that has no detail: the server leaves it optional, but a round that shows dates
+ * is no use with some missing.
+ */
+export function problems(question: unknown, detailRequired = false): Problem[] {
   if (typeof question !== 'object' || question === null || Array.isArray(question)) {
     return [at('', 'A question is a JSON object.')]
   }
@@ -184,6 +217,14 @@ export function problems(question: unknown): Problem[] {
   found.push(...unstorable(payload, 'payload'))
   if (typeof payload === 'object' && payload !== null && !Array.isArray(payload)) {
     found.push(...consistency(payload as Record<string, unknown>))
+    const entries = (payload as { entries?: unknown }).entries
+    if (detailRequired && Array.isArray(entries)) {
+      entries.forEach((entry: { detail?: unknown }, i) => {
+        if (entry?.detail === undefined) {
+          found.push(at(`payload.entries[${i}].detail`, 'Required: the date it came out.', 'missing'))
+        }
+      })
+    }
   }
   return found
 }

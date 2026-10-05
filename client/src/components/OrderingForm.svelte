@@ -27,6 +27,7 @@
     problems,
     questionOf,
     ranksOf,
+    wordingOf,
     type OrderingQuestion,
   } from '../lib/ordering'
   import { codePoints, field, limit } from '../lib/questionSchema'
@@ -66,7 +67,8 @@
   const id = $props.id()
 
   const built = $derived(questionOf(draft))
-  const found = $derived(problems(built))
+  const wording = $derived(wordingOf(mode))
+  const found = $derived(problems(built, wording.detailRequired))
   const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
   const ranks = $derived(ranksOf(draft.entries))
   const pickChoices = $derived(
@@ -137,7 +139,7 @@
       <h3 id="{id}-title">{title ?? (question === undefined ? 'New question' : 'Edit question')}</h3>
 
       <div class="field">
-        <label for="{id}-prompt">What are they sorted by?</label>
+        <label for="{id}-prompt">{wording.prompt}</label>
         <textarea id="{id}-prompt" rows="2" bind:value={draft.prompt}></textarea>
         <p class="note counter">{codePoints(draft.prompt.trim())}/{PROMPT_MAX}</p>
         {@render errors('payload.prompt')}
@@ -146,13 +148,13 @@
       <div class="pair">
         <div class="field">
           <label for="{id}-first">First end</label>
-          <input id="{id}-first" type="text" placeholder="Lowest" bind:value={draft.ends[0]} />
+          <input id="{id}-first" type="text" placeholder={wording.ends[0]} bind:value={draft.ends[0]} />
           <p class="note counter">{codePoints(draft.ends[0].trim())}/{ENDS_MAX}</p>
           {@render errors('payload.ends[0]')}
         </div>
         <div class="field">
           <label for="{id}-last">Last end</label>
-          <input id="{id}-last" type="text" placeholder="Highest" bind:value={draft.ends[1]} />
+          <input id="{id}-last" type="text" placeholder={wording.ends[1]} bind:value={draft.ends[1]} />
           <p class="note counter">{codePoints(draft.ends[1].trim())}/{ENDS_MAX}</p>
           {@render errors('payload.ends[1]')}
         </div>
@@ -172,7 +174,7 @@
               <input
                 type="text"
                 aria-label="Detail of entry {index + 1}"
-                placeholder="Shown at the reveal, such as Level 20"
+                placeholder={wording.detail}
                 bind:value={entry.detail}
               />
               {#if index > 0}
@@ -220,6 +222,7 @@
         <p class="note">
           {ENTRIES_MIN} to {ENTRIES_MAX} entries, up to {TEXT_MAX} characters each and {DETAIL_MAX}
           for a detail. Tied entries take the same place, and players may put them either way round.
+          {#if wording.detailRequired}Entries that came out on one day are tied.{/if}
         </p>
         {@render errors('payload.entries')}
       </fieldset>

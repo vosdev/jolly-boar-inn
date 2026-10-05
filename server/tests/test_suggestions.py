@@ -76,6 +76,26 @@ SORT_IT_OUT = {
     "credit": "AFKFisher",
     "credit_shown": False,
 }
+# Release Order is not built yet, so this one waits in the queue as not playable.
+RELEASE_ORDER = {
+    **SORT_IT_OUT,
+    "content": {
+        **SORT_IT_OUT["content"],
+        "mode": "release_order",
+        "wiki": "https://oldschool.runescape.wiki/w/Update:Quests",
+        "payload": {
+            "prompt": "Put these quests in the order they came out.",
+            "ends": ["Oldest", "Newest"],
+            "entries": [
+                {"text": "Cook's Assistant", "rank": 1, "detail": "4 January 2001"},
+                {"text": "Sheep Shearer", "rank": 1, "detail": "4 January 2001"},
+                {"text": "Dragon Slayer", "rank": 2, "detail": "4 January 2001"},
+            ],
+            "answer": [0, 1, 2],
+            "explanation": "Cook's Assistant and Sheep Shearer came out on one day.",
+        },
+    },
+}
 ITEM = {
     "kind": "item",
     "content": {"name": " Ancient mace "},
@@ -189,6 +209,8 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(UNBUILT, random_event="bob"),
         _with(EVENT, extra="field"),
         _with(SORT_IT_OUT, type="multiple_choice"),
+        _with(RELEASE_ORDER, type="multiple_choice"),
+        _with(RELEASE_ORDER, type="free_text"),
         _with(SORT_IT_OUT, mode="bestiary"),
         _with(SORT_IT_OUT, mode="random_event", random_event="bob"),
         _with(EVENT, type="ordering", payload=SORT_IT_OUT["content"]["payload"]),
@@ -240,6 +262,14 @@ def test_a_sort_it_out_suggestion_is_stored_and_playable(client: TestClient) -> 
     rows = queue(client)["suggestions"]
     assert [row["content"]["payload"].get("picks") for row in rows] == [3, 3, 2]
     assert all(row["playable"] for row in rows)
+
+
+def test_a_release_order_suggestion_waits_as_not_playable(client: TestClient) -> None:
+    approve(client, suggest(client, RELEASE_ORDER))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == RELEASE_ORDER["content"]
+    assert row["playable"] is False
+    assert export(client)["questions"] == []
 
 
 @pytest.mark.parametrize("credit", ["", "   ", "x" * 25, "Zezima<b>", "名前"])

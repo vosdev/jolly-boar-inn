@@ -46,12 +46,16 @@ describe('the choices', () => {
       'who_said_that',
       'know_your_content_creator',
       'sort_it_out',
+      'release_order',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
     const sort = CHOICES.find((c) => c.id === 'sort_it_out')
     expect(sort?.types).toEqual(['ordering'])
     expect(sort?.host).toBe('historian_minas')
     expect(sort?.hint).toBe('Something worth putting in order.')
+    const release = CHOICES.find((c) => c.id === 'release_order')
+    expect(release?.types).toEqual(['ordering'])
+    expect(release?.host).toBe('aris')
     expect(CHOICES.find((c) => c.id === 'random_event')?.types).toEqual([
       'multiple_choice',
       'free_text',

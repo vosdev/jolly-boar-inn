@@ -198,6 +198,55 @@ describe('Suggest', () => {
     })
   })
 
+  it('writes a Release Order with a date on every entry, and sends it as an ordering', async () => {
+    played()
+    render(Suggest, { navigate })
+    const card = await screen.findByRole('button', { name: /Release Order/ })
+    expect(card.textContent).toContain('Something worth putting in release order.')
+    await fireEvent.click(card)
+    expect(screen.queryByRole('group', { name: 'Type' })).toBeNull()
+    expect(screen.queryByLabelText('Who asks it')).toBeNull()
+    expect(screen.getByLabelText('First end').getAttribute('placeholder')).toBe('Oldest')
+
+    await type('What are they put in order of?', 'Put these quests in the order they came out.')
+    await type('First end', 'Oldest')
+    await type('Last end', 'Newest')
+    await type('Entry 1', 'Cook’s Assistant')
+    await type('Detail of entry 1', '4 January 2001')
+    await type('Entry 2', 'Sheep Shearer')
+    await type('Detail of entry 2', '4 January 2001')
+    await type('Entry 3', 'Dragon Slayer')
+    await fireEvent.click(screen.getAllByLabelText('Tied with the one above')[0]!)
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Update:Quests')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Required: the date it came out.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type('Detail of entry 3', '4 January 2001')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'ordering',
+        payload: {
+          prompt: 'Put these quests in the order they came out.',
+          ends: ['Oldest', 'Newest'],
+          entries: [
+            { text: 'Cook’s Assistant', rank: 1, detail: '4 January 2001' },
+            { text: 'Sheep Shearer', rank: 1, detail: '4 January 2001' },
+            { text: 'Dragon Slayer', rank: 2, detail: '4 January 2001' },
+          ],
+          answer: [0, 1, 2],
+        },
+        mode: 'release_order',
+        wiki: 'https://oldschool.runescape.wiki/w/Update:Quests',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
   it('keeps the entries between three and six', async () => {
     played()
     render(Suggest, { navigate })

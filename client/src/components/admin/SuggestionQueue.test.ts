@@ -111,6 +111,20 @@ describe('SuggestionQueue', () => {
       expect(screen.getByText(/Sapphire \(Level 20\) = Opal → Emerald/, { selector: 'strong' })).toBeTruthy()
     })
 
+    it('previews a Release Order, which waits for its round', async () => {
+      const content = { ...(ordering.content as object), mode: 'release_order' } as typeof ordering.content
+      vi.mocked(admin.getQueue).mockResolvedValue({
+        suggestions: [{ ...ordering, content, playable: false }],
+        counts: COUNTS,
+      })
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/Sort the/)).closest('button')!)
+      expect(screen.getByText('Waits for its round')).toBeTruthy()
+      expect(screen.getByLabelText('As players will see it').textContent).toContain('Opal')
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect(screen.getByLabelText('First end')).toBeTruthy()
+    })
+
     it('edits it in the same form, ties and picks as stored, and saves the ranks', async () => {
       vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [ordering], counts: COUNTS })
       vi.mocked(admin.editSuggestion).mockResolvedValue(ordering)

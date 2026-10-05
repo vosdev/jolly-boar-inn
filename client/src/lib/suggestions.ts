@@ -109,9 +109,12 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
 }
 
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
-const ORDERING_ROUNDS = ['sort_it_out']
+const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
 /** What a card says to a player thinking of a question, where the round's tagline would not. */
-const ORDERING_HINTS: Record<string, string> = { sort_it_out: 'Something worth putting in order.' }
+const ORDERING_HINTS: Record<string, string> = {
+  sort_it_out: 'Something worth putting in order.',
+  release_order: 'Something worth putting in release order.',
+}
 
 export const CHOICES: readonly Choice[] = [
   {

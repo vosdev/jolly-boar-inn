@@ -44,6 +44,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "who_said_that": _CHOICE,
     "know_your_content_creator": _CHOICE,
     "sort_it_out": frozenset({"ordering"}),
+    "release_order": frozenset({"ordering"}),
 }
 
 EXAMINE_MODE = "guess_examine"
