@@ -4,6 +4,7 @@ Selection is tested with stub packs in ``test_selection.py``; here the flag, the
 guards, and a room created with the mode read back from the database.
 """
 
+import random
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,7 @@ from app.modes import MODES, offered
 from tests.rooms_api import create
 
 MODE = "random_events_only"
+SEED = 0
 
 
 @pytest.fixture
@@ -106,9 +108,11 @@ def test_a_second_round_can_not_reuse_the_questions_the_events_took(on: TestClie
     assert len(ids) == len(set(ids))
 
 
-def test_a_round_of_it_plays_through_every_question_type(table, db) -> None:
+def test_a_round_of_it_plays_through_every_question_type(table, app) -> None:
     """The pool mixes three answer shapes, so the one-question round every mode gets in
     ``test_game.py`` would test whichever the draw landed on."""
+    # An unseeded draw of 20 from the pack sometimes misses a type; this seed's hits all three.
+    app.state.rooms.rng = random.Random(SEED)
     game = table("Zezima", "Woox", modes=[MODE], questions=20, seconds=10)
     zezima, woox = game.players
     questions = game.room.questions
