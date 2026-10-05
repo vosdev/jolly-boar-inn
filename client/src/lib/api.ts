@@ -13,6 +13,7 @@
 
 import type { CustomQuestion } from './customQuestions'
 import type { EventFrequency, PlayerView, RoomSettings, RoomView } from './protocol'
+import type { ReportBody, ReportChoices } from './reports'
 import type { SuggestionBody } from './suggestions'
 
 export class ApiFailure extends Error {
@@ -266,4 +267,23 @@ export function sendSuggestion(body: SuggestionBody): Promise<{ id: string }> {
     method: 'POST',
     body: JSON.stringify(body),
   })
+}
+
+export function getReportAllowance(): Promise<Allowance> {
+  return request<Allowance>('/api/reports/allowance')
+}
+
+/** The modes a player may report a question from, in registry order. */
+export function getReportModes(): Promise<string[]> {
+  return request<string[]>('/api/questions/modes')
+}
+
+/** What the report form searches for `mode`: never an answer. */
+export function getReportChoices(mode: string): Promise<ReportChoices> {
+  return request<ReportChoices>(`/api/questions?mode=${encodeURIComponent(mode)}`)
+}
+
+/** `bad_report` for what the server refuses; `rate_limited` past the limit. */
+export function sendReport(body: ReportBody): Promise<{ id: string }> {
+  return request<{ id: string }>('/api/reports', { method: 'POST', body: JSON.stringify(body) })
 }

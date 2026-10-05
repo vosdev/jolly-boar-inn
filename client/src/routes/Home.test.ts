@@ -475,28 +475,41 @@ describe("Past games", () => {
   });
 });
 
-describe("Suggest a question", () => {
-  it("is offered once a game has finished here, and goes to the form", async () => {
+describe("Suggest or report a question", () => {
+  const heading = "Suggest or report a question";
+
+  function played(): void {
     savePastGame({
       code: "ABYSSAL",
       finishedAt: "2026-10-01T20:05:00Z",
       standings: [{ player_id: "a", display_name: "Zezima", points: 900, rank: 1 }],
       youId: "a",
     });
+  }
+
+  it("is offered once a game has finished here, and goes to the form", async () => {
+    played();
     render(Home, { navigate });
-    const section = screen
-      .getByRole("heading", { name: "Suggest a question" })
-      .closest("section")!;
+    const section = screen.getByRole("heading", { name: heading }).closest("section")!;
     await fireEvent.click(
       within(section).getByRole("button", { name: "Suggest something" }),
     );
     expect(navigate).toHaveBeenCalledWith("/suggest");
   });
 
+  it("offers a report beside the suggestions, once a game has finished here", async () => {
+    played();
+    render(Home, { navigate });
+    const section = screen.getByRole("heading", { name: heading }).closest("section")!;
+    await fireEvent.click(
+      within(section).getByRole("button", { name: "Report a question" }),
+    );
+    expect(navigate).toHaveBeenCalledWith("/report");
+  });
+
   it("is not there before a game has finished here", () => {
     render(Home, { navigate });
-    expect(
-      screen.queryByRole("heading", { name: "Suggest a question" }),
-    ).toBeNull();
+    expect(screen.queryByRole("heading", { name: heading })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Report a question" })).toBeNull();
   });
 });

@@ -17,7 +17,7 @@ from app import accesslog
 from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
-from app.http import admin, modes, players, rooms, suggestions, vocab
+from app.http import admin, modes, players, questions, reports, rooms, suggestions, vocab
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
 from app.http.head import HeadAsGet
@@ -27,6 +27,7 @@ from app.http.ratelimit import (
     JOINS_PER_HOUR,
     LOOKUP_MISSES,
     LOOKUP_WINDOW,
+    REPORTS_PER_HOUR,
     SUGGESTIONS_PER_HOUR,
     RateLimiter,
 )
@@ -230,6 +231,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW)
     app.state.joins = RateLimiter(JOINS_PER_HOUR)
     app.state.suggestions = RateLimiter(SUGGESTIONS_PER_HOUR)
+    app.state.reports = RateLimiter(REPORTS_PER_HOUR)
     app.add_middleware(HeadAsGet)
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)
@@ -248,10 +250,14 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.include_router(modes.router)
     app.include_router(vocab.router)
     app.include_router(suggestions.router)
+    app.include_router(reports.router)
+    app.include_router(questions.router)
     # Unset, the admin routes are not there at all, so each is the 404 of any unknown path.
     if app.state.settings.admin_token:
         app.include_router(admin.router)
         app.include_router(suggestions.admin_router)
+        app.include_router(reports.admin_router)
+        app.include_router(questions.admin_router)
     app.include_router(ws_handler.router)
     mount_client(app, client_dist)
     return app

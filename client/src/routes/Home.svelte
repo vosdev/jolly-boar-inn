@@ -8,7 +8,8 @@
    * is free again the moment it answers. That is the only way to be rid of a room before
    * it expires, so the button asks first.
    *
-   * A browser that has finished a game is asked for its questions too (`lib/suggestions.ts`).
+   * A browser that has finished a game is asked for its questions too, and for what was wrong
+   * with ours (`lib/suggestions.ts`, `lib/reports.ts`).
    */
   import { onMount } from 'svelte'
   import { siteName } from 'virtual:branding'
@@ -340,12 +341,16 @@
 
     {#if suggesting}
       <section class="panel">
-        <h2>Suggest a question</h2>
+        <h2>Suggest or report a question</h2>
         <p class="note">
           Know something the inn doesn't ask yet? Write a question, an examine line or an item for
-          the Grand Exchange rounds. The innkeeper reads every one.
+          the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
+          innkeeper which question. The innkeeper reads every one.
         </p>
-        <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
+        <div class="row">
+          <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
+          <button type="button" onclick={() => navigate('/report')}>Report a question</button>
+        </div>
       </section>
     {/if}
   </div>

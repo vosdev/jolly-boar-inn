@@ -29,7 +29,7 @@ data/packs/                        prices, examine, sample (the tests'), random_
 data/                              assets, pets, popular-items, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
-                                   suggestions
+                                   suggestions, reports
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
                                    ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
@@ -38,14 +38,14 @@ server/app/ws/, http/              handler, protocol, outbox; one module per rou
 server/scripts/                    wiki, gen_price_questions, import_suggestions, fetch_assets,
                                    validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
-client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest; TopBar, stage/, …
+client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
 ```
 
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` (the operator's view, section 10), linked from Home only once this
-browser holds the admin token, and `/suggest` (section 11), linked once it has finished a game.
+browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state
@@ -460,9 +460,9 @@ answers 404; shorter than 32 URL-safe characters, the app refuses to start. `GET
 (rooms in memory) and `/stats` (every `daily_stats` row) want it as `Authorization: Bearer`,
 compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fragment so no access
 log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
-away. Both return chosen fields only, never a name, an answer or a question. The suggestion
-queue (section 11) is the one admin route that returns questions, answers included: players'
-suggestions, never a room's.
+away. Both return chosen fields only, never a name, an answer or a question. Only the
+suggestion and report queues and `/api/admin/questions` (section 11) return questions, answers
+included: players' suggestions and the packs, never a room's.
 
 `POST /api/rooms {display_name, avatar?, returning, invite_only?, public?, settings, custom_questions}`, in one transaction:
 
@@ -565,6 +565,12 @@ key into them, so cleanup leaves it.
   per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
 - `/api/admin/suggestions` lists, edits and moves them. Export downloads the playable approved ones
   and stamps `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
+- `reports` holds what players send to `POST /api/reports` (`app/reports.py`): a mode, a question
+  id or null, a snapshot (the question whole, a price mode's roster item, or null for "something
+  else"), up to 500 characters of text, open or closed. Closed ones are kept. The form searches
+  `GET /api/questions?mode=…`, `{id, label}` with no answer (Odd One Out's label is its options
+  in pack order); 3 an hour per address (`REPORTS_PER_HOUR`). `/api/admin/reports` lists and
+  closes them; `/api/admin/questions?mode=…` returns a mode's pack questions whole.
 
 ## 12. Data pipeline
 

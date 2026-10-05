@@ -1,16 +1,18 @@
 <script lang="ts">
   /**
-   * `/admin`: the operator's view of the instance. The queue of player suggestions, live
-   * rooms from the server's memory, and the daily counters over a range.
+   * `/admin`: the operator's view of the instance. The queues of player suggestions and
+   * question reports, live rooms from the server's memory, and the daily counters over a range.
    *
    * It never shows what a room holds: no names, answers or questions. The server never
-   * sends them, so there is nothing here to hide. The suggestions are the one thing here
-   * with answers in them, and they are the players' to the operator, not a room's. A refused token is forgotten, so the
+   * sends them, so there is nothing here to hide. The suggestions and the reported
+   * questions are the one thing here with answers in them, and they are the players' and
+   * the packs', not a room's. A refused token is forgotten, so the
    * next visit starts from a fresh link rather than replaying a dead one.
    */
   import { onMount } from 'svelte'
 
   import HistoryChart from '../components/admin/HistoryChart.svelte'
+  import ReportQueue from '../components/admin/ReportQueue.svelte'
   import SuggestionQueue from '../components/admin/SuggestionQueue.svelte'
   import Segmented from '../components/Segmented.svelte'
   import {
@@ -142,6 +144,7 @@
 
   {#if view === 'ready' && token !== null}
     <SuggestionQueue {token} onrefused={refuse} />
+    <ReportQueue {token} onrefused={refuse} />
   {/if}
 
   {#if live !== null}
