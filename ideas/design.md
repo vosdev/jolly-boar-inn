@@ -102,13 +102,13 @@ learns the position, which is worth more than variety.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [sign] The Jolly Boar Inn            [⌥]  [head Name emblem] │  56px, sticky
+│ [sign] The Jolly Boar Inn            [⌥]  [pet Name emblem]  │  56px, sticky
 └──────────────────────────────────────────────────────────────┘
 ```
 
 - **Left:** the sign, a plain `href="/"` link home, then the wordmark. Both are configurable (§14).
   The version is in the footer.
-- **Right:** GitHub (`--muted`, the one control not about the game), then one control: the head,
+- **Right:** GitHub (`--muted`, the one control not about the game), then one control: the pet,
   the name and the current theme's **emblem**. One thumb target, not three. The name is the bar's
   priority: it shows at every width and is the one item that shrinks, ellipsising.
 - **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 165px.
@@ -117,20 +117,20 @@ learns the position, which is worth more than variety.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead.
 
-The control opens one panel: **You** (name and head; the local profile outside a room, the live
+The control opens one panel: **You** (name and pet; the local profile outside a room, the live
 player via `set_profile` inside one), **Sound** (§7) and **Theme**, a column of emblems beside their
 names, the chosen one ringed. Picking a theme repaints at once and the panel stays open. Escape, a
 tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
 elsewhere. An emblem is the Leagues flag of the theme's area (§14); until one is dropped in, a flat
 mark in the theme's `--accent` stands in.
 
-## 6. Names and heads
+## 6. Names and pets
 
-The profile, `localStorage["jbi:profile"]`, holds this browser's name and head permanently. A
+The profile, `localStorage["jbi:profile"]`, holds this browser's name and pet permanently. A
 player is per room and temporary. There are no accounts.
 
 - **Join and Create** ask once. A browser with no profile gets a modal before its first room (on
-  Create, when the button is pressed): a generated name and head, pre-filled so one tap on *Join*
+  Create, when the button is pressed): a generated name and pet, pre-filled so one tap on *Join*
   or *Create room* is an answer. Nothing dismisses it, the room is joined or made only on that tap,
   and the answer becomes the profile. A browser with a profile is never asked.
 - **Renaming** is `set_profile`. Most players take the pre-filled name, so every generated name
@@ -142,14 +142,17 @@ wearing a goblin's face, and never real players. Base names are at most 21 chara
 fits. A duplicate is a 409, and the client re-rolls the suffix up to three times. A name matching
 the room code is skipped: not a bug, but it reads like one.
 
-Heads must reach other players, so the server stores them. `players.avatar` is a nullable id; the
-client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose still has a face.
+Pets must reach other players, so the server stores them. `players.avatar` is a nullable pet id; the
+client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose still has a pet.
 
-- There are exactly 50 heads, because a room holds 50 players. They are hand-picked and committed
-  in `data/heads/` with `heads.json` as the manifest. **The index is the contract**: an id may be
-  redrawn but never repointed at another face.
-- One sprite sheet, rendered pixelated at 32px and 48px, so each head is 16×16. The fifty shipped
-  are placeholders the owner replaces file for file.
+- A pet is pickable when `data/assets.json` has both its chathead and its inventory icon, 204 of
+  236 today. The chathead is drawn large, the icon small. The pet's id is the contract, not its
+  position in `pets.json`.
+- **The picker** is in the name prompt and the You panel. It shows the pet as its chathead with its
+  name, a Random button for those who cannot decide, and Change pet, a search box over a scrolling
+  A-to-Z grid of icons: a native radio group, so arrows, one tab stop and screen readers work.
+  Like names, pets are fixed once the game starts.
+- A pet with no file is drawn as the innkeeper.
 
 ## 7. Sound (#102)
 
@@ -228,9 +231,8 @@ countdowns and take-back rule are architecture §7.
 - **Lobby: a named list.** The host needs to know *who* is missing before Start, and the answer is
   usually "Dave, at the bar". Start is plain once the room reaches the threshold, and "Start anyway"
   below it, which asks first.
-- **Splash: a row of heads, no names.** A splash comes up to thirteen times a game; a named
-  checklist each time turns a beat into a negotiation. Heads light as people tap, and "Waiting for
-  2 more" says the rest.
+- **Splash: a grid of pets, a name under each.** Pets light as people tap, and "Waiting for 2 more"
+  says the rest.
 
 ## 10. The question screen and the reveal
 
@@ -278,24 +280,24 @@ first in the middle:
 ```
                     ┌─────────┐
                     │ DIAMOND │
-          ┌─────────┤ [head]  ├─────────┐
+          ┌─────────┤ [pet]   ├─────────┐
           │PLATINUM │ Cow313… │  GOLD   │
-┌─────────┤ [head]  │  8,420  │ [head]  ├─────────┐
+┌─────────┤ [pet]   │  8,420  │ [pet]   ├─────────┐
 │ SILVER  │ ScapeR… │         │ AlchAd… │ BRONZE  │
-│ [head]  │  7,115  │         │  6,980  │ [head]  │
+│ [pet]   │  7,115  │         │  6,980  │ [pet]   │
 │ xX_Lu…  │         │         │         │ NoobS…  │
 │    4    │    2    │    1    │    3    │    5    │
 └─────────┴─────────┴─────────┴─────────┴─────────┘
 ```
 
 - Left to right, ranks 4 · 2 · 1 · 3 · 5, lower towards the edges. Each step has its trophy, a 48px
-  head, the name and the points.
-- Ranks are dense, so tied players share a step: up to three heads, then `+N`.
+  pet, the name and the points.
+- Ranks are dense, so tied players share a step: up to three pets, then `+N`.
 - Nobody with 0 points stands on the podium; the trophy shows dimmed on an empty step. A quiet
   room's first standings are not five zero-point winners.
 - Names wrap to two lines, then ellipsise; the full name is in the accessible label.
 
-Below it, the OSRS hiscores from rank 6: rank, head, name, right-aligned tabular points. There are no
+Below it, the OSRS hiscores from rank 6: rank, pet, name, right-aligned tabular points. There are no
 gold, silver or bronze medals; a "Gold" third place beside a gold medal would contradict itself.
 Your row is highlighted, and between rounds it is pinned to the bottom when it would be below the
 fold. The final screen's table lists everyone, ranks 1–5 included.
@@ -364,16 +366,14 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Item renders | Game assets, no importer yet | No |
 | Speedrunning trophies | Game renders, `make fetch-assets` | No, fetched; placeholders ship |
 | Display font | Self-hosted, once chosen | No, fetched |
-| Chat heads | 50 hand-picked (§6) | **Yes** |
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |
-| Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the head |
+| Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the innkeeper |
 | Theme emblems | Leagues area flags | No, fetched; inline placeholder marks |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
 - Fetching keeps the checkout small. Fetch scripts refuse to run without the operator's own
   User-Agent, per the wiki's terms.
-- Heads are committed because curation is a person's judgement.
-- Every art slot takes a file with no code change: the sign, the trophies, the heads, the NPCs, the
+- Every art slot takes a file with no code change: the sign, the trophies, the pets, the NPCs, the
   emblems (`client/src/assets/themes/<theme>.<ext>`). The display face and the logo are the
   owner's, and no D task waits on them.
 

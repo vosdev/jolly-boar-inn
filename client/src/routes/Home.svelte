@@ -14,12 +14,12 @@
   import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
-  import Head from '../components/Head.svelte'
+  import Pet from '../components/Pet.svelte'
   import Stage from '../components/stage/Stage.svelte'
   import { hasAdminToken } from '../lib/admin'
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { expiresIn, finishedTime } from '../lib/dates'
-  import { headOf } from '../lib/heads'
+  import { petOf } from '../lib/pets'
   import { historyPath, pastGames, placeIn, removePastGame, type PastGame } from '../lib/history'
   import { REPO_URL } from '../lib/links'
   import { atRoomLimit } from '../lib/roomLimit'
@@ -230,7 +230,7 @@
         <ul class="players">
           {#each open as room (room.code)}
             <li>
-              <Head head={headOf(room.host)} size={32} label="" />
+              <Pet pet={petOf(room.host)} size={32} cut="icon" label="" />
               <span class="name">
                 <span class="code-small">{room.code}</span>
                 <span class="host">{room.host.display_name}</span>

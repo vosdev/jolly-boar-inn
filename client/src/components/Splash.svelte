@@ -15,22 +15,20 @@
    * blurb, and stays up into the round's first question. The round's count and pace, the
    * ready check and the countdown go under the line (section 8 of ideas/design.md).
    *
-   * The ready check (section 7.1 of ideas/design.md) is a row of heads, dim until
-   * their player taps ready, and never a list of names: a splash comes round up to
-   * thirteen times a game, and naming who is holding things up each time turns an
-   * short beat into a negotiation. The lobby is where names are listed. A tap can be
+   * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
+   * name underneath, dim until their player taps ready. A tap can be
    * taken back once per splash — below the threshold that stops the countdown again —
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
    */
   import { get } from 'svelte/store'
 
-  import { headOf } from '../lib/heads'
   import { MODES, hostOf } from '../lib/modes'
+  import { petOf } from '../lib/pets'
   import type { PlayerView, Segment } from '../lib/protocol'
   import { readyThreshold } from '../lib/ready'
   import { serverOffsetMs } from '../lib/stores'
-  import Head from './Head.svelte'
+  import Pet from './Pet.svelte'
   import Stage from './stage/Stage.svelte'
   import Timer from './Timer.svelte'
 
@@ -63,7 +61,7 @@
   const host = $derived(hostOf(segment.mode))
 
   /**
-   * The heads to wait on: whoever is connected, which is who the server counts. A player
+   * The pets to wait on: whoever is connected, which is who the server counts. A player
    * whose phone has locked is not holding anyone up, so they are not in the row either.
    */
   const present = $derived(players.filter((player) => player.connected))
@@ -127,10 +125,12 @@
         >
           {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
         </button>
-        <ul class="heads" aria-label={summary}>
+        <ul class="pets" aria-label={summary}>
           {#each present as player (player.id)}
             <li class:lit={player.ready === true}>
-              <Head head={headOf(player)} size={32} label="" />
+              <Pet pet={petOf(player)} size={48} label="" />
+              <span class="pet-name">{player.display_name}</span>
+              <span class="sr">{player.ready === true ? 'ready' : 'not ready'}</span>
             </li>
           {/each}
         </ul>
@@ -202,19 +202,28 @@
     min-height: 44px;
   }
 
-  .heads {
+  .pets {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.3rem;
+    gap: 0.5rem 0.3rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  /* Dim until the tap. Opacity and not colour, so a head reads the same in every theme
-     and a player who cannot tell the theme's hues apart can still tell lit from not. */
-  .heads li {
+  /* The pet dims until the tap. Opacity and not colour, so a pet reads the same in every
+     theme and a player who cannot tell the theme's hues apart can still tell lit from not.
+     The name is dimmed by ink instead, so it keeps its contrast. */
+  .pets li {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    width: 4.25rem;
+    color: var(--muted);
+  }
+
+  .pets li > :global(.pet) {
     opacity: 0.3;
     filter: grayscale(1);
     transition:
@@ -222,9 +231,27 @@
       filter 200ms ease-out;
   }
 
-  .heads li.lit {
+  .pets li.lit {
+    color: var(--ink);
+  }
+
+  .pets li.lit > :global(.pet) {
     opacity: 1;
     filter: none;
+  }
+
+  /* Up to 24 characters, so two lines before it is cut off. */
+  .pet-name {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    text-align: center;
   }
 
   .tally {
@@ -248,7 +275,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .heads li {
+    .pets li > :global(.pet) {
       transition: none;
     }
   }

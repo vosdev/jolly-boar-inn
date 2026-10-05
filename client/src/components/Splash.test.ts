@@ -4,13 +4,15 @@
  * that a `pong` moving the clock offset does not fill up again.
  */
 
-import { fireEvent, render, screen } from '@testing-library/svelte'
+import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { GENERIC_HOST, MODES } from '../lib/modes'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
+import { derivedPet } from '../lib/pets'
 import type { PlayerView, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
+import { petsDrawn } from '../test-pets'
 import Splash from './Splash.svelte'
 
 const SEGMENT: Segment = { mode: 'more_less', index: 0, total: 2, start: 0, count: 5 }
@@ -94,11 +96,19 @@ describe('Splash stage', () => {
 })
 
 describe('Splash ready check', () => {
-  it('counts who is ready by heads and names nobody', () => {
+  it('shows each connected player as their pet with their name under it, and who is ready', () => {
     splash(SEGMENT, true)
-    expect(screen.getByRole('list', { name: '1 of 2 ready' })).toBeTruthy()
-    expect(document.body.textContent).not.toContain('Woox')
-    expect(document.body.textContent).not.toContain('Zezima')
+    const list = screen.getByRole('list', { name: '1 of 2 ready' })
+    const rows = within(list).getAllByRole('listitem')
+    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+      'Zezima ready',
+      'Woox not ready',
+    ])
+    expect(petsDrawn(list)).toEqual([
+      { pet: derivedPet('a'), size: 48 },
+      { pet: derivedPet('b'), size: 48 },
+    ])
+    expect(rows.map((row) => row.classList.contains('lit'))).toEqual([true, false])
   })
 })
 

@@ -6,11 +6,11 @@
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { derivedHead } from '../lib/heads'
+import { derivedPet } from '../lib/pets'
 import type { PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, resetRoom } from '../lib/stores'
 import type { RoomSocket } from '../lib/ws'
-import { headsDrawn } from '../test-heads'
+import { petsDrawn } from '../test-pets'
 import Lobby from './Lobby.svelte'
 
 const HOST: PlayerView = { id: 'a', display_name: 'Zezima', role: 'admin', connected: true }
@@ -130,7 +130,7 @@ describe('Lobby', () => {
 
   it('lists who is asking to join, and lets them in or turns them away without asking', async () => {
     const requests = [
-      { id: 'r1', display_name: 'Lynx Titan', avatar: 4 },
+      { id: 'r1', display_name: 'Lynx Titan', avatar: 'aggy' },
       { id: 'r2', display_name: 'Durial', avatar: null },
     ]
     lobby([HOST, WOOX], { ...ROOM, key: 'abc', requests })
@@ -175,11 +175,11 @@ describe('Lobby', () => {
     expect(sent).toEqual([{ t: 'start_game' }])
   })
 
-  it('draws each player’s own head, or the one their id gives, at 32px', () => {
-    lobby([{ ...HOST, avatar: 7 }, { ...WOOX, avatar: null }])
-    expect(headsDrawn(document.querySelector('.players')!)).toEqual([
-      { head: 7, size: 32 },
-      { head: derivedHead(WOOX.id), size: 32 },
+  it('draws each player’s own pet, or the one their id gives, at 40px', () => {
+    lobby([{ ...HOST, avatar: 'baby_mole' }, { ...WOOX, avatar: null }])
+    expect(petsDrawn(document.querySelector('.players')!)).toEqual([
+      { pet: 'baby_mole', size: 40 },
+      { pet: derivedPet(WOOX.id), size: 40 },
     ])
   })
 

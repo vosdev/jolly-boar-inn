@@ -135,18 +135,14 @@ export interface RoomView {
 export interface JoinRequestView {
   id: string
   display_name: string
-  avatar: number | null
+  avatar: string | null
 }
 
 export interface PlayerView {
   id: string
   display_name: string
-  /**
-   * A head id in `data/heads/heads.json`, or null for a player who never chose one.
-   * Optional because a server from before heads does not send it; `lib/heads.ts` draws the
-   * head derived from `id` for both.
-   */
-  avatar?: number | null
+  /** A pet's id in `data/pets.json`, or null for a player who never chose one: `lib/pets.ts` draws the pet derived from `id`. */
+  avatar?: string | null
   role: Role
   connected: boolean
   /**
@@ -163,7 +159,7 @@ export interface Standing {
   player_id: string
   display_name: string
   /** As on `PlayerView`. */
-  avatar?: number | null
+  avatar?: string | null
   points: number
   rank: number
 }
@@ -266,11 +262,11 @@ export interface DecideRequest {
   accept: boolean
 }
 
-/** Rename, re-roll the head, or both. An omitted field is left alone. */
+/** Rename, change the pet, or both. An omitted field is left alone. */
 export interface SetProfile {
   t: 'set_profile'
   display_name?: string
-  avatar?: number
+  avatar?: string
 }
 
 /** Tap ready, or take it back. In the lobby and on a splash; nowhere else. */

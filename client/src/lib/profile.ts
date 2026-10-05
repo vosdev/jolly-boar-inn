@@ -1,13 +1,13 @@
 /**
- * The profile: the name and head this browser brings to the next room, under `jbi:profile`.
+ * The profile: the name and pet this browser brings to the next room, under `jbi:profile`.
  *
  * Identity in this app is per-room — a player exists because they joined one, and there
  * is no account. The profile is what makes that bearable: it is local and permanent, so a
  * returning player is never asked their name again, while the server never learns that
  * two players in two rooms were the same person, and has no need to (section 5.1).
  *
- * The head arrived after the name. A profile stored before it has a name and
- * no head, and reads as that name with a fresh random head, kept from then on.
+ * The pet arrived after the name. A profile stored before it, or with a pet this build
+ * does not offer, reads as that name with a fresh random pet, kept from then on.
  *
  * Like `session.ts`, every accessor tolerates localStorage throwing — Safari in private
  * mode, a browser with site data blocked. The store below is the source of truth for the
@@ -17,12 +17,12 @@
 
 import { writable } from 'svelte/store'
 
-import { isHead, randomHead } from './heads'
 import { nameProblem, normalizeName } from './names'
+import { isPet, randomPet } from './pets'
 
 export interface Profile {
   name: string
-  head: number
+  pet: string
 }
 
 const PROFILE_KEY = 'jbi:profile'
@@ -45,15 +45,15 @@ function load(): Profile | null {
   }
   if (raw === null) return null
   try {
-    const parsed = JSON.parse(raw) as { name?: unknown; head?: unknown } | null
+    const parsed = JSON.parse(raw) as { name?: unknown; pet?: unknown } | null
     const name = parsed?.name
     // A name the rules have since tightened against is no name: better to ask again than
     // to walk somebody into a join the server refuses.
     if (typeof name !== 'string' || nameProblem(name) !== null) return null
-    if (isHead(parsed?.head)) return { name: normalizeName(name), head: parsed.head }
-    // A profile from before heads: give it one now and keep it, so it is the same face
+    if (isPet(parsed?.pet)) return { name: normalizeName(name), pet: parsed.pet }
+    // A profile with no pet to wear: give it one now and keep it, so it is the same pet
     // on every visit rather than a new one each time the page loads.
-    const upgraded = { name: normalizeName(name), head: randomHead() }
+    const upgraded = { name: normalizeName(name), pet: randomPet() }
     store(upgraded)
     return upgraded
   } catch {
@@ -78,13 +78,13 @@ export const returningVisitor: boolean = (() => {
 export const profile = writable<Profile | null>(load())
 
 /**
- * Remember a name and a head, for this page at once and for every visit after it if
- * storage lets us. A head left out keeps the one the profile has, or rolls one for a
+ * Remember a name and a pet, for this page at once and for every visit after it if
+ * storage lets us. A pet left out keeps the one the profile has, or rolls one for a
  * profile that has none yet.
  */
-export function saveProfile(name: string, head?: number): void {
+export function saveProfile(name: string, pet?: string): void {
   profile.update((current) => {
-    const next: Profile = { name: normalizeName(name), head: head ?? current?.head ?? randomHead() }
+    const next: Profile = { name: normalizeName(name), pet: pet ?? current?.pet ?? randomPet() }
     store(next)
     return next
   })

@@ -17,7 +17,6 @@ from app import accesslog
 from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
-from app.heads import load_head_count
 from app.http import admin, modes, players, rooms, suggestions, vocab
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
@@ -31,6 +30,7 @@ from app.http.ratelimit import (
     SUGGESTIONS_PER_HOUR,
     RateLimiter,
 )
+from app.pets import load_pickable_pets
 from app.questions import vocab as vocabularies
 from app.questions.packs import load_packs
 from app.rooms.codes import load_words
@@ -159,7 +159,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         packs=app.state.packs,
         settings=settings,
         words=load_words(),
-        heads=load_head_count(),
+        pets=load_pickable_pets(),
     )
     app.state.pool = None
     app.state.instance_lock = None

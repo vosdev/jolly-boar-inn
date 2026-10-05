@@ -68,7 +68,7 @@ class Segment(_Message):
 class JoinRequestView(_Message):
     id: UUID
     display_name: str
-    avatar: int | None  # as on ``PlayerView``
+    avatar: str | None  # as on ``PlayerView``
 
 
 class RoomView(_Message):
@@ -106,9 +106,9 @@ class RoomView(_Message):
 class PlayerView(_Message):
     id: UUID
     display_name: str
-    # An id in ``data/heads/heads.json``, or null for a player who never chose one: the
-    # client then draws the head derived from ``id`` (section 5.2).
-    avatar: int | None
+    # A pet's id in ``data/pets.json``, or null for a player who never chose one: the
+    # client then draws the pet derived from ``id`` (section 6 of ideas/design.md).
+    avatar: str | None
     role: Role
     connected: bool
     # The ready check: ready to start in the lobby, ready for this round on a splash.
@@ -121,7 +121,7 @@ class PlayerView(_Message):
 class Standing(_Message):
     player_id: UUID
     display_name: str
-    avatar: int | None  # as on ``PlayerView``
+    avatar: str | None  # as on ``PlayerView``
     points: int
     rank: int
 
@@ -221,16 +221,16 @@ class DecideRequest(_Message):
 
 
 class SetProfile(_Message):
-    """Rename, re-roll the head, or both. One message for both, because they are the
+    """Rename, change the pet, or both. One message for both, because they are the
     same operation on the same row: validated like a join, broadcast as ``room_updated``.
 
     An omitted field is left as it is. The bounds here are only the outer ones; the name
-    rules and the manifest's length are the manager's to apply.
+    rules and the list of pets are the manager's to apply.
     """
 
     t: Literal["set_profile"]
     display_name: str | None = Field(default=None, max_length=200)
-    avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
+    avatar: str | None = Field(default=None, max_length=64, strict=True)
 
 
 class Ready(_Message):

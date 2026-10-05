@@ -1,5 +1,5 @@
 /**
- * The first-visit prompt: a name and a head already filled in, a modal nothing but its
+ * The first-visit prompt: a name and a pet already filled in, a modal nothing but its
  * button gets out of, and an answer only a name the server would take can give.
  */
 
@@ -7,6 +7,7 @@ import { fireEvent, render, screen } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { nameProblem } from '../lib/names'
+import { isPet } from '../lib/pets'
 import NamePrompt from './NamePrompt.svelte'
 
 const onConfirm = vi.fn()
@@ -25,14 +26,14 @@ describe('NamePrompt', () => {
     expect(screen.getByRole('button', { name: 'Join' })).toHaveProperty('disabled', false)
   })
 
-  it('answers with the name as typed, trimmed, and the head it shows', async () => {
+  it('answers with the name as typed, trimmed, and the pet it shows', async () => {
     render(NamePrompt, { action: 'Join', onConfirm })
     await fireEvent.input(field(), { target: { value: '  Zezima ' } })
     await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
     expect(onConfirm).toHaveBeenCalledOnce()
-    const [name, head] = onConfirm.mock.calls[0]!
+    const [name, pet] = onConfirm.mock.calls[0]!
     expect(name).toBe('Zezima')
-    expect(Number.isInteger(head)).toBe(true)
+    expect(isPet(pet)).toBe(true)
   })
 
   it('will not answer with a name the server would refuse', async () => {
@@ -45,7 +46,7 @@ describe('NamePrompt', () => {
     expect(onConfirm).not.toHaveBeenCalled()
   })
 
-  it('rolls a new name and a new head on request', async () => {
+  it('rolls a new name and a new pet on request', async () => {
     render(NamePrompt, { action: 'Join', onConfirm })
     const before = field().value
     await fireEvent.click(screen.getByRole('button', { name: 'Roll a random name' }))
@@ -53,7 +54,7 @@ describe('NamePrompt', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
     const first = onConfirm.mock.calls[0]![1]
     onConfirm.mockClear()
-    await fireEvent.click(screen.getByRole('button', { name: /New head/ }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Random' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
     expect(onConfirm.mock.calls[0]![1]).not.toBe(first)
   })
