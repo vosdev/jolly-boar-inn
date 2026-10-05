@@ -168,6 +168,10 @@
     min-height: calc(4 * 1.3 * max(1rem, 1.2rem * var(--scroll-text, 1)) + 2.1rem * var(--k));
     background: var(--scroll-paper);
     color: var(--ink);
+    --font-display: 'RuneScape', var(--font-body);
+    --font-numeric: var(--font-display);
+    font-family: var(--font-display);
+    font-synthesis: none;
     box-shadow:
       inset 14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent),
       inset -14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent);
