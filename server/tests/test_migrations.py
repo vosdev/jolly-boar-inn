@@ -477,10 +477,12 @@ def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
 
 def without_the_hold(settings: dict[str, Any]) -> dict[str, Any]:
     """A stored room's settings less ``random_event_seconds``, which 0007 wrote into every
-    room and which stopped being a setting when the hold became the server's. The app's
-    ``RoomSettings.stored`` drops it; these tests read strictly, so a key a migration
+    room and which stopped being a setting when the hold became the server's, and
+    ``splash_seconds``, which stopped when every round became introduced. The app's
+    ``RoomSettings.stored`` drops them; these tests read strictly, so a key a migration
     should have removed still fails them."""
-    return {k: v for k, v in settings.items() if k != "random_event_seconds"}
+    gone = {"random_event_seconds", "splash_seconds"}
+    return {k: v for k, v in settings.items() if k not in gone}
 
 
 async def test_0007_swaps_order_for_the_event_settings_once(
