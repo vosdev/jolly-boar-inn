@@ -31,8 +31,19 @@ def test_every_question_is_a_sort_it_out_order_with_its_own_prompt(
         "sort_it_out",
         "pack",
     )
-    assert len(question["tags"]) == 1 and question["tags"][0] in {"tier", "combat", "release"}
-    assert question["payload"]["prompt"].startswith("Sort ")
+    assert len(question["tags"]) == 1
+    tag, prompt = question["tags"][0], question["payload"]["prompt"]
+    if tag == "procedure":
+        assert prompt.endswith("?")
+    else:
+        assert tag in {"tier", "combat", "release"} and prompt.startswith("Sort ")
+
+
+def test_the_pack_has_twenty_orders_six_of_tiers_and_five_of_release_dates() -> None:
+    tags = [q["tags"][0] for q in questions()]
+    assert len(tags) >= 20
+    assert tags.count("tier") >= 6
+    assert tags.count("release") >= 5
 
 
 @pytest.mark.parametrize(

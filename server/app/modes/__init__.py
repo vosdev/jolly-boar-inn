@@ -49,10 +49,10 @@ MODES: dict[str, Mode] = {
     "know_your_content_creator": Mode(
         id="know_your_content_creator", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
     ),
-    # Its types disagree on seconds; twenty is what the slower two of them default to.
+    # Its types disagree on seconds; twenty is what closest_number and free_text default to.
     "bestiary": Mode(
         id="bestiary",
-        types=frozenset({"multiple_choice", "closest_number", "free_text"}),
+        types=frozenset({"multiple_choice", "closest_number", "free_text", "ordering"}),
         seconds=Bounds(default=20, minimum=10, maximum=60),
     ),
     # Four boss names weighed against one item read like four quotes, not four prices.
@@ -62,7 +62,9 @@ MODES: dict[str, Mode] = {
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
-        types=frozenset({"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}),
+        types=frozenset(
+            {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
+        ),
         # Its types disagree on both, and the pool is small: 20 leaves room for the events
         # the room adds on top.
         questions=Bounds(default=10, minimum=1, maximum=20),
