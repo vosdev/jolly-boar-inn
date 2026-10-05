@@ -14,10 +14,11 @@
  */
 
 import type { CustomQuestion, CustomType } from './customQuestions'
-import { CUSTOM_TYPES } from './customQuestions'
+import { CUSTOM_TYPES, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
+import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
 import type { OpenQuestion } from './protocol'
 import { codePoints, definition, envelopeProperty, limit } from './questionSchema'
 import { fold, type VocabEntry } from './vocab'
@@ -32,9 +33,22 @@ export function maySuggest(): boolean {
 export type SuggestionKind = 'question' | 'examine' | 'item'
 export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
-export interface QuestionContent extends CustomQuestion {
+/** The types a suggestion may be: Create's three, and an ordering for the rounds that sort. */
+export type SuggestedType = CustomType | 'ordering'
+
+export interface QuestionContent {
+  type: SuggestedType
+  payload: Record<string, unknown>
+  /** The NPC who asks it, for a random event's. */
+  random_event?: string
   mode: string
   wiki: string
+}
+
+/** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
+export function questionPreview(content: QuestionContent): OpenQuestion {
+  if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, content.mode)
+  return previewOf(content as CustomQuestion, content.mode === 'random_event' ? undefined : content.mode)
 }
 
 export interface ExamineContent {
@@ -76,7 +90,7 @@ export interface Choice {
   /** The NPC on its card and in its preview. */
   host: string
   /** For a question: the types its editor offers. */
-  types: readonly CustomType[]
+  types: readonly SuggestedType[]
 }
 
 /** Rounds that take four-button questions, built or not: `QUESTION_MODES` on the server. */
@@ -93,6 +107,11 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
   if (built !== undefined) return { id, label: built.label, hint: built.hint, host: built.host.id }
   return UPCOMING_MODES.find((mode) => mode.id === id)
 }
+
+/** Rounds that sort: `ordering` questions, the form with its tie boxes. */
+const ORDERING_ROUNDS = ['sort_it_out']
+/** What a card says to a player thinking of a question, where the round's tagline would not. */
+const ORDERING_HINTS: Record<string, string> = { sort_it_out: 'Something worth putting in order.' }
 
 export const CHOICES: readonly Choice[] = [
   {
@@ -127,6 +146,16 @@ export const CHOICES: readonly Choice[] = [
       hint: mode.hint,
       host: mode.host,
       types: ['multiple_choice'],
+    }),
+  ),
+  ...ORDERING_ROUNDS.map(choiceRound).filter((mode) => mode !== undefined).map(
+    (mode): Choice => ({
+      id: mode.id,
+      kind: 'question',
+      label: mode.label,
+      hint: ORDERING_HINTS[mode.id] ?? mode.hint,
+      host: mode.host,
+      types: ['ordering'],
     }),
   ),
 ]
@@ -232,6 +261,7 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
   if (suggestion.kind === 'examine') return (suggestion.content as ExamineContent).name
   const { type, payload } = suggestion.content as QuestionContent
+  if (type === 'ordering') return answerLine(payload)
   if (type === 'multiple_choice') {
     const options = payload.options as string[]
     return options[payload.answer_index as number] ?? ''

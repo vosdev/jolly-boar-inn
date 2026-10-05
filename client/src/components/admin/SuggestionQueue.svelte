@@ -21,7 +21,6 @@
     type Queue,
   } from '../../lib/admin'
   import { ApiFailure } from '../../lib/api'
-  import { previewOf } from '../../lib/customQuestions'
   import { npcArt } from '../../lib/npcs'
   import {
     STATUS_LABELS,
@@ -30,6 +29,7 @@
     examinePreview,
     exportName,
     modeName,
+    questionPreview,
     summary,
     type ExamineContent,
     type ItemContent,
@@ -260,13 +260,13 @@
                     {@const content = row.content as QuestionContent}
                     {#if content.random_event !== undefined}
                       <RandomEvent
-                        question={previewOf(content)}
+                        question={questionPreview(content)}
                         yourValue={null}
                         onAnswer={() => {}}
                       />
                     {:else}
                       <QuestionStage
-                        question={previewOf(content, content.mode)}
+                        question={questionPreview(content)}
                         yourValue={null}
                         onAnswer={() => {}}
                       />

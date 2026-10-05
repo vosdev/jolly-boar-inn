@@ -46,14 +46,14 @@ export function normalize(text: string): string {
   return folded.replace(/\p{P}/gu, '').split(/\s+/u).filter(Boolean).join(' ')
 }
 
-function at(path: string, message: string, kind: Problem['kind'] = 'limit'): Problem {
+export function at(path: string, message: string, kind: Problem['kind'] = 'limit'): Problem {
   return { path, message, kind }
 }
 
 const UNSTORABLE = /\0|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/
 
 /** `questions/text.py`: strings Postgres will not store, keys included. */
-function unstorable(value: unknown, path: string): Problem[] {
+export function unstorable(value: unknown, path: string): Problem[] {
   const problem = at(path, 'Holds a character that can’t be stored.')
   if (typeof value === 'string') return UNSTORABLE.test(value) ? [problem] : []
   if (Array.isArray(value)) return value.flatMap((item, i) => unstorable(item, `${path}[${i}]`))

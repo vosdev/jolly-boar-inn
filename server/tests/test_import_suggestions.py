@@ -97,6 +97,36 @@ def test_an_npc_question_lands_in_its_file_with_its_credit(repo: dict[str, Path]
     assert loads(repo)
 
 
+def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -> None:
+    payload = {
+        "prompt": "Sort the rings by the level that wears them.",
+        "ends": ["Lowest", "Highest"],
+        "entries": [
+            {"text": "Ring of recoil", "rank": 1},
+            {"text": "Berserker ring", "rank": 1, "detail": "Level 1"},
+            {"text": "Ring of suffering", "rank": 2},
+        ],
+        "answer": [0, 1, 2],
+        "picks": 2,
+    }
+    question = {
+        "type": "ordering",
+        "payload": payload,
+        "mode": "sort_it_out",
+        "wiki": WIKI,
+        "credit": "AFKFisher",
+        "credit_shown": True,
+    }
+    pack = repo["packs"] / "sort_it_out.json"
+    before = len(json.loads(pack.read_text())["questions"])
+    assert run(repo, {"questions": [question]}) == 0
+    added = json.loads(pack.read_text())["questions"]
+    assert len(added) == before + 1
+    assert added[-1]["payload"] == payload and added[-1]["mode"] == "sort_it_out"
+    assert (added[-1]["credit"], added[-1]["wiki"]) == ("AFKFisher", WIKI)
+    assert loads(repo)
+
+
 def test_an_examine_gets_the_highest_id_plus_one(repo: dict[str, Path]) -> None:
     highest = max(q["payload"]["answer_id"] for q in examines(repo))
     assert run(repo, {"examines": [NEW_EXAMINE, an_existing_examine(repo)]}) == 0

@@ -148,6 +148,69 @@ describe('Suggest', () => {
     })
   })
 
+  it('writes a Sort It Out order from entries and tie boxes, and sends ranks', async () => {
+    played()
+    render(Suggest, { navigate })
+    const card = await screen.findByRole('button', { name: /Sort It Out/ })
+    expect(card.textContent).toContain('Something worth putting in order.')
+    await fireEvent.click(card)
+    expect(screen.queryByRole('group', { name: 'Type' })).toBeNull()
+    expect(screen.queryByLabelText('Who asks it')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getAllByText('Can’t be empty.').length).toBeGreaterThan(0)
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type('What are they sorted by?', 'Sort these gems by the level that cuts them.')
+    await type('First end', 'Lowest')
+    await type('Last end', 'Highest')
+    await type('Entry 1', 'Sapphire')
+    await type('Detail of entry 1', 'Level 20')
+    await type('Entry 2', 'Opal')
+    await type('Entry 3', 'Jade')
+    await fireEvent.click(screen.getAllByLabelText('Tied with the one above')[0]!)
+    await fireEvent.click(screen.getByRole('button', { name: 'Add an entry' }))
+    await type('Entry 4', 'Emerald')
+    await fireEvent.change(screen.getByLabelText('Players order'), { target: { value: '3' } })
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Crafting')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'ordering',
+        payload: {
+          prompt: 'Sort these gems by the level that cuts them.',
+          ends: ['Lowest', 'Highest'],
+          entries: [
+            { text: 'Sapphire', rank: 1, detail: 'Level 20' },
+            { text: 'Opal', rank: 1 },
+            { text: 'Jade', rank: 2 },
+            { text: 'Emerald', rank: 3 },
+          ],
+          answer: [0, 1, 2, 3],
+          picks: 3,
+        },
+        mode: 'sort_it_out',
+        wiki: 'https://oldschool.runescape.wiki/w/Crafting',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
+  it('keeps the entries between three and six', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Sort It Out/ }))
+    expect(screen.getByRole('button', { name: 'Remove entry 1' }).hasAttribute('disabled')).toBe(true)
+    for (let i = 0; i < 3; i += 1) {
+      await fireEvent.click(screen.getByRole('button', { name: 'Add an entry' }))
+    }
+    expect(screen.getByRole('button', { name: 'Add an entry' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByLabelText('Entry 6')).toBeTruthy()
+    expect(screen.queryByLabelText('Entry 7')).toBeNull()
+  })
+
   it('makes an NPC’s question name its NPC', async () => {
     played()
     render(Suggest, { navigate })

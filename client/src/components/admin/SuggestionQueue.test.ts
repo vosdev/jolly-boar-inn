@@ -79,6 +79,58 @@ describe('SuggestionQueue', () => {
     expect(admin.setSuggestionStatus).toHaveBeenCalledWith('t', 'one', 'approved')
   })
 
+  describe('a Sort It Out ordering', () => {
+    const ordering = row({
+      content: {
+        type: 'ordering',
+        mode: 'sort_it_out',
+        wiki: 'https://oldschool.runescape.wiki/w/Crafting',
+        payload: {
+          prompt: 'Sort the <b>gems</b> by level.',
+          ends: ['Lowest', 'Highest'],
+          entries: [
+            { text: 'Sapphire', rank: 1, detail: 'Level 20' },
+            { text: 'Opal', rank: 1 },
+            { text: 'Emerald', rank: 2 },
+          ],
+          answer: [0, 1, 2],
+          picks: 2,
+        },
+      },
+      playable: true,
+    })
+
+    it('previews the entries shuffled, and gives the reviewer the right order', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [ordering], counts: COUNTS })
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/Sort the <b>gems<\/b> by level/)).closest('button')!)
+      const preview = screen.getByLabelText('As players will see it')
+      expect(preview.textContent).toContain('Sort the <b>gems</b> by level.')
+      expect(preview.textContent).toContain('Opal')
+      expect(preview.textContent).not.toContain('Level 20')
+      expect(screen.getByText(/Sapphire \(Level 20\) = Opal → Emerald/, { selector: 'strong' })).toBeTruthy()
+    })
+
+    it('edits it in the same form, ties and picks as stored, and saves the ranks', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [ordering], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(ordering)
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText(/Sort the/)).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect((screen.getByLabelText('Entry 1') as HTMLInputElement).value).toBe('Sapphire')
+      const ties = screen.getAllByLabelText('Tied with the one above') as HTMLInputElement[]
+      expect(ties.map((box) => box.checked)).toEqual([true, false])
+      expect((screen.getByLabelText('Players order') as HTMLSelectElement).value).toBe('2')
+
+      await fireEvent.click(ties[0]!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, id, body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(id).toBe('one')
+      const payload = (body.content as unknown as { payload: { entries: { rank: number }[] } }).payload
+      expect(payload.entries.map((entry) => entry.rank)).toEqual([1, 2, 3])
+    })
+  })
+
   it('exports the approved ones, then marks what was exported as imported', async () => {
     const createObjectURL = vi.fn(() => 'blob:x')
     Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() })

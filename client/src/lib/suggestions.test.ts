@@ -35,7 +35,7 @@ describe('who may suggest', () => {
 })
 
 describe('the choices', () => {
-  it('are an examine, an item, an NPC question and the four-button rounds still being built', () => {
+  it('are an examine, an item, an NPC question, the four-button rounds and Sort It Out', () => {
     expect(CHOICES.map((choice) => choice.id)).toEqual([
       'examine',
       'item',
@@ -45,8 +45,13 @@ describe('the choices', () => {
       'odd_one_out',
       'who_said_that',
       'know_your_content_creator',
+      'sort_it_out',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
+    const sort = CHOICES.find((c) => c.id === 'sort_it_out')
+    expect(sort?.types).toEqual(['ordering'])
+    expect(sort?.host).toBe('historian_minas')
+    expect(sort?.hint).toBe('Something worth putting in order.')
     expect(CHOICES.find((c) => c.id === 'random_event')?.types).toEqual([
       'multiple_choice',
       'free_text',

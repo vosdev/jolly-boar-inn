@@ -192,6 +192,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Create's editor writes `multiple_choice`, `free_text` and `closest_number` with limits read from
   the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
+- `/suggest` adds an `ordering` form for the rounds that sort: entries first to last and a "tied
+  with the one above" box, so ranks follow and none is skipped, with `picks` optional.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:
 

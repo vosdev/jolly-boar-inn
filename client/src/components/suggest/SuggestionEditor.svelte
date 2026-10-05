@@ -15,8 +15,9 @@
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
 
-  import type { CustomQuestion } from '../../lib/customQuestions'
+  import type { CustomQuestion, CustomType } from '../../lib/customQuestions'
   import { NAME_MAX } from '../../lib/names'
+  import type { OrderingQuestion } from '../../lib/ordering'
   import { profile } from '../../lib/profile'
   import {
     creditProblem,
@@ -33,6 +34,7 @@
   } from '../../lib/suggestions'
   import { loadVocab, search, type VocabEntry } from '../../lib/vocab'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
+  import OrderingForm from '../OrderingForm.svelte'
   import QuestionStage from '../QuestionStage.svelte'
 
   let {
@@ -74,14 +76,21 @@
     )
   })
 
+  const sorts = $derived(choice.types.includes('ordering'))
+  const customTypes = $derived(
+    choice.types.filter((type): type is CustomType => type !== 'ordering'),
+  )
+
   const question: CustomQuestion | undefined =
-    start?.type === undefined
+    start?.type === undefined || start.type === 'ordering'
       ? undefined
       : {
           type: start.type,
           payload: start.payload ?? {},
           ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
         }
+  const ordering: OrderingQuestion | undefined =
+    start?.type === 'ordering' ? { type: 'ordering', payload: start.payload ?? {} } : undefined
 
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
@@ -99,7 +108,7 @@
     return creditError === null && wikiError === null
   }
 
-  function saveQuestion(built: CustomQuestion): void {
+  function saveQuestion(built: CustomQuestion | OrderingQuestion): void {
     send({ ...built, mode: choice.id, wiki: wiki.trim() })
   }
 
@@ -173,11 +182,22 @@
   </div>
 {/snippet}
 
-{#if choice.kind === 'question'}
+{#if choice.kind === 'question' && sorts}
+  <OrderingForm
+    question={ordering}
+    title={choice.label}
+    mode={choice.id}
+    {saveLabel}
+    fields={questionFields}
+    onattempt={questionFieldsPass}
+    onsave={saveQuestion}
+    {oncancel}
+  />
+{:else if choice.kind === 'question'}
   <CustomQuestionForm
     {question}
     title={choice.label}
-    types={choice.types}
+    types={customTypes}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     mode={choice.id}
     {saveLabel}
