@@ -38,11 +38,11 @@ staggers them any further, and if the tail is bad the report says so rather than
 it behind a wider spread.
 
 **Room settings.** ``close_when_all_answered`` is off, and the admin skips the splash rather
-than waiting for the room to be ready. The first is not tidiness: with early close on, the last bot to answer ends the question, and
-an answer scheduled a few milliseconds behind it would race that close and come back
-``not_open`` -- an assertion failure caused by the test's own timing rather than by the
-server. With it off, every question runs its full window and the only thing that closes
-one is the clock.
+than waiting for the room to be ready. The first is not tidiness: with early close on, the
+last bot to answer ends the question, and an answer scheduled a few milliseconds behind it
+would race that close and come back ``not_open`` -- an assertion failure caused by the
+test's own timing rather than by the server. With it off, every question runs its full
+window and the only thing that closes one is the clock.
 """
 
 import argparse
