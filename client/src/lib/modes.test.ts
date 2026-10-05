@@ -42,11 +42,12 @@ describe('hosts', () => {
     expect(hostOf('know_your_content_creator').host.id).toBe('gnome_child')
     expect(hostOf('bestiary').host).toEqual({ id: 'zoo_keeper', name: 'Zoo keeper' })
     expect(hostOf('drop_table').host).toEqual({ id: 'nieve', name: 'Nieve' })
+    expect(hostOf('odd_one_out').host).toEqual({ id: 'dunce', name: 'Dunce' })
   })
 
   it('has a mode still being built presented by its host-to-be, in the generic lines', () => {
-    expect(hostOf('odd_one_out').host).toEqual({ id: 'aris', name: 'Aris' })
-    expect(hostOf('odd_one_out').reveal).toBe(GENERIC_HOST.reveal)
+    expect(hostOf('release_order').host).toEqual({ id: 'aris', name: 'Aris' })
+    expect(hostOf('release_order').reveal).toBe(GENERIC_HOST.reveal)
   })
 
   it('has the innkeeper present a mode with no entry, in its generic lines', () => {

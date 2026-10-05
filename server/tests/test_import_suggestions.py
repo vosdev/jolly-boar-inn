@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
+from app.suggestions import QUESTION_MODES
 
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
@@ -143,7 +144,7 @@ def test_an_item_already_on_the_roster_is_skipped(repo: dict[str, Path]) -> None
     ("bad", "named"),
     [
         ({**QUESTION, "payload": {**QUESTION["payload"], "answer_index": 7}}, "questions[1]"),
-        ({**QUESTION, "mode": "odd_one_out"} | {"random_event": None}, "questions[1]"),
+        ({**QUESTION, "mode": "zoom_quiz"} | {"random_event": None}, "questions[1]"),
         ({**QUESTION, "credit": "<script>"}, "questions[1]"),
         ({key: v for key, v in QUESTION.items() if key != "credit_shown"}, "questions[1]"),
     ],
@@ -160,9 +161,11 @@ def test_one_invalid_entry_writes_nothing_and_names_it(
 
 
 def test_a_round_not_built_yet_is_refused(
-    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    unbuilt = {k: v for k, v in QUESTION.items() if k != "random_event"} | {"mode": "odd_one_out"}
+    # Every round a player may write for is built, so this one is invented.
+    monkeypatch.setitem(QUESTION_MODES, "zoom_quiz", frozenset({"multiple_choice"}))
+    unbuilt = {k: v for k, v in QUESTION.items() if k != "random_event"} | {"mode": "zoom_quiz"}
     assert run(repo, {"questions": [unbuilt]}) == 1
     assert "not a round this build plays" in capsys.readouterr().err
 

@@ -1,0 +1,653 @@
+{
+  "pack": "odd_one_out",
+  "questions": [
+    {
+      "id": "q_6671038d0fa8dca2",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "guilds"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Crafting Guild",
+          "Heroes' Guild",
+          "Farming Guild",
+          "Mining Guild",
+          "Woodcutting Guild",
+          "Cooks' Guild"
+        ],
+        "answer_index": 1,
+        "explanation": "The others are skill guilds, each tied to a skill. The Heroes' Guild is a questers' guild: you get in by completing Heroes' Quest."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Guilds"
+    },
+    {
+      "id": "q_e5c0065dc29f0c77",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "weapons"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Dragon warhammer",
+          "Dragon longsword",
+          "Dragon battleaxe",
+          "Dragon mace",
+          "Dragon scimitar",
+          "Dragon dagger"
+        ],
+        "answer_index": 0,
+        "explanation": "Wielding the others needs a quest: Lost City, Heroes' Quest or Monkey Madness I. The warhammer needs no quest, and 60 Strength rather than 60 Attack."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer"
+    },
+    {
+      "id": "q_8928798154d3fc91",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Gargoyle",
+          "Dust devil",
+          "Abyssal demon",
+          "Hellhound",
+          "Kurask",
+          "Bloodveld"
+        ],
+        "answer_index": 3,
+        "explanation": "The others each have a superior variant that can appear on a Slayer task, such as the choke devil or the marble gargoyle. Hellhounds have none."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Superior_slayer_monster"
+    },
+    {
+      "id": "q_974d4c810a5d45fc",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "skill-capes"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Farming cape",
+          "Fishing cape",
+          "Cooking cape",
+          "Construction cape",
+          "Hunter cape",
+          "Crafting cape"
+        ],
+        "answer_index": 2,
+        "explanation": "The others can teleport you somewhere, such as the Crafting Guild, your house or the Feldip Hunter area. The Cooking cape has no teleport."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Skill_cape"
+    },
+    {
+      "id": "q_b561e68dba2d45a8",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "skilling-outfits"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Angler's outfit",
+          "Rogue equipment",
+          "Farmer's outfit",
+          "Pyromancer outfit",
+          "Lumberjack outfit",
+          "Prospector kit"
+        ],
+        "answer_index": 1,
+        "explanation": "The others boost the experience you earn in their skill. Rogue equipment gives no experience bonus, only a chance of double loot when pickpocketing."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Experience-boosting_set"
+    },
+    {
+      "id": "q_d340c1146c43e2ef",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "While Guthix Sleeps",
+          "Song of the Elves",
+          "Monkey Madness II",
+          "Dragon Slayer II",
+          "A Kingdom Divided",
+          "Desert Treasure II"
+        ],
+        "answer_index": 4,
+        "explanation": "The others are Grandmaster quests, the hardest rating. A Kingdom Divided is rated Experienced."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/A_Kingdom_Divided"
+    },
+    {
+      "id": "q_3b648745e819c168",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "runes"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Cosmic rune",
+          "Death rune",
+          "Fire rune",
+          "Nature rune",
+          "Law rune",
+          "Chaos rune"
+        ],
+        "answer_index": 2,
+        "explanation": "The others are catalytic runes. Fire is an elemental rune."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Runes"
+    },
+    {
+      "id": "q_404b785d58c1c115",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "light-sources"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Fire cape",
+          "Bruma torch",
+          "Mining helmet",
+          "Kandarin headgear",
+          "Firemaking cape"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are light sources you can light up a dark cave with while wearing them. The Fire cape is not a light source."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Light_sources"
+    },
+    {
+      "id": "q_27d402f4ba62ec2a",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "runecrafting"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Cosmic Altar",
+          "Chaos Altar",
+          "Astral Altar",
+          "Death Altar",
+          "Nature Altar",
+          "Law Altar"
+        ],
+        "answer_index": 2,
+        "explanation": "The others have a rift in the Abyss and need a talisman or tiara to enter. The Astral Altar has no Abyss rift and needs no talisman."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Runic_altar"
+    },
+    {
+      "id": "q_88b1fd930332677f",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "currencies"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Tokkul",
+          "Numulite",
+          "Marks of Grace",
+          "Golden nuggets",
+          "Molch pearls",
+          "Warrior guild tokens"
+        ],
+        "answer_index": 1,
+        "explanation": "The others are minigame currencies that cannot be traded between players. Numulite can."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Numulite"
+    },
+    {
+      "id": "q_30f9989e98e3b157",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "guilds"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Cooks' Guild",
+          "Fishing Guild",
+          "Crafting Guild",
+          "Mining Guild",
+          "Champions' Guild"
+        ],
+        "answer_index": 1,
+        "explanation": "The others can be entered on a free-to-play world. The Fishing Guild is members-only."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Guilds"
+    },
+    {
+      "id": "q_3ec559e1de7b27dd",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "jewellery"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Ring of wealth",
+          "Combat bracelet",
+          "Ring of dueling",
+          "Amulet of glory",
+          "Skills necklace"
+        ],
+        "answer_index": 2,
+        "explanation": "The others are dragonstone jewellery, whose teleports work up to level 30 Wilderness. The ring of dueling is made from an emerald ring and stops at level 20."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Skills_necklace"
+    },
+    {
+      "id": "q_2e7a9aa142e7a305",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "teleports"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Camelot Teleport",
+          "Falador Teleport",
+          "Ardougne Teleport",
+          "Varrock Teleport",
+          "Lumbridge Teleport"
+        ],
+        "answer_index": 2,
+        "explanation": "The others have no quest requirement. Ardougne Teleport needs Plague City."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Teleport"
+    },
+    {
+      "id": "q_aa84bd8f4b6aec40",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "armour"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Green d'hide body",
+          "Zamorak d'hide body",
+          "Guthix d'hide body",
+          "Blue d'hide body",
+          "Red d'hide body"
+        ],
+        "answer_index": 0,
+        "explanation": "The others can be worn without a quest. The green d'hide body needs Dragon Slayer I."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Green_d%27hide_body"
+    },
+    {
+      "id": "q_aa14d8f88adfbf35",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "monsters"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Spindel",
+          "Kalphite Queen",
+          "Sarachnis",
+          "Araxxor",
+          "Venenatis"
+        ],
+        "answer_index": 1,
+        "explanation": "The others are spiders. The Kalphite Queen is a kalphite, an insect."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Spiders"
+    },
+    {
+      "id": "q_0d855cf51855e8d5",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "magic"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Ice Barrage",
+          "Humidify",
+          "Fertile Soil",
+          "NPC Contact",
+          "Vengeance",
+          "Plank Make"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are Lunar spells. Ice Barrage is from the Ancient Magicks spellbook."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lunar_spellbook"
+    },
+    {
+      "id": "q_47e54f1792ac0ab1",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "monsters"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Guthan the Infested",
+          "Dharok the Wretched",
+          "Torag the Corrupted",
+          "Ahrim the Blighted",
+          "Verac the Defiled"
+        ],
+        "answer_index": 3,
+        "explanation": "The others fight in melee. Ahrim attacks with magic."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Barrows"
+    },
+    {
+      "id": "q_86ae6a4762c0e591",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "pets"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Heron",
+          "Beaver",
+          "Rock golem",
+          "Giant squirrel",
+          "Vorki",
+          "Tangleroot"
+        ],
+        "answer_index": 4,
+        "explanation": "The others are skilling pets, found while training a skill. Vorki is a boss pet, from Vorkath."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pet"
+    },
+    {
+      "id": "q_b22a3635f7dbe5f3",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Azzanadra",
+          "Zemouregal",
+          "Lowerniel Drakan",
+          "Lucien",
+          "Enakhra"
+        ],
+        "answer_index": 2,
+        "explanation": "The others are Mahjarrat. Drakan is a vampyre."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mahjarrat"
+    },
+    {
+      "id": "q_6b3c0ebb800dfdc6",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "The Inferno",
+          "Tombs of Amascut",
+          "Theatre of Blood",
+          "Chambers of Xeric"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are raids, instanced group encounters. The Inferno is a solo challenge, not a raid."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Raids"
+    },
+    {
+      "id": "q_6171346d5e15a31f",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Giant Mole",
+          "Chaos Elemental",
+          "Vet'ion",
+          "Scorpia",
+          "Callisto"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are bosses in the Wilderness. The Giant Mole lives under Falador Park."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Wilderness"
+    },
+    {
+      "id": "q_2eea3215d9afebd5",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Cook's Assistant",
+          "Imp Catcher",
+          "Plague City",
+          "Witch's Potion",
+          "Sheep Shearer"
+        ],
+        "answer_index": 2,
+        "explanation": "The others are free-to-play quests. Plague City is members-only."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Free-to-play_quests"
+    },
+    {
+      "id": "q_b34439a59b6cacc5",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "weapons"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Toxic blowpipe",
+          "Dragon crossbow",
+          "Twisted bow",
+          "Dark bow",
+          "Trident of the swamp"
+        ],
+        "answer_index": 4,
+        "explanation": "The others are ranged weapons. The trident of the swamp is a staff that casts a magic attack."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ranged_weapons"
+    },
+    {
+      "id": "q_ce4c5df5fe0f1cbf",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Cerberus",
+          "Alchemical Hydra",
+          "Zulrah",
+          "Abyssal Sire",
+          "Kraken"
+        ],
+        "answer_index": 2,
+        "explanation": "The others are Slayer bosses, which need a Slayer level to fight. Zulrah has no Slayer requirement."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss"
+    },
+    {
+      "id": "q_1f20ea334bf1aab3",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "prayers"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Retribution",
+          "Smite",
+          "Protect Item",
+          "Protect from Magic",
+          "Redemption"
+        ],
+        "answer_index": 2,
+        "explanation": "The others show a symbol over your head while active. Protect Item has no overhead symbol."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Prayer"
+    },
+    {
+      "id": "q_0582a13c1bb3630b",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "geography"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Mort'ton",
+          "Draynor Village",
+          "Port Phasmatys",
+          "Canifis",
+          "Burgh de Rott"
+        ],
+        "answer_index": 1,
+        "explanation": "The others are in Morytania. Draynor Village is in Misthalin."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Morytania"
+    },
+    {
+      "id": "q_42d445a359af075b",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "weapons"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Volcanic abyssal whip",
+          "Abyssal whip",
+          "Abyssal bludgeon",
+          "Frozen abyssal whip",
+          "Abyssal tentacle"
+        ],
+        "answer_index": 2,
+        "explanation": "The others are whips. The abyssal bludgeon is a two-handed crush weapon."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip"
+    },
+    {
+      "id": "q_b2577348fe687344",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "monsters"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Iron dragon",
+          "Bronze dragon",
+          "Mithril dragon",
+          "Steel dragon",
+          "Lava dragon"
+        ],
+        "answer_index": 4,
+        "explanation": "The others are metal dragons, named for their scales. The lava dragon is not."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Metal_dragon"
+    },
+    {
+      "id": "q_f69d44986a3a998d",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Dungeoneering",
+          "Farming",
+          "Construction",
+          "Hunter",
+          "Slayer"
+        ],
+        "answer_index": 0,
+        "explanation": "The others are skills in Old School RuneScape. Dungeoneering exists only in RuneScape 3."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Skills"
+    }
+  ]
+}
