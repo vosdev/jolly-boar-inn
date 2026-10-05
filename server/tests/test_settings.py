@@ -178,10 +178,10 @@ def test_a_room_stored_with_t21s_boolean_reads_as_the_frequency_it_meant() -> No
 def test_a_stored_room_keeps_a_mode_that_left_the_registry() -> None:
     """Its questions carry their own types, so it plays on, at the fallback pace; a room
     being created or built in code is still held to the registry."""
-    stored = {"modes": [{"mode": "drop_table", "questions": 4, "seconds": 12}]}
+    stored = {"modes": [{"mode": "zoom_quiz", "questions": 4, "seconds": 12}]}
     settings = RoomSettings.stored(stored)
-    assert settings.mode_ids == ["drop_table"]
-    assert settings.seconds_for("drop_table", "multiple_choice") == 12
+    assert settings.mode_ids == ["zoom_quiz"]
+    assert settings.seconds_for("zoom_quiz", "multiple_choice") == 12
     with pytest.raises(ValidationError, match="unsupported"):
         RoomSettings.model_validate(stored)
     with pytest.raises(ValidationError, match="cannot be picked as a round"):
@@ -333,6 +333,18 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
         },
         {
             "id": "know_your_content_creator",
+            "types": ["multiple_choice"],
+            "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 20, "min": 5, "max": 30},
+        },
+        {
+            "id": "bestiary",
+            "types": ["closest_number", "free_text", "multiple_choice"],
+            "questions": {"default": 5, "min": 1, "max": 30},
+            "seconds": {"default": 20, "min": 10, "max": 60},
+        },
+        {
+            "id": "drop_table",
             "types": ["multiple_choice"],
             "questions": {"default": 5, "min": 1, "max": 30},
             "seconds": {"default": 20, "min": 5, "max": 30},

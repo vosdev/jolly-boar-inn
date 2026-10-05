@@ -39,7 +39,7 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.modes import MODES, round_modes, type_seconds
-from app.questions.types import TYPES, more_less, multiple_choice, pick_from_list
+from app.questions.types import TYPES, more_less, multiple_choice, pick_from_list, scoring_of
 from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
@@ -1946,13 +1946,16 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
     assert closed["reveal"] == TYPES[question.type].reveal(question.payload)
     zezimas, wooxs = (closed["results"][seat.id] for seat in (zezima, woox))
     assert (zezimas["correct"], zezimas["points"] > 0) == (True, True)
-    assert (wooxs["correct"], wooxs["points"]) == (False, 0)
+    assert wooxs["correct"] is False
+    # Ranked, second-nearest still earns a share; everywhere else wrong scores nothing.
+    if scoring_of(question.type) is Scoring.RANK:
+        assert wooxs["points"] < zezimas["points"]
+    else:
+        assert wooxs["points"] == 0
     return closed
 
 
-# A mode that borrows another's pool mixes types, and a wrong ``closest_number`` still earns
-# rank credit, so it cannot be held to "wrong scores nothing". Its own test is in
-# ``test_random_events_only.py``.
+# A mode that borrows another's pool has its own test, in ``test_random_events_only.py``.
 @pytest.mark.parametrize("mode", [mode.id for mode in round_modes() if mode.pool is None])
 def test_a_round_of_every_mode_takes_a_right_and_a_wrong_answer_and_closes(
     table, db, mode: str

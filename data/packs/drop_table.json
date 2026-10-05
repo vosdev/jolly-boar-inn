@@ -1,0 +1,445 @@
+{
+  "pack": "drop_table",
+  "questions": [
+    {
+      "id": "q_0ac01d373ee11534",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops a Jar of sand?",
+        "image": "item:12885",
+        "options": [
+          "Kalphite Queen",
+          "Giant Mole",
+          "Sarachnis",
+          "Zulrah"
+        ],
+        "answer_index": 0,
+        "explanation": "Kalphite Queen, per the OSRS Wiki's drop table. The others drop a jar too, just a different one."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen"
+    },
+    {
+      "id": "q_1641329f006d4d16",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Ring of the gods?",
+        "image": "item:12601",
+        "options": [
+          "Callisto",
+          "Vet'ion",
+          "Venenatis",
+          "Chaos Fanatic"
+        ],
+        "answer_index": 1,
+        "explanation": "Vet'ion, per the OSRS Wiki's drop table. Calvar'ion, his smaller version, drops it as well."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vet%27ion"
+    },
+    {
+      "id": "q_3ab4bd434c293e3f",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Dragonbone necklace?",
+        "image": "item:22111",
+        "options": [
+          "Zulrah",
+          "Alchemical Hydra",
+          "Vorkath",
+          "King Black Dragon"
+        ],
+        "answer_index": 2,
+        "explanation": "Vorkath, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+    },
+    {
+      "id": "q_3827cf5e68356347",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Pegasian crystal?",
+        "image": "item:13229",
+        "options": [
+          "Abyssal Sire",
+          "Kraken",
+          "Thermonuclear smoke devil",
+          "Cerberus"
+        ],
+        "answer_index": 3,
+        "explanation": "Cerberus, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
+    },
+    {
+      "id": "q_c3bb349e221325f7",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Tanzanite fang?",
+        "image": "item:12922",
+        "options": [
+          "Zulrah",
+          "Vorkath",
+          "Kraken",
+          "Cerberus"
+        ],
+        "answer_index": 0,
+        "explanation": "Zulrah, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    },
+    {
+      "id": "q_06ff622315f258e3",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Bandos chestplate?",
+        "image": "item:11832",
+        "options": [
+          "Kree'arra",
+          "General Graardor",
+          "Commander Zilyana",
+          "K'ril Tsutsaroth"
+        ],
+        "answer_index": 1,
+        "explanation": "General Graardor, per the OSRS Wiki's drop table. His bodyguards drop it as well."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+    },
+    {
+      "id": "q_8342f20211213083",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Hydra's claw?",
+        "image": "item:22966",
+        "options": [
+          "Vorkath",
+          "Cerberus",
+          "Alchemical Hydra",
+          "Zulrah"
+        ],
+        "answer_index": 2,
+        "explanation": "Alchemical Hydra, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
+    },
+    {
+      "id": "q_a7b982b259c05974",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops Superior dragon bones?",
+        "image": "item:22124",
+        "options": [
+          "King Black Dragon",
+          "Alchemical Hydra",
+          "Zulrah",
+          "Vorkath"
+        ],
+        "answer_index": 3,
+        "explanation": "Vorkath, per the OSRS Wiki's drop table. Frost dragons drop them too, but they are no boss."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+    },
+    {
+      "id": "q_e1354ad32fbc4bce",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops Coconut?",
+        "image": "item:5974",
+        "options": [
+          "Zulrah",
+          "Kraken",
+          "Sarachnis",
+          "Alchemical Hydra"
+        ],
+        "answer_index": 0,
+        "explanation": "Zulrah, per the OSRS Wiki's drop table. Twenty at a time, noted."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    },
+    {
+      "id": "q_2a2d2f446f33259e",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops a Trident of the seas (full)?",
+        "image": "item:11905",
+        "options": [
+          "Zulrah",
+          "Kraken",
+          "Abyssal Sire",
+          "Thermonuclear smoke devil"
+        ],
+        "answer_index": 1,
+        "explanation": "Kraken, per the OSRS Wiki's drop table. Cave kraken drop it too, but they are no boss."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kraken"
+    },
+    {
+      "id": "q_abea30db3626f38e",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Smoke battlestaff?",
+        "image": "item:11998",
+        "options": [
+          "Kraken",
+          "Cerberus",
+          "Thermonuclear smoke devil",
+          "Abyssal Sire"
+        ],
+        "answer_index": 2,
+        "explanation": "Thermonuclear smoke devil, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Thermonuclear_smoke_devil"
+    },
+    {
+      "id": "q_6ab9206d2af6c3f1",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Holy elixir?",
+        "image": "item:12833",
+        "options": [
+          "Commander Zilyana",
+          "Nex",
+          "Kalphite Queen",
+          "Corporeal Beast"
+        ],
+        "answer_index": 3,
+        "explanation": "Corporeal Beast, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+    },
+    {
+      "id": "q_fe5efa86dc2a730a",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Nihil horn?",
+        "image": "item:26372",
+        "options": [
+          "Nex",
+          "K'ril Tsutsaroth",
+          "Kree'arra",
+          "Corporeal Beast"
+        ],
+        "answer_index": 0,
+        "explanation": "Nex, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Nex"
+    },
+    {
+      "id": "q_84300a12aba70bfe",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Granite ring?",
+        "image": "item:21739",
+        "options": [
+          "Abyssal Sire",
+          "Grotesque Guardians",
+          "Cerberus",
+          "Giant Mole"
+        ],
+        "answer_index": 1,
+        "explanation": "Grotesque Guardians, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Grotesque_Guardians"
+    },
+    {
+      "id": "q_c6d9eb4c328b1133",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Venator shard?",
+        "image": "item:27614",
+        "options": [
+          "Nex",
+          "The Leviathan",
+          "Phantom Muspah",
+          "Vorkath"
+        ],
+        "answer_index": 2,
+        "explanation": "Phantom Muspah, per the OSRS Wiki's drop table. The Leviathan drops the venator vestige, which is a different item."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Phantom_Muspah"
+    },
+    {
+      "id": "q_558985033b0a8cfc",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops a Giant egg sac(full)?",
+        "image": "item:23517",
+        "options": [
+          "Venenatis",
+          "Kalphite Queen",
+          "Araxxor",
+          "Sarachnis"
+        ],
+        "answer_index": 3,
+        "explanation": "Sarachnis, per the OSRS Wiki's drop table. Cut open, it holds red spiders' eggs."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sarachnis"
+    },
+    {
+      "id": "q_d037e43bc05adee0",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Bottomless compost bucket?",
+        "image": "item:22994",
+        "options": [
+          "Hespori",
+          "Tempoross",
+          "Wintertodt",
+          "Zalcano"
+        ],
+        "answer_index": 0,
+        "explanation": "Hespori, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Hespori"
+    },
+    {
+      "id": "q_27f0fd42466b9727",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Crystal tool seed?",
+        "image": "item:23953",
+        "options": [
+          "Crystalline Hunllef",
+          "Zalcano",
+          "Tempoross",
+          "Wintertodt"
+        ],
+        "answer_index": 1,
+        "explanation": "Zalcano, per the OSRS Wiki's drop table."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zalcano"
+    },
+    {
+      "id": "q_b5c64a889400149a",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops an Uncut onyx?",
+        "image": "item:6571",
+        "options": [
+          "Cerberus",
+          "Kalphite Queen",
+          "Skotizo",
+          "Giant Mole"
+        ],
+        "answer_index": 2,
+        "explanation": "Skotizo, per the OSRS Wiki's drop table. Zulrah and Zalcano drop one too, but neither is an option."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Skotizo"
+    },
+    {
+      "id": "q_77519d458efcca94",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Seers ring?",
+        "image": "item:6731",
+        "options": [
+          "Dagannoth Rex",
+          "Dagannoth Supreme",
+          "Kalphite Queen",
+          "Dagannoth Prime"
+        ],
+        "answer_index": 3,
+        "explanation": "Dagannoth Prime, per the OSRS Wiki's drop table. Rex drops the berserker ring and Supreme the archers ring."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_Prime"
+    }
+  ]
+}
