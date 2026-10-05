@@ -27,6 +27,7 @@ broken pack, and CI runs the same check via ``scripts/validate_packs.py``.
 """
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -146,6 +147,11 @@ def _repeated_prompts(
         else:
             seen[key] = (payload["answer_id"], f"{label} questions[{index}]")
     return errors
+
+
+def mode_questions(packs: Iterable[Pack], mode: str) -> list[dict[str, Any]]:
+    """Every pack question of ``mode``, in pack order, answers included."""
+    return [question for pack in packs for question in pack.questions if question["mode"] == mode]
 
 
 def load_packs(directory: Path) -> list[Pack]:

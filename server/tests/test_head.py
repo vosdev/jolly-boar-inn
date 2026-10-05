@@ -25,6 +25,8 @@ def test_every_api_get_answers_head(
         # Values that name something real, so each route answers as it would for a caller
         # who got it right rather than all of them 404ing alike.
         path = template.format(code=lobby["code"], name="items")
+        if path == "/api/questions":
+            path += "?mode=guess_examine"
         got = client.get(path)
         head = client.head(path)
         assert head.status_code == got.status_code == 200, path

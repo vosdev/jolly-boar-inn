@@ -1,5 +1,6 @@
 /**
- * The operator's admin view: its token, the two reads behind it, and the suggestion queue.
+ * The operator's admin view: its token, the two reads behind it, and the queues of
+ * suggestions and reports.
  *
  * The token arrives once, in the fragment of `/admin#token=…`. A fragment never reaches
  * the server, so it stays out of the access log and out of any `Referer`. It is moved into
@@ -9,6 +10,7 @@
 
 import { ApiFailure } from './api'
 import { dropStored, readStored, writeStored } from './session'
+import type { PackQuestion, QueuedReport, ReportStatus } from './reports'
 import type { QueuedSuggestion, SuggestionBody, SuggestionStatus } from './suggestions'
 
 const TOKEN_KEY = 'jbi:admin'
@@ -151,6 +153,31 @@ export function exportSuggestions(
 export async function markImported(token: string): Promise<number> {
   const path = '/api/admin/suggestions/imported'
   return (await adminRequest<{ imported: number }>(path, token, 'POST', {})).imported
+}
+
+export interface ReportQueue {
+  reports: QueuedReport[]
+  counts: Record<ReportStatus, number>
+}
+
+export function getReports(token: string, status: ReportStatus): Promise<ReportQueue> {
+  return adminGet(`/api/admin/reports?status=${status}`, token)
+}
+
+export function setReportStatus(
+  token: string,
+  id: string,
+  status: ReportStatus,
+): Promise<QueuedReport> {
+  return adminRequest(`/api/admin/reports/${encodeURIComponent(id)}/status`, token, 'POST', {
+    status,
+  })
+}
+
+/** A mode's pack questions whole, answers included. */
+export async function getPackQuestions(token: string, mode: string): Promise<PackQuestion[]> {
+  const path = `/api/admin/questions?mode=${encodeURIComponent(mode)}`
+  return (await adminGet<{ questions: PackQuestion[] }>(path, token)).questions
 }
 
 /** The refresh button's label: how many seconds ago the data was fetched, once it has been. */

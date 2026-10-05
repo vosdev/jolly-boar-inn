@@ -1,6 +1,6 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Four of them: room creation, joins, suggestions, and lookups of rooms that turn out not to
+Five of them: room creation, joins, suggestions, reports, and lookups of rooms that turn out not to
 exist.
 The last is what keeps the room list private. The live codes are a few of a few hundred
 words, and every request that names a room answers whether it exists, so an address
@@ -24,6 +24,8 @@ LOOKUP_WINDOW = timedelta(minutes=10)
 JOINS_PER_HOUR = 100
 # Plenty for a player with a notebook of ideas; a script filling the queue stops quickly.
 SUGGESTIONS_PER_HOUR = 10
+# A player reports what they just met in a game, a question or two; not a review of the packs.
+REPORTS_PER_HOUR = 3
 
 
 class RateLimited(ApiError):
