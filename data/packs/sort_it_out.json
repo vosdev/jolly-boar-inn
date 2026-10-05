@@ -267,6 +267,883 @@
         ],
         "explanation": "Misthalin Mystery came out on 26 January 2017, The Corsair Curse on 7 December 2017, the moss giant boss Bryophyta on 3 May 2018, X Marks the Spot on 7 February 2019 and Below Ice Mountain on 14 April 2021."
       }
+    },
+    {
+      "id": "q_85c6d42db006c9e7",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these herbs by the Herblore level needed to clean them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Guam leaf",
+            "rank": 1,
+            "detail": "Level 3"
+          },
+          {
+            "text": "Tarromin",
+            "rank": 2,
+            "detail": "Level 11"
+          },
+          {
+            "text": "Ranarr weed",
+            "rank": 3,
+            "detail": "Level 25"
+          },
+          {
+            "text": "Toadflax",
+            "rank": 4,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Snapdragon",
+            "rank": 5,
+            "detail": "Level 59"
+          },
+          {
+            "text": "Torstol",
+            "rank": 6,
+            "detail": "Level 75"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Cleaning a grimy guam leaf takes 3 Herblore, tarromin 11, ranarr 25, toadflax 30, snapdragon 59 and torstol 75. Ranarr sits much lower than its price suggests."
+      }
+    },
+    {
+      "id": "q_2295b00d6bb99735",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these runes by the Runecraft level needed to craft them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Fire rune",
+            "rank": 1,
+            "detail": "Level 14"
+          },
+          {
+            "text": "Cosmic rune",
+            "rank": 2,
+            "detail": "Level 27"
+          },
+          {
+            "text": "Nature rune",
+            "rank": 3,
+            "detail": "Level 44"
+          },
+          {
+            "text": "Law rune",
+            "rank": 4,
+            "detail": "Level 54"
+          },
+          {
+            "text": "Death rune",
+            "rank": 5,
+            "detail": "Level 65"
+          },
+          {
+            "text": "Blood rune",
+            "rank": 6,
+            "detail": "Level 77"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Fire runes need 14 Runecraft, cosmic 27, nature 44, law 54, death 65 and blood 77. Law runes also need Troll Stronghold, death runes Mourning's End Part II."
+      }
+    },
+    {
+      "id": "q_d4562dca0b2c4587",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these bones by the Prayer experience they give when buried, from least to most.",
+        "ends": [
+          "Least",
+          "Most"
+        ],
+        "entries": [
+          {
+            "text": "Big bones",
+            "rank": 1,
+            "detail": "15 xp"
+          },
+          {
+            "text": "Babydragon bones",
+            "rank": 2,
+            "detail": "30 xp"
+          },
+          {
+            "text": "Dragon bones",
+            "rank": 3,
+            "detail": "72 xp"
+          },
+          {
+            "text": "Wyvern bones",
+            "rank": 3,
+            "detail": "72 xp"
+          },
+          {
+            "text": "Dagannoth bones",
+            "rank": 4,
+            "detail": "125 xp"
+          },
+          {
+            "text": "Superior dragon bones",
+            "rank": 5,
+            "detail": "150 xp"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Big bones give 15 xp, babydragon bones 30, dragon and wyvern bones 72 each, so either may come first. Dagannoth bones give 125 and superior dragon bones 150."
+      }
+    },
+    {
+      "id": "q_a999a0bdc9c1c211",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these Slayer masters by the combat level they want before they give you a task, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Turael",
+            "rank": 1,
+            "detail": "No requirement"
+          },
+          {
+            "text": "Mazchna",
+            "rank": 2,
+            "detail": "Combat 20"
+          },
+          {
+            "text": "Vannaka",
+            "rank": 3,
+            "detail": "Combat 40"
+          },
+          {
+            "text": "Chaeldar",
+            "rank": 4,
+            "detail": "Combat 70"
+          },
+          {
+            "text": "Konar",
+            "rank": 5,
+            "detail": "Combat 75"
+          },
+          {
+            "text": "Duradel",
+            "rank": 6,
+            "detail": "Combat 100"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Turael gives tasks to anyone. Mazchna wants combat 20, Vannaka 40, Chaeldar 70, Konar 75 and Duradel 100, with 50 Slayer on top."
+      }
+    },
+    {
+      "id": "q_414c8e9d7a92f28b",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these rooftop courses by the Agility level they need, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Draynor Village",
+            "rank": 1,
+            "detail": "Level 10"
+          },
+          {
+            "text": "Varrock",
+            "rank": 2,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Canifis",
+            "rank": 3,
+            "detail": "Level 40"
+          },
+          {
+            "text": "Seers' Village",
+            "rank": 4,
+            "detail": "Level 60"
+          },
+          {
+            "text": "Rellekka",
+            "rank": 5,
+            "detail": "Level 80"
+          },
+          {
+            "text": "Ardougne",
+            "rank": 6,
+            "detail": "Level 90"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "The rooftops climb ten levels at a time: Draynor Village at 10, Varrock at 30, Canifis at 40, Seers' Village at 60, Rellekka at 80 and Ardougne at 90."
+      }
+    },
+    {
+      "id": "q_a406472f642b8db7",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "Sort these PvM challenges by release date, from oldest to newest.",
+        "ends": [
+          "Oldest",
+          "Newest"
+        ],
+        "entries": [
+          {
+            "text": "Chambers of Xeric",
+            "rank": 1,
+            "detail": "5 January 2017"
+          },
+          {
+            "text": "The Inferno",
+            "rank": 2,
+            "detail": "1 June 2017"
+          },
+          {
+            "text": "Theatre of Blood",
+            "rank": 3,
+            "detail": "7 June 2018"
+          },
+          {
+            "text": "The Gauntlet",
+            "rank": 4,
+            "detail": "25 July 2019"
+          },
+          {
+            "text": "The Nightmare",
+            "rank": 5,
+            "detail": "6 February 2020"
+          },
+          {
+            "text": "Tombs of Amascut",
+            "rank": 6,
+            "detail": "24 August 2022"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Chambers of Xeric came out on 5 January 2017, the Inferno on 1 June 2017, Theatre of Blood on 7 June 2018, the Gauntlet on 25 July 2019, the Nightmare on 6 February 2020 and Tombs of Amascut on 24 August 2022."
+      }
+    },
+    {
+      "id": "q_c73e5b07f343dc07",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "Sort these areas by release date, from oldest to newest.",
+        "ends": [
+          "Oldest",
+          "Newest"
+        ],
+        "entries": [
+          {
+            "text": "Great Kourend",
+            "rank": 1,
+            "detail": "7 January 2016"
+          },
+          {
+            "text": "Fossil Island",
+            "rank": 2,
+            "detail": "7 September 2017"
+          },
+          {
+            "text": "Prifddinas",
+            "rank": 3,
+            "detail": "25 July 2019"
+          },
+          {
+            "text": "Varlamore",
+            "rank": 4,
+            "detail": "20 March 2024"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Great Kourend opened on 7 January 2016, Fossil Island on 7 September 2017, Prifddinas on 25 July 2019 and Varlamore on 20 March 2024."
+      }
+    },
+    {
+      "id": "q_8146db111133bf1b",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "Sort the Leagues by the date they opened, from oldest to newest.",
+        "ends": [
+          "Oldest",
+          "Newest"
+        ],
+        "entries": [
+          {
+            "text": "Twisted",
+            "rank": 1,
+            "detail": "14 November 2019"
+          },
+          {
+            "text": "Trailblazer",
+            "rank": 2,
+            "detail": "28 October 2020"
+          },
+          {
+            "text": "Shattered Relics",
+            "rank": 3,
+            "detail": "19 January 2022"
+          },
+          {
+            "text": "Trailblazer Reloaded",
+            "rank": 4,
+            "detail": "15 November 2023"
+          },
+          {
+            "text": "Raging Echoes",
+            "rank": 5,
+            "detail": "27 November 2024"
+          },
+          {
+            "text": "Demonic Pacts",
+            "rank": 6,
+            "detail": "15 April 2026"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Twisted opened on 14 November 2019, Trailblazer on 28 October 2020, Shattered Relics on 19 January 2022, Trailblazer Reloaded on 15 November 2023, Raging Echoes on 27 November 2024 and Demonic Pacts on 15 April 2026."
+      }
+    },
+    {
+      "id": "q_7a1252389c05b6a7",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order does a dwarf multicannon go up when you set it up?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Base",
+            "rank": 1
+          },
+          {
+            "text": "Stand",
+            "rank": 2
+          },
+          {
+            "text": "Barrels",
+            "rank": 3
+          },
+          {
+            "text": "Furnace",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "You place the base and the rest assembles itself on top: the stand, then the barrels, then the furnace."
+      }
+    },
+    {
+      "id": "q_c52088f705b87c5d",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "Which three words teleport you to the rune essence mine, in the order they are spoken?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Senventior",
+            "rank": 1
+          },
+          {
+            "text": "Disthine",
+            "rank": 2
+          },
+          {
+            "text": "Molenko",
+            "rank": 3
+          },
+          {
+            "text": "Valtorim",
+            "rank": 4
+          },
+          {
+            "text": "Sedmolor",
+            "rank": 4
+          },
+          {
+            "text": "Ventarus",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "picks": 3,
+        "explanation": "Aubury and the other wizards shout \"Senventior disthine molenko!\" as they send you off. Valtorim, Sedmolor and Ventarus are made up."
+      }
+    },
+    {
+      "id": "q_10168c6510921cd2",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you worship at the Ectofuntus?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Put bones in the loader",
+            "rank": 1
+          },
+          {
+            "text": "Turn the wheel",
+            "rank": 2
+          },
+          {
+            "text": "Empty the bin into a pot",
+            "rank": 3
+          },
+          {
+            "text": "Worship the Ectofuntus",
+            "rank": 4
+          },
+          {
+            "text": "Collect your ecto-tokens",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "The grinder crushes the bones and its bin fills a pot with bonemeal. Worshipping takes the bonemeal and a bucket of slime, and a ghost disciple then pays out five ecto-tokens."
+      }
+    },
+    {
+      "id": "q_dcdfc1deaf4a89bd",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you meet these guides on Tutorial Island?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Master Chef",
+            "rank": 1
+          },
+          {
+            "text": "Quest Guide",
+            "rank": 2
+          },
+          {
+            "text": "Mining Instructor",
+            "rank": 3
+          },
+          {
+            "text": "Combat Instructor",
+            "rank": 4
+          },
+          {
+            "text": "Account Guide",
+            "rank": 5
+          },
+          {
+            "text": "Brother Brace",
+            "rank": 6
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "After the Survival Expert comes the Master Chef, then the Quest Guide, the Mining and Combat Instructors underground, the Account Guide in the bank and Brother Brace in the chapel, before the Magic Instructor."
+      }
+    },
+    {
+      "id": "q_2e578872351f05d8",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order must you complete these elf quests?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Plague City",
+            "rank": 1
+          },
+          {
+            "text": "Biohazard",
+            "rank": 2
+          },
+          {
+            "text": "Underground Pass",
+            "rank": 3
+          },
+          {
+            "text": "Regicide",
+            "rank": 4
+          },
+          {
+            "text": "Mourning's End Part I",
+            "rank": 5
+          },
+          {
+            "text": "Mourning's End Part II",
+            "rank": 6
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Each one requires the one before: Plague City, Biohazard, Underground Pass, Regicide, then both parts of Mourning's End. Song of the Elves comes after all of them."
+      }
+    },
+    {
+      "id": "q_e08d7588ede95f80",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order must you complete these Myreque quests?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "In Search of the Myreque",
+            "rank": 1
+          },
+          {
+            "text": "In Aid of the Myreque",
+            "rank": 2
+          },
+          {
+            "text": "Darkness of Hallowvale",
+            "rank": 3
+          },
+          {
+            "text": "A Taste of Hope",
+            "rank": 4
+          },
+          {
+            "text": "Sins of the Father",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Each one requires the one before: In Search of the Myreque, In Aid of the Myreque, Darkness of Hallowvale, A Taste of Hope, then Sins of the Father."
+      }
+    },
+    {
+      "id": "q_23bf8ad16999ea73",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make a prayer potion from a seed?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Plant a ranarr seed",
+            "rank": 1,
+            "detail": "Farming 32"
+          },
+          {
+            "text": "Harvest the herb",
+            "rank": 2
+          },
+          {
+            "text": "Clean the grimy ranarr",
+            "rank": 3,
+            "detail": "Herblore 25"
+          },
+          {
+            "text": "Add it to a vial of water",
+            "rank": 4
+          },
+          {
+            "text": "Add snape grass",
+            "rank": 5,
+            "detail": "Herblore 38"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "A ranarr seed needs 32 Farming and cleaning the herb 25 Herblore. The clean ranarr in a vial of water makes an unfinished potion, and snape grass finishes it at 38 Herblore."
+      }
+    },
+    {
+      "id": "q_afbf460212d9e46a",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make an air battlestaff?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Make molten glass",
+            "rank": 1
+          },
+          {
+            "text": "Blow an unpowered orb",
+            "rank": 2,
+            "detail": "Crafting 46"
+          },
+          {
+            "text": "Charge it at the Obelisk of Air",
+            "rank": 3,
+            "detail": "Magic 66"
+          },
+          {
+            "text": "Attach it to a battlestaff",
+            "rank": 4,
+            "detail": "Crafting 66"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Molten glass is blown into an unpowered orb at 46 Crafting. Charge Air Orb on the obelisk in the Wilderness needs 66 Magic, and fixing the orb to a battlestaff 66 Crafting."
+      }
+    },
+    {
+      "id": "q_310a27c703388df4",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you end up with a charged amulet of glory?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Cut a dragonstone",
+            "rank": 1
+          },
+          {
+            "text": "Smelt a gold bar",
+            "rank": 1
+          },
+          {
+            "text": "Craft the amulet",
+            "rank": 2,
+            "detail": "Crafting 80"
+          },
+          {
+            "text": "String it",
+            "rank": 3
+          },
+          {
+            "text": "Enchant it",
+            "rank": 4,
+            "detail": "Magic 68"
+          },
+          {
+            "text": "Charge it",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "The gem and the bar can come in either order. The amulet takes 80 Crafting, then a ball of wool, Lvl-5 Enchant at 68 Magic and a dip in the Fountain of Heroes."
+      }
     }
   ]
 }

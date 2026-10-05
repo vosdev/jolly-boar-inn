@@ -367,6 +367,168 @@
         "explanation": "TzTok-Jad, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/TzTok-Jad"
+    },
+    {
+      "id": "q_0b41362b562c252e",
+      "type": "ordering",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "payload": {
+        "prompt": "Sort these Fight Caves monsters by combat level, lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Tz-Kih",
+            "rank": 1,
+            "detail": "Level 22"
+          },
+          {
+            "text": "Tz-Kek",
+            "rank": 2,
+            "detail": "Level 45"
+          },
+          {
+            "text": "Tok-Xil",
+            "rank": 3,
+            "detail": "Level 90"
+          },
+          {
+            "text": "Yt-MejKot",
+            "rank": 4,
+            "detail": "Level 180"
+          },
+          {
+            "text": "Ket-Zek",
+            "rank": 5,
+            "detail": "Level 360"
+          },
+          {
+            "text": "TzTok-Jad",
+            "rank": 6,
+            "detail": "Level 702"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Each roughly doubles the last: Tz-Kih 22, Tz-Kek 45, Tok-Xil 90, Yt-MejKot 180, Ket-Zek 360 and TzTok-Jad 702, per their infoboxes on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/TzHaar_Fight_Cave"
+    },
+    {
+      "id": "q_6f7ed53c236a1858",
+      "type": "ordering",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "payload": {
+        "prompt": "Sort the God Wars Dungeon generals by combat level, lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Kree'arra",
+            "rank": 1,
+            "detail": "Level 580"
+          },
+          {
+            "text": "Commander Zilyana",
+            "rank": 2,
+            "detail": "Level 596"
+          },
+          {
+            "text": "General Graardor",
+            "rank": 3,
+            "detail": "Level 624"
+          },
+          {
+            "text": "K'ril Tsutsaroth",
+            "rank": 4,
+            "detail": "Level 650"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Kree'arra is level 580, Commander Zilyana 596, General Graardor 624 and K'ril Tsutsaroth 650, per their infoboxes on the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/God_Wars_Dungeon"
+    },
+    {
+      "id": "q_782549b14e3d3b44",
+      "type": "ordering",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "combat-level"
+      ],
+      "payload": {
+        "prompt": "Sort these dragons by combat level, lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Blue dragon",
+            "rank": 1,
+            "detail": "Level 111"
+          },
+          {
+            "text": "Lava dragon",
+            "rank": 2,
+            "detail": "Level 252"
+          },
+          {
+            "text": "Mithril dragon",
+            "rank": 3,
+            "detail": "Level 304"
+          },
+          {
+            "text": "Brutal black dragon",
+            "rank": 4,
+            "detail": "Level 318"
+          },
+          {
+            "text": "Adamant dragon",
+            "rank": 5,
+            "detail": "Level 338"
+          },
+          {
+            "text": "Rune dragon",
+            "rank": 6,
+            "detail": "Level 380"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Blue dragons are level 111, lava 252, mithril 304, brutal black 318, adamant 338 and rune 380, per their infoboxes on the OSRS Wiki. A brutal black outranks a mithril dragon."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_(monster)"
     }
   ]
 }

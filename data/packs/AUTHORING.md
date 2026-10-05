@@ -32,7 +32,7 @@ Add new lines at the end of the file.
 Ask what is fun, not what an infobox happens to hold. Each question names its source in
 `explanation` ("per his infobox on the OSRS Wiki") and links the page in `wiki`.
 
-- Bestiary mixes `multiple_choice`, `closest_number` and `free_text`. A monster with several
+- Bestiary mixes `multiple_choice`, `closest_number`, `free_text` and `ordering`. A monster with several
   versions says in the prompt which one it means. A distractor sits near the answer (a
   combat level within a factor, a year within a few), so the answer is not the odd one out.
 - Drop Table asks "Which boss drops …?" over four bosses, with `image: item:<id>` for when

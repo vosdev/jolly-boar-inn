@@ -14,8 +14,8 @@ def questions(mode: str) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["questions"]
 
 
-def test_bestiary_mixes_three_types_at_twenty_seconds() -> None:
-    assert MODES["bestiary"].types == {"multiple_choice", "closest_number", "free_text"}
+def test_bestiary_mixes_four_types_at_twenty_seconds() -> None:
+    assert MODES["bestiary"].types == {"multiple_choice", "closest_number", "free_text", "ordering"}
     seconds = seconds_bounds("bestiary")
     assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds("bestiary").default == 5
