@@ -64,7 +64,7 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
   },
   {
     id: 'bob',
-    name: 'Bob',
+    name: 'Evil Bob',
     theme: 'Fishing, and cats',
     right: 'Hmph. Not entirely useless, for a two-legs.',
     wrong: 'As expected. Humans.',
