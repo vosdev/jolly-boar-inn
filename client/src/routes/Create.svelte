@@ -136,7 +136,6 @@
     void atRoomLimit().then((limited) => (full = limited))
     try {
       pacing = await getModes()
-      rounds = roundModes.map(roundFor)
     } catch (error) {
       pacingFailure =
         error instanceof ApiFailure ? error.message : 'could not reach the server'

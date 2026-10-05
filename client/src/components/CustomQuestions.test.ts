@@ -52,6 +52,9 @@ afterEach(cleanup)
 async function loaded(): Promise<HTMLElement> {
   render(Create, { navigate: () => {} })
   await screen.findByRole('checkbox', { name: /^More or Less/ })
+  for (const name of ['More or Less', 'The Price is Right']) {
+    await fireEvent.click(screen.getByRole('checkbox', { name }))
+  }
   return screen.getByRole('region', { name: 'Personalized questions' })
 }
 
