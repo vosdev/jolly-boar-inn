@@ -172,6 +172,18 @@ export const MODES: Record<string, Mode> = {
     // in the payload for `asset` to draw.
     stem: 'text',
   },
+  odd_one_out: {
+    id: 'odd_one_out',
+    label: 'Odd One Out',
+    hint: 'All alike but one. Spot the odd one out.',
+    host: { id: 'dunce', name: 'Dunce' },
+    greeting: "I'm in the corner for getting it wrong. Let's see if you do better.",
+    blurb: "Most of these belong together. One does not. Find it before I'm sent back to the corner.",
+    waiting: "Take your time. Nobody's making me stand here for it.",
+    reveal: "Told you it didn't fit.",
+    // The question is the same line each time; the names below it are all there is to read.
+    stem: 'text',
+  },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {
     id: 'random_events_only',
@@ -225,8 +237,7 @@ export const MODES: Record<string, Mode> = {
  */
 export const UPCOMING_MODES: { id: string; label: string; hint: string; host: string }[] = [
   { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!", host: 'postie_pete' },
-  { id: 'odd_one_out', label: 'Odd One Out', hint: 'Four items, three alike. Spot the one that is not.', host: 'aris' },
-  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'dunce' },
+  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'aris' },
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
   { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!', host: 'aubury' },
   { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?', host: 'captain_errdo' },

@@ -414,11 +414,11 @@ dependencies, on the [project board](https://github.com/users/vosdev/projects/3)
 | `whos_that_npc` | Postie Pete
 | `random_events_only` | The crowned frog from Kiss the Frog
 | `custom` | The Jolly Boar Inn's bartender, since it is the host's inn 
-| `release_order` | Dunce
+| `release_order` | Aris
 | `sort_it_out` | Historian Minas, Varrock Museum 
 | `drop_table` | Nieve 
 | `bestiary` | Ardougne Zoo keeper 
 | `who_said_that` | Cracked Jenny's Tea Cup, the parrot in Brimhaven
-| `odd_one_out` | Aris
+| `odd_one_out` | Dunce
 | `name_that_spell` | Aubury
 | `minimap_guesser` | Captain Errdo |

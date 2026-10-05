@@ -39,8 +39,9 @@ EVENT = {
     "credit": "AFKFisher",
     "credit_shown": True,
 }
+# Every round a player may write for is built, so ``unbuilt_round`` offers one that is not.
 UNBUILT = deepcopy(EVENT)
-UNBUILT["content"]["mode"] = "odd_one_out"
+UNBUILT["content"]["mode"] = "zoom_quiz"
 del UNBUILT["content"]["random_event"]
 EXAMINE = {
     "kind": "examine",
@@ -116,6 +117,12 @@ def export(client: TestClient, status: str = "approved") -> dict[str, Any]:
 # --- what a player may send -----------------------------------------------------------
 
 
+@pytest.fixture
+def unbuilt_round(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setitem(QUESTION_MODES, "zoom_quiz", frozenset({"multiple_choice"}))
+
+
+@pytest.mark.usefixtures("unbuilt_round")
 def test_each_kind_is_stored_as_pending_with_its_credit(client: TestClient) -> None:
     for body in (EVENT, UNBUILT, EXAMINE, ITEM):
         suggest(client, body)
@@ -253,6 +260,7 @@ def test_without_the_bearer_the_queue_routes_are_401s(settings: Settings, dist: 
             assert client.request(method, path, json={}, headers=wrong).status_code == 401
 
 
+@pytest.mark.usefixtures("unbuilt_round")
 def test_export_holds_approved_playable_suggestions_in_creates_format(client: TestClient) -> None:
     event, unbuilt, examine, item = (suggest(client, b) for b in (EVENT, UNBUILT, EXAMINE, ITEM))
     suggest(client, _with(ITEM, name="Pending forever"))
