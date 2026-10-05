@@ -205,7 +205,7 @@ describe('Room', () => {
       next_at: new Date(Date.now() + 8_000).toISOString(),
     })
     await waitFor(() => expect(document.querySelector('.slot')).toBeTruthy())
-    expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('✓+850')
+    expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('+850')
     // What we earned, and only that: the total waits for the standings.
     expect(document.querySelector('.slot .total')).toBeNull()
     expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)

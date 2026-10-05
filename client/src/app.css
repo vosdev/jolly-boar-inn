@@ -1,3 +1,22 @@
+/* RuneScape Quill 8, the in-game dialogue font, drawn for 16px: size-adjust makes it as wide as
+   system-ui at the same size, and a pixel face only stays sharp at its drawn size or a whole
+   multiple of it. */
+@font-face {
+  font-family: 'RuneScape';
+  src: url('./assets/fonts/RuneScape-Quill-8.ttf') format('truetype');
+  font-display: swap;
+  size-adjust: 125%;
+}
+
+@font-face {
+  font-family: 'RuneScape';
+  src: url('./assets/fonts/RuneScape-Quill-8.ttf') format('truetype');
+  font-weight: 0;
+  font-display: swap;
+  /* Its glyphs are small for their em; this matches the width of system-ui at the same size. */
+  size-adjust: 133.333%;
+}
+
 /*
  * Tokens (section 2 of ideas/design.md), and the themes built from them.
  *
@@ -91,9 +110,8 @@
 
   /* 6. Shape. This layer does more to make a theme feel like a different place than
      colour does. Wooden edges, and panels lit from below by the lanterns: a dark drop
-     and a faint warm glow onto the floor. --font-display has no pixel face to point at
-     yet, so it falls back to the body face; dropping a file in later is a change to this
-     one line. --font-numeric is the display face plus tabular figures, which are applied
+     and a faint warm glow onto the floor. --font-display is the body face; only the clue
+     scroll swaps in a pixel one. --font-numeric is the display face plus tabular figures, which are applied
      where they are used, so the timer does not twitch. */
   --radius: 6px;
   --border-width: 2px;

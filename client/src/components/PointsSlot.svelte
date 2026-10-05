@@ -41,14 +41,14 @@
    *
    * | Outcome                | Shows                                  |
    * |------------------------|----------------------------------------|
-   * | Right                  | `+850` with ✓, in `--ok` on the plaque |
-   * | Wrong                  | `+0` with ✗, in `--bad` on the plaque  |
-   * | No answer              | `No answer · +0`, muted, and no ✗      |
+   * | Right                  | `+850`, in `--ok` on the plaque        |
+   * | Wrong                  | `+0`, in `--bad` on the plaque         |
+   * | No answer              | `No answer · +0`, muted                |
    * | Graded (closest guess) | `+340`, and the number is the verdict  |
    *
    * A timeout is not a wrong answer, and says so. On the scroll the verdict is in the
    * scroll's ink, since `--ok` and `--bad` are measured against the panel and not the
-   * parchment; the glyph carries it. A running total, where one is given, goes under the
+   * parchment; the number carries it. A running total, where one is given, goes under the
    * points. What the slot never carries is the reason for the number: a speed bonus
    * explained mid-reveal is a second thing to read in a beat that is already short.
    *
@@ -80,11 +80,7 @@
 <div class="slot {outcome}" class:surface={!onScroll} class:plaque={!onScroll}>
   <span class="sr">{spoken}</span>
   <p class="earned" aria-hidden="true">
-    {#if outcome === 'right'}
-      <span class="glyph">✓</span>{points}
-    {:else if outcome === 'wrong'}
-      <span class="glyph">✗</span>{points}
-    {:else if outcome === 'none'}
+    {#if outcome === 'none'}
       No answer · +0
     {:else if outcome === 'unscored'}
       Not scored
@@ -149,10 +145,6 @@
   /* On the scroll it is one line of the sheet, sized with the words on it. */
   .slot:not(.plaque, .none, .unscored) .earned {
     font-size: max(1.2rem, 1.4rem * var(--scroll-text, 1));
-  }
-
-  .glyph {
-    font-size: 1.1rem;
   }
 
   .total {

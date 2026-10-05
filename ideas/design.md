@@ -49,7 +49,7 @@ The script asserts, per `[data-theme]` block:
 - `--ink` at 7:1 against `--bg` and `--panel`; `--muted`, `--ok` and `--bad` at 4.5:1 against
   `--panel`.
 - `--ok` and `--bad` at least 60° apart in hue. About 8% of players will not see green and red,
-  which is also why "wrong" always carries a glyph as well as a colour.
+  which is also why the points slot's verdict is a number as well as a colour.
 - `--gem-ink` at 4.5:1 on every gem, lit and faded. Faded is the gem mixed 25% into `--panel`.
 - Every gem at least 20 apart (CIE76 ΔE) from its own faded self, because lit against faded is the
   whole reveal. That is why there is no diamond or onyx: white and black wash into a panel of their
@@ -96,7 +96,8 @@ learns the position, which is worth more than variety.
   included. Pixel faces are hard to read at 16px, and hardest for the players already struggling.
 - **Numbers** (`--font-numeric`): the display face with `tabular-nums`, so points and the countdown
   never jitter.
-- No display face is chosen yet. `--font-display` falls back, and nothing depends on it.
+- The clue scroll alone is set in RuneScape Quill 8, the in-game dialogue font, by redefining `--font-display`
+  and `--font-numeric` on its paper. Everything else, the top bar and the standings included, stays in system fonts.
 
 ## 5. The top bar
 
@@ -255,12 +256,12 @@ in display tabular numerals and the scroll's ink:
 
 | Outcome | Slot shows |
 |---|---|
-| Right | `+850` and a ✓ |
-| Wrong | `+0` and a ✗ |
-| No answer | `No answer · +0`, muted, no ✗ |
+| Right | `+850` |
+| Wrong | `+0` |
+| No answer | `No answer · +0`, muted |
 | Graded (closest guess) | `+340`, the number carries the verdict |
 
-- A timeout is not a wrong answer, and the slot says so. The glyph is the verdict: `--ok` and
+- A timeout is not a wrong answer, and the slot says so. The number is the verdict: `--ok` and
   `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (#106).
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.
@@ -365,7 +366,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 |---|---|---|
 | Item renders | Game assets, no importer yet | No |
 | Speedrunning trophies | Game renders, `make fetch-assets` | No, fetched; placeholders ship |
-| Display font | Self-hosted, once chosen | No, fetched |
+| Clue scroll font | RuneStar/fonts, Quill 8 | **Yes**, 21 KB, with a note beside it |
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |
 | Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the innkeeper |
 | Theme emblems | Leagues area flags | No, fetched; inline placeholder marks |
