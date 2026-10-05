@@ -165,7 +165,7 @@ client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose sti
   Muting question audio says: *"Some rounds are audio-only. You will not be able to answer those."*
 - The CSP has no `media-src` yet, so audio is blocked until #102 adds `media-src 'self'`.
 - Browsers block audio until a gesture. The ready tap (§9) unlocks it. A player who never sees a
-  splash (`splash_seconds: 0`, or a reload mid-game) unlocks it with their first answer tap. An
+  splash (a reload mid-game) unlocks it with their first answer tap. An
   audio-only question that cannot play says so rather than sitting silent.
 - `prefers-reduced-motion` is the sibling setting: anything that moves has a static fallback.
 

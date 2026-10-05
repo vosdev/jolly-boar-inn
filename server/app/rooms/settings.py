@@ -156,16 +156,10 @@ class RoomSettings(BaseModel):
     # choice was a boolean, with ``random_events: false``: its host's questions only (see the module
     # docstring). Never ``None`` for a room created since.
     random_event_frequency: Frequency | None = "default"
-    reveal_seconds: int = Field(default=8, ge=0)
-    # Whether a round's mode is introduced before its first question: zero turns the splash
-    # off, which is what the test suite runs with, and anything else turns it on. Now
-    # the number is no longer a length -- a splash ends when the room is ready or the host
-    # skips it (``rooms/ready.py``) -- but it stays an int so every stored room still reads.
-    splash_seconds: int = Field(default=8, ge=0)
-    # How long the standings hold the floor between two rounds. Zero turns them off,
-    # as ``splash_seconds`` does for the splash; the game's last round never has them,
-    # because the final screen is its standings. Defaulted, so a room stored before the
-    # field existed reads as a room that has them.
+    reveal_seconds: int = Field(default=6, ge=0)
+    # How long the standings hold the floor between two rounds. Zero turns them off; the
+    # game's last round never has them, because the final screen is its standings.
+    # Defaulted, so a room stored before the field existed reads as a room that has them.
     standings_seconds: int = Field(default=10, ge=0)
     close_when_all_answered: bool = True
     # Name the players who answered wrong under a reveal. The host's call, on unless
@@ -269,8 +263,7 @@ class NewRoomSettings(RoomSettings):
     # A new room shuffles unless its host numbers the rounds; a stored one says which.
     mode_order: Literal["listed", "random"] = "random"
     random_event_frequency: Frequency = "default"
-    reveal_seconds: int = Field(default=8, ge=2, le=30)
-    splash_seconds: int = Field(default=8, ge=0, le=30)
+    reveal_seconds: int = Field(default=6, ge=2, le=30)
     standings_seconds: int = Field(default=10, ge=0, le=30)
 
     @field_validator("modes")

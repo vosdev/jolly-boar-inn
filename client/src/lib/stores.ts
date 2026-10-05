@@ -238,8 +238,8 @@ export function applyServerMessage(message: ServerMessage): void {
       // every question after it.
       lastError.set(null)
       // The segment comes along because a round can change with no splash to announce
-      // it — `splash_seconds` at zero, or a new round of the mode already playing — and
-      // this frame is then the only thing carrying the change.
+      // it — a restart in the splash resumes at the question — and this frame is then
+      // the only thing carrying the change.
       patchRoom({
         phase: 'open',
         current_index: message.question.index,

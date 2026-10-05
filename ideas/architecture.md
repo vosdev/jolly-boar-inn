@@ -368,8 +368,7 @@ Settings (`rooms.settings`, fixed at creation):
   "modes": [{"mode": "more_less", "questions": 5, "seconds": 10}],  // one round each
   "mode_order": "random",                // or "listed"
   "random_event_frequency": "default",   // "less" | "default" | "more"
-  "reveal_seconds": 8,                   // 2..30
-  "splash_seconds": 8,                   // 0..30; 0 turns splashes off
+  "reveal_seconds": 6,                   // 2..30
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
   "name_wrong_answers": true,            // name who got it wrong under the reveal

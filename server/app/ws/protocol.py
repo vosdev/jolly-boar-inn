@@ -141,7 +141,7 @@ class OpenQuestion(_Message):
     mode: str
     # Repeated from ``RoomView`` because the client patches its room from this frame
     # rather than replacing it, and a round can change without a splash to announce it
-    # (``splash_seconds`` at zero, or two consecutive rounds of the same mode).
+    # (a restart in the splash resumes at the question).
     segment: Segment
     view: dict[str, Any]
     # The NPC interrupting the round with this question, or ``None`` for a question that

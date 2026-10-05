@@ -306,6 +306,12 @@ describe('Create', () => {
     expect(settings.random_event_frequency).toBe('default')
     expect(settings).not.toHaveProperty('random_events')
     expect(settings).not.toHaveProperty('order')
+    expect(settings).not.toHaveProperty('splash_seconds')
+  })
+
+  it('offers no way to turn the round introductions off', async () => {
+    await loaded(...BOTH)
+    expect(screen.queryByRole('group', { name: 'Introduce each round' })).toBeNull()
   })
 
   it('lets the host pick how often, says how often that is, and offers no way off', async () => {
@@ -328,7 +334,7 @@ describe('Create', () => {
     expect(events?.textContent).toMatch(/\d+ random events? in this game/)
     const advanced = screen.getByRole('heading', { name: 'Advanced' }).closest('details')
     expect(advanced?.open).toBe(false)
-    for (const name of ['Name who got it wrong', 'Surprise rounds', 'Introduce each round']) {
+    for (const name of ['Name who got it wrong', 'Surprise rounds']) {
       expect(advanced?.contains(screen.getByRole('group', { name }))).toBe(true)
     }
     expect(advanced?.contains(screen.getByRole('group', { name: 'Access' }))).toBe(false)
@@ -339,17 +345,15 @@ describe('Create', () => {
     expect((await submitted()).name_wrong_answers).toBe(true)
   })
 
-  it('sends the three switches as set', async () => {
+  it('sends the two switches as set', async () => {
     await loaded(...BOTH)
     const flip = async (group: string, to: 'Off' | 'On'): Promise<void> => {
       const switches = screen.getByRole('group', { name: group })
       await fireEvent.click(within(switches).getByRole('radio', { name: to }))
     }
-    await flip('Introduce each round', 'Off')
     await flip('Close when everyone has answered', 'Off')
     await flip('Name who got it wrong', 'Off')
     const settings = await submitted()
-    expect(settings.splash_seconds).toBe(0)
     expect(settings.close_when_all_answered).toBe(false)
     expect(settings.name_wrong_answers).toBe(false)
   })
@@ -415,10 +419,15 @@ describe('Create', () => {
     expect((await submitted()).standings_seconds).toBe(0)
   })
 
+  it('sends a reveal of 6 seconds unless changed', async () => {
+    await loaded(...BOTH)
+    expect((await submitted()).reveal_seconds).toBe(6)
+  })
+
   it('steps the reveal by one, from 2 to 30', async () => {
     const page = document.body
     await loaded(...BOTH)
-    await press(page, 'Fewer reveal seconds', 2)
+    await press(page, 'Fewer reveal seconds', 4)
     expect(screen.getByRole('button', { name: 'Fewer reveal seconds' })).toHaveProperty('disabled', true)
     await press(page, 'More reveal seconds', 30)
     expect(screen.getByRole('button', { name: 'More reveal seconds' })).toHaveProperty('disabled', true)

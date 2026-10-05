@@ -604,6 +604,8 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
         _env_file=None, database_url=test_db_dsn, packs_dir=REPO_ROOT / "data" / "packs"
     )
     with TestClient(create_app(settings, dist)) as client:
+        # The migration is the subject, not the splashes.
+        client.app.state.rooms.splashes = False
         assert [row["version"] for row in db("select version from schema_migrations")] == ALL
         (row,) = db("select settings from rooms")
         assert "order" not in row["settings"]

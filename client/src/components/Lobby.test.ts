@@ -24,7 +24,6 @@ const ROOM: RoomView = {
     mode_order: 'listed',
     random_event_frequency: 'default',
     reveal_seconds: 8,
-    splash_seconds: 0,
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
