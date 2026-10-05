@@ -561,7 +561,8 @@ key into them, so cleanup leaves it.
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
-  `question` in Create's shape plus `mode` and `wiki`, an `examine` (line, name, wiki) or an `item`
+  `question` in Create's shape plus `mode` and a `wiki` or `source_url`, or both (a `quote` only
+  for the two quote rounds), an `examine` (line, name, wiki) or an `item`
   (a name not on the roster), with a `credit` held to the name rules and `credit_shown`, never
   true for an item. Pending, approved, rejected or imported. A round not built yet takes
   questions; they wait in approved. The client offers the form after a finished game; 10 an hour

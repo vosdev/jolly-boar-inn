@@ -145,6 +145,27 @@ describe('SuggestionQueue', () => {
     })
   })
 
+  it('links a question’s non-wiki source beside, or instead of, its wiki page', async () => {
+    const clip = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    const only = row({
+      id: 'clip',
+      content: {
+        type: 'multiple_choice',
+        mode: 'who_said_that',
+        source_url: clip,
+        payload: { prompt: 'Who said this?', quote: '<b>Hi</b>', options: ['A', 'B'], answer_index: 0 },
+      },
+    })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [only, row()], counts: COUNTS })
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText('Who said this?')).closest('button')!)
+    expect(screen.getByRole('link', { name: (name) => name.includes(clip) }).getAttribute('href')).toBe(clip)
+    expect(screen.queryByRole('link', { name: /oldschool/ })).toBeNull()
+    expect(screen.getByLabelText('As players will see it').querySelector('blockquote')?.textContent).toBe(
+      '<b>Hi</b>',
+    )
+  })
+
   it('exports the approved ones, then marks what was exported as imported', async () => {
     const createObjectURL = vi.fn(() => 'blob:x')
     Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() })

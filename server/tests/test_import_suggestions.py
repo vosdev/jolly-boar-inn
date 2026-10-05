@@ -97,6 +97,30 @@ def test_an_npc_question_lands_in_its_file_with_its_credit(repo: dict[str, Path]
     assert loads(repo)
 
 
+def test_a_quote_and_its_source_url_reach_the_pack_as_they_are(repo: dict[str, Path]) -> None:
+    payload = {
+        "prompt": "Who said this?",
+        "quote": "Never gonna give you up",
+        "options": ["Rick", "Zezima"],
+        "answer_index": 0,
+    }
+    url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    question = {
+        "type": "multiple_choice",
+        "payload": payload,
+        "mode": "who_said_that",
+        "source_url": url,
+        "credit": "AFKFisher",
+        "credit_shown": False,
+    }
+    assert run(repo, {"questions": [question]}) == 0
+    pack = json.loads((repo["packs"] / "who_said_that.json").read_text())
+    added = pack["questions"][-1]
+    assert added["payload"] == payload and added["source_url"] == url
+    assert "wiki" not in added
+    assert loads(repo)
+
+
 def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -> None:
     payload = {
         "prompt": "Sort the rings by the level that wears them.",

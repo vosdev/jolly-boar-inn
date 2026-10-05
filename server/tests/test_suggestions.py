@@ -15,7 +15,7 @@ from app.config import REPO_ROOT, Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.rooms import state
-from app.suggestions import QUESTION_MODES
+from app.suggestions import QUESTION_MODES, QUOTE_MODES
 from tests import client_source
 from tests.conftest import BASE
 
@@ -71,6 +71,23 @@ SORT_IT_OUT = {
             "answer": [0, 1, 2, 3],
             "picks": 3,
             "explanation": "Twenty, 27, 34 and 43.",
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+# Streamer quotes and facts have no wiki page: a clip is their source.
+QUOTE = {
+    "kind": "question",
+    "content": {
+        "type": "multiple_choice",
+        "mode": "who_said_that",
+        "source_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "payload": {
+            "prompt": "Who said this?",
+            "quote": "Never gonna give you up",
+            "options": ["Rick", "Zezima", "B0aty"],
+            "answer_index": 0,
         },
     },
     "credit": "AFKFisher",
@@ -209,6 +226,15 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(UNBUILT, random_event="bob"),
         _with(EVENT, extra="field"),
         _with(SORT_IT_OUT, type="multiple_choice"),
+        _without(QUOTE, "source_url"),
+        _with(QUOTE, source_url="http://example.com/clip"),
+        _with(QUOTE, source_url="ftp://example.com/clip"),
+        _with(QUOTE, source_url=7),
+        _with(QUOTE, wiki="https://example.com/w/Rick"),
+        _with(QUOTE, mode="bestiary"),
+        _with(EVENT, payload={**EVENT["content"]["payload"], "quote": "Said by Bob"}),
+        _with(QUOTE, payload={**QUOTE["content"]["payload"], "quote": ""}),
+        _with(QUOTE, payload={**QUOTE["content"]["payload"], "quote": "x" * 301}),
         _with(RELEASE_ORDER, type="multiple_choice"),
         _with(RELEASE_ORDER, type="free_text"),
         _with(SORT_IT_OUT, mode="bestiary"),
@@ -262,6 +288,26 @@ def test_a_sort_it_out_suggestion_is_stored_and_playable(client: TestClient) -> 
     rows = queue(client)["suggestions"]
     assert [row["content"]["payload"].get("picks") for row in rows] == [3, 3, 2]
     assert all(row["playable"] for row in rows)
+
+
+def test_a_question_needs_a_wiki_page_or_another_source(client: TestClient) -> None:
+    both = _with(QUOTE, wiki=WIKI)
+    for body in (QUOTE, both, _with(EVENT, source_url="https://example.com/clip")):
+        suggest(client, body)
+    rows = queue(client)["suggestions"]
+    assert [(r["content"].get("wiki"), r["content"].get("source_url")) for r in rows] == [
+        (None, QUOTE["content"]["source_url"]),
+        (WIKI, QUOTE["content"]["source_url"]),
+        (WIKI, "https://example.com/clip"),
+    ]
+    assert all(r["playable"] for r in rows)
+
+
+def test_the_form_offers_a_quote_only_to_the_rounds_that_show_one() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    rounds = re.search(r"const QUOTE_ROUNDS = \[([^\]]*)\]", source)
+    assert rounds is not None
+    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(QUOTE_MODES)
 
 
 def test_a_release_order_suggestion_waits_as_not_playable(client: TestClient) -> None:
@@ -382,6 +428,19 @@ def test_export_holds_approved_playable_suggestions_in_creates_format(client: Te
     approved = {row["id"]: row for row in queue(client, "approved")["suggestions"]}
     assert approved[unbuilt]["exported_at"] is None
     assert all(approved[s]["exported_at"] is not None for s in (event, examine, item))
+
+
+def test_a_quote_and_its_source_export_as_they_were_written(client: TestClient) -> None:
+    approve(client, suggest(client, QUOTE))
+    (question,) = export(client)["questions"]
+    assert question == {
+        "type": "multiple_choice",
+        "payload": QUOTE["content"]["payload"],
+        "mode": "who_said_that",
+        "source_url": QUOTE["content"]["source_url"],
+        "credit": "AFKFisher",
+        "credit_shown": False,
+    }
 
 
 def test_a_sort_it_out_suggestion_exports_with_its_ordering(client: TestClient) -> None:

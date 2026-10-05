@@ -42,7 +42,9 @@ export interface QuestionContent {
   /** The NPC who asks it, for a random event's. */
   random_event?: string
   mode: string
-  wiki: string
+  /** Where it was checked: either of these, or both. */
+  wiki?: string
+  source_url?: string
 }
 
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
@@ -91,6 +93,8 @@ export interface Choice {
   host: string
   /** For a question: the types its editor offers. */
   types: readonly SuggestedType[]
+  /** Whether a multiple-choice question may carry a quotation: `QUOTE_MODES` on the server. */
+  quote?: boolean
 }
 
 /** Rounds that take four-button questions, built or not: `QUESTION_MODES` on the server. */
@@ -107,6 +111,9 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
   if (built !== undefined) return { id, label: built.label, hint: built.hint, host: built.host.id }
   return UPCOMING_MODES.find((mode) => mode.id === id)
 }
+
+/** Rounds that show a quotation under the prompt. */
+const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
 const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
@@ -149,6 +156,7 @@ export const CHOICES: readonly Choice[] = [
       hint: mode.hint,
       host: mode.host,
       types: ['multiple_choice'],
+      quote: QUOTE_ROUNDS.includes(mode.id),
     }),
   ),
   ...ORDERING_ROUNDS.map(choiceRound).filter((mode) => mode !== undefined).map(
@@ -190,6 +198,35 @@ export function wikiProblem(url: string): string | null {
   if (codePoints(trimmed) > WIKI_MAX) return `At most ${WIKI_MAX} characters.`
   if (!WIKI_PATTERN.test(trimmed)) return 'A page on oldschool.runescape.wiki, starting https://.'
   return null
+}
+
+const SOURCE_URL = envelopeProperty('source_url')
+const SOURCE_URL_MAX = limit(SOURCE_URL, 'maxLength') ?? 0
+const SOURCE_URL_PATTERN = new RegExp(String(SOURCE_URL.pattern))
+
+/**
+ * A question's two ways of saying where it was checked. Either is enough, since a streamer's
+ * words have no wiki page; one that is filled in must still be well formed.
+ */
+export function sourceProblems(
+  wiki: string,
+  sourceUrl: string,
+): Record<'wiki' | 'source_url' | 'either', string | null> {
+  const w = wiki.trim()
+  const u = sourceUrl.trim()
+  return {
+    wiki: w === '' ? null : wikiProblem(w),
+    source_url:
+      u === ''
+        ? null
+        : codePoints(u) > SOURCE_URL_MAX
+          ? `At most ${SOURCE_URL_MAX} characters.`
+          : SOURCE_URL_PATTERN.test(u)
+            ? null
+            : 'A link starting https://.',
+    either:
+      w === '' && u === '' ? 'Required: the wiki page you checked it on, or another https link.' : null,
+  }
 }
 
 export function creditProblem(name: string): string | null {

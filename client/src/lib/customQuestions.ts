@@ -152,6 +152,8 @@ export function problems(question: unknown): Problem[] {
 export interface Draft {
   type: CustomType
   prompt: string
+  /** Words someone said, for the rounds that show them. */
+  quote: string
   options: string[]
   answerIndex: number
   accepted: string[]
@@ -168,6 +170,7 @@ export interface Draft {
 
 const EDITED = new Set([
   'prompt',
+  'quote',
   'options',
   'answer_index',
   'accepted',
@@ -186,6 +189,7 @@ export function draftOf(question?: CustomQuestion): Draft {
   return {
     type: question?.type ?? 'multiple_choice',
     prompt: text(p.prompt),
+    quote: text(p.quote),
     options: Array.isArray(p.options) ? p.options.map(text) : ['', ''],
     answerIndex: typeof p.answer_index === 'number' ? p.answer_index : 0,
     accepted: Array.isArray(p.accepted) ? p.accepted.map(text) : [''],
@@ -209,6 +213,8 @@ export function questionOf(draft: Draft): CustomQuestion {
     if (allowed.has(key)) payload[key] = value
   }
   if (draft.type === 'multiple_choice') {
+    const quote = draft.quote.trim()
+    if (quote !== '') payload.quote = quote
     payload.options = draft.options.map((option) => option.trim())
     payload.answer_index = draft.answerIndex
   } else if (draft.type === 'free_text') {
@@ -231,7 +237,7 @@ export function questionOf(draft: Draft): CustomQuestion {
 
 /** What players see while it is open: each type's `client_view` on the server. */
 const OPEN_KEYS: Record<CustomType, string[]> = {
-  multiple_choice: ['intro', 'prompt', 'image', 'options'],
+  multiple_choice: ['intro', 'prompt', 'quote', 'image', 'options'],
   free_text: ['intro', 'prompt', 'image'],
   closest_number: ['intro', 'prompt', 'image', 'unit'],
 }

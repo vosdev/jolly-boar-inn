@@ -36,6 +36,7 @@
     types = CUSTOM_TYPES,
     asker = 'optional',
     mode = 'custom',
+    quote = false,
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
@@ -51,6 +52,8 @@
     asker?: 'optional' | 'required' | 'none'
     /** The round a question with no NPC is previewed in. */
     mode?: string
+    /** Whether a multiple-choice question may carry a quotation under its prompt. */
+    quote?: boolean
     saveLabel?: string
     /** More fields, under the question's own. */
     fields?: Snippet<[boolean]>
@@ -81,6 +84,7 @@
   const id = $props.id()
 
   const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
+  const quoteMax = limit(field('multiple_choice', 'quote'), 'maxLength')
   const explanationMax = $derived(limit(field(draft.type, 'explanation'), 'maxLength'))
   const built = $derived(questionOf(draft))
   const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
@@ -92,7 +96,7 @@
 
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
-    /^(payload\.(prompt|options|answer_index|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
+    /^(payload\.(prompt|quote|options|answer_index|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
   const unplaced = $derived(shown.filter((problem) => !PLACED.test(problem.path)))
 
   function errorsAt(path: string): string[] {
@@ -154,6 +158,15 @@
         <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
         {@render errors('payload.prompt')}
       </div>
+
+      {#if draft.type === 'multiple_choice' && (quote || draft.quote !== '')}
+        <div class="field">
+          <label for="{id}-quote">The quotation, if the question asks about words someone said</label>
+          <textarea id="{id}-quote" rows="2" bind:value={draft.quote}></textarea>
+          <p class="note counter">{codePoints(draft.quote.trim())}/{quoteMax}</p>
+          {@render errors('payload.quote')}
+        </div>
+      {/if}
 
       {#if draft.type === 'multiple_choice'}
         <fieldset class="field">
