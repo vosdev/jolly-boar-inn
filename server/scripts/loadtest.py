@@ -37,12 +37,12 @@ that is what thirty people with phones do, not to spread the load out -- nothing
 staggers them any further, and if the tail is bad the report says so rather than hiding
 it behind a wider spread.
 
-**Room settings.** ``close_when_all_answered`` is off and ``splash_seconds`` is zero. The
-first is not tidiness: with early close on, the last bot to answer ends the question, and
-an answer scheduled a few milliseconds behind it would race that close and come back
-``not_open`` -- an assertion failure caused by the test's own timing rather than by the
-server. With it off, every question runs its full window and the only thing that closes
-one is the clock.
+**Room settings.** ``close_when_all_answered`` is off, and the admin skips the splash rather
+than waiting for the room to be ready. The first is not tidiness: with early close on, the
+last bot to answer ends the question, and an answer scheduled a few milliseconds behind it
+would race that close and come back ``not_open`` -- an assertion failure caused by the
+test's own timing rather than by the server. With it off, every question runs its full
+window and the only thing that closes one is the clock.
 """
 
 import argparse
@@ -272,6 +272,10 @@ class Bot:
                 self.on_ack(frame)
             case "question_closed":
                 self.on_closed(frame)
+            case "room_updated" if self.index == 0 and frame["room"]["phase"] == "splash":
+                await self.send(
+                    {"t": "skip", "phase": "splash", "index": frame["room"]["current_index"]}
+                )
             case "game_finished":
                 self.standings = frame["standings"]
                 self.done.set()
@@ -284,7 +288,7 @@ class Bot:
                     f"bot {self.index} ({self.name}): {frame['code']} - {frame['message']}"
                 )
             case _:
-                pass  # room_updated, pong: nothing here depends on them
+                pass  # other room_updated frames, pong: nothing here depends on them
 
     def on_welcome(self, frame: dict[str, Any]) -> None:
         """Rebuild everything from the snapshot, as section 3's reconnect flow requires.
@@ -461,7 +465,6 @@ def create_room(base_url: str, run: Run, name: str) -> tuple[str, str, str]:
                     }
                 ],
                 "reveal_seconds": DEFAULT_REVEAL_SECONDS,
-                "splash_seconds": 0,
                 "close_when_all_answered": False,
             },
             "custom_questions": [],

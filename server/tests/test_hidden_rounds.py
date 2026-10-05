@@ -30,7 +30,6 @@ SETTINGS_KEYS = {
     "mode_order",
     "random_event_frequency",
     "reveal_seconds",
-    "splash_seconds",
     "standings_seconds",
     "close_when_all_answered",
     "name_wrong_answers",
@@ -50,7 +49,7 @@ def surprise(table: Any, hide_rounds: bool = True) -> Game:
         mode_order="listed",
         random_event_frequency="more",
         reveal_seconds=30,
-        splash_seconds=8,
+        splash=True,
         standings_seconds=30,
         modes=[{"mode": mode, "questions": 5, "seconds": 30} for mode in PLAYED],
     )

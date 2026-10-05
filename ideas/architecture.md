@@ -25,7 +25,7 @@ Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, fetch-assets,
                                    image; CI: release
 schema/question.schema.json        the question schema (section 4)
-data/packs/                        prices, examine, sample (the tests'), random_events/, AUTHORING.md
+data/packs/                        prices, examine, sample (the tests'), random_events/
 data/                              assets, pets, popular-items, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
@@ -368,8 +368,7 @@ Settings (`rooms.settings`, fixed at creation):
   "modes": [{"mode": "more_less", "questions": 5, "seconds": 10}],  // one round each
   "mode_order": "random",                // or "listed"
   "random_event_frequency": "default",   // "less" | "default" | "more"
-  "reveal_seconds": 8,                   // 2..30
-  "splash_seconds": 8,                   // 0..30; 0 turns splashes off
+  "reveal_seconds": 6,                   // 2..30
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
   "name_wrong_answers": true,            // name who got it wrong under the reveal
@@ -584,8 +583,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
   comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
   that would not load, writes nothing.
 - Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
-  like the random events, with the rules in `data/packs/AUTHORING.md`. No importer fetches wiki
-  facts, so the owner picks every monster and question.
+  like the random events. No importer fetches wiki facts, so the owner picks every monster and
+  question.
 - #84 adds `make gen-packs`: generated packs, offline and seeded, with `CHECK=1` diffing in CI.
 - `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)
   into place, skipping files that exist. Images are never committed: every target must be

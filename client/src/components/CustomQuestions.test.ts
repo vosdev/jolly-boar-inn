@@ -52,6 +52,9 @@ afterEach(cleanup)
 async function loaded(): Promise<HTMLElement> {
   render(Create, { navigate: () => {} })
   await screen.findByRole('checkbox', { name: /^More or Less/ })
+  for (const name of ['More or Less', 'The Price is Right']) {
+    await fireEvent.click(screen.getByRole('checkbox', { name }))
+  }
   return screen.getByRole('region', { name: 'Personalized questions' })
 }
 
@@ -206,7 +209,8 @@ describe('CustomQuestions', () => {
     await pick(editor(), 'Type the answer')
     for (let i = 0; i < 19; i++) await click(editor(), 'Add another spelling')
     expect((within(editor()).getByRole('button', { name: 'Add another spelling' }) as HTMLButtonElement).disabled).toBe(true)
-  })
+    // Two dozen clicks and renders; the self-hosted runner needs more than the default 5 s.
+  }, 10_000)
 
   it('saves the question on Enter in a field rather than creating the room', async () => {
     const panel = await loaded()

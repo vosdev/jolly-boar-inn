@@ -1,6 +1,6 @@
 """``data/packs/examine.json``: the hand-written examine lines Guess the Examine is played from.
 
-It is the file people contribute to, so it is held to ``data/packs/AUTHORING.md`` here: every
+It is the file people contribute to, so it is held to rules here: every
 question is a ``guess_examine`` line answered from the ``examines`` vocabulary, carries the
 wiki page its author checked, has no ``generated_at``, and keeps its text tidy. The loader
 already refuses an id under two names, a name under two ids and a line under two answers.

@@ -66,11 +66,6 @@ export interface RoomSettings {
    */
   random_event_frequency: EventFrequency | null
   reveal_seconds: number
-  /**
-   * Zero means no splash at all; anything else, a splash that waits for the room to be
-   * ready. No longer a length, but still a number so every stored room reads.
-   */
-  splash_seconds: number
   /** How long the standings hold between two rounds. Zero turns them off. */
   standings_seconds: number
   close_when_all_answered: boolean
@@ -175,7 +170,7 @@ export interface OpenQuestion {
   /**
    * Repeated from `RoomView` because `stores.ts` patches its room from this frame rather
    * than replacing it, and a round can change with no splash to announce it
-   * (`splash_seconds` at zero, or two consecutive rounds of the same mode).
+   * (a restart in the splash resumes at the question).
    */
   segment: Segment
   view: Record<string, unknown>

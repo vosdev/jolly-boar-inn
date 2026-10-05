@@ -97,9 +97,11 @@ def fast_settings(**overrides: Any) -> RoomSettings:
     to its mode's range (``more_less`` opens for five seconds at least), so only the
     ``quick_mode`` fixture's round really plays one-second questions.
 
-    ``splash_seconds`` and ``standings_seconds`` are zero by default too: a test that is
-    not about the splash or the standings should see the frames it always saw, and the
-    ones that are about them pass their own. ``random_event_frequency`` is ``less`` for the
+    The splash is off by default and ``standings_seconds`` is zero: a test that is not about
+    the splash or the standings should see the frames it always saw, and the ones that are
+    about them pass ``splash=True`` or their own ``standings_seconds``. The splash is the
+    manager's rather than the room's, so ``create_fast`` sets it on the manager.
+    ``random_event_frequency`` is ``less`` for the
     same reason: an NPC's question dropped into the middle of a round would move every
     index a test counts on, and at one event per twenty round questions a room this short
     has none. There is no off switch, so a test room of twenty questions or more gets
@@ -118,7 +120,6 @@ def fast_settings(**overrides: Any) -> RoomSettings:
         **{
             "modes": modes,
             "reveal_seconds": 1,
-            "splash_seconds": 0,
             "standings_seconds": 0,
             "random_event_frequency": "less",
             **overrides,
@@ -137,6 +138,7 @@ def create_fast(
 
     ``custom`` is the admin's own questions, placed as random events and authored by them.
     """
+    app.state.rooms.splashes = overrides.pop("splash", False)
     settings = fast_settings(**overrides)
     return call(client, app.state.rooms.create, name, settings, custom or [])
 

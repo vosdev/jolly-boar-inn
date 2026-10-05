@@ -77,11 +77,9 @@
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
-  let revealSeconds = $state(3)
+  let revealSeconds = $state(6)
   /** How long the standings hold between rounds; 0 runs the rounds straight on. */
   let standingsSeconds = $state(10)
-  /** `splash_seconds` on the wire: 0 is off, anything else on (no longer a length). */
-  let introduceRounds = $state(true)
   /** How often an NPC interrupts a round: one per 20, 10 or 5 round questions. */
   let frequency = $state<EventFrequency>('default')
   let modeOrder = $state<'listed' | 'random'>('random')
@@ -136,7 +134,6 @@
     void atRoomLimit().then((limited) => (full = limited))
     try {
       pacing = await getModes()
-      rounds = roundModes.map(roundFor)
     } catch (error) {
       pacingFailure =
         error instanceof ApiFailure ? error.message : 'could not reach the server'
@@ -217,7 +214,6 @@
       mode_order: modeOrder,
       random_event_frequency: frequency,
       reveal_seconds: revealSeconds,
-      splash_seconds: introduceRounds ? 8 : 0,
       standings_seconds: standingsSeconds,
       close_when_all_answered: closeWhenAllAnswered,
       name_wrong_answers: nameWrongAnswers,
@@ -377,7 +373,6 @@
         step={5}
         onchange={(value) => (standingsSeconds = value)}
       />
-      <Segmented legend="Introduce each round" options={OFF_ON} bind:value={introduceRounds} />
       <div>
         <Segmented legend="Surprise rounds" options={OFF_ON} bind:value={hideRounds} />
         <p class="note">Hide the game modes in the lobby from the players</p>

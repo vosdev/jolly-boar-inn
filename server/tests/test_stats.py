@@ -144,7 +144,7 @@ def mid_round(table, name: str = "Zezima", **settings) -> Game:
 
 def in_splash(table, name: str = "Zezima") -> Game:
     """A game waiting in the splash before its first round."""
-    game = table(name, seconds=30, splash_seconds=8)
+    game = table(name, seconds=30, splash=True)
     game.start()
     game.splash()
     return game

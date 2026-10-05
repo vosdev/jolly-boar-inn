@@ -217,12 +217,17 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         "mode_order": "random",
         "random_event_frequency": "default",
         "reveal_seconds": 5,
-        "splash_seconds": 8,
         "standings_seconds": 10,
         "close_when_all_answered": True,
         "name_wrong_answers": True,
         "max_players": 50,
     }
+
+
+def test_create_defaults_the_reveal_to_six_seconds(client: TestClient, db) -> None:
+    code, _ = create(client)
+    (row,) = db("select settings from rooms where code = $1", code)
+    assert row["settings"]["reveal_seconds"] == 6
 
 
 def test_create_rejects_bad_settings(client: TestClient) -> None:
@@ -244,8 +249,7 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"random_event_frequency": "never"},  # there is no off switch; "less" is the fewest
         {"random_event_seconds": 2},  # gone: the NPC's hold is the server's, not the room's
         {"reveal_seconds": 60},
-        {"splash_seconds": -1},
-        {"splash_seconds": 31},
+        {"splash_seconds": 0},  # gone: every round is introduced
         {"standings_seconds": -1},
         {"standings_seconds": 31},
         {"max_players": 0},

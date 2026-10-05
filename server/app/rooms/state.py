@@ -623,8 +623,8 @@ class Room:
         """The room as a client sees it: ``withhold`` the unstarted rounds, and add the key
         and the waiting join requests for an ``admin``.
 
-        A round has started once ``current_index`` reaches it, which its splash does, or
-        its first question when splashes are off. A game ended early keeps the rest hidden.
+        A round has started once ``current_index`` reaches it, which its splash does. A game
+        ended early keeps the rest hidden.
         """
         settings = self.settings
         rounds = None
@@ -827,6 +827,9 @@ class RoomManager:
         # from enough of its past ones, and a code is only as private as its successors.
         self.code_rng: random.Random = secrets.SystemRandom()
         self.clock = clock
+        # Off only in the test suite, where a game that is not about the splash plays
+        # straight into its first question.
+        self.splashes = True
         self.editing_seconds = EDITING_SECONDS
         self.request_stale_seconds = REQUEST_STALE_SECONDS
         self.rooms: dict[str, Room] = {}
@@ -2029,7 +2032,7 @@ class RoomManager:
             if self.rooms.get(room.code) is not room or room.status != "playing":
                 return False
             segment = room.segment_at(index)
-            if room.settings.splash_seconds <= 0 or segment is None or segment.start != index:
+            if not self.splashes or segment is None or segment.start != index:
                 return True
             room.current_index = index
             room.phase = "splash"

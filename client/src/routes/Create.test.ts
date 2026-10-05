@@ -68,10 +68,18 @@ async function press(scope: HTMLElement, name: string, times = 1): Promise<void>
   for (let i = 0; i < times; i++) await fireEvent.click(within(scope).getByRole('button', { name }))
 }
 
-/** The form, once `/api/modes` has answered and the rounds are drawn. */
-async function loaded(): Promise<void> {
+const BOTH = ['More or Less', 'The Price is Right']
+
+/** Tick the modes named, in that order: the order is the running order. */
+async function pick(...names: string[]): Promise<void> {
+  for (const name of names) await fireEvent.click(screen.getByRole('checkbox', { name }))
+}
+
+/** The form, once `/api/modes` has answered, with `modes` ticked: none are, to begin with. */
+async function loaded(...modes: string[]): Promise<void> {
   render(Create, { navigate: () => {} })
   await screen.findByRole('checkbox', { name: /^More or Less/ })
+  await pick(...modes)
 }
 
 /** The line under the cards, whole, however its parts are marked up. */
@@ -96,6 +104,7 @@ describe('Create', () => {
     const navigate = vi.fn()
     render(Create, { navigate })
     await screen.findByRole('checkbox', { name: /^More or Less/ })
+    await pick(...BOTH)
     await submitted()
     expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 'aggy', false, 'code', []])
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
@@ -104,7 +113,7 @@ describe('Create', () => {
 
   it('asks a browser with no profile for a name on Create, and makes no room until it has one', async () => {
     profile.set(null)
-    await loaded()
+    await loaded(...BOTH)
     expect(document.querySelector('dialog')).toBeNull()
     await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
     const field = (await screen.findByRole('textbox')) as HTMLInputElement
@@ -118,6 +127,7 @@ describe('Create', () => {
     const navigate = vi.fn()
     render(Create, { navigate })
     await screen.findByRole('checkbox', { name: /^More or Less/ })
+    await pick(...BOTH)
     await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
     const field = (await screen.findByRole('textbox')) as HTMLInputElement
     await fireEvent.input(field, { target: { value: 'Zezima' } })
@@ -132,7 +142,7 @@ describe('Create', () => {
   it('keeps the name chosen through a create that failed, so the next one does not ask again', async () => {
     profile.set(null)
     vi.mocked(api.createRoom).mockRejectedValueOnce(new api.ApiFailure(503, 'db_unavailable', 'down'))
-    await loaded()
+    await loaded(...BOTH)
     await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
     const field = await screen.findByRole('textbox')
     await fireEvent.click(within(field.closest('dialog')!).getByRole('button', { name: 'Create room' }))
@@ -145,7 +155,18 @@ describe('Create', () => {
     await loaded()
     expect(screen.getByRole('checkbox', { name: /^The Price is Right/ })).toBeTruthy()
     expect(screen.queryByRole('checkbox', { name: /Host's Questions|custom/ })).toBeNull()
-    expect(summary()).toMatch(/^2 rounds, /)
+  })
+
+  it('starts with no mode picked, and says so until the host picks one', async () => {
+    await loaded()
+    for (const name of BOTH) {
+      expect((screen.getByRole('checkbox', { name }) as HTMLInputElement).checked).toBe(false)
+    }
+    expect(summary()).toBe('Pick at least one type; a room with no rounds is no game.')
+    expect(screen.getByRole('button', { name: 'Create room' })).toHaveProperty('disabled', true)
+    await pick('More or Less')
+    expect(summary()).toMatch(/^1 round, /)
+    expect(screen.getByRole('button', { name: 'Create room' })).toHaveProperty('disabled', false)
   })
 
   it("shows each mode's host by face, with no line naming them", async () => {
@@ -185,10 +206,12 @@ describe('Create', () => {
   })
 
   it('picks a mode by a tap anywhere on its card but its controls', async () => {
-    await loaded()
+    await loaded('The Price is Right')
     const box = (): HTMLInputElement =>
       screen.getByRole('checkbox', { name: 'More or Less' }) as HTMLInputElement
     const more = card('More or Less')
+    expect(box().checked).toBe(false)
+    await fireEvent.click(within(more).getByText('More or Less'))
     await press(more, 'More questions')
     await fireEvent.click(within(more).getByText('6'))
     expect(box().checked).toBe(true)
@@ -202,16 +225,14 @@ describe('Create', () => {
   })
 
   it('offers nothing to pick on a card still coming', async () => {
-    await loaded()
+    await loaded(...BOTH)
     await fireEvent.click(screen.getByText('Who is That NPC?'))
     expect((await submitted()).modes.map((round) => round.mode)).toEqual(['more_less', 'price_is_right'])
   })
 
   it('keeps the order choice in place and says what is wrong where the count was', async () => {
-    await loaded()
-    for (const name of ['More or Less', 'The Price is Right']) {
-      await fireEvent.click(screen.getByRole('checkbox', { name }))
-    }
+    await loaded(...BOTH)
+    await pick(...BOTH)
     expect(summary()).toBe('Pick at least one type; a room with no rounds is no game.')
     expect(document.querySelector('.count')?.classList.contains('error')).toBe(true)
     expect(screen.getByRole('radio', { name: 'Random' })).toBeTruthy()
@@ -219,7 +240,7 @@ describe('Create', () => {
   })
 
   it("steps questions by one and seconds by five, and stops at the server's bounds", async () => {
-    await loaded()
+    await loaded('More or Less')
     const more = card('More or Less')
     await press(more, 'More seconds', 5)
     expect(within(more).getByRole('button', { name: 'More seconds' })).toHaveProperty('disabled', true)
@@ -232,7 +253,7 @@ describe('Create', () => {
   })
 
   it('shuffles the rounds unless told otherwise, and then shows no order to arrange', async () => {
-    await loaded()
+    await loaded(...BOTH)
     for (const name of ['More or Less', 'The Price is Right']) {
       expect(card(name).querySelector('.badge')?.textContent?.trim()).toBe('')
       expect(within(card(name)).queryByRole('button', { name: /^Move / })).toBeNull()
@@ -243,7 +264,7 @@ describe('Create', () => {
   })
 
   it('numbers the rounds as the host arranges them, and plays them that way', async () => {
-    await loaded()
+    await loaded(...BOTH)
     await fireEvent.click(screen.getByRole('radio', { name: 'As numbered' }))
     const badge = (name: string): string | undefined =>
       card(name).querySelector('.badge')?.textContent?.trim()
@@ -257,9 +278,8 @@ describe('Create', () => {
   })
 
   it('offers no order to arrange for a single round', async () => {
-    await loaded()
+    await loaded('More or Less')
     await fireEvent.click(screen.getByRole('radio', { name: 'As numbered' }))
-    await fireEvent.click(screen.getByRole('checkbox', { name: 'The Price is Right' }))
     expect(within(card('More or Less')).queryByRole('button', { name: /^Move / })).toBeNull()
   })
 
@@ -274,22 +294,28 @@ describe('Create', () => {
     expect(screen.queryByText('Who is That NPC?')).toBeNull()
     expect(screen.queryByText('Minimap Guesser')).toBeNull()
     for (const id of ['whos_that_npc', 'minimap_guesser']) {
-      expect((screen.getByRole('checkbox', { name: id }) as HTMLInputElement).checked).toBe(true)
+      expect((screen.getByRole('checkbox', { name: id }) as HTMLInputElement).checked).toBe(false)
     }
     expect(screen.getByText('Name that spell').closest('li')?.classList.contains('upcoming')).toBe(true)
   })
 
   it('sends the rounds picked and how often events come, and no order', async () => {
-    await loaded()
+    await loaded(...BOTH)
     const settings = await submitted()
     expect(settings.modes.map((round) => round.mode)).toEqual(['more_less', 'price_is_right'])
     expect(settings.random_event_frequency).toBe('default')
     expect(settings).not.toHaveProperty('random_events')
     expect(settings).not.toHaveProperty('order')
+    expect(settings).not.toHaveProperty('splash_seconds')
+  })
+
+  it('offers no way to turn the round introductions off', async () => {
+    await loaded(...BOTH)
+    expect(screen.queryByRole('group', { name: 'Introduce each round' })).toBeNull()
   })
 
   it('lets the host pick how often, says how often that is, and offers no way off', async () => {
-    await loaded()
+    await loaded(...BOTH)
     const choice = screen.getByRole('group', { name: 'Random events frequency' })
     expect(within(choice).getAllByRole('radio').map((radio) => radio.closest('label')?.textContent?.trim())).toEqual(
       ['Less', 'Default', 'More'],
@@ -302,40 +328,38 @@ describe('Create', () => {
   })
 
   it('gives random events their own panel, and keeps the rest under a closed Advanced', async () => {
-    await loaded()
+    await loaded(...BOTH)
     const events = screen.getByRole('heading', { name: 'Random events frequency' }).closest('section')
     expect(events?.contains(screen.getByRole('group', { name: 'Random events frequency' }))).toBe(true)
     expect(events?.textContent).toMatch(/\d+ random events? in this game/)
     const advanced = screen.getByRole('heading', { name: 'Advanced' }).closest('details')
     expect(advanced?.open).toBe(false)
-    for (const name of ['Name who got it wrong', 'Surprise rounds', 'Introduce each round']) {
+    for (const name of ['Name who got it wrong', 'Surprise rounds']) {
       expect(advanced?.contains(screen.getByRole('group', { name }))).toBe(true)
     }
     expect(advanced?.contains(screen.getByRole('group', { name: 'Access' }))).toBe(false)
   })
 
   it('names who got it wrong unless the host turns it off', async () => {
-    await loaded()
+    await loaded(...BOTH)
     expect((await submitted()).name_wrong_answers).toBe(true)
   })
 
-  it('sends the three switches as set', async () => {
-    await loaded()
+  it('sends the two switches as set', async () => {
+    await loaded(...BOTH)
     const flip = async (group: string, to: 'Off' | 'On'): Promise<void> => {
       const switches = screen.getByRole('group', { name: group })
       await fireEvent.click(within(switches).getByRole('radio', { name: to }))
     }
-    await flip('Introduce each round', 'Off')
     await flip('Close when everyone has answered', 'Off')
     await flip('Name who got it wrong', 'Off')
     const settings = await submitted()
-    expect(settings.splash_seconds).toBe(0)
     expect(settings.close_when_all_answered).toBe(false)
     expect(settings.name_wrong_answers).toBe(false)
   })
 
   it('keeps the rounds out of the lobby only when the host asks for surprise rounds', async () => {
-    await loaded()
+    await loaded(...BOTH)
     const choice = screen.getByRole('group', { name: 'Surprise rounds' })
     expect((within(choice).getByRole('radio', { name: 'Off' }) as HTMLInputElement).checked).toBe(true)
     expect(choice.nextElementSibling?.textContent).toBe('Hide the game modes in the lobby from the players')
@@ -344,7 +368,7 @@ describe('Create', () => {
   })
 
   it('lets anyone with the code in unless the host picks the link or the public list', async () => {
-    await loaded()
+    await loaded(...BOTH)
     const choice = screen.getByRole('group', { name: 'Access' })
     const radio = (name: string): HTMLInputElement =>
       within(choice).getByRole('radio', { name }) as HTMLInputElement
@@ -365,8 +389,7 @@ describe('Create', () => {
 
   it('says how many questions the room plays, events included, before it exists', async () => {
     // One mode of ten at the default plays eleven, and Create says so.
-    await loaded()
-    await fireEvent.click(screen.getByRole('checkbox', { name: /^The Price is Right/ }))
+    await loaded('More or Less')
     await press(card('More or Less'), 'More questions', 5)
     expect(summary()).toBe('1 round, 11 questions (10 in the rounds, 1 random event)')
     await fireEvent.click(screen.getByRole('radio', { name: 'Less' }))
@@ -376,19 +399,19 @@ describe('Create', () => {
   })
 
   it('counts the events against the cap, as the server does', async () => {
-    await loaded()
+    await loaded(...BOTH)
     await press(card('More or Less'), 'More questions', 25)
     expect(summary()).toBe('2 rounds, 38 questions (35 in the rounds, 3 random events)')
   })
 
   it('sends how long the standings hold between rounds, 10 unless changed', async () => {
-    await loaded()
+    await loaded(...BOTH)
     expect((await submitted()).standings_seconds).toBe(10)
   })
 
   it('steps the standings by five, from 0 for none to 30', async () => {
     const page = document.body
-    await loaded()
+    await loaded(...BOTH)
     await press(page, 'More standings seconds', 4)
     expect(screen.getByRole('button', { name: 'More standings seconds' })).toHaveProperty('disabled', true)
     await press(page, 'Fewer standings seconds', 6)
@@ -396,10 +419,15 @@ describe('Create', () => {
     expect((await submitted()).standings_seconds).toBe(0)
   })
 
+  it('sends a reveal of 6 seconds unless changed', async () => {
+    await loaded(...BOTH)
+    expect((await submitted()).reveal_seconds).toBe(6)
+  })
+
   it('steps the reveal by one, from 2 to 30', async () => {
     const page = document.body
-    await loaded()
-    await press(page, 'Fewer reveal seconds', 2)
+    await loaded(...BOTH)
+    await press(page, 'Fewer reveal seconds', 4)
     expect(screen.getByRole('button', { name: 'Fewer reveal seconds' })).toHaveProperty('disabled', true)
     await press(page, 'More reveal seconds', 30)
     expect(screen.getByRole('button', { name: 'More reveal seconds' })).toHaveProperty('disabled', true)
@@ -407,7 +435,7 @@ describe('Create', () => {
   })
 
   it('remembers the room it created until the server says it expires', async () => {
-    await loaded()
+    await loaded(...BOTH)
     await submitted()
     await waitFor(() => expect(createdRooms(Date.parse('2098-12-31T23:59:59Z'))).toEqual(['ABYSSAL']))
     expect(createdRooms(Date.parse('2099-01-01T00:00:00Z'))).toEqual([])
@@ -447,7 +475,7 @@ describe('Create with five rooms already', () => {
     await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove' }))
     await waitFor(() => expect(createdRooms()).not.toContain('RUNE'))
     cleanup()
-    await loaded()
+    await loaded(...BOTH)
     await submitted()
   })
 
@@ -456,7 +484,7 @@ describe('Create with five rooms already', () => {
       if (code === 'ZULRAH') throw new api.ApiFailure(status, 'gone', 'gone')
       return { status: 'lobby', players: 1 }
     })
-    await loaded()
+    await loaded(...BOTH)
     await submitted()
     expect(createdRooms()).not.toContain('ZULRAH')
   })
@@ -472,7 +500,7 @@ describe('Create with five rooms already', () => {
     const [last, ...four] = HOSTED
     localStorage.clear()
     for (const code of four) rememberCreated(code, '2099-01-01T00:00:00Z')
-    await loaded()
+    await loaded(...BOTH)
     await waitFor(() =>
       expect((screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled).toBe(false),
     )
@@ -488,7 +516,7 @@ describe('Create under five rooms', () => {
     for (const code of ['RUNE', 'DRAGON', 'BARROWS', 'ZULRAH']) {
       rememberCreated(code, '2099-01-01T00:00:00Z')
     }
-    await loaded()
+    await loaded(...BOTH)
     await submitted()
     expect(api.getRoom).not.toHaveBeenCalled()
   })
