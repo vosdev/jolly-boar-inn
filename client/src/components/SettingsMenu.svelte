@@ -3,21 +3,21 @@
    * The top bar's one control and its menu (section 5 of ideas/design.md): who you are,
    * the sound switches and the theme, behind a single thumb target.
    *
-   * The control shows the head, the name and the current theme's emblem. The name is the
+   * The control shows the pet, the name and the current theme's emblem. The name is the
    * one part that shrinks: on a phone it ellipsises rather than collapsing to the head,
    * because who you are is the one thing the bar is for.
    *
    * **You** means two different things in two places, and both are right:
    *
-   * - **Outside a room** (Home, Create, Join) it is the local profile — the name and head
+   * - **Outside a room** (Home, Create, Join) it is the local profile — the name and pet
    *   this browser will bring to the next room — and "Set your name" until there is one.
    * - **Inside a room** it is the live `PlayerView` the server sent, which is who the
    *   room actually sees. A join that had to turn the suffix over (`AFKFisher42` was
    *   taken, so you are `AFKFisher517`) shows here, not in the profile.
    *
-   * The section edits whichever one the control is showing. Both the name and the head
-   * are drafts until Save: the die rolls a new face into the menu only, and a player
-   * who rolls a few and closes it keeps the one they had. Outside a room Save writes the
+   * The section edits whichever one the control is showing. Both the name and the pet
+   * are drafts until Save: the picker changes the menu only, and a player
+   * who tries a few and closes it keeps the one they had. Outside a room Save writes the
    * profile. Inside one it is a single `set_profile` on the room's socket: the
    * change is the room's to accept, so nothing is saved until the `room_updated` that
    * carries it comes back, and a name somebody else in the room already has is answered
@@ -39,8 +39,8 @@
    */
   import { tick } from 'svelte'
 
-  import { headOf, randomHead } from '../lib/heads'
   import { nameProblem } from '../lib/names'
+  import { petOf } from '../lib/pets'
   import { profile, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
   import {
@@ -52,10 +52,10 @@
     roomSend,
   } from '../lib/stores'
   import { getTheme, setTheme, THEME_LABELS, type Theme } from '../lib/theme'
-  import Die from './Die.svelte'
   import Emblem from './Emblem.svelte'
-  import Head from './Head.svelte'
   import NameField from './NameField.svelte'
+  import Pet from './Pet.svelte'
+  import PetPicker from './PetPicker.svelte'
   import SoundSettings from './SoundSettings.svelte'
   import ThemeChoices from './ThemeChoices.svelte'
 
@@ -73,15 +73,15 @@
 
   let open = $state(false)
   let draft = $state('')
-  /** The head the menu shows: rolled here, and nobody else's business until Save. */
-  let draftHead = $state<number | null>(null)
+  /** The pet the menu shows: picked here, and nobody else's business until Save. */
+  let draftPet = $state<string | null>(null)
   let saved = $state<string | null>(null)
   let root = $state<HTMLElement | null>(null)
   let control = $state<HTMLButtonElement | null>(null)
   let panel = $state<HTMLElement | null>(null)
   let theme = $state<Theme>(getTheme())
   /** What was sent in `set_profile` and has not come back in a `room_updated` yet. */
-  let pending = $state<{ name?: string; head?: number } | null>(null)
+  let pending = $state<{ name?: string; pet?: string } | null>(null)
   /** `$requestsSettled` when it was sent: once that moves, the reply is not coming. */
   let sentAt = 0
   let unanswered = $state(false)
@@ -103,12 +103,12 @@
       $roomSend !== null,
   )
   const shownName = $derived(live?.display_name ?? $profile?.name ?? null)
-  const shownHead = $derived(live !== null ? headOf(live) : ($profile?.head ?? null))
+  const shownPet = $derived(live !== null ? petOf(live) : ($profile?.pet ?? null))
   const currentName = $derived(live?.display_name ?? $profile?.name ?? '')
   const nameChanged = $derived(draft.trim() !== currentName)
-  const headChanged = $derived(draftHead !== null && draftHead !== shownHead)
+  const petChanged = $derived(draftPet !== null && draftPet !== shownPet)
   const ok = $derived(
-    canRename && nameProblem(draft) === null && (nameChanged || headChanged),
+    canRename && nameProblem(draft) === null && (nameChanged || petChanged),
   )
   /** The room's refusal, in words for the person holding the phone. */
   const refusal = $derived(
@@ -118,18 +118,18 @@
         ? 'Somebody in this room already has that name.'
         : $profileError.message,
   )
-  /** Everybody else's face, so a re-roll leans toward one nobody is wearing. */
+  /** Everybody else's pet, so Random leans toward one nobody is wearing. */
   const taken = $derived(
-    live === null ? [] : $players.filter((p) => p.id !== live.id).map((p) => headOf(p)),
+    live === null ? [] : $players.filter((p) => p.id !== live.id).map((p) => petOf(p)),
   )
 
   // The room said yes: the change is on `live` now, so it is the profile's too.
   $effect(() => {
     if (pending === null || live === null) return
     const nameDone = pending.name === undefined || live.display_name === pending.name
-    const headDone = pending.head === undefined || live.avatar === pending.head
-    if (!nameDone || !headDone) return
-    saveProfile(live.display_name, headOf(live))
+    const petDone = pending.pet === undefined || live.avatar === pending.pet
+    if (!nameDone || !petDone) return
+    saveProfile(live.display_name, petOf(live))
     saved = 'Saved.'
     pending = null
     resting = true
@@ -171,7 +171,7 @@
   async function openMenu(): Promise<void> {
     open = true
     draft = currentName
-    draftHead = shownHead
+    draftPet = shownPet
     saved = null
     unanswered = false
     resting = false
@@ -194,13 +194,13 @@
     setTheme(picked)
   }
 
-  function send(change: { display_name?: string; avatar?: number }): void {
+  function send(change: { display_name?: string; avatar?: string }): void {
     profileError.set(null)
     saved = null
     unanswered = false
     if ($roomSend?.({ t: 'set_profile', ...change })) {
       sentAt = $requestsSettled
-      pending = { name: change.display_name, head: change.avatar }
+      pending = { name: change.display_name, pet: change.avatar }
     }
   }
 
@@ -211,23 +211,15 @@
     if (inRoom) {
       send({
         ...(nameChanged ? { display_name: name } : {}),
-        ...(headChanged && draftHead !== null ? { avatar: draftHead } : {}),
+        ...(petChanged && draftPet !== null ? { avatar: draftPet } : {}),
       })
     } else {
-      saveProfile(name, draftHead ?? undefined)
+      saveProfile(name, draftPet ?? undefined)
       draft = name
-      // A first save rolls the profile its head: show it rather than keep a faceless popover.
-      draftHead = $profile?.head ?? null
+      // A first save rolls the profile its pet: show it rather than keep a faceless popover.
+      draftPet = $profile?.pet ?? null
       saved = 'Saved.'
     }
-  }
-
-  /** A new face in the menu. It goes anywhere only with Save. */
-  function rerollHead(): void {
-    if (pending !== null) return
-    draftHead = randomHead(taken, draftHead ?? shownHead)
-    saved = null
-    resting = false
   }
 
   function onWindowPointerDown(event: PointerEvent): void {
@@ -271,15 +263,15 @@
     bind:this={control}
     onclick={() => (open ? close() : openMenu())}
   >
-    {#if shownHead === null}
-      <!-- Nobody yet: a blank silhouette until the profile has a head to show. -->
+    {#if shownPet === null}
+      <!-- Nobody yet: a blank silhouette until the profile has a pet to show. -->
       <svg class="blank" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <circle class="blank-face" cx="12" cy="12" r="11" />
         <circle cx="12" cy="9.5" r="3.5" fill="currentColor" />
         <path d="M5 21a7 7 0 0 1 14 0z" fill="currentColor" />
       </svg>
     {:else}
-      <Head head={shownHead} size={32} label="" />
+      <Pet pet={shownPet} size={32} cut="icon" label="" />
     {/if}
     <span class="chip-name">{shownName ?? 'Set your display name'}</span>
     <span class="bar-emblem" aria-hidden="true"><Emblem {theme} /></span>
@@ -290,18 +282,16 @@
       <section aria-labelledby="menu-you">
         <h2 class="section-title" id="menu-you">You</h2>
         <fieldset class="you" disabled={!canRename}>
-          {#if draftHead !== null}
-            <div class="face">
-              <Head head={draftHead} size={48} />
-              <button
-                type="button"
-                class="small reroll-head"
-                disabled={pending !== null}
-                onclick={rerollHead}
-              >
-                <Die /> New head
-              </button>
-            </div>
+          {#if draftPet !== null}
+            <PetPicker
+              bind:value={draftPet}
+              {taken}
+              disabled={pending !== null}
+              onchange={() => {
+                saved = null
+                resting = false
+              }}
+            />
           {/if}
           <form
             onsubmit={submit}
@@ -377,7 +367,7 @@
     font-size: 0.9rem;
   }
 
-  /* Wins over the 20px every other control glyph gets: the same size the real heads are. */
+  /* Wins over the 20px every other control glyph gets: the same size the real pets are. */
   .chip .blank {
     width: 32px;
     height: 32px;
@@ -427,16 +417,4 @@
     color: var(--muted);
   }
 
-  .face {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .reroll-head {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
 </style>

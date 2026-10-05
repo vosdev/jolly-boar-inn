@@ -261,7 +261,7 @@
   }
 
   /* Wins over the 20px every other control glyph gets: the placeholder face is the size
-     of the real heads (32px, section 5.2) so the bar is the same bar either way. */
+     of the real pets (32px) so the bar is the same bar either way. */
   .controls .chip .head {
     width: 32px;
     height: 32px;

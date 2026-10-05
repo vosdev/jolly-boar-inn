@@ -116,7 +116,7 @@ const QUESTION: OpenQuestion = {
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
-  profile.set({ name: "Zezima", head: 3 });
+  profile.set({ name: "Zezima", pet: "aggy" });
   vi.mocked(api.getModes).mockResolvedValue([]);
   vi.mocked(api.getRoom).mockResolvedValue({ status: "lobby", players: 2 });
   vi.mocked(api.joinRoom).mockResolvedValue({

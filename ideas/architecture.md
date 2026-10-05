@@ -26,9 +26,9 @@ Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggest
                                    image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/, AUTHORING.md
-data/                              assets, popular-items, player-names, room-words, heads/
+data/                              assets, pets, popular-items, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
-server/app/                        main, config, db, static, accesslog, errors, heads, random_events,
+server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
                                    suggestions
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
                                    ready, codes
@@ -553,8 +553,8 @@ key into them, so cleanup leaves it.
 - `questions.payload` holds the envelope extras at the top and the type payload under `payload`, so
   SQL reads `payload->'payload'`. Fields that queries or grading need are columns.
 - `questions.round` and `questions.mode` are stored; neither can be derived (section 5).
-- `players.avatar` indexes `heads.json`; null is a head derived from the id. The server checks the
-  upper bound, because the manifest grows without a migration.
+- `players.avatar` is a pet's id in `pets.json`; null is a pet derived from the id. The server checks
+  it against the pets with both pictures in `assets.json`, because that list grows without a migration.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.

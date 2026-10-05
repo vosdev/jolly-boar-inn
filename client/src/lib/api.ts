@@ -139,14 +139,14 @@ export interface RoomSnapshot {
 export type RoomAccess = 'code' | 'link' | 'public'
 
 /**
- * `avatar` is the profile's head; undefined, the room draws the one derived from the id.
+ * `avatar` is the profile's pet; undefined, the room draws the one derived from the id.
  * `returning` is `returningVisitor`, counted by the server and never stored.
  * `customQuestions` are the host's own, each a random event (`lib/customQuestions.ts`).
  */
 export function createRoom(
   displayName: string,
   settings: NewRoomSettings,
-  avatar: number | undefined,
+  avatar: string | undefined,
   returning: boolean,
   access: RoomAccess = 'code',
   customQuestions: readonly CustomQuestion[] = [],
@@ -169,7 +169,7 @@ export function createRoom(
 export function joinRoom(
   code: string,
   displayName: string,
-  avatar: number | undefined,
+  avatar: string | undefined,
   returning: boolean,
   key: string | null = null,
 ): Promise<Credentials> {
@@ -186,7 +186,7 @@ export function joinRoom(
 export function askToJoin(
   code: string,
   displayName: string,
-  avatar: number | undefined,
+  avatar: string | undefined,
   returning: boolean,
 ): Promise<{ ticket: string }> {
   return request<{ ticket: string }>(`/api/rooms/${encodeURIComponent(code)}/requests`, {
@@ -217,7 +217,7 @@ export function cancelRequest(code: string, ticket: string): Promise<void> {
 /** A lobby on Home's list: what joining it would show anyway, and no more. */
 export interface PublicRoom {
   code: string
-  host: { id: string; display_name: string; avatar: number | null }
+  host: { id: string; display_name: string; avatar: string | null }
   players: number
   max_players: number
   rounds: number

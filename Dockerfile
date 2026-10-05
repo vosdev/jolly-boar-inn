@@ -9,10 +9,10 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY client/ ./
 # What the client reads from outside client/: the random-name corpus, the question schema
-# the editor's limits come from, and the chat heads, which the build packs into one sheet.
+# the editor's limits come from, and the pet list with the manifest that says which have art.
 COPY data/player-names.json ../data/player-names.json
+COPY data/pets.json data/assets.json ../data/
 COPY schema/question.schema.json ../schema/question.schema.json
-COPY data/heads/ ../data/heads/
 # The app's version, which the top bar shows (ideas/architecture.md, Versioning).
 COPY VERSION ../VERSION
 # A selfhoster's name, logo and default theme are baked into the bundle (.env.example).

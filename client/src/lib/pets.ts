@@ -1,15 +1,26 @@
 /**
- * Pet art (section 14 of ideas/design.md): the pets a player can be drawn as, and the two
- * pictures each may have, its wiki chathead and its inventory icon.
+ * Pets (sections 6 and 14 of ideas/design.md): the pets a player can be, which one they
+ * wear, and the two pictures each has, its wiki chathead and its inventory icon.
  *
- * `data/pets.json` lists them, `{id, name}` in a fixed order, and `data/assets.json` maps
- * `pets/<id>_chathead.png` and `pets/<id>.png` to their wiki files. A pet has at least one;
- * most have both. The files are game assets and not committed, so one may be missing: found
- * by name at build time, like the NPCs, and dropping one in replaces it on the next build
- * with no code change. A pet with neither file is drawn as the player's head.
+ * `data/pets.json` lists them, `{id, name}`, and `data/assets.json` maps
+ * `pets/<id>_chathead.png` and `pets/<id>.png` to their wiki files. A pet is pickable when
+ * both are in the manifest, and the server holds the same rule (`app/pets.py`), so a
+ * browser and the room agree on the list without asking for it. `players.avatar` stores
+ * the pet's id, so it travels to everybody else in the room.
+ *
+ * `avatar ?? derived(id)` is the whole rule. Null is a player who never chose; they are
+ * drawn the pet their id hashes to, which every client in the room computes the same way,
+ * so two browsers never disagree. An id this build does not offer falls back the same way
+ * rather than drawing a gap.
+ *
+ * The files are game assets and not committed, so one may be missing: found by name at
+ * build time, like the NPCs, and dropping one in replaces it on the next build with no code
+ * change. A pet with neither file is drawn as the innkeeper.
  */
 
+import ASSETS_JSON from '../../../data/assets.json'
 import PETS_JSON from '../../../data/pets.json'
+import { FALLBACK_NPC, npcArt } from './npcs'
 
 const petFiles = import.meta.glob<string>('../assets/pets/*.{avif,webp,png,jpg,jpeg,svg}', {
   eager: true,
@@ -22,14 +33,79 @@ export interface Pet {
   name: string
 }
 
-/** Every pet, in the order of `data/pets.json`. */
+/** Every pet in `data/pets.json`, whether or not it can be picked yet. */
 export const PETS: readonly Pet[] = PETS_JSON
+
+/** The pets with both pictures in the manifest, A to Z: the picker's list. */
+export function pickablePets(pets: readonly Pet[] = PETS, manifest: object = ASSETS_JSON): Pet[] {
+  return pets
+    .filter((pet) => `pets/${pet.id}.png` in manifest && `pets/${pet.id}_chathead.png` in manifest)
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
+}
+
+/** What a player can pick, in the order the picker lists it. */
+export const PICKABLE: readonly Pet[] = pickablePets()
+
+const NAMES = new Map(PICKABLE.map((pet) => [pet.id, pet.name]))
 
 /** Which picture a player is drawn as: the big chathead, or the small inventory icon. */
 export type PetCut = 'chathead' | 'icon'
 
-/** What a player is drawn as: their pet's picture, or their head when the pet has none. */
-export type AvatarArt = { kind: 'pet'; url: string; name: string; cut: PetCut } | { kind: 'head'; head: number }
+/** A picture to draw; `cut` is `fallback` for the innkeeper standing in for a pet with no file. */
+export interface AvatarArt {
+  url: string
+  cut: PetCut | 'fallback'
+}
+
+/** The pet's name, for a screen reader and the picker: "Aggy", "Baby Mole". */
+export function petName(pet: string): string {
+  return NAMES.get(pet) ?? 'Pet'
+}
+
+/** Whether `pet` is one this build offers, for an id read back from storage or a server. */
+export function isPet(pet: unknown): pet is string {
+  return typeof pet === 'string' && NAMES.has(pet)
+}
+
+/**
+ * FNV-1a over the id's text, 32-bit. Not for security, for spread: uuids differ in their
+ * random bits, and this turns any of them into an evenly spread pet.
+ */
+function hash(text: string): number {
+  let h = 0x811c9dc5
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return h >>> 0
+}
+
+/** The pet a player who never chose one wears. Lowercased, since a uuid is either case. */
+export function derivedPet(playerId: string, pets: readonly Pet[] = PICKABLE): string {
+  return pets[hash(playerId.toLowerCase()) % pets.length]?.id ?? ''
+}
+
+/** The pet to draw for a player or a standing: their own, or the derived one. */
+export function petOf(player: { id: string; avatar?: string | null }): string {
+  return isPet(player.avatar) ? player.avatar : derivedPet(player.id)
+}
+
+/**
+ * A random pet, other than `previous` and, when there is one left, other than every pet in
+ * `taken` — the ones already in the room, so a pick tends toward one nobody else is
+ * wearing. Past that, repeats are allowed rather than the button doing nothing.
+ */
+export function randomPet(
+  taken: Iterable<string> = [],
+  previous: string | null = null,
+  pets: readonly Pet[] = PICKABLE,
+): string {
+  const avoid = new Set(taken)
+  if (previous !== null) avoid.add(previous)
+  const free = pets.filter((pet) => !avoid.has(pet.id))
+  const pool = free.length > 0 ? free : pets.filter((pet) => pet.id !== previous)
+  return pool[Math.floor(Math.random() * pool.length)]?.id ?? ''
+}
 
 /** The file whose name without its extension is `stem`, or null. */
 function fileNamed(files: Record<string, string>, stem: string): string | null {
@@ -40,20 +116,16 @@ function fileNamed(files: Record<string, string>, stem: string): string | null {
   return null
 }
 
-/** The art for a player wearing `pet`: the `prefer`red picture, else the other, else `head`. */
+/** The art for a player wearing `pet`: the `prefer`red picture, else the other, else the innkeeper. */
 export function avatarArt(
-  pet: string | null,
-  head: number,
+  pet: string,
   prefer: PetCut = 'chathead',
   files: Record<string, string> = petFiles,
-  pets: readonly Pet[] = PETS,
 ): AvatarArt {
-  const found = pet === null ? undefined : pets.find((p) => p.id === pet)
-  if (found === undefined) return { kind: 'head', head }
   const order: PetCut[] = prefer === 'chathead' ? ['chathead', 'icon'] : ['icon', 'chathead']
   for (const cut of order) {
-    const url = fileNamed(files, cut === 'chathead' ? `${found.id}_chathead` : found.id)
-    if (url !== null) return { kind: 'pet', url, name: found.name, cut }
+    const url = fileNamed(files, cut === 'chathead' ? `${pet}_chathead` : pet)
+    if (url !== null) return { url, cut }
   }
-  return { kind: 'head', head }
+  return { url: npcArt(FALLBACK_NPC).url, cut: 'fallback' }
 }

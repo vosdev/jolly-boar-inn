@@ -23,9 +23,9 @@ class CreateRoom(BaseModel):
     # The creator is the room's admin, so the name is needed up front. 200 is the outer
     # bound on what is worth reading; ``normalize_name`` holds it to 1-24.
     display_name: str = Field(max_length=200)
-    # A head id from ``data/heads/heads.json``. Optional, so a client from before
-    # heads still creates rooms; its players are drawn the head derived from their id.
-    avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
+    # A pet's id from ``data/pets.json``. Optional: a player who never chose is drawn the
+    # pet derived from their id.
+    avatar: str | None = Field(default=None, max_length=64, strict=True)
     # Whether this browser had a profile when the page loaded. Counted, never stored.
     returning: bool = Field(strict=True)
     # Only a link carrying the room's key joins it. Not a setting: settings reach everyone.
@@ -114,7 +114,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
 class PublicHost(BaseModel):
     id: UUID
     display_name: str
-    avatar: int | None
+    avatar: str | None
 
 
 class PublicRoom(BaseModel):

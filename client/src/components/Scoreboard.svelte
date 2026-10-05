@@ -13,7 +13,7 @@
    * then `joined_at` asc, dense rank). Nothing is sorted or re-ranked here — two clients
    * disagreeing about who is second is exactly the bug this avoids.
    *
-   * Names and heads come from the live player list when the player is in it: a
+   * Names and pets come from the live player list when the player is in it: a
    * rename or a re-roll mid-game arrives in `room_updated` straight away, and the
    * standings frames only at the next close. The row, its rank and its points are the
    * standing's either way — a rename never moves anybody.
@@ -22,12 +22,12 @@
    * that job now, and a "Gold" third place beside a gold first-place medal would
    * contradict itself.
    */
-  import { headOf } from '../lib/heads'
+  import { petOf } from '../lib/pets'
   import { podium, tableRows, type Step } from '../lib/podium'
   import type { Standing } from '../lib/protocol'
   import { players } from '../lib/stores'
   import { tierName, trophyArt } from '../lib/trophies'
-  import Head from './Head.svelte'
+  import Pet from './Pet.svelte'
 
   let {
     standings,
@@ -51,9 +51,9 @@
     return $players.find((p) => p.id === standing.player_id)?.display_name ?? standing.display_name
   }
 
-  function headFor(standing: Standing): number {
+  function petFor(standing: Standing): string {
     const player = $players.find((p) => p.id === standing.player_id)
-    return headOf(player ?? { id: standing.player_id, avatar: standing.avatar })
+    return petOf(player ?? { id: standing.player_id, avatar: standing.avatar })
   }
 
   /** What a screen reader hears for a step, full names and all: the step itself may
@@ -89,9 +89,9 @@
             <img src={art.url} alt="" draggable="false" />
           </span>
           {#if step.shown.length > 0}
-            <span class="heads">
+            <span class="pets">
               {#each step.shown as standing (standing.player_id)}
-                <Head head={headFor(standing)} size={48} label="" />
+                <Pet pet={petFor(standing)} size={48} label="" />
               {/each}
             </span>
             {#if step.more > 0}
@@ -125,7 +125,7 @@
             <td class="rank">{standing.rank}</td>
             <td class="name">
               <span class="who">
-                <Head head={headFor(standing)} size={32} label="" />
+                <Pet pet={petFor(standing)} size={32} label="" />
                 <span>
                   {nameOf(standing)}{#if you}<span class="note"> (you)</span>{/if}
                 </span>
@@ -189,13 +189,13 @@
     opacity: 0.35;
   }
 
-  /* Up to three heads, overlapped so a tie still fits a fifth of a phone. */
-  .heads {
+  /* Up to three pets, overlapped so a tie still fits a fifth of a phone. */
+  .pets {
     display: flex;
     justify-content: center;
   }
 
-  .heads > :global(* + *) {
+  .pets > :global(* + *) {
     margin-left: -2rem;
   }
 
@@ -364,7 +364,7 @@
       height: 2.5rem;
     }
 
-    .heads > :global(* + *) {
+    .pets > :global(* + *) {
       margin-left: -2.5rem;
     }
 

@@ -40,7 +40,7 @@ const joinedAs = () => vi.mocked(api.joinRoom).mock.calls.map(([, name]) => name
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
-  profile.set({ name: 'Zezima', head: 3 })
+  profile.set({ name: 'Zezima', pet: 'aggy' })
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 2 })
   vi.mocked(api.joinRoom).mockResolvedValue(CREDENTIALS)
   history.replaceState(null, '', '/r/ABYSSAL')
@@ -59,7 +59,7 @@ describe('Join', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(api.joinRoom).toHaveBeenCalledTimes(1)
-    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3, false, null)
+    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 'aggy', false, null)
     expect(getSession('ABYSSAL')).toBe('token')
   })
 
@@ -84,7 +84,7 @@ describe('Join', () => {
     expect(document.querySelector('dialog')?.open).toBe(true)
   })
 
-  it('joins as the name and head confirmed, and keeps them as the profile', async () => {
+  it('joins as the name and pet confirmed, and keeps them as the profile', async () => {
     profile.set(null)
     render(Join, { code: 'ABYSSAL', navigate })
     const field = (await screen.findByRole('textbox')) as HTMLInputElement
@@ -93,7 +93,7 @@ describe('Join', () => {
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     const made = get(profile)
     expect(made?.name).toBe('Zezima')
-    expect(vi.mocked(api.joinRoom).mock.calls[0]).toEqual(['ABYSSAL', 'Zezima', made?.head, false, null])
+    expect(vi.mocked(api.joinRoom).mock.calls[0]).toEqual(['ABYSSAL', 'Zezima', made?.pet, false, null])
     expect(document.querySelector('dialog')).toBeNull()
   })
 
@@ -226,7 +226,7 @@ describe('Asking the host to let you in', () => {
       .mockResolvedValueOnce({ status: 'waiting' })
       .mockResolvedValueOnce({ status: 'accepted', ...CREDENTIALS })
     await asked()
-    expect(api.askToJoin).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 3, false)
+    expect(api.askToJoin).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 'aggy', false)
     await vi.advanceTimersByTimeAsync(2000)
     expect(api.pollRequest).toHaveBeenCalledWith('ABYSSAL', 'ticket')
     expect(navigate).not.toHaveBeenCalled()

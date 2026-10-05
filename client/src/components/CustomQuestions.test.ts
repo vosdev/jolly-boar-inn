@@ -44,7 +44,7 @@ beforeEach(() => {
     expires_at: '2099-01-01T00:00:00Z',
     player: { id: 'p', display_name: 'Zezima', role: 'admin', connected: false },
   })
-  profile.set({ name: 'Zezima', head: 3 })
+  profile.set({ name: 'Zezima', pet: 'aggy' })
 })
 
 afterEach(cleanup)

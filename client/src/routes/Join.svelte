@@ -8,9 +8,9 @@
    *
    * Then, with a room still in its lobby (section 5.1):
    *
-   * - **A profile** joins straight through under its name and head. A returning player
+   * - **A profile** joins straight through under its name and pet. A returning player
    *   taps a link and is in the lobby; they are never asked again.
-   * - **No profile** gets `NamePrompt` first, pre-filled with a generated name and head,
+   * - **No profile** gets `NamePrompt` first, pre-filled with a generated name and pet,
    *   and cannot dismiss it. The join happens on its button, so nobody in the lobby ever
    *   sees a name the player did not at least look at. What they confirm becomes the
    *   profile, so the next room is the same face and the same name.
@@ -121,9 +121,9 @@
     await join(current.name)
   }
 
-  /** The prompt's answer is the profile before it is a join, so the head goes with it. */
-  function named(name: string, head: number): void {
-    saveProfile(name, head)
+  /** The prompt's answer is the profile before it is a join, so the pet goes with it. */
+  function named(name: string, pet: string): void {
+    saveProfile(name, pet)
     naming = false
     void join(name)
   }
@@ -157,7 +157,7 @@
     failure = null
     try {
       const credentials = await withFreshNumber(name, (tried) =>
-        joinRoom(code, tried, $profile?.head, returningVisitor, key),
+        joinRoom(code, tried, $profile?.pet, returningVisitor, key),
       )
       land(credentials, remember ? name : null)
     } catch (error) {
@@ -188,7 +188,7 @@
     try {
       const { ticket } = await withFreshNumber(name, (tried) => {
         asked = tried
-        return askToJoin(code, tried, $profile?.head, returningVisitor)
+        return askToJoin(code, tried, $profile?.pet, returningVisitor)
       })
       waiting = { ticket, asked, name, remember }
       pollTimer = setTimeout(() => void poll(), POLL_MS)

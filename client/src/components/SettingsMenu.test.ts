@@ -1,5 +1,5 @@
 /**
- * The bar's one control and its menu: the head it draws, a rename the room refuses, the
+ * The bar's one control and its menu: the pet it draws, a rename the room refuses, the
  * and a rename the room never answers, which the menu waits a few
  * seconds for, says so and lets the player try again, and which any `welcome`, `error` or
  * leaving the room ends. Then the menu as a whole: every setting the three old popovers
@@ -14,19 +14,19 @@ import { tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { derivedHead } from '../lib/heads'
+import { derivedPet } from '../lib/pets'
 import { profile } from '../lib/profile'
 import type { ClientMessage, PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, connection, resetRoom, roomSend } from '../lib/stores'
 import { EMBLEMS } from '../lib/emblems'
 import { THEME_LABELS, THEMES } from '../lib/theme'
-import { headsDrawn } from '../test-heads'
+import { petsDrawn } from '../test-pets'
 import SettingsMenu from './SettingsMenu.svelte'
 
 const me: PlayerView = {
   id: 'p1',
   display_name: 'Zezima',
-  avatar: 3,
+  avatar: 'abyssal_orphan',
   role: 'player',
   connected: true,
   ready: false,
@@ -97,23 +97,23 @@ function welcome(you: PlayerView, room: RoomView = LOBBY): void {
 }
 
 describe('SettingsMenu', () => {
-  it('draws the profile’s head outside a room, at 32px', () => {
-    profile.set({ name: 'Zezima', head: 5 })
+  it('draws the profile’s pet outside a room, at 32px', () => {
+    profile.set({ name: 'Zezima', pet: 'aggy' })
     render(SettingsMenu, { live: null })
-    expect(headsDrawn(document.querySelector('.chip')!)).toEqual([{ head: 5, size: 32 }])
+    expect(petsDrawn(document.querySelector('.chip')!)).toEqual([{ pet: 'aggy', size: 32 }])
   })
 
-  it('draws the head the room knows inside one, or the one the id gives', async () => {
+  it('draws the pet the room knows inside one, or the one the id gives', async () => {
     const chip = render(SettingsMenu, { live: me })
-    expect(headsDrawn(document.querySelector('.chip')!)).toEqual([{ head: 3, size: 32 }])
+    expect(petsDrawn(document.querySelector('.chip')!)).toEqual([{ pet: 'abyssal_orphan', size: 32 }])
     await chip.rerender({ live: { ...me, avatar: null } })
-    expect(headsDrawn(document.querySelector('.chip')!)).toEqual([
-      { head: derivedHead(me.id), size: 32 },
+    expect(petsDrawn(document.querySelector('.chip')!)).toEqual([
+      { pet: derivedPet(me.id), size: 32 },
     ])
   })
 
   it('answers a name the room already has in the menu, and keeps the old one', async () => {
-    profile.set({ name: 'Zezima', head: 3 })
+    profile.set({ name: 'Zezima', pet: 'abyssal_orphan' })
     welcome(me)
     render(SettingsMenu, { live: me })
     await rename('Woox')
@@ -274,8 +274,9 @@ describe('SettingsMenu, picking a name', () => {
     expect(name.value).toBe('Zezima')
     expect(name.matches(':disabled')).toBe(true)
     expect(save().matches(':disabled')).toBe(true)
-    const reroll = screen.getByRole('button', { name: /New head/ })
-    expect(reroll.matches(':disabled')).toBe(true)
+    for (const name of ['Random', 'Change pet']) {
+      expect(screen.getByRole('button', { name }).matches(':disabled')).toBe(true)
+    }
     expect(screen.getByText('Names are fixed once the game has started.')).toBeTruthy()
     await fireEvent.submit(save().form!)
     expect(sent).toEqual([])
@@ -305,8 +306,8 @@ describe('SettingsMenu, the menu', () => {
     delete document.documentElement.dataset.theme
   })
 
-  it('shows the head, the name and the current theme’s emblem in one control', () => {
-    profile.set({ name: 'Zezima', head: 5 })
+  it('shows the pet, the name and the current theme’s emblem in one control', () => {
+    profile.set({ name: 'Zezima', pet: 'aggy' })
     localStorage.setItem('jbi:theme', 'pollnivneach')
     render(SettingsMenu, { live: null })
     expect(control().getAttribute('aria-label')).toBe(
@@ -316,13 +317,14 @@ describe('SettingsMenu, the menu', () => {
     expect(barEmblem()).toBe('pollnivneach')
   })
 
-  it('reaches the name, the head, both sound switches and every theme from one panel', async () => {
-    profile.set({ name: 'Zezima', head: 5 })
+  it('reaches the name, the pet, both sound switches and every theme from one panel', async () => {
+    profile.set({ name: 'Zezima', pet: 'aggy' })
     await opened()
     const panel = within(menu()!)
     expect(panel.getByRole('heading', { name: 'You' })).toBeTruthy()
     expect(panel.getByRole('textbox')).toBeTruthy()
-    expect(panel.getByRole('button', { name: /New head/ })).toBeTruthy()
+    expect(panel.getByRole('button', { name: 'Change pet' })).toBeTruthy()
+    expect(panel.getByRole('button', { name: 'Random' })).toBeTruthy()
     expect(panel.getByRole('button', { name: 'Save' })).toBeTruthy()
     expect(panel.getByRole('heading', { name: 'Sound' })).toBeTruthy()
     expect(panel.getByRole('button', { name: 'Music & effects' })).toBeTruthy()
@@ -332,12 +334,43 @@ describe('SettingsMenu, the menu', () => {
   })
 
   it('saves the local profile outside a room, from the panel', async () => {
-    profile.set({ name: 'Zezima', head: 5 })
+    profile.set({ name: 'Zezima', pet: 'aggy' })
     await opened()
     await fireEvent.input(screen.getByRole('textbox'), { target: { value: 'Woox' } })
     await fireEvent.submit(save().form!)
-    expect(get(profile)).toEqual({ name: 'Woox', head: 5 })
+    expect(get(profile)).toEqual({ name: 'Woox', pet: 'aggy' })
     expect(sent).toEqual([])
+  })
+
+  it('saves a pet picked from the grid to the local profile outside a room', async () => {
+    profile.set({ name: 'Zezima', pet: 'aggy' })
+    await opened()
+    await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
+    await fireEvent.click(screen.getByRole('radio', { name: 'Baby Mole' }))
+    await fireEvent.submit(save().form!)
+    expect(get(profile)).toEqual({ name: 'Zezima', pet: 'baby_mole' })
+    expect(sent).toEqual([])
+  })
+
+  it('sends a pet picked in a room as the avatar, and keeps the old one until the room agrees', async () => {
+    welcome(me)
+    await opened(me)
+    await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
+    await fireEvent.click(screen.getByRole('radio', { name: 'Baby Mole' }))
+    await fireEvent.submit(save().form!)
+    expect(sent).toEqual([{ t: 'set_profile', avatar: 'baby_mole' }])
+    expect(petsDrawn(control())).toEqual([{ pet: 'abyssal_orphan', size: 32 }])
+  })
+
+  it('offers Save only once the pet or the name differs from what the room has', async () => {
+    welcome(me)
+    await opened(me)
+    expect(save().matches(':disabled')).toBe(true)
+    await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
+    await fireEvent.click(screen.getByRole('radio', { name: 'Baby Mole' }))
+    expect(save().matches(':disabled')).toBe(false)
+    await fireEvent.click(screen.getByRole('radio', { name: 'Abyssal orphan' }))
+    expect(save().matches(':disabled')).toBe(true)
   })
 
   it('opens with focus in the panel, and Escape closes it and gives focus back', async () => {

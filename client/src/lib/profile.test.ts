@@ -6,7 +6,7 @@
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { isHead } from './heads'
+import { isPet } from './pets'
 
 /** The module as a fresh page load would evaluate it. */
 async function visit(): Promise<typeof import('./profile')> {
@@ -29,17 +29,20 @@ describe('profile', () => {
   it('is kept under jbi:profile and read back on the next visit', async () => {
     const first = await visit()
     expect(get(first.profile)).toBeNull()
-    first.saveProfile('  Zezima ', 4)
-    expect(JSON.parse(localStorage.getItem('jbi:profile')!)).toEqual({ name: 'Zezima', head: 4 })
-    expect(get((await visit()).profile)).toEqual({ name: 'Zezima', head: 4 })
+    first.saveProfile('  Zezima ', 'aggy')
+    expect(JSON.parse(localStorage.getItem('jbi:profile')!)).toEqual({ name: 'Zezima', pet: 'aggy' })
+    expect(get((await visit()).profile)).toEqual({ name: 'Zezima', pet: 'aggy' })
   })
 
-  it('gives a stored profile from before heads a head, and keeps that one', async () => {
-    localStorage.setItem('jbi:profile', JSON.stringify({ name: 'Zezima' }))
-    const head = get((await visit()).profile)?.head
-    expect(isHead(head)).toBe(true)
-    expect(get((await visit()).profile)).toEqual({ name: 'Zezima', head })
-  })
+  it.each([{ name: 'Zezima' }, { name: 'Zezima', head: 4 }, { name: 'Zezima', pet: 'not_a_pet' }])(
+    'gives a stored profile with no pet this build offers one, and keeps that one',
+    async (stored) => {
+      localStorage.setItem('jbi:profile', JSON.stringify(stored))
+      const pet = get((await visit()).profile)?.pet
+      expect(isPet(pet)).toBe(true)
+      expect(get((await visit()).profile)).toEqual({ name: 'Zezima', pet })
+    },
+  )
 
   it('with storage throwing, starts empty on every visit and keeps a name for the page', async () => {
     storageThrows()
@@ -54,7 +57,7 @@ describe('profile', () => {
 describe('returningVisitor', () => {
   it('is false on a first visit, even once this visit has saved a name', async () => {
     const first = await visit()
-    first.saveProfile('Zezima', 4)
+    first.saveProfile('Zezima', 'aggy')
     expect(first.returningVisitor).toBe(false)
     expect((await visit()).returningVisitor).toBe(true)
   })

@@ -16,7 +16,7 @@
    * The rounds play in a random order unless the host numbers them: a quiz night is
    * rarely improved by always opening on the same round.
    *
-   * The host is the profile, name and head, and the form never asks: the name lives in
+   * The host is the profile, name and pet, and the form never asks: the name lives in
    * the top bar. A browser with none is handled the way Join handles one: pressing
    * Create opens `NamePrompt` first, and what is confirmed becomes the profile and the
    * host's name. The room is not made until then.
@@ -195,8 +195,8 @@
   }
 
   /** The prompt's answer is the profile before it is the host. */
-  function named(name: string, head: number): void {
-    saveProfile(name, head)
+  function named(name: string, pet: string): void {
+    saveProfile(name, pet)
     naming = false
     void create()
   }
@@ -227,7 +227,7 @@
       const created = await createRoom(
         host.name,
         settings,
-        host.head,
+        host.pet,
         returningVisitor,
         access,
         customQuestions,

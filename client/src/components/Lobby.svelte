@@ -11,7 +11,7 @@
    * somebody at the bar, and a name is something you can shout. The host is a player like
    * any other and taps too. Start is the plain button once the room reaches the same
    * threshold a splash uses; short of it, it is "Start anyway", which asks first. The
-   * splash asks again with heads only.
+   * splash asks again with pets and their names.
    *
    * Promote asks first as well as Kick: there is no demote, and an admin cannot be kicked,
    * so one slip of the thumb would make a permanent co-host.
@@ -23,8 +23,8 @@
    * turns them away here, with no confirm, since either can be put right by Kick or by
    * asking again.
    */
-  import { headOf } from '../lib/heads'
   import { modeLabel } from '../lib/modes'
+  import { petOf } from '../lib/pets'
   import { readyThreshold } from '../lib/ready'
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
   import { players, room, you } from '../lib/stores'
@@ -33,7 +33,7 @@
   import { inviteLink, maskedLink } from '../lib/invite'
   import CopyLink from './CopyLink.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
-  import Head from './Head.svelte'
+  import Pet from './Pet.svelte'
 
   let { socket }: { socket: RoomSocket } = $props()
 
@@ -195,7 +195,7 @@
     <ul class="players">
       {#each requests as request (request.id)}
         <li>
-          <span class="face"><Head head={headOf(request)} size={32} label="" /></span>
+          <span class="face"><Pet pet={petOf(request)} size={40} label="" /></span>
           <span class="name">{request.display_name}</span>
           <span class="admin">
             <button type="button" class="primary" onclick={() => decide(request, true)}>Let in</button>
@@ -231,7 +231,7 @@
           class:off={!player.connected}
           title={player.connected ? 'connected' : 'not connected'}
         ></span>
-        <span class="face"><Head head={headOf(player)} size={32} label="" /></span>
+        <span class="face"><Pet pet={petOf(player)} size={40} label="" /></span>
         <span class="name">
           {player.display_name}{#if player.id === $you?.id}<span class="note"> (you)</span>{/if}
           {#if player.editing === true}<span class="picking">picking a name…</span>{/if}

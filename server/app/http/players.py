@@ -19,7 +19,7 @@ class Join(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     display_name: str = Field(max_length=200)
-    avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)  # as on ``CreateRoom``
+    avatar: str | None = Field(default=None, max_length=64, strict=True)  # as on ``CreateRoom``
     returning: bool = Field(strict=True)  # as on ``CreateRoom``
     # From the invite link's fragment. ``token_urlsafe(9)`` is 12 characters; the bound
     # only refuses an oversized body before it is compared.
@@ -30,7 +30,7 @@ class AskToJoin(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     display_name: str = Field(max_length=200)
-    avatar: int | None = Field(default=None, ge=0, le=32767, strict=True)
+    avatar: str | None = Field(default=None, max_length=64, strict=True)
     returning: bool = Field(strict=True)
 
 

@@ -8,10 +8,10 @@
 import { render, screen, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { derivedHead } from '../lib/heads'
+import { derivedPet } from '../lib/pets'
 import type { Standing } from '../lib/protocol'
 import { players } from '../lib/stores'
-import { headsDrawn } from '../test-heads'
+import { petsDrawn } from '../test-pets'
 import Scoreboard from './Scoreboard.svelte'
 
 // Fetched trophy renders would replace the placeholders this file checks for, so the
@@ -45,23 +45,23 @@ function steps(container: HTMLElement): HTMLElement[] {
 }
 
 describe('Scoreboard', () => {
-  it('draws the head each player chose, or the one their id gives, 48px on the podium and 32px in the table', () => {
-    const two = [{ ...standing('Zezima', 900, 1), avatar: 7 }, standing('Woox', 800, 2)]
+  it('draws the pet each player chose, or the one their id gives, 48px on the podium and 32px in the table', () => {
+    const two = [{ ...standing('Zezima', 900, 1), avatar: 'aggy' }, standing('Woox', 800, 2)]
     const { container } = render(Scoreboard, { standings: two, final: true })
-    expect(headsDrawn(container.querySelector('.podium')!)).toEqual([
-      { head: derivedHead('Woox'), size: 48 },
-      { head: 7, size: 48 },
+    expect(petsDrawn(container.querySelector('.podium')!)).toEqual([
+      { pet: derivedPet('Woox'), size: 48 },
+      { pet: 'aggy', size: 48 },
     ])
-    expect(headsDrawn(container.querySelector('.hiscores')!)).toEqual([
-      { head: 7, size: 32 },
-      { head: derivedHead('Woox'), size: 32 },
+    expect(petsDrawn(container.querySelector('.hiscores')!)).toEqual([
+      { pet: 'aggy', size: 32 },
+      { pet: derivedPet('Woox'), size: 32 },
     ])
   })
 
-  it('draws the head the room last sent over the one in the standings', () => {
-    players.set([{ id: 'Zezima', display_name: 'Zezima', avatar: 2, role: 'player', connected: true }])
-    const { container } = render(Scoreboard, { standings: [{ ...standing('Zezima', 900, 1), avatar: 7 }] })
-    expect(headsDrawn(container.querySelector('.podium')!)).toEqual([{ head: 2, size: 48 }])
+  it('draws the pet the room last sent over the one in the standings', () => {
+    players.set([{ id: 'Zezima', display_name: 'Zezima', avatar: 'baby_mole', role: 'player', connected: true }])
+    const { container } = render(Scoreboard, { standings: [{ ...standing('Zezima', 900, 1), avatar: 'aggy' }] })
+    expect(petsDrawn(container.querySelector('.podium')!)).toEqual([{ pet: 'baby_mole', size: 48 }])
   })
 
   it('stands ranks 4 · 2 · 1 · 3 · 5 from left to right', () => {
@@ -96,11 +96,11 @@ describe('Scoreboard', () => {
     expect(rows.some((row) => row.classList.contains('pinned'))).toBe(false)
   })
 
-  it('shows a tie on one step with +N past three heads', () => {
+  it('shows a tie on one step with +N past three pets', () => {
     const level = ['a', 'b', 'c', 'd', 'e'].map((name) => standing(name, 500, 1))
     const { container } = render(Scoreboard, { standings: level })
     const first = steps(container)[2]!
-    expect(first.querySelectorAll('.heads .head')).toHaveLength(3)
+    expect(first.querySelectorAll('.pets .pet')).toHaveLength(3)
     expect(first.querySelector('.more')?.textContent).toBe('+2')
     expect(steps(container).filter((step) => step.classList.contains('empty'))).toHaveLength(4)
   })
@@ -109,7 +109,7 @@ describe('Scoreboard', () => {
     const quiet = [standing('a', 0, 1), standing('b', 0, 1)]
     const { container } = render(Scoreboard, { standings: quiet })
     expect(steps(container).every((step) => step.classList.contains('empty'))).toBe(true)
-    expect(container.querySelectorAll('.podium .head')).toHaveLength(0)
+    expect(container.querySelectorAll('.podium .pet')).toHaveLength(0)
     expect(steps(container)[2]!.querySelector('.sr')?.textContent).toBe('1st, Diamond trophy: nobody')
     expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(3)
   })

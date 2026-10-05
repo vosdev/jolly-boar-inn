@@ -13,7 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../lib/api";
 import { pastGames, savePastGame } from "../lib/history";
 import { rememberCreated, setSession } from "../lib/session";
-import { headsDrawn } from "../test-heads";
+import { petsDrawn } from "../test-pets";
 import Home from "./Home.svelte";
 
 vi.mock("../lib/api", async (importOriginal) => {
@@ -36,7 +36,7 @@ const LOBBY: api.PublicRoom = {
   host: {
     id: "7da6f39a-535d-46db-9c02-801eff2c2eb1",
     display_name: "Zezima",
-    avatar: 3,
+    avatar: 'baby_mole',
   },
   players: 3,
   max_players: 50,
@@ -141,7 +141,7 @@ describe("Home", () => {
   });
 
   describe("Public rooms", () => {
-    it("lists each public lobby with its host, head and rounds, and joins it", async () => {
+    it("lists each public lobby with its host, pet and rounds, and joins it", async () => {
       vi.mocked(api.getPublicRooms).mockResolvedValue([LOBBY]);
       render(Home, { navigate });
       const row = (await screen.findByText("DRAGON")).closest("li")!;
@@ -154,7 +154,7 @@ describe("Home", () => {
           "3/50 players · 2 rounds: More or Less, The Price is Right",
         ),
       ).toBeTruthy();
-      expect(headsDrawn(row)).toEqual([{ head: 3, size: 32 }]);
+      expect(petsDrawn(row)).toEqual([{ pet: "baby_mole", size: 32 }]);
       await fireEvent.click(
         within(row).getByRole("button", { name: "Join DRAGON" }),
       );

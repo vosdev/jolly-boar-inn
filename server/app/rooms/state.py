@@ -188,7 +188,7 @@ class BadName(ApiError):
 
 
 class BadAvatar(ApiError):
-    """An ``avatar`` that is not an id in ``data/heads/heads.json``."""
+    """An ``avatar`` that is not a pet a player can pick (``app/pets.py``)."""
 
     status, code = 422, "bad_avatar"
 
@@ -323,9 +323,9 @@ class Player:
     joined_at: datetime
     session_hash: str = field(repr=False)  # sha256 hex of the session token, never plaintext
     connected: bool = False
-    # A head from the manifest, or ``None`` for "never chosen": the client draws the one
-    # derived from ``id`` then, which is also what every player stored before heads existed has.
-    avatar: int | None = None
+    # A pet's id, or ``None`` for "never chosen": the client draws the pet derived from
+    # ``id`` then.
+    avatar: str | None = None
     # The ready check, in memory only: it means "ready to start" in the lobby and
     # "ready for this round" on a splash, and every splash starts everybody afresh. A
     # restart forgets it, which costs one tap -- the same as the splash it replays.
@@ -377,7 +377,7 @@ class JoinRequest:
     id: UUID
     ticket_hash: str = field(repr=False)
     display_name: str
-    avatar: int | None
+    avatar: str | None
     returning: bool
     asked_at: float  # on the manager's monotonic clock
     # ``None`` while waiting, then the admin's answer, which the next poll acts on.
@@ -813,15 +813,15 @@ class RoomManager:
         words: Sequence[str],
         rng: random.Random | None = None,
         *,
-        heads: int,
+        pets: frozenset[str],
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._pool = pool
         self.packs = packs
         self.settings = settings
         self.words = words
-        # The length of ``data/heads/heads.json``: every valid ``avatar`` is below it.
-        self.heads = heads
+        # Every valid ``avatar``.
+        self.pets = pets
         self.rng = rng or random.Random()
         # Codes from the OS, not ``rng``: Mersenne Twister's next draw can be worked out
         # from enough of its past ones, and a code is only as private as its successors.
@@ -1265,7 +1265,7 @@ class RoomManager:
         display_name: str,
         settings: RoomSettings,
         custom_questions: Sequence[dict[str, Any]],
-        avatar: int | None = None,
+        avatar: str | None = None,
         returning: bool = False,
         invite_only: bool = False,
         public: bool = False,
@@ -1375,7 +1375,7 @@ class RoomManager:
         self,
         code: str,
         display_name: str,
-        avatar: int | None = None,
+        avatar: str | None = None,
         returning: bool = False,
         key: str | None = None,
     ) -> tuple[Player, str]:
@@ -1398,7 +1398,7 @@ class RoomManager:
         return player, session
 
     async def _admit(
-        self, room: Room, name: str, avatar: int | None, returning: bool
+        self, room: Room, name: str, avatar: str | None, returning: bool
     ) -> tuple[Player, str]:
         """Insert a player into a lobby with room for them. Call with the room lock held."""
         session = new_token()
@@ -1423,7 +1423,7 @@ class RoomManager:
         return player, session
 
     async def request_join(
-        self, code: str, display_name: str, avatar: int | None = None, returning: bool = False
+        self, code: str, display_name: str, avatar: str | None = None, returning: bool = False
     ) -> str:
         """Ask an invite-only room's admins to let ``display_name`` in. Returns the ticket, once.
 
@@ -1538,7 +1538,7 @@ class RoomManager:
         self._broadcast(update)
 
     async def set_profile(
-        self, code: str, player: Player, display_name: str | None, avatar: int | None
+        self, code: str, player: Player, display_name: str | None, avatar: str | None
     ) -> None:
         """Rename, re-roll the head, or both (section 5.1.1 of ideas/design.md).
 
@@ -1589,10 +1589,10 @@ class RoomManager:
             update = self._room_updated(room)
         self._broadcast(update)
 
-    def check_avatar(self, avatar: int | None) -> None:
-        """Refuse a head that is not in the manifest, before anything is written."""
-        if avatar is not None and not 0 <= avatar < self.heads:
-            raise BadAvatar(f"avatar must be a head id from 0 to {self.heads - 1}")
+    def check_avatar(self, avatar: str | None) -> None:
+        """Refuse a pet nobody can pick, before anything is written."""
+        if avatar is not None and avatar not in self.pets:
+            raise BadAvatar("avatar must be the id of a pet in the picker")
 
     async def set_ready(self, code: str, player: Player, is_ready: bool) -> None:
         """Tap ready, or take it back (section 7.1 of ideas/design.md).

@@ -50,7 +50,7 @@ beforeEach(() => {
     expires_at: '2099-01-01T00:00:00Z',
     player: { id: 'p', display_name: 'Zezima', role: 'admin', connected: false },
   })
-  profile.set({ name: 'Zezima', head: 3 })
+  profile.set({ name: 'Zezima', pet: 'aggy' })
 })
 
 async function submitted(): Promise<api.NewRoomSettings> {
@@ -97,9 +97,9 @@ describe('Create', () => {
     render(Create, { navigate })
     await screen.findByRole('checkbox', { name: /^More or Less/ })
     await submitted()
-    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 3, false, 'code', []])
+    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 'aggy', false, 'code', []])
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
-    expect(get(profile)).toEqual({ name: 'Zezima', head: 3 })
+    expect(get(profile)).toEqual({ name: 'Zezima', pet: 'aggy' })
   })
 
   it('asks a browser with no profile for a name on Create, and makes no room until it has one', async () => {
@@ -113,7 +113,7 @@ describe('Create', () => {
     expect(get(profile)).toBeNull()
   })
 
-  it('creates as the name and head confirmed, and keeps them as the profile', async () => {
+  it('creates as the name and pet confirmed, and keeps them as the profile', async () => {
     profile.set(null)
     const navigate = vi.fn()
     render(Create, { navigate })
@@ -123,10 +123,10 @@ describe('Create', () => {
     await fireEvent.input(field, { target: { value: 'Zezima' } })
     await fireEvent.click(within(field.closest('dialog')!).getByRole('button', { name: 'Create room' }))
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
-    const [name, , head, returning] = vi.mocked(api.createRoom).mock.calls[0]!
+    const [name, , pet, returning] = vi.mocked(api.createRoom).mock.calls[0]!
     expect(name).toBe('Zezima')
     expect(returning).toBe(false)
-    expect(get(profile)).toEqual({ name: 'Zezima', head })
+    expect(get(profile)).toEqual({ name: 'Zezima', pet })
   })
 
   it('keeps the name chosen through a create that failed, so the next one does not ask again', async () => {

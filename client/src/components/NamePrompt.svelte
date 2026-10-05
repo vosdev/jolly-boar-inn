@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * The question a browser with no profile answers before its first room (section 6 of
-   * ideas/design.md): a name and a head, pre-filled so that one tap on the button is a
+   * ideas/design.md): a name and a pet, pre-filled so that one tap on the button is a
    * valid answer, and nothing to dismiss it with. Escape is swallowed and there is no
    * cancel, because a player who got past this screen without a name is how the lobby
    * filled with `Cow31337Killer42`.
@@ -17,11 +17,10 @@
    */
   import { onMount, untrack } from 'svelte'
 
-  import { randomHead } from '../lib/heads'
   import { generateName, nameProblem } from '../lib/names'
-  import Die from './Die.svelte'
-  import Head from './Head.svelte'
+  import { randomPet } from '../lib/pets'
   import NameField from './NameField.svelte'
+  import PetPicker from './PetPicker.svelte'
 
   let {
     action,
@@ -32,14 +31,14 @@
     action: string
     /** The room code, when there is one: a generated name never matches it. */
     avoid?: string
-    onConfirm: (name: string, head: number) => void
+    onConfirm: (name: string, pet: string) => void
   } = $props()
 
   const id = $props.id()
   let dialog = $state<HTMLDialogElement | null>(null)
   // Rolled once: a later change of `avoid` must not swap the name under somebody typing.
   let name = $state(untrack(() => generateName(avoid)))
-  let head = $state(randomHead())
+  let pet = $state(randomPet())
 
   const ok = $derived(nameProblem(name) === null)
 
@@ -66,7 +65,7 @@
 
   function submit(event: SubmitEvent): void {
     event.preventDefault()
-    if (ok) onConfirm(name.trim(), head)
+    if (ok) onConfirm(name.trim(), pet)
   }
 </script>
 
@@ -78,12 +77,7 @@
   onclose={reopen}
 >
   <h2 {id}>Pick your name</h2>
-  <div class="face">
-    <Head {head} size={48} />
-    <button type="button" class="small reroll-head" onclick={() => (head = randomHead([], head))}>
-      <Die /> New head
-    </button>
-  </div>
+  <PetPicker bind:value={pet} />
   <form onsubmit={submit}>
     <NameField
       id="{id}-name"
@@ -113,19 +107,6 @@
   h2 {
     margin: 0 0 1rem;
     font-size: 1.15rem;
-  }
-
-  .face {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .reroll-head {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
   }
 
   .prompt button[type='submit'] {
