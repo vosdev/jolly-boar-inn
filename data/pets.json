@@ -12,12 +12,20 @@
     "name": "Baby Mole"
   },
   {
+    "id": "baby_mole_rat",
+    "name": "Baby Mole-rat"
+  },
+  {
     "id": "baron",
     "name": "Baron"
   },
   {
     "id": "bran",
     "name": "Bran"
+  },
+  {
+    "id": "ric",
+    "name": "Ric"
   },
   {
     "id": "beef",
@@ -42,6 +50,10 @@
   {
     "id": "gull_pet",
     "name": "Gull"
+  },
+  {
+    "id": "gulliver",
+    "name": "Gulliver"
   },
   {
     "id": "hellpuppy",
@@ -72,12 +84,40 @@
     "name": "Jal-Nib-Rek"
   },
   {
+    "id": "tzrek_zuk",
+    "name": "TzRek-Zuk"
+  },
+  {
     "id": "kalphite_princess",
     "name": "Kalphite Princess"
   },
   {
+    "id": "kalphite_princess_flying",
+    "name": "Kalphite Princess (flying)"
+  },
+  {
     "id": "lil_zik",
     "name": "Lil' Zik"
+  },
+  {
+    "id": "lil_maiden",
+    "name": "Lil' Maiden"
+  },
+  {
+    "id": "lil_bloat",
+    "name": "Lil' Bloat"
+  },
+  {
+    "id": "lil_nylo",
+    "name": "Lil' Nylo"
+  },
+  {
+    "id": "lil_sot",
+    "name": "Lil' Sot"
+  },
+  {
+    "id": "lil_xarp",
+    "name": "Lil' Xarp"
   },
   {
     "id": "lil_viathan",
@@ -86,6 +126,10 @@
   {
     "id": "little_nightmare",
     "name": "Little Nightmare"
+  },
+  {
+    "id": "little_parasite",
+    "name": "Little Parasite"
   },
   {
     "id": "maggot_marquess",
@@ -116,12 +160,48 @@
     "name": "Nid"
   },
   {
+    "id": "rax",
+    "name": "Rax"
+  },
+  {
     "id": "noon",
     "name": "Noon"
   },
   {
+    "id": "midnight",
+    "name": "Midnight"
+  },
+  {
     "id": "olmlet",
     "name": "Olmlet"
+  },
+  {
+    "id": "puppadile",
+    "name": "Puppadile"
+  },
+  {
+    "id": "tektiny",
+    "name": "Tektiny"
+  },
+  {
+    "id": "enraged_tektiny",
+    "name": "Enraged Tektiny"
+  },
+  {
+    "id": "vanguard_pet",
+    "name": "Vanguard"
+  },
+  {
+    "id": "vasa_minirio",
+    "name": "Vasa Minirio"
+  },
+  {
+    "id": "vespina",
+    "name": "Vespina"
+  },
+  {
+    "id": "flying_vespina",
+    "name": "Flying Vespina"
   },
   {
     "id": "pet_chaos_elemental",
@@ -142,6 +222,10 @@
   {
     "id": "pet_dark_core",
     "name": "Pet dark core"
+  },
+  {
+    "id": "pet_corporeal_critter",
+    "name": "Pet Corporeal Critter"
   },
   {
     "id": "pet_general_graardor",
@@ -216,6 +300,14 @@
     "name": "Scurry"
   },
   {
+    "id": "chewy",
+    "name": "Chewy"
+  },
+  {
+    "id": "nibbles",
+    "name": "Nibbles"
+  },
+  {
     "id": "skotos",
     "name": "Skotos"
   },
@@ -232,12 +324,12 @@
     "name": "Sraracha"
   },
   {
-    "id": "sraracha_blue",
-    "name": "Sraracha (blue)"
-  },
-  {
     "id": "sraracha_orange",
     "name": "Sraracha (orange)"
+  },
+  {
+    "id": "sraracha_blue",
+    "name": "Sraracha (blue)"
   },
   {
     "id": "tiny_tempor",
@@ -248,8 +340,40 @@
     "name": "Tumeken's guardian"
   },
   {
+    "id": "tumeken_s_damaged_guardian",
+    "name": "Tumeken's damaged guardian"
+  },
+  {
+    "id": "elidinis_guardian",
+    "name": "Elidinis' guardian"
+  },
+  {
+    "id": "elidinis_damaged_guardian",
+    "name": "Elidinis' damaged guardian"
+  },
+  {
+    "id": "akkhito",
+    "name": "Akkhito"
+  },
+  {
+    "id": "babi",
+    "name": "Babi"
+  },
+  {
+    "id": "kephriti",
+    "name": "Kephriti"
+  },
+  {
+    "id": "zebo",
+    "name": "Zebo"
+  },
+  {
     "id": "tzrek_jad",
     "name": "TzRek-Jad"
+  },
+  {
+    "id": "jalrek_jad",
+    "name": "JalRek-Jad"
   },
   {
     "id": "venenatis_spiderling",
@@ -268,6 +392,14 @@
     "name": "Vet'ion Jr. (reborn)"
   },
   {
+    "id": "vet_ion_jr_legacy",
+    "name": "Vet'ion Jr. (legacy)"
+  },
+  {
+    "id": "vet_ion_jr_reborn_legacy",
+    "name": "Vet'ion Jr. (reborn, legacy)"
+  },
+  {
     "id": "vorki",
     "name": "Vorki"
   },
@@ -280,8 +412,16 @@
     "name": "Yami"
   },
   {
+    "id": "yami_christmas",
+    "name": "Yami (Christmas)"
+  },
+  {
     "id": "youngllef",
     "name": "Youngllef"
+  },
+  {
+    "id": "corrupted_youngllef",
+    "name": "Corrupted Youngllef"
   },
   {
     "id": "baby_chinchompa_grey",
@@ -316,10 +456,6 @@
     "name": "Beaver (teak)"
   },
   {
-    "id": "beaver_jatoba",
-    "name": "Beaver (jatoba)"
-  },
-  {
     "id": "beaver_maple",
     "name": "Beaver (maple)"
   },
@@ -336,32 +472,56 @@
     "name": "Beaver (yew)"
   },
   {
-    "id": "beaver_camphor",
-    "name": "Beaver (camphor)"
-  },
-  {
     "id": "beaver_magic",
     "name": "Beaver (magic)"
-  },
-  {
-    "id": "beaver_ironwood",
-    "name": "Beaver (ironwood)"
   },
   {
     "id": "beaver_redwood",
     "name": "Beaver (redwood)"
   },
   {
+    "id": "beaver_camphor",
+    "name": "Beaver (camphor)"
+  },
+  {
+    "id": "beaver_ironwood",
+    "name": "Beaver (ironwood)"
+  },
+  {
+    "id": "beaver_jatoba",
+    "name": "Beaver (jatoba)"
+  },
+  {
     "id": "beaver_rosewood",
     "name": "Beaver (rosewood)"
+  },
+  {
+    "id": "pheasant_pet",
+    "name": "Pheasant"
+  },
+  {
+    "id": "fox_pet",
+    "name": "Fox"
   },
   {
     "id": "giant_squirrel",
     "name": "Giant Squirrel"
   },
   {
+    "id": "dark_squirrel",
+    "name": "Dark Squirrel"
+  },
+  {
+    "id": "bone_squirrel",
+    "name": "Bone Squirrel"
+  },
+  {
     "id": "heron",
     "name": "Heron"
+  },
+  {
+    "id": "great_blue_heron",
+    "name": "Great blue heron"
   },
   {
     "id": "rift_guardian_fire",
@@ -396,10 +556,6 @@
     "name": "Rift guardian (chaos)"
   },
   {
-    "id": "rift_guardian_astral",
-    "name": "Rift guardian (astral)"
-  },
-  {
     "id": "rift_guardian_nature",
     "name": "Rift guardian (nature)"
   },
@@ -412,28 +568,36 @@
     "name": "Rift guardian (death)"
   },
   {
-    "id": "rift_guardian_blood",
-    "name": "Rift guardian (blood)"
-  },
-  {
     "id": "rift_guardian_soul",
     "name": "Rift guardian (soul)"
+  },
+  {
+    "id": "rift_guardian_astral",
+    "name": "Rift guardian (astral)"
+  },
+  {
+    "id": "rift_guardian_blood",
+    "name": "Rift guardian (blood)"
   },
   {
     "id": "rift_guardian_wrath",
     "name": "Rift guardian (wrath)"
   },
   {
+    "id": "greatish_guardian",
+    "name": "Greatish guardian"
+  },
+  {
     "id": "rock_golem",
     "name": "Rock golem"
   },
   {
-    "id": "rock_golem_copper",
-    "name": "Rock golem (copper)"
-  },
-  {
     "id": "rock_golem_tin",
     "name": "Rock golem (tin)"
+  },
+  {
+    "id": "rock_golem_copper",
+    "name": "Rock golem (copper)"
   },
   {
     "id": "rock_golem_iron",
@@ -492,16 +656,24 @@
     "name": "Rock golem (lead)"
   },
   {
-    "id": "rock_golem_nickel",
-    "name": "Rock golem (nickel)"
-  },
-  {
     "id": "rock_golem_rubium",
     "name": "Rock golem (rubium)"
   },
   {
+    "id": "rock_golem_nickel",
+    "name": "Rock golem (nickel)"
+  },
+  {
     "id": "rocky",
     "name": "Rocky"
+  },
+  {
+    "id": "ziggy_rocky_metamorphosis",
+    "name": "Rocky (Ziggy)"
+  },
+  {
+    "id": "red",
+    "name": "Red"
   },
   {
     "id": "soup",
@@ -512,16 +684,16 @@
     "name": "Tangleroot"
   },
   {
-    "id": "tangleroot_herb",
-    "name": "Tangleroot (herb)"
-  },
-  {
     "id": "tangleroot_crystal",
     "name": "Tangleroot (crystal)"
   },
   {
     "id": "tangleroot_dragonfruit",
     "name": "Tangleroot (dragonfruit)"
+  },
+  {
+    "id": "tangleroot_herb",
+    "name": "Tangleroot (herb)"
   },
   {
     "id": "tangleroot_redwood",
@@ -552,6 +724,10 @@
     "name": "Lil' Creator"
   },
   {
+    "id": "lil_destructor",
+    "name": "Lil' Destructor"
+  },
+  {
     "id": "pet_penance_queen",
     "name": "Pet Penance Queen"
   },
@@ -572,12 +748,104 @@
     "name": "Pet cat (black)"
   },
   {
+    "id": "pet_cat_grey_and_black",
+    "name": "Pet cat (grey and black)"
+  },
+  {
+    "id": "pet_cat_white",
+    "name": "Pet cat (white)"
+  },
+  {
+    "id": "pet_cat_brown",
+    "name": "Pet cat (brown)"
+  },
+  {
+    "id": "pet_cat_grey_and_brown",
+    "name": "Pet cat (grey and brown)"
+  },
+  {
+    "id": "pet_cat_grey_and_blue",
+    "name": "Pet cat (grey and blue)"
+  },
+  {
+    "id": "pet_kitten_grey_and_black",
+    "name": "Pet kitten (grey and black)"
+  },
+  {
+    "id": "pet_kitten_white",
+    "name": "Pet kitten (white)"
+  },
+  {
+    "id": "pet_kitten_brown",
+    "name": "Pet kitten (brown)"
+  },
+  {
+    "id": "pet_kitten_black",
+    "name": "Pet kitten (black)"
+  },
+  {
+    "id": "pet_kitten_grey_and_brown",
+    "name": "Pet kitten (grey and brown)"
+  },
+  {
+    "id": "pet_kitten_grey_and_blue",
+    "name": "Pet kitten (grey and blue)"
+  },
+  {
+    "id": "pet_cat_overgrown_grey_and_black",
+    "name": "Pet cat (overgrown, grey and black)"
+  },
+  {
+    "id": "pet_cat_overgrown_white",
+    "name": "Pet cat (overgrown, white)"
+  },
+  {
+    "id": "pet_cat_overgrown_brown",
+    "name": "Pet cat (overgrown, brown)"
+  },
+  {
+    "id": "pet_cat_overgrown_black",
+    "name": "Pet cat (overgrown, black)"
+  },
+  {
+    "id": "pet_cat_overgrown_grey_and_brown",
+    "name": "Pet cat (overgrown, grey and brown)"
+  },
+  {
+    "id": "pet_cat_overgrown_grey_and_blue",
+    "name": "Pet cat (overgrown, grey and blue)"
+  },
+  {
     "id": "fishbowl_blue",
     "name": "Fishbowl"
   },
   {
+    "id": "fishbowl_green",
+    "name": "Fishbowl (green)"
+  },
+  {
+    "id": "fishbowl_orange",
+    "name": "Fishbowl (orange)"
+  },
+  {
     "id": "hell_cat",
     "name": "Hellcat"
+  },
+  {
+    "id": "hell_kitten",
+    "name": "Hell-kitten"
+  },
+  {
+    "id": "overgrown_hellcat",
+    "name": "Overgrown hellcat"
+  },
+  {
+    "id": "wily_hellcat",
+    "name": "Wily hellcat"
+  },
+  {
+    "id": "lazy_hellcat",
+    "name": "Lazy hellcat"
   },
   {
     "id": "pet_rock",
@@ -604,84 +872,52 @@
     "name": "Archibald"
   },
   {
+    "id": "archibald_grid",
+    "name": "Archibald (Grid)"
+  },
+  {
+    "id": "archibald_bunny",
+    "name": "Archibald (Bunny)"
+  },
+  {
+    "id": "archibald_diamonds",
+    "name": "Archibald (Diamonds)"
+  },
+  {
+    "id": "archibald_chick",
+    "name": "Archibald (Chick)"
+  },
+  {
+    "id": "archibald_melted",
+    "name": "Archibald (Melted)"
+  },
+  {
+    "id": "archibald_dragon",
+    "name": "Archibald (Dragon)"
+  },
+  {
     "id": "labrador_golden",
     "name": "Labrador (golden)"
   },
   {
-    "id": "pet_kitten_black",
-    "name": "Pet kitten (black)"
-  },
-  {
-    "id": "pet_kitten_brown",
-    "name": "Pet kitten (brown)"
-  },
-  {
-    "id": "pet_kitten_grey_and_black",
-    "name": "Pet kitten (grey and black)"
-  },
-  {
-    "id": "pet_kitten_grey_and_blue",
-    "name": "Pet kitten (grey and blue)"
-  },
-  {
-    "id": "pet_kitten_grey_and_brown",
-    "name": "Pet kitten (grey and brown)"
-  },
-  {
-    "id": "pet_kitten_white",
-    "name": "Pet kitten (white)"
-  },
-  {
-    "id": "pet_cat_brown",
-    "name": "Pet cat (brown)"
-  },
-  {
-    "id": "pet_cat_grey_and_black",
-    "name": "Pet cat (grey and black)"
-  },
-  {
-    "id": "pet_cat_grey_and_blue",
-    "name": "Pet cat (grey and blue)"
-  },
-  {
-    "id": "pet_cat_grey_and_brown",
-    "name": "Pet cat (grey and brown)"
-  },
-  {
-    "id": "pet_cat_white",
-    "name": "Pet cat (white)"
-  },
-  {
-    "id": "pet_cat_overgrown_black",
-    "name": "Pet cat (overgrown, black)"
-  },
-  {
-    "id": "pet_cat_overgrown_brown",
-    "name": "Pet cat (overgrown, brown)"
-  },
-  {
-    "id": "pet_cat_overgrown_grey_and_black",
-    "name": "Pet cat (overgrown, grey and black)"
-  },
-  {
-    "id": "pet_cat_overgrown_grey_and_blue",
-    "name": "Pet cat (overgrown, grey and blue)"
-  },
-  {
-    "id": "pet_cat_overgrown_grey_and_brown",
-    "name": "Pet cat (overgrown, grey and brown)"
-  },
-  {
-    "id": "pet_cat_overgrown_white",
-    "name": "Pet cat (overgrown, white)"
+    "id": "labrador_chocolate",
+    "name": "Labrador (chocolate)"
   },
   {
     "id": "labrador_black",
     "name": "Labrador (black)"
   },
   {
-    "id": "labrador_chocolate",
-    "name": "Labrador (chocolate)"
+    "id": "greyhound_tan",
+    "name": "Greyhound (tan)"
+  },
+  {
+    "id": "greyhound_grey",
+    "name": "Greyhound (grey)"
+  },
+  {
+    "id": "greyhound_cream",
+    "name": "Greyhound (cream)"
   },
   {
     "id": "labrador_puppy_black",
@@ -694,18 +930,6 @@
   {
     "id": "labrador_puppy_golden",
     "name": "Labrador puppy (golden)"
-  },
-  {
-    "id": "greyhound_cream",
-    "name": "Greyhound (cream)"
-  },
-  {
-    "id": "greyhound_grey",
-    "name": "Greyhound (grey)"
-  },
-  {
-    "id": "greyhound_tan",
-    "name": "Greyhound (tan)"
   },
   {
     "id": "greyhound_puppy_cream",
