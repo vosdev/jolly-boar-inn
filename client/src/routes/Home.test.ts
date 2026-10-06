@@ -8,7 +8,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/svelte";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as api from "../lib/api";
 import { pastGames, savePastGame } from "../lib/history";
@@ -82,21 +82,6 @@ describe("Home", () => {
       target: { value: "dragon" },
     });
     expect(screen.queryByText("That is not a room code.")).toBeNull();
-  });
-
-  it("links to the admin view only for a browser that holds the admin token", async () => {
-    render(Home, { navigate });
-    expect(screen.queryByRole("button", { name: "Admin" })).toBeNull();
-    cleanup();
-
-    localStorage.setItem("jbi:admin", "0123456789abcdef0123456789abcdef");
-    render(Home, { navigate });
-    const admin = screen.getByRole("button", { name: "Admin" });
-    expect(admin.closest(".panel")?.querySelector("h2")?.textContent).toBe(
-      "Open source",
-    );
-    await fireEvent.click(admin);
-    expect(navigate).toHaveBeenCalledWith("/admin");
   });
 
   it("lists only the rooms created here that have not expired", () => {
@@ -203,7 +188,9 @@ describe("Home", () => {
 
     it("removes the room only once the host confirms", async () => {
       render(Home, { navigate });
-      await fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Remove room RUNE" }),
+      );
       expect(api.deleteRoom).not.toHaveBeenCalled();
       const dialog = screen.getByRole("dialog");
       expect(dialog.textContent).toContain(
@@ -218,7 +205,9 @@ describe("Home", () => {
 
     it("removes nothing when cancelled", async () => {
       render(Home, { navigate });
-      await fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Remove room RUNE" }),
+      );
       await fireEvent.click(
         within(screen.getByRole("dialog")).getByRole("button", {
           name: "Cancel",
@@ -277,7 +266,7 @@ describe("Room limit", () => {
     render(Home, { navigate });
     await screen.findByText(/You already have five rooms/);
     const rune = screen.getByText("RUNE").closest("li")!;
-    await fireEvent.click(within(rune).getByRole("button", { name: "Remove" }));
+    await fireEvent.click(within(rune).getByRole("button", { name: "Remove room RUNE" }));
     await fireEvent.click(
       within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }),
     );
@@ -286,7 +275,7 @@ describe("Room limit", () => {
   });
 });
 
-describe("Desktop layout", () => {
+describe("Layout", () => {
   /** The column a panel sits in, or null when it spans the page. */
   function columnOf(heading: string): number | null {
     const column = screen
@@ -296,7 +285,16 @@ describe("Desktop layout", () => {
     return [...document.querySelectorAll(".columns > .column")].indexOf(column);
   }
 
-  it("puts Join and Host in one column, the room lists in the other, and Open source across both", async () => {
+  /** jsdom has no matchMedia; a screen is either past the two-column breakpoint or not. */
+  function screenIs(wide: boolean): void {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: wide && query === "(min-width: 50rem)",
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+  }
+
+  function played(): void {
     rememberCreated("MINE", "2099-01-01T00:00:00Z");
     savePastGame({
       code: "ABYSSAL",
@@ -306,17 +304,26 @@ describe("Desktop layout", () => {
       ],
       youId: "a",
     });
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("puts Join, Host and Suggest in one column and the room lists in the other", () => {
+    screenIs(true);
+    played();
     render(Home, { navigate });
     expect(columnOf("Join a room")).toBe(0);
     expect(columnOf("Host a room")).toBe(0);
+    expect(columnOf("Suggest or report a question")).toBe(0);
     expect(columnOf("Public rooms")).toBe(1);
     expect(columnOf("Rooms you created here")).toBe(1);
     expect(columnOf("Past games")).toBe(1);
     expect(columnOf("Think you know Gielinor? Prove it at The Jolly Boar Inn.")).toBeNull();
-    expect(columnOf("Open source")).toBeNull();
   });
 
-  it("reads Join, Host, then the lists, which is the phone order too", () => {
+  it("reads Join, Host, the lists, then Suggest on a phone, which is the tab order too", () => {
+    screenIs(false);
+    played();
     render(Home, { navigate });
     const order = screen
       .getAllByRole("heading", { level: 2 })
@@ -325,12 +332,42 @@ describe("Desktop layout", () => {
       "Join a room",
       "Host a room",
       "Public rooms",
-      "Open source",
+      "Rooms you created here",
+      "Past games",
+      "Suggest or report a question",
     ]);
+  });
+
+  it("has no Open source panel: the footer carries the link to the code", () => {
+    render(Home, { navigate });
+    expect(screen.queryByRole("heading", { name: "Open source" })).toBeNull();
   });
 });
 
 describe("Past games", () => {
+  it("draws Hi-scores and Remove as icons, and puts the date under the room", () => {
+    savePastGame({
+      code: "ABYSSAL",
+      finishedAt: "2026-10-01T20:05:00Z",
+      standings: [
+        { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
+      ],
+      youId: "a",
+    });
+    render(Home, { navigate });
+    const row = screen.getByText("ABYSSAL").closest("li")!;
+    for (const name of ["Hi-scores for ABYSSAL", "Remove ABYSSAL from past games"]) {
+      const button = within(row).getByRole("button", { name });
+      expect(button.textContent?.trim()).toBe("");
+      expect(button.querySelector("svg")).not.toBeNull();
+    }
+    const code = screen.getByText("ABYSSAL");
+    const when = row.querySelector(".when")!;
+    expect(code.parentElement).toBe(when.parentElement);
+    expect(code.compareDocumentPosition(when) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(when.textContent).toContain("2026");
+  });
+
   it("lists each game with its room, when it finished and our place, and opens it", async () => {
     savePastGame({
       code: "ABYSSAL",

@@ -15,14 +15,13 @@
   import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import Icon from '../components/Icon.svelte'
   import Pet from '../components/Pet.svelte'
   import Stage from '../components/stage/Stage.svelte'
-  import { hasAdminToken } from '../lib/admin'
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { expiresIn, finishedTime } from '../lib/dates'
   import { petOf } from '../lib/pets'
   import { historyPath, pastGames, placeIn, removePastGame, type PastGame } from '../lib/history'
-  import { REPO_URL } from '../lib/links'
   import { atRoomLimit } from '../lib/roomLimit'
   import { maySuggest } from '../lib/suggestions'
   import { modeLabel } from '../lib/modes'
@@ -48,8 +47,14 @@
   let pastPage = $state(0)
   const pastPages = $derived(Math.ceil(past.length / PAST_PAGE))
   const pastShown = $derived(past.slice(pastPage * PAST_PAGE, (pastPage + 1) * PAST_PAGE))
-  const admin = hasAdminToken()
   const suggesting = maySuggest()
+  /** Where the two-column layout starts; keep it equal to the media query in the style. */
+  const WIDE_QUERY = '(min-width: 50rem)'
+  /**
+   * Suggest sits under Host on a wide screen and last on a phone. Both places are DOM
+   * order, so the tab key and a screen reader follow what the eye sees.
+   */
+  let wide = $state(typeof matchMedia === 'function' && matchMedia(WIDE_QUERY).matches)
   let code = $state('')
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
@@ -78,6 +83,11 @@
   }
 
   onMount(() => {
+    const query = typeof matchMedia === 'function' ? matchMedia(WIDE_QUERY) : null
+    const onWide = (): void => {
+      wide = query?.matches ?? false
+    }
+    query?.addEventListener('change', onWide)
     void refreshOpen()
     void refreshFull()
     const timer = setInterval(() => {
@@ -96,6 +106,7 @@
     return () => {
       clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisible)
+      query?.removeEventListener('change', onWide)
     }
   })
 
@@ -162,6 +173,23 @@
   }
 </script>
 
+{#snippet suggest()}
+  {#if suggesting}
+    <section class="panel">
+      <h2>Suggest or report a question</h2>
+      <p class="note">
+        Know something the inn doesn't ask yet? Write a question, an examine line or an item for
+        the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
+        innkeeper which question. The innkeeper reads every one.
+      </p>
+      <div class="row">
+        <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
+        <button type="button" onclick={() => navigate('/report')}>Report a question</button>
+      </div>
+    </section>
+  {/if}
+{/snippet}
+
 <div class="intro">
   <Stage host="wise_old_man">
     {#snippet paper()}
@@ -221,6 +249,9 @@
         Create a room
       </button>
     </section>
+    {#if wide}
+      {@render suggest()}
+    {/if}
   </div>
   <div class="column">
     <section class="panel">
@@ -271,10 +302,11 @@
               <button
                 type="button"
                 class="small"
+                aria-label={`Remove room ${room}`}
                 disabled={removing === room}
                 onclick={() => (confirming = room)}
               >
-                {removing === room ? 'Removing…' : 'Remove'}
+                <Icon name="trash" />
               </button>
             </li>
           {/each}
@@ -293,25 +325,27 @@
                 <span class="code-small">{game.code}</span>
                 <span class="when">{finishedTime(game.finishedAt)}</span>
               </span>
-              {#if place !== null}
-                <span class="place">{place}</span>
-              {/if}
-              <button
-                type="button"
-                class="small"
-                aria-label={`Hi-scores for ${game.code}`}
-                onclick={() => navigate(historyPath(game))}
-              >
-                Hi-scores
-              </button>
-              <button
-                type="button"
-                class="small"
-                aria-label={`Remove ${game.code} from past games`}
-                onclick={() => (confirmingPast = game)}
-              >
-                Remove
-              </button>
+              <span class="actions">
+                {#if place !== null}
+                  <span class="place">{place}</span>
+                {/if}
+                <button
+                  type="button"
+                  class="small"
+                  aria-label={`Hi-scores for ${game.code}`}
+                  onclick={() => navigate(historyPath(game))}
+                >
+                  <Icon name="trophy" />
+                </button>
+                <button
+                  type="button"
+                  class="small"
+                  aria-label={`Remove ${game.code} from past games`}
+                  onclick={() => (confirmingPast = game)}
+                >
+                  <Icon name="trash" />
+                </button>
+              </span>
             </li>
           {/each}
         </ul>
@@ -338,37 +372,11 @@
         {/if}
       </section>
     {/if}
-
-    {#if suggesting}
-      <section class="panel">
-        <h2>Suggest or report a question</h2>
-        <p class="note">
-          Know something the inn doesn't ask yet? Write a question, an examine line or an item for
-          the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
-          innkeeper which question. The innkeeper reads every one.
-        </p>
-        <div class="row">
-          <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
-          <button type="button" onclick={() => navigate('/report')}>Report a question</button>
-        </div>
-      </section>
+    {#if !wide}
+      {@render suggest()}
     {/if}
   </div>
 </div>
-
-<section class="panel">
-  <h2>Open source</h2>
-  <p class="note">
-    This quiz is free software. Read the code, report a bug, or host your own for your clan.
-  </p>
-  <p class="links">
-    <a class="link" href={REPO_URL} target="_blank" rel="noopener">jolly-boar-inn on GitHub</a>
-    <!-- Only for the operator, whose browser kept the token from their first `/admin#token=` visit. -->
-    {#if admin}
-      <button type="button" class="link" onclick={() => navigate('/admin')}>Admin</button>
-    {/if}
-  </p>
-</section>
 
 {#if confirming !== null}
   {@const room = confirming}
@@ -423,16 +431,35 @@
     font-weight: 600;
   }
 
-  .when,
   .host {
     color: var(--muted);
     margin-left: 0.5rem;
+  }
+
+  /* Under the room code, and kept whole: a wide basis sends the row's buttons to a line of
+     their own before the date would have to wrap. */
+  .name {
+    flex-basis: 11rem;
+  }
+
+  .when {
+    display: block;
+    color: var(--muted);
+    white-space: nowrap;
   }
 
   .about {
     display: block;
     color: var(--muted);
     font-size: 0.9rem;
+  }
+
+  /* One unit, so a narrow row drops the place and both buttons together, never one alone. */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
   }
 
   .place {
@@ -448,14 +475,7 @@
   }
 
   .paging .when {
-    margin: 0;
-  }
-
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.5rem 1rem;
-    margin: 0;
+    display: inline;
+    white-space: normal;
   }
 </style>

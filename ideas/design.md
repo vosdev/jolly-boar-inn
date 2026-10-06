@@ -114,7 +114,7 @@ learns the position, which is worth more than variety.
   priority: it shows at every width and is the one item that shrinks, ellipsising.
 - **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 165px.
 - **Width:** the bar and the footer are as wide as the screen under them: 42rem, or 64rem on Home,
-  Create and Admin, where Home puts Join and Host beside the room lists from 50rem.
+  Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. On a phone Suggest comes last.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead.
 
@@ -379,11 +379,11 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
   owner's, and no D task waits on them.
 
 **Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
-never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Beside
-it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA) and the version, linked to its release. The
+never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
+it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA) and the version, linked to its release. The
 AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
-the bar (§5) and an "Open source" panel on Home. Every link opens a new tab, so a room is never
-left.
+the bar (§5). Every link opens a new tab, so a room is never
+left. A browser holding the admin token also gets an Admin button.
 
 **Selfhoster branding.** Three build-time env vars, which compose passes as build args:
 `PUBLIC_SITE_NAME` (default *The Jolly Boar Inn*; also the tab title), `PUBLIC_SITE_LOGO` (an image
