@@ -3,6 +3,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  ADMIN_TABS,
+  adminPath,
+  adminTabOf,
   forgetAdminToken,
   getCounts,
   getLive,
@@ -95,5 +98,19 @@ describe('refreshLabel', () => {
     [now + 500, 'Refresh · 0s ago'],
   ])('fetched at %s reads %s', (updatedAt, label) => {
     expect(refreshLabel(updatedAt, now)).toBe(label)
+  })
+})
+
+describe('the tabs', () => {
+  it('reads each tab from its path, the overview from /admin alone', () => {
+    expect(adminTabOf('/admin')).toBe('overview')
+    expect(adminTabOf('/admin/questions')).toBe('questions')
+    expect(adminTabOf('/admin/overview')).toBeNull()
+    expect(adminTabOf('/admin/rooms')).toBeNull()
+    expect(adminTabOf('/admin/questions/x')).toBeNull()
+  })
+
+  it('writes the path each tab is read from', () => {
+    for (const tab of ADMIN_TABS) expect(adminTabOf(adminPath(tab))).toBe(tab)
   })
 })

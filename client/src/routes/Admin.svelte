@@ -1,35 +1,54 @@
 <script lang="ts">
   /**
-   * `/admin`: the operator's view of the instance. The queues of player suggestions and
-   * question reports, live rooms from the server's memory, and the daily counters over a range.
+   * `/admin`: the operator's view of the instance, in four tabs, each at its own path.
+   * Overview has the live rooms from the server's memory and the daily counters over a
+   * range; Suggestions and Reports are the players' queues, each tab badged with what
+   * waits in it; Questions edits the hand-written packs.
    *
    * It never shows what a room holds: no names, answers or questions. The server never
-   * sends them, so there is nothing here to hide. The suggestions and the reported
-   * questions are the one thing here with answers in them, and they are the players' and
-   * the packs', not a room's. A refused token is forgotten, so the
-   * next visit starts from a fresh link rather than replaying a dead one.
+   * sends them, so there is nothing here to hide. The suggestions, the reported questions
+   * and the packs are the one thing here with answers in them, and they are the players'
+   * and the packs', not a room's. A refused token is forgotten, so the next visit starts
+   * from a fresh link rather than replaying a dead one.
    */
-  import { onMount } from 'svelte'
+  import { onMount, untrack } from 'svelte'
 
   import HistoryChart from '../components/admin/HistoryChart.svelte'
+  import PackQuestions from '../components/admin/PackQuestions.svelte'
   import ReportQueue from '../components/admin/ReportQueue.svelte'
   import SuggestionQueue from '../components/admin/SuggestionQueue.svelte'
   import Segmented from '../components/Segmented.svelte'
   import {
+    adminPath,
     forgetAdminToken,
     getCounts,
     getLive,
+    getQueue,
+    getReports,
     refreshLabel,
     takeAdminToken,
     timeUntil,
+    type AdminTab,
   } from '../lib/admin'
   import type { Count, Live, LiveRoom } from '../lib/admin'
   import { buckets, modeRanking, utcToday, type Range } from '../lib/adminCharts'
   import { ApiFailure } from '../lib/api'
   import { MODES } from '../lib/modes'
 
-  /** How often the page reloads itself while it is on screen. */
+  let {
+    tab = 'overview',
+    navigate = () => {},
+  }: { tab?: AdminTab; navigate?: (to: string) => void } = $props()
+
+  /** How often the overview reloads itself while it is on screen. */
   const REFRESH_MS = 10_000
+
+  const TABS: { tab: AdminTab; label: string }[] = [
+    { tab: 'overview', label: 'Overview' },
+    { tab: 'suggestions', label: 'Suggestions' },
+    { tab: 'reports', label: 'Reports' },
+    { tab: 'questions', label: 'Questions' },
+  ]
 
   const RANGES: { value: Range; label: string }[] = [
     { value: '30', label: '30 days' },
@@ -43,6 +62,8 @@
   let failure = $state<string | null>(null)
   let live = $state<Live | null>(null)
   let counts = $state<Count[]>([])
+  /** What waits in each queue, for its tab's badge; absent until known. */
+  let waiting = $state<Partial<Record<AdminTab, number>>>({})
   let updatedAt = $state<number | null>(null)
   /** Ticks each second, so the button's age counts up between refreshes. */
   let now = $state(Date.now())
@@ -76,8 +97,16 @@
     view = 'refused'
   }
 
+  /** A 401 or 404 decides the whole page; anything else is the tab's own to report. */
+  function decides(error: unknown): boolean {
+    if (error instanceof ApiFailure && error.status === 401) refuse()
+    else if (error instanceof ApiFailure && error.status === 404) view = 'absent'
+    else return false
+    return true
+  }
+
   async function refresh(): Promise<void> {
-    if (token === null || busy) return
+    if (token === null || busy || tab !== 'overview') return
     busy = true
     try {
       const [nextLive, nextCounts] = await Promise.all([getLive(token), getCounts(token)])
@@ -88,16 +117,33 @@
       view = 'ready'
       failure = null
     } catch (error) {
-      if (error instanceof ApiFailure && error.status === 401) {
-        refuse()
-      } else if (error instanceof ApiFailure && error.status === 404) {
-        view = 'absent'
-      } else {
-        failure = error instanceof ApiFailure ? error.message : 'the refresh failed'
-      }
+      if (!decides(error)) failure = error instanceof ApiFailure ? error.message : 'the refresh failed'
     } finally {
       busy = false
     }
+  }
+
+  async function countWaiting(): Promise<void> {
+    if (token === null) return
+    try {
+      const [suggested, reported] = await Promise.all([
+        getQueue(token, 'pending'),
+        getReports(token, 'open'),
+      ])
+      waiting = { suggestions: suggested.counts.pending, reports: reported.counts.open }
+      if (view === 'loading' && tab !== 'overview') view = 'ready'
+    } catch (error) {
+      if (!decides(error) && view === 'loading' && tab !== 'overview') view = 'ready'
+    }
+  }
+
+  function go(event: MouseEvent, to: AdminTab): void {
+    // A modified click is somebody asking for a new tab; let the browser have it.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return
+    }
+    event.preventDefault()
+    navigate(adminPath(to))
   }
 
   onMount(() => {
@@ -106,7 +152,6 @@
       view = 'refused'
       return
     }
-    void refresh()
     const timer = setInterval(() => {
       if (document.visibilityState === 'visible') void refresh()
     }, REFRESH_MS)
@@ -120,6 +165,15 @@
       clearInterval(ticker)
       document.removeEventListener('visibilitychange', onVisible)
     }
+  })
+
+  // Once the token is read, and on every change of tab: the queues may have moved since.
+  $effect(() => {
+    void [tab, token]
+    untrack(() => {
+      void refresh()
+      void countWaiting()
+    })
   })
 </script>
 
@@ -135,19 +189,42 @@
   </section>
 {:else}
   <div class="panel heading">
-    <h1>Admin</h1>
-    <button type="button" onclick={() => void refresh()}>{refreshLabel(updatedAt, now)}</button>
+    <div class="title">
+      <h1>Admin</h1>
+      {#if tab === 'overview'}
+        <button type="button" onclick={() => void refresh()}>{refreshLabel(updatedAt, now)}</button>
+      {/if}
+    </div>
+    <nav aria-label="Admin">
+      {#each TABS as each (each.tab)}
+        <a
+          href={adminPath(each.tab)}
+          aria-current={tab === each.tab ? 'page' : undefined}
+          onclick={(event) => go(event, each.tab)}
+        >
+          {each.label}
+          {#if waiting[each.tab]}
+            <span class="badge">{waiting[each.tab]}</span>
+          {/if}
+        </a>
+      {/each}
+    </nav>
   </div>
   {#if failure !== null}
     <div class="banner bad" role="alert">{failure}</div>
   {/if}
 
   {#if view === 'ready' && token !== null}
-    <SuggestionQueue {token} onrefused={refuse} />
-    <ReportQueue {token} onrefused={refuse} />
+    {#if tab === 'suggestions'}
+      <SuggestionQueue {token} onrefused={refuse} />
+    {:else if tab === 'reports'}
+      <ReportQueue {token} onrefused={refuse} />
+    {:else if tab === 'questions'}
+      <PackQuestions {token} onrefused={refuse} />
+    {/if}
   {/if}
 
-  {#if live !== null}
+  {#if tab === 'overview' && live !== null}
     <section class="panel" aria-labelledby="live-heading">
       <h2 id="live-heading">Live rooms</h2>
       <dl class="tiles">
@@ -246,19 +323,60 @@
 {/if}
 
 <style>
-  .heading {
+  .title {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.75rem;
   }
 
-  .heading h1 {
+  .title h1 {
     flex: 1;
     margin: 0;
   }
 
-  .heading button {
+  .title button {
+    font-variant-numeric: tabular-nums;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 1rem;
+    border-bottom: var(--border-width) solid var(--line);
+  }
+
+  nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: calc(-1 * var(--border-width));
+  }
+
+  nav a:hover {
+    color: var(--ink);
+  }
+
+  nav a[aria-current='page'] {
+    color: var(--ink);
+    font-weight: 600;
+    border-bottom-color: var(--accent);
+  }
+
+  .badge {
+    min-width: 1.4rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: center;
     font-variant-numeric: tabular-nums;
   }
 

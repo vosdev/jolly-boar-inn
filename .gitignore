@@ -35,5 +35,6 @@ client/src/assets/trophies/*
 # Leagues area flags, the themes' emblems: game assets too
 client/src/assets/themes/*.png
 
-# The copy `make import-suggestions` runs on.
+# The copies `make import-suggestions` and `make edit-packs` run on.
 server/.import-suggestions.json
+server/.edit-packs.json

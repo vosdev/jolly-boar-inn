@@ -6,7 +6,8 @@
    * A suggestion is written in it too (`routes/Suggest.svelte`): there the types may be
    * fewer, the NPC may be required or, for a round's question, not asked at all, and
    * `fields` adds the suggestion's own below. `onattempt` checks those on every Save, and
-   * the question is handed back only when both pass.
+   * the question is handed back only when both pass. `/admin` edits a pack question in it,
+   * with `pack` for the intro and picture pack questions carry, and its NPC `fixed`.
    *
    * Save only hands back a question `problems` passes. Until the first try, only the
    * limits show (too long, too many, a repeated answer); what is still empty waits for
@@ -37,6 +38,7 @@
     asker = 'optional',
     mode = 'custom',
     quote = false,
+    pack = false,
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
@@ -48,12 +50,17 @@
     title?: string
     /** The types offered, the first of them for a new question. */
     types?: readonly CustomType[]
-    /** Who asks it: an NPC or the room's draw, an NPC that must be named, or the round. */
-    asker?: 'optional' | 'required' | 'none'
+    /**
+     * Who asks it: an NPC or the room's draw, an NPC that must be named, the NPC it came
+     * with, or the round.
+     */
+    asker?: 'optional' | 'required' | 'fixed' | 'none'
     /** The round a question with no NPC is previewed in. */
     mode?: string
     /** Whether a multiple-choice question may carry a quotation under its prompt. */
     quote?: boolean
+    /** Whether the intro and the picture show, which only pack questions carry. */
+    pack?: boolean
     saveLabel?: string
     /** More fields, under the question's own. */
     fields?: Snippet<[boolean]>
@@ -85,6 +92,7 @@
 
   const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
   const quoteMax = limit(field('multiple_choice', 'quote'), 'maxLength')
+  const introMax = $derived(limit(field(draft.type, 'intro'), 'maxLength'))
   const explanationMax = $derived(limit(field(draft.type, 'explanation'), 'maxLength'))
   const built = $derived(questionOf(draft))
   const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
@@ -97,7 +105,10 @@
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
     /^(payload\.(prompt|quote|options|answer_index|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
-  const unplaced = $derived(shown.filter((problem) => !PLACED.test(problem.path)))
+  const PACK_PLACED = /^payload\.(intro|image)$/
+  const unplaced = $derived(
+    shown.filter((problem) => !PLACED.test(problem.path) && !(pack && PACK_PLACED.test(problem.path))),
+  )
 
   function errorsAt(path: string): string[] {
     return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
@@ -150,6 +161,15 @@
       </h3>
       {#if offered.length > 1}
         <Segmented legend="Type" options={offered} bind:value={draft.type} />
+      {/if}
+
+      {#if pack}
+        <div class="field">
+          <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
+          <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>
+          <p class="note counter">{codePoints(draft.intro.trim())}/{introMax}</p>
+          {@render errors('payload.intro')}
+        </div>
       {/if}
 
       <div class="field">
@@ -257,6 +277,14 @@
         <p class="note closest">The closest guess wins, ties included.</p>
       {/if}
 
+      {#if pack}
+        <div class="field">
+          <label for="{id}-image">Picture, if any</label>
+          <input id="{id}-image" type="text" placeholder="item:4151 or npc:2042" bind:value={draft.image} />
+          {@render errors('payload.image')}
+        </div>
+      {/if}
+
       <div class="field">
         <label for="{id}-explanation">Explanation shown after the question finished.</label>
         <textarea id="{id}-explanation" rows="2" bind:value={draft.explanation}></textarea>
@@ -264,7 +292,7 @@
         {@render errors('payload.explanation')}
       </div>
 
-      {#if asker !== 'none'}
+      {#if asker === 'optional' || asker === 'required'}
         <div class="field">
           <label for="{id}-npc">Who asks it</label>
           <select id="{id}-npc" bind:value={draft.npc}>

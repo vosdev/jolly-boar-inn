@@ -1,6 +1,6 @@
 /** `/admin`: what an operator sees, and what a refused or missing token gets. */
 
-import { render, screen, waitFor, within } from '@testing-library/svelte'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Count, Live } from '../lib/admin'
@@ -124,4 +124,45 @@ describe('Admin', () => {
     render(Admin)
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Not found'))
   })
+
+  it('opens on the overview, tabs badged with what waits in each queue', async () => {
+    const fetch = vi.fn(async (url: string) => {
+      if (url.endsWith('/rooms')) return new Response(JSON.stringify(LIVE))
+      if (url.includes('/suggestions')) {
+        const counts = { pending: 3, approved: 0, rejected: 0, imported: 0 }
+        return new Response(JSON.stringify({ suggestions: [], counts }))
+      }
+      if (url.includes('/reports')) {
+        return new Response(JSON.stringify({ reports: [], counts: { open: 0, closed: 2 } }))
+      }
+      return new Response(JSON.stringify({ counts: COUNTS }))
+    })
+    vi.stubGlobal('fetch', fetch)
+    render(Admin)
+    const nav = await screen.findByRole('navigation', { name: 'Admin' })
+    const current = within(nav).getByRole('link', { current: 'page' })
+    expect(current.textContent?.trim()).toBe('Overview')
+    await waitFor(() =>
+      expect(within(nav).getByRole('link', { name: /Suggestions/ }).textContent).toContain('3'),
+    )
+    expect(within(nav).getByRole('link', { name: /Reports/ }).querySelector('.badge')).toBeNull()
+    expect(within(nav).getByRole('link', { name: /Questions/ }).getAttribute('href')).toBe('/admin/questions')
+  })
+
+  it('moves between tabs by path, refreshing the rooms on the overview alone', async () => {
+    const fetch = vi.fn(async (url: string) => {
+      if (url.endsWith('/question-changes')) return new Response(JSON.stringify({ changes: [] }))
+      if (url.endsWith('/questions/modes')) return new Response('[]')
+      return new Response(JSON.stringify({ counts: COUNTS }))
+    })
+    vi.stubGlobal('fetch', fetch)
+    const navigate = vi.fn()
+    render(Admin, { tab: 'questions', navigate })
+    expect(await screen.findByRole('heading', { level: 2, name: 'Pending changes' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Refresh/ })).toBeNull()
+    expect(fetch.mock.calls.some(([url]) => String(url).endsWith('/rooms'))).toBe(false)
+    await fireEvent.click(screen.getByRole('link', { name: /Reports/ }))
+    expect(navigate).toHaveBeenCalledWith('/admin/reports')
+  })
 })
+

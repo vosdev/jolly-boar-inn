@@ -49,6 +49,8 @@ export interface PackQuestion {
   wiki?: string
   source_url?: string
   random_event?: string
+  credit?: string
+  credit_shown?: boolean
 }
 
 export interface ReportedItem {

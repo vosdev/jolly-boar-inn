@@ -12,7 +12,9 @@
   }
 
   const p = $derived(question.payload as Record<string, unknown>)
+  const intro = $derived(typeof p.intro === 'string' ? p.intro : null)
   const prompt = $derived(typeof p.prompt === 'string' ? p.prompt : null)
+  const image = $derived(typeof p.image === 'string' ? p.image : null)
   const quote = $derived(typeof p.quote === 'string' ? p.quote : null)
   const explanation = $derived(typeof p.explanation === 'string' ? p.explanation : null)
   const right = $derived(
@@ -36,6 +38,7 @@
   {#if question.random_event !== undefined}
     <p class="note">Asked by {question.random_event}</p>
   {/if}
+  {#if intro !== null}<p class="intro">{intro}</p>{/if}
   {#if prompt !== null}<p class="prompt">{prompt}</p>{/if}
   {#if quote !== null}<blockquote>{quote}</blockquote>{/if}
   {#if question.type === 'price_is_right'}
@@ -66,6 +69,14 @@
       <dt>Explanation</dt>
       <dd>{explanation}</dd>
     {/if}
+    {#if image !== null}
+      <dt>Picture</dt>
+      <dd><code>{image}</code></dd>
+    {/if}
+    {#if question.credit !== undefined}
+      <dt>Credit</dt>
+      <dd>{question.credit}{question.credit_shown ? ', shown to players' : ', not shown'}</dd>
+    {/if}
     <dt>Id</dt>
     <dd><code>{question.id}</code></dd>
   </dl>
@@ -77,6 +88,11 @@
 </div>
 
 <style>
+  .intro {
+    font-style: italic;
+    margin: 0 0 0.35rem;
+  }
+
   .prompt {
     font-weight: 700;
     margin: 0 0 0.5rem;

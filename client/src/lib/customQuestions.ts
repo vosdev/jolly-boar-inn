@@ -152,6 +152,10 @@ export function problems(question: unknown): Problem[] {
 export interface Draft {
   type: CustomType
   prompt: string
+  /** A line in the asker's voice before the prompt; only a pack question's form edits it. */
+  intro: string
+  /** An `item:<id>` or `npc:<id>` picture; only a pack question's form edits it. */
+  image: string
   /** Words someone said, for the rounds that show them. */
   quote: string
   options: string[]
@@ -164,12 +168,14 @@ export interface Draft {
   explanation: string
   /** An NPC id, or '' for the room to draw one. */
   npc: string
-  /** Payload fields the form has no control for, such as an imported `image`: kept as they came. */
+  /** Payload fields the form has no control for, such as an imported `subject`: kept as they came. */
   extra: Record<string, unknown>
 }
 
 const EDITED = new Set([
   'prompt',
+  'intro',
+  'image',
   'quote',
   'options',
   'answer_index',
@@ -189,6 +195,8 @@ export function draftOf(question?: CustomQuestion): Draft {
   return {
     type: question?.type ?? 'multiple_choice',
     prompt: text(p.prompt),
+    intro: text(p.intro),
+    image: text(p.image),
     quote: text(p.quote),
     options: Array.isArray(p.options) ? p.options.map(text) : ['', ''],
     answerIndex: typeof p.answer_index === 'number' ? p.answer_index : 0,
@@ -212,6 +220,10 @@ export function questionOf(draft: Draft): CustomQuestion {
   for (const [key, value] of Object.entries(draft.extra)) {
     if (allowed.has(key)) payload[key] = value
   }
+  const intro = draft.intro.trim()
+  if (intro !== '') payload.intro = intro
+  const image = draft.image.trim()
+  if (image !== '') payload.image = image
   if (draft.type === 'multiple_choice') {
     const quote = draft.quote.trim()
     if (quote !== '') payload.quote = quote

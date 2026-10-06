@@ -332,6 +332,21 @@ describe("App", () => {
     }
   });
 
+  it("opens an admin tab at its own path, which a refused token leaves in place", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 401 })),
+    );
+    try {
+      at("/admin/questions#token=0123456789abcdef0123456789abcdef");
+      await screen.findByText("That admin token was refused.");
+      expect(location.pathname).toBe("/admin/questions");
+      expect(location.hash).toBe("");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("links to /admin from Home alone, which shows it only to a browser holding the token", () => {
     const sources = import.meta.glob(
       ["./**/*.svelte", "./**/*.ts", "!./**/*.test.ts"],

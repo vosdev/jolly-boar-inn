@@ -22,21 +22,21 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
-Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, fetch-assets,
-                                   image; CI: release
+Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
+                                   fetch-assets, image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/
 data/                              assets, pets, popular-items, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
-                                   suggestions, reports
+                                   suggestions, reports, question_edits
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
                                    ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
-server/scripts/                    wiki, gen_price_questions, import_suggestions, fetch_assets,
-                                   validate_packs, check_contrast, smoke_ws, loadtest
+server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
+                                   fetch_assets, validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
@@ -44,7 +44,8 @@ client/src/components/questions/   viewFor(type, mode), Question, gem buttons; t
 
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
-`YYMMDDHHMM`), `/admin` (the operator's view, section 10), linked from Home only once this
+`YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports` and `/questions` (the
+operator's view, section 10), linked from Home only once this
 browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
@@ -464,8 +465,8 @@ answers 404; shorter than 32 URL-safe characters, the app refuses to start. `GET
 compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fragment so no access
 log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
 away. Both return chosen fields only, never a name, an answer or a question. Only the
-suggestion and report queues and `/api/admin/questions` (section 11) return questions, answers
-included: players' suggestions and the packs, never a room's.
+suggestion and report queues, `/api/admin/questions` and its pending changes (section 11) return
+questions, answers included: players' suggestions and the packs, never a room's.
 
 `POST /api/rooms {display_name, avatar?, returning, invite_only?, public?, settings, custom_questions}`, in one transaction:
 
@@ -575,6 +576,13 @@ key into them, so cleanup leaves it.
   `GET /api/questions?mode=…`, `{id, label}` with no answer (Odd One Out's label is its options
   in pack order); 3 an hour per address (`REPORTS_PER_HOUR`). `/api/admin/reports` lists and
   closes them; `/api/admin/questions?mode=…` returns a mode's pack questions whole.
+- `question_edits` holds the operator's pending edits and deletes of hand-written pack questions
+  (`app/question_edits.py`), one per question, keyed by its id in the packs as they are; a second
+  replaces the first. `PUT` and `DELETE /api/admin/questions/{id}` queue one, checked as the
+  question it will be (422); only the payload, `wiki`, `source_url` and the credit change. The
+  price modes are left out: `gen-price-questions` would overwrite an edit. Nothing plays from it:
+  `/api/admin/question-changes` lists, discards, exports (stamping `exported_at`) and, once
+  applied, deletes the exported rows. An edit clears the stamp.
 
 ## 12. Data pipeline
 
@@ -592,6 +600,9 @@ Packs are committed, so a clone plays without a network; only prices are generat
   they hold, keeping `credit`. An examine name gets the highest answer id plus one; an item's id
   comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
   that would not load, writes nothing.
+- `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
+  in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
+  an id the packs no longer hold, or packs that would not load, writes nothing.
 - Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
   like the random events. No importer fetches wiki facts, so the owner picks every monster and
   question.

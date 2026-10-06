@@ -394,7 +394,24 @@ a fork's footer should still point upstream.
 A host cannot pin a room's theme, even as a suggestion: the theme is the one thing purely the
 player's.
 
-## 15. Open tasks
+## 15. Admin
+
+`/admin` is the operator's, at the 64rem width (§5). One panel heads it: the title, Refresh on
+Overview alone, and a row of tabs, each a link to its own path, so a reload or a new tab lands on
+it. The current tab is underlined in `--accent`; Suggestions and Reports carry an `--accent` badge
+with what waits in them (pending, open), none at zero.
+
+- **Overview** (`/admin`): live rooms and the history, refreshed every 10 seconds while on screen.
+- **Suggestions**, **Reports**: the queues, each with its own status tabs.
+- **Questions**: pending changes first, each opening to before and after with Discard, then
+  Download and, once downloaded, Mark as applied. Under them a round picker and a search over the
+  hand-written packs; a question opens read-only with Edit and Delete, and a chip says Edited or
+  To delete. Edit opens its type's form in place: Create's with an intro and a picture for choice,
+  typed and number questions, `/suggest`'s for ordering, a line and a name from the list for an
+  examine, and the payload as JSON for a type no form writes yet. Links and credit sit under
+  every form.
+
+## 16. Open tasks
 
 The open design tasks are GitHub issues labelled
 [`design`](https://github.com/vosdev/jolly-boar-inn/issues?q=is%3Aopen+label%3Adesign), with their
