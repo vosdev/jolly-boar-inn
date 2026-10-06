@@ -260,11 +260,11 @@ describe("App", () => {
     );
   });
 
-  it("points to the source from Home as well", () => {
+  it("points to the source from the footer of Home", () => {
     at("/");
     expect(
-      within(document.querySelector("main")!)
-        .getByRole("link", { name: "jolly-boar-inn on GitHub" })
+      within(document.querySelector("footer")!)
+        .getByRole("link", { name: "Source on GitHub" })
         .getAttribute("href"),
     ).toBe(REPO_URL);
   });
@@ -347,7 +347,7 @@ describe("App", () => {
     }
   });
 
-  it("links to /admin from Home alone, which shows it only to a browser holding the token", () => {
+  it("links to /admin from the footer alone, which shows it only to a browser holding the token", () => {
     const sources = import.meta.glob(
       ["./**/*.svelte", "./**/*.ts", "!./**/*.test.ts"],
       {
@@ -364,6 +364,6 @@ describe("App", () => {
         ),
       )
       .map(([path]) => path);
-    expect(linking).toEqual(["./routes/Home.svelte"]);
+    expect(linking).toEqual(["./components/Footer.svelte"]);
   });
 });

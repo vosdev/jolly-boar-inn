@@ -8,7 +8,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/svelte";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as api from "../lib/api";
 import { pastGames, savePastGame } from "../lib/history";
@@ -82,28 +82,6 @@ describe("Home", () => {
       target: { value: "dragon" },
     });
     expect(screen.queryByText("That is not a room code.")).toBeNull();
-  });
-
-  it("links to the admin view only for a browser that holds the admin token", async () => {
-    render(Home, { navigate });
-    expect(screen.queryByRole("button", { name: "Admin" })).toBeNull();
-    cleanup();
-
-    localStorage.setItem("jbi:admin", "0123456789abcdef0123456789abcdef");
-    render(Home, { navigate });
-    const admin = screen.getByRole("button", { name: "Admin" });
-    expect(admin.closest(".panel")?.querySelector("h2")?.textContent).toBe(
-      "Open source",
-    );
-    await fireEvent.click(admin);
-    expect(navigate).toHaveBeenCalledWith("/admin");
-  });
-
-  it("shows the GitHub mark beside the link to the repository", () => {
-    render(Home, { navigate });
-    const panel = screen.getByRole("heading", { name: "Open source" }).closest("section")!;
-    const link = within(panel).getByRole("link", { name: "jolly-boar-inn on GitHub" });
-    expect(link.querySelector("svg")).not.toBeNull();
   });
 
   it("lists only the rooms created here that have not expired", () => {
@@ -297,7 +275,7 @@ describe("Room limit", () => {
   });
 });
 
-describe("Desktop layout", () => {
+describe("Layout", () => {
   /** The column a panel sits in, or null when it spans the page. */
   function columnOf(heading: string): number | null {
     const column = screen
@@ -307,7 +285,16 @@ describe("Desktop layout", () => {
     return [...document.querySelectorAll(".columns > .column")].indexOf(column);
   }
 
-  it("puts Join and Host in one column, the room lists in the other, and Open source across both", async () => {
+  /** jsdom has no matchMedia; a screen is either past the two-column breakpoint or not. */
+  function screenIs(wide: boolean): void {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: wide && query === "(min-width: 50rem)",
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+  }
+
+  function played(): void {
     rememberCreated("MINE", "2099-01-01T00:00:00Z");
     savePastGame({
       code: "ABYSSAL",
@@ -317,18 +304,26 @@ describe("Desktop layout", () => {
       ],
       youId: "a",
     });
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("puts Join, Host and Suggest in one column and the room lists in the other", () => {
+    screenIs(true);
+    played();
     render(Home, { navigate });
     expect(columnOf("Join a room")).toBe(0);
     expect(columnOf("Host a room")).toBe(0);
+    expect(columnOf("Suggest or report a question")).toBe(0);
     expect(columnOf("Public rooms")).toBe(1);
     expect(columnOf("Rooms you created here")).toBe(1);
     expect(columnOf("Past games")).toBe(1);
-    expect(columnOf("Suggest or report a question")).toBe(0);
     expect(columnOf("Think you know Gielinor? Prove it at The Jolly Boar Inn.")).toBeNull();
-    expect(columnOf("Open source")).toBeNull();
   });
 
-  it("reads Join, Host, then the lists, which is the phone order too", () => {
+  it("reads Join, Host, the lists, then Suggest on a phone, which is the tab order too", () => {
+    screenIs(false);
+    played();
     render(Home, { navigate });
     const order = screen
       .getAllByRole("heading", { level: 2 })
@@ -337,8 +332,15 @@ describe("Desktop layout", () => {
       "Join a room",
       "Host a room",
       "Public rooms",
-      "Open source",
+      "Rooms you created here",
+      "Past games",
+      "Suggest or report a question",
     ]);
+  });
+
+  it("has no Open source panel: the footer carries the link to the code", () => {
+    render(Home, { navigate });
+    expect(screen.queryByRole("heading", { name: "Open source" })).toBeNull();
   });
 });
 

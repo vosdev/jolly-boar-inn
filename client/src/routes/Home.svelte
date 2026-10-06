@@ -18,12 +18,10 @@
   import Icon from '../components/Icon.svelte'
   import Pet from '../components/Pet.svelte'
   import Stage from '../components/stage/Stage.svelte'
-  import { hasAdminToken } from '../lib/admin'
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { expiresIn, finishedTime } from '../lib/dates'
   import { petOf } from '../lib/pets'
   import { historyPath, pastGames, placeIn, removePastGame, type PastGame } from '../lib/history'
-  import { REPO_URL } from '../lib/links'
   import { atRoomLimit } from '../lib/roomLimit'
   import { maySuggest } from '../lib/suggestions'
   import { modeLabel } from '../lib/modes'
@@ -49,8 +47,14 @@
   let pastPage = $state(0)
   const pastPages = $derived(Math.ceil(past.length / PAST_PAGE))
   const pastShown = $derived(past.slice(pastPage * PAST_PAGE, (pastPage + 1) * PAST_PAGE))
-  const admin = hasAdminToken()
   const suggesting = maySuggest()
+  /** Where the two-column layout starts; keep it equal to the media query in the style. */
+  const WIDE_QUERY = '(min-width: 50rem)'
+  /**
+   * Suggest sits under Host on a wide screen and last on a phone. Both places are DOM
+   * order, so the tab key and a screen reader follow what the eye sees.
+   */
+  let wide = $state(typeof matchMedia === 'function' && matchMedia(WIDE_QUERY).matches)
   let code = $state('')
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
@@ -79,6 +83,11 @@
   }
 
   onMount(() => {
+    const query = typeof matchMedia === 'function' ? matchMedia(WIDE_QUERY) : null
+    const onWide = (): void => {
+      wide = query?.matches ?? false
+    }
+    query?.addEventListener('change', onWide)
     void refreshOpen()
     void refreshFull()
     const timer = setInterval(() => {
@@ -97,6 +106,7 @@
     return () => {
       clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisible)
+      query?.removeEventListener('change', onWide)
     }
   })
 
@@ -163,6 +173,23 @@
   }
 </script>
 
+{#snippet suggest()}
+  {#if suggesting}
+    <section class="panel">
+      <h2>Suggest or report a question</h2>
+      <p class="note">
+        Know something the inn doesn't ask yet? Write a question, an examine line or an item for
+        the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
+        innkeeper which question. The innkeeper reads every one.
+      </p>
+      <div class="row">
+        <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
+        <button type="button" onclick={() => navigate('/report')}>Report a question</button>
+      </div>
+    </section>
+  {/if}
+{/snippet}
+
 <div class="intro">
   <Stage host="wise_old_man">
     {#snippet paper()}
@@ -222,20 +249,8 @@
         Create a room
       </button>
     </section>
-
-    {#if suggesting}
-      <section class="panel">
-        <h2>Suggest or report a question</h2>
-        <p class="note">
-          Know something the inn doesn't ask yet? Write a question, an examine line or an item for
-          the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
-          innkeeper which question. The innkeeper reads every one.
-        </p>
-        <div class="row">
-          <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
-          <button type="button" onclick={() => navigate('/report')}>Report a question</button>
-        </div>
-      </section>
+    {#if wide}
+      {@render suggest()}
     {/if}
   </div>
   <div class="column">
@@ -357,25 +372,11 @@
         {/if}
       </section>
     {/if}
+    {#if !wide}
+      {@render suggest()}
+    {/if}
   </div>
 </div>
-
-<section class="panel">
-  <h2>Open source</h2>
-  <p class="note">
-    This quiz is free software. Read the code, report a bug, or host your own for your clan.
-  </p>
-  <p class="links">
-    <a class="repo" href={REPO_URL} target="_blank" rel="noopener">
-      <Icon name="github" />
-      jolly-boar-inn on GitHub
-    </a>
-    <!-- Only for the operator, whose browser kept the token from their first `/admin#token=` visit. -->
-    {#if admin}
-      <button type="button" class="small" onclick={() => navigate('/admin')}>Admin</button>
-    {/if}
-  </p>
-</section>
 
 {#if confirming !== null}
   {@const room = confirming}
@@ -476,21 +477,5 @@
   .paging .when {
     display: inline;
     white-space: normal;
-  }
-
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.5rem 1rem;
-    margin: 0;
-    align-items: center;
-  }
-
-  .repo {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--accent);
   }
 </style>
