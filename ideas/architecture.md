@@ -612,7 +612,6 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
   like the random events. No importer fetches wiki facts, so the owner picks every monster and
   question.
-- #84 adds `make gen-packs`: generated packs, offline and seeded, with `CHECK=1` diffing in CI.
 - `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)
   into place, skipping files that exist. Images are never committed: every target must be
   git-ignored. Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
