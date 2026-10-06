@@ -38,3 +38,4 @@ client/src/assets/themes/*.png
 # The copies `make import-suggestions` and `make edit-packs` run on.
 server/.import-suggestions.json
 server/.edit-packs.json
+server/.edit-roster.json

@@ -51,6 +51,9 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
 # The rounds that show a quotation under the prompt (``multiple_choice.quote``).
 QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
 
+# The intro is an NPC's line before the question, so only an NPC's question takes one.
+INTRO_MODES = frozenset({"random_event"})
+
 EXAMINE_MODE = "guess_examine"
 EXAMINE_VOCAB = "examines"
 # The longest item names on the wiki are about 50 characters.
@@ -138,6 +141,8 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
         return ["$.payload: an object, and $.wiki and $.source_url: links"]
     if "quote" in content["payload"] and mode not in QUOTE_MODES:
         return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
+    if "intro" in content["payload"] and mode not in INTRO_MODES:
+        return [f"$.payload.intro: only {', '.join(sorted(INTRO_MODES))} show an intro"]
     envelope = question_envelope(content)
     found = schema.schema_errors(envelope)
     if found:

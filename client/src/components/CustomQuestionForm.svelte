@@ -7,7 +7,8 @@
    * fewer, the NPC may be required or, for a round's question, not asked at all, and
    * `fields` adds the suggestion's own below. `onattempt` checks those on every Save, and
    * the question is handed back only when both pass. `/admin` edits a pack question in it,
-   * with `pack` for the intro and picture pack questions carry, and its NPC `fixed`.
+   * with `pack` for the intro and picture pack questions carry, and its NPC `fixed`. A
+   * suggestion for an NPC's question offers the intro alone, with `intro`.
    *
    * Save only hands back a question `problems` passes. Until the first try, only the
    * limits show (too long, too many, a repeated answer); what is still empty waits for
@@ -39,6 +40,7 @@
     mode = 'custom',
     quote = false,
     pack = false,
+    intro = false,
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
@@ -61,6 +63,8 @@
     quote?: boolean
     /** Whether the intro and the picture show, which only pack questions carry. */
     pack?: boolean
+    /** Whether the intro shows without the picture. */
+    intro?: boolean
     saveLabel?: string
     /** More fields, under the question's own. */
     fields?: Snippet<[boolean]>
@@ -105,9 +109,14 @@
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
     /^(payload\.(prompt|quote|options|answer_index|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
-  const PACK_PLACED = /^payload\.(intro|image)$/
+  const showIntro = $derived(pack || intro)
   const unplaced = $derived(
-    shown.filter((problem) => !PLACED.test(problem.path) && !(pack && PACK_PLACED.test(problem.path))),
+    shown.filter(
+      (problem) =>
+        !PLACED.test(problem.path) &&
+        !(showIntro && problem.path === 'payload.intro') &&
+        !(pack && problem.path === 'payload.image'),
+    ),
   )
 
   function errorsAt(path: string): string[] {
@@ -163,7 +172,7 @@
         <Segmented legend="Type" options={offered} bind:value={draft.type} />
       {/if}
 
-      {#if pack}
+      {#if showIntro}
         <div class="field">
           <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
           <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>

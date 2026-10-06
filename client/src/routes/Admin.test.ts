@@ -147,6 +147,7 @@ describe('Admin', () => {
     )
     expect(within(nav).getByRole('link', { name: /Reports/ }).querySelector('.badge')).toBeNull()
     expect(within(nav).getByRole('link', { name: /Questions/ }).getAttribute('href')).toBe('/admin/questions')
+    expect(within(nav).getByRole('link', { name: /Roster/ }).getAttribute('href')).toBe('/admin/roster')
   })
 
   it('moves between tabs by path, refreshing the rooms on the overview alone', async () => {

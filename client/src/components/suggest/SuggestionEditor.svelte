@@ -23,6 +23,7 @@
     creditProblem,
     examinePreview,
     examineProblems,
+    INTRO_ROUNDS,
     itemProblem,
     sourceProblems,
     wikiProblem,
@@ -229,6 +230,7 @@
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     mode={choice.id}
     quote={choice.quote ?? false}
+    intro={INTRO_ROUNDS.includes(choice.id)}
     {saveLabel}
     fields={questionFields}
     onattempt={questionFieldsPass}

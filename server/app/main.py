@@ -17,7 +17,17 @@ from app import accesslog
 from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
-from app.http import admin, modes, players, questions, reports, rooms, suggestions, vocab
+from app.http import (
+    admin,
+    modes,
+    players,
+    questions,
+    reports,
+    rooms,
+    roster,
+    suggestions,
+    vocab,
+)
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
 from app.http.head import HeadAsGet
@@ -259,6 +269,8 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
         app.include_router(reports.admin_router)
         app.include_router(questions.admin_router)
         app.include_router(questions.changes_router)
+        app.include_router(roster.admin_router)
+        app.include_router(roster.changes_router)
     app.include_router(ws_handler.router)
     mount_client(app, client_dist)
     return app

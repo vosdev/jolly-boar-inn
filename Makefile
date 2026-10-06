@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs fetch-assets loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster fetch-assets loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -102,6 +102,16 @@ edit-packs:
 	cp "$(FILE)" server/.edit-packs.json
 	$(DATA) scripts/edit_packs.py .edit-packs.json; status=$$?; \
 		rm -f server/.edit-packs.json; exit $$status
+
+# Apply an export of /admin's popular-item renames and removals to data/popular-items.json,
+# then review the diff and commit it. FILE may be anywhere, as for import-suggestions. One
+# refused change, or packs that would not load, writes nothing. Run gen-price-questions
+# afterwards: the price pack still holds the old names and the removed items.
+edit-roster:
+	@test -n "$(FILE)" || { echo "usage: make edit-roster FILE=path/to/export.json"; exit 1; }
+	cp "$(FILE)" server/.edit-roster.json
+	$(DATA) scripts/edit_roster.py .edit-roster.json; status=$$?; \
+		rm -f server/.edit-roster.json; exit $$status
 
 # Fetch the NPC, pet and trophy art in data/assets.json from the wiki into client/src/assets/, where
 # the client looks for it. Never part of test or the image build (CI only dry-runs it), and never

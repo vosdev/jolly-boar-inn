@@ -15,7 +15,7 @@ from app.config import REPO_ROOT, Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.rooms import state
-from app.suggestions import QUESTION_MODES, QUOTE_MODES
+from app.suggestions import INTRO_MODES, QUESTION_MODES, QUOTE_MODES
 from tests import client_source
 from tests.conftest import BASE
 
@@ -262,6 +262,11 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(EXAMINE, prompt="x" * 301),
         _with(EXAMINE, name="   "),
         _without(EXAMINE, "wiki"),
+        _with(EVENT, payload={**EVENT["content"]["payload"], "intro": "x" * 151}),
+        _with(EVENT, payload={**EVENT["content"]["payload"], "image": "https://example.com/a.png"}),
+        _with(EVENT, payload={**EVENT["content"]["payload"], "image": "monster:12"}),
+        _with(EVENT, payload={**EVENT["content"]["payload"], "image": "item:"}),
+        _with(QUOTE, payload={**QUOTE["content"]["payload"], "intro": "Ahoy."}),
         _with(ITEM, name=""),
         _with(ITEM, name="x" * 81),
         _with(ITEM, name="Nul\x00"),
@@ -441,6 +446,23 @@ def test_a_quote_and_its_source_export_as_they_were_written(client: TestClient) 
         "credit": "AFKFisher",
         "credit_shown": False,
     }
+
+
+def test_an_intro_and_a_picture_are_stored_and_exported(client: TestClient) -> None:
+    payload = {**EVENT["content"]["payload"], "intro": "Pssst, adventurer.", "image": "item:12885"}
+    suggestion = suggest(client, _with(EVENT, payload=payload))
+    (stored,) = queue(client)["suggestions"]
+    assert stored["content"]["payload"] == payload
+    approve(client, suggestion)
+    (question,) = export(client)["questions"]
+    assert question["payload"] == payload
+
+
+def test_the_form_offers_an_intro_only_to_the_rounds_that_show_one() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    rounds = re.search(r"const INTRO_ROUNDS = \[([^\]]*)\]", source)
+    assert rounds is not None
+    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(INTRO_MODES)
 
 
 def test_a_sort_it_out_suggestion_exports_with_its_ordering(client: TestClient) -> None:
