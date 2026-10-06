@@ -13,6 +13,7 @@
   import { untrack } from 'svelte'
 
   import {
+    downloadJson,
     editSuggestion,
     exportSuggestions,
     getQueue,
@@ -109,16 +110,9 @@
   }
 
   function download(which: 'approved' | 'imported'): void {
-    void run(async () => {
-      const file = await exportSuggestions(token, which)
-      const text = `${JSON.stringify(file, null, 2)}\n`
-      const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
-      const link = document.createElement('a')
-      link.href = url
-      link.download = exportName(which, new Date())
-      link.click()
-      URL.revokeObjectURL(url)
-    })
+    void run(async () =>
+      downloadJson(await exportSuggestions(token, which), exportName(which, new Date())),
+    )
   }
 
   function imported(): void {

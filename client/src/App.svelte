@@ -7,7 +7,8 @@
    *   /r/:code         Room if this browser has a session for it, otherwise Join
    *   /r/:code/create  Create
    *   /history/:code/:stamp  A finished game from this browser's history
-   *   /admin           The operator's view, linked from Home once this browser has its token
+   *   /admin           The operator's view, linked from Home once this browser has its token,
+ *   /admin/:tab      on its overview, or on its suggestions, reports or questions tab
    *   /suggest         A question for the packs, linked from Home once this browser has played
    *   /report          A problem with a pack question, linked from the same place
    *
@@ -34,6 +35,7 @@
   import Room from './routes/Room.svelte'
   import Report from './routes/Report.svelte'
   import Suggest from './routes/Suggest.svelte'
+  import { adminTabOf, type AdminTab } from './lib/admin'
   import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
   import { you } from './lib/stores'
@@ -45,7 +47,7 @@
     | { name: 'join'; code: string }
     | { name: 'room'; code: string }
     | { name: 'history'; code: string; stamp: string }
-    | { name: 'admin' }
+    | { name: 'admin'; tab: AdminTab }
     | { name: 'suggest' }
     | { name: 'report' }
 
@@ -60,7 +62,8 @@
 
   function resolve(path: string): Route {
     if (path === '/create') return { name: 'create' }
-    if (path === '/admin') return { name: 'admin' }
+    const tab = adminTabOf(path)
+    if (tab !== null) return { name: 'admin', tab }
     if (path === '/suggest') return { name: 'suggest' }
     if (path === '/report') return { name: 'report' }
     const past = HISTORY_PATH.exec(path)
@@ -135,7 +138,7 @@
   {:else if route.name === 'create'}
     <Create {navigate} />
   {:else if route.name === 'admin'}
-    <Admin />
+    <Admin tab={route.tab} {navigate} />
   {:else if route.name === 'suggest'}
     <Suggest {navigate} />
   {:else if route.name === 'report'}

@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions fetch-assets loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs fetch-assets loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -93,6 +93,15 @@ import-suggestions:
 	cp "$(FILE)" server/.import-suggestions.json
 	$(DATA) scripts/import_suggestions.py .import-suggestions.json; status=$$?; \
 		rm -f server/.import-suggestions.json; exit $$status
+
+# Apply an export of /admin's question edits and deletes to the packs, then review the diff
+# and commit it. FILE may be anywhere, as for import-suggestions. One refused change, or
+# packs that would not load, writes nothing.
+edit-packs:
+	@test -n "$(FILE)" || { echo "usage: make edit-packs FILE=path/to/export.json"; exit 1; }
+	cp "$(FILE)" server/.edit-packs.json
+	$(DATA) scripts/edit_packs.py .edit-packs.json; status=$$?; \
+		rm -f server/.edit-packs.json; exit $$status
 
 # Fetch the NPC, pet and trophy art in data/assets.json from the wiki into client/src/assets/, where
 # the client looks for it. Never part of test or the image build (CI only dry-runs it), and never

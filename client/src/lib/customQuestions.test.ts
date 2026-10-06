@@ -130,6 +130,14 @@ describe('the form', () => {
     expect(asChoice).not.toHaveProperty('subject')
   })
 
+  it('edits the intro and the picture, trimmed, and leaves them out when emptied', () => {
+    const draft = draftOf({ ...TEXT, payload: { ...TEXT.payload, intro: 'Hm.', image: 'npc:2042' } })
+    expect([draft.intro, draft.image]).toEqual(['Hm.', 'npc:2042'])
+    const edited = questionOf({ ...draft, intro: '  Hmm, yes.  ', image: '' }).payload
+    expect(edited.intro).toBe('Hmm, yes.')
+    expect(edited).not.toHaveProperty('image')
+  })
+
   it('previews it as an open random event, answerable now, with only what players see', () => {
     const preview = previewOf(NUMBER)
     expect(preview.random_event).toBe('death')

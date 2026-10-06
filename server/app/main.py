@@ -258,6 +258,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
         app.include_router(suggestions.admin_router)
         app.include_router(reports.admin_router)
         app.include_router(questions.admin_router)
+        app.include_router(questions.changes_router)
     app.include_router(ws_handler.router)
     mount_client(app, client_dist)
     return app

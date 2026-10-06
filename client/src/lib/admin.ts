@@ -1,6 +1,6 @@
 /**
- * The operator's admin view: its token, the two reads behind it, and the queues of
- * suggestions and reports.
+ * The operator's admin view: its token, the two reads behind it, the queues of
+ * suggestions and reports, and the pack question editor's changes.
  *
  * The token arrives once, in the fragment of `/admin#token=…`. A fragment never reaches
  * the server, so it stays out of the access log and out of any `Referer`. It is moved into
@@ -10,10 +10,28 @@
 
 import { ApiFailure } from './api'
 import { dropStored, readStored, writeStored } from './session'
+import type { QuestionChange, QuestionEdit } from './questionEdits'
 import type { PackQuestion, QueuedReport, ReportStatus } from './reports'
 import type { QueuedSuggestion, SuggestionBody, SuggestionStatus } from './suggestions'
 
 const TOKEN_KEY = 'jbi:admin'
+
+/** The admin page's tabs, each at its own path so a reload or a link lands on it. */
+export const ADMIN_TABS = ['overview', 'suggestions', 'reports', 'questions'] as const
+export type AdminTab = (typeof ADMIN_TABS)[number]
+
+/** `/admin` is the overview, `/admin/<tab>` any other tab; null for a path that is neither. */
+export function adminTabOf(path: string): AdminTab | null {
+  if (path === '/admin') return 'overview'
+  const tab = /^\/admin\/([a-z]+)$/.exec(path)?.[1]
+  return tab !== 'overview' && (ADMIN_TABS as readonly string[]).includes(tab ?? '')
+    ? (tab as AdminTab)
+    : null
+}
+
+export function adminPath(tab: AdminTab): string {
+  return tab === 'overview' ? '/admin' : `/admin/${tab}`
+}
 
 export interface LiveRound {
   index: number
@@ -178,6 +196,57 @@ export function setReportStatus(
 export async function getPackQuestions(token: string, mode: string): Promise<PackQuestion[]> {
   const path = `/api/admin/questions?mode=${encodeURIComponent(mode)}`
   return (await adminGet<{ questions: PackQuestion[] }>(path, token)).questions
+}
+
+/** The modes whose pack questions the editor lists. */
+export function getEditModes(token: string): Promise<string[]> {
+  return adminGet('/api/admin/questions/modes', token)
+}
+
+/** Queue an edit of a pack question, replacing any change already queued for it. */
+export function editPackQuestion(
+  token: string,
+  id: string,
+  edit: QuestionEdit,
+): Promise<QuestionChange> {
+  return adminRequest(`/api/admin/questions/${encodeURIComponent(id)}`, token, 'PUT', edit)
+}
+
+/** Queue the removal of a pack question. */
+export function deletePackQuestion(token: string, id: string): Promise<QuestionChange> {
+  return adminRequest(`/api/admin/questions/${encodeURIComponent(id)}`, token, 'DELETE', {})
+}
+
+export async function getQuestionChanges(token: string): Promise<QuestionChange[]> {
+  const path = '/api/admin/question-changes'
+  return (await adminGet<{ changes: QuestionChange[] }>(path, token)).changes
+}
+
+export async function discardQuestionChange(token: string, id: string): Promise<void> {
+  const path = `/api/admin/question-changes/${encodeURIComponent(id)}`
+  await adminRequest(path, token, 'DELETE', {})
+}
+
+/** The file for `make edit-packs`. Every change it holds is marked exported. */
+export function exportQuestionChanges(token: string): Promise<unknown> {
+  return adminRequest('/api/admin/question-changes/export', token, 'POST', {})
+}
+
+/** Drop the changes the last download held, once they are applied and committed. */
+export async function markQuestionChangesApplied(token: string): Promise<number> {
+  const path = '/api/admin/question-changes/applied'
+  return (await adminRequest<{ applied: number }>(path, token, 'POST', {})).applied
+}
+
+/** Hand `value` to the browser as a JSON file named `name`. */
+export function downloadJson(value: unknown, name: string): void {
+  const text = `${JSON.stringify(value, null, 2)}\n`
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = name
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 /** The refresh button's label: how many seconds ago the data was fetched, once it has been. */
