@@ -237,7 +237,7 @@ export const MODES: Record<string, Mode> = {
  */
 export const UPCOMING_MODES: { id: string; label: string; hint: string; host: string }[] = [
   { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!", host: 'postie_pete' },
-  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'dunce' },
+  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'aris' },
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
   { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!', host: 'aubury' },
   { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?', host: 'captain_errdo' },
