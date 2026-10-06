@@ -120,7 +120,7 @@ SECONDS: Bounds                       # optional
 | `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering` | hand-written | done, 20 s |
 | `drop_table` | Drop Table | `multiple_choice`, `image` stored for the render | hand-written | done, 20 s |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done, 20 s |
-| `release_order` | Release Order | `ordering` | hand-written | on hold, too few questions |
+| `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done, 20 s |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice` | hand-written | done, 20 s |
