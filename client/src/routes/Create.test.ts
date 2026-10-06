@@ -471,7 +471,7 @@ describe('Create with five rooms already', () => {
   it('lets the sixth through once one is removed on the homepage', async () => {
     render(Home, { navigate: vi.fn() })
     const rune = screen.getByText('RUNE').closest('li')!
-    await fireEvent.click(within(rune).getByRole('button', { name: 'Remove' }))
+    await fireEvent.click(within(rune).getByRole('button', { name: 'Remove room RUNE' }))
     await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove' }))
     await waitFor(() => expect(createdRooms()).not.toContain('RUNE'))
     cleanup()

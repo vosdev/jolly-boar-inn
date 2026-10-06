@@ -99,6 +99,13 @@ describe("Home", () => {
     expect(navigate).toHaveBeenCalledWith("/admin");
   });
 
+  it("shows the GitHub mark beside the link to the repository", () => {
+    render(Home, { navigate });
+    const panel = screen.getByRole("heading", { name: "Open source" }).closest("section")!;
+    const link = within(panel).getByRole("link", { name: "jolly-boar-inn on GitHub" });
+    expect(link.querySelector("svg")).not.toBeNull();
+  });
+
   it("lists only the rooms created here that have not expired", () => {
     localStorage.setItem(
       "jbi:created",
@@ -203,7 +210,9 @@ describe("Home", () => {
 
     it("removes the room only once the host confirms", async () => {
       render(Home, { navigate });
-      await fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Remove room RUNE" }),
+      );
       expect(api.deleteRoom).not.toHaveBeenCalled();
       const dialog = screen.getByRole("dialog");
       expect(dialog.textContent).toContain(
@@ -218,7 +227,9 @@ describe("Home", () => {
 
     it("removes nothing when cancelled", async () => {
       render(Home, { navigate });
-      await fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Remove room RUNE" }),
+      );
       await fireEvent.click(
         within(screen.getByRole("dialog")).getByRole("button", {
           name: "Cancel",
@@ -277,7 +288,7 @@ describe("Room limit", () => {
     render(Home, { navigate });
     await screen.findByText(/You already have five rooms/);
     const rune = screen.getByText("RUNE").closest("li")!;
-    await fireEvent.click(within(rune).getByRole("button", { name: "Remove" }));
+    await fireEvent.click(within(rune).getByRole("button", { name: "Remove room RUNE" }));
     await fireEvent.click(
       within(screen.getByRole("dialog")).getByRole("button", { name: "Remove" }),
     );
@@ -312,6 +323,7 @@ describe("Desktop layout", () => {
     expect(columnOf("Public rooms")).toBe(1);
     expect(columnOf("Rooms you created here")).toBe(1);
     expect(columnOf("Past games")).toBe(1);
+    expect(columnOf("Suggest or report a question")).toBe(0);
     expect(columnOf("Think you know Gielinor? Prove it at The Jolly Boar Inn.")).toBeNull();
     expect(columnOf("Open source")).toBeNull();
   });
@@ -331,6 +343,29 @@ describe("Desktop layout", () => {
 });
 
 describe("Past games", () => {
+  it("draws Hi-scores and Remove as icons, and puts the date under the room", () => {
+    savePastGame({
+      code: "ABYSSAL",
+      finishedAt: "2026-10-01T20:05:00Z",
+      standings: [
+        { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
+      ],
+      youId: "a",
+    });
+    render(Home, { navigate });
+    const row = screen.getByText("ABYSSAL").closest("li")!;
+    for (const name of ["Hi-scores for ABYSSAL", "Remove ABYSSAL from past games"]) {
+      const button = within(row).getByRole("button", { name });
+      expect(button.textContent?.trim()).toBe("");
+      expect(button.querySelector("svg")).not.toBeNull();
+    }
+    const code = screen.getByText("ABYSSAL");
+    const when = row.querySelector(".when")!;
+    expect(code.parentElement).toBe(when.parentElement);
+    expect(code.compareDocumentPosition(when) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(when.textContent).toContain("2026");
+  });
+
   it("lists each game with its room, when it finished and our place, and opens it", async () => {
     savePastGame({
       code: "ABYSSAL",

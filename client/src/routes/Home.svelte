@@ -15,6 +15,7 @@
   import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import Icon from '../components/Icon.svelte'
   import Pet from '../components/Pet.svelte'
   import Stage from '../components/stage/Stage.svelte'
   import { hasAdminToken } from '../lib/admin'
@@ -221,6 +222,21 @@
         Create a room
       </button>
     </section>
+
+    {#if suggesting}
+      <section class="panel">
+        <h2>Suggest or report a question</h2>
+        <p class="note">
+          Know something the inn doesn't ask yet? Write a question, an examine line or an item for
+          the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
+          innkeeper which question. The innkeeper reads every one.
+        </p>
+        <div class="row">
+          <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
+          <button type="button" onclick={() => navigate('/report')}>Report a question</button>
+        </div>
+      </section>
+    {/if}
   </div>
   <div class="column">
     <section class="panel">
@@ -271,10 +287,11 @@
               <button
                 type="button"
                 class="small"
+                aria-label={`Remove room ${room}`}
                 disabled={removing === room}
                 onclick={() => (confirming = room)}
               >
-                {removing === room ? 'Removing…' : 'Remove'}
+                <Icon name="trash" />
               </button>
             </li>
           {/each}
@@ -293,25 +310,27 @@
                 <span class="code-small">{game.code}</span>
                 <span class="when">{finishedTime(game.finishedAt)}</span>
               </span>
-              {#if place !== null}
-                <span class="place">{place}</span>
-              {/if}
-              <button
-                type="button"
-                class="small"
-                aria-label={`Hi-scores for ${game.code}`}
-                onclick={() => navigate(historyPath(game))}
-              >
-                Hi-scores
-              </button>
-              <button
-                type="button"
-                class="small"
-                aria-label={`Remove ${game.code} from past games`}
-                onclick={() => (confirmingPast = game)}
-              >
-                Remove
-              </button>
+              <span class="actions">
+                {#if place !== null}
+                  <span class="place">{place}</span>
+                {/if}
+                <button
+                  type="button"
+                  class="small"
+                  aria-label={`Hi-scores for ${game.code}`}
+                  onclick={() => navigate(historyPath(game))}
+                >
+                  <Icon name="trophy" />
+                </button>
+                <button
+                  type="button"
+                  class="small"
+                  aria-label={`Remove ${game.code} from past games`}
+                  onclick={() => (confirmingPast = game)}
+                >
+                  <Icon name="trash" />
+                </button>
+              </span>
             </li>
           {/each}
         </ul>
@@ -338,21 +357,6 @@
         {/if}
       </section>
     {/if}
-
-    {#if suggesting}
-      <section class="panel">
-        <h2>Suggest or report a question</h2>
-        <p class="note">
-          Know something the inn doesn't ask yet? Write a question, an examine line or an item for
-          the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
-          innkeeper which question. The innkeeper reads every one.
-        </p>
-        <div class="row">
-          <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
-          <button type="button" onclick={() => navigate('/report')}>Report a question</button>
-        </div>
-      </section>
-    {/if}
   </div>
 </div>
 
@@ -362,10 +366,13 @@
     This quiz is free software. Read the code, report a bug, or host your own for your clan.
   </p>
   <p class="links">
-    <a class="link" href={REPO_URL} target="_blank" rel="noopener">jolly-boar-inn on GitHub</a>
+    <a class="repo" href={REPO_URL} target="_blank" rel="noopener">
+      <Icon name="github" />
+      jolly-boar-inn on GitHub
+    </a>
     <!-- Only for the operator, whose browser kept the token from their first `/admin#token=` visit. -->
     {#if admin}
-      <button type="button" class="link" onclick={() => navigate('/admin')}>Admin</button>
+      <button type="button" class="small" onclick={() => navigate('/admin')}>Admin</button>
     {/if}
   </p>
 </section>
@@ -423,16 +430,35 @@
     font-weight: 600;
   }
 
-  .when,
   .host {
     color: var(--muted);
     margin-left: 0.5rem;
+  }
+
+  /* Under the room code, and kept whole: a wide basis sends the row's buttons to a line of
+     their own before the date would have to wrap. */
+  .name {
+    flex-basis: 11rem;
+  }
+
+  .when {
+    display: block;
+    color: var(--muted);
+    white-space: nowrap;
   }
 
   .about {
     display: block;
     color: var(--muted);
     font-size: 0.9rem;
+  }
+
+  /* One unit, so a narrow row drops the place and both buttons together, never one alone. */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
   }
 
   .place {
@@ -448,7 +474,8 @@
   }
 
   .paging .when {
-    margin: 0;
+    display: inline;
+    white-space: normal;
   }
 
   .links {
@@ -457,5 +484,13 @@
     justify-content: space-between;
     gap: 0.5rem 1rem;
     margin: 0;
+    align-items: center;
+  }
+
+  .repo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent);
   }
 </style>

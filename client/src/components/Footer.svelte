@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
-   * A quiet band under every screen, the top bar's twin: the trademark notice, the way to
-   * the source, the licence, where the data comes from, and the version.
+   * A quiet band under every screen, the top bar's twin: the trademark notice, what is and
+   * is not collected, the way to the source, the licence, where the data comes from, and the version.
    *
    * It sits in the page's flow, never fixed, so on a long screen it is below the last
    * answer rather than over it, and on a short one the shell pushes it to the bottom.
@@ -15,6 +15,7 @@
 <footer class="footer">
   <div class="inner" class:wide>
     <p>RuneScape and RuneScape Old School are the trademarks of Jagex Limited.</p>
+    <p>We count games and rounds per day. No cookies, no personal data.</p>
     <ul>
       <li><a href={REPO_URL} target="_blank" rel="noopener">Source on GitHub</a></li>
       <li><a href={LICENSE_URL} target="_blank" rel="noopener">AGPL-3.0</a></li>
