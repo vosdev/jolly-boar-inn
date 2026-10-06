@@ -13,7 +13,7 @@ questions in `data/packs/random_events/<id>.json`, one file per NPC.
 | name | As shown on the card: "Sandwich Lady". |
 | theme | What it asks about, in a few words. This is the rule for writing its questions. |
 | right, wrong | What it says in the reveal to an answer that scored, and to one that did not or none. At most 60 characters each. |
-| asset | `npc:<id>` for the card's picture. The picture itself is Phase 3; until then the card is text. |
+| asset | `npc:<id>` for the card's picture. The picture itself waits for the Images milestone; until then the card is text. |
 
 ## One question
 
@@ -39,7 +39,7 @@ event is the place for the one fact nobody knew.
 - `more_less` and `price_is_right` are refused as events: only their own round shows the
   item they ask about. "Which heals more?" is `multiple_choice`.
 - `pick_from_list` with a picture (a Certer holding up an item's shadowy outline) needs
-  Phase 3's images. In words, it works now.
+  the Images milestone. In words, it works now.
 - Keep to the NPC's theme. The joke is that they only care about their own subject.
 - Check every fact on the wiki. `make validate-packs` checks the shape, not the truth.
 
@@ -70,7 +70,7 @@ target.
 NPCs who would make a fine event, not on the roster:
 
 - **Certer** (Giles, Miles, Niles): "which of these is a helmet?" as `multiple_choice` now,
-  and "what is this item?" from its outline as `pick_from_list` in Phase 3.
+  and "what is this item?" from its outline as `pick_from_list` in the Images milestone.
 - **Frog prince / princess**: romance and swamps, Lumbridge Swamp.
 - **Beekeeper**: farming, and building things in the right order (`ordering`, after #82).
 - **Postie Pete**: places and cities: "where would you deliver this?".

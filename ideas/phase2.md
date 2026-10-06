@@ -11,14 +11,14 @@ session and leaves the app playable. Each accept criterion is a test unless it s
 - **Pack sizes are roster-bound, not targets.** `data/popular-items.json` holds 176 items, and every
   item-derived mode scales off it. So a generator reports what it used and what it rejected rather
   than chasing a number. Growing the roster improves six modes at once and needs no code.
-- **Images of items stay in Phase 3.** Every mode here plays on text alone; #101 only fetches the
+- **Images of items wait for the Images milestone.** Every mode here plays on text alone; #101 only fetches the
   hosts' art and the trophies.
 
 ## Not in Phase 2
 
-- **Images, and the modes that need them.** Who's That NPC? and Pixel Hunt are Phase 3, behind the
+- **Images, and the modes that need them.** Who's That NPC? and Pixel Hunt are the Images milestone, behind the
   asset pipeline and architecture's two open decisions. `pick_from_list`, its combobox and the vocab
-  endpoint already exist, so Phase 3 is a pipeline and two components.
+  endpoint already exist, so Images is a pipeline and two components.
 - **Events that need a picture.** A Certer asking what an item's outline is waits for images; in
   Phase 2 a Certer asks in words.
 - **A separate room lock.** Rotating the invite key (#91) does the same job with no second control.

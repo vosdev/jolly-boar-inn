@@ -6,8 +6,8 @@ Payload shape (schema ``$defs/pick_from_list``)::
      "subject"?: {"name", "asset"?}, "image"?: asset, "steps"?: 1..12, "explanation"?: str}
 
 Three modes answer this way -- Guess the Examine now, Who's That NPC? and Pixel Hunt in
-Phase 3 -- and all three are questions you can only answer by knowing, not by ruling out
-three buttons. The player searches the vocabulary and submits an entry's id; what they
+the Images milestone -- and all three are questions you can only answer by knowing, not by
+ruling out three buttons. The player searches the vocabulary and submits an entry's id; what they
 typed to find it never leaves the client. That is the whole design: an id is either the
 answer or it is not, so there is no normalisation, no alias list and no Levenshtein
 threshold to argue about at the reveal. ``free_text`` keeps those for the host's own
@@ -25,8 +25,8 @@ back to speed (section 6).
 
 The subject is the answer, so it is withheld with ``answer_id`` until the reveal. So is
 ``image``: an asset reference is ``item:<id>``, and for this type the id *is* the answer.
-Phase 3's Pixel Hunt has to show its frames under a name that does not say what they are
-of, and until then no ``pick_from_list`` payload's image goes on the wire while it is open.
+Pixel Hunt, in the Images milestone, has to show its frames under a name that does not say what
+they are of, and until then no ``pick_from_list`` payload's image goes on the wire while it is open.
 """
 
 from typing import Any
