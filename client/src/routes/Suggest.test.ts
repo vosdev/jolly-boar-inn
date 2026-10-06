@@ -126,7 +126,7 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
-    expect(screen.getByText(/Required: the page you checked it on/)).toBeTruthy()
+    expect(screen.getByText(/Required: the wiki page you checked it on, or another https link/)).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
@@ -146,6 +146,186 @@ describe('Suggest', () => {
       credit: 'AFKFisher',
       credit_shown: false,
     })
+  })
+
+  it('lets a Who Said That? carry its quote, and be sent with a non-wiki source', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Who Said That/ }))
+    await type('Question', 'Who said this?')
+    await type(/The quotation/, 'Never gonna give you up')
+    const preview = screen.getByRole('region', { name: 'Preview' })
+    expect(preview.querySelector('blockquote')?.textContent).toBe('Never gonna give you up')
+    await type('Answer 1', 'Rick')
+    await type('Answer 2', 'Zezima')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText(/or another https link/)).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type(/Another source/, 'http://example.com/clip')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('A link starting https://.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type(/Another source/, ' https://www.youtube.com/watch?v=dQw4w9WgXcQ ')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'multiple_choice',
+        payload: {
+          prompt: 'Who said this?',
+          quote: 'Never gonna give you up',
+          options: ['Rick', 'Zezima'],
+          answer_index: 0,
+        },
+        mode: 'who_said_that',
+        source_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
+  it('offers a quotation only to the rounds that show one', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
+    expect(screen.queryByLabelText(/The quotation/)).toBeNull()
+    expect(screen.getByLabelText('Another source, if the wiki can’t show it')).toBeTruthy()
+  })
+
+  it('sends both sources when both are given', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Know Your Content Creator/ }))
+    expect(screen.getByLabelText(/The quotation/)).toBeTruthy()
+    await type('Question', 'Which game did they stream first?')
+    await type('Answer 1', 'RuneScape')
+    await type('Answer 2', 'Minecraft')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Zezima')
+    await type(/Another source/, 'https://example.com/clip')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    const sent = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
+    expect(sent).toMatchObject({
+      wiki: 'https://oldschool.runescape.wiki/w/Zezima',
+      source_url: 'https://example.com/clip',
+    })
+    expect((sent as { payload: object }).payload).not.toHaveProperty('quote')
+  })
+
+  it('writes a Sort It Out order from entries and tie boxes, and sends ranks', async () => {
+    played()
+    render(Suggest, { navigate })
+    const card = await screen.findByRole('button', { name: /Sort It Out/ })
+    expect(card.textContent).toContain('Something worth putting in order.')
+    await fireEvent.click(card)
+    expect(screen.queryByRole('group', { name: 'Type' })).toBeNull()
+    expect(screen.queryByLabelText('Who asks it')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getAllByText('Can’t be empty.').length).toBeGreaterThan(0)
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type('What are they sorted by?', 'Sort these gems by the level that cuts them.')
+    await type('First end', 'Lowest')
+    await type('Last end', 'Highest')
+    await type('Entry 1', 'Sapphire')
+    await type('Detail of entry 1', 'Level 20')
+    await type('Entry 2', 'Opal')
+    await type('Entry 3', 'Jade')
+    await fireEvent.click(screen.getAllByLabelText('Tied with the one above')[0]!)
+    await fireEvent.click(screen.getByRole('button', { name: 'Add an entry' }))
+    await type('Entry 4', 'Emerald')
+    await fireEvent.change(screen.getByLabelText('Players order'), { target: { value: '3' } })
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Crafting')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'ordering',
+        payload: {
+          prompt: 'Sort these gems by the level that cuts them.',
+          ends: ['Lowest', 'Highest'],
+          entries: [
+            { text: 'Sapphire', rank: 1, detail: 'Level 20' },
+            { text: 'Opal', rank: 1 },
+            { text: 'Jade', rank: 2 },
+            { text: 'Emerald', rank: 3 },
+          ],
+          answer: [0, 1, 2, 3],
+          picks: 3,
+        },
+        mode: 'sort_it_out',
+        wiki: 'https://oldschool.runescape.wiki/w/Crafting',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
+  it('writes a Release Order with a date on every entry, and sends it as an ordering', async () => {
+    played()
+    render(Suggest, { navigate })
+    const card = await screen.findByRole('button', { name: /Release Order/ })
+    expect(card.textContent).toContain('Something worth putting in release order.')
+    await fireEvent.click(card)
+    expect(screen.queryByRole('group', { name: 'Type' })).toBeNull()
+    expect(screen.queryByLabelText('Who asks it')).toBeNull()
+    expect(screen.getByLabelText('First end').getAttribute('placeholder')).toBe('Oldest')
+
+    await type('What are they put in order of?', 'Put these quests in the order they came out.')
+    await type('First end', 'Oldest')
+    await type('Last end', 'Newest')
+    await type('Entry 1', 'Cook’s Assistant')
+    await type('Detail of entry 1', '4 January 2001')
+    await type('Entry 2', 'Sheep Shearer')
+    await type('Detail of entry 2', '4 January 2001')
+    await type('Entry 3', 'Dragon Slayer')
+    await fireEvent.click(screen.getAllByLabelText('Tied with the one above')[0]!)
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Update:Quests')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Required: the date it came out.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type('Detail of entry 3', '4 January 2001')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'ordering',
+        payload: {
+          prompt: 'Put these quests in the order they came out.',
+          ends: ['Oldest', 'Newest'],
+          entries: [
+            { text: 'Cook’s Assistant', rank: 1, detail: '4 January 2001' },
+            { text: 'Sheep Shearer', rank: 1, detail: '4 January 2001' },
+            { text: 'Dragon Slayer', rank: 2, detail: '4 January 2001' },
+          ],
+          answer: [0, 1, 2],
+        },
+        mode: 'release_order',
+        wiki: 'https://oldschool.runescape.wiki/w/Update:Quests',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
+  it('keeps the entries between three and six', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Sort It Out/ }))
+    expect(screen.getByRole('button', { name: 'Remove entry 1' }).hasAttribute('disabled')).toBe(true)
+    for (let i = 0; i < 3; i += 1) {
+      await fireEvent.click(screen.getByRole('button', { name: 'Add an entry' }))
+    }
+    expect(screen.getByRole('button', { name: 'Add an entry' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByLabelText('Entry 6')).toBeTruthy()
+    expect(screen.queryByLabelText('Entry 7')).toBeNull()
   })
 
   it('makes an NPC’s question name its NPC', async () => {

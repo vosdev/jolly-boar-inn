@@ -15,14 +15,16 @@
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
 
-  import type { CustomQuestion } from '../../lib/customQuestions'
+  import type { CustomQuestion, CustomType } from '../../lib/customQuestions'
   import { NAME_MAX } from '../../lib/names'
+  import type { OrderingQuestion } from '../../lib/ordering'
   import { profile } from '../../lib/profile'
   import {
     creditProblem,
     examinePreview,
     examineProblems,
     itemProblem,
+    sourceProblems,
     wikiProblem,
     type Choice,
     type ExamineContent,
@@ -33,6 +35,7 @@
   } from '../../lib/suggestions'
   import { loadVocab, search, type VocabEntry } from '../../lib/vocab'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
+  import OrderingForm from '../OrderingForm.svelte'
   import QuestionStage from '../QuestionStage.svelte'
 
   let {
@@ -60,6 +63,7 @@
   // svelte-ignore state_referenced_locally
   let shown = $state(choice.kind !== 'item' && (initial?.credit_shown ?? false))
   let wiki = $state(start?.wiki ?? '')
+  let sourceUrl = $state(start?.source_url ?? '')
   let name = $state(start?.name ?? '')
   let prompt = $state(start?.prompt ?? '')
   let attempted = $state(false)
@@ -74,17 +78,25 @@
     )
   })
 
+  const sorts = $derived(choice.types.includes('ordering'))
+  const customTypes = $derived(
+    choice.types.filter((type): type is CustomType => type !== 'ordering'),
+  )
+
   const question: CustomQuestion | undefined =
-    start?.type === undefined
+    start?.type === undefined || start.type === 'ordering'
       ? undefined
       : {
           type: start.type,
           payload: start.payload ?? {},
           ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
         }
+  const ordering: OrderingQuestion | undefined =
+    start?.type === 'ordering' ? { type: 'ordering', payload: start.payload ?? {} } : undefined
 
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
+  const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
   const examineErrors = $derived(examineProblems({ name, prompt, wiki }))
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
@@ -96,11 +108,13 @@
   /** The fields beside a question: whether they pass, asked on the editor's Save. */
   function questionFieldsPass(): boolean {
     attempted = true
-    return creditError === null && wikiError === null
+    return creditError === null && Object.values(sourceErrors).every((error) => error === null)
   }
 
-  function saveQuestion(built: CustomQuestion): void {
-    send({ ...built, mode: choice.id, wiki: wiki.trim() })
+  function saveQuestion(built: CustomQuestion | OrderingQuestion): void {
+    const links = { wiki: wiki.trim(), source_url: sourceUrl.trim() }
+    const given = Object.fromEntries(Object.entries(links).filter(([, url]) => url !== ''))
+    send({ ...built, mode: choice.id, ...given })
   }
 
   function saveExamine(): void {
@@ -162,7 +176,30 @@
 {/snippet}
 
 {#snippet questionFields(show: boolean)}
-  {@render wikiField(show)}
+  <div class="field">
+    <label for="{id}-wiki">Relevant Wiki page</label>
+    <input
+      id="{id}-wiki"
+      type="text"
+      inputmode="url"
+      placeholder="https://oldschool.runescape.wiki/w/…"
+      bind:value={wiki}
+    />
+    <p class="note hint">All submissions are fact-checked by the innkeeper against the OSRS wiki.</p>
+    {@render problem(sourceErrors.wiki, show)}
+  </div>
+  <div class="field">
+    <label for="{id}-source">Another source, if the wiki can’t show it</label>
+    <input
+      id="{id}-source"
+      type="text"
+      inputmode="url"
+      placeholder="https://…"
+      bind:value={sourceUrl}
+    />
+    <p class="note hint">A clip or page that proves it, such as what a streamer said. Either one is enough.</p>
+    {@render problem(sourceErrors.source_url ?? sourceErrors.either, show)}
+  </div>
   {@render creditFields(show)}
 {/snippet}
 
@@ -173,13 +210,25 @@
   </div>
 {/snippet}
 
-{#if choice.kind === 'question'}
+{#if choice.kind === 'question' && sorts}
+  <OrderingForm
+    question={ordering}
+    title={choice.label}
+    mode={choice.id}
+    {saveLabel}
+    fields={questionFields}
+    onattempt={questionFieldsPass}
+    onsave={saveQuestion}
+    {oncancel}
+  />
+{:else if choice.kind === 'question'}
   <CustomQuestionForm
     {question}
     title={choice.label}
-    types={choice.types}
+    types={customTypes}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     mode={choice.id}
+    quote={choice.quote ?? false}
     {saveLabel}
     fields={questionFields}
     onattempt={questionFieldsPass}

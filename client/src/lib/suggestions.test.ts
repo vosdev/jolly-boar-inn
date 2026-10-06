@@ -13,6 +13,7 @@ import {
   itemProblem,
   maySuggest,
   retryIn,
+  sourceProblems,
   summary,
   wikiProblem,
 } from './suggestions'
@@ -34,8 +35,25 @@ describe('who may suggest', () => {
   })
 })
 
+describe('where a question was checked', () => {
+  it('takes a wiki page, another https link, or both, and needs one', () => {
+    const wiki = 'https://oldschool.runescape.wiki/w/Zezima'
+    const clip = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    expect(Object.values(sourceProblems(wiki, ''))).toEqual([null, null, null])
+    expect(Object.values(sourceProblems('', clip))).toEqual([null, null, null])
+    expect(Object.values(sourceProblems(wiki, clip))).toEqual([null, null, null])
+    expect(sourceProblems('', '  ').either).toMatch(/or another https link/)
+  })
+
+  it('holds what is filled in to its form', () => {
+    expect(sourceProblems('https://example.com/w/Zezima', '').wiki).toMatch(/oldschool\.runescape\.wiki/)
+    expect(sourceProblems('', 'http://example.com').source_url).toBe('A link starting https://.')
+    expect(sourceProblems('', `https://example.com/${'x'.repeat(300)}`).source_url).toMatch(/At most 300/)
+  })
+})
+
 describe('the choices', () => {
-  it('are an examine, an item, an NPC question and the four-button rounds still being built', () => {
+  it('are an examine, an item, an NPC question, the four-button rounds and Sort It Out', () => {
     expect(CHOICES.map((choice) => choice.id)).toEqual([
       'examine',
       'item',
@@ -45,8 +63,19 @@ describe('the choices', () => {
       'odd_one_out',
       'who_said_that',
       'know_your_content_creator',
+      'sort_it_out',
+      'release_order',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
+    const sort = CHOICES.find((c) => c.id === 'sort_it_out')
+    expect(sort?.types).toEqual(['ordering'])
+    expect(sort?.host).toBe('historian_minas')
+    expect(sort?.hint).toBe('Something worth putting in order.')
+    const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
+    expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
+    const release = CHOICES.find((c) => c.id === 'release_order')
+    expect(release?.types).toEqual(['ordering'])
+    expect(release?.host).toBe('aris')
     expect(CHOICES.find((c) => c.id === 'random_event')?.types).toEqual([
       'multiple_choice',
       'free_text',

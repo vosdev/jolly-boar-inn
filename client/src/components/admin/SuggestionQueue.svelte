@@ -21,7 +21,6 @@
     type Queue,
   } from '../../lib/admin'
   import { ApiFailure } from '../../lib/api'
-  import { previewOf } from '../../lib/customQuestions'
   import { npcArt } from '../../lib/npcs'
   import {
     STATUS_LABELS,
@@ -30,6 +29,7 @@
     examinePreview,
     exportName,
     modeName,
+    questionPreview,
     summary,
     type ExamineContent,
     type ItemContent,
@@ -129,13 +129,14 @@
     return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
   }
 
-  /** The page to check it against; an item names none, so it is the wiki's own page for it. */
-  function wikiOf(row: QueuedSuggestion): string {
+  /** The pages to check it against; an item names none, so it is the wiki's own page for it. */
+  function checksOf(row: QueuedSuggestion): string[] {
     if (row.kind === 'item') {
       const name = (row.content as ItemContent).name.replace(/ /g, '_')
-      return `https://oldschool.runescape.wiki/w/${encodeURIComponent(name)}`
+      return [`https://oldschool.runescape.wiki/w/${encodeURIComponent(name)}`]
     }
-    return (row.content as QuestionContent | ExamineContent).wiki
+    const { wiki, source_url: source } = row.content as QuestionContent
+    return [wiki, source].filter((url) => url !== undefined)
   }
 
   function explanationOf(row: QueuedSuggestion): string | null {
@@ -260,13 +261,13 @@
                     {@const content = row.content as QuestionContent}
                     {#if content.random_event !== undefined}
                       <RandomEvent
-                        question={previewOf(content)}
+                        question={questionPreview(content)}
                         yourValue={null}
                         onAnswer={() => {}}
                       />
                     {:else}
                       <QuestionStage
-                        question={previewOf(content, content.mode)}
+                        question={questionPreview(content)}
                         yourValue={null}
                         onAnswer={() => {}}
                       />
@@ -299,12 +300,12 @@
                     <dt>Sent</dt>
                     <dd>{sent(row.created_at)}</dd>
                   </dl>
-                  <p class="check">
-                    <span class="note">Fact-check</span>
-                    <a href={wikiOf(row)} target="_blank" rel="noopener noreferrer">
-                      {wikiOf(row)} ↗
-                    </a>
-                  </p>
+                  {#each checksOf(row) as link, index (link)}
+                    <p class="check">
+                      <span class="note">{index === 0 ? 'Fact-check' : 'Also'}</span>
+                      <a href={link} target="_blank" rel="noopener noreferrer">{link} ↗</a>
+                    </p>
+                  {/each}
                   {#if row.status !== 'imported'}
                     <div class="row">
                       {#if row.status !== 'approved'}

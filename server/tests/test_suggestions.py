@@ -15,7 +15,7 @@ from app.config import REPO_ROOT, Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.rooms import state
-from app.suggestions import QUESTION_MODES
+from app.suggestions import QUESTION_MODES, QUOTE_MODES
 from tests import client_source
 from tests.conftest import BASE
 
@@ -52,6 +52,66 @@ EXAMINE = {
     },
     "credit": "AFKFisher",
     "credit_shown": False,
+}
+SORT_IT_OUT = {
+    "kind": "question",
+    "content": {
+        "type": "ordering",
+        "mode": "sort_it_out",
+        "wiki": "https://oldschool.runescape.wiki/w/Crafting",
+        "payload": {
+            "prompt": "Sort these gems by the Crafting level that cuts them.",
+            "ends": ["Lowest", "Highest"],
+            "entries": [
+                {"text": "Sapphire", "rank": 1, "detail": "Level 20"},
+                {"text": "Emerald", "rank": 2, "detail": "Level 27"},
+                {"text": "Ruby", "rank": 3, "detail": "Level 34"},
+                {"text": "Diamond", "rank": 4, "detail": "Level 43"},
+            ],
+            "answer": [0, 1, 2, 3],
+            "picks": 3,
+            "explanation": "Twenty, 27, 34 and 43.",
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+# Streamer quotes and facts have no wiki page: a clip is their source.
+QUOTE = {
+    "kind": "question",
+    "content": {
+        "type": "multiple_choice",
+        "mode": "who_said_that",
+        "source_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "payload": {
+            "prompt": "Who said this?",
+            "quote": "Never gonna give you up",
+            "options": ["Rick", "Zezima", "B0aty"],
+            "answer_index": 0,
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+# Release Order is not built yet, so this one waits in the queue as not playable.
+RELEASE_ORDER = {
+    **SORT_IT_OUT,
+    "content": {
+        **SORT_IT_OUT["content"],
+        "mode": "release_order",
+        "wiki": "https://oldschool.runescape.wiki/w/Update:Quests",
+        "payload": {
+            "prompt": "Put these quests in the order they came out.",
+            "ends": ["Oldest", "Newest"],
+            "entries": [
+                {"text": "Cook's Assistant", "rank": 1, "detail": "4 January 2001"},
+                {"text": "Sheep Shearer", "rank": 1, "detail": "4 January 2001"},
+                {"text": "Dragon Slayer", "rank": 2, "detail": "4 January 2001"},
+            ],
+            "answer": [0, 1, 2],
+            "explanation": "Cook's Assistant and Sheep Shearer came out on one day.",
+        },
+    },
 }
 ITEM = {
     "kind": "item",
@@ -140,6 +200,10 @@ def _with(body: dict[str, Any], **content: Any) -> dict[str, Any]:
     return changed
 
 
+def _ordering(**payload: Any) -> dict[str, Any]:
+    return _with(SORT_IT_OUT, payload={**SORT_IT_OUT["content"]["payload"], **payload})
+
+
 def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
     changed = deepcopy(body)
     del changed["content"][key]
@@ -161,6 +225,40 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(UNBUILT, type="free_text"),
         _with(UNBUILT, random_event="bob"),
         _with(EVENT, extra="field"),
+        _with(SORT_IT_OUT, type="multiple_choice"),
+        _without(QUOTE, "source_url"),
+        _with(QUOTE, source_url="http://example.com/clip"),
+        _with(QUOTE, source_url="ftp://example.com/clip"),
+        _with(QUOTE, source_url=7),
+        _with(QUOTE, wiki="https://example.com/w/Rick"),
+        _with(QUOTE, mode="bestiary"),
+        _with(EVENT, payload={**EVENT["content"]["payload"], "quote": "Said by Bob"}),
+        _with(QUOTE, payload={**QUOTE["content"]["payload"], "quote": ""}),
+        _with(QUOTE, payload={**QUOTE["content"]["payload"], "quote": "x" * 301}),
+        _with(RELEASE_ORDER, type="multiple_choice"),
+        _with(RELEASE_ORDER, type="free_text"),
+        _with(SORT_IT_OUT, mode="bestiary"),
+        _with(SORT_IT_OUT, mode="random_event", random_event="bob"),
+        _with(EVENT, type="ordering", payload=SORT_IT_OUT["content"]["payload"]),
+        _ordering(entries=SORT_IT_OUT["content"]["payload"]["entries"][:2], answer=[0, 1]),
+        _ordering(ends=["Lowest"]),
+        _ordering(prompt=""),
+        # What ``ordering.check`` refuses, as a pack question is.
+        _ordering(answer=[1, 0, 2, 3]),
+        _ordering(
+            entries=[
+                {"text": "Sapphire", "rank": 1},
+                {"text": "Emerald", "rank": 3},
+                {"text": "Ruby", "rank": 4},
+                {"text": "Diamond", "rank": 5},
+            ]
+        ),
+        _ordering(picks=4),
+        _ordering(
+            entries=[
+                {"text": text, "rank": 1} for text in ("Sapphire", "Emerald", "Ruby", "Diamond")
+            ]
+        ),
         _with(EXAMINE, prompt="x" * 301),
         _with(EXAMINE, name="   "),
         _without(EXAMINE, "wiki"),
@@ -176,6 +274,48 @@ def test_what_the_schema_refuses_is_a_422(client: TestClient, body: dict[str, An
     assert response.status_code == 422, response.text
     assert response.json()["code"] == "bad_suggestion"
     assert queue(client)["suggestions"] == []
+
+
+def test_a_sort_it_out_suggestion_is_stored_and_playable(client: TestClient) -> None:
+    tied = [
+        {"text": "Sapphire", "rank": 1},
+        {"text": "Emerald", "rank": 1},
+        {"text": "Ruby", "rank": 2},
+        {"text": "Diamond", "rank": 3},
+    ]
+    for body in (SORT_IT_OUT, _ordering(entries=tied), _ordering(entries=tied, picks=2)):
+        suggest(client, body)
+    rows = queue(client)["suggestions"]
+    assert [row["content"]["payload"].get("picks") for row in rows] == [3, 3, 2]
+    assert all(row["playable"] for row in rows)
+
+
+def test_a_question_needs_a_wiki_page_or_another_source(client: TestClient) -> None:
+    both = _with(QUOTE, wiki=WIKI)
+    for body in (QUOTE, both, _with(EVENT, source_url="https://example.com/clip")):
+        suggest(client, body)
+    rows = queue(client)["suggestions"]
+    assert [(r["content"].get("wiki"), r["content"].get("source_url")) for r in rows] == [
+        (None, QUOTE["content"]["source_url"]),
+        (WIKI, QUOTE["content"]["source_url"]),
+        (WIKI, "https://example.com/clip"),
+    ]
+    assert all(r["playable"] for r in rows)
+
+
+def test_the_form_offers_a_quote_only_to_the_rounds_that_show_one() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    rounds = re.search(r"const QUOTE_ROUNDS = \[([^\]]*)\]", source)
+    assert rounds is not None
+    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(QUOTE_MODES)
+
+
+def test_a_release_order_suggestion_waits_as_not_playable(client: TestClient) -> None:
+    approve(client, suggest(client, RELEASE_ORDER))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == RELEASE_ORDER["content"]
+    assert row["playable"] is False
+    assert export(client)["questions"] == []
 
 
 @pytest.mark.parametrize("credit", ["", "   ", "x" * 25, "Zezima<b>", "名前"])
@@ -198,9 +338,11 @@ def test_html_is_kept_as_typed(client: TestClient) -> None:
 
 def test_the_form_offers_the_modes_the_server_takes() -> None:
     source = client_source.read("lib/suggestions.ts")
-    rounds = re.search(r"const CHOICE_ROUNDS = \[([^\]]*)\]", source)
-    assert rounds is not None
-    offered = set(re.findall(r"'([a-z_]+)'", rounds.group(1))) | {"random_event"}
+    offered = {"random_event"}
+    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS"):
+        rounds = re.search(rf"const {name} = \[([^\]]*)\]", source)
+        assert rounds is not None
+        offered |= set(re.findall(r"'([a-z_]+)'", rounds.group(1)))
     assert offered == set(QUESTION_MODES)
 
 
@@ -286,6 +428,32 @@ def test_export_holds_approved_playable_suggestions_in_creates_format(client: Te
     approved = {row["id"]: row for row in queue(client, "approved")["suggestions"]}
     assert approved[unbuilt]["exported_at"] is None
     assert all(approved[s]["exported_at"] is not None for s in (event, examine, item))
+
+
+def test_a_quote_and_its_source_export_as_they_were_written(client: TestClient) -> None:
+    approve(client, suggest(client, QUOTE))
+    (question,) = export(client)["questions"]
+    assert question == {
+        "type": "multiple_choice",
+        "payload": QUOTE["content"]["payload"],
+        "mode": "who_said_that",
+        "source_url": QUOTE["content"]["source_url"],
+        "credit": "AFKFisher",
+        "credit_shown": False,
+    }
+
+
+def test_a_sort_it_out_suggestion_exports_with_its_ordering(client: TestClient) -> None:
+    approve(client, suggest(client, SORT_IT_OUT))
+    (question,) = export(client)["questions"]
+    assert question == {
+        "type": "ordering",
+        "payload": SORT_IT_OUT["content"]["payload"],
+        "mode": "sort_it_out",
+        "wiki": SORT_IT_OUT["content"]["wiki"],
+        "credit": "AFKFisher",
+        "credit_shown": False,
+    }
 
 
 def test_marking_imported_moves_only_what_was_exported(client: TestClient) -> None:

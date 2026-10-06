@@ -120,7 +120,7 @@ SECONDS: Bounds                       # optional
 | `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering` | hand-written | done, 20 s |
 | `drop_table` | Drop Table | `multiple_choice`, `image` stored for the render | hand-written | done, 20 s |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done, 20 s |
-| `release_order` | Release Order | `ordering` | hand-written | on hold, too few questions |
+| `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done, 20 s |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice` | hand-written | done, 20 s |
@@ -192,6 +192,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Create's editor writes `multiple_choice`, `free_text` and `closest_number` with limits read from
   the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
+- `/suggest` adds an `ordering` form for the rounds that sort: entries first to last and a "tied
+  with the one above" box, so ranks follow and none is skipped, with `picks` optional. Release
+  Order's entries each carry their date as `detail`.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:
 
@@ -558,7 +561,8 @@ key into them, so cleanup leaves it.
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
-  `question` in Create's shape plus `mode` and `wiki`, an `examine` (line, name, wiki) or an `item`
+  `question` in Create's shape plus `mode` and a `wiki` or `source_url`, or both (a `quote` only
+  for the two quote rounds), an `examine` (line, name, wiki) or an `item`
   (a name not on the roster), with a `credit` held to the name rules and `credit_shown`, never
   true for an item. Pending, approved, rejected or imported. A round not built yet takes
   questions; they wait in approved. The client offers the form after a finished game; 10 an hour

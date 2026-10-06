@@ -3,8 +3,9 @@
 A player who has finished a game may suggest one of three kinds of content:
 
 - ``question``: a question for a mode, in the shape Create's editor writes it, plus the
-  mode it is for and the wiki page that proves it. A round not built yet takes them too,
-  so its pack is ready when it opens; such a suggestion waits in the queue until it is.
+  mode it is for and where it was checked: the wiki page, an https ``source_url`` for what
+  the wiki cannot prove, or both. A round not built yet takes them too, so its pack is
+  ready when it opens; such a suggestion waits in the queue until it is.
 - ``examine``: a line for Guess the Examine, the name it belongs to and its wiki page.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
@@ -36,7 +37,6 @@ Status = Literal["pending", "approved", "rejected", "imported"]
 _CHOICE = frozenset({"multiple_choice"})
 # The modes a player may write a question for, and the types its editor offers. An NPC's
 # question is any type a host may write; the rounds still to be built are all four buttons.
-# Sort It Out waits for an ordering editor.
 QUESTION_MODES: dict[str, frozenset[str]] = {
     "random_event": frozenset({"multiple_choice", "free_text", "closest_number"}),
     "bestiary": _CHOICE,
@@ -44,14 +44,20 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
     "know_your_content_creator": _CHOICE,
+    "sort_it_out": frozenset({"ordering"}),
+    "release_order": frozenset({"ordering"}),
 }
+
+# The rounds that show a quotation under the prompt (``multiple_choice.quote``).
+QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
 
 EXAMINE_MODE = "guess_examine"
 EXAMINE_VOCAB = "examines"
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
 
-_QUESTION_KEYS = {"type", "payload", "mode", "wiki"}
+_QUESTION_KEYS = {"type", "payload", "mode"}
+_QUESTION_OPTIONAL = frozenset({"random_event", "wiki", "source_url"})
 _EXAMINE_KEYS = {"name", "prompt", "wiki"}
 _ITEM_KEYS = {"name"}
 
@@ -77,10 +83,10 @@ def question_envelope(content: dict[str, Any]) -> dict[str, Any]:
         "source": "pack",
         "tags": [],
         "payload": content["payload"],
-        "wiki": content["wiki"],
     }
-    if "random_event" in content:
-        envelope["random_event"] = content["random_event"]
+    for key in ("wiki", "source_url", "random_event"):
+        if key in content:
+            envelope[key] = content[key]
     return {"id": schema.content_id(envelope), **envelope}
 
 
@@ -114,9 +120,11 @@ def _keys(
 
 
 def _question_errors(content: dict[str, Any]) -> list[str]:
-    found = _keys(content, _QUESTION_KEYS, frozenset({"random_event"}))
+    found = _keys(content, _QUESTION_KEYS, _QUESTION_OPTIONAL)
     if found:
         return found
+    if not {"wiki", "source_url"} & content.keys():
+        return ["$.wiki: a wiki page, or $.source_url: another https link, to check it against"]
     mode = content["mode"]
     types = QUESTION_MODES.get(mode)
     if types is None:
@@ -125,8 +133,11 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
         return [f"$.type: {content['type']!r} is not offered for {mode!r}"]
     if (mode == "random_event") != ("random_event" in content):
         return ["$.random_event: an NPC's question names its NPC, and only it does"]
-    if not isinstance(content["payload"], dict) or not isinstance(content["wiki"], str):
-        return ["$.payload: an object, and $.wiki: a link"]
+    links = [content[key] for key in ("wiki", "source_url") if key in content]
+    if not isinstance(content["payload"], dict) or not all(isinstance(url, str) for url in links):
+        return ["$.payload: an object, and $.wiki and $.source_url: links"]
+    if "quote" in content["payload"] and mode not in QUOTE_MODES:
+        return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
     envelope = question_envelope(content)
     found = schema.schema_errors(envelope)
     if found:
@@ -299,7 +310,8 @@ def export_entry(kind: str, content: dict[str, Any], credit: str, shown: bool) -
         entry = {"type": content["type"], "payload": content["payload"]}
         if "random_event" in content:
             entry["random_event"] = content["random_event"]
-        entry |= {"mode": content["mode"], "wiki": content["wiki"]}
+        entry["mode"] = content["mode"]
+        entry |= {key: content[key] for key in ("wiki", "source_url") if key in content}
     else:
         entry = dict(content)
     return entry | {"credit": credit, "credit_shown": shown}

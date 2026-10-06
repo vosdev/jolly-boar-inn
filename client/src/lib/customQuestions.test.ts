@@ -139,6 +139,35 @@ describe('the form', () => {
   })
 })
 
+describe('a quotation', () => {
+  const QUOTED: CustomQuestion = {
+    type: 'multiple_choice',
+    payload: {
+      prompt: 'Who said this?',
+      quote: 'Never gonna give you up',
+      options: ['Rick', 'Zezima'],
+      answer_index: 0,
+    },
+  }
+
+  it('is read into the form and written back, trimmed, and left out when empty', () => {
+    expect(draftOf(QUOTED).quote).toBe('Never gonna give you up')
+    expect(questionOf(draftOf(QUOTED))).toEqual(QUOTED)
+    const empty = draftOf(QUOTED)
+    empty.quote = '  '
+    expect(questionOf(empty).payload).not.toHaveProperty('quote')
+  })
+
+  it('is held to the schema’s length', () => {
+    const long = { ...QUOTED, payload: { ...QUOTED.payload, quote: 'x'.repeat(301) } }
+    expect(paths(long)).toEqual(['payload.quote: At most 300 characters; this has 301.'])
+  })
+
+  it('is shown in the preview as the round shows it', () => {
+    expect(previewOf(QUOTED, 'who_said_that').view.quote).toBe('Never gonna give you up')
+  })
+})
+
 describe('export and import', () => {
   it('round-trips to a byte-identical file, the chosen NPCs included', () => {
     const text = exportText([CHOICE, TEXT, NUMBER])
