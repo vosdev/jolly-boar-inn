@@ -23,20 +23,20 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
-                                   fetch-assets, image; CI: release
+                                   edit-roster, fetch-assets, image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/
 data/                              assets, pets, popular-items, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
-                                   suggestions, reports, question_edits
+                                   suggestions, reports, question_edits, roster_edits
 server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
                                    ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
-                                   fetch_assets, validate_packs, check_contrast, smoke_ws, loadtest
+                                   edit_roster, fetch_assets, validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
@@ -44,7 +44,7 @@ client/src/components/questions/   viewFor(type, mode), Question, gem buttons; t
 
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
-`YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports` and `/questions` (the
+`YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
 operator's view, section 10), linked from Home only once this
 browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
@@ -583,6 +583,9 @@ key into them, so cleanup leaves it.
   price modes are left out: `gen-price-questions` would overwrite an edit. Nothing plays from it:
   `/api/admin/question-changes` lists, discards, exports (stamping `exported_at`) and, once
   applied, deletes the exported rows. An edit clears the stamp.
+- `roster_edits` is the same for the price rounds' roster (`app/roster_edits.py`): a rename or a removal
+  per item id, `PUT` and `DELETE /api/admin/roster/{id}`, a name that another item or pending rename
+  has is a 422, and `/api/admin/roster-changes` lists, discards, exports and marks applied.
 
 ## 12. Data pipeline
 
@@ -603,6 +606,9 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
   an id the packs no longer hold, or packs that would not load, writes nothing.
+- `make edit-roster FILE=…` applies an export of roster changes: a rename keeps the item's place, a
+  removal drops it. A change to an id the roster lacks, or packs that would not load, writes nothing.
+  The price pack keeps the old names until the next `gen-price-questions`.
 - Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
   like the random events. No importer fetches wiki facts, so the owner picks every monster and
   question.

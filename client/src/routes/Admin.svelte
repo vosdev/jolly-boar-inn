@@ -1,9 +1,9 @@
 <script lang="ts">
   /**
-   * `/admin`: the operator's view of the instance, in four tabs, each at its own path.
+   * `/admin`: the operator's view of the instance, in five tabs, each at its own path.
    * Overview has the live rooms from the server's memory and the daily counters over a
    * range; Suggestions and Reports are the players' queues, each tab badged with what
-   * waits in it; Questions edits the hand-written packs.
+   * waits in it; Questions edits the hand-written packs and Roster the popular items.
    *
    * It never shows what a room holds: no names, answers or questions. The server never
    * sends them, so there is nothing here to hide. The suggestions, the reported questions
@@ -15,6 +15,7 @@
 
   import HistoryChart from '../components/admin/HistoryChart.svelte'
   import PackQuestions from '../components/admin/PackQuestions.svelte'
+  import RosterItems from '../components/admin/RosterItems.svelte'
   import ReportQueue from '../components/admin/ReportQueue.svelte'
   import SuggestionQueue from '../components/admin/SuggestionQueue.svelte'
   import Segmented from '../components/Segmented.svelte'
@@ -48,6 +49,7 @@
     { tab: 'suggestions', label: 'Suggestions' },
     { tab: 'reports', label: 'Reports' },
     { tab: 'questions', label: 'Questions' },
+    { tab: 'roster', label: 'Roster' },
   ]
 
   const RANGES: { value: Range; label: string }[] = [
@@ -221,6 +223,8 @@
       <ReportQueue {token} onrefused={refuse} />
     {:else if tab === 'questions'}
       <PackQuestions {token} onrefused={refuse} />
+    {:else if tab === 'roster'}
+      <RosterItems {token} onrefused={refuse} />
     {/if}
   {/if}
 

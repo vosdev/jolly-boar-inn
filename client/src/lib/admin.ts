@@ -12,12 +12,13 @@ import { ApiFailure } from './api'
 import { dropStored, readStored, writeStored } from './session'
 import type { QuestionChange, QuestionEdit } from './questionEdits'
 import type { PackQuestion, QueuedReport, ReportStatus } from './reports'
+import type { RosterChange, RosterItem } from './rosterEdits'
 import type { QueuedSuggestion, SuggestionBody, SuggestionStatus } from './suggestions'
 
 const TOKEN_KEY = 'jbi:admin'
 
 /** The admin page's tabs, each at its own path so a reload or a link lands on it. */
-export const ADMIN_TABS = ['overview', 'suggestions', 'reports', 'questions'] as const
+export const ADMIN_TABS = ['overview', 'suggestions', 'reports', 'questions', 'roster'] as const
 export type AdminTab = (typeof ADMIN_TABS)[number]
 
 /** `/admin` is the overview, `/admin/<tab>` any other tab; null for a path that is neither. */
@@ -235,6 +236,40 @@ export function exportQuestionChanges(token: string): Promise<unknown> {
 /** Drop the changes the last download held, once they are applied and committed. */
 export async function markQuestionChangesApplied(token: string): Promise<number> {
   const path = '/api/admin/question-changes/applied'
+  return (await adminRequest<{ applied: number }>(path, token, 'POST', {})).applied
+}
+
+/** The popular items, in the roster's order. */
+export async function getRosterItems(token: string): Promise<RosterItem[]> {
+  return (await adminGet<{ items: RosterItem[] }>('/api/admin/roster', token)).items
+}
+
+/** Queue a rename of a roster item, replacing any change already queued for it. */
+export function renameRosterItem(token: string, id: number, name: string): Promise<RosterChange> {
+  return adminRequest(`/api/admin/roster/${id}`, token, 'PUT', { name })
+}
+
+/** Queue the removal of a roster item. */
+export function removeRosterItem(token: string, id: number): Promise<RosterChange> {
+  return adminRequest(`/api/admin/roster/${id}`, token, 'DELETE', {})
+}
+
+export async function getRosterChanges(token: string): Promise<RosterChange[]> {
+  return (await adminGet<{ changes: RosterChange[] }>('/api/admin/roster-changes', token)).changes
+}
+
+export async function discardRosterChange(token: string, id: number): Promise<void> {
+  await adminRequest(`/api/admin/roster-changes/${id}`, token, 'DELETE', {})
+}
+
+/** The file for `make edit-roster`. Every change it holds is marked exported. */
+export function exportRosterChanges(token: string): Promise<unknown> {
+  return adminRequest('/api/admin/roster-changes/export', token, 'POST', {})
+}
+
+/** Drop the changes the last download held, once they are applied and committed. */
+export async function markRosterChangesApplied(token: string): Promise<number> {
+  const path = '/api/admin/roster-changes/applied'
   return (await adminRequest<{ applied: number }>(path, token, 'POST', {})).applied
 }
 

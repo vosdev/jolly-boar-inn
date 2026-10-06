@@ -105,6 +105,7 @@ describe('the tabs', () => {
   it('reads each tab from its path, the overview from /admin alone', () => {
     expect(adminTabOf('/admin')).toBe('overview')
     expect(adminTabOf('/admin/questions')).toBe('questions')
+    expect(adminTabOf('/admin/roster')).toBe('roster')
     expect(adminTabOf('/admin/overview')).toBeNull()
     expect(adminTabOf('/admin/rooms')).toBeNull()
     expect(adminTabOf('/admin/questions/x')).toBeNull()
