@@ -125,8 +125,8 @@ SECONDS: Bounds                       # optional
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done, 20 s |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice` | hand-written | done, 20 s |
-| `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Phase 3 |
-| `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | not scheduled |
+| `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Images |
+| `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
 
@@ -503,7 +503,7 @@ questions, answers included: players' suggestions and the packs, never a room's.
 - The client keeps sessions and the rooms it created in localStorage, never a cookie, so nothing
   ambient authenticates a request.
 - A second admin is a join plus `promote`. A room whose last admin lost their session stays stuck
-  until Phase 4.
+  until the Production milestone.
 - Sessions are stored as sha256, so a database dump yields none.
 
 Limits:
@@ -522,7 +522,7 @@ Limits:
   host listens on `0.0.0.0` and, where there is IPv6, `::` too.
 - `/ws` checks no `Origin`, because nothing ambient logs a socket in. Add an allow-list with any
   cookie.
-- Display names have no word filter until Phase 4.
+- Display names have no word filter until the Production milestone.
 
 `http/headers.py` sets `Referrer-Policy: no-referrer`, `nosniff`, `X-Frame-Options: DENY`,
 `Cache-Control: no-store` on `/api/*`, and a CSP of `default-src 'none'` widened to `'self'` per

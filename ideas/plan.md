@@ -9,7 +9,7 @@ Run a quiz night for the clan where everyone plays on their laptop or phone, sco
 
 What existing projects do not do: OSRSGuesser, Jingle, GieliGuessr and Scapedle are all singleplayer dailies. Nobody offers a multiplayer room with mixed game modes and live scoring. That is where the value sits: every 30 seconds or so a new question pops up and people click the right answer as quickly as they can, solely OSRS themed.
 
-Out of scope: accounts, teams, a mobile app, i18n. Interface language is English.
+Out of scope: accounts, a mobile app, i18n. Teams are an open idea, the Teams milestone. Interface language is English.
 
 ## Custom room questions
 
@@ -19,7 +19,7 @@ Custom questions are about real people. Keep those rooms unlisted by default, ne
 
 A host keeps at most five rooms at once (#90).
 
-## Community submissions (Phase 6)
+## Community submissions (not scheduled)
 
 Two routes into the same files.
 
@@ -68,18 +68,11 @@ Host at the datacenter, not at home. Not for bandwidth, but because of who gets 
 - Postgres on a PVC with a nightly `pg_dump` to the NAS.
 - Monitoring and alerting before it goes public.
 
-Abuse measures for the public instance (Phase 4): rate limit joins per IP, cap rooms per IP and players per room, and a display-name word filter.
+Abuse measures for the public instance (Production milestone): rate limit joins per IP, cap rooms per IP and players per room, and a display-name word filter.
 
-## Phasing
+## Milestones
 
-Phases 0–2 are the decisions, the core with More or Less, and `ideas/phase2.md`.
-
-Phase 3. Importer for MOID and Bucket. Then Pixel Hunt and Who's That NPC?.
-
-Phase 4. Go public for our own clan. Abuse measures, monitoring, docs, and testing docker-compose on a clean machine.
-
-Phase 5. Go public for some other clans (ask on the OSRS Discord?).
-
-Phase 6. The suggestion page and review flow. Deliberately after going public, because submissions are worthless without players.
-
-Phase 7. Maybe. Minimap geoguessr, then screenshot geoguessr and music.
+The milestones and what each holds are in `ideas/TODO.md`. Images comes before Production because
+pictures add the most personality and Who's That NPC? should be the most fun mode. Going public for
+our own clan comes before opening up to other clans and the suggestion review flow, because
+submissions are worthless without players. Those two have no milestone yet.
