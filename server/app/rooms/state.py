@@ -485,8 +485,8 @@ class RoomQuestion:
         """How many frames the question shows itself in, for ``STEP`` scoring (section 6).
 
         Its type says, so the engine never reads a payload. Pixel Hunt's ``pick_from_list``
-        payloads will be the only ones with any (Phase 3). Every other question is ``None``,
-        which is also what turns ``STEP`` into ``SPEED``.
+        payloads will be the only ones with any (the Images milestone). Every other question is
+        ``None``, which is also what turns ``STEP`` into ``SPEED``.
         """
         return steps_of(self.type, self.payload)
 

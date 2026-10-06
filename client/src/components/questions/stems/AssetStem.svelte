@@ -8,8 +8,8 @@
    * `{name, asset?}`, the schema's `$defs/subject` — and ignores the rest of `data`.
    *
    * `asset` is `item:<id>` or `npc:<id>`, never a URL (architecture section 2), and there
-   * is nothing to resolve it against until Phase 3 ships the renders. Until then the name
-   * is the whole stem, which is the rule's own fallback for a missing image rather than a
+   * is nothing to resolve it against until the Images milestone ships the renders. Until then
+   * the name is the whole stem, which is the rule's own fallback for a missing image rather than a
    * placeholder: the question is answerable from the name, and a grey box would say it is
    * not. The ref still rides on the element so the render has somewhere to go.
    */
