@@ -115,6 +115,9 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
 /** Rounds that show a quotation under the prompt. */
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
+/** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
+export const INTRO_ROUNDS = ['random_event']
+
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
 const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
 /** What a card says to a player thinking of a question, where the round's tagline would not. */

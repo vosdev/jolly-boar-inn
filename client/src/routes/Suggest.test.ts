@@ -196,6 +196,33 @@ describe('Suggest', () => {
     expect(screen.getByLabelText('Another source, if the wiki can’t show it')).toBeTruthy()
   })
 
+  it('offers an intro to an NPC’s question, previews it and sends it, and no picture', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
+    expect(screen.queryByLabelText(/^Picture/)).toBeNull()
+    await fireEvent.change(screen.getByLabelText('Who asks it'), { target: { value: 'bob' } })
+    await type(/^Intro/, 'Pssst, adventurer.')
+    await type('Question', 'Which of these is not a Barrows brother?')
+    await type('Answer 1', 'Dharok')
+    await type('Answer 2', 'Hazelmere')
+    await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
+    await type('Your name', 'AFKFisher')
+    expect(screen.getByText('Pssst, adventurer.', { selector: '.intro' })).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    const sent = vi.mocked(api.sendSuggestion).mock.calls[0]?.[0] as { content: { payload: object } }
+    expect(sent.content.payload).toMatchObject({ intro: 'Pssst, adventurer.' })
+  })
+
+  it('offers no intro or picture to a round’s question', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+    expect(screen.queryByLabelText(/^Intro/)).toBeNull()
+    expect(screen.queryByLabelText(/^Picture/)).toBeNull()
+  })
+
   it('sends both sources when both are given', async () => {
     played()
     render(Suggest, { navigate })
