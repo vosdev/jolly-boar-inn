@@ -55,7 +55,7 @@ describe('the choices', () => {
     expect(sort?.hint).toBe('Something worth putting in order.')
     const release = CHOICES.find((c) => c.id === 'release_order')
     expect(release?.types).toEqual(['ordering'])
-    expect(release?.host).toBe('dunce')
+    expect(release?.host).toBe('aris')
     expect(CHOICES.find((c) => c.id === 'random_event')?.types).toEqual([
       'multiple_choice',
       'free_text',
