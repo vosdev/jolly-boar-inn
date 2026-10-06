@@ -75,7 +75,7 @@ describe('the choices', () => {
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
     const release = CHOICES.find((c) => c.id === 'release_order')
     expect(release?.types).toEqual(['ordering'])
-    expect(release?.host).toBe('aris')
+    expect(release?.host).toBe('dunce')
     expect(CHOICES.find((c) => c.id === 'random_event')?.types).toEqual([
       'multiple_choice',
       'free_text',
