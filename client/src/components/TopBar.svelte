@@ -23,29 +23,20 @@
    *
    * The sign links home. It is the theme's own logo when the selfhoster has one, else their
    * `PUBLIC_SITE_LOGO`, and the bundled sign when there is neither or the file will not
-   * load. A theme is nothing but `data-theme` on <html>, so that is what the sign watches.
-   * The version is in the footer, not here.
+   * load. The version is in the footer, not here.
    */
   import { onMount, type Snippet } from 'svelte'
   import { initial, logo, logos, siteName } from 'virtual:branding'
 
   import { REPO_URL } from '../lib/links'
+  import { watchTheme } from '../lib/theme'
 
   let theme = $state('')
   const sign = $derived(logos[theme] ?? logo)
   // The file that would not load; a theme with another logo still tries its own.
   let broken = $state<string | null>(null)
 
-  onMount(() => {
-    const root = document.documentElement
-    const look = (): void => {
-      theme = root.dataset.theme ?? ''
-    }
-    look()
-    const watcher = new MutationObserver(look)
-    watcher.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
-    return () => watcher.disconnect()
-  })
+  onMount(() => watchTheme((current) => (theme = current)))
 
   let {
     navigate,

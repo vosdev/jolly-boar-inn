@@ -83,6 +83,20 @@ export function applyTheme(theme: Theme): void {
 }
 
 /**
+ * Call `look` with the page's theme now and on every change, for a part that draws per
+ * theme; returns what stops it. A theme is nothing but `data-theme` on <html>, so that
+ * attribute is what this watches.
+ */
+export function watchTheme(look: (theme: string) => void): () => void {
+  const root = document.documentElement
+  const read = (): void => look(root.dataset.theme ?? '')
+  read()
+  const watcher = new MutationObserver(read)
+  watcher.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+  return () => watcher.disconnect()
+}
+
+/**
  * Paint what this browser chose last time. The first thing `main.ts` does.
  *
  * It cannot run any earlier than that: imports are hoisted, so the stylesheet is parsed

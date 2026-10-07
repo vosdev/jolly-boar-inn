@@ -16,9 +16,10 @@ Writes, under ``branding/boar/``:
 * ``boar-logo.svg`` (for 32 to 64px) and ``boar-logo-large.svg`` (detailed), which follow the
   page's theme through ``--boar-*`` custom properties, and ``boar.css`` with every theme's;
 * ``<theme>/``: the same pair with that theme's colours fixed, and PNGs from 32 to 1024px;
-* ``logo.svg``, ``logo-<theme>.svg``, ``apple-touch-icon.png`` and ``og-card.png``, what the
-  app takes from ``PUBLIC_SITE_LOGO=branding/boar/logo.svg``: the sign and tab icon per theme,
-  a phone's home-screen icon, and the card a shared link shows;
+* ``logo.svg``, ``logo-<theme>.svg``, ``hero.svg``, ``hero-<theme>.svg``,
+  ``apple-touch-icon.png`` and ``og-card.png``, what the app takes from
+  ``PUBLIC_SITE_LOGO=branding/boar/logo.svg``: the sign and tab icon per theme, who stands on
+  Home's stage per theme, a phone's home-screen icon, and the card a shared link shows;
 * ``preview.html``: every theme on its own panel and floor.
 
 Adding a theme is one entry in ``THEMES``; a theme ``app.css`` paints without one is reported.
@@ -625,10 +626,12 @@ def main() -> int:
             png = resvg_py.svg_to_bytes(svg_string=svg, width=px, height=px)
             (folder / f"boar-{px}.png").write_bytes(bytes(png))
 
-        if theme is DEFAULT:
-            (OUT / "logo.svg").write_text(svgs["small"])
-        else:
-            (OUT / f"logo-{name}.svg").write_text(svgs["small"])
+        # The board is the sign's: on Home's stage the boar stands on its own.
+        bare = {**theme, "ornament": ""} if theme.get("ornament") == "board" else theme
+        hero = logo.svg("large", f"hero-{name}", custom_properties("svg", bare) + "\n")
+        suffix = "" if theme is DEFAULT else f"-{name}"
+        (OUT / f"logo{suffix}.svg").write_text(svgs["small"])
+        (OUT / f"hero{suffix}.svg").write_text(hero)
 
     (OUT / "apple-touch-icon.png").write_bytes(touch_icon(logo))
     card = share_card(logo)

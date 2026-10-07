@@ -35,6 +35,9 @@ beforeAll(() => {
   writeFileSync(join(root, 'branding/boar/logo-wilderness.png'), 'not the logo’s format')
   writeFileSync(join(root, 'branding/boar/apple-touch-icon.png'), Buffer.from('a touch icon'))
   writeFileSync(join(root, 'branding/boar/og-card.png'), Buffer.from('a card'))
+  writeFileSync(join(root, 'branding/boar/hero.svg'), '<svg>hero</svg>')
+  writeFileSync(join(root, 'branding/boar/hero-tzhaar.svg'), '<svg>tzhaar hero</svg>')
+  writeFileSync(join(root, 'branding/boar/hero-wilderness.png'), 'not the hero’s format')
 })
 
 const BOAR = { PUBLIC_SITE_LOGO: 'branding/boar/logo.svg' }
@@ -56,6 +59,8 @@ describe('readBranding', () => {
         themeLogos: {},
         touchIcon: null,
         card: null,
+        hero: null,
+        themeHeroes: {},
         defaultTheme: '',
         warnings: [],
       })
@@ -70,6 +75,8 @@ describe('readBranding', () => {
       themeLogos: {},
       touchIcon: null,
       card: null,
+      hero: null,
+      themeHeroes: {},
       defaultTheme: 'wilderness',
       warnings: [],
     })
@@ -99,6 +106,12 @@ describe('readBranding', () => {
       type: 'image/png',
     })
     expect(branding.warnings).toEqual([])
+  })
+
+  it('finds the hero beside the logo, and one per theme in the hero’s own format', () => {
+    const branding = readBranding(BOAR, root)
+    expect(branding.hero).toEqual(svgLogo('branding/boar/hero.svg'))
+    expect(branding.themeHeroes).toEqual({ tzhaar: svgLogo('branding/boar/hero-tzhaar.svg') })
   })
 
   it('warns about a theme app.css does not paint, and passes it on for the page to refuse', () => {

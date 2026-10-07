@@ -6,7 +6,9 @@ tab icon: png, svg, webp, gif, jpg or ico. Everything in this folder but this fi
 
 Optional, beside the logo: `logo-<theme>.png` (the logo's own extension) is that theme's sign and
 tab icon instead, `apple-touch-icon.png`, 180px square, is a phone's home-screen icon, and
-`og-card.png`, 1200×630, is the picture a shared link shows on Discord, Reddit or X.
+`og-card.png`, 1200×630, is the picture a shared link shows on Discord, Reddit or X. A
+`hero.<ext>` stands on Home's stage instead of the Wise Old Man, up to 240px square, and
+`hero-<theme>` (the hero's extension) replaces it for that theme.
 
 The docker image copies only this folder into its build, so a logo anywhere else is not found
 there and the bundled sign is used instead.
