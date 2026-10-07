@@ -387,7 +387,8 @@ left. A browser holding the admin token also gets an Admin button.
 
 **Selfhoster branding.** Three build-time env vars, which compose passes as build args:
 `PUBLIC_SITE_NAME` (default *The Jolly Boar Inn*; also the tab title), `PUBLIC_SITE_LOGO` (an image
-in `branding/`, also the tab icon; missing or unloadable, the bundled sign) and `PUBLIC_DEFAULT_THEME`
+in `branding/`, also the tab icon; missing or unloadable, the bundled sign; a `logo-<theme>` beside it
+overrides it per theme) and `PUBLIC_DEFAULT_THEME`
 (a theme id for browsers that never chose; unknown, `jolly`). The GitHub link is not configurable:
 a fork's footer should still point upstream.
 

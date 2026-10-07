@@ -6,6 +6,10 @@ declare module 'virtual:branding' {
   export const initial: string
   /** `PUBLIC_SITE_LOGO` as a URL, or null for the bundled sign. */
   export const logo: string | null
+  /** The logos beside it named for a theme (`logo-tzhaar.svg`), as URLs by theme. */
+  export const logos: Record<string, string>
+  /** Every theme's tab icon. */
+  export const favicons: Record<string, { href: string; type: string }>
   /** `PUBLIC_DEFAULT_THEME` unchecked, `''` when unset; `lib/theme.ts` checks it. */
   export const defaultTheme: string
 }

@@ -3,7 +3,7 @@
  * logo, and the bundled sign back when that logo will not load.
  */
 
-import { fireEvent, render, screen } from '@testing-library/svelte'
+import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getTheme, pickDefault } from '../lib/theme'
@@ -13,6 +13,8 @@ vi.mock('virtual:branding', () => ({
   siteName: 'The Dancing Donkey',
   initial: 'D',
   logo: '/assets/logo-abc123.png',
+  logos: { tzhaar: '/assets/logo-tzhaar-def456.png' },
+  favicons: {},
   defaultTheme: 'wilderness',
 }))
 
@@ -27,6 +29,18 @@ describe('TopBar, branded', () => {
       '/assets/logo-abc123.png',
     )
     expect(document.querySelector('.sign-letter')).toBeNull()
+  })
+
+  it('shows a theme its own logo, and the logo in a theme without one', async () => {
+    const root = document.documentElement
+    root.dataset.theme = 'jolly'
+    render(TopBar, { navigate: vi.fn() })
+    const sign = () => document.querySelector('header img')!.getAttribute('src')
+    expect(sign()).toBe('/assets/logo-abc123.png')
+    root.dataset.theme = 'tzhaar'
+    await waitFor(() => expect(sign()).toBe('/assets/logo-tzhaar-def456.png'))
+    root.dataset.theme = 'wilderness'
+    await waitFor(() => expect(sign()).toBe('/assets/logo-abc123.png'))
   })
 
   it('falls back to the bundled sign when the logo does not load', async () => {

@@ -16,6 +16,9 @@ Writes, under ``branding/boar/``:
 * ``boar-logo.svg`` (for 32 to 64px) and ``boar-logo-large.svg`` (detailed), which follow the
   page's theme through ``--boar-*`` custom properties, and ``boar.css`` with every theme's;
 * ``<theme>/``: the same pair with that theme's colours fixed, and PNGs from 32 to 1024px;
+* ``logo.svg``, ``logo-<theme>.svg`` and ``apple-touch-icon.png``, what the app takes from
+  ``PUBLIC_SITE_LOGO=branding/boar/logo.svg``: the sign and tab icon per theme, and a phone's
+  home-screen icon;
 * ``preview.html``: every theme on its own panel and floor.
 
 Adding a theme is one entry in ``THEMES``; a theme ``app.css`` paints without one is reported.
@@ -43,6 +46,10 @@ APP_CSS = REPO_ROOT / "client" / "src" / "app.css"
 OUT = REPO_ROOT / "branding" / "boar"
 
 PNG_SIZES = (32, 64, 128, 256, 512, 1024)
+# Phones round a home-screen icon's corners and fill what is transparent with black, so it is
+# the board's green to the edge with the boar inset from the corners.
+TOUCH_ICON_SIZE = 180
+TOUCH_ICON_INSET = 0.9
 # The small logo's thicker outline and fewer bands are what survive at a few pixels; the
 # large one's detail only shows from 128px.
 SMALL_UP_TO = 64
@@ -424,6 +431,26 @@ def resolved(svg: str, theme: dict[str, str]) -> str:
     return re.sub(r"var\(--boar-([\w-]+), ([^()]+?)\)", lambda m: found.get(m[1], m[2]), svg)
 
 
+def touch_icon(logo: Logo) -> bytes:
+    """The default theme's boar on its board's colour to every edge, as a PNG."""
+    # The board itself would draw its edge as a frame inside the icon's own.
+    bare = {**DEFAULT, "ornament": ""}
+    inner = resolved(logo.svg("large", "touch", custom_properties("svg", bare) + "\n"), bare)
+    side = 32 * TOUCH_ICON_INSET
+    offset = (32 - side) / 2
+    inner = inner.replace(
+        'viewBox="0 0 32 32"',
+        f'x="{offset}" y="{offset}" width="{side}" height="{side}" viewBox="0 0 32 32"',
+        1,
+    )
+    page = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        f'<rect width="32" height="32" fill="{DEFAULT["board-fill"]}"/>{inner}</svg>'
+    )
+    size = TOUCH_ICON_SIZE
+    return bytes(resvg_py.svg_to_bytes(svg_string=page, width=size, height=size))
+
+
 def painted_themes(css: str) -> list[str]:
     """The themes ``app.css`` paints, by their ``[data-theme='…']`` blocks."""
     return re.findall(r"^\[data-theme='([\w-]+)'\]", css, re.MULTILINE)
@@ -503,6 +530,12 @@ def main() -> int:
             png = resvg_py.svg_to_bytes(svg_string=svg, width=px, height=px)
             (folder / f"boar-{px}.png").write_bytes(bytes(png))
 
+        if theme is DEFAULT:
+            (OUT / "logo.svg").write_text(svgs["small"])
+        else:
+            (OUT / f"logo-{name}.svg").write_text(svgs["small"])
+
+    (OUT / "apple-touch-icon.png").write_bytes(touch_icon(logo))
     print(f"wrote {OUT.relative_to(REPO_ROOT)}/: {', '.join(THEMES)}")
     unpainted = [t for t in painted_themes(css) if t not in THEMES]
     if unpainted:

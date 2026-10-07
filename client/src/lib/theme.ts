@@ -16,7 +16,7 @@
  * accessor tolerates it and the theme simply lasts for the page.
  */
 
-import { defaultTheme } from 'virtual:branding'
+import { defaultTheme, favicons } from 'virtual:branding'
 
 /** Every theme `app.css` defines, in menu order. */
 export const THEMES = ['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar'] as const
@@ -71,9 +71,15 @@ export function setTheme(theme: Theme): void {
   }
 }
 
-/** Paint a theme without storing it. */
+/** Paint a theme without storing it, and put its icon on the tab. */
 export function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme
+  const icon = favicons[theme]
+  const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+  if (icon !== undefined && link !== null) {
+    link.type = icon.type
+    link.href = icon.href
+  }
 }
 
 /**
