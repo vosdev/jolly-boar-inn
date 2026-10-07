@@ -4,6 +4,7 @@
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
+import { tick } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
@@ -88,6 +89,25 @@ describe('pick_all_that_apply', () => {
     await fireEvent.click(gem('Scorpia'))
     expect(gem('Kalphite Queen').disabled).toBe(false)
     expect(submit().disabled).toBe(true)
+  })
+
+  it('shortens the gems only when Submit would sit below the screen', async () => {
+    const bottom = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+    const gems = () => document.querySelector('.gems') as HTMLElement
+    const rect = (y: number) => ({ bottom: y }) as DOMRect
+
+    bottom.mockReturnValue(rect(window.innerHeight - 1))
+    const fits = render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    await tick()
+    expect(gems().classList.contains('compact')).toBe(false)
+    fits.unmount()
+
+    bottom.mockReturnValue(rect(window.innerHeight + 1))
+    render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    await tick()
+    await tick()
+    expect(gems().classList.contains('compact')).toBe(true)
+    bottom.mockRestore()
   })
 
   it('once sent, fades the rest and marks ours, with no boxes and no Submit', () => {
