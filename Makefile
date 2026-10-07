@@ -9,6 +9,8 @@ DEV_COMPOSE := docker compose -p jbi-dev -f docker-compose.dev.yml
 # The data scripts run in a container (docker-compose.data.yml), so a server needs no uv. As
 # the host user, so what they write is yours; --build keeps the image on the current uv.lock.
 DATA := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.data.yml run --rm --build data python
+# `make logo` alone needs OpenCV and NumPy, so it has its own image on top of the data one.
+LOGO := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.data.yml run --rm --build logo python
 
 # Postgres server the test suite creates throwaway databases on. Defaults to the dev
 # database above; override with `make test DATABASE_URL_TEST=...`.
@@ -129,7 +131,7 @@ fetch-assets:
 # The owner's logo, drawn from the art `make fetch-assets ONLY=logo` fetched, into branding/boar/
 # (git-ignored). A selfhoster brings their own logo instead (branding/README.md).
 logo:
-	$(DATA) scripts/build_logo.py
+	$(LOGO) scripts/build_logo.py
 
 # Build the production image, tagged with the version and as latest. Releases themselves are
 # git tags, which CI creates on main when VERSION changes; this is the local image to match.

@@ -38,11 +38,6 @@ COPY server/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
-# ---- Data venv: the app's, plus what `make logo` draws with --------------------
-FROM builder AS data-venv
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --group logo
-
 # ---- Data: the scripts that write into a checkout (docker-compose.data.yml) --
 # Never part of the runtime: that stage does not copy from this one, so `make image` skips it,
 # and runtime must stay last for a plain `docker build`. git is here because a script asks it
@@ -54,13 +49,24 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/* \
     && git config --system --add safe.directory /repo
-COPY --from=data-venv /app/server/.venv /app/server/.venv
+COPY --from=builder /app/server/.venv /app/server/.venv
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     HOME=/tmp \
     PYTHONPATH=/repo/server \
     PATH="/app/server/.venv/bin:$PATH"
 WORKDIR /repo/server
+
+# ---- Logo: the data stage plus what `make logo` draws with ---------------------
+# Its own stage so the data image, which CI and every other script build, stays without
+# OpenCV and NumPy. uv and the lock are mounted, so the logo packages are the only new layer.
+FROM data AS logo
+RUN --mount=from=builder,source=/usr/local/bin/uv,target=/usr/local/bin/uv \
+    --mount=type=bind,source=server/pyproject.toml,target=/app/server/pyproject.toml \
+    --mount=type=bind,source=server/uv.lock,target=/app/server/uv.lock \
+    --mount=type=cache,target=/root/.cache/uv \
+    UV_CACHE_DIR=/root/.cache/uv UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never \
+    uv sync --project /app/server --locked --no-dev --group logo --no-install-project --inexact
 
 # ---- Stage 3: runtime ------------------------------------------------------
 # Same image the uv base is built from, so the venv's interpreter symlink into
