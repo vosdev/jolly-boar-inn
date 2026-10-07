@@ -606,8 +606,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
 
 - The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`, `logo`) run
   them in `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is
-  the builder's venv with the `logo` group, plus git; the runtime never copies it. The repo is
-  mounted, run as the host user.
+  the builder's venv plus git; `logo`, on top, adds the `logo` group for `make logo` alone. The
+  runtime copies neither. The repo is mounted, run as the host user.
 - Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
