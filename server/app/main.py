@@ -282,7 +282,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
         app.include_router(roster.admin_router)
         app.include_router(roster.changes_router)
     app.include_router(ws_handler.router)
-    mount_client(app, client_dist)
+    mount_client(app, client_dist, app.state.settings.public_base_url)
     return app
 
 

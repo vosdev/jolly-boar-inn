@@ -2,8 +2,9 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from app.config import Settings
+from app.config import REPO_ROOT, Settings
 from app.main import create_app
+from app.static import BASE_URL_SLOT
 
 
 def test_index_and_spa_fallback(settings: Settings, dist: Path) -> None:
@@ -52,3 +53,29 @@ def test_head_is_allowed(settings: Settings, dist: Path) -> None:
     with TestClient(create_app(settings, dist)) as client:
         assert client.head("/").status_code == 200
         assert client.head("/assets/index-abc123.js").status_code == 200
+
+
+def test_index_gets_the_base_url_the_share_card_needs(settings: Settings, dist: Path) -> None:
+    """A shared link's image must be absolute, and only the running server knows its address."""
+    assert f"BASE_URL_SLOT = '{BASE_URL_SLOT}'" in (
+        REPO_ROOT / "client" / "site-branding.ts"
+    ).read_text(encoding="utf-8")
+    (dist / "index.html").write_text(
+        f'<!doctype html><meta property="og:image" content="{BASE_URL_SLOT}/og-card.png">'
+    )
+    for base, written in (
+        ("https://quiz.example", "https://quiz.example/og-card.png"),
+        ("https://quiz.example/", "https://quiz.example/og-card.png"),
+        (
+            'https://quiz.example/"><script>',
+            "https://quiz.example/&quot;&gt;&lt;script&gt;/og-card.png",
+        ),
+    ):
+        configured = settings.model_copy(update={"public_base_url": base})
+        with TestClient(create_app(configured, dist)) as client:
+            for path in ("/", "/r/ABYSSAL"):
+                response = client.get(path)
+                assert f'content="{written}"' in response.text, (base, path)
+                assert BASE_URL_SLOT not in response.text
+                assert response.headers["cache-control"] == "no-cache"
+                assert response.headers["content-type"].startswith("text/html")
