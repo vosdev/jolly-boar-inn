@@ -70,7 +70,7 @@ describe("Home", () => {
   it("joins a code typed as two words", async () => {
     render(Home, { navigate });
     await typeCode("Ahrim's Staff");
-    expect(navigate).toHaveBeenCalledWith("/r/AHRIMSSTAFF");
+    expect(navigate).toHaveBeenCalledWith("/r/AHRIMSSTAFF", { via: "code" });
   });
 
   it("says so when what was typed is not a code, and stays put", async () => {
@@ -143,7 +143,7 @@ describe("Home", () => {
       await fireEvent.click(
         within(row).getByRole("button", { name: "Join DRAGON" }),
       );
-      expect(navigate).toHaveBeenCalledWith("/r/DRAGON");
+      expect(navigate).toHaveBeenCalledWith("/r/DRAGON", { via: "public" });
     });
 
     it("names no rounds for a room that keeps them a surprise", async () => {

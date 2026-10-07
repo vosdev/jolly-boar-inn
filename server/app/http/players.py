@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.http.ratelimit import RateLimited, client_key, room_lookup
 from app.http.rooms import client_host, manager
+from app.stats import Arrival, Device, Route, Theme
 
 router = APIRouter(prefix="/api/rooms")
 
@@ -24,6 +25,13 @@ class Join(BaseModel):
     # From the invite link's fragment. ``token_urlsafe(9)`` is 12 characters; the bound
     # only refuses an oversized body before it is compared.
     key: str | None = Field(default=None, max_length=200)
+    theme: Theme | None = None  # as on ``CreateRoom``
+    device: Device | None = None  # as on ``CreateRoom``
+    # How the player got here, which only the browser knows. Counted, never stored.
+    via: Route | None = None
+
+    def arrival(self) -> Arrival:
+        return Arrival(theme=self.theme, device=self.device, via=self.via)
 
 
 class AskToJoin(BaseModel):
@@ -32,6 +40,13 @@ class AskToJoin(BaseModel):
     display_name: str = Field(max_length=200)
     avatar: str | None = Field(default=None, max_length=64, strict=True)
     returning: bool = Field(strict=True)
+    # As on ``Join``, and counted only if an admin lets them in.
+    theme: Theme | None = None
+    device: Device | None = None
+    via: Route | None = None
+
+    def arrival(self) -> Arrival:
+        return Arrival(theme=self.theme, device=self.device, via=self.via)
 
 
 class Ticket(BaseModel):
@@ -63,7 +78,7 @@ def joining(request: Request) -> Iterator[None]:
 async def join(code: str, body: Join, request: Request) -> dict[str, Any]:
     with joining(request):
         player, session = await manager(request).join(
-            code, body.display_name, body.avatar, body.returning, body.key
+            code, body.display_name, body.avatar, body.returning, body.key, body.arrival()
         )
     return {"session": session, "player": player.view()}
 
@@ -77,7 +92,7 @@ async def ask_to_join(code: str, body: AskToJoin, request: Request) -> dict[str,
     """
     with joining(request):
         ticket = await manager(request).request_join(
-            code, body.display_name, body.avatar, body.returning
+            code, body.display_name, body.avatar, body.returning, body.arrival()
         )
     return {"ticket": ticket}
 

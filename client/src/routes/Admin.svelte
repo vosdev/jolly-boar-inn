@@ -13,6 +13,7 @@
    */
   import { onMount, untrack } from 'svelte'
 
+  import BreakdownList from '../components/admin/BreakdownList.svelte'
   import HistoryChart from '../components/admin/HistoryChart.svelte'
   import PackQuestions from '../components/admin/PackQuestions.svelte'
   import RosterItems from '../components/admin/RosterItems.svelte'
@@ -32,9 +33,11 @@
     type AdminTab,
   } from '../lib/admin'
   import type { Count, Live, LiveRoom } from '../lib/admin'
-  import { buckets, modeRanking, utcToday, type Range } from '../lib/adminCharts'
+  import { breakdown, buckets, modeRanking, total, utcToday, type Range } from '../lib/adminCharts'
   import { ApiFailure } from '../lib/api'
+  import { TYPE_LABELS } from '../lib/customQuestions'
   import { MODES } from '../lib/modes'
+  import { THEME_LABELS } from '../lib/theme'
 
   let {
     tab = 'overview',
@@ -51,6 +54,29 @@
     { tab: 'questions', label: 'Questions' },
     { tab: 'roster', label: 'Roster' },
   ]
+
+  const ROUTES: Record<string, string> = {
+    public: 'Public list',
+    invite: 'Invite link',
+    code: 'Code typed on Home',
+    link: 'Link to the room',
+  }
+
+  const FAILURES: Record<string, string> = {
+    not_found: 'Unknown code',
+    name_taken: 'Name taken',
+    room_full: 'Room full',
+    not_joinable: 'Game started or over',
+    bad_key: 'Old invite link',
+    requests_full: 'Too many asking',
+    request_denied: 'Host said no',
+  }
+
+  const DEVICES: Record<string, string> = { mobile: 'Mobile', desktop: 'Desktop' }
+
+  const FREQUENCIES: Record<string, string> = { less: 'Less', default: 'Default', more: 'More' }
+
+  const LENGTHS = ['0-10', '10-20', '20-30', '30-45', '45-60', '60+']
 
   const RANGES: { value: Range; label: string }[] = [
     { value: '30', label: '30 days' },
@@ -77,11 +103,31 @@
   const per = $derived(bars.some((b) => b.days === 7) ? 'week' : 'day')
   const ranking = $derived(modeRanking(counts, range, today))
   const topStarted = $derived(Math.max(1, ...ranking.map((r) => r.started)))
+  const of = (metrics: string[], order?: string[]) => breakdown(counts, range, today, metrics, order)
+  const closes = $derived(
+    of(['questions_all_answered', 'questions_timed_out', 'questions_skipped']),
+  )
+  const routes = $derived(of(['join_routes']))
+  const failures = $derived(of(['join_failures']))
+  const devices = $derived(of(['devices']))
+  const themes = $derived(of(['themes']))
+  const frequencies = $derived(of(['event_frequency']))
+  const customTypes = $derived(of(['custom_questions']))
+  const customGames = $derived(total(counts, range, today, 'games_with_custom'))
+  const lengths = $derived(of(['game_durations'], LENGTHS))
   const connected = $derived(live?.rooms.reduce((n, r) => n + r.connected, 0) ?? 0)
   const players = $derived(live?.rooms.reduce((n, r) => n + r.players, 0) ?? 0)
 
   function modeName(mode: string): string {
     return MODES[mode]?.label ?? mode
+  }
+
+  function named(names: Record<string, string>): (key: string) => string {
+    return (key) => names[key] ?? key
+  }
+
+  function lengthName(key: string): string {
+    return key.endsWith('+') ? `${key} min` : `${key.replace('-', '–')} min`
   }
 
   function roundText(room: LiveRoom): string {
@@ -322,6 +368,63 @@
           {/each}
         </ol>
       {/if}
+      <div class="breakdowns">
+        <BreakdownList
+          title="How questions closed, by mode"
+          rows={closes}
+          label={modeName}
+          parts={[
+            { label: 'everyone answered', tone: 'ok' },
+            { label: 'time ran out', tone: 'warn' },
+            { label: 'skipped', tone: 'muted' },
+          ]}
+        />
+        <BreakdownList
+          title="Finished games by length"
+          rows={lengths}
+          label={lengthName}
+          parts={[{ label: 'games', tone: 'accent' }]}
+        />
+        <BreakdownList
+          title="How players got in"
+          rows={routes}
+          label={named(ROUTES)}
+          parts={[{ label: 'joins', tone: 'accent' }]}
+        />
+        <BreakdownList
+          title="Join failures players saw"
+          rows={failures}
+          label={named(FAILURES)}
+          parts={[{ label: 'failures', tone: 'bad' }]}
+        />
+        <BreakdownList
+          title="Devices, once per browser"
+          rows={devices}
+          label={named(DEVICES)}
+          parts={[{ label: 'browsers', tone: 'accent' }]}
+        />
+        <BreakdownList
+          title="Themes picked, once per browser"
+          rows={themes}
+          label={(key) => THEME_LABELS[key as keyof typeof THEME_LABELS]?.name ?? key}
+          parts={[{ label: 'browsers', tone: 'accent' }]}
+        />
+        <BreakdownList
+          title="Games started by random event frequency"
+          rows={frequencies}
+          label={named(FREQUENCIES)}
+          parts={[{ label: 'games', tone: 'accent' }]}
+        />
+        <BreakdownList
+          title="Hosts' own questions by type"
+          rows={customTypes}
+          label={(key) => TYPE_LABELS[key as keyof typeof TYPE_LABELS] ?? key}
+          parts={[{ label: 'questions', tone: 'accent' }]}
+          note={customGames > 0
+            ? `In ${customGames} ${customGames === 1 ? 'game' : 'games'} started.`
+            : undefined}
+        />
+      </div>
     </section>
   {/if}
 {/if}
@@ -504,6 +607,13 @@
     font-weight: normal;
     color: var(--muted);
     margin: 0 0 0.4rem;
+  }
+
+  .breakdowns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 1.25rem 2rem;
+    margin-top: 1.5rem;
   }
 
   .ranking {

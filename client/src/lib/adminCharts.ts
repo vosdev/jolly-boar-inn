@@ -114,3 +114,53 @@ export function modeRanking(counts: Count[], range: Range, today: string): ModeR
   }
   return [...byMode.values()].sort((a, b) => b.started - a.started || a.mode.localeCompare(b.mode))
 }
+
+/** One key of a breakdown, with a count per metric asked for, in that order. */
+export interface Breakdown {
+  key: string
+  values: number[]
+  total: number
+}
+
+/**
+ * Each key's counts of `metrics` in the range, one value per metric. Biggest total first,
+ * or in `order` when the keys have one of their own, like the game lengths.
+ */
+export function breakdown(
+  counts: Count[],
+  range: Range,
+  today: string,
+  metrics: readonly string[],
+  order?: readonly string[],
+): Breakdown[] {
+  const inRange = new Set(rangeDays(counts, range, today))
+  const byKey = new Map<string, Breakdown>()
+  for (const count of counts) {
+    const at = metrics.indexOf(count.metric)
+    if (at < 0 || !inRange.has(count.day)) continue
+    let row = byKey.get(count.key)
+    if (row === undefined) {
+      row = { key: count.key, values: metrics.map(() => 0), total: 0 }
+      byKey.set(count.key, row)
+    }
+    row.values[at]! += count.count
+    row.total += count.count
+  }
+  const rows = [...byKey.values()]
+  if (order === undefined) {
+    return rows.sort((a, b) => b.total - a.total || a.key.localeCompare(b.key))
+  }
+  const rank = (key: string): number => {
+    const i = order.indexOf(key)
+    return i < 0 ? order.length : i
+  }
+  return rows.sort((a, b) => rank(a.key) - rank(b.key) || a.key.localeCompare(b.key))
+}
+
+/** The sum of `metric` over the range, every key together. */
+export function total(counts: Count[], range: Range, today: string, metric: string): number {
+  const inRange = new Set(rangeDays(counts, range, today))
+  return counts
+    .filter((c) => c.metric === metric && inRange.has(c.day))
+    .reduce((sum, c) => sum + c.count, 0)
+}

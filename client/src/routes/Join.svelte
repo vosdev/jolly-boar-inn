@@ -49,6 +49,7 @@
   import { nameProblem, resuffix } from '../lib/names'
   import { profile, returningVisitor, saveProfile } from '../lib/profile'
   import { setSession } from '../lib/session'
+  import { arrival, counted, failureOf, reportFailure, routeOf, type Arrival } from '../lib/stats'
 
   /** Fresh numbers tried after the first `name_taken`, before giving up. */
   const REROLLS = 3
@@ -75,14 +76,20 @@
   let displayName = $state('')
   let failure = $state<string | null>(null)
   const key = keyFromHash(location.hash)
+  /** Read before anything here replaces the history entry Home left it in. */
+  const via = routeOf(key, history.state)
   /** Why the room wants its link, while it does: `key_required` or `bad_key`. */
   let inviteOnly = $state(false)
   /** The join the room refused for want of its key, which asking the host stands in for. */
   let interrupted: { name: string; remember: boolean } | null = null
   /** A request to the host this page is waiting on, and the name it asked as. */
-  let waiting = $state<{ ticket: string; asked: string; name: string; remember: boolean } | null>(
-    null,
-  )
+  let waiting = $state<{
+    ticket: string
+    asked: string
+    name: string
+    remember: boolean
+    reporting: Arrival
+  } | null>(null)
   let requestProblem = $state<string | null>(null)
   let pollTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -100,6 +107,7 @@
         navigate(historyPath(past))
         return
       }
+      if (error instanceof ApiFailure && error.code === 'not_found') reportFailure('not_found')
       lookupError =
         error instanceof ApiFailure && error.code === 'not_found'
           ? `There is no room ${code}.`
@@ -109,6 +117,7 @@
       return
     }
     if (snapshot.status === 'lobby') await enter()
+    else reportFailure('not_joinable')
   })
 
   /** Straight through with the profile, once. A browser with none is asked for one first. */
@@ -155,12 +164,15 @@
   /** `remember` saves the name as the profile: set for a name typed into the form here. */
   async function join(name: string, remember = false): Promise<void> {
     failure = null
+    const reporting = arrival(via)
     try {
       const credentials = await withFreshNumber(name, (tried) =>
-        joinRoom(code, tried, $profile?.pet, returningVisitor, key),
+        joinRoom(code, tried, $profile?.pet, returningVisitor, key, reporting),
       )
+      counted(reporting)
       land(credentials, remember ? name : null)
     } catch (error) {
+      reportFailure(failureOf(error))
       if (error instanceof ApiFailure && (error.code === 'key_required' || error.code === 'bad_key')) {
         inviteOnly = true
         interrupted = { name, remember }
@@ -185,14 +197,16 @@
     const { name, remember } = interrupted
     requestProblem = null
     let asked = name
+    const reporting = arrival(via)
     try {
       const { ticket } = await withFreshNumber(name, (tried) => {
         asked = tried
-        return askToJoin(code, tried, $profile?.pet, returningVisitor)
+        return askToJoin(code, tried, $profile?.pet, returningVisitor, reporting)
       })
-      waiting = { ticket, asked, name, remember }
+      waiting = { ticket, asked, name, remember, reporting }
       pollTimer = setTimeout(() => void poll(), POLL_MS)
     } catch (error) {
+      reportFailure(failureOf(error))
       requestProblem = requestText(error)
     } finally {
       joiningAs = null
@@ -210,6 +224,7 @@
         return
       }
       waiting = null
+      counted(current.reporting)
       land(answer, current.remember ? current.name : null)
     } catch (error) {
       if (waiting !== current) return
@@ -219,6 +234,7 @@
         return
       }
       waiting = null
+      reportFailure(failureOf(error))
       requestProblem = requestText(error)
     }
   }

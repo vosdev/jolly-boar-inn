@@ -6,8 +6,8 @@
  * 'unsafe-inline', so nothing may write a palette onto an element from JavaScript.
  *
  * The theme is a per-player preference, never a room setting — no protocol message, no
- * server field. A browser that has never chosen gets the selfhoster's
- * `PUBLIC_DEFAULT_THEME`, else `jolly`: nothing here consults `prefers-color-scheme`, so
+ * server field; the counters only hear of one a browser picked (`stats.ts`). A browser
+ * that has never chosen gets the selfhoster's `PUBLIC_DEFAULT_THEME`, else `jolly`: nothing here consults `prefers-color-scheme`, so
  * there is one code path to get right before the first paint and a first-time visitor on
  * a dark phone still sees the inn.
  *
@@ -45,15 +45,20 @@ function isTheme(value: string | null): value is Theme {
   return value !== null && (THEMES as readonly string[]).includes(value)
 }
 
-/** The stored theme, or the default when there is none, it is unreadable, or it is unknown. */
-export function getTheme(): Theme {
+/** The theme this browser picked, or null if it never did or it is unreadable or unknown. */
+export function storedTheme(): Theme | null {
   let stored: string | null = null
   try {
     stored = localStorage.getItem(THEME_KEY)
   } catch {
     // Storage denied. The default is as good an answer as any.
   }
-  return isTheme(stored) ? stored : DEFAULT_THEME
+  return isTheme(stored) ? stored : null
+}
+
+/** The stored theme, or the default when there is none, it is unreadable, or it is unknown. */
+export function getTheme(): Theme {
+  return storedTheme() ?? DEFAULT_THEME
 }
 
 /** Repaint, and remember. Every rule keys off `data-theme`, so this is the whole switch. */

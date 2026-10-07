@@ -23,6 +23,7 @@
   import { petOf } from '../lib/pets'
   import { historyPath, pastGames, placeIn, removePastGame, type PastGame } from '../lib/history'
   import { atRoomLimit } from '../lib/roomLimit'
+  import type { Route } from '../lib/stats'
   import { maySuggest } from '../lib/suggestions'
   import { modeLabel } from '../lib/modes'
   import {
@@ -33,7 +34,7 @@
     normalizeCode,
   } from '../lib/session'
 
-  let { navigate }: { navigate: (to: string) => void } = $props()
+  let { navigate }: { navigate: (to: string, state?: { via: Route }) => void } = $props()
 
   /** The server caches the list for 5 s; twice that keeps a Home left open current. */
   const PUBLIC_REFRESH_MS = 10_000
@@ -119,7 +120,7 @@
   /** Anything the router cannot match would leave Home on screen with no word said. */
   function join(event: SubmitEvent): void {
     event.preventDefault()
-    if (isRoomCode(target)) navigate(`/r/${target}`)
+    if (isRoomCode(target)) navigate(`/r/${target}`, { via: 'code' })
     else codeProblem = 'That is not a room code.'
   }
 
@@ -272,7 +273,7 @@
                 type="button"
                 class="small"
                 aria-label={`Join ${room.code}`}
-                onclick={() => navigate(`/r/${room.code}`)}
+                onclick={() => navigate(`/r/${room.code}`, { via: 'public' })}
               >
                 Join
               </button>

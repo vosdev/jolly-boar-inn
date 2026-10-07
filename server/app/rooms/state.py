@@ -60,6 +60,7 @@ import re
 import secrets
 import time
 import unicodedata
+from collections import Counter
 from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Iterable, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -80,7 +81,7 @@ from app.questions.types import TYPES, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from app.rooms import codes, ready, scoring, segments, selection
 from app.rooms.settings import RoomSettings
-from app.stats import Metric, bump, joined
+from app.stats import UNREPORTED, Arrival, Metric, bump, duration_bucket, joined
 from app.ws.outbox import Outbox
 from app.ws.protocol import (
     AnswerCount,
@@ -378,6 +379,7 @@ class JoinRequest:
     display_name: str
     avatar: str | None
     returning: bool
+    arrival: Arrival
     asked_at: float  # on the manager's monotonic clock
     # ``None`` while waiting, then the admin's answer, which the next poll acts on.
     accepted: bool | None = None
@@ -1271,6 +1273,7 @@ class RoomManager:
         returning: bool = False,
         invite_only: bool = False,
         public: bool = False,
+        arrival: Arrival = UNREPORTED,
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
 
@@ -1350,7 +1353,7 @@ class RoomManager:
             )
             assert player_row is not None
             await bump(conn, Metric.ROOMS_CREATED)
-            await joined(conn, returning)
+            await joined(conn, returning, arrival)
             await conn.executemany(
                 "insert into questions (room_id, position, question_id, type, mode, source,"
                 " payload, host_only, round, random_event, author_player_id)"
@@ -1381,6 +1384,7 @@ class RoomManager:
         avatar: str | None = None,
         returning: bool = False,
         key: str | None = None,
+        arrival: Arrival = UNREPORTED,
     ) -> tuple[Player, str]:
         """Add a player to a room in its lobby. Returns the player and their session token, once.
 
@@ -1395,13 +1399,13 @@ class RoomManager:
             room = await self._room(code)
             _check_key(room, key)
             _check_joinable(room)
-            player, session = await self._admit(room, name, avatar, returning)
+            player, session = await self._admit(room, name, avatar, returning, arrival)
             update = self._room_updated(room)
         self._broadcast(update)
         return player, session
 
     async def _admit(
-        self, room: Room, name: str, avatar: str | None, returning: bool
+        self, room: Room, name: str, avatar: str | None, returning: bool, arrival: Arrival
     ) -> tuple[Player, str]:
         """Insert a player into a lobby with room for them. Call with the room lock held."""
         avatar = self._pet_for(avatar, _pets_worn(room))
@@ -1420,14 +1424,19 @@ class RoomManager:
                 )
             except asyncpg.UniqueViolationError:
                 raise NameTaken(f"the name {name!r} is taken in room {room.code}") from None
-            await joined(conn, returning)
+            await joined(conn, returning, arrival)
         assert row is not None
         player = _player_from_row(row)
         room.players[player.id] = player
         return player, session
 
     async def request_join(
-        self, code: str, display_name: str, avatar: str | None = None, returning: bool = False
+        self,
+        code: str,
+        display_name: str,
+        avatar: str | None = None,
+        returning: bool = False,
+        arrival: Arrival = UNREPORTED,
     ) -> str:
         """Ask an invite-only room's admins to let ``display_name`` in. Returns the ticket, once.
 
@@ -1456,6 +1465,7 @@ class RoomManager:
                 display_name=name,
                 avatar=self._pet_for(avatar, _pets_worn(room)),
                 returning=returning,
+                arrival=arrival,
                 asked_at=self.clock(),
             )
             room.requests[request.ticket_hash] = request
@@ -1487,7 +1497,7 @@ class RoomManager:
                 raise RequestDenied("the host did not let you in")
             _check_seat(room)
             admitted = await self._admit(
-                room, request.display_name, request.avatar, request.returning
+                room, request.display_name, request.avatar, request.returning, request.arrival
             )
             update = self._room_updated(room)
         self._broadcast(update)
@@ -1723,7 +1733,7 @@ class RoomManager:
                     room.id,
                     expires_at,
                 )
-                await bump(conn, Metric.GAMES_STARTED)
+                await _count_game_started(conn, room)
             room.status = "playing"
             room.expires_at = expires_at
             room.current_index = 0
@@ -2182,6 +2192,7 @@ class RoomManager:
             if room.phase != "open" or room.current is not question:
                 return None
             closed_at, now = datetime.now(UTC), self.clock()
+            closed_by = _closed_by(room, question)
             module = TYPES[question.type]
             # Everything in ``answers`` passed ``can_answer`` on the way in, so grading
             # never has to re-check the exclusions.
@@ -2203,6 +2214,7 @@ class RoomManager:
                     "update questions set closed_at = $1 where id = $2", closed_at, question.id
                 )
                 await _count_round_finished(conn, room, question.position)
+                await bump(conn, closed_by, question.mode)
                 if graded:
                     await conn.executemany(
                         "update answers set correct = $1, points = $2"
@@ -2270,6 +2282,11 @@ class RoomManager:
                     finished_at,
                 )
                 await bump(conn, Metric.GAMES_FINISHED)
+                started_at = room.questions[0].shown_at
+                if started_at is not None:
+                    await bump(
+                        conn, Metric.GAME_DURATIONS, duration_bucket(finished_at - started_at)
+                    )
             broadcasts = self._finish(room, finished_at)
         for broadcast in broadcasts:
             self._broadcast(broadcast)
@@ -2447,6 +2464,31 @@ def _round_under_way(room: Room) -> Segment | None:
     first = room.questions[segment.start]
     last = room.questions[segment.start + segment.count - 1]
     return segment if first.shown_at is not None and last.closed_at is None else None
+
+
+async def _count_game_started(conn: asyncpg.Connection, room: Room) -> None:
+    """Count a game starting, with its event frequency and the host's own questions."""
+    await bump(conn, Metric.GAMES_STARTED)
+    if room.settings.random_event_frequency is not None:
+        await bump(conn, Metric.EVENT_FREQUENCY, room.settings.random_event_frequency)
+    own = Counter(q.type for q in room.questions if q.source == "room")
+    for type_, n in own.items():
+        await bump(conn, Metric.CUSTOM_QUESTIONS, type_, n)
+    if own:
+        await bump(conn, Metric.GAMES_WITH_CUSTOM)
+
+
+def _closed_by(room: Room, question: RoomQuestion) -> Metric:
+    """Why the open question is closing now. Lock held.
+
+    Only a skip and everyone having answered wake the timer early, so a wake with everyone
+    answered is theirs even when a skip landed in the same moment.
+    """
+    if not room.advance.is_set():
+        return Metric.QUESTIONS_TIMED_OUT
+    if room.settings.close_when_all_answered and _everyone_answered(room, question):
+        return Metric.QUESTIONS_ALL_ANSWERED
+    return Metric.QUESTIONS_SKIPPED
 
 
 async def _count_round_finished(conn: asyncpg.Connection, room: Room, position: int) -> None:

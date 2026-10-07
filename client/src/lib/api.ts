@@ -14,6 +14,7 @@
 import type { CustomQuestion } from './customQuestions'
 import type { EventFrequency, PlayerView, RoomSettings, RoomView } from './protocol'
 import type { ReportBody, ReportChoices } from './reports'
+import type { Arrival } from './stats'
 import type { SuggestionBody } from './suggestions'
 
 export class ApiFailure extends Error {
@@ -143,6 +144,8 @@ export type RoomAccess = 'code' | 'link' | 'public'
  * `avatar` is the profile's pet; undefined, the room picks one.
  * `returning` is `returningVisitor`, counted by the server and never stored.
  * `customQuestions` are the host's own, each a random event (`lib/customQuestions.ts`).
+ * `arrival` is for the counters (`lib/stats.ts`), and never has a `via`: nobody arrives at
+ * a room they made.
  */
 export function createRoom(
   displayName: string,
@@ -151,6 +154,7 @@ export function createRoom(
   returning: boolean,
   access: RoomAccess = 'code',
   customQuestions: readonly CustomQuestion[] = [],
+  arrival: Omit<Arrival, 'via'> = {},
 ): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
@@ -162,6 +166,7 @@ export function createRoom(
       public: access === 'public',
       settings,
       custom_questions: customQuestions,
+      ...arrival,
     }),
   })
 }
@@ -173,26 +178,29 @@ export function joinRoom(
   avatar: string | undefined,
   returning: boolean,
   key: string | null = null,
+  arrival: Arrival = {},
 ): Promise<Credentials> {
   return request<Credentials>(`/api/rooms/${encodeURIComponent(code)}/join`, {
     method: 'POST',
-    body: JSON.stringify({ display_name: displayName, avatar, returning, key }),
+    body: JSON.stringify({ display_name: displayName, avatar, returning, key, ...arrival }),
   })
 }
 
 /**
  * Ask an invite-only room's host to let you in without its key. The ticket answers to
- * `pollRequest` and `cancelRequest`, in their bodies only, like a session.
+ * `pollRequest` and `cancelRequest`, in their bodies only, like a session. `arrival` is
+ * counted only if the host lets you in.
  */
 export function askToJoin(
   code: string,
   displayName: string,
   avatar: string | undefined,
   returning: boolean,
+  arrival: Arrival = {},
 ): Promise<{ ticket: string }> {
   return request<{ ticket: string }>(`/api/rooms/${encodeURIComponent(code)}/requests`, {
     method: 'POST',
-    body: JSON.stringify({ display_name: displayName, avatar, returning }),
+    body: JSON.stringify({ display_name: displayName, avatar, returning, ...arrival }),
   })
 }
 

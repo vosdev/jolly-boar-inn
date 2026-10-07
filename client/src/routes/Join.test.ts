@@ -14,6 +14,7 @@ import { savePastGame } from '../lib/history'
 import { nameProblem } from '../lib/names'
 import { profile } from '../lib/profile'
 import { getSession } from '../lib/session'
+import { arrival } from '../lib/stats'
 import Join from './Join.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
@@ -36,6 +37,13 @@ const CREDENTIALS: api.Credentials = {
 const taken = () => new ApiFailure(409, 'name_taken', 'that name is taken')
 
 const joinedAs = () => vi.mocked(api.joinRoom).mock.calls.map(([, name]) => name)
+/** What a browser on a desktop, with no theme picked, sends the first time. */
+const FIRST_ARRIVAL = { device: 'desktop', via: 'link' }
+
+const reportFetch = vi.fn<typeof fetch>()
+/** Every join failure reported to the counters, in order. */
+const reported = () =>
+  reportFetch.mock.calls.map(([, init]) => JSON.parse(String(init?.body)).reason as string)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -44,6 +52,12 @@ beforeEach(() => {
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 2 })
   vi.mocked(api.joinRoom).mockResolvedValue(CREDENTIALS)
   history.replaceState(null, '', '/r/ABYSSAL')
+  reportFetch.mockResolvedValue(new Response(null, { status: 204 }))
+  vi.stubGlobal('fetch', reportFetch)
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
 })
 
 describe('Join', () => {
@@ -59,7 +73,7 @@ describe('Join', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(api.joinRoom).toHaveBeenCalledTimes(1)
-    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 'aggy', false, null)
+    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 'aggy', false, null, FIRST_ARRIVAL)
     expect(getSession('ABYSSAL')).toBe('token')
   })
 
@@ -93,7 +107,14 @@ describe('Join', () => {
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     const made = get(profile)
     expect(made?.name).toBe('Zezima')
-    expect(vi.mocked(api.joinRoom).mock.calls[0]).toEqual(['ABYSSAL', 'Zezima', made?.pet, false, null])
+    expect(vi.mocked(api.joinRoom).mock.calls[0]).toEqual([
+      'ABYSSAL',
+      'Zezima',
+      made?.pet,
+      false,
+      null,
+      FIRST_ARRIVAL,
+    ])
     expect(document.querySelector('dialog')).toBeNull()
   })
 
@@ -226,7 +247,7 @@ describe('Asking the host to let you in', () => {
       .mockResolvedValueOnce({ status: 'waiting' })
       .mockResolvedValueOnce({ status: 'accepted', ...CREDENTIALS })
     await asked()
-    expect(api.askToJoin).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 'aggy', false)
+    expect(api.askToJoin).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 'aggy', false, FIRST_ARRIVAL)
     await vi.advanceTimersByTimeAsync(2000)
     expect(api.pollRequest).toHaveBeenCalledWith('ABYSSAL', 'ticket')
     expect(navigate).not.toHaveBeenCalled()
@@ -321,5 +342,134 @@ describe('Join for a room that is gone', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await screen.findByText('There is no room ABYSSAL.')
     expect(navigate).not.toHaveBeenCalled()
+  })
+})
+
+describe('What a join tells the counters', () => {
+  const arrivalSent = () => vi.mocked(api.joinRoom).mock.calls[0]![5]
+
+  it.each([
+    [{ via: 'code' }, '/r/ABYSSAL', 'code'],
+    [{ via: 'public' }, '/r/ABYSSAL', 'public'],
+    [null, '/r/ABYSSAL', 'link'],
+    [{ via: 'code' }, '/r/ABYSSAL#k=abc', 'invite'],
+  ])('says it came by %o to %s as %s', async (state, path, via) => {
+    history.replaceState(state, '', path)
+    render(Join, { code: 'ABYSSAL', navigate })
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(arrivalSent()?.via).toBe(via)
+  })
+
+  it('sends a picked theme and the device once per browser, after a join that counted them', async () => {
+    localStorage.setItem('jbi:theme', 'tzhaar')
+    vi.mocked(api.joinRoom).mockRejectedValueOnce(new ApiFailure(409, 'room_full', 'full'))
+    const first = render(Join, { code: 'ABYSSAL', navigate })
+    await screen.findByText('full')
+    first.unmount()
+    render(Join, { code: 'ABYSSAL', navigate })
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    const sent = vi.mocked(api.joinRoom).mock.calls.map((call) => call[5])
+    expect(sent).toEqual([
+      { theme: 'tzhaar', device: 'desktop', via: 'link' },
+      { theme: 'tzhaar', device: 'desktop', via: 'link' },
+    ])
+    expect(arrival('link')).toEqual({ via: 'link' })
+    localStorage.setItem('jbi:theme', 'jolly')
+    expect(arrival('link')).toEqual({ theme: 'jolly', via: 'link' })
+  })
+
+  it('reports a code nobody has, but not one it kept a past game for', async () => {
+    vi.mocked(api.getRoom).mockRejectedValue(new ApiFailure(404, 'not_found', 'no room'))
+    const first = render(Join, { code: 'ABYSSAL', navigate })
+    await screen.findByText('There is no room ABYSSAL.')
+    expect(reported()).toEqual(['not_found'])
+    first.unmount()
+    savePastGame({
+      code: 'ABYSSAL',
+      finishedAt: '2026-10-01T20:05:00Z',
+      standings: [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1 }],
+      youId: 'a',
+    })
+    render(Join, { code: 'ABYSSAL', navigate })
+    await waitFor(() => expect(navigate).toHaveBeenCalled())
+    expect(reported()).toEqual(['not_found'])
+  })
+
+  it('reports a game that already started', async () => {
+    vi.mocked(api.getRoom).mockResolvedValue({ status: 'playing', players: 4 })
+    render(Join, { code: 'ABYSSAL', navigate })
+    await screen.findByText('This game has already started.')
+    expect(reported()).toEqual(['not_joinable'])
+  })
+
+  it('reports a taken name once, when it gives up turning the number over', async () => {
+    vi.mocked(api.joinRoom).mockRejectedValue(taken())
+    render(Join, { code: 'ABYSSAL', navigate })
+    await screen.findByText('that name is taken')
+    expect(joinedAs()).toHaveLength(4)
+    expect(reported()).toEqual(['name_taken'])
+  })
+
+  it('reports nothing for a name it got past', async () => {
+    vi.mocked(api.joinRoom).mockRejectedValueOnce(taken()).mockResolvedValueOnce(CREDENTIALS)
+    render(Join, { code: 'ABYSSAL', navigate })
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(reported()).toEqual([])
+  })
+
+  it.each([
+    ['room_full', 409, ['room_full']],
+    ['not_open', 409, ['not_joinable']],
+    ['bad_key', 403, ['bad_key']],
+    ['key_required', 403, []],
+  ])('reports a join refused with %s as what the player saw', async (code, status, expected) => {
+    vi.mocked(api.joinRoom).mockRejectedValue(new ApiFailure(status, code, 'refused'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await screen.findByRole(code.includes('key') ? 'button' : 'textbox')
+    expect(reported()).toEqual(expected)
+  })
+})
+
+describe('What a join request tells the counters', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.mocked(api.joinRoom).mockRejectedValue(new ApiFailure(403, 'key_required', 'refused'))
+    vi.mocked(api.askToJoin).mockResolvedValue({ ticket: 'ticket' })
+    vi.mocked(api.cancelRequest).mockResolvedValue(undefined)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  async function askThenHear(answer: () => Promise<api.RequestStatus>): Promise<void> {
+    vi.mocked(api.pollRequest).mockImplementationOnce(answer)
+    render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: 'Ask the host to let you in' }))
+    await screen.findByText('Waiting for the host to let you in as Zezima…')
+    await vi.advanceTimersByTimeAsync(2000)
+  }
+
+  it('remembers the device as counted once the host lets them in', async () => {
+    await askThenHear(async () => ({ status: 'accepted', ...CREDENTIALS }))
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
+    expect(arrival()).toEqual({})
+  })
+
+  it('reports a host saying no, and still counts the device as unsent', async () => {
+    await askThenHear(async () => {
+      throw new ApiFailure(403, 'request_denied', 'no')
+    })
+    await screen.findByText("The host didn't let you in.")
+    expect(reported()).toEqual(['request_denied'])
+    expect(arrival()).toEqual({ device: 'desktop' })
+  })
+
+  it('reports a full queue', async () => {
+    vi.mocked(api.askToJoin).mockRejectedValueOnce(new ApiFailure(409, 'requests_full', 'full'))
+    render(Join, { code: 'ABYSSAL', navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: 'Ask the host to let you in' }))
+    await screen.findByText('Too many people are waiting to be let in. Try again in a minute.')
+    expect(reported()).toEqual(['requests_full'])
   })
 })

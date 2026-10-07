@@ -1,7 +1,7 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Five of them: room creation, joins, suggestions, reports, and lookups of rooms that turn out not to
-exist.
+Six of them: room creation, joins, join failures reported, suggestions, reports, and lookups of
+rooms that turn out not to exist.
 The last is what keeps the room list private. The live codes are a few of a few hundred
 words, and every request that names a room answers whether it exists, so an address
 that keeps asking for rooms that are not there is scanning and is refused for a while.
@@ -22,6 +22,8 @@ LOOKUP_WINDOW = timedelta(minutes=10)
 # High enough for a pub on one address, with every player's name clash retried; low
 # enough that a kicked player's script cannot keep coming back all evening.
 JOINS_PER_HOUR = 100
+# A player who keeps missing reports a few; a script inflating the counter stops quickly.
+JOIN_FAILURES_PER_HOUR = 30
 # Plenty for a player with a notebook of ideas; a script filling the queue stops quickly.
 SUGGESTIONS_PER_HOUR = 10
 # A player reports what they just met in a game, a question or two; not a review of the packs.

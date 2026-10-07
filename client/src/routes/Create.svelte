@@ -52,6 +52,7 @@
   import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
   import { rememberCreated, setSession } from '../lib/session'
+  import { arrival, counted } from '../lib/stats'
 
   /** The server's cap on a room, over every round. `NewRoomSettings` checks the same. */
   const MAX_QUESTIONS = 100
@@ -220,6 +221,7 @@
       hide_rounds: hideRounds,
     }
     try {
+      const reporting = arrival()
       const created = await createRoom(
         host.name,
         settings,
@@ -227,7 +229,9 @@
         returningVisitor,
         access,
         customQuestions,
+        reporting,
       )
+      counted(reporting)
       setSession(created.code, created.session)
       rememberCreated(created.code, created.expires_at)
       navigate(`/r/${created.code}`)

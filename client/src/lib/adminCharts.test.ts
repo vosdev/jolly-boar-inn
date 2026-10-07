@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Count } from './admin'
-import { buckets, modeRanking, rangeDays } from './adminCharts'
+import { breakdown, buckets, modeRanking, rangeDays, total } from './adminCharts'
 
 const TODAY = '2026-10-01'
 
@@ -68,5 +68,46 @@ describe('modeRanking', () => {
       { mode: 'more_less', started: 2, finished: 1 },
     ])
     expect(modeRanking(counts, 'all', TODAY)[0]).toEqual({ mode: 'more_less', started: 101, finished: 1 })
+  })
+})
+
+describe('breakdown', () => {
+  const closes = ['questions_all_answered', 'questions_timed_out', 'questions_skipped']
+
+  it('splits each key by metric over the range, biggest first', () => {
+    const counts = [
+      count('2026-09-30', 'questions_all_answered', 4, 'more_less'),
+      count('2026-10-01', 'questions_timed_out', 1, 'more_less'),
+      count('2026-10-01', 'questions_skipped', 6, 'guess_examine'),
+      count('2026-10-01', 'questions_timed_out', 3, 'guess_examine'),
+      count('2026-10-01', 'rounds_started', 9, 'guess_examine'),
+      count('2026-06-01', 'questions_all_answered', 50, 'odd_one_out'),
+    ]
+    expect(breakdown(counts, '30', TODAY, closes)).toEqual([
+      { key: 'guess_examine', values: [0, 3, 6], total: 9 },
+      { key: 'more_less', values: [4, 1, 0], total: 5 },
+    ])
+  })
+
+  it('keeps an order of its own when it is given one', () => {
+    const counts = [
+      count('2026-10-01', 'game_durations', 9, '10-20'),
+      count('2026-10-01', 'game_durations', 1, '60+'),
+      count('2026-10-01', 'game_durations', 2, '0-10'),
+    ]
+    const keys = breakdown(counts, '30', TODAY, ['game_durations'], ['0-10', '10-20', '60+'])
+    expect(keys.map((row) => row.key)).toEqual(['0-10', '10-20', '60+'])
+  })
+})
+
+describe('total', () => {
+  it('sums one metric over the range, every key together', () => {
+    const counts = [
+      count('2026-10-01', 'games_with_custom', 2),
+      count('2026-09-30', 'games_with_custom', 1),
+      count('2026-06-01', 'games_with_custom', 7),
+      count('2026-10-01', 'custom_questions', 5, 'free_text'),
+    ]
+    expect(total(counts, '30', TODAY, 'games_with_custom')).toBe(3)
   })
 })

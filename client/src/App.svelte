@@ -83,8 +83,9 @@
       route.name === 'suggest',
   )
 
-  function navigate(to: string): void {
-    if (to !== location.pathname) history.pushState(null, '', to)
+  /** `state` rides along in `history.state`, for the screen at `to` to read. */
+  function navigate(to: string, state: unknown = null): void {
+    if (to !== location.pathname) history.pushState(state, '', to)
     route = resolve(currentPath())
   }
 

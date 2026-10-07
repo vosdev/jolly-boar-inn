@@ -468,7 +468,7 @@ away. Both return chosen fields only, never a name, an answer or a question. Onl
 suggestion and report queues, `/api/admin/questions` and its pending changes (section 11) return
 questions, answers included: players' suggestions and the packs, never a room's.
 
-`POST /api/rooms {display_name, avatar?, returning, invite_only?, public?, settings, custom_questions}`, in one transaction:
+`POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, settings, custom_questions}`, in one transaction:
 
 1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
    spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
@@ -480,13 +480,13 @@ questions, answers included: players' suggestions and the packs, never a room's.
 5. Return `201 {code, session, player, expires_at}`. The plain session is returned once and never
    logged. Any failure rolls everything back.
 
-- Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning, key?}` → `{session, player}`.
+- Join is `POST /api/rooms/{code}/join {display_name, avatar?, returning, key?, theme?, device?, via?}` → `{session, player}`.
 - Create's `invite_only` gives the room a key, `secrets.token_urlsafe(9)` in `rooms.invite_key`.
   A join then needs it before anything else is checked: 403 `key_required` or `bad_key`, compared
   with `hmac.compare_digest`. It is a door code, not a credential, so it travels in the link's
   fragment, `/r/CODE#k=…`; Join moves it to the body and `replaceState`s it away. Sessions never
   need it. Rotating it is the room lock; there is no other.
-- Without the key, `POST /api/rooms/{code}/requests {display_name, avatar?, returning}` asks the
+- Without the key, `POST /api/rooms/{code}/requests {display_name, avatar?, returning, theme?, device?, via?}` asks the
   admins instead → `201 {ticket}`, charged as a join and refused for what would refuse one. A
   request is memory only, at most 5 a room (409 `requests_full`), and its name is taken like a
   player's. The ticket travels like a session: `.../requests/poll {ticket}` answers `waiting`, or
@@ -499,7 +499,11 @@ questions, answers included: players' suggestions and the packs, never a room's.
   and a free seat, as `{code, host: {id, display_name, avatar}, players, max_players, rounds,
   modes?}`, `modes` left out with `hide_rounds`. Every caller shares one copy for 5 s.
   `PUBLIC_ROOMS=false` makes it `[]`.
-- `returning` says the browser had a `jbi:profile` when the page loaded. It is counted, never stored.
+- `returning` says the browser had a `jbi:profile` when the page loaded. It, `theme` (a picked one
+  only), `device` (`mobile` for a coarse pointer, else `desktop`) and `via` (`public`, `invite`,
+  `code` typed on Home, or a plain `link`) are counted, never stored; a request's only once let in.
+  The browser sends `theme` and `device` only when they differ from what it last had counted
+  (`client/src/lib/stats.ts`), so each counts once per browser.
 - The client keeps sessions and the rooms it created in localStorage, never a cookie, so nothing
   ambient authenticates a request.
 - A second admin is a join plus `promote`. A room whose last admin lost their session stays stuck
@@ -548,8 +552,14 @@ key into them, so cleanup leaves it.
 
 - `daily_stats (day, metric, key, count)` counts per UTC day, in the transaction of the event
   counted (`app/stats.py` names the metrics). Games and rounds (keyed by mode) are started, then
-  ended early or finished, or abandoned when their room is deleted or expires under them. No IP,
-  name, room code or player id ever goes in it.
+  ended early or finished, or abandoned when their room is deleted or expires under them. A game
+  start also counts its event frequency and the host's questions by type; a finished game its
+  length bucket, from its first question opening; a close, by the question's mode, whether
+  everyone answered, time ran out or it was skipped. No IP, name, room code or player id ever
+  goes in it, and every key comes from a fixed set.
+- Only the browser knows which join failures its player saw (it retries a taken name, and a
+  missing room may be a Past games link), so it reports each to `POST /api/stats/join-failure
+  {reason}`, 30 an hour per address, and the server counts no failure itself.
 
 - `answers.points` is written once, at close, and standings are its sum. Memory keeps the same sum
   and reloads it on rehydrate. Scores are never tracked separately.

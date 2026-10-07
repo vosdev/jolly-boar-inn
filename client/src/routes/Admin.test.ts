@@ -41,6 +41,14 @@ const COUNTS: Count[] = [
   { day: today, metric: 'rounds_started', key: 'guess_examine', count: 6 },
   { day: today, metric: 'rounds_finished', key: 'guess_examine', count: 5 },
   { day: today, metric: 'rounds_started', key: 'more_less', count: 2 },
+  { day: today, metric: 'questions_all_answered', key: 'more_less', count: 7 },
+  { day: today, metric: 'questions_skipped', key: 'more_less', count: 1 },
+  { day: today, metric: 'join_failures', key: 'not_found', count: 3 },
+  { day: today, metric: 'themes', key: 'tzhaar', count: 2 },
+  { day: today, metric: 'game_durations', key: '60+', count: 1 },
+  { day: today, metric: 'game_durations', key: '10-20', count: 2 },
+  { day: today, metric: 'custom_questions', key: 'free_text', count: 4 },
+  { day: today, metric: 'games_with_custom', key: '', count: 1 },
 ]
 
 function serve(status = 200): ReturnType<typeof vi.fn> {
@@ -102,6 +110,24 @@ describe('Admin', () => {
     expect(screen.getByRole('img', { name: /4 finished/ })).toBeTruthy()
     const modes = [...document.querySelectorAll('.ranking .mode')].map((m) => m.textContent)
     expect(modes).toEqual(['Guess the Examine', 'More or Less'])
+  })
+
+  it('breaks the new counters down, each under its own name', async () => {
+    serve()
+    render(Admin)
+    await screen.findByText('How questions closed, by mode')
+    const rows = (title: string) =>
+      [...screen.getByText(title).closest('section')!.querySelectorAll('li .label')].map(
+        (label) => label.textContent,
+      )
+    expect(rows('How questions closed, by mode')).toEqual(['More or Less'])
+    expect(screen.getByText('(7 / 0 / 1)')).toBeTruthy()
+    expect(rows('Join failures players saw')).toEqual(['Unknown code'])
+    expect(rows('Themes picked, once per browser')).toEqual(['TzHaar'])
+    expect(rows('Finished games by length')).toEqual(['10–20 min', '60+ min'])
+    expect(rows("Hosts' own questions by type")).toEqual(['Type the answer'])
+    expect(screen.getByText('In 1 game started.')).toBeTruthy()
+    expect(rows('How players got in')).toEqual([])
   })
 
   it('forgets a refused token and says so', async () => {
