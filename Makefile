@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster fetch-assets loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster fetch-assets logo loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -125,6 +125,11 @@ FETCH_ASSETS_FLAGS = $(if $(filter 1,$(FORCE)),--force) $(if $(filter 1,$(DRY_RU
 	$(foreach c,$(ONLY),--only $(c)) $(if $(FROM_DIR),--from-dir $(FROM_DIR))
 fetch-assets:
 	$(DATA) scripts/fetch_assets.py $(strip $(FETCH_ASSETS_FLAGS))
+
+# The owner's logo, drawn from the art `make fetch-assets ONLY=logo` fetched, into branding/boar/
+# (git-ignored). A selfhoster brings their own logo instead (branding/README.md).
+logo:
+	$(DATA) scripts/build_logo.py
 
 # Build the production image, tagged with the version and as latest. Releases themselves are
 # git tags, which CI creates on main when VERSION changes; this is the local image to match.

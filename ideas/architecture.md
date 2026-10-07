@@ -23,7 +23,7 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
-                                   edit-roster, fetch-assets, image; CI: release
+                                   edit-roster, fetch-assets, logo, image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/
 data/                              assets, pets, popular-items, player-names, room-words
@@ -36,7 +36,8 @@ server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normali
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
-                                   edit_roster, fetch_assets, validate_packs, check_contrast, smoke_ws, loadtest
+                                   edit_roster, fetch_assets, build_logo, validate_packs, check_contrast,
+                                   smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
@@ -602,9 +603,10 @@ key into them, so cleanup leaves it.
 
 Packs are committed, so a clone plays without a network; only prices are generated.
 
-- The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`) run them in
-  `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is the
-  builder's venv plus git, which the runtime never copies; the repo is mounted, run as the host user.
+- The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`, `logo`) run
+  them in `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is
+  the builder's venv with the `logo` group, plus git; the runtime never copies it. The repo is
+  mounted, run as the host user.
 - Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
@@ -626,6 +628,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)
   into place, skipping files that exist. Images are never committed: every target must be
   git-ignored. Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
+- `make logo` is the owner's tool: it traces the fetched `logo/` sources into a boar per theme in
+  `branding/boar/`, git-ignored like them. A selfhoster brings their own logo instead.
 
 ## 13. Versioning
 

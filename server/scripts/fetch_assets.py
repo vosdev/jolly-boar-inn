@@ -4,7 +4,8 @@
 it comes from. Titles are written out rather than derived from an id, because the wiki has
 several chatheads for some NPCs and the owner picks which. A target's top folder is its
 category (``npcs``, ``pets``, ``trophies``): the folder a client lookup already globs, so a fetched
-file is used on the next build with no code change.
+file is used on the next build with no code change. ``logo`` is the exception: the sources
+``make logo`` draws the owner's logo from, which the client never looks for.
 
 Every request goes through ``wiki.py``: the operator's ``WIKI_USER_AGENT`` and one request
 a second. One ``imageinfo`` query resolves up to 50 titles to upload URLs, then each file
@@ -53,8 +54,9 @@ ASSETS = REPO_ROOT / "client" / "src" / "assets"
 API = "https://oldschool.runescape.wiki/api.php"
 # MediaWiki's limit on titles per query for a client without the bot right.
 BATCH = 50
-# The folders a client lookup globs; a target anywhere else would never be shown.
-CATEGORIES = ("npcs", "pets", "trophies")
+# The folders a client lookup globs, and the logo's sources; a target anywhere else would
+# never be used.
+CATEGORIES = ("logo", "npcs", "pets", "trophies")
 # What those globs accept, so a fetched file is always one the client picks up.
 EXTENSIONS = ("avif", "webp", "png", "jpg", "jpeg", "svg")
 TARGET = re.compile(
