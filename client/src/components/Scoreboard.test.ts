@@ -8,7 +8,6 @@
 import { render, screen, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { derivedPet } from '../lib/pets'
 import type { Standing } from '../lib/protocol'
 import { players } from '../lib/stores'
 import { petsDrawn } from '../test-pets'
@@ -45,16 +44,16 @@ function steps(container: HTMLElement): HTMLElement[] {
 }
 
 describe('Scoreboard', () => {
-  it('draws the pet each player chose, or the one their id gives, 48px on the podium and 32px in the table', () => {
+  it('draws the pet each player chose, or the innkeeper for none, 48px on the podium and 32px in the table', () => {
     const two = [{ ...standing('Zezima', 900, 1), avatar: 'aggy' }, standing('Woox', 800, 2)]
     const { container } = render(Scoreboard, { standings: two, final: true })
     expect(petsDrawn(container.querySelector('.podium')!)).toEqual([
-      { pet: derivedPet('Woox'), size: 48 },
+      { pet: '', size: 48 },
       { pet: 'aggy', size: 48 },
     ])
     expect(petsDrawn(container.querySelector('.hiscores')!)).toEqual([
       { pet: 'aggy', size: 32 },
-      { pet: derivedPet('Woox'), size: 32 },
+      { pet: '', size: 32 },
     ])
   })
 

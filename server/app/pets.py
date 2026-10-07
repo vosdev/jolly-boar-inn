@@ -9,7 +9,10 @@ not start rather than a gap in somebody's lobby.
 
 import json
 import re
+from collections.abc import Collection
 from pathlib import Path
+
+import asyncpg
 
 from app.config import REPO_ROOT
 
@@ -44,3 +47,18 @@ def load_pickable_pets(pets_path: Path = PETS, assets_path: Path = ASSETS) -> fr
     if not pickable:
         raise ValueError(f"{assets_path}: no pet has both a chathead and an icon")
     return pickable
+
+
+async def assign_missing_pets(pool: asyncpg.Pool, pets: Collection[str]) -> int:
+    """Give every player stored with no pet a random one. Returns how many got one.
+
+    A pet drawn from the id moves whenever the pickable list changes, which is every time art
+    is added, so players from before the picker were redrawn on each deploy.
+    """
+    result = await pool.execute(
+        "update players"
+        " set avatar = ($1::text[])[1 + floor(random() * cardinality($1::text[]))::int]"
+        " where avatar is null",
+        sorted(pets),
+    )
+    return int(result.rsplit(" ", 1)[1])

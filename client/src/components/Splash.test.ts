@@ -9,7 +9,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { GENERIC_HOST, MODES } from '../lib/modes'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
-import { derivedPet } from '../lib/pets'
 import type { PlayerView, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import { petsDrawn } from '../test-pets'
@@ -105,8 +104,8 @@ describe('Splash ready check', () => {
       'Woox not ready',
     ])
     expect(petsDrawn(list)).toEqual([
-      { pet: derivedPet('a'), size: 48 },
-      { pet: derivedPet('b'), size: 48 },
+      { pet: '', size: 48 },
+      { pet: '', size: 48 },
     ])
     expect(rows.map((row) => row.classList.contains('lit'))).toEqual([true, false])
   })

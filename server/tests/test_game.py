@@ -662,7 +662,9 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
         {"player_id": game.admin.id, "display_name": "Admin", "points": 0, "rank": 2},
         {"player_id": wrong.id, "display_name": wrong.name, "points": 0, "rank": 2},
     ]
-    assert all(standing["avatar"] is None for standing in closed["standings"])
+    for standing in closed["standings"]:
+        assert standing["avatar"] is not None
+        assert standing["avatar"] == game.room.players[UUID(standing["player_id"])].avatar
     rows = db("select player_id, correct, points from answers order by points desc")
     assert [(row["player_id"], row["correct"], row["points"]) for row in rows] == [
         (UUID(right.id), True, 1000),
@@ -1009,12 +1011,14 @@ def test_a_rename_mid_game_is_refused_and_changes_nothing(game, db) -> None:
     game.start()
     game.opened(0)
     player = game.players[0]
+    kept = game.room.players[UUID(player.id)].avatar
+    assert kept is not None
     player.send(t="set_profile", display_name="RenamedMidGame", avatar="aggy")
     assert player.take("error")["code"] == "bad_state"
     renamed = game.room.players[UUID(player.id)]
-    assert (renamed.display_name, renamed.avatar) == ("Zezima", None)
+    assert (renamed.display_name, renamed.avatar) == ("Zezima", kept)
     row = db("select display_name, avatar from players where id = $1", UUID(player.id))
-    assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", None)
+    assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", kept)
 
 
 # --- restart recovery ----------------------------------------------------------------

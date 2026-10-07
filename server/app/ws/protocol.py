@@ -106,8 +106,7 @@ class RoomView(_Message):
 class PlayerView(_Message):
     id: UUID
     display_name: str
-    # A pet's id in ``data/pets.json``, or null for a player who never chose one: the
-    # client then draws the pet derived from ``id`` (section 6 of ideas/design.md).
+    # A pet's id in ``data/pets.json``; the server stores one for every player.
     avatar: str | None
     role: Role
     connected: bool

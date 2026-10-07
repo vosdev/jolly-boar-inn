@@ -14,7 +14,6 @@ import { tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { derivedPet } from '../lib/pets'
 import { profile } from '../lib/profile'
 import type { ClientMessage, PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, connection, resetRoom, roomSend } from '../lib/stores'
@@ -102,12 +101,12 @@ describe('SettingsMenu', () => {
     expect(petsDrawn(document.querySelector('.chip')!)).toEqual([{ pet: 'aggy', size: 32 }])
   })
 
-  it('draws the pet the room knows inside one, or the one the id gives', async () => {
+  it('draws the pet the room knows inside one, or the innkeeper for none', async () => {
     const chip = render(SettingsMenu, { live: me })
     expect(petsDrawn(document.querySelector('.chip')!)).toEqual([{ pet: 'abyssal_orphan', size: 32 }])
     await chip.rerender({ live: { ...me, avatar: null } })
     expect(petsDrawn(document.querySelector('.chip')!)).toEqual([
-      { pet: derivedPet(me.id), size: 32 },
+      { pet: '', size: 32 },
     ])
   })
 

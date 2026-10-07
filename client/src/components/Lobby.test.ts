@@ -6,7 +6,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { derivedPet } from '../lib/pets'
 import type { PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, resetRoom } from '../lib/stores'
 import type { RoomSocket } from '../lib/ws'
@@ -174,11 +173,11 @@ describe('Lobby', () => {
     expect(sent).toEqual([{ t: 'start_game' }])
   })
 
-  it('draws each player’s own pet, or the one their id gives, at 40px', () => {
+  it('draws each player’s own pet, or the innkeeper for none, at 40px', () => {
     lobby([{ ...HOST, avatar: 'baby_mole' }, { ...WOOX, avatar: null }])
     expect(petsDrawn(document.querySelector('.players')!)).toEqual([
       { pet: 'baby_mole', size: 40 },
-      { pet: derivedPet(WOOX.id), size: 40 },
+      { pet: '', size: 40 },
     ])
   })
 

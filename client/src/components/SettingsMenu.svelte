@@ -129,7 +129,7 @@
     const nameDone = pending.name === undefined || live.display_name === pending.name
     const petDone = pending.pet === undefined || live.avatar === pending.pet
     if (!nameDone || !petDone) return
-    saveProfile(live.display_name, petOf(live))
+    saveProfile(live.display_name, live.avatar ?? undefined)
     saved = 'Saved.'
     pending = null
     resting = true

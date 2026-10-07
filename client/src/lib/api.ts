@@ -140,7 +140,7 @@ export interface RoomSnapshot {
 export type RoomAccess = 'code' | 'link' | 'public'
 
 /**
- * `avatar` is the profile's pet; undefined, the room draws the one derived from the id.
+ * `avatar` is the profile's pet; undefined, the room picks one.
  * `returning` is `returningVisitor`, counted by the server and never stored.
  * `customQuestions` are the host's own, each a random event (`lib/customQuestions.ts`).
  */

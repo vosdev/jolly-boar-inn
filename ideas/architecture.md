@@ -556,8 +556,9 @@ key into them, so cleanup leaves it.
 - `questions.payload` holds the envelope extras at the top and the type payload under `payload`, so
   SQL reads `payload->'payload'`. Fields that queries or grading need are columns.
 - `questions.round` and `questions.mode` are stored; neither can be derived (section 5).
-- `players.avatar` is a pet's id in `pets.json`; null is a pet derived from the id. The server checks
-  it against the pets with both pictures in `assets.json`, because that list grows without a migration.
+- `players.avatar` is a pet's id in `pets.json`. A join or room with none sent gets a random pet
+  nobody in the room wears, and startup gives one to any row still null. The server checks it against
+  the pets with both pictures in `assets.json`, because that list grows without a migration.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.
