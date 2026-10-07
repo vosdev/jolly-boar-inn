@@ -14,6 +14,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { profile } from '../lib/profile'
 import { createdRooms, rememberCreated, setSession } from '../lib/session'
+import { arrival } from '../lib/stats'
 import Create from './Create.svelte'
 import Home from './Home.svelte'
 
@@ -106,9 +107,30 @@ describe('Create', () => {
     await screen.findByRole('checkbox', { name: /^More or Less/ })
     await pick(...BOTH)
     await submitted()
-    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual(['Zezima', expect.anything(), 'aggy', false, 'code', []])
+    expect(vi.mocked(api.createRoom).mock.calls[0]).toEqual([
+      'Zezima',
+      expect.anything(),
+      'aggy',
+      false,
+      'code',
+      [],
+      { device: 'desktop' },
+    ])
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(get(profile)).toEqual({ name: 'Zezima', pet: 'aggy' })
+  })
+
+  it('sends a picked theme with the device, and neither again once the room is made', async () => {
+    localStorage.setItem('jbi:theme', 'wilderness')
+    render(Create, { navigate: vi.fn() })
+    await screen.findByRole('checkbox', { name: /^More or Less/ })
+    await pick(...BOTH)
+    await submitted()
+    expect(vi.mocked(api.createRoom).mock.calls[0]![6]).toEqual({
+      theme: 'wilderness',
+      device: 'desktop',
+    })
+    await waitFor(() => expect(arrival()).toEqual({}))
   })
 
   it('asks a browser with no profile for a name on Create, and makes no room until it has one', async () => {

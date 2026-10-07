@@ -13,6 +13,7 @@ from app.modes import offered
 from app.questions import custom
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
 from app.rooms.state import Room, RoomManager, normalize_name
+from app.stats import Arrival, Device, Theme
 
 router = APIRouter(prefix="/api/rooms")
 
@@ -27,6 +28,9 @@ class CreateRoom(BaseModel):
     avatar: str | None = Field(default=None, max_length=64, strict=True)
     # Whether this browser had a profile when the page loaded. Counted, never stored.
     returning: bool = Field(strict=True)
+    # Sent only the first time this browser reports each. Counted, never stored.
+    theme: Theme | None = None
+    device: Device | None = None
     # Only a link carrying the room's key joins it. Not a setting: settings reach everyone.
     invite_only: bool = Field(default=False, strict=True)
     # Listed on Home for anyone to join; a key would defeat that, so it excludes one.
@@ -99,6 +103,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
         body.returning,
         body.invite_only,
         body.public,
+        Arrival(theme=body.theme, device=body.device),
     )
     # ``expires_at`` lets the host's "rooms you created" list drop a room once its code
     # may belong to someone else.

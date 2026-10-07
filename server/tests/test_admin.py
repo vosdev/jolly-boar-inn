@@ -286,7 +286,13 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
     game.players[0].take("answer_ack")
 
     payloads = [get(client, path) for path in ROUTES]
-    text = json.dumps(payloads)
+    # A counter's key is only ever a value from a fixed set, which ``test_stats.py`` checks,
+    # and one may equal an answer without being it: event frequency "less" and the answer
+    # "less" to a More or Less question.
+    live, history = payloads
+    counts = [{k: v for k, v in c.items() if k != "key"} for c in history["counts"]]
+    unkeyed = [live, {**history, "counts": counts}]
+    text = json.dumps(unkeyed)
     secrets_ = {"Lynx Titan", "Zezima", "Woox", created.json()["session"]}
     for room in app.state.rooms.rooms.values():
         for player in room.players.values():
@@ -297,11 +303,10 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
     secrets_ |= {s for s in strings_in(game.right(0)) if len(s) >= 4}
     assert "Which clanmate fell asleep at Vorkath?" in secrets_
     # A short secret only counts as a whole value: "more" may be an answer and part of a mode.
-    shown = set(strings_in(payloads))
+    shown = set(strings_in(unkeyed))
     leaked = sorted(s for s in secrets_ if s in shown or (len(s) >= 8 and s in text))
     assert leaked == []
 
-    live, history = payloads
     assert set(live) == {"rooms", "sockets"}
     for room in live["rooms"]:
         assert set(room) == {

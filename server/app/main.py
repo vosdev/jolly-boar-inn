@@ -25,6 +25,7 @@ from app.http import (
     reports,
     rooms,
     roster,
+    stats,
     suggestions,
     vocab,
 )
@@ -34,6 +35,7 @@ from app.http.head import HeadAsGet
 from app.http.headers import SecurityHeaders
 from app.http.jsonbody import JsonBody
 from app.http.ratelimit import (
+    JOIN_FAILURES_PER_HOUR,
     JOINS_PER_HOUR,
     LOOKUP_MISSES,
     LOOKUP_WINDOW,
@@ -246,6 +248,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour)
     app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW)
     app.state.joins = RateLimiter(JOINS_PER_HOUR)
+    app.state.join_failures = RateLimiter(JOIN_FAILURES_PER_HOUR)
     app.state.suggestions = RateLimiter(SUGGESTIONS_PER_HOUR)
     app.state.reports = RateLimiter(REPORTS_PER_HOUR)
     app.add_middleware(HeadAsGet)
@@ -263,6 +266,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
 
     app.include_router(rooms.router)
     app.include_router(players.router)
+    app.include_router(stats.router)
     app.include_router(modes.router)
     app.include_router(vocab.router)
     app.include_router(suggestions.router)

@@ -20,3 +20,18 @@ if (typeof globalThis.ResizeObserver !== 'function') {
     disconnect(): void {}
   }
 }
+
+/** jsdom has no `matchMedia`; a test is a mouse on a desktop unless it says otherwise. */
+if (typeof window.matchMedia !== 'function') {
+  window.matchMedia = (query: string): MediaQueryList =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList
+}
