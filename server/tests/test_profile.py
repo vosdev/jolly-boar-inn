@@ -5,7 +5,8 @@ pick or a rename in one reaches the other in the next ``room_updated``; a rename
 name already taken in the room is rejected and the old name survives unchanged; an
 ``avatar`` that is not a pickable pet is rejected at the edge rather than stored; a full room of
 50 can be given 50 different pets; a client that sends no
-``avatar`` and never sends ``set_profile`` still creates, joins and plays.
+``avatar`` and never sends ``set_profile`` still creates, joins and plays, and is stored
+a pet by the server, one nobody else in the room wears while one is left.
 
 The refused mid-game rename is in ``test_game.py`` beside the other in-game commands, a room from
 before the migration is in ``test_migrations.py``, the pet list is in ``test_pets.py``, and
@@ -20,10 +21,13 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.db import create_pool
 from app.pets import PETS as PETS_JSON
-from app.pets import load_pickable_pets
+from app.pets import assign_missing_pets, load_pickable_pets
+from app.rooms.settings import NewRoomSettings
 from app.rooms.state import CHANGE_COOLDOWN
 from tests.rooms_api import create, held, hello, next_of
+from tests.test_invite_links import create_keyed
 
 PETS = sorted(load_pickable_pets())
 
@@ -127,6 +131,72 @@ def test_a_full_room_can_have_fifty_different_pets(app: FastAPI, client: TestCli
     assert sorted(p["avatar"] for p in players) == sorted(PETS[:cap])
 
 
+def test_a_player_who_sends_no_pet_is_stored_one(client: TestClient, db) -> None:
+    """A pet derived on the client moves whenever the pet list does, so the server fixes one."""
+    code, _ = create(client)
+    assert (
+        client.post(
+            f"/api/rooms/{code}/join", json={"returning": False, "display_name": "Zezima"}
+        ).status_code
+        == 200
+    )
+    rows = db("select avatar from players")
+    assert len(rows) == 2
+    assert all(r["avatar"] in PETS for r in rows)
+
+
+def test_pets_nobody_wears_go_first_to_players_who_send_none(client: TestClient) -> None:
+    code, _ = create(client)
+    for seat in range(1, 12):
+        joined = client.post(
+            f"/api/rooms/{code}/join",
+            json={"returning": False, "display_name": f"Player{seat}"},
+        )
+        assert joined.status_code == 200, joined.text
+    avatars = [p["avatar"] for p in held(client, code)["players"]]
+    assert len(set(avatars)) == len(avatars) == 12
+
+
+def test_a_join_request_with_no_pet_is_shown_one(client: TestClient) -> None:
+    code, admin = create_keyed(client)
+    with client.websocket_connect(f"/ws/{code}") as host:
+        hello(host, admin["session"])
+        asked = client.post(
+            f"/api/rooms/{code}/requests", json={"returning": False, "display_name": "Zezima"}
+        )
+        assert asked.status_code == 201, asked.text
+        (request,) = next_of(host, "room_updated")["room"]["requests"]
+    assert request["avatar"] in PETS
+
+
+async def test_startup_gives_a_player_from_before_pets_one_and_keeps_chosen_pets(
+    test_db_dsn: str,
+) -> None:
+    pool = await create_pool(test_db_dsn)
+    try:
+        room_id = await pool.fetchval(
+            "insert into rooms (code, status, settings, expires_at)"
+            " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day') returning id",
+            NewRoomSettings().model_dump(),
+        )
+        await pool.execute(
+            "insert into players (room_id, display_name, session_token_hash, role, avatar)"
+            " values ($1, 'Zezima', 'h1', 'admin', null), ($1, 'Woox', 'h2', 'player', 'aggy'),"
+            " ($1, 'Lynx', 'h3', 'player', null)",
+            room_id,
+        )
+        await assign_missing_pets(pool, frozenset(PETS))
+        rows = await pool.fetch("select display_name, avatar from players order by display_name")
+        by_name = {r["display_name"]: r["avatar"] for r in rows}
+        assert by_name["Woox"] == "aggy"
+        assert by_name["Zezima"] in PETS and by_name["Lynx"] in PETS
+        await assign_missing_pets(pool, frozenset(PETS))
+        again = await pool.fetch("select display_name, avatar from players order by display_name")
+        assert {r["display_name"]: r["avatar"] for r in again} == by_name
+    finally:
+        await pool.close()
+
+
 # --- set_profile ------------------------------------------------------------------
 
 
@@ -177,7 +247,7 @@ def test_a_rename_to_a_taken_name_is_refused_and_the_old_one_survives(
         ws.send_json({"t": "ping"})
         assert ws.receive_json()["t"] == "pong"  # the socket is still open, nothing sent
     row = db("select display_name, avatar from players where id = $1", UUID(player["player"]["id"]))
-    assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", None)
+    assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", player["player"]["avatar"])
     names = [p["display_name"] for p in held(client, code)["players"]]
     assert names == ["Admin", "Zezima"]
 
@@ -211,7 +281,7 @@ def test_set_profile_is_validated_like_a_join(
         ws.send_json({"t": "ping"})
         assert ws.receive_json()["t"] == "pong"  # a rejected message, not a protocol error
     row = db("select display_name, avatar from players where id = $1", UUID(player["player"]["id"]))
-    assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", None)
+    assert (row[0]["display_name"], row[0]["avatar"]) == ("Zezima", player["player"]["avatar"])
 
 
 @pytest.mark.parametrize("frame", [{"avatar": 3}, {"avatar": ["aggy"]}, {"colour": "red"}])
@@ -244,7 +314,7 @@ def test_the_change_survives_the_room_leaving_memory(client: TestClient, lobby, 
 
 
 def test_a_client_that_sends_no_avatar_still_joins_and_plays(client: TestClient) -> None:
-    """Its players are the ones the client draws a derived pet."""
+    """The server gives such a player a pet."""
     response = client.post(
         "/api/rooms",
         json={"returning": False, "display_name": "Admin", "settings": {}, "custom_questions": []},
@@ -257,6 +327,6 @@ def test_a_client_that_sends_no_avatar_still_joins_and_plays(client: TestClient)
     assert joined.status_code == 200
     with client.websocket_connect(f"/ws/{code}") as ws:
         welcome = hello(ws, admin["session"])
-        assert [p["avatar"] for p in welcome["players"]] == [None, None]
+        assert all(p["avatar"] in PETS for p in welcome["players"])
         ws.send_json({"t": "start_game"})
         assert next_of(ws, "room_updated")["room"]["status"] == "playing"

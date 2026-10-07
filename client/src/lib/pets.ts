@@ -8,10 +8,9 @@
  * browser and the room agree on the list without asking for it. `players.avatar` stores
  * the pet's id, so it travels to everybody else in the room.
  *
- * `avatar ?? derived(id)` is the whole rule. Null is a player who never chose; they are
- * drawn the pet their id hashes to, which every client in the room computes the same way,
- * so two browsers never disagree. An id this build does not offer falls back the same way
- * rather than drawing a gap.
+ * The server stores a pet for every player, one it picks when the client sends none, so
+ * every browser draws the same pet and it never moves when the pickable list grows. An id
+ * this build does not offer is drawn as the innkeeper rather than leaving a gap.
  *
  * The files are game assets and not committed, so one may be missing: found by name at
  * build time, like the NPCs, and dropping one in replaces it on the next build with no code
@@ -68,26 +67,11 @@ export function isPet(pet: unknown): pet is string {
 }
 
 /**
- * FNV-1a over the id's text, 32-bit. Not for security, for spread: uuids differ in their
- * random bits, and this turns any of them into an evenly spread pet.
+ * The pet to draw for a player or a standing: their own. The server stores one for every
+ * player, so an empty string is only an id this build does not offer, drawn as the innkeeper.
  */
-function hash(text: string): number {
-  let h = 0x811c9dc5
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i)
-    h = Math.imul(h, 0x01000193)
-  }
-  return h >>> 0
-}
-
-/** The pet a player who never chose one wears. Lowercased, since a uuid is either case. */
-export function derivedPet(playerId: string, pets: readonly Pet[] = PICKABLE): string {
-  return pets[hash(playerId.toLowerCase()) % pets.length]?.id ?? ''
-}
-
-/** The pet to draw for a player or a standing: their own, or the derived one. */
 export function petOf(player: { id: string; avatar?: string | null }): string {
-  return isPet(player.avatar) ? player.avatar : derivedPet(player.id)
+  return isPet(player.avatar) ? player.avatar : ''
 }
 
 /**

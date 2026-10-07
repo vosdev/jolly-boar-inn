@@ -58,7 +58,11 @@ def test_a_public_lobby_appears_within_the_cache_window(
         assert client.get("/api/rooms/public").json() == [
             {
                 "code": code,
-                "host": {"id": admin["player"]["id"], "display_name": "Admin", "avatar": None},
+                "host": {
+                    "id": admin["player"]["id"],
+                    "display_name": "Admin",
+                    "avatar": admin["player"]["avatar"],
+                },
                 "players": 1,
                 "max_players": 50,
                 "rounds": 2,

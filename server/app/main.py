@@ -41,7 +41,7 @@ from app.http.ratelimit import (
     SUGGESTIONS_PER_HOUR,
     RateLimiter,
 )
-from app.pets import load_pickable_pets
+from app.pets import assign_missing_pets, load_pickable_pets
 from app.questions import vocab as vocabularies
 from app.questions.packs import load_packs
 from app.rooms.codes import load_words
@@ -110,7 +110,13 @@ async def _connect(app: FastAPI) -> asyncpg.Pool:
             app.state.instance_lock = None
             app.state.instance_lock = await take_instance_lock(app.state.settings.database_url)
         if app.state.pool is None:
-            app.state.pool = await connect(app.state.settings)
+            pool = await connect(app.state.settings)
+            try:
+                await assign_missing_pets(pool, app.state.rooms.pets)
+            except BaseException:
+                await pool.close()
+                raise
+            app.state.pool = pool
     return app.state.pool
 
 

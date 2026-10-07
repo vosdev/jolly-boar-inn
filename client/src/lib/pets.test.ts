@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import MANIFEST from '../../../data/assets.json'
-import { avatarArt, derivedPet, isPet, PETS, PICKABLE, pickablePets, petName, petOf, randomPet } from './pets'
+import { avatarArt, PETS, PICKABLE, pickablePets, petName, petOf, randomPet } from './pets'
 import { npcArt } from './npcs'
 
 const targets = new Set(Object.keys(MANIFEST))
@@ -65,21 +65,14 @@ describe('who can be picked', () => {
 })
 
 describe('which pet a player wears', () => {
-  it('is the one they chose, or the one their id gives, the same every time', () => {
+  it('is the one they chose, and never one the pet list happens to give them', () => {
     expect(petOf({ id: 'u1', avatar: 'aggy' })).toBe('aggy')
-    expect(petOf({ id: 'u1', avatar: null })).toBe(derivedPet('u1'))
-    expect(petOf({ id: 'u1' })).toBe(derivedPet('u1'))
-    expect(derivedPet('U1')).toBe(derivedPet('u1'))
-    expect(isPet(derivedPet('u1'))).toBe(true)
-  })
-
-  it('falls back to the derived pet for an id this build does not offer', () => {
-    expect(petOf({ id: 'u1', avatar: 'not_a_pet' })).toBe(derivedPet('u1'))
-  })
-
-  it('spreads ids over the list rather than piling them on one pet', () => {
-    const seen = new Set(Array.from({ length: 200 }, (_, i) => derivedPet(`player-${i}`)))
-    expect(seen.size).toBeGreaterThan(50)
+    // The server stores a pet for everybody; a missing or unknown one is the innkeeper,
+    // which does not move when the pickable list does.
+    expect(petOf({ id: 'u1', avatar: null })).toBe('')
+    expect(petOf({ id: 'u1' })).toBe('')
+    expect(petOf({ id: 'u1', avatar: 'not_a_pet' })).toBe('')
+    expect(avatarArt(petOf({ id: 'u1' }), 'chathead', {}).cut).toBe('fallback')
   })
 
   it('names a pet, and says "Pet" for one it does not know', () => {

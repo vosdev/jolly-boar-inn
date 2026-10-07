@@ -143,8 +143,8 @@ wearing a goblin's face, and never real players. Base names are at most 21 chara
 fits. A duplicate is a 409, and the client re-rolls the suffix up to three times. A name matching
 the room code is skipped: not a bug, but it reads like one.
 
-Pets must reach other players, so the server stores them. `players.avatar` is a nullable pet id; the
-client draws `player.avatar ?? derivedFrom(id)`, so a player who never chose still has a pet.
+Pets must reach other players, so the server stores them. `players.avatar` is a pet id, and a player
+who sends none is given one by the server, so every client draws the same pet for good.
 
 - A pet is pickable when `data/assets.json` has both its chathead and its inventory icon, 204 of
   236 today. The chathead is drawn large, the icon small. The pet's id is the contract, not its

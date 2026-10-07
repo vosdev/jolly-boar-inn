@@ -60,7 +60,7 @@ import re
 import secrets
 import time
 import unicodedata
-from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Iterable, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -323,8 +323,7 @@ class Player:
     joined_at: datetime
     session_hash: str = field(repr=False)  # sha256 hex of the session token, never plaintext
     connected: bool = False
-    # A pet's id, or ``None`` for "never chosen": the client draws the pet derived from
-    # ``id`` then.
+    # A pet's id. ``None`` only for a row startup has not yet given one.
     avatar: str | None = None
     # The ready check, in memory only: it means "ready to start" in the lobby and
     # "ready for this round" on a splash, and every splash starts everybody afresh. A
@@ -1287,6 +1286,7 @@ class RoomManager:
         if public and invite_only:
             raise BadSettings("a public room cannot be invite-only")
         self.check_avatar(avatar)
+        avatar = self._pet_for(avatar, ())
         try:
             own = custom.envelopes(custom_questions)
         except QuestionError as exc:
@@ -1404,6 +1404,7 @@ class RoomManager:
         self, room: Room, name: str, avatar: str | None, returning: bool
     ) -> tuple[Player, str]:
         """Insert a player into a lobby with room for them. Call with the room lock held."""
+        avatar = self._pet_for(avatar, _pets_worn(room))
         session = new_token()
         pool = await self._pool()
         async with pool.acquire() as conn, conn.transaction():
@@ -1453,7 +1454,7 @@ class RoomManager:
                 id=uuid4(),
                 ticket_hash=hash_token(ticket),
                 display_name=name,
-                avatar=avatar,
+                avatar=self._pet_for(avatar, _pets_worn(room)),
                 returning=returning,
                 asked_at=self.clock(),
             )
@@ -1591,6 +1592,13 @@ class RoomManager:
             target.stop_editing()
             update = self._room_updated(room)
         self._broadcast(update)
+
+    def _pet_for(self, avatar: str | None, worn: Iterable[str | None]) -> str:
+        """The pet to store: the one chosen, else a random one nobody in ``worn`` has."""
+        if avatar is not None:
+            return avatar
+        pool = sorted(self.pets.difference(worn)) or sorted(self.pets)
+        return self.rng.choice(pool)
 
     def check_avatar(self, avatar: str | None) -> None:
         """Refuse a pet nobody can pick, before anything is written."""
@@ -2301,6 +2309,11 @@ def _check_key(room: Room, key: str | None) -> None:
         raise KeyRequired(f"room {room.code} takes players with an invite link only")
     if not hmac.compare_digest(key.encode(), room.invite_key.encode()):
         raise BadKey("that invite link is out of date or mistyped")
+
+
+def _pets_worn(room: Room) -> list[str | None]:
+    """The pets of everyone in the room and everyone waiting to be let in."""
+    return [p.avatar for p in room.players.values()] + [r.avatar for r in room.requests.values()]
 
 
 def _check_joinable(room: Room) -> None:
