@@ -23,7 +23,7 @@ class CreateRoom(BaseModel):
     # The creator is the room's admin, so the name is needed up front. 200 is the outer
     # bound on what is worth reading; ``normalize_name`` holds it to 1-24.
     display_name: str = Field(max_length=200)
-    # A pet's id from ``data/pets.json``. Optional: the server picks one for a player who sends none.
+    # A pet's id from ``data/pets.json``. Optional: the server picks one if none is sent.
     avatar: str | None = Field(default=None, max_length=64, strict=True)
     # Whether this browser had a profile when the page loaded. Counted, never stored.
     returning: bool = Field(strict=True)
