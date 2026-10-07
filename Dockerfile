@@ -38,6 +38,11 @@ COPY server/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
+# ---- Data venv: the app's, plus what `make logo` draws with --------------------
+FROM builder AS data-venv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev --group logo
+
 # ---- Data: the scripts that write into a checkout (docker-compose.data.yml) --
 # Never part of the runtime: that stage does not copy from this one, so `make image` skips it,
 # and runtime must stay last for a plain `docker build`. git is here because a script asks it
@@ -49,7 +54,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/* \
     && git config --system --add safe.directory /repo
-COPY --from=builder /app/server/.venv /app/server/.venv
+COPY --from=data-venv /app/server/.venv /app/server/.venv
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     HOME=/tmp \

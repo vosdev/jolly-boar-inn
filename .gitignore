@@ -31,6 +31,8 @@ client/src/assets/pets/*
 !client/src/assets/pets/README.md
 client/src/assets/trophies/*
 !client/src/assets/trophies/README.md
+client/src/assets/logo/*
+!client/src/assets/logo/README.md
 !client/src/assets/trophies/placeholder/
 # Leagues area flags, the themes' emblems: game assets too
 client/src/assets/themes/*.png

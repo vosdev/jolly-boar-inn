@@ -370,6 +370,11 @@ def test_a_target_listed_twice_is_refused(tmp_path: Path) -> None:
         fetch_assets.load_manifest(path)
 
 
+def test_the_logo_sources_are_fetched_though_the_client_never_shows_them() -> None:
+    """``make logo`` draws the owner's logo from these; the app itself never looks."""
+    assert {"logo/broav_detail.png", "logo/skull.png"} <= set(MANIFEST)
+
+
 def test_the_shipped_manifest_is_sound() -> None:
     raw = json.loads(fetch_assets.MANIFEST.read_text(encoding="utf-8"))
     assert fetch_assets.manifest_errors(raw) == []
