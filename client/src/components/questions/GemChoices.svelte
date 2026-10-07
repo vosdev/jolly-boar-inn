@@ -33,6 +33,7 @@
     label,
     ticked = null,
     full = false,
+    compact = false,
   }: {
     options: Option[]
     /** What we answered: empty until it is sent. */
@@ -47,6 +48,8 @@
     ticked?: ReadonlySet<number> | null
     /** As many are ticked as may be: the rest are held. */
     full?: boolean
+    /** Gems drop to 44px, for a caller whose button would otherwise sit below the screen. */
+    compact?: boolean
   } = $props()
 
   // Six is the cap (section 2), and a pack that broke it must still draw something: a
@@ -67,7 +70,7 @@
     revealed || !canAnswer || picked.size > 0 || (full && !ticked?.has(index))
 </script>
 
-<div class="gems" class:settled style:--columns={columns}>
+<div class="gems" class:settled class:compact={compact && !revealed} style:--columns={columns}>
   {#each options as option, index (index)}
     <GemButton
       gem={gemAt(index)}
@@ -90,6 +93,10 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     gap: 0.5rem;
+  }
+
+  .compact > :global(.gem) {
+    min-height: 44px;
   }
 
   .settled {

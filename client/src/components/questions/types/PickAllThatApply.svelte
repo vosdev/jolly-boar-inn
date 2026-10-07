@@ -15,6 +15,7 @@
    * lights every right option and keeps the "you" on each of ours, so a lit gem without
    * one is a right answer we missed.
    */
+  import { tick } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
 
   import GemChoices from '../GemChoices.svelte'
@@ -48,6 +49,26 @@
     else if (!full) ticked.add(index)
   }
 
+  let submitEl = $state<HTMLButtonElement>()
+  let compact = $state(false)
+
+  // The gems stay 56px unless that leaves Submit below the fold, which only a phone with
+  // five or six options does. Measured at full size each time, so growing the screen again
+  // gives the tall gems back.
+  async function fit(): Promise<void> {
+    compact = false
+    await tick()
+    if (submitEl) compact = submitEl.getBoundingClientRect().bottom + window.scrollY > window.innerHeight
+  }
+
+  $effect(() => {
+    if (!submitEl || revealed) return
+    void q.options.length
+    void fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  })
+
   function submit(): void {
     if (ready && !sent) onAnswer([...ticked].sort((a, b) => a - b))
   }
@@ -65,11 +86,18 @@
   onAnswer={toggle}
   ticked={sent ? null : ticked}
   {full}
+  {compact}
 >
   {#snippet label(option: string)}{option}{/snippet}
 </GemChoices>
 {#if canAnswer && !revealed && !sent}
-  <button type="button" class="primary submit" disabled={!ready} onclick={submit}>Submit</button>
+  <button
+    bind:this={submitEl}
+    type="button"
+    class="primary submit"
+    disabled={!ready}
+    onclick={submit}>Submit</button
+  >
 {/if}
 
 <style>
