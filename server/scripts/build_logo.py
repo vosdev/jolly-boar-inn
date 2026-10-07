@@ -16,9 +16,9 @@ Writes, under ``branding/boar/``:
 * ``boar-logo.svg`` (for 32 to 64px) and ``boar-logo-large.svg`` (detailed), which follow the
   page's theme through ``--boar-*`` custom properties, and ``boar.css`` with every theme's;
 * ``<theme>/``: the same pair with that theme's colours fixed, and PNGs from 32 to 1024px;
-* ``logo.svg``, ``logo-<theme>.svg`` and ``apple-touch-icon.png``, what the app takes from
-  ``PUBLIC_SITE_LOGO=branding/boar/logo.svg``: the sign and tab icon per theme, and a phone's
-  home-screen icon;
+* ``logo.svg``, ``logo-<theme>.svg``, ``apple-touch-icon.png`` and ``og-card.png``, what the
+  app takes from ``PUBLIC_SITE_LOGO=branding/boar/logo.svg``: the sign and tab icon per theme,
+  a phone's home-screen icon, and the card a shared link shows;
 * ``preview.html``: every theme on its own panel and floor.
 
 Adding a theme is one entry in ``THEMES``; a theme ``app.css`` paints without one is reported.
@@ -28,6 +28,7 @@ Usage (from ``server/``)::
     uv run --group logo python scripts/build_logo.py
 """
 
+import base64
 import re
 import sys
 from pathlib import Path
@@ -42,7 +43,11 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SOURCES = REPO_ROOT / "client" / "src" / "assets" / "logo"
 RENDER = SOURCES / "broav_detail.png"
 SKULL = SOURCES / "skull.png"
+ASSETS = REPO_ROOT / "client" / "src" / "assets"
 APP_CSS = REPO_ROOT / "client" / "src" / "app.css"
+QUILL = ASSETS / "fonts" / "RuneScape-Quill-8.ttf"
+RUG = ASSETS / "textures" / "inn-rug.svg"
+NPCS = ASSETS / "npcs"
 OUT = REPO_ROOT / "branding" / "boar"
 
 PNG_SIZES = (32, 64, 128, 256, 512, 1024)
@@ -50,6 +55,18 @@ PNG_SIZES = (32, 64, 128, 256, 512, 1024)
 # the board's green to the edge with the boar inset from the corners.
 TOUCH_ICON_SIZE = 180
 TOUCH_ICON_INSET = 0.9
+
+# The hosts along the share card, in the order they stand: a few of the faces a room meets.
+CARD_HOSTS = (
+    "examiner",
+    "gnome_child",
+    "nieve",
+    "postie_pete",
+    "dunce",
+    "ali_morrisane",
+    "death",
+    "cracked_jennys_tea_cup",
+)
 # The small logo's thicker outline and fewer bands are what survive at a few pixels; the
 # large one's detail only shows from 128px.
 SMALL_UP_TO = 64
@@ -451,6 +468,84 @@ def touch_icon(logo: Logo) -> bytes:
     return bytes(resvg_py.svg_to_bytes(svg_string=page, width=size, height=size))
 
 
+def _overhead(text: str, x: float, y: float, size: int, fill: str) -> str:
+    """Text as the game says it over a head: flat, with a hard shadow one font pixel down-right.
+
+    Quill 8 is drawn for 16px, so ``size`` is a whole multiple of it or the pixels smear.
+    The family is quoted: a CSS name that ends in a number is not one unquoted.
+    """
+    shadow = size / 16
+    font = f'font-family="\'RuneScape Quill 8\'" font-size="{size}"'
+    return (
+        f'<text x="{x + shadow}" y="{y + shadow}" {font} fill="#000">{text}</text>'
+        f'<text x="{x}" y="{y}" {font} fill="{fill}">{text}</text>'
+    )
+
+
+def _data_uri(png: bytes) -> str:
+    return "data:image/png;base64," + base64.b64encode(png).decode()
+
+
+def share_card(logo: Logo) -> bytes | None:
+    """The 1200x630 card a shared link shows, or None without the hosts' chatheads."""
+    heads = [NPCS / f"{npc}_chathead.png" for npc in CARD_HOSTS]
+    missing = [p.name for p in heads if not p.is_file()]
+    if missing:
+        print(
+            f"no og-card.png: missing {', '.join(missing)}; run `make fetch-assets ONLY=npcs`",
+            file=sys.stderr,
+        )
+        return None
+
+    boar = resolved(logo.svg("large", "card", custom_properties("svg", DEFAULT) + "\n"), DEFAULT)
+    boar_png = bytes(resvg_py.svg_to_bytes(svg_string=boar, width=960, height=960))
+    rug = RUG.read_text(encoding="utf-8")
+    rug = rug[rug.index(">") + 1 : rug.rindex("</svg>")]
+
+    # Each host fitted to a square and stood on one line, facing the boar as the wiki draws them.
+    crowd, size, step, left, top = [], 96, 82, 520, 386
+    for i, head in enumerate(heads):
+        width, height = Image.open(head).size
+        k = size / max(width, height)
+        w, h = width * k, height * k
+        x, y = left + i * step + (size - w) / 2, top + size - h
+        crowd.append(
+            f'<image href="{_data_uri(head.read_bytes())}" x="{x:.1f}" y="{y:.1f}" '
+            f'width="{w:.1f}" height="{h:.1f}"/>'
+        )
+
+    page = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">'
+        "<defs>"
+        f'<pattern id="rug" width="112" height="112" patternUnits="userSpaceOnUse">'
+        f'<g transform="scale(2)">{rug}</g></pattern>'
+        '<radialGradient id="lamp" cx="0.27" cy="0.48" r="0.55">'
+        '<stop offset="0" stop-color="#f0b450" stop-opacity="0.32"/>'
+        '<stop offset="1" stop-color="#f0b450" stop-opacity="0"/></radialGradient>'
+        '<radialGradient id="vignette" cx="0.5" cy="0.5" r="0.75">'
+        '<stop offset="0.55" stop-color="#000" stop-opacity="0"/>'
+        '<stop offset="1" stop-color="#000" stop-opacity="0.55"/></radialGradient>'
+        "</defs>"
+        '<rect width="1200" height="630" fill="#3b321d"/>'
+        '<rect width="1200" height="630" fill="url(#rug)"/>'
+        '<rect width="1200" height="630" fill="url(#lamp)"/>'
+        f'<image href="{_data_uri(boar_png)}" x="20" y="60" width="480" height="480"/>'
+        + _overhead("Think you know", 528, 175, 80, "#ffff00")
+        + _overhead("Gielinor?", 528, 265, 112, "#ffff00")
+        + _overhead("Prove it at the Jolly Boar Inn.", 530, 340, 48, "#f2e5bf")
+        + '<rect width="1200" height="630" fill="url(#vignette)"/>'
+        + "".join(crowd)
+        # The inn's wooden trim along the bottom edge.
+        + '<rect y="596" width="1200" height="34" fill="#5a4220"/>'
+        '<rect y="596" width="1200" height="4" fill="#8c6a34"/>'
+        '<rect y="626" width="1200" height="4" fill="#24190b"/>'
+        "</svg>"
+    )
+    return bytes(
+        resvg_py.svg_to_bytes(svg_string=page, font_files=[str(QUILL)], skip_system_fonts=True)
+    )
+
+
 def painted_themes(css: str) -> list[str]:
     """The themes ``app.css`` paints, by their ``[data-theme='…']`` blocks."""
     return re.findall(r"^\[data-theme='([\w-]+)'\]", css, re.MULTILINE)
@@ -536,6 +631,9 @@ def main() -> int:
             (OUT / f"logo-{name}.svg").write_text(svgs["small"])
 
     (OUT / "apple-touch-icon.png").write_bytes(touch_icon(logo))
+    card = share_card(logo)
+    if card is not None:
+        (OUT / "og-card.png").write_bytes(card)
     print(f"wrote {OUT.relative_to(REPO_ROOT)}/: {', '.join(THEMES)}")
     unpainted = [t for t in painted_themes(css) if t not in THEMES]
     if unpainted:

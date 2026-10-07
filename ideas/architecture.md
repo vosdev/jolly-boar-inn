@@ -541,8 +541,9 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
   process fails to start or answers `503 db_unavailable`, so stop the old container first.
 - The app's env vars and defaults are in `config.py`. `.env.example` documents them, the
   scripts' `WIKI_USER_AGENT`, and the client's build-time `PUBLIC_SITE_*` and
-  `PUBLIC_DEFAULT_THEME` (`client/site-branding.ts`). `PUBLIC_BASE_URL` has no
-  consumer yet; the client links from `location.origin`.
+  `PUBLIC_DEFAULT_THEME` (`client/site-branding.ts`). `PUBLIC_BASE_URL` only makes a shared
+  link's `og:image` absolute, written into `index.html` as it is served; the client links from
+  `location.origin`.
 
 ## 11. Database
 

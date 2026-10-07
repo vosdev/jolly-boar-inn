@@ -11,8 +11,8 @@
  * warning here and `jolly` in the page (`lib/theme.ts`), which is what decides.
  *
  * Beside the logo, a file named for it and a theme (`logo.svg`, `logo-tzhaar.svg`) is that
- * theme's logo, and an `apple-touch-icon.png` is the home-screen icon. A selfhoster with
- * one logo sets nothing more.
+ * theme's logo, an `apple-touch-icon.png` is the home-screen icon, and an `og-card.png` is
+ * the picture a shared link shows. A selfhoster with one logo sets nothing more.
  *
  * The same plugin names the tab and draws its icon, one per theme, which `lib/theme.ts`
  * swaps in with the theme: the theme's logo, else the logo, else the bundled sign as a
@@ -60,6 +60,8 @@ export interface Branding {
   themeLogos: Record<string, Logo>
   /** `apple-touch-icon.png` beside `logo`: a phone's home-screen icon. */
   touchIcon: Logo | null
+  /** `og-card.png` beside `logo`: what a shared link shows, 1200×630. */
+  card: Logo | null
   /** As configured, `''` when unset; the page decides whether it names a theme. */
   defaultTheme: string
   warnings: string[]
@@ -92,6 +94,11 @@ export function themeColours(css = readFileSync(APP_CSS, 'utf8')): Record<string
   }
   return colours
 }
+
+/** The touch icon as it is served: always this name, which phones also look for unasked. */
+const TOUCH_ICON = 'apple-touch-icon.png'
+/** The share card as it is served. */
+const CARD = 'og-card.png'
 
 /** `file` as a logo, or null when it is not there or not an image. */
 function imageAt(file: string): Logo | null {
@@ -131,6 +138,7 @@ export function readBranding(
 
   const themeLogos: Record<string, Logo> = {}
   let touchIcon: Logo | null = null
+  let card: Logo | null = null
   if (logo !== null) {
     const stem = join(dirname(logo.file), basename(logo.file, extname(logo.file)))
     for (const theme of [...themes].sort()) {
@@ -138,11 +146,12 @@ export function readBranding(
       const own = imageAt(`${stem}-${theme}${logo.extension}`)
       if (own !== null) themeLogos[theme] = own
     }
-    touchIcon = imageAt(join(dirname(logo.file), 'apple-touch-icon.png'))
+    touchIcon = imageAt(join(dirname(logo.file), TOUCH_ICON))
+    card = imageAt(join(dirname(logo.file), CARD))
   }
 
   const initial = name.replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase()
-  return { name, initial, logo, themeLogos, touchIcon, defaultTheme, warnings }
+  return { name, initial, logo, themeLogos, touchIcon, card, defaultTheme, warnings }
 }
 
 function escapeXml(text: string): string {
@@ -203,8 +212,35 @@ export function favicons(branding: Branding, colours = themeColours()): Record<s
   return icons
 }
 
-/** The touch icon as it is served: always this name, which phones also look for unasked. */
-const TOUCH_ICON = 'apple-touch-icon.png'
+/**
+ * Where the server writes `PUBLIC_BASE_URL` into `index.html` (`server/app/static.py`): a
+ * shared link's image has to be absolute, and only the running server knows its address.
+ */
+export const BASE_URL_SLOT = '__PUBLIC_BASE_URL__'
+
+/** What a shared link says, and the card it shows when the selfhoster has one. */
+export function shareTags(branding: Branding): HtmlTagDescriptor[] {
+  const meta = (key: 'property' | 'name', value: string, content: string): HtmlTagDescriptor => ({
+    tag: 'meta',
+    attrs: { [key]: value, content },
+    injectTo: 'head',
+  })
+  const tags = [
+    meta('property', 'og:type', 'website'),
+    meta('property', 'og:site_name', branding.name),
+    meta('property', 'og:title', branding.name),
+    meta('property', 'og:description', `Think you know Gielinor? Prove it at ${branding.name}.`),
+  ]
+  if (branding.card === null) return [...tags, meta('name', 'twitter:card', 'summary')]
+  return [
+    ...tags,
+    meta('property', 'og:image', `${BASE_URL_SLOT}/${CARD}`),
+    meta('property', 'og:image:width', '1200'),
+    meta('property', 'og:image:height', '630'),
+    meta('property', 'og:image:alt', branding.name),
+    meta('name', 'twitter:card', 'summary_large_image'),
+  ]
+}
 
 /** `index.html` with the site's name as its title. */
 export function retitle(html: string, name: string): string {
@@ -238,9 +274,11 @@ export function siteBranding(): Plugin {
         emitted.add(icon.fileName)
         this.emitFile({ type: 'asset', fileName: icon.fileName, source: icon.source })
       }
-      if (branding.touchIcon !== null) {
-        const source = readFileSync(branding.touchIcon.file)
-        this.emitFile({ type: 'asset', fileName: TOUCH_ICON, source })
+      for (const [image, fileName] of [
+        [branding.touchIcon, TOUCH_ICON],
+        [branding.card, CARD],
+      ] as const) {
+        if (image !== null) this.emitFile({ type: 'asset', fileName, source: readFileSync(image.file) })
       }
     },
     resolveId(id) {
@@ -281,7 +319,7 @@ export function siteBranding(): Plugin {
         const touch = { source: readFileSync(branding.touchIcon.file), type: 'image/png', fileName: TOUCH_ICON }
         tags.push({ tag: 'link', attrs: { rel: 'apple-touch-icon', href: iconHref(touch) }, injectTo: 'head' })
       }
-      return { html: retitle(html, branding.name), tags }
+      return { html: retitle(html, branding.name), tags: [...tags, ...shareTags(branding)] }
     },
   }
 }

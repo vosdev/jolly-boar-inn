@@ -10,11 +10,13 @@ import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import {
+  BASE_URL_SLOT,
   DEFAULT_SITE_NAME,
   definedThemes,
   favicons,
   readBranding,
   retitle,
+  shareTags,
   signSvg,
   themeColours,
 } from './site-branding.ts'
@@ -32,6 +34,7 @@ beforeAll(() => {
   writeFileSync(join(root, 'branding/boar/logo-nowhere.svg'), '<svg>no such theme</svg>')
   writeFileSync(join(root, 'branding/boar/logo-wilderness.png'), 'not the logo’s format')
   writeFileSync(join(root, 'branding/boar/apple-touch-icon.png'), Buffer.from('a touch icon'))
+  writeFileSync(join(root, 'branding/boar/og-card.png'), Buffer.from('a card'))
 })
 
 const BOAR = { PUBLIC_SITE_LOGO: 'branding/boar/logo.svg' }
@@ -52,6 +55,7 @@ describe('readBranding', () => {
         logo: null,
         themeLogos: {},
         touchIcon: null,
+        card: null,
         defaultTheme: '',
         warnings: [],
       })
@@ -65,6 +69,7 @@ describe('readBranding', () => {
       logo: { file: join(root, 'branding/logo.png'), extension: '.png', type: 'image/png' },
       themeLogos: {},
       touchIcon: null,
+      card: null,
       defaultTheme: 'wilderness',
       warnings: [],
     })
@@ -85,6 +90,11 @@ describe('readBranding', () => {
     expect(branding.themeLogos).toEqual({ tzhaar: svgLogo('branding/boar/logo-tzhaar.svg') })
     expect(branding.touchIcon).toEqual({
       file: join(root, 'branding/boar/apple-touch-icon.png'),
+      extension: '.png',
+      type: 'image/png',
+    })
+    expect(branding.card).toEqual({
+      file: join(root, 'branding/boar/og-card.png'),
       extension: '.png',
       type: 'image/png',
     })
@@ -154,5 +164,29 @@ describe('the tab', () => {
     expect(retitle('<head><title>The Jolly Boar Inn</title></head>', 'Fish & <Chips>')).toBe(
       '<head><title>Fish &amp; &lt;Chips&gt;</title></head>',
     )
+  })
+})
+
+describe('a shared link', () => {
+  const meta = (tags: ReturnType<typeof shareTags>) =>
+    Object.fromEntries(tags.map(({ attrs }) => [attrs!.property ?? attrs!.name, attrs!.content]))
+
+  it('is titled and described with the site’s name, and has no image without a card', () => {
+    expect(meta(shareTags(readBranding({ PUBLIC_SITE_NAME: 'The Dancing Donkey' }, root)))).toEqual({
+      'og:type': 'website',
+      'og:site_name': 'The Dancing Donkey',
+      'og:title': 'The Dancing Donkey',
+      'og:description': 'Think you know Gielinor? Prove it at The Dancing Donkey.',
+      'twitter:card': 'summary',
+    })
+    expect(meta(shareTags(readBranding(ALL_SET, root)))).not.toHaveProperty('og:image')
+  })
+
+  it('shows the card beside the logo, large, at the address the server fills in', () => {
+    const tags = meta(shareTags(readBranding(BOAR, root)))
+    expect(tags['og:image']).toBe(`${BASE_URL_SLOT}/og-card.png`)
+    expect(tags['og:image:width']).toBe('1200')
+    expect(tags['og:image:height']).toBe('630')
+    expect(tags['twitter:card']).toBe('summary_large_image')
   })
 })
