@@ -527,7 +527,7 @@ Limits:
   host listens on `0.0.0.0` and, where there is IPv6, `::` too.
 - `/ws` checks no `Origin`, because nothing ambient logs a socket in. Add an allow-list with any
   cookie.
-- Display names have no word filter until the Production milestone.
+- Display names have no word filter: rooms are closed lobbies. Revisit if public rooms see abuse.
 
 `http/headers.py` sets `Referrer-Policy: no-referrer`, `nosniff`, `X-Frame-Options: DENY`,
 `Cache-Control: no-store` on `/api/*`, and a CSP of `default-src 'none'` widened to `'self'` per
