@@ -26,11 +26,13 @@
     INTRO_ROUNDS,
     itemProblem,
     sourceProblems,
+    SUGGESTED_TYPE_LABELS,
     wikiProblem,
     type Choice,
     type ExamineContent,
     type ItemContent,
     type QuestionContent,
+    type SuggestedType,
     type SuggestionBody,
     type SuggestionContent,
   } from '../../lib/suggestions'
@@ -79,9 +81,22 @@
     )
   })
 
-  const sorts = $derived(choice.types.includes('ordering'))
   const customTypes = $derived(
     choice.types.filter((type): type is CustomType => type !== 'ordering'),
+  )
+  // The type the form opened on, and the one picked since. A round may both sort and ask, so
+  // picking across that line swaps one form for the other, starting it afresh.
+  // svelte-ignore state_referenced_locally
+  const opened: SuggestedType | undefined = start?.type ?? choice.types[0]
+  let current = $state(opened)
+  const sorts = $derived(current === 'ordering')
+  const picker = $derived(
+    choice.types.includes('ordering') && customTypes.length > 0
+      ? {
+          options: choice.types.map((type) => ({ value: type, label: SUGGESTED_TYPE_LABELS[type] })),
+          onpick: (type: string) => (current = type as SuggestedType),
+        }
+      : undefined,
   )
 
   const question: CustomQuestion | undefined =
@@ -92,6 +107,11 @@
           payload: start.payload ?? {},
           ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
         }
+  const picked = $derived(
+    current === opened || current === undefined || current === 'ordering'
+      ? question
+      : { type: current, payload: {} },
+  )
   const ordering: OrderingQuestion | undefined =
     start?.type === 'ordering' ? { type: 'ordering', payload: start.payload ?? {} } : undefined
 
@@ -216,6 +236,7 @@
     question={ordering}
     title={choice.label}
     mode={choice.id}
+    {picker}
     {saveLabel}
     fields={questionFields}
     onattempt={questionFieldsPass}
@@ -224,13 +245,14 @@
   />
 {:else if choice.kind === 'question'}
   <CustomQuestionForm
-    {question}
+    question={picked}
     title={choice.label}
     types={customTypes}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     mode={choice.id}
     quote={choice.quote ?? false}
     intro={INTRO_ROUNDS.includes(choice.id)}
+    {picker}
     {saveLabel}
     fields={questionFields}
     onattempt={questionFieldsPass}

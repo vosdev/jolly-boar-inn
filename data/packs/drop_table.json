@@ -1363,6 +1363,44 @@
         "explanation": "1 in 1,024 per roll, two rolls a kill, so about 1 in 512 per kill, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    },
+    {
+      "id": "q_018d74dd715388e0",
+      "type": "free_text",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which monster drops the Abyssal whip?",
+        "image": "item:4151",
+        "accepted": [
+          "Abyssal demon",
+          "Abyssal demons"
+        ],
+        "explanation": "Abyssal demons, per the OSRS Wiki's drop table, which needs 85 Slayer."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_demon"
+    },
+    {
+      "id": "q_41d4a1b948ecf595",
+      "type": "free_text",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which monster drops the Dragon warhammer?",
+        "image": "item:13576",
+        "accepted": [
+          "Lizardman shaman",
+          "Lizardman shamans"
+        ],
+        "explanation": "Lizardman shamans, per the OSRS Wiki's drop table, and nothing else does."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lizardman_shaman"
     }
   ]
 }

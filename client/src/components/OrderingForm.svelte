@@ -7,7 +7,8 @@
    * an entry, "Tied with the one above", so the author never types a rank and none is
    * skipped; the number beside each entry is the place it holds, equal across a tie.
    * `fields` adds the suggestion's own fields below the question's, and `onattempt` checks
-   * those on every Save.
+   * those on every Save. A round that also takes other types passes them in `picker`, and
+   * picking one hands it back.
    *
    * Like `CustomQuestionForm`, nothing is red until the first Save except a limit that is
    * already broken, and Save hands back only a question `problems` passes.
@@ -32,11 +33,13 @@
   } from '../lib/ordering'
   import { codePoints, field, limit } from '../lib/questionSchema'
   import QuestionStage from './QuestionStage.svelte'
+  import Segmented from './Segmented.svelte'
 
   let {
     question = undefined,
     title = undefined,
     mode = 'sort_it_out',
+    picker = undefined,
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
@@ -48,6 +51,8 @@
     title?: string
     /** The round it is previewed in. */
     mode?: string
+    /** Every type the round offers, in order, and what to do with one another form writes. */
+    picker?: { options: { value: string; label: string }[]; onpick: (type: string) => void }
     saveLabel?: string
     /** More fields, under the question's own. */
     fields?: Snippet<[boolean]>
@@ -137,6 +142,13 @@
   <div class="layout">
     <div class="fields">
       <h3 id="{id}-title">{title ?? (question === undefined ? 'New question' : 'Edit question')}</h3>
+      {#if picker !== undefined}
+        <Segmented
+          legend="Type"
+          options={picker.options}
+          bind:value={() => 'ordering', (type) => type !== 'ordering' && picker?.onpick(type)}
+        />
+      {/if}
 
       <div class="field">
         <label for="{id}-prompt">{wording.prompt}</label>

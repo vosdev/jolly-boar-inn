@@ -237,7 +237,7 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(QUOTE, payload={**QUOTE["content"]["payload"], "quote": "x" * 301}),
         _with(RELEASE_ORDER, type="multiple_choice"),
         _with(RELEASE_ORDER, type="free_text"),
-        _with(SORT_IT_OUT, mode="bestiary"),
+        _with(SORT_IT_OUT, mode="drop_table"),
         _with(SORT_IT_OUT, mode="random_event", random_event="bob"),
         _with(EVENT, type="ordering", payload=SORT_IT_OUT["content"]["payload"]),
         _ordering(entries=SORT_IT_OUT["content"]["payload"]["entries"][:2], answer=[0, 1]),
@@ -377,6 +377,36 @@ def test_drop_table_takes_a_drop_rate_and_a_pick_all(client: TestClient) -> None
     stored = queue(client)["suggestions"][1]["content"]
     assert stored["type"] == "pick_all_that_apply"
     assert stored["payload"]["answer_indices"] == [0, 2]
+
+
+TYPED = _with(
+    DROP_RATE,
+    type="free_text",
+    wiki="https://oldschool.runescape.wiki/w/Abyssal_demon",
+    payload={
+        "prompt": "Which monster drops the Abyssal whip?",
+        "accepted": ["Abyssal demon", "Abyssal demons"],
+        "max_distance": 2,
+    },
+)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [TYPED, _with(TYPED, mode="bestiary"), _with(SORT_IT_OUT, mode="bestiary")],
+    ids=["drop_table_free_text", "bestiary_free_text", "bestiary_ordering"],
+)
+def test_bestiary_and_drop_table_take_these_types_and_play_them(
+    client: TestClient, body: dict[str, Any]
+) -> None:
+    approve(client, suggest(client, body))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == body["content"]
+    assert row["playable"] is True
+    (question,) = export(client)["questions"]
+    content = body["content"]
+    assert (question["mode"], question["type"]) == (content["mode"], content["type"])
+    assert question["payload"] == body["content"]["payload"]
 
 
 def test_a_pick_all_is_held_to_its_types_check(client: TestClient) -> None:

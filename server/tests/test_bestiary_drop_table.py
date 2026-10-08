@@ -35,8 +35,13 @@ def test_bestiary_mixes_five_types_at_twenty_seconds() -> None:
     assert {q["type"] for q in questions("bestiary")} == MODES["bestiary"].types
 
 
-def test_drop_table_mixes_three_types_at_twenty_seconds() -> None:
-    assert MODES["drop_table"].types == {"multiple_choice", "pick_all_that_apply", "closest_number"}
+def test_drop_table_mixes_four_types_at_twenty_seconds() -> None:
+    assert MODES["drop_table"].types == {
+        "multiple_choice",
+        "free_text",
+        "pick_all_that_apply",
+        "closest_number",
+    }
     seconds = seconds_bounds("drop_table")
     assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds("drop_table").default == 5

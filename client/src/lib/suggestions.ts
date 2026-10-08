@@ -14,7 +14,7 @@
  */
 
 import type { CustomQuestion, CustomType } from './customQuestions'
-import { CUSTOM_TYPES, previewOf } from './customQuestions'
+import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
@@ -35,6 +35,8 @@ export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
 /** The types a suggestion may be: Create's three, and an ordering for the rounds that sort. */
 export type SuggestedType = CustomType | 'ordering'
+
+export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = { ...TYPE_LABELS, ordering: 'Put in order' }
 
 export interface QuestionContent {
   type: SuggestedType
@@ -114,8 +116,8 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
 
 /** A round whose editor offers more than four buttons. */
 const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
-  bestiary: ['multiple_choice', 'pick_all_that_apply'],
-  drop_table: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
+  bestiary: ['multiple_choice', 'free_text', 'pick_all_that_apply', 'ordering'],
+  drop_table: ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply'],
   know_your_content_creator: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
 }
 
