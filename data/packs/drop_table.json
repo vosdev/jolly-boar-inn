@@ -1384,7 +1384,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Abyssal_demon"
     },
     {
-      "id": "q_046d2b9da4830626",
+      "id": "q_41d4a1b948ecf595",
       "type": "free_text",
       "mode": "drop_table",
       "source": "pack",
@@ -1392,15 +1392,15 @@
         "drops"
       ],
       "payload": {
-        "prompt": "Which god wars boss drops the Bandos chestplate?",
-        "image": "item:11832",
+        "prompt": "Which monster drops the Dragon warhammer?",
+        "image": "item:13576",
         "accepted": [
-          "General Graardor",
-          "Graardor"
+          "Lizardman shaman",
+          "Lizardman shamans"
         ],
-        "explanation": "General Graardor, per the OSRS Wiki's drop table: the Bandos general."
+        "explanation": "Lizardman shamans, per the OSRS Wiki's drop table, and nothing else does."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+      "wiki": "https://oldschool.runescape.wiki/w/Lizardman_shaman"
     }
   ]
 }
