@@ -43,7 +43,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "drop_table": frozenset({"multiple_choice", "closest_number"}),
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
-    "know_your_content_creator": _CHOICE,
+    "know_your_content_creator": frozenset({"multiple_choice", "closest_number"}),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
 }

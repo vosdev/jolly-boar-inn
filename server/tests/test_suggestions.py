@@ -370,6 +370,21 @@ def test_drop_table_takes_a_drop_rate_but_not_a_pick_all(client: TestClient) -> 
     assert "'pick_all_that_apply' is not offered for 'drop_table'" in response.text
 
 
+def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
+    number = _with(
+        DROP_RATE,
+        mode="know_your_content_creator",
+        wiki="https://oldschool.runescape.wiki/w/Infernal_cape",
+        payload={
+            "prompt": "How many days after the Inferno came out did Woox get the first cape?",
+            "answer": 2,
+            "unit": "days",
+        },
+    )
+    suggest(client, number)
+    assert queue(client)["suggestions"][0]["content"]["mode"] == "know_your_content_creator"
+
+
 def test_the_form_offers_the_modes_the_server_takes() -> None:
     source = client_source.read("lib/suggestions.ts")
     offered = {"random_event"}

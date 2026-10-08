@@ -115,6 +115,7 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
 /** A round whose editor offers more than four buttons. */
 const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
   drop_table: ['multiple_choice', 'closest_number'],
+  know_your_content_creator: ['multiple_choice', 'closest_number'],
 }
 
 /** Rounds that show a quotation under the prompt. */

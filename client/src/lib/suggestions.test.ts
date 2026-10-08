@@ -71,6 +71,10 @@ describe('the choices', () => {
       'multiple_choice',
       'closest_number',
     ])
+    expect(CHOICES.find((c) => c.id === 'know_your_content_creator')?.types).toEqual([
+      'multiple_choice',
+      'closest_number',
+    ])
     const sort = CHOICES.find((c) => c.id === 'sort_it_out')
     expect(sort?.types).toEqual(['ordering'])
     expect(sort?.host).toBe('historian_minas')

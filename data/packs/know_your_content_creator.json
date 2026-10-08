@@ -106,6 +106,49 @@
         "explanation": "Solo Mission, in 2025. B0aty followed in episode 8."
       },
       "wiki": "https://oldschool.runescape.wiki/w/2025"
+    },
+    {
+      "id": "q_ef38bdf9f03c42a8",
+      "type": "closest_number",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "How many days after the Inferno came out did Woox claim the first Infernal cape?",
+        "answer": 2,
+        "unit": "days",
+        "explanation": "Two. The Inferno opened on 1 June 2017, and Woox was the first player to get the cape."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Infernal_cape"
+    },
+    {
+      "id": "q_b280cdd0e285f3ab",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which of these creators played for TeamLUL in Deadman Mansions?",
+        "options": [
+          "Raikesy",
+          "B0aty",
+          "Alfie",
+          "Framed",
+          "Soup",
+          "Torvesta"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          5
+        ],
+        "explanation": "Raikesy, Alfie and Torvesta, with Sick Nerd, under Faux. B0aty captained Framed and Soup on TeamCBS, and TeamLUL won by a point."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Mansions"
     }
   ]
 }
