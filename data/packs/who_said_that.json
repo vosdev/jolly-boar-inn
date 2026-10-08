@@ -112,7 +112,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Transcript:Rune_Mysteries"
     },
     {
-      "id": "q_fc50e533ed35c171",
+      "id": "q_de69dab1c7c8e8e1",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -121,7 +121,8 @@
       "credit": "Tayka",
       "credit_shown": true,
       "payload": {
-        "prompt": "As long as we remain vigilant and praise the Sun, all will be well.",
+        "quote": "As long as we remain vigilant and praise the Sun, all will be well.",
+        "prompt": "Who said this?",
         "options": [
           "Sol Heredit",
           "Metzli",

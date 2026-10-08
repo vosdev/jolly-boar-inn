@@ -40,7 +40,7 @@ NEW_EXAMINE = {
 ITEM_ROWS = [
     {"page_name": "Amulet of glory", "item_name": "Amulet of glory", "item_id": ["1704"]},
     {"page_name": "Abyssal whip", "item_name": "Abyssal whip", "item_id": ["4151"]},
-    {"page_name": "Fighter torso", "item_name": "Fighter torso", "item_id": ["10551"]},
+    {"page_name": "Dusty key", "item_name": "Dusty key", "item_id": ["1590"]},
     {"page_name": "Mystery box", "item_name": "Mystery box", "item_id": ["6199", "6200"]},
 ]
 
@@ -225,10 +225,10 @@ def test_a_round_not_built_yet_is_refused(
 
 
 def test_an_untradeable_item_takes_its_id_from_the_wiki(repo: dict[str, Path]) -> None:
-    assert '"Fighter torso"' not in repo["roster"].read_text()
-    export = {"items": [{"name": "Fighter torso", "credit": "Woox", "credit_shown": True}]}
+    assert '"Dusty key"' not in repo["roster"].read_text()
+    export = {"items": [{"name": "Dusty key", "credit": "Woox", "credit_shown": True}]}
     assert run(repo, export) == 0
-    assert {"id": 10551, "name": "Fighter torso"} in json.loads(repo["roster"].read_text())["items"]
+    assert {"id": 1590, "name": "Dusty key"} in json.loads(repo["roster"].read_text())["items"]
 
 
 def test_the_row_on_the_items_own_page_wins() -> None:

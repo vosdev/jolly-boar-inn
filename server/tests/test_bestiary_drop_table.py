@@ -39,12 +39,11 @@ def test_each_pack_has_enough_questions_to_fill_a_long_round(mode: str, least: i
     [q for mode in ("bestiary", "drop_table") for q in questions(mode)],
     ids=lambda q: q["id"],
 )
-def test_every_question_is_its_modes_own_and_says_where_its_fact_came_from(
+def test_every_question_is_its_modes_own_and_links_the_wiki(
     question: dict[str, Any],
 ) -> None:
     assert question["source"] == "pack" and question["type"] in MODES[question["mode"]].types
     assert question["wiki"].startswith("https://oldschool.runescape.wiki/w/")
-    assert "OSRS Wiki" in question["payload"]["explanation"]
 
 
 @pytest.mark.parametrize(

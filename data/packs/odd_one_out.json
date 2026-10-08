@@ -650,7 +650,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Skills"
     },
     {
-      "id": "q_772d513ba010596d",
+      "id": "q_36b4ab42a51c7237",
       "type": "multiple_choice",
       "mode": "odd_one_out",
       "source": "pack",
@@ -659,7 +659,7 @@
       "credit": "Tayka",
       "credit_shown": true,
       "payload": {
-        "prompt": "Pick the odd one out.",
+        "prompt": "Which one doesn't belong?",
         "options": [
           "Frozen tablet",
           "Coagulated venom",
@@ -671,7 +671,7 @@
       }
     },
     {
-      "id": "q_9342b69ceb6a80ce",
+      "id": "q_bf3558410888ad85",
       "type": "multiple_choice",
       "mode": "odd_one_out",
       "source": "pack",
@@ -679,7 +679,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Barrows_Brothers",
       "credit": "RunecraftRuth45",
       "payload": {
-        "prompt": "Which of these is not a Barrows brother?",
+        "prompt": "Which one doesn't belong?",
         "options": [
           "Dharok",
           "Hazelmere",
