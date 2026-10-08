@@ -6,7 +6,8 @@ import logging
 import socket
 import threading
 from collections.abc import Iterator
-from datetime import datetime
+from dataclasses import replace
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -279,6 +280,18 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
         },
     )
     assert created.status_code == 201, created.text
+    # On the day a price pack is made, its questions' date is the day the history shows.
+    today = datetime.now(UTC).date().isoformat()
+    app.state.packs[:] = [
+        replace(
+            pack,
+            questions=tuple(
+                {**q, "payload": {**q["payload"], "as_of": today}} if "as_of" in q["payload"] else q
+                for q in pack.questions
+            ),
+        )
+        for pack in app.state.packs
+    ]
     game: Game = table("Zezima", "Woox", modes=[{"mode": "more_less", "questions": 2}])
     game.start()
     game.admin.take("question_open")
@@ -299,7 +312,9 @@ def test_no_admin_payload_names_anyone_or_holds_a_question_or_answer(
             secrets_ |= {player.display_name, str(player.id), player.session_hash}
         for question in room.questions:
             secrets_ |= {str(question.id), question.content_id}
-            secrets_ |= {s for s in strings_in(question.payload) if len(s) >= 4}
+            # ``as_of`` is when the prices were read, which players see before they answer.
+            payload = {k: v for k, v in question.payload.items() if k != "as_of"}
+            secrets_ |= {s for s in strings_in(payload) if len(s) >= 4}
     secrets_ |= {s for s in strings_in(game.right(0)) if len(s) >= 4}
     assert "Which clanmate fell asleep at Vorkath?" in secrets_
     # A short secret only counts as a whole value: "more" may be an answer and part of a mode.
