@@ -52,7 +52,9 @@ MODES: dict[str, Mode] = {
     # Its types disagree on seconds; twenty is what closest_number and free_text default to.
     "bestiary": Mode(
         id="bestiary",
-        types=frozenset({"multiple_choice", "closest_number", "free_text", "ordering"}),
+        types=frozenset(
+            {"multiple_choice", "closest_number", "free_text", "ordering", "pick_all_that_apply"}
+        ),
         seconds=Bounds(default=20, minimum=10, maximum=60),
     ),
     # Its types disagree on seconds; Bestiary's bounds, since a drop rate is a number to argue

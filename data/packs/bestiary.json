@@ -551,6 +551,58 @@
         "explanation": "There are currently 71 available pets in Old School RuneScape.",
         "answer_index": 0
       }
+    },
+    {
+      "id": "q_3bd13910885a59d2",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "race"
+      ],
+      "payload": {
+        "prompt": "Which of these monsters are demons?",
+        "options": [
+          "Greater demon",
+          "Gargoyle",
+          "Hellhound",
+          "Kurask",
+          "Abyssal demon"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "Greater demons, hellhounds and abyssal demons, all weak to demonbane; hellhounds were tagged demonic in 2021. Gargoyles are golems and kurasks are leafy."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Demon"
+    },
+    {
+      "id": "q_5bcd71936496c95a",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "slayer"
+      ],
+      "payload": {
+        "prompt": "Which of these bosses can only be fought on a Slayer task?",
+        "options": [
+          "Cerberus",
+          "Zulrah",
+          "Alchemical Hydra",
+          "Vorkath",
+          "Abyssal Sire"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "Cerberus, the Alchemical Hydra and the Abyssal Sire are Slayer bosses: they or their monster must be your task. Zulrah and Vorkath need no task."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss"
     }
   ]
 }
