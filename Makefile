@@ -129,7 +129,9 @@ fetch-assets:
 	$(DATA) scripts/fetch_assets.py $(strip $(FETCH_ASSETS_FLAGS))
 
 # The owner's logo, drawn from the art `make fetch-assets ONLY=logo` fetched, into branding/boar/
-# (git-ignored). A selfhoster brings their own logo instead (branding/README.md).
+# (git-ignored). Use it with PUBLIC_SITE_LOGO=branding/boar/logo.svg in .env: the hero and
+# icons are found beside that file, and rebuild the client after. A selfhoster brings their own
+# logo instead (branding/README.md).
 logo:
 	$(LOGO) scripts/build_logo.py
 
