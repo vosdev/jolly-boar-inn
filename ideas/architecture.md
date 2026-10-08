@@ -507,8 +507,8 @@ questions, answers included: players' suggestions and the packs, never a room's.
   (`client/src/lib/stats.ts`), so each counts once per browser.
 - The client keeps sessions and the rooms it created in localStorage, never a cookie, so nothing
   ambient authenticates a request.
-- A second admin is a join plus `promote`. A room whose last admin lost their session stays stuck
-  until the Production milestone.
+- A second admin is a join plus `promote`. A room whose last admin lost their session runs on
+  without one until it expires; remaking it is the fix.
 - Sessions are stored as sha256, so a database dump yields none.
 
 Limits:
