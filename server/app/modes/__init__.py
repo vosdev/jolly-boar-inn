@@ -64,7 +64,7 @@ MODES: dict[str, Mode] = {
     # over like a combat level.
     "drop_table": Mode(
         id="drop_table",
-        types=frozenset({"multiple_choice", "pick_all_that_apply", "closest_number"}),
+        types=frozenset({"multiple_choice", "free_text", "pick_all_that_apply", "closest_number"}),
         seconds=Bounds(default=20, minimum=10, maximum=60),
     ),
     # Up to six names to read, then the property they share to work out.

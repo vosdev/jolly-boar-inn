@@ -8,7 +8,8 @@
    * `fields` adds the suggestion's own below. `onattempt` checks those on every Save, and
    * the question is handed back only when both pass. `/admin` edits a pack question in it,
    * with `pack` for the intro and picture pack questions carry, and its NPC `fixed`. A
-   * suggestion for an NPC's question offers the intro alone, with `intro`.
+   * suggestion for an NPC's question offers the intro alone, with `intro`. A round that also
+   * sorts lists its `ordering` in `picker`, which hands that pick back to swap forms.
    *
    * Save only hands back a question `problems` passes. Until the first try, only the
    * limits show (too long, too many, a repeated answer); what is still empty waits for
@@ -41,6 +42,7 @@
     quote = false,
     pack = false,
     intro = false,
+    picker = undefined,
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
@@ -65,6 +67,8 @@
     pack?: boolean
     /** Whether the intro shows without the picture. */
     intro?: boolean
+    /** Every type the round offers, in order, and what to do with one this form does not write. */
+    picker?: { options: { value: string; label: string }[]; onpick: (type: string) => void }
     saveLabel?: string
     /** More fields, under the question's own. */
     fields?: Snippet<[boolean]>
@@ -84,7 +88,9 @@
     value: String(DISTANCE_MIN + i),
     label: String(DISTANCE_MIN + i),
   }))
-  const offered = $derived(types.map((type) => ({ value: type, label: TYPE_LABELS[type] })))
+  const offered = $derived(
+    picker?.options ?? types.map((type) => ({ value: type, label: TYPE_LABELS[type] })),
+  )
 
   // The form starts from the question it was opened on and owns the draft from then on.
   // svelte-ignore state_referenced_locally
@@ -190,7 +196,10 @@
         <Segmented
           legend="Type"
           options={offered}
-          bind:value={() => draft.type, (type) => setType(type as CustomType)}
+          bind:value={
+            () => draft.type,
+            (type) => (types.includes(type as CustomType) ? setType(type as CustomType) : picker?.onpick(type))
+          }
         />
       {/if}
 

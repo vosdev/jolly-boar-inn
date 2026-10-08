@@ -1,6 +1,6 @@
 /** `/suggest`: only after a game, the limit before any field, and each kind as the server takes it. */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
@@ -353,6 +353,57 @@ describe('Suggest', () => {
     expect(screen.getByRole('button', { name: 'Add an entry' }).hasAttribute('disabled')).toBe(true)
     expect(screen.getByLabelText('Entry 6')).toBeTruthy()
     expect(screen.queryByLabelText('Entry 7')).toBeNull()
+  })
+
+  it('writes a Drop Table answer to type, with the typos it allows', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+    await fireEvent.click(screen.getByLabelText('Type the answer'))
+    await type('Question', 'Which monster drops the Abyssal whip?')
+    await type('Accepted answer 1', 'Abyssal demon')
+    await fireEvent.click(within(screen.getByRole('group', { name: 'Typos allowed' })).getByLabelText('2'))
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
+      type: 'free_text',
+      mode: 'drop_table',
+      payload: { prompt: 'Which monster drops the Abyssal whip?', accepted: ['Abyssal demon'], max_distance: 2 },
+    })
+  })
+
+  it('swaps Bestiary’s form between asking and sorting from one type picker', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
+    const labels = () =>
+      within(screen.getByRole('group', { name: 'Type' }))
+        .getAllByRole('radio')
+        .map((radio) => radio.parentElement?.textContent?.trim())
+    expect(labels()).toEqual(['Multiple choice', 'Type the answer', 'Pick all that apply', 'Put in order'])
+    await fireEvent.click(screen.getByLabelText('Put in order'))
+    expect(screen.getByLabelText('First end')).toBeTruthy()
+    expect(screen.getByLabelText('Put in order')).toHaveProperty('checked', true)
+    await fireEvent.click(screen.getByLabelText('Type the answer'))
+    expect(screen.queryByLabelText('First end')).toBeNull()
+    expect(screen.getByLabelText('Accepted answer 1')).toBeTruthy()
+    await fireEvent.click(screen.getByLabelText('Put in order'))
+
+    await type('What are they sorted by?', 'Sort these by combat level.')
+    await type('First end', 'Lowest')
+    await type('Last end', 'Highest')
+    await type('Entry 1', 'Goblin')
+    await type('Entry 2', 'Hill Giant')
+    await type('Entry 3', 'Black demon')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Combat_level')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
+      type: 'ordering',
+      mode: 'bestiary',
+      payload: { ends: ['Lowest', 'Highest'], answer: [0, 1, 2] },
+    })
   })
 
   it('makes an NPC’s question name its NPC', async () => {

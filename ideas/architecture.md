@@ -120,7 +120,7 @@ SECONDS: Bounds                       # optional
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
 | `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done, 20 s |
-| `drop_table` | Drop Table | `multiple_choice`, `pick_all_that_apply`, `closest_number`; `image` stored for the render | hand-written | done, 20 s |
+| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`; `image` stored for the render | hand-written | done, 20 s |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done, 20 s |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
@@ -194,9 +194,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Create's editor writes `multiple_choice`, `free_text`, `closest_number` and `pick_all_that_apply`
   (`picks` only as a "tell players how many" box) with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
-- `/suggest` adds an `ordering` form for the rounds that sort: entries first to last and a "tied
-  with the one above" box, so ranks follow and none is skipped, with `picks` optional. Release
-  Order's entries each carry their date as `detail`.
+- `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's beside its other types
+  in one picker: entries first to last and a "tied with the one above" box, so ranks follow and
+  none is skipped, with `picks` optional. Release Order's entries carry their date as `detail`.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:
 

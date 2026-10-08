@@ -41,8 +41,10 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "random_event": frozenset(
         {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}
     ),
-    "bestiary": frozenset({"multiple_choice", "pick_all_that_apply"}),
-    "drop_table": frozenset({"multiple_choice", "closest_number", "pick_all_that_apply"}),
+    "bestiary": frozenset({"multiple_choice", "free_text", "pick_all_that_apply", "ordering"}),
+    "drop_table": frozenset(
+        {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}
+    ),
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
     "know_your_content_creator": frozenset(
