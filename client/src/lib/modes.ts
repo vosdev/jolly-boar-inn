@@ -165,11 +165,11 @@ export const MODES: Record<string, Mode> = {
     hint: 'Ironmen should know this.',
     host: { id: 'nieve', name: 'Nieve' },
     greeting: 'Got a task for you. Not a kill, a question.',
-    blurb: 'Something dropped. Tell me which boss it came from.',
+    blurb: 'Your task: know the loot. Who drops it, what they drop, and how rarely.',
     waiting: 'Patience. Good drops take time.',
     reveal: 'The loot is on the floor.',
-    // The prompt names the item, because there is no render to show yet; its `image` waits
-    // in the payload for `asset` to draw.
+    // The prompt names the item or the monster, because there is no render to show yet; an
+    // item's `image` waits in the payload for `asset` to draw.
     stem: 'text',
   },
   odd_one_out: {

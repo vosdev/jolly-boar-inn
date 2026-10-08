@@ -120,7 +120,7 @@ SECONDS: Bounds                       # optional
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
 | `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering` | hand-written | done, 20 s |
-| `drop_table` | Drop Table | `multiple_choice`, `image` stored for the render | hand-written | done, 20 s |
+| `drop_table` | Drop Table | `multiple_choice`, `pick_all_that_apply`, `closest_number`; `image` stored for the render | hand-written | done, 20 s |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done, 20 s |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |

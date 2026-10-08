@@ -32,7 +32,7 @@ from app.questions.types.bounds import Bounds
 # mode or a type that cares says so, next to the thing that makes it quick or slow.
 QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=30, minimum=5, maximum=120)
-# The quote rounds', Drop Table's and Odd One Out's pace: ``multiple_choice``'s limits, five
+# The quote rounds' and Odd One Out's pace: ``multiple_choice``'s limits, five
 # seconds longer by default.
 QUOTE_SECONDS = Bounds(default=20, minimum=5, maximum=30)
 
@@ -55,9 +55,12 @@ MODES: dict[str, Mode] = {
         types=frozenset({"multiple_choice", "closest_number", "free_text", "ordering"}),
         seconds=Bounds(default=20, minimum=10, maximum=60),
     ),
-    # Four boss names weighed against one item read like four quotes, not four prices.
+    # Its types disagree on seconds; Bestiary's bounds, since a drop rate is a number to argue
+    # over like a combat level.
     "drop_table": Mode(
-        id="drop_table", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
+        id="drop_table",
+        types=frozenset({"multiple_choice", "pick_all_that_apply", "closest_number"}),
+        seconds=Bounds(default=20, minimum=10, maximum=60),
     ),
     # Up to six names to read, then the property they share to work out.
     "odd_one_out": Mode(

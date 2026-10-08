@@ -97,7 +97,7 @@ export interface Choice {
   quote?: boolean
 }
 
-/** Rounds that take four-button questions, built or not: `QUESTION_MODES` on the server. */
+/** Rounds that take four-button questions, built or not, with `ROUND_TYPES`: `QUESTION_MODES` on the server. */
 const CHOICE_ROUNDS = [
   'bestiary',
   'drop_table',
@@ -110,6 +110,11 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
   const built = MODES[id]
   if (built !== undefined) return { id, label: built.label, hint: built.hint, host: built.host.id }
   return UPCOMING_MODES.find((mode) => mode.id === id)
+}
+
+/** A round whose editor offers more than four buttons. */
+const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
+  drop_table: ['multiple_choice', 'closest_number'],
 }
 
 /** Rounds that show a quotation under the prompt. */
@@ -158,7 +163,7 @@ export const CHOICES: readonly Choice[] = [
       label: mode.label,
       hint: mode.hint,
       host: mode.host,
-      types: ['multiple_choice'],
+      types: ROUND_TYPES[mode.id] ?? ['multiple_choice'],
       quote: QUOTE_ROUNDS.includes(mode.id),
     }),
   ),

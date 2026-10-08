@@ -22,11 +22,12 @@ def test_bestiary_mixes_four_types_at_twenty_seconds() -> None:
     assert {q["type"] for q in questions("bestiary")} == MODES["bestiary"].types
 
 
-def test_drop_table_is_multiple_choice_at_twenty_seconds() -> None:
-    assert MODES["drop_table"].types == {"multiple_choice"}
+def test_drop_table_mixes_three_types_at_twenty_seconds() -> None:
+    assert MODES["drop_table"].types == {"multiple_choice", "pick_all_that_apply", "closest_number"}
     seconds = seconds_bounds("drop_table")
-    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 5, 30)
+    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds("drop_table").default == 5
+    assert {q["type"] for q in questions("drop_table")} == MODES["drop_table"].types
 
 
 @pytest.mark.parametrize(("mode", "least"), [("bestiary", 20), ("drop_table", 15)])
@@ -58,10 +59,13 @@ def test_no_bestiary_distractor_equals_the_answer(question: dict[str, Any]) -> N
     assert all(" ".join(o.split()).casefold() != answer for o in distractors)
 
 
-@pytest.mark.parametrize("question", questions("drop_table"), ids=lambda q: q["id"])
-def test_a_drop_table_question_shows_its_item_and_four_bosses(question: dict[str, Any]) -> None:
+@pytest.mark.parametrize(
+    "question",
+    [q for q in questions("drop_table") if q["payload"]["prompt"].startswith("Which boss drops ")],
+    ids=lambda q: q["id"],
+)
+def test_a_which_boss_question_shows_its_item_and_four_bosses(question: dict[str, Any]) -> None:
     payload = question["payload"]
     assert question["type"] == "multiple_choice"
     assert payload["image"].startswith("item:")
     assert len(payload["options"]) == 4
-    assert payload["prompt"].startswith("Which boss drops ")

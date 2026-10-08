@@ -345,9 +345,9 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
         },
         {
             "id": "drop_table",
-            "types": ["multiple_choice"],
+            "types": ["closest_number", "multiple_choice", "pick_all_that_apply"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 20, "min": 5, "max": 30},
+            "seconds": {"default": 20, "min": 10, "max": 60},
         },
         {
             "id": "odd_one_out",
