@@ -7,8 +7,6 @@ Instead of a splash countdown (default 8 seconds), have every player click ready
 
 ROOMS_PER_IP_PER_HOUR seems to be for the whole deployment and not by ip? unless FORWARDED_ALLOW_IPS is set. ROOMS_PER_IP_PER_HOUR might be too strict regardless. We should limit the rooms per client at least client side. (The delete button is done: the front page lists the rooms this browser created and each has a Remove, which deletes the room and frees its code. It does not care whether the room is active -- a room being played is still the host's to remove.)
 
-HEAD /api/modes 404s while GET 200s;
-
 # Custom Questions
 
 Custom questions can be displayed as random events. They can be shown at a random time during any game mode, as an additional question. With a special popup/splash type page which will show the random event NPC. We can create a bunch of random events and have them ask the question that is configured as custom.
