@@ -1,19 +1,26 @@
-# jolly-boar-inn
-Quiz night at the Jolly Boar Inn!
+# Think you know Gielinor?
 
-The version is in [`VERSION`](VERSION). Each release is a `v<version>` git tag, created by
-CI on main, and `make image` builds `jolly-boar-inn:<version>` locally.
+Prove it at the [Jolly Boar Inn](https://jollyboar.com)! 
 
-The NPC and trophy art is fetched, not committed. Set `WIKI_USER_AGENT` in `.env` and run
-`make fetch-assets` before `make image` or `docker compose build`, which bundle what is on disk.
-It runs in a container, like every script that writes data, so it needs only git, docker and make.
+An Oldschool RuneScape themed trivia game, playable in your browser on mobile and desktop.
 
-## Branding
+Create your lobby, customize it and play with your friends or clan.
 
-Three variables in `.env` give your instance its own name, logo and default theme:
-`PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO` and `PUBLIC_DEFAULT_THEME`, described in
-[`.env.example`](.env.example). They are baked into the client, so run `docker compose build`
-after changing them. The footer's GitHub link always points here.
+With 15 game modes available, there is enough for everyone's liking. You can even mix in custom questions to add a personal flair for your clan trivia game night.
+
+Use the public version available at https://jollyboar.com, or [self-host](SELFHOST.md) your own version for your clan.
+
+## Contribute
+
+Everyone can suggest a new question to be added to the game. Simply click on the `Suggest` button on the homepage of the public version.
+
+## Bugs
+
+- Find any bugs? Report them here on GitHub.
+
+- Find any issues with questions? Report them on [the public website](https://jollyboar.com).
+
+
 
 ## License
 
