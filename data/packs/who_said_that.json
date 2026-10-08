@@ -130,6 +130,73 @@
         ],
         "answer_index": 3
       }
+    },
+    {
+      "id": "q_50da701a9ea113f0",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Evil_Dave",
+      "credit": "TwintigApril",
+      "payload": {
+        "quote": "That outfit is TOTALLY EVIL! And you've got an evil cat too! To be honest I'm a little bit scared of you!",
+        "prompt": "Who said this?",
+        "options": [
+          "Evil Dave",
+          "Zamorak",
+          "Monk of Entrana",
+          "Hans",
+          "Gertrude"
+        ],
+        "explanation": "Evil Dave is evil!",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_f6c50ebc12a730ca",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Evil_Dave",
+      "credit": "TwintigApril",
+      "payload": {
+        "quote": "Yeah! I'm going to use it to summon DEMONS to DO MY BIDDING, or raise an ARMY OF THE UNDEAD! And then I'm going to totally, like, take over the world!",
+        "prompt": "Who said this?",
+        "options": [
+          "Evil Dave",
+          "King Narnode Shareen",
+          "Evil Bob",
+          "Evil twin",
+          "Evil chicken",
+          "Fairy Godfather"
+        ],
+        "explanation": "Evil Dave! Ah-ha-ha-ha-ha-haa!",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_3eed7d939ecb2efb",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Fairy_Godfather",
+      "credit": "TwintigApril",
+      "payload": {
+        "quote": "Yous just-a better keep-a your nose outa my business. I's da Godfather and I's da one who's inna charge here.",
+        "prompt": "Who said this?",
+        "options": [
+          "Fairy Godfather",
+          "Fairy Nuff",
+          "Fat Rocco",
+          "Evil Dave",
+          "Slim Louie"
+        ],
+        "explanation": "Bravo!",
+        "answer_index": 0
+      }
     }
   ]
 }
