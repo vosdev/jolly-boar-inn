@@ -1,12 +1,19 @@
 """Bestiary and Drop Table: two hand-written rounds about monsters and what they drop."""
 
 import json
+import random
+import uuid
 from typing import Any
 
 import pytest
 
 from app.config import REPO_ROOT
 from app.modes import MODES, questions_bounds, seconds_bounds
+from app.questions.packs import load_packs
+from app.questions.submission import Submission
+from app.questions.types import TYPES
+from app.rooms.selection import select
+from app.rooms.settings import RoomSettings
 
 
 def questions(mode: str) -> list[dict[str, Any]]:
@@ -14,8 +21,14 @@ def questions(mode: str) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["questions"]
 
 
-def test_bestiary_mixes_four_types_at_twenty_seconds() -> None:
-    assert MODES["bestiary"].types == {"multiple_choice", "closest_number", "free_text", "ordering"}
+def test_bestiary_mixes_five_types_at_twenty_seconds() -> None:
+    assert MODES["bestiary"].types == {
+        "multiple_choice",
+        "closest_number",
+        "free_text",
+        "ordering",
+        "pick_all_that_apply",
+    }
     seconds = seconds_bounds("bestiary")
     assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds("bestiary").default == 5
@@ -28,6 +41,30 @@ def test_drop_table_mixes_three_types_at_twenty_seconds() -> None:
     assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds("drop_table").default == 5
     assert {q["type"] for q in questions("drop_table")} == MODES["drop_table"].types
+
+
+@pytest.mark.parametrize("mode", ["bestiary", "drop_table"])
+def test_a_round_draws_and_scores_every_type_its_mode_plays(mode: str) -> None:
+    packs = load_packs(REPO_ROOT / "data" / "packs")
+    settings = RoomSettings(modes=[{"mode": mode, "questions": questions_bounds(mode).maximum}])
+    # A pool larger than one round may leave a type out of any one draw, but not out of ten.
+    # The random events dropped into the round are not its own.
+    drawn = [
+        q
+        for seed in range(10)
+        for q in select(packs, [], settings, random.Random(seed))[0].questions
+        if q["mode"] == mode
+    ]
+    assert {q["type"] for q in drawn} == MODES[mode].types
+    right, wrong = uuid.uuid4(), uuid.uuid4()
+    for question in drawn:
+        if question["type"] != "pick_all_that_apply":
+            continue
+        payload = question["payload"]
+        missed = payload["answer_indices"][1:]
+        submissions = [Submission(right, payload["answer_indices"]), Submission(wrong, missed)]
+        credit = TYPES["pick_all_that_apply"].grade(payload, submissions)
+        assert credit[right] == 1.0 and 0.0 < credit[wrong] < 1.0
 
 
 @pytest.mark.parametrize(("mode", "least"), [("bestiary", 20), ("drop_table", 15)])

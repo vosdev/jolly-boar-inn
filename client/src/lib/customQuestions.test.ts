@@ -35,14 +35,18 @@ const NUMBER: CustomQuestion = {
   payload: { prompt: 'Zulrah kills for a pet, on average?', answer: 4000, unit: 'kills', explanation: '1/4000.' },
   random_event: 'death',
 }
+const PICK_ALL: CustomQuestion = {
+  type: 'pick_all_that_apply',
+  payload: { prompt: 'Which of these are demons?', options: ['Hellhound', 'Gargoyle', 'Imp'], answer_indices: [0, 2], picks: 2 },
+}
 
 function paths(question: unknown): string[] {
   return problems(question).map((problem) => `${problem.path}: ${problem.message}`)
 }
 
 describe('problems', () => {
-  it('passes a well-formed question of each of the three types', () => {
-    for (const question of [CHOICE, TEXT, NUMBER]) expect(paths(question)).toEqual([])
+  it('passes a well-formed question of each of the four types', () => {
+    for (const question of [CHOICE, TEXT, NUMBER, PICK_ALL]) expect(paths(question)).toEqual([])
   })
 
   it('reads its limits from the schema, the six-choice cap included', () => {
@@ -67,6 +71,19 @@ describe('problems', () => {
     const payload = { prompt: 'Q', options: ['Hans', ' hans  ', 'Bob'], answer_index: 3 }
     expect(paths({ type: 'multiple_choice', payload })).toEqual([
       'payload.answer_index: Pick one of the answers.',
+      'payload.options[1]: Same as answer 1.',
+    ])
+  })
+
+  it('refuses a pick all that apply with no answer right, or every one', () => {
+    const { picks: _, ...open } = PICK_ALL.payload
+    expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [] } })).toContain(
+      'payload.answer_indices: Tick at least one right answer.',
+    )
+    expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [0, 1, 2] } })).toEqual([
+      'payload.answer_indices: Leave at least one answer wrong.',
+    ])
+    expect(paths({ ...PICK_ALL, payload: { ...open, options: ['Imp', 'imp', 'Hellhound'] } })).toEqual([
       'payload.options[1]: Same as answer 1.',
     ])
   })
@@ -99,14 +116,23 @@ describe('problems', () => {
     ])
     expect(paths({ ...CHOICE, id: 'q_0000000000000000' })[0]).toMatch(/^id: “id” is not part of a question here/)
     expect(paths({ type: 'pick_from_list', payload: {} })).toEqual([
-      'type: Must be one of multiple_choice, free_text, closest_number.',
+      'type: Must be one of multiple_choice, free_text, closest_number, pick_all_that_apply.',
     ])
   })
 })
 
 describe('the form', () => {
   it('opens a question and writes it back unchanged', () => {
-    for (const question of [CHOICE, TEXT, NUMBER]) expect(questionOf(draftOf(question))).toEqual(question)
+    for (const question of [CHOICE, TEXT, NUMBER, PICK_ALL]) {
+      expect(questionOf(draftOf(question))).toEqual(question)
+    }
+  })
+
+  it('sets picks to the count ticked, sorted, and only when players are told it', () => {
+    const draft = { ...draftOf(PICK_ALL), answerIndices: [2, 1] }
+    expect(draft.picksShown).toBe(true)
+    expect(questionOf(draft).payload).toMatchObject({ answer_indices: [1, 2], picks: 2 })
+    expect(questionOf({ ...draft, picksShown: false }).payload).not.toHaveProperty('picks')
   })
 
   it('leaves random_event out when Random asks, which a new question starts on', () => {
@@ -144,6 +170,11 @@ describe('the form', () => {
     expect(preview.view).toEqual({ prompt: NUMBER.payload.prompt, unit: 'kills' })
     expect(Date.parse(preview.answerable_at!)).toBeLessThan(Date.now())
     expect(previewOf(CHOICE).random_event).toBe('')
+    expect(previewOf(PICK_ALL).view).toEqual({
+      prompt: PICK_ALL.payload.prompt,
+      options: PICK_ALL.payload.options,
+      picks: 2,
+    })
   })
 })
 

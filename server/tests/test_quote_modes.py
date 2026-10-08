@@ -1,6 +1,8 @@
-"""Who Said That? and Know Your Content Creator: two hand-written rounds on four buttons."""
+"""Who Said That? and Know Your Content Creator: two hand-written rounds about what people said."""
 
 import json
+import random
+import uuid
 from typing import Any
 
 import pytest
@@ -8,6 +10,11 @@ import pytest
 from app.config import REPO_ROOT
 from app.modes import MODES, questions_bounds, seconds_bounds
 from app.questions import schema
+from app.questions.packs import load_packs
+from app.questions.submission import Submission
+from app.questions.types import TYPES
+from app.rooms.selection import select
+from app.rooms.settings import RoomSettings
 
 QUOTE_MODES = ("who_said_that", "know_your_content_creator")
 
@@ -17,12 +24,40 @@ def questions(mode: str) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["questions"]
 
 
-@pytest.mark.parametrize("mode", QUOTE_MODES)
-def test_a_quote_round_is_multiple_choice_with_time_to_read(mode: str) -> None:
-    assert MODES[mode].types == {"multiple_choice"}
-    seconds = seconds_bounds(mode)
+def test_who_said_that_is_multiple_choice_with_time_to_read() -> None:
+    assert MODES["who_said_that"].types == {"multiple_choice"}
+    seconds = seconds_bounds("who_said_that")
     assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 5, 30)
+    assert questions_bounds("who_said_that").default == 5
+
+
+def test_know_your_content_creator_mixes_three_types_at_twenty_seconds() -> None:
+    mode = "know_your_content_creator"
+    assert MODES[mode].types == {"multiple_choice", "closest_number", "pick_all_that_apply"}
+    seconds = seconds_bounds(mode)
+    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds(mode).default == 5
+
+
+# What each type stores as its right answer, sent back as a player would send it.
+ANSWER_KEYS = {
+    "multiple_choice": "answer_index",
+    "closest_number": "answer",
+    "pick_all_that_apply": "answer_indices",
+}
+
+
+def test_a_know_your_content_creator_round_draws_and_scores_all_three_types() -> None:
+    mode = "know_your_content_creator"
+    settings = RoomSettings(modes=[{"mode": mode, "questions": len(questions(mode))}])
+    (played,) = select(load_packs(REPO_ROOT / "data" / "packs"), [], settings, random.Random(1))
+    own = [q for q in played.questions if q["mode"] == mode]
+    assert {q["type"] for q in own} == MODES[mode].types
+    for question in own:
+        payload, player = question["payload"], uuid.uuid4()
+        value = TYPES[question["type"]].parse_value(payload, payload[ANSWER_KEYS[question["type"]]])
+        credit = TYPES[question["type"]].grade(payload, [Submission(player, value)])
+        assert credit[player] == 1.0
 
 
 def test_clipped_is_now_know_your_content_creator() -> None:
@@ -35,8 +70,8 @@ def test_clipped_is_now_know_your_content_creator() -> None:
     ids=lambda q: q["id"],
 )
 def test_every_question_is_its_modes_own_with_a_source(question: dict[str, Any]) -> None:
-    assert question["type"] == "multiple_choice" and question["source"] == "pack"
-    assert question["mode"] in QUOTE_MODES
+    assert question["mode"] in QUOTE_MODES and question["source"] == "pack"
+    assert question["type"] in MODES[question["mode"]].types
     assert "wiki" in question or "source_url" in question
 
 

@@ -17,11 +17,17 @@ def _another_option(payload: dict[str, Any]) -> int:
     return next(i for i in range(len(payload["options"])) if i != payload["answer_index"])
 
 
-def _one_swapped(payload: dict[str, Any]) -> list[int]:
-    # One right option traded for a wrong one: still ``picks`` long, and short of full credit.
+def _only_wrong(payload: dict[str, Any]) -> list[int]:
+    # Only wrong options, so no credit and a round can expect no points. ``picks`` may ask for
+    # more than there are wrong ones; then one right option traded for a wrong one, short of
+    # full credit but not of all of it.
     right = payload["answer_indices"]
-    wrong = next(i for i in range(len(payload["options"])) if i not in right)
-    return sorted([*right[:-1], wrong])
+    wrong = [i for i in range(len(payload["options"])) if i not in right]
+    if "picks" not in payload:
+        return wrong
+    if len(wrong) >= payload["picks"]:
+        return wrong[: payload["picks"]]
+    return sorted([*right[:-1], wrong[0]])
 
 
 def _rotated_past_ties(payload: dict[str, Any]) -> list[int]:
@@ -65,7 +71,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "pick_from_list": _another_entry,
     "closest_number": lambda payload: payload["answer"] + 1,
     "free_text": _nothing_like_it,
-    "pick_all_that_apply": _one_swapped,
+    "pick_all_that_apply": _only_wrong,
     "ordering": _rotated_past_ties,
 }
 

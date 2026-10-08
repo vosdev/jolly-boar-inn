@@ -9,21 +9,23 @@
  * the schema cannot say. A list only ever holds questions that pass, so the one thing
  * left for submit to refuse is the event cap (`eventSlots`).
  *
- * Only three types are offered. `more_less` and `price_is_right` cannot be events yet, and
- * `pick_from_list` needs vocabulary ids a host does not have.
+ * Four types are offered. `more_less` and `price_is_right` cannot be events yet,
+ * `pick_from_list` needs vocabulary ids a host does not have, and `ordering` has its own
+ * form (`OrderingForm`).
  */
 
 import type { EventFrequency, OpenQuestion } from './protocol'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 import { check, codePoints, envelopeProperty, field, fields, type Problem } from './questionSchema'
 
-export const CUSTOM_TYPES = ['multiple_choice', 'free_text', 'closest_number'] as const
+export const CUSTOM_TYPES = ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply'] as const
 export type CustomType = (typeof CUSTOM_TYPES)[number]
 
 export const TYPE_LABELS: Record<CustomType, string> = {
   multiple_choice: 'Multiple choice',
   free_text: 'Type the answer',
   closest_number: 'Closest number',
+  pick_all_that_apply: 'Pick all that apply',
 }
 
 export interface CustomQuestion {
@@ -77,11 +79,21 @@ function strings(value: unknown): value is string[] {
  */
 function consistency(type: CustomType, payload: Record<string, unknown>): Problem[] {
   const found: Problem[] = []
-  if (type === 'multiple_choice' && strings(payload.options)) {
+  const choices = type === 'multiple_choice' || type === 'pick_all_that_apply'
+  if (choices && strings(payload.options)) {
     const options = payload.options
     const index = payload.answer_index
-    if (typeof index === 'number' && index >= options.length) {
+    if (type === 'multiple_choice' && typeof index === 'number' && index >= options.length) {
       found.push(at('payload.answer_index', 'Pick one of the answers.', 'missing'))
+    }
+    const right = payload.answer_indices
+    if (type === 'pick_all_that_apply' && Array.isArray(right)) {
+      if (right.length === 0) {
+        found.push(at('payload.answer_indices', 'Tick at least one right answer.', 'missing'))
+      } else if (right.length >= options.length) {
+        // Ticking everything would then be the answer, so the server refuses it.
+        found.push(at('payload.answer_indices', 'Leave at least one answer wrong.'))
+      }
     }
     const seen = new Map<string, number>()
     options.forEach((option, i) => {
@@ -160,6 +172,10 @@ export interface Draft {
   quote: string
   options: string[]
   answerIndex: number
+  /** The right options of a pick-all-that-apply question. */
+  answerIndices: number[]
+  /** Whether players are told how many are right: `picks`, always the count ticked. */
+  picksShown: boolean
   accepted: string[]
   maxDistance: number
   /** As typed: a number is only a number once it parses. */
@@ -179,6 +195,8 @@ const EDITED = new Set([
   'quote',
   'options',
   'answer_index',
+  'answer_indices',
+  'picks',
   'accepted',
   'max_distance',
   'answer',
@@ -200,6 +218,10 @@ export function draftOf(question?: CustomQuestion): Draft {
     quote: text(p.quote),
     options: Array.isArray(p.options) ? p.options.map(text) : ['', ''],
     answerIndex: typeof p.answer_index === 'number' ? p.answer_index : 0,
+    answerIndices: Array.isArray(p.answer_indices)
+      ? p.answer_indices.filter((index) => typeof index === 'number')
+      : [],
+    picksShown: typeof p.picks === 'number',
     accepted: Array.isArray(p.accepted) ? p.accepted.map(text) : [''],
     maxDistance: typeof p.max_distance === 'number' ? p.max_distance : MAX_DISTANCE_DEFAULT,
     answer: typeof p.answer === 'number' ? String(p.answer) : '',
@@ -229,6 +251,12 @@ export function questionOf(draft: Draft): CustomQuestion {
     if (quote !== '') payload.quote = quote
     payload.options = draft.options.map((option) => option.trim())
     payload.answer_index = draft.answerIndex
+  } else if (draft.type === 'pick_all_that_apply') {
+    payload.options = draft.options.map((option) => option.trim())
+    payload.answer_indices = [...draft.answerIndices].sort((a, b) => a - b)
+    if (draft.picksShown && draft.answerIndices.length > 0) {
+      payload.picks = draft.answerIndices.length
+    }
   } else if (draft.type === 'free_text') {
     payload.accepted = draft.accepted.map((answer) => answer.trim())
     if (draft.maxDistance !== MAX_DISTANCE_DEFAULT) payload.max_distance = draft.maxDistance
@@ -252,6 +280,7 @@ const OPEN_KEYS: Record<CustomType, string[]> = {
   multiple_choice: ['intro', 'prompt', 'quote', 'image', 'options'],
   free_text: ['intro', 'prompt', 'image'],
   closest_number: ['intro', 'prompt', 'image', 'unit'],
+  pick_all_that_apply: ['intro', 'prompt', 'image', 'options', 'picks'],
 }
 
 /**
@@ -305,6 +334,8 @@ const PLACES: Record<string, string> = {
   'payload.prompt': 'question',
   'payload.options': 'answers',
   'payload.answer_index': 'correct answer',
+  'payload.answer_indices': 'right answers',
+  'payload.picks': 'how many to pick',
   'payload.accepted': 'accepted answers',
   'payload.max_distance': 'typos allowed',
   'payload.answer': 'answer',

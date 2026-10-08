@@ -74,8 +74,8 @@
     oncancel: () => void
   } = $props()
 
-  const OPTIONS_MIN = limit(field('multiple_choice', 'options'), 'minItems') ?? 0
-  const OPTIONS_MAX = limit(field('multiple_choice', 'options'), 'maxItems') ?? 0
+  const PICK_ALL = 'pick_all_that_apply'
+  const choicesOf = (type: CustomType) => (type === PICK_ALL ? PICK_ALL : 'multiple_choice')
   const ACCEPTED_MIN = limit(field('free_text', 'accepted'), 'minItems') ?? 0
   const ACCEPTED_MAX = limit(field('free_text', 'accepted'), 'maxItems') ?? 0
   const DISTANCE_MIN = limit(field('free_text', 'max_distance'), 'minimum') ?? 0
@@ -92,6 +92,8 @@
   // svelte-ignore state_referenced_locally
   if (!types.includes(draft.type)) draft.type = types[0] ?? draft.type
   let attempted = $state(false)
+  const optionsMin = $derived(limit(field(choicesOf(draft.type), 'options'), 'minItems') ?? 0)
+  const optionsMax = $derived(limit(field(choicesOf(draft.type), 'options'), 'maxItems') ?? 0)
   const id = $props.id()
 
   const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
@@ -108,7 +110,7 @@
 
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
-    /^(payload\.(prompt|quote|options|answer_index|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
+    /^(payload\.(prompt|quote|options|answer_index|answer_indices|picks|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
   const showIntro = $derived(pack || intro)
   const unplaced = $derived(
     shown.filter(
@@ -151,6 +153,22 @@
     draft.options.splice(index, 1)
     if (draft.answerIndex === index) draft.answerIndex = 0
     else if (draft.answerIndex > index) draft.answerIndex -= 1
+    draft.answerIndices = draft.answerIndices
+      .filter((right) => right !== index)
+      .map((right) => (right > index ? right - 1 : right))
+  }
+
+  function tick(index: number, right: boolean): void {
+    const others = draft.answerIndices.filter((ticked) => ticked !== index)
+    draft.answerIndices = right ? [...others, index] : others
+  }
+
+  // Multiple choice may have two answers and pick all that apply needs three, so switching
+  // adds the blank one rather than greeting the switch with an error.
+  function setType(type: CustomType): void {
+    draft.type = type
+    const least = limit(field(choicesOf(type), 'options'), 'minItems') ?? 0
+    if (type === PICK_ALL) while (draft.options.length < least) draft.options.push('')
   }
 </script>
 
@@ -169,7 +187,11 @@
         {title ?? (question === undefined ? 'New question' : 'Edit question')}
       </h3>
       {#if offered.length > 1}
-        <Segmented legend="Type" options={offered} bind:value={draft.type} />
+        <Segmented
+          legend="Type"
+          options={offered}
+          bind:value={() => draft.type, (type) => setType(type as CustomType)}
+        />
       {/if}
 
       {#if showIntro}
@@ -214,7 +236,7 @@
                 type="button"
                 class="small"
                 aria-label="Remove answer {index + 1}"
-                disabled={draft.options.length <= OPTIONS_MIN}
+                disabled={draft.options.length <= optionsMin}
                 onclick={() => removeOption(index)}>✕</button
               >
             </div>
@@ -223,13 +245,52 @@
           <button
             type="button"
             class="small"
-            disabled={draft.options.length >= OPTIONS_MAX}
+            disabled={draft.options.length >= optionsMax}
             onclick={addOption}>Add an answer</button
           >
-          <p class="note">{OPTIONS_MIN} to {OPTIONS_MAX} answers.</p>
+          <p class="note">{optionsMin} to {optionsMax} answers.</p>
           {@render errors('payload.options')}
           {@render errors('payload.answer_index')}
         </fieldset>
+      {:else if draft.type === PICK_ALL}
+        <fieldset class="field">
+          <legend>Possible answers, with every right one ticked.</legend>
+          {#each draft.options as _, index (index)}
+            <div class="option">
+              <input
+                type="checkbox"
+                aria-label="Answer {index + 1} is right"
+                checked={draft.answerIndices.includes(index)}
+                onchange={(event) => tick(index, event.currentTarget.checked)}
+              />
+              <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
+              <button
+                type="button"
+                class="small"
+                aria-label="Remove answer {index + 1}"
+                disabled={draft.options.length <= optionsMin}
+                onclick={() => removeOption(index)}>✕</button
+              >
+            </div>
+            {@render errors(`payload.options[${index}]`)}
+          {/each}
+          <button
+            type="button"
+            class="small"
+            disabled={draft.options.length >= optionsMax}
+            onclick={addOption}>Add an answer</button
+          >
+          <p class="note">{optionsMin} to {optionsMax} answers: at least one right, and one wrong.</p>
+          {@render errors('payload.options')}
+          {@render errors('payload.answer_indices')}
+        </fieldset>
+        <div class="field">
+          <label class="check">
+            <input type="checkbox" bind:checked={draft.picksShown} />
+            Tell players how many are right
+          </label>
+          {@render errors('payload.picks')}
+        </div>
       {:else if draft.type === 'free_text'}
         <fieldset class="field">
           <legend>Answers that count</legend>
@@ -428,7 +489,8 @@
     margin-bottom: 0.4rem;
   }
 
-  .option input[type='radio'] {
+  .option input[type='radio'],
+  .option input[type='checkbox'] {
     flex: none;
     width: 1.05rem;
     height: 1.05rem;

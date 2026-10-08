@@ -119,13 +119,13 @@ SECONDS: Bounds                       # optional
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
-| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering` | hand-written | done, 20 s |
+| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done, 20 s |
 | `drop_table` | Drop Table | `multiple_choice`, `pick_all_that_apply`, `closest_number`; `image` stored for the render | hand-written | done, 20 s |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done, 20 s |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done, 20 s |
-| `know_your_content_creator` | Know Your Content Creator | `multiple_choice` | hand-written | done, 20 s |
+| `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `pick_all_that_apply` | hand-written | done, 20 s |
 | `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Images |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
@@ -191,8 +191,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   type its mode does not allow, a stray `random_event`, a price type filed as an event, or one
   `pick_from_list` prompt under two answers.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
-- Create's editor writes `multiple_choice`, `free_text` and `closest_number` with limits read from
-  the schema, refuses what the server would 422, the slot cap included, and exports
+- Create's editor writes `multiple_choice`, `free_text`, `closest_number` and `pick_all_that_apply`
+  (`picks` only as a "tell players how many" box) with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
 - `/suggest` adds an `ordering` form for the rounds that sort: entries first to last and a "tied
   with the one above" box, so ranks follow and none is skipped, with `picks` optional. Release
