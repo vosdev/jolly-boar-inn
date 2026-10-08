@@ -648,6 +648,49 @@
         "explanation": "The others are skills in Old School RuneScape. Dungeoneering exists only in RuneScape 3."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Skills"
+    },
+    {
+      "id": "q_36b4ab42a51c7237",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Metamorphosis",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Frozen tablet",
+          "Coagulated venom",
+          "Charged ice",
+          "Parasitic egg"
+        ],
+        "explanation": "Every other item is used to metamorph pets.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_bf3558410888ad85",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Barrows_Brothers",
+      "credit": "RunecraftRuth45",
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Dharok",
+          "Hazelmere",
+          "Karil",
+          "Verac",
+          "Guthan",
+          "Torag"
+        ],
+        "explanation": "explanation",
+        "answer_index": 1
+      }
     }
   ]
 }

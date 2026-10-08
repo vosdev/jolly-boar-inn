@@ -529,6 +529,28 @@
         "explanation": "Blue dragons are level 111, lava 252, mithril 304, brutal black 318, adamant 338 and rune 380, per their infoboxes on the OSRS Wiki. A brutal black outranks a mithril dragon."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_(monster)"
+    },
+    {
+      "id": "q_d1f0ae1af0537160",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Pet",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Without transmorphs and duplicate versions, how many unique pets can you obtain in Gielinor?",
+        "options": [
+          "71",
+          "73",
+          "58",
+          "69",
+          "64",
+          "67"
+        ],
+        "explanation": "There are currently 71 available pets in Old School RuneScape.",
+        "answer_index": 0
+      }
     }
   ]
 }
