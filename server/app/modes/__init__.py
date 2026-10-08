@@ -32,8 +32,8 @@ from app.questions.types.bounds import Bounds
 # mode or a type that cares says so, next to the thing that makes it quick or slow.
 QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 SECONDS = Bounds(default=30, minimum=5, maximum=120)
-# The quote rounds' and Odd One Out's pace: ``multiple_choice``'s limits, five
-# seconds longer by default.
+# Who Said That? and Odd One Out's pace: ``multiple_choice``'s limits, five seconds
+# longer by default.
 QUOTE_SECONDS = Bounds(default=20, minimum=5, maximum=30)
 
 # In the order the create form lists them.
@@ -46,13 +46,18 @@ MODES: dict[str, Mode] = {
     "who_said_that": Mode(
         id="who_said_that", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
     ),
+    # Its types disagree on seconds; Bestiary's bounds, since closest_number needs ten at least.
     "know_your_content_creator": Mode(
-        id="know_your_content_creator", types=frozenset({"multiple_choice"}), seconds=QUOTE_SECONDS
+        id="know_your_content_creator",
+        types=frozenset({"multiple_choice", "closest_number", "pick_all_that_apply"}),
+        seconds=Bounds(default=20, minimum=10, maximum=60),
     ),
     # Its types disagree on seconds; twenty is what closest_number and free_text default to.
     "bestiary": Mode(
         id="bestiary",
-        types=frozenset({"multiple_choice", "closest_number", "free_text", "ordering"}),
+        types=frozenset(
+            {"multiple_choice", "closest_number", "free_text", "ordering", "pick_all_that_apply"}
+        ),
         seconds=Bounds(default=20, minimum=10, maximum=60),
     ),
     # Its types disagree on seconds; Bestiary's bounds, since a drop rate is a number to argue

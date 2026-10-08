@@ -152,6 +152,43 @@ describe('CustomQuestions', () => {
     ])
   })
 
+  it('writes a pick all that apply, starting at three answers, with picks only when asked', async () => {
+    const panel = await loaded()
+    await setFrequency('More')
+    await click(panel, 'Add a question')
+    let form = editor()
+    await pick(form, 'Pick all that apply')
+    await type(form, 'Question', 'Which of these are demons?')
+    for (const [i, name] of ['Hellhound', 'Gargoyle', 'Imp'].entries()) await type(form, `Answer ${i + 1}`, name)
+    await click(form, 'Add question')
+    expect(within(form).getByText('Tick at least one right answer.')).toBeTruthy()
+    for (const name of ['Answer 3 is right', 'Answer 1 is right']) {
+      await fireEvent.click(within(form).getByRole('checkbox', { name }))
+    }
+    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Tell players how many are right' }))
+    await click(form, 'Add question')
+
+    await click(panel, 'Edit question 1')
+    form = editor()
+    expect(within(form).getByRole('button', { name: 'Remove answer 1' })).toHaveProperty('disabled', true)
+    await click(form, 'Add an answer')
+    await type(form, 'Answer 4', 'Black demon')
+    await click(form, 'Remove answer 1')
+    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Tell players how many are right' }))
+    await click(form, 'Save question')
+
+    expect(await submitted()).toEqual([
+      {
+        type: 'pick_all_that_apply',
+        payload: {
+          prompt: 'Which of these are demons?',
+          options: ['Gargoyle', 'Imp', 'Black demon'],
+          answer_indices: [1],
+        },
+      },
+    ])
+  })
+
   it('starts the NPC picker on Random, and sends no random_event for a question left on it', async () => {
     const panel = await loaded()
     await click(panel, 'Add a question')

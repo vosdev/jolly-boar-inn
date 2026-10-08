@@ -410,7 +410,7 @@ with what waits in them (pending, open), none at zero.
   Download and, once downloaded, Mark as applied. Under them a round picker and a search over the
   hand-written packs; a question opens read-only with Edit and Delete, and a chip says Edited or
   To delete. Edit opens its type's form in place: Create's with an intro and a picture for choice,
-  typed and number questions, `/suggest`'s for ordering, a line and a name from the list for an
+  typed, number and pick-all questions, `/suggest`'s for ordering, a line and a name from the list for an
   examine, and the payload as JSON for a type no form writes yet. Links and credit sit under
   every form.
 

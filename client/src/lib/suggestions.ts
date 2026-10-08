@@ -114,7 +114,9 @@ function choiceRound(id: string): { id: string; label: string; hint: string; hos
 
 /** A round whose editor offers more than four buttons. */
 const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
-  drop_table: ['multiple_choice', 'closest_number'],
+  bestiary: ['multiple_choice', 'pick_all_that_apply'],
+  drop_table: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
+  know_your_content_creator: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
 }
 
 /** Rounds that show a quotation under the prompt. */
@@ -313,6 +315,10 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
   if (type === 'multiple_choice') {
     const options = payload.options as string[]
     return options[payload.answer_index as number] ?? ''
+  }
+  if (type === 'pick_all_that_apply') {
+    const options = payload.options as string[]
+    return (payload.answer_indices as number[]).map((index) => options[index] ?? '').join(' / ')
   }
   if (type === 'free_text') return (payload.accepted as string[]).join(' / ')
   return [String(payload.answer), payload.unit].filter((part) => part !== undefined).join(' ')

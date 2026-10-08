@@ -3,7 +3,7 @@
    * One pack question being edited in `/admin`: its type's form, held to the type and the
    * NPC it has, with the links it was checked against and its credit under it.
    *
-   * Choice, typed and number questions use Create's form with the intro and picture pack
+   * Choice, typed, number and pick-all questions use Create's form with the intro and picture pack
    * questions carry; an ordering question uses `/suggest`'s. An examine line answers from
    * the names its list already has, picked by name: a new name stays with suggestions,
    * whose import gives it an id. A type no form writes yet is edited as its payload's JSON,
@@ -11,7 +11,7 @@
    */
   import { onMount } from 'svelte'
 
-  import type { CustomQuestion, CustomType } from '../../lib/customQuestions'
+  import { CUSTOM_TYPES, type CustomQuestion, type CustomType } from '../../lib/customQuestions'
   import { nameProblem, NAME_MAX } from '../../lib/names'
   import type { OrderingQuestion } from '../../lib/ordering'
   import { envelopeOf, parsePayload, showsQuote, type QuestionEdit } from '../../lib/questionEdits'
@@ -32,7 +32,7 @@
     oncancel: () => void
   } = $props()
 
-  const FORM_TYPES: readonly string[] = ['multiple_choice', 'free_text', 'closest_number']
+  const FORM_TYPES: readonly string[] = CUSTOM_TYPES
   const SAVE = 'Queue the edit'
   const id = $props.id()
 
