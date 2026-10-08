@@ -2,6 +2,7 @@
 # here so a host needs only git, docker and make. Never started by `docker compose up`; the
 # Makefile runs one script per container:
 #   docker compose -f docker-compose.data.yml run --rm --build data python scripts/<script>.py
+# `make logo` runs in `logo`, the same image plus the packages it draws with.
 #
 # Its own project, so a run on a host that also serves the app neither touches nor warns
 # about the app's containers.
@@ -21,3 +22,12 @@ services:
     # The scripts read the repo's .env themselves; this passes a value set in the shell.
     environment:
       - WIKI_USER_AGENT
+
+  logo:
+    build:
+      context: .
+      target: logo
+    image: jolly-boar-inn-logo:latest
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - .:/repo
