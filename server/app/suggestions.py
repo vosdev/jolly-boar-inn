@@ -40,7 +40,7 @@ _CHOICE = frozenset({"multiple_choice"})
 QUESTION_MODES: dict[str, frozenset[str]] = {
     "random_event": frozenset({"multiple_choice", "free_text", "closest_number"}),
     "bestiary": _CHOICE,
-    "drop_table": _CHOICE,
+    "drop_table": frozenset({"multiple_choice", "closest_number"}),
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
     "know_your_content_creator": _CHOICE,

@@ -207,10 +207,10 @@ def test_an_unknown_mode_is_reported() -> None:
 
 
 def test_a_type_that_disagrees_with_its_mode_is_reported() -> None:
-    """The other half of the pack rule: Drop Table is multiple choice only."""
-    q = question(mode="drop_table")
+    """The other half of the pack rule: Odd One Out is multiple choice only."""
+    q = question(mode="odd_one_out")
     assert schema.consistency_errors(q) == [
-        "$.type: 'more_less' disagrees with its mode: 'drop_table' plays as 'multiple_choice'"
+        "$.type: 'more_less' disagrees with its mode: 'odd_one_out' plays as 'multiple_choice'"
     ]
     with pytest.raises(schema.QuestionError, match="disagrees with its mode"):
         schema.validate(q)

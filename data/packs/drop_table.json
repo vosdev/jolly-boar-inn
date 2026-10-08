@@ -440,6 +440,71 @@
         "explanation": "Dagannoth Prime, per the OSRS Wiki's drop table. Rex drops the berserker ring and Supreme the archers ring."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_Prime"
+    },
+    {
+      "id": "q_1206d07797176743",
+      "type": "pick_all_that_apply",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these drop the Dragon pickaxe?",
+        "image": "item:11920",
+        "options": [
+          "King Black Dragon",
+          "Giant Mole",
+          "Kalphite Queen",
+          "Zulrah",
+          "Chaos Elemental"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "King Black Dragon, Kalphite Queen and Chaos Elemental, per the OSRS Wiki. Callisto, Vet'ion, Venenatis and their smaller versions drop it too."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_pickaxe"
+    },
+    {
+      "id": "q_9e80f73a274d0224",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items is dropped by Cerberus?",
+        "options": [
+          "Hydra leather",
+          "Primordial crystal",
+          "Kraken tentacle",
+          "Dragon pickaxe"
+        ],
+        "answer_index": 1,
+        "explanation": "The Primordial crystal, one of Cerberus's four 1 in 520 uniques, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
+    },
+    {
+      "id": "q_be575ae8bc5aba3f",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "A Lizardman shaman drops a Dragon warhammer once in how many kills?",
+        "image": "item:13576",
+        "answer": 3000,
+        "unit": "kills",
+        "explanation": "1 in 3,000, per the OSRS Wiki. It was 1 in 5,000 until May 2024."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer"
     }
   ]
 }

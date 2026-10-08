@@ -341,6 +341,35 @@ def test_html_is_kept_as_typed(client: TestClient) -> None:
     assert queue(client)["suggestions"][0]["content"]["payload"]["prompt"] == "<b>Bold</b>?"
 
 
+DROP_RATE = {
+    "kind": "question",
+    "content": {
+        "type": "closest_number",
+        "mode": "drop_table",
+        "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer",
+        "payload": {
+            "prompt": "A Lizardman shaman drops a Dragon warhammer once in how many kills?",
+            "answer": 3000,
+            "unit": "kills",
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+
+
+def test_drop_table_takes_a_drop_rate_but_not_a_pick_all(client: TestClient) -> None:
+    suggest(client, DROP_RATE)
+    pick_all = _with(
+        DROP_RATE,
+        type="pick_all_that_apply",
+        payload={"prompt": "Which drop it?", "options": ["A", "B", "C"], "answer_indices": [0]},
+    )
+    response = client.post("/api/suggestions", json=pick_all)
+    assert response.status_code == 422
+    assert "'pick_all_that_apply' is not offered for 'drop_table'" in response.text
+
+
 def test_the_form_offers_the_modes_the_server_takes() -> None:
     source = client_source.read("lib/suggestions.ts")
     offered = {"random_event"}

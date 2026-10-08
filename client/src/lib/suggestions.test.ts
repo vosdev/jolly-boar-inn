@@ -67,6 +67,10 @@ describe('the choices', () => {
       'release_order',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
+    expect(CHOICES.find((c) => c.id === 'drop_table')?.types).toEqual([
+      'multiple_choice',
+      'closest_number',
+    ])
     const sort = CHOICES.find((c) => c.id === 'sort_it_out')
     expect(sort?.types).toEqual(['ordering'])
     expect(sort?.host).toBe('historian_minas')
