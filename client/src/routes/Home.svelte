@@ -12,7 +12,7 @@
    * with ours (`lib/suggestions.ts`, `lib/reports.ts`).
    */
   import { onMount } from 'svelte'
-  import { siteName } from 'virtual:branding'
+  import { hero, heroes, siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import Icon from '../components/Icon.svelte'
@@ -33,6 +33,7 @@
     isRoomCode,
     normalizeCode,
   } from '../lib/session'
+  import { watchTheme } from '../lib/theme'
 
   let { navigate }: { navigate: (to: string, state?: { via: Route }) => void } = $props()
 
@@ -55,6 +56,12 @@
    * Suggest sits under Host on a wide screen and last on a phone. Both places are DOM
    * order, so the tab key and a screen reader follow what the eye sees.
    */
+  // The selfhoster's hero for the page's theme, else theirs for every theme; without one the
+  // Wise Old Man hosts Home.
+  let theme = $state('')
+  const heroArt = $derived(heroes[theme] ?? hero)
+  onMount(() => watchTheme((current) => (theme = current)))
+
   let wide = $state(typeof matchMedia === 'function' && matchMedia(WIDE_QUERY).matches)
   let code = $state('')
   let removing = $state<string | null>(null)
@@ -192,7 +199,7 @@
 {/snippet}
 
 <div class="intro">
-  <Stage host="wise_old_man">
+  <Stage host="wise_old_man" hero={heroArt}>
     {#snippet paper()}
       <h1>Think you know Gielinor? Prove it at {siteName}.</h1>
       <p class="tagline">

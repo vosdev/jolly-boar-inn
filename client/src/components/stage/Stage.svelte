@@ -13,6 +13,11 @@
    *
    * The host is its chathead, at 78px and at 68px on a phone.
    *
+   * Home's stage may have a `hero` instead, a selfhoster's picture (§14 of design.md). It is
+   * no chathead: a whole figure, shorter for its width, so it stands bigger. With 600px of
+   * stage it is 240px beside the scroll, which widens to keep its own 30rem; narrower it
+   * takes the host's place at 120px, and on a phone stands partly off the screen's edge.
+   *
    * A random event's NPC, the `guest`, stands on the right instead, and the host leaves
    * the stage (section 12). `entering` plays that change: the host fades out, the scroll
    * slides left into the space it leaves, and the guest fades in. Without it the guest is
@@ -35,8 +40,11 @@
     guest = null,
     entering = false,
     returning = false,
+    hero = null,
     children,
   }: {
+    /** A picture to stand in the host's place instead, larger: Home's, from the branding. */
+    hero?: string | null
     /** The NPC id of the round's host, from `hostOf` in `lib/modes.ts`. */
     host?: string
     /** What is written on the sheet. */
@@ -58,7 +66,7 @@
   const guestArt = $derived(guest === null ? null : npcArt(guest, undefined, STRANGER))
 </script>
 
-<div class="stage">
+<div class="stage" class:with-hero={hero !== null}>
   <div
     class="stage-row"
     class:event={guestArt !== null && !returning}
@@ -66,7 +74,7 @@
     class:returning={guestArt !== null && returning}
   >
     <div class="npc host" aria-hidden="true">
-      <img class={art.cut} src={art.url} alt="" draggable="false" />
+      <img class={hero === null ? art.cut : 'hero'} src={hero ?? art.url} alt="" draggable="false" />
     </div>
     <ClueScroll {opening} {award}>
       {@render paper()}
@@ -224,6 +232,23 @@
     }
   }
 
+  /* The hero's 240px less what it laps over the scroll, so the scroll keeps its 30rem. */
+  .stage.with-hero {
+    max-width: calc(30rem + 200px);
+  }
+
+  .with-hero .stage-row {
+    --npc-w: 120px;
+    --npc-lap: 32px;
+  }
+
+  @container (min-width: 600px) {
+    .with-hero .stage-row {
+      --npc-w: 240px;
+      --npc-lap: 40px;
+    }
+  }
+
   @container (max-width: 26rem) {
     .stage-row {
       --npc-w: 68px;
@@ -278,5 +303,22 @@
 
   .under {
     margin-top: 1rem;
+  }
+
+  /* On a phone the hero stands bigger than a host would, so part of it goes past the
+     screen's left edge rather than taking the sheet's words from them. */
+  @media (max-width: 447.98px) {
+    .with-hero .stage-row {
+      --hero-off: 24px;
+    }
+
+    .with-hero .npc {
+      left: calc(-1 * var(--hero-off));
+      bottom: 0;
+    }
+
+    .with-hero .stage-row :global(.paper) {
+      padding-left: calc(var(--npc-w) - var(--hero-off) + 0.3rem);
+    }
   }
 </style>

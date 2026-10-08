@@ -221,8 +221,9 @@ Round 2 of 5 · 5 questions · 20 seconds each
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
-- **Home** opens with the same stage, the Wise Old Man on the scroll with the site's challenge, in
-  place of a panel.
+- **Home** opens with the same stage and the site's challenge on the scroll, in place of a panel.
+  Its host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
+  stage, else 120px in the host's place, partly off a phone's edge. Without one, the Wise Old Man.
 
 ## 9. The splash and the ready check
 
@@ -388,7 +389,8 @@ left. A browser holding the admin token also gets an Admin button.
 **Selfhoster branding.** Three build-time env vars, which compose passes as build args:
 `PUBLIC_SITE_NAME` (default *The Jolly Boar Inn*; also the tab title), `PUBLIC_SITE_LOGO` (an image
 in `branding/`, also the tab icon; missing or unloadable, the bundled sign; a `logo-<theme>` beside it
-overrides it per theme, an `og-card.png` is a shared link's picture) and `PUBLIC_DEFAULT_THEME`
+overrides it per theme, an `og-card.png` is a shared link's picture, a `hero` and `hero-<theme>` stand
+on Home's stage) and `PUBLIC_DEFAULT_THEME`
 (a theme id for browsers that never chose; unknown, `jolly`). The GitHub link is not configurable:
 a fork's footer should still point upstream.
 

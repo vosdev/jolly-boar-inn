@@ -11,8 +11,9 @@
  * warning here and `jolly` in the page (`lib/theme.ts`), which is what decides.
  *
  * Beside the logo, a file named for it and a theme (`logo.svg`, `logo-tzhaar.svg`) is that
- * theme's logo, an `apple-touch-icon.png` is the home-screen icon, and an `og-card.png` is
- * the picture a shared link shows. A selfhoster with one logo sets nothing more.
+ * theme's logo, an `apple-touch-icon.png` is the home-screen icon, an `og-card.png` is
+ * the picture a shared link shows, and a `hero` (with a `hero-<theme>` per theme) stands
+ * on Home's stage instead of the Wise Old Man. A selfhoster with one logo sets nothing more.
  *
  * The same plugin names the tab and draws its icon, one per theme, which `lib/theme.ts`
  * swaps in with the theme: the theme's logo, else the logo, else the bundled sign as a
@@ -62,6 +63,10 @@ export interface Branding {
   touchIcon: Logo | null
   /** `og-card.png` beside `logo`: what a shared link shows, 1200×630. */
   card: Logo | null
+  /** `hero.<ext>` beside `logo`: who stands on Home's stage. */
+  hero: Logo | null
+  /** The heroes beside `hero` named for a theme, by theme. */
+  themeHeroes: Record<string, Logo>
   /** As configured, `''` when unset; the page decides whether it names a theme. */
   defaultTheme: string
   warnings: string[]
@@ -139,19 +144,29 @@ export function readBranding(
   const themeLogos: Record<string, Logo> = {}
   let touchIcon: Logo | null = null
   let card: Logo | null = null
+  let hero: Logo | null = null
+  const themeHeroes: Record<string, Logo> = {}
   if (logo !== null) {
-    const stem = join(dirname(logo.file), basename(logo.file, extname(logo.file)))
-    for (const theme of [...themes].sort()) {
-      // The logo's own extension only: a theme's logo is the same kind of picture redrawn.
-      const own = imageAt(`${stem}-${theme}${logo.extension}`)
-      if (own !== null) themeLogos[theme] = own
+    const folder = dirname(logo.file)
+    // The base's own extension only: a theme's version is the same kind of picture redrawn.
+    const perTheme = (base: Logo, into: Record<string, Logo>) => {
+      const stem = join(dirname(base.file), basename(base.file, base.extension))
+      for (const theme of [...themes].sort()) {
+        const own = imageAt(`${stem}-${theme}${base.extension}`)
+        if (own !== null) into[theme] = own
+      }
     }
-    touchIcon = imageAt(join(dirname(logo.file), TOUCH_ICON))
-    card = imageAt(join(dirname(logo.file), CARD))
+    perTheme(logo, themeLogos)
+    touchIcon = imageAt(join(folder, TOUCH_ICON))
+    card = imageAt(join(folder, CARD))
+    for (const extension of Object.keys(IMAGE_TYPES)) {
+      hero ??= imageAt(join(folder, `hero${extension}`))
+    }
+    if (hero !== null) perTheme(hero, themeHeroes)
   }
 
   const initial = name.replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase()
-  return { name, initial, logo, themeLogos, touchIcon, card, defaultTheme, warnings }
+  return { name, initial, logo, themeLogos, touchIcon, card, hero, themeHeroes, defaultTheme, warnings }
 }
 
 function escapeXml(text: string): string {
@@ -294,9 +309,11 @@ export function siteBranding(): Plugin {
         return `import.meta.ROLLUP_FILE_URL_${ref}`
       }
       const logo = branding.logo === null ? 'null' : url(branding.logo, 'logo')
-      const logos = Object.entries(branding.themeLogos).map(
-        ([theme, image]) => `${JSON.stringify(theme)}: ${url(image, `logo-${theme}`)}`,
-      )
+      const byTheme = (images: Record<string, Logo>, name: string) =>
+        Object.entries(images).map(
+          ([theme, image]) => `${JSON.stringify(theme)}: ${url(image, `${name}-${theme}`)}`,
+        )
+      const hero = branding.hero === null ? 'null' : url(branding.hero, 'hero')
       const tabIcons = Object.fromEntries(
         Object.entries(icons).map(([theme, icon]) => [theme, { href: iconHref(icon), type: icon.type }]),
       )
@@ -304,7 +321,9 @@ export function siteBranding(): Plugin {
         `export const siteName = ${JSON.stringify(branding.name)}`,
         `export const initial = ${JSON.stringify(branding.initial)}`,
         `export const logo = ${logo}`,
-        `export const logos = {${logos.join(', ')}}`,
+        `export const logos = {${byTheme(branding.themeLogos, 'logo').join(', ')}}`,
+        `export const hero = ${hero}`,
+        `export const heroes = {${byTheme(branding.themeHeroes, 'hero').join(', ')}}`,
         `export const favicons = ${JSON.stringify(tabIcons)}`,
         `export const defaultTheme = ${JSON.stringify(branding.defaultTheme)}`,
       ].join('\n')

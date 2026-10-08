@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as api from "../lib/api";
 import { pastGames, savePastGame } from "../lib/history";
+import { npcArt } from "../lib/npcs";
 import { rememberCreated, setSession } from "../lib/session";
 import { petsDrawn } from "../test-pets";
 import Home from "./Home.svelte";
@@ -65,6 +66,14 @@ describe("Home", () => {
       screen.getByRole("button", { name: "Create a room" }),
     );
     expect(navigate).toHaveBeenCalledWith("/create");
+  });
+
+  it("is hosted by the Wise Old Man without a hero in the branding", () => {
+    render(Home, { navigate });
+    const art = [...document.querySelectorAll(".stage .npc img")];
+    expect(art.map((img) => img.getAttribute("src"))).toEqual([
+      npcArt("wise_old_man").url,
+    ]);
   });
 
   it("joins a code typed as two words", async () => {
