@@ -358,16 +358,36 @@ DROP_RATE = {
 }
 
 
-def test_drop_table_takes_a_drop_rate_but_not_a_pick_all(client: TestClient) -> None:
+PICK_ALL = _with(
+    DROP_RATE,
+    type="pick_all_that_apply",
+    wiki="https://oldschool.runescape.wiki/w/Dragon_pickaxe",
+    payload={
+        "prompt": "Which of these drop the Dragon pickaxe?",
+        "options": ["King Black Dragon", "Giant Mole", "Kalphite Queen", "Zulrah"],
+        "answer_indices": [0, 2],
+        "picks": 2,
+    },
+)
+
+
+def test_drop_table_takes_a_drop_rate_and_a_pick_all(client: TestClient) -> None:
     suggest(client, DROP_RATE)
-    pick_all = _with(
-        DROP_RATE,
-        type="pick_all_that_apply",
-        payload={"prompt": "Which drop it?", "options": ["A", "B", "C"], "answer_indices": [0]},
-    )
-    response = client.post("/api/suggestions", json=pick_all)
+    suggest(client, PICK_ALL)
+    stored = queue(client)["suggestions"][1]["content"]
+    assert stored["type"] == "pick_all_that_apply"
+    assert stored["payload"]["answer_indices"] == [0, 2]
+
+
+def test_a_pick_all_is_held_to_its_types_check(client: TestClient) -> None:
+    every = {**PICK_ALL["content"]["payload"], "answer_indices": [0, 1, 2, 3]}
+    del every["picks"]
+    response = client.post("/api/suggestions", json=_with(PICK_ALL, payload=every))
     assert response.status_code == 422
-    assert "'pick_all_that_apply' is not offered for 'drop_table'" in response.text
+    assert "every option is right" in response.text
+    response = client.post("/api/suggestions", json=_with(PICK_ALL, mode="odd_one_out"))
+    assert response.status_code == 422
+    assert "'pick_all_that_apply' is not offered for 'odd_one_out'" in response.text
 
 
 def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:

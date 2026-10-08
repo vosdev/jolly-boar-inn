@@ -67,14 +67,14 @@ describe('the choices', () => {
       'release_order',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
-    expect(CHOICES.find((c) => c.id === 'drop_table')?.types).toEqual([
-      'multiple_choice',
-      'closest_number',
-    ])
-    expect(CHOICES.find((c) => c.id === 'know_your_content_creator')?.types).toEqual([
-      'multiple_choice',
-      'closest_number',
-    ])
+    expect(CHOICES.find((c) => c.id === 'bestiary')?.types).toEqual(['multiple_choice', 'pick_all_that_apply'])
+    for (const id of ['drop_table', 'know_your_content_creator']) {
+      expect(CHOICES.find((c) => c.id === id)?.types).toEqual([
+        'multiple_choice',
+        'closest_number',
+        'pick_all_that_apply',
+      ])
+    }
     const sort = CHOICES.find((c) => c.id === 'sort_it_out')
     expect(sort?.types).toEqual(['ordering'])
     expect(sort?.host).toBe('historian_minas')
@@ -88,6 +88,7 @@ describe('the choices', () => {
       'multiple_choice',
       'free_text',
       'closest_number',
+      'pick_all_that_apply',
     ])
   })
 
@@ -143,6 +144,9 @@ describe('the queue', () => {
     expect(answerOf({ kind: 'question', content: typed })).toBe('Jad / TzTok-Jad')
     const number = { ...QUESTION, type: 'closest_number' as const, payload: { prompt: 'p', answer: 99, unit: 'gp' } }
     expect(answerOf({ kind: 'question', content: number })).toBe('99 gp')
+    const payload = { prompt: 'p', options: ['Imp', 'Gargoyle', 'Hellhound'], answer_indices: [0, 2] }
+    const pickAll = { ...QUESTION, type: 'pick_all_that_apply' as const, payload }
+    expect(answerOf({ kind: 'question', content: pickAll })).toBe('Imp / Hellhound')
   })
 
   it('says when the limit frees up, and names an export by its day', () => {

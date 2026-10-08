@@ -191,8 +191,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   type its mode does not allow, a stray `random_event`, a price type filed as an event, or one
   `pick_from_list` prompt under two answers.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
-- Create's editor writes `multiple_choice`, `free_text` and `closest_number` with limits read from
-  the schema, refuses what the server would 422, the slot cap included, and exports
+- Create's editor writes `multiple_choice`, `free_text`, `closest_number` and `pick_all_that_apply`
+  (`picks` only as a "tell players how many" box) with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
 - `/suggest` adds an `ordering` form for the rounds that sort: entries first to last and a "tied
   with the one above" box, so ranks follow and none is skipped, with `picks` optional. Release
