@@ -110,6 +110,26 @@
         "explanation": "Archmage Sedridor, in the Wizards' Tower basement, during Rune Mysteries."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Transcript:Rune_Mysteries"
+    },
+    {
+      "id": "q_fc50e533ed35c171",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Phoenix",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "As long as we remain vigilant and praise the Sun, all will be well.",
+        "options": [
+          "Sol Heredit",
+          "Metzli",
+          "Prince Itzla Arkan",
+          "Phoenix"
+        ],
+        "answer_index": 3
+      }
     }
   ]
 }

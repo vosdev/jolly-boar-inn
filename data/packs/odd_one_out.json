@@ -648,6 +648,27 @@
         "explanation": "The others are skills in Old School RuneScape. Dungeoneering exists only in RuneScape 3."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Skills"
+    },
+    {
+      "id": "q_772d513ba010596d",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Metamorphosis",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Pick the odd one out.",
+        "options": [
+          "Frozen tablet",
+          "Coagulated venom",
+          "Charged ice",
+          "Parasitic egg"
+        ],
+        "explanation": "Every other item is used to metamorph pets.",
+        "answer_index": 0
+      }
     }
   ]
 }
