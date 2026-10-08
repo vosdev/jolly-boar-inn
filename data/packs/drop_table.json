@@ -505,6 +505,864 @@
         "explanation": "1 in 3,000, per the OSRS Wiki. It was 1 in 5,000 until May 2024."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer"
+    },
+    {
+      "id": "q_1aa0297543ac9f96",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Bludgeon claw?",
+        "image": "item:13275",
+        "options": [
+          "Abyssal Sire",
+          "Kraken",
+          "Cerberus",
+          "Thermonuclear smoke devil"
+        ],
+        "answer_index": 0,
+        "explanation": "Abyssal Sire, through the Unsired it drops, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Bludgeon_claw"
+    },
+    {
+      "id": "q_c6a368b8a8bd5474",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Kraken tentacle?",
+        "image": "item:12004",
+        "options": [
+          "Zulrah",
+          "Kraken",
+          "Abyssal Sire",
+          "Cerberus"
+        ],
+        "answer_index": 1,
+        "explanation": "Kraken, 1 in 400, per the OSRS Wiki. Cave kraken drop it too, far more rarely."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kraken_tentacle"
+    },
+    {
+      "id": "q_a80ac73f119f7280",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Armadyl crossbow?",
+        "image": "item:11785",
+        "options": [
+          "Kree'arra",
+          "Commander Zilyana",
+          "General Graardor",
+          "K'ril Tsutsaroth"
+        ],
+        "answer_index": 1,
+        "explanation": "Commander Zilyana, per the OSRS Wiki. Armadyl's name, Saradomin's general."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Armadyl_crossbow"
+    },
+    {
+      "id": "q_876ffc7230dcbfde",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Zamorakian spear?",
+        "image": "item:11824",
+        "options": [
+          "Kree'arra",
+          "Commander Zilyana",
+          "General Graardor",
+          "K'ril Tsutsaroth"
+        ],
+        "answer_index": 3,
+        "explanation": "K'ril Tsutsaroth, per the OSRS Wiki. His bodyguards drop it too, very rarely."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zamorakian_spear"
+    },
+    {
+      "id": "q_7adb6321fbd2be6d",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Tyrannical ring?",
+        "image": "item:12603",
+        "options": [
+          "Callisto",
+          "Vet'ion",
+          "Venenatis",
+          "Chaos Elemental"
+        ],
+        "answer_index": 0,
+        "explanation": "Callisto, per the OSRS Wiki. Artio, his smaller version, drops it as well."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tyrannical_ring"
+    },
+    {
+      "id": "q_4b471130101db914",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Berserker ring?",
+        "image": "item:6737",
+        "options": [
+          "Dagannoth Prime",
+          "Dagannoth Rex",
+          "Dagannoth Supreme",
+          "Kalphite Queen"
+        ],
+        "answer_index": 1,
+        "explanation": "Dagannoth Rex, 1 in 128, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Berserker_ring"
+    },
+    {
+      "id": "q_65dbbd53509b4961",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops the Sarachnis cudgel?",
+        "image": "item:23528",
+        "options": [
+          "Kalphite Queen",
+          "Sarachnis",
+          "Venenatis",
+          "Giant Mole"
+        ],
+        "answer_index": 1,
+        "explanation": "Sarachnis, 1 in 384, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sarachnis_cudgel"
+    },
+    {
+      "id": "q_872e0de5da9a27e0",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops a Jar of stone?",
+        "image": "item:21745",
+        "options": [
+          "Grotesque Guardians",
+          "Giant Mole",
+          "Kalphite Queen",
+          "Skotizo"
+        ],
+        "answer_index": 0,
+        "explanation": "Grotesque Guardians, 1 in 5,000, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Jar_of_stone"
+    },
+    {
+      "id": "q_b30072d39641aa3b",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops a Jar of chemicals?",
+        "image": "item:23064",
+        "options": [
+          "Vorkath",
+          "Alchemical Hydra",
+          "Zulrah",
+          "Thermonuclear smoke devil"
+        ],
+        "answer_index": 1,
+        "explanation": "Alchemical Hydra, 1 in 2,000, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Jar_of_chemicals"
+    },
+    {
+      "id": "q_3412c5b50ddb7a54",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which boss drops a Jar of miasma?",
+        "image": "item:13277",
+        "options": [
+          "Thermonuclear smoke devil",
+          "Kraken",
+          "Abyssal Sire",
+          "Cerberus"
+        ],
+        "answer_index": 2,
+        "explanation": "Abyssal Sire, through the Unsired it drops, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Jar_of_miasma"
+    },
+    {
+      "id": "q_1dc1c7e57862e520",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Twisted bow come from?",
+        "image": "item:20997",
+        "options": [
+          "Theatre of Blood",
+          "Chambers of Xeric",
+          "Tombs of Amascut",
+          "Nex"
+        ],
+        "answer_index": 1,
+        "explanation": "The Chambers of Xeric reward chest, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Twisted_bow"
+    },
+    {
+      "id": "q_331f102ba662603b",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Scythe of vitur come from?",
+        "image": "item:22486",
+        "options": [
+          "Chambers of Xeric",
+          "Tombs of Amascut",
+          "Theatre of Blood",
+          "The Nightmare"
+        ],
+        "answer_index": 2,
+        "explanation": "The Theatre of Blood's Monumental chest, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Scythe_of_vitur"
+    },
+    {
+      "id": "q_597149178622f0d1",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Tumeken's shadow come from?",
+        "image": "item:27277",
+        "options": [
+          "Tombs of Amascut",
+          "Chambers of Xeric",
+          "Theatre of Blood",
+          "Nex"
+        ],
+        "answer_index": 0,
+        "explanation": "The Tombs of Amascut reward chest, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tumeken%27s_shadow"
+    },
+    {
+      "id": "q_d68c002bc56f0df8",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Abyssal whip come from?",
+        "image": "item:4151",
+        "options": [
+          "Greater demon",
+          "Nechryael",
+          "Dust devil",
+          "Abyssal demon"
+        ],
+        "answer_index": 3,
+        "explanation": "Abyssal demons, 1 in 512, per the OSRS Wiki. The Unsired can give one too."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip"
+    },
+    {
+      "id": "q_82c38aaa68535f2b",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Tome of fire come from?",
+        "image": "item:20716",
+        "options": [
+          "Tempoross",
+          "Wintertodt",
+          "Zalcano",
+          "Guardians of the Rift"
+        ],
+        "answer_index": 1,
+        "explanation": "Wintertodt's reward cart, 1 in 1,000, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tome_of_fire"
+    },
+    {
+      "id": "q_1f46da3331efafcd",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Dharok's greataxe come from?",
+        "image": "item:4718",
+        "options": [
+          "Barrows",
+          "Pest Control",
+          "Castle Wars",
+          "Nightmare Zone"
+        ],
+        "answer_index": 0,
+        "explanation": "The Barrows chest, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dharok%27s_greataxe"
+    },
+    {
+      "id": "q_71210fbea9d65247",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Dragon boots come from?",
+        "image": "item:11840",
+        "options": [
+          "Abyssal demon",
+          "Spiritual mage",
+          "Kurask",
+          "Gargoyle"
+        ],
+        "answer_index": 1,
+        "explanation": "Spiritual mages in the God Wars Dungeon, 1 in 128, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_boots"
+    },
+    {
+      "id": "q_cf56f34e61f5cdf9",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Where does the Leaf-bladed battleaxe come from?",
+        "image": "item:20727",
+        "options": [
+          "Turoth",
+          "Gargoyle",
+          "Kurask",
+          "Nechryael"
+        ],
+        "answer_index": 2,
+        "explanation": "Kurask, 1 in 1,026, per the OSRS Wiki. King kurask drop it too."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Leaf-bladed_battleaxe"
+    },
+    {
+      "id": "q_0b46ec9310bb8c93",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items is dropped by Kree'arra?",
+        "options": [
+          "Bandos tassets",
+          "Saradomin sword",
+          "Zamorakian spear",
+          "Armadyl chestplate"
+        ],
+        "answer_index": 3,
+        "explanation": "The Armadyl chestplate, 1 in 381, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kree%27arra"
+    },
+    {
+      "id": "q_83fb8f3e6d288458",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items is dropped by the Giant Mole?",
+        "options": [
+          "Kraken tentacle",
+          "Mole claw",
+          "Hydra leather",
+          "Sarachnis cudgel"
+        ],
+        "answer_index": 1,
+        "explanation": "The Mole claw, on every kill, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
+    },
+    {
+      "id": "q_0fc4318e11948aa6",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items is dropped by the Alchemical Hydra?",
+        "options": [
+          "Tanzanite fang",
+          "Pegasian crystal",
+          "Dragon thrownaxe",
+          "Kraken tentacle"
+        ],
+        "answer_index": 2,
+        "explanation": "The Dragon thrownaxe, one of its uniques, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
+    },
+    {
+      "id": "q_80d6f6873a7fec93",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items is dropped by Vet'ion?",
+        "options": [
+          "Tyrannical ring",
+          "Voidwaker hilt",
+          "Dragon 2h sword",
+          "Treasonous ring"
+        ],
+        "answer_index": 2,
+        "explanation": "The Dragon 2h sword, 1 in 256, per the OSRS Wiki. The hilt is Callisto's, the rings Callisto's and Venenatis's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vet%27ion"
+    },
+    {
+      "id": "q_aa34fdd78b2faa6e",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items is dropped by the Corporeal Beast?",
+        "options": [
+          "Nihil horn",
+          "Armadyl hilt",
+          "Elysian sigil",
+          "Bandos hilt"
+        ],
+        "answer_index": 2,
+        "explanation": "The Elysian sigil, about 1 in 4,095, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+    },
+    {
+      "id": "q_ef2f5b458df67373",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these is not dropped by General Graardor?",
+        "options": [
+          "Bandos chestplate",
+          "Armadyl helmet",
+          "Bandos tassets",
+          "Bandos boots"
+        ],
+        "answer_index": 1,
+        "explanation": "The Armadyl helmet is Kree'arra's, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+    },
+    {
+      "id": "q_1316c91a7e2747ae",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these is not dropped by Zulrah?",
+        "options": [
+          "Tanzanite fang",
+          "Magic fang",
+          "Hydra's eye",
+          "Serpentine visage"
+        ],
+        "answer_index": 2,
+        "explanation": "Hydra's eye is the Alchemical Hydra's, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    },
+    {
+      "id": "q_a0b8837f6223e47a",
+      "type": "multiple_choice",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these is not dropped by the Alchemical Hydra?",
+        "options": [
+          "Hydra's eye",
+          "Hydra's fang",
+          "Hydra's heart",
+          "Serpentine visage"
+        ],
+        "answer_index": 3,
+        "explanation": "The Serpentine visage is Zulrah's, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
+    },
+    {
+      "id": "q_d0f4c4542cfb51ad",
+      "type": "pick_all_that_apply",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these drop the Dragon axe?",
+        "image": "item:6739",
+        "options": [
+          "Dagannoth Rex",
+          "Giant Mole",
+          "Dagannoth Supreme",
+          "Kalphite Queen",
+          "Dagannoth Prime"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "All three Dagannoth Kings, 1 in 128 each, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_axe"
+    },
+    {
+      "id": "q_3afe158d08b3b8b0",
+      "type": "pick_all_that_apply",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these drop the Dragon chainbody?",
+        "image": "item:3140",
+        "options": [
+          "Kalphite Queen",
+          "King Black Dragon",
+          "Thermonuclear smoke devil",
+          "Giant Mole",
+          "Zulrah"
+        ],
+        "answer_indices": [
+          0,
+          2
+        ],
+        "explanation": "Kalphite Queen and the Thermonuclear smoke devil, per the OSRS Wiki. Dust and smoke devils drop it too, very rarely."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_chainbody"
+    },
+    {
+      "id": "q_259c413b35060767",
+      "type": "pick_all_that_apply",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these drop an Uncut onyx?",
+        "image": "item:6571",
+        "options": [
+          "Zulrah",
+          "Vorkath",
+          "Skotizo",
+          "Cerberus",
+          "Zalcano"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "Zulrah, Skotizo and Zalcano, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Uncut_onyx"
+    },
+    {
+      "id": "q_a2cdd5d102fdbce7",
+      "type": "pick_all_that_apply",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these drop the Draconic visage?",
+        "image": "item:11286",
+        "options": [
+          "King Black Dragon",
+          "Zulrah",
+          "Vorkath",
+          "Alchemical Hydra",
+          "Cerberus"
+        ],
+        "answer_indices": [
+          0,
+          2
+        ],
+        "explanation": "The King Black Dragon and Vorkath, 1 in 5,000 each, per the OSRS Wiki. Most metal and brutal dragons do too."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Draconic_visage"
+    },
+    {
+      "id": "q_276fe97ec8198265",
+      "type": "pick_all_that_apply",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items are dropped by Vet'ion?",
+        "options": [
+          "Ring of the gods",
+          "Treasonous ring",
+          "Dragon pickaxe",
+          "Voidwaker hilt",
+          "Skull of Vet'ion"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "Ring of the gods, Dragon pickaxe and Skull of Vet'ion, per the OSRS Wiki. The ring is Venenatis's, the hilt Callisto's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vet%27ion"
+    },
+    {
+      "id": "q_7692e3fb82180b3e",
+      "type": "pick_all_that_apply",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Which of these items are dropped by the Kalphite Queen?",
+        "options": [
+          "Dragon chainbody",
+          "Dragon axe",
+          "Jar of sand",
+          "Mole claw",
+          "Dragon 2h sword"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "Dragon chainbody, Jar of sand and Dragon 2h sword, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen"
+    },
+    {
+      "id": "q_02f77c98705bd85a",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "The Kalphite Queen drops the Dragon pickaxe once in how many kills?",
+        "image": "item:11920",
+        "answer": 400,
+        "unit": "kills",
+        "explanation": "1 in 400, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen"
+    },
+    {
+      "id": "q_9dccea56c52a7f20",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Cerberus drops the Pegasian crystal once in how many kills?",
+        "image": "item:13229",
+        "answer": 520,
+        "unit": "kills",
+        "explanation": "1 in 520, the same as each of her other three crystals and the Smouldering stone, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
+    },
+    {
+      "id": "q_aaeeeeb905d56660",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "An Abyssal demon drops the Abyssal whip once in how many kills?",
+        "image": "item:4151",
+        "answer": 512,
+        "unit": "kills",
+        "explanation": "1 in 512, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip"
+    },
+    {
+      "id": "q_144a49cada2ca3b2",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "A Spiritual mage drops Dragon boots once in how many kills?",
+        "image": "item:11840",
+        "answer": 128,
+        "unit": "kills",
+        "explanation": "1 in 128, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_boots"
+    },
+    {
+      "id": "q_e63049cfa3b04607",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "The Corporeal Beast drops the Elysian sigil about once in how many kills?",
+        "image": "item:12819",
+        "answer": 4095,
+        "unit": "kills",
+        "explanation": "About 1 in 4,095: 1 in 585 to reach the sigil table, then 1 in 7 for the Elysian, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+    },
+    {
+      "id": "q_84063035c0512a31",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "The King Black Dragon drops the Draconic visage once in how many kills?",
+        "image": "item:11286",
+        "answer": 5000,
+        "unit": "kills",
+        "explanation": "1 in 5,000, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Draconic_visage"
+    },
+    {
+      "id": "q_ea6e2dc95a2fb94c",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "General Graardor drops the Bandos chestplate once in how many kills?",
+        "image": "item:11832",
+        "answer": 381,
+        "unit": "kills",
+        "explanation": "1 in 381, the same as the tassets and boots, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+    },
+    {
+      "id": "q_97151f259cd09c3b",
+      "type": "closest_number",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Zulrah rolls for its uniques twice per kill. On each roll, the Tanzanite fang is 1 in how many?",
+        "image": "item:12922",
+        "answer": 1024,
+        "unit": "rolls",
+        "explanation": "1 in 1,024 per roll, two rolls a kill, so about 1 in 512 per kill, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
     }
   ]
 }
