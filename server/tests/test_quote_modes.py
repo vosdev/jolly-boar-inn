@@ -15,6 +15,7 @@ from app.questions.submission import Submission
 from app.questions.types import TYPES
 from app.rooms.selection import select
 from app.rooms.settings import RoomSettings
+from tests.answers import right_value
 
 QUOTE_MODES = ("who_said_that", "know_your_content_creator")
 
@@ -35,14 +36,6 @@ def test_know_your_content_creator_mixes_three_types() -> None:
     assert questions_bounds(mode).default == 5
 
 
-# What each type stores as its right answer, sent back as a player would send it.
-ANSWER_KEYS = {
-    "multiple_choice": "answer_index",
-    "closest_number": "answer",
-    "pick_all_that_apply": "answer_indices",
-}
-
-
 def test_a_know_your_content_creator_round_draws_and_scores_all_three_types() -> None:
     mode = "know_your_content_creator"
     settings = RoomSettings(modes=[{"mode": mode, "questions": len(questions(mode))}])
@@ -51,7 +44,7 @@ def test_a_know_your_content_creator_round_draws_and_scores_all_three_types() ->
     assert {q["type"] for q in own} == MODES[mode].types
     for question in own:
         payload, player = question["payload"], uuid.uuid4()
-        value = TYPES[question["type"]].parse_value(payload, payload[ANSWER_KEYS[question["type"]]])
+        value = TYPES[question["type"]].parse_value(payload, right_value(question["type"], payload))
         credit = TYPES[question["type"]].grade(payload, [Submission(player, value)])
         assert credit[player] == 1.0
 

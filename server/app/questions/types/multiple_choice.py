@@ -12,9 +12,10 @@ how the question looks, which is why they are modes over one type (``app/modes``
 nothing here knows which round it is in. The stem above the buttons is the mode's business
 on the client.
 
-Answers are the index of the chosen option, like ``more_less`` and ``price_is_right``. The
-options are the question, so they are on the wire while it is open; only which one is
-right waits for the reveal, with the ``explanation`` that says why.
+The options are the question, so they are on the wire while it is open, in a shuffle
+seeded by the payload (``shuffle``): authors tend to write the right one first. An answer
+is a shown position, and the reveal names the right one by its shown position too, with
+the ``explanation`` that says why.
 
 ``check`` refuses two options that read the same. Two identical buttons are either two
 right answers, which the index can only name one of, or a right one and a wrong one that a
@@ -27,6 +28,7 @@ from uuid import UUID
 from app.questions.submission import Submission
 from app.questions.types import exact
 from app.questions.types.scoring import Scoring
+from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
@@ -43,28 +45,37 @@ def items(payload: dict[str, Any]) -> int:
 _OPEN_KEYS = ("intro", "prompt", "quote", "image", "options")
 
 
+def shown_order(payload: dict[str, Any]) -> list[int]:
+    """The payload index of each option, in the order the open view shows them."""
+    return seeded_order("multiple_choice", payload, len(payload["options"]))
+
+
+def _shown_answer(payload: dict[str, Any]) -> int:
+    return shown_order(payload).index(payload["answer_index"])
+
+
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:
-    """What everyone sees while it is open: the question and every answer to pick from."""
+    """What everyone sees while it is open: the question and every answer, shuffled."""
     view = {key: payload[key] for key in _OPEN_KEYS if key in payload}
-    view["options"] = list(payload["options"])
+    view["options"] = [payload["options"][index] for index in shown_order(payload)]
     return view
 
 
 def reveal(payload: dict[str, Any]) -> dict[str, Any]:
-    """Shown after close: the same, plus which answer was right and why."""
-    shown = {**client_view(payload), "answer_index": payload["answer_index"]}
+    """Shown after close: the same, plus the right answer's shown position and why."""
+    shown = {**client_view(payload), "answer_index": _shown_answer(payload)}
     if "explanation" in payload:
         shown["explanation"] = payload["explanation"]
     return shown
 
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
-    """Full credit for the index of the right option, none for any other."""
-    return exact.grade(payload["answer_index"], submissions)
+    """Full credit for the right option's shown position, none for any other."""
+    return exact.grade(_shown_answer(payload), submissions)
 
 
 def parse_value(payload: dict[str, Any], value: Any) -> int | None:
-    """The index of one of the options, as sent; ``None`` for anything else."""
+    """The shown position of one of the options, as sent; ``None`` for anything else."""
     return exact.option_index(payload, value)
 
 

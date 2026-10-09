@@ -2,6 +2,7 @@
 player ticks the ones that are."""
 
 import copy
+from collections import Counter
 from collections.abc import Iterator
 from typing import Any
 from uuid import uuid4
@@ -48,23 +49,46 @@ def test_example_validates() -> None:
     schema.validate({**with_picks, "id": schema.content_id(with_picks)})
 
 
-def test_client_view_shows_the_options_and_how_many_to_pick_but_not_which() -> None:
-    view = pick_all_that_apply.client_view(payload(picks=2, image="npc:8713"))
+def shown(authored: list[int], p: dict[str, Any] = EXAMPLE["payload"]) -> list[int]:
+    """The shown positions of options given by their payload index."""
+    order = pick_all_that_apply.shown_order(p)
+    return sorted(order.index(index) for index in authored)
+
+
+def test_client_view_shows_the_options_shuffled_and_how_many_to_pick_but_not_which() -> None:
+    p = payload(picks=2, image="npc:8713")
+    view = pick_all_that_apply.client_view(p)
     assert view == {
         "prompt": "Which of these bosses are spiders?",
         "image": "npc:8713",
-        "options": EXAMPLE["payload"]["options"],
+        "options": [p["options"][index] for index in pick_all_that_apply.shown_order(p)],
         "picks": 2,
     }
+    assert sorted(view["options"]) == sorted(p["options"])
     assert "answer_indices" not in view and "explanation" not in view
 
 
-def test_reveal_adds_the_right_options_and_why() -> None:
-    assert pick_all_that_apply.reveal(EXAMPLE["payload"]) == {
+def test_reveal_adds_the_right_options_by_shown_position_and_why() -> None:
+    revealed = pick_all_that_apply.reveal(EXAMPLE["payload"])
+    assert revealed == {
         **pick_all_that_apply.client_view(EXAMPLE["payload"]),
-        "answer_indices": [1, 4],
+        "answer_indices": shown([1, 4]),
         "explanation": "Sarachnis and Venenatis; Scorpia is a scorpion.",
     }
+    right = {revealed["options"][index] for index in revealed["answer_indices"]}
+    assert right == {"Sarachnis", "Venenatis"}
+
+
+def test_answers_written_first_are_shown_in_every_place() -> None:
+    places = Counter(
+        place
+        for n in range(200)
+        for place in pick_all_that_apply.reveal(
+            payload(prompt=f"Question {n}?", answer_indices=[0, 1])
+        )["answer_indices"]
+    )
+    assert sorted(places) == [0, 1, 2, 3, 4, 5]
+    assert min(places.values()) >= 30
 
 
 @pytest.mark.parametrize(
@@ -80,7 +104,7 @@ def test_reveal_adds_the_right_options_and_why() -> None:
 )
 def test_credit_is_right_picks_over_right_or_picked(picked: list[int], credit: float) -> None:
     player = uuid4()
-    value = pick_all_that_apply.parse_value(EXAMPLE["payload"], picked)
+    value = pick_all_that_apply.parse_value(EXAMPLE["payload"], shown(picked))
     assert value is not None
     assert pick_all_that_apply.grade(EXAMPLE["payload"], [Submission(player, value)]) == {
         player: pytest.approx(credit)
@@ -90,7 +114,7 @@ def test_credit_is_right_picks_over_right_or_picked(picked: list[int], credit: f
 def test_grade_takes_every_answer_at_once() -> None:
     right, half = uuid4(), uuid4()
     credit = pick_all_that_apply.grade(
-        EXAMPLE["payload"], [Submission(right, [1, 4]), Submission(half, [4])]
+        EXAMPLE["payload"], [Submission(right, shown([1, 4])), Submission(half, shown([4]))]
     )
     assert credit == {right: 1.0, half: 0.5}
 
@@ -197,10 +221,10 @@ def test_a_shipped_question_plays_end_to_end(table, shipped_round: str, db) -> N
     admin, zezima, woox = game.seats
     question = game.question(0)
     assert question.type == "pick_all_that_apply"
-    right = question.payload["answer_indices"]
+    right = pick_all_that_apply.reveal(question.payload)["answer_indices"]
     game.start()
     opened = game.opened(0)[1]["question"]
-    assert opened["view"]["options"] == question.payload["options"]
+    assert opened["view"]["options"] == pick_all_that_apply.client_view(question.payload)["options"]
     assert "answer_indices" not in opened["view"]
 
     game.answer(zezima, 0, list(reversed(right)))

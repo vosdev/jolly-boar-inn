@@ -4,8 +4,9 @@
    *
    * `data` arrives in the two shapes `questions/types/pick_all_that_apply.py` sends:
    *
-   * - while open, `client_view(payload)`: the prompt, the options and, if the author set
-   *   one, `picks`, how many to tick.
+   * - while open, `client_view(payload)`: the prompt, the options in the server's seeded
+   *   shuffle (an index is a shown position) and, if the author set one, `picks`, how many
+   *   to tick.
    * - after close, `reveal(payload)`: the same plus `answer_indices`.
    *
    * A tap ticks an option rather than answering, so the gems carry a box in the corner and

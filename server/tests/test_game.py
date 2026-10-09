@@ -2126,19 +2126,21 @@ def test_a_six_option_question_plays_and_its_sixth_option_can_be_the_answer(
     table, second_mode, db
 ) -> None:
     """Six options, one per gem, is the most a question offers, and all six are live."""
+    # Written so that the seeded shuffle shows the answer sixth.
     six = {
         "type": "multiple_choice",
         "payload": {
             "prompt": "Which of these is a gem?",
-            "options": ["Bronze", "Iron", "Steel", "Mithril", "Adamant", "Zenyte"],
-            "answer_index": 5,
+            "options": ["Bronze", "Zenyte", "Iron", "Steel", "Mithril", "Adamant"],
+            "answer_index": 1,
         },
     }
     game = table("Zezima", "Woox", custom=[six], reveal_seconds=1, **event_rooms(second_mode))
     admin, zezima, woox = game.seats
     event = the_event(game)
     frames = reach(game, event.position)
-    assert frames["Zezima"]["view"]["options"] == six["payload"]["options"]
+    shown = frames["Zezima"]["view"]["options"]
+    assert sorted(shown) == sorted(six["payload"]["options"]) and shown[5] == "Zenyte"
     game.answer(zezima, event.position, 5)
     game.answer(woox, event.position, 0)
     zezima.take("answer_ack")

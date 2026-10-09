@@ -6,10 +6,11 @@ Payload shape (schema ``$defs/pick_all_that_apply``)::
      "picks"?: int, "image"?: asset, "explanation"?: str}
 
 Every spider in a list, every boss that drops an item. ``multiple_choice`` names one right
-option; this names a set, so its answer is a set of option indices too, sent as a list and
-stored sorted. ``picks`` is how many the player must pick, said to them while the question
-is open, and then it is also how many are right. Without it, any number from one to all of
-them may be picked.
+option; this names a set, so its answer is a set of shown positions too, sent as a list and
+stored sorted. The options are shown in a shuffle seeded by the payload (``shuffle``), so
+an author's habit of listing the right ones first never shows. ``picks`` is how many the
+player must pick, said to them while the question is open, and then it is also how many
+are right. Without it, any number from one to all of them may be picked.
 
 Credit is the right picks over every option that is right or picked: the exact set is full
 credit, and each missed right option or extra wrong one costs, so ticking everything pays
@@ -23,6 +24,7 @@ from uuid import UUID
 from app.questions.submission import Submission
 from app.questions.types import exact
 from app.questions.types.scoring import Scoring
+from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
@@ -39,16 +41,26 @@ def items(payload: dict[str, Any]) -> int:
 _OPEN_KEYS = ("intro", "prompt", "image", "options", "picks")
 
 
+def shown_order(payload: dict[str, Any]) -> list[int]:
+    """The payload index of each option, in the order the open view shows them."""
+    return seeded_order("pick_all_that_apply", payload, len(payload["options"]))
+
+
+def _shown_answers(payload: dict[str, Any]) -> list[int]:
+    order = shown_order(payload)
+    return sorted(order.index(index) for index in payload["answer_indices"])
+
+
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:
-    """What everyone sees while it is open: the question, the answers, and how many to pick."""
+    """What everyone sees while it is open: the question, the answers shuffled, how many to pick."""
     view = {key: payload[key] for key in _OPEN_KEYS if key in payload}
-    view["options"] = list(payload["options"])
+    view["options"] = [payload["options"][index] for index in shown_order(payload)]
     return view
 
 
 def reveal(payload: dict[str, Any]) -> dict[str, Any]:
-    """Shown after close: the same, plus which answers were right and why."""
-    shown = {**client_view(payload), "answer_indices": list(payload["answer_indices"])}
+    """Shown after close: the same, plus the right answers' shown positions and why."""
+    shown = {**client_view(payload), "answer_indices": _shown_answers(payload)}
     if "explanation" in payload:
         shown["explanation"] = payload["explanation"]
     return shown
@@ -56,7 +68,7 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
     """Right picks over every option that is right or picked: 1.0 only for the exact set."""
-    right = set(payload["answer_indices"])
+    right = set(_shown_answers(payload))
     credit: dict[UUID, float] = {}
     for s in submissions:
         picked = set(s.value)
@@ -65,7 +77,7 @@ def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, 
 
 
 def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
-    """Distinct option indices, at least one, ``picks`` of them if set, sorted; else ``None``."""
+    """Distinct shown positions, at least one, ``picks`` of them if set, sorted; else ``None``."""
     options = len(payload["options"])
     # Measured before anything is read, so a huge list is refused without walking it.
     if not isinstance(value, list) or not 1 <= len(value) <= options:
