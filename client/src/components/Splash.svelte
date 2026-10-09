@@ -28,6 +28,7 @@
   import type { PlayerView, Segment } from '../lib/protocol'
   import { readyThreshold } from '../lib/ready'
   import { serverOffsetMs } from '../lib/stores'
+  import FullScreenButton from './FullScreenButton.svelte'
   import Pet from './Pet.svelte'
   import Stage from './stage/Stage.svelte'
   import Timer from './Timer.svelte'
@@ -121,6 +122,7 @@
         >
           {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
         </button>
+        <FullScreenButton />
         <ul class="pets" aria-label={summary}>
           {#each present as player (player.id)}
             <li class:lit={player.ready === true}>
