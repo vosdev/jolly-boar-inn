@@ -12,15 +12,15 @@ from app.rooms.hold import (
 )
 
 
-def test_a_prompt_types_at_sixty_letters_a_second_then_pauses_and_settles() -> None:
-    """A 0.4 s start, 30 letters in 0.5 s, the reading they still need, 200 ms settled."""
-    reading = 30 * (1 / 25 - 1 / 60)
-    assert hold_seconds([30], event=False) == pytest.approx(0.4 + 0.5 + reading + 0.2)
+def test_a_prompt_types_at_fifty_letters_a_second_then_pauses_and_settles() -> None:
+    """A 0.4 s start, 30 letters in 0.6 s, the reading they still need, 200 ms settled."""
+    reading = 30 * (1 / 25 - 1 / 50)
+    assert hold_seconds([30], event=False) == pytest.approx(0.4 + 0.6 + reading + 0.2)
 
 
 def test_the_pause_after_a_line_is_half_a_second_to_a_second() -> None:
-    assert hold_seconds([3], event=False) == pytest.approx(0.4 + 0.05 + 0.5 + 0.2)
-    assert hold_seconds([600], event=False) == pytest.approx(0.4 + 10 + 1 + 0.2)
+    assert hold_seconds([3], event=False) == pytest.approx(0.4 + 0.06 + 0.5 + 0.2)
+    assert hold_seconds([600], event=False) == pytest.approx(0.4 + 12 + 1 + 0.2)
 
 
 def test_an_event_starts_typing_after_its_npc_walks_on() -> None:

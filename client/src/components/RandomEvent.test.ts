@@ -214,9 +214,9 @@ describe('the interlude', () => {
     expect(seen()).toBe('')
     await after(899)
     expect(seen()).toBe('')
-    // 60 letters a second: 30 of them half a second in.
+    // 50 letters a second: 25 of them half a second in.
     await after(501)
-    expect(seen()).toBe([...PROMPT].slice(0, 30).join(''))
+    expect(seen()).toBe([...PROMPT].slice(0, 25).join(''))
   })
 
   it('gives a screen reader the whole prompt once, from the first frame', async () => {

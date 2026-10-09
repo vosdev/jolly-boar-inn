@@ -59,13 +59,13 @@ afterEach(() => {
 })
 
 describe('a round’s question typing in', () => {
-  it('types the prompt from 400 ms at 60 letters a second', async () => {
+  it('types the prompt from 400 ms at 50 letters a second', async () => {
     stage(open())
     expect(seen(ask())).toBe('')
     await after(399)
     expect(seen(ask())).toBe('')
     await after(501)
-    expect(seen(ask())).toBe([...PROMPT].slice(0, 30).join(''))
+    expect(seen(ask())).toBe([...PROMPT].slice(0, 25).join(''))
   })
 
   it('holds the answers, drawn and out of reach, until answerable_at', async () => {
@@ -149,9 +149,9 @@ describe('a round’s question typing in', () => {
     stage(open({ type: 'more_less', mode: 'more_less', view }, 3000))
     const line = 'Which costs less on the Grand Exchange?'
     expect(spoken(ask())).toBe(line)
-    await after(400 + 200)
+    await after(400 + 240)
     expect(seen(ask())).toBe('Which costs ')
-    await after(50)
+    await after(60)
     expect(seen(ask())).toBe('Which costs les')
     expect(ask().querySelector('[aria-hidden] .word.less')?.textContent).toBe('les')
     await after(3000)

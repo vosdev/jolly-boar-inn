@@ -8,7 +8,7 @@ import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { interludeFor } from '../lib/interlude'
+import { LETTERS_PER_SECOND, interludeFor } from '../lib/interlude'
 import { GENERIC_HOST, MODES } from '../lib/modes'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
 import type { PlayerView, Segment } from '../lib/protocol'
@@ -195,9 +195,9 @@ describe('Splash typing', () => {
     expect(seen(greeting())).toBe('')
     await after(299)
     expect(seen(greeting())).toBe('')
-    // 60 letters a second from 300 ms: 30 of them half a second in.
+    // 50 letters a second from 300 ms: 25 of them half a second in.
     await after(501)
-    expect(seen(greeting())).toBe([...GREETING].slice(0, 30).join(''))
+    expect(seen(greeting())).toBe([...GREETING].slice(0, 25).join(''))
     expect(seen(blurb())).toBe('')
   })
 
@@ -208,7 +208,7 @@ describe('Splash typing', () => {
     await after(Math.floor(typed!.from))
     expect(typing(greeting())).toBe(false)
     expect(seen(blurb())).toBe('')
-    expect(typed!.for).toBeCloseTo(([...BLURB].length * 1000) / 60)
+    expect(typed!.for).toBeCloseTo(([...BLURB].length * 1000) / LETTERS_PER_SECOND)
     await after(Math.ceil(typed!.from + typed!.for) - Math.floor(typed!.from))
     expect(typing(blurb())).toBe(false)
     expect(blurb().textContent).toBe(BLURB)

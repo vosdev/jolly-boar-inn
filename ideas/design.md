@@ -203,7 +203,7 @@ Round 2 of 5 · 5 questions
 - **It opens from the middle**, both rolls travelling outward, in 300 ms. It opens on the splash
   and stays put into the round's first question; anywhere else it is simply there. When it closes
   again is not decided, so for now it does not.
-- **Every line on the scroll types in** at 60 letters a second: on the splash the greeting and
+- **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
   blurb once it is open, and a question's stem from 400 ms in the server's hold before
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins a red rosette ribbon on the sheet's bottom edge, 65% across:
@@ -326,7 +326,7 @@ wait costs nobody points and the server times nothing:
   0 ms   the NPC's name is on the scroll, whole; the scroll takes the text's height
          the host fades out; the scroll slides left into the space it leaves   ≤ 250 ms
 150 ms   the event NPC fades in on the right                                   ≤ 250 ms
-900 ms   the NPC's `intro` "types" in at 60 letters a second
+900 ms   the NPC's `intro` "types" in at 50 letters a second
 then     a pause of 0.5–1 s, and the plain question types in under it, in bold
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
 answerable_at: the answers appear under the line and the timer bar starts

@@ -16,7 +16,7 @@ TYPE_FROM = 0.4
 EVENT_TYPE_FROM = 0.9
 # Seconds nothing moves before the answers appear.
 SETTLE = 0.2
-LETTERS_PER_SECOND = 60
+LETTERS_PER_SECOND = 50
 # The pause after each line is what reading it still needs once typed, within these.
 READ_LETTERS_PER_SECOND = 25
 PAUSE_MIN = 0.5

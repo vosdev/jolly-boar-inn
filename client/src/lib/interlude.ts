@@ -52,7 +52,7 @@ export const SETTLED: Interlude = { enter: false, lines: [] }
  * The interlude for a hold of `holdMs` and lines of `letters` each, typed in order.
  *
  * Typing ends `SETTLE_MS` before the answers at the latest. It starts at `from`, or sooner
- * when the lines would not fit at 60 a second with the shortest pauses, but never before
+ * when the lines would not fit at 50 a second with the shortest pauses, but never before
  * `earliest`, the end of an event's entrance. Each pause is what reading the line before
  * it still needs, so a short intro is not left hanging; time to spare is left at the end,
  * settled. Short of time, the pauses give way first, then the lines type faster, pauses

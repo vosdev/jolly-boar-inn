@@ -1,5 +1,5 @@
 /**
- * The interlude's schedule: settled before the answers at any hold, typing at 60 a second
+ * The interlude's schedule: settled before the answers at any hold, typing at 50 a second
  * from 900 ms when it fits, an intro and its question a pause apart, and no interlude at
  * all where there is no room for one.
  */
@@ -39,12 +39,12 @@ const done = (lines: { from: number; for: number }[]) =>
   Math.max(...lines.map((line) => line.from + line.for))
 
 describe('interludeFor, one line', () => {
-  it('types an ordinary prompt at 60 letters a second from 900 ms', () => {
-    const plan = interludeFor(HOLD, [60])
+  it('types an ordinary prompt at 50 letters a second from 900 ms', () => {
+    const plan = interludeFor(HOLD, [50])
     expect(plan).toEqual({ enter: true, lines: [{ from: TYPE_FROM_MS, for: 1000 }] })
-    expect(typedAt(plan.lines[0], 60, 900)).toBe(0)
-    expect(typedAt(plan.lines[0], 60, 1400)).toBe(30)
-    expect(typedAt(plan.lines[0], 60, 1900)).toBe(60)
+    expect(typedAt(plan.lines[0], 50, 900)).toBe(0)
+    expect(typedAt(plan.lines[0], 50, 1400)).toBe(25)
+    expect(typedAt(plan.lines[0], 50, 1900)).toBe(50)
   })
 
   it.each([
@@ -62,10 +62,10 @@ describe('interludeFor, one line', () => {
   })
 
   it('starts a long prompt sooner, and types faster only when sooner is not enough', () => {
-    // 200 letters take 3333 ms at 60 a second; from 400 ms a 3.5 s hold has 2900.
+    // 200 letters take 4000 ms at 50 a second; from 400 ms a 3.5 s hold has 2900.
     expect(interludeFor(3500, [200]).lines).toEqual([{ from: ENTRANCE_MS, for: 2900 }])
-    // 150 letters take 2500 ms, which fits from 800 ms at the natural speed.
-    expect(interludeFor(3500, [150]).lines).toEqual([{ from: 800, for: 2500 }])
+    // 125 letters take 2500 ms, which fits from 800 ms at the natural speed.
+    expect(interludeFor(3500, [125]).lines).toEqual([{ from: 800, for: 2500 }])
   })
 
   it('has the NPC simply in place with no room for the entrance', () => {

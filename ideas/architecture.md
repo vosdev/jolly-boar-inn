@@ -283,7 +283,7 @@ PlayerResult { value, correct, credit, points }
   mode differs from its segment's.
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.
 - `answerable_at` is `opened_at` plus the hold the scroll types the question in (`rooms/hold.py`):
-  0.4 s (0.9 s for an event), each line at 60 letters a second with a 0.5–1 s pause after it, then
+  0.4 s (0.9 s for an event), each line at 50 letters a second with a 0.5–1 s pause after it, then
   0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
   costs nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
