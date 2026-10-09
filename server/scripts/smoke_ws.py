@@ -28,7 +28,7 @@ def create_room() -> tuple[str, str]:
         {
             "display_name": "Smoke",
             "returning": False,
-            "settings": {"modes": [{"mode": "more_less", "questions": 2, "seconds": 5}]},
+            "settings": {"modes": [{"mode": "more_less", "questions": 2}]},
             "custom_questions": [],
         }
     ).encode()
