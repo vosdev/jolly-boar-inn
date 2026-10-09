@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CEREMONY, ceremonyTimes, FINAL_INTRO } from '../lib/hiscores'
 import type { Standing } from '../lib/protocol'
 import { players } from '../lib/stores'
+import { trophyArt } from '../lib/trophies'
 import { stubAnimations } from '../test-animate'
 import FinalStandings from './FinalStandings.svelte'
 
@@ -55,12 +56,12 @@ describe('FinalStandings', () => {
     await vi.advanceTimersByTimeAsync(times.shows[0]!)
     await tick()
     expect(placed()).toBe('Woox (you)')
-    expect(trophy()).toContain('platinum')
+    expect(trophy()).toBe(trophyArt('platinum').url)
 
     await vi.advanceTimersByTimeAsync(times.shows[1]! - times.shows[0]!)
     await tick()
     expect(placed()).toBe('Zezima')
-    expect(trophy()).toContain('diamond')
+    expect(trophy()).toBe(trophyArt('diamond').url)
     expect(document.querySelector('.beside .confetti')).not.toBeNull()
 
     await vi.advanceTimersByTimeAsync(times.end - times.shows[1]! + CEREMONY.leave)
