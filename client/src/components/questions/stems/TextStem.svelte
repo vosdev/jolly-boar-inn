@@ -1,3 +1,15 @@
+<script module lang="ts">
+  import type { Line } from '../../../lib/typing.svelte'
+
+  /** What the stem types, line by line: the prompt. */
+  export function lines(data: Record<string, unknown>): Line[] {
+    // A pack from a newer schema could leave it out; an empty line is better than
+    // `undefined` printed above the buttons.
+    const prompt = typeof data.prompt === 'string' ? data.prompt : ''
+    return prompt === '' ? [] : [prompt]
+  }
+</script>
+
 <script lang="ts">
   /**
    * A question that is a sentence: the `prompt` every type but `more_less` carries.
@@ -10,17 +22,16 @@
    * It sets the prompt the way `more_less` sets its own question line, so a game that
    * moves from one round to the next does not change its handwriting between them.
    */
+  import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'
 
-  let { data }: StemProps = $props()
+  let { data, shown }: StemProps = $props()
 
-  // A pack from a newer schema could leave it out; an empty line is better than
-  // `undefined` printed above the buttons.
-  const prompt = $derived(typeof data.prompt === 'string' ? data.prompt : '')
+  const prompt = $derived(lines(data)[0])
 </script>
 
-{#if prompt !== ''}
-  <p class="ask">{prompt}</p>
+{#if prompt !== undefined}
+  <p class="ask"><Typed line={prompt} shown={shown?.[0]} /></p>
 {/if}
 
 <style>

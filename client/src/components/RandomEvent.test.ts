@@ -16,6 +16,7 @@ import { interludeFor } from '../lib/interlude'
 import type { OpenQuestion } from '../lib/protocol'
 import { RANDOM_EVENTS } from '../lib/randomEvents'
 import { serverOffsetMs } from '../lib/stores'
+import { seen, spoken, typing } from '../test-typing'
 import RandomEvent from './RandomEvent.svelte'
 
 const NOW = Date.parse('2026-09-22T20:00:00Z')
@@ -213,9 +214,9 @@ describe('the interlude', () => {
     expect(seen()).toBe('')
     await after(899)
     expect(seen()).toBe('')
-    // 60 letters a second: 30 of them half a second in.
+    // 50 letters a second: 25 of them half a second in.
     await after(501)
-    expect(seen()).toBe([...PROMPT].slice(0, 30).join(''))
+    expect(seen()).toBe([...PROMPT].slice(0, 25).join(''))
   })
 
   it('gives a screen reader the whole prompt once, from the first frame', async () => {
@@ -420,5 +421,23 @@ describe('the NPC’s own words', () => {
     unmount()
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
     expect(document.querySelector('.reaction')).toBeNull()
+  })
+})
+
+describe('an event with no prompt of its own', () => {
+  it('types its stem as a round’s question would, after the entrance', async () => {
+    const question = event({
+      type: 'price_is_right',
+      mode: 'price_is_right',
+      answerable_at: new Date(NOW + 4000).toISOString(),
+      view: { subject: { name: 'Coal' }, options: [1, 2, 3, 4], as_of: '2026-09-01' },
+    })
+    render(RandomEvent, { question, yourValue: null, onAnswer: () => {}, live: true })
+    const name = document.querySelector('.paper .subject')!
+    expect(seen(name)).toBe('')
+    expect(spoken(name)).toBe('Coal')
+    await after(4000)
+    expect(typing(name)).toBe(false)
+    expect(name.textContent).toBe('Coal')
   })
 })

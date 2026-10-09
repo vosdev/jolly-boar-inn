@@ -5,13 +5,16 @@
  */
 
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
+import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { LETTERS_PER_SECOND, interludeFor } from '../lib/interlude'
 import { GENERIC_HOST, MODES } from '../lib/modes'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
 import type { PlayerView, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import { petsDrawn } from '../test-pets'
+import { seen, spoken, typing } from '../test-typing'
 import Splash from './Splash.svelte'
 
 const SEGMENT: Segment = { mode: 'more_less', index: 0, total: 2, start: 0, count: 5 }
@@ -62,7 +65,7 @@ describe('Splash stage', () => {
 
   it("has the mode's host greet the room on the scroll, between the name and the blurb", () => {
     splash()
-    const lines = [...paper().querySelectorAll('h2, p')].map((line) => line.textContent)
+    const lines = [...paper().querySelectorAll('h2, p')].map(spoken)
     expect(lines).toEqual(['More or Less', `“${MODES.more_less!.greeting}”`, MODES.more_less!.blurb])
   })
 
@@ -164,5 +167,77 @@ describe('Splash countdown bar', () => {
     serverOffsetMs.set(5)
     await vi.advanceTimersByTimeAsync(100)
     expect(parseFloat(fill())).toBeCloseTo(59, 0)
+  })
+})
+
+describe('Splash typing', () => {
+  const GREETING = `“${MODES.more_less!.greeting}”`
+  const BLURB = MODES.more_less!.blurb
+  const greeting = () => paper().querySelector('.greeting')!
+  const blurb = () => paper().querySelector('.blurb')!
+
+  async function after(ms: number): Promise<void> {
+    await vi.advanceTimersByTimeAsync(ms)
+    await tick()
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('has the name whole from the first frame, and types the greeting once the scroll is open', async () => {
+    splash()
+    expect(screen.getByRole('heading', { name: 'More or Less' })).toBeTruthy()
+    expect(seen(greeting())).toBe('')
+    await after(299)
+    expect(seen(greeting())).toBe('')
+    // 50 letters a second from 300 ms: 25 of them half a second in.
+    await after(501)
+    expect(seen(greeting())).toBe([...GREETING].slice(0, 25).join(''))
+    expect(seen(blurb())).toBe('')
+  })
+
+  it('pauses after the greeting, then types the blurb at the same pace', async () => {
+    const [, typed] = interludeFor(Infinity, [[...GREETING].length, [...BLURB].length], 300, 300)
+      .lines
+    splash()
+    await after(Math.floor(typed!.from))
+    expect(typing(greeting())).toBe(false)
+    expect(seen(blurb())).toBe('')
+    expect(typed!.for).toBeCloseTo(([...BLURB].length * 1000) / LETTERS_PER_SECOND)
+    await after(Math.ceil(typed!.from + typed!.for) - Math.floor(typed!.from))
+    expect(typing(blurb())).toBe(false)
+    expect(blurb().textContent).toBe(BLURB)
+  })
+
+  it('gives a screen reader both lines whole from the first frame', () => {
+    splash()
+    expect(spoken(greeting())).toBe(GREETING)
+    expect(spoken(blurb())).toBe(BLURB)
+  })
+
+  it('takes a ready tap while it is still typing', async () => {
+    const onReady = vi.fn()
+    render(Splash, { segment: SEGMENT, endsAt: null, players: players(false), youId: 'a', onReady })
+    await fireEvent.click(screen.getByRole('button', { name: /I'm ready/ }))
+    expect(onReady).toHaveBeenCalledWith(true)
+  })
+
+  it('shows both lines whole with reduced motion', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+    }))
+    try {
+      splash()
+      expect(typing(greeting())).toBe(false)
+      expect(typing(blurb())).toBe(false)
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })

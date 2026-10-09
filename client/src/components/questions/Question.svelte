@@ -21,12 +21,13 @@
    * throws gets the same treatment from the boundary, for a payload this build misreads:
    * without it the error takes the whole room screen down with the question.
    *
-   * `held` is a random event's hold: the stem is up, and the view waits for the
-   * question's `answerable_at`, drawn but invisible and out of reach, so the panel is its
-   * full size from the first frame and nothing moves when the answers fade in. Left out,
-   * for a question with no hold, the view gets no wrapper at all.
-   * `RandomEvent` does the counting and says when, and it puts the `explanation` on its
-   * scroll itself (`explain` false).
+   * `held` is the question's hold while the scroll types it in: the stem is up, and the
+   * view waits for the question's `answerable_at`, drawn but invisible and out of reach, so
+   * the panel is its full size from the first frame and nothing moves when the answers
+   * fade in. Left out, for a question with no hold, the view gets no wrapper at all.
+   * `QuestionStage` and `RandomEvent` do the counting and say when, and how much of the
+   * stem is typed (`shown`). `RandomEvent` puts the `explanation` on its scroll itself
+   * (`explain` false).
    *
    * `frame` lays the two halves out: it gets the stem and the answers as snippets, which
    * is how the stage puts one on the scroll and the other under the line. The answers are
@@ -49,6 +50,7 @@
     result = null,
     onAnswer,
     held = undefined,
+    shown = undefined,
     explain = true,
     frame,
   }: {
@@ -61,6 +63,8 @@
     onAnswer: (value: unknown) => void
     /** The answers are not being taken yet; undefined for a question with no hold. */
     held?: boolean
+    /** How many letters of each of the stem's lines are typed; undefined shows it whole. */
+    shown?: number[]
     /** Show the reveal's `explanation` under the view. */
     explain?: boolean
     frame?: Snippet<[Snippet, Snippet | null]>
@@ -95,7 +99,7 @@
       <p class="note">Sit this one out — the game carries on.</p>
     {/if}
   {:else if Stem !== null}
-    <Stem {data} {revealed} {timing} />
+    <Stem {data} {revealed} {timing} {shown} />
   {/if}
 {/snippet}
 

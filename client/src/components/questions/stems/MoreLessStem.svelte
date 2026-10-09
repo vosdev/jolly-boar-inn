@@ -1,3 +1,23 @@
+<script module lang="ts">
+  import type { Line } from '../../../lib/typing.svelte'
+
+  import { phrasingFor } from '../types/moreLess'
+
+  /** What the stem types: its one question, the direction a word of its own. */
+  export function lines(data: Record<string, unknown>): Line[] {
+    const direction = data.direction === 'less' ? 'less' : 'more'
+    const phrasing = phrasingFor(typeof data.metric === 'string' ? data.metric : '')
+    const source = phrasing.source ? ` ${phrasing.source}` : ''
+    return [
+      [
+        { text: `Which ${phrasing.verb} ` },
+        { text: direction, class: `word ${direction}` },
+        { text: `${source}?` },
+      ],
+    ]
+  }
+</script>
+
 <script lang="ts">
   /**
    * `more_less`'s question: "Which costs MORE on the Grand Exchange?", on the scroll. The
@@ -7,20 +27,15 @@
    * and weight in the scroll's own ink. `--more` and `--less` are measured against the
    * panel, not parchment, and so stay off the sheet.
    */
+  import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'
-  import { phrasingFor } from '../types/moreLess'
 
-  let { data }: StemProps = $props()
+  let { data, shown }: StemProps = $props()
 
-  const direction = $derived(data.direction === 'less' ? 'less' : 'more')
-  const phrasing = $derived(phrasingFor(typeof data.metric === 'string' ? data.metric : ''))
-  // Built here rather than in the markup, where Svelte would trim the space before it.
-  const source = $derived(phrasing.source ? ` ${phrasing.source}` : '')
+  const ask = $derived(lines(data)[0] ?? '')
 </script>
 
-<p class="ask">
-  Which {phrasing.verb} <span class="word {direction}">{direction}</span>{source}?
-</p>
+<p class="ask"><Typed line={ask} shown={shown?.[0]} /></p>
 
 <style>
   .ask {
@@ -30,7 +45,8 @@
     line-height: 1.3;
   }
 
-  .word {
+  /* A run of `Typed`'s, so outside this component's scope. */
+  .ask :global(.word) {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.04em;

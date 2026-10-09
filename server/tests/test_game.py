@@ -51,7 +51,7 @@ from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
 from app.rooms import state
 from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
-from app.rooms.state import CHANGE_COOLDOWN, RANDOM_EVENT_HOLD, BadState, Excluded, RoomQuestion
+from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, RoomQuestion, question_hold
 from app.ws.outbox import SEND_TIMEOUT
 from tests.game_api import (
     AFTER,
@@ -2319,22 +2319,26 @@ def next_open(seat: Seat) -> tuple[dict[str, Any], bool]:
 # --- the NPC holds the floor before the buttons appear --------------------------------------
 
 
-def test_an_ordinary_question_takes_answers_as_it_opens(game) -> None:
-    """Nobody is interrupting, so there is nothing to hold: the clock starts on the open."""
+def test_an_ordinary_question_holds_while_its_scroll_types(game, monkeypatch) -> None:
+    """The clock starts once the scroll has typed the question in, and runs its full
+    seconds from there."""
+    monkeypatch.setattr(state, "question_hold", question_hold)
     game.start()
     (opened, *_) = game.opened(0)
     question = opened["question"]
     assert question["random_event"] is None
-    assert question["answerable_at"] == question["opened_at"]
+    held = (at(question, "answerable_at") - at(question, "opened_at")).total_seconds()
+    assert held > 0
+    assert held == pytest.approx(question_hold(game.question(0)), abs=0.001)
     assert (at(question, "ends_at") - at(question, "answerable_at")).total_seconds() == 10
 
 
 def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, monkeypatch) -> None:
     """On the server: an answer inside the NPC's hold is ``not_open``, and
     ``ends_at - answerable_at`` is its type's own seconds -- the hold comes on top. The
-    hold is the server's own six seconds, which the interlude is timed to.
-    The event here is an NPC asking its own question, in the ``random_event`` mode."""
-    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", RANDOM_EVENT_HOLD)
+    hold is the time its intro and question take to type in, which the interlude is timed
+    to. The event here is an NPC asking its own question, in the ``random_event`` mode."""
+    monkeypatch.setattr(state, "question_hold", question_hold)
     game = table("Zezima", **event_rooms(second_mode))
     game.app.state.rooms.answer_seconds = None  # the event's own time, not the table's
     event = the_event(game)
@@ -2342,7 +2346,8 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, m
     frames = reach(game, event.position)
     opened = frames["Zezima"]
     assert opened["random_event"] == event.random_event
-    assert (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds() == 6
+    held = (at(opened, "answerable_at") - at(opened, "opened_at")).total_seconds()
+    assert held == pytest.approx(question_hold(event), abs=0.001)
     seconds = (at(opened, "ends_at") - at(opened, "answerable_at")).total_seconds()
     assert seconds == answer_seconds(event.type, event.payload, "run")
 
@@ -2360,7 +2365,7 @@ def test_answering_the_instant_the_buttons_appear_is_bucket_1(
     """The wait costs nobody a point. Two seconds on a twenty-second question
     would be bucket 2 counted from the open (0.1025 of it); from ``answerable_at`` it is
     the fastest there is."""
-    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 2)
+    monkeypatch.setattr(state, "question_hold", lambda question: 2)
     game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
@@ -2382,7 +2387,7 @@ def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(
     buttons appear, against its own ``server_time``, so the client can count the rest of
     the hold down without a message of its own. The client's half is RandomEvent.test.ts.
     """
-    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 5)
+    monkeypatch.setattr(state, "question_hold", lambda question: 5)
     game = table("Zezima", **event_rooms(second_mode))
     event = the_event(game)
     frames = reach(game, event.position)
@@ -2398,7 +2403,7 @@ def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(
 
 
 def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db, monkeypatch) -> None:
-    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 5)
+    monkeypatch.setattr(state, "question_hold", lambda question: 5)
     game = table("Zezima", **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
@@ -2413,7 +2418,7 @@ def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db, monkey
 def test_a_restart_inside_the_hold_voids_the_event_and_resumes_after_it(
     table, second_mode, client, db, evict, monkeypatch
 ) -> None:
-    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 5)
+    monkeypatch.setattr(state, "question_hold", lambda question: 5)
     game = table("Zezima", reveal_seconds=30, **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
@@ -2438,8 +2443,8 @@ def test_a_restart_inside_the_hold_voids_the_event_and_resumes_after_it(
 def test_no_hold_plays_an_event_as_a_plain_question(table, second_mode) -> None:
     """What the rest of the suite runs on: the NPC is there, and the buttons with it."""
     game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
-    assert state.RANDOM_EVENT_HOLD == 0
     event = the_event(game)
+    assert state.question_hold(event) == 0
     frames = reach(game, event.position)
     assert frames["Zezima"]["random_event"] == event.random_event
     assert frames["Zezima"]["answerable_at"] == frames["Zezima"]["opened_at"]

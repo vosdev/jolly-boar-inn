@@ -1,3 +1,24 @@
+<script module lang="ts">
+  import type { Line } from '../../../lib/typing.svelte'
+
+  interface Subject {
+    name?: unknown
+    asset?: unknown
+  }
+
+  function subjectOf(data: Record<string, unknown>): Subject {
+    return (data.subject ?? {}) as Subject
+  }
+
+  /** What the stem types, line by line: the subject's name. */
+  export function lines(data: Record<string, unknown>): Line[] {
+    // As in `TextStem`: a payload from a newer schema could leave it out, and nothing is
+    // better than `undefined` in a heading.
+    const name = subjectOf(data).name
+    return typeof name === 'string' && name !== '' ? [name] : []
+  }
+</script>
+
 <script lang="ts">
   /**
    * A question about one thing: an item or an NPC, named, with its picture once there
@@ -13,24 +34,20 @@
    * placeholder: the question is answerable from the name, and a grey box would say it is
    * not. The ref still rides on the element so the render has somewhere to go.
    */
+  import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'
 
-  let { data }: StemProps = $props()
+  let { data, shown }: StemProps = $props()
 
-  interface Subject {
-    name?: unknown
-    asset?: unknown
-  }
-
-  const subject = $derived((data.subject ?? {}) as Subject)
-  // As in `TextStem`: a payload from a newer schema could leave it out, and nothing is
-  // better than `undefined` in a heading.
-  const name = $derived(typeof subject.name === 'string' ? subject.name : '')
-  const asset = $derived(typeof subject.asset === 'string' ? subject.asset : undefined)
+  const name = $derived(lines(data)[0])
+  const asset = $derived.by(() => {
+    const asset = subjectOf(data).asset
+    return typeof asset === 'string' ? asset : undefined
+  })
 </script>
 
-{#if name !== ''}
-  <p class="subject" data-asset={asset}>{name}</p>
+{#if name !== undefined}
+  <p class="subject" data-asset={asset}><Typed line={name} shown={shown?.[0]} /></p>
 {/if}
 
 <style>

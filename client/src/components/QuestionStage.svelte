@@ -16,17 +16,26 @@
    * answers under the sheet do not move when they arrive. A random event draws its own
    * stage, with its NPC in the host's place.
    *
+   * A question that arrived as it opened types its stem onto the scroll in the hold the
+   * server gives it before `answerable_at` (`lib/interlude.ts`), and the answers wait under
+   * the line until then. A reconnect, a reveal and reduced motion get the stem whole; the
+   * answers still wait, because that is a rule of the game, not an animation.
+   *
    * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
    * leaves the answers out, for a preview whose answers a player cannot try yet.
    */
-  import type { Snippet } from 'svelte'
+  import { untrack, type Snippet } from 'svelte'
+  import { get } from 'svelte/store'
 
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { awardFor } from '../lib/award'
+  import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
   import { hostOf } from '../lib/modes'
-  import { answerAck, answerCount } from '../lib/stores'
+  import { answerAck, answerCount, serverOffsetMs } from '../lib/stores'
+  import { Typist, Until, lettersOf } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
+  import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
   import Stage from './stage/Stage.svelte'
 
@@ -57,6 +66,26 @@
   } = $props()
 
   const host = $derived(hostOf(question.mode))
+
+  const answerableMs = $derived(Date.parse(question.answerable_at ?? question.opened_at))
+  /** A server from before every question held sends none, and then there is none. */
+  const hasHold = $derived(answerableMs > Date.parse(question.opened_at))
+  const letters = $derived(stemLines(question.mode, question.view).map(lettersOf))
+  /** Decided once, when the question takes the stage, so a tick cannot cut it short. */
+  const startedAt = Date.now()
+  const plan = untrack(() =>
+    live && reveal === null && !question.random_event && !reducedMotion()
+      ? interludeFor(
+          answerableMs - (startedAt + get(serverOffsetMs)),
+          letters,
+          QUESTION_TYPE_FROM_MS,
+          0,
+        )
+      : SETTLED,
+  )
+  const typist = new Typist(() => letters, plan, startedAt)
+  const answerable = new Until(() => answerableMs)
+  const held = $derived(reveal === null && !answerable.passed)
 
   /**
    * Where the answer landed, from `answer_ack`. A ranked question has no band, since a
@@ -129,7 +158,16 @@
     {@render children?.()}
   </RandomEvent>
 {:else}
-  <Question {question} {reveal} {yourValue} {result} {onAnswer} frame={staged} />
+  <Question
+    {question}
+    {reveal}
+    {yourValue}
+    {result}
+    {onAnswer}
+    held={hasHold ? held : undefined}
+    shown={typist.shown}
+    frame={staged}
+  />
 {/if}
 
 <style>

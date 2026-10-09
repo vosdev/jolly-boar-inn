@@ -150,9 +150,9 @@ class OpenQuestion(_Message):
     # belongs to its round. An id from ``app/random_events.py``; the client has the copy.
     random_event: str | None = None
     opened_at: datetime
-    # When the buttons appear and the clock starts: ``opened_at`` for every question but a
-    # random event, where the NPC holds the floor for ``RANDOM_EVENT_HOLD`` first. An
-    # answer before it is ``not_open``, and ``ends_at`` is this plus the question's seconds.
+    # When the buttons appear and the clock starts: ``opened_at`` plus the time the scroll
+    # takes to type the question in (``rooms/hold.py``). An answer before it is
+    # ``not_open``, and ``ends_at`` is this plus the question's seconds.
     answerable_at: datetime
     ends_at: datetime
     you_can_answer: bool
