@@ -26,6 +26,11 @@ https://osrsguesser.app/
 
 https://gieliguessr.com/
 
+### TapScape
+
+https://tapscape.andrewhathaway.net/
+
+
 ## Trivia games
 
 ### OSRSTrivia
