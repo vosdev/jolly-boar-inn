@@ -6,8 +6,7 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES, questions_bounds, seconds_bounds
-from app.questions.types import ordering
+from app.modes import MODES, questions_bounds
 
 PATH = REPO_ROOT / "data" / "packs" / "sort_it_out.json"
 
@@ -16,9 +15,8 @@ def questions() -> list[dict[str, Any]]:
     return json.loads(PATH.read_text(encoding="utf-8"))["questions"]
 
 
-def test_sort_it_out_plays_ordering_at_its_types_pace() -> None:
+def test_sort_it_out_plays_ordering() -> None:
     assert MODES["sort_it_out"].types == {"ordering"}
-    assert seconds_bounds("sort_it_out") is ordering.SECONDS
     assert questions_bounds("sort_it_out").default == 5
 
 

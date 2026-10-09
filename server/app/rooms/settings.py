@@ -1,29 +1,28 @@
 """``rooms.settings`` (section 4 of ideas/architecture.md): fixed at creation.
 
 A room plays one round per game mode: pick three modes and the room is three rounds long.
-There is no global round count and no global question length, because the two numbers
-that used to be global are the two that differ most between modes. Each mode carries its
-own ``questions`` and ``seconds`` instead (``ModeSettings``), defaulting to what the mode
-registry (``app/modes``) says a round of it should feel like.
+Each mode carries its own ``questions`` (``ModeSettings``), defaulting to what the mode
+registry (``app/modes``) says a round of it should hold. How long a question is open and
+how long its reveal holds are its type's (``questions/types/timing.py``), scaled by the
+room's one ``pace``: a host says how quick the game is, not how long each kind of question
+takes, which in a round mixing four buttons with six entries to order no one number fits.
 
 ``modes[].mode`` is a mode id, a key into ``MODES`` and never into ``TYPES``. A host picks
 rounds; which answer shape a round is played in is the mode's business, and nothing in
 the settings mentions it.
 
 Two models, one shape. ``RoomSettings`` is what a room *is*: the field types, the
-supported modes, and the little the game loop cannot work without (a question has to
-last a positive number of seconds). ``NewRoomSettings`` adds the ranges section 4 gives,
-which are the per-mode ``Bounds`` plus a cap on the room as a whole, because those are a
-policy about what a host may ask for and the only place that policy belongs is where the
-request comes in.
+supported modes, and the little the game loop cannot work without. ``NewRoomSettings``
+adds the ranges section 4 gives, which are the per-mode ``Bounds`` plus a cap on the room
+as a whole, because those are a policy about what a host may ask for and the only place
+that policy belongs is where the request comes in.
 
-Keeping the ranges off the stored model means two things. A room created under one set of
-bounds still loads after the bounds change, instead of becoming unrehydratable. And the
-test suite can run a whole game with one-second questions without going behind the
-model's back. A room read back from the database (``RoomSettings.stored``) goes further:
-it keeps a round whose mode has left the registry, which still plays because each of its
-questions carries its own type, and drops keys a newer release wrote, so a downgrade does
-not strand every room that release created.
+Keeping the ranges off the stored model means a room created under one set of bounds
+still loads after the bounds change, instead of becoming unrehydratable. A room read back
+from the database (``RoomSettings.stored``) goes further: it keeps a round whose mode has
+left the registry, which still plays because each of its questions carries its own type,
+and drops keys a newer release wrote, so a downgrade does not strand every room that
+release created.
 
 Random events are the other thing a room is made of, and ``random_event_frequency`` says
 how many: one per 20, 10 or 5 round questions (``EVENT_EVERY``), added on top of the
@@ -57,7 +56,8 @@ from pydantic import (
     model_validator,
 )
 
-from app.modes import MODES, questions_bounds, seconds_bounds, type_seconds
+from app.modes import MODES, questions_bounds
+from app.questions.types.timing import Pace
 
 # The most questions one room may be created with, over all of its rounds and the events
 # inside them. Nothing in the game loop cares; it is there so a host cannot ask for an
@@ -105,27 +105,26 @@ def event_windows(lengths: Sequence[int], every: int) -> list[list[tuple[int, in
 
 
 class ModeSettings(BaseModel):
-    """One mode's round: how many questions it holds, and how long each one is open.
+    """One mode's round: how many questions it holds.
 
-    Both numbers are optional on the way in and filled from the mode's own ``Bounds``, so
-    ``{"mode": "more_less"}`` is a complete round at that mode's own pace. After
-    validation they are always present, which is what the game loop and the lobby read.
+    Optional on the way in and filled from the mode's own ``Bounds``, so
+    ``{"mode": "more_less"}`` is a complete round. After validation it is always present,
+    which is what the game loop and the lobby read.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     mode: str
     questions: int = Field(ge=0)
-    seconds: int = Field(gt=0)  # a zero would divide by zero in scoring
 
     @model_validator(mode="before")
     @classmethod
     def _defaults_from_the_mode(cls, data: Any, info: ValidationInfo) -> Any:
         """Fill what was left out from the mode's own bounds.
 
-        A mode the registry does not know is filled from the fallbacks rather than left
+        A mode the registry does not know is filled from the fallback rather than left
         short: the problem with ``{"mode": "closest_number"}`` is the mode, and the host
-        should read that from ``modes`` and not two complaints about missing numbers.
+        should read that from ``modes`` and not a complaint about a missing number.
         """
         data = _known_keys(cls, data, info)
         mode = data.get("mode") if isinstance(data, dict) else None
@@ -133,7 +132,6 @@ class ModeSettings(BaseModel):
             return data  # not a mode at all; ``mode``'s own field error says so
         filled = dict(data)
         filled.setdefault("questions", questions_bounds(mode).default)
-        filled.setdefault("seconds", seconds_bounds(mode).default)
         return filled
 
 
@@ -156,7 +154,9 @@ class RoomSettings(BaseModel):
     # choice was a boolean, with ``random_events: false``: its host's questions only (see the module
     # docstring). Never ``None`` for a room created since.
     random_event_frequency: Frequency | None = "default"
-    reveal_seconds: int = Field(default=6, ge=0)
+    # Scales every question's time to answer and its reveal. A room stored before pace was
+    # a setting reads as ``run``, the times each type was written for.
+    pace: Pace = "run"
     # How long the standings hold the floor between two rounds. Zero turns them off; the
     # game's last round never has them, because the final screen is its standings.
     # Defaulted, so a room stored before the field existed reads as a room that has them.
@@ -240,22 +240,6 @@ class RoomSettings(BaseModel):
         lengths = [entry.questions for entry in self.modes]
         return len(event_windows(lengths, EVENT_EVERY[self.random_event_frequency]))
 
-    def entry_for(self, mode: str) -> ModeSettings | None:
-        return next((entry for entry in self.modes if entry.mode == mode), None)
-
-    def seconds_for(self, mode: str, type_id: str) -> int:
-        """How long one question stays open: its round's setting, or its type's default.
-
-        The clamp is for stored rooms, not for new ones: ``NewRoomSettings`` refuses
-        anything outside the mode's ``Bounds`` on the way in, so the only way past it is a
-        room created before the bounds moved. A question whose mode has no entry is a
-        random event, which has no round to take a length from, so its own type decides.
-        """
-        entry = self.entry_for(mode)
-        if entry is None:
-            return type_seconds(type_id).default
-        return seconds_bounds(mode).clamp(entry.seconds)
-
 
 class NewRoomSettings(RoomSettings):
     """What ``POST /api/rooms`` accepts: section 4's ranges, checked on the way in."""
@@ -263,7 +247,6 @@ class NewRoomSettings(RoomSettings):
     # A new room shuffles unless its host numbers the rounds; a stored one says which.
     mode_order: Literal["listed", "random"] = "random"
     random_event_frequency: Frequency = "default"
-    reveal_seconds: int = Field(default=6, ge=2, le=30)
     standings_seconds: int = Field(default=10, ge=0, le=30)
 
     @field_validator("modes")
@@ -272,16 +255,11 @@ class NewRoomSettings(RoomSettings):
         for entry in modes:
             if entry.mode not in MODES or not MODES[entry.mode].is_round:
                 continue  # ``_supported_and_unique`` is the one that reports these
-            questions, seconds = questions_bounds(entry.mode), seconds_bounds(entry.mode)
+            questions = questions_bounds(entry.mode)
             if not questions.holds(entry.questions):
                 raise ValueError(
                     f"{entry.mode}: questions must be"
                     f" {questions.minimum}..{questions.maximum}, not {entry.questions}"
-                )
-            if not seconds.holds(entry.seconds):
-                raise ValueError(
-                    f"{entry.mode}: seconds must be"
-                    f" {seconds.minimum}..{seconds.maximum}, not {entry.seconds}"
                 )
         return modes
 

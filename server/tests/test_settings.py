@@ -36,11 +36,16 @@ def more_modes() -> Iterator[list[str]]:
         del MODES[name]
 
 
-def test_a_mode_takes_its_numbers_from_its_own_type() -> None:
-    """``{"mode": "more_less"}`` is a whole round: the type says how long and how many."""
-    entry = ModeSettings(mode="more_less")
-    assert (entry.questions, entry.seconds) == (5, 10)
-    assert ModeSettings(mode="more_less", seconds=6).questions == 5  # only what was left out
+def test_a_mode_takes_its_round_length_from_the_registry() -> None:
+    """``{"mode": "more_less"}`` is a whole round."""
+    assert ModeSettings(mode="more_less").questions == 5
+    assert ModeSettings(mode="more_less", questions=8).questions == 8
+
+
+def test_a_round_has_no_seconds_of_its_own() -> None:
+    """How long a question lasts is its type's, scaled by the room's pace."""
+    with pytest.raises(ValidationError, match="seconds"):
+        NewRoomSettings(modes=[{"mode": "more_less", "seconds": 10}])
 
 
 def test_the_default_room_is_one_round_of_the_first_type() -> None:
@@ -77,7 +82,7 @@ def test_custom_is_not_a_round() -> None:
     with pytest.raises(ValidationError, match="cannot be picked as a round"):
         RoomSettings(modes=[{"mode": "more_less"}, {"mode": "custom"}])
     with pytest.raises(ValidationError, match="cannot be picked as a round"):
-        NewRoomSettings(modes=[{"mode": "custom", "seconds": 20}])
+        NewRoomSettings(modes=[{"mode": "custom", "questions": 2}])
 
 
 @pytest.mark.parametrize(
@@ -85,8 +90,6 @@ def test_custom_is_not_a_round() -> None:
     [
         {"mode": "more_less", "questions": 0},
         {"mode": "more_less", "questions": 31},
-        {"mode": "more_less", "seconds": 4},
-        {"mode": "more_less", "seconds": 21},
     ],
 )
 def test_a_host_stays_inside_the_types_own_range(entry: dict[str, Any]) -> None:
@@ -97,7 +100,7 @@ def test_a_host_stays_inside_the_types_own_range(entry: dict[str, Any]) -> None:
 
 def test_the_stored_model_loads_what_a_host_may_not_ask_for() -> None:
     """A room created under one set of bounds still loads after the bounds move."""
-    settings = RoomSettings(modes=[{"mode": "more_less", "questions": 40, "seconds": 1}])
+    settings = RoomSettings(modes=[{"mode": "more_less", "questions": 40}])
     assert settings.question_count == 40
     with pytest.raises(ValidationError):
         NewRoomSettings(**settings.model_dump())
@@ -176,12 +179,11 @@ def test_a_room_stored_with_t21s_boolean_reads_as_the_frequency_it_meant() -> No
 
 
 def test_a_stored_room_keeps_a_mode_that_left_the_registry() -> None:
-    """Its questions carry their own types, so it plays on, at the fallback pace; a room
-    being created or built in code is still held to the registry."""
-    stored = {"modes": [{"mode": "zoom_quiz", "questions": 4, "seconds": 12}]}
+    """Its questions carry their own types, so it plays on; a room being created or built
+    in code is still held to the registry."""
+    stored = {"modes": [{"mode": "zoom_quiz", "questions": 4}]}
     settings = RoomSettings.stored(stored)
     assert settings.mode_ids == ["zoom_quiz"]
-    assert settings.seconds_for("zoom_quiz", "multiple_choice") == 12
     with pytest.raises(ValidationError, match="unsupported"):
         RoomSettings.model_validate(stored)
     with pytest.raises(ValidationError, match="cannot be picked as a round"):
@@ -194,10 +196,10 @@ def test_a_stored_room_drops_the_keys_a_newer_build_wrote() -> None:
     stored = {
         **RoomSettings().model_dump(),
         "list_publicly": True,
-        "modes": [{"mode": "more_less", "questions": 5, "seconds": 10, "hidden": True}],
+        "modes": [{"mode": "more_less", "questions": 5, "hidden": True}],
     }
     assert RoomSettings.stored(stored) == RoomSettings(
-        modes=[{"mode": "more_less", "questions": 5, "seconds": 10}]
+        modes=[{"mode": "more_less", "questions": 5}]
     )
     with pytest.raises(ValidationError, match="list_publicly"):
         RoomSettings.model_validate(stored)
@@ -280,21 +282,26 @@ def test_naming_wrong_answers_is_on_unless_the_host_opts_out() -> None:
     assert RoomSettings.model_validate(stored).name_wrong_answers is True
 
 
-def test_seconds_for_clamps_a_stored_room_into_the_types_range() -> None:
-    settings = RoomSettings(modes=[{"mode": "more_less", "seconds": 45}])
-    assert settings.seconds_for("more_less", "more_less") == 20
+def test_a_room_runs_unless_its_host_picks_another_pace() -> None:
+    assert NewRoomSettings().pace == "run"
+    assert NewRoomSettings(pace="walk").pace == "walk"
+    assert NewRoomSettings(pace="teleport").pace == "teleport"
+    with pytest.raises(ValidationError, match="pace"):
+        NewRoomSettings(pace="sprint")
 
 
-def test_an_event_is_open_for_its_own_types_default() -> None:
-    """An event has no round of its own to take a length from, so the question's type
-    decides, not the mode it came from or the round it interrupts."""
-    settings = RoomSettings(modes=[{"mode": "more_less", "questions": 4, "seconds": 7}])
-    assert settings.seconds_for("more_less", "more_less") == 7
-    for mode in ("custom", "random_event"):
-        assert settings.seconds_for(mode, "more_less") == 10
-        assert settings.seconds_for(mode, "multiple_choice") == 15
-        assert settings.seconds_for(mode, "closest_number") == 20
-    assert settings.seconds_for("custom", "not_a_type") == 30  # the registry fallback
+def test_a_room_stored_with_its_own_seconds_loads_at_run_pace() -> None:
+    """Per-round seconds and the room's reveal were settings once; a room stored with them
+    plays on at the times its questions' types give."""
+    stored = {
+        "modes": [{"mode": "more_less", "questions": 4, "seconds": 7}],
+        "reveal_seconds": 6,
+    }
+    settings = RoomSettings.stored(stored)
+    assert settings == RoomSettings(modes=[{"mode": "more_less", "questions": 4}])
+    assert settings.pace == "run"
+    with pytest.raises(ValidationError, match="reveal_seconds"):
+        NewRoomSettings.model_validate(stored)
 
 
 def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) -> None:
@@ -305,37 +312,31 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "id": "more_less",
             "types": ["more_less"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 10, "min": 5, "max": 20},
         },
         {
             "id": "price_is_right",
             "types": ["price_is_right"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 10, "min": 5, "max": 30},
         },
         {
             "id": "guess_examine",
             "types": ["pick_from_list"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 20, "min": 10, "max": 60},
         },
         {
             "id": "sort_it_out",
             "types": ["ordering"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 25, "min": 10, "max": 45},
         },
         {
             "id": "who_said_that",
             "types": ["multiple_choice"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 20, "min": 5, "max": 30},
         },
         {
             "id": "know_your_content_creator",
             "types": ["closest_number", "multiple_choice", "pick_all_that_apply"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 20, "min": 10, "max": 60},
         },
         {
             "id": "bestiary",
@@ -347,31 +348,26 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
                 "pick_all_that_apply",
             ],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 20, "min": 10, "max": 60},
         },
         {
             "id": "drop_table",
             "types": ["closest_number", "free_text", "multiple_choice", "pick_all_that_apply"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 20, "min": 10, "max": 60},
         },
         {
             "id": "odd_one_out",
             "types": ["multiple_choice"],
             "questions": {"default": 5, "min": 1, "max": 30},
-            "seconds": {"default": 20, "min": 5, "max": 30},
         },
         {
-            # Never a round, so no round length; its questions carry and pace by their types.
+            # Never a round, so no round length; its questions are events.
             "id": "custom",
             "types": [],
             "questions": None,
-            "seconds": None,
         },
         {
             "id": "random_event",
             "types": [],
             "questions": None,
-            "seconds": None,
         },
     ]

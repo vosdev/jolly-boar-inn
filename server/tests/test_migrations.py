@@ -318,8 +318,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
 
     settings = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     assert settings == {
-        # The old globals, now carried by the one mode that was playing. 45 seconds is
-        # more than ``more_less`` allows today, which is what ``seconds_for`` clamps.
+        # The old globals, now carried by the one mode that was playing.
         "modes": [{"mode": "more_less", "questions": 5, "seconds": 45}],
         "mode_order": "listed",
         "order": "shuffle",
@@ -336,8 +335,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     )
     assert loaded.mode_ids == ["more_less"]
     assert loaded.question_count == 5
-    # The type's maximum, not the stored 45.
-    assert loaded.seconds_for("more_less", "more_less") == 20
+    assert loaded.pace == "run"
 
 
 async def test_0004_leaves_a_room_created_after_it_alone(pool: asyncpg.Pool) -> None:
@@ -431,7 +429,7 @@ def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
             room_id = await pool.fetchval(
                 "insert into rooms (code, status, settings, current_index, expires_at)"
                 " values ('ABYSSAL', 'playing', $1, 0, now() + interval '1 day') returning id",
-                fast_settings(seconds=10, max_players=50).model_dump(),
+                fast_settings(max_players=50).model_dump(),
             )
             await pool.execute(
                 "insert into players (room_id, display_name, session_token_hash, role)"
@@ -497,11 +495,14 @@ def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
 def without_the_hold(settings: dict[str, Any]) -> dict[str, Any]:
     """A stored room's settings less ``random_event_seconds``, which 0007 wrote into every
     room and which stopped being a setting when the hold became the server's, and
-    ``splash_seconds``, which stopped when every round became introduced. The app's
-    ``RoomSettings.stored`` drops them; these tests read strictly, so a key a migration
-    should have removed still fails them."""
-    gone = {"random_event_seconds", "splash_seconds"}
-    return {k: v for k, v in settings.items() if k not in gone}
+    ``splash_seconds``, which stopped when every round became introduced, and the reveal's
+    and each round's ``seconds``, which stopped when a question's type began timing it. The
+    app's ``RoomSettings.stored`` drops them; these tests read strictly, so a key a
+    migration should have removed still fails them."""
+    gone = {"random_event_seconds", "splash_seconds", "reveal_seconds"}
+    kept = {k: v for k, v in settings.items() if k not in gone}
+    kept["modes"] = [{k: v for k, v in m.items() if k != "seconds"} for m in kept["modes"]]
+    return kept
 
 
 async def test_0007_swaps_order_for_the_event_settings_once(

@@ -34,13 +34,20 @@ from uuid import UUID
 
 from app.questions.submission import Submission
 from app.questions.types import exact
-from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
-# Up to six entries to read and place one by one: longer than ticking boxes, and a phone
-# player tapping them in needs the slack more than anyone.
-SECONDS = Bounds(default=25, minimum=10, maximum=45)
+# Every entry is read and placed one by one, and the reveal sets each in its place with
+# its detail beside it: the slowest shape on both counts.
+ANSWER = Timing(base=10, per_item=5)
+REVEAL = Timing(base=4, per_item=2)
+
+
+def items(payload: dict[str, Any]) -> int:
+    """The entries on screen, picked or not: all of them are read."""
+    return len(payload["entries"])
+
 
 _OPEN_KEYS = ("intro", "prompt", "image", "ends", "picks")
 

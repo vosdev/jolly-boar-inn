@@ -245,6 +245,7 @@ export function applyServerMessage(message: ServerMessage): void {
         current_index: message.question.index,
         segment: message.question.segment,
         next_at: null,
+        reveal_seconds: null,
       })
       break
 
@@ -261,7 +262,7 @@ export function applyServerMessage(message: ServerMessage): void {
           was: open?.question_id === message.question_id ? open : null,
         })
       }
-      patchRoom({ phase: 'reveal', next_at: message.next_at })
+      patchRoom({ phase: 'reveal', next_at: message.next_at, reveal_seconds: message.reveal_seconds })
       break
 
     case 'game_finished':

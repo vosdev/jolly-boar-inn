@@ -64,10 +64,10 @@ const LOBBY: RoomView = {
   code: 'ABYSSAL',
   status: 'lobby',
   settings: {
-    modes: [{ mode: 'more_less', questions: 5, seconds: 10 }],
+    modes: [{ mode: 'more_less', questions: 5 }],
     mode_order: 'listed',
     random_event_frequency: 'default',
-    reveal_seconds: 8,
+    pace: 'run',
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
@@ -76,6 +76,7 @@ const LOBBY: RoomView = {
   total: 5,
   phase: 'idle',
   next_at: null,
+  reveal_seconds: null,
   segment: null,
   finished_at: null,
 }

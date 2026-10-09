@@ -77,8 +77,9 @@ from app.questions import custom
 from app.questions.packs import Pack
 from app.questions.schema import QuestionError
 from app.questions.submission import Submission
-from app.questions.types import TYPES, scoring_of, steps_of
+from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import MIN_REVEAL
 from app.rooms import codes, ready, scoring, segments, selection
 from app.rooms.settings import RoomSettings
 from app.stats import UNREPORTED, Arrival, Metric, bump, duration_bucket, joined
@@ -430,10 +431,10 @@ class RoomQuestion:
     until one matched. The wire names a question by ``id`` instead.
 
     ``seconds``, ``answerable_at`` and ``ends_at`` are not columns either: they are
-    recomputed whenever the question opens, from the setting its own mode carries, and
+    recomputed whenever the question opens, from its type and the room's pace, and
     ``ends_at`` is what the timer and the clients count down to. ``seconds`` is also what
-    the speed bucket is a fraction of, so a ten-second mode scores on ten seconds in a
-    room whose other rounds run to a minute.
+    the speed bucket is a fraction of, so a ten-second question scores on ten seconds in a
+    room whose ordering questions run to forty.
 
     ``answerable_at`` is when answers are taken from, and so when ``seconds`` starts. It is
     ``shown_at`` for every question but a random event, where the NPC holds the floor with
@@ -447,8 +448,8 @@ class RoomQuestion:
     pair is what the clients count down to.
 
     ``type`` and ``mode`` are both columns, and neither is derived from the other: the
-    type is how the question is answered and graded, the mode is the round it was drawn
-    for and where its ``seconds`` come from.
+    type is how the question is answered, graded and timed, the mode is the round it was
+    drawn for.
 
     ``random_event`` is the NPC interrupting ``round`` with this question, or ``None`` for
     a question that belongs to its round. An event's ``mode`` is its own and its ``round``
@@ -567,6 +568,8 @@ class Room:
     # The same moment on the manager's monotonic clock, and what the timer sleeps to: a
     # wall clock that jumps must not move it. ``next_at`` is for the wire.
     next_mono: float | None = None
+    # How long the reveal in progress holds, for the clients' countdown: its question's own.
+    reveal_seconds: int | None = None
     # The one task driving open → closed → reveal → next.
     timer: asyncio.Task[None] | None = field(default=None, repr=False)
     # A ``playing`` room rehydrated but not yet resumed: it waits for a player to come
@@ -591,8 +594,12 @@ class Room:
         return None if self.current_index is None else self.segment_at(self.current_index)
 
     def question_seconds(self, question: RoomQuestion) -> int:
-        """How long ``question`` stays open: its round's own setting, or its type's."""
-        return self.settings.seconds_for(question.mode, question.type)
+        """How long ``question`` stays open: its type's time at the room's pace."""
+        return answer_seconds(question.type, question.payload, self.settings.pace)
+
+    def question_reveal_seconds(self, question: RoomQuestion) -> int:
+        """How long ``question``'s reveal holds: its type's time at the room's pace."""
+        return reveal_seconds(question.type, question.payload, self.settings.pace)
 
     @property
     def current(self) -> RoomQuestion | None:
@@ -644,6 +651,7 @@ class Room:
             total=self.total,
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
+            reveal_seconds=self.reveal_seconds if self.phase == "reveal" else None,
             segment=self.current_segment,
             finished_at=self.finished_at,
             rounds=rounds,
@@ -832,6 +840,10 @@ class RoomManager:
         # straight into its first question.
         self.splashes = True
         self.editing_seconds = EDITING_SECONDS
+        # Set only in the test suite, to play a game in seconds: every question open for
+        # this long, every reveal this long, whatever their type and the room's pace.
+        self.answer_seconds: int | None = None
+        self.reveal_seconds: int | None = None
         self.request_stale_seconds = REQUEST_STALE_SECONDS
         self.rooms: dict[str, Room] = {}
         # A room in memory shares its code's lock. The entry outlives the room while
@@ -924,7 +936,7 @@ class RoomManager:
         the "a crash costs the open question at most" guarantee. Its answers keep their
         null ``points`` and are worth nothing to anybody.
 
-        The room then resumes in ``reveal`` for ``reveal_seconds`` whether or not anything
+        The room then resumes in ``reveal`` for its question's reveal whether or not anything
         was voided, so the players reconnecting into a room that has just come back are
         not answering a question a moment later. A room that died during a splash is this
         same case -- its question has no ``shown_at`` -- and the splash replays when the
@@ -959,8 +971,9 @@ class RoomManager:
                 "room %s: question %d was open at the restart, voided", room.code, question.position
             )
         room.phase = "reveal"
-        room.next_at = datetime.now(UTC) + timedelta(seconds=room.settings.reveal_seconds)
-        room.next_mono = self.clock() + room.settings.reveal_seconds
+        room.reveal_seconds = self._reveal_seconds(room, question)
+        room.next_at = datetime.now(UTC) + timedelta(seconds=room.reveal_seconds)
+        room.next_mono = self.clock() + room.reveal_seconds
         log.info(
             "room %s resumes in reveal until %s, then question %d",
             room.code,
@@ -968,6 +981,17 @@ class RoomManager:
             resume_from + 1,
         )
         self._start_timer(room, resume_from, resume_at=room.next_mono)
+
+    def _answer_seconds(self, room: Room, question: RoomQuestion) -> int:
+        if self.answer_seconds is not None:
+            return self.answer_seconds
+        return room.question_seconds(question)
+
+    def _reveal_seconds(self, room: Room, question: RoomQuestion | None) -> int:
+        """A question's reveal; the shortest there is for a room resuming before its first."""
+        if self.reveal_seconds is not None:
+            return self.reveal_seconds
+        return MIN_REVEAL if question is None else room.question_reveal_seconds(question)
 
     def _forget(self, room: Room) -> list[Outbox]:
         """Take a room out of memory and detach its sockets, returning them to close.
@@ -2143,7 +2167,7 @@ class RoomManager:
                 return None
             question = room.questions[index]
             shown_at, now = datetime.now(UTC), self.clock()
-            seconds = room.question_seconds(question)
+            seconds = self._answer_seconds(room, question)
             hold = RANDOM_EVENT_HOLD if question.random_event else 0
             segment = room.segment_at(index)
             assert segment is not None  # every question belongs to a round
@@ -2231,8 +2255,9 @@ class RoomManager:
                 answer.credit, answer.correct, answer.points = got, correct, points
             room.totals = totals
             room.phase = "reveal"
-            room.next_at = closed_at + timedelta(seconds=room.settings.reveal_seconds)
-            room.next_mono = reveal_ends = now + room.settings.reveal_seconds
+            room.reveal_seconds = self._reveal_seconds(room, question)
+            room.next_at = closed_at + timedelta(seconds=room.reveal_seconds)
+            room.next_mono = reveal_ends = now + room.reveal_seconds
             room.advance.clear()
             more = question.position + 1 < len(room.questions)
             message = QuestionClosed(
@@ -2249,6 +2274,7 @@ class RoomManager:
                 },
                 standings=room.standings(),
                 next_at=room.next_at if more else None,
+                reveal_seconds=room.reveal_seconds,
                 suggested_by=question.suggested_by,
             )
             closed = Broadcast.to_all(room, message.model_dump(mode="json"))

@@ -35,14 +35,13 @@ from uuid import UUID
 from app.questions import vocab
 from app.questions.submission import Submission
 from app.questions.types import exact
-from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import Timing
 
 SCORING = Scoring.STEP
-# A sentence to read, then a search to type and an entry to pick: slower than four buttons.
-# Twenty seconds leaves a player who knows it time to find it in the list; a minute is as
-# long as it stays a question about knowing rather than about scrolling.
-SECONDS = Bounds(default=20, minimum=10, maximum=60)
+# A sentence to read, then a search to type and an entry to pick.
+ANSWER = Timing(base=20)
+REVEAL = Timing(base=6)
 
 _OPEN_KEYS = ("intro", "prompt", "vocab", "steps")
 

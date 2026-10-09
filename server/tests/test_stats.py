@@ -53,9 +53,10 @@ def test_a_game_counts_each_event_once(table, client: TestClient, db, second_mod
     game = table(
         "Zezima",
         reveal_seconds=30,
+        seconds=30,
         modes=[
-            {"mode": MORE_LESS, "questions": 2, "seconds": 30},
-            {"mode": second_mode, "questions": 1, "seconds": 30},
+            {"mode": MORE_LESS, "questions": 2},
+            {"mode": second_mode, "questions": 1},
         ],
         mode_order="listed",
     )
@@ -83,9 +84,10 @@ def test_ending_mid_round_ends_the_game_and_that_round_early(table, db, second_m
     game = table(
         "Zezima",
         reveal_seconds=30,
+        seconds=30,
         modes=[
-            {"mode": MORE_LESS, "questions": 2, "seconds": 30},
-            {"mode": second_mode, "questions": 1, "seconds": 30},
+            {"mode": MORE_LESS, "questions": 2},
+            {"mode": second_mode, "questions": 1},
         ],
         mode_order="listed",
     )
@@ -108,9 +110,10 @@ def test_ending_in_the_standings_cuts_no_round_short(table, db, second_mode) -> 
         "Zezima",
         reveal_seconds=30,
         standings_seconds=30,
+        seconds=30,
         modes=[
-            {"mode": MORE_LESS, "questions": 1, "seconds": 30},
-            {"mode": second_mode, "questions": 1, "seconds": 30},
+            {"mode": MORE_LESS, "questions": 1},
+            {"mode": second_mode, "questions": 1},
         ],
         mode_order="listed",
     )
@@ -136,9 +139,10 @@ def test_a_restart_that_voids_a_rounds_last_question_finishes_it_once(
     game = table(
         "Zezima",
         reveal_seconds=30,
+        seconds=30,
         modes=[
-            {"mode": MORE_LESS, "questions": 1, "seconds": 30},
-            {"mode": second_mode, "questions": 1, "seconds": 30},
+            {"mode": MORE_LESS, "questions": 1},
+            {"mode": second_mode, "questions": 1},
         ],
         mode_order="listed",
     )
@@ -291,14 +295,12 @@ def test_the_table_names_nobody(db) -> None:
     assert {row["column_name"] for row in rows} == {"day", "metric", "key", "count"}
 
 
-def test_each_way_a_question_closes_is_counted_under_its_mode(table, db, quick_mode: str) -> None:
+def test_each_way_a_question_closes_is_counted_under_its_mode(table, db, second_mode: str) -> None:
     game = table(
         "Zezima",
         reveal_seconds=30,
-        modes=[
-            {"mode": MORE_LESS, "questions": 2, "seconds": 30},
-            {"mode": quick_mode, "questions": 1, "seconds": 1},
-        ],
+        seconds=30,
+        modes=[{"mode": MORE_LESS, "questions": 2}, {"mode": second_mode, "questions": 1}],
         mode_order="listed",
     )
     admin, zezima = game.seats
@@ -311,6 +313,7 @@ def test_each_way_a_question_closes_is_counted_under_its_mode(table, db, quick_m
     game.opened(1)
     game.skip()
     admin.take("question_closed")
+    game.app.state.rooms.answer_seconds = 1  # the last question times out
     game.skip()
     game.opened(2)
     admin.take("question_closed")
@@ -318,7 +321,7 @@ def test_each_way_a_question_closes_is_counted_under_its_mode(table, db, quick_m
     assert {k: n for k, n in counts(db).items() if k[0] in closes} == {
         (Metric.QUESTIONS_ALL_ANSWERED, MORE_LESS): 1,
         (Metric.QUESTIONS_SKIPPED, MORE_LESS): 1,
-        (Metric.QUESTIONS_TIMED_OUT, quick_mode): 1,
+        (Metric.QUESTIONS_TIMED_OUT, second_mode): 1,
     }
 
 

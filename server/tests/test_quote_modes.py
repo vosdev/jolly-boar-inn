@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES, questions_bounds, seconds_bounds
+from app.modes import MODES, questions_bounds
 from app.questions import schema
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
@@ -24,18 +24,14 @@ def questions(mode: str) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["questions"]
 
 
-def test_who_said_that_is_multiple_choice_with_time_to_read() -> None:
+def test_who_said_that_is_multiple_choice() -> None:
     assert MODES["who_said_that"].types == {"multiple_choice"}
-    seconds = seconds_bounds("who_said_that")
-    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 5, 30)
     assert questions_bounds("who_said_that").default == 5
 
 
-def test_know_your_content_creator_mixes_three_types_at_twenty_seconds() -> None:
+def test_know_your_content_creator_mixes_three_types() -> None:
     mode = "know_your_content_creator"
     assert MODES[mode].types == {"multiple_choice", "closest_number", "pick_all_that_apply"}
-    seconds = seconds_bounds(mode)
-    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds(mode).default == 5
 
 

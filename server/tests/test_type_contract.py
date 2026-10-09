@@ -15,10 +15,10 @@ from uuid import uuid4
 
 import pytest
 
-from app.modes import type_questions, type_seconds
+from app.modes import type_questions
 from app.questions import schema
 from app.questions.submission import Submission
-from app.questions.types import TYPES, scoring_of, steps_of
+from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from tests import answers
 
@@ -35,7 +35,8 @@ class Example:
     # Every key, at any depth, that ``reveal`` has and ``client_view`` does not.
     secret: frozenset[str]
     scoring: Scoring
-    seconds: tuple[int, int, int]
+    # Open and reveal, in seconds, at ``run`` pace.
+    seconds: tuple[int, int]
     questions: tuple[int, int, int] = (5, 1, 30)
 
 
@@ -57,7 +58,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=1,
         secret=frozenset({"value", "answer_index"}),
         scoring=Scoring.SPEED,
-        seconds=(10, 5, 20),
+        seconds=(10, 5),
     ),
     "price_is_right": Example(
         payload={
@@ -73,7 +74,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=0,
         secret=frozenset({"value", "answer_index"}),
         scoring=Scoring.SPEED,
-        seconds=(10, 5, 30),
+        seconds=(10, 6),
     ),
     "pick_from_list": Example(
         payload={
@@ -90,7 +91,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=4587,
         secret=frozenset({"answer_id", "subject", "name", "asset", "image", "explanation"}),
         scoring=Scoring.STEP,
-        seconds=(20, 10, 60),
+        seconds=(20, 6),
     ),
     "multiple_choice": Example(
         payload={
@@ -106,7 +107,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=1,
         secret=frozenset({"answer_index", "explanation"}),
         scoring=Scoring.SPEED,
-        seconds=(15, 5, 30),
+        seconds=(16, 6),
     ),
     "closest_number": Example(
         payload={
@@ -122,7 +123,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=7,
         secret=frozenset({"answer", "explanation"}),
         scoring=Scoring.RANK,
-        seconds=(20, 10, 60),
+        seconds=(20, 8),
     ),
     "free_text": Example(
         payload={
@@ -139,7 +140,7 @@ EXAMPLES: dict[str, Example] = {
         wrong="Woox",
         secret=frozenset({"accepted", "subject", "name", "explanation"}),
         scoring=Scoring.SPEED,
-        seconds=(20, 10, 60),
+        seconds=(20, 7),
     ),
     "pick_all_that_apply": Example(
         payload={
@@ -156,7 +157,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=[0, 2],
         secret=frozenset({"answer_indices", "explanation"}),
         scoring=Scoring.SPEED,
-        seconds=(20, 5, 30),
+        seconds=(22, 8),
     ),
     "ordering": Example(
         payload={
@@ -190,7 +191,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=[1, 0, 3, 2],
         secret=frozenset({"rank", "detail", "answer", "explanation"}),
         scoring=Scoring.SPEED,
-        seconds=(25, 10, 45),
+        seconds=(30, 12),
     ),
 }
 
@@ -327,11 +328,12 @@ def test_an_npc_s_intro_is_shown_open_and_in_the_reveal(type_id: str) -> None:
 
 
 @per_type
-def test_each_type_states_its_pace_and_its_scoring(type_id: str) -> None:
+def test_each_type_states_its_timing_and_its_scoring(type_id: str) -> None:
     ex = example(type_id)
     assert scoring_of(type_id) is ex.scoring
-    seconds, questions = type_seconds(type_id), type_questions(type_id)
-    assert (seconds.default, seconds.minimum, seconds.maximum) == ex.seconds
+    timing = answer_seconds(type_id, ex.payload, "run"), reveal_seconds(type_id, ex.payload, "run")
+    assert timing == ex.seconds
+    questions = type_questions(type_id)
     assert (questions.default, questions.minimum, questions.maximum) == ex.questions
 
 

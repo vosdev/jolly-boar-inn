@@ -18,7 +18,6 @@ from app.db import _init_connection, create_pool, run_migrations
 from app.main import create_app
 from app.modes import MODES, Mode
 from app.questions.packs import Pack
-from app.questions.types.bounds import Bounds
 from app.rooms import state
 from app.ws import handler as ws_handler
 from tests.game_api import Faults, Game, seat_table
@@ -214,9 +213,7 @@ def lobby(client: TestClient) -> dict[str, Any]:
     return {"code": code, "admin": admin, "player": player}
 
 
-def stub_mode(
-    app: FastAPI, name: str, seconds: Bounds | None = None, type_id: str = "more_less"
-) -> Iterator[str]:
+def stub_mode(app: FastAPI, name: str, type_id: str = "more_less") -> Iterator[str]:
     """Register mode ``name`` over the ``type_id`` type, with a pack of its own.
 
     The pack is questions copied from the shipped ones and relabelled with the mode.
@@ -224,7 +221,7 @@ def stub_mode(
     shipped = [q for pack in app.state.packs for q in pack.questions]
     borrowed = [q for q in shipped if q["type"] == type_id][:20]
     assert borrowed, "the shipped packs are the questions this stub copies"
-    MODES[name] = Mode(id=name, types=frozenset({type_id}), seconds=seconds)
+    MODES[name] = Mode(id=name, types=frozenset({type_id}))
     app.state.packs.append(
         Pack(
             name=name,
@@ -257,17 +254,6 @@ def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     entering the test client runs.
     """
     yield from stub_mode(app, "second_round")
-
-
-@pytest.fixture
-def quick_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
-    """A ``more_less`` round whose questions may be one second long.
-
-    ``seconds_for`` holds a stored room to its mode's range, and every real mode's starts
-    at five or more, so this is the only round that plays the one-second questions the
-    tests about the unattended clock ask for.
-    """
-    yield from stub_mode(app, "quick_round", Bounds(default=1, minimum=1, maximum=20))
 
 
 @pytest.fixture

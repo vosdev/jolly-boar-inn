@@ -75,7 +75,7 @@ lint:
 # the host, so run the script in the app container instead:
 #   docker compose exec app python scripts/loadtest.py
 # Takes about six and a half minutes. Pass flags through with LOADTEST_ARGS, e.g.
-#   make loadtest LOADTEST_ARGS="--questions 5 --question-seconds 5"
+#   make loadtest LOADTEST_ARGS="--questions 5 --pace run"
 loadtest:
 	cd server && uv run python scripts/loadtest.py $(LOADTEST_ARGS)
 

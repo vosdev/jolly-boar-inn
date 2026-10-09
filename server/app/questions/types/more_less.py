@@ -19,13 +19,12 @@ from uuid import UUID
 
 from app.questions.submission import Submission
 from app.questions.types import exact
-from app.questions.types.bounds import Bounds
+from app.questions.types.timing import Timing
 
 DIRECTIONS = ("more", "less")
-# This shape is meant to be quick: two names, one word to read. Ten seconds is plenty, and
-# a minute of it would be forty-five seconds of waiting. Twenty is as far as a host may
-# stretch one question before that is all it is.
-SECONDS = Bounds(default=10, minimum=5, maximum=20)
+# Two names and one word to read: meant to be quick.
+ANSWER = Timing(base=10)
+REVEAL = Timing(base=5)
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

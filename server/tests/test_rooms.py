@@ -209,14 +209,14 @@ def test_one_create_over_the_hourly_limit_from_one_ip_is_429(app, client: TestCl
 
 
 def test_create_stores_settings_with_resolved_max_players(client: TestClient, db) -> None:
-    code, _ = create(client, modes=[{"mode": "more_less", "seconds": 15}], reveal_seconds=5)
+    code, _ = create(client, modes=[{"mode": "more_less"}], pace="walk")
     (row,) = db("select settings from rooms where code = $1", code)
     assert row["settings"] == {
         # ``questions`` was left out, so the mode's own default filled it in.
-        "modes": [{"mode": "more_less", "questions": 5, "seconds": 15}],
+        "modes": [{"mode": "more_less", "questions": 5}],
         "mode_order": "random",
         "random_event_frequency": "default",
-        "reveal_seconds": 5,
+        "pace": "walk",
         "standings_seconds": 10,
         "close_when_all_answered": True,
         "name_wrong_answers": True,
@@ -224,10 +224,10 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
     }
 
 
-def test_create_defaults_the_reveal_to_six_seconds(client: TestClient, db) -> None:
+def test_create_defaults_the_pace_to_run(client: TestClient, db) -> None:
     code, _ = create(client)
     (row,) = db("select settings from rooms where code = $1", code)
-    assert row["settings"]["reveal_seconds"] == 6
+    assert row["settings"]["pace"] == "run"
 
 
 def test_create_rejects_bad_settings(client: TestClient) -> None:
@@ -237,8 +237,7 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"modes": [{"mode": "more_less"}, {"mode": "more_less"}]},  # a mode is one round
         {"modes": [{"mode": "more_less", "questions": 0}]},  # under the type's minimum
         {"modes": [{"mode": "more_less", "questions": 31}]},  # over it
-        {"modes": [{"mode": "more_less", "seconds": 4}]},  # quicker than the type allows
-        {"modes": [{"mode": "more_less", "seconds": 21}]},  # slower than it allows
+        {"modes": [{"mode": "more_less", "seconds": 10}]},  # gone: a question's type times it
         {"modes": [{"mode": "more_less", "rounds": 2}]},  # not a field
         {"modes": ["more_less"]},  # the old shape: a name, not a round
         {"mode_order": "listed_or_not"},
@@ -248,7 +247,8 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"random_events": False},  # The old "host's questions only": a stored room's, never new
         {"random_event_frequency": "never"},  # there is no off switch; "less" is the fewest
         {"random_event_seconds": 2},  # gone: the NPC's hold is the server's, not the room's
-        {"reveal_seconds": 60},
+        {"reveal_seconds": 6},  # gone: a reveal's type times it
+        {"pace": "sprint"},
         {"splash_seconds": 0},  # gone: every round is introduced
         {"standings_seconds": -1},
         {"standings_seconds": 31},

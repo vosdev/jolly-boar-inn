@@ -39,13 +39,15 @@ export type ErrorCode =
   | 'name_taken'
   | 'bad_avatar'
 
-/** One mode's round: how many questions it holds, and how long each one is open. */
+/** One mode's round: how many questions it holds. Its questions' types say how long. */
 export interface ModeSettings {
   /** A mode id, never a question type; the key into `lib/modes.ts`. */
   mode: string
   questions: number
-  seconds: number
 }
+
+/** Scales every question's time to answer and its reveal: a quarter more, as is, a quarter less. */
+export type Pace = 'walk' | 'run' | 'teleport'
 
 /** `app/rooms/settings.py`. `max_players` is null only before the server resolves it. */
 /** How often an NPC interrupts: there is no off switch, `less` is the fewest. */
@@ -65,7 +67,7 @@ export interface RoomSettings {
    * questions and nothing else, which the server still loads but never creates.
    */
   random_event_frequency: EventFrequency | null
-  reveal_seconds: number
+  pace: Pace
   /** How long the standings hold between two rounds. Zero turns them off. */
   standings_seconds: number
   close_when_all_answered: boolean
@@ -115,6 +117,8 @@ export interface RoomView {
    * or standings, the standings' next round.
    */
   next_at: string | null
+  /** How long the reveal ending at `next_at` holds; each question's is its own. Null outside one. */
+  reveal_seconds: number | null
   /** The round in progress; null before the first question and once the game is over. */
   segment: Segment | null
   /** When the game ended, by the server's clock; null until it has. */
@@ -362,6 +366,8 @@ export interface QuestionClosed {
   results: Record<string, PlayerResult>
   standings: Standing[]
   next_at: string | null
+  /** How long this reveal holds, even for the last question, whose `next_at` is null. */
+  reveal_seconds: number
   /** The player who suggested the question, when they asked to be named; left out otherwise. */
   suggested_by?: string
 }

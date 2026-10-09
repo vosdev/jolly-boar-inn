@@ -35,7 +35,6 @@
   let {
     segment,
     endsAt,
-    questionSeconds,
     players,
     youId,
     onReady,
@@ -44,8 +43,6 @@
     segment: Segment
     /** When the countdown ends, from `room.next_at`; null while the splash waits. */
     endsAt: string | null
-    /** How long each question of the round is open for, or null if the room has no entry. */
-    questionSeconds: number | null
     players: PlayerView[]
     youId: string | null
     /** Tap ready, or take it back. */
@@ -95,10 +92,9 @@
     onReady(!youReady)
   }
   // Built here rather than in the markup, where Svelte would trim the space before the dot.
-  const pace = $derived(
+  const length = $derived(
     `Round ${segment.index + 1} of ${segment.total} · ` +
-      `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}` +
-      (questionSeconds === null ? '' : ` · ${questionSeconds} seconds each`),
+      `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}`,
   )
 </script>
 
@@ -113,7 +109,7 @@
     {/snippet}
 
     <div class="panel board">
-      <p class="count">{pace}</p>
+      <p class="count">{length}</p>
 
       <div class="ready">
         <button

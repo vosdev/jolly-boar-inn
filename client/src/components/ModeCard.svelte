@@ -19,8 +19,6 @@
   import type { ModeSettings } from '../lib/protocol'
   import Stepper from './Stepper.svelte'
 
-  const SECONDS_STEP = 5
-
   let {
     id,
     label,
@@ -32,7 +30,6 @@
     count = 0,
     shuffled = false,
     questions = null,
-    seconds = null,
     onpick,
     onset,
     onmove,
@@ -51,9 +48,8 @@
     count?: number
     shuffled?: boolean
     questions?: ModeBounds | null
-    seconds?: ModeBounds | null
     onpick?: (on: boolean) => void
-    onset?: (field: 'questions' | 'seconds', value: number) => void
+    onset?: (questions: number) => void
     onmove?: (by: number) => void
   } = $props()
 
@@ -128,18 +124,7 @@
           value={round.questions}
           min={questions.min}
           max={questions.max}
-          onchange={(value) => onset?.('questions', value)}
-        />
-      {/if}
-      {#if seconds}
-        <Stepper
-          label="Seconds"
-          noun="seconds"
-          value={round.seconds}
-          min={seconds.min}
-          max={seconds.max}
-          step={SECONDS_STEP}
-          onchange={(value) => onset?.('seconds', value)}
+          onchange={(value) => onset?.(value)}
         />
       {/if}
     </div>

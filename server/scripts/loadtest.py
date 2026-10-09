@@ -13,7 +13,7 @@ the script has to run on the same side of the bridge as the app::
 
 What it asserts, in the order the report prints them (section 8):
 
-1. Thirty questions at ``--question-seconds`` complete with zero ``error`` frames.
+1. Thirty questions at ``--pace`` complete with zero ``error`` frames.
 2. p99 from sending ``answer`` to receiving ``answer_ack`` is under ``--p99-ms``.
    p50 and p95 are printed next to it, because one number cannot tell a slow tail from a
    slow everything.
@@ -63,12 +63,13 @@ import websockets
 from websockets.exceptions import ConnectionClosed
 
 from app.config import get_settings
+from app.questions.types import more_less
+from app.questions.types.timing import MIN_ANSWER, MIN_REVEAL
 
 DEFAULT_BOTS = 30
 DEFAULT_QUESTIONS = 30
-DEFAULT_QUESTION_SECONDS = 10
-# The floor NewRoomSettings allows. A load test has nothing to read on the reveal screen.
-DEFAULT_REVEAL_SECONDS = 3
+# The quickest a host may ask for. A load test has nothing to read on the reveal screen.
+DEFAULT_PACE = "teleport"
 DEFAULT_P99_MS = 200.0
 
 HTTP_TIMEOUT = 15
@@ -138,7 +139,7 @@ class Run:
     ws_url: str
     bots: int
     questions: int
-    question_seconds: int
+    pace: str
     rng: random.Random
 
     acks: list[Ack] = field(default_factory=list)
@@ -461,10 +462,9 @@ def create_room(base_url: str, run: Run, name: str) -> tuple[str, str, str]:
                     {
                         "mode": "more_less",
                         "questions": run.questions,
-                        "seconds": run.question_seconds,
                     }
                 ],
-                "reveal_seconds": DEFAULT_REVEAL_SECONDS,
+                "pace": run.pace,
                 "close_when_all_answered": False,
             },
             "custom_questions": [],
@@ -649,13 +649,15 @@ async def main(argv: list[str]) -> int:
         ws_url="",
         bots=args.bots,
         questions=args.questions,
-        question_seconds=args.question_seconds,
+        pace=args.pace,
         rng=random.Random(args.seed),
     )
     base = args.base_url.rstrip("/")
+    question_seconds = more_less.ANSWER.seconds(0, args.pace, MIN_ANSWER)
+    reveal_seconds = more_less.REVEAL.seconds(0, args.pace, MIN_REVEAL)
     print(
         f"setting up: {args.bots} bots, {args.questions} questions of"
-        f" {args.question_seconds} s against {base}"
+        f" {question_seconds} s at {args.pace} pace against {base}"
     )
     code, session, player_id = await asyncio.to_thread(create_room, base, run, "bot00")
     run.ws_url = f"{_ws_scheme(base)}/ws/{code}"
@@ -667,7 +669,7 @@ async def main(argv: list[str]) -> int:
     print(f"  room {code} created by bot 0 (its admin) and joined by {len(bots) - 1} others")
 
     # The game's own length, plus room for the reveals and a minute of slack.
-    budget = args.questions * (args.question_seconds + DEFAULT_REVEAL_SECONDS) + 60
+    budget = args.questions * (question_seconds + reveal_seconds) + 60
     narrator = asyncio.create_task(progress(run, bots[0]))
     try:
         await play(run, bots, budget)
@@ -688,7 +690,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--base-url", default="http://127.0.0.1:8000", help="the running server")
     parser.add_argument("--bots", type=int, default=DEFAULT_BOTS)
     parser.add_argument("--questions", type=int, default=DEFAULT_QUESTIONS)
-    parser.add_argument("--question-seconds", type=int, default=DEFAULT_QUESTION_SECONDS)
+    parser.add_argument("--pace", choices=["walk", "run", "teleport"], default=DEFAULT_PACE)
     parser.add_argument(
         "--p99-ms",
         type=float,

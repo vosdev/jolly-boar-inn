@@ -33,7 +33,6 @@ function splash(segment: Segment = SEGMENT, youReady = false) {
   return render(Splash, {
     segment,
     endsAt: null,
-    questionSeconds: 10,
     players: players(youReady),
     youId: 'a',
     onReady: () => {},
@@ -44,12 +43,14 @@ const paper = () => document.querySelector('.paper') as HTMLElement
 const under = () => document.querySelector('.under') as HTMLElement
 
 describe('Splash stage', () => {
-  it("writes the mode's name and blurb on the scroll, and its count and pace under the line", () => {
+  it("writes the mode's name and blurb on the scroll, and its count under the line", () => {
     splash()
     const heading = screen.getByRole('heading', { name: 'More or Less' })
     expect(paper().contains(heading)).toBe(true)
     expect(paper().textContent).toContain(MODES.more_less!.blurb)
-    expect(under().textContent).toContain('Round 1 of 2 · 5 questions · 10 seconds each')
+    expect(under().textContent).toContain('Round 1 of 2 · 5 questions')
+    // A round's questions each take their own type's time, so no one length is true.
+    expect(under().textContent).not.toContain('seconds')
     expect(paper().textContent).not.toContain('Round 1 of 2')
   })
 
@@ -89,7 +90,7 @@ describe('Splash stage', () => {
   it('puts the count and the ready check on a panel, never on the bare page', () => {
     splash()
     const panel = under().querySelector('.panel')!
-    expect(panel.textContent).toContain('Round 1 of 2 · 5 questions · 10 seconds each')
+    expect(panel.textContent).toContain('Round 1 of 2 · 5 questions')
     expect(panel.contains(screen.getByRole('button', { name: "✓ I'm ready" }))).toBe(true)
   })
 })
@@ -117,7 +118,6 @@ describe('Splash ready button', () => {
     const { rerender } = render(Splash, {
       segment: SEGMENT,
       endsAt: null,
-      questionSeconds: 10,
       players: players(false),
       youId: 'a',
       onReady,
@@ -154,7 +154,6 @@ describe('Splash countdown bar', () => {
     render(Splash, {
       segment: SEGMENT,
       endsAt: new Date(Date.now() + 10_000).toISOString(),
-      questionSeconds: 10,
       players: players(true),
       youId: 'a',
       onReady: () => {},

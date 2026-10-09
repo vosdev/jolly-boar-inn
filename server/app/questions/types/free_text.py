@@ -28,17 +28,17 @@ from uuid import UUID
 
 from app.questions import normalize, text
 from app.questions.submission import Submission
-from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
 # A typed or accepted answer, before normalising and after: the wire and the schema
 # hold the first, and ``parse_value`` and ``check`` the second.
 MAX_LENGTH = 80
 DEFAULT_DISTANCE = 1
-# A question to read and an answer to type on a phone: slower than a button, so twenty
-# seconds, and a minute at most before the round is waiting on the slowest thumbs.
-SECONDS = Bounds(default=20, minimum=10, maximum=60)
+# An answer to type on a phone, and a reveal that may list the wrong ones.
+ANSWER = Timing(base=20)
+REVEAL = Timing(base=7)
 
 _OPEN_KEYS = ("intro", "prompt", "image")
 

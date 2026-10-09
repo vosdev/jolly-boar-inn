@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES, questions_bounds, seconds_bounds
+from app.modes import MODES, questions_bounds
 
 
 def questions() -> list[dict[str, Any]]:
@@ -14,10 +14,8 @@ def questions() -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["questions"]
 
 
-def test_odd_one_out_is_multiple_choice_at_twenty_seconds() -> None:
+def test_odd_one_out_is_multiple_choice() -> None:
     assert MODES["odd_one_out"].types == {"multiple_choice"}
-    seconds = seconds_bounds("odd_one_out")
-    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 5, 30)
     assert questions_bounds("odd_one_out").default == 5
 
 
