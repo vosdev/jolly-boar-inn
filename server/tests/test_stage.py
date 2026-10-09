@@ -17,6 +17,7 @@ from tests.client_source import read
 
 SCROLL = read("components/stage/ClueScroll.svelte")
 STAGE = read("components/stage/Stage.svelte")
+CONFETTI = read("components/stage/Confetti.svelte")
 
 
 def _reduced_motion(source: str) -> str:
@@ -43,7 +44,7 @@ def test_the_scroll_opens_in_300ms_and_the_confetti_lasts_900ms() -> None:
     assert (
         re.findall(r"animation: (?:roll-left|roll-right|uncover) (\d+ms)", SCROLL) == ["300ms"] * 3
     )
-    assert re.search(r"animation: confetti 900ms", SCROLL)
+    assert re.search(r"animation: confetti 900ms", CONFETTI)
     assert re.search(r"animation: pin 200ms", SCROLL)
 
 
@@ -57,7 +58,7 @@ def test_reduced_motion_stills_the_scroll_and_drops_the_confetti() -> None:
     """The scroll simply appears and the ribbon comes without confetti."""
     branch = _reduced_motion(SCROLL)
     assert re.search(r"\.roll,\s*\.reveal,\s*\.ribbon \{\s*animation: none", branch)
-    assert re.search(r"\.confetti \{\s*display: none;", branch)
+    assert re.search(r"\.confetti \{\s*display: none;", _reduced_motion(CONFETTI))
 
 
 def test_under_448px_the_screen_cuts_the_rolls_in_half() -> None:

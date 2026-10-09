@@ -79,6 +79,8 @@ def test_hello_gets_welcome_with_players_and_you(client: TestClient, lobby) -> N
                 "avatar": p["avatar"],
                 "points": 0,
                 "rank": 1,
+                "points_gained": 0,
+                "previous_rank": None,
             }
             for p in welcome["players"]
         ]

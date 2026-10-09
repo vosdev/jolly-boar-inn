@@ -195,7 +195,8 @@ Round 2 of 5 · 5 questions
   same width. `--scroll-scale` sizes the rolls, margins and ribbon, `--scroll-text` the words; a
   stage under 26rem, a phone, sets 0.8 and 0.9.
 - **The host** stands at the scroll's bottom-left, over its left roll: 78px wide overlapping 30px,
-  and 68px overlapping 32px on a phone. Its chathead at both.
+  and 68px overlapping 32px on a phone. Its chathead at both. A sheet longer than the host, the hiscores
+  (§11), has it at the top-left instead.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
   edges. The host then stands on the sheet, which keeps a column clear for it.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
@@ -279,38 +280,31 @@ in display tabular numerals and the scroll's ink:
 ## 11. Standings
 
 Standings appear between rounds and at the end, never between questions, in the `standings` phase
-(architecture §7). A single-round game shows only the final ones. The final screen uses the same
-component.
+(architecture §7). A single-round game shows only the final ones. Both are the Wise Old Man's
+hiscores on the stage (§8), for wiseoldman.net, where OSRS players track their gains. The sheet
+runs long, so he stands at its top-left beside his line, and the table takes the sheet's width
+below him. Agreed in `client/prototypes/standings.html`.
 
-The top five stand on the Quest Speedrunning trophies, Diamond, Platinum, Gold, Silver and Bronze,
-first in the middle:
+The table is the OSRS hiscores: `#`, pet, name, right-aligned tabular points. Each row is two
+lines, the places moved (▲2, ▼1) under the rank and the round's gain (+1,240) under the total, so
+a 24-letter name keeps the middle at 350px. "(you)" never splits from itself. The first round has
+no moves. Your row is highlighted, and between rounds pinned to the screen's foot when below it.
 
-```
-                    ┌─────────┐
-                    │ DIAMOND │
-          ┌─────────┤ [pet]   ├─────────┐
-          │PLATINUM │ Cow313… │  GOLD   │
-┌─────────┤ [pet]   │  8,420  │ [pet]   ├─────────┐
-│ SILVER  │ ScapeR… │         │ AlchAd… │ BRONZE  │
-│ [pet]   │  7,115  │         │  6,980  │ [pet]   │
-│ xX_Lu…  │         │         │         │ NoobS…  │
-│    4    │    2    │    1    │    3    │    5    │
-└─────────┴─────────┴─────────┴─────────┴─────────┘
-```
+**Between rounds** he says "Round 2 done. Let's see who truly knows Gielinor best." The rows start
+where they stood before the round, with the totals then; once his line has typed the gains count
+up, a second later the rows move to their places, and then your row pins. About three seconds.
 
-- Left to right, ranks 4 · 2 · 1 · 3 · 5, lower towards the edges. Each step has its trophy, a 48px
-  pet, the name and the points.
-- Ranks are dense, so tied players share a step: up to three pets, then `+N`.
-- Nobody with 0 points stands on the podium; the trophy shows dimmed on an empty step. A quiet
-  room's first standings are not five zero-point winners.
-- Names wrap to two lines, then ellipsise; the full name is in the accessible label.
+**The final** opens on "The final scores are in!", then presents fifth place to first: his line
+("In fifth place…", "Tied for second…", "And top of the hiscores…"), then the place's pets (three,
+then `+N`), names, points and tier, its Quest Speedrunning trophy (Bronze to Diamond) standing
+beside the scroll on the right, opposite him. First holds longest, with confetti. Ranks are
+dense, so tied players share a place; nobody on 0 points gets one, and a room where nobody scored
+has no ceremony. The place then fades, the sheet unrolls to the full table with the rows arriving
+top to bottom, and he says "Gz, Name! Here are the full hiscores." A Skip button jumps there.
 
-Below it, the OSRS hiscores from rank 6: rank, pet, name, right-aligned tabular points. There are no
-gold, silver or bronze medals; a "Gold" third place beside a gold medal would contradict itself.
-Your row is highlighted, and between rounds it is pinned to the bottom when it would be below the
-fold. The final screen's table lists everyone, ranks 1–5 included.
-
-The steps rise once when the phase opens, and nothing else moves. Trophies are art, not tokens.
+The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
+past game from history show the table at once, as does reduced motion; a past game shows only the
+totals, without moves or gains. Trophies are art, not tokens.
 
 ## 12. Random events: the interlude (#106)
 

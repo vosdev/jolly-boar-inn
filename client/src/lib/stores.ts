@@ -40,6 +40,11 @@ export const questionLive = writable(false)
 export const yourAnswer = writable<unknown>(null)
 export const standings = writable<Standing[]>([])
 /**
+ * The game ended while this client watched, so the final screen plays its ceremony. A
+ * `welcome` into a finished room, a reload included, goes straight to the hiscores.
+ */
+export const endedLive = writable(false)
+/**
  * The `question_closed` frame for the question being revealed right now, plus the
  * question it closed.
  *
@@ -178,6 +183,7 @@ export function resetRoom(): void {
   question.set(null)
   questionLive.set(false)
   standings.set([])
+  endedLive.set(false)
   forgetQuestion()
   lastError.set(null)
   profileError.set(null)
@@ -209,6 +215,7 @@ export function applyServerMessage(message: ServerMessage): void {
       question.set(message.question)
       questionLive.set(false)
       standings.set(message.standings)
+      endedLive.set(false)
       // No reveal and no ack in a snapshot: a client that arrives mid-reveal shows
       // the scoreboard, not the answer it never saw revealed.
       forgetQuestion()
@@ -221,6 +228,9 @@ export function applyServerMessage(message: ServerMessage): void {
       break
 
     case 'room_updated':
+      // The room_updated saying `finished` comes before `game_finished`, and the final
+      // screen mounts on it, so this is where it learns it is watching the end.
+      if (get(room)?.status === 'playing' && message.room.status === 'finished') endedLive.set(true)
       room.set(message.room)
       setPlayers(message.players)
       break
@@ -266,6 +276,7 @@ export function applyServerMessage(message: ServerMessage): void {
       break
 
     case 'game_finished':
+      endedLive.set(true)
       question.set(null)
       standings.set(message.standings)
       // The `room_updated` that precedes this frame already says `finished`; saying it

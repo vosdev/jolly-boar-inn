@@ -18,9 +18,9 @@ import type { Standing } from './protocol'
 import { createdRooms, getSession, rememberCreated, setSession } from './session'
 
 const STANDINGS: Standing[] = [
-  { player_id: 'a', display_name: 'Zezima', points: 900, rank: 1 },
-  { player_id: 'b', display_name: 'Woox', points: 600, rank: 2 },
-  { player_id: 'c', display_name: 'Lynx', points: 600, rank: 2 },
+  { player_id: 'a', display_name: 'Zezima', points: 900, rank: 1, points_gained: 900, previous_rank: null },
+  { player_id: 'b', display_name: 'Woox', points: 600, rank: 2, points_gained: 600, previous_rank: null },
+  { player_id: 'c', display_name: 'Lynx', points: 600, rank: 2, points_gained: 600, previous_rank: null },
 ]
 
 function game(minute: number, patch: Partial<PastGame> = {}): PastGame {

@@ -10,6 +10,7 @@ import {
   answerAck,
   answerCount,
   applyServerMessage,
+  endedLive,
   lastError,
   players,
   question,
@@ -176,8 +177,8 @@ describe('a finished game', () => {
     finished_at: '2026-10-01T20:05:00.123456Z',
   }
   const FINAL: Standing[] = [
-    { player_id: 'p0', display_name: 'Host', points: 900, rank: 1 },
-    { player_id: 'p1', display_name: 'Zezima', points: 400, rank: 2 },
+    { player_id: 'p0', display_name: 'Host', points: 900, rank: 1, points_gained: 900, previous_rank: null },
+    { player_id: 'p1', display_name: 'Zezima', points: 400, rank: 2, points_gained: 400, previous_rank: null },
   ]
 
   beforeEach(() => {
@@ -204,6 +205,17 @@ describe('a finished game', () => {
     expect(asleep[0]?.standings).toEqual(FINAL)
     expect(asleep[0]?.finishedAt).toBe(there[0]?.finishedAt)
     expect([there[0]?.youId, asleep[0]?.youId]).toEqual(['p0', 'p1'])
+  })
+
+  it('plays the ceremony only for a browser that saw the end, from the frame saying so', () => {
+    applyServerMessage(welcome({ you: host, room: { ...lobby, status: 'playing' } }))
+    expect(get(endedLive)).toBe(false)
+    applyServerMessage({ t: 'room_updated', room: FINISHED, players: [host, me] })
+    expect(get(endedLive)).toBe(true)
+
+    resetRoom()
+    applyServerMessage(welcome({ room: FINISHED, standings: FINAL }))
+    expect(get(endedLive)).toBe(false)
   })
 
   it('is not filed while the room is still being played', () => {

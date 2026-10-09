@@ -309,7 +309,7 @@ describe("Layout", () => {
       code: "ABYSSAL",
       finishedAt: "2026-10-01T20:05:00Z",
       standings: [
-        { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
+        { player_id: "a", display_name: "Zezima", points: 900, rank: 1, points_gained: 900, previous_rank: null },
       ],
       youId: "a",
     });
@@ -359,7 +359,7 @@ describe("Past games", () => {
       code: "ABYSSAL",
       finishedAt: "2026-10-01T20:05:00Z",
       standings: [
-        { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
+        { player_id: "a", display_name: "Zezima", points: 900, rank: 1, points_gained: 900, previous_rank: null },
       ],
       youId: "a",
     });
@@ -382,8 +382,8 @@ describe("Past games", () => {
       code: "ABYSSAL",
       finishedAt: "2026-10-01T20:05:00Z",
       standings: [
-        { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
-        { player_id: "b", display_name: "Woox", points: 400, rank: 2 },
+        { player_id: "a", display_name: "Zezima", points: 900, rank: 1, points_gained: 900, previous_rank: null },
+        { player_id: "b", display_name: "Woox", points: 400, rank: 2, points_gained: 400, previous_rank: null },
       ],
       youId: "b",
     });
@@ -402,7 +402,7 @@ describe("Past games", () => {
 
   describe("removing one", () => {
     const standings = [
-      { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
+      { player_id: "a", display_name: "Zezima", points: 900, rank: 1, points_gained: 900, previous_rank: null },
     ];
 
     beforeEach(() => {
@@ -528,7 +528,7 @@ describe("Suggest or report a question", () => {
     savePastGame({
       code: "ABYSSAL",
       finishedAt: "2026-10-01T20:05:00Z",
-      standings: [{ player_id: "a", display_name: "Zezima", points: 900, rank: 1 }],
+      standings: [{ player_id: "a", display_name: "Zezima", points: 900, rank: 1, points_gained: 900, previous_rank: null }],
       youId: "a",
     });
   }

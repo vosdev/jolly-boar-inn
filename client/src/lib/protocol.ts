@@ -161,6 +161,10 @@ export interface Standing {
   avatar?: string | null
   points: number
   rank: number
+  /** What the round of the latest close added. */
+  points_gained: number
+  /** The rank before that round; null when it is the game's first. */
+  previous_rank: number | null
 }
 
 export interface OpenQuestion {

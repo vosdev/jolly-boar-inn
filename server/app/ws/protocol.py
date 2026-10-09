@@ -126,6 +126,9 @@ class Standing(_Message):
     avatar: str | None  # as on ``PlayerView``
     points: int
     rank: int
+    # What the round of the latest close added, and the rank before it; None in the first.
+    points_gained: int
+    previous_rank: int | None
 
 
 class OpenQuestion(_Message):

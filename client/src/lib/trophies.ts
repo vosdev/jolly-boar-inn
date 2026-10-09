@@ -1,9 +1,9 @@
 /**
- * The podium's trophy art, found by name at build time (sections 7.3 and 9.1).
+ * The final's trophy art, found by name at build time (section 11 of ideas/design.md).
  *
  * The trophies are the five Quest Speedrunning renders, which are game assets and so
  * fetched rather than committed (`make fetch-assets`). Until one is in
- * `assets/trophies/<tier>.<ext>`, the podium draws the committed placeholder for that
+ * `assets/trophies/<tier>.<ext>`, the ceremony draws the committed placeholder for that
  * tier, `assets/trophies/placeholder/<tier>.svg`: one plain cup, tinted per tier.
  * Dropping a render in replaces it on the next build with no code change.
  *
@@ -12,7 +12,7 @@
  * layers a theme is held to.
  */
 
-import type { Tier } from './podium'
+import type { Tier } from './hiscores'
 
 // An empty folder is an empty object, so a trophy with no file is
 // known to have none before the page asks, and nothing ever 404s.

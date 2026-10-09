@@ -526,10 +526,17 @@ class RoomQuestion:
 
 @dataclass(slots=True)
 class Totals:
-    """A player's score, as the ``answers`` table has it. Never incremented in memory."""
+    """A player's score, as the ``answers`` table has it. Never incremented in memory.
+
+    ``round_points`` and ``round_correct`` are the part of it scored in the round of the
+    latest close, so the standings can say what that round gained and where everyone stood
+    before it.
+    """
 
     points: int = 0
     correct: int = 0
+    round_points: int = 0
+    round_correct: int = 0
 
 
 @dataclass(slots=True)
@@ -555,6 +562,8 @@ class Room:
     questions: list[RoomQuestion] = field(default_factory=list, repr=False)  # by position
     # Rebuilt from ``sum(answers.points)`` at every close, never added to.
     totals: dict[UUID, Totals] = field(default_factory=dict, repr=False)
+    # Where the round that ``Totals.round_points`` covers starts: the latest close's.
+    totals_round: int = 0
     phase: str = "idle"
     # When the current timed phase ends: a splash gives way to its first question, a
     # reveal to the next question or the standings, the standings to the next round.
@@ -681,28 +690,37 @@ class Room:
 
         The numbers come from ``Room.totals``, which is the ``answers`` table's own sum,
         re-read at every close. Before the first close everyone is 0 and rank 1.
+
+        ``points_gained`` is what the latest close's round added, and ``previous_rank`` the
+        rank before that round by the same rules, or None when it is the game's first.
         """
-        ranked = sorted(
-            self.players.values(),
-            key=lambda p: (-self.score(p.id).points, -self.score(p.id).correct, p.joined_at),
-        )
-        standings: list[Standing] = []
-        rank, previous = 0, None
-        for player in ranked:
+
+        def now(player: Player) -> tuple[int, int]:
             score = self.score(player.id)
-            if (score.points, score.correct) != previous:
-                rank += 1
-                previous = (score.points, score.correct)
-            standings.append(
-                Standing(
-                    player_id=player.id,
-                    display_name=player.display_name,
-                    avatar=player.avatar,
-                    points=score.points,
-                    rank=rank,
-                )
+            return score.points, score.correct
+
+        def before(player: Player) -> tuple[int, int]:
+            score = self.score(player.id)
+            return score.points - score.round_points, score.correct - score.round_correct
+
+        ranked = _dense_ranks(self.players.values(), now)
+        previous = (
+            None
+            if self.totals_round == 0
+            else {player.id: rank for player, rank in _dense_ranks(self.players.values(), before)}
+        )
+        return [
+            Standing(
+                player_id=player.id,
+                display_name=player.display_name,
+                avatar=player.avatar,
+                points=self.score(player.id).points,
+                rank=rank,
+                points_gained=self.score(player.id).round_points,
+                previous_rank=None if previous is None else previous[player.id],
             )
-        return standings
+            for player, rank in ranked
+        ]
 
     def score(self, player_id: UUID) -> Totals:
         """This player's row of ``totals``; a player who has not scored is a fresh zero.
@@ -911,11 +929,14 @@ class RoomManager:
                 " where room_id = $1 order by joined_at, id",
                 row["id"],
             )
-            totals = await _fetch_totals(conn, row["id"])
+            closed = [q.position for q in questions if q.closed_at is not None]
+            round_start = _round_start(questions, max(closed, default=None))
+            totals = await _fetch_totals(conn, row["id"], round_start)
         room = _room_from_row(row, total=len(questions), lock=self._locks[code].lock)
         room.players = {p["id"]: _player_from_row(p) for p in players}
         room.questions = questions
         room.totals = totals
+        room.totals_round = round_start
         log.info(
             "room %s loaded with %d players and %d questions",
             code,
@@ -2244,12 +2265,14 @@ class RoomManager:
                             for pid, (_, correct, points) in graded.items()
                         ],
                     )
-                totals = await _fetch_totals(conn, room.id)
+                round_start = _round_start(room.questions, question.position)
+                totals = await _fetch_totals(conn, room.id, round_start)
             question.closed_at = closed_at
             for pid, (got, correct, points) in graded.items():
                 answer = question.answers[pid]
                 answer.credit, answer.correct, answer.points = got, correct, points
             room.totals = totals
+            room.totals_round = round_start
             room.phase = "reveal"
             room.reveal_seconds = self._reveal_seconds(room, question)
             room.next_at = closed_at + timedelta(seconds=room.reveal_seconds)
@@ -2576,8 +2599,11 @@ async def _fetch_questions(conn: asyncpg.Connection, room_id: UUID) -> list[Room
     ]
 
 
-async def _fetch_totals(conn: asyncpg.Connection, room_id: UUID) -> dict[UUID, Totals]:
-    """Every player's score straight from the ``answers`` table (section 5).
+async def _fetch_totals(
+    conn: asyncpg.Connection, room_id: UUID, round_start: int
+) -> dict[UUID, Totals]:
+    """Every player's score straight from the ``answers`` table (section 5), and the part
+    of it from the round starting at position ``round_start``.
 
     This query is the source of truth for standings; the in-memory copy is only ever
     replaced by what it returns. Ungraded rows (points null) count for nothing, which is
@@ -2585,12 +2611,46 @@ async def _fetch_totals(conn: asyncpg.Connection, room_id: UUID) -> dict[UUID, T
     """
     rows = await conn.fetch(
         "select a.player_id, coalesce(sum(a.points), 0)::int as points,"
-        " count(*) filter (where a.correct)::int as correct"
+        " count(*) filter (where a.correct)::int as correct,"
+        " coalesce(sum(a.points) filter (where q.position >= $2), 0)::int as round_points,"
+        " count(*) filter (where a.correct and q.position >= $2)::int as round_correct"
         " from answers a join questions q on q.id = a.question_id"
         " where q.room_id = $1 group by a.player_id",
         room_id,
+        round_start,
     )
-    return {row["player_id"]: Totals(points=row["points"], correct=row["correct"]) for row in rows}
+    return {
+        row["player_id"]: Totals(
+            points=row["points"],
+            correct=row["correct"],
+            round_points=row["round_points"],
+            round_correct=row["round_correct"],
+        )
+        for row in rows
+    }
+
+
+def _dense_ranks(
+    players: Iterable[Player], score: Callable[[Player], tuple[int, int]]
+) -> list[tuple[Player, int]]:
+    """Section 6's order on ``score``'s points and correct answers, then ``joined_at``;
+    the rank is dense over the score alone."""
+    ranked: list[tuple[Player, int]] = []
+    rank, previous = 0, None
+    for player in sorted(players, key=lambda p: (-score(p)[0], -score(p)[1], p.joined_at)):
+        if score(player) != previous:
+            rank += 1
+            previous = score(player)
+        ranked.append((player, rank))
+    return ranked
+
+
+def _round_start(questions: Sequence[RoomQuestion], position: int | None) -> int:
+    """Where the round holding ``position`` starts; 0 for no position."""
+    if position is None:
+        return 0
+    segment = segments.segment_at(segments.segments_of(questions), position)
+    return 0 if segment is None else segment.start
 
 
 def _gone(
