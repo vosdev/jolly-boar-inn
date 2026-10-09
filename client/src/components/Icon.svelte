@@ -1,7 +1,7 @@
 <!-- Small glyphs for buttons that say it with a picture. Drawn in the button's own colour.
      The caller names the button with aria-label, so the glyph itself stays hidden. -->
 <script lang="ts">
-  let { name }: { name: 'trash' | 'trophy' | 'github' } = $props()
+  let { name }: { name: 'trash' | 'trophy' | 'github' | 'copy' | 'refresh' | 'more' } = $props()
 </script>
 
 {#if name === 'github'}
@@ -15,6 +15,12 @@
   <svg class="icon line" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     {#if name === 'trash'}
       <path d="M3.5 6h17M9 6V4h6v2M6 6l1 14h10l1-14M10 10v6M14 10v6" />
+    {:else if name === 'copy'}
+      <path d="M9 9h11v11H9zM5 15H4V4h11v1" />
+    {:else if name === 'refresh'}
+      <path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" />
+    {:else if name === 'more'}
+      <path d="M5 12h.01M12 12h.01M19 12h.01" class="dots" />
     {:else}
       <path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8" />
     {/if}
@@ -35,5 +41,9 @@
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  .dots {
+    stroke-width: 3.2;
   }
 </style>

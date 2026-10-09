@@ -16,12 +16,15 @@
     confirmLabel,
     onConfirm,
     onCancel,
+    also = null,
   }: {
     message: string
     /** What the yes button says: the action, not "OK". */
     confirmLabel: string
     onConfirm: () => void
     onCancel: () => void
+    /** A second way to say yes, as a plain button after the first. */
+    also?: { label: string; act: () => void } | null
   } = $props()
 
   const id = $props.id()
@@ -44,6 +47,9 @@
   <p {id}>{message}</p>
   <div class="row">
     <button type="button" class="primary" onclick={onConfirm}>{confirmLabel}</button>
+    {#if also !== null}
+      <button type="button" onclick={also.act}>{also.label}</button>
+    {/if}
     <button type="button" bind:this={cancel} onclick={onCancel}>Cancel</button>
   </div>
 </dialog>

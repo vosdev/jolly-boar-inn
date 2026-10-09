@@ -395,8 +395,8 @@ describe('the room’s own headings', () => {
     expect(titles()).toEqual(['Disconnected'])
   })
 
-  it('sit on panels, as does the line while it connects', async () => {
-    const onPanel = (element: Element) => element.closest('.panel') !== null
+  it('sit on panels or the scroll, as does the line while it connects', async () => {
+    const onPanel = (element: Element) => element.closest('.panel, .paper') !== null
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
     expect(onPanel(screen.getByText('Connecting…'))).toBe(true)
     applyServerMessage(
