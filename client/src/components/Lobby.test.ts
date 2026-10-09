@@ -1,11 +1,13 @@
 /**
- * The host's lobby controls. Start anyway, Kick and Promote all ask in the page first,
- * not through `window.confirm`, which some in-app browsers answer no to unasked.
+ * The lobby: a stage with the room code, and a grid of pets under it. The host's controls
+ * ask in the page first, not through `window.confirm`, which some in-app browsers answer
+ * no to unasked.
  */
 
-import { fireEvent, render, screen, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { npcArt } from '../lib/npcs'
 import type { PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, resetRoom } from '../lib/stores'
 import type { RoomSocket } from '../lib/ws'
@@ -72,50 +74,128 @@ function dialog(): HTMLElement {
   return screen.getByRole('dialog')
 }
 
+/** The pet an admin taps to kick or promote its player. */
+function tile(name: string): HTMLElement {
+  return screen.getByRole('button', { name: new RegExp(`^${name}, .*kick or make host$`) })
+}
+
+function clipboard(writeText: ReturnType<typeof vi.fn> | undefined): void {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: writeText === undefined ? undefined : { writeText },
+    configurable: true,
+  })
+}
+
+function pets(): HTMLElement[] {
+  return within(screen.getByRole('list', { name: /^Players/ })).getAllByRole('listitem')
+}
+
 beforeEach(() => {
   sent = []
 })
 
 describe('Lobby', () => {
-  it.each([
-    ['Kick', 'Remove Woox from the room?', 'Kick', { t: 'kick', player_id: 'b' }],
-    [
-      'Promote',
-      "Make Woox a host? This can't be undone.",
-      'Make host',
-      { t: 'promote', player_id: 'b' },
-    ],
-    ['Start anyway', 'Start anyway? Still waiting on you and Woox.', 'Start anyway', { t: 'start_game' }],
-  ])('sends %s only once the host confirms', async (button, question, yes, message) => {
+  it('kicks from the pet the host taps, the choice being its own confirmation', async () => {
     lobby()
-    await fireEvent.click(screen.getByRole('button', { name: button }))
+    await fireEvent.click(tile('Woox'))
     expect(sent).toEqual([])
-    expect(dialog().textContent).toContain(question)
-    await fireEvent.click(within(dialog()).getByRole('button', { name: yes }))
-    expect(sent).toEqual([message])
+    expect(dialog().textContent).toContain('Kick Woox, or make them a host?')
+    await fireEvent.click(within(dialog()).getByRole('button', { name: 'Kick' }))
+    expect(sent).toEqual([{ t: 'kick', player_id: 'b' }])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it.each(['Kick', 'Promote', 'Start anyway'])('sends nothing when %s is cancelled', async (button) => {
+  it('asks once more before making a host, which cannot be undone', async () => {
     lobby()
-    await fireEvent.click(screen.getByRole('button', { name: button }))
+    await fireEvent.click(tile('Woox'))
+    await fireEvent.click(within(dialog()).getByRole('button', { name: 'Make host…' }))
+    expect(sent).toEqual([])
+    expect(dialog().textContent).toContain("Make Woox a host? This can't be undone.")
+    await fireEvent.click(within(dialog()).getByRole('button', { name: 'Make host' }))
+    expect(sent).toEqual([{ t: 'promote', player_id: 'b' }])
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('sends start_game below the threshold only once the host confirms', async () => {
+    lobby()
+    await fireEvent.click(screen.getByRole('button', { name: 'Start anyway' }))
+    expect(sent).toEqual([])
+    expect(dialog().textContent).toContain('Start anyway? Still waiting on you and Woox.')
+    await fireEvent.click(within(dialog()).getByRole('button', { name: 'Start anyway' }))
+    expect(sent).toEqual([{ t: 'start_game' }])
+  })
+
+  it.each([
+    ['a pet', () => tile('Woox')],
+    ['Make host', null],
+    ['Start anyway', () => screen.getByRole('button', { name: 'Start anyway' })],
+  ])('sends nothing when %s is cancelled', async (_, open) => {
+    lobby()
+    const show = async () => {
+      if (open !== null) return fireEvent.click(open())
+      await fireEvent.click(tile('Woox'))
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Make host…' }))
+    }
+    await show()
     await fireEvent.click(within(dialog()).getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByRole('dialog')).toBeNull()
-    await fireEvent.click(screen.getByRole('button', { name: button }))
+    await show()
     await fireEvent(dialog(), new Event('cancel'))
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(sent).toEqual([])
   })
 
-  it('shows an invite-only room’s link with its key as asterisks, and copies the real one', async () => {
+  it('offers kick and promote on nobody’s pet to a player, nor on a host’s to a host', () => {
+    lobby([HOST, WOOX], ROOM, WOOX)
+    expect(screen.queryByRole('button', { name: /kick or make host/ })).toBeNull()
+    cleanup()
+    lobby([HOST, WOOX, { ...WOOX, id: 'c', display_name: 'Lynx', role: 'admin' }])
+    expect(screen.getAllByRole('button', { name: /kick or make host/ })).toHaveLength(1)
+  })
+
+  it('stands the Wise Old Man, without a hero in the branding, beside a scroll that holds the heading, the code and the night', () => {
+    lobby()
+    expect([...document.querySelectorAll('.stage .npc img')].map((img) => img.getAttribute('src'))).toEqual([
+      npcArt('wise_old_man').url,
+    ])
+    const paper = document.querySelector('.paper') as HTMLElement
+    expect(within(paper).getByRole('heading', { level: 1, name: 'Lobby' })).toBeTruthy()
+    expect(within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' })).toBeTruthy()
+    expect(within(paper).getByText('1 round · 5 questions · Run pace')).toBeTruthy()
+  })
+
+  it('copies an invite-only room’s whole link from the code, and never draws its key', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    clipboard(writeText)
     lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
-    const field = screen.getByRole('textbox', { name: 'Link for players' }) as HTMLInputElement
-    expect(field.value).toBe(`${location.origin}/r/ABYSSAL#k=${'*'.repeat(11)}`)
-    await fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
+    expect(screen.getByRole('status').textContent).toBe('')
+    await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
     expect(writeText).toHaveBeenCalledWith(`${location.origin}/r/ABYSSAL#k=abc_DEF-123`)
-    expect(field.value).not.toContain('abc_DEF-123')
+    expect(await screen.findByText('Link copied')).toBeTruthy()
+    expect(document.body.innerHTML).not.toContain('abc_DEF-123')
+  })
+
+  it('copies a room without a key by its plain link', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    clipboard(writeText)
+    lobby()
+    await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
+    expect(writeText).toHaveBeenCalledWith(`${location.origin}/r/ABYSSAL`)
+  })
+
+  it.each([
+    ['refuses', vi.fn().mockRejectedValue(new Error('denied'))],
+    ['is missing', undefined],
+  ])('says so and shows the link to copy by hand when the clipboard %s', async (_, writeText) => {
+    clipboard(writeText)
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc' })
+    await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      "Couldn't copy the link. Copy it from here:",
+    )
+    const field = screen.getByRole('textbox', { name: 'Link for players' }) as HTMLInputElement
+    expect(field.value).toBe(`${location.origin}/r/ABYSSAL#k=abc`)
+    expect(screen.queryByText('Link copied')).toBeNull()
   })
 
   it('sends rotate_key only once the host confirms a new link', async () => {
@@ -125,6 +205,14 @@ describe('Lobby', () => {
     expect(dialog().textContent).toContain('The current one stops working. Players already here stay.')
     await fireEvent.click(within(dialog()).getByRole('button', { name: 'New link' }))
     expect(sent).toEqual([{ t: 'rotate_key' }])
+  })
+
+  it('offers no new link for a room without a key, nor to a player', () => {
+    lobby()
+    expect(screen.queryByRole('button', { name: 'New link' })).toBeNull()
+    cleanup()
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc' }, WOOX)
+    expect(screen.queryByRole('button', { name: 'New link' })).toBeNull()
   })
 
   it('lists who is asking to join, and lets them in or turns them away without asking', async () => {
@@ -153,13 +241,6 @@ describe('Lobby', () => {
     expect(screen.queryByText(/Asking to join/)).toBeNull()
   })
 
-  it('offers no new link for a room without a key', () => {
-    lobby()
-    expect(screen.queryByRole('button', { name: 'New link' })).toBeNull()
-    const field = screen.getByRole('textbox', { name: 'Link for players' }) as HTMLInputElement
-    expect(field.value).toBe(`${location.origin}/r/ABYSSAL`)
-  })
-
   it('starts at once, asking nothing, when enough of the room is ready', async () => {
     lobby([{ ...HOST, ready: true }, WOOX])
     await fireEvent.click(screen.getByRole('button', { name: 'Start the game' }))
@@ -174,56 +255,72 @@ describe('Lobby', () => {
     expect(sent).toEqual([{ t: 'start_game' }])
   })
 
-  it('draws each player’s own pet, or the innkeeper for none, at 40px', () => {
+  it('draws each player’s own pet, or the innkeeper for none, at 48px as the splash does', () => {
     lobby([{ ...HOST, avatar: 'baby_mole' }, { ...WOOX, avatar: null }])
-    expect(petsDrawn(document.querySelector('.players')!)).toEqual([
-      { pet: 'baby_mole', size: 40 },
-      { pet: '', size: 40 },
+    expect(petsDrawn(screen.getByRole('list', { name: /^Players/ }))).toEqual([
+      { pet: 'baby_mole', size: 48 },
+      { pet: '', size: 48 },
     ])
   })
 
-  it('names who is not ready, and marks who is', () => {
+  it('names who is not ready to the host, and lights who is', () => {
     const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: true }
     lobby([{ ...HOST, ready: true }, WOOX, lynx])
     expect(screen.getByText('Waiting on Woox and Lynx.')).toBeTruthy()
-    const rows = within(screen.getAllByRole('list').at(-1)!).getAllByRole('listitem')
-    expect(rows.map((row) => [row.textContent?.includes('✓ ready'), row.textContent])).toEqual([
+    expect(pets().map((pet) => [pet.classList.contains('lit'), pet.textContent])).toEqual([
       [true, expect.stringContaining('Zezima')],
       [false, expect.stringContaining('Woox')],
       [false, expect.stringContaining('Lynx')],
     ])
   })
 
+  it('says under each pet who hosts, who is away and which is you', () => {
+    const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false }
+    lobby([HOST, WOOX, lynx])
+    expect(pets().map((pet) => pet.querySelector('.status')?.textContent ?? '')).toEqual([
+      'host · you',
+      '',
+      'away',
+    ])
+  })
+
   it('says who is picking a name, dims them, and counts them as before', () => {
     lobby([{ ...HOST, ready: true }, { ...WOOX, editing: true }])
-    const [host, woox] = within(screen.getAllByRole('list').at(-1)!).getAllByRole('listitem')
+    const [host, woox] = pets()
     expect(woox?.textContent).toContain('picking a name…')
     expect(woox?.classList.contains('editing')).toBe(true)
     expect(host?.textContent).not.toContain('picking a name…')
-    expect(screen.getByText('1 of 2 ready')).toBeTruthy()
+    expect(screen.getByRole('list', { name: 'Players, 1 of 2 ready' })).toBeTruthy()
     expect(screen.getByText('Waiting on Woox.')).toBeTruthy()
   })
 
-  it('names the players link by its own label alone, not the room code', () => {
-    lobby()
-    const field = screen.getByLabelText('Link for players') as HTMLInputElement
-    expect([...(field.labels ?? [])].map((label) => label.textContent)).toEqual([
-      'Link for players',
+  it('tells a player the host starts, on the scroll, and gives them no Start', () => {
+    lobby([HOST, WOOX], ROOM, WOOX)
+    const paper = document.querySelector('.paper') as HTMLElement
+    expect(within(paper).getByText('Waiting for the host to start…')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Start/ })).toBeNull()
+  })
+
+  it('keeps the rounds behind a button, listed A–Z once it is pressed', async () => {
+    const modes = [
+      { mode: 'more_less', questions: 5 },
+      { mode: 'drop_table', questions: 1 },
+    ]
+    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 6 })
+    expect(screen.getByText('2 rounds · 6 questions · Run pace')).toBeTruthy()
+    const toggle = screen.getByRole('button', { name: 'Show the rounds' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText('More or Less')).toBeNull()
+    await fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    const rows = within(document.getElementById('rounds')!).getAllByRole('listitem')
+    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+      'Drop Table 1 question',
+      'More or Less 5 questions',
     ])
-    expect(screen.queryByLabelText('Room code')).toBeNull()
-  })
-
-  it('heads the room code panel with the lobby itself', () => {
-    lobby()
-    const panel = screen.getByRole('heading', { level: 1, name: 'Lobby' }).closest('.panel')
-    expect(panel?.querySelector('.code')?.textContent).toBe('ABYSSAL')
-  })
-
-  it('lists the rounds A–Z in a room without surprise rounds', () => {
-    lobby()
-    expect(screen.getByText('1 round · 5 questions · Run pace')).toBeTruthy()
-    expect(screen.getByText('More or Less')).toBeTruthy()
-    expect(document.querySelector('.modes')?.textContent).not.toContain('s each')
+    expect(screen.getByText('Listed A–Z, not in the order they play.')).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Hide the rounds' }))
+    expect(screen.queryByText('More or Less')).toBeNull()
   })
 
   it('names the pace the host picked', () => {
@@ -235,12 +332,13 @@ describe('Lobby', () => {
     ['player', WOOX, SECRET],
     // The host is sent every round, and the lobby still keeps them off a shared screen.
     ['host', HOST, { ...SECRET, settings: { ...SECRET.settings, modes: ROOM.settings.modes } }],
-  ])('counts surprise rounds for the %s and names none', (_, you, room) => {
+  ])('counts surprise rounds for the %s and offers none to show', (_, you, room) => {
     lobby([HOST, WOOX], room, you)
     expect(screen.getByText('5 secret rounds · 42 questions · Run pace')).toBeTruthy()
     expect(
       screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
     ).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Show the rounds' })).toBeNull()
     expect(screen.queryByText('More or Less')).toBeNull()
   })
 

@@ -683,18 +683,6 @@ ul.players li:first-child {
   border-top: none;
 }
 
-.dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--ok);
-  flex: none;
-}
-
-.dot.off {
-  background: var(--line);
-}
-
 /* The 6rem basis is what wraps a row before the name is squeezed out of it; min-width 0
    lets a long name with no spaces break instead of pushing the row wider. */
 .name {
@@ -729,23 +717,3 @@ ul.players li:first-child {
   color: var(--bad);
 }
 
-/* The lobby's rounds. One row a round: what it is, then its numbers, which wrap under
-   the name on a narrow screen. */
-ul.modes {
-  list-style: none;
-  margin: 0 0 0.75rem;
-  padding: 0;
-}
-
-ul.modes li {
-  display: flex;
-  gap: 0.5rem;
-  align-items: baseline;
-  flex-wrap: wrap;
-  padding: 0.6rem 0;
-  border-top: 1px solid var(--line);
-}
-
-ul.modes li:first-child {
-  border-top: none;
-}

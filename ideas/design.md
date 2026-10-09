@@ -224,22 +224,23 @@ Round 2 of 5 · 5 questions
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
-- **Home** opens with the same stage and the site's challenge on the scroll, in place of a panel.
-  Its host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
+- **Home** opens with the same stage and the site's challenge on the scroll, in place of a panel,
+  and the lobby (§9) with the room on it. Their host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
   stage, else 120px in the host's place, partly off a phone's edge. Without one, the Wise Old Man.
 
 ## 9. The splash and the ready check
 
-The lobby and the splash ask different questions, so they get different widgets. The threshold,
+Both put the players in a grid of pets, a name under each, lit once they tap. The threshold,
 countdowns and take-back rule are architecture §7.
 
-- **Lobby: a named list.** The host needs to know *who* is missing before Start, and the answer is
-  usually "Dave, at the bar". Start is plain once the room reaches the threshold, and "Start anyway"
-  below it, which asks first.
+- **Lobby: the room on the scroll.** It holds the code, which copies the invite link (an error and
+  the link to copy by hand where the clipboard refuses), the rounds and questions, and the rounds
+  A–Z behind "Show the rounds". The host also sees who is missing by name, since the answer is
+  usually "Dave, at the bar", and taps a pet to kick or promote. Start is plain at the threshold,
+  and "Start anyway" below it, which asks first.
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
-- **Splash: a grid of pets, a name under each.** Pets light as people tap, and "Waiting for 2 more"
-  says the rest.
+- **Splash:** "Waiting for 2 more" says the rest, never by name.
 
 ## 10. The question screen and the reveal
 
