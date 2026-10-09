@@ -1,3 +1,15 @@
+<script module lang="ts">
+  import type { Line } from '../../../lib/typing.svelte'
+
+  const ASK = 'What is this the examine of?'
+
+  /** What the stem types, line by line: what to do with it, then the examine. */
+  export function lines(data: Record<string, unknown>): Line[] {
+    const examine = typeof data.prompt === 'string' ? data.prompt : ''
+    return examine === '' ? [] : [ASK, examine]
+  }
+</script>
+
 <script lang="ts">
   /**
    * Guess the Examine's question: one examine line, the way the game prints it.
@@ -14,17 +26,18 @@
    * reveal: the stem stays the same clue before and after, so the eye has one place to
    * look for the verdict.
    */
+  import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'
 
-  let { data }: StemProps = $props()
+  let { data, shown }: StemProps = $props()
 
-  const examine = $derived(typeof data.prompt === 'string' ? data.prompt : '')
+  const typed = $derived(lines(data))
 </script>
 
-{#if examine !== ''}
+{#if typed.length > 0}
   <figure class="examine">
-    <figcaption>What is this the examine of?</figcaption>
-    <blockquote>{examine}</blockquote>
+    <figcaption><Typed line={ASK} shown={shown?.[0]} /></figcaption>
+    <blockquote><Typed line={typed[1] ?? ''} shown={shown?.[1]} /></blockquote>
   </figure>
 {/if}
 

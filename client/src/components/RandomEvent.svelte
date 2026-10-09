@@ -34,18 +34,21 @@
    * The same card draws the reveal, so the NPC stays on screen until the round takes the
    * floor back. `reveal` being non-null is what says which of the two this is.
    */
-  import { onMount, untrack, type Snippet } from 'svelte'
+  import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
 
   import { awardFor } from '../lib/award'
-  import { RETURN_MS, SETTLED, interludeFor, reducedMotion, typedAt } from '../lib/interlude'
+  import { RETURN_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
   import { hostOf } from '../lib/modes'
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { randomEventFor } from '../lib/randomEvents'
   import { serverOffsetMs } from '../lib/stores'
+  import { Typist, Until, lettersOf, type Line } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
+  import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
   import Stage from './stage/Stage.svelte'
+  import Typed from './stage/Typed.svelte'
 
   let {
     question,
@@ -81,10 +84,17 @@
   const prompt = $derived(typeof question.view.prompt === 'string' ? question.view.prompt : '')
   const intro = $derived(typeof question.view.intro === 'string' ? question.view.intro : '')
   /**
-   * What the NPC types, in order: their intro and the question, or the question alone. By
-   * code point, so an emoji or an accent is one letter typed, never half of one.
+   * What the NPC types, in order: their intro and the question, or the question alone. A
+   * question with no prompt of its own is its stem's, typed as a round's would be.
    */
-  const lines = $derived((intro !== '' ? [intro, prompt] : [prompt]).map((text) => [...text]))
+  const lines: Line[] = $derived(
+    prompt === ''
+      ? stemLines(question.mode, question.view)
+      : intro !== ''
+        ? [intro, prompt]
+        : [prompt],
+  )
+  const letters = $derived(lines.map(lettersOf))
   const explanation = $derived(
     reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
   )
@@ -103,89 +113,21 @@
     live && reveal === null && !reducedMotion()
       ? interludeFor(
           answerableMs - (startedAt + get(serverOffsetMs)),
-          lines.map((line) => line.length),
+          letters,
         )
       : SETTLED,
   )
 
-  let nowMs = $state(Date.now())
-  const serverMs = $derived(nowMs + $serverOffsetMs)
-  const held = $derived(
-    reveal === null && !Number.isNaN(answerableMs) && answerableMs - serverMs > 0,
-  )
-  /** How many letters of each line show. */
-  const shown = $derived(
-    lines.map((line, i) => typedAt(interlude.lines[i], line.length, nowMs - startedAt)),
-  )
-  const typing = $derived(
-    reveal === null && lines.some((line, i) => (shown[i] ?? 0) < line.length),
-  )
+  const typist = new Typist(() => letters, interlude, startedAt)
+  const answerable = new Until(() => answerableMs)
+  const held = $derived(reveal === null && !Number.isNaN(answerableMs) && !answerable.passed)
   const returnMs = $derived(nextAt === null ? NaN : Date.parse(nextAt) - RETURN_MS)
-  const returning = $derived(reveal !== null && returnMs - serverMs <= 0)
-
-  function tick(): void {
-    nowMs = Date.now()
-  }
-
-  /**
-   * One wake-up at the server's `at`, rather than a tick every 100ms. It is measured from
-   * the moment it is armed and not from `nowMs`, which is only as fresh as the last tick:
-   * every `pong` moves the offset and arms it again, and the part already waited must not
-   * be waited twice. Each tick arms it again, and a timer that fires a hair early sets
-   * another.
-   */
-  function wakeAt(at: number): () => void {
-    return wakeIn(at - (Math.max(nowMs, Date.now()) + $serverOffsetMs))
-  }
-
-  /**
-   * A whole millisecond at least: a timer that fires inside the millisecond it was armed
-   * in leaves `nowMs` as it was, and then nothing arms the next one.
-   */
-  function wakeIn(ms: number): () => void {
-    const timer = setTimeout(tick, Math.max(1, Math.ceil(ms)))
-    return () => clearTimeout(timer)
-  }
-
-  $effect(() => {
-    if (held) return wakeAt(answerableMs)
-  })
-
-  $effect(() => {
-    if (reveal !== null && !returning && !Number.isNaN(returnMs)) return wakeAt(returnMs)
-  })
-
-  // Typing runs on this browser's clock from the arrival, as the plan does: a letter at a
-  // time, each at the moment it is due, whichever line it is in.
-  $effect(() => {
-    if (!typing) return
-    let due = Infinity
-    lines.forEach((line, i) => {
-      const plan = interlude.lines[i]
-      const count = shown[i] ?? 0
-      if (plan === undefined || count >= line.length) return
-      due = Math.min(due, startedAt + plan.from + ((count + 1) / line.length) * plan.for)
-    })
-    return wakeIn(due - Math.max(nowMs, Date.now()))
-  })
-
-  // A backgrounded tab's timers are throttled; coming back to it should not wait on one.
-  onMount(() => {
-    document.addEventListener('visibilitychange', tick)
-    return () => document.removeEventListener('visibilitychange', tick)
-  })
+  const leaving = new Until(() => returnMs)
+  const returning = $derived(reveal !== null && leaving.passed)
 </script>
 
 {#snippet typed(i: number, kind: string)}
-  {@const line = lines[i] ?? []}
-  {@const count = shown[i] ?? line.length}
-  {#if reveal === null && count < line.length}
-    <p class={kind}><span class="sr">{line.join('')}</span><span aria-hidden="true">{line
-          .slice(0, count)
-          .join('')}<span class="untyped">{line.slice(count).join('')}</span></span></p>
-  {:else}
-    <p class={kind}>{line.join('')}</p>
-  {/if}
+  <p class={kind}><Typed line={lines[i] ?? ''} shown={typist.shown[i]} /></p>
 {/snippet}
 
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
@@ -237,6 +179,7 @@
   {result}
   {onAnswer}
   {held}
+  shown={prompt === '' ? typist.shown : undefined}
   explain={false}
   frame={staged}
 />
@@ -273,11 +216,6 @@
     font-weight: 600;
     line-height: 1.3;
     overflow-wrap: anywhere;
-  }
-
-  /* Laid out and invisible: the prompt holds its full height while it types. */
-  .untyped {
-    color: transparent;
   }
 
   .foot {

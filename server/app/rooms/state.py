@@ -81,6 +81,7 @@ from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_o
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import MIN_REVEAL
 from app.rooms import codes, ready, scoring, segments, selection
+from app.rooms.hold import hold_seconds, typed_lines
 from app.rooms.settings import RoomSettings
 from app.stats import UNREPORTED, Arrival, Metric, bump, duration_bucket, joined
 from app.ws.outbox import Outbox
@@ -122,11 +123,6 @@ CHANGE_COOLDOWN = 1.0
 # Seconds an ``editing`` flag lasts without being sent again. A tab that froze or lost its
 # socket half-way would otherwise leave "picking a name…" up for the rest of the lobby.
 EDITING_SECONDS = 60.0
-# Seconds a random event's NPC holds the floor before the buttons appear. Fixed rather than
-# a room setting: the client's interlude is timed to it, the NPC's intro and then the
-# question typing in at a set pace, a pause between them, and finishing just before the
-# answers (section 12 of ideas/design.md).
-RANDOM_EVENT_HOLD = 6.0
 # Requests waiting on an admin at once, so somebody guessing codes cannot bury a lobby.
 MAX_JOIN_REQUESTS = 5
 # Seconds a request outlives its requester's last poll; the waiting page polls every two.
@@ -437,8 +433,8 @@ class RoomQuestion:
     room whose ordering questions run to forty.
 
     ``answerable_at`` is when answers are taken from, and so when ``seconds`` starts. It is
-    ``shown_at`` for every question but a random event, where the NPC holds the floor with
-    the question for ``RANDOM_EVENT_HOLD`` before the buttons appear. Deriving it rather
+    ``shown_at`` plus ``question_hold``, the time the scroll takes to type the question in
+    before the buttons appear. Deriving it rather
     than storing it is what leaves rehydrate as it was: a question that was open at a
     restart is voided either way, so nothing ever needs it back from the database.
 
@@ -1787,10 +1783,10 @@ class RoomManager:
         An answer is timed when it arrives, before it queues for the room lock behind
         other answers' writes, so a pile-up at the buzzer costs nobody a bucket. It counts
         from ``answerable_at`` up to, not including, ``ends_at``, and a close that runs late
-        gives nobody extra time. A random event is on screen before it takes answers, and
-        one that arrives early is ``not_open``, so a client that draws its buttons ahead of
-        time gets nothing for it. Elapsed time runs from there, so the NPC's two seconds
-        cost nobody a speed bucket.
+        gives nobody extra time. A question is on screen before it takes answers, and an
+        answer that arrives early is ``not_open``, so a client that draws its buttons ahead
+        of time gets nothing for it. Elapsed time runs from there, so the typing costs
+        nobody a speed bucket.
         """
         code = code.upper()
         received_at, arrived = datetime.now(UTC), self.clock()
@@ -2153,9 +2149,9 @@ class RoomManager:
     async def _open_question(self, room: Room, index: int) -> RoomQuestion | None:
         """``pending → open``: stamp ``shown_at``, broadcast ``question_open``.
 
-        A random event opens muted: on screen now, taking answers from ``answerable_at``,
-        and open for its own ``seconds`` from then rather than from now, so the NPC's hold
-        does not come out of the time to answer. It is the same one frame either way; the
+        A question opens muted: on screen now, taking answers from ``answerable_at``, and
+        open for its own ``seconds`` from then rather than from now, so the typing does not
+        come out of the time to answer. It is the same one frame either way; the
         client counts down to ``answerable_at`` itself, so the buttons appearing needs no
         message of its own.
         """
@@ -2168,7 +2164,7 @@ class RoomManager:
             question = room.questions[index]
             shown_at, now = datetime.now(UTC), self.clock()
             seconds = self._answer_seconds(room, question)
-            hold = RANDOM_EVENT_HOLD if question.random_event else 0
+            hold = question_hold(question)
             segment = room.segment_at(index)
             assert segment is not None  # every question belongs to a round
             async with pool.acquire() as conn, conn.transaction():
@@ -2343,6 +2339,13 @@ class RoomManager:
             for outbox in room.sockets.values():
                 outbox.cancel()
         await asyncio.gather(*timers, return_exceptions=True)
+
+
+def question_hold(question: RoomQuestion) -> float:
+    """Seconds the scroll takes to type ``question`` in before its buttons appear."""
+    view = TYPES[question.type].client_view(question.payload)
+    event = question.random_event is not None
+    return hold_seconds(typed_lines(question.type, question.mode, view, event), event)
 
 
 def _check_key(room: Room, key: str | None) -> None:

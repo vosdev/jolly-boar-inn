@@ -20,13 +20,14 @@
 import type { Component } from 'svelte'
 
 import { MODES, type StemId } from '../../lib/modes'
+import type { Line } from '../../lib/typing.svelte'
 import type { StemProps, TypeViewProps } from './props'
-import AssetStem from './stems/AssetStem.svelte'
-import ExamineStem from './stems/ExamineStem.svelte'
-import MoreLessStem from './stems/MoreLessStem.svelte'
-import PriceStem from './stems/PriceStem.svelte'
-import QuoteStem from './stems/QuoteStem.svelte'
-import TextStem from './stems/TextStem.svelte'
+import AssetStem, { lines as assetLines } from './stems/AssetStem.svelte'
+import ExamineStem, { lines as examineLines } from './stems/ExamineStem.svelte'
+import MoreLessStem, { lines as moreLessLines } from './stems/MoreLessStem.svelte'
+import PriceStem, { lines as priceLines } from './stems/PriceStem.svelte'
+import QuoteStem, { lines as quoteLines } from './stems/QuoteStem.svelte'
+import TextStem, { lines as textLines } from './stems/TextStem.svelte'
 import ClosestNumber from './types/ClosestNumber.svelte'
 import FreeText from './types/FreeText.svelte'
 import MoreLess from './types/MoreLess.svelte'
@@ -56,6 +57,24 @@ export const STEMS: Record<StemId, Component<StemProps>> = {
   quote: QuoteStem,
   more_less: MoreLessStem,
   price: PriceStem,
+}
+
+const STEM_LINES: Record<StemId, (data: Record<string, unknown>) => Line[]> = {
+  text: textLines,
+  asset: assetLines,
+  examine: examineLines,
+  quote: quoteLines,
+  more_less: moreLessLines,
+  price: priceLines,
+}
+
+/**
+ * The lines a mode's stem types onto the scroll, in order, which its `shown` counts. The
+ * server counts the same lines to time the hold (`server/app/rooms/hold.py`).
+ */
+export function stemLines(mode: string, data: Record<string, unknown>): Line[] {
+  const stem = MODES[mode]?.stem ?? null
+  return stem === null ? [] : STEM_LINES[stem](data)
 }
 
 export interface QuestionPair {

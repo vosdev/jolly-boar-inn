@@ -157,8 +157,8 @@
   const total = $derived(segment?.count ?? $question?.total ?? $room?.total ?? 0)
   /**
    * How long this question is open for: only the frame knows, since its type and the
-   * room's pace decide. The clock starts at `answerable_at`, after a random event's NPC
-   * has held the floor, so that is what the length is measured from.
+   * room's pace decide. The clock starts at `answerable_at`, after the scroll has typed
+   * the question in, so that is what the length is measured from.
    */
   const questionSeconds = $derived(
     $question === null
@@ -167,8 +167,8 @@
           Date.parse($question.answerable_at ?? $question.opened_at)) /
           1000,
   )
-  // Fetched as the question arrives rather than when its view mounts, so a random event
-  // spends its NPC's hold fetching the list instead of the first seconds of answering.
+  // Fetched as the question arrives rather than when its view mounts, so a question
+  // spends its hold fetching the list instead of the first seconds of answering.
   $effect(() => {
     const vocab = listFor($question)
     if (vocab !== null) prefetchVocab(vocab)

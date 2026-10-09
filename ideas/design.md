@@ -203,6 +203,9 @@ Round 2 of 5 · 5 questions
 - **It opens from the middle**, both rolls travelling outward, in 300 ms. It opens on the splash
   and stays put into the round's first question; anywhere else it is simply there. When it closes
   again is not decided, so for now it does not.
+- **Every line on the scroll types in** at 60 letters a second: on the splash the greeting and
+  blurb once it is open, and a question's stem from 400 ms in the server's hold before
+  `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins a red rosette ribbon on the sheet's bottom edge, 65% across:
   right, partial credit or a graded guess alike. Full credit alone adds a burst of confetti
   (900 ms) in the theme's gem colours. `+0` gets nothing.
@@ -316,8 +319,8 @@ asks what are architecture §5 and `ideas/random-events.md`. This is how it look
 **The event NPC stands on the right.** The host always stands left, so position says "this is not
 the round's question" before a word is read.
 
-Everything happens inside the server's fixed 6 s hold before `answerable_at`, so the wait costs
-nobody points and the server times nothing:
+Everything happens inside the server's hold before `answerable_at`, timed to the text (§8), so the
+wait costs nobody points and the server times nothing:
 
 ```
   0 ms   the NPC's name is on the scroll, whole; the scroll takes the text's height

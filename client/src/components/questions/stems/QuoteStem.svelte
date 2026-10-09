@@ -1,3 +1,20 @@
+<script module lang="ts">
+  import type { Line } from '../../../lib/typing.svelte'
+
+  import { lines as textLines } from './TextStem.svelte'
+
+  function quoteOf(data: Record<string, unknown>): string {
+    return typeof data.quote === 'string' ? data.quote : ''
+  }
+
+  /** What the stem types, line by line: the question, then the quote; or as `TextStem`. */
+  export function lines(data: Record<string, unknown>): Line[] {
+    const quote = quoteOf(data)
+    if (quote === '') return textLines(data)
+    return [typeof data.prompt === 'string' ? data.prompt : '', quote]
+  }
+</script>
+
 <script lang="ts">
   /**
    * A question about words someone said: the `prompt` asks, and the `quote` is set apart
@@ -6,19 +23,20 @@
    * Know Your Content Creator mixes quotes with plain trivia in one round, and a stem is
    * chosen per mode, so a question without a `quote` is drawn as `TextStem` draws it.
    */
+  import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'
   import TextStem from './TextStem.svelte'
 
   let props: StemProps = $props()
 
-  const quote = $derived(typeof props.data.quote === 'string' ? props.data.quote : '')
-  const prompt = $derived(typeof props.data.prompt === 'string' ? props.data.prompt : '')
+  const quote = $derived(quoteOf(props.data))
+  const typed = $derived(lines(props.data))
 </script>
 
 {#if quote !== ''}
   <figure class="quote">
-    <figcaption>{prompt}</figcaption>
-    <blockquote>{quote}</blockquote>
+    <figcaption><Typed line={typed[0] ?? ''} shown={props.shown?.[0]} /></figcaption>
+    <blockquote><Typed line={quote} shown={props.shown?.[1]} /></blockquote>
   </figure>
 {:else}
   <TextStem {...props} />

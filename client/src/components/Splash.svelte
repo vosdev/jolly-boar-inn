@@ -12,7 +12,9 @@
    * the override, and ends it for everyone at once.
    *
    * The scroll unrolls here, holding only the mode's name, its host's greeting and the
-   * blurb, and stays up into the round's first question. The round's count and pace, the
+   * blurb, and stays up into the round's first question. The name is there whole; the
+   * greeting and the blurb type in once the scroll is open, at the questions' pace
+   * (`lib/interlude.ts`). The splash has no hold to fit, so nothing waits on the typing. The round's count and pace, the
    * ready check and the countdown go under the line (section 8 of ideas/design.md).
    *
    * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
@@ -21,16 +23,20 @@
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
    */
+  import { untrack } from 'svelte'
   import { get } from 'svelte/store'
 
+  import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { MODES, hostOf } from '../lib/modes'
   import { petOf } from '../lib/pets'
   import type { PlayerView, Segment } from '../lib/protocol'
   import { readyThreshold } from '../lib/ready'
   import { serverOffsetMs } from '../lib/stores'
+  import { Typist, lettersOf } from '../lib/typing.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import Pet from './Pet.svelte'
   import Stage from './stage/Stage.svelte'
+  import Typed from './stage/Typed.svelte'
   import Timer from './Timer.svelte'
 
   let {
@@ -57,6 +63,18 @@
   const mode = $derived(MODES[segment.mode] ?? null)
   const label = $derived(mode?.label ?? segment.mode)
   const host = $derived(hostOf(segment.mode))
+
+  const greeting = $derived(`“${host.greeting}”`)
+  const letters = $derived([greeting, mode?.blurb ?? ''].map(lettersOf))
+  const typist = new Typist(
+    () => letters,
+    untrack(() =>
+      reducedMotion()
+        ? SETTLED
+        : interludeFor(Infinity, letters, SPLASH_TYPE_FROM_MS, SPLASH_TYPE_FROM_MS),
+    ),
+    Date.now(),
+  )
 
   /**
    * The pets to wait on: whoever is connected, which is who the server counts. A player
@@ -103,9 +121,9 @@
   <Stage host={host.host.id} opening>
     {#snippet paper()}
       <h2>{label}</h2>
-      <p class="greeting">“{host.greeting}”</p>
+      <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>
       {#if mode !== null}
-        <p class="blurb">{mode.blurb}</p>
+        <p class="blurb"><Typed line={mode.blurb} shown={typist.shown[1]} /></p>
       {/if}
     {/snippet}
 

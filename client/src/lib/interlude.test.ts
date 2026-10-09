@@ -11,6 +11,7 @@ import {
   LETTERS_PER_SECOND,
   PAUSE_MAX_MS,
   PAUSE_MIN_MS,
+  QUESTION_TYPE_FROM_MS,
   READ_LETTERS_PER_SECOND,
   SETTLE_MS,
   SETTLED,
@@ -120,5 +121,28 @@ describe('interludeFor, an intro and its question', () => {
     const [intro, ask] = interludeFor(HOLD, [93, 61]).lines
     expect(ask!.from).toBeGreaterThanOrEqual(intro!.from + intro!.for + PAUSE_MIN_MS)
     expect(typedAt(ask, 61, ask!.from - 1)).toBe(0)
+  })
+})
+
+describe('a round’s question and the splash', () => {
+  it('types a question from 400 ms, with no entrance to wait for', () => {
+    const [line] = interludeFor(2000, [30], QUESTION_TYPE_FROM_MS, 0).lines
+    expect(line).toEqual({ from: QUESTION_TYPE_FROM_MS, for: typing(30) })
+  })
+
+  it('starts a question sooner than 400 ms when its hold is short, from 0 at the soonest', () => {
+    const [line] = interludeFor(500, [30], QUESTION_TYPE_FROM_MS, 0).lines
+    expect(line!.from).toBe(0)
+    expect(line!.from + line!.for).toBeCloseTo(500 - SETTLE_MS)
+  })
+
+  it('is no interlude for a question that arrives after its hold', () => {
+    expect(interludeFor(100, [30], QUESTION_TYPE_FROM_MS, 0)).toBe(SETTLED)
+  })
+
+  it('types the splash at the natural pace with every pause in full, however long', () => {
+    const [greeting, blurb] = interludeFor(Infinity, [400, 300], 300, 300).lines
+    expect(greeting).toEqual({ from: 300, for: typing(400) })
+    expect(blurb).toEqual({ from: 300 + typing(400) + PAUSE_MAX_MS, for: typing(300) })
   })
 })

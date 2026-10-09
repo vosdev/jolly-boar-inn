@@ -43,6 +43,11 @@ export interface StemTiming {
 
 export interface StemProps extends Drawn {
   timing: StemTiming
+  /**
+   * How many letters of each of the stem's `lines` the scroll has typed (`index.ts`);
+   * left out, the stem shows whole.
+   */
+  shown?: number[]
 }
 
 export interface TypeViewProps<Value = unknown> extends Drawn {

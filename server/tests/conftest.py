@@ -35,13 +35,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 @pytest.fixture(autouse=True)
-def no_event_hold(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Play a random event as a plain question, its buttons there as it opens.
+def no_hold(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Open every question with its buttons there, rather than after the scroll types it in.
 
-    An event dropped into a game would otherwise hold every test that meets one for the
-    server's three and a half seconds; the tests about the hold set their own.
+    Every question would otherwise hold every test for a second or more; the tests about
+    the hold set their own.
     """
-    monkeypatch.setattr(state, "RANDOM_EVENT_HOLD", 0)
+    monkeypatch.setattr(state, "question_hold", lambda question: 0)
 
 
 @pytest.fixture
