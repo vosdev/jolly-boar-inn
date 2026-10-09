@@ -303,13 +303,14 @@ describe("App", () => {
       code: "ABYSSAL",
       finishedAt: "2026-10-01T20:05:00Z",
       standings: [
-        { player_id: "a", display_name: "Zezima", points: 900, rank: 1 },
+        { player_id: "a", display_name: "Zezima", points: 900, rank: 1, points_gained: 900, previous_rank: null },
       ],
       youId: "a",
     });
     at("/history/ABYSSAL/2610012005");
     await screen.findByRole("heading", { level: 1, name: "Final standings" });
-    expect(screen.getByText(/Zezima\s+wins/)).toBeTruthy();
+    expect(screen.getByText("Gz, Zezima! Here are the full hiscores.")).toBeTruthy();
+    expect(document.querySelector(".hiscores .gain")).toBeNull();
     expect(screen.getByText(/The room has closed/)).toBeTruthy();
     cleanup();
 

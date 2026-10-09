@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 
 import MANIFEST from '../../../data/assets.json'
 import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
-import { TIERS } from './podium'
+import { TIERS } from './hiscores'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 
 const targets = Object.keys(MANIFEST)
@@ -44,7 +44,7 @@ describe('the asset manifest', () => {
     expect(RANDOM_EVENTS.filter((npc) => !hasEntry('npcs', `${npc.id}_chathead`)).map((npc) => npc.id)).toEqual([])
   })
 
-  it('has a trophy for every podium tier', () => {
+  it('has a trophy for every place in the ceremony', () => {
     expect(TIERS.filter((tier) => !hasEntry('trophies', tier))).toEqual([])
   })
 })

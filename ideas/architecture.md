@@ -271,7 +271,7 @@ RoomView     { code, status, settings, current_index, total, phase, next_at, rev
                segment, finished_at, rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
-Standing     { player_id, display_name, avatar, points, rank }
+Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, random_event,
                opened_at, answerable_at, ends_at, you_can_answer, answered, of }
@@ -437,7 +437,9 @@ without `steps` scores on speed.
   player's answers are deleted.
 
 Standings sort by points, then correct answers, then `joined_at`. Rank is dense over points and
-correct answers; join time only orders players who share a rank.
+correct answers; join time only orders players who share a rank. `points_gained` is what the round
+of the latest close added and `previous_rank` the rank before that round by the same rule, null
+in the first; the totals query splits its sum at that round's first position.
 
 ## 9. Reconnect and restart
 

@@ -27,7 +27,7 @@
    * whatever follows, the screens stacked in one cell while it does. The standings
    * follow every round but the last, whatever the splash does, and only between
    * rounds: inside one, there is no board under the reveal, and the last round's
-   * standings are the final screen, which draws the same `<Scoreboard>`.
+   * standings are the final screen, the same hiscores with a ceremony before them.
    *
    * `playing` with no question and nothing revealed is the gap between a reveal ending
    * and the next question opening. It is a frame or two wide in practice, and after a
@@ -54,7 +54,7 @@
   import { verdictSentence } from '../components/PointsSlot.svelte'
   import QuestionStage from '../components/QuestionStage.svelte'
   import RevealTally from '../components/RevealTally.svelte'
-  import Scoreboard from '../components/Scoreboard.svelte'
+  import Standings from '../components/Standings.svelte'
   import Splash from '../components/Splash.svelte'
   import { historyPath, latestPastGame } from '../lib/history'
   import { CROSSFADE_MS, reducedMotion } from '../lib/interlude'
@@ -63,6 +63,7 @@
   import {
     applyServerMessage,
     connection,
+    endedLive,
     lastClosed,
     noteAnswerSent,
     players,
@@ -401,7 +402,7 @@
       <Lobby {socket} />
     {/if}
   {:else if $room.status === 'finished'}
-    <FinalStandings standings={$standings} youId={$you?.id ?? null}>
+    <FinalStandings standings={$standings} youId={$you?.id ?? null} ceremony={$endedLive}>
       <button type="button" onclick={leave}>Home</button>
     </FinalStandings>
   {:else if $room.phase === 'splash' && $room.segment !== null}
@@ -420,14 +421,12 @@
     <!-- playing. A question's screen is the stage and nothing to read past it. -->
     <div class:column={$room.phase !== 'standings'}>
     {#if $room.phase === 'standings'}
-      <div class="panel head">
-        <h1>
-          {#if segment !== null}
-            <span class="round">After round {segment.index + 1} of {segment.total}</span>
-          {/if}
-          Standings
-        </h1>
-      </div>
+      <h1 class="sr">
+        {#if segment !== null}
+          <span class="round">After round {segment.index + 1} of {segment.total}</span>
+        {/if}
+        Standings
+      </h1>
     {:else}
       <!-- The splash said which round this is, and the timer bar's tab says which
            question: the heading is only for a screen reader and for focus. -->
@@ -445,7 +444,7 @@
     <div class="screens">
     {#if $room.phase === 'standings'}
       <div class="screen" in:crossfade>
-        <Scoreboard standings={$standings} youId={$you?.id ?? null} />
+        <Standings standings={$standings} {segment} youId={$you?.id ?? null} />
       </div>
     {:else if $room.phase === 'open' && $question !== null}
       <div class="screen" in:crossfade>
@@ -525,10 +524,6 @@
 {/if}
 
 <style>
-  .head h1 {
-    margin: 0;
-  }
-
   .column {
     max-width: 30rem;
     margin-inline: auto;

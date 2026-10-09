@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { TIERS } from './podium'
+import { TIERS } from './hiscores'
 import { tierName, trophyArt } from './trophies'
 
 const PLACEHOLDERS = {

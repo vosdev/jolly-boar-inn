@@ -664,9 +664,12 @@ def test_the_close_grades_every_answer_and_reveals_the_results(game, db) -> None
     assert [
         {k: v for k, v in standing.items() if k != "avatar"} for standing in closed["standings"]
     ] == [
-        {"player_id": right.id, "display_name": right.name, "points": 1000, "rank": 1},
-        {"player_id": game.admin.id, "display_name": "Admin", "points": 0, "rank": 2},
-        {"player_id": wrong.id, "display_name": wrong.name, "points": 0, "rank": 2},
+        {**standing, "points_gained": standing["points"], "previous_rank": None}
+        for standing in [
+            {"player_id": right.id, "display_name": right.name, "points": 1000, "rank": 1},
+            {"player_id": game.admin.id, "display_name": "Admin", "points": 0, "rank": 2},
+            {"player_id": wrong.id, "display_name": wrong.name, "points": 0, "rank": 2},
+        ]
     ]
     for standing in closed["standings"]:
         assert standing["avatar"] is not None
@@ -699,6 +702,66 @@ def test_the_sum_in_memory_matches_the_database_after_every_close(game, db) -> N
     assert finished["standings"] == closed["standings"]
     assert sum(s["points"] for s in finished["standings"]) == sum(db_totals(db, game.code).values())
     assert any(s["points"] > 0 for s in finished["standings"])
+
+
+def _two_round_game(table, second_mode: str) -> tuple[Game, dict[str, Any]]:
+    """Zezima wins round one and scores nothing in round two, which Woox wins."""
+    game = table(
+        "Zezima", "Woox", reveal_seconds=1, standings_seconds=30, **two_rounds(second_mode)
+    )
+    zezima, woox = game.players
+    game.start()
+    for index, (winner, loser) in enumerate([(zezima, woox), (woox, zezima)]):
+        game.opened(index)
+        game.answer(winner, index, game.right(index))
+        winner.take("answer_ack")
+        game.answer(loser, index, game.wrong(index))
+        loser.take("answer_ack")
+        game.skip()
+        if index == 0:
+            first = game.admin.take("question_closed")["standings"]
+            updated(game.admin, lambda m: m["room"]["phase"] == "standings")
+            game.skip()
+    return game, first
+
+
+def _gains(game: Game, standings: list[dict[str, Any]]) -> dict[str, tuple[int, int, int | None]]:
+    names = {seat.id: seat.name for seat in game.seats}
+    return {
+        names[s["player_id"]]: (s["points"], s["points_gained"], s["previous_rank"])
+        for s in standings
+    }
+
+
+def test_the_standings_say_what_the_round_gained_and_where_everyone_stood_before_it(
+    table, second_mode
+) -> None:
+    """The first round has no rank before it; the next counts from the first's standings."""
+    game, first = _two_round_game(table, second_mode)
+    assert _gains(game, first) == {
+        "Zezima": (1000, 1000, None),
+        "Admin": (0, 0, None),
+        "Woox": (0, 0, None),
+    }
+    final = game.admin.take("game_finished")["standings"]
+    gains = _gains(game, final)
+    woox_points = gains["Woox"][0]
+    assert woox_points > 0
+    assert gains == {
+        "Zezima": (1000, 0, 1),
+        "Woox": (woox_points, woox_points, 2),
+        "Admin": (0, 0, 2),
+    }
+
+
+def test_a_restart_keeps_the_last_rounds_gains(table, client, second_mode, evict) -> None:
+    """The gains are the table's own sums, so a room loaded back has the same ones."""
+    game, _ = _two_round_game(table, second_mode)
+    final = game.admin.take("game_finished")["standings"]
+    assert evict(game.code) is True
+    with client.websocket_connect(f"/ws/{game.code}") as again:
+        again.send_json({"t": "hello", "session": game.players[0].session})
+        assert again.receive_json()["standings"] == final
 
 
 def test_a_voided_question_is_never_graded(game, db) -> None:

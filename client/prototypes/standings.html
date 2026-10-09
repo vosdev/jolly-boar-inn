@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Standings prototype</title>
+<link rel="stylesheet" href="/src/app.css" />
+<style>
+  /* ---------- the scroll, as in clue-scroll.html ---------- */
+  .stage-row,
+  .scroll {
+    --k: var(--scroll-scale, 1);
+    --roll-w: calc(26px * var(--k));
+    --finial: calc(22px * var(--k));
+    --tuck: calc(5px * var(--k));
+  }
+  .scroll {
+    position: relative;
+    padding: calc(var(--finial) * 0.75) calc(var(--roll-w) - var(--tuck));
+    color: var(--scroll-ink);
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.22));
+  }
+  .roll { position: absolute; z-index: 1; top: 0; bottom: 0; width: var(--roll-w); display: flex; flex-direction: column; }
+  .roll.left { left: 0; }
+  .roll.right { right: 0; transform: scaleX(-1); }
+  .roll svg { display: block; width: 100%; flex: none; }
+  .roll .finial { height: var(--finial); }
+  .roll .finial.bottom { transform: scaleY(-1); }
+  .roll .body { flex: 1; height: 0; min-height: 0; }
+  .reveal { position: relative; }
+  .paper {
+    position: relative;
+    padding: calc(1.1rem * var(--k)) calc(0.9rem * var(--k) + var(--tuck)) calc(1rem * var(--k));
+    background: var(--scroll-paper);
+    box-shadow:
+      inset 14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent),
+      inset -14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent);
+    clip-path: polygon(
+      0 7px, 7% 3px, 15% 6px, 24% 1px, 29% 3px, 31% 13px, 33.5% 3px, 45% 5px, 57% 0,
+      66% 4px, 72% 1px, 74% 10px, 76.5% 2px, 88% 6px, 100% 3px,
+      100% calc(100% - 6px), 92% calc(100% - 2px), 81% calc(100% - 5px), 69% calc(100% - 1px),
+      61% calc(100% - 4px), 49% calc(100% - 3px), 47% calc(100% - 12px), 45% calc(100% - 2px),
+      33% calc(100% - 6px), 22% calc(100% - 1px), 12% calc(100% - 5px), 0 calc(100% - 2px)
+    );
+    --font-display: 'RuneScape', var(--font-body);
+    --font-numeric: var(--font-display);
+    font-family: var(--font-display);
+    font-synthesis: none;
+  }
+  .facets { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .fl { fill: #fff; fill-opacity: var(--scroll-facet-light, 0.08); }
+  .fd { fill: var(--scroll-edge); fill-opacity: 0.08; }
+  .paper > :not(.facets) { position: relative; }
+  .p   { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 12%); }
+  .hi  { fill: #fff; fill-opacity: 0.3; }
+  .sh1 { fill: var(--scroll-edge); fill-opacity: 0.25; }
+  .sh2 { fill: var(--scroll-edge); fill-opacity: 0.5; }
+  .ln  { fill: var(--scroll-edge); }
+  .wood  { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 45%); }
+  .wood2 { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 70%); }
+  .rim   { fill: color-mix(in srgb, var(--scroll-paper), var(--scroll-edge) 25%); }
+  .stroke { fill: none; stroke: var(--scroll-edge); stroke-width: 1.3; }
+  .scroll.opening .roll.left  { animation: roll-left 300ms ease-out; }
+  .scroll.opening .roll.right { animation: roll-right 300ms ease-out; }
+  .scroll.opening .reveal     { animation: uncover 300ms ease-out; }
+  @keyframes roll-left  { from { left: calc(50% - var(--roll-w)); } }
+  @keyframes roll-right { from { right: calc(50% - var(--roll-w)); } }
+  @keyframes uncover    { from { clip-path: inset(0 50%); } to { clip-path: inset(0 0); } }
+
+  /* ---------- the stage: the Wise Old Man at the sheet's top left ---------- */
+  /* A hiscores sheet runs long, so the host stands by his line at the top, not at the foot. */
+  .stage { container-type: inline-size; width: 100%; max-width: 30rem; margin-inline: auto; }
+  .stage-row {
+    --npc-w: 78px;
+    --trophy-w: 92px;
+    /* How far the sheet's text starts in from the Wise Old Man's right edge. */
+    --clear: calc(var(--npc-w) - var(--roll-w) - 0.9rem * var(--k) + 0.5rem);
+    position: relative;
+  }
+  .npc {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    top: calc(var(--finial) * 0.75 + 4px);
+    width: var(--npc-w);
+  }
+  .npc img { display: block; width: 100%; height: auto; filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.25)); }
+  @container (max-width: 26rem) {
+    .stage-row { --npc-w: 68px; --trophy-w: 72px; --scroll-scale: 0.8; --scroll-text: 0.9; }
+  }
+  /* Under 448px: the sheet edge to edge, the rolls half off the screen. */
+  .stage.edge .stage-row { --edge: calc(var(--roll-w) / 2); margin-inline: -16px; }
+  .stage.edge .scroll { padding-inline: 0; }
+  .stage.edge .roll.left { left: calc(-0.5 * var(--roll-w)); }
+  .stage.edge .roll.right { right: calc(-0.5 * var(--roll-w)); }
+  .stage.edge .paper { padding-inline: calc(var(--edge) + 1rem); }
+  .stage.edge .npc { left: calc(var(--edge) + 6px); }
+  .stage.edge .stage-row { --clear: calc(6px + var(--npc-w) - 1rem + 0.4rem); }
+
+  /* ---------- on the sheet ---------- */
+  .head { margin-left: var(--clear); min-height: calc(var(--npc-w) * 1.9 - 1.5rem); }
+  .paper h2 {
+    margin: 0 0 0.25rem;
+    font-size: max(1.15rem, 1.5rem * var(--scroll-text, 1));
+    line-height: 1.15;
+  }
+  .says { margin: 0; min-height: 2.6em; font-size: max(0.9rem, 1.05rem * var(--scroll-text, 1)); font-style: italic; line-height: 1.3; }
+  .board { margin-top: 0.5rem; }
+
+  /* The hiscores. Two lines a row on every width: the movement under the rank, the gain under
+     the total, so the name keeps the middle even at 360px. */
+  .hs { width: 100%; border-collapse: collapse; font-size: max(0.95rem, 1.05rem * var(--scroll-text, 1)); }
+  .hs th {
+    padding: 0 0.25rem 0.3rem;
+    font-weight: normal;
+    color: var(--scroll-muted);
+    border-bottom: 2px solid color-mix(in srgb, var(--scroll-edge) 60%, transparent);
+  }
+  .hs td { padding: 0.3rem 0.25rem; border-top: 1px solid color-mix(in srgb, var(--scroll-edge) 35%, transparent); vertical-align: middle; }
+  .hs tbody tr:first-child td { border-top: none; }
+  .hs tr { position: relative; }
+  .hs .r { width: 2.6rem; text-align: left; }
+  .hs .nm { text-align: left; overflow-wrap: anywhere; }
+  .hs .pt { width: 4.6rem; text-align: right; }
+  .rk { display: flex; align-items: center; gap: 0.2rem; font-variant-numeric: tabular-nums; }
+  .mv, .gain { display: block; min-height: 1.1em; font-size: 0.8em; color: var(--scroll-muted); font-variant-numeric: tabular-nums; }
+  .mv.up::before { content: '▲'; font-size: 0.8em; margin-right: 1px; }
+  .mv.down::before { content: '▼'; font-size: 0.8em; margin-right: 1px; }
+  .gain { opacity: 0; transition: opacity 250ms; }
+  .gain.shown, .mv { opacity: 1; }
+  .tot { font-variant-numeric: tabular-nums; }
+  .whois { display: flex; align-items: center; gap: 0.4rem; }
+  .whois .pet { flex: none; width: 28px; height: 28px; object-fit: contain; }
+  /* "(you)" never breaks: the name may wrap, the note goes whole. */
+  .note { white-space: nowrap; color: var(--scroll-muted); }
+  tr.you td { background: color-mix(in srgb, var(--scroll-paper), #fff 30%); }
+  tr.you.pinned td { position: sticky; bottom: 0; z-index: 2; box-shadow: 0 -2px 0 var(--scroll-edge); }
+
+  /* ---------- the ceremony ---------- */
+  .place { display: flex; align-items: center; justify-content: center; gap: 0.75rem; min-height: 7.5rem; animation: rise 300ms ease-out both; }
+  .place .pets { display: flex; flex: none; }
+  .place .pets img { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.2)); }
+  .place .pets img + img { margin-left: -22px; }
+  .place .more { align-self: flex-end; font-size: 0.9rem; color: var(--scroll-muted); }
+  .place .pname { margin: 0; font-size: max(1.15rem, 1.4rem * var(--scroll-text, 1)); line-height: 1.15; overflow-wrap: anywhere; }
+  .place .ppts { margin: 0.15rem 0 0; font-size: max(1rem, 1.15rem * var(--scroll-text, 1)); color: var(--scroll-muted); font-variant-numeric: tabular-nums; }
+  .place .tier { display: block; font-size: 0.85rem; color: var(--scroll-muted); }
+  .place .who-text { min-width: 0; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+  .leaving { animation: leave 300ms ease-in forwards; }
+  @keyframes leave { to { opacity: 0; transform: translateY(-6px); } }
+  .arriving { animation: arrive 350ms ease-out both; }
+  @keyframes arrive { from { opacity: 0; transform: translateY(-10px); } }
+
+  /* Three places for the trophy, picked with the "Trophy" control. */
+  .trophy { position: absolute; z-index: 4; width: var(--trophy-w); pointer-events: none; }
+  .trophy img { display: block; width: 100%; height: auto; filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.3)); }
+  .trophy:empty, .trophy-inline:empty { display: none; }
+  .trophy img, .trophy-inline img { animation: pop 350ms cubic-bezier(0.3, 1.5, 0.5, 1) both; transform-origin: 50% 80%; }
+  @keyframes pop { from { opacity: 0; transform: scale(0.3) rotate(-10deg); } }
+  /* Beside: opposite the Wise Old Man, over the right roll, at the sheet's foot. */
+  .trophy.side { right: 0; bottom: calc(var(--finial) * 0.75 + 4px); }
+  .stage.edge .trophy.side { right: calc(var(--edge) + 4px); }
+  /* Pinned: hung on the sheet's bottom edge where a right answer's ribbon goes. */
+  .trophy.pin { left: 65%; bottom: calc(-0.5 * var(--trophy-w)); transform: translateX(-50%); }
+  .trophy-inline { flex: none; width: var(--trophy-w); }
+  .trophy-inline img { display: block; width: 100%; height: auto; }
+  .stage:not(.t-side) .trophy.side, .stage:not(.t-pin) .trophy.pin, .stage:not(.t-inline) .trophy-inline { display: none; }
+  .stage.t-side.ceremony .place { padding-right: calc(var(--trophy-w) - var(--roll-w)); }
+  .stage.t-pin.ceremony .place { padding-bottom: calc(var(--trophy-w) * 0.6); }
+  .stage.t-pin.ceremony .under { margin-top: calc(var(--trophy-w) * 0.5 + 0.5rem); }
+
+  /* Confetti out of first place's trophy: clue-scroll.html's sixteen flakes. */
+  .confetti { position: absolute; left: 50%; top: 35%; pointer-events: none; }
+  .confetti i { position: absolute; width: 6px; height: 9px; margin: -4px -3px; border-radius: 1px; opacity: 0; animation: confetti 1200ms cubic-bezier(0.2, 0.7, 0.4, 1) both; }
+  @keyframes confetti {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+    40% { opacity: 1; transform: translate(calc(var(--dx) * 0.75), var(--dy)) rotate(calc(var(--r) * 0.4)); }
+    100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 70px)) rotate(var(--r)); }
+  }
+  .confetti i:nth-child(1) { --dx: -43px; --dy: -3px; --r: -217deg; background: #f2c230; animation-delay: 152ms; }
+  .confetti i:nth-child(2) { --dx: -47px; --dy: -15px; --r: -439deg; background: #b3261e; animation-delay: 113ms; }
+  .confetti i:nth-child(3) { --dx: -48px; --dy: -20px; --r: -303deg; background: #d9a41c; animation-delay: 105ms; }
+  .confetti i:nth-child(4) { --dx: -31px; --dy: -26px; --r: -294deg; background: #8fd3a4; animation-delay: 140ms; }
+  .confetti i:nth-child(5) { --dx: -42px; --dy: -54px; --r: 205deg; background: #a8cbef; animation-delay: 114ms; }
+  .confetti i:nth-child(6) { --dx: -36px; --dy: -55px; --r: 394deg; background: #f390c0; animation-delay: 109ms; }
+  .confetti i:nth-child(7) { --dx: -16px; --dy: -54px; --r: -232deg; background: #fff4c8; animation-delay: 137ms; }
+  .confetti i:nth-child(8) { --dx: -4px; --dy: -44px; --r: -460deg; background: #dfb3e8; animation-delay: 145ms; }
+  .confetti i:nth-child(9) { --dx: 0px; --dy: -40px; --r: -434deg; background: #f2c230; animation-delay: 143ms; }
+  .confetti i:nth-child(10) { --dx: 19px; --dy: -60px; --r: 479deg; background: #b3261e; animation-delay: 159ms; }
+  .confetti i:nth-child(11) { --dx: 22px; --dy: -42px; --r: -537deg; background: #d9a41c; animation-delay: 149ms; }
+  .confetti i:nth-child(12) { --dx: 33px; --dy: -45px; --r: 355deg; background: #8fd3a4; animation-delay: 146ms; }
+  .confetti i:nth-child(13) { --dx: 44px; --dy: -37px; --r: -240deg; background: #a8cbef; animation-delay: 132ms; }
+  .confetti i:nth-child(14) { --dx: 54px; --dy: -30px; --r: -430deg; background: #f390c0; animation-delay: 126ms; }
+  .confetti i:nth-child(15) { --dx: 55px; --dy: -23px; --r: 354deg; background: #fff4c8; animation-delay: 144ms; }
+  .confetti i:nth-child(16) { --dx: 53px; --dy: -7px; --r: 215deg; background: #dfb3e8; animation-delay: 153ms; }
+
+  /* ---------- under the scroll ---------- */
+  .under {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid color-mix(in srgb, var(--bg-muted) 45%, transparent);
+    color: var(--bg-ink);
+  }
+  .meta { margin: 0 0 0.5rem; font-size: 0.85rem; color: var(--bg-muted); }
+  .under .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+
+  /* ---------- the prototype page ---------- */
+  body { margin: 0; }
+  .theme { padding: 1.5rem 1rem 6rem; background-color: var(--bg); background-image: var(--texture-bg); min-height: 100vh; box-sizing: border-box; }
+  .theme > h1 { color: var(--bg-ink); font-size: 1rem; margin: 0 0 0.25rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .theme > p { color: var(--bg-muted); font-size: 0.85rem; margin: 0 0 1rem; max-width: 60rem; }
+  .frames { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start; }
+  .device {
+    flex: none;
+    overflow-y: auto;
+    overflow-x: clip;
+    background-color: var(--bg);
+    background-image: var(--texture-bg);
+    outline: 1px dashed color-mix(in srgb, var(--bg-muted) 50%, transparent);
+    border-radius: 6px;
+  }
+  .device .bar {
+    position: sticky; top: 0; z-index: 10; height: 56px; box-sizing: border-box;
+    display: flex; align-items: center; padding: 0 16px;
+    background: var(--panel); color: var(--ink); font-size: 0.85rem; border-bottom: 1px solid var(--line);
+  }
+  .device main { padding: 32px 16px 24px; }
+  .caption { color: var(--bg-muted); font: 0.75rem ui-monospace, monospace; margin: 0.4rem 0 0; }
+  .controls {
+    position: fixed; right: 1rem; bottom: 1rem; z-index: 20;
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; max-width: 46rem;
+    padding: 0.6rem 0.8rem; border-radius: 8px;
+    background: var(--panel); color: var(--ink); font-size: 0.85rem; border: 1px solid var(--line);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.3);
+  }
+  .controls label { display: flex; gap: 0.35rem; align-items: center; }
+
+  .stage.still *, .stage.still *::before { animation: none !important; transition: none !important; }
+  .stage.still .confetti { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .stage *, .stage *::before { animation: none !important; transition: none !important; }
+    .confetti { display: none; }
+  }
+</style>
+</head>
+<body>
+<!--
+  The standings on the stage, the Wise Old Man presenting: the hiscores between rounds, and
+  the final's trophy ceremony from fifth to first, then the full hiscores. With `make dev`
+  running it is at http://localhost:5173/prototypes/standings.html, on the real theme tokens.
+  Names, points and the Wise Old Man's lines are made up for the test.
+-->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <g id="roll-body">
+      <rect class="p" x="1.5" y="0" width="37" height="10" />
+      <rect class="sh2" x="1.5" y="0" width="7.5" height="10" />
+      <rect class="sh1" x="9" y="0" width="7" height="10" />
+      <rect class="hi" x="22" y="0" width="6" height="10" />
+      <rect class="sh1" x="32" y="0" width="6.5" height="10" />
+      <rect class="ln" x="0" y="0" width="1.5" height="10" />
+      <rect class="ln" x="38.5" y="0" width="1.5" height="10" />
+    </g>
+    <g id="finial">
+      <rect class="p" x="1.5" y="25" width="37" height="9" />
+      <rect class="sh2" x="1.5" y="25" width="7.5" height="9" />
+      <rect class="sh1" x="9" y="25" width="7" height="9" />
+      <rect class="hi" x="22" y="25" width="6" height="9" />
+      <rect class="sh1" x="32" y="25" width="6.5" height="9" />
+      <rect class="ln" x="0" y="25" width="1.5" height="9" />
+      <rect class="ln" x="38.5" y="25" width="1.5" height="9" />
+      <path class="rim" d="M0 19h40v6.5H0z" />
+      <path class="wood2" d="M20 19h20v6.5H20z" opacity="0.5" />
+      <path class="stroke" d="M0 19h40v6.5H0z" />
+      <rect class="wood" x="13" y="14" width="14" height="5" />
+      <rect class="wood2" x="20" y="14" width="7" height="5" />
+      <path class="wood" d="M8 14.5C8 8 13 3.5 20 3.5S32 8 32 14.5z" />
+      <path class="wood2" d="M20 3.5c7 0 12 4.5 12 11H20z" />
+      <rect class="wood2" x="17" y="0.8" width="6" height="3" />
+      <path class="stroke" d="M8 14.5C8 8 13 3.5 20 3.5S32 8 32 14.5zM13 14h14v5H13zM17 0.8h6v2.7h-6z" />
+    </g>
+    <g id="facets">
+      <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
+      <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
+      <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
+      <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
+      <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
+      <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
+      <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
+      <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
+      <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
+    </g>
+  </defs>
+</svg>
+
+<section class="theme" data-theme="jolly" id="page">
+  <h1>Standings: the Wise Old Man's hiscores</h1>
+  <p>Each frame is a phone or a small window with the 56px top bar; scroll inside it. Between rounds
+    the rows start in the last standings' order, the gains count up, and the rows move to their new
+    places. The final plays fifth to first with a trophy each, then shows everyone. Holds start at 1.5×, the timing chosen for the app. Pick a scene and
+    press Play.</p>
+  <div class="frames" id="frames"></div>
+</section>
+
+<div class="controls">
+  <label>Scene
+    <select id="scene">
+      <option value="round2">Between rounds (2 of 5)</option>
+      <option value="round1">Between rounds (1 of 5)</option>
+      <option value="final" selected>Final</option>
+    </select>
+  </label>
+  <label>Room
+    <select id="room">
+      <option value="12">12 players</option>
+      <option value="tie">12, tied for second</option>
+      <option value="30">30 players, you low</option>
+      <option value="3">3 players, one on 0</option>
+    </select>
+  </label>
+  <label>Trophy
+    <select id="trophy">
+      <option value="side">beside the scroll, right</option>
+      <option value="pin">pinned to the sheet's edge</option>
+      <option value="inline">on the sheet</option>
+    </select>
+  </label>
+  <label>Theme
+    <select id="theme">
+      <option>jolly</option><option>pollnivneach</option><option>wilderness</option><option>party_room</option><option>tzhaar</option>
+    </select>
+  </label>
+  <label>Holds
+    <select id="slow"><option value="1">as timed</option><option value="1.5" selected>1.5× longer (chosen)</option><option value="2">2× longer</option><option value="4">4× longer</option></select>
+  </label>
+  <label><input type="checkbox" id="still" /> reduced motion</label>
+  <button type="button" class="primary" id="play">Play</button>
+</div>
+
+<script>
+  const NAMES = [
+    'TwintigApril', 'Cow31337Killer', 'AlchAddict', 'xX_LumbyLad_Xx', 'NoobSlayer99', 'IronMum',
+    'Pure Dad', 'Bank Stander', 'GE Flipper', 'Sir Pkalot', 'Varrock Vic', 'AVeryLongNameIndeedYesss',
+    'Fally Fred', 'Draynor Dora', 'Karamja Kev', 'Gnome Ball Pro', 'SwampToadEnjoyer', 'Mithril Mo',
+    'Rimmington Rita', 'Al Kharid Ali', 'Tears of Gus', 'Wildy Wendy', 'Rune Ess Runner', 'Monkfish Max',
+    'Barrows Bro', 'Zulrah Zoe', 'Tithe Farmer Tim', 'Agility Andy', 'Nature Rune Nat', 'Lil Tick',
+  ]
+  const PETS = [
+    'baby_mole', 'olmlet', 'herbi', 'beaver', 'callisto_cub', 'pet_cat_black', 'hellpuppy', 'bloodhound',
+    'giant_squirrel', 'jal_nib_rek', 'kalphite_princess', 'little_nightmare', 'chompy_chick', 'heron',
+    'fox_pet', 'lil_zik', 'nexling', 'baron', 'abyssal_orphan', 'aggy', 'babi', 'beef', 'bran', 'butch',
+    'dom', 'midnight', 'noon', 'moxi', 'muphin_melee', 'ikkle_hydra_fire',
+  ]
+  const TIERS = ['diamond', 'platinum', 'gold', 'silver', 'bronze']
+  const ORDINAL = ['first', 'second', 'third', 'fourth', 'fifth']
+  const YOU = 0
+  const fmt = new Intl.NumberFormat('en')
+  const petUrl = (pet) => `/src/assets/pets/${pet}_chathead.png`
+  const trophyUrl = (rank) => `/src/assets/trophies/${TIERS[rank - 1]}.png`
+  const WOM = '/src/assets/npcs/wise_old_man_chathead.png'
+  const CONFETTI = `<span class="confetti">${'<i></i>'.repeat(16)}</span>`
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
+
+  function seeded(a) {
+    return () => {
+      a = (a + 0x6d2b79f5) | 0
+      let t = Math.imul(a ^ (a >>> 15), 1 | a)
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+  }
+
+  /** A made-up room: `prev` is the last standings' total, `now` this one's. */
+  function makeRoom(kind, firstRound) {
+    const n = kind === '30' ? 30 : kind === '3' ? 3 : 12
+    const r = seeded(273)
+    const ps = Array.from({ length: n }, (_, id) => {
+      const prev = firstRound ? 0 : Math.round(r() * 450) * 10
+      const gain = r() < 0.1 ? 0 : Math.round(r() * 420) * 10
+      return { id, name: NAMES[id], pet: PETS[id], prev, now: prev + gain }
+    })
+    if (kind === '30') { ps[YOU].prev = firstRound ? 0 : 900; ps[YOU].now = ps[YOU].prev + 1240 }
+    if (kind === '3') { ps[2].prev = 0; ps[2].now = 0 }
+    if (kind === 'tie') {
+      const order = [...ps].sort((a, b) => b.now - a.now)
+      order[2].now = order[1].now
+    }
+    return ps
+  }
+
+  /** Points desc, then join order; dense ranks, as the server sends them. */
+  function ranked(ps, key) {
+    const sorted = [...ps].sort((a, b) => b[key] - a[key] || a.id - b.id)
+    let rank = 0
+    let last = null
+    return sorted.map((p) => {
+      if (p[key] !== last) { rank++; last = p[key] }
+      return { p, rank }
+    })
+  }
+
+  function scrollHTML(content) {
+    const roll = (side) => `<div class="roll ${side}" aria-hidden="true">
+      <svg class="finial top" viewBox="0 0 40 34"><use href="#finial" /></svg>
+      <svg class="body" viewBox="0 0 40 10" preserveAspectRatio="none"><use href="#roll-body" /></svg>
+      <svg class="finial bottom" viewBox="0 0 40 34"><use href="#finial" /></svg></div>`
+    return `<div class="scroll">${roll('left')}<div class="reveal"><div class="paper">
+      <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true"><use href="#facets" /></svg>
+      <div class="content">${content}</div></div><div class="trophy pin" aria-hidden="true"></div></div>${roll('right')}</div>`
+  }
+
+  function stageHTML(title) {
+    return `<div class="stage">
+      <div class="stage-row">
+        <div class="npc" aria-hidden="true"><img src="${WOM}" alt="" /></div>
+        ${scrollHTML(`<div class="head"><h2>${title}</h2><p class="says"></p></div><div class="board"></div>`)}
+        <div class="trophy side" aria-hidden="true"></div>
+      </div>
+      <div class="under"></div>
+    </div>`
+  }
+
+  function rowHTML({ p }, { pts, rankText }) {
+    const you = p.id === YOU
+    return `<tr data-id="${p.id}" class="${you ? 'you' : ''}">
+      <td class="r"><span class="rk"><span class="n">${rankText}</span></span><span class="mv"></span></td>
+      <td class="nm"><span class="whois"><img class="pet" src="${petUrl(p.pet)}" alt="" /><span>${esc(p.name)}${you ? ' <span class="note">(you)</span>' : ''}</span></span></td>
+      <td class="pt"><span class="tot">${fmt.format(pts)}</span><span class="gain"></span></td></tr>`
+  }
+  const tableHTML = (rows) =>
+    `<table class="hs"><thead><tr><th class="r">#</th><th class="nm">Name</th><th class="pt">Points</th></tr></thead><tbody>${rows.join('')}</tbody></table>`
+
+  /** Gains under the totals and arrows under the ranks; arrows only once there was an order. */
+  function markMoves(tbody, ps, prevRank, nowRank, firstRound) {
+    for (const p of ps) {
+      const tr = tbody.querySelector(`[data-id="${p.id}"]`)
+      const gain = p.now - p.prev
+      const g = tr.querySelector('.gain')
+      g.textContent = gain > 0 ? `+${fmt.format(gain)}` : '+0'
+      g.classList.add('shown')
+      tr.querySelector('.n').textContent = nowRank.get(p.id)
+      const d = prevRank.get(p.id) - nowRank.get(p.id)
+      const mv = tr.querySelector('.mv')
+      if (!firstRound && d !== 0) {
+        mv.className = `mv ${d > 0 ? 'up' : 'down'}`
+        mv.textContent = Math.abs(d)
+      }
+    }
+  }
+
+  function countUp(el, from, to, ms) {
+    const t0 = performance.now()
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / ms)
+      el.textContent = fmt.format(Math.round(from + (to - from) * (1 - (1 - k) ** 3)))
+      if (k < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }
+
+  /** Move rows to `order`, sliding each from where it was. */
+  function flip(tbody, order) {
+    const before = new Map([...tbody.children].map((tr) => [tr.dataset.id, tr.getBoundingClientRect().top]))
+    for (const { p } of order) tbody.appendChild(tbody.querySelector(`[data-id="${p.id}"]`))
+    for (const tr of tbody.children) {
+      const dy = before.get(tr.dataset.id) - tr.getBoundingClientRect().top
+      tr.style.transition = 'none'
+      tr.style.transform = `translateY(${dy}px)`
+      tr.style.zIndex = dy > 0 ? 1 : 0
+    }
+    void tbody.offsetWidth
+    for (const tr of tbody.children) {
+      tr.style.transition = 'transform 650ms cubic-bezier(0.2, 0.7, 0.3, 1)'
+      tr.style.transform = ''
+    }
+  }
+
+  /** One frame's run; a new Play makes every pending step of the old one stop. */
+  class Run {
+    constructor(device, still, slow) { this.device = device; this.still = still; this.slow = slow; this.live = true }
+    sleep(ms) { return new Promise((ok, stop) => setTimeout(() => (this.live ? ok() : stop('stale')), ms * this.slow)) }
+    async type(el, text) {
+      el.setAttribute('aria-label', text)
+      if (this.still) { el.textContent = text; return }
+      el.textContent = ''
+      for (const ch of text) { el.textContent += ch; await this.sleep(20) }
+    }
+  }
+
+  async function playRounds(run, room, firstRound) {
+    const stage = run.stage
+    const body = stage.querySelector('.board')
+    const says = stage.querySelector('.says')
+    const prev = ranked(room, 'prev')
+    const now = ranked(room, 'now')
+    const prevRank = new Map(prev.map((x) => [x.p.id, x.rank]))
+    const nowRank = new Map(now.map((x) => [x.p.id, x.rank]))
+    const round = firstRound ? 1 : 2
+    const line = `Round ${round} done. Let’s see who truly knows Gielinor best.`
+    body.innerHTML = tableHTML(prev.map((x) => rowHTML(x, { pts: x.p.prev, rankText: firstRound ? '–' : x.rank })))
+    const tbody = body.querySelector('tbody')
+    stage.querySelector('.under').innerHTML =
+      `<p class="meta">Round ${round + 1} of 5 starts in <span class="secs">10</span> seconds</p>`
+    const secs = stage.querySelector('.secs')
+    ;(async () => { for (let s = 10; s >= 0; s--) { secs.textContent = s; await new Promise((ok) => setTimeout(ok, 1000)); if (!run.live) return } })()
+
+    if (run.still) {
+      flipInstant(tbody, now)
+      markMoves(tbody, room, prevRank, nowRank, firstRound)
+      tbody.querySelectorAll('.tot').forEach((el) => { el.textContent = fmt.format(room[el.closest('tr').dataset.id].now) })
+      says.textContent = line
+      tbody.querySelector('tr.you')?.classList.add('pinned')
+      return
+    }
+    stage.querySelector('.scroll').classList.add('opening')
+    await run.sleep(300)
+    await run.type(says, line)
+    await run.sleep(300)
+    for (const p of room) {
+      const tr = tbody.querySelector(`[data-id="${p.id}"]`)
+      const g = tr.querySelector('.gain')
+      g.textContent = `+${fmt.format(p.now - p.prev)}`
+      g.classList.add('shown')
+      countUp(tr.querySelector('.tot'), p.prev, p.now, 700)
+    }
+    await run.sleep(1000)
+    flip(tbody, now)
+    markMoves(tbody, room, prevRank, nowRank, firstRound)
+    await run.sleep(700)
+    tbody.querySelector('tr.you')?.classList.add('pinned')
+  }
+
+  function flipInstant(tbody, order) {
+    for (const { p } of order) tbody.appendChild(tbody.querySelector(`[data-id="${p.id}"]`))
+  }
+
+  function placeHTML(step) {
+    const shown = step.ps.slice(0, 3)
+    const more = step.ps.length - shown.length
+    const names = step.ps.map((p) => esc(p.name) + (p.id === YOU ? ' <span class="note">(you)</span>' : '')).join(', ')
+    return `<div class="place">
+      <span class="trophy-inline" aria-hidden="true"><img src="${trophyUrl(step.rank)}" alt="" /></span>
+      <span class="pets">${shown.map((p) => `<img src="${petUrl(p.pet)}" alt="" />`).join('')}</span>
+      ${more > 0 ? `<span class="more">+${more}</span>` : ''}
+      <div class="who-text">
+        <p class="pname">${names}</p>
+        <p class="ppts">${fmt.format(step.ps[0].now)} points
+          <span class="tier">${TIERS[step.rank - 1][0].toUpperCase() + TIERS[step.rank - 1].slice(1)} trophy</span></p>
+      </div></div>`
+  }
+
+  function stepLine(step) {
+    if (step.ps.length > 1) return `Tied for ${ORDINAL[step.rank - 1]}…`
+    return ['And top of the hiscores…', 'So close! In second…', 'Third place goes to…', 'Fourth…', 'In fifth place…'][step.rank - 1]
+  }
+
+  function showTrophy(stage, rank) {
+    const html = `<img src="${trophyUrl(rank)}" alt="" />${rank === 1 ? CONFETTI : ''}`
+    stage.querySelectorAll('.trophy').forEach((t) => { t.innerHTML = html })
+    const inline = stage.querySelector('.trophy-inline')
+    if (inline && rank === 1) inline.insertAdjacentHTML('beforeend', CONFETTI)
+    if (inline) inline.style.position = 'relative'
+  }
+
+  /**
+   * From first place to the full hiscores: the trophy and the winner fade, the sheet unrolls
+   * downward to the table's height while the rows arrive top to bottom, and the Wise Old Man
+   * types his line. Driven by CSS alone, so Skip can call it mid-ceremony.
+   */
+  function finish(run, room, animate = false) {
+    const stage = run.stage
+    const now = ranked(room, 'now')
+    const winners = now.filter((x) => x.rank === 1 && x.p.now > 0).map((x) => x.p.name)
+    const line = winners.length
+      ? `Gz, ${winners.join(' and ')}! Here are the full hiscores.`
+      : 'Nobody scored. A quiet night at the inn.'
+    const body = stage.querySelector('.board')
+    const under = stage.querySelector('.under')
+    const show = () => {
+      const from = body.getBoundingClientRect().height
+      stage.classList.remove('ceremony')
+      stage.querySelectorAll('.trophy').forEach((t) => { t.innerHTML = ''; t.classList.remove('leaving') })
+      const prevRank = new Map(ranked(room, 'prev').map((x) => [x.p.id, x.rank]))
+      const nowRank = new Map(now.map((x) => [x.p.id, x.rank]))
+      body.innerHTML = tableHTML(now.map((x) => rowHTML(x, { pts: x.p.now, rankText: x.rank })))
+      markMoves(body.querySelector('tbody'), room, prevRank, nowRank, false)
+      under.innerHTML = `<p class="meta">Level scores share a place. Between them, more correct
+        answers comes first, and after that the earliest to join.</p>
+        <div class="row"><button type="button" class="primary">Back to the inn</button></div>`
+      const says = stage.querySelector('.says')
+      if (!animate) { says.textContent = line; return }
+      typeLoose(says, line)
+      const to = body.scrollHeight
+      const rows = body.querySelectorAll('thead tr, tbody tr')
+      const ms = Math.min(1600, 300 + rows.length * 60)
+      rows.forEach((tr, i) => { tr.classList.add('arriving'); tr.style.animationDelay = `${Math.min(i * 60, ms - 300)}ms` })
+      under.classList.add('arriving')
+      under.style.animationDelay = `${ms}ms`
+      body.style.overflow = 'hidden'
+      body.style.height = `${from}px`
+      void body.offsetHeight
+      body.style.transition = `height ${ms}ms cubic-bezier(0.3, 0.6, 0.3, 1)`
+      body.style.height = `${to}px`
+      setTimeout(() => { body.style.cssText = '' }, ms + 50)
+    }
+    if (!animate) return show()
+    stage.querySelectorAll('.trophy').forEach((t) => t.classList.add('leaving'))
+    body.querySelector('.place')?.classList.add('leaving')
+    setTimeout(show, 300)
+  }
+
+  /** Types a line on its own clock, so Skip, which stops the run, still gets it typed. */
+  async function typeLoose(el, text) {
+    el.setAttribute('aria-label', text)
+    el.textContent = ''
+    for (const ch of text) { el.textContent += ch; await new Promise((ok) => setTimeout(ok, 20)) }
+  }
+
+  async function playFinal(run, room) {
+    const stage = run.stage
+    const says = stage.querySelector('.says')
+    const body = stage.querySelector('.board')
+    const now = ranked(room, 'now')
+    const steps = [5, 4, 3, 2, 1]
+      .map((rank) => ({ rank, ps: now.filter((x) => x.rank === rank && x.p.now > 0).map((x) => x.p) }))
+      .filter((s) => s.ps.length > 0)
+    if (run.still || steps.length === 0) return finish(run, room)
+    stage.classList.add('ceremony')
+    stage.querySelector('.under').innerHTML = `<div class="row"><button type="button" class="skip">Skip to the hiscores</button></div>`
+    stage.querySelector('.skip').addEventListener('click', () => { run.live = false; finish(run, room, true) })
+    stage.querySelector('.scroll').classList.add('opening')
+    body.innerHTML = '<div class="place"></div>'
+    await run.sleep(300)
+    await run.type(says, 'The final scores are in!')
+    await run.sleep(700)
+    for (const step of steps) {
+      stage.querySelectorAll('.trophy').forEach((t) => { t.innerHTML = '' })
+      body.innerHTML = '<div class="place"></div>'
+      await run.type(says, stepLine(step))
+      await run.sleep(400)
+      body.innerHTML = placeHTML(step)
+      showTrophy(stage, step.rank)
+      await run.sleep(step.rank === 1 ? 3200 : 1900)
+    }
+    finish(run, room, true)
+  }
+
+  const FRAMES = [[480, 820, 'a small window'], [390, 760, 'iPhone 14'], [360, 640, 'small Android']]
+  let runs = []
+
+  function play() {
+    runs.forEach((r) => { r.live = false })
+    const scene = document.getElementById('scene').value
+    const kind = document.getElementById('room').value
+    const still = document.getElementById('still').checked
+    document.getElementById('page').dataset.theme = document.getElementById('theme').value
+    const title = scene === 'final' ? 'Final hiscores' : 'Hiscores'
+    const frames = document.getElementById('frames')
+    frames.innerHTML = FRAMES.map(([w, h, name]) => `<div><div class="device" style="width:${w}px;height:${h}px" data-w="${w}">
+        <div class="bar">Jolly Boar Inn · ABCD</div><main>${stageHTML(title)}</main></div>
+        <p class="caption">${w}×${h}, ${name}</p></div>`).join('')
+    runs = [...frames.querySelectorAll('.device')].map((device) => {
+      const run = new Run(device, still, Number(document.getElementById('slow').value))
+      run.stage = device.querySelector('.stage')
+      run.stage.classList.add(`t-${document.getElementById('trophy').value}`)
+      run.stage.classList.toggle('edge', Number(device.dataset.w) < 448)
+      run.stage.classList.toggle('still', still)
+      const room = makeRoom(kind, scene === 'round1')
+      const done = scene === 'final' ? playFinal(run, room) : playRounds(run, room, scene === 'round1')
+      Promise.resolve(done).catch((e) => { if (e !== 'stale') throw e })
+      return run
+    })
+  }
+
+  document.getElementById('play').addEventListener('click', play)
+  for (const id of ['scene', 'room', 'trophy', 'theme', 'still', 'slow']) document.getElementById(id).addEventListener('change', play)
+  play()
+</script>
+</body>
+</html>

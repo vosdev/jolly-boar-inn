@@ -24,6 +24,11 @@
    * simply there, which is what a reveal or a reconnect late in the hold wants. On a phone
    * the scroll stays put and the guest takes the host's column, on the sheet's other side.
    * `returning` mirrors it at the reveal's end, so the host is in place for what follows.
+   *
+   * A `tall` sheet, the hiscores, runs longer than a screen, so the host stands at its
+   * top-left beside the line it speaks, and the sheet keeps its full width below. What is
+   * written beside the host clears it by `--host-clear`. `beside` stands on the right,
+   * over the right roll at the sheet's foot: the final's trophy.
    */
   import type { Snippet } from 'svelte'
 
@@ -41,6 +46,8 @@
     entering = false,
     returning = false,
     hero = null,
+    tall = false,
+    beside,
     children,
   }: {
     /** A picture to stand in the host's place instead, larger: Home's, from the branding. */
@@ -57,6 +64,10 @@
     entering?: boolean
     /** Hand the stage back: the guest leaves and the host returns. */
     returning?: boolean
+    /** The host at the sheet's top, for a sheet longer than the host is tall. */
+    tall?: boolean
+    /** What stands on the right, opposite the host. */
+    beside?: Snippet
     /** What sits under the line. */
     children?: Snippet
   } = $props()
@@ -69,6 +80,7 @@
 <div class="stage" class:with-hero={hero !== null}>
   <div
     class="stage-row"
+    class:tall
     class:event={guestArt !== null && !returning}
     class:entering={guestArt !== null && entering && !returning}
     class:returning={guestArt !== null && returning}
@@ -82,6 +94,11 @@
     {#if guestArt !== null}
       <div class="npc guest" aria-hidden="true">
         <img class={guestArt.cut} src={guestArt.url} alt="" draggable="false" />
+      </div>
+    {/if}
+    {#if beside}
+      <div class="beside" aria-hidden="true">
+        {@render beside()}
       </div>
     {/if}
   </div>
@@ -123,6 +140,28 @@
     z-index: 3;
     width: var(--npc-w);
     margin-right: calc(-1 * var(--npc-lap));
+  }
+
+  /* The text beside the host starts this far in from the sheet's left edge. */
+  .tall {
+    --beside-w: 92px;
+    --host-clear: calc(var(--npc-w) - var(--roll-w) - 0.9rem * var(--k) + 0.5rem);
+  }
+
+  .tall .npc {
+    position: absolute;
+    left: 0;
+    top: calc(var(--finial) * 0.75 + 4px);
+    margin: 0;
+  }
+
+  .beside {
+    position: absolute;
+    z-index: 4;
+    right: 0;
+    bottom: calc(var(--finial) * 0.75 + 4px);
+    width: var(--beside-w, 92px);
+    pointer-events: none;
   }
 
   .npc img {
@@ -256,6 +295,10 @@
       --scroll-scale: 0.8;
       --scroll-text: 0.9;
     }
+
+    .tall {
+      --beside-w: 72px;
+    }
   }
 
   /* Out to the screen's edges, past main's 1rem gutter, with the rolls' outer halves cut
@@ -298,6 +341,24 @@
 
     :is(.entering, .returning) > :global(.scroll) {
       animation: none;
+    }
+
+    /* A tall sheet needs no column kept clear: the host stands only beside its top. */
+    .tall :global(.paper) {
+      padding-left: calc(var(--roll-w) / 2 + 1rem);
+    }
+
+    .tall {
+      --host-clear: calc(6px + var(--npc-w) - 1rem + 0.4rem);
+    }
+
+    .tall .npc {
+      top: calc(var(--finial) * 0.75 + 4px);
+      bottom: auto;
+    }
+
+    .beside {
+      right: calc(var(--roll-w) / 2 + 4px);
     }
   }
 

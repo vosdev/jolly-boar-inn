@@ -2,7 +2,7 @@
  * The room screen in and around the `standings` phase, fed frames straight through
  * `applyServerMessage` with the socket mocked out.
  *
- * Between rounds the podium is the screen, under a timer to the next round. Inside a
+ * Between rounds the Wise Old Man's hiscores are the screen, under a timer to the next round. Inside a
  * round there is no board under the reveal. And a phase this build does not know falls
  * through to the waiting screen, which is what a build from before `standings` does
  * with that phase.
@@ -18,6 +18,7 @@ import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
+import { stubAnimations } from '../test-animate'
 import { clearVocabCache } from '../lib/vocab'
 import { savePastGame } from '../lib/history'
 import type { RoomSocketHandlers } from '../lib/ws'
@@ -75,8 +76,8 @@ function roomView(patch: Partial<RoomView>): RoomView {
 }
 
 const STANDINGS: Standing[] = [
-  { player_id: 'a', display_name: 'Zezima', avatar: null, points: 1000, rank: 1 },
-  { player_id: 'b', display_name: 'Woox', avatar: null, points: 0, rank: 2 },
+  { player_id: 'a', display_name: 'Zezima', avatar: null, points: 1000, rank: 1, points_gained: 1000, previous_rank: null },
+  { player_id: 'b', display_name: 'Woox', avatar: null, points: 0, rank: 2, points_gained: 0, previous_rank: null },
 ]
 
 function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
@@ -105,15 +106,19 @@ async function arrive(message: Welcome): Promise<void> {
 }
 
 describe('Room', () => {
-  it('shows the podium between rounds, with a timer to the next round', async () => {
+  it('shows the hiscores between rounds, with a timer to the next round', async () => {
     await arrive(welcome(roomView({})))
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(
       /After round 1 of 2\s*Standings/,
     )
     // The countdown is the bar under the top bar, which App draws from this store.
     expect(get(timerBar)?.label).toBe('to the next round')
-    expect(document.querySelector('.podium')).not.toBeNull()
-    expect(screen.getByText('1st, Diamond trophy: Zezima, 1,000 points')).toBeTruthy()
+    const rows = document.querySelectorAll('.hiscores tbody tr')
+    expect([...rows].map((row) => row.querySelector('.name')?.textContent?.trim())).toEqual([
+      'Zezima (you)',
+      'Woox',
+    ])
+    expect(screen.getByRole('heading', { level: 2, name: 'Hiscores' })).toBeTruthy()
   })
 
   it('lets the host start the next round early', async () => {
@@ -152,7 +157,6 @@ describe('Room', () => {
       reveal_seconds: 8,
     })
     await screen.findByText(/Question 1 of 2/)
-    expect(document.querySelector('.podium')).toBeNull()
     expect(document.querySelector('.hiscores')).toBeNull()
   })
 
@@ -364,16 +368,28 @@ describe('Room', () => {
     const unknown = roomView({ phase: 'intermission' as RoomView['phase'], next_at: null })
     await arrive(welcome(unknown))
     expect(screen.getByText('Waiting for the next question…')).toBeTruthy()
-    expect(document.querySelector('.podium')).toBeNull()
+    expect(document.querySelector('.hiscores')).toBeNull()
   })
 
-  it('draws the same podium on the final screen, with everyone in the table', async () => {
+  it('goes straight to the final hiscores for a client arriving after the end', async () => {
     await arrive(welcome(roomView({ status: 'finished', phase: 'idle', next_at: null, segment: null })))
     const heading = screen.getByRole('heading', { level: 1 })
     expect(heading.textContent).toBe('Final standings')
-    expect(heading.closest('.panel')?.querySelector('.tagline')?.textContent).toContain('Zezima')
-    expect(document.querySelector('.podium')).not.toBeNull()
+    expect(screen.getByText('Gz, Zezima! Here are the full hiscores.')).toBeTruthy()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(2)
+    expect(screen.queryByRole('button', { name: 'Skip to the hiscores' })).toBeNull()
+  })
+
+  it('presents the top five first to a client that watched the game end', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' })))
+    applyServerMessage({
+      t: 'room_updated',
+      room: roomView({ status: 'finished', phase: 'idle', next_at: null, segment: null }),
+      players: [],
+    })
+    applyServerMessage({ t: 'game_finished', standings: STANDINGS })
+    await screen.findByRole('button', { name: 'Skip to the hiscores' })
+    expect(document.querySelector('.hiscores')).toBeNull()
   })
 })
 
@@ -411,7 +427,7 @@ describe('the room’s own headings', () => {
 })
 
 describe('a room that is gone', () => {
-  const FINAL = [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1 }]
+  const FINAL = [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1, points_gained: 900, previous_rank: null }]
 
   beforeEach(() => {
     resetRoom()
@@ -609,32 +625,21 @@ describe('a random event’s way out', () => {
         players: [],
       })
       await tick()
-      expect(document.querySelector('.podium')).not.toBeNull()
-      expect(document.querySelector('.stage-row')).toBeNull()
+      expect(document.querySelector('.hiscores')).not.toBeNull()
+      expect(document.querySelector('.stage-row:is(.event, .returning)')).toBeNull()
     } finally {
       vi.useRealTimers()
     }
   })
 
   describe('when the host skips it', () => {
-    const animate = Element.prototype.animate
+    let restore = () => {}
 
     beforeEach(() => {
-      // jsdom has no Web Animations; Svelte's transitions need one that finishes.
-      Element.prototype.animate = function (
-        _keyframes: Keyframe[] | PropertyIndexedKeyframes | null,
-        options?: number | KeyframeAnimationOptions,
-      ): Animation {
-        const duration = typeof options === 'number' ? options : Number(options?.duration ?? 0)
-        const running = { onfinish: null as (() => void) | null, cancel() {}, currentTime: 0 }
-        setTimeout(() => running.onfinish?.(), duration)
-        return running as unknown as Animation
-      }
+      restore = stubAnimations()
     })
 
-    afterEach(() => {
-      Element.prototype.animate = animate
-    })
+    afterEach(() => restore())
 
     const screens = () => document.querySelectorAll('.screens > .screen')
 
