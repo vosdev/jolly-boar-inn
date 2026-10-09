@@ -30,6 +30,7 @@
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
   import { players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
+  import FullScreenSwitch from './FullScreenSwitch.svelte'
   import ConfirmDialog from './ConfirmDialog.svelte'
   import { inviteLink, maskedLink } from '../lib/invite'
   import CopyLink from './CopyLink.svelte'
@@ -215,15 +216,18 @@
     </h2>
     <span class="note">{readyCount} of {$players.length} ready</span>
   </div>
-  <button
-    type="button"
-    class="ready-toggle"
-    class:primary={!youReady}
-    aria-pressed={youReady}
-    onclick={toggleReady}
-  >
-    {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
-  </button>
+  <div class="ready-actions">
+    <button
+      type="button"
+      class="ready-toggle"
+      class:primary={!youReady}
+      aria-pressed={youReady}
+      onclick={toggleReady}
+    >
+      {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
+    </button>
+    <FullScreenSwitch />
+  </div>
   <ul class="players">
     {#each $players as player (player.id)}
       <li class:editing={player.editing === true}>
@@ -290,9 +294,15 @@
     margin-bottom: 0.75rem;
   }
 
+  .ready-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
   .ready-toggle {
     min-height: 44px;
-    margin-bottom: 0.75rem;
   }
 
   /* Ready is the room's word, not a verdict, so it borrows the accent for its edge and

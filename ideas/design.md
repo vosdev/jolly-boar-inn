@@ -233,6 +233,8 @@ countdowns and take-back rule are architecture §7.
 - **Lobby: a named list.** The host needs to know *who* is missing before Start, and the answer is
   usually "Dave, at the bar". Start is plain once the room reaches the threshold, and "Start anyway"
   below it, which asks first.
+- **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
+  follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash: a grid of pets, a name under each.** Pets light as people tap, and "Waiting for 2 more"
   says the rest.
 
