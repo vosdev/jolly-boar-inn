@@ -9,12 +9,12 @@ worth is ``rooms/scoring.py``'s business, told how to go about it by the module'
 ``SCORING``, and by its optional ``steps(payload)`` for a question that shows itself in steps.
 
 A type is an answer shape, not a round: the rounds are modes (``app/modes``), and several
-of them may share one type. A type module may still say how its questions are paced, as
-two optional ``Bounds``: ``QUESTIONS``, how many a round holds, and ``SECONDS``, how long
-one stays open. That is where the pace usually belongs -- ``more_less`` is two names and
-one word whatever round it is dressed as -- so it is what every mode of the type gets
-unless the mode says otherwise, and what a random event of the type is open for.
-``app.modes`` does the reading; a module that declares neither gets its fallbacks.
+of them may share one type. The type alone says how long a question stays open and how
+long its reveal holds, as two ``Timing``s, ``ANSWER`` and ``REVEAL``, over its optional
+``items(payload)``: ``more_less`` is two names and one word whatever round it is dressed
+as, and six entries to order are six entries in any round. The room's pace scales both
+(``timing.py``). A module may also say how many questions a round holds, as ``QUESTIONS``
+(``app.modes`` reads it).
 """
 
 from types import ModuleType
@@ -31,6 +31,7 @@ from app.questions.types import (
     price_is_right,
 )
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import MIN_ANSWER, MIN_REVEAL
 
 TYPES: dict[str, ModuleType] = {
     "more_less": more_less,
@@ -53,3 +54,18 @@ def steps_of(type_id: str, payload: dict[str, Any]) -> int | None:
     """How many steps this question shows itself in: its type's ``steps(payload)``, or ``None``."""
     hook = getattr(TYPES[type_id], "steps", None)
     return None if hook is None else hook(payload)
+
+
+def _items(type_id: str, payload: dict[str, Any]) -> int:
+    hook = getattr(TYPES[type_id], "items", None)
+    return 0 if hook is None else hook(payload)
+
+
+def answer_seconds(type_id: str, payload: dict[str, Any], pace: str) -> int:
+    """How long this question stays open at ``pace``."""
+    return TYPES[type_id].ANSWER.seconds(_items(type_id, payload), pace, MIN_ANSWER)
+
+
+def reveal_seconds(type_id: str, payload: dict[str, Any], pace: str) -> int:
+    """How long this question's reveal holds at ``pace``."""
+    return TYPES[type_id].REVEAL.seconds(_items(type_id, payload), pace, MIN_REVEAL)

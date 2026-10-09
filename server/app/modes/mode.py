@@ -22,25 +22,24 @@ class Mode:
     ``is_round`` is stated rather than derived from ``types``, so that forgetting a type
     cannot quietly turn a round into something no host can pick. The two modes that are
     not rounds, ``custom`` (the host's own questions) and ``random_event`` (the NPCs'), are
-    pools of random events: each of their questions carries a type of its own, and is
-    paced by it, so they state no types and no numbers.
+    pools of random events: each of their questions carries a type of its own, so they
+    state no types and no question count.
 
     ``pool`` names the mode whose pack questions this round draws instead of its own, so
     ``random_events_only`` can play the NPCs' questions as a round. ``setting`` names the
     boolean ``Settings`` field that has to be on for a host to pick the mode: the way a
     round that is not ready for everyone is kept off a public instance.
 
-    ``questions`` and ``seconds`` are the numbers a round disagrees with its types about.
-    ``None`` means "whatever the types say", which is what ``questions_bounds`` and
-    ``seconds_bounds`` fall back to; a round whose types disagree must state the number
-    itself, which ``modes.problems`` checks.
+    ``questions`` is how many questions a round holds, when it disagrees with its types.
+    ``None`` means "whatever the types say", which is what ``questions_bounds`` falls back
+    to; a round whose types disagree must state it, which ``modes.problems`` checks. How
+    long a question lasts is never the round's: its type says (``types/timing.py``).
     """
 
     id: str
     types: frozenset[str]
     is_round: bool = True
     questions: Bounds | None = None
-    seconds: Bounds | None = None
     pool: str | None = None
     setting: str | None = None
 

@@ -77,12 +77,12 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 **mode** is a round: what the host picks, what a splash introduces, what a pack pools by. Five
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
-`Mode(id, types, is_round=True, questions=None, seconds=None, pool=None, setting=None)` in `modes/`,
+`Mode(id, types, is_round=True, questions=None, pool=None, setting=None)` in `modes/`,
 registered in `MODES` in the create form's order.
 
 - `id` is `questions.mode` and the settings key. It is never renamed once shipped.
-- A round may mix types. The game loop reads only `question.type`. A round whose types disagree on
-  seconds states its own; `modes.problems` checks this at import.
+- A round may mix types. The game loop reads only `question.type`, which also times the question. A
+  round whose types disagree on `questions` states its own; `modes.problems` checks this at import.
 - `is_round` is explicit, so an empty `types` never turns a round into an event pool. Only `custom`
   and `random_event` are not rounds. They state no types and no numbers.
 - Copy (label, hint, blurb, host lines) lives on the client in `lib/modes.ts`.
@@ -100,16 +100,20 @@ def grade(payload, submissions) -> dict[player_id, float]   # credit, 0.0 to 1.0
 def check(payload) -> list[str]       # the stored answer follows from the stored facts
 def steps(payload) -> int | None      # optional: frames it reveals itself in
 SCORING: Scoring                      # SPEED by default (section 8)
-SECONDS: Bounds                       # optional
+ANSWER, REVEAL: Timing                # base + per_item seconds, at run pace
+def items(payload) -> int             # optional: options or entries; 0 without it
 ```
 
 - The room stores, echoes and grades what `parse_value` returns, never the raw value.
 - `grade` takes every submission at once, because `closest_number` ranks them. The close rounds
   credit to 1e-9 and clamps it to 0..1, logging a bad value rather than failing.
-- `Bounds(default, minimum, maximum)` is what Create offers and `NewRoomSettings` enforces. It falls
-  back from mode to types to registry. Rounds default to 5 questions. Seconds default to 10 for
-  `more_less` and `price_is_right`, 15 for `multiple_choice`, 20 for the rest. An event question is
-  open for its type's default.
+- `Bounds(default, minimum, maximum)` is the question count Create offers and `NewRoomSettings`
+  enforces. It falls back from mode to types to registry. Rounds default to 5 questions.
+- A question's time to answer and its reveal are its type's alone, at the room's `pace`: ×1.25
+  `walk`, ×1 `run`, ×0.75 `teleport`, a half rounded up, at least 5 s to answer and 4 s to reveal.
+  At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
+  4 + 1, `ordering` 10 + 5/entry and 4 + 2/entry, `price_is_right` 6 + 1/option and 6,
+  `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8.
 
 | Mode | Label | Type | Pool | Status |
 |---|---|---|---|---|
@@ -119,13 +123,13 @@ SECONDS: Bounds                       # optional
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
-| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done, 20 s |
-| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`; `image` stored for the render | hand-written | done, 20 s |
-| `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done, 20 s |
+| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done |
+| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`; `image` stored for the render | hand-written | done |
+| `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
-| `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done, 20 s |
-| `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `pick_all_that_apply` | hand-written | done, 20 s |
+| `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
+| `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `pick_all_that_apply` | hand-written | done |
 | `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Images |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
@@ -253,14 +257,14 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
-| `question_closed` | `question_id`, `reveal`, `results`, `standings`, `next_at`, `suggested_by`? | Closed. `next_at` ends the reveal; null after the last question. `suggested_by` is a shown `credit`. |
+| `question_closed` | `question_id`, `reveal`, `results`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `next_at` ends the reveal; null after the last question. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings` | Final. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
 
 ```
-RoomView     { code, status, settings, current_index, total, phase, next_at, segment,
-               finished_at, rounds?, key?, requests? }
+RoomView     { code, status, settings, current_index, total, phase, next_at, reveal_seconds,
+               segment, finished_at, rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank }
@@ -278,6 +282,7 @@ PlayerResult { value, correct, credit, points }
   before it are `not_open`, and `ends_at` and timing count from it, so the NPC's entrance costs
   nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
+  `reveal_seconds` is the reveal's whole length, for the countdown bar; null outside a reveal.
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` itself only when true.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
@@ -370,10 +375,10 @@ Settings (`rooms.settings`, fixed at creation):
 
 ```jsonc
 {
-  "modes": [{"mode": "more_less", "questions": 5, "seconds": 10}],  // one round each
+  "modes": [{"mode": "more_less", "questions": 5}],  // one round each
   "mode_order": "random",                // or "listed"
   "random_event_frequency": "default",   // "less" | "default" | "more"
-  "reveal_seconds": 6,                   // 2..30
+  "pace": "run",                         // "walk" | "run" | "teleport", section 3
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
   "name_wrong_answers": true,            // name who got it wrong under the reveal
@@ -382,10 +387,10 @@ Settings (`rooms.settings`, fixed at creation):
 }
 ```
 
-- `modes[].mode` keys `MODES`, never `TYPES`, once each. `questions` and `seconds` are optional.
-- `NewRoomSettings` checks the ranges at creation. `RoomSettings`, the stored model, clamps old
-  values, keeps a round whose mode was removed, and ignores unknown keys, so no downgrade strands a
-  room.
+- `modes[].mode` keys `MODES`, never `TYPES`, once each. `questions` is optional.
+- `NewRoomSettings` checks the ranges at creation. `RoomSettings`, the stored model, keeps a round
+  whose mode was removed and ignores unknown keys (an old room's `seconds` and `reveal_seconds`
+  too, playing at `run`), so no downgrade strands a room.
 
 ## 8. Scoring
 
@@ -449,7 +454,7 @@ Rehydrate (`get` on a room not in memory):
    are not read back; step 2 voids the only ones that could matter.
 2. A question shown and not closed was open at the crash. Void it and score nobody. A crash costs at
    most that question.
-3. Resume in `reveal` for `reveal_seconds`, then advance. A question that never opened is still
+3. Resume in `reveal` for that question's reveal, then advance. A question that never opened is still
    owed, so that reveal opens it.
 4. Any lookup loads the room, but only an authenticated socket resumes it, so a link preview never
    plays a room nobody is in.

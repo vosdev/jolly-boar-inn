@@ -53,12 +53,12 @@ function roomView(patch: Partial<RoomView>): RoomView {
     status: 'playing',
     settings: {
       modes: [
-        { mode: 'more_less', questions: 1, seconds: 10 },
-        { mode: 'price_is_right', questions: 1, seconds: 10 },
+        { mode: 'more_less', questions: 1 },
+        { mode: 'price_is_right', questions: 1 },
       ],
       mode_order: 'listed',
       random_event_frequency: 'default',
-      reveal_seconds: 8,
+      pace: 'run',
       standings_seconds: 10,
       close_when_all_answered: true,
       max_players: 50,
@@ -67,6 +67,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
     total: 2,
     phase: 'standings',
     next_at: new Date(Date.now() + 10_000).toISOString(),
+    reveal_seconds: null,
     segment: SEGMENT,
     finished_at: null,
     ...patch,
@@ -148,6 +149,7 @@ describe('Room', () => {
       results: {},
       standings: STANDINGS,
       next_at: new Date(Date.now() + 8_000).toISOString(),
+      reveal_seconds: 8,
     })
     await screen.findByText(/Question 1 of 2/)
     expect(document.querySelector('.podium')).toBeNull()
@@ -202,7 +204,8 @@ describe('Room', () => {
       reveal: { ...open.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
-      next_at: new Date(Date.now() + 8_000).toISOString(),
+      next_at: new Date(Date.now() + 16_000).toISOString(),
+      reveal_seconds: 16,
     })
     await waitFor(() => expect(document.querySelector('.slot')).toBeTruthy())
     expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('+850')
@@ -210,6 +213,8 @@ describe('Room', () => {
     expect(document.querySelector('.slot .total')).toBeNull()
     expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)
     expect(get(timerBar)?.label).toBe('to the next question')
+    // The bar is full on this question's own reveal, which the frame says.
+    expect(get(timerBar)?.totalSeconds).toBe(16)
   })
 
   it('says which question it is in the timer bar’s tab, and the round only on the splash', async () => {
@@ -243,6 +248,7 @@ describe('Room', () => {
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 8_000).toISOString(),
+      reveal_seconds: 8,
     })
     await waitFor(() => expect(document.querySelector('.paper .slot')).toBeTruthy())
     expect(get(timerBar)?.progress).toBe('1/2')
@@ -337,6 +343,7 @@ describe('Room', () => {
         results: { b: { value: 0, correct: true, credit: 1, points: 900 } },
         standings: STANDINGS,
         next_at: new Date(Date.now() + 8_000).toISOString(),
+        reveal_seconds: 8,
       })
       await screen.findByText('1 of 1')
       expect(screen.getByText(fallback)).toBeTruthy()
@@ -556,6 +563,7 @@ describe('a random event’s way out', () => {
       results: {},
       standings: STANDINGS,
       next_at: new Date(nextAt).toISOString(),
+      reveal_seconds: 8,
     })
   }
 
@@ -821,6 +829,7 @@ describe('what a screen reader and the tab hear', () => {
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 8_000).toISOString(),
+      reveal_seconds: 8,
     })
     await waitFor(() => expect(live()?.textContent).toBe('Right, +850 points. 1,850 in total.'))
     expect(live()).toBe(region)

@@ -26,14 +26,19 @@ from uuid import UUID
 
 from app.questions.submission import Submission
 from app.questions.types import exact
-from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
-# A sentence and up to six answers to read, which takes longer than four prices: fifteen
-# seconds by default, and no more than half a minute before it is a question about
-# re-reading rather than knowing.
-SECONDS = Bounds(default=15, minimum=5, maximum=30)
+# A sentence and its answers to read, two seconds an option; the reveal is one answer lit.
+ANSWER = Timing(base=10, per_item=2)
+REVEAL = Timing(base=4, per_item=0.5)
+
+
+def items(payload: dict[str, Any]) -> int:
+    """The options to read."""
+    return len(payload["options"])
+
 
 _OPEN_KEYS = ("intro", "prompt", "quote", "image", "options")
 

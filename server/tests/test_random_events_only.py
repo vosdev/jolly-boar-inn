@@ -66,7 +66,6 @@ def test_on_the_create_form_gets_its_pace(on: TestClient) -> None:
         "pick_all_that_apply",
     ]
     assert entry["questions"] == {"default": 10, "min": 1, "max": 20}
-    assert entry["seconds"] == {"default": 20, "min": 10, "max": 60}
 
 
 def test_off_a_room_asking_for_it_is_refused(client: TestClient, db) -> None:

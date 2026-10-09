@@ -187,7 +187,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
  ▟████▙ ║                                ║
         ╨──────────────────────✿─────────╨   the ribbon, for any points
 ──────────────────────────────────────────────
-Round 2 of 5 · 5 questions · 20 seconds each
+Round 2 of 5 · 5 questions
 [ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
 ```
 

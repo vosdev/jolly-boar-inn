@@ -22,6 +22,7 @@ ROOM_KEYS = {
     "total",
     "phase",
     "next_at",
+    "reveal_seconds",
     "segment",
     "finished_at",
 }
@@ -29,7 +30,7 @@ SETTINGS_KEYS = {
     "modes",
     "mode_order",
     "random_event_frequency",
-    "reveal_seconds",
+    "pace",
     "standings_seconds",
     "close_when_all_answered",
     "name_wrong_answers",
@@ -51,7 +52,8 @@ def surprise(table: Any, hide_rounds: bool = True) -> Game:
         reveal_seconds=30,
         splash=True,
         standings_seconds=30,
-        modes=[{"mode": mode, "questions": 5, "seconds": 30} for mode in PLAYED],
+        seconds=30,
+        modes=[{"mode": mode, "questions": 5} for mode in PLAYED],
     )
 
 

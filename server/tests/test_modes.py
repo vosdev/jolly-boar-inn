@@ -1,9 +1,8 @@
-"""``app/modes``: the round registry, and where a round's pace comes from.
+"""``app/modes``: the round registry, and where a round's length comes from.
 
-``questions_bounds`` and ``seconds_bounds`` read the mode, then its types, then the
-registry's fallbacks. The shipped modes exercise only the middle link, so the others are
-shown here with stub modes and stub types. The registry itself is held to rules rather
-than to a snapshot, so a new mode needs no edit here.
+``questions_bounds`` reads the mode, then its types, then the registry's fallback. Stub
+modes and stub types show the links the shipped modes do not exercise. The registry itself
+is held to rules rather than to a snapshot, so a new mode needs no edit here.
 """
 
 import re
@@ -14,9 +13,9 @@ import pytest
 
 from app import modes
 from app.config import REPO_ROOT
-from app.modes import MODES, Mode, problems, questions_bounds, round_modes, seconds_bounds
+from app.modes import MODES, Mode, problems, questions_bounds, round_modes
 from app.questions.schema import load_schema
-from app.questions.types import TYPES, more_less, multiple_choice
+from app.questions.types import TYPES
 from app.questions.types.bounds import Bounds
 
 # The two modes whose questions are random events rather than a round.
@@ -60,10 +59,8 @@ def test_the_clients_mode_list_is_this_registry() -> None:
     assert not set(soon) & (set(MODES) | set(keys)), "shipped, and still coming soon"
 
 
-def test_more_less_is_paced_by_its_type() -> None:
-    """It states no numbers of its own, and its type states only seconds."""
+def test_more_less_takes_the_registrys_round_length() -> None:
     assert questions_bounds("more_less") is modes.QUESTIONS
-    assert seconds_bounds("more_less") is more_less.SECONDS
 
 
 def test_no_shipped_type_repeats_the_registrys_round_length() -> None:
@@ -73,70 +70,49 @@ def test_no_shipped_type_repeats_the_registrys_round_length() -> None:
 
 
 @pytest.fixture
-def slow_mode() -> Iterator[str]:
-    """A mode over ``more_less`` that disagrees with its type about one number only."""
-    MODES["slow"] = Mode(id="slow", types=frozenset({"more_less"}), seconds=Bounds(40, 20, 60))
-    yield "slow"
-    del MODES["slow"]
+def long_mode() -> Iterator[str]:
+    """A mode over ``more_less`` that states its own round length."""
+    MODES["long"] = Mode(id="long", types=frozenset({"more_less"}), questions=Bounds(20, 5, 30))
+    yield "long"
+    del MODES["long"]
 
 
-def test_a_mode_states_only_the_numbers_it_disagrees_with(slow_mode: str) -> None:
-    assert seconds_bounds(slow_mode) == Bounds(40, 20, 60)
-    assert questions_bounds(slow_mode) is modes.QUESTIONS  # the rest is its type's
-
-
-@pytest.fixture
-def paceless_mode() -> Iterator[str]:
-    """A mode over a type module that declares no pace at all."""
-    TYPES["paceless"] = ModuleType("paceless")
-    MODES["paceless"] = Mode(id="paceless", types=frozenset({"paceless"}))
-    yield "paceless"
-    del MODES["paceless"]
-    del TYPES["paceless"]
-
-
-def test_a_type_that_says_nothing_leaves_it_to_the_registry(paceless_mode: str) -> None:
-    assert questions_bounds(paceless_mode) is modes.QUESTIONS
-    assert seconds_bounds(paceless_mode) is modes.SECONDS
+def test_a_mode_may_state_its_own_round_length(long_mode: str) -> None:
+    assert questions_bounds(long_mode) == Bounds(20, 5, 30)
 
 
 # --- a round of several types ----------------------------------------------------------
 
 
 @pytest.fixture
-def twin() -> Iterator[ModuleType]:
-    """A second four-button type, paced exactly like ``multiple_choice``."""
-    module = ModuleType("twin")
-    module.SECONDS = multiple_choice.SECONDS  # type: ignore[attr-defined]
-    TYPES["twin"] = module
+def short_type() -> Iterator[ModuleType]:
+    """A type whose rounds are shorter than the registry's."""
+    module = ModuleType("short")
+    module.QUESTIONS = Bounds(3, 1, 10)  # type: ignore[attr-defined]
+    TYPES["short"] = module
     yield module
-    del TYPES["twin"]
+    del TYPES["short"]
 
 
-def test_a_round_of_types_that_agree_takes_their_pace(twin: ModuleType) -> None:
-    mixed = Mode(id="mixed", types=frozenset({"multiple_choice", "twin"}))
-    assert problems(mixed) == []
-    MODES["mixed"] = mixed
+def test_a_round_of_types_that_agree_takes_their_round_length(short_type: ModuleType) -> None:
+    MODES["shorts"] = Mode(id="shorts", types=frozenset({"short"}))
     try:
-        assert seconds_bounds("mixed") is multiple_choice.SECONDS
-        assert questions_bounds("mixed") is modes.QUESTIONS
+        assert questions_bounds("shorts") == Bounds(3, 1, 10)
     finally:
-        del MODES["mixed"]
+        del MODES["shorts"]
 
 
-def test_a_round_of_types_that_disagree_must_state_the_number() -> None:
-    """``more_less`` and ``multiple_choice`` disagree on seconds, and on nothing else."""
-    both = frozenset({"more_less", "multiple_choice"})
+def test_a_round_of_types_that_disagree_must_state_the_number(short_type: ModuleType) -> None:
+    both = frozenset({"more_less", "short"})
     assert problems(Mode(id="mixed", types=both)) == [
-        "mixed: its types disagree on seconds, so it must state them"
+        "mixed: its types disagree on questions, so it must state them"
     ]
-    stated = Mode(id="mixed", types=both, seconds=Bounds(12, 5, 30))
-    assert problems(stated) == []
-    MODES["mixed"] = stated
-    try:
-        assert seconds_bounds("mixed") == Bounds(12, 5, 30)
-    finally:
-        del MODES["mixed"]
+    assert problems(Mode(id="mixed", types=both, questions=Bounds(4, 1, 10))) == []
+
+
+def test_a_round_mixing_slow_and_quick_types_is_fine_as_it_is() -> None:
+    """How long a question lasts is its type's, so a round never has to agree on it."""
+    assert problems(Mode(id="mixed", types=frozenset({"more_less", "ordering"}))) == []
 
 
 # --- what the registry refuses ---------------------------------------------------------
@@ -160,13 +136,12 @@ def test_a_round_may_only_play_registered_types() -> None:
     [
         {"types": frozenset({"more_less"})},
         {"questions": Bounds(5, 1, 30)},
-        {"seconds": Bounds(20, 10, 60)},
     ],
 )
-def test_an_event_pool_states_no_type_and_no_pace(extra: dict[str, object]) -> None:
+def test_an_event_pool_states_no_type_and_no_round_length(extra: dict[str, object]) -> None:
     fields: dict[str, object] = {"types": frozenset(), **extra}
     mode = Mode(id="pool", is_round=False, **fields)  # type: ignore[arg-type]
-    assert problems(mode) == ["pool: not a round, so its questions pace themselves by type"]
+    assert problems(mode) == ["pool: not a round, so it states no types and no questions"]
 
 
 def test_a_bare_string_is_not_a_set_of_types() -> None:

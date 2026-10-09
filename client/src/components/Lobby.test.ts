@@ -19,10 +19,10 @@ const ROOM: RoomView = {
   code: 'ABYSSAL',
   status: 'lobby',
   settings: {
-    modes: [{ mode: 'more_less', questions: 5, seconds: 10 }],
+    modes: [{ mode: 'more_less', questions: 5 }],
     mode_order: 'listed',
     random_event_frequency: 'default',
-    reveal_seconds: 8,
+    pace: 'run',
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
@@ -31,6 +31,7 @@ const ROOM: RoomView = {
   total: 5,
   phase: 'idle',
   next_at: null,
+  reveal_seconds: null,
   segment: null,
   finished_at: null,
 }
@@ -220,8 +221,14 @@ describe('Lobby', () => {
 
   it('lists the rounds A–Z in a room without surprise rounds', () => {
     lobby()
-    expect(screen.getByText('1 round · 5 questions · 8s reveal')).toBeTruthy()
+    expect(screen.getByText('1 round · 5 questions · Run pace')).toBeTruthy()
     expect(screen.getByText('More or Less')).toBeTruthy()
+    expect(document.querySelector('.modes')?.textContent).not.toContain('s each')
+  })
+
+  it('names the pace the host picked', () => {
+    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, pace: 'teleport' } })
+    expect(screen.getByText('1 round · 5 questions · Teleport pace')).toBeTruthy()
   })
 
   it.each([
@@ -230,7 +237,7 @@ describe('Lobby', () => {
     ['host', HOST, { ...SECRET, settings: { ...SECRET.settings, modes: ROOM.settings.modes } }],
   ])('counts surprise rounds for the %s and names none', (_, you, room) => {
     lobby([HOST, WOOX], room, you)
-    expect(screen.getByText('5 secret rounds · 42 questions · 8s reveal')).toBeTruthy()
+    expect(screen.getByText('5 secret rounds · 42 questions · Run pace')).toBeTruthy()
     expect(
       screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
     ).toBeTruthy()

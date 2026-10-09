@@ -36,6 +36,7 @@ const lobby: RoomView = {
   total: 3,
   phase: 'idle',
   next_at: null,
+  reveal_seconds: null,
   segment: null,
   finished_at: null,
 }
@@ -144,9 +145,27 @@ describe('applyServerMessage', () => {
       results: {},
       standings: [],
       next_at: null,
+      reveal_seconds: 8,
     })
     applyServerMessage({ t: 'error', code: 'not_open', message: 'no question is open' })
     expect(errorText(get(lastError)!)).toBe('Too late, that question had closed.')
+  })
+
+  it('keeps how long the reveal lasts from its close until the next question opens', () => {
+    applyServerMessage(welcome({ room: { ...lobby, status: 'playing' } }))
+    applyServerMessage({ t: 'question_open', question: open('q1') })
+    applyServerMessage({
+      t: 'question_closed',
+      question_id: 'q1',
+      reveal: {},
+      results: {},
+      standings: [],
+      next_at: new Date(Date.now() + 16_000).toISOString(),
+      reveal_seconds: 16,
+    })
+    expect(get(room)?.reveal_seconds).toBe(16)
+    applyServerMessage({ t: 'question_open', question: open('q2') })
+    expect(get(room)?.reveal_seconds).toBeNull()
   })
 })
 

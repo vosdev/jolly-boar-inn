@@ -23,15 +23,13 @@ const PACING: api.ModePacing[] = [
     id: 'more_less',
     types: ['more_less'],
     questions: { default: 5, min: 1, max: 30 },
-    seconds: { default: 10, min: 5, max: 20 },
   },
   {
     id: 'price_is_right',
     types: ['price_is_right'],
     questions: { default: 5, min: 1, max: 30 },
-    seconds: { default: 10, min: 5, max: 30 },
   },
-  { id: 'custom', types: [], questions: null, seconds: null },
+  { id: 'custom', types: [], questions: null },
 ]
 
 vi.mock('../lib/api', async (importOriginal) => {
@@ -261,17 +259,15 @@ describe('Create', () => {
     expect(screen.getByRole('button', { name: 'Create room' })).toHaveProperty('disabled', true)
   })
 
-  it("steps questions by one and seconds by five, and stops at the server's bounds", async () => {
+  it("steps questions by one, stops at the server's bounds, and offers no seconds", async () => {
     await loaded('More or Less')
     const more = card('More or Less')
-    await press(more, 'More seconds', 5)
-    expect(within(more).getByRole('button', { name: 'More seconds' })).toHaveProperty('disabled', true)
-    await press(more, 'Fewer seconds', 2)
+    expect(within(more).queryByRole('button', { name: 'More seconds' })).toBeNull()
     await press(more, 'Fewer questions', 9)
     expect(within(more).getByRole('button', { name: 'Fewer questions' })).toHaveProperty('disabled', true)
     await press(more, 'More questions', 2)
     const [round] = (await submitted()).modes
-    expect(round).toEqual({ mode: 'more_less', questions: 3, seconds: 10 })
+    expect(round).toEqual({ mode: 'more_less', questions: 3 })
   })
 
   it('shuffles the rounds unless told otherwise, and then shows no order to arrange', async () => {
@@ -441,19 +437,21 @@ describe('Create', () => {
     expect((await submitted()).standings_seconds).toBe(0)
   })
 
-  it('sends a reveal of 6 seconds unless changed', async () => {
+  it('sends the run pace unless changed, and no reveal of its own', async () => {
     await loaded(...BOTH)
-    expect((await submitted()).reveal_seconds).toBe(6)
+    expect(screen.getByRole('radio', { name: 'Run' })).toHaveProperty('checked', true)
+    expect(screen.queryByRole('button', { name: 'More reveal seconds' })).toBeNull()
+    const settings = await submitted()
+    expect(settings.pace).toBe('run')
+    expect(settings).not.toHaveProperty('reveal_seconds')
   })
 
-  it('steps the reveal by one, from 2 to 30', async () => {
-    const page = document.body
+  it('offers walk, run and teleport, and sends the one picked', async () => {
     await loaded(...BOTH)
-    await press(page, 'Fewer reveal seconds', 4)
-    expect(screen.getByRole('button', { name: 'Fewer reveal seconds' })).toHaveProperty('disabled', true)
-    await press(page, 'More reveal seconds', 30)
-    expect(screen.getByRole('button', { name: 'More reveal seconds' })).toHaveProperty('disabled', true)
-    expect((await submitted()).reveal_seconds).toBe(30)
+    for (const name of ['Walk', 'Run', 'Teleport']) expect(screen.getByRole('radio', { name })).toBeTruthy()
+    await fireEvent.click(screen.getByRole('radio', { name: 'Teleport' }))
+    expect(screen.getByText('For a room that knows its stuff.')).toBeTruthy()
+    expect((await submitted()).pace).toBe('teleport')
   })
 
   it('remembers the room it created until the server says it expires', async () => {

@@ -19,7 +19,7 @@ from fastapi.testclient import TestClient
 from app import modes
 from app.config import REPO_ROOT, Settings
 from app.main import create_app
-from app.modes import MODES, Mode, questions_bounds, seconds_bounds
+from app.modes import MODES, Mode, questions_bounds
 from app.questions import schema
 from app.questions.packs import PackError, load_packs
 from app.questions.submission import Submission
@@ -34,7 +34,6 @@ from app.questions.types import (
     pick_from_list,
     price_is_right,
 )
-from app.questions.types.bounds import Bounds
 
 PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
@@ -225,7 +224,7 @@ def test_a_round_of_several_types_takes_a_question_of_any_of_them(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     both = frozenset({"more_less", "multiple_choice"})
-    monkeypatch.setitem(MODES, "mixed", Mode(id="mixed", types=both, seconds=Bounds(12, 5, 30)))
+    monkeypatch.setitem(MODES, "mixed", Mode(id="mixed", types=both))
     schema.validate(question(mode="mixed"))
     monkeypatch.setitem(
         MODES, "mixed", Mode(id="mixed", types=frozenset({"multiple_choice", "free_text"}))
@@ -533,17 +532,13 @@ def test_registry_has_every_shipped_type() -> None:
             assert callable(getattr(module, name))
 
 
-def test_more_less_sets_its_own_pace() -> None:
-    """A long round of short questions: the mode is two names and one word to read."""
-    questions, seconds = questions_bounds("more_less"), seconds_bounds("more_less")
+def test_more_less_rounds_hold_five_questions_by_default() -> None:
+    questions = questions_bounds("more_less")
     assert (questions.default, questions.minimum, questions.maximum) == (5, 1, 30)
-    assert (seconds.default, seconds.minimum, seconds.maximum) == (10, 5, 20)
 
 
-def test_a_type_without_a_pace_of_its_own_gets_the_fallbacks() -> None:
-    """``app/modes``: declaring neither is allowed, and unremarkable."""
+def test_a_mode_this_build_lacks_gets_the_fallback() -> None:
     assert questions_bounds("not_a_mode") is modes.QUESTIONS
-    assert seconds_bounds("not_a_mode") is modes.SECONDS
 
 
 def test_client_view_has_no_answer() -> None:

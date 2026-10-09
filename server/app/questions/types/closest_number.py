@@ -34,14 +34,13 @@ from typing import Any
 from uuid import UUID
 
 from app.questions.submission import Submission
-from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import Timing
 
 SCORING = Scoring.RANK
-# A number to think about and type, where a guess made in the last second is worth what
-# one made in the first. Twenty seconds leaves room to argue it out loud; a minute is as
-# long as a room will wait on one number.
-SECONDS = Bounds(default=20, minimum=10, maximum=60)
+# A number to think about and type; the reveal ranks everyone's guesses.
+ANSWER = Timing(base=20)
+REVEAL = Timing(base=8)
 
 EXACT = 1.0
 # The closest non-exact guess, the next, the next; then everybody else who answered.

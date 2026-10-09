@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES, questions_bounds, seconds_bounds
+from app.modes import MODES, questions_bounds
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
 from app.questions.types import TYPES
@@ -21,7 +21,7 @@ def questions(mode: str) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["questions"]
 
 
-def test_bestiary_mixes_five_types_at_twenty_seconds() -> None:
+def test_bestiary_mixes_five_types() -> None:
     assert MODES["bestiary"].types == {
         "multiple_choice",
         "closest_number",
@@ -29,21 +29,17 @@ def test_bestiary_mixes_five_types_at_twenty_seconds() -> None:
         "ordering",
         "pick_all_that_apply",
     }
-    seconds = seconds_bounds("bestiary")
-    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds("bestiary").default == 5
     assert {q["type"] for q in questions("bestiary")} == MODES["bestiary"].types
 
 
-def test_drop_table_mixes_four_types_at_twenty_seconds() -> None:
+def test_drop_table_mixes_four_types() -> None:
     assert MODES["drop_table"].types == {
         "multiple_choice",
         "free_text",
         "pick_all_that_apply",
         "closest_number",
     }
-    seconds = seconds_bounds("drop_table")
-    assert (seconds.default, seconds.minimum, seconds.maximum) == (20, 10, 60)
     assert questions_bounds("drop_table").default == 5
     assert {q["type"] for q in questions("drop_table")} == MODES["drop_table"].types
 

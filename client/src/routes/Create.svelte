@@ -6,12 +6,11 @@
    * to read out, the link to share, and the players arriving.
    *
    * A game mode is a round. Ticking three modes makes a three-round game, and each one
-   * carries its own length and its own question count, because the modes differ in pace:
-   * `more_less` is two names and one word to read, so its round runs long and quick,
-   * where a release-date round is short and slow. The defaults and the ranges those
-   * numbers are held to come from `GET /api/modes`, which is the server's own mode
-   * registry — the form never invents a number the server would refuse, and its
-   * steppers stop at them.
+   * carries its own question count. The default and the range it is held to come from
+   * `GET /api/modes`, which is the server's own mode registry — the form never invents a
+   * number the server would refuse, and its steppers stop at it. How long a question
+   * lasts is not the host's to set per round: each question's type says, and the room's
+   * one pace scales every one of them.
    *
    * The rounds play in a random order unless the host numbers them: a quiz night is
    * rarely improved by always opening on the same round.
@@ -48,8 +47,9 @@
   import Stepper from '../components/Stepper.svelte'
   import { eventSlots, overCap, type CustomQuestion } from '../lib/customQuestions'
   import { MODES, UPCOMING_MODES, modeLabel } from '../lib/modes'
+  import { PACES } from '../lib/pace'
   import { profile, returningVisitor, saveProfile } from '../lib/profile'
-  import { EVENT_EVERY, type EventFrequency, type ModeSettings } from '../lib/protocol'
+  import { EVENT_EVERY, type EventFrequency, type ModeSettings, type Pace } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
   import { rememberCreated, setSession } from '../lib/session'
   import { arrival, counted } from '../lib/stats'
@@ -78,7 +78,8 @@
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
-  let revealSeconds = $state(6)
+  /** Scales every question's time to answer and its reveal. */
+  let pace = $state<Pace>('run')
   /** How long the standings hold between rounds; 0 runs the rounds straight on. */
   let standingsSeconds = $state(10)
   /** How often an NPC interrupts a round: one per 20, 10 or 5 round questions. */
@@ -141,13 +142,9 @@
     }
   })
 
-  /** A round of `mode` at that mode's own pace, which is what ticking it gives you. */
+  /** A round of `mode` at that mode's own length, which is what ticking it gives you. */
   function roundFor(mode: ModePacing): ModeSettings {
-    return {
-      mode: mode.id,
-      questions: mode.questions?.default ?? 1,
-      seconds: mode.seconds?.default ?? 1,
-    }
+    return { mode: mode.id, questions: mode.questions?.default ?? 1 }
   }
 
   function toggle(mode: ModePacing, on: boolean): void {
@@ -158,8 +155,8 @@
       : rounds.filter((round) => round.mode !== mode.id)
   }
 
-  function setRound(mode: string, field: 'questions' | 'seconds', value: number): void {
-    rounds = rounds.map((round) => (round.mode === mode ? { ...round, [field]: value } : round))
+  function setRound(mode: string, questions: number): void {
+    rounds = rounds.map((round) => (round.mode === mode ? { ...round, questions } : round))
   }
 
   /** Move round `index` one place `by` (-1 up, 1 down); the ends stay put. */
@@ -214,7 +211,7 @@
       modes: rounds,
       mode_order: modeOrder,
       random_event_frequency: frequency,
-      reveal_seconds: revealSeconds,
+      pace,
       standings_seconds: standingsSeconds,
       close_when_all_answered: closeWhenAllAnswered,
       name_wrong_answers: nameWrongAnswers,
@@ -304,9 +301,8 @@
             count={rounds.length}
             shuffled={modeOrder === 'random'}
             questions={mode.questions}
-            seconds={mode.seconds}
             onpick={(on) => toggle(mode, on)}
-            onset={(field, value) => setRound(mode.id, field, value)}
+            onset={(value) => setRound(mode.id, value)}
             onmove={(by) => move(position, by)}
           />
         {/each}
@@ -315,6 +311,12 @@
         {/each}
       </ul>
     {/if}
+  </section>
+
+  <section class="panel pace">
+    <h2>Pace</h2>
+    <Segmented legend="Pace" hideLegend options={PACES} bind:value={pace} />
+    <p class="note">{PACES.find((option) => option.value === pace)?.note}</p>
   </section>
 
   <section class="panel events">
@@ -360,14 +362,6 @@
   <details class="panel rest">
     <summary><h2>Advanced</h2></summary>
     <div class="settings">
-      <Stepper
-        label="Reveal answers, seconds"
-        noun="reveal seconds"
-        value={revealSeconds}
-        min={2}
-        max={30}
-        onchange={(value) => (revealSeconds = value)}
-      />
       <Stepper
         label="Standings between rounds, seconds"
         noun="standings seconds"
@@ -491,6 +485,7 @@
   }
 
   .rest .note,
+  .pace .note,
   .events .note,
   .events .count,
   .access .note {

@@ -28,14 +28,18 @@ from uuid import UUID
 
 from app.questions.submission import Submission
 from app.questions.types import exact
-from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
-# Four numbers to read and weigh against what you remember paying, not two names and a
-# word, so a host may stretch it further than ``more_less``. Ten seconds is enough to
-# read all four; thirty is as long as it stays a question about knowing.
-SECONDS = Bounds(default=10, minimum=5, maximum=30)
+# A number per option to weigh against what you remember paying.
+ANSWER = Timing(base=6, per_item=1)
+REVEAL = Timing(base=6)
+
+
+def items(payload: dict[str, Any]) -> int:
+    """The prices to weigh."""
+    return len(payload["options"])
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

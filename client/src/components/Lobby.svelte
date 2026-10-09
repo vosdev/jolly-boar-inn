@@ -24,6 +24,7 @@
    * asking again.
    */
   import { modeLabel } from '../lib/modes'
+  import { paceLabel } from '../lib/pace'
   import { petOf } from '../lib/pets'
   import { readyThreshold } from '../lib/ready'
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
@@ -150,7 +151,7 @@
       <p class="note">
         {rounds}{secret ? ' secret' : ''}
         {rounds === 1 ? 'round' : 'rounds'} · {questions}
-        {questions === 1 ? 'question' : 'questions'} · {settings.reveal_seconds}s reveal
+        {questions === 1 ? 'question' : 'questions'} · {paceLabel(settings.pace)} pace
       </p>
     {/if}
   </div>
@@ -177,7 +178,7 @@
             <span class="name">{modeLabel(round.mode)}</span>
             <span class="note">
               {round.questions}
-              {round.questions === 1 ? 'question' : 'questions'} · {round.seconds}s each
+              {round.questions === 1 ? 'question' : 'questions'}
             </span>
           </li>
         {/each}

@@ -22,13 +22,19 @@ from uuid import UUID
 
 from app.questions.submission import Submission
 from app.questions.types import exact
-from app.questions.types.bounds import Bounds
 from app.questions.types.scoring import Scoring
+from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
-# Several answers to weigh rather than one to find, so it gets the twenty seconds every
-# other written question has, and the same half-minute ceiling as ``multiple_choice``.
-SECONDS = Bounds(default=20, minimum=5, maximum=30)
+# Each option is a yes or a no to weigh, and the reveal is the right set against yours.
+ANSWER = Timing(base=10, per_item=3)
+REVEAL = Timing(base=4, per_item=1)
+
+
+def items(payload: dict[str, Any]) -> int:
+    """The options to weigh."""
+    return len(payload["options"])
+
 
 _OPEN_KEYS = ("intro", "prompt", "image", "options", "picks")
 

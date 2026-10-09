@@ -156,22 +156,16 @@
   const number = $derived(segment === null ? position + 1 : position - segment.start + 1)
   const total = $derived(segment?.count ?? $question?.total ?? $room?.total ?? 0)
   /**
-   * How long this question is open for, from the question rather than from the settings:
-   * the two agree, but only the frame knows what a room stored under older rules was
-   * clamped to. With nothing open it falls back to the round's own `seconds`. The clock
-   * starts at `answerable_at`, after a random event's NPC has held the floor, so that is
-   * what the length is measured from.
+   * How long this question is open for: only the frame knows, since its type and the
+   * room's pace decide. The clock starts at `answerable_at`, after a random event's NPC
+   * has held the floor, so that is what the length is measured from.
    */
   const questionSeconds = $derived(
     $question === null
-      ? ($room?.settings.modes.find((round) => round.mode === segment?.mode)?.seconds ?? 0)
+      ? 0
       : (Date.parse($question.ends_at) -
           Date.parse($question.answerable_at ?? $question.opened_at)) /
           1000,
-  )
-  /** What the splash says each question of its round lasts; null for a round not in settings. */
-  const roundSeconds = $derived(
-    $room?.settings.modes.find((round) => round.mode === $room?.segment?.mode)?.seconds ?? null,
   )
   // Fetched as the question arrives rather than when its view mounts, so a random event
   // spends its NPC's hold fetching the list instead of the first seconds of answering.
@@ -205,7 +199,7 @@
         endsAt: current.next_at,
         totalSeconds: standing
           ? current.settings.standings_seconds
-          : current.settings.reveal_seconds,
+          : (current.reveal_seconds ?? 0),
         label: standing ? 'to the next round' : 'to the next question',
         ...(standing ? {} : { progress: `${number}/${total}` }),
       })
@@ -417,7 +411,6 @@
     <Splash
       segment={$room.segment}
       endsAt={$room.next_at}
-      questionSeconds={roundSeconds}
       players={$players}
       youId={$you?.id ?? null}
       onReady={(ready) => socket?.send({ t: 'ready', ready })}

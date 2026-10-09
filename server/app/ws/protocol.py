@@ -85,6 +85,9 @@ class RoomView(_Message):
     # splash, reveal or standings a client arrives into (a reconnect, or a room that just
     # came back from a restart) has no frame of its own to carry it.
     next_at: datetime | None
+    # How long the reveal ending at ``next_at`` holds, so a countdown bar knows its full
+    # length: each question's is its own. Null outside a reveal.
+    reveal_seconds: int | None = None
     # The round in progress, null before the first question and once the game is over.
     segment: Segment | None
     # When the game ended, null until it has. Every browser files the result under it, so
@@ -367,6 +370,8 @@ class QuestionClosed(_Message):
     results: dict[UUID, PlayerResult]
     standings: list[Standing]
     next_at: datetime | None
+    # How long this reveal holds, even for the last question, whose ``next_at`` is null.
+    reveal_seconds: int
     # The player who suggested the question, when they asked to be named. Left out otherwise.
     suggested_by: str | None = Field(default=None, exclude_if=lambda name: name is None)
 

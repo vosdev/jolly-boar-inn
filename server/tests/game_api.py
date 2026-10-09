@@ -1,6 +1,6 @@
 """The game harness: seats at a table, the game they play, and the ways a test drives it.
 
-The fixtures that hand these out (``table``, ``faults``, ``quick_mode``) are in
+The fixtures that hand these out (``table``, ``faults``) are in
 ``conftest.py``; this module is what a test imports to read and steer what they return.
 """
 

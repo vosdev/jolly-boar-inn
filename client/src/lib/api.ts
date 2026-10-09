@@ -68,9 +68,9 @@ export interface ModeBounds {
 }
 
 /**
- * How a round of one mode is paced, from the server's own mode registry.
+ * How many questions a round of one mode holds, from the server's own mode registry.
  *
- * The create form draws its number fields from these rather than from constants of its
+ * The create form draws its number field from these rather than from constants of its
  * own: the defaults and the ranges are the server's policy (`app/modes`, falling back to
  * `questions/types/*.py`), and a second copy here would be a form that offers what the
  * server then refuses. The copy for a mode -- its name and its blurb -- is the client's,
@@ -84,12 +84,10 @@ export interface ModePacing {
    */
   types: string[]
   /**
-   * How many questions its round holds, and how long each stays open. Both null for
-   * `custom` and `random_event`, which are never rounds: their questions are random
-   * events, paced by their own types, so the form does not offer them as rounds.
+   * How many questions its round holds. Null for `custom` and `random_event`, which are
+   * never rounds: their questions are random events, so the form does not offer them.
    */
   questions: ModeBounds | null
-  seconds: ModeBounds | null
 }
 
 /** Registry order, which is the order the create form lists them in. */
