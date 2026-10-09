@@ -19,7 +19,7 @@ export const QUESTION_TYPE_FROM_MS = 400
 export const SPLASH_TYPE_FROM_MS = 300
 /** Nothing moves for this long before the answers appear. */
 export const SETTLE_MS = 200
-export const LETTERS_PER_SECOND = 60
+export const LETTERS_PER_SECOND = 50
 /**
  * Between the intro and the question: what is left of reading the intro once it has typed,
  * at a reading pace slower than the typing, and never less or more than these.
