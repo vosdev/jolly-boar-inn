@@ -36,6 +36,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 - Always branch: `<N>-<slug>` for issue N (`82-release-order`), a short descriptive name otherwise. A PR for an issue says `Closes #N`.
 - Every PR bumps the version: minor for a `feature` or `design` issue, patch for anything else. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`.
 - PR descriptions under 10 lines.
+- Update project board
 
 ## Subagents
 - Run at most one xhigh, two high or three medium subagents at a time.

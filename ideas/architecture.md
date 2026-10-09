@@ -163,11 +163,12 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 
 | Type | `value` | Credit |
 |---|---|---|
-| `more_less`, `price_is_right`, `multiple_choice` | option index | 1 or 0 |
+| `more_less`, `price_is_right` | option index | 1 or 0 |
+| `multiple_choice` | shown position | 1 or 0 |
 | `free_text` | string, at most 80 characters, no NUL or lone surrogate | 1 or 0 |
 | `closest_number` | number | by rank (section 8) |
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
-| `pick_all_that_apply` | distinct option indices, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
+| `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
 | `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
@@ -178,9 +179,12 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   the top that many, shown open. Equal ranks tie and score in either order; `answer` only orders
   them for the reveal. `check()` rejects an `answer` that does not sort by `rank`, a skipped rank
   (1, 1, 2, never 1, 1, 3), and a payload whose first `picks + 1` (or all) ranks tie.
-  `client_view` shows the entries without rank in a shuffle seeded by the payload, rotated by one
-  if its played places land in order, so an authored order never leaks. A value names shown positions, never payload indices. The half credit needs `picks`:
-  without it every entry belongs somewhere, so the half would pay for any answer.
+  `client_view` shows the entries without rank in a shuffle, rotated by one if its played places
+  land in order. The half credit needs `picks`: without it every entry belongs somewhere, so the
+  half would pay for any answer.
+- `multiple_choice`, `pick_all_that_apply` and `ordering` show options or entries in a shuffle
+  seeded by the payload (`types/shuffle.py`): one order for every socket and restart, and the
+  authored order (often answer first) never leaks. Values and the reveal name shown positions.
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects none or every option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word

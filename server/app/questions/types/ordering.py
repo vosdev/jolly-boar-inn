@@ -26,15 +26,13 @@ half, so the right three in the wrong order is not scored like three wrong ones.
 ``picks`` every entry belongs somewhere, so the half would pay for any answer at all.
 """
 
-import hashlib
-import json
-import random
 from typing import Any
 from uuid import UUID
 
 from app.questions.submission import Submission
 from app.questions.types import exact
 from app.questions.types.scoring import Scoring
+from app.questions.types.shuffle import seeded_order
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.SPEED
@@ -59,11 +57,7 @@ def places(payload: dict[str, Any]) -> int:
 
 def shown_order(payload: dict[str, Any]) -> list[int]:
     """The payload index of each entry, in the order the open view shows them."""
-    material = b"ordering\n" + json.dumps(
-        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
-    order = list(range(len(payload["entries"])))
-    random.Random(hashlib.sha256(material).digest()).shuffle(order)
+    order = seeded_order("ordering", payload, len(payload["entries"]))
     ranks = [payload["entries"][index]["rank"] for index in order]
     played = places(payload)
     # Already in order would hand out full credit for tapping top to bottom. Moving the

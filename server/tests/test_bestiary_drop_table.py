@@ -62,8 +62,8 @@ def test_a_round_draws_and_scores_every_type_its_mode_plays(mode: str) -> None:
         if question["type"] != "pick_all_that_apply":
             continue
         payload = question["payload"]
-        missed = payload["answer_indices"][1:]
-        submissions = [Submission(right, payload["answer_indices"]), Submission(wrong, missed)]
+        answer = TYPES["pick_all_that_apply"].reveal(payload)["answer_indices"]
+        submissions = [Submission(right, answer), Submission(wrong, answer[1:])]
         credit = TYPES["pick_all_that_apply"].grade(payload, submissions)
         assert credit[right] == 1.0 and 0.0 < credit[wrong] < 1.0
 

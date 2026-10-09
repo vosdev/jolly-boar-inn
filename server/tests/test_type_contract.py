@@ -153,8 +153,9 @@ EXAMPLES: dict[str, Example] = {
         },
         valid=[[1, 2], [3, 0], [0, 1]],
         invalid=[[1], [1, 2, 3], [1, 1], [1, 4], [-1, 1], [1, True], 1, "1,2", [1.0, 2.0], []],
-        right=[1, 2],
-        wrong=[0, 2],
+        # Shown positions: the shuffle shows Venenatis first and Sarachnis last.
+        right=[0, 3],
+        wrong=[1, 2],
         secret=frozenset({"answer_indices", "explanation"}),
         scoring=Scoring.SPEED,
         seconds=(22, 8),
