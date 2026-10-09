@@ -30,7 +30,7 @@
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
   import { players, room, you } from '../lib/stores'
   import type { RoomSocket } from '../lib/ws'
-  import FullScreenButton from './FullScreenButton.svelte'
+  import FullScreenSwitch from './FullScreenSwitch.svelte'
   import ConfirmDialog from './ConfirmDialog.svelte'
   import { inviteLink, maskedLink } from '../lib/invite'
   import CopyLink from './CopyLink.svelte'
@@ -226,7 +226,7 @@
     >
       {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
     </button>
-    <FullScreenButton />
+    <FullScreenSwitch />
   </div>
   <ul class="players">
     {#each $players as player (player.id)}

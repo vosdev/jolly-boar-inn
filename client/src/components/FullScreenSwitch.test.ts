@@ -1,12 +1,14 @@
 /**
- * The full-screen button: offered on a touch device whose browser can do it, gone once
- * full screen is on, and absent where the browser cannot (iPhone) or the pointer is a mouse.
+ * The full-screen switch: offered on a touch device whose browser can do it, on while full
+ * screen is, and absent where the browser cannot (iPhone) or the pointer is a mouse.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import FullScreenButton from './FullScreenButton.svelte'
+import FullScreenSwitch from './FullScreenSwitch.svelte'
+
+const exit = vi.fn(() => Promise.resolve())
 
 function device({ touch, api }: { touch: boolean; api: boolean }) {
   vi.stubGlobal('matchMedia', (query: string) => ({
@@ -16,6 +18,7 @@ function device({ touch, api }: { touch: boolean; api: boolean }) {
     removeEventListener: () => {},
   }))
   const request = vi.fn(() => Promise.resolve())
+  document.exitFullscreen = exit
   document.documentElement.requestFullscreen = api
     ? request
     : (undefined as unknown as typeof request)
@@ -31,35 +34,41 @@ afterEach(() => {
   setFullscreenElement(null)
 })
 
-describe('FullScreenButton', () => {
-  it('asks the page for full screen when tapped', async () => {
+const toggle = () => screen.findByRole('switch', { name: 'Full screen' })
+
+describe('FullScreenSwitch', () => {
+  it('is off to begin with, and asks the page for full screen when flipped', async () => {
     const request = device({ touch: true, api: true })
-    render(FullScreenButton)
-    await fireEvent.click(await screen.findByRole('button', { name: /full screen/i }))
+    render(FullScreenSwitch)
+    const control = await toggle()
+    expect(control.getAttribute('aria-checked')).toBe('false')
+    await fireEvent.click(control)
     expect(request).toHaveBeenCalledOnce()
   })
 
-  it('goes away once full screen is on, and returns when it ends', async () => {
+  it('turns on with the browser, and leaves full screen when flipped back', async () => {
     device({ touch: true, api: true })
-    render(FullScreenButton)
-    await screen.findByRole('button')
+    render(FullScreenSwitch)
+    const control = await toggle()
     setFullscreenElement(document.documentElement)
     document.dispatchEvent(new Event('fullscreenchange'))
-    await vi.waitFor(() => expect(screen.queryByRole('button')).toBeNull())
+    await vi.waitFor(() => expect(control.getAttribute('aria-checked')).toBe('true'))
+    await fireEvent.click(control)
+    expect(exit).toHaveBeenCalledOnce()
     setFullscreenElement(null)
     document.dispatchEvent(new Event('fullscreenchange'))
-    await vi.waitFor(() => expect(screen.getByRole('button')).toBeTruthy())
+    await vi.waitFor(() => expect(control.getAttribute('aria-checked')).toBe('false'))
   })
 
   it('is absent where the browser has no Fullscreen API', () => {
     device({ touch: true, api: false })
-    render(FullScreenButton)
-    expect(screen.queryByRole('button')).toBeNull()
+    render(FullScreenSwitch)
+    expect(screen.queryByRole('switch')).toBeNull()
   })
 
   it('is absent with a mouse', () => {
     device({ touch: false, api: true })
-    render(FullScreenButton)
-    expect(screen.queryByRole('button')).toBeNull()
+    render(FullScreenSwitch)
+    expect(screen.queryByRole('switch')).toBeNull()
   })
 })
