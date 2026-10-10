@@ -159,6 +159,7 @@
     guest={npc.asset.replace(/^npc:/, '')}
     entering={interlude.enter}
     {returning}
+    scene={question.question_id}
     paper={sheet}
     award={reveal === null ? 'none' : awardFor(result)}
   >

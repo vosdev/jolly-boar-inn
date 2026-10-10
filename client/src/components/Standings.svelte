@@ -5,8 +5,9 @@
    *
    * The rows start where they stood before the round, with the totals then. Once his line
    * has typed the gains count up, then the rows move to their new places with an arrow
-   * for each move, and last your row may pin to the foot of the screen. It all fits well
-   * inside the phase's ten seconds; reduced motion starts at the end.
+   * for each move, and last your row may pin to the foot of the screen. It all starts once
+   * the stage has come over to him and fits well inside the phase's ten seconds; reduced
+   * motion starts at the end.
    */
   import { untrack } from 'svelte'
 
@@ -19,6 +20,7 @@
   } from '../lib/hiscores'
   import { reducedMotion } from '../lib/interlude'
   import type { Segment, Standing } from '../lib/protocol'
+  import { stageArrival } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
   import { lettersOf } from '../lib/typing.svelte'
   import Hiscores from './Hiscores.svelte'
@@ -39,6 +41,7 @@
 
   const line = $derived(roundLine((segment?.index ?? 0) + 1))
   const instant = reducedMotion()
+  const open = Math.max(SHUFFLE.open, stageArrival({ host: HISCORES_HOST, tall: true }))
   let settled = $state(instant)
   let moved = $state(instant)
   let pinned = $state(instant)
@@ -58,7 +61,7 @@
 
   $effect(() => {
     if (instant) return
-    const times = untrack(() => shuffleTimes(lettersOf(line)))
+    const times = untrack(() => shuffleTimes(lettersOf(line), open))
     const timers = [
       setTimeout(() => (settled = true), times.settle),
       setTimeout(() => (moved = true), times.move),
@@ -68,9 +71,9 @@
   })
 </script>
 
-<Stage host={HISCORES_HOST} tall opening={!instant}>
+<Stage host={HISCORES_HOST} tall>
   {#snippet paper()}
-    <HiscoresHead title="Hiscores"><TypeIn {line} from={SHUFFLE.open} /></HiscoresHead>
+    <HiscoresHead title="Hiscores"><TypeIn {line} from={open} /></HiscoresHead>
     <Hiscores {rows} {youId} {settled} {pinned} {instant} />
   {/snippet}
 </Stage>

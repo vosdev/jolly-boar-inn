@@ -28,6 +28,7 @@
   import { reducedMotion } from '../lib/interlude'
   import { petOf } from '../lib/pets'
   import type { Standing } from '../lib/protocol'
+  import { stageArrival } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
   import { tierName, trophyArt } from '../lib/trophies'
   import { lettersOf } from '../lib/typing.svelte'
@@ -61,6 +62,7 @@
   const places = untrack(() => ceremonyPlaces(standings))
   const lines = [FINAL_INTRO, ...places.map(placeLine)]
   const playing = untrack(() => ceremony) && !instant && places.length > 0
+  const open = Math.max(CEREMONY.open, stageArrival({ host: HISCORES_HOST, tall: true }))
 
   let phase = $state<'ceremony' | 'leaving' | 'table'>(playing ? 'ceremony' : 'table')
   let line = $state(0)
@@ -82,7 +84,7 @@
 
   $effect(() => {
     if (!playing) return
-    const times = ceremonyTimes(lines.map(lettersOf))
+    const times = ceremonyTimes(lines.map(lettersOf), open)
     timers = [
       ...places.flatMap((_, i) => [
         setTimeout(() => {
@@ -126,13 +128,13 @@
 </script>
 
 <h1 class="sr">Final standings</h1>
-<Stage host={HISCORES_HOST} tall opening={playing}>
+<Stage host={HISCORES_HOST} tall>
   {#snippet paper()}
     <HiscoresHead title="Final hiscores">
       {#if phase === 'table'}
         {#if playing}<TypeIn line={winners} />{:else}{winners}{/if}
       {:else}
-        {#key line}<TypeIn line={lines[line] ?? ''} from={line === 0 ? CEREMONY.open : 0} />{/key}
+        {#key line}<TypeIn line={lines[line] ?? ''} from={line === 0 ? open : 0} />{/key}
       {/if}
     </HiscoresHead>
     <div class="board" bind:clientHeight={boardHeight}>

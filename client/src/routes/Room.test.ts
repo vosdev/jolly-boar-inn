@@ -16,6 +16,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
 import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
+import { HISCORES_HOST } from '../lib/hiscores'
+import { MODES } from '../lib/modes'
+import { npcArt } from '../lib/npcs'
+import { HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
 import { stubAnimations } from '../test-animate'
@@ -98,6 +102,10 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
 beforeEach(() => {
   sent.length = 0
 })
+
+function inSeconds(seconds: number): string {
+  return new Date(Date.now() + seconds * 1000).toISOString()
+}
 
 async function arrive(message: Welcome): Promise<void> {
   render(Room, { code: 'ABYSSAL', navigate: () => {} })
@@ -639,34 +647,198 @@ describe('a random event’s way out', () => {
       restore = stubAnimations()
     })
 
-    afterEach(() => restore())
+    afterEach(() => {
+      vi.useRealTimers()
+      restore()
+    })
 
-    const screens = () => document.querySelectorAll('.screens > .screen')
+    const row = () => document.querySelector('.stage-row')!
 
-    it('cross-fades the reveal into the next question', async () => {
+    it('walks the event NPC off, then the host back on, before the next question', async () => {
       await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
       applyServerMessage({ t: 'question_open', question: bob() })
       await tick()
       close(Date.now() + 8000)
       await tick()
-      applyServerMessage({ t: 'question_open', question: WHIP })
+      applyServerMessage({ t: 'question_open', question: { ...WHIP, answerable_at: inSeconds(3) } })
       await tick()
-      expect(screens()).toHaveLength(2)
+      expect(row().classList.contains('presence-leaving')).toBe(true)
+      await vi.advanceTimersByTimeAsync(HOST_OUT_MS + MOVE_MS)
+      expect(row().classList.contains('presence-arriving')).toBe(true)
+      await vi.advanceTimersByTimeAsync(HOST_IN_MS)
+      expect(row().classList.contains('presence-here')).toBe(true)
+      expect(document.querySelector('.stage-ghost')).toBeNull()
       expect(screen.getByText('Abyssal whip')).toBeTruthy()
-      await waitFor(() => expect(screens()).toHaveLength(1))
       expect(screen.queryByRole('heading', { name: 'Evil Bob' })).toBeNull()
     })
 
-    it('does not, once the return has played', async () => {
+    it('only moves the scroll once the return has played: the host is already back', async () => {
       await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
       applyServerMessage({ t: 'question_open', question: bob() })
       await tick()
       close(Date.now() - 1)
       await tick()
-      applyServerMessage({ t: 'question_open', question: WHIP })
+      applyServerMessage({ t: 'question_open', question: { ...WHIP, answerable_at: inSeconds(3) } })
       await tick()
-      expect(screens()).toHaveLength(1)
+      expect(row().classList.contains('presence-here')).toBe(true)
+      expect(document.querySelector('.stage-ghost')).not.toBeNull()
+      await vi.advanceTimersByTimeAsync(WORDS_OUT_MS + MOVE_MS)
+      expect(row().classList.contains('presence-here')).toBe(true)
+      expect(document.querySelector('.stage-ghost')).toBeNull()
     })
+  })
+})
+
+describe('the shared stage', () => {
+  const ASKED: OpenQuestion = {
+    question_id: 'q1',
+    index: 0,
+    total: 2,
+    type: 'more_less',
+    mode: 'more_less',
+    segment: { ...SEGMENT, count: 2 },
+    view: {
+      metric: 'ge_price',
+      direction: 'more',
+      options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+      as_of: '2026-09-01',
+    },
+    opened_at: new Date().toISOString(),
+    ends_at: new Date(Date.now() + 10_000).toISOString(),
+    you_can_answer: true,
+  }
+
+  let restore = () => {}
+
+  beforeEach(() => {
+    resetRoom()
+    restore = stubAnimations()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    restore()
+  })
+
+  /** Arrives on the round's splash, then lets the clock be faked. */
+  async function onSplash(): Promise<void> {
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null })))
+    await screen.findByRole('heading', { level: 2, name: MODES.more_less!.label })
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+  }
+
+  function ask(): void {
+    applyServerMessage({
+      t: 'question_open',
+      question: { ...ASKED, opened_at: new Date().toISOString(), answerable_at: inSeconds(3) },
+    })
+  }
+
+  const words = () => document.querySelector<HTMLElement>('.stage .content')!
+  const under = () => document.querySelector<HTMLElement>('.stage .under')!
+  const row = () => document.querySelector('.stage-row')!
+
+  it('keeps one scroll from the splash into the question, whose words wait for it', async () => {
+    await onSplash()
+    const scroll = document.querySelector('.scroll')
+    ask()
+    await tick()
+    expect(document.querySelectorAll('.scroll')).toHaveLength(1)
+    expect(document.querySelector('.scroll')).toBe(scroll)
+    expect(document.querySelector('.stage-ghost')?.textContent).toContain(MODES.more_less!.label)
+    expect(words().style.opacity).toBe('0')
+    expect(words().textContent).toContain('Which costs more')
+    expect(under().textContent).toContain('Abyssal whip')
+    // The same host keeps standing: only the words go and come.
+    expect(row().classList.contains('presence-here')).toBe(true)
+    await vi.advanceTimersByTimeAsync(WORDS_OUT_MS)
+    expect(document.querySelector('.stage-ghost')).toBeNull()
+    expect(words().style.opacity).toBe('0')
+    await vi.advanceTimersByTimeAsync(MOVE_MS)
+    expect(words().style.opacity).toBe('')
+    expect(row().classList.contains('presence-here')).toBe(true)
+  })
+
+  it('swaps the host for the Wise Old Man at the standings, before his words', async () => {
+    await onSplash()
+    ask()
+    await vi.advanceTimersByTimeAsync(1000)
+    applyServerMessage({
+      t: 'question_closed',
+      question_id: 'q1',
+      reveal: { values: [100, 50], answer_index: 0 },
+      results: {},
+      standings: STANDINGS,
+      next_at: inSeconds(5),
+      reveal_seconds: 5,
+    })
+    await tick()
+    applyServerMessage({
+      t: 'room_updated',
+      room: roomView({ phase: 'standings', current_index: 0 }),
+      players: [],
+    })
+    await tick()
+    const host = () => document.querySelector<HTMLImageElement>('.stage-row .npc.host img')!
+    const roundHost = host().getAttribute('src')
+    expect(row().classList.contains('presence-leaving')).toBe(true)
+    expect(words().style.opacity).toBe('0')
+    await vi.advanceTimersByTimeAsync(HOST_OUT_MS)
+    expect(row().classList.contains('presence-away')).toBe(true)
+    expect(host().getAttribute('src')).toBe(npcArt(HISCORES_HOST).url)
+    expect(host().getAttribute('src')).not.toBe(roundHost)
+    await vi.advanceTimersByTimeAsync(MOVE_MS)
+    expect(row().classList.contains('presence-arriving')).toBe(true)
+    expect(words().style.opacity).toBe('0')
+    await vi.advanceTimersByTimeAsync(HOST_IN_MS)
+    expect(row().classList.contains('presence-here')).toBe(true)
+    expect(words().style.opacity).toBe('')
+    expect(document.querySelector('.hiscores')).not.toBeNull()
+  })
+
+  it('finishes a hand-over at once when the page comes back into view', async () => {
+    await onSplash()
+    ask()
+    await tick()
+    expect(words().style.opacity).toBe('0')
+    document.dispatchEvent(new Event('visibilitychange'))
+    await tick()
+    expect(document.querySelector('.stage-ghost')).toBeNull()
+    expect(words().style.opacity).toBe('')
+    expect(words().textContent).toContain('Which costs more')
+    expect(row().classList.contains('presence-here')).toBe(true)
+  })
+
+  it('cuts on a hidden page, whose clock would leave the words waiting', async () => {
+    await onSplash()
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    try {
+      ask()
+      await tick()
+      expect(document.querySelector('.stage-ghost')).toBeNull()
+      expect(words().style.opacity).toBe('')
+    } finally {
+      vi.restoreAllMocks()
+    }
+  })
+
+  it('cuts straight to the next screen under reduced motion', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('reduce'),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    await onSplash()
+    ask()
+    await tick()
+    expect(document.querySelector('.stage-ghost')).toBeNull()
+    expect(words().style.opacity).toBe('')
+    expect(words().textContent).toContain('Which costs more')
   })
 })
 

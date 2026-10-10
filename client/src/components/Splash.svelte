@@ -11,10 +11,10 @@
    * the countdown once one runs, so everybody sees the same number. The host's skip is
    * the override, and ends it for everyone at once.
    *
-   * The scroll unrolls here, holding only the mode's name, its host's greeting and the
-   * blurb, and stays up into the round's first question. The name is there whole; the
-   * greeting and the blurb type in once the scroll is open, at the questions' pace
-   * (`lib/interlude.ts`). The splash has no hold to fit, so nothing waits on the typing. The round's count and pace, the
+   * The scroll holds only the mode's name, its host's greeting and the blurb. The name is
+   * there whole; the greeting and the blurb type in once the stage has come over from the
+   * screen before, at the questions' pace (`lib/interlude.ts`). The splash has no hold to
+   * fit, so nothing waits on the typing. The round's count and pace, the
    * ready check and the countdown go under the line (section 8 of ideas/design.md).
    *
    * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
@@ -31,6 +31,7 @@
   import { petOf } from '../lib/pets'
   import type { PlayerView, Segment } from '../lib/protocol'
   import { readyThreshold } from '../lib/ready'
+  import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
@@ -66,12 +67,13 @@
 
   const greeting = $derived(`“${host.greeting}”`)
   const letters = $derived([greeting, mode?.blurb ?? ''].map(lettersOf))
+  const typeFrom = untrack(() =>
+    Math.max(SPLASH_TYPE_FROM_MS, stageArrival({ host: host.host.id })),
+  )
   const typist = new Typist(
     () => letters,
     untrack(() =>
-      reducedMotion()
-        ? SETTLED
-        : interludeFor(Infinity, letters, SPLASH_TYPE_FROM_MS, SPLASH_TYPE_FROM_MS),
+      reducedMotion() ? SETTLED : interludeFor(Infinity, letters, typeFrom, typeFrom),
     ),
     Date.now(),
   )
@@ -118,7 +120,7 @@
 </script>
 
 <section class="splash">
-  <Stage host={host.host.id} opening>
+  <Stage host={host.host.id}>
     {#snippet paper()}
       <h2>{label}</h2>
       <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>

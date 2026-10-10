@@ -19,12 +19,9 @@
   import Confetti from './Confetti.svelte'
 
   let {
-    opening = false,
     award = 'none',
     children,
   }: {
-    /** Unroll from the middle as it mounts; otherwise it is simply there. */
-    opening?: boolean
     award?: Award
     children: Snippet
   } = $props()
@@ -69,7 +66,7 @@
   </svg>
 {/snippet}
 
-<div class="scroll" class:opening>
+<div class="scroll">
   {@render roll('left')}
   <div class="reveal">
     <div class="paper">
@@ -256,38 +253,20 @@
     stroke-width: 1.3;
   }
 
-  /* Open from the middle: the rolls travel outward and uncover the sheet between them. */
-  .opening .roll.left {
-    animation: roll-left 300ms ease-out;
+  /* A hand-over holds the scroll at a size while what is on it changes: the sheet fills
+     it, whatever its words would make it. */
+  .scroll:global(.morphing) {
+    box-sizing: border-box;
   }
 
-  .opening .roll.right {
-    animation: roll-right 300ms ease-out;
+  .scroll:global(.morphing) .reveal {
+    height: 100%;
   }
 
-  .opening .reveal {
-    animation: uncover 300ms ease-out;
-  }
-
-  @keyframes roll-left {
-    from {
-      left: calc(50% - var(--roll-w));
-    }
-  }
-
-  @keyframes roll-right {
-    from {
-      right: calc(50% - var(--roll-w));
-    }
-  }
-
-  @keyframes uncover {
-    from {
-      clip-path: inset(0 50%);
-    }
-    to {
-      clip-path: inset(0 0);
-    }
+  .scroll:global(.morphing) .paper {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   /* The ribbon hangs from the sheet's bottom edge, 65% of the way across. */
@@ -318,8 +297,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .roll,
-    .reveal,
     .ribbon {
       animation: none !important;
     }

@@ -16,7 +16,7 @@ import re
 from tests.client_source import read
 
 SCROLL = read("components/stage/ClueScroll.svelte")
-STAGE = read("components/stage/Stage.svelte")
+STAGE = read("components/stage/StageView.svelte")
 CONFETTI = read("components/stage/Confetti.svelte")
 
 
@@ -40,10 +40,11 @@ def test_only_the_roll_body_stretches() -> None:
     assert re.search(r'<svg class="finial[^>]*preserveAspectRatio', SCROLL) is None
 
 
-def test_the_scroll_opens_in_300ms_and_the_confetti_lasts_900ms() -> None:
-    assert (
-        re.findall(r"animation: (?:roll-left|roll-right|uncover) (\d+ms)", SCROLL) == ["300ms"] * 3
-    )
+def test_a_host_leaves_and_arrives_in_200ms_and_the_confetti_lasts_900ms() -> None:
+    """The scroll never opens: it is up from the lobby on, and only its host changes."""
+    npc = r":is\(\.host, \.guest\) \{\s*animation:"
+    assert re.search(rf"\.presence-leaving {npc} leave 200ms", STAGE)
+    assert re.search(rf"\.presence-arriving {npc} fade-in 200ms", STAGE)
     assert re.search(r"animation: confetti 900ms", CONFETTI)
     assert re.search(r"animation: pin 200ms", SCROLL)
 
@@ -57,7 +58,7 @@ def test_the_ribbon_hangs_65_percent_across() -> None:
 def test_reduced_motion_stills_the_scroll_and_drops_the_confetti() -> None:
     """The scroll simply appears and the ribbon comes without confetti."""
     branch = _reduced_motion(SCROLL)
-    assert re.search(r"\.roll,\s*\.reveal,\s*\.ribbon \{\s*animation: none", branch)
+    assert re.search(r"\.ribbon \{\s*animation: none", branch)
     assert re.search(r"\.confetti \{\s*display: none;", _reduced_motion(CONFETTI))
 
 

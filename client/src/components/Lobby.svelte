@@ -5,8 +5,7 @@
    * It is a stage like the splash's, kept short enough for a phone: Home's hero, the
    * selfhoster's picture for the theme (Broav, the inn's boar, here) or else the Wise Old
    * Man, stands beside a scroll that holds the room code and what the night
-   * holds; the players sit under it as a grid of pets, as the splash will show them. The
-   * scroll is simply there: it unrolls on the first splash, not here.
+   * holds; the players sit under it as a grid of pets, as the splash will show them.
    *
    * Admin controls are shown from `you.role`, which comes from the server's snapshot.
    * That is a convenience, not a check: the server decides per message (section 7
