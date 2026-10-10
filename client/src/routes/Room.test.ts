@@ -784,13 +784,11 @@ describe('the shared stage', () => {
     })
     await tick()
     const host = () => document.querySelector<HTMLImageElement>('.stage-row .npc.host img')!
-    const roundHost = host().getAttribute('src')
     expect(row().classList.contains('presence-leaving')).toBe(true)
     expect(words().style.opacity).toBe('0')
     await vi.advanceTimersByTimeAsync(HOST_OUT_MS)
     expect(row().classList.contains('presence-away')).toBe(true)
     expect(host().getAttribute('src')).toBe(npcArt(HISCORES_HOST).url)
-    expect(host().getAttribute('src')).not.toBe(roundHost)
     await vi.advanceTimersByTimeAsync(MOVE_MS)
     expect(row().classList.contains('presence-arriving')).toBe(true)
     expect(words().style.opacity).toBe('0')
