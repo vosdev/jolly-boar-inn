@@ -52,7 +52,7 @@ describe('interludeFor, one line', () => {
     [3500, 200],
     [1000, 40],
     [1000, 300],
-    [600, 120],
+    [800, 120],
   ])('settles a %i ms hold with a %i-letter prompt 200 ms before the answers', (hold, letters) => {
     const plan = interludeFor(hold, [letters])
     expect(plan.enter).toBe(true)
@@ -62,8 +62,8 @@ describe('interludeFor, one line', () => {
   })
 
   it('starts a long prompt sooner, and types faster only when sooner is not enough', () => {
-    // 200 letters take 4000 ms at 50 a second; from 400 ms a 3.5 s hold has 2900.
-    expect(interludeFor(3500, [200]).lines).toEqual([{ from: ENTRANCE_MS, for: 2900 }])
+    // 200 letters take 4000 ms at 50 a second; from 600 ms a 3.5 s hold has 2700.
+    expect(interludeFor(3500, [200]).lines).toEqual([{ from: ENTRANCE_MS, for: 2700 }])
     // 125 letters take 2500 ms, which fits from 800 ms at the natural speed.
     expect(interludeFor(3500, [125]).lines).toEqual([{ from: 800, for: 2500 }])
   })

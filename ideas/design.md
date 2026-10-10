@@ -322,8 +322,8 @@ wait costs nobody points and the server times nothing:
 
 ```
   0 ms   the NPC's name is on the scroll, whole; the scroll takes the text's height
-         the host fades out; the scroll slides left into the space it leaves   ≤ 250 ms
-150 ms   the event NPC fades in on the right                                   ≤ 250 ms
+         the host fades out; the scroll slides left into the space it leaves   ≤ 375 ms
+225 ms   the event NPC fades in on the right                                   ≤ 375 ms
 900 ms   the NPC's `intro` "types" in at 50 letters a second
 then     a pause of 0.5–1 s, and the plain question types in under it, in bold
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
@@ -334,12 +334,12 @@ answerable_at: the answers appear under the line and the timer bar starts
   intro types its prompt alone.
 - The pause is what reading the intro still needs once typed, at 25 letters a second: 0.5–1 s.
   Spare time waits at the end, settled. Text too long for the hold starts sooner, never before
-  400 ms, then pauses less, then types faster. Under 600 ms of hold the NPC is simply there.
+  600 ms, then pauses less, then types faster. Under 800 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame. A
   screen reader reads it once, and a polite live region announces who interrupted.
 - In the reveal the NPC says its `right` or `wrong` line beside the points, and the `explanation`
   goes on the scroll, in two lines the sheet keeps from the start.
-- The return mirrors the entrance in the reveal's last 250 ms, off `next_at`; a skipped reveal hands
+- The return mirrors the entrance in the reveal's last 375 ms, off `next_at`; a skipped reveal hands
   the stage back as §8.
 - A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
 - With reduced motion the NPC replaces the host in one frame and the text shows whole. The

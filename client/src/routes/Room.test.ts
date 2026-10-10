@@ -17,6 +17,7 @@ import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
 import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
 import { HISCORES_HOST } from '../lib/hiscores'
+import { RETURN_MS } from '../lib/interlude'
 import { MODES } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
 import { HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
@@ -623,10 +624,13 @@ describe('a random event’s way out', () => {
       await tick()
       const row = document.querySelector('.stage-row')!
       expect(row.classList.contains('returning')).toBe(false)
-      await vi.advanceTimersByTimeAsync(7760)
+      await vi.advanceTimersByTimeAsync(8000 - RETURN_MS - 10)
+      await tick()
+      expect(row.classList.contains('returning')).toBe(false)
+      await vi.advanceTimersByTimeAsync(20)
       await tick()
       expect(row.classList.contains('returning')).toBe(true)
-      await vi.advanceTimersByTimeAsync(240)
+      await vi.advanceTimersByTimeAsync(RETURN_MS - 10)
       applyServerMessage({
         t: 'room_updated',
         room: roomView({ phase: 'standings', current_index: 0 }),
@@ -809,6 +813,50 @@ describe('the shared stage', () => {
     expect(words().style.opacity).toBe('')
     expect(words().textContent).toContain('Which costs more')
     expect(row().classList.contains('presence-here')).toBe(true)
+  })
+
+  it('slides the scroll in from where it stood as the lobby’s wider stage narrows', async () => {
+    // The lobby's hero widens the stage, which stays centred; laid out as a browser would.
+    const boxes = {
+      lobby: { stage: [169, 672], scroll: [369, 472, 313] },
+      round: { stage: [272, 480], scroll: [320, 432, 227] },
+    }
+    let layout = boxes.lobby
+    const box = (left: number, width: number, height = 100) =>
+      ({ left, top: 88, width, height, right: left + width, bottom: 88 + height, x: left, y: 88 }) as DOMRect
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      const at = layout
+      if (this.classList.contains('stage')) return box(at.stage[0]!, at.stage[1]!)
+      if (this.classList.contains('scroll')) return box(at.scroll[0]!, at.scroll[1]!, at.scroll[2])
+      return box(0, 0)
+    })
+    const moves: Keyframe[][] = []
+    const animate = Element.prototype.animate
+    Element.prototype.animate = function (this: Element, keyframes, options) {
+      if (this.classList.contains('scroll')) moves.push(keyframes as Keyframe[])
+      return animate.call(this, keyframes, options)
+    }
+    try {
+      render(Room, { code: 'ABYSSAL', navigate: () => {} })
+      applyServerMessage(
+        welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
+      )
+      await screen.findByRole('heading', { level: 1, name: 'Lobby' })
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+      applyServerMessage({
+        t: 'room_updated',
+        room: roomView({ phase: 'splash', next_at: null }),
+        players: [],
+      })
+      await tick()
+      layout = boxes.round
+      await vi.advanceTimersByTimeAsync(HOST_OUT_MS)
+      // 136px left of the centre in the lobby, 192px in the round: it starts 56px right.
+      expect(moves[0]?.[0]?.transform).toBe('translate(56px, 0px)')
+    } finally {
+      Element.prototype.animate = animate
+      vi.restoreAllMocks()
+    }
   })
 
   it('cuts on a hidden page, whose clock would leave the words waiting', async () => {

@@ -283,12 +283,14 @@ function removeParts(scene: Scene): void {
 }
 
 /**
- * Where `rect` stands within the stage. A move is measured here rather than on the
- * screen, so a page that shifts as a whole, a scrollbar coming or going, moves nothing.
+ * Where `rect` stands from the stage's centre line and top. A move is measured here rather
+ * than on the screen, so a page that shifts as a whole, a scrollbar coming or going, moves
+ * nothing; and from the centre rather than the edge, because the stage stays centred as it
+ * narrows when the lobby's hero leaves.
  */
 function offsetIn(root: HTMLElement, rect: DOMRect): { x: number; y: number } {
   const at = root.getBoundingClientRect()
-  return { x: rect.left - at.left, y: rect.top - at.top }
+  return { x: rect.left - (at.left + at.width / 2), y: rect.top - at.top }
 }
 
 /** Holds the scroll at `rect` while what is on it changes. */

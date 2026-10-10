@@ -219,15 +219,15 @@
   }
 
   .entering .host {
-    animation: fade-out 200ms ease-in both;
+    animation: fade-out 300ms ease-in both;
   }
 
   .entering > :global(.scroll) {
-    animation: slide-left 250ms ease-out both;
+    animation: slide-left 375ms ease-out both;
   }
 
   .entering .guest {
-    animation: guest-in 250ms ease-out 150ms both;
+    animation: guest-in 375ms ease-out 225ms both;
   }
 
   /* The way back: the guest leaves where it stood, and the scroll slides home under it. */
@@ -237,15 +237,15 @@
     bottom: 0;
     margin: 0;
     opacity: 0;
-    animation: fade-out 150ms ease-in both;
+    animation: fade-out 225ms ease-in both;
   }
 
   .returning .host {
-    animation: fade-in 200ms ease-out 50ms both;
+    animation: fade-in 300ms ease-out 75ms both;
   }
 
   .returning > :global(.scroll) {
-    animation: slide-right 250ms ease-out both;
+    animation: slide-right 375ms ease-out both;
   }
 
   /* A hand-over to somebody else: whoever stands leaves, and the next walks on once the
