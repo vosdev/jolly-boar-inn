@@ -2,23 +2,15 @@
   /**
    * Create's random events: who might turn up, how often, and what that comes to in this
    * game. Each event is a slot, and the host's own questions fill slots before the room
-   * draws the rest, so the strip shows the host's askers first and a silhouette for every
+   * draws the rest, so the strip shows the host's askers first and a "?" for every
    * surprise left.
-   *
-   * A silhouette that stood still would promise that NPC, so they keep changing to others
-   * from the roster: any of them could turn up. With reduced motion they stand still.
    */
   import type { CustomQuestion } from '../lib/customQuestions'
-  import { npcArt } from '../lib/npcs'
-  import { reducedMotion } from '../lib/interlude'
   import { EVENT_EVERY, type EventFrequency } from '../lib/protocol'
-  import { RANDOM_EVENTS } from '../lib/randomEvents'
   import NpcFace from './NpcFace.svelte'
 
   /** Slots drawn one by one; past this the strip counts the rest. */
   const SHOWN_SLOTS = 8
-  /** How long each silhouette stands before the next NPC takes its place. */
-  const SWAP_MS = 2500
 
   const OPTIONS: { value: EventFrequency; label: string }[] = [
     { value: 'less', label: 'Less' },
@@ -41,26 +33,9 @@
   } = $props()
 
   const id = $props.id()
-  const roster = [...RANDOM_EVENTS]
-    .sort(() => Math.random() - 0.5)
-    .map((npc) => ({ id: npc.id, art: npcArt(npc.id) }))
-
   const mine = $derived(Math.min(own.length, slots))
   const surprises = $derived(slots - mine)
   const shown = $derived(Math.min(slots, SHOWN_SLOTS))
-
-  let turn = $state(0)
-
-  /** Each turn deals the shown surprises the next NPCs along, so no two show the same one. */
-  function shadow(index: number) {
-    return roster[(turn * (shown - mine) + index - mine) % roster.length]!
-  }
-
-  $effect(() => {
-    if (reducedMotion()) return
-    const timer = setInterval(() => turn++, SWAP_MS)
-    return () => clearInterval(timer)
-  })
 </script>
 
 <section class="panel events" aria-labelledby="{id}-title">
@@ -85,12 +60,7 @@
           {#if index < mine}
             <li class="mine"><NpcFace npc={own[index]?.random_event} /></li>
           {:else}
-            {@const npc = shadow(index)}
-            <li class="surprise">
-              {#key npc.id}
-                <span class="shadow {npc.art.cut}" style:--art="url({npc.art.url})"></span>
-              {/key}
-            </li>
+            <li>?</li>
           {/if}
         {/each}
         {#if slots > shown}<li class="more">+{slots - shown}</li>{/if}
@@ -214,43 +184,6 @@
     place-items: end center;
     border-style: solid;
     border-color: var(--accent);
-  }
-
-  /* The picture is only a mask, so the silhouette takes the theme's muted ink. */
-  .shadow {
-    width: 90%;
-    height: 92%;
-    align-self: end;
-    background: var(--muted);
-    mask: var(--art) bottom / contain no-repeat;
-    animation: appear 0.4s ease-out;
-  }
-
-  .shadow.render {
-    aspect-ratio: 1;
-    height: auto;
-    align-self: start;
-    mask-position: top;
-    mask-size: cover;
-  }
-
-  /* A random event comes in from the stage's other side, so it faces the other way. The
-     wiki's renders already face left. */
-  .shadow:is(.chathead, .drawing),
-  .mine :global(:is(.chathead, .drawing)) {
-    transform: scaleX(-1);
-  }
-
-  @keyframes appear {
-    from {
-      opacity: 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .shadow {
-      animation: none;
-    }
   }
 
   .pips li.more {
