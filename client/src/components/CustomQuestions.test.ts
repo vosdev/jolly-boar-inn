@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { exportText, importText, type CustomQuestion } from '../lib/customQuestions'
 import { profile } from '../lib/profile'
+import { RANDOM_EVENTS } from '../lib/randomEvents'
 import Create from '../routes/Create.svelte'
 
 // Two rounds of ten: 20 round questions, so 1 event at Less, 2 at Default, 4 at More.
@@ -78,7 +79,11 @@ async function setFrequency(label: 'Less' | 'Default' | 'More'): Promise<void> {
   await fireEvent.click(within(group).getByRole('radio', { name: new RegExp(`^${label}`) }))
 }
 
-/** Writes a multiple-choice question with two answers, the second one right. */
+function askers(scope: HTMLElement): HTMLElement {
+  return within(scope).getByRole('radiogroup', { name: 'Who asks it' })
+}
+
+/** Writes a multiple-choice question with two answers, the second one right, asked by `npc` if named. */
 async function writeChoice(panel: HTMLElement, prompt: string, npc = ''): Promise<void> {
   await click(panel, 'Write a question')
   const form = editor()
@@ -86,7 +91,7 @@ async function writeChoice(panel: HTMLElement, prompt: string, npc = ''): Promis
   await type(form, 'Answer 1', 'Hans')
   await type(form, 'Answer 2', 'Bartender')
   await pick(form, 'Answer 2 is right')
-  if (npc !== '') await fireEvent.change(within(form).getByRole('combobox', { name: 'Who asks it' }), { target: { value: npc } })
+  if (npc !== '') await pick(askers(form), npc)
   await click(form, 'Add question')
 }
 
@@ -169,9 +174,10 @@ describe('CustomQuestions', () => {
 
     await click(panel, 'Edit question 1')
     form = editor()
-    expect(within(form).getByRole('button', { name: 'Remove answer 1' })).toHaveProperty('disabled', true)
+    expect(within(form).getByRole('button', { name: 'Remove answer 2' })).toHaveProperty('disabled', true)
     await click(form, 'Add an answer')
     await type(form, 'Answer 4', 'Black demon')
+    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Answer 1 is right' }))
     await click(form, 'Remove answer 1')
     await fireEvent.click(within(form).getByRole('checkbox', { name: 'Tell players how many are right' }))
     await click(form, 'Save question')
@@ -188,17 +194,19 @@ describe('CustomQuestions', () => {
     ])
   })
 
-  it('starts the NPC picker on Random, and sends no random_event for a question left on it', async () => {
+  it('starts the NPC picker on a random NPC, and sends no random_event for a question left on it', async () => {
     const panel = await loaded()
     await click(panel, 'Write a question')
-    const select = within(editor()).getByRole('combobox', { name: 'Who asks it' }) as HTMLSelectElement
-    expect(select.value).toBe('')
-    expect(select.options[0]!.textContent).toBe('Random')
-    expect(select.options[1]!.textContent).toBe('Sandwich Lady: Cooking and food')
+    const faces = within(askers(editor())).getAllByRole('radio')
+    expect(faces.map((face) => face.getAttribute('aria-label'))).toEqual([
+      'A random NPC',
+      ...RANDOM_EVENTS.map((npc) => npc.name),
+    ])
+    expect(faces[0]).toHaveProperty('checked', true)
     await click(editor(), 'Cancel')
 
     await writeChoice(panel, 'Left to the draw')
-    await writeChoice(panel, 'Named', 'death')
+    await writeChoice(panel, 'Named', 'Death')
     const [random, named] = await submitted()
     expect(random).not.toHaveProperty('random_event')
     expect(named!.random_event).toBe('death')
@@ -212,12 +220,55 @@ describe('CustomQuestions', () => {
     expect(within(preview).getByRole('heading', { name: 'Mysterious Old Man' })).toBeTruthy()
     await type(form, 'Question', 'Who runs the inn?')
     await type(form, 'Answer 1', 'Hans')
-    await fireEvent.change(within(form).getByRole('combobox', { name: 'Who asks it' }), {
-      target: { value: 'wise_old_man' },
-    })
+    await pick(askers(form), 'Wise Old Man')
     expect(within(preview).getByRole('heading', { name: 'Wise Old Man' })).toBeTruthy()
     expect(preview.textContent).toContain('Who runs the inn?')
     expect(within(preview).getByRole('button', { name: /Hans/ })).toBeTruthy()
+  })
+
+  it('names the picked NPC beside the label, keeps its theme for hover, and reopens on it', async () => {
+    const panel = await loaded()
+    await click(panel, 'Write a question')
+    let form = editor()
+    const asker = () => form.querySelector('.asker')!.textContent!.trim()
+    expect(asker()).toBe('Who asks it · A random NPC')
+    const bob = within(askers(form)).getByRole('radio', { name: 'Evil Bob' })
+    expect(bob.closest('label')!.title).toBe('Evil Bob: Fishing, and cats')
+    await fireEvent.click(bob)
+    expect(asker()).toBe('Who asks it · Evil Bob')
+    await click(form, 'Cancel')
+
+    await writeChoice(panel, 'Named', 'Death')
+    await click(panel, 'Edit question 1')
+    form = editor()
+    expect(within(askers(form)).getByRole('radio', { name: 'Death' })).toHaveProperty('checked', true)
+    expect(asker()).toBe('Who asks it · Death')
+  })
+
+  it('draws each answer in the gem of its place and marks the right one instead of a remove button', async () => {
+    const panel = await loaded()
+    await click(panel, 'Write a question')
+    const form = editor()
+    await click(form, 'Add an answer')
+    const rows = () => [...form.querySelectorAll<HTMLElement>('.answer')]
+    expect(rows().map((row) => row.style.getPropertyValue('--fill'))).toEqual([
+      'var(--gem-sapphire)',
+      'var(--gem-emerald)',
+      'var(--gem-ruby)',
+    ])
+    const marked = () => rows().map((row) => row.querySelector('.mark')?.textContent ?? '')
+    expect(marked()).toEqual(['Right', '', ''])
+    expect(within(form).queryByRole('button', { name: 'Remove answer 1' })).toBeNull()
+
+    await pick(form, 'Answer 3 is right')
+    expect(marked()).toEqual(['', '', 'Right'])
+    expect(within(form).queryByRole('button', { name: 'Remove answer 3' })).toBeNull()
+    expect(within(form).getByRole('button', { name: 'Remove answer 1' })).toBeTruthy()
+
+    await pick(form, 'Pick all that apply')
+    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Answer 2 is right' }))
+    expect(marked()).toEqual(['', 'Right', ''])
+    expect(rows()[1]!.classList.contains('right')).toBe(true)
   })
 
   it('starts clean, shows a limit next to its field as it is broken, and what is missing only on Add', async () => {
@@ -295,7 +346,7 @@ describe('CustomQuestions', () => {
 
   it('exports the list as the file Import reads', async () => {
     const panel = await loaded()
-    await writeChoice(panel, 'Named', 'genie')
+    await writeChoice(panel, 'Named', 'Genie')
     let blob: Blob | undefined
     URL.createObjectURL = vi.fn((made: Blob) => {
       blob = made

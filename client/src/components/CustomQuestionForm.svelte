@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * One of the host's questions being written: its type's fields, who asks it, and beside
-   * them the random event as players will see it.
+   * them the random event as players will see it. Choice answers wear the gem of their
+   * position, as players will see them, and say which is right.
    *
    * A suggestion is written in it too (`routes/Suggest.svelte`): there the types may be
    * fewer, the NPC may be required or, for a round's question, not asked at all, and
@@ -28,8 +29,10 @@
     type CustomType,
   } from '../lib/customQuestions'
   import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
-  import { RANDOM_EVENTS } from '../lib/randomEvents'
+  import { RANDOM_EVENTS, STRANGER, randomEventFor } from '../lib/randomEvents'
+  import NpcFace from './NpcFace.svelte'
   import QuestionStage from './QuestionStage.svelte'
+  import { GEMS } from './questions/GemButton.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import Segmented from './Segmented.svelte'
 
@@ -113,6 +116,9 @@
     ...(asker === 'required' && draft.npc === '' ? [unnamed] : []),
   ])
   const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
+  const askerName = $derived(
+    draft.npc !== '' ? randomEventFor(draft.npc).name : asker === 'optional' ? 'A random NPC' : '',
+  )
 
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
@@ -149,6 +155,16 @@
   function enterSaves(node: HTMLElement): () => void {
     node.addEventListener('keydown', enter)
     return () => node.removeEventListener('keydown', enter)
+  }
+
+  // The row scrolls sideways, so a question opened on an NPC near its end would hide them.
+  function showPicked(row: HTMLElement): void {
+    const picked = row.querySelector('input:checked')?.closest<HTMLElement>('.npc')
+    if (picked) row.scrollLeft = picked.offsetLeft - (row.clientWidth - picked.offsetWidth) / 2
+  }
+
+  function gem(index: number): string {
+    return `--fill: var(--gem-${GEMS[index % GEMS.length]})`
   }
 
   function addOption(): void {
@@ -192,9 +208,32 @@
       <h3 id="{id}-title">
         {title ?? (question === undefined ? 'New question' : 'Edit question')}
       </h3>
+      {#if asker === 'optional' || asker === 'required'}
+        <div class="field">
+          <p class="asker">
+            <span id="{id}-npc">Who asks it</span>{#if askerName !== ''}<span class="picked">{` · ${askerName}`}</span>{/if}
+          </p>
+          <div class="npcs" role="radiogroup" aria-labelledby="{id}-npc" {@attach showPicked}>
+            {#if asker === 'optional'}
+              <label class="npc" title="A random NPC">
+                <input type="radio" name="{id}-npc" value="" aria-label="A random NPC" bind:group={draft.npc} />
+                <NpcFace npc={STRANGER} />
+              </label>
+            {/if}
+            {#each RANDOM_EVENTS as npc (npc.id)}
+              <label class="npc" title="{npc.name}: {npc.theme}">
+                <input type="radio" name="{id}-npc" value={npc.id} aria-label={npc.name} bind:group={draft.npc} />
+                <NpcFace npc={npc.id} />
+              </label>
+            {/each}
+          </div>
+          {@render errors('random_event')}
+        </div>
+      {/if}
+
       {#if offered.length > 1}
         <Segmented
-          legend="Type"
+          legend="How players answer"
           options={offered}
           bind:value={
             () => draft.type,
@@ -230,24 +269,29 @@
 
       {#if draft.type === 'multiple_choice'}
         <fieldset class="field">
-          <legend>Possible answers, with the correct one selected.</legend>
+          <legend>Answers · tick the right one</legend>
           {#each draft.options as _, index (index)}
-            <div class="option">
+            {@const right = draft.answerIndex === index}
+            <div class="option answer" class:right style={gem(index)}>
               <input
                 type="radio"
                 name="{id}-correct"
                 aria-label="Answer {index + 1} is right"
-                checked={draft.answerIndex === index}
+                checked={right}
                 onchange={() => (draft.answerIndex = index)}
               />
               <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
-              <button
-                type="button"
-                class="small"
-                aria-label="Remove answer {index + 1}"
-                disabled={draft.options.length <= optionsMin}
-                onclick={() => removeOption(index)}>✕</button
-              >
+              {#if right}
+                <span class="mark">Right</span>
+              {:else}
+                <button
+                  type="button"
+                  class="remove"
+                  aria-label="Remove answer {index + 1}"
+                  disabled={draft.options.length <= optionsMin}
+                  onclick={() => removeOption(index)}>✕</button
+                >
+              {/if}
             </div>
             {@render errors(`payload.options[${index}]`)}
           {/each}
@@ -263,23 +307,28 @@
         </fieldset>
       {:else if draft.type === PICK_ALL}
         <fieldset class="field">
-          <legend>Possible answers, with every right one ticked.</legend>
+          <legend>Answers · tick every right one</legend>
           {#each draft.options as _, index (index)}
-            <div class="option">
+            {@const right = draft.answerIndices.includes(index)}
+            <div class="option answer" class:right style={gem(index)}>
               <input
                 type="checkbox"
                 aria-label="Answer {index + 1} is right"
-                checked={draft.answerIndices.includes(index)}
+                checked={right}
                 onchange={(event) => tick(index, event.currentTarget.checked)}
               />
               <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
-              <button
-                type="button"
-                class="small"
-                aria-label="Remove answer {index + 1}"
-                disabled={draft.options.length <= optionsMin}
-                onclick={() => removeOption(index)}>✕</button
-              >
+              {#if right}
+                <span class="mark">Right</span>
+              {:else}
+                <button
+                  type="button"
+                  class="remove"
+                  aria-label="Remove answer {index + 1}"
+                  disabled={draft.options.length <= optionsMin}
+                  onclick={() => removeOption(index)}>✕</button
+                >
+              {/if}
             </div>
             {@render errors(`payload.options[${index}]`)}
           {/each}
@@ -371,23 +420,6 @@
         {@render errors('payload.explanation')}
       </div>
 
-      {#if asker === 'optional' || asker === 'required'}
-        <div class="field">
-          <label for="{id}-npc">Who asks it</label>
-          <select id="{id}-npc" bind:value={draft.npc}>
-            {#if asker === 'optional'}
-              <option value="">Random</option>
-            {:else}
-              <option value="" disabled>Pick an NPC</option>
-            {/if}
-            {#each RANDOM_EVENTS as npc (npc.id)}
-              <option value={npc.id}>{npc.name}: {npc.theme}</option>
-            {/each}
-          </select>
-          {@render errors('random_event')}
-        </div>
-      {/if}
-
       {@render more?.(attempted)}
 
       {#each unplaced as problem (problem.path + problem.message)}
@@ -447,13 +479,84 @@
     margin-bottom: 1rem;
   }
 
-  /* Three type names do not fit a phone on one line each; they wrap inside their buttons. */
+  /* Four ways to answer do not fit a phone in one row; two by two they keep their names whole. */
   @container (max-width: 26rem) {
+    .fields > :global(.segmented .segments) {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.4rem;
+      width: 100%;
+      border: none;
+      overflow: visible;
+    }
+
     .fields > :global(.segmented label) {
-      flex: 1;
+      display: grid;
+      place-items: center;
+      min-height: 2.75rem;
       white-space: normal;
       text-align: center;
+      border: var(--border-width) solid var(--line);
+      border-radius: min(var(--radius), 8px);
     }
+
+    .fields > :global(.segmented label:has(:checked)) {
+      border-color: var(--accent);
+    }
+  }
+
+  .asker {
+    margin: 0 0 0.3rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .picked {
+    color: var(--ink);
+  }
+
+  /* Sixteen faces do not fit a phone, so they scroll sideways rather than fill the sheet. */
+  .npcs {
+    position: relative;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding: 2px 2px 0.4rem;
+  }
+
+  .npc {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 3.6rem;
+    height: 3.9rem;
+    margin: 0;
+    overflow: hidden;
+    scroll-snap-align: start;
+    background: var(--panel);
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 8px);
+    cursor: pointer;
+  }
+
+  .npc:has(:checked) {
+    background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+
+  .npc:has(:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .npc input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
   }
 
   fieldset {
@@ -508,6 +611,81 @@
 
   .option button {
     flex: none;
+  }
+
+  .answer {
+    gap: 0;
+    padding-left: 0.65rem;
+    color: var(--gem-ink);
+    background: var(--fill);
+    border: var(--border-width) solid color-mix(in srgb, var(--gem-ink) 35%, transparent);
+    border-radius: min(var(--radius), 8px);
+  }
+
+  .answer.right {
+    border-color: var(--gem-ink);
+    box-shadow: inset 0 0 0 1px var(--gem-ink);
+  }
+
+  .answer input[type='text'] {
+    min-height: 2.75rem;
+    color: var(--gem-ink);
+    background: transparent;
+    border: none;
+  }
+
+  .answer input[type='text']:focus-visible {
+    outline-color: var(--gem-ink);
+    outline-offset: -3px;
+  }
+
+  .answer input[type='radio'],
+  .answer input[type='checkbox'] {
+    appearance: none;
+    margin: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--gem-ink);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .answer input[type='checkbox'] {
+    border-radius: 4px;
+  }
+
+  .answer input:checked {
+    background: var(--gem-ink);
+    box-shadow: inset 0 0 0 3px var(--fill);
+  }
+
+  .answer input[type='radio']:focus-visible,
+  .answer input[type='checkbox']:focus-visible {
+    outline-color: var(--gem-ink);
+  }
+
+  /* The mark and the remove button share a width, so every answer's text starts and ends alike. */
+  .mark,
+  .remove {
+    flex: none;
+    width: 3.25rem;
+    text-align: center;
+  }
+
+  .mark {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .remove {
+    min-height: 2.75rem;
+    padding: 0;
+    color: var(--gem-ink);
+    background: transparent;
+    border: none;
   }
 
   .pair {
