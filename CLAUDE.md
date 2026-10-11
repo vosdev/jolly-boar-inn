@@ -4,7 +4,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 
 ## Commands
 - `make setup` installs everything. `make dev` starts Postgres in Docker, the server on :8000 and the client on :5173.
-- `make lint test` must pass before you commit or say you're done. A run where database tests skipped doesn't count.
+- Before a PR: `make lint` and the tests that cover what changed (touched modules, files that import them, `pnpm test` for client changes), against the real database. Run full `make test` when touching migrations, the websocket protocol, `conftest.py` or `rooms/state.py`. CI runs everything; a PR isn't done until CI is green. A run where database tests skipped doesn't count.
 - One server test: `cd server && DATABASE_URL_TEST=postgresql://jbi:jbi@localhost:5432/jbi uv run pytest tests/test_x.py` (run `make db-up` first). Without `DATABASE_URL_TEST`, database tests skip silently.
 - One client test: `cd client && pnpm test src/lib/x.test.ts`.
 
