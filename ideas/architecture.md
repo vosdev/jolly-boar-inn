@@ -263,7 +263,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
-| `question_closed` | `question_id`, `reveal`, `results`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `next_at` ends the reveal; null after the last question. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
+| `question_closed` | `question_id`, `reveal`, `results`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings` | Final. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |

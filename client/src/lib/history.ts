@@ -14,6 +14,7 @@ const HISTORY_KEY = 'jbi:history'
 export const HISTORY_LIMIT = 20
 
 export interface PastGame {
+  /** As the server spells it, `FireCape`, so links and lists read as the word. */
   code: string
   /** The server's ISO time the game ended. */
   finishedAt: string
@@ -31,6 +32,11 @@ export function historyStamp(finishedAt: string): string {
 /** Where a past game opens. */
 export function historyPath(game: Pick<PastGame, 'code' | 'finishedAt'>): string {
   return `/history/${game.code}/${historyStamp(game.finishedAt)}`
+}
+
+/** Which game an entry is, whatever case its code was filed in. */
+function sameGame(a: Pick<PastGame, 'code' | 'finishedAt'>, b: Pick<PastGame, 'code' | 'finishedAt'>): boolean {
+  return normalizeCode(a.code) === normalizeCode(b.code) && historyStamp(a.finishedAt) === historyStamp(b.finishedAt)
 }
 
 function isPastGame(raw: unknown): raw is PastGame {
@@ -62,20 +68,17 @@ export function pastGames(): PastGame[] {
  * "Rooms you created here": the room is about to be deleted, and its result lives here.
  */
 export function savePastGame(game: PastGame): void {
-  const entry = { ...game, code: normalizeCode(game.code) }
-  const path = historyPath(entry)
-  const rest = pastGames().filter((other) => historyPath(other) !== path)
-  const games = [entry, ...rest]
+  const rest = pastGames().filter((other) => !sameGame(other, game))
+  const games = [game, ...rest]
     .sort((a, b) => Date.parse(b.finishedAt) - Date.parse(a.finishedAt))
     .slice(0, HISTORY_LIMIT)
   writeStored(HISTORY_KEY, JSON.stringify(games))
-  dropCreated(entry.code)
+  dropCreated(game.code)
 }
 
 /** Take one game off the list; it is the only copy, so it is gone for good. */
 export function removePastGame(game: Pick<PastGame, 'code' | 'finishedAt'>): void {
-  const path = historyPath(game)
-  writeStored(HISTORY_KEY, JSON.stringify(pastGames().filter((other) => historyPath(other) !== path)))
+  writeStored(HISTORY_KEY, JSON.stringify(pastGames().filter((other) => !sameGame(other, game))))
 }
 
 /** The game a history link names, or null if this browser never filed it. */
@@ -83,7 +86,7 @@ export function findPastGame(code: string, stamp: string): PastGame | null {
   const normalized = normalizeCode(code)
   return (
     pastGames().find(
-      (game) => game.code === normalized && historyStamp(game.finishedAt) === stamp,
+      (game) => normalizeCode(game.code) === normalized && historyStamp(game.finishedAt) === stamp,
     ) ?? null
   )
 }
@@ -91,7 +94,7 @@ export function findPastGame(code: string, stamp: string): PastGame | null {
 /** The newest game filed under a code, for a room link whose room is gone. */
 export function latestPastGame(code: string): PastGame | null {
   const normalized = normalizeCode(code)
-  return pastGames().find((game) => game.code === normalized) ?? null
+  return pastGames().find((game) => normalizeCode(game.code) === normalized) ?? null
 }
 
 const ORDINAL = new Intl.PluralRules('en', { type: 'ordinal' })

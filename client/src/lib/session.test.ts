@@ -42,16 +42,16 @@ describe('createdRooms', () => {
   const NOW = Date.parse('2026-09-25T12:00:00Z')
 
   it('lists a room until its expiry and not after', () => {
-    rememberCreated('dragon', '2026-09-28T12:00:00Z')
-    expect(createdRooms(NOW)).toEqual(['DRAGON'])
+    rememberCreated('FireCape', '2026-09-28T12:00:00Z')
+    expect(createdRooms(NOW)).toEqual(['FireCape'])
     expect(createdRooms(Date.parse('2026-09-28T12:00:00Z'))).toEqual([])
   })
 
-  it('lists the newest first, once each', () => {
-    rememberCreated('DRAGON', '2099-01-01T00:00:00Z')
-    rememberCreated('RUNE', '2099-01-01T00:00:00Z')
-    rememberCreated('DRAGON', '2099-01-02T00:00:00Z')
-    expect(createdRooms(NOW)).toEqual(['DRAGON', 'RUNE'])
+  it('lists the newest first, once each, whatever case a code came in', () => {
+    rememberCreated('FIRECAPE', '2099-01-01T00:00:00Z')
+    rememberCreated('Rune', '2099-01-01T00:00:00Z')
+    rememberCreated('FireCape', '2099-01-02T00:00:00Z')
+    expect(createdRooms(NOW)).toEqual(['FireCape', 'Rune'])
   })
 
   it('drops entries stored before expiries were, which have no time to go on', () => {
@@ -60,10 +60,10 @@ describe('createdRooms', () => {
   })
 
   it('forgets a room it is told to', () => {
-    rememberCreated('DRAGON', '2099-01-01T00:00:00Z')
-    rememberCreated('RUNE', '2099-01-01T00:00:00Z')
-    forgetCreated('dragon')
-    expect(createdRooms(NOW)).toEqual(['RUNE'])
+    rememberCreated('FireCape', '2099-01-01T00:00:00Z')
+    rememberCreated('Rune', '2099-01-01T00:00:00Z')
+    forgetCreated('firecape')
+    expect(createdRooms(NOW)).toEqual(['Rune'])
   })
 })
 

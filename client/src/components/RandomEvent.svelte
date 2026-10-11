@@ -70,7 +70,7 @@
     onAnswer: (value: unknown) => void
     /** The question arrived as it opened, so its entrance is the room's to see. */
     live?: boolean
-    /** The reveal's end, `room.next_at`; null when nothing follows it. */
+    /** The reveal's end, `room.next_at`. */
     nextAt?: string | null
     /** In the panel under the answers: the reveal's tally. */
     children?: Snippet

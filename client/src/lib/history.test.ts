@@ -42,11 +42,28 @@ describe('historyStamp', () => {
 
 describe('savePastGame', () => {
   it('keeps the newest first and finds a game by its link', () => {
-    savePastGame(game(1, { code: 'rune' }))
+    savePastGame(game(1, { code: 'Rune' }))
     savePastGame(game(2))
-    expect(pastGames().map((g) => g.code)).toEqual(['DRAGON', 'RUNE'])
+    expect(pastGames().map((g) => g.code)).toEqual(['DRAGON', 'Rune'])
     expect(findPastGame('rune', '2610012001')?.standings).toEqual(STANDINGS)
     expect(findPastGame('RUNE', '2610012002')).toBeNull()
+  })
+
+  it('keeps the code as the server spells it, for the list and the link', () => {
+    savePastGame(game(1, { code: 'FireCape' }))
+    const [kept] = pastGames()
+    expect(kept?.code).toBe('FireCape')
+    expect(historyPath(kept ?? game(1))).toBe('/history/FireCape/2610012001')
+    expect(findPastGame('FIRECAPE', '2610012001')).not.toBeNull()
+    expect(latestPastGame('firecape')?.code).toBe('FireCape')
+  })
+
+  it('replaces a copy filed under another case of the same code', () => {
+    savePastGame(game(1, { code: 'FIRECAPE' }))
+    savePastGame(game(1, { code: 'FireCape' }))
+    expect(pastGames().map((g) => g.code)).toEqual(['FireCape'])
+    removePastGame(game(1, { code: 'FIRECAPE' }))
+    expect(pastGames()).toEqual([])
   })
 
   it('files the same game once, however often its final standings arrive', () => {
@@ -66,12 +83,12 @@ describe('savePastGame', () => {
   })
 
   it('takes the room off "Rooms you created here" and keeps its session', () => {
-    rememberCreated('DRAGON', '2099-01-01T00:00:00Z')
-    rememberCreated('RUNE', '2099-01-01T00:00:00Z')
-    setSession('DRAGON', 'token')
-    savePastGame(game(1))
-    expect(createdRooms()).toEqual(['RUNE'])
-    expect(getSession('DRAGON')).toBe('token')
+    rememberCreated('FireCape', '2099-01-01T00:00:00Z')
+    rememberCreated('Rune', '2099-01-01T00:00:00Z')
+    setSession('FireCape', 'token')
+    savePastGame(game(1, { code: 'FireCape' }))
+    expect(createdRooms()).toEqual(['Rune'])
+    expect(getSession('FIRECAPE')).toBe('token')
   })
 
   it('reads a malformed list as empty', () => {

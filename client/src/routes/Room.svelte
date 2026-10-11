@@ -61,7 +61,7 @@
   import { historyPath, latestPastGame } from '../lib/history'
   import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
   import { randomEventFor } from '../lib/randomEvents'
-  import { clearSession, getSession } from '../lib/session'
+  import { clearSession, getSession, normalizeCode } from '../lib/session'
   import {
     applyServerMessage,
     connection,
@@ -169,6 +169,14 @@
           Date.parse($question.answerable_at ?? $question.opened_at)) /
           1000,
   )
+  // A typed or shared link may be in any case; the address bar takes the server's
+  // spelling once the room answers, so a copied link reads as the word.
+  $effect(() => {
+    const spelled = $room?.code
+    if (spelled === undefined || normalizeCode(spelled) !== code) return
+    const path = `/r/${spelled}`
+    if (location.pathname !== path) history.replaceState(history.state, '', path + location.hash)
+  })
   // Fetched as the question arrives rather than when its view mounts, so a question
   // spends its hold fetching the list instead of the first seconds of answering.
   $effect(() => {

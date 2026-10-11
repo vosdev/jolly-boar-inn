@@ -93,8 +93,8 @@ def test_a_three_question_game_runs_to_finished_unattended(table, db) -> None:
         game.opened(index)
         closed = [seat.take("question_closed") for seat in game.seats]
         assert all(message == closed[0] for message in closed)
-        last = index == 2
-        assert (closed[0]["next_at"] is None) is last, closed[0]
+        # The last reveal is timed too; its end is the game's.
+        assert closed[0]["next_at"] is not None, closed[0]
     finals = [seat.take("game_finished") for seat in game.seats]
     assert all(message == finals[0] for message in finals)
     assert [s["points"] for s in finals[0]["standings"]] == [0, 0, 0]  # nobody answered
@@ -2593,7 +2593,7 @@ def test_a_restart_during_the_last_questions_reveal_finishes_the_game(
     game.answer(zezima, 0, game.right(0))
     zezima.take("answer_ack")
     game.skip()
-    assert game.admin.take("question_closed")["next_at"] is None
+    assert game.admin.take("question_closed")["next_at"] is not None
     assert evict(game.code) is True
     for seat in game.seats:
         assert closed_after(seat) == 1012
