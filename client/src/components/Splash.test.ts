@@ -110,7 +110,29 @@ describe('Splash ready check', () => {
       { pet: '', size: 48 },
       { pet: '', size: 48 },
     ])
-    expect(rows.map((row) => row.classList.contains('lit'))).toEqual([true, false])
+    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('lit'))).toEqual([true, false])
+  })
+
+  it('keeps an away player in the row, faded and marked away, out of the count', () => {
+    const away: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false, ready: true }
+    render(Splash, {
+      segment: SEGMENT,
+      endsAt: null,
+      players: [...players(true), away],
+      youId: 'a',
+      onReady: () => {},
+    })
+    const rows = within(screen.getByRole('list', { name: '1 of 2 ready' })).getAllByRole('listitem')
+    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+      'Zezima ready',
+      'Woox not ready',
+      'Lynx away ready',
+    ])
+    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('away'))).toEqual([
+      false,
+      false,
+      true,
+    ])
   })
 })
 

@@ -650,7 +650,7 @@ class Room:
                 kept = [entry for entry in settings.modes if entry.mode in started]
                 settings = settings.model_copy(update={"modes": kept})
         return RoomView(
-            code=self.code,
+            code=codes.cased(self.code),
             status=self.status,  # type: ignore[arg-type]  # the column's check constraint
             settings=settings,
             current_index=self.current_index,

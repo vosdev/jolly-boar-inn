@@ -11,6 +11,7 @@ from app.errors import ApiError
 from app.http.ratelimit import RateLimited, client_key, room_lookup
 from app.modes import offered
 from app.questions import custom
+from app.rooms import codes
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
 from app.rooms.state import Room, RoomManager, normalize_name
 from app.stats import Arrival, Device, Theme
@@ -110,7 +111,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     # ``expires_at`` lets the host's "rooms you created" list drop a room once its code
     # may belong to someone else.
     return {
-        "code": room.code,
+        "code": codes.cased(room.code),
         "session": session,
         "player": player.view(),
         "expires_at": room.expires_at,
@@ -143,7 +144,7 @@ PUBLIC_ROOMS_TTL = 5.0
 def public_room(room: Room) -> PublicRoom:
     host = next(p for p in room.players.values() if p.role == "admin")
     return PublicRoom(
-        code=room.code,
+        code=codes.cased(room.code),
         host=PublicHost(id=host.id, display_name=host.display_name, avatar=host.avatar),
         players=len(room.players),
         max_players=room.max_players,

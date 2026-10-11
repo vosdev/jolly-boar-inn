@@ -21,6 +21,7 @@ from pydantic import ValidationError
 from app.config import REPO_ROOT, Settings
 from app.http import admin
 from app.main import create_app
+from app.rooms import codes
 from tests.conftest import BASE
 from tests.game_api import Game
 
@@ -197,10 +198,13 @@ def test_the_room_list_is_the_managers_memory(
 
     live = get(client, "/api/admin/rooms")
     manager = app.state.rooms
-    assert [room["code"] for room in live["rooms"]] == [lobby.code, playing.code]
+    assert [room["code"] for room in live["rooms"]] == [
+        codes.cased(lobby.code),
+        codes.cased(playing.code),
+    ]
     assert set(manager.rooms) == {lobby.code, playing.code}
     assert live["sockets"] == sum(len(room.sockets) for room in manager.rooms.values()) == 5
-    by_code = {room["code"]: room for room in live["rooms"]}
+    by_code = {room["code"].upper(): room for room in live["rooms"]}
     for code, room in manager.rooms.items():
         shown = by_code[code]
         assert shown["status"] == room.status

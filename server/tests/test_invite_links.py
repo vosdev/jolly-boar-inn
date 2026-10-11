@@ -34,7 +34,7 @@ def create_keyed(
     )
     assert response.status_code == 201, response.text
     body = response.json()
-    return body["code"], {"session": body["session"], "player": body["player"]}
+    return body["code"].upper(), {"session": body["session"], "player": body["player"]}
 
 
 def join(client: TestClient, code: str, name: str, key: str | None = None) -> httpx.Response:
@@ -210,7 +210,7 @@ def test_the_key_never_shows_up_server_side(app: FastAPI, caplog: pytest.LogCapt
         )
         assert created.status_code == 201, created.text
         code = created.json()["code"]
-        key = app.state.rooms.rooms[code].invite_key
+        key = app.state.rooms.rooms[code.upper()].invite_key
         assert key is not None
         link = f"{base}/r/{code}#k={key}"
         assert httpx.get(link).status_code == 200

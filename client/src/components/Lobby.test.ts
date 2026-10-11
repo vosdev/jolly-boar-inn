@@ -90,6 +90,12 @@ function pets(): HTMLElement[] {
   return within(screen.getByRole('list', { name: /^Players/ })).getAllByRole('listitem')
 }
 
+/** How a pet in the grid is drawn: ready, away, both or neither. */
+function looks(pet: HTMLElement): { lit: boolean; away: boolean } {
+  const drawn = pet.querySelector('.roster-pet') as HTMLElement
+  return { lit: drawn.classList.contains('lit'), away: drawn.classList.contains('away') }
+}
+
 beforeEach(() => {
   sent = []
 })
@@ -267,11 +273,30 @@ describe('Lobby', () => {
     const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: true }
     lobby([{ ...HOST, ready: true }, WOOX, lynx])
     expect(screen.getByText('Waiting on Woox and Lynx.')).toBeTruthy()
-    expect(pets().map((pet) => [pet.classList.contains('lit'), pet.textContent])).toEqual([
+    expect(pets().map((pet) => [looks(pet).lit, pet.textContent])).toEqual([
       [true, expect.stringContaining('Zezima')],
       [false, expect.stringContaining('Woox')],
       [false, expect.stringContaining('Lynx')],
     ])
+  })
+
+  it('outlines a ready pet and fades an away one, ready or not', () => {
+    const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false }
+    lobby([{ ...HOST, ready: true }, WOOX, lynx, { ...lynx, id: 'd', display_name: 'Cow', ready: true }])
+    expect(pets().map(looks)).toEqual([
+      { lit: true, away: false },
+      { lit: false, away: false },
+      { lit: false, away: true },
+      { lit: true, away: true },
+    ])
+    expect(tile('Lynx').getAttribute('aria-label')).toBe('Lynx, away, not ready: kick or make host')
+  })
+
+  it('shows the code as the server spells it', () => {
+    lobby([HOST], { ...ROOM, code: 'AbyssalWhip07' })
+    expect(screen.getByRole('button', { name: 'AbyssalWhip07, copy the invite link' }).textContent).toContain(
+      'AbyssalWhip07',
+    )
   })
 
   it('says under each pet who hosts, who is away and which is you', () => {

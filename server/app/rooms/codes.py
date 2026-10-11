@@ -3,12 +3,16 @@
 Section 7 of ideas/architecture.md: retry on a unique violation up to
 ``PLAIN_ATTEMPTS`` times, then append two random digits. ``allocate`` runs that loop
 against an insert callback so the retry policy is testable without a database.
+
+The uppercase code is the room's identity; ``cased`` is how it is shown, since words
+run together only read as words with their capitals.
 """
 
 import json
 import random
 import re
 from collections.abc import Awaitable, Callable, Iterator, Sequence
+from functools import cache
 from pathlib import Path
 
 from app.config import REPO_ROOT
@@ -41,6 +45,22 @@ def load_words(path: Path = WORDS_PATH) -> tuple[str, ...]:
 def well_formed(code: str) -> bool:
     """Whether ``code`` has the shape of one ``candidates`` could yield."""
     return _CODE.fullmatch(code) is not None
+
+
+@cache
+def _spellings() -> dict[str, str]:
+    return {word.upper(): word for word in load_words()}
+
+
+def cased(code: str) -> str:
+    """``code`` spelled as its word in the list, digits kept; an unlisted code as it is."""
+    spellings = _spellings()
+    if code in spellings:
+        return spellings[code]
+    word, digits = code[:-2], code[-2:]
+    if digits.isdigit() and word in spellings:
+        return spellings[word] + digits
+    return code
 
 
 def candidates(words: Sequence[str], rng: random.Random) -> Iterator[str]:

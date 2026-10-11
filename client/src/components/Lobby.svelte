@@ -48,6 +48,7 @@
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import Icon from './Icon.svelte'
   import Pet from './Pet.svelte'
+  import RosterPet from './RosterPet.svelte'
   import Stage from './stage/Stage.svelte'
   import Typed from './stage/Typed.svelte'
 
@@ -318,27 +319,21 @@
       <ul class="pets" aria-label="Players, {readyCount} of {$players.length} ready">
         {#each $players as player (player.id)}
           {@const status = statusOf(player)}
-          <li class:lit={player.ready === true} class:editing={player.editing === true}>
-            {#snippet tile()}
-              <Pet pet={petOf(player)} size={48} label="" />
-              <span class="pet-name">{player.display_name}</span>
-              {#if status !== ''}<span class="status">{status}</span>{/if}
-              <span class="sr">{player.ready === true ? 'ready' : 'not ready'}</span>
-            {/snippet}
+          <li class:editing={player.editing === true}>
             {#if isAdmin && player.role !== 'admin'}
               <button
                 type="button"
                 class="tile"
-                aria-label="{player.display_name}, {player.ready === true
+                aria-label="{player.display_name}, {player.connected ? '' : 'away, '}{player.ready === true
                   ? 'ready'
                   : 'not ready'}: kick or make host"
                 onclick={() => manage(player)}
               >
-                {@render tile()}
+                <RosterPet {player} {status} />
                 <span class="more"><Icon name="more" /></span>
               </button>
             {:else}
-              <div class="tile">{@render tile()}</div>
+              <div class="tile"><RosterPet {player} {status} /></div>
             {/if}
           </li>
         {/each}
@@ -396,8 +391,10 @@
   }
 
   /* The code is the sheet's ink, not a gem or a panel's button: it is something to read
-     aloud across the room first and to tap second. */
+     aloud across the room first and to tap second. A button takes the surface's ink back
+     (app.css), which on a dark theme is light, so the sheet's is named here. */
   .code-row button {
+    --ink: var(--scroll-ink);
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -460,6 +457,7 @@
   }
 
   .toggle {
+    --ink: var(--scroll-ink);
     padding: 0.35rem 0;
     min-height: 44px;
     border: 0;
@@ -533,56 +531,11 @@
     width: 4.75rem;
     height: 100%;
     padding: 0.25rem 0.1rem;
-    color: var(--muted);
   }
 
   button.tile {
     border-color: transparent;
     background: transparent;
-  }
-
-  /* The pet dims until the tap, as on the splash: opacity and not colour, so it reads the
-     same in every theme, and the name dims by ink so it keeps its contrast. */
-  .tile > :global(.pet) {
-    opacity: 0.3;
-    filter: grayscale(1);
-    transition:
-      opacity 200ms ease-out,
-      filter 200ms ease-out;
-  }
-
-  .lit .tile {
-    color: var(--ink);
-  }
-
-  .lit .tile > :global(.pet) {
-    opacity: 1;
-    filter: none;
-  }
-
-  /* Up to 24 characters, so two lines before it is cut off. */
-  .pet-name {
-    display: -webkit-box;
-    max-width: 100%;
-    overflow: hidden;
-    overflow-wrap: anywhere;
-    line-clamp: 2;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    font-size: 0.75rem;
-    line-height: 1.2;
-    text-align: center;
-  }
-
-  .status {
-    font-size: 0.7rem;
-    line-height: 1.2;
-    color: var(--muted);
-    text-align: center;
-  }
-
-  .editing .status {
-    font-style: italic;
   }
 
   .more {
@@ -628,11 +581,5 @@
 
   .decide button {
     min-height: 44px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tile > :global(.pet) {
-      transition: none;
-    }
   }
 </style>

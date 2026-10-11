@@ -234,8 +234,8 @@ Round 2 of 5 · 5 questions
 
 ## 9. The splash and the ready check
 
-Both put the players in a grid of pets, a name under each, lit once they tap. The threshold,
-countdowns and take-back rule are architecture §7.
+Both put the players in a grid of pets, a name under each: faded while away, outlined and named
+in `--ok` once ready. The threshold, countdowns and take-back rule are architecture §7.
 
 - **Lobby: the room on the scroll.** It holds the code, which copies the invite link (an error and
   the link to copy by hand where the clipboard refuses), the rounds and questions, and the rounds

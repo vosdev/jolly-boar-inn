@@ -19,6 +19,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT
+from app.rooms import codes
 from app.rooms.state import Room, RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
@@ -107,7 +108,7 @@ def test_ping_gets_pong(client: TestClient, lobby) -> None:
 
 def test_code_in_url_is_case_insensitive(client: TestClient, lobby) -> None:
     with client.websocket_connect(f"/ws/{lobby['code'].lower()}") as ws:
-        assert hello(ws, lobby["player"]["session"])["room"]["code"] == lobby["code"]
+        assert hello(ws, lobby["player"]["session"])["room"]["code"] == codes.cased(lobby["code"])
 
 
 # --- last device wins ---------------------------------------------------------------

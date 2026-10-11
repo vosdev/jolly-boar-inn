@@ -29,9 +29,9 @@ from fastapi.testclient import TestClient
 from app.modes import MODES, Mode
 from app.questions import schema
 from app.random_events import RANDOM_EVENTS
-from app.rooms import state
+from app.rooms import codes, state
 from app.rooms.settings import RoomSettings
-from tests.rooms_api import call, create, held, join
+from tests.rooms_api import call, create, held, hello, join
 
 
 def sha256(token: str) -> str:
@@ -67,7 +67,7 @@ def test_create_returns_the_admin_session_and_player(client: TestClient, db) -> 
     }
 
     (room,) = db("select code, status from rooms")
-    assert (room["code"], room["status"]) == (body["code"], "lobby")
+    assert (room["code"], room["status"]) == (body["code"].upper(), "lobby")
     (player,) = db("select id, role, session_token_hash from players")
     assert str(player["id"]) == body["player"]["id"]
     assert player["role"] == "admin"
@@ -145,9 +145,20 @@ def test_the_claim_endpoint_is_gone(client: TestClient) -> None:
     assert client.post(f"/api/rooms/{code}/claim", json={}).status_code == 404
 
 
-def test_code_is_an_uppercase_room_word(client: TestClient) -> None:
-    code, _ = create(client)
-    assert re.fullmatch(r"[A-Z0-9]+", code)
+def test_code_is_stored_uppercase_and_sent_spelled_as_its_word(client: TestClient, db) -> None:
+    response = client.post("/api/rooms", json={"returning": False, "display_name": "Zezima"})
+    sent = response.json()["code"]
+    (room,) = db("select code from rooms")
+    assert re.fullmatch(r"[A-Z0-9]+", room["code"])
+    assert sent == codes.cased(room["code"]) != room["code"]
+    assert sent in codes.load_words()
+
+
+def test_the_room_view_spells_the_code_and_any_casing_finds_the_room(client: TestClient) -> None:
+    code, admin = create(client)
+    assert join(client, code.lower(), "Woox").status_code == 200
+    with client.websocket_connect(f"/ws/{codes.cased(code)}") as ws:
+        assert hello(ws, admin["session"])["room"]["code"] == codes.cased(code)
 
 
 def test_code_collision_retries_then_appends_digits(app: FastAPI, client: TestClient) -> None:
