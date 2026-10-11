@@ -60,7 +60,7 @@ describe("Home", () => {
       "Think you know Gielinor? Prove it at The Jolly Boar Inn.",
     );
     expect(heading.closest(".scroll")?.textContent).toContain(
-      "Every question is OSRS and every second counts.",
+      "Your Oldschool RuneScape knowledge will be tested.",
     );
     await fireEvent.click(
       screen.getByRole("button", { name: "Create a room" }),

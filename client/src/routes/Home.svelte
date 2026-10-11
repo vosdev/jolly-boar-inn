@@ -203,8 +203,8 @@
     {#snippet paper()}
       <h1>Think you know Gielinor? Prove it at {siteName}.</h1>
       <p class="tagline">
-        Every question is OSRS and every second counts. Join a room and race for the top of the
-        leaderboard.
+        Your Oldschool RuneScape knowledge will be tested. Create or Join a room, and race for the top of the
+        leaderboard!
       </p>
     {/snippet}
   </Stage>
