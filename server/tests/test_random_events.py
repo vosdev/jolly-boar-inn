@@ -23,7 +23,6 @@ CLIENT_COPY = REPO_ROOT / "client" / "src" / "lib" / "randomEvents.ts"
 AWAITING_QUESTIONS = {
     "sandwich_lady",
     "survival_expert",
-    "drunken_dwarf",
     "thurgo",
     "genie",
     "sergeant_damien",
