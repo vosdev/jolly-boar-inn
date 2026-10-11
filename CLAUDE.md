@@ -20,6 +20,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 
 ## Decisions
 - Before starting an issue, read it and the architecture.md sections it touches. Tell me where they look wrong or underspecified for this task, and wait for my answers before coding.
+- Before starting an issue, read the issues on its `Related:` line too. Propose taking the small ones (a bug, a tweak, a few files) into the same PR; never a placeholder or a large feature.
 - Ask before deciding anything a player can see, or anything in the websocket protocol, the database schema, scoring or room settings. Decide internal details yourself and list them in your reply.
 - Departing from architecture.md needs my OK. Then update architecture.md in the same PR.
 - As long as we are on major version 0, there is no need to take compatibility with previous versions into account.
@@ -33,8 +34,8 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 - Docstrings on public functions, one line where possible.
 
 ## Git and PRs
-- Always branch: `<N>-<slug>` for issue N (`82-release-order`), a short descriptive name otherwise. A PR for an issue says `Closes #N`.
-- Every PR bumps the version: minor for a `feature` or `design` issue, patch for anything else. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`.
+- Always branch: `<N>-<slug>` for issue N (`82-release-order`), a short descriptive name otherwise. A PR for an issue says `Closes #N`, one line per issue it closes.
+- Every PR bumps the version once, however many issues it closes: minor if any is a `feature` or `design` issue, patch otherwise. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`.
 - PR descriptions under 10 lines.
 - Update project board
 
