@@ -2,21 +2,23 @@
   /**
    * Create's random events: who might turn up, how often, and what that comes to in this
    * game. Each event is a slot, and the host's own questions fill slots before the room
-   * draws the rest, so the strip shows the host's askers first and a "?" for every
+   * draws the rest, so the strip shows the host's askers first and a silhouette for every
    * surprise left.
    *
-   * The NPCs along the top are a handful from the roster, drawn afresh each visit.
+   * A silhouette that stood still would promise that NPC, so they keep changing to others
+   * from the roster: any of them could turn up. With reduced motion they stand still.
    */
   import type { CustomQuestion } from '../lib/customQuestions'
   import { npcArt } from '../lib/npcs'
+  import { reducedMotion } from '../lib/interlude'
   import { EVENT_EVERY, type EventFrequency } from '../lib/protocol'
   import { RANDOM_EVENTS } from '../lib/randomEvents'
   import NpcFace from './NpcFace.svelte'
 
-  /** As many as fit a phone's width; the rest of the roster is no less likely to come. */
-  const PARADE = 6
   /** Slots drawn one by one; past this the strip counts the rest. */
   const SHOWN_SLOTS = 8
+  /** How long each silhouette stands before the next NPC takes its place. */
+  const SWAP_MS = 2500
 
   const OPTIONS: { value: EventFrequency; label: string }[] = [
     { value: 'less', label: 'Less' },
@@ -39,25 +41,31 @@
   } = $props()
 
   const id = $props.id()
-  const parade = [...RANDOM_EVENTS]
+  const roster = [...RANDOM_EVENTS]
     .sort(() => Math.random() - 0.5)
-    .slice(0, PARADE)
-    .map((npc) => ({ name: npc.name, art: npcArt(npc.id) }))
+    .map((npc) => ({ id: npc.id, art: npcArt(npc.id) }))
 
   const mine = $derived(Math.min(own.length, slots))
   const surprises = $derived(slots - mine)
   const shown = $derived(Math.min(slots, SHOWN_SLOTS))
+
+  let turn = $state(0)
+
+  /** Each turn deals the shown surprises the next NPCs along, so no two show the same one. */
+  function shadow(index: number) {
+    return roster[(turn * (shown - mine) + index - mine) % roster.length]!
+  }
+
+  $effect(() => {
+    if (reducedMotion()) return
+    const timer = setInterval(() => turn++, SWAP_MS)
+    return () => clearInterval(timer)
+  })
 </script>
 
 <section class="panel events" aria-labelledby="{id}-title">
   <h2 id="{id}-title">Random events</h2>
   <p class="note lead">They barge into a round with a question of their own.</p>
-
-  <ul class="parade" aria-label="Who might turn up">
-    {#each parade as npc (npc.name)}
-      <li><img class={npc.art.cut} src={npc.art.url} alt={npc.name} draggable="false" /></li>
-    {/each}
-  </ul>
 
   <fieldset class="often">
     <legend class="sr">Random events frequency</legend>
@@ -77,7 +85,12 @@
           {#if index < mine}
             <li class="mine"><NpcFace npc={own[index]?.random_event} /></li>
           {:else}
-            <li>?</li>
+            {@const npc = shadow(index)}
+            <li class="surprise">
+              {#key npc.id}
+                <span class="shadow {npc.art.cut}" style:--art="url({npc.art.url})"></span>
+              {/key}
+            </li>
           {/if}
         {/each}
         {#if slots > shown}<li class="more">+{slots - shown}</li>{/if}
@@ -99,45 +112,12 @@
 </section>
 
 <style>
-  .events {
-    container-type: inline-size;
-  }
-
   .events h2 {
     margin: 0;
   }
 
   .lead {
     margin: 0.2rem 0 0.75rem;
-  }
-
-  /* The NPCs stand on the inn's floor, as they do on the stage. */
-  .parade {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-around;
-    gap: 0.5rem;
-    height: 4.25rem;
-    margin: 0 0 0.75rem;
-    padding: 0.6rem 0.75rem 0;
-    list-style: none;
-    overflow: hidden;
-    background: var(--bg);
-    border-radius: min(var(--radius), 8px);
-  }
-
-  /* Six heads across whatever the panel's width, shrinking on a phone rather than one
-     falling off the end. */
-  .parade img {
-    display: block;
-    height: min(3.25rem, 12cqi);
-    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.4));
-  }
-
-  .parade .render {
-    width: min(3.25rem, 12cqi);
-    object-fit: cover;
-    object-position: top;
   }
 
   .often {
@@ -234,6 +214,43 @@
     place-items: end center;
     border-style: solid;
     border-color: var(--accent);
+  }
+
+  /* The picture is only a mask, so the silhouette takes the theme's muted ink. */
+  .shadow {
+    width: 90%;
+    height: 92%;
+    align-self: end;
+    background: var(--muted);
+    mask: var(--art) bottom / contain no-repeat;
+    animation: appear 0.4s ease-out;
+  }
+
+  .shadow.render {
+    aspect-ratio: 1;
+    height: auto;
+    align-self: start;
+    mask-position: top;
+    mask-size: cover;
+  }
+
+  /* A random event comes in from the stage's other side, so it faces the other way. The
+     wiki's renders already face left. */
+  .shadow:is(.chathead, .drawing),
+  .mine :global(:is(.chathead, .drawing)) {
+    transform: scaleX(-1);
+  }
+
+  @keyframes appear {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shadow {
+      animation: none;
+    }
   }
 
   .pips li.more {

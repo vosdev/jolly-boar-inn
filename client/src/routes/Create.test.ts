@@ -432,7 +432,7 @@ describe('Create', () => {
     expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
     expect(screen.getByRole('region', { name: 'Write your own' })).toBeTruthy()
     expect(screen.queryByRole('checkbox', { name: 'More or Less' })).toBeNull()
-    expect(screen.getByRole('list', { name: 'Who might turn up' }).querySelectorAll('img').length).toBeGreaterThan(0)
+    expect(screen.getByRole('region', { name: 'Random events' }).querySelectorAll('.shadow').length).toBeGreaterThan(0)
   })
 
   it('lets the host pick how often, says what each means, and offers no way off', async () => {
