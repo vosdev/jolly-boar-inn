@@ -241,6 +241,8 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string; host: st
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
   { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!', host: 'aubury' },
   { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?', host: 'captain_errdo' },
+  { id: 'scrying_pool', label: 'Scrying Pool', hint: 'Where did that teleport drop you?', host: 'archmage_sedridor' },
+  { id: 'lost_in_gielinor', label: 'Lost in Gielinor', hint: 'Hans has wandered off. Follow his clues and find him.', host: 'hans' },
 ]
 
 /**
