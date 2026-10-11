@@ -154,7 +154,7 @@ export type RoomAccess = 'code' | 'link' | 'public'
  * `returning` is `returningVisitor`, counted by the server and never stored.
  * `customQuestions` are the host's own, each a random event (`lib/customQuestions.ts`).
  * `arrival` is for the counters (`lib/stats.ts`), and never has a `via`: nobody arrives at
- * a room they made.
+ * a room they made. `code` is the one `getFreeCode` handed out; undefined, the server draws one.
  */
 export function createRoom(
   displayName: string,
@@ -164,11 +164,13 @@ export function createRoom(
   access: RoomAccess = 'code',
   customQuestions: readonly CustomQuestion[] = [],
   arrival: Omit<Arrival, 'via'> = {},
+  code?: string,
 ): Promise<CreatedRoom> {
   return request<CreatedRoom>('/api/rooms', {
     method: 'POST',
     body: JSON.stringify({
       display_name: displayName,
+      code,
       avatar,
       returning,
       invite_only: access === 'link',
@@ -241,6 +243,11 @@ export interface PublicRoom {
   rounds: number
   /** Left out when the room keeps its rounds a surprise. */
   modes?: string[]
+}
+
+/** A room code nobody holds right now. Not reserved: a create may still find it taken. */
+export async function getFreeCode(): Promise<string> {
+  return (await request<{ code: string }>('/api/rooms/free-code')).code
 }
 
 /** Newest first. Empty when the server has the list turned off. */

@@ -1,7 +1,7 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Six of them: room creation, joins, join failures reported, suggestions, reports, and lookups of
-rooms that turn out not to exist.
+Seven of them: room creation, free codes for the create page, joins, join failures
+reported, suggestions, reports, and lookups of rooms that turn out not to exist.
 The last is what keeps the room list private. The live codes are a few of a few hundred
 words, and every request that names a room answers whether it exists, so an address
 that keeps asking for rooms that are not there is scanning and is refused for a while.
@@ -16,6 +16,9 @@ from datetime import UTC, datetime, timedelta
 from app.errors import ApiError
 from app.rooms.state import RoomExpired, RoomNotFound
 
+# A host rerolling the code for one they like; a script listing taken codes slowly.
+FREE_CODES = 5
+FREE_CODES_WINDOW = timedelta(seconds=10)
 # A mistyped code or two, or a phone retrying an old link, stays far below this.
 LOOKUP_MISSES = 30
 LOOKUP_WINDOW = timedelta(minutes=10)

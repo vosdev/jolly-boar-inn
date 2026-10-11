@@ -1,4 +1,5 @@
-"""``POST /api/rooms``, ``GET /api/rooms/public``, ``GET /api/rooms/{code}``,
+"""``POST /api/rooms``, ``GET /api/rooms/free-code``,
+``GET /api/rooms/public``, ``GET /api/rooms/{code}``,
 ``DELETE /api/rooms/{code}``."""
 
 from typing import Any, Self
@@ -36,6 +37,8 @@ class CreateRoom(BaseModel):
     invite_only: bool = Field(default=False, strict=True)
     # Listed on Home for anyone to join; a key would defeat that, so it excludes one.
     public: bool = Field(default=False, strict=True)
+    # The code the create page showed, from ``free-code``. Left out, the server draws one.
+    code: str | None = Field(default=None, max_length=40, strict=True)
     settings: NewRoomSettings = Field(default_factory=NewRoomSettings)
     # The host's own questions, each a random event in a round it does not belong to. The
     # bound is only the outer one; ``settings`` decides how many this room has room for.
@@ -96,6 +99,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     # typos in the name field should not cost a host their hourly quota.
     name = normalize_name(body.display_name)
     manager(request).check_avatar(body.avatar)
+    manager(request).check_code(body.code)
     if not request.app.state.ratelimiter.allow(client_key(ip)):
         raise RateLimited("too many rooms created from this address, try again later")
     room, player, session = await manager(request).create(
@@ -107,6 +111,7 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
         body.invite_only,
         body.public,
         Arrival(theme=body.theme, device=body.device),
+        body.code,
     )
     # ``expires_at`` lets the host's "rooms you created" list drop a room once its code
     # may belong to someone else.
@@ -173,6 +178,14 @@ def public_rooms(rooms: RoomManager) -> list[PublicRoom]:
         filter(listable, rooms.rooms.values()), key=lambda room: room.created_at, reverse=True
     )
     return [public_room(room) for room in newest[:PUBLIC_ROOMS_MAX]]
+
+
+@router.get("/free-code")
+async def free_code(request: Request) -> dict[str, str]:
+    """A code no room holds right now, for the create page to show and send back."""
+    if not request.app.state.free_codes.allow(client_key(client_host(request))):
+        raise RateLimited("too many room codes asked for, try again in a few seconds")
+    return {"code": codes.cased(await manager(request).free_code())}
 
 
 @router.get("/public", response_model_exclude_unset=True)

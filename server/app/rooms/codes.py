@@ -11,7 +11,7 @@ run together only read as words with their capitals.
 import json
 import random
 import re
-from collections.abc import Awaitable, Callable, Iterator, Sequence
+from collections.abc import Awaitable, Callable, Collection, Iterator, Sequence
 from functools import cache
 from pathlib import Path
 
@@ -47,6 +47,13 @@ def well_formed(code: str) -> bool:
     return _CODE.fullmatch(code) is not None
 
 
+def drawable(code: str, words: Sequence[str]) -> bool:
+    """Whether uppercase ``code`` is one ``candidates`` could draw from ``words``."""
+    listed = {word.upper() for word in words}
+    word, digits = code[:-2], code[-2:]
+    return code in listed or (digits.isdigit() and word in listed)
+
+
 @cache
 def _spellings() -> dict[str, str]:
     return {word.upper(): word for word in load_words()}
@@ -69,6 +76,14 @@ def candidates(words: Sequence[str], rng: random.Random) -> Iterator[str]:
         yield rng.choice(words).upper()
     for _ in range(SUFFIXED_ATTEMPTS):
         yield f"{rng.choice(words).upper()}{rng.randrange(100):02d}"
+
+
+def first_free(drawn: Sequence[str], taken: Collection[str]) -> str:
+    """The first of ``drawn`` not in ``taken``."""
+    for code in drawn:
+        if code not in taken:
+            return code
+    raise CodeSpaceExhausted(f"no free room code after {PLAIN_ATTEMPTS + SUFFIXED_ATTEMPTS} tries")
 
 
 async def allocate(

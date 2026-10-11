@@ -35,6 +35,8 @@ from app.http.head import HeadAsGet
 from app.http.headers import SecurityHeaders
 from app.http.jsonbody import JsonBody
 from app.http.ratelimit import (
+    FREE_CODES,
+    FREE_CODES_WINDOW,
     JOIN_FAILURES_PER_HOUR,
     JOINS_PER_HOUR,
     LOOKUP_MISSES,
@@ -247,6 +249,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.cleanup = None
     app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour)
     app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW)
+    app.state.free_codes = RateLimiter(FREE_CODES, FREE_CODES_WINDOW)
     app.state.joins = RateLimiter(JOINS_PER_HOUR)
     app.state.join_failures = RateLimiter(JOIN_FAILURES_PER_HOUR)
     app.state.suggestions = RateLimiter(SUGGESTIONS_PER_HOUR)

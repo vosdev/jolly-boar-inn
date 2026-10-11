@@ -192,6 +192,18 @@ class BadAvatar(ApiError):
     status, code = 422, "bad_avatar"
 
 
+class BadCode(ApiError):
+    """A requested room code no draw from the word list could give."""
+
+    status, code = 422, "bad_code"
+
+
+class CodeTaken(ApiError):
+    """A requested room code another room already holds."""
+
+    status, code = 409, "code_taken"
+
+
 class KeyRequired(ApiError):
     """A join to an invite-only room without its key."""
 
@@ -1319,8 +1331,12 @@ class RoomManager:
         invite_only: bool = False,
         public: bool = False,
         arrival: Arrival = UNREPORTED,
+        code: str | None = None,
     ) -> tuple[Room, Player, str]:
         """Insert the room, its fixed question set and its admin, in one transaction.
+
+        ``code`` is the host's preferred one: taken, it is ``CodeTaken`` rather than a
+        different code, so the host is never handed one they did not see.
 
         ``custom_questions`` are the creator's own: stored ``source: room``, ``mode:
         custom``, with the creator as their author, each placed as a random event. The HTTP
@@ -1334,6 +1350,7 @@ class RoomManager:
         if public and invite_only:
             raise BadSettings("a public room cannot be invite-only")
         self.check_avatar(avatar)
+        self.check_code(code)
         avatar = self._pet_for(avatar, ())
         try:
             own = custom.envelopes(custom_questions)
@@ -1382,7 +1399,10 @@ class RoomManager:
                     return False
                 return True
 
-            await codes.allocate(self.words, self.code_rng, try_insert)
+            if code is None:
+                await codes.allocate(self.words, self.code_rng, try_insert)
+            elif not await try_insert(code.upper()):
+                raise CodeTaken("that room code is taken")
             assert room_row is not None
             # Outside the savepoint above and inside this transaction, deliberately.
             # ``try_insert`` reads a unique violation as "that code was taken, try
@@ -1659,6 +1679,19 @@ class RoomManager:
             return avatar
         pool = sorted(self.pets.difference(worn)) or sorted(self.pets)
         return self.rng.choice(pool)
+
+    def check_code(self, code: str | None) -> None:
+        """Refuse a requested room code the word list could not have drawn."""
+        if code is not None and not codes.drawable(code.upper(), self.words):
+            raise BadCode("code must be one the server could have drawn")
+
+    async def free_code(self) -> str:
+        """A drawn room code no room holds right now; nothing reserves it."""
+        drawn = list(codes.candidates(self.words, self.code_rng))
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch("select code from rooms where code = any($1)", drawn)
+        return codes.first_free(drawn, {row["code"] for row in rows})
 
     def check_avatar(self, avatar: str | None) -> None:
         """Refuse a pet nobody can pick, before anything is written."""
