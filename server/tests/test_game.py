@@ -2531,7 +2531,7 @@ def two_rounds(second_mode: str) -> dict[str, Any]:
 
 
 def to_standings(game: Game) -> None:
-    """Start, Zezima answers the first round's one question right, and on to its standings."""
+    """Start, Zezima answers the first round's one question right, and skip on to its standings."""
     zezima = game.players[0]
     game.start()
     game.opened(0)
@@ -2539,6 +2539,7 @@ def to_standings(game: Game) -> None:
     zezima.take("answer_ack")
     game.skip()
     game.admin.take("question_closed")
+    game.skip()
     updated(game.admin, lambda m: m["room"]["phase"] == "standings")
 
 

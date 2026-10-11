@@ -1,6 +1,6 @@
 [project]
 name = "jolly-boar-inn"
-version = "0.76.0"
+version = "0.76.1"
 description = "Jolly Boar Inn Quiz Night server"
 requires-python = ">=3.14"
 license = "AGPL-3.0-only"
@@ -20,6 +20,7 @@ dev = [
     "pytest-asyncio>=0.24",
     "httpx>=0.27",
     "pytest-timeout>=2.4.0",
+    "pytest-xdist>=3.6",
 ]
 # `make logo`, the owner's tool: never in the runtime image.
 logo = [
@@ -49,6 +50,9 @@ testpaths = ["tests"]
 # A frame that never comes blocks ``receive_json`` forever; this turns that into a failure
 # that names the test.
 timeout = 60
+# The tests wait on timers and Postgres more than they compute, so they run in parallel; at
+# most 8 workers, as each app pool may hold 10 of Postgres's default 100 connections.
+addopts = "-n auto --maxprocesses 8 --dist worksteal"
 markers = [
     "empty_database: the test database starts with no migrations applied",
 ]
