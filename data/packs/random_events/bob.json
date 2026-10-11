@@ -138,6 +138,48 @@
         "prompt": "What Fishing level do you need to catch an Anglerfish, without a boost?",
         "answer": 82
       }
+    },
+    {
+      "id": "q_870bfd9738174a0b",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Unferth",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "My not-so-evil counterpart has asked you to look after his human pet in Burthorpe.",
+        "prompt": "What is the name of this human?",
+        "options": [
+          "Unferth",
+          "Dunstan",
+          "Ghommal",
+          "Bernald",
+          "Denulth",
+          "Turael"
+        ],
+        "explanation": "Unferth is the name of Bob's helpless human pet, whom you assist in A Tail of Two Cats.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_b3b1756f3f6c5efe",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Leechfin",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "I have heard of a local delicacy only found on the blood-red world of Vampyrium.",
+        "prompt": "What is the name of this fish, which requires level 78 to catch?",
+        "accepted": [
+          "Leechfin"
+        ],
+        "explanation": "Leechfins can only be caught on Vampyrium after completion of The Blood Moon Rises."
+      }
     }
   ]
 }

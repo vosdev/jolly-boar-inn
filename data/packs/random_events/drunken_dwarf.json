@@ -1,0 +1,125 @@
+{
+  "pack": "random_events",
+  "random_event": "drunken_dwarf",
+  "questions": [
+    {
+      "id": "q_5700ecef8e93ca3f",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Dwarf_multicannon",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "'Ello der *hic*, I needsh you to help me count these *hic* red numbers fer me.",
+        "answer": 35,
+        "prompt": "What is the maximum hit of a dwarf multicannon with granite cannonballs?",
+        "explanation": "Granite cannonballs deal a maximum of 35 damage, while steel cannonballs can deal up to 30 damage through a multicannon."
+      }
+    },
+    {
+      "id": "q_c4b65d3b708de081",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Kebab",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Ow matey, that wasn't *hic* such a good kebabsh for me stomach.",
+        "answer": 16,
+        "prompt": "One in how many kebabs will make you feel ill when eaten?",
+        "explanation": "Kebabs have a 1/32 chance of making you feel a bit ill, and another 1/32 of making you feel very ill."
+      }
+    },
+    {
+      "id": "q_134949b8c1bb1c76",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Ruins_of_Camdozaal#History",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Oi matey, I found this *hic* old book the other day but I cannae make *hic* much sensh of it.",
+        "prompt": "Who destroyed the ancient dwarven city of Camdozaal?",
+        "options": [
+          "Fremenniks",
+          "Zarosians",
+          "Mahjarrat",
+          "Black Knights",
+          "Saradominists",
+          "Imcando"
+        ],
+        "explanation": "In the early Fifth Age, the Fremenniks went on a series of crusades against all forms of magic. Camdozaal was one of the places that they destroyed, wiping out nearly all Imcando dwarves.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_542c053eda49fb7a",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Super_kebab",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Waaahaaay! Oiv just made *hic* an incredible dishcovery!",
+        "prompt": "What can you add to a kebab to turn it into a super kebab?",
+        "options": [
+          "Red hot sauce",
+          "Kebab mix",
+          "Garlic powder",
+          "Chopped tomato",
+          "Chopped garlic",
+          "Spice"
+        ],
+        "explanation": "Red hot sauce can only be obtained from the Pollnivneach kebab seller.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_f77e9e367b490692",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Alfred_Grimhand%27s_Barcrawl",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "unit": "gp",
+        "intro": "Oi matey, I lost me gold pouch *hic*! I needsh you *hic* to pay the tab for me, thanksh.",
+        "answer": 208,
+        "prompt": "How many coins do you need to buy every drink for Alfred Grimhand's Barcrawl?",
+        "explanation": "There are ten drinks on the barcrawl card, ranging from 7 to 70 coins each."
+      }
+    },
+    {
+      "id": "q_0034675d65c21c16",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Bottle_of_platinum_rum",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "intro": "Suddenly, a chorus of drunken dwarves says \"Ello der!\"",
+        "prompt": "You\u2019ll see seven drunken dwarves on your boat when you taste a bottle of what?",
+        "options": [
+          "Platinum rum",
+          "Dwarven wizard\u2019s stout bomb",
+          "Zul-rye beer",
+          "Crystal clear vodka"
+        ],
+        "explanation": "One bottle of platinum rum can be found in a crate just south of Sunbleak Island.",
+        "answer_index": 0
+      }
+    }
+  ]
+}

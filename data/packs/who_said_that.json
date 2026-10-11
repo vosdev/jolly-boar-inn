@@ -198,6 +198,50 @@
         "explanation": "Bravo!",
         "answer_index": 0
       }
+    },
+    {
+      "id": "q_8c8727705737b7ed",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Uri",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "quote": "Once, I was a poor man, but then I found a party hat.",
+        "prompt": "Who said this?",
+        "options": [
+          "Uri",
+          "Wise Old Man",
+          "Party Pete",
+          "Charlie the Tramp"
+        ],
+        "explanation": "Uri may say this at random when you complete an emote clue step.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_2fce13917b8747c2",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Oziach",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "quote": "Aye, 'tis a fair day, my mighty dragon-slaying friend.",
+        "prompt": "Who said this?",
+        "options": [
+          "Oziach",
+          "Brundt the Chieftain",
+          "Jardric",
+          "Ned"
+        ],
+        "explanation": "Oziach will say this when spoken to, after completion of Dragon Slayer I.",
+        "answer_index": 0
+      }
     }
   ]
 }
