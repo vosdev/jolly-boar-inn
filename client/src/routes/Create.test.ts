@@ -102,6 +102,12 @@ async function next(): Promise<void> {
   await fireEvent.click(screen.getByRole('button', { name: /^Next: / }))
 }
 
+/** Click the step bar named, the way the host jumps straight to a step. */
+async function step(name: string): Promise<void> {
+  const steps = screen.getByRole('list', { name: 'Steps' })
+  await fireEvent.click(within(steps).getByRole('button', { name: new RegExp(`· ${name}$`) }))
+}
+
 /** Open a house rule's row, closed to begin with. */
 async function rule(name: string): Promise<void> {
   await fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${name}`) }))
@@ -492,6 +498,16 @@ describe('Create', () => {
     expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
   })
 
+  it('moves to the step whose bar the host clicks', async () => {
+    await loaded(...BOTH)
+    await step('Random events')
+    expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
+    expect(screen.queryByRole('region', { name: 'House rules' })).toBeNull()
+    await step('Rounds & rules')
+    expect((screen.getByRole('checkbox', { name: 'More or Less' }) as HTMLInputElement).checked).toBe(true)
+    expect(screen.getByRole('region', { name: 'House rules' })).toBeTruthy()
+  })
+
   it('keeps one house rule open at a time, each showing its value while closed', async () => {
     await loaded(...BOTH)
     const rules = screen.getByRole('region', { name: 'House rules' })
@@ -636,6 +652,17 @@ describe('Create on a phone', () => {
     await next()
     expect(screen.queryByRole('region', { name: 'House rules' })).toBeNull()
     expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
+  })
+
+  it('jumps past a step and back again when the host clicks its bar', async () => {
+    await loaded(...BOTH)
+    await step('Random events')
+    expect(screen.getByRole('group', { name: 'Random events frequency' })).toBeTruthy()
+    expect(document.querySelector('[aria-current="step"]')?.textContent?.trim()).toBe('3 · Random events')
+    await step('Rules')
+    expect(screen.getByRole('region', { name: 'House rules' })).toBeTruthy()
+    await step('Rounds')
+    expect((screen.getByRole('checkbox', { name: 'More or Less' }) as HTMLInputElement).checked).toBe(true)
   })
 
   it('offers Create on every step', async () => {

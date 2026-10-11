@@ -405,7 +405,11 @@
       <h1>Create a room</h1>
       {#if !narrow}<p class="tagline">Kept for 48 hours, ready for clan night.</p>{/if}
     </div>
-    <CreateSteps steps={steps.map((step) => step.label)} {current} />
+    <CreateSteps
+      steps={steps.map((step) => step.label)}
+      {current}
+      onpick={(index) => go(steps[index]!.id)}
+    />
     {#if !narrow && code !== null && full !== true}
       <div class="code-line">
         <span class="note">Room code</span>
