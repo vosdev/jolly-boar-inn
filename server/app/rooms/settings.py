@@ -44,6 +44,7 @@ the rules it was created under. ``NewRoomSettings`` never takes ``None``, so no 
 is made that way; it exists so every stored room still loads.
 """
 
+import random
 from collections.abc import Sequence
 from typing import Any, Literal, Self
 
@@ -171,6 +172,10 @@ class RoomSettings(BaseModel):
     # (``Room.view``). Left off the wire while false, so a room without it reads exactly
     # as one created before it existed.
     hide_rounds: bool = Field(default=False, exclude_if=lambda hide: not hide)
+    # Surprise modes: this many rounds drawn by the server at creation, hidden from the
+    # admin too, who did not pick them either. Implies ``hide_rounds``. Left off the wire
+    # at 0, like ``hide_rounds``.
+    surprise_modes: int = Field(default=0, ge=0, exclude_if=lambda count: count == 0)
     # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
     # so a stored room always has a number here.
     max_players: int | None = Field(default=None, ge=1)
@@ -196,6 +201,12 @@ class RoomSettings(BaseModel):
             "random_event_frequency", "default" if data["random_events"] else None
         )
         return translated
+
+    @model_validator(mode="after")
+    def _surprise_hides_its_rounds(self) -> Self:
+        if self.surprise_modes:
+            self.hide_rounds = True
+        return self
 
     @field_validator("modes")
     @classmethod
@@ -240,6 +251,35 @@ class RoomSettings(BaseModel):
         lengths = [entry.questions for entry in self.modes]
         return len(event_windows(lengths, EVENT_EVERY[self.random_event_frequency]))
 
+    def drawn(self, offered: Sequence[str], rng: random.Random) -> Self:
+        """These settings with ``surprise_modes`` rounds drawn from ``offered``, each at its
+        mode's default length; unchanged without surprise modes.
+
+        Raises ``ValueError`` when fewer modes are offered than asked for, or when the
+        draw lands over the room's cap.
+        """
+        if not self.surprise_modes:
+            return self
+        if self.surprise_modes > len(offered):
+            raise ValueError(
+                f"{self.surprise_modes} surprise modes, but this server offers {len(offered)}"
+            )
+        picked = rng.sample(list(offered), self.surprise_modes)
+        settings = self.model_copy(update={"modes": [ModeSettings(mode=m) for m in picked]})
+        _check_cap(settings)
+        return settings
+
+
+def _check_cap(settings: RoomSettings) -> None:
+    # Every slot is a question the room will play, whoever ends up asking it: the host's
+    # questions take slots rather than adding to them, and the packs fill the rest.
+    total = settings.question_count + settings.random_event_slots
+    if total > MAX_QUESTIONS_PER_ROOM:
+        raise ValueError(
+            f"{total} questions over all rounds and random events, more than the"
+            f" room's limit of {MAX_QUESTIONS_PER_ROOM}"
+        )
+
 
 class NewRoomSettings(RoomSettings):
     """What ``POST /api/rooms`` accepts: section 4's ranges, checked on the way in."""
@@ -263,17 +303,17 @@ class NewRoomSettings(RoomSettings):
                 )
         return modes
 
+    @model_validator(mode="before")
+    @classmethod
+    def _modes_or_a_surprise(cls, data: Any) -> Any:
+        if isinstance(data, dict) and data.get("surprise_modes") and "modes" in data:
+            # The server draws a surprise room's rounds; picked ones would be overwritten.
+            raise ValueError("send modes or surprise_modes, not both")
+        return data
+
     @model_validator(mode="after")
     def _within_the_room_cap(self) -> Self:
-        # Every slot is a question the room will play, whoever ends up asking it: the
-        # host's questions take slots rather than adding to them, and the packs fill the
-        # rest.
-        total = self.question_count + self.random_event_slots
-        if total > MAX_QUESTIONS_PER_ROOM:
-            raise ValueError(
-                f"{total} questions over all rounds and random events, more than the"
-                f" room's limit of {MAX_QUESTIONS_PER_ROOM}"
-            )
+        _check_cap(self)
         return self
 
     def check_custom_questions(self, count: int) -> None:
@@ -283,7 +323,8 @@ class NewRoomSettings(RoomSettings):
         truncates: a host who loses two of five questions to a silent cut finds out during
         the game.
         """
-        if count <= self.random_event_slots:
+        if count <= self.random_event_slots or self.surprise_modes:
+            # A surprise room's slots depend on its draw; ``selection`` refuses it then.
             return
         frequency = self.random_event_frequency
         assert frequency is not None  # ``NewRoomSettings`` has no ``None`` to offer

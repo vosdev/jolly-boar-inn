@@ -12,7 +12,13 @@
  */
 
 import type { CustomQuestion } from './customQuestions'
-import type { EventFrequency, PlayerView, RoomSettings, RoomView } from './protocol'
+import type {
+  EventFrequency,
+  ModeSettings,
+  PlayerView,
+  RoomSettings,
+  RoomView,
+} from './protocol'
 import type { ReportBody, ReportChoices } from './reports'
 import type { Arrival } from './stats'
 import type { SuggestionBody } from './suggestions'
@@ -55,7 +61,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
  * fills in what is left out. A new room always has a frequency; only a stored one can be
  * without.
  */
-export type NewRoomSettings = Omit<RoomSettings, 'max_players' | 'random_event_frequency'> & {
+export type NewRoomSettings = Omit<
+  RoomSettings,
+  'max_players' | 'random_event_frequency' | 'modes'
+> & {
+  /** Left out when `surprise_modes` asks the server to draw the rounds. */
+  modes?: ModeSettings[]
   random_event_frequency: EventFrequency
   max_players?: number | null
 }

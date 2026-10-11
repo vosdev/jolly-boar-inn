@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
 import { profile } from '../lib/profile'
+import type { ModeSettings } from '../lib/protocol'
 import { createdRooms, rememberCreated, setSession } from '../lib/session'
 import { arrival } from '../lib/stats'
 import Create from './Create.svelte'
@@ -52,10 +53,13 @@ beforeEach(() => {
   profile.set({ name: 'Zezima', pet: 'aggy' })
 })
 
-async function submitted(): Promise<api.NewRoomSettings> {
+/** The settings sent; `modes` is typed as present, since only a surprise room leaves it out. */
+async function submitted(): Promise<api.NewRoomSettings & { modes: ModeSettings[] }> {
   await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
   await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
-  return vi.mocked(api.createRoom).mock.calls[0]![1]
+  return vi.mocked(api.createRoom).mock.calls[0]![1] as api.NewRoomSettings & {
+    modes: ModeSettings[]
+  }
 }
 
 /** Mode `name`'s card, found by the box that picks it. */
@@ -255,7 +259,7 @@ describe('Create', () => {
     await pick(...BOTH)
     expect(summary()).toBe('Pick at least one type; a room with no rounds is no game.')
     expect(document.querySelector('.count')?.classList.contains('error')).toBe(true)
-    expect(screen.getByRole('radio', { name: 'Random' })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: 'Shuffled' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Create room' })).toHaveProperty('disabled', true)
   })
 
@@ -277,7 +281,7 @@ describe('Create', () => {
       expect(within(card(name)).queryByRole('button', { name: /^Move / })).toBeNull()
       expect(within(card(name)).queryByText('Order')).toBeNull()
     }
-    expect((screen.getByRole('radio', { name: 'Random' }) as HTMLInputElement).checked).toBe(true)
+    expect((screen.getByRole('radio', { name: 'Shuffled' }) as HTMLInputElement).checked).toBe(true)
     expect((await submitted()).mode_order).toBe('random')
   })
 
@@ -459,6 +463,81 @@ describe('Create', () => {
     await submitted()
     await waitFor(() => expect(createdRooms(Date.parse('2098-12-31T23:59:59Z'))).toEqual(['ABYSSAL']))
     expect(createdRooms(Date.parse('2099-01-01T00:00:00Z'))).toEqual([])
+  })
+})
+
+describe('Create, picking for the host', () => {
+  /** Open "Pick for me", step the count `by` from where it starts, and Pick. */
+  async function pickForMe(by = 0, surprise = false): Promise<void> {
+    await fireEvent.click(screen.getByRole('button', { name: 'Pick for me' }))
+    const dialog = screen.getByRole('dialog', { name: 'Pick for me' })
+    if (by !== 0) await press(dialog, by < 0 ? 'Fewer game modes' : 'More game modes', Math.abs(by))
+    const secret = within(dialog).getByRole('checkbox', { name: 'Keep them a surprise' })
+    if ((secret as HTMLInputElement).checked !== surprise) await fireEvent.click(secret)
+    await press(dialog, 'Pick')
+  }
+
+  it('ticks as many modes as asked at random, in place of the ones ticked', async () => {
+    await loaded('More or Less')
+    await pickForMe()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    const settings = await submitted()
+    expect(settings.modes.map((round) => round.mode).sort()).toEqual(['more_less', 'price_is_right'])
+    expect(settings).not.toHaveProperty('surprise_modes')
+  })
+
+  it('replaces what was ticked with a fresh draw at the modes own length', async () => {
+    await loaded(...BOTH)
+    await pickForMe(-1)
+    const settings = await submitted()
+    expect(settings.modes).toHaveLength(1)
+    expect(settings.modes[0]!.questions).toBe(5)
+  })
+
+  it('changes nothing on Cancel', async () => {
+    await loaded('More or Less')
+    await fireEvent.click(screen.getByRole('button', { name: 'Pick for me' }))
+    await press(screen.getByRole('dialog'), 'Cancel')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect((await submitted()).modes.map((round) => round.mode)).toEqual(['more_less'])
+  })
+
+  it('offers no more than there are modes to pick', async () => {
+    await loaded()
+    await fireEvent.click(screen.getByRole('button', { name: 'Pick for me' }))
+    const more = within(screen.getByRole('dialog')).getByRole('button', { name: 'More game modes' })
+    expect(more).toHaveProperty('disabled', true)
+  })
+
+  it('folds the cards away for a surprise and sends only how many', async () => {
+    await loaded('More or Less')
+    await pickForMe(-1, true)
+    expect(screen.queryByRole('checkbox', { name: /^More or Less/ })).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Round order' })).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Surprise rounds' })).toBeNull()
+    expect(summary()).toBe('1 surprise round, drawn when the room is created')
+    await fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+    await waitFor(() => expect(api.createRoom).toHaveBeenCalledOnce())
+    const sent = vi.mocked(api.createRoom).mock.calls[0]![1]
+    expect(sent).not.toHaveProperty('modes')
+    expect(sent.surprise_modes).toBe(1)
+    expect(sent.hide_rounds).toBe(true)
+    expect(sent.mode_order).toBe('random')
+  })
+
+  it('brings the cards back when Change unticks the surprise', async () => {
+    await loaded()
+    await pickForMe(0, true)
+    await fireEvent.click(screen.getByRole('button', { name: 'Change' }))
+    const secret = within(screen.getByRole('dialog')).getByRole('checkbox', {
+      name: 'Keep them a surprise',
+    })
+    expect((secret as HTMLInputElement).checked).toBe(true)
+    await fireEvent.click(secret)
+    await press(screen.getByRole('dialog'), 'Pick')
+    const settings = await submitted()
+    expect(settings.modes).toHaveLength(2)
+    expect(settings).not.toHaveProperty('surprise_modes')
   })
 })
 

@@ -85,7 +85,9 @@ class ModeNotOffered(ApiError):
 async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     ip = client_host(request)
     available = {mode.id for mode in offered(request.app.state.settings)}
-    unavailable = [e.mode for e in body.settings.modes if e.mode not in available]
+    # A surprise room's modes are drawn from the offered ones, so it names none of its own.
+    picked = [] if body.settings.surprise_modes else body.settings.modes
+    unavailable = [e.mode for e in picked if e.mode not in available]
     if unavailable:
         # Like a bad name, before the limiter has counted the attempt.
         raise ModeNotOffered(f"this server does not offer {', '.join(unavailable)}")

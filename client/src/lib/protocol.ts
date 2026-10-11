@@ -81,6 +81,11 @@ export interface RoomSettings {
    * them. Absent means off.
    */
   hide_rounds?: boolean
+  /**
+   * How many rounds the server drew at creation; their modes are withheld from the admin
+   * too. Implies `hide_rounds`. Absent means the host picked the rounds.
+   */
+  surprise_modes?: number
   max_players: number | null
 }
 
