@@ -37,6 +37,26 @@ def test_a_code_no_candidate_could_be_is_not_well_formed(code: str) -> None:
     assert not codes.well_formed(code)
 
 
+@pytest.mark.parametrize(
+    ("code", "shown"),
+    [
+        ("ABYSSALWHIP", "AbyssalWhip"),
+        ("ABYSSALWHIP07", "AbyssalWhip07"),
+        ("NOSUCHWORD", "NOSUCHWORD"),
+    ],
+)
+def test_cased_spells_a_code_as_its_word(code: str, shown: str) -> None:
+    assert codes.cased(code) == shown
+
+
+def test_every_candidate_cases_back_to_a_listed_word() -> None:
+    words = set(codes.load_words())
+    for code in codes.candidates(tuple(words), random.Random(1)):
+        shown = codes.cased(code)
+        assert shown.upper() == code
+        assert shown in words or (shown[:-2] in words and shown[-2:].isdigit())
+
+
 def test_candidates_plain_then_digit_suffixed() -> None:
     got = list(codes.candidates(STUB, random.Random(1)))
     assert got[: codes.PLAIN_ATTEMPTS] == ["CABBAGE"] * codes.PLAIN_ATTEMPTS

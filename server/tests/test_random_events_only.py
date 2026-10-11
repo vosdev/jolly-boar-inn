@@ -85,7 +85,7 @@ def test_it_is_refused_before_the_limiter_counts_the_attempt(client: TestClient)
 def test_a_room_of_it_plays_npc_questions_in_one_round(on: TestClient, db) -> None:
     response = _create(on, modes=[{"mode": MODE, "questions": 12}], random_event_frequency="more")
     assert response.status_code == 201, response.text
-    room = on.app.state.rooms.rooms[response.json()["code"]]
+    room = on.app.state.rooms.rooms[response.json()["code"].upper()]
     assert [(s.mode, s.count) for s in room.segments] == [(MODE, 14)]
     rows = db("select mode, round, random_event from questions order by position")
     assert len(rows) == 14  # twelve, and the two events ``more`` adds to twelve

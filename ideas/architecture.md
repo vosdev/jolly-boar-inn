@@ -492,7 +492,8 @@ questions, answers included: players' suggestions and the packs, never a room's.
    spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
 2. Rate limit per IPv4 address or IPv6 /64.
 3. Draw a code from `room-words.json` with `secrets.SystemRandom`: five plain tries, 20 with two
-   digits, then `CodeSpaceExhausted`. Each try has a savepoint.
+   digits, then `CodeSpaceExhausted`. Each try has a savepoint. Codes are stored and looked up
+   uppercase, and sent spelled as their word (`AbyssalWhip07`).
 4. Insert the admin outside that savepoint, or a session collision would be retried as a code
    collision. Then select and insert the questions.
 5. Return `201 {code, session, player, expires_at}`. The plain session is returned once and never

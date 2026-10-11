@@ -18,7 +18,7 @@
    * ready check and the countdown go under the line (section 8 of ideas/design.md).
    *
    * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
-   * name underneath, dim until their player taps ready. A tap can be
+   * name underneath (`RosterPet`): faded while away, checked once they tap ready. A tap can be
    * taken back once per splash — below the threshold that stops the countdown again —
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
@@ -28,14 +28,13 @@
 
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { MODES, hostOf } from '../lib/modes'
-  import { petOf } from '../lib/pets'
   import type { PlayerView, Segment } from '../lib/protocol'
   import { readyThreshold } from '../lib/ready'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
-  import Pet from './Pet.svelte'
+  import RosterPet from './RosterPet.svelte'
   import Stage from './stage/Stage.svelte'
   import Typed from './stage/Typed.svelte'
   import Timer from './Timer.svelte'
@@ -79,8 +78,8 @@
   )
 
   /**
-   * The pets to wait on: whoever is connected, which is who the server counts. A player
-   * whose phone has locked is not holding anyone up, so they are not in the row either.
+   * Who counts: whoever is connected, which is who the server counts. A player whose phone
+   * has locked is not holding anyone up, so they stay in the row, faded, out of the count.
    */
   const present = $derived(players.filter((player) => player.connected))
   const readyCount = $derived(present.filter((player) => player.ready === true).length)
@@ -144,12 +143,8 @@
         </button>
         <FullScreenSwitch />
         <ul class="pets" aria-label={summary}>
-          {#each present as player (player.id)}
-            <li class:lit={player.ready === true}>
-              <Pet pet={petOf(player)} size={48} label="" />
-              <span class="pet-name">{player.display_name}</span>
-              <span class="sr">{player.ready === true ? 'ready' : 'not ready'}</span>
-            </li>
+          {#each players as player (player.id)}
+            <li><RosterPet {player} status={player.connected ? '' : 'away'} /></li>
           {/each}
         </ul>
         <span class="note tally" aria-hidden="true">{summary}</span>
@@ -229,47 +224,8 @@
     list-style: none;
   }
 
-  /* The pet dims until the tap. Opacity and not colour, so a pet reads the same in every
-     theme and a player who cannot tell the theme's hues apart can still tell lit from not.
-     The name is dimmed by ink instead, so it keeps its contrast. */
   .pets li {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
     width: 4.25rem;
-    color: var(--muted);
-  }
-
-  .pets li > :global(.pet) {
-    opacity: 0.3;
-    filter: grayscale(1);
-    transition:
-      opacity 200ms ease-out,
-      filter 200ms ease-out;
-  }
-
-  .pets li.lit {
-    color: var(--ink);
-  }
-
-  .pets li.lit > :global(.pet) {
-    opacity: 1;
-    filter: none;
-  }
-
-  /* Up to 24 characters, so two lines before it is cut off. */
-  .pet-name {
-    display: -webkit-box;
-    max-width: 100%;
-    overflow: hidden;
-    overflow-wrap: anywhere;
-    line-clamp: 2;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    font-size: 0.75rem;
-    line-height: 1.2;
-    text-align: center;
   }
 
   .tally {
@@ -290,11 +246,5 @@
 
   .skip {
     align-self: flex-end;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pets li > :global(.pet) {
-      transition: none;
-    }
   }
 </style>

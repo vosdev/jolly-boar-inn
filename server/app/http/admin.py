@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from app import stats
 from app.errors import ApiError
+from app.rooms import codes
 from app.rooms.state import Room, RoomManager
 
 
@@ -78,7 +79,7 @@ def live_room(room: Room, grace: timedelta) -> LiveRoom:
     if room.finished_at is not None:
         deletes_at = min(deletes_at, room.finished_at + grace)
     return LiveRoom(
-        code=room.code,
+        code=codes.cased(room.code),
         status=room.status,
         round=None
         if segment is None
