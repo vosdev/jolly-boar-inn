@@ -35,6 +35,7 @@
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { inviteLink } from '../lib/invite'
   import { modeLabel } from '../lib/modes'
+  import { minutes } from '../lib/duration'
   import { paceLabel } from '../lib/pace'
   import { petOf } from '../lib/pets'
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
@@ -97,7 +98,8 @@
     settings === null
       ? ''
       : `${rounds}${secret ? ' secret' : ''} ${rounds === 1 ? 'round' : 'rounds'} · ` +
-          `${questions} ${questions === 1 ? 'question' : 'questions'} · ${paceLabel(settings.pace)} pace`,
+          `${questions} ${questions === 1 ? 'question' : 'questions'} · ${paceLabel(settings.pace)} pace` +
+          ` · ${minutes($room?.estimated_seconds ?? 0)}`,
   )
   /**
    * The rounds A–Z by name, which is deliberately not the order they play in: what is

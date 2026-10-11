@@ -19,13 +19,15 @@ const PACING: api.ModePacing[] = [
     id: 'more_less',
     types: ['more_less'],
     questions: { default: 10, min: 1, max: 30 },
+    seconds: null,
   },
   {
     id: 'price_is_right',
     types: ['price_is_right'],
     questions: { default: 10, min: 1, max: 30 },
+    seconds: null,
   },
-  { id: 'custom', types: [], questions: null },
+  { id: 'custom', types: [], questions: null, seconds: null },
 ]
 
 vi.mock('../lib/api', async (importOriginal) => {

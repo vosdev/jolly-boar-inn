@@ -88,6 +88,7 @@ const LIVE: RoomView = {
   phase: "open",
   next_at: null,
   reveal_seconds: null,
+  estimated_seconds: 0,
   segment: SEGMENT,
   finished_at: null,
 };

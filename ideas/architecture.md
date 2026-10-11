@@ -114,6 +114,9 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
   4 + 1, `ordering` 10 + 5/entry and 4 + 2/entry, `price_is_right` 6 + 1/option and 6,
   `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8.
+- A game's minutes (`rooms/duration.py`) are a ceiling: every question's full answer and reveal,
+  15 s per splash, standings between rounds. Create multiplies each round by its mode's `seconds`
+  from `/api/modes`, its pool's mean per pace; a surprise counts the offered modes' average.
 
 | Mode | Label | Type | Pool | Status |
 |---|---|---|---|---|
@@ -270,7 +273,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 
 ```
 RoomView     { code, status, settings, current_index, total, phase, next_at, reveal_seconds,
-               segment, finished_at, rounds?, key?, requests? }
+               estimated_seconds, segment, finished_at, rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
@@ -290,6 +293,7 @@ PlayerResult { value, correct, credit, points }
   costs nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
   `reveal_seconds` is the reveal's whole length, for the countdown bar; null outside a reveal.
+- `estimated_seconds` is the lobby's minutes for the stored questions (section 3).
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` and
   `surprise_modes` themselves only when set.

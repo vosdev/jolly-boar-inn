@@ -66,6 +66,7 @@
   import RandomEvents from '../components/RandomEvents.svelte'
   import RoundList from '../components/RoundList.svelte'
   import { FREQUENCY_LABELS, eventSlots, overCap, type CustomQuestion } from '../lib/customQuestions'
+  import { minutes, plannedSeconds } from '../lib/duration'
   import { MODES, UPCOMING_MODES, hostOf, modeLabel } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
   import { PACES } from '../lib/pace'
@@ -163,6 +164,26 @@
   const eventCount = $derived(eventSlots(lengths, EVENT_EVERY[frequency]))
   const totalCount = $derived(questionCount + eventCount)
   const eventsAtMore = $derived(eventSlots(lengths, EVENT_EVERY.more))
+  const typical = $derived<Record<string, number | null>>(
+    Object.fromEntries((pacing ?? []).map((mode) => [mode.id, mode.seconds?.[pace] ?? null])),
+  )
+  /** A surprise's rounds are unknown here, so each counts as an average offered round. */
+  const averageRound = $derived.by(() => {
+    const known = roundModes.flatMap((mode) => typical[mode.id] ?? [])
+    return known.length === 0 ? 0 : known.reduce((total, s) => total + s, 0) / known.length
+  })
+  const duration = $derived(
+    minutes(
+      plannedSeconds(
+        surprise
+          ? lengths.map((questions) => ({ questions, seconds: averageRound }))
+          : rounds.map((round) => ({ questions: round.questions, seconds: typical[round.mode] ?? 0 })),
+        eventCount,
+        typical.random_event ?? averageRound,
+        standingsSeconds,
+      ),
+    ),
+  )
   const tooManyOwn = $derived(overCap(customQuestions.length, eventCount, frequency, eventsAtMore))
   /** What stops the room being made, in words, or null when nothing does. */
   const problem = $derived(
@@ -370,7 +391,7 @@
       <p class="status error">{problem}</p>
     {:else if pacing !== null}
       <p class="status">
-        <b>{roundsWord} · {surprise ? 'at least ' : ''}{totalCount} questions</b>
+        <b>{roundsWord} · {surprise ? 'at least ' : ''}{totalCount} questions · {duration}</b>
       </p>
     {/if}
     <div class="buttons">
@@ -577,7 +598,7 @@
     modes={surprise ? [] : rounds.map((round) => round.mode)}
     surprise={surprise ? randomRounds : null}
     questions={totalCount}
-    details="{paceLabel} pace · {eventCount} random event{eventCount === 1 ? '' : 's'}"
+    details="{paceLabel} pace · {eventCount} random event{eventCount === 1 ? '' : 's'} · {duration}"
     {busy}
     {failure}
     onreroll={reroll}

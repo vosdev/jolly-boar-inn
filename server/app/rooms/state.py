@@ -81,7 +81,7 @@ from app.questions.submission import Submission
 from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import MIN_REVEAL
-from app.rooms import codes, ready, scoring, segments, selection
+from app.rooms import codes, duration, ready, scoring, segments, selection
 from app.rooms.hold import hold_seconds, typed_lines
 from app.rooms.settings import RoomSettings
 from app.stats import UNREPORTED, Arrival, Metric, bump, duration_bucket, joined
@@ -619,6 +619,15 @@ class Room:
         """How long ``question``'s reveal holds: its type's time at the room's pace."""
         return reveal_seconds(question.type, question.payload, self.settings.pace)
 
+    def estimated_seconds(self) -> int:
+        """How long the whole game takes at most (``rooms/duration.py``)."""
+        return duration.game_seconds(
+            [(q.type, q.payload) for q in self.questions],
+            len(self.segments),
+            self.settings.pace,
+            self.settings.standings_seconds,
+        )
+
     @property
     def current(self) -> RoomQuestion | None:
         """The question ``current_index`` points at, open or revealing."""
@@ -670,6 +679,7 @@ class Room:
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
             reveal_seconds=self.reveal_seconds if self.phase == "reveal" else None,
+            estimated_seconds=self.estimated_seconds(),
             segment=self.current_segment,
             finished_at=self.finished_at,
             rounds=rounds,
