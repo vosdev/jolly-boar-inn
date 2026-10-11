@@ -603,6 +603,116 @@
         "explanation": "Cerberus, the Alchemical Hydra and the Abyssal Sire are Slayer bosses: they or their monster must be your task. Zulrah and Vorkath need no task."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss"
+    },
+    {
+      "id": "q_4559a57b923b9c45",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Metamorphosis",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which skilling pet has the most metamorphosis options?",
+        "options": [
+          "Rock golem",
+          "Rift guardian",
+          "Beaver",
+          "Tangleroot",
+          "Phoenix",
+          "Giant squirrel"
+        ],
+        "explanation": "The rock golem can take on 19 different forms! It is followed by the rift guardian and beaver with 16 each.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_2fec0c63e6c0f6c5",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/2025_Christmas_event/Gallery",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which of these pets doesn't wear a hat around Christmas time?",
+        "options": [
+          "Sraracha",
+          "Prince Black Dragon",
+          "Hellpuppy",
+          "Gulliver",
+          "Soup",
+          "Olmlet"
+        ],
+        "explanation": "Fun fact - the three-headed Prince Black Dragon even wears three different hats.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_72322f4bfe6bd6bb",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Combat_Achievements/All_tasks",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which of these bosses has a speed-based combat achievement?",
+        "options": [
+          "Mad Angel",
+          "Nex",
+          "Kalphite Queen",
+          "Skotizo",
+          "Zalcano"
+        ],
+        "explanation": "Out of these, only the Mad Angel has such a combat achievement. It is earnt by killing her 5 times within 10 minutes of entering her arena.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_55e48146f9419c6f",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Killerwatt",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which of these monsters drop regular ashes when killed?",
+        "options": [
+          "Killerwatts",
+          "Ghosts",
+          "Shadow warriors",
+          "Catablepons"
+        ],
+        "explanation": "Ghosts and shadow warriors don't drop any remains, whereas catablepons drop regular bones.",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_7185549c84bfa28d",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Boss_lair_display",
+      "credit": "Tayka",
+      "credit_shown": true,
+      "payload": {
+        "prompt": "Which of these bosses will never drop a jar?",
+        "options": [
+          "King Black Dragon",
+          "Vorkath",
+          "Corporeal Beast",
+          "The Nightmare"
+        ],
+        "explanation": "Vorkath may drop the Jar of Decay, the Corporeal Beast the Jar of Spirits, and the Nightmare the Jar of Souls.",
+        "answer_index": 0
+      }
     }
   ]
 }
