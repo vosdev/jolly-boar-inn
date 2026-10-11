@@ -120,7 +120,7 @@ export function typingMs(letters: number, perSecond = 50): number {
 }
 
 /**
- * The final's ceremony, in ms from the screen mounting. The scroll opens, the intro types,
+ * The final's ceremony, in ms from the screen mounting. The intro types from `open`,
  * then for each place its line types, a pause, the place appears and holds; first place
  * holds longest. `lines[0]` is the intro's start and `lines[i + 1]` place i's line;
  * `shows[i]` is when place i appears, and at `end` the table takes over.
@@ -142,9 +142,12 @@ export interface CeremonyTimes {
 }
 
 /** When each part of the ceremony starts; `letters` is the intro's, then each place line's. */
-export function ceremonyTimes(letters: readonly number[]): CeremonyTimes {
+export function ceremonyTimes(
+  letters: readonly number[],
+  open: number = CEREMONY.open,
+): CeremonyTimes {
   const [intro = 0, ...places] = letters
-  let at = CEREMONY.open
+  let at = open
   const lines = [at]
   const shows: number[] = []
   at += typingMs(intro) + CEREMONY.afterIntro
@@ -158,8 +161,8 @@ export function ceremonyTimes(letters: readonly number[]): CeremonyTimes {
 }
 
 /**
- * Between rounds, in ms from the screen mounting: the scroll opens and the line types,
- * then the gains count up, then the rows move, then your row may pin.
+ * Between rounds, in ms from the screen mounting: the line types from `open`, then the
+ * gains count up, then the rows move, then your row may pin.
  */
 export const SHUFFLE = { open: 300, afterLine: 300, count: 700, beforeMove: 1000, move: 650 }
 
@@ -169,8 +172,8 @@ export interface ShuffleTimes {
   pin: number
 }
 
-export function shuffleTimes(lineLetters: number): ShuffleTimes {
-  const settle = SHUFFLE.open + typingMs(lineLetters) + SHUFFLE.afterLine
+export function shuffleTimes(lineLetters: number, open: number = SHUFFLE.open): ShuffleTimes {
+  const settle = open + typingMs(lineLetters) + SHUFFLE.afterLine
   const move = settle + SHUFFLE.beforeMove
   return { settle, move, pin: move + SHUFFLE.move }
 }

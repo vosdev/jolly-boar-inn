@@ -406,7 +406,7 @@ describe('every type on the stage', () => {
     expect(said.querySelector('.slot')?.textContent).toContain('+850')
   })
 
-  it('does not unroll the scroll again: it opened on the splash', () => {
+  it('draws the scroll open, as it always is', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
     expect(document.querySelector('.scroll')!.classList.contains('opening')).toBe(false)
   })

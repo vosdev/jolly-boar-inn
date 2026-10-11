@@ -17,8 +17,8 @@
    * stage, with its NPC in the host's place.
    *
    * A question that arrived as it opened types its stem onto the scroll in the hold the
-   * server gives it before `answerable_at` (`lib/interlude.ts`), and the answers wait under
-   * the line until then. A reconnect, a reveal and reduced motion get the stem whole; the
+   * server gives it before `answerable_at` (`lib/interlude.ts`), once the stage has come
+   * over from the screen before, and the answers wait under the line until then. A reconnect, a reveal and reduced motion get the stem whole; the
    * answers still wait, because that is a rule of the game, not an animation.
    *
    * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
@@ -31,6 +31,7 @@
   import { awardFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
   import { hostOf } from '../lib/modes'
+  import { stageArrival } from '../lib/sharedStage.svelte'
   import { answerAck, answerCount, serverOffsetMs } from '../lib/stores'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
@@ -73,14 +74,14 @@
   const letters = $derived(stemLines(question.mode, question.view).map(lettersOf))
   /** Decided once, when the question takes the stage, so a tick cannot cut it short. */
   const startedAt = Date.now()
+  const holdMs = untrack(() => answerableMs - (startedAt + get(serverOffsetMs)))
+  const scene = untrack(() => question.question_id)
+  const arrival = untrack(() =>
+    reveal === null ? stageArrival({ host: host.host.id, scene, within: holdMs }) : 0,
+  )
   const plan = untrack(() =>
     live && reveal === null && !question.random_event && !reducedMotion()
-      ? interludeFor(
-          answerableMs - (startedAt + get(serverOffsetMs)),
-          letters,
-          QUESTION_TYPE_FROM_MS,
-          0,
-        )
+      ? interludeFor(holdMs, letters, Math.max(QUESTION_TYPE_FROM_MS, arrival), arrival)
       : SETTLED,
   )
   const typist = new Typist(() => letters, plan, startedAt)
@@ -120,7 +121,13 @@
       {/if}
     </div>
   {/snippet}
-  <Stage host={host.host.id} paper={sheet} award={reveal === null ? 'none' : awardFor(result)}>
+  <Stage
+    host={host.host.id}
+    {scene}
+    within={reveal === null ? holdMs : Infinity}
+    paper={sheet}
+    award={reveal === null ? 'none' : awardFor(result)}
+  >
     {#if (answers !== null && !stemOnly) || children}
       <section class="panel answers">
         {#if !stemOnly}{@render answers?.()}{/if}

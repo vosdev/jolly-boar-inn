@@ -201,11 +201,14 @@ Round 2 of 5 · 5 questions
   edges. The host then stands on the sheet, which keeps a column clear for it.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
   and faint facets crease it. An examine line sits centred in the height the prompt leaves.
-- **It opens from the middle**, both rolls travelling outward, in 300 ms. It opens on the splash
-  and stays put into the round's first question; anywhere else it is simply there. When it closes
-  again is not decided, so for now it does not.
+- **One scroll, always open**, from the lobby to the final hiscores. Between screens the words
+  fade off (150 ms), the scroll moves to the next screen's size and place (250 ms), and the new
+  words fade up. When somebody else is to stand there (the lobby's hero, the Wise Old Man, an
+  event NPC still standing), the host leaves with the words (200 ms) and the next walks on before
+  them (200 ms). An open question's reveal, an event's own entrance and return (§12), a hidden
+  page and reduced motion cut instead.
 - **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
-  blurb once it is open, and a question's stem from 400 ms in the server's hold before
+  blurb once the scroll is in place, and a question's stem from 400 ms in the server's hold before
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins a red rosette ribbon on the sheet's bottom edge, 65% across:
   right, partial credit or a graded guess alike. Full credit alone adds a burst of confetti
@@ -319,8 +322,8 @@ wait costs nobody points and the server times nothing:
 
 ```
   0 ms   the NPC's name is on the scroll, whole; the scroll takes the text's height
-         the host fades out; the scroll slides left into the space it leaves   ≤ 250 ms
-150 ms   the event NPC fades in on the right                                   ≤ 250 ms
+         the host fades out; the scroll slides left into the space it leaves   ≤ 375 ms
+225 ms   the event NPC fades in on the right                                   ≤ 375 ms
 900 ms   the NPC's `intro` "types" in at 50 letters a second
 then     a pause of 0.5–1 s, and the plain question types in under it, in bold
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
@@ -331,13 +334,13 @@ answerable_at: the answers appear under the line and the timer bar starts
   intro types its prompt alone.
 - The pause is what reading the intro still needs once typed, at 25 letters a second: 0.5–1 s.
   Spare time waits at the end, settled. Text too long for the hold starts sooner, never before
-  400 ms, then pauses less, then types faster. Under 600 ms of hold the NPC is simply there.
+  600 ms, then pauses less, then types faster. Under 800 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame. A
   screen reader reads it once, and a polite live region announces who interrupted.
 - In the reveal the NPC says its `right` or `wrong` line beside the points, and the `explanation`
   goes on the scroll, in two lines the sheet keeps from the start.
-- The return mirrors the entrance in the reveal's last 250 ms, off `next_at`; a skipped reveal gets
-  a 200 ms cross-fade.
+- The return mirrors the entrance in the reveal's last 375 ms, off `next_at`; a skipped reveal hands
+  the stage back as §8.
 - A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
 - With reduced motion the NPC replaces the host in one frame and the text shows whole. The
   answers still wait, because that is a rule of the game, not an animation.

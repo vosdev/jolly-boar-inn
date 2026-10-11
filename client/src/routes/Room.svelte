@@ -23,8 +23,7 @@
    * random event, which is a question inside a round, never gets one and neither does the
    * question after it. The event draws its own announcement instead: `RandomEvent`, the NPC
    * and their question, with the answers held back until `answerable_at`. Its reveal hands
-   * the stage back to the host as it ends; one skipped before that cross-fades into
-   * whatever follows, the screens stacked in one cell while it does. The standings
+   * the stage back to the host as it ends. The standings
    * follow every round but the last, whatever the splash does, and only between
    * rounds: inside one, there is no board under the reveal, and the last round's
    * standings are the final screen, the same hiscores with a ceremony before them.
@@ -35,6 +34,10 @@
    * of its own rather than a blank panel. A phase this build does not know lands there
    * too, which is how a build from before `standings` existed rides one out.
    *
+   * Every screen with a stage shares one (`lib/sharedStage.svelte.ts`), drawn after the
+   * screens and before the host's controls, so it moves from screen to screen rather than
+   * each screen putting up its own.
+   *
    * A screen reader hears the changes through one polite live region that stays mounted
    * for the whole visit, because a region inserted already filled is often never read: a
    * question opening, or who interrupts with a random event, the verdict on it, and a
@@ -44,8 +47,6 @@
    * screen.
    */
   import { onMount, tick, untrack } from 'svelte'
-  import { get } from 'svelte/store'
-  import type { TransitionConfig } from 'svelte/transition'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import ErrorBanner from '../components/ErrorBanner.svelte'
@@ -56,8 +57,9 @@
   import RevealTally from '../components/RevealTally.svelte'
   import Standings from '../components/Standings.svelte'
   import Splash from '../components/Splash.svelte'
+  import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { historyPath, latestPastGame } from '../lib/history'
-  import { CROSSFADE_MS, reducedMotion } from '../lib/interlude'
+  import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
   import { randomEventFor } from '../lib/randomEvents'
   import { clearSession, getSession } from '../lib/session'
   import {
@@ -72,7 +74,6 @@
     resetRoom,
     room,
     roomSend,
-    serverOffsetMs,
     standings,
     you,
     yourAnswer,
@@ -339,29 +340,16 @@
       : 'Start the next round now'
   })
 
-  /**
-   * Where a random event's reveal on screen ends, in server ms; null for any other reveal.
-   * Kept from the reveal itself, because by the time a skip takes it off screen the frame
-   * that did so has already cleared `next_at`.
-   */
-  let eventRevealEnds: number | null = null
-  $effect.pre(() => {
-    const current = $room
-    if (current?.phase !== 'reveal') return
-    eventRevealEnds =
-      $lastClosed?.was?.random_event && current.next_at !== null
-        ? Date.parse(current.next_at)
-        : null
-  })
+  const stage = new SharedStage()
+  shareStage(stage)
 
-  /** The cross-fade out of an event's reveal that ended before its return was over. */
-  function crossfade(_node: Element): TransitionConfig {
-    const skipped =
-      eventRevealEnds !== null &&
-      Date.now() + get(serverOffsetMs) < eventRevealEnds &&
-      !reducedMotion()
-    return skipped ? { duration: CROSSFADE_MS, css: (t) => `opacity: ${t}` } : { duration: 0 }
-  }
+  /** The playing screens after the splash, which have the host's controls under the stage. */
+  const hostControls = $derived(
+    $room !== null &&
+      $room.status !== 'lobby' &&
+      $room.status !== 'finished' &&
+      !($room.phase === 'splash' && $room.segment !== null),
+  )
 
   function answer(value: unknown): void {
     const open = $question
@@ -440,44 +428,36 @@
 
     <ErrorBanner />
 
-
-    <div class="screens">
     {#if $room.phase === 'standings'}
-      <div class="screen" in:crossfade>
-        <Standings standings={$standings} {segment} youId={$you?.id ?? null} />
-      </div>
+      <Standings standings={$standings} {segment} youId={$you?.id ?? null} />
     {:else if $room.phase === 'open' && $question !== null}
-      <div class="screen" in:crossfade>
-        <QuestionStage
-          question={$question}
-          yourValue={$yourAnswer}
-          onAnswer={answer}
-          live={$questionLive}
-        />
-      </div>
+      <QuestionStage
+        question={$question}
+        yourValue={$yourAnswer}
+        onAnswer={answer}
+        live={$questionLive}
+      />
     {:else if $lastClosed !== null && $lastClosed.was !== null}
-      <div class="screen" out:crossfade>
-        <QuestionStage
-          question={$lastClosed.was}
+      <QuestionStage
+        question={$lastClosed.was}
+        reveal={$lastClosed.reveal}
+        yourValue={$yourAnswer}
+        result={yourResult}
+        onAnswer={() => {}}
+        nextAt={$room.next_at}
+      >
+        <RevealTally
+          type={$lastClosed.was.type}
           reveal={$lastClosed.reveal}
-          yourValue={$yourAnswer}
-          result={yourResult}
-          onAnswer={() => {}}
-          nextAt={$room.next_at}
-        >
-          <RevealTally
-            type={$lastClosed.was.type}
-            reveal={$lastClosed.reveal}
-            results={$lastClosed.results}
-            {nameOf}
-            youId={$you?.id ?? null}
-            showNames={$room.settings.name_wrong_answers === true}
-            suggestedBy={$lastClosed.suggested_by ?? null}
-          />
-        </QuestionStage>
-      </div>
+          results={$lastClosed.results}
+          {nameOf}
+          youId={$you?.id ?? null}
+          showNames={$room.settings.name_wrong_answers === true}
+          suggestedBy={$lastClosed.suggested_by ?? null}
+        />
+      </QuestionStage>
     {:else if $lastClosed !== null}
-      <section class="panel screen">
+      <section class="panel">
         <p class="note">That question is closed.</p>
       </section>
     {:else}
@@ -485,7 +465,7 @@
            back from a restart. No `question_closed` reached this client, so there is
            nothing to reveal. There is no board here either: inside a round, where
            everyone stands waits for the round's end. -->
-      <section class="panel screen">
+      <section class="panel">
         <p class="note">
           {$room.phase === 'reveal'
             ? 'Between questions — the next one opens shortly.'
@@ -494,8 +474,12 @@
       </section>
     {/if}
     </div>
+  {/if}
 
-    {#if isAdmin && socket !== null}
+  <SharedStageView {stage} />
+
+  {#if $room !== null && hostControls && isAdmin && socket !== null}
+    <div class:column={$room.phase !== 'standings'}>
       <section class="panel">
         <h2>Host</h2>
         <div class="row">
@@ -518,7 +502,6 @@
           onCancel={() => (endingGame = false)}
         />
       {/if}
-    {/if}
     </div>
   {/if}
 {/if}
@@ -527,16 +510,6 @@
   .column {
     max-width: 30rem;
     margin-inline: auto;
-  }
-
-  /* One cell, so a screen cross-fading out sits under the one fading in. */
-  .screens {
-    display: grid;
-  }
-
-  .screen {
-    grid-area: 1 / 1;
-    min-width: 0;
   }
 
 

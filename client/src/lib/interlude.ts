@@ -9,13 +9,13 @@
  * shorter hold and still settles before `answerable_at`.
  */
 
-/** The host fades out and the scroll slides over in 250 ms; the NPC is in 400 ms in. */
-export const ENTRANCE_MS = 400
+/** The host fades out and the scroll slides over in 375 ms; the NPC is in 600 ms in. */
+export const ENTRANCE_MS = 600
 /** Where an event's typing starts when the hold leaves room for it. */
 export const TYPE_FROM_MS = 900
 /** Where a round's question starts typing, with no NPC to walk on first. */
 export const QUESTION_TYPE_FROM_MS = 400
-/** The splash types once its scroll has opened. */
+/** The splash types after a beat, or once the stage has come over if that is later. */
 export const SPLASH_TYPE_FROM_MS = 300
 /** Nothing moves for this long before the answers appear. */
 export const SETTLE_MS = 200
@@ -27,10 +27,8 @@ export const LETTERS_PER_SECOND = 50
 export const PAUSE_MIN_MS = 500
 export const PAUSE_MAX_MS = 1000
 export const READ_LETTERS_PER_SECOND = 25
-/** The return mirrors the entrance in the reveal's last 250 ms. */
-export const RETURN_MS = 250
-/** A reveal skipped before its return has played cross-fades into what follows. */
-export const CROSSFADE_MS = 200
+/** The return mirrors the entrance in the reveal's last 375 ms. */
+export const RETURN_MS = 375
 
 /** When one line types, and for how long. */
 export interface Typing {

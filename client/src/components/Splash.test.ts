@@ -77,9 +77,8 @@ describe('Splash stage', () => {
     }
   })
 
-  it('unrolls the scroll as it comes up, with the host beside it', () => {
+  it('has the host beside the scroll', () => {
     splash()
-    expect(document.querySelector('.scroll')!.classList.contains('opening')).toBe(true)
     expect(document.querySelector('.stage-row .npc.host img')).toBeTruthy()
   })
 
