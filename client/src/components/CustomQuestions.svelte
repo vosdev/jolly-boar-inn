@@ -1,12 +1,13 @@
 <script lang="ts">
   /**
    * Create's panel for the host's own questions: the list, one question open at a time in
-   * `CustomQuestionForm`, and the file they can be saved to and loaded from.
+   * `CustomQuestionForm`, and the file they can be saved to and loaded from. On a phone
+   * the form is a sheet over the whole page, where a question has the screen to itself.
    *
    * Each question takes one of the room's random-event slots, so the slot count is the
-   * cap, and it is shown here before the host writes a question that will not fit rather
-   * than after. Rounds and frequency can still change under a full list; then Create
-   * refuses to submit and this panel says why.
+   * cap, and `RandomEvents` above shows it before the host writes a question that will
+   * not fit rather than after. Rounds and frequency can still change under a full list;
+   * then Create refuses to submit and this panel says why.
    */
   import {
     EXPORT_FILENAME,
@@ -19,6 +20,8 @@
   } from '../lib/customQuestions'
   import type { EventFrequency } from '../lib/protocol'
   import CustomQuestionForm from './CustomQuestionForm.svelte'
+  import NpcFace from './NpcFace.svelte'
+  import Sheet from './Sheet.svelte'
 
   let {
     questions = $bindable(),
@@ -26,6 +29,7 @@
     slots,
     frequency,
     atMore,
+    sheet = false,
   }: {
     questions: CustomQuestion[]
     /** Whether a question is open in the form, which Create will not submit past. */
@@ -35,6 +39,8 @@
     frequency: EventFrequency
     /** The same at `more`, to say whether it would help. */
     atMore: number
+    /** Write in a sheet over the page, as a phone does, rather than in the list. */
+    sheet?: boolean
   } = $props()
 
   /** The question open in the form: its place in the list, `new` for one being added, or null. */
@@ -103,22 +109,28 @@
   }
 </script>
 
+{#snippet editor(question: CustomQuestion | undefined)}
+  <CustomQuestionForm {question} onsave={save} oncancel={() => (open = null)} />
+{/snippet}
+
 <section class="panel own" aria-labelledby="own-title">
-  <h2 id="own-title">Personalized questions</h2>
+  <div class="head">
+    <h2 id="own-title">Write your own</h2>
+    <span class="tag">Optional</span>
+  </div>
   <p class="note">
-    Add your own questions to the game. A great way to customize OSRS trivia night for your friends or clan!<br>
-    These will be asked in place of a random event. Your rounds make room for <b>{slots}</b> random event{slots === 1 ? '' : 's'} and/or custom question{slots === 1 ? '' : 's'}.
+    An NPC asks each one in place of a random event. Perfect for your clan's in-jokes.
   </p>
 
   {#if questions.length > 0}
     <ol class="list">
       {#each questions as question, index (question)}
         <li>
-          {#if open === index}
-            <CustomQuestionForm {question} onsave={save} oncancel={() => (open = null)} />
+          {#if open === index && !sheet}
+            {@render editor(question)}
           {:else}
             <div class="summary">
-              <span class="number">{index + 1}.</span>
+              <span class="face"><NpcFace npc={question.random_event} /></span>
               <div class="words">
                 <p class="prompt">{question.payload.prompt}</p>
                 <p class="note">{TYPE_LABELS[question.type]} · {askedBy(question)}</p>
@@ -159,8 +171,14 @@
     </ol>
   {/if}
 
-  {#if open === 'new'}
-    <CustomQuestionForm onsave={save} oncancel={() => (open = null)} />
+  {#if open === 'new' && !sheet}
+    {@render editor(undefined)}
+  {/if}
+
+  {#if open !== null && sheet}
+    <Sheet full label={open === 'new' ? 'New question' : 'Edit question'} onclose={() => (open = null)}>
+      <div class="in-sheet">{@render editor(open === 'new' ? undefined : questions[open])}</div>
+    </Sheet>
   {/if}
 
   {#if over !== null}
@@ -168,9 +186,9 @@
   {/if}
 
   <div class="row tools">
-    {#if open !== 'new'}
+    {#if open !== 'new' || sheet}
       <button type="button" disabled={full || open !== null} onclick={() => (open = 'new')}>
-        Add a question
+        Write a question
       </button>
     {/if}
     <button type="button" onclick={() => fileInput?.click()}>Import…</button>
@@ -209,11 +227,37 @@
 
 <style>
   .own > .note {
-    margin: 0 0 1rem;
+    margin: 0.2rem 0 1rem;
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
   }
 
   h2 {
-    margin-top: 0;
+    margin: 0;
+  }
+
+  /* The sheet is the editor's frame on a phone; a second one inside it only costs width. */
+  .in-sheet :global(.editor) {
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  .face {
+    flex: none;
+    width: 2.6rem;
+    height: 2.85rem;
+    display: grid;
+    place-items: end center;
+    overflow: hidden;
+    border: var(--border-width) solid var(--line);
+    border-radius: min(var(--radius), 6px);
+    background: var(--panel-raised);
   }
 
   .list {
@@ -231,10 +275,6 @@
     gap: 0.5rem 0.75rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--line);
-  }
-
-  .number {
-    font-weight: 700;
   }
 
   .words {
