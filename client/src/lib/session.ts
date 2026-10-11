@@ -69,6 +69,7 @@ export function clearSession(code: string): void {
 }
 
 export interface CreatedRoom {
+  /** As the server spells it, `FireCape`. */
   code: string
   expiresAt: number
 }
@@ -129,14 +130,14 @@ export function forgetCreated(code: string): void {
 /** Drop a room from the created list but keep its session; used once its game is over. */
 export function dropCreated(code: string): void {
   const normalized = normalizeCode(code)
-  writeCreated(readCreated(Date.now()).filter((room) => room.code !== normalized))
+  writeCreated(readCreated(Date.now()).filter((room) => normalizeCode(room.code) !== normalized))
 }
 
 /** Put a room at the top of the created list until `expiresAt`, the server's ISO time. */
 export function rememberCreated(code: string, expiresAt: string): void {
   const normalized = normalizeCode(code)
   const expiry = Date.parse(expiresAt)
-  const rest = readCreated(Date.now()).filter((room) => room.code !== normalized)
-  const rooms = Number.isNaN(expiry) ? rest : [{ code: normalized, expiresAt: expiry }, ...rest]
+  const rest = readCreated(Date.now()).filter((room) => normalizeCode(room.code) !== normalized)
+  const rooms = Number.isNaN(expiry) ? rest : [{ code, expiresAt: expiry }, ...rest]
   writeCreated(rooms.slice(0, 20))
 }

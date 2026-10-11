@@ -115,6 +115,12 @@ async function arrive(message: Welcome): Promise<void> {
 }
 
 describe('Room', () => {
+  it('spells the code in the address bar as the server does', async () => {
+    history.replaceState(null, '', '/r/ABYSSAL')
+    await arrive(welcome(roomView({ code: 'Abyssal' })))
+    expect(location.pathname).toBe('/r/Abyssal')
+  })
+
   it('shows the hiscores between rounds, with a timer to the next round', async () => {
     await arrive(welcome(roomView({})))
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(
