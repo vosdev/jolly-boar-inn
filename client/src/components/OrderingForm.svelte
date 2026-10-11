@@ -144,7 +144,7 @@
       <h3 id="{id}-title">{title ?? (question === undefined ? 'New question' : 'Edit question')}</h3>
       {#if picker !== undefined}
         <Segmented
-          legend="Type"
+          legend="How players answer"
           options={picker.options}
           bind:value={() => 'ordering', (type) => type !== 'ordering' && picker?.onpick(type)}
         />

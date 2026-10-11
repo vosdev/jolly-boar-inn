@@ -131,8 +131,8 @@ The profile, `localStorage["jbi:profile"]`, holds this browser's name and pet pe
 player is per room and temporary. There are no accounts.
 
 - **Join and Create** ask once. A browser with no profile gets a modal before its first room (on
-  Create, when the button is pressed): a generated name and pet, pre-filled so one tap on *Join*
-  or *Create room* is an answer. Nothing dismisses it, the room is joined or made only on that tap,
+  Create, when the button is pressed, before a phone's room code sheet): a generated name and pet,
+  pre-filled so one tap on *Join*, *Create room* or *Continue* is an answer. Nothing dismisses it, the room is joined or made only on that tap,
   and the answer becomes the profile. A browser with a profile is never asked.
 - **Renaming** is `set_profile`. Most players take the pre-filled name, so every generated name
   must be one you are happy to see win.

@@ -1,7 +1,7 @@
 /**
- * The host's questions on Create: written, edited, moved and removed in the form, saved to
- * a file and loaded from one, and sent with the room only when every one of them fits a
- * random-event slot.
+ * The host's questions on Create's Random events step: written, edited, moved and removed in
+ * the form, saved to a file and loaded from one, and sent with the room only when every one
+ * of them fits a random-event slot.
  */
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { exportText, importText, type CustomQuestion } from '../lib/customQuestions'
 import { profile } from '../lib/profile'
+import { RANDOM_EVENTS } from '../lib/randomEvents'
 import Create from '../routes/Create.svelte'
 
 // Two rounds of ten: 20 round questions, so 1 event at Less, 2 at Default, 4 at More.
@@ -53,7 +54,8 @@ async function loaded(): Promise<HTMLElement> {
   for (const name of ['More or Less', 'The Price is Right']) {
     await fireEvent.click(screen.getByRole('checkbox', { name }))
   }
-  return screen.getByRole('region', { name: 'Personalized questions' })
+  await fireEvent.click(screen.getByRole('button', { name: 'Next: Random events' }))
+  return screen.getByRole('region', { name: 'Write your own' })
 }
 
 function editor(): HTMLElement {
@@ -74,18 +76,22 @@ async function pick(scope: HTMLElement, name: string): Promise<void> {
 
 async function setFrequency(label: 'Less' | 'Default' | 'More'): Promise<void> {
   const group = screen.getByRole('group', { name: 'Random events frequency' })
-  await fireEvent.click(within(group).getByRole('radio', { name: label }))
+  await fireEvent.click(within(group).getByRole('radio', { name: new RegExp(`^${label}`) }))
 }
 
-/** Writes a multiple-choice question with two answers, the second one right. */
+function askers(scope: HTMLElement): HTMLElement {
+  return within(scope).getByRole('radiogroup', { name: 'Who asks it' })
+}
+
+/** Writes a multiple-choice question with two answers, the second one right, asked by `npc` if named. */
 async function writeChoice(panel: HTMLElement, prompt: string, npc = ''): Promise<void> {
-  await click(panel, 'Add a question')
+  await click(panel, 'Write a question')
   const form = editor()
   await type(form, 'Question', prompt)
   await type(form, 'Answer 1', 'Hans')
   await type(form, 'Answer 2', 'Bartender')
   await pick(form, 'Answer 2 is right')
-  if (npc !== '') await fireEvent.change(within(form).getByRole('combobox', { name: 'Who asks it' }), { target: { value: npc } })
+  if (npc !== '') await pick(askers(form), npc)
   await click(form, 'Add question')
 }
 
@@ -111,7 +117,7 @@ describe('CustomQuestions', () => {
 
     await writeChoice(panel, 'Who runs the inn?')
 
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     let form = editor()
     await pick(form, 'Type the answer')
     await type(form, 'Question', 'Name the cat')
@@ -120,7 +126,7 @@ describe('CustomQuestions', () => {
     await type(form, 'Accepted answer 2', 'Fluffy')
     await click(form, 'Add question')
 
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     form = editor()
     await pick(form, 'Closest number')
     await type(form, 'Question', 'Zulrah kills for a pet?')
@@ -128,7 +134,7 @@ describe('CustomQuestions', () => {
     await type(form, 'Unit, if any', 'kills')
     await click(form, 'Add question')
 
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     await type(editor(), 'Question', 'To be removed')
     await type(editor(), 'Answer 1', 'A')
     await type(editor(), 'Answer 2', 'B')
@@ -153,7 +159,7 @@ describe('CustomQuestions', () => {
   it('writes a pick all that apply, starting at three answers, with picks only when asked', async () => {
     const panel = await loaded()
     await setFrequency('More')
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     let form = editor()
     await pick(form, 'Pick all that apply')
     await type(form, 'Question', 'Which of these are demons?')
@@ -168,9 +174,10 @@ describe('CustomQuestions', () => {
 
     await click(panel, 'Edit question 1')
     form = editor()
-    expect(within(form).getByRole('button', { name: 'Remove answer 1' })).toHaveProperty('disabled', true)
+    expect(within(form).getByRole('button', { name: 'Remove answer 2' })).toHaveProperty('disabled', true)
     await click(form, 'Add an answer')
     await type(form, 'Answer 4', 'Black demon')
+    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Answer 1 is right' }))
     await click(form, 'Remove answer 1')
     await fireEvent.click(within(form).getByRole('checkbox', { name: 'Tell players how many are right' }))
     await click(form, 'Save question')
@@ -187,17 +194,19 @@ describe('CustomQuestions', () => {
     ])
   })
 
-  it('starts the NPC picker on Random, and sends no random_event for a question left on it', async () => {
+  it('starts the NPC picker on a random NPC, and sends no random_event for a question left on it', async () => {
     const panel = await loaded()
-    await click(panel, 'Add a question')
-    const select = within(editor()).getByRole('combobox', { name: 'Who asks it' }) as HTMLSelectElement
-    expect(select.value).toBe('')
-    expect(select.options[0]!.textContent).toBe('Random')
-    expect(select.options[1]!.textContent).toBe('Sandwich Lady: Cooking and food')
+    await click(panel, 'Write a question')
+    const faces = within(askers(editor())).getAllByRole('radio')
+    expect(faces.map((face) => face.getAttribute('aria-label'))).toEqual([
+      'A random NPC',
+      ...RANDOM_EVENTS.map((npc) => npc.name),
+    ])
+    expect(faces[0]).toHaveProperty('checked', true)
     await click(editor(), 'Cancel')
 
     await writeChoice(panel, 'Left to the draw')
-    await writeChoice(panel, 'Named', 'death')
+    await writeChoice(panel, 'Named', 'Death')
     const [random, named] = await submitted()
     expect(random).not.toHaveProperty('random_event')
     expect(named!.random_event).toBe('death')
@@ -205,23 +214,66 @@ describe('CustomQuestions', () => {
 
   it("previews the chosen NPC's card with the question, and the Mysterious Old Man for Random", async () => {
     const panel = await loaded()
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     const form = editor()
     const preview = within(form).getByRole('region', { name: 'Preview' })
     expect(within(preview).getByRole('heading', { name: 'Mysterious Old Man' })).toBeTruthy()
     await type(form, 'Question', 'Who runs the inn?')
     await type(form, 'Answer 1', 'Hans')
-    await fireEvent.change(within(form).getByRole('combobox', { name: 'Who asks it' }), {
-      target: { value: 'wise_old_man' },
-    })
+    await pick(askers(form), 'Wise Old Man')
     expect(within(preview).getByRole('heading', { name: 'Wise Old Man' })).toBeTruthy()
     expect(preview.textContent).toContain('Who runs the inn?')
     expect(within(preview).getByRole('button', { name: /Hans/ })).toBeTruthy()
   })
 
+  it('names the picked NPC beside the label, keeps its theme for hover, and reopens on it', async () => {
+    const panel = await loaded()
+    await click(panel, 'Write a question')
+    let form = editor()
+    const asker = () => form.querySelector('.asker')!.textContent!.trim()
+    expect(asker()).toBe('Who asks it · A random NPC')
+    const bob = within(askers(form)).getByRole('radio', { name: 'Evil Bob' })
+    expect(bob.closest('label')!.title).toBe('Evil Bob: Fishing, and cats')
+    await fireEvent.click(bob)
+    expect(asker()).toBe('Who asks it · Evil Bob')
+    await click(form, 'Cancel')
+
+    await writeChoice(panel, 'Named', 'Death')
+    await click(panel, 'Edit question 1')
+    form = editor()
+    expect(within(askers(form)).getByRole('radio', { name: 'Death' })).toHaveProperty('checked', true)
+    expect(asker()).toBe('Who asks it · Death')
+  })
+
+  it('draws each answer in the gem of its place and marks the right one instead of a remove button', async () => {
+    const panel = await loaded()
+    await click(panel, 'Write a question')
+    const form = editor()
+    await click(form, 'Add an answer')
+    const rows = () => [...form.querySelectorAll<HTMLElement>('.answer')]
+    expect(rows().map((row) => row.style.getPropertyValue('--fill'))).toEqual([
+      'var(--gem-sapphire)',
+      'var(--gem-emerald)',
+      'var(--gem-ruby)',
+    ])
+    const marked = () => rows().map((row) => row.querySelector('.mark')?.textContent ?? '')
+    expect(marked()).toEqual(['Right', '', ''])
+    expect(within(form).queryByRole('button', { name: 'Remove answer 1' })).toBeNull()
+
+    await pick(form, 'Answer 3 is right')
+    expect(marked()).toEqual(['', '', 'Right'])
+    expect(within(form).queryByRole('button', { name: 'Remove answer 3' })).toBeNull()
+    expect(within(form).getByRole('button', { name: 'Remove answer 1' })).toBeTruthy()
+
+    await pick(form, 'Pick all that apply')
+    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Answer 2 is right' }))
+    expect(marked()).toEqual(['', 'Right', ''])
+    expect(rows()[1]!.classList.contains('right')).toBe(true)
+  })
+
   it('starts clean, shows a limit next to its field as it is broken, and what is missing only on Add', async () => {
     const panel = await loaded()
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     const form = editor()
     expect(within(form).queryAllByText(/./, { selector: '.error' })).toEqual([])
     await pick(form, 'Type the answer')
@@ -238,7 +290,7 @@ describe('CustomQuestions', () => {
 
   it('caps the answers at the schema’s six, and the accepted answers at its twenty', async () => {
     const panel = await loaded()
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     for (let i = 0; i < 4; i++) await click(editor(), 'Add an answer')
     expect((within(editor()).getByRole('button', { name: 'Add an answer' }) as HTMLButtonElement).disabled).toBe(true)
     await pick(editor(), 'Type the answer')
@@ -249,7 +301,7 @@ describe('CustomQuestions', () => {
 
   it('saves the question on Enter in a field rather than creating the room', async () => {
     const panel = await loaded()
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     const form = editor()
     await type(form, 'Question', 'Who runs the inn?')
     await type(form, 'Answer 1', 'Hans')
@@ -261,7 +313,7 @@ describe('CustomQuestions', () => {
 
   it('will not create the room while a question is open and unsaved', async () => {
     const panel = await loaded()
-    await click(panel, 'Add a question')
+    await click(panel, 'Write a question')
     const create = screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement
     expect(create.disabled).toBe(true)
     expect(document.body.textContent).toContain('Add or cancel the question you are writing')
@@ -273,7 +325,7 @@ describe('CustomQuestions', () => {
     const panel = await loaded()
     await writeChoice(panel, 'One')
     await writeChoice(panel, 'Two')
-    expect((within(panel).getByRole('button', { name: 'Add a question' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((within(panel).getByRole('button', { name: 'Write a question' }) as HTMLButtonElement).disabled).toBe(true)
     expect(panel.textContent).toContain('Every random event is already one of yours.')
     expect(panel.textContent).toContain('pick More frequency')
   })
@@ -294,7 +346,7 @@ describe('CustomQuestions', () => {
 
   it('exports the list as the file Import reads', async () => {
     const panel = await loaded()
-    await writeChoice(panel, 'Named', 'genie')
+    await writeChoice(panel, 'Named', 'Genie')
     let blob: Blob | undefined
     URL.createObjectURL = vi.fn((made: Blob) => {
       blob = made
