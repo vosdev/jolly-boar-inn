@@ -1,7 +1,9 @@
 """Create returns ``{code, session, player}`` and the creator is the room's
 admin; a bad display name creates no room row; the sixth create from one IP in an hour is
-429; ``questions`` rows equal what the modes asked for (the code collision retry is in
-test_codes.py plus an end-to-end check here).
+429; a preferred code is taken as sent, 409 if taken and 422 if no draw could give it;
+``free-code`` hands out one no room holds, five per ten seconds; ``questions`` rows equal
+what the modes asked for (the code collision retry is in test_codes.py plus an
+end-to-end check here).
 
 Join a finished room is 409; duplicate name is 409; over ``max_players`` is
 409; success returns a session; the player appears in ``GET /api/rooms/{code}``.
@@ -168,6 +170,60 @@ def test_code_collision_retries_then_appends_digits(app: FastAPI, client: TestCl
     second, _ = create(client)
     assert first == "CABBAGE"
     assert re.fullmatch(r"CABBAGE\d\d", second)
+
+
+def test_free_code_is_one_no_room_holds_spelled_as_its_word(
+    app: FastAPI, client: TestClient
+) -> None:
+    app.state.rooms.words = ("Cabbage",)
+    create(client)
+    response = client.get("/api/rooms/free-code")
+    assert response.status_code == 200
+    assert re.fullmatch(r"Cabbage\d\d", response.json()["code"])
+
+
+def test_free_code_past_five_in_ten_seconds_is_429(client: TestClient) -> None:
+    for _ in range(5):
+        assert client.get("/api/rooms/free-code").status_code == 200
+    response = client.get("/api/rooms/free-code")
+    assert response.status_code == 429
+    assert response.json()["code"] == "rate_limited"
+
+
+def test_create_takes_the_preferred_code(client: TestClient, db) -> None:
+    free = client.get("/api/rooms/free-code").json()["code"]
+    response = client.post(
+        "/api/rooms", json={"returning": False, "display_name": "Zezima", "code": free}
+    )
+    assert response.status_code == 201
+    assert response.json()["code"] == free
+    assert [row["code"] for row in db("select code from rooms")] == [free.upper()]
+
+
+def test_a_taken_preferred_code_is_409_and_creates_no_room(client: TestClient, db) -> None:
+    code, _ = create(client)
+    response = client.post(
+        "/api/rooms",
+        json={"returning": False, "display_name": "Zezima", "code": codes.cased(code)},
+    )
+    assert response.status_code == 409
+    assert response.json()["code"] == "code_taken"
+    assert len(db("select id from rooms")) == 1
+    assert len(db("select id from players")) == 1
+
+
+@pytest.mark.parametrize("code", ["Zezima", "Cabbage7", "Cabbage123"])
+def test_a_code_no_draw_could_give_is_422_before_the_limiter(
+    app: FastAPI, client: TestClient, db, code: str
+) -> None:
+    app.state.rooms.words = ("Cabbage",)
+    for _ in range(app.state.settings.rooms_per_ip_per_hour + 1):
+        response = client.post(
+            "/api/rooms", json={"returning": False, "display_name": "Zezima", "code": code}
+        )
+        assert response.status_code == 422
+        assert response.json()["code"] == "bad_code"
+    assert db("select id from rooms") == []
 
 
 def test_questions_rows_equal_what_the_modes_asked_for(client: TestClient, db) -> None:

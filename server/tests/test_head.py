@@ -19,6 +19,8 @@ def api_get_paths(app: FastAPI) -> list[str]:
 def test_every_api_get_answers_head(
     app: FastAPI, client: TestClient, lobby: dict[str, Any]
 ) -> None:
+    # One word, so ``free-code`` draws the same code for the GET and the HEAD.
+    app.state.rooms.words = ("Cabbage",)
     paths = api_get_paths(app)
     assert len(paths) >= 4, paths  # health, modes, a room, a vocabulary
     for template in paths:

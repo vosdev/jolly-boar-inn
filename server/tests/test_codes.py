@@ -91,3 +91,23 @@ async def test_allocate_gives_up_eventually() -> None:
 
     with pytest.raises(codes.CodeSpaceExhausted):
         await codes.allocate(STUB, random.Random(4), insert)
+
+
+@pytest.mark.parametrize(
+    ("code", "ok"),
+    [
+        ("CABBAGE", True),
+        ("CABBAGE07", True),
+        ("CABBAGE7", False),
+        ("TURNIP", False),
+        ("CABBAGEXX", False),
+    ],
+)
+def test_drawable_is_a_listed_word_with_at_most_two_digits(code: str, ok: bool) -> None:
+    assert codes.drawable(code, ("Cabbage",)) is ok
+
+
+def test_first_free_skips_taken_codes() -> None:
+    assert codes.first_free(["A", "B", "C"], {"A", "B"}) == "C"
+    with pytest.raises(codes.CodeSpaceExhausted):
+        codes.first_free(["A"], {"A"})

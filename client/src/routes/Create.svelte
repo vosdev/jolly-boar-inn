@@ -42,6 +42,7 @@
   import {
     ApiFailure,
     createRoom,
+    getFreeCode,
     getModes,
     type ModePacing,
     type NewRoomSettings,
@@ -117,6 +118,8 @@
   /** A browser with no profile is being asked for one before the room is made. */
   let naming = $state(false)
   let failure = $state<string | null>(null)
+  /** The code the room will get, or null if the server could not hand one out: it draws then. */
+  let code = $state<string | null>(null)
   /** Whether this browser already hosts as many rooms as it may, or null until known. */
   let full = $state<boolean | null>(null)
 
@@ -157,6 +160,7 @@
 
   onMount(async () => {
     void atRoomLimit().then((limited) => (full = limited))
+    void reroll()
     try {
       pacing = await getModes()
     } catch (error) {
@@ -164,6 +168,14 @@
         error instanceof ApiFailure ? error.message : 'could not reach the server'
     }
   })
+
+  async function reroll(): Promise<void> {
+    try {
+      code = await getFreeCode()
+    } catch {
+      // A rate-limited or failed reroll keeps the code already shown.
+    }
+  }
 
   /** A round of `mode` at that mode's own length, which is what ticking it gives you. */
   function roundFor(mode: ModePacing): ModeSettings {
@@ -264,6 +276,7 @@
         access,
         customQuestions,
         reporting,
+        code ?? undefined,
       )
       counted(reporting)
       setSession(created.code, created.session)
@@ -271,7 +284,11 @@
       navigate(`/r/${created.code}`)
     } catch (error) {
       failure =
-        error instanceof ApiFailure ? error.message : 'could not create the room, try again'
+        error instanceof ApiFailure && error.code === 'code_taken'
+          ? 'That code was just taken — roll a new one.'
+          : error instanceof ApiFailure
+            ? error.message
+            : 'could not create the room, try again'
     } finally {
       busy = false
     }
@@ -451,6 +468,12 @@
     {/if}
     <button type="button" onclick={() => navigate('/')}>Back</button>
   </div>
+  {#if code !== null && full !== true}
+    <p class="note code-line">
+      <span>Room code <span>{code}</span></span>
+      <button type="button" class="reroll" onclick={reroll} disabled={busy}>Reroll</button>
+    </p>
+  {/if}
   {#if editingQuestion && full !== true}
     <p class="note">Add or cancel the question you are writing before you create the room.</p>
   {/if}
@@ -517,6 +540,17 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem 1.25rem;
+  }
+
+  .code-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .reroll {
+    padding: 0.15rem 0.6rem;
+    font-size: inherit;
   }
 
   .count {

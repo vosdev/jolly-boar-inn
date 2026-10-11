@@ -35,7 +35,7 @@ const PACING: api.ModePacing[] = [
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getModes: vi.fn(), createRoom: vi.fn(), getRoom: vi.fn(), deleteRoom: vi.fn() }
+  return { ...real, getModes: vi.fn(), getFreeCode: vi.fn(), createRoom: vi.fn(), getRoom: vi.fn(), deleteRoom: vi.fn() }
 })
 
 beforeEach(() => {
@@ -44,6 +44,7 @@ beforeEach(() => {
   vi.mocked(api.getRoom).mockResolvedValue({ status: 'lobby', players: 1 })
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined)
   vi.mocked(api.getModes).mockResolvedValue(structuredClone(PACING))
+  vi.mocked(api.getFreeCode).mockResolvedValue('AbyssalWhip')
   vi.mocked(api.createRoom).mockResolvedValue({
     code: 'ABYSSAL',
     session: 's',
@@ -117,6 +118,7 @@ describe('Create', () => {
       'code',
       [],
       { device: 'desktop' },
+      'AbyssalWhip',
     ])
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(get(profile)).toEqual({ name: 'Zezima', pet: 'aggy' })
@@ -173,6 +175,47 @@ describe('Create', () => {
     expect(await screen.findByRole('alert')).toBeTruthy()
     expect(get(profile)).not.toBeNull()
     expect(document.querySelector('dialog')).toBeNull()
+  })
+
+  it('shows the code it was handed and creates the room under it', async () => {
+    await loaded(...BOTH)
+    expect(await screen.findByText('AbyssalWhip')).toBeTruthy()
+    await submitted()
+    expect(vi.mocked(api.createRoom).mock.calls[0]![7]).toBe('AbyssalWhip')
+  })
+
+  it('rerolls the code on request', async () => {
+    await loaded(...BOTH)
+    await screen.findByText('AbyssalWhip')
+    vi.mocked(api.getFreeCode).mockResolvedValueOnce('Cabbage07')
+    await fireEvent.click(screen.getByRole('button', { name: 'Reroll' }))
+    expect(await screen.findByText('Cabbage07')).toBeTruthy()
+    await submitted()
+    expect(vi.mocked(api.createRoom).mock.calls[0]![7]).toBe('Cabbage07')
+  })
+
+  it('says so when the code was taken, and stays to let the host reroll', async () => {
+    const navigate = vi.fn()
+    vi.mocked(api.createRoom).mockRejectedValueOnce(
+      new api.ApiFailure(409, 'code_taken', 'that room code is taken'),
+    )
+    render(Create, { navigate })
+    await screen.findByRole('checkbox', { name: /^More or Less/ })
+    await pick(...BOTH)
+    await submitted()
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'That code was just taken — roll a new one.',
+    )
+    expect(navigate).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Reroll' })).toBeTruthy()
+  })
+
+  it('leaves the code to the server when none could be fetched', async () => {
+    vi.mocked(api.getFreeCode).mockRejectedValue(new api.ApiFailure(429, 'rate_limited', 'slow'))
+    await loaded(...BOTH)
+    expect(screen.queryByRole('button', { name: 'Reroll' })).toBeNull()
+    await submitted()
+    expect(vi.mocked(api.createRoom).mock.calls[0]![7]).toBeUndefined()
   })
 
   it('offers every mode but custom as a round', async () => {

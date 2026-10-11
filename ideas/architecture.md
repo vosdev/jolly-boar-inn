@@ -486,14 +486,16 @@ away. Both return chosen fields only, never a name, an answer or a question. Onl
 suggestion and report queues, `/api/admin/questions` and its pending changes (section 11) return
 questions, answers included: players' suggestions and the packs, never a room's.
 
-`POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, settings, custom_questions}`, in one transaction:
+`POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, code?, settings, custom_questions}`, in one transaction:
 
 1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
    spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
 2. Rate limit per IPv4 address or IPv6 /64.
-3. Draw a code from `room-words.json` with `secrets.SystemRandom`: five plain tries, 20 with two
-   digits, then `CodeSpaceExhausted`. Each try has a savepoint. Codes are stored and looked up
-   uppercase, and sent spelled as their word (`AbyssalWhip07`).
+3. Take `code` if sent: one a draw could give (422 `bad_code`, checked before the limiter), else 409
+   `code_taken`. Without it, draw from `room-words.json` with `secrets.SystemRandom`: five plain
+   tries, 20 with two digits, then `CodeSpaceExhausted`. Each try has a savepoint. Codes are
+   stored and looked up uppercase, and sent spelled as their word (`AbyssalWhip07`). The create
+   page shows `GET /api/rooms/free-code` → `{code}`, a draw no room holds yet, reserved for nobody.
 4. Insert the admin outside that savepoint, or a session collision would be retried as a code
    collision. Then select and insert the questions.
 5. Return `201 {code, session, player, expires_at}`. The plain session is returned once and never
@@ -532,7 +534,7 @@ questions, answers included: players' suggestions and the packs, never a room's.
 Limits:
 
 - 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 30 lookups of missing rooms per
-  10 minutes. Past those, every room request is 429 (1008 on a socket), so a refusal never reveals
+  10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 (1008 on a socket), so a refusal never reveals
   which codes are live.
 - Create refuses a sixth room while `jbi:created` holds five the server still has; one that
   answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the
