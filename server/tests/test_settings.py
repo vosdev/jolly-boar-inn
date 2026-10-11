@@ -307,7 +307,8 @@ def test_a_room_stored_with_its_own_seconds_loads_at_run_pace() -> None:
 def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) -> None:
     response = client.get("/api/modes")
     assert response.status_code == 200
-    assert response.json() == [
+    # ``seconds`` follows the shipped packs; ``test_duration.py`` checks it.
+    assert [{k: v for k, v in m.items() if k != "seconds"} for m in response.json()] == [
         {
             "id": "more_less",
             "types": ["more_less"],

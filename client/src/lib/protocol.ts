@@ -124,6 +124,8 @@ export interface RoomView {
   next_at: string | null
   /** How long the reveal ending at `next_at` holds; each question's is its own. Null outside one. */
   reveal_seconds: number | null
+  /** How long the game takes at most, every question at its full time (`rooms/duration.py`). */
+  estimated_seconds: number
   /** The round in progress; null before the first question and once the game is over. */
   segment: Segment | null
   /** When the game ended, by the server's clock; null until it has. */

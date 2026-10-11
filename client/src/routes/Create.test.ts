@@ -28,13 +28,15 @@ const PACING: api.ModePacing[] = [
     id: 'more_less',
     types: ['more_less'],
     questions: { default: 5, min: 1, max: 30 },
+    seconds: { walk: 19, run: 15, teleport: 11 },
   },
   {
     id: 'price_is_right',
     types: ['price_is_right'],
     questions: { default: 5, min: 1, max: 30 },
+    seconds: { walk: 15, run: 12, teleport: 9 },
   },
-  { id: 'custom', types: [], questions: null },
+  { id: 'custom', types: [], questions: null, seconds: null },
 ]
 
 vi.mock('../lib/api', async (importOriginal) => {
@@ -280,7 +282,7 @@ describe('Create', () => {
     expect(document.querySelector('.status')?.classList.contains('error')).toBe(true)
     expect(createButton().disabled).toBe(true)
     await pick('More or Less')
-    expect(status()).toBe('1 round · 5 questions')
+    expect(status()).toBe('1 round · 5 questions · ~2 min')
     expect(createButton().disabled).toBe(false)
   })
 
@@ -580,19 +582,37 @@ describe('Create', () => {
     // One mode of ten at the default plays eleven, and Create says so.
     await loaded('More or Less')
     await press(round('More or Less'), 'More questions', 5)
-    expect(status()).toBe('1 round · 11 questions')
+    expect(status()).toBe('1 round · 11 questions · ~3 min')
     expect(document.querySelector('.tally')?.textContent).toBe('10 questions in the rounds, plus 1 random event.')
     await next()
     await fireEvent.click(screen.getByRole('radio', { name: /^Less/ }))
-    expect(status()).toBe('1 round · 10 questions')
+    expect(status()).toBe('1 round · 10 questions · ~3 min')
     await fireEvent.click(screen.getByRole('radio', { name: /^More/ }))
-    expect(status()).toBe('1 round · 12 questions')
+    expect(status()).toBe('1 round · 12 questions · ~3 min')
+  })
+
+  it('estimates the minutes from each mode’s typical question, the pace, the events and the breaks', async () => {
+    vi.mocked(api.getModes).mockResolvedValue([
+      ...structuredClone(PACING),
+      { id: 'random_event', types: [], questions: null, seconds: { walk: 40, run: 30, teleport: 20 } },
+    ])
+    await loaded(...BOTH)
+    await press(round('More or Less'), 'More questions', 5)
+    // 10 × 15 + 5 × 12, one event of 30, two splashes of 15 and 10 s of standings: 280 s.
+    expect(status()).toBe('2 rounds · 16 questions · ~5 min')
+    await rule('Pace')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Teleport' }))
+    // 10 × 11 + 5 × 9 + 20 + 30 + 10: 215 s.
+    expect(status()).toBe('2 rounds · 16 questions · ~4 min')
+    await rule('Fine print')
+    await press(document.body, 'Fewer standings seconds', 2)
+    expect(status()).toBe('2 rounds · 16 questions · ~3 min')
   })
 
   it('counts the events against the cap, as the server does', async () => {
     await loaded(...BOTH)
     await press(round('More or Less'), 'More questions', 25)
-    expect(status()).toBe('2 rounds · 38 questions')
+    expect(status()).toBe('2 rounds · 38 questions · ~10 min')
   })
 
   it('sends how long the standings hold between rounds, 10 unless changed', async () => {
@@ -803,6 +823,13 @@ describe('Create, picking for the host', () => {
     expect(sent.surprise_modes).toBe(1)
     expect(sent.hide_rounds).toBe(true)
     expect(sent.mode_order).toBe('random')
+  })
+
+  it('estimates a surprise from the average round at the shortest draw', async () => {
+    await loaded()
+    await pickForMe(0, true)
+    // Two rounds of five at 13.5 s, one event at the same, two splashes and one standings: 188.5 s.
+    expect(status()).toBe('2 surprise rounds · at least 11 questions · ~3 min')
   })
 
   it('brings the cards back when Change unticks the surprise', async () => {

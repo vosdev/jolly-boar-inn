@@ -25,6 +25,7 @@ ROOM_KEYS = {
     "phase",
     "next_at",
     "reveal_seconds",
+    "estimated_seconds",
     "segment",
     "finished_at",
 }

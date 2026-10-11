@@ -34,6 +34,7 @@ const ROOM: RoomView = {
   phase: 'idle',
   next_at: null,
   reveal_seconds: null,
+  estimated_seconds: 300,
   segment: null,
   finished_at: null,
 }
@@ -167,7 +168,7 @@ describe('Lobby', () => {
     const paper = document.querySelector('.paper') as HTMLElement
     expect(within(paper).getByRole('heading', { level: 1, name: 'Lobby' })).toBeTruthy()
     expect(within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' })).toBeTruthy()
-    expect(within(paper).getByText('1 round · 5 questions · Run pace')).toBeTruthy()
+    expect(within(paper).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
   })
 
   it('copies an invite-only room’s whole link from the code, and never draws its key', async () => {
@@ -332,7 +333,7 @@ describe('Lobby', () => {
       { mode: 'drop_table', questions: 1 },
     ]
     lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 6 })
-    expect(screen.getByText('2 rounds · 6 questions · Run pace')).toBeTruthy()
+    expect(screen.getByText('2 rounds · 6 questions · Run pace · ~5 min')).toBeTruthy()
     const toggle = screen.getByRole('button', { name: 'Show the rounds' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByText('More or Less')).toBeNull()
@@ -348,9 +349,14 @@ describe('Lobby', () => {
     expect(screen.queryByText('More or Less')).toBeNull()
   })
 
+  it('gives the server’s estimate of the game in whole minutes', () => {
+    lobby([HOST, WOOX], { ...ROOM, estimated_seconds: 1290 })
+    expect(screen.getByText('1 round · 5 questions · Run pace · ~22 min')).toBeTruthy()
+  })
+
   it('names the pace the host picked', () => {
     lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, pace: 'teleport' } })
-    expect(screen.getByText('1 round · 5 questions · Teleport pace')).toBeTruthy()
+    expect(screen.getByText('1 round · 5 questions · Teleport pace · ~5 min')).toBeTruthy()
   })
 
   it.each([
@@ -359,7 +365,7 @@ describe('Lobby', () => {
     ['host', HOST, { ...SECRET, settings: { ...SECRET.settings, modes: ROOM.settings.modes } }],
   ])('counts surprise rounds for the %s and offers none to show', (_, you, room) => {
     lobby([HOST, WOOX], room, you)
-    expect(screen.getByText('5 secret rounds · 42 questions · Run pace')).toBeTruthy()
+    expect(screen.getByText('5 secret rounds · 42 questions · Run pace · ~5 min')).toBeTruthy()
     expect(
       screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
     ).toBeTruthy()

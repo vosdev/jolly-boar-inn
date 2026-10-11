@@ -88,6 +88,8 @@ class RoomView(_Message):
     # How long the reveal ending at ``next_at`` holds, so a countdown bar knows its full
     # length: each question's is its own. Null outside a reveal.
     reveal_seconds: int | None = None
+    # How long the game takes at most, for the lobby's minutes: ``rooms/duration.py``.
+    estimated_seconds: int = 0
     # The round in progress, null before the first question and once the game is over.
     segment: Segment | None
     # When the game ended, null until it has. Every browser files the result under it, so

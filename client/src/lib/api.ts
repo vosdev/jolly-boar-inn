@@ -15,6 +15,7 @@ import type { CustomQuestion } from './customQuestions'
 import type {
   EventFrequency,
   ModeSettings,
+  Pace,
   PlayerView,
   RoomSettings,
   RoomView,
@@ -99,6 +100,8 @@ export interface ModePacing {
    * never rounds: their questions are random events, so the form does not offer them.
    */
   questions: ModeBounds | null
+  /** What one of its pack questions typically takes, open and revealed, per pace; null with none. */
+  seconds: Record<Pace, number> | null
 }
 
 /** Registry order, which is the order the create form lists them in. */

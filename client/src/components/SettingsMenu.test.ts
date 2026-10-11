@@ -77,6 +77,7 @@ const LOBBY: RoomView = {
   phase: 'idle',
   next_at: null,
   reveal_seconds: null,
+  estimated_seconds: 0,
   segment: null,
   finished_at: null,
 }
