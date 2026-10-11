@@ -375,7 +375,7 @@ export interface QuestionClosed {
   results: Record<string, PlayerResult>
   standings: Standing[]
   next_at: string | null
-  /** How long this reveal holds, even for the last question, whose `next_at` is null. */
+  /** How long this reveal holds, the reveal that ends at `next_at`. */
   reveal_seconds: number
   /** The player who suggested the question, when they asked to be named; left out otherwise. */
   suggested_by?: string

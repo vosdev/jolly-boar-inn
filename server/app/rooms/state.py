@@ -2287,7 +2287,6 @@ class RoomManager:
             room.next_at = closed_at + timedelta(seconds=room.reveal_seconds)
             room.next_mono = reveal_ends = now + room.reveal_seconds
             room.advance.clear()
-            more = question.position + 1 < len(room.questions)
             message = QuestionClosed(
                 question_id=str(question.id),
                 reveal=reveal,
@@ -2301,7 +2300,7 @@ class RoomManager:
                     for pid, answer in question.answers.items()
                 },
                 standings=room.standings(),
-                next_at=room.next_at if more else None,
+                next_at=room.next_at,
                 reveal_seconds=room.reveal_seconds,
                 suggested_by=question.suggested_by,
             )
