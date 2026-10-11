@@ -6,10 +6,12 @@ so a mode leaking through any part of any frame fails them.
 
 import json
 from typing import Any
+from uuid import UUID
 
+from app.modes import offered, questions_bounds
 from app.rooms.settings import RoomSettings
 from tests.game_api import Game, Seat, reseat
-from tests.rooms_api import hello
+from tests.rooms_api import create, hello
 
 # Three real modes, played in this order. Neither later id is also a question type an
 # event could carry, so finding one in a frame means the round leaked.
@@ -227,3 +229,69 @@ def test_hide_rounds_reads_as_off_from_a_room_stored_without_it() -> None:
     assert stored.hide_rounds is False
     assert "hide_rounds" not in stored.model_dump()
     assert stored.model_copy(update={"hide_rounds": True}).model_dump()["hide_rounds"] is True
+
+
+def surprise_modes(table: Any, count: int = 3) -> Game:
+    """A room whose ``count`` rounds the server drew, listed, with nothing moving unless skipped."""
+    return table(
+        "Zezima",
+        surprise_modes=count,
+        mode_order="listed",
+        reveal_seconds=30,
+        splash=True,
+        standings_seconds=30,
+        seconds=30,
+    )
+
+
+def test_surprise_modes_are_drawn_from_the_offered_rounds_at_their_default_length(
+    client,
+) -> None:
+    code, _ = create(client, surprise_modes=3)
+    settings = client.app.state.rooms.rooms[code].settings
+    offered_rounds = {m.id for m in offered(client.app.state.settings) if m.is_round}
+    assert settings.surprise_modes == 3
+    assert settings.hide_rounds is True
+    assert len(set(settings.mode_ids)) == 3
+    assert set(settings.mode_ids) <= offered_rounds
+    for entry in settings.modes:
+        assert entry.questions == questions_bounds(entry.mode).default
+
+
+def test_surprise_modes_hide_every_round_from_the_admin_too(table) -> None:
+    game = surprise_modes(table)
+    room = game.room.view_for(UUID(game.admin.id)).model_dump(mode="json")
+    assert room["settings"]["modes"] == []
+    assert room["rounds"] == 3
+    assert room["settings"]["surprise_modes"] == 3
+    play_until(game, finished)
+    admin = [m["room"] for m in game.admin.seen if m["t"] == "room_updated"]
+    player = [m["room"] for m in frames_until_finished(game.players[0]) if m["t"] == "room_updated"]
+    assert [played_modes(r) for r in admin] == [played_modes(r) for r in player]
+    assert played_modes(admin[-1]) == game.room.settings.mode_ids
+
+
+def test_surprise_modes_refuse_picked_modes_alongside(client) -> None:
+    response = client.post(
+        "/api/rooms",
+        json={
+            "returning": False,
+            "display_name": "Admin",
+            "settings": {"surprise_modes": 2, "modes": [{"mode": "more_less"}]},
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_surprise_modes_refuse_more_modes_than_are_offered(client) -> None:
+    offered_rounds = [m for m in offered(client.app.state.settings) if m.is_round]
+    response = client.post(
+        "/api/rooms",
+        json={
+            "returning": False,
+            "display_name": "Admin",
+            "settings": {"surprise_modes": len(offered_rounds) + 1},
+        },
+    )
+    assert response.status_code == 422
+    assert client.app.state.rooms.rooms == {}

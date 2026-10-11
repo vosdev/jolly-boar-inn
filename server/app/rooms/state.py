@@ -73,6 +73,7 @@ from starlette.websockets import WebSocket
 
 from app.config import APP_VERSION, Settings
 from app.errors import ApiError
+from app.modes import offered
 from app.questions import custom
 from app.questions.packs import Pack
 from app.questions.schema import QuestionError
@@ -629,7 +630,7 @@ class Room:
     def view_for(self, player_id: UUID) -> RoomView:
         """The room as ``player_id`` is sent it: admins get the key, the rest the rounds so far."""
         if self.is_admin(player_id):
-            return self.view(admin=True)
+            return self.view(admin=True, withhold=bool(self.settings.surprise_modes))
         return self.view(withhold=self.settings.hide_rounds)
 
     def view(self, withhold: bool = False, admin: bool = False) -> RoomView:
@@ -1175,7 +1176,10 @@ class RoomManager:
         """
         players = room.player_views()
         everyone = RoomUpdated(room=room.view(withhold=room.settings.hide_rounds), players=players)
-        admins = RoomUpdated(room=room.view(admin=True), players=players)
+        admins = RoomUpdated(
+            room=room.view(admin=True, withhold=bool(room.settings.surprise_modes)),
+            players=players,
+        )
         if admins == everyone:
             return Broadcast.to_all(room, everyone.model_dump(mode="json"), exclude)
         rendered = {False: everyone.model_dump(mode="json"), True: admins.model_dump(mode="json")}
@@ -1340,6 +1344,11 @@ class RoomManager:
             settings = settings.model_copy(update={"max_players": cap})
         elif settings.max_players > cap:
             raise BadSettings(f"max_players may not exceed {cap}")
+        rounds_offered = [mode.id for mode in offered(self.settings) if mode.is_round]
+        try:
+            settings = settings.drawn(rounds_offered, self.rng)
+        except ValueError as exc:
+            raise BadSettings(str(exc)) from None
         try:
             rounds = selection.select(self.packs, own, settings, self.rng)
         except selection.TooManyEvents as exc:

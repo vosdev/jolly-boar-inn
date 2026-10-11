@@ -15,6 +15,12 @@
    * The rounds play in a random order unless the host numbers them: a quiz night is
    * rarely improved by always opening on the same round.
    *
+   * Two tabs choose the rounds. Pick is the cards, with "Pick for me" ticking a number of
+   * them at random for the host to adjust. Surprise sends only a number: the server draws
+   * the modes, so not even the host's browser knows them, and the rounds stay hidden from
+   * everyone until each starts. Their lengths are unknown here, so the events are counted
+   * as the shortest draw would have them, which keeps the host's questions within reach.
+   *
    * The host is the profile, name and pet, and the form never asks: the name lives in
    * the top bar. A browser with none is handled the way Join handles one: pressing
    * Create opens `NamePrompt` first, and what is confirmed becomes the profile and the
@@ -90,6 +96,10 @@
   let nameWrongAnswers = $state(true)
   /** Players learn each round's mode as it starts; the server holds the rest back. */
   let hideRounds = $state(false)
+  /** Whether the host picks the rounds or the server draws them unseen. */
+  let choosing = $state<'pick' | 'surprise'>('pick')
+  /** How many modes "Pick for me" ticks, or the server draws for a surprise. */
+  let randomCount = $state(3)
   let access = $state<RoomAccess>('code')
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
@@ -113,20 +123,31 @@
   const upcomingModes = $derived(
     UPCOMING_MODES.filter((mode) => !pacing?.some((entry) => entry.id === mode.id)),
   )
-  const questionCount = $derived(rounds.reduce((total, round) => total + round.questions, 0))
+  const surprise = $derived(choosing === 'surprise')
+  /** At most every mode there is to draw, and at least one. */
+  const randomMax = $derived(Math.max(1, roundModes.length))
+  const randomRounds = $derived(Math.min(randomCount, randomMax))
+  /** The shortest rounds a surprise could draw: the events counted are the fewest it gets. */
+  const shortestDraw = $derived(
+    roundModes
+      .map((mode) => mode.questions?.default ?? 1)
+      .sort((a, b) => a - b)
+      .slice(0, randomRounds),
+  )
+  const lengths = $derived(surprise ? shortestDraw : rounds.map((round) => round.questions))
+  const questionCount = $derived(lengths.reduce((total, length) => total + length, 0))
   /**
    * The events the room adds to that, counted as the server counts them (`eventSlots`).
    * They are questions the room will play, so they are in the total and under the cap.
    */
-  const lengths = $derived(rounds.map((round) => round.questions))
   const eventCount = $derived(eventSlots(lengths, EVENT_EVERY[frequency]))
   const totalCount = $derived(questionCount + eventCount)
   const eventsAtMore = $derived(eventSlots(lengths, EVENT_EVERY.more))
   const tooManyOwn = $derived(overCap(customQuestions.length, eventCount, frequency, eventsAtMore))
   const ready = $derived(
-    rounds.length > 0 &&
+    (surprise ? roundModes.length > 0 : rounds.length > 0) &&
       questionCount >= 1 &&
-      totalCount <= MAX_QUESTIONS &&
+      (surprise || totalCount <= MAX_QUESTIONS) &&
       tooManyOwn === null &&
       !editingQuestion &&
       full === false,
@@ -153,6 +174,16 @@
     rounds = on
       ? [...rounds, roundFor(mode)]
       : rounds.filter((round) => round.mode !== mode.id)
+  }
+
+  /** Tick `randomRounds` modes at random in place of what was ticked, in a random order. */
+  function pickForMe(): void {
+    const shuffled = [...roundModes]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
+    }
+    rounds = shuffled.slice(0, randomRounds).map(roundFor)
   }
 
   function setRound(mode: string, questions: number): void {
@@ -208,14 +239,14 @@
       return
     }
     const settings: NewRoomSettings = {
-      modes: rounds,
-      mode_order: modeOrder,
+      ...(surprise ? { surprise_modes: randomRounds } : { modes: rounds }),
+      mode_order: surprise ? 'random' : modeOrder,
       random_event_frequency: frequency,
       pace,
       standings_seconds: standingsSeconds,
       close_when_all_answered: closeWhenAllAnswered,
       name_wrong_answers: nameWrongAnswers,
-      hide_rounds: hideRounds,
+      hide_rounds: surprise || hideRounds,
     }
     try {
       const reporting = arrival()
@@ -259,35 +290,78 @@
          never moves the cards under the host's pointer. -->
     <div class="head spread">
       <h2>Game modes</h2>
-      <div class="summary">
-        <p class="count" class:error={rounds.length === 0 || totalCount > MAX_QUESTIONS}>
-          {#if pacing === null}
-            &nbsp;
-          {:else if rounds.length === 0}
-            Pick at least one type; a room with no rounds is no game.
-          {:else}
-            {rounds.length} round{rounds.length === 1 ? '' : 's'}, {totalCount} question{totalCount ===
-            1
-              ? ''
-              : 's'}{eventCount > 0
-              ? ` (${questionCount} in the rounds, ${eventCount} random event${eventCount === 1 ? '' : 's'})`
-              : ''}{totalCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
-          {/if}
-        </p>
-        <Segmented
-          legend="Round order"
-          options={[
-            { value: 'listed', label: 'As numbered' },
-            { value: 'random', label: 'Random' },
-          ]}
-          bind:value={modeOrder}
-        />
-      </div>
+      <Segmented
+        legend="Choose the rounds"
+        hideLegend
+        options={[
+          { value: 'pick', label: 'Pick' },
+          { value: 'surprise', label: 'Surprise' },
+        ]}
+        bind:value={choosing}
+      />
     </div>
+    {#if surprise}
+      <p class="count">
+        {randomRounds} surprise round{randomRounds === 1 ? '' : 's'}
+      </p>
+    {:else}
+      <div class="head spread">
+        <Stepper
+          label="Pick for me"
+          noun="modes to pick"
+          value={randomRounds}
+          min={1}
+          max={randomMax}
+          onchange={(value) => (randomCount = value)}
+        />
+        <button type="button" onclick={pickForMe} disabled={roundModes.length === 0}>
+          Pick {randomRounds} at random
+        </button>
+      </div>
+      <div class="head spread">
+        <div class="summary">
+          <p class="count" class:error={rounds.length === 0 || totalCount > MAX_QUESTIONS}>
+            {#if pacing === null}
+              &nbsp;
+            {:else if rounds.length === 0}
+              Pick at least one type; a room with no rounds is no game.
+            {:else}
+              {rounds.length} round{rounds.length === 1 ? '' : 's'}, {totalCount} question{totalCount ===
+              1
+                ? ''
+                : 's'}{eventCount > 0
+                ? ` (${questionCount} in the rounds, ${eventCount} random event${eventCount === 1 ? '' : 's'})`
+                : ''}{totalCount > MAX_QUESTIONS ? `, over the ${MAX_QUESTIONS} cap` : ''}
+            {/if}
+          </p>
+          <Segmented
+            legend="Round order"
+            options={[
+              { value: 'listed', label: 'As numbered' },
+              { value: 'random', label: 'Random' },
+            ]}
+            bind:value={modeOrder}
+          />
+        </div>
+      </div>
+    {/if}
     {#if pacingFailure !== null}
       <p class="error">{pacingFailure}</p>
     {:else if pacing === null}
       <p class="note">Loading the game modes…</p>
+    {:else if surprise}
+      <Stepper
+        label="Surprise rounds"
+        noun="surprise rounds"
+        value={randomRounds}
+        min={1}
+        max={randomMax}
+        onchange={(value) => (randomCount = value)}
+      />
+      <p class="note">
+        The game modes are picked at random when the room is created. Nobody sees them, you
+        included, until each round starts.
+      </p>
     {:else}
       <ul class="cards">
         {#each roundModes as mode (mode.id)}
@@ -335,9 +409,9 @@
       An NPC interrupts on average once every {EVENT_EVERY[frequency]} questions, on top of the
       round's.
     </p>
-    {#if rounds.length > 0}
+    {#if surprise || rounds.length > 0}
       <p class="count">
-        {eventCount} random event{eventCount === 1 ? '' : 's'} in this game
+        {surprise ? 'At least ' : ''}{eventCount} random event{eventCount === 1 ? '' : 's'} in this game
       </p>
     {/if}
     {#if tooManyOwn !== null}
@@ -372,8 +446,12 @@
         onchange={(value) => (standingsSeconds = value)}
       />
       <div>
-        <Segmented legend="Surprise rounds" options={OFF_ON} bind:value={hideRounds} />
-        <p class="note">Hide the game modes in the lobby from the players</p>
+        {#if surprise}
+          <p class="note">Surprise rounds are always on when the modes are a surprise.</p>
+        {:else}
+          <Segmented legend="Surprise rounds" options={OFF_ON} bind:value={hideRounds} />
+          <p class="note">Hide the game modes in the lobby from the players</p>
+        {/if}
       </div>
       <Segmented
         legend="Close when everyone has answered"
@@ -485,6 +563,7 @@
   }
 
   .rest .note,
+  .modes .note,
   .pace .note,
   .events .note,
   .events .count,

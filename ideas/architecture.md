@@ -208,6 +208,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:
 
+- `surprise_modes: N` draws N distinct offered round modes in `create`, each at its default
+  `questions`, and forces `hide_rounds`. A request with both it and `modes` is a 422.
 - One round per mode picked, of that mode's `questions`. Pools are keyed by mode, never by type, or
   modes sharing a type would draw each other's questions.
 - `mode_order: random` shuffles the rounds once, here. The stored order is the running order.
@@ -289,7 +291,8 @@ PlayerResult { value, correct, credit, points }
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
   `reveal_seconds` is the reveal's whole length, for the countdown bar; null outside a reveal.
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
-- `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` itself only when true.
+- `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` and
+  `surprise_modes` themselves only when set.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
   to its admins (section 10).
 - `band` is the speed bucket for SPEED, the step for STEP, null for RANK. `of` is every connected
@@ -307,6 +310,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
   `GET /api/rooms/public` is in section 10.
 - With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
   rounds `current_index` has reached. The lobby names none, admins' included: screens get shared.
+  With `surprise_modes`, admins get the same withheld list: the host did not pick them either.
 - An admin can read the room's custom questions before the game. They cannot score on them.
 - An invite-only room's key and join requests reach admins only. The key is a column, not a setting.
 
@@ -388,6 +392,7 @@ Settings (`rooms.settings`, fixed at creation):
   "close_when_all_answered": true,
   "name_wrong_answers": true,            // name who got it wrong under the reveal
   "hide_rounds": false,                  // surprise rounds, section 6
+  "surprise_modes": 0,                   // > 0: the server draws that many rounds, section 5
   "max_players": null                    // null: MAX_PLAYERS_PER_ROOM, stored at create
 }
 ```
