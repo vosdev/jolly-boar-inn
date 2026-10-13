@@ -65,7 +65,8 @@ _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "closest_number": lambda payload: payload["answer"],
     "free_text": lambda payload: payload["accepted"][0],
     "pick_all_that_apply": lambda payload: pick_all_that_apply.reveal(payload)["answer_indices"],
-    "ordering": lambda payload: ordering.reveal(payload)["answer"],
+    # With ``picks`` only the first places are played, and a longer answer is refused.
+    "ordering": lambda payload: ordering.reveal(payload)["answer"][: ordering.places(payload)],
 }
 
 _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
