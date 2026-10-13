@@ -69,7 +69,7 @@ describe('Credits', () => {
   it('thanks the OSRS Wiki and links it in a new tab', async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
     render(Credits, { navigate })
-    expect(screen.getByRole('heading', { name: 'Thank you, OSRS Wiki' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'The OSRS Wiki' })).toBeTruthy()
     const link = screen.getByRole('link', { name: 'oldschool.runescape.wiki' })
     expect(link.getAttribute('href')).toBe('https://oldschool.runescape.wiki')
     expect(link.getAttribute('target')).toBe('_blank')
