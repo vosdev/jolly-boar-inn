@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster fetch-assets logo loadtest image
+.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -104,6 +104,11 @@ edit-packs:
 	cp "$(FILE)" server/.edit-packs.json
 	$(DATA) scripts/edit_packs.py .edit-packs.json; status=$$?; \
 		rm -f server/.edit-packs.json; exit $$status
+
+# Rewrite every pack question id that no longer matches its content, after editing a pack by
+# hand, printing old -> new. Only those ids change. Packs that would still not load write nothing.
+rehash-questions:
+	$(DATA) scripts/rehash_questions.py
 
 # Apply an export of /admin's popular-item renames and removals to data/popular-items.json,
 # then review the diff and commit it. FILE may be anywhere, as for import-suggestions. One

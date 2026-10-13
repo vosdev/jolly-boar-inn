@@ -23,7 +23,7 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
-                                   edit-roster, fetch-assets, logo, image; CI: release
+                                   edit-roster, rehash-questions, fetch-assets, logo, image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/
 data/                              assets, pets, popular-items, player-names, room-words
@@ -36,8 +36,8 @@ server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normali
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
-                                   edit_roster, fetch_assets, build_logo, validate_packs, check_contrast,
-                                   smoke_ws, loadtest
+                                   edit_roster, rehash_questions, fetch_assets, build_logo,
+                                   validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
@@ -644,6 +644,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
   an id the packs no longer hold or in a generated pack, or packs that would not load, writes nothing.
+- `make rehash-questions` rewrites each pack id that no longer matches its content, nothing else.
+  Packs that would still not load write nothing.
 - `make edit-roster FILE=…` applies an export of roster changes: a rename keeps the item's place, a
   removal drops it. A change to an id the roster lacks, or packs that would not load, writes nothing.
   The price pack keeps the old names until the next `gen-price-questions`.
