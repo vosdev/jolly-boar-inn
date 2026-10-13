@@ -375,6 +375,8 @@ export interface QuestionClosed {
   question_id: string
   reveal: Record<string, unknown>
   results: Record<string, PlayerResult>
+  /** Connected players who could have answered and did not. */
+  unanswered: string[]
   standings: Standing[]
   next_at: string | null
   /** How long this reveal holds, the reveal that ends at `next_at`. */

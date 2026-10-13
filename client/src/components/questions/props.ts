@@ -61,6 +61,8 @@ export interface TypeViewProps<Value = unknown> extends Drawn {
   canAnswer: boolean
   /** Our row out of `question_closed.results`; null while open, or if we sat it out. */
   result?: PlayerResult | null
+  /** Every row of `question_closed.results`, for how the room split; null while open. */
+  results?: Record<string, PlayerResult> | null
   /**
    * Send this answer. `Value` is the component's own answer type — an option index, a
    * string, a number — and defaults to `unknown` so the registry in `index.ts` can hold

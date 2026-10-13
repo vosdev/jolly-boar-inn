@@ -619,8 +619,9 @@ class Room:
         return answer_seconds(question.type, question.payload, self.settings.pace)
 
     def question_reveal_seconds(self, question: RoomQuestion) -> int:
-        """How long ``question``'s reveal holds: its type's time at the room's pace."""
-        return reveal_seconds(question.type, question.payload, self.settings.pace)
+        """How long ``question``'s reveal holds: its type's time at the room's pace, plus names."""
+        names = duration.NAMES_SECONDS if self.settings.name_wrong_answers else 0
+        return reveal_seconds(question.type, question.payload, self.settings.pace) + names
 
     def estimated_seconds(self) -> int:
         """How long the whole game takes at most (``rooms/duration.py``)."""
@@ -629,6 +630,7 @@ class Room:
             len(self.segments),
             self.settings.pace,
             self.settings.standings_seconds,
+            self.settings.name_wrong_answers,
         )
 
     @property
@@ -2364,6 +2366,11 @@ class RoomManager:
                     )
                     for pid, answer in question.answers.items()
                 },
+                unanswered=[
+                    pid
+                    for pid in room.sockets
+                    if question.can_answer(pid) and pid not in question.answers
+                ],
                 standings=room.standings(),
                 next_at=room.next_at,
                 reveal_seconds=room.reveal_seconds,

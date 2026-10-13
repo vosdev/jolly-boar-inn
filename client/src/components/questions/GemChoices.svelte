@@ -18,10 +18,13 @@
    * `full` holds the unticked ones once as many are ticked as the question takes. An
    * answer of several options reveals with all of them lit across the top at their usual
    * size, since several large ones would push the rest off a phone.
+   *
+   * Given `results` on the reveal, every option says how many picked it.
    */
   import type { Snippet } from 'svelte'
 
-  import GemButton, { GEMS, gemState } from './GemButton.svelte'
+  import type { PlayerResult } from '../../lib/protocol'
+  import GemButton, { GEMS, gemState, pickCounts } from './GemButton.svelte'
 
   let {
     options,
@@ -34,6 +37,7 @@
     ticked = null,
     full = false,
     compact = false,
+    results = null,
   }: {
     options: Option[]
     /** What we answered: empty until it is sent. */
@@ -50,6 +54,8 @@
     full?: boolean
     /** Gems drop to 44px, for a caller whose button would otherwise sit below the screen. */
     compact?: boolean
+    /** `question_closed.results`, for each option's count; null while open. */
+    results?: Record<string, PlayerResult> | null
   } = $props()
 
   // Six is the cap (section 2), and a pack that broke it must still draw something: a
@@ -64,6 +70,10 @@
     const rest = options.length - answer.size
     return rest === 4 ? 2 : Math.max(1, Math.min(rest, 3))
   })
+  const counts = $derived(
+    revealed && results !== null ? pickCounts(results, options.length) : null,
+  )
+  const answered = $derived(results === null ? 0 : Object.keys(results).length)
   const sizeAt = (index: number) =>
     !settled ? 'normal' : !answer.has(index) ? 'small' : answer.size > 1 ? 'normal' : 'large'
   const heldAt = (index: number) =>
@@ -80,6 +90,7 @@
       checked={ticked === null || picked.size > 0 || revealed || !canAnswer
         ? null
         : ticked.has(index)}
+      votes={counts === null ? null : { count: counts[index] ?? 0, of: answered }}
       disabled={heldAt(index)}
       onclick={() => onAnswer(index)}
     >

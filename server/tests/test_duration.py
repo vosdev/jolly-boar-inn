@@ -3,7 +3,13 @@
 from fastapi.testclient import TestClient
 
 from app.questions.packs import mode_questions
-from app.rooms.duration import SPLASH_SECONDS, game_seconds, question_seconds, typical_seconds
+from app.rooms.duration import (
+    NAMES_SECONDS,
+    SPLASH_SECONDS,
+    game_seconds,
+    question_seconds,
+    typical_seconds,
+)
 from tests.rooms_api import create, hello
 
 OPTIONS = {"options": ["a", "b", "c", "d"]}
@@ -26,6 +32,12 @@ def test_a_game_adds_a_splash_per_round_and_standings_between_rounds() -> None:
     assert game_seconds(questions[:1], 1, "run", 30) == 15 + SPLASH_SECONDS
 
 
+def test_naming_wrong_answers_adds_its_second_to_every_question() -> None:
+    questions = [("more_less", {})] * 3
+    named = game_seconds(questions, 1, "run", 10, names=True)
+    assert named == game_seconds(questions, 1, "run", 10) + 3 * NAMES_SECONDS
+
+
 def test_api_modes_gives_each_mode_its_pack_questions_typical_seconds(client: TestClient) -> None:
     packs = client.app.state.packs
     modes = {mode["id"]: mode["seconds"] for mode in client.get("/api/modes").json()}
@@ -41,6 +53,19 @@ def test_the_lobby_is_sent_the_estimate_of_the_questions_it_holds(client: TestCl
         modes=[{"mode": "more_less", "questions": 3}],
         pace="teleport",
         random_event_frequency="less",
+    )
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        room = hello(ws, admin["session"])["room"]
+    assert room["estimated_seconds"] == 3 * (8 + 4 + NAMES_SECONDS) + SPLASH_SECONDS
+
+
+def test_the_estimate_leaves_the_names_second_out_when_names_are_off(client: TestClient) -> None:
+    code, admin = create(
+        client,
+        modes=[{"mode": "more_less", "questions": 3}],
+        pace="teleport",
+        random_event_frequency="less",
+        name_wrong_answers=False,
     )
     with client.websocket_connect(f"/ws/{code}") as ws:
         room = hello(ws, admin["session"])["room"]

@@ -142,6 +142,7 @@ describe('applyServerMessage', () => {
     expect(errorText(get(lastError)!)).toBe("Hold on, answers aren't open yet.")
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q1',
       reveal: {},
       results: {},
@@ -158,6 +159,7 @@ describe('applyServerMessage', () => {
     applyServerMessage({ t: 'question_open', question: open('q1') })
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q1',
       reveal: {},
       results: {},

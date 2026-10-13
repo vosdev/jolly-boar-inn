@@ -45,6 +45,7 @@
     reveal = null,
     yourValue,
     result = null,
+    results = null,
     onAnswer,
     live = false,
     nextAt = null,
@@ -57,6 +58,8 @@
     reveal?: Record<string, unknown> | null
     yourValue: unknown
     result?: PlayerResult | null
+    /** `question_closed.results`, every player's row; null while open. */
+    results?: Record<string, PlayerResult> | null
     onAnswer: (value: unknown) => void
     /** The question arrived in `question_open`, not a `welcome`: a random event's entrance plays. */
     live?: boolean
@@ -161,7 +164,17 @@
 {/snippet}
 
 {#if question.random_event}
-  <RandomEvent {question} {reveal} {yourValue} {result} {onAnswer} {live} {nextAt} below={waiting}>
+  <RandomEvent
+    {question}
+    {reveal}
+    {yourValue}
+    {result}
+    {results}
+    {onAnswer}
+    {live}
+    {nextAt}
+    below={waiting}
+  >
     {@render children?.()}
   </RandomEvent>
 {:else}
@@ -170,6 +183,7 @@
     {reveal}
     {yourValue}
     {result}
+    {results}
     {onAnswer}
     held={hasHold ? held : undefined}
     shown={typist.shown}

@@ -71,11 +71,15 @@ learns the position, which is worth more than variety.
   moves the answer, so hue is never the only signal. The correct button goes large
   across the top; the others go small beneath it, in position order. In the DOM they stay one to
   six, so a screen reader reads them in order. While a pick waits, nothing moves.
-- Your own pick carries a small "you", right or wrong, the only thing ever added to a button. The
-  verdict is the points slot (§10), not the button.
-- Under every reveal: "3 of 5 got it right", then a line per partial-credit band (90%, 80%, 70%)
-  that has someone in it. With `name_wrong_answers` on, the names of everyone under 70% follow. A
-  player who did not answer is not wrong.
+- Your own pick carries a small "you", right or wrong. The verdict is the points slot (§10), not
+  the button. The reveal adds one more thing: how many picked it, in the corner, with a bar along
+  the bottom for its share of who answered. It names nobody, so it shows whatever the setting.
+- Under every reveal: "22 of 41 got it right", then under "Got it wrong" a line per group,
+  `label (count): names`. A group is the option (with its gem's chip), the typed answer (three,
+  then "Something else"), the list entry, the closest-number rank ("Further off" last, every name
+  with its guess, furthest first), right picks, or entries in place. Eight names a line, you
+  first, then "and N more". "No answer" comes last, muted: it is not wrong. With
+  `name_wrong_answers` off the lines keep their counts and drop the names.
 - Six gems means no question offers more than six options.
 - `pick_all_that_apply` ticks rather than picks: a box in each gem's top right corner, as on a
   Create round, and nothing fades until Submit sends the ticks. Every right gem goes across the top

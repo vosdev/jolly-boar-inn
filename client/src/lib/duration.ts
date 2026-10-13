@@ -8,6 +8,8 @@
 
 /** `rooms/duration.py`'s `SPLASH_SECONDS`: a splash has no clock until the room is ready. */
 export const SPLASH_SECONDS = 15
+/** `rooms/duration.py`'s `NAMES_SECONDS`: every reveal that names who got it wrong. */
+export const NAMES_SECONDS = 1
 
 export interface PlannedRound {
   questions: number
@@ -15,16 +17,21 @@ export interface PlannedRound {
   seconds: number
 }
 
-/** The rounds, the events on top of them, a splash per round and standings between rounds. */
+/**
+ * The rounds, the events on top of them, a splash per round and standings between rounds,
+ * and with `names` a longer reveal for every question.
+ */
 export function plannedSeconds(
   rounds: readonly PlannedRound[],
   events: number,
   eventSeconds: number,
   standings: number,
+  names = false,
 ): number {
   const played = rounds.reduce((total, round) => total + round.questions * round.seconds, 0)
   const breaks = SPLASH_SECONDS * rounds.length + standings * Math.max(0, rounds.length - 1)
-  return played + events * eventSeconds + breaks
+  const questions = rounds.reduce((total, round) => total + round.questions, 0) + events
+  return played + events * eventSeconds + breaks + (names ? NAMES_SECONDS * questions : 0)
 }
 
 /** `~12 min`, never under one. */

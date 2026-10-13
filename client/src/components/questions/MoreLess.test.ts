@@ -93,4 +93,16 @@ describe('more_less’s question', () => {
     render(Question, { question: open({ view }), yourValue: null, onAnswer: () => {} })
     expect(asked()).toBe('Which costs more?')
   })
+
+  it('says on each button how many picked it, through the question, on the reveal', () => {
+    const picked = (value: number) => ({ value, correct: value === 0, credit: 0, points: 0 })
+    const { container } = render(Question, {
+      question: open(),
+      reveal: { ...VIEW, answer_index: 0 },
+      results: { a: picked(0), b: picked(1), c: picked(1) },
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect([...container.querySelectorAll('.votes')].map((v) => v.textContent)).toEqual(['1', '2'])
+  })
 })

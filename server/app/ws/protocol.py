@@ -373,6 +373,9 @@ class QuestionClosed(_Message):
     question_id: str
     reveal: dict[str, Any]
     results: dict[UUID, PlayerResult]
+    # Connected players who could have answered and did not, for the reveal's "No answer".
+    # Only the server knows who could: the author of a room question is excluded.
+    unanswered: list[UUID]
     standings: list[Standing]
     next_at: datetime | None
     # How long this reveal holds, even for the last question, whose ``next_at`` is null.

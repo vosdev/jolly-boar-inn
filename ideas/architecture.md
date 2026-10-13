@@ -114,6 +114,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
   4 + 1, `ordering` 10 + 5/entry and 4 + 2/entry, `price_is_right` 6 + 1/option and 6,
   `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8.
+  `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
 - A game's minutes (`rooms/duration.py`) are a ceiling: every question's full answer and reveal,
   15 s per splash, standings between rounds. Create multiplies each round by its mode's `seconds`
   from `/api/modes`, its pool's mean per pace; a surprise counts the offered modes' average.
@@ -266,7 +267,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
-| `question_closed` | `question_id`, `reveal`, `results`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
+| `question_closed` | `question_id`, `reveal`, `results`, `unanswered`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings` | Final. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |

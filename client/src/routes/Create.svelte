@@ -181,6 +181,7 @@
         eventCount,
         typical.random_event ?? averageRound,
         standingsSeconds,
+        nameWrongAnswers,
       ),
     ),
   )

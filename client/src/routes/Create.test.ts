@@ -598,14 +598,20 @@ describe('Create', () => {
     ])
     await loaded(...BOTH)
     await press(round('More or Less'), 'More questions', 5)
-    // 10 × 15 + 5 × 12, one event of 30, two splashes of 15 and 10 s of standings: 280 s.
+    // 10 × 15 + 5 × 12, one event of 30, two splashes of 15, 10 s of standings and a
+    // second for the names on each of the 16 reveals: 296 s.
     expect(status()).toBe('2 rounds · 16 questions · ~5 min')
     await rule('Pace')
     await fireEvent.click(screen.getByRole('radio', { name: 'Teleport' }))
-    // 10 × 11 + 5 × 9 + 20 + 30 + 10: 215 s.
+    // 10 × 11 + 5 × 9 + 20 + 30 + 10 + 16: 231 s.
     expect(status()).toBe('2 rounds · 16 questions · ~4 min')
     await rule('Fine print')
     await press(document.body, 'Fewer standings seconds', 2)
+    // 221 s.
+    expect(status()).toBe('2 rounds · 16 questions · ~4 min')
+    const names = screen.getByRole('group', { name: 'Name who got it wrong' })
+    await fireEvent.click(within(names).getByRole('radio', { name: 'Off' }))
+    // 205 s.
     expect(status()).toBe('2 rounds · 16 questions · ~3 min')
   })
 

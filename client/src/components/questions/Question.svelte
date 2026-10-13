@@ -48,6 +48,7 @@
     reveal = null,
     yourValue,
     result = null,
+    results = null,
     onAnswer,
     held = undefined,
     shown = undefined,
@@ -60,6 +61,8 @@
     reveal?: Record<string, unknown> | null
     yourValue: unknown
     result?: PlayerResult | null
+    /** `question_closed.results`, every player's row; null while open. */
+    results?: Record<string, PlayerResult> | null
     onAnswer: (value: unknown) => void
     /** The answers are not being taken yet; undefined for a question with no hold. */
     held?: boolean
@@ -125,6 +128,7 @@
       {yourValue}
       canAnswer={question.you_can_answer}
       {result}
+      {results}
       {onAnswer}
     />
     {#if !question.you_can_answer && !revealed}
