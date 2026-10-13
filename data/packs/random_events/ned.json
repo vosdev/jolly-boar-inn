@@ -1,0 +1,124 @@
+{
+  "pack": "random_events",
+  "random_event": "ned",
+  "questions": [
+    {
+      "id": "q_ae66765f60e039bc",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pandemonium",
+      "payload": {
+        "intro": "So you want to sail, do you? Talk to Will and Anne on the Port Sarim docks first.",
+        "prompt": "Which quest must you complete before you can train Sailing?",
+        "options": [
+          "Dragon Slayer I",
+          "Pandemonium",
+          "Pirate's Treasure",
+          "Rum Deal"
+        ],
+        "answer_index": 1,
+        "explanation": "Pandemonium, started on the Port Sarim docks, teaches you to sail and gives you your first boat, a raft."
+      }
+    },
+    {
+      "id": "q_0e0c518e71f999f1",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sailing",
+      "payload": {
+        "intro": "A raft's fine for a start, and a skiff's better. But a sloop! Now that's a ship.",
+        "prompt": "What Sailing level unlocks the sloop?",
+        "answer": 50,
+        "explanation": "The raft comes at level 1, the skiff at 15 and the sloop at 50. A sloop costs 200,000 coins."
+      }
+    },
+    {
+      "id": "q_34270b47c5753cb8",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ocean",
+      "payload": {
+        "intro": "I've sailed more seas than I can count. But how many oceans are there?",
+        "prompt": "How many oceans are Gielinor's seas divided into?",
+        "answer": 9,
+        "explanation": "Gielinor has nine oceans, from the Ardent Ocean where most sailors start to the Untamed and the Forgotten."
+      }
+    },
+    {
+      "id": "q_49a7861db73c7327",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing",
+        "pets"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Soup",
+      "payload": {
+        "intro": "Some sailors get a little friend who follows them about the deck. Funny name for it, too.",
+        "prompt": "What is the Sailing skilling pet called?",
+        "accepted": [
+          "Soup"
+        ],
+        "explanation": "Soup is the Sailing pet. Deep sea trawling can also earn you the heron, Fishing's pet."
+      }
+    },
+    {
+      "id": "q_c7a31e8850c930a9",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Lady_Lumbridge",
+      "payload": {
+        "intro": "I took you to Crandor once, remember? Lovely ship. Shame about the dragon.",
+        "prompt": "Which ship did I captain to Crandor?",
+        "options": [
+          "Lady of the Waves",
+          "Lady Lumbridge",
+          "Lady Falador",
+          "Lady Sarim"
+        ],
+        "answer_index": 1,
+        "explanation": "In Dragon Slayer I, Ned sails you to Crandor on the Lady Lumbridge, which is wrecked on its shore."
+      }
+    },
+    {
+      "id": "q_62ed13bf312df864",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "sailing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Barracuda_Trials",
+      "payload": {
+        "intro": "The Barracudas race through all sorts of trials. Which one would they let you try first?",
+        "prompt": "Which Barracuda Trial unlocks first, at level 30?",
+        "options": [
+          "The Jubbly Jive",
+          "The Tempor Tantrum",
+          "The Gwenith Glide"
+        ],
+        "answer_index": 1,
+        "explanation": "The Tempor Tantrum opens at 30 Sailing, the Jubbly Jive at 55 and the Gwenith Glide at 72."
+      }
+    }
+  ]
+}

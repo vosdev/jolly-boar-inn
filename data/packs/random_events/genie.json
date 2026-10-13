@@ -1,0 +1,94 @@
+{
+  "pack": "random_events",
+  "random_event": "genie",
+  "questions": [
+    {
+      "id": "q_61dee6416feac612",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Experience",
+      "payload": {
+        "intro": "Your wish, master? Level 99! A fine wish. But how much experience must I grant?",
+        "prompt": "How much experience do you need for level 99?",
+        "answer": 13034431,
+        "unit": "xp",
+        "explanation": "Level 99 takes 13,034,431 experience in a skill."
+      }
+    },
+    {
+      "id": "q_dc1b68424b67a96f",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Experience",
+      "payload": {
+        "intro": "A secret of the lamps, master: halfway to 99 is not where you think.",
+        "prompt": "Which level is about halfway to 99 in experience?",
+        "answer": 92,
+        "explanation": "Level 92 takes 6,517,253 experience, almost exactly half of 99's 13,034,431."
+      }
+    },
+    {
+      "id": "q_4e1f5a6c146e0c6b",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Genie",
+      "payload": {
+        "intro": "Rub my lamp, master, choose a skill, and I shall grant you experience. But how much?",
+        "prompt": "How much experience does a Genie's lamp give?",
+        "options": [
+          "5 × your level in that skill",
+          "500",
+          "10 × your level in that skill",
+          "1,000"
+        ],
+        "answer_index": 2,
+        "explanation": "The Genie's lamp gives 10 times your level in the skill you choose: 300 experience at level 30."
+      }
+    },
+    {
+      "id": "q_b28159f9510f8c56",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Total_level",
+      "payload": {
+        "intro": "Should you wish for every skill at 99, master, what would your total level be?",
+        "prompt": "What is the highest total level?",
+        "answer": 2376,
+        "explanation": "With Sailing, 24 skills at 99 make a total level of 2,376."
+      }
+    },
+    {
+      "id": "q_e3c4104e24e3e105",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "skills"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Experience",
+      "payload": {
+        "intro": "Even my magic has a limit, master. A skill can hold only so much experience.",
+        "prompt": "What is the most experience one skill can hold?",
+        "answer": 200000000,
+        "unit": "xp",
+        "explanation": "Experience is capped at 200 million in each skill. You can keep training, but nothing more is counted."
+      }
+    }
+  ]
+}

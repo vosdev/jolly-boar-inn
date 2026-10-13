@@ -1,0 +1,104 @@
+{
+  "pack": "random_events",
+  "random_event": "wise_old_man",
+  "questions": [
+    {
+      "id": "q_5570132804d8c619",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Champions'_Guild",
+      "payload": {
+        "intro": "The Champions' Guild was a fine place in my day. They still keep the riff-raff out.",
+        "prompt": "How many quest points do you need to enter the Champions' Guild?",
+        "answer": 32,
+        "unit": "quest points",
+        "explanation": "The Champions' Guild south of Varrock needs 32 quest points. Dragon Slayer I starts there."
+      }
+    },
+    {
+      "id": "q_f41807f8d817b684",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Elvarg",
+      "payload": {
+        "intro": "I have slain my share of dragons, but an adventurer always remembers the first.",
+        "prompt": "Which dragon do you slay in Dragon Slayer I?",
+        "accepted": [
+          "Elvarg"
+        ],
+        "explanation": "Elvarg lives on Crandor. Ned sails you there on the Lady Lumbridge."
+      }
+    },
+    {
+      "id": "q_3f5978528417cacc",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fifth_Age",
+      "payload": {
+        "intro": "I have lived through a great many years of this age. Do you know how many?",
+        "prompt": "In which year of the Fifth Age is the game set?",
+        "answer": 169,
+        "explanation": "The present is year 169 of the Fifth Age, the Age of Man."
+      }
+    },
+    {
+      "id": "q_00e9fc2b77ce7010",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Edicts_of_Guthix",
+      "payload": {
+        "intro": "The gods once walked Gielinor and nearly tore it apart. Then one of them made rules.",
+        "prompt": "Whose Edicts keep the gods from walking Gielinor?",
+        "options": [
+          "Saradomin",
+          "Guthix",
+          "Zamorak",
+          "Armadyl",
+          "Bandos",
+          "Zaros"
+        ],
+        "answer_index": 1,
+        "explanation": "Guthix laid down his Edicts after the God Wars, to keep the other gods out of Gielinor."
+      }
+    },
+    {
+      "id": "q_58e9bf11d2e72da5",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/God_Wars",
+      "payload": {
+        "intro": "The God Wars lasted four thousand years. I am old, but not that old.",
+        "prompt": "In which age were the God Wars fought?",
+        "options": [
+          "First Age",
+          "Second Age",
+          "Third Age",
+          "Fourth Age",
+          "Fifth Age"
+        ],
+        "answer_index": 2,
+        "explanation": "The God Wars spanned the whole Third Age, about 4,000 years, until Guthix woke and ended them."
+      }
+    }
+  ]
+}

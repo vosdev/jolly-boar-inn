@@ -166,6 +166,14 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
     wrong: "Hmph. Perhaps you'd prefer to walk.",
     asset: 'npc:fairy_queen',
   },
+  {
+    id: 'reldo',
+    name: 'Reldo',
+    theme: 'Names, spelling and history',
+    right: 'Quite correct! I shall note that in the margins.',
+    wrong: 'Hmm, no. Do try the library some time.',
+    asset: 'npc:reldo',
+  },
 ]
 
 /** The Mysterious Old Man's id: the face of an NPC this build has no entry or art for. */

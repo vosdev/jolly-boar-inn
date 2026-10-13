@@ -8,10 +8,8 @@ mid-task. ``rooms/selection.py`` places them and gives each a face from this tup
 Each NPC asks about one subject, and its questions are one file each:
 ``data/packs/random_events/<id>.json``, named after the id here. ``questions/packs.py``
 refuses a file named after anyone else, because a file nobody on the roster owns is a
-set of questions nobody can be drawn to ask. An NPC may be on the roster before its file
-exists: until then it only ever asks a host's own question, which carries no subject of
-its own. ``ideas/random-events.md`` is where the roster, the themes and the questions are
-written first.
+set of questions nobody can be drawn to ask, and the tests refuse an NPC without one.
+``ideas/random-events.md`` is how the themes and the questions are written.
 
 The ids are all the server knows. Who these NPCs are, what they open with and what they
 look like is copy, and copy lives on the client (``lib/randomEvents.ts``) exactly as a
@@ -41,4 +39,5 @@ RANDOM_EVENTS: tuple[str, ...] = (
     "jane",
     "baba_yaga",
     "fairy_queen",
+    "reldo",
 )

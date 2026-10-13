@@ -43,27 +43,8 @@ event is the place for the one fact nobody knew.
 - Keep to the NPC's theme. The joke is that they only care about their own subject.
 - Check every fact on the wiki. `make validate-packs` checks the shape, not the truth.
 
-The six finished files (`bob`, `death`, `dr_jekyll`, `jane`, `krystilia`,
-`lumbridge_cook`) are the examples to copy.
-
-## Owed
-
-These NPCs are on the roster with no questions yet, so they only ever ask a host's question.
-`AWAITING_QUESTIONS` in `server/tests/test_random_events.py` is the tracker: writing an
-NPC's file means taking it off that list. At least two questions each, around five as the
-target.
-
-| id | Theme |
-|---|---|
-| `sandwich_lady` | Cooking and food |
-| `survival_expert` | Woodcutting, Hunter and Firemaking |
-| `drunken_dwarf` | Ales, kebabs, dwarves and pubs |
-| `thurgo` | Mining and Smithing |
-| `genie` | Skills and experience |
-| `sergeant_damien` | Combat: gear, styles and bosses |
-| `wise_old_man` | Quests and lore |
-| `ned` | Sailing |
-| `baba_yaga` | Magic and Runecrafting |
+Every NPC on the roster has a file, and `server/tests/test_random_events.py` holds that:
+at least two questions each, around five as the target. Any of them is an example to copy.
 
 ## Other candidates
 
