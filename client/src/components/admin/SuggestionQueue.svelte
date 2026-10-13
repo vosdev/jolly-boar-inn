@@ -29,6 +29,7 @@
     choiceOf,
     examinePreview,
     exportName,
+    hostOf,
     modeName,
     questionPreview,
     summary,
@@ -230,7 +231,7 @@
               editing = null
             }}
           >
-            <img src={npcArt(choice?.host ?? 'innkeeper').url} alt="" />
+            <img src={npcArt(hostOf(row.kind, row.content)).url} alt="" />
             <span class="chip">{kindLine(row)}</span>
             <span class="text">{summary(row)}</span>
             {#if !row.playable}<span class="chip warn">Waits for its round</span>{/if}

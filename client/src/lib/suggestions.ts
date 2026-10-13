@@ -191,6 +191,12 @@ export function choiceOf(kind: SuggestionKind, content: SuggestionContent): Choi
   return CHOICES.find((choice) => choice.id === id)
 }
 
+/** The NPC a stored suggestion shows: a random event's own, else its choice's host. */
+export function hostOf(kind: SuggestionKind, content: SuggestionContent): string {
+  const event = kind === 'question' ? (content as QuestionContent).random_event : undefined
+  return event ?? choiceOf(kind, content)?.host ?? 'innkeeper'
+}
+
 /** A mode's name as players would read it, built or not. */
 export function modeName(mode: string): string {
   return MODES[mode]?.label ?? UPCOMING_MODES.find((m) => m.id === mode)?.label ?? mode
