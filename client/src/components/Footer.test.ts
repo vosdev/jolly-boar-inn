@@ -22,4 +22,11 @@ describe("Footer", () => {
     const link = screen.getByRole("link", { name: "Source on GitHub" });
     expect(link.querySelector("svg")).not.toBeNull();
   });
+
+  it("links the credits page in a new tab", () => {
+    render(Footer);
+    const link = screen.getByRole("link", { name: "Credits" });
+    expect(link.getAttribute("href")).toBe("/credits");
+    expect(link.getAttribute("target")).toBe("_blank");
+  });
 });

@@ -391,7 +391,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 
 **Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
 never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
-it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA) and the version, linked to its release. The
+it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA), Credits and the version, linked to its release. `/credits` ranks the named question authors by count, ties sharing a rank, with a way to `/suggest`, and thanks the wiki. The
 AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
 the bar (§5). Every link opens a new tab, so a room is never
 left.

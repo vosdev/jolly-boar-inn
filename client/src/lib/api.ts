@@ -127,6 +127,17 @@ export function getVocab(name: string): Promise<Vocab> {
   return request<Vocab>(`/api/vocab/${encodeURIComponent(name)}`)
 }
 
+/** A player named on `/credits`, with how many pack questions carry their name. */
+export interface Author {
+  name: string
+  questions: number
+}
+
+/** `GET /api/credits`: only the authors who agreed to be named, most questions first. */
+export function getCredits(): Promise<{ authors: Author[] }> {
+  return request<{ authors: Author[] }>('/api/credits')
+}
+
 export interface Credentials {
   session: string
   player: PlayerView
