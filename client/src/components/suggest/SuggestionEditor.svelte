@@ -4,9 +4,9 @@
    * kind, the wiki page that proves it, and the credit.
    *
    * A question is Create's editor, held to the types its mode offers: an NPC's question
-   * names its NPC, a round's names none and is previewed in its round. An examine is
-   * previewed as Guess the Examine shows it, stem only: its name joins the list only once
-   * it is imported. An item is only a name, since the import script finds its id; nothing
+   * names its NPC, a round's names none and is previewed in its round. An examine is its
+   * line, its name and the wrong names shown beside it, previewed as Guess the Examine
+   * shows the line. An item is only a name, since the import script finds its id; nothing
    * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
    * up an item the game already has; its credit is kept but cannot be shown.
    *
@@ -21,6 +21,8 @@
   import { profile } from '../../lib/profile'
   import {
     creditProblem,
+    DECOYS_MAX,
+    DECOYS_MIN,
     examinePreview,
     examineProblems,
     INTRO_ROUNDS,
@@ -69,6 +71,8 @@
   let sourceUrl = $state(start?.source_url ?? '')
   let name = $state(start?.name ?? '')
   let prompt = $state(start?.prompt ?? '')
+  // Always every box there may be, so filling one never shifts the form under the cursor.
+  let decoys = $state(Array.from({ length: DECOYS_MAX }, (_, i) => start?.decoys?.[i] ?? ''))
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
   let rosterQuery = $state('')
@@ -118,7 +122,7 @@
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
   const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
-  const examineErrors = $derived(examineProblems({ name, prompt, wiki }))
+  const examineErrors = $derived(examineProblems({ name, decoys, prompt, wiki }))
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
 
@@ -141,7 +145,12 @@
   function saveExamine(): void {
     attempted = true
     if (creditError !== null || Object.values(examineErrors).some((e) => e !== null)) return
-    const content: ExamineContent = { name: name.trim(), prompt: prompt.trim(), wiki: wiki.trim() }
+    const content: ExamineContent = {
+      name: name.trim(),
+      decoys: decoys.map((decoy) => decoy.trim()).filter((decoy) => decoy !== ''),
+      prompt: prompt.trim(),
+      wiki: wiki.trim(),
+    }
     send(content)
   }
 
@@ -273,11 +282,24 @@
           <div class="field">
             <label for="{id}-name">What it belongs to</label>
             <input id="{id}-name" type="text" bind:value={name} />
-            <p class="note hint">
-              The name players pick from the list. Something not in the list yet joins it.
-            </p>
+            <p class="note hint">The right answer, as the wiki names it.</p>
             {@render problem(examineErrors.name, attempted)}
           </div>
+          <fieldset class="decoys">
+            <legend>Wrong answers</legend>
+            <p class="note hint">
+              {DECOYS_MIN} to {DECOYS_MAX} names a player could mistake it for. They are shown as buttons beside the
+              right one.
+            </p>
+            {#each decoys as _, i (i)}
+              <input
+                type="text"
+                aria-label="Wrong answer {i + 1}{i < DECOYS_MIN ? '' : ' (optional)'}"
+                bind:value={decoys[i]}
+              />
+            {/each}
+            {@render problem(examineErrors.decoys, attempted)}
+          </fieldset>
           {@render wikiField(attempted)}
         {:else}
           <p class="note">
@@ -379,6 +401,26 @@
     border-radius: min(var(--radius), 8px);
     padding: 0.75rem 1rem 0.5rem;
     margin: 0 0 1rem;
+  }
+
+  .decoys {
+    display: grid;
+    gap: 0.4rem;
+    border: 0;
+    padding: 0;
+    margin: 0 0 1rem;
+  }
+
+  /* Reads as one of the form's labels, not as a heading over them. */
+  .decoys legend {
+    padding: 0;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .decoys .hint {
+    margin: 0;
   }
 
   .credit legend {

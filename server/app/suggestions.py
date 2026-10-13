@@ -6,7 +6,8 @@ A player who has finished a game may suggest one of three kinds of content:
   mode it is for and where it was checked: the wiki page, an https ``source_url`` for what
   the wiki cannot prove, or both. A round not built yet takes them too, so its pack is
   ready when it opens; such a suggestion waits in the queue until it is.
-- ``examine``: a line for Guess the Examine, the name it belongs to and its wiki page.
+- ``examine``: a line for Guess the Examine, the name it belongs to, three to five wrong
+  names to show beside it, and its wiki page.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
 
@@ -61,13 +62,14 @@ QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
 INTRO_MODES = frozenset({"random_event"})
 
 EXAMINE_MODE = "guess_examine"
-EXAMINE_VOCAB = "examines"
+# With the right name, four to six buttons: fewer is a guess, and six is one per gem.
+DECOYS_MIN, DECOYS_MAX = 3, 5
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
 
 _QUESTION_KEYS = {"type", "payload", "mode"}
 _QUESTION_OPTIONAL = frozenset({"random_event", "wiki", "source_url"})
-_EXAMINE_KEYS = {"name", "prompt", "wiki"}
+_EXAMINE_KEYS = {"name", "decoys", "prompt", "wiki"}
 _ITEM_KEYS = {"name"}
 
 
@@ -99,19 +101,18 @@ def question_envelope(content: dict[str, Any]) -> dict[str, Any]:
     return {"id": schema.content_id(envelope), **envelope}
 
 
-def examine_envelope(content: dict[str, Any], answer_id: int) -> dict[str, Any]:
-    """An examine suggestion as a Guess the Examine question answered by ``answer_id``."""
+def examine_envelope(content: dict[str, Any]) -> dict[str, Any]:
+    """An examine suggestion as a Guess the Examine question, the right name first."""
     envelope = {
-        "type": "pick_from_list",
+        "type": "multiple_choice",
         "mode": EXAMINE_MODE,
         "source": "pack",
         "tags": ["examine"],
         "wiki": content["wiki"],
         "payload": {
             "prompt": content["prompt"],
-            "vocab": EXAMINE_VOCAB,
-            "answer_id": answer_id,
-            "subject": {"name": content["name"]},
+            "options": [content["name"], *content["decoys"]],
+            "answer_index": 0,
         },
     }
     return {"id": schema.content_id(envelope), **envelope}
@@ -162,10 +163,15 @@ def _examine_errors(content: dict[str, Any]) -> list[str]:
     found = _keys(content, _EXAMINE_KEYS)
     if found:
         return found
-    if not all(isinstance(content[key], str) for key in _EXAMINE_KEYS):
+    decoys = content["decoys"]
+    if not all(isinstance(content[key], str) for key in _EXAMINE_KEYS - {"decoys"}):
         return ["$: name, prompt and wiki are text"]
-    # Any id does for the shape: the import script picks the real one.
-    return schema.schema_errors(examine_envelope(content, 0))
+    if not isinstance(decoys, list) or not all(isinstance(decoy, str) for decoy in decoys):
+        return ["$.decoys: a list of names"]
+    if not DECOYS_MIN <= len(decoys) <= DECOYS_MAX:
+        return [f"$.decoys: {DECOYS_MIN} to {DECOYS_MAX} wrong names"]
+    envelope = examine_envelope(content)
+    return schema.schema_errors(envelope) or schema.consistency_errors(envelope)
 
 
 def _item_errors(content: dict[str, Any]) -> list[str]:
@@ -197,7 +203,8 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
     if kind == "item":
         return {"name": content["name"].strip()}
     if kind == "examine":
-        return {key: content[key].strip() for key in ("name", "prompt", "wiki")}
+        tidied = {key: content[key].strip() for key in ("name", "prompt", "wiki")}
+        return tidied | {"decoys": [decoy.strip() for decoy in content["decoys"]]}
     return content
 
 

@@ -473,7 +473,7 @@ describe('a room that is gone', () => {
 })
 
 describe('the list a question is answered from', () => {
-  const EXAMINE = { prompt: 'A very powerful onyx amulet.', vocab: 'examines' }
+  const EXAMINE = { prompt: 'A very powerful onyx amulet.', vocab: 'items' }
   let fetched: string[]
 
   beforeEach(() => {
@@ -484,7 +484,7 @@ describe('the list a question is answered from', () => {
       'fetch',
       vi.fn(async (url: string) => {
         fetched.push(url)
-        return new Response(JSON.stringify({ vocab: 'examines', version: 'v1', entries: [] }))
+        return new Response(JSON.stringify({ vocab: 'items', version: 'v1', entries: [] }))
       }),
     )
   })
@@ -514,7 +514,7 @@ describe('the list a question is answered from', () => {
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: opened({}) })
     await tick()
-    expect(fetched).toEqual(['/api/vocab/examines'])
+    expect(fetched).toEqual(['/api/vocab/items'])
   })
 
   it('is fetched while an NPC holds the floor, before the answers are up', async () => {
@@ -529,7 +529,7 @@ describe('the list a question is answered from', () => {
     applyServerMessage({ ...welcome(roomView({ phase: 'open', next_at: null })), question: event })
     await screen.findByRole('heading', { name: 'Evil Bob' })
     expect(screen.queryByRole('combobox')).toBeNull()
-    expect(fetched).toEqual(['/api/vocab/examines'])
+    expect(fetched).toEqual(['/api/vocab/items'])
   })
 
   it('is not fetched for a question answered any other way', async () => {

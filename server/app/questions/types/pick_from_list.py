@@ -2,16 +2,15 @@
 
 Payload shape (schema ``$defs/pick_from_list``)::
 
-    {"intro"?: str, "prompt": str, "vocab": "items" | "npcs" | "examines", "answer_id": int,
+    {"intro"?: str, "prompt": str, "vocab": "items" | "npcs", "answer_id": int,
      "subject"?: {"name", "asset"?}, "image"?: asset, "steps"?: 1..12, "explanation"?: str}
 
-Three modes answer this way -- Guess the Examine now, Who's That NPC? and Pixel Hunt in
-the Images milestone -- and all three are questions you can only answer by knowing, not by
-ruling out three buttons. The player searches the vocabulary and submits an entry's id; what they
-typed to find it never leaves the client. That is the whole design: an id is either the
-answer or it is not, so there is no normalisation, no alias list and no Levenshtein
-threshold to argue about at the reveal. ``free_text`` keeps those for the host's own
-questions, where no list could hold the answer.
+Who's That NPC? and Pixel Hunt in the Images milestone will answer this way: questions you
+can only answer by knowing, not by ruling out a few buttons. The player searches the
+vocabulary and submits an entry's id; what they typed to find it never leaves the client.
+That is the whole design: an id is either the answer or it is not, so there is no
+normalisation, no alias list and no Levenshtein threshold to argue about at the reveal.
+``free_text`` keeps those for the host's own questions, where no list could hold the answer.
 
 ``check`` holds a payload to the vocabulary it names: the ``answer_id`` must be in it and
 ``subject.name`` must be that entry's name. ``validate_packs.py`` runs it, so a roster

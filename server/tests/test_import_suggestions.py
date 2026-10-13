@@ -31,6 +31,7 @@ QUESTION = {
 }
 NEW_EXAMINE = {
     "name": "Cabbage",
+    "decoys": ["Onion", "Potato", "Cabbage seed"],
     "prompt": "Yuck, I don't like cabbage.",
     "wiki": "https://oldschool.runescape.wiki/w/Cabbage",
     "credit": "AFKFisher",
@@ -76,15 +77,6 @@ def snapshot(repo: dict[str, Path]) -> dict[str, str]:
 
 def examines(repo: dict[str, Path]) -> list[dict[str, Any]]:
     return json.loads((repo["packs"] / "examine.json").read_text())["questions"]
-
-
-def an_existing_examine(repo: dict[str, Path]) -> dict[str, Any]:
-    first = examines(repo)[0]
-    return {
-        **NEW_EXAMINE,
-        "name": first["payload"]["subject"]["name"].upper(),
-        "prompt": "A second line about the same thing.",
-    }
 
 
 def test_an_npc_question_lands_in_its_file_with_its_credit(repo: dict[str, Path]) -> None:
@@ -151,15 +143,28 @@ def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -
     assert loads(repo)
 
 
-def test_an_examine_gets_the_highest_id_plus_one(repo: dict[str, Path]) -> None:
-    highest = max(q["payload"]["answer_id"] for q in examines(repo))
-    assert run(repo, {"examines": [NEW_EXAMINE, an_existing_examine(repo)]}) == 0
-    *_, new, known = examines(repo)
-    assert new["payload"]["answer_id"] == highest + 1
-    assert new["payload"]["subject"] == {"name": "Cabbage"}
+def test_an_examine_becomes_a_choice_with_its_name_first(repo: dict[str, Path]) -> None:
+    assert run(repo, {"examines": [NEW_EXAMINE]}) == 0
+    *_, new = examines(repo)
+    assert (new["type"], new["mode"], new["tags"]) == (
+        "multiple_choice",
+        "guess_examine",
+        ["examine"],
+    )
+    assert new["payload"] == {
+        "prompt": "Yuck, I don't like cabbage.",
+        "options": ["Cabbage", "Onion", "Potato", "Cabbage seed"],
+        "answer_index": 0,
+    }
     assert new["credit"] == "AFKFisher" and "credit_shown" not in new
-    assert known["payload"]["answer_id"] == examines(repo)[0]["payload"]["answer_id"]
     assert loads(repo)
+
+
+def test_an_examine_line_already_asked_is_skipped(repo: dict[str, Path]) -> None:
+    before = snapshot(repo)
+    asked = examines(repo)[0]["payload"]["prompt"]
+    assert run(repo, {"examines": [{**NEW_EXAMINE, "prompt": asked.upper()}]}) == 0
+    assert snapshot(repo) == before
 
 
 def test_an_item_takes_its_id_from_the_wiki_in_name_order(repo: dict[str, Path]) -> None:
@@ -212,6 +217,17 @@ def test_one_invalid_entry_writes_nothing_and_names_it(
     assert snapshot(repo) == before
     err = capsys.readouterr().err
     assert named in err and "nothing written" in err
+
+
+def test_an_examine_without_wrong_names_writes_nothing(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An export from before examines had options still names its lines one way."""
+    before = snapshot(repo)
+    old = {k: v for k, v in NEW_EXAMINE.items() if k != "decoys"}
+    assert run(repo, {"examines": [old]}) == 1
+    assert snapshot(repo) == before
+    assert "examines[0] $.decoys: required" in capsys.readouterr().err
 
 
 def test_a_round_not_built_yet_is_refused(

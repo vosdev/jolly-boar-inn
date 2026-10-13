@@ -321,7 +321,7 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
         },
         {
             "id": "guess_examine",
-            "types": ["pick_from_list"],
+            "types": ["multiple_choice"],
             "questions": {"default": 5, "min": 1, "max": 30},
         },
         {

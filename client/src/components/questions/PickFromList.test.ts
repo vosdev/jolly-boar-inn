@@ -2,8 +2,7 @@
  * `pick_from_list` on screen: the strict combobox. Typed text with no
  * selection leaves Submit disabled; selecting enables it; editing the text after selecting
  * clears the selection; no match selects nothing and says so; the value sent is the entry's
- * id; and all of it works from the keyboard alone. Guess the Examine draws it under the
- * examine stem.
+ * id; and all of it works from the keyboard alone.
  */
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
@@ -11,10 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
 import { clearVocabCache } from '../../lib/vocab'
-import { viewFor } from './index'
 import Question from './Question.svelte'
-import ExamineStem from './stems/ExamineStem.svelte'
-import PickFromList from './types/PickFromList.svelte'
 
 const ENTRIES = [
   { id: 4151, name: 'Abyssal whip' },
@@ -79,13 +75,6 @@ const highlighted = (box: HTMLInputElement) =>
   document.getElementById(box.getAttribute('aria-activedescendant') ?? '')?.textContent?.trim()
 
 describe('pick_from_list', () => {
-  it('is drawn by the examine stem over the combobox for Guess the Examine', () => {
-    expect(viewFor('pick_from_list', 'guess_examine')).toEqual({
-      stem: ExamineStem,
-      view: PickFromList,
-    })
-  })
-
   it('shows the examine above the box, and nothing that names the answer', async () => {
     await mount()
     const examine = screen.getByText('A very powerful onyx amulet.')

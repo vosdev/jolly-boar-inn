@@ -49,43 +49,6 @@ def test_a_repeated_id_refuses_to_load() -> None:
         build("items", [*ROSTER, {"id": 4151, "name": "Whip"}], "roster")
 
 
-def _examine_pack(path: Path, answers: list[tuple[int, str]]) -> Path:
-    questions = [
-        {
-            "payload": {
-                "prompt": f"Line {i}.",
-                "vocab": "examines",
-                "answer_id": a,
-                "subject": {"name": n},
-            }
-        }
-        for i, (a, n) in enumerate(answers)
-    ]
-    path.write_text(json.dumps({"pack": "examine", "questions": questions}))
-    return path
-
-
-def test_a_pack_gives_one_entry_per_answer_named_by_its_subject(tmp_path: Path) -> None:
-    path = _examine_pack(tmp_path / "examine.json", [(7, "Miner"), (2, "Pet rock"), (7, "Miner")])
-    read = vocab.read("examines", path)
-    assert [(e.id, e.name) for e in read.entries] == [(7, "Miner"), (2, "Pet rock")]
-
-
-def test_a_pack_with_one_answer_under_two_names_refuses_to_load(tmp_path: Path) -> None:
-    path = _examine_pack(tmp_path / "examine.json", [(7, "Miner"), (7, "Dwarf")])
-    with pytest.raises(VocabError) as info:
-        vocab.read("examines", path)
-    assert info.value.errors == [
-        "examine.json: questions[1] calls answer 7 'Dwarf', but another question calls it 'Miner'"
-    ]
-
-
-def test_a_pack_with_one_name_under_two_answers_refuses_to_load(tmp_path: Path) -> None:
-    path = _examine_pack(tmp_path / "examine.json", [(7, "Miner"), (8, "miner")])
-    with pytest.raises(VocabError, match="'miner' \\(8\\) and 'Miner' read as the same name"):
-        vocab.read("examines", path)
-
-
 @pytest.mark.parametrize(
     "records",
     [[], {"id": 1, "name": "x"}, [{"id": "1", "name": "x"}], [{"id": 1, "name": " "}]],
@@ -144,11 +107,12 @@ def test_api_vocab_items_serves_the_roster(client: TestClient) -> None:
     assert set(body["entries"][0]) == {"id", "name"}
 
 
-@pytest.mark.parametrize("name", ["npcs", "quests"])
+@pytest.mark.parametrize("name", ["npcs", "quests", "examines"])
 def test_api_vocab_is_a_404_for_a_list_this_build_does_not_have(
     client: TestClient, name: str
 ) -> None:
-    """``npcs`` until ``data/facts/npcs.json`` is written; anything else always."""
+    """``npcs`` until ``data/facts/npcs.json`` is written; anything else always, ``examines``
+    included now that Guess the Examine plays with buttons."""
     if name == "npcs" and vocab.get("npcs") is not None:
         pytest.skip("npcs.json exists now")
     response = client.get(f"/api/vocab/{name}")

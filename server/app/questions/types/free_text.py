@@ -6,7 +6,7 @@ Payload shape (schema ``$defs/free_text``)::
      "image"?: asset, "subject"?: {"name", "asset"?}, "explanation"?: str}
 
 No round of many answers plays this, and none should. Guess the Examine started here and
-left for ``pick_from_list`` once every item needed an alias list and every typo needed a
+left once every item needed an alias list and every typo needed a
 ruling (section 2). It stays for the host's own questions, whose answers -- a clan member's
 name, the boss somebody's pet came from -- are in no list the game could ship, and for
 hand-written questions with one answer each, the NPCs' and Bestiary's: whoever writes one

@@ -137,7 +137,7 @@ def main(argv: list[str]) -> int:
         print(f"FAILED: {args.file} is not an export: lists of edits and deletes", file=sys.stderr)
         return 1
     try:
-        with lists_of(args.packs_dir, args.roster):
+        with lists_of(args.roster):
             loaded = load_packs(args.packs_dir)
         roster = args.roster.read_text(encoding="utf-8")
     except (OSError, PackError, vocab.VocabError) as exc:
@@ -147,7 +147,7 @@ def main(argv: list[str]) -> int:
     files = {pack.path: json.loads(pack.path.read_text(encoding="utf-8")) for pack in loaded}
     npcs = {pack.path: pack.random_event for pack in loaded}
     original = {path: render_pack(file) for path, file in files.items()}
-    with lists_of(args.packs_dir, args.roster):
+    with lists_of(args.roster):
         refused = plan(data, files, npcs)
     if refused:
         for line in refused:

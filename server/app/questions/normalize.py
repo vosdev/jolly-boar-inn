@@ -1,9 +1,9 @@
 """Free-text answers: what two strings have to have in common to be the same answer.
 
 Only ``free_text`` uses this, and only for the host's own questions. Every pack mode that
-once wanted a text box -- Guess the Examine above all -- moved to a list the player picks
-from (``pick_from_list``), because an item id is right or it is not and a typed name has to
-be argued with. A host's question has no list: the answer is a clan member, a boss's kill
+once wanted a text box -- Guess the Examine above all -- moved to buttons or a list the
+player picks from, because a picked answer is right or it is not and a typed name has to be
+argued with. A host's question has no list: the answer is a clan member, a boss's kill
 count, the name of the pet somebody lost in the Wilderness. So it keeps the argument, and
 this module settles it the same way every time.
 
