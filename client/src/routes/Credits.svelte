@@ -68,11 +68,12 @@
 </section>
 
 <section class="panel">
-  <h2>Thank you, OSRS Wiki</h2>
+  <h2>The OSRS Wiki</h2>
   <p>
-    Nearly every question here was checked against the Old School RuneScape Wiki. The item IDs,
+    Pretty much every question here was checked against the Old School RuneScape Wiki. The item IDs,
     prices, examine texts, drop tables, transcripts and chatheads all come from years of work by
-    its volunteer editors. This game could not exist without them. Thank you.
+    its volunteer editors. This game could not exist without them.<br><br>
+    Thank you.
   </p>
   <p class="note">
     <a class="link" href={WIKI_URL} target="_blank" rel="noopener">oldschool.runescape.wiki</a> · CC BY-NC-SA
