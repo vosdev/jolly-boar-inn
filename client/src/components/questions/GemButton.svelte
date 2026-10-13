@@ -95,7 +95,10 @@
    * `checked` is for a question answered with several options: a box in the top right
    * corner, ticked or not, like a round's box on the create form. Ticking fades nothing,
    * so every option stays readable until the ticks are submitted. `place` puts a number in
-   * the same box instead, for a question answered by tapping its options in order.
+   * the same box instead, for a question answered by putting its options in order.
+   *
+   * `tag: 'div'` is a gem that is not pressed itself, for an ordering row, which is moved by
+   * a handle of its own: `end` puts it on the right, full height, and the box goes left.
    *
    * `votes` is the reveal's count of who picked it, with a bar along the bottom edge for
    * its share of who answered: how the room split, which nobody is named in, so it shows
@@ -116,8 +119,10 @@
     place,
     said,
     votes = null,
-    disabled,
+    tag = 'button',
+    disabled = false,
     onclick,
+    end,
     children,
   }: {
     /** Which gem; null for the plain panel button. */
@@ -137,8 +142,11 @@
     said?: string
     /** On a reveal: how many picked it, of how many answered; null for no count. */
     votes?: { count: number; of: number } | null
-    disabled: boolean
-    onclick: () => void
+    tag?: 'button' | 'div'
+    disabled?: boolean
+    onclick?: () => void
+    /** Something pressable of its own at the right edge; only on a `div`. */
+    end?: Snippet
     children: Snippet
   } = $props()
 
@@ -156,15 +164,7 @@
   )
 </script>
 
-<button
-  type="button"
-  class="gem {gem ?? 'plain'} {status} {size}"
-  class:ticks={checked !== null || place !== undefined}
-  class:counted={votes !== null}
-  aria-pressed={checked ?? (place === undefined ? yours : place !== null)}
-  {disabled}
-  {onclick}
->
+{#snippet inside()}
   <span class="content">{@render children()}</span>
   {#if checked !== null}
     <span class="tick" class:checked aria-hidden="true">{checked ? '✓' : ''}</span>
@@ -180,7 +180,32 @@
   {/if}
   {#if spoken !== ''}<span class="sr">{spoken}</span>{/if}
   {#if votes !== null}<span class="sr">, picked by {votes.count} of {votes.of}</span>{/if}
-</button>
+  {#if end !== undefined}<span class="end">{@render end()}</span>{/if}
+{/snippet}
+
+{#if tag === 'button'}
+  <button
+    type="button"
+    class="gem {gem ?? 'plain'} {status} {size}"
+    class:ticks={checked !== null || place !== undefined || end !== undefined}
+    class:ended={end !== undefined}
+    class:counted={votes !== null}
+    aria-pressed={checked ?? (place === undefined ? yours : place !== null)}
+    {disabled}
+    {onclick}
+  >
+    {@render inside()}
+  </button>
+{:else}
+  <div
+    class="gem {gem ?? 'plain'} {status} {size}"
+    class:ticks={checked !== null || place !== undefined || end !== undefined}
+    class:ended={end !== undefined}
+    class:counted={votes !== null}
+  >
+    {@render inside()}
+  </div>
+{/if}
 
 <style>
   .gem {
@@ -200,6 +225,8 @@
     background: var(--fill);
     color: var(--mark);
     border: var(--border-width) solid color-mix(in srgb, var(--fill) 55%, var(--mark));
+    /* A button has it from app.css; a div gem does not. */
+    border-radius: min(var(--radius), 8px);
     font-weight: 600;
     text-align: center;
     transition: background-color 200ms ease-out;
@@ -246,7 +273,7 @@
     font-size: 0.8rem;
   }
 
-  .gem:hover:not(:disabled) {
+  button.gem:hover:not(:disabled) {
     border-color: var(--mark);
   }
 
@@ -300,6 +327,19 @@
     border-radius: 4px;
     font-size: 1rem;
     line-height: 1;
+  }
+
+  .ended .tick {
+    right: auto;
+    left: 0.4rem;
+  }
+
+  .end {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
   }
 
   .tick.checked {

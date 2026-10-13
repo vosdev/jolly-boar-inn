@@ -129,6 +129,7 @@
       canAnswer={question.you_can_answer}
       {result}
       {results}
+      {timing}
       {onAnswer}
     />
     {#if !question.you_can_answer && !revealed}
