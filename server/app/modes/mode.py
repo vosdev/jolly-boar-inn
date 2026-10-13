@@ -34,6 +34,9 @@ class Mode:
     ``None`` means "whatever the types say", which is what ``questions_bounds`` falls back
     to; a round whose types disagree must state it, which ``modes.problems`` checks. How
     long a question lasts is never the round's: its type says (``types/timing.py``).
+
+    ``options`` bounds how many options its ``multiple_choice`` questions offer, when the
+    schema's two to six would make the round a guess.
     """
 
     id: str
@@ -42,6 +45,7 @@ class Mode:
     questions: Bounds | None = None
     pool: str | None = None
     setting: str | None = None
+    options: tuple[int, int] | None = None
 
     def __post_init__(self) -> None:
         # A bare string would be read as a set of its letters.

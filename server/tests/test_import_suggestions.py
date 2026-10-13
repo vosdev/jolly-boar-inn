@@ -32,9 +32,13 @@ QUESTION = {
     "credit_shown": True,
 }
 NEW_EXAMINE = {
-    "name": "Cabbage",
-    "decoys": ["Onion", "Potato", "Cabbage seed"],
-    "prompt": "Yuck, I don't like cabbage.",
+    "type": "multiple_choice",
+    "payload": {
+        "prompt": "Yuck, I don't like cabbage.",
+        "options": ["Onion", "Potato", "Cabbage", "Cabbage seed"],
+        "answer_index": 2,
+    },
+    "mode": "guess_examine",
     "wiki": "https://oldschool.runescape.wiki/w/Cabbage",
     "credit": "AFKFisher",
     "credit_shown": False,
@@ -188,8 +192,8 @@ def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -
     assert loads(repo)
 
 
-def test_an_examine_becomes_a_choice_with_its_name_first(repo: dict[str, Path]) -> None:
-    assert run(repo, {"examines": [NEW_EXAMINE]}) == 0
+def test_an_examine_keeps_its_name_first_and_the_packs_tag(repo: dict[str, Path]) -> None:
+    assert run(repo, {"questions": [NEW_EXAMINE]}) == 0
     *_, new = examines(repo)
     assert (new["type"], new["mode"], new["tags"]) == (
         "multiple_choice",
@@ -208,7 +212,8 @@ def test_an_examine_becomes_a_choice_with_its_name_first(repo: dict[str, Path]) 
 def test_an_examine_line_already_asked_is_skipped(repo: dict[str, Path]) -> None:
     before = snapshot(repo)
     asked = examines(repo)[0]["payload"]["prompt"]
-    assert run(repo, {"examines": [{**NEW_EXAMINE, "prompt": asked.upper()}]}) == 0
+    payload = {**NEW_EXAMINE["payload"], "prompt": asked.upper()}
+    assert run(repo, {"questions": [{**NEW_EXAMINE, "payload": payload}]}) == 0
     assert snapshot(repo) == before
 
 
@@ -225,8 +230,7 @@ def test_importing_the_same_file_twice_changes_nothing_the_second_time(
     repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
 ) -> None:
     export = {
-        "questions": [QUESTION],
-        "examines": [NEW_EXAMINE],
+        "questions": [QUESTION, NEW_EXAMINE],
         "items": [{"name": "Amulet of glory", "credit": "Woox", "credit_shown": True}],
     }
     assert run(repo, export) == 0
@@ -257,22 +261,32 @@ def test_one_invalid_entry_writes_nothing_and_names_it(
     repo: dict[str, Path], capsys: pytest.CaptureFixture[str], bad: dict[str, Any], named: str
 ) -> None:
     before = snapshot(repo)
-    export = {"questions": [QUESTION, bad], "examines": [NEW_EXAMINE]}
+    export = {"questions": [QUESTION, bad, NEW_EXAMINE]}
     assert run(repo, export) == 1
     assert snapshot(repo) == before
     err = capsys.readouterr().err
     assert named in err and "nothing written" in err
 
 
-def test_an_examine_without_wrong_names_writes_nothing(
+def test_an_examine_of_three_names_writes_nothing(
     repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """An export from before examines had options still names its lines one way."""
     before = snapshot(repo)
-    old = {k: v for k, v in NEW_EXAMINE.items() if k != "decoys"}
-    assert run(repo, {"examines": [old]}) == 1
+    payload = {**NEW_EXAMINE["payload"], "options": ["Onion", "Potato", "Cabbage"]}
+    assert run(repo, {"questions": [{**NEW_EXAMINE, "payload": payload}]}) == 1
     assert snapshot(repo) == before
-    assert "examines[0] $.decoys: required" in capsys.readouterr().err
+    assert (
+        "questions[0] $.payload.options: 'guess_examine' offers 4 to 6" in capsys.readouterr().err
+    )
+
+
+def test_an_export_from_before_examines_were_questions_writes_nothing(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    before = snapshot(repo)
+    assert run(repo, {"examines": []}) == 1
+    assert snapshot(repo) == before
+    assert "is not an export" in capsys.readouterr().err
 
 
 def test_a_round_not_built_yet_is_refused(
@@ -309,7 +323,7 @@ def test_an_item_the_wiki_cannot_pin_down_writes_nothing(
 ) -> None:
     before = snapshot(repo)
     export = {
-        "examines": [NEW_EXAMINE],
+        "questions": [NEW_EXAMINE],
         "items": [{"name": name, "credit": "Woox", "credit_shown": True}],
     }
     assert run(repo, export) == 1

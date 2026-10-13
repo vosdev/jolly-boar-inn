@@ -77,8 +77,8 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 **mode** is a round: what the host picks, what a splash introduces, what a pack pools by. Five
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
-`Mode(id, types, is_round=True, questions=None, pool=None, setting=None)` in `modes/`,
-registered in `MODES` in the create form's order.
+`Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None)` in
+`modes/`, registered in `MODES` in the create form's order.
 
 - `id` is `questions.mode` and the settings key. It is never renamed once shipped.
 - A round may mix types. The game loop reads only `question.type`, which also times the question. A
@@ -88,7 +88,8 @@ registered in `MODES` in the create form's order.
 - Copy (label, hint, blurb, host lines) lives on the client in `lib/modes.ts`.
 - `pool` names the mode whose pack questions a round draws, restamped with its own id. `setting` names
   the `Settings` flag that offers the mode; off, `/api/modes` omits it and `POST /api/rooms` is a 403
-  `mode_not_offered`. A stored room keeps playing it.
+  `mode_not_offered`. A stored room keeps playing it. `options` holds a round's `multiple_choice`
+  questions to fewer options than the schema's two to six; `mode_errors` refuses the rest.
 
 Each module in `questions/types/` exports:
 
@@ -601,7 +602,7 @@ key into them, so cleanup leaves it.
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus `mode` and a `wiki` or `source_url`, or both (a `quote` only
-  for the two quote rounds, an `intro` only for an NPC's), an `examine` (line, name, three to five wrong names, wiki) or an `item`
+  for the two quote rounds, an `intro` only for an NPC's; Guess the Examine's needs a `wiki`) or an `item`
   (a name not on the roster), with a `credit` held to the name rules and `credit_shown`, never
   true for an item. Pending, approved, rejected or imported. A round not built yet takes
   questions; they wait in approved. The client offers the form after a finished game; 10 an hour
@@ -640,7 +641,7 @@ Packs are committed, so a clone plays without a network; only prices are generat
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
   they hold, keeping `credit`. A question's options are stored in their seeded order (the form
-  puts the right one first). An examine's name is its first option; an item's id
+  puts the right one first), but an examine's right name goes first and its line is asked once; an item's id
   comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
   that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question

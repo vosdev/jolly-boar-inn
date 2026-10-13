@@ -8,7 +8,6 @@ import {
   answerOf,
   choiceOf,
   creditProblem,
-  examineProblems,
   exportName,
   hostOf,
   itemProblem,
@@ -54,11 +53,11 @@ describe('where a question was checked', () => {
 })
 
 describe('the choices', () => {
-  it('are an examine, an item, an NPC question, the four-button rounds and Sort It Out', () => {
+  it('are an item, an NPC question, the four-button rounds and Sort It Out', () => {
     expect(CHOICES.map((choice) => choice.id)).toEqual([
-      'examine',
       'item',
       'random_event',
+      'guess_examine',
       'bestiary',
       'drop_table',
       'odd_one_out',
@@ -68,6 +67,11 @@ describe('the choices', () => {
       'release_order',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
+    const examine = CHOICES.find((c) => c.id === 'guess_examine')
+    expect([examine?.kind, examine?.types, examine?.options]).toEqual(['question', ['multiple_choice'], [4, 6]])
+    expect(examine?.host).toBe('examiner')
+    expect(CHOICES.filter((c) => c.wikiOnly).map((c) => c.id)).toEqual(['guess_examine'])
+    expect(CHOICES.filter((c) => c.options !== undefined).map((c) => c.id)).toEqual(['guess_examine'])
     expect(CHOICES.find((c) => c.id === 'bestiary')?.types).toEqual([
       'multiple_choice',
       'free_text',
@@ -129,33 +133,6 @@ describe('the checks', () => {
     expect(creditProblem('AFK Fisher')).toBeNull()
   })
 
-  it('want an examine line, its name, its wrong names and its page', () => {
-    expect(examineProblems({ name: '', decoys: ['', '', '', '', ''], prompt: '', wiki: '' })).toEqual({
-      name: expect.stringMatching(/Required/),
-      decoys: expect.stringMatching(/Required: at least 3/),
-      prompt: expect.stringMatching(/Required/),
-      wiki: expect.stringMatching(/Required/),
-    })
-    const good = {
-      name: 'Cabbage',
-      decoys: ['Onion', 'Potato', 'Leek', '', ''],
-      prompt: 'Yuck.',
-      wiki: 'https://oldschool.runescape.wiki/w/Cabbage',
-    }
-    expect(examineProblems(good)).toEqual({ name: null, decoys: null, prompt: null, wiki: null })
-    expect(examineProblems({ ...good, prompt: 'x'.repeat(301) }).prompt).toMatch(/At most 300/)
-  })
-
-  it('want three to five wrong names, none the same as another or the right one', () => {
-    const good = { name: 'Cabbage', prompt: 'Yuck.', wiki: 'https://oldschool.runescape.wiki/w/Cabbage' }
-    const decoysError = (decoys: string[]) => examineProblems({ ...good, decoys }).decoys
-    expect(decoysError(['Onion', ' ', 'Leek'])).toMatch(/at least 3/)
-    expect(decoysError(['Onion', 'Potato', 'Leek', 'Kale', 'Swede'])).toBeNull()
-    expect(decoysError(['Onion', 'Potato', ' cabbage '])).toMatch(/different/)
-    expect(decoysError(['Onion', 'Potato', 'onion'])).toMatch(/different/)
-    expect(decoysError(['Onion', 'Potato', 'x'.repeat(121)])).toMatch(/At most 120/)
-  })
-
   it('want an item name and no more', () => {
     expect(itemProblem({ name: ' ' })).toMatch(/Required/)
     expect(itemProblem({ name: 'x'.repeat(81) })).toMatch(/At most 80/)
@@ -170,8 +147,6 @@ describe('the queue', () => {
   it('says each kind in one line, with its answer', () => {
     expect(summary({ kind: 'question', content: QUESTION })).toBe('Which is not a Barrows brother?')
     expect(answerOf({ kind: 'question', content: QUESTION })).toBe('Hazelmere')
-    const examine = { name: 'Cabbage', prompt: 'Yuck.', wiki: '' }
-    expect(summary({ kind: 'examine', content: examine })).toBe('“Yuck.” · Cabbage')
     const typed = { ...QUESTION, type: 'free_text' as const, payload: { prompt: 'p', accepted: ['Jad', 'TzTok-Jad'] } }
     expect(answerOf({ kind: 'question', content: typed })).toBe('Jad / TzTok-Jad')
     const number = { ...QUESTION, type: 'closest_number' as const, payload: { prompt: 'p', answer: 99, unit: 'gp' } }

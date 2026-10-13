@@ -27,13 +27,11 @@
     STATUS_LABELS,
     answerOf,
     choiceOf,
-    examinePreview,
     exportName,
     hostOf,
     modeName,
     questionPreview,
     summary,
-    type ExamineContent,
     type ItemContent,
     type QueuedSuggestion,
     type QuestionContent,
@@ -47,7 +45,7 @@
   let { token, onrefused }: { token: string; onrefused: () => void } = $props()
 
   const STATUSES: SuggestionStatus[] = ['pending', 'approved', 'rejected', 'imported']
-  const KIND_LABELS = { question: 'Question', examine: 'Examine', item: 'Item' } as const
+  const KIND_LABELS = { question: 'Question', item: 'Item' } as const
 
   let status = $state<SuggestionStatus>('pending')
   let queue = $state<Queue | null>(null)
@@ -267,13 +265,6 @@
                         onAnswer={() => {}}
                       />
                     {/if}
-                  {:else if row.kind === 'examine'}
-                    {@const examine = row.content as ExamineContent}
-                    <QuestionStage
-                      question={examinePreview(examine.prompt, [examine.name, ...(examine.decoys ?? [])])}
-                      yourValue={null}
-                      onAnswer={() => {}}
-                    />
                   {:else}
                     <p class="item">{(row.content as ItemContent).name}</p>
                   {/if}

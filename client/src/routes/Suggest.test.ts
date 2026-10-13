@@ -44,7 +44,7 @@ describe('Suggest', () => {
   it('asks for a game first, and asks the server nothing', () => {
     render(Suggest, { navigate })
     expect(screen.getByText(/Play a game first/)).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /An examine line/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Guess the Examine/ })).toBeNull()
     expect(api.getSuggestionAllowance).not.toHaveBeenCalled()
   })
 
@@ -54,7 +54,7 @@ describe('Suggest', () => {
     vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 0, retry_at: retry })
     render(Suggest, { navigate })
     await screen.findByText(/Try again in 23 minutes/)
-    expect(screen.queryByRole('button', { name: /An examine line/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Guess the Examine/ })).toBeNull()
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
@@ -103,39 +103,48 @@ describe('Suggest', () => {
     expect(api.sendSuggestion).not.toHaveBeenCalled()
   })
 
-  it('previews an examine without the list to answer from', async () => {
+  it('writes an examine as a multiple-choice question of four to six names', async () => {
     played()
     render(Suggest, { navigate })
-    await fireEvent.click(await screen.findByRole('button', { name: /An examine line/ }))
-    await type(/The examine text/, 'Yuck, I don’t like cabbage.')
+    await fireEvent.click(await screen.findByRole('button', { name: /Guess the Examine/ }))
+    expect(screen.queryByRole('group', { name: 'How players answer' })).toBeNull()
+    expect(screen.queryByLabelText(/Another source/)).toBeNull()
+    expect(screen.getAllByRole('textbox', { name: /^Answer \d$/ })).toHaveLength(4)
+    const remove = screen.getAllByRole('button', { name: /^Remove answer/ }) as HTMLButtonElement[]
+    expect(remove.every((button) => button.disabled)).toBe(true)
+    const add = screen.getByRole('button', { name: 'Add an answer' }) as HTMLButtonElement
+    await fireEvent.click(add)
+    await fireEvent.click(add)
+    expect(screen.getAllByRole('textbox', { name: /^Answer \d$/ })).toHaveLength(6)
+    expect(add.disabled).toBe(true)
+    await fireEvent.click(screen.getByRole('button', { name: 'Remove answer 6' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Remove answer 5' }))
+
+    await type('Question', 'Yuck, I don’t like cabbage.')
+    for (const [index, name] of ['Onion', 'Cabbage', 'Potato', 'Leek'].entries()) {
+      await type(`Answer ${index + 1}`, name)
+    }
+    await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     const preview = screen.getByRole('region', { name: 'Preview' })
     expect(preview.textContent).toContain('Yuck, I don’t like cabbage.')
-    expect(preview.querySelector('[role="combobox"], input')).toBeNull()
-    expect(api.getVocab).not.toHaveBeenCalled()
-  })
-
-  it('sends an examine with three to five wrong names, blank boxes left out', async () => {
-    played()
-    render(Suggest, { navigate })
-    await fireEvent.click(await screen.findByRole('button', { name: /An examine line/ }))
-    await type(/The examine text/, 'Yuck, I don’t like cabbage.')
-    await type('What it belongs to', 'Cabbage')
-    await type('Wrong answer 1', ' Onion ')
-    await type('Wrong answer 2', 'Potato')
-    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Cabbage')
+    expect(within(preview).getAllByRole('button')).toHaveLength(4)
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
-    expect(screen.getByText('Required: at least 3 wrong names.')).toBeTruthy()
+    expect(screen.getByText('Required: the page you checked it on.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
-    await type('Wrong answer 4 (optional)', 'Leek')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Cabbage')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
-      kind: 'examine',
+      kind: 'question',
       content: {
-        name: 'Cabbage',
-        decoys: ['Onion', 'Potato', 'Leek'],
-        prompt: 'Yuck, I don’t like cabbage.',
+        type: 'multiple_choice',
+        payload: {
+          prompt: 'Yuck, I don’t like cabbage.',
+          options: ['Onion', 'Cabbage', 'Potato', 'Leek'],
+          answer_index: 1,
+        },
+        mode: 'guess_examine',
         wiki: 'https://oldschool.runescape.wiki/w/Cabbage',
       },
       credit: 'AFKFisher',

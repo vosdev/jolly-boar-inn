@@ -4,9 +4,8 @@
    * kind, the wiki page that proves it, and the credit.
    *
    * A question is Create's editor, held to the types its mode offers: an NPC's question
-   * names its NPC, a round's names none and is previewed in its round. An examine is its
-   * line, its name and the wrong names shown beside it, previewed as Guess the Examine
-   * shows the line. An item is only a name, since the import script finds its id; nothing
+   * names its NPC, a round's names none and is previewed in its round. A round may hold
+   * its options to a range, or its proof to a wiki page. An item is only a name, since the import script finds its id; nothing
    * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
    * up an item the game already has; its credit is kept but cannot be shown.
    *
@@ -21,17 +20,12 @@
   import { profile } from '../../lib/profile'
   import {
     creditProblem,
-    DECOYS_MAX,
-    DECOYS_MIN,
-    examinePreview,
-    examineProblems,
     INTRO_ROUNDS,
     itemProblem,
     sourceProblems,
     SUGGESTED_TYPE_LABELS,
     wikiProblem,
     type Choice,
-    type ExamineContent,
     type ItemContent,
     type QuestionContent,
     type SuggestedType,
@@ -41,7 +35,6 @@
   import { loadVocab, search, type VocabEntry } from '../../lib/vocab'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
-  import QuestionStage from '../QuestionStage.svelte'
 
   let {
     choice,
@@ -62,7 +55,7 @@
 
   // The form starts from what it was opened on and owns its fields from then on.
   // svelte-ignore state_referenced_locally
-  const start = initial?.content as Partial<QuestionContent & ExamineContent> | undefined
+  const start = initial?.content as Partial<QuestionContent & ItemContent> | undefined
   // svelte-ignore state_referenced_locally
   let credit = $state(initial?.credit ?? get(profile)?.name ?? '')
   // svelte-ignore state_referenced_locally
@@ -70,9 +63,6 @@
   let wiki = $state(start?.wiki ?? '')
   let sourceUrl = $state(start?.source_url ?? '')
   let name = $state(start?.name ?? '')
-  let prompt = $state(start?.prompt ?? '')
-  // Always every box there may be, so filling one never shifts the form under the cursor.
-  let decoys = $state(Array.from({ length: DECOYS_MAX }, (_, i) => start?.decoys?.[i] ?? ''))
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
   let rosterQuery = $state('')
@@ -134,7 +124,6 @@
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
   const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
-  const examineErrors = $derived(examineProblems({ name, decoys, prompt, wiki }))
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
 
@@ -145,25 +134,14 @@
   /** The fields beside a question: whether they pass, asked on the editor's Save. */
   function questionFieldsPass(): boolean {
     attempted = true
-    return creditError === null && Object.values(sourceErrors).every((error) => error === null)
+    const checked = choice.wikiOnly ? wikiError === null : Object.values(sourceErrors).every((e) => e === null)
+    return creditError === null && checked
   }
 
   function saveQuestion(built: CustomQuestion | OrderingQuestion): void {
     const links = { wiki: wiki.trim(), source_url: sourceUrl.trim() }
     const given = Object.fromEntries(Object.entries(links).filter(([, url]) => url !== ''))
     send({ ...built, mode: choice.id, ...given })
-  }
-
-  function saveExamine(): void {
-    attempted = true
-    if (creditError !== null || Object.values(examineErrors).some((e) => e !== null)) return
-    const content: ExamineContent = {
-      name: name.trim(),
-      decoys: decoys.map((decoy) => decoy.trim()).filter((decoy) => decoy !== ''),
-      prompt: prompt.trim(),
-      wiki: wiki.trim(),
-    }
-    send(content)
   }
 
   function saveItem(): void {
@@ -218,6 +196,15 @@
 {/snippet}
 
 {#snippet questionFields(show: boolean)}
+  {#if choice.wikiOnly}
+    {@render wikiField(show)}
+    {@render creditFields(show)}
+  {:else}
+    {@render sourceFields(show)}
+  {/if}
+{/snippet}
+
+{#snippet sourceFields(show: boolean)}
   <div class="field">
     <label for="{id}-wiki">Relevant Wiki page</label>
     <input
@@ -273,6 +260,7 @@
     mode={choice.id}
     quote={choice.quote ?? false}
     promptFixed={roundPrompt?.fixed ?? false}
+    optionRange={choice.options}
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
     {saveLabel}
@@ -286,35 +274,6 @@
     <div class="layout">
       <div class="fields">
         <h3 id="{id}-title">{choice.label}</h3>
-        {#if choice.kind === 'examine'}
-          <div class="field">
-            <label for="{id}-prompt">The examine text, as the game writes it</label>
-            <textarea id="{id}-prompt" rows="2" bind:value={prompt}></textarea>
-            {@render problem(examineErrors.prompt, attempted)}
-          </div>
-          <div class="field">
-            <label for="{id}-name">What it belongs to</label>
-            <input id="{id}-name" type="text" bind:value={name} />
-            <p class="note hint">The right answer, as the wiki names it.</p>
-            {@render problem(examineErrors.name, attempted)}
-          </div>
-          <fieldset class="decoys">
-            <legend>Wrong answers</legend>
-            <p class="note hint">
-              {DECOYS_MIN} to {DECOYS_MAX} names a player could mistake it for. They are shown as buttons beside the
-              right one.
-            </p>
-            {#each decoys as _, i (i)}
-              <input
-                type="text"
-                aria-label="Wrong answer {i + 1}{i < DECOYS_MIN ? '' : ' (optional)'}"
-                bind:value={decoys[i]}
-              />
-            {/each}
-            {@render problem(examineErrors.decoys, attempted)}
-          </fieldset>
-          {@render wikiField(attempted)}
-        {:else}
           <p class="note">
             An item players will recognise, for More or Less and The Price is Right. Untradeable
             items are welcome: those rounds use alch and shop prices too.
@@ -324,21 +283,9 @@
             <input id="{id}-item" type="text" bind:value={name} />
             {@render problem(itemError, attempted)}
           </div>
-        {/if}
         {@render creditFields(attempted)}
-        {@render buttons(choice.kind === 'examine' ? saveExamine : saveItem)}
+        {@render buttons(saveItem)}
       </div>
-      {#if choice.kind === 'examine'}
-        <section class="preview" aria-label="Preview">
-          <p class="note">What players will see</p>
-          <QuestionStage
-            question={examinePreview(prompt)}
-            yourValue={null}
-            onAnswer={() => {}}
-            stemOnly
-          />
-        </section>
-      {:else}
         <section class="roster" aria-labelledby="{id}-roster">
           <h4 id="{id}-roster">Already in the game</h4>
           <input
@@ -361,7 +308,6 @@
             </ul>
           {/if}
         </section>
-      {/if}
     </div>
   </div>
 {/if}
@@ -389,22 +335,6 @@
     margin: 0 0 0.75rem;
   }
 
-  textarea {
-    width: 100%;
-    font: inherit;
-    padding: calc(0.55rem - var(--border-give)) calc(0.7rem - var(--border-give));
-    color: var(--ink);
-    background: var(--panel);
-    border: var(--border-width) solid var(--line);
-    border-radius: min(var(--radius), 8px);
-    resize: vertical;
-  }
-
-  textarea:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
   .hint {
     margin: 0.3rem 0 0;
   }
@@ -416,26 +346,6 @@
     margin: 0 0 1rem;
   }
 
-  .decoys {
-    display: grid;
-    gap: 0.4rem;
-    border: 0;
-    padding: 0;
-    margin: 0 0 1rem;
-  }
-
-  /* Reads as one of the form's labels, not as a heading over them. */
-  .decoys legend {
-    padding: 0;
-    margin-bottom: 0.3rem;
-    font-size: 0.9rem;
-    color: var(--muted);
-  }
-
-  .decoys .hint {
-    margin: 0;
-  }
-
   .credit legend {
     padding: 0 0.3rem;
     font-size: 0.9rem;
@@ -444,14 +354,6 @@
 
   .actions {
     margin-top: 1rem;
-  }
-
-  .preview {
-    min-width: 0;
-  }
-
-  .preview > .note {
-    margin: 0 0 0.5rem;
   }
 
   .roster {

@@ -2,9 +2,8 @@
  * What a player may suggest for the packs, and how the operator's queue reads it back
  * (`server/app/suggestions.py`).
  *
- * Three kinds. A `question` is what Create's editor writes, for a mode, with the wiki
- * page that proves it. An `examine` is a line for Guess the Examine, the name it belongs
- * to and the wrong names shown beside it. An `item` is only a name not on the roster yet: the import script finds its
+ * Two kinds. A `question` is what Create's editor writes, for a mode, with the wiki
+ * page that proves it. An `item` is only a name not on the roster yet: the import script finds its
  * id. Every one carries a credit, a name held to a display name's rules, and whether
  * players may see it, which an item's never may: its rounds name no author.
  *
@@ -20,7 +19,7 @@ import { MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
 import type { OpenQuestion } from './protocol'
-import { codePoints, definition, envelopeProperty, limit } from './questionSchema'
+import { codePoints, envelopeProperty, limit } from './questionSchema'
 import { fold, type VocabEntry } from './vocab'
 
 /** How many finished games this browser needs before it is offered the form. */
@@ -30,7 +29,7 @@ export function maySuggest(): boolean {
   return pastGames().length >= SUGGEST_AFTER_GAMES
 }
 
-export type SuggestionKind = 'question' | 'examine' | 'item'
+export type SuggestionKind = 'question' | 'item'
 export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
 /** The types a suggestion may be: Create's three, and an ordering for the rounds that sort. */
@@ -55,19 +54,11 @@ export function questionPreview(content: QuestionContent): OpenQuestion {
   return previewOf(content as CustomQuestion, content.mode === 'random_event' ? undefined : content.mode)
 }
 
-export interface ExamineContent {
-  name: string
-  /** The wrong names shown beside it: `DECOYS_MIN` to `DECOYS_MAX`. */
-  decoys: string[]
-  prompt: string
-  wiki: string
-}
-
 export interface ItemContent {
   name: string
 }
 
-export type SuggestionContent = QuestionContent | ExamineContent | ItemContent
+export type SuggestionContent = QuestionContent | ItemContent
 
 export interface SuggestionBody {
   kind: SuggestionKind
@@ -88,7 +79,7 @@ export interface QueuedSuggestion extends SuggestionBody {
 
 /** One thing the form offers to write. */
 export interface Choice {
-  /** The mode a question is for, or the kind itself for an examine or an item. */
+  /** The mode a question is for, or the kind itself for an item. */
   id: string
   kind: SuggestionKind
   label: string
@@ -101,6 +92,10 @@ export interface Choice {
   quote?: boolean
   /** The question a new one starts with, and whether it may be changed. */
   prompt?: RoundPrompt
+  /** How many options a multiple-choice question offers, when the round says: `Mode.options` on the server. */
+  options?: readonly [number, number]
+  /** Whether only a wiki page proves it: `WIKI_MODES` on the server. */
+  wikiOnly?: boolean
 }
 
 export interface RoundPrompt {
@@ -117,6 +112,7 @@ const ROUND_PROMPTS: Record<string, RoundPrompt> = {
 
 /** Rounds that take four-button questions, built or not, with `ROUND_TYPES`: `QUESTION_MODES` on the server. */
 const CHOICE_ROUNDS = [
+  'guess_examine',
   'bestiary',
   'drop_table',
   'odd_one_out',
@@ -137,6 +133,12 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
   know_your_content_creator: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
 }
 
+/** Rounds that hold their options to a range: `Mode.options` on the server. */
+const ROUND_OPTIONS: Record<string, readonly [number, number]> = { guess_examine: [4, 6] }
+
+/** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
+const WIKI_ROUNDS = ['guess_examine']
+
 /** Rounds that show a quotation under the prompt. */
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
@@ -152,14 +154,6 @@ const ORDERING_HINTS: Record<string, string> = {
 }
 
 export const CHOICES: readonly Choice[] = [
-  {
-    id: 'examine',
-    kind: 'examine',
-    label: 'An examine line',
-    hint: 'For Guess the Examine.',
-    host: 'examiner',
-    types: [],
-  },
   {
     id: 'item',
     kind: 'item',
@@ -186,6 +180,8 @@ export const CHOICES: readonly Choice[] = [
       types: ROUND_TYPES[mode.id] ?? ['multiple_choice'],
       quote: QUOTE_ROUNDS.includes(mode.id),
       prompt: ROUND_PROMPTS[mode.id],
+      options: ROUND_OPTIONS[mode.id],
+      wikiOnly: WIKI_ROUNDS.includes(mode.id),
     }),
   ),
   ...ORDERING_ROUNDS.map(choiceRound).filter((mode) => mode !== undefined).map(
@@ -222,13 +218,8 @@ export function modeName(mode: string): string {
 const WIKI = envelopeProperty('wiki')
 const WIKI_MAX = limit(WIKI, 'maxLength') ?? 0
 const WIKI_PATTERN = new RegExp(String(WIKI.pattern))
-export const PROMPT_MAX = limit(definition('prompt'), 'maxLength') ?? 0
-export const SUBJECT_MAX = limit(definition('short_text'), 'maxLength') ?? 0
 /** `ITEM_NAME_MAX` on the server. */
 export const ITEM_NAME_MAX = 80
-/** `DECOYS_MIN` and `DECOYS_MAX` on the server: with the right name, four to six buttons. */
-export const DECOYS_MIN = 3
-export const DECOYS_MAX = 5
 
 export function wikiProblem(url: string): string | null {
   const trimmed = url.trim()
@@ -278,59 +269,11 @@ function textProblem(text: string, most: number, what: string): string | null {
   return null
 }
 
-/** Names compared the way the server's `multiple_choice.check` compares options. */
-function sameName(a: string, b: string): boolean {
-  const key = (name: string) => name.split(/\s+/u).filter(Boolean).join(' ').toLowerCase()
-  return key(a) === key(b)
-}
-
-function decoysProblem(name: string, decoys: readonly string[]): string | null {
-  const given = decoys.map((decoy) => decoy.trim()).filter((decoy) => decoy !== '')
-  if (given.length < DECOYS_MIN) return `Required: at least ${DECOYS_MIN} wrong names.`
-  if (given.some((decoy) => codePoints(decoy) > SUBJECT_MAX)) return `At most ${SUBJECT_MAX} characters each.`
-  const all = [name, ...given]
-  if (all.some((one, i) => all.slice(0, i).some((other) => sameName(one, other)))) {
-    return 'Every name must be different, the right one included.'
-  }
-  return null
-}
-
-/** Only the filled-in wrong-name boxes count; an empty one is a box left spare. */
-export function examineProblems(
-  content: ExamineContent,
-): Record<'name' | 'decoys' | 'prompt' | 'wiki', string | null> {
-  return {
-    prompt: textProblem(content.prompt, PROMPT_MAX, 'the examine text'),
-    name: textProblem(content.name, SUBJECT_MAX, 'what it belongs to'),
-    decoys: decoysProblem(content.name.trim(), content.decoys),
-    wiki: wikiProblem(content.wiki),
-  }
-}
-
 /** `roster` is the `items` list, so a name already in the game is refused before it is sent. */
 export function itemProblem(content: ItemContent, roster: readonly VocabEntry[] = []): string | null {
   const wanted = fold(content.name.trim())
   if (roster.some((entry) => fold(entry.name) === wanted)) return 'Already in the game.'
   return textProblem(content.name, ITEM_NAME_MAX, 'the item’s name')
-}
-
-/** An examine as the round would show it, for `QuestionStage` to draw, options in the order given. */
-export function examinePreview(prompt: string, options: readonly string[] = []): OpenQuestion {
-  const opened = new Date(0).toISOString()
-  return {
-    question_id: 'preview',
-    index: 0,
-    total: 1,
-    type: 'multiple_choice',
-    mode: 'guess_examine',
-    segment: { mode: 'guess_examine', index: 0, total: 1, start: 0, count: 1 },
-    view: { prompt: prompt.trim(), options: [...options] },
-    random_event: null,
-    opened_at: opened,
-    answerable_at: opened,
-    ends_at: new Date(8.64e15).toISOString(),
-    you_can_answer: true,
-  }
 }
 
 // --- the queue -------------------------------------------------------------------------
@@ -345,10 +288,6 @@ export const STATUS_LABELS: Record<SuggestionStatus, string> = {
 /** One line for the queue's list. */
 export function summary(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): string {
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
-  if (suggestion.kind === 'examine') {
-    const examine = suggestion.content as ExamineContent
-    return `“${examine.prompt}” · ${examine.name}`
-  }
   const prompt = (suggestion.content as QuestionContent).payload.prompt
   return typeof prompt === 'string' ? prompt : ''
 }
@@ -356,7 +295,6 @@ export function summary(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): s
 /** The right answer, as the reviewer checks it against the wiki. */
 export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): string {
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
-  if (suggestion.kind === 'examine') return (suggestion.content as ExamineContent).name
   const { type, payload } = suggestion.content as QuestionContent
   if (type === 'ordering') return answerLine(payload)
   if (type === 'multiple_choice') {

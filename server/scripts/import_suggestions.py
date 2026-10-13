@@ -1,17 +1,17 @@
 """Import an export from ``/admin``'s suggestion queue into the packs and the item roster.
 
-The file is ``{"questions": [...], "examines": [...], "items": [...]}``, as
+The file is ``{"questions": [...], "items": [...]}``, as
 ``POST /api/admin/suggestions/export`` writes it:
 
 - a question goes into the pack of its mode: an NPC's into ``random_events/<npc>.json``,
   any other into the pack already holding that mode, or a new ``<mode>.json``. Its options
-  are stored shuffled, since the form puts the right one first;
-- an examine becomes a Guess the Examine question, its name and wrong names as the options;
+  are stored shuffled, since the form puts the right one first, except a Guess the Examine
+  line's: that pack keeps the right name first;
 - an item joins ``data/popular-items.json`` under the id the wiki's item infobox gives its
   name, tradeable or not.
 
 Each keeps its ``credit``, and ``credit_shown`` when it is true. Anything a pack or the
-roster already holds is skipped: a question or examine by content id or by its examine
+roster already holds is skipped: a question by content id, an examine line also by its
 line, an item by name or id. So a file imported twice changes nothing the second time.
 
 Every entry is checked before anything is written, and the packs as they would be are
@@ -56,7 +56,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PACKS = REPO_ROOT / "data" / "packs"
 DEFAULT_ROSTER = REPO_ROOT / "data" / "popular-items.json"
 WIKI_API = "https://oldschool.runescape.wiki/api.php"
-SECTIONS = ("questions", "examines", "items")
+SECTIONS = ("questions", "items")
+# The rounds whose pack lists the right option first, and asks each line once.
+RIGHT_FIRST = frozenset({"guess_examine"})
 CREDIT_KEYS = {"credit", "credit_shown"}
 
 
@@ -135,6 +137,15 @@ def shuffled(question: dict[str, Any]) -> dict[str, Any]:
     return entry | {"id": schema.content_id(entry)}
 
 
+def right_first(question: dict[str, Any]) -> dict[str, Any]:
+    """A choice question with its right option moved first, the others in the order given."""
+    payload = question["payload"]
+    options, right = payload["options"], payload["answer_index"]
+    moved = [options[right], *options[:right], *options[right + 1 :]]
+    entry = {**question, "payload": {**payload, "options": moved, "answer_index": 0}}
+    return entry | {"id": schema.content_id(entry)}
+
+
 def placed(envelope: dict[str, Any], credit: dict[str, Any]) -> dict[str, Any]:
     """A pack entry in the packs' own key order, credit after the envelope fields."""
     entry = {k: v for k, v in envelope.items() if k not in ("payload", "random_event")}
@@ -158,44 +169,22 @@ def plan_questions(entries: list[Any], packs_dir: Path, ids: set[str], plan: Pla
             continue
         if credit is None:
             continue
-        envelope = shuffled(suggestions.question_envelope(content))
+        mode = content["mode"]
+        envelope = suggestions.question_envelope(content)
+        envelope = right_first(envelope) if mode in RIGHT_FIRST else shuffled(envelope)
         if envelope["id"] in ids:
             plan.skipped.append(f"{where}: {envelope['id']} is already in a pack")
             continue
-        ids.add(envelope["id"])
-        pack = pack_for(content["mode"], content.get("random_event"), packs_dir, plan)
-        pack["questions"].append(placed(envelope, credit))
-        plan.added.append(f"{where}: {envelope['id']} into {content['mode']}")
-
-
-def plan_examines(entries: list[Any], packs_dir: Path, ids: set[str], plan: Plan) -> None:
-    pack = pack_for(suggestions.EXAMINE_MODE, None, packs_dir, plan)
-    asked = [q for q in pack["questions"] if q["mode"] == suggestions.EXAMINE_MODE]
-    prompts = {fold(q["payload"]["prompt"]) for q in asked}
-    for index, entry in enumerate(entries):
-        where = f"examines[{index}]"
-        if not isinstance(entry, dict):
-            plan.refused.append(f"{where}: an entry is a JSON object")
-            continue
-        credit = credited(entry, where, plan)
-        content = {k: v for k, v in entry.items() if k not in CREDIT_KEYS}
-        found = suggestions.errors("examine", content)
-        if found:
-            plan.refused.extend(f"{where} {problem}" for problem in found)
-            continue
-        if credit is None:
-            continue
-        if fold(content["prompt"]) in prompts:
-            plan.skipped.append(f"{where}: {content['prompt']!r} is already asked")
-            continue
-        envelope = suggestions.examine_envelope(content)
-        if envelope["id"] in ids:
-            plan.skipped.append(f"{where}: {envelope['id']} is already in a pack")
+        pack = pack_for(mode, content.get("random_event"), packs_dir, plan)
+        prompt = fold(content["payload"]["prompt"])
+        if mode in RIGHT_FIRST and any(
+            q["mode"] == mode and fold(q["payload"]["prompt"]) == prompt for q in pack["questions"]
+        ):
+            plan.skipped.append(f"{where}: {content['payload']['prompt']!r} is already asked")
             continue
         ids.add(envelope["id"])
-        prompts.add(fold(content["prompt"]))
         pack["questions"].append(placed(envelope, credit))
-        plan.added.append(f"{where}: {envelope['id']} for {content['name']!r}")
+        plan.added.append(f"{where}: {envelope['id']} into {mode}")
 
 
 def bucket_query(name: str) -> str:
@@ -326,7 +315,6 @@ def main(argv: list[str]) -> int:
     roster_before = len(plan.items)
     try:
         plan_questions(data.get("questions", []), args.packs_dir, ids, plan)
-        plan_examines(data.get("examines", []), args.packs_dir, ids, plan)
         plan_items(data.get("items", []), lookup, plan)
     except (wiki.MissingUserAgent, OSError, ValueError) as exc:
         print(f"FAILED: {exc}", file=sys.stderr)
