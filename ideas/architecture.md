@@ -643,7 +643,7 @@ Packs are committed, so a clone plays without a network; only prices are generat
   that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
-  an id the packs no longer hold, or packs that would not load, writes nothing.
+  an id the packs no longer hold or in a generated pack, or packs that would not load, writes nothing.
 - `make edit-roster FILE=…` applies an export of roster changes: a rename keeps the item's place, a
   removal drops it. A change to an id the roster lacks, or packs that would not load, writes nothing.
   The price pack keeps the old names until the next `gen-price-questions`.

@@ -11,8 +11,9 @@ its id in the packs as they are:
 
 Every change is checked before anything is written, and the packs as they would be are
 loaded the way the app loads them. A change to an id the packs no longer hold, one id
-changed twice, a question the schema refuses, or packs that would not load write nothing
-and name the problem.
+changed twice, a change to a generated pack (one with ``generated_at``, which its generator
+rewrites), a question the schema refuses, or packs that would not load write nothing and
+name the problem.
 
 Usage (from ``server/``)::
 
@@ -76,6 +77,13 @@ def plan(
             return None
         if question_id in changed:
             refused.append(f"{label}: {question_id} is changed twice")
+            return None
+        path = where[question_id][0]
+        if "generated_at" in files[path]:
+            refused.append(
+                f"{label}: {question_id} is in {path.name}, which `make gen-price-questions`"
+                " rewrites: change the roster (`make edit-roster`) or the generator instead"
+            )
             return None
         changed.add(question_id)
         return where[question_id]
