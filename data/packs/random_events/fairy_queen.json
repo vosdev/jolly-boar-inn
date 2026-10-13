@@ -1,0 +1,186 @@
+{
+  "pack": "random_events",
+  "random_event": "fairy_queen",
+  "questions": [
+    {
+      "id": "q_ee9db8d3740e9c75",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_ring",
+      "payload": {
+        "intro": "I wove every one of my rings by hand, mortal. Surely you have counted them?",
+        "prompt": "How many teleportation rings make up the fairy ring network?",
+        "answer": 55,
+        "explanation": "The network has 55 rings spread across Gielinor and the other realms."
+      }
+    },
+    {
+      "id": "q_a0f8d77031185ed9",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_ring",
+      "payload": {
+        "intro": "My rings answer only to those who carry the proper wood. Show me you know it.",
+        "prompt": "Which of these staves let you use a fairy ring?",
+        "options": [
+          "Staff of air",
+          "Lunar staff",
+          "Ancient staff",
+          "Dramen staff",
+          "Mystic mud staff",
+          "Iban's staff"
+        ],
+        "answer_indices": [
+          1,
+          3
+        ],
+        "explanation": "A dramen staff or a lunar staff opens the rings. The elite Lumbridge & Draynor Diary drops the need for either."
+      }
+    },
+    {
+      "id": "q_b2d4be0473f1c37c",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_ring",
+      "payload": {
+        "intro": "A traveller dialled my rings and came back covered in fur. Where did they go?",
+        "prompt": "Where does fairy ring code CKS take you?",
+        "options": [
+          "Legends' Guild",
+          "Miscellania",
+          "Canifis",
+          "Wizards' Tower"
+        ],
+        "answer_index": 2,
+        "explanation": "CKS lands just west of Canifis, by the mushroom patch."
+      }
+    },
+    {
+      "id": "q_9493e4d24e2d8030",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings",
+        "construction"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_ring_(Construction)",
+      "payload": {
+        "intro": "You mortals now want my rings in your own gardens. How very bold.",
+        "prompt": "What Construction level do you need to build a fairy ring in your house?",
+        "answer": 85,
+        "explanation": "A fairy ring in the superior garden needs level 85 Construction, and dials as DIQ."
+      }
+    },
+    {
+      "id": "q_0a1839113cb7d645",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairy_ring",
+      "payload": {
+        "intro": "Turn the dials, mortal. I would hate for you to end up in the wrong place.",
+        "prompt": "Which three letters dial the fairy ring to Canifis, in order?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "C",
+            "rank": 1
+          },
+          {
+            "text": "K",
+            "rank": 2
+          },
+          {
+            "text": "S",
+            "rank": 3
+          },
+          {
+            "text": "D",
+            "rank": 4
+          },
+          {
+            "text": "L",
+            "rank": 4
+          },
+          {
+            "text": "R",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "picks": 3,
+        "explanation": "C, K, S takes you to Canifis. D, L and R are on the dials too, just not for Canifis."
+      }
+    },
+    {
+      "id": "q_6a630c131edbbdde",
+      "type": "ordering",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "fairy-rings",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Fairytale_II_-_Cure_a_Queen",
+      "payload": {
+        "intro": "While I was ill I hid where nobody could find me, unless they knew the way.",
+        "prompt": "In which order do you visit these fairy rings to reach the Fairy Queen's hideout?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "AIR",
+            "rank": 1
+          },
+          {
+            "text": "DLR",
+            "rank": 2
+          },
+          {
+            "text": "DJQ",
+            "rank": 3
+          },
+          {
+            "text": "AJS",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "AIR, DLR, DJQ and then AJS bring you to the Fairy Queen's hideout."
+      }
+    }
+  ]
+}

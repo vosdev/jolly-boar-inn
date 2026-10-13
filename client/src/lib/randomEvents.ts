@@ -158,6 +158,14 @@ export const RANDOM_EVENTS: readonly RandomEventNpc[] = [
     wrong: 'Tsk. Even my hut knew that one.',
     asset: 'npc:baba_yaga',
   },
+  {
+    id: 'fairy_queen',
+    name: 'Fairy Queen',
+    theme: 'Fairy rings and Zanaris',
+    right: 'Splendid! The rings will carry you home.',
+    wrong: "Hmph. Perhaps you'd prefer to walk.",
+    asset: 'npc:fairy_queen',
+  },
 ]
 
 /** The Mysterious Old Man's id: the face of an NPC this build has no entry or art for. */

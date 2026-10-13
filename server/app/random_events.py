@@ -40,4 +40,5 @@ RANDOM_EVENTS: tuple[str, ...] = (
     "death",
     "jane",
     "baba_yaga",
+    "fairy_queen",
 )
