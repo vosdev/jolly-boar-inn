@@ -339,7 +339,8 @@ answerable_at: the answers appear under the line and the timer bar starts
   screen reader reads it once, and a polite live region announces who interrupted.
 - In the reveal the NPC says its `right` or `wrong` line beside the points, and the `explanation`
   goes on the scroll, in two lines the sheet keeps from the start.
-- The return mirrors the entrance in the reveal's last 375 ms, off `next_at`; a skipped reveal hands
+- The return takes the reveal's last 900 ms, off `next_at`, one step at a time: the NPC fades out
+  (225 ms), the scroll slides back (375 ms), the host fades in (300 ms). A skipped reveal hands
   the stage back as §8.
 - A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
 - With reduced motion the NPC replaces the host in one frame and the text shows whole. The

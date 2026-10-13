@@ -230,7 +230,8 @@
     animation: guest-in 375ms ease-out 225ms both;
   }
 
-  /* The way back: the guest leaves where it stood, and the scroll slides home under it. */
+  /* The way back, a step at a time in `RETURN_*_MS` of `lib/interlude.ts`: the guest leaves
+     where it stood, then the scroll slides home, then the host walks back on. */
   .returning .guest {
     position: absolute;
     right: 0;
@@ -241,11 +242,11 @@
   }
 
   .returning .host {
-    animation: fade-in 300ms ease-out 75ms both;
+    animation: fade-in 300ms ease-out 600ms both;
   }
 
   .returning > :global(.scroll) {
-    animation: slide-right 375ms ease-out both;
+    animation: slide-right 375ms ease-out 225ms both;
   }
 
   /* A hand-over to somebody else: whoever stands leaves, and the next walks on once the

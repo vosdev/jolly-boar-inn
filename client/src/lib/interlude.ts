@@ -27,8 +27,14 @@ export const LETTERS_PER_SECOND = 50
 export const PAUSE_MIN_MS = 500
 export const PAUSE_MAX_MS = 1000
 export const READ_LETTERS_PER_SECOND = 25
-/** The return mirrors the entrance in the reveal's last 375 ms. */
-export const RETURN_MS = 375
+/**
+ * The return, in the reveal's last `RETURN_MS`, one step at a time so nothing moves under a
+ * fade: the NPC fades out, the scroll slides back, then the host fades in (`StageView`).
+ */
+export const RETURN_GUEST_OUT_MS = 225
+export const RETURN_MOVE_MS = 375
+export const RETURN_HOST_IN_MS = 300
+export const RETURN_MS = RETURN_GUEST_OUT_MS + RETURN_MOVE_MS + RETURN_HOST_IN_MS
 
 /** When one line types, and for how long. */
 export interface Typing {
