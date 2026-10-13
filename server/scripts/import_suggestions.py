@@ -5,8 +5,7 @@ The file is ``{"questions": [...], "examines": [...], "items": [...]}``, as
 
 - a question goes into the pack of its mode: an NPC's into ``random_events/<npc>.json``,
   any other into the pack already holding that mode, or a new ``<mode>.json``;
-- an examine becomes a Guess the Examine question. Its name keeps the answer id it already
-  has in the list; a new name gets the highest id plus one;
+- an examine becomes a Guess the Examine question, its name and wrong names as the options;
 - an item joins ``data/popular-items.json`` under the id the wiki's item infobox gives its
   name, tradeable or not.
 
@@ -150,16 +149,7 @@ def plan_questions(entries: list[Any], packs_dir: Path, ids: set[str], plan: Pla
 def plan_examines(entries: list[Any], packs_dir: Path, ids: set[str], plan: Plan) -> None:
     pack = pack_for(suggestions.EXAMINE_MODE, None, packs_dir, plan)
     asked = [q for q in pack["questions"] if q["mode"] == suggestions.EXAMINE_MODE]
-    # Folded name -> (answer id, the name as the list spells it).
-    answers = {
-        fold(q["payload"]["subject"]["name"]): (
-            q["payload"]["answer_id"],
-            q["payload"]["subject"]["name"],
-        )
-        for q in asked
-    }
     prompts = {fold(q["payload"]["prompt"]) for q in asked}
-    next_id = max((answer for answer, _ in answers.values()), default=0) + 1
     for index, entry in enumerate(entries):
         where = f"examines[{index}]"
         if not isinstance(entry, dict):
@@ -176,18 +166,14 @@ def plan_examines(entries: list[Any], packs_dir: Path, ids: set[str], plan: Plan
         if fold(content["prompt"]) in prompts:
             plan.skipped.append(f"{where}: {content['prompt']!r} is already asked")
             continue
-        key = fold(content["name"])
-        if key not in answers:
-            answers[key], next_id = (next_id, content["name"]), next_id + 1
-        answer, name = answers[key]
-        envelope = suggestions.examine_envelope({**content, "name": name}, answer)
+        envelope = suggestions.examine_envelope(content)
         if envelope["id"] in ids:
             plan.skipped.append(f"{where}: {envelope['id']} is already in a pack")
             continue
         ids.add(envelope["id"])
         prompts.add(fold(content["prompt"]))
         pack["questions"].append(placed(envelope, credit))
-        plan.added.append(f"{where}: {name!r} as answer {answer}")
+        plan.added.append(f"{where}: {envelope['id']} for {content['name']!r}")
 
 
 def bucket_query(name: str) -> str:
@@ -293,7 +279,7 @@ def main(argv: list[str]) -> int:
         )
         return 1
     try:
-        with lists_of(args.packs_dir, args.roster):
+        with lists_of(args.roster):
             loaded = load_packs(args.packs_dir)
         roster_text = args.roster.read_text(encoding="utf-8")
     except (OSError, PackError, vocab.VocabError) as exc:
@@ -356,14 +342,12 @@ def main(argv: list[str]) -> int:
 
 
 @contextmanager
-def lists_of(packs_dir: Path, roster: Path) -> Iterator[None]:
-    """Hold ``pick_from_list`` questions to the lists these packs and this roster make.
+def lists_of(roster: Path) -> Iterator[None]:
+    """Hold ``pick_from_list`` questions to the item list this roster makes.
 
-    The app reads the shipped files; an import checks the ones it is about to write, where a
-    new examine name is an entry only once its question is there.
+    The app reads the shipped roster; an import checks the one it is about to write.
     """
     shipped = dict(vocab.SOURCES)
-    vocab.SOURCES["examines"] = packs_dir / shipped["examines"].name
     vocab.SOURCES["items"] = roster
     vocab._load.cache_clear()
     try:
@@ -383,7 +367,7 @@ def check_packs(packs_dir: Path, changed: dict[Path, str], roster: str) -> list[
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(text, encoding="utf-8")
         (Path(scratch) / "roster.json").write_text(roster, encoding="utf-8")
-        with lists_of(copy, Path(scratch) / "roster.json"):
+        with lists_of(Path(scratch) / "roster.json"):
             try:
                 vocab.load_all()
                 load_packs(copy)

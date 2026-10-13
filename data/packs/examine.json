@@ -2,8 +2,8 @@
   "pack": "examine",
   "questions": [
     {
-      "id": "q_6b7230aaa9df1eae",
-      "type": "pick_from_list",
+      "id": "q_14e0d8a3e8097ae2",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -12,16 +12,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Pet_rock",
       "payload": {
         "prompt": "The lowest maintenance pet you will ever have.",
-        "vocab": "examines",
-        "answer_id": 1,
-        "subject": {
-          "name": "Pet rock"
-        }
+        "options": [
+          "Pet rock",
+          "Rock",
+          "Pet cat",
+          "Teddy",
+          "Rubber chicken",
+          "Toy kite"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_670b8ddf64b3c3e0",
-      "type": "pick_from_list",
+      "id": "q_42bc5c42bab9c57a",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -30,16 +34,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Repugnant_spectre",
       "payload": {
         "prompt": "I'd smell better after completing 3145 laps of an agility course dressed as a monkey.",
-        "vocab": "examines",
-        "answer_id": 2,
-        "subject": {
-          "name": "Repugnant spectre"
-        }
+        "options": [
+          "Repugnant spectre",
+          "Aberrant spectre",
+          "Deviant spectre",
+          "Zombie monkey",
+          "Bloodveld",
+          "Smoke devil"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_58c5738024937c23",
-      "type": "pick_from_list",
+      "id": "q_9dd8fc1c8f8badf3",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -48,16 +56,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Ectophial",
       "payload": {
         "prompt": "The ectophial.",
-        "vocab": "examines",
-        "answer_id": 3,
-        "subject": {
-          "name": "Ectophial"
-        }
+        "options": [
+          "Ectophial",
+          "Ectotoken",
+          "Bucket of slime",
+          "Ghostspeak amulet",
+          "Ectoplasmator",
+          "Teleport crystal"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_9e7f1edc222f1e76",
-      "type": "pick_from_list",
+      "id": "q_7fbd5f63a4fcc88e",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -66,16 +78,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Meat_pie#Half",
       "payload": {
         "prompt": "Half of it is suitable for vegetarians",
-        "vocab": "examines",
-        "answer_id": 4,
-        "subject": {
-          "name": "Half a meat pie"
-        }
+        "options": [
+          "Half a meat pie",
+          "Half a garden pie",
+          "Half a redberry pie",
+          "Meat pie",
+          "Half an apple pie",
+          "Half a fish pie"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_499e313fd7091fe1",
-      "type": "pick_from_list",
+      "id": "q_5263ed699525db8b",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -84,16 +100,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/The_Depths_of_Despair",
       "payload": {
         "prompt": "I don't understand, why didn't he return to Lumby?",
-        "vocab": "examines",
-        "answer_id": 5,
-        "subject": {
-          "name": "Dead skeleton"
-        }
+        "options": [
+          "Dead skeleton",
+          "Skeleton",
+          "Ghost",
+          "Zombie",
+          "Bones",
+          "Lumbridge Guide"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_9c006321f23e23fc",
-      "type": "pick_from_list",
+      "id": "q_13d1ef4bf8648570",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -102,16 +122,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Big_beer_barrel",
       "payload": {
         "prompt": "It's full of beer, a state to which many people aspire",
-        "vocab": "examines",
-        "answer_id": 6,
-        "subject": {
-          "name": "Big beer barrel"
-        }
+        "options": [
+          "Big beer barrel",
+          "Beer barrel",
+          "Keg of beer",
+          "Asgarnian ale",
+          "Dwarven stout",
+          "Bartender"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_4eaefc00e9604638",
-      "type": "pick_from_list",
+      "id": "q_099b01d62c77900a",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -120,16 +144,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Bear_droppings",
       "payload": {
         "prompt": "Well now you know.",
-        "vocab": "examines",
-        "answer_id": 7,
-        "subject": {
-          "name": "Bear droppings"
-        }
+        "options": [
+          "Bear droppings",
+          "Bear fur",
+          "Grizzly bear",
+          "Compost",
+          "Supercompost",
+          "Bucket of sand"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_90dd16f0e8b8c7af",
-      "type": "pick_from_list",
+      "id": "q_e699c1f20038400c",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -138,16 +166,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Ring_of_endurance",
       "payload": {
         "prompt": "I wonder if this ring helps with...",
-        "vocab": "examines",
-        "answer_id": 8,
-        "subject": {
-          "name": "Ring of endurance"
-        }
+        "options": [
+          "Ring of endurance",
+          "Ring of life",
+          "Ring of recoil",
+          "Ring of wealth",
+          "Ring of forging",
+          "Ring of the gods"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_a33aaa507beb19b4",
-      "type": "pick_from_list",
+      "id": "q_af6310f5f5217d65",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -156,16 +188,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Wilting_wheat",
       "payload": {
         "prompt": "Life is short and then we die.",
-        "vocab": "examines",
-        "answer_id": 9,
-        "subject": {
-          "name": "Wilting wheat"
-        }
+        "options": [
+          "Wilting wheat",
+          "Wheat",
+          "Dead tree",
+          "Grain",
+          "Dead flowers",
+          "Hay bales"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_c642f2efeaf7c03e",
-      "type": "pick_from_list",
+      "id": "q_b4eb5373eddf50e7",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -174,16 +210,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/An_ogre_standard",
       "payload": {
         "prompt": "Not very high.",
-        "vocab": "examines",
-        "answer_id": 10,
-        "subject": {
-          "name": "An ogre standard"
-        }
+        "options": [
+          "An ogre standard",
+          "Gnome child",
+          "Ogre chieftain",
+          "Banner",
+          "Ogre bow",
+          "Small table"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_ecdf5956348539be",
-      "type": "pick_from_list",
+      "id": "q_693ef4996f5e653a",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -192,16 +232,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Spider_eggs_(scenery)",
       "payload": {
         "prompt": "Future web developers.",
-        "vocab": "examines",
-        "answer_id": 11,
-        "subject": {
-          "name": "Spider eggs"
-        }
+        "options": [
+          "Spider eggs",
+          "Red spiders' eggs",
+          "Giant spider",
+          "Web",
+          "Spider carcass",
+          "Spider on stick"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_01e3cd82441d646d",
-      "type": "pick_from_list",
+      "id": "q_08715ea2f329c458",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -210,16 +254,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Rocky",
       "payload": {
         "prompt": "Raccoons, like pandas but worse.",
-        "vocab": "examines",
-        "answer_id": 12,
-        "subject": {
-          "name": "Rocky"
-        }
+        "options": [
+          "Rocky",
+          "Giant squirrel",
+          "Beaver",
+          "Baby chinchompa",
+          "Herbi",
+          "Tangleroot"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_1092e8acb20d6c4f",
-      "type": "pick_from_list",
+      "id": "q_4eeb3f02c0e377ac",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -228,16 +276,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Chicken",
       "payload": {
         "prompt": "Yep. Definitely a chicken.",
-        "vocab": "examines",
-        "answer_id": 13,
-        "subject": {
-          "name": "Chicken"
-        }
+        "options": [
+          "Chicken",
+          "Rooster",
+          "Undead chicken",
+          "Duck",
+          "Evil Chicken",
+          "Raw chicken"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_47f444cde1e15c8f",
-      "type": "pick_from_list",
+      "id": "q_0adee3729490d025",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -246,16 +298,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Marble_gargoyle",
       "payload": {
         "prompt": "Am I losing my marbles?",
-        "vocab": "examines",
-        "answer_id": 14,
-        "subject": {
-          "name": "Marble gargoyle"
-        }
+        "options": [
+          "Marble gargoyle",
+          "Gargoyle",
+          "Marble block",
+          "Statue",
+          "Dusk",
+          "Marble amulet"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_66094f7e95fe5f84",
-      "type": "pick_from_list",
+      "id": "q_ab7c1fad4f5bb5eb",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -264,16 +320,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Ancient_machinery_(Great_Kourend)",
       "payload": {
         "prompt": "Some form of ancient terraforming device. Oh deere it looks broken.",
-        "vocab": "examines",
-        "answer_id": 15,
-        "subject": {
-          "name": "Ancient machinery"
-        }
+        "options": [
+          "Ancient machinery",
+          "Water pump",
+          "Ancient forge",
+          "Golem",
+          "Broken cart",
+          "Strange machine"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_804df1ee4d6cd4a4",
-      "type": "pick_from_list",
+      "id": "q_b7c5ecd8ee81184e",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -282,16 +342,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Rock_lobster",
       "payload": {
         "prompt": "It wasn't a rock... it was a rock lobster!",
-        "vocab": "examines",
-        "answer_id": 16,
-        "subject": {
-          "name": "Rock lobster"
-        }
+        "options": [
+          "Rock lobster",
+          "Lobster",
+          "Rock crab",
+          "Raw lobster",
+          "Rock golem",
+          "Giant lobster"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_b17fb20ebdad05e2",
-      "type": "pick_from_list",
+      "id": "q_84caf4feb5910de8",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -300,16 +364,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Stray_dog",
       "payload": {
         "prompt": "Are those fleas all over it?",
-        "vocab": "examines",
-        "answer_id": 17,
-        "subject": {
-          "name": "Stray dog"
-        }
+        "options": [
+          "Stray dog",
+          "Guard dog",
+          "Jackal",
+          "Wild dog",
+          "Terrier",
+          "Giant rat"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_5d4a2f96100d887a",
-      "type": "pick_from_list",
+      "id": "q_6c1e1fe9b73b6183",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -318,16 +386,20 @@
       "wiki": "https://oldschool.runescape.wiki/w/Party_Pete",
       "payload": {
         "prompt": "He likes to paaaarty!",
-        "vocab": "examines",
-        "answer_id": 18,
-        "subject": {
-          "name": "Party Pete"
-        }
+        "options": [
+          "Party Pete",
+          "Bartender",
+          "Drunken man",
+          "Banker",
+          "Hans",
+          "Jester"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_4251eea90f996e4a",
-      "type": "pick_from_list",
+      "id": "q_8863e3c6574866f5",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -337,16 +409,20 @@
       "credit": "KingRoald",
       "payload": {
         "prompt": "pUre A cHaOs of crEatuRe!",
-        "vocab": "examines",
-        "answer_id": 19,
-        "subject": {
-          "name": "Chaos Elemental"
-        }
+        "options": [
+          "Chaos Elemental",
+          "Chaos Fanatic",
+          "Chaos druid",
+          "Chaos dwarf",
+          "Crazy archaeologist",
+          "Scorpia"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_049df268781fd4ef",
-      "type": "pick_from_list",
+      "id": "q_84d37beb9a1338f8",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -356,16 +432,20 @@
       "credit": "TwintigApril",
       "payload": {
         "prompt": "He could have been a great ballet dancer if they'd let him try.",
-        "vocab": "examines",
-        "answer_id": 20,
-        "subject": {
-          "name": "Miner"
-        }
+        "options": [
+          "Miner",
+          "Mining instructor",
+          "Dwarf",
+          "Prospector Percy",
+          "Gnome",
+          "Woodcutter"
+        ],
+        "answer_index": 0
       }
     },
     {
-      "id": "q_96a837aa520bb91d",
-      "type": "pick_from_list",
+      "id": "q_a2addfe12cc6e24b",
+      "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
       "tags": [
@@ -375,11 +455,15 @@
       "credit": "TwintigApril",
       "payload": {
         "prompt": "A Mort Myre mushroom-muncher.",
-        "vocab": "examines",
-        "answer_id": 21,
-        "subject": {
-          "name": "Broav"
-        }
+        "options": [
+          "Broav",
+          "Ghast",
+          "Swamp snake",
+          "Mort myre fungus",
+          "Giant frog",
+          "Werewolf"
+        ],
+        "answer_index": 0
       }
     }
   ]

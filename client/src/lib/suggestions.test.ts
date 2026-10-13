@@ -122,15 +122,31 @@ describe('the checks', () => {
     expect(creditProblem('AFK Fisher')).toBeNull()
   })
 
-  it('want an examine line, its name and its page', () => {
-    expect(examineProblems({ name: '', prompt: '', wiki: '' })).toEqual({
+  it('want an examine line, its name, its wrong names and its page', () => {
+    expect(examineProblems({ name: '', decoys: ['', '', '', '', ''], prompt: '', wiki: '' })).toEqual({
       name: expect.stringMatching(/Required/),
+      decoys: expect.stringMatching(/Required: at least 3/),
       prompt: expect.stringMatching(/Required/),
       wiki: expect.stringMatching(/Required/),
     })
-    const good = { name: 'Cabbage', prompt: 'Yuck.', wiki: 'https://oldschool.runescape.wiki/w/Cabbage' }
-    expect(examineProblems(good)).toEqual({ name: null, prompt: null, wiki: null })
+    const good = {
+      name: 'Cabbage',
+      decoys: ['Onion', 'Potato', 'Leek', '', ''],
+      prompt: 'Yuck.',
+      wiki: 'https://oldschool.runescape.wiki/w/Cabbage',
+    }
+    expect(examineProblems(good)).toEqual({ name: null, decoys: null, prompt: null, wiki: null })
     expect(examineProblems({ ...good, prompt: 'x'.repeat(301) }).prompt).toMatch(/At most 300/)
+  })
+
+  it('want three to five wrong names, none the same as another or the right one', () => {
+    const good = { name: 'Cabbage', prompt: 'Yuck.', wiki: 'https://oldschool.runescape.wiki/w/Cabbage' }
+    const decoysError = (decoys: string[]) => examineProblems({ ...good, decoys }).decoys
+    expect(decoysError(['Onion', ' ', 'Leek'])).toMatch(/at least 3/)
+    expect(decoysError(['Onion', 'Potato', 'Leek', 'Kale', 'Swede'])).toBeNull()
+    expect(decoysError(['Onion', 'Potato', ' cabbage '])).toMatch(/different/)
+    expect(decoysError(['Onion', 'Potato', 'onion'])).toMatch(/different/)
+    expect(decoysError(['Onion', 'Potato', 'x'.repeat(121)])).toMatch(/At most 120/)
   })
 
   it('want an item name and no more', () => {

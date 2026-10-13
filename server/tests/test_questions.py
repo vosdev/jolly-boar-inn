@@ -748,15 +748,16 @@ def test_a_hand_written_pack_needs_no_generated_at(tmp_path: Path) -> None:
     assert (loaded.generated_at, len(loaded.questions)) == (None, 1)
 
 
-def _examine(prompt: str, answer_id: int, name: str) -> dict[str, Any]:
+def _picked(prompt: str, answer_id: int, name: str) -> dict[str, Any]:
+    # No round plays pick_from_list yet, so these are an NPC's questions.
     q: dict[str, Any] = {
         "type": "pick_from_list",
-        "mode": "guess_examine",
+        "mode": "random_event",
         "source": "pack",
-        "tags": ["examine"],
+        "tags": [],
         "payload": {
             "prompt": prompt,
-            "vocab": "examines",
+            "vocab": "items",
             "answer_id": answer_id,
             "subject": {"name": name},
         },
@@ -765,25 +766,34 @@ def _examine(prompt: str, answer_id: int, name: str) -> dict[str, Any]:
     return q
 
 
+def _write_npc(directory: Path, npc: str, questions: list[dict[str, Any]]) -> None:
+    (directory / "random_events").mkdir(exist_ok=True)
+    pack = {"pack": "random_events", "random_event": npc, "questions": questions}
+    (directory / "random_events" / f"{npc}.json").write_text(json.dumps(pack))
+
+
 def test_validate_packs_fails_one_prompt_under_two_answers(tmp_path: Path) -> None:
     """Both entries would be right, and the grader accepts one of them."""
-    first = _examine("The lowest maintenance pet you will ever have.", 1, "Pet rock")
-    second = _examine("the lowest  maintenance pet you will ever have.", 3, "Ectophial")
-    _write_pack(tmp_path / "a.json", [first])
-    _write_pack(tmp_path / "b.json", [second])
+    first = _picked("A weapon from the abyss.", 4151, "Abyssal whip")
+    second = _picked("a weapon  from the Abyss.", 4587, "Dragon scimitar")
+    _write_npc(tmp_path, "bob", [first, second])
     result = _validate_packs(tmp_path)
     assert result.returncode == 1
     assert (
-        "b.json: questions[0] prompt 'the lowest  maintenance pet you will ever have.' is also"
-        " asked in a.json questions[0], answered 1 there and 3 here; a line may have only one"
-        " answer"
+        "random_events/bob.json: questions[1] prompt 'a weapon  from the Abyss.' is also"
+        " asked in random_events/bob.json questions[0], answered 4151 there and 4587 here;"
+        " a line may have only one answer"
     ) in result.stderr
 
 
 def test_one_answer_may_be_asked_in_several_lines(tmp_path: Path) -> None:
-    _write_pack(
-        tmp_path / "a.json",
-        [_examine("One line.", 1, "Pet rock"), _examine("Another line.", 1, "Pet rock")],
+    _write_npc(
+        tmp_path,
+        "bob",
+        [
+            _picked("One line.", 4151, "Abyssal whip"),
+            _picked("Another line.", 4151, "Abyssal whip"),
+        ],
     )
     assert _validate_packs(tmp_path).returncode == 0
 

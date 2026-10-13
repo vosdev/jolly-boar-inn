@@ -122,7 +122,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 |---|---|---|---|---|
 | `more_less` | More or Less | `more_less` | `/mapping` + `/latest` | done |
 | `price_is_right` | The Price is Right | `price_is_right` | `/mapping` + `/latest` | done |
-| `guess_examine` | Guess the Examine | `pick_from_list` | `examine.json` | done |
+| `guess_examine` | Guess the Examine | `multiple_choice`, four to six names | `examine.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
@@ -139,8 +139,8 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
 
 - Sort It Out and Release Order are two modes over one type: their splash, prompt and pool differ.
-- Guess the Examine and Who's That NPC? use a strict list, not four buttons or free text. Four names
-  can be played by elimination, and free text needs an alias list and a typo argument per item.
+- Who's That NPC? uses a strict list, not buttons or free text: free text needs an alias list and a
+  typo argument per item. Guess the Examine dropped its list for buttons: players found it too hard.
 - Examine lines are hand-picked, not taken from `/mapping`. The wiki's were accurate and not funny.
 - The Price is Right is its own type: its options are integers, and it stores the price again as
   `value` so `check()` has something to compare against.
@@ -330,7 +330,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 1011 | a send failed or timed out, or the database was down on connect | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
 
-`GET /api/vocab/{name}` serves `items` (`popular-items.json`), `examines` (`examine.json`'s answers) and
+`GET /api/vocab/{name}` serves `items` (`popular-items.json`) and
 `npcs` (404 until Who's That NPC? writes its list) as `{vocab, version, entries: [{id, name}]}`, built at
 startup. One name under two ids, or one id under two names, refuses to load. The client fetches a list once, when a question
 first names it; per question it would resend the list every time. It gives nothing away: it is every
@@ -600,7 +600,7 @@ key into them, so cleanup leaves it.
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus `mode` and a `wiki` or `source_url`, or both (a `quote` only
-  for the two quote rounds, an `intro` only for an NPC's), an `examine` (line, name, wiki) or an `item`
+  for the two quote rounds, an `intro` only for an NPC's), an `examine` (line, name, three to five wrong names, wiki) or an `item`
   (a name not on the roster), with a `credit` held to the name rules and `credit_shown`, never
   true for an item. Pending, approved, rejected or imported. A round not built yet takes
   questions; they wait in approved. The client offers the form after a finished game; 10 an hour
@@ -638,7 +638,7 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
-  they hold, keeping `credit`. An examine name gets the highest answer id plus one; an item's id
+  they hold, keeping `credit`. An examine's name is its first option; an item's id
   comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
   that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question

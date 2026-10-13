@@ -10,6 +10,7 @@ import type { OpenQuestion } from '../../lib/protocol'
 import { GEMS } from './GemButton.svelte'
 import { viewFor } from './index'
 import Question from './Question.svelte'
+import ExamineStem from './stems/ExamineStem.svelte'
 import QuoteStem from './stems/QuoteStem.svelte'
 import TextStem from './stems/TextStem.svelte'
 import MultipleChoice from './types/MultipleChoice.svelte'
@@ -149,5 +150,23 @@ describe('multiple_choice in a quote round', () => {
     })
     expect(screen.getByText('Who said this?').tagName).toBe('P')
     expect(document.querySelector('blockquote')).toBeNull()
+  })
+})
+
+describe('multiple_choice in Guess the Examine', () => {
+  const EXAMINE = { prompt: 'Future web developers.', options: ['Spider eggs', 'Web', 'Giant spider', 'Spider carcass'] }
+
+  it('is drawn by the examine stem', () => {
+    expect(viewFor('multiple_choice', 'guess_examine')).toEqual({ stem: ExamineStem, view: MultipleChoice })
+  })
+
+  it('sets the examine line as a quotation above the options', () => {
+    render(Question, { question: open(true, EXAMINE, 'guess_examine'), yourValue: null, onAnswer: () => {} })
+    const line = screen.getByText('Future web developers.')
+    expect(line.tagName).toBe('BLOCKQUOTE')
+    expect(line.compareDocumentPosition(screen.getByRole('button', { name: /Spider eggs/ }))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(answers()).toHaveLength(4)
   })
 })

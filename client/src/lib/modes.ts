@@ -106,10 +106,10 @@ export const MODES: Record<string, Mode> = {
     hint: 'Name the thing from the line you get when you examine it.',
     host: { id: 'examiner', name: 'The Examiner' },
     greeting: 'Pens down, eyes up. Your examination begins now.',
-    blurb: 'I shall read you an examine line. Find what it belongs to on the list, and no copying.',
+    blurb: 'I shall read you an examine line. Pick what it belongs to.',
     waiting: 'No talking while the others finish, please.',
     reveal: 'Let us mark your paper.',
-    // The examine line is the question; the list below it is only how you answer.
+    // The examine line is the question; the buttons below it are only how you answer.
     stem: 'examine',
   },
   sort_it_out: {

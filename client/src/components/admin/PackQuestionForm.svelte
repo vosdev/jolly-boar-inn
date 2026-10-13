@@ -4,23 +4,17 @@
    * NPC it has, with the links it was checked against and its credit under it.
    *
    * Choice, typed, number and pick-all questions use Create's form with the intro and picture pack
-   * questions carry; an ordering question uses `/suggest`'s. An examine line answers from
-   * the names its list already has, picked by name: a new name stays with suggestions,
-   * whose import gives it an id. A type no form writes yet is edited as its payload's JSON,
-   * which the server checks on Save.
+   * questions carry; an ordering question uses `/suggest`'s. A type no form writes yet is
+   * edited as its payload's JSON, which the server checks on Save.
    */
-  import { onMount } from 'svelte'
-
   import { CUSTOM_TYPES, type CustomQuestion, type CustomType } from '../../lib/customQuestions'
   import { nameProblem, NAME_MAX } from '../../lib/names'
   import type { OrderingQuestion } from '../../lib/ordering'
   import { envelopeOf, parsePayload, showsQuote, type QuestionEdit } from '../../lib/questionEdits'
   import type { PackQuestion } from '../../lib/reports'
-  import { examinePreview, sourceProblems } from '../../lib/suggestions'
-  import { fold, loadVocab, type VocabEntry } from '../../lib/vocab'
+  import { sourceProblems } from '../../lib/suggestions'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
-  import QuestionStage from '../QuestionStage.svelte'
 
   let {
     question,
@@ -46,13 +40,6 @@
   let creditShown = $state(start.credit_shown ?? false)
   let attempted = $state(false)
 
-  let prompt = $state(typeof payload.prompt === 'string' ? payload.prompt : '')
-  let answerName = $state(
-    typeof (payload.subject as { name?: unknown } | undefined)?.name === 'string'
-      ? (payload.subject as { name: string }).name
-      : '',
-  )
-  let entries = $state<readonly VocabEntry[]>([])
   let json = $state(JSON.stringify(payload, null, 2))
 
   const custom: CustomQuestion | null = FORM_TYPES.includes(start.type)
@@ -65,24 +52,8 @@
   const ordering: OrderingQuestion | null =
     start.type === 'ordering' ? { type: 'ordering', payload } : null
 
-  onMount(() => {
-    if (start.type !== 'pick_from_list' || typeof payload.vocab !== 'string') return
-    loadVocab(payload.vocab).then(
-      (list) => (entries = list.entries),
-      () => (entries = []),
-    )
-  })
-
   const links = $derived(sourceProblems(wiki, sourceUrl))
   const creditError = $derived(credit.trim() === '' ? null : nameProblem(credit))
-  const answer = $derived(entries.find((entry) => fold(entry.name) === fold(answerName.trim())))
-  const answerError = $derived(
-    answerName.trim() === ''
-      ? 'Required: what it belongs to.'
-      : answer === undefined
-        ? 'Not a name in the list. A new name is added through a suggestion.'
-        : null,
-  )
   const parsed = $derived(parsePayload(json))
 
   function envelopePasses(): boolean {
@@ -92,12 +63,6 @@
 
   function send(next: Record<string, unknown>): void {
     onsave({ payload: next, ...envelopeOf({ wiki, sourceUrl, credit, creditShown }) })
-  }
-
-  function saveListed(): void {
-    if (!envelopePasses() || answerError !== null || answer === undefined) return
-    const subject = { ...(payload.subject as object), name: answer.name }
-    send({ ...payload, prompt: prompt.trim(), answer_id: answer.id, subject })
   }
 
   function saveJson(): void {
@@ -175,38 +140,15 @@
     <div class="layout">
       <div class="fields">
         <h3 id="{id}-title">Edit question</h3>
-        {#if start.type === 'pick_from_list'}
-          <div class="field">
-            <label for="{id}-prompt">The line players read</label>
-            <textarea id="{id}-prompt" rows="2" bind:value={prompt}></textarea>
-          </div>
-          <div class="field">
-            <label for="{id}-answer">What it belongs to</label>
-            <input id="{id}-answer" type="text" list="{id}-names" bind:value={answerName} />
-            <datalist id="{id}-names">
-              {#each entries as entry (entry.id)}
-                <option value={entry.name}></option>
-              {/each}
-            </datalist>
-            {@render problem(answerError, attempted)}
-          </div>
-        {:else}
-          <div class="field">
-            <label for="{id}-json">Payload, as JSON</label>
-            <textarea id="{id}-json" class="code" rows="14" spellcheck="false" bind:value={json}></textarea>
-            <p class="note">No form writes this type yet. The server checks it on Save.</p>
-            {@render problem(typeof parsed === 'string' ? parsed : null, true)}
-          </div>
-        {/if}
+        <div class="field">
+          <label for="{id}-json">Payload, as JSON</label>
+          <textarea id="{id}-json" class="code" rows="14" spellcheck="false" bind:value={json}></textarea>
+          <p class="note">No form writes this type yet. The server checks it on Save.</p>
+          {@render problem(typeof parsed === 'string' ? parsed : null, true)}
+        </div>
         {@render envelope(attempted)}
-        {@render buttons(start.type === 'pick_from_list' ? saveListed : saveJson)}
+        {@render buttons(saveJson)}
       </div>
-      {#if start.type === 'pick_from_list'}
-        <section class="preview" aria-label="Preview">
-          <p class="note">What players will see</p>
-          <QuestionStage question={examinePreview(prompt)} yourValue={null} onAnswer={() => {}} stemOnly />
-        </section>
-      {/if}
     </div>
   </div>
 {/if}
@@ -232,8 +174,7 @@
     }
   }
 
-  .fields,
-  .preview {
+  .fields {
     min-width: 0;
   }
 
@@ -272,9 +213,5 @@
 
   .actions {
     margin-top: 1rem;
-  }
-
-  .preview > .note {
-    margin: 0 0 0.5rem;
   }
 </style>

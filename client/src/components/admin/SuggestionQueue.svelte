@@ -267,8 +267,9 @@
                       />
                     {/if}
                   {:else if row.kind === 'examine'}
+                    {@const examine = row.content as ExamineContent}
                     <QuestionStage
-                      question={examinePreview((row.content as ExamineContent).prompt)}
+                      question={examinePreview(examine.prompt, [examine.name, ...(examine.decoys ?? [])])}
                       yourValue={null}
                       onAnswer={() => {}}
                     />

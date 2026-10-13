@@ -36,7 +36,7 @@ QUESTIONS = Bounds(default=5, minimum=1, maximum=30)
 MODES: dict[str, Mode] = {
     "more_less": Mode(id="more_less", types=frozenset({"more_less"})),
     "price_is_right": Mode(id="price_is_right", types=frozenset({"price_is_right"})),
-    "guess_examine": Mode(id="guess_examine", types=frozenset({"pick_from_list"})),
+    "guess_examine": Mode(id="guess_examine", types=frozenset({"multiple_choice"})),
     "sort_it_out": Mode(id="sort_it_out", types=frozenset({"ordering"})),
     "who_said_that": Mode(id="who_said_that", types=frozenset({"multiple_choice"})),
     "know_your_content_creator": Mode(

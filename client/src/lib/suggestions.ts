@@ -3,8 +3,8 @@
  * (`server/app/suggestions.py`).
  *
  * Three kinds. A `question` is what Create's editor writes, for a mode, with the wiki
- * page that proves it. An `examine` is a line for Guess the Examine and the name it
- * belongs to. An `item` is only a name not on the roster yet: the import script finds its
+ * page that proves it. An `examine` is a line for Guess the Examine, the name it belongs
+ * to and the wrong names shown beside it. An `item` is only a name not on the roster yet: the import script finds its
  * id. Every one carries a credit, a name held to a display name's rules, and whether
  * players may see it, which an item's never may: its rounds name no author.
  *
@@ -57,6 +57,8 @@ export function questionPreview(content: QuestionContent): OpenQuestion {
 
 export interface ExamineContent {
   name: string
+  /** The wrong names shown beside it: `DECOYS_MIN` to `DECOYS_MAX`. */
+  decoys: string[]
   prompt: string
   wiki: string
 }
@@ -203,6 +205,9 @@ export const PROMPT_MAX = limit(definition('prompt'), 'maxLength') ?? 0
 export const SUBJECT_MAX = limit(definition('short_text'), 'maxLength') ?? 0
 /** `ITEM_NAME_MAX` on the server. */
 export const ITEM_NAME_MAX = 80
+/** `DECOYS_MIN` and `DECOYS_MAX` on the server: with the right name, four to six buttons. */
+export const DECOYS_MIN = 3
+export const DECOYS_MAX = 5
 
 export function wikiProblem(url: string): string | null {
   const trimmed = url.trim()
@@ -252,12 +257,31 @@ function textProblem(text: string, most: number, what: string): string | null {
   return null
 }
 
+/** Names compared the way the server's `multiple_choice.check` compares options. */
+function sameName(a: string, b: string): boolean {
+  const key = (name: string) => name.split(/\s+/u).filter(Boolean).join(' ').toLowerCase()
+  return key(a) === key(b)
+}
+
+function decoysProblem(name: string, decoys: readonly string[]): string | null {
+  const given = decoys.map((decoy) => decoy.trim()).filter((decoy) => decoy !== '')
+  if (given.length < DECOYS_MIN) return `Required: at least ${DECOYS_MIN} wrong names.`
+  if (given.some((decoy) => codePoints(decoy) > SUBJECT_MAX)) return `At most ${SUBJECT_MAX} characters each.`
+  const all = [name, ...given]
+  if (all.some((one, i) => all.slice(0, i).some((other) => sameName(one, other)))) {
+    return 'Every name must be different, the right one included.'
+  }
+  return null
+}
+
+/** Only the filled-in wrong-name boxes count; an empty one is a box left spare. */
 export function examineProblems(
   content: ExamineContent,
-): Record<'name' | 'prompt' | 'wiki', string | null> {
+): Record<'name' | 'decoys' | 'prompt' | 'wiki', string | null> {
   return {
     prompt: textProblem(content.prompt, PROMPT_MAX, 'the examine text'),
     name: textProblem(content.name, SUBJECT_MAX, 'what it belongs to'),
+    decoys: decoysProblem(content.name.trim(), content.decoys),
     wiki: wikiProblem(content.wiki),
   }
 }
@@ -269,17 +293,17 @@ export function itemProblem(content: ItemContent, roster: readonly VocabEntry[] 
   return textProblem(content.name, ITEM_NAME_MAX, 'the item’s name')
 }
 
-/** An examine as the round would show it, for `QuestionStage` to draw. */
-export function examinePreview(prompt: string): OpenQuestion {
+/** An examine as the round would show it, for `QuestionStage` to draw, options in the order given. */
+export function examinePreview(prompt: string, options: readonly string[] = []): OpenQuestion {
   const opened = new Date(0).toISOString()
   return {
     question_id: 'preview',
     index: 0,
     total: 1,
-    type: 'pick_from_list',
+    type: 'multiple_choice',
     mode: 'guess_examine',
     segment: { mode: 'guess_examine', index: 0, total: 1, start: 0, count: 1 },
-    view: { prompt: prompt.trim(), vocab: 'examines' },
+    view: { prompt: prompt.trim(), options: [...options] },
     random_event: null,
     opened_at: opened,
     answerable_at: opened,

@@ -213,13 +213,19 @@ def lobby(client: TestClient) -> dict[str, Any]:
     return {"code": code, "admin": admin, "player": player}
 
 
-def stub_mode(app: FastAPI, name: str, type_id: str = "more_less") -> Iterator[str]:
+def stub_mode(
+    app: FastAPI,
+    name: str,
+    type_id: str = "more_less",
+    questions: list[dict[str, Any]] | None = None,
+) -> Iterator[str]:
     """Register mode ``name`` over the ``type_id`` type, with a pack of its own.
 
-    The pack is questions copied from the shipped ones and relabelled with the mode.
+    The pack is ``questions``, or else ones copied from the shipped packs, relabelled with
+    the mode either way.
     """
     shipped = [q for pack in app.state.packs for q in pack.questions]
-    borrowed = [q for q in shipped if q["type"] == type_id][:20]
+    borrowed = questions or [q for q in shipped if q["type"] == type_id][:20]
     assert borrowed, "the shipped packs are the questions this stub copies"
     MODES[name] = Mode(id=name, types=frozenset({type_id}))
     app.state.packs.append(

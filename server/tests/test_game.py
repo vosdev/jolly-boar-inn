@@ -37,6 +37,8 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from app.modes import MODES, round_modes
 from app.questions.types import (
@@ -53,6 +55,7 @@ from app.rooms import state
 from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
 from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, RoomQuestion, question_hold
 from app.ws.outbox import SEND_TIMEOUT
+from tests.conftest import stub_mode
 from tests.game_api import (
     AFTER,
     Game,
@@ -342,11 +345,32 @@ def test_an_answer_that_is_not_a_valid_value_is_bad_value(game) -> None:
     assert game.question(0).answers == {}
 
 
-def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table) -> None:
+@pytest.fixture
+def picked_round(app: FastAPI, client: TestClient) -> Iterator[str]:
+    """A round of ``pick_from_list`` questions on the item roster, which no round plays yet."""
+    questions = [
+        {
+            "id": f"q_picked_{item_id}",
+            "type": "pick_from_list",
+            "source": "pack",
+            "tags": [],
+            "payload": {
+                "prompt": f"Which item is number {item_id}?",
+                "vocab": "items",
+                "answer_id": item_id,
+                "subject": {"name": name},
+            },
+        }
+        for item_id, name in ((4151, "Abyssal whip"), (4587, "Dragon scimitar"))
+    ]
+    yield from stub_mode(app, "picked_round", "pick_from_list", questions)
+
+
+def test_a_pick_from_list_answer_must_be_an_id_in_its_vocabulary(table, picked_round) -> None:
     """Typed text is a search, never an answer, and an id the list does not hold is
     as malformed as a string. A real entry that is not the answer is merely wrong, and a
     question with no ``steps`` acks on speed."""
-    game = table("Zezima", "Woox", modes=["guess_examine"], seconds=10)
+    game = table("Zezima", "Woox", modes=[picked_round], seconds=10)
     game.start()
     game.opened(0)
     zezima, woox = game.players
@@ -2065,8 +2089,8 @@ def test_a_game_of_two_real_modes_changes_type_between_rounds(table, db) -> None
     assert [q.type for q in game.room.questions] == [
         "more_less",
         "more_less",
-        "pick_from_list",
-        "pick_from_list",
+        "multiple_choice",
+        "multiple_choice",
     ]
     game.start()
     for index in range(4):

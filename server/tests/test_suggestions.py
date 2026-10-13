@@ -47,6 +47,7 @@ EXAMINE = {
     "kind": "examine",
     "content": {
         "name": "Cabbage",
+        "decoys": ["Onion", "Potato", "Cabbage seed"],
         "prompt": "Yuck, I don't like cabbage.",
         "wiki": "https://oldschool.runescape.wiki/w/Cabbage",
     },
@@ -194,6 +195,15 @@ def test_each_kind_is_stored_as_pending_with_its_credit(client: TestClient) -> N
     assert queue(client)["counts"] == {"pending": 4, "approved": 0, "rejected": 0, "imported": 0}
 
 
+def test_an_examines_names_are_stored_trimmed(client: TestClient) -> None:
+    suggest(client, _with(EXAMINE, name=" Cabbage ", decoys=[" Onion", "Potato ", " Leek "]))
+    (row,) = queue(client)["suggestions"]
+    assert (row["content"]["name"], row["content"]["decoys"]) == (
+        "Cabbage",
+        ["Onion", "Potato", "Leek"],
+    )
+
+
 def _with(body: dict[str, Any], **content: Any) -> dict[str, Any]:
     changed = deepcopy(body)
     changed["content"].update(content)
@@ -262,6 +272,12 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(EXAMINE, prompt="x" * 301),
         _with(EXAMINE, name="   "),
         _without(EXAMINE, "wiki"),
+        _without(EXAMINE, "decoys"),
+        _with(EXAMINE, decoys=["Onion", "Potato"]),
+        _with(EXAMINE, decoys=["Onion", "Potato", "Leek", "Garlic", "Kale", "Swede"]),
+        _with(EXAMINE, decoys=["Onion", "Potato", " cabbage "]),
+        _with(EXAMINE, decoys=["Onion", "Potato", ""]),
+        _with(EXAMINE, decoys="Onion, Potato, Leek"),
         _with(EVENT, payload={**EVENT["content"]["payload"], "intro": "x" * 151}),
         _with(EVENT, payload={**EVENT["content"]["payload"], "image": "https://example.com/a.png"}),
         _with(EVENT, payload={**EVENT["content"]["payload"], "image": "monster:12"}),

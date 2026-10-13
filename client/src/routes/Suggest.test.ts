@@ -114,6 +114,35 @@ describe('Suggest', () => {
     expect(api.getVocab).not.toHaveBeenCalled()
   })
 
+  it('sends an examine with three to five wrong names, blank boxes left out', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /An examine line/ }))
+    await type(/The examine text/, 'Yuck, I don’t like cabbage.')
+    await type('What it belongs to', 'Cabbage')
+    await type('Wrong answer 1', ' Onion ')
+    await type('Wrong answer 2', 'Potato')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Cabbage')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Required: at least 3 wrong names.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type('Wrong answer 4 (optional)', 'Leek')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'examine',
+      content: {
+        name: 'Cabbage',
+        decoys: ['Onion', 'Potato', 'Leek'],
+        prompt: 'Yuck, I don’t like cabbage.',
+        wiki: 'https://oldschool.runescape.wiki/w/Cabbage',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
   it('writes a round’s question with no NPC, one type and its wiki page', async () => {
     played()
     render(Suggest, { navigate })

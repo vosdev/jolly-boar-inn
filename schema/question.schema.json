@@ -230,7 +230,7 @@
       "properties": {
         "prompt": { "$ref": "#/$defs/prompt" },
         "intro": { "$ref": "#/$defs/intro" },
-        "vocab": { "enum": ["items", "npcs", "examines"] },
+        "vocab": { "enum": ["items", "npcs"] },
         "answer_id": { "type": "integer", "minimum": 0 },
         "image": { "$ref": "#/$defs/asset" },
         "steps": { "type": "integer", "minimum": 1, "maximum": 12 },

@@ -1,7 +1,8 @@
 """The type half: an answer that is not an id in the vocabulary is
 ``bad_value``, and so is a string; ``validate-packs`` fails a question whose ``answer_id``
-is not in its vocabulary. Plus the rest of the six exports, how it scores, and the
-shipped ``guess_examine`` pack.
+is not in its vocabulary. Plus the rest of the six exports and how it scores.
+
+No round plays this type until Who's That NPC?, so the example is an NPC's question.
 """
 
 import copy
@@ -17,9 +18,7 @@ from uuid import uuid4
 import pytest
 
 from app.config import REPO_ROOT
-from app.modes import MODES
 from app.questions import schema, vocab
-from app.questions.packs import load_packs
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pick_from_list, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
@@ -30,9 +29,10 @@ PACKS_DIR = REPO_ROOT / "data" / "packs"
 
 EXAMPLE: dict[str, Any] = {
     "type": "pick_from_list",
-    "mode": "guess_examine",
+    "mode": "random_event",
     "source": "pack",
-    "tags": ["examine"],
+    "tags": [],
+    "random_event": "bob",
     "payload": {
         "prompt": "A weapon from the abyss.",
         "vocab": "items",
@@ -56,16 +56,10 @@ def envelope(**changes: Any) -> dict[str, Any]:
     return q
 
 
-def shipped() -> list[dict[str, Any]]:
-    pack = next(pack for pack in load_packs(PACKS_DIR) if pack.path.name == "examine.json")
-    return list(pack.questions)
-
-
 # --- registry ---------------------------------------------------------------------------
 
 
-def test_guess_examine_plays_as_pick_from_list() -> None:
-    assert MODES["guess_examine"].types == {"pick_from_list"}
+def test_the_type_is_registered() -> None:
     assert TYPES["pick_from_list"] is pick_from_list
 
 
@@ -164,15 +158,16 @@ def test_validate_packs_fails_an_answer_id_missing_from_its_vocabulary(tmp_path:
     """A roster edit that drops an item fails CI, not a quiz night. The id
     matches the content, so the vocabulary is the only thing left to complain about."""
     dropped = envelope(answer_id=999999)
-    del dropped["payload"]["subject"]
+    del dropped["payload"]["subject"], dropped["random_event"]
     dropped["id"] = schema.content_id(dropped)
-    pack = {"pack": "examine", "generated_at": "2026-09-21T00:00:00Z", "questions": [dropped]}
-    (tmp_path / "examine.json").write_text(json.dumps(pack), encoding="utf-8")
+    pack = {"pack": "random_events", "random_event": "bob", "questions": [dropped]}
+    (tmp_path / "random_events").mkdir()
+    (tmp_path / "random_events" / "bob.json").write_text(json.dumps(pack), encoding="utf-8")
     result = _validate_packs(tmp_path)
     assert result.returncode == 1
     assert (
-        "examine.json: questions[0] $.payload.answer_id: 999999 is not an entry of the items"
-        " vocabulary" in result.stderr
+        "random_events/bob.json: questions[0] $.payload.answer_id: 999999 is not an entry of"
+        " the items vocabulary" in result.stderr
     )
     assert "FAILED: 1 problem(s)" in result.stderr
 
@@ -225,30 +220,3 @@ def test_grade_is_all_or_nothing_credit_on_the_id() -> None:
     credit = pick_from_list.grade(EXAMPLE["payload"], subs)
     assert credit == {right: 1.0, wrong: 0.0, typed: 0.0}
     assert all(type(value) is float for value in credit.values())
-
-
-# --- the shipped pack -------------------------------------------------------------------
-
-
-def test_every_shipped_question_answers_from_the_examines_list_by_id() -> None:
-    """``load_packs`` ran ``check`` on each; this pins down the shape the generator ships."""
-    questions = shipped()
-    assert questions, "examine.json ships no questions"
-    examines = vocab.get("examines")
-    assert examines is not None
-    prompts = [q["payload"]["prompt"] for q in questions]
-    assert len(prompts) == len(set(prompts)), "no examine is two items' answer"
-    for q in questions:
-        assert (q["type"], q["mode"], q["payload"]["vocab"]) == (
-            "pick_from_list",
-            "guess_examine",
-            "examines",
-        )
-        assert q["payload"]["subject"]["name"] == examines.name_of(q["payload"]["answer_id"])
-
-
-def test_no_shipped_answer_leaks_into_the_open_view() -> None:
-    for q in shipped():
-        view = pick_from_list.client_view(q["payload"])
-        assert set(view) == {"prompt", "vocab"}, q["id"]
-        assert str(q["payload"]["answer_id"]) not in json.dumps(view), q["id"]

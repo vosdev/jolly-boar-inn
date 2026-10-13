@@ -22,7 +22,7 @@
    * The line above it says what to do with it, which the examine itself never does, and
  * the examine sits centred in whatever height of the scroll is left.
    *
-   * It reads `prompt` and nothing else. What the answer was is the list's to show at the
+   * It reads `prompt` and nothing else. What the answer was is the buttons' to show at the
    * reveal: the stem stays the same clue before and after, so the eye has one place to
    * look for the verdict.
    */
