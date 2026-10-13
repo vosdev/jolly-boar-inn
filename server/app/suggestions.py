@@ -1,13 +1,11 @@
 """What players suggest for the packs, and the operator's queue of it.
 
-A player who has finished a game may suggest one of three kinds of content:
+A player who has finished a game may suggest one of two kinds of content:
 
 - ``question``: a question for a mode, in the shape Create's editor writes it, plus the
   mode it is for and where it was checked: the wiki page, an https ``source_url`` for what
   the wiki cannot prove, or both. A round not built yet takes them too, so its pack is
   ready when it opens; such a suggestion waits in the queue until it is.
-- ``examine``: a line for Guess the Examine, the name it belongs to, three to five wrong
-  names to show beside it, and its wiki page.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
 
@@ -32,7 +30,7 @@ from app.modes import MODES
 from app.questions import schema, text, vocab
 from app.questions.types import TYPES
 
-Kind = Literal["question", "examine", "item"]
+Kind = Literal["question", "item"]
 Status = Literal["pending", "approved", "rejected", "imported"]
 
 _CHOICE = frozenset({"multiple_choice"})
@@ -46,6 +44,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "drop_table": frozenset(
         {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}
     ),
+    "guess_examine": _CHOICE,
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
     "know_your_content_creator": frozenset(
@@ -64,15 +63,15 @@ FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?"}
 # The intro is an NPC's line before the question, so only an NPC's question takes one.
 INTRO_MODES = frozenset({"random_event"})
 
-EXAMINE_MODE = "guess_examine"
-# With the right name, four to six buttons: fewer is a guess, and six is one per gem.
-DECOYS_MIN, DECOYS_MAX = 3, 5
+# Pack questions' tags, which a suggestion is not asked for.
+MODE_TAGS = {"guess_examine": ["examine"]}
+# Rounds whose pack holds every question to the wiki page its author checked.
+WIKI_MODES = frozenset({"guess_examine"})
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
 
 _QUESTION_KEYS = {"type", "payload", "mode"}
 _QUESTION_OPTIONAL = frozenset({"random_event", "wiki", "source_url"})
-_EXAMINE_KEYS = {"name", "decoys", "prompt", "wiki"}
 _ITEM_KEYS = {"name"}
 
 
@@ -95,29 +94,12 @@ def question_envelope(content: dict[str, Any]) -> dict[str, Any]:
         "type": content["type"],
         "mode": content["mode"],
         "source": "pack",
-        "tags": [],
+        "tags": MODE_TAGS.get(content["mode"], []),
         "payload": content["payload"],
     }
     for key in ("wiki", "source_url", "random_event"):
         if key in content:
             envelope[key] = content[key]
-    return {"id": schema.content_id(envelope), **envelope}
-
-
-def examine_envelope(content: dict[str, Any]) -> dict[str, Any]:
-    """An examine suggestion as a Guess the Examine question, the right name first."""
-    envelope = {
-        "type": "multiple_choice",
-        "mode": EXAMINE_MODE,
-        "source": "pack",
-        "tags": ["examine"],
-        "wiki": content["wiki"],
-        "payload": {
-            "prompt": content["prompt"],
-            "options": [content["name"], *content["decoys"]],
-            "answer_index": 0,
-        },
-    }
     return {"id": schema.content_id(envelope), **envelope}
 
 
@@ -139,6 +121,8 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
     if not {"wiki", "source_url"} & content.keys():
         return ["$.wiki: a wiki page, or $.source_url: another https link, to check it against"]
     mode = content["mode"]
+    if mode in WIKI_MODES and "wiki" not in content:
+        return [f"$.wiki: required, since {mode!r} is checked against the wiki"]
     types = QUESTION_MODES.get(mode)
     if types is None:
         return [f"$.mode: {mode!r} takes no suggestions (it takes {', '.join(QUESTION_MODES)})"]
@@ -165,21 +149,6 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
     return [f"$.payload.{message}" for message in TYPES[content["type"]].check(content["payload"])]
 
 
-def _examine_errors(content: dict[str, Any]) -> list[str]:
-    found = _keys(content, _EXAMINE_KEYS)
-    if found:
-        return found
-    decoys = content["decoys"]
-    if not all(isinstance(content[key], str) for key in _EXAMINE_KEYS - {"decoys"}):
-        return ["$: name, prompt and wiki are text"]
-    if not isinstance(decoys, list) or not all(isinstance(decoy, str) for decoy in decoys):
-        return ["$.decoys: a list of names"]
-    if not DECOYS_MIN <= len(decoys) <= DECOYS_MAX:
-        return [f"$.decoys: {DECOYS_MIN} to {DECOYS_MAX} wrong names"]
-    envelope = examine_envelope(content)
-    return schema.schema_errors(envelope) or schema.consistency_errors(envelope)
-
-
 def _item_errors(content: dict[str, Any]) -> list[str]:
     found = _keys(content, _ITEM_KEYS)
     if found:
@@ -199,8 +168,6 @@ def errors(kind: str, content: Any) -> list[str]:
         return found
     if kind == "question":
         return _question_errors(content)
-    if kind == "examine":
-        return _examine_errors(content)
     return _item_errors(content)
 
 
@@ -208,9 +175,6 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
     """``content`` as it is stored: strings a player typed, trimmed."""
     if kind == "item":
         return {"name": content["name"].strip()}
-    if kind == "examine":
-        tidied = {key: content[key].strip() for key in ("name", "prompt", "wiki")}
-        return tidied | {"decoys": [decoy.strip() for decoy in content["decoys"]]}
     return content
 
 
@@ -342,8 +306,8 @@ def export_entry(kind: str, content: dict[str, Any], credit: str, shown: bool) -
 
 
 def export_file(rows: Sequence[asyncpg.Record]) -> dict[str, list[dict[str, Any]]]:
-    """The file an export downloads: questions, examines and items, oldest first."""
-    out: dict[str, list[dict[str, Any]]] = {"questions": [], "examines": [], "items": []}
+    """The file an export downloads: questions and items, oldest first."""
+    out: dict[str, list[dict[str, Any]]] = {"questions": [], "items": []}
     for row in rows:
         out[f"{row['kind']}s"].append(
             export_entry(row["kind"], row["content"], row["credit"], row["credit_shown"])

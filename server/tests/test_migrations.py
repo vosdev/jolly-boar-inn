@@ -88,7 +88,7 @@ TABLES = {
     },
     "roster_edits": {"item_id", "action", "name", "before", "updated_at", "exported_at"},
 }
-ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 INDEXES = {
     "rooms_code_idx",
     "rooms_expires_at_idx",
@@ -118,6 +118,7 @@ SHA256 = {
     15: "8ca843d86d7c0880fc7841a230277c546304faac0391c5bf54076cb653ea0135",
     16: "33f875986bb385d5383631d2396bf5ec5e26e6edc880384f5ad35661e80b2d9d",
     17: "ba2f52276eb9eaeeab21d8e212a2ae68f240f302d7692923621034183fd7378e",
+    18: "536c677461ce01f7047f0c71336cf23685775bd71086aedd68e2c536e658f919",
 }
 
 
@@ -167,6 +168,7 @@ def test_migration_files_are_numbered_and_ordered() -> None:
         "0015_reports.sql",
         "0016_question_edits.sql",
         "0017_roster_edits.sql",
+        "0018_examine_suggestions.sql",
     ]
 
 
@@ -250,7 +252,7 @@ async def test_recorded_migration_missing_from_disk_refuses(
     """db.py contract: refuse to start if a recorded migration file is missing."""
     await run_migrations(pool)
     with pytest.raises(
-        MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17\]"
+        MigrationError, match=r"\[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\]"
     ):
         await run_migrations(pool, tmp_path)
 
@@ -329,7 +331,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     }
     # Loaded by today's model once the migrations after it have run too, which is what
     # the room meets on its way back into a release: 0007 is where ``order`` went.
-    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     loaded = RoomSettings.model_validate(
         without_the_hold(await pool.fetchval("select settings from rooms where code = 'ABYSSAL'"))
     )
@@ -376,7 +378,7 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
         room_id,
     )
 
-    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     rows = await pool.fetch("select display_name, avatar from players order by display_name")
     assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
 
@@ -399,10 +401,60 @@ async def test_0014_clears_the_head_a_player_chose_before_pets(
         room_id,
     )
 
-    assert await run_migrations(pool) == [14, 15, 16, 17]
+    assert await run_migrations(pool) == [14, 15, 16, 17, 18]
     assert await pool.fetchval("select avatar from players") is None
     await pool.execute("update players set avatar = 'aggy'")
     assert await pool.fetchval("select avatar from players") == "aggy"
+
+
+async def test_0018_turns_an_examine_suggestion_into_its_question(
+    pool: asyncpg.Pool, tmp_path: Path
+) -> None:
+    """0018: an examine is a Guess the Examine question, the right name first."""
+    for _, path in migration_files(MIGRATIONS_DIR)[:17]:
+        (tmp_path / path.name).write_text(path.read_text())
+    assert await run_migrations(pool, tmp_path) == ALL[:17]
+    wiki = "https://oldschool.runescape.wiki/w/Cabbage"
+    examines = [
+        {"name": "Cabbage", "decoys": ["Onion", "Potato", "Leek"], "prompt": "Yuck.", "wiki": wiki},
+        {"name": "Cabbage", "prompt": "Mmm.", "wiki": wiki},
+    ]
+    await pool.execute(
+        "insert into suggestions (kind, content, credit, credit_shown)"
+        " values ('item', $1, 'Z', false)",
+        {"name": "Cabbage"},
+    )
+    await pool.executemany(
+        "insert into suggestions (kind, content, credit, credit_shown, created_at)"
+        " values ('examine', $1, 'Zezima', false, now() + make_interval(secs => $2 + 1))",
+        [(content, index) for index, content in enumerate(examines)],
+    )
+
+    assert await run_migrations(pool) == [18]
+    rows = await pool.fetch("select kind, content from suggestions order by created_at")
+    assert [(row["kind"], row["content"]) for row in rows] == [
+        ("item", {"name": "Cabbage"}),
+        *(
+            (
+                "question",
+                {
+                    "type": "multiple_choice",
+                    "mode": "guess_examine",
+                    "wiki": wiki,
+                    "payload": {"prompt": prompt, "options": options, "answer_index": 0},
+                },
+            )
+            for prompt, options in (
+                ("Yuck.", ["Cabbage", "Onion", "Potato", "Leek"]),
+                ("Mmm.", ["Cabbage"]),
+            )
+        ),
+    ]
+    with pytest.raises(asyncpg.CheckViolationError):
+        await pool.execute(
+            "insert into suggestions (kind, content, credit, credit_shown)"
+            " values ('examine', '{}', 'Z', false)"
+        )
 
 
 def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
@@ -525,7 +577,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         before,
     )
 
-    assert await run_migrations(pool) == [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    assert await run_migrations(pool) == [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}
@@ -739,7 +791,7 @@ async def test_0009_dates_a_room_finished_before_it_from_its_last_close(
             closed_at,
         )
 
-    assert await run_migrations(pool) == [9, 10, 11, 12, 13, 14, 15, 16, 17]
+    assert await run_migrations(pool) == [9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     rows = await pool.fetch("select code, finished_at from rooms")
     assert {row["code"]: row["finished_at"] for row in rows} == {
         "CLOSED": last_close,
@@ -761,7 +813,7 @@ async def test_0011_leaves_a_room_from_before_it_without_a_key(
         " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
         NewRoomSettings().model_dump(),
     )
-    assert await run_migrations(pool) == [11, 12, 13, 14, 15, 16, 17]
+    assert await run_migrations(pool) == [11, 12, 13, 14, 15, 16, 17, 18]
     assert await pool.fetchval("select invite_key from rooms where code = 'ABYSSAL'") is None
 
 
@@ -777,7 +829,7 @@ async def test_0012_leaves_a_room_from_before_it_unlisted(
         " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
         NewRoomSettings().model_dump(),
     )
-    assert await run_migrations(pool) == [12, 13, 14, 15, 16, 17]
+    assert await run_migrations(pool) == [12, 13, 14, 15, 16, 17, 18]
     assert await pool.fetchval("select public from rooms where code = 'ABYSSAL'") is False
 
 

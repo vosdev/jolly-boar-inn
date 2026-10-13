@@ -52,7 +52,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [row()], counts: COUNTS })
   vi.mocked(admin.setSuggestionStatus).mockResolvedValue(row({ status: 'approved' }))
-  vi.mocked(admin.exportSuggestions).mockResolvedValue({ questions: [], examines: [], items: [] })
+  vi.mocked(admin.exportSuggestions).mockResolvedValue({ questions: [], items: [] })
   vi.mocked(admin.markImported).mockResolvedValue(1)
 })
 

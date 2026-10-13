@@ -84,7 +84,8 @@ def consistency_errors(question: dict[str, Any]) -> list[str]:
 
 
 def mode_errors(question: dict[str, Any]) -> list[str]:
-    """A ``mode`` the registry does not have, or a ``type`` other than the ones it plays as.
+    """A ``mode`` the registry does not have, a ``type`` other than the ones it plays as, or
+    more or fewer options than the round offers.
 
     The schema can only hold ``mode`` to a pattern, because which modes exist is the
     registry's to say. A pack question with an unknown mode would sit in a pool nobody can
@@ -116,6 +117,10 @@ def mode_errors(question: dict[str, Any]) -> list[str]:
             f"$.type: {question['type']!r} disagrees with its mode:"
             f" {mode.id!r} plays as {', '.join(map(repr, sorted(mode.types)))}"
         ]
+    if mode.options is not None and question["type"] == "multiple_choice":
+        least, most = mode.options
+        if not least <= len(question["payload"]["options"]) <= most:
+            return [f"$.payload.options: {mode.id!r} offers {least} to {most} options"]
     if not mode.is_round and question["type"] in _ROUND_ONLY:
         return [
             f"$.type: {question['type']!r} is not accepted in {mode.id!r} yet:"

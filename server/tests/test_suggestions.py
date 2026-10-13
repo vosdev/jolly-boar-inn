@@ -59,12 +59,16 @@ UNBUILT = deepcopy(EVENT)
 UNBUILT["content"]["mode"] = "zoom_quiz"
 del UNBUILT["content"]["random_event"]
 EXAMINE = {
-    "kind": "examine",
+    "kind": "question",
     "content": {
-        "name": "Cabbage",
-        "decoys": ["Onion", "Potato", "Cabbage seed"],
-        "prompt": "Yuck, I don't like cabbage.",
+        "type": "multiple_choice",
+        "mode": "guess_examine",
         "wiki": "https://oldschool.runescape.wiki/w/Cabbage",
+        "payload": {
+            "prompt": "Yuck, I don't like cabbage.",
+            "options": ["Onion", "Cabbage", "Potato", "Cabbage seed"],
+            "answer_index": 1,
+        },
     },
     "credit": "AFKFisher",
     "credit_shown": False,
@@ -203,26 +207,27 @@ def test_each_kind_is_stored_as_pending_with_its_credit(client: TestClient) -> N
     for body in (EVENT, UNBUILT, EXAMINE, ITEM):
         suggest(client, body)
     rows = queue(client)["suggestions"]
-    assert [row["kind"] for row in rows] == ["question", "question", "examine", "item"]
+    assert [row["kind"] for row in rows] == ["question", "question", "question", "item"]
     assert [row["playable"] for row in rows] == [True, False, True, True]
     assert rows[3]["content"] == {"name": "Ancient mace"}
     assert (rows[0]["credit"], rows[0]["credit_shown"]) == ("AFKFisher", True)
     assert queue(client)["counts"] == {"pending": 4, "approved": 0, "rejected": 0, "imported": 0}
 
 
-def test_an_examines_names_are_stored_trimmed(client: TestClient) -> None:
-    suggest(client, _with(EXAMINE, name=" Cabbage ", decoys=[" Onion", "Potato ", " Leek "]))
-    (row,) = queue(client)["suggestions"]
-    assert (row["content"]["name"], row["content"]["decoys"]) == (
-        "Cabbage",
-        ["Onion", "Potato", "Leek"],
-    )
+def test_an_examine_is_a_question_of_four_to_six_names(client: TestClient) -> None:
+    for options in (["Cabbage", "Onion", "Potato", "Leek"], ["Cabbage", *"ABCDE"]):
+        suggest(client, _examine(options=options, answer_index=0))
+    assert len(queue(client)["suggestions"]) == 2
 
 
 def _with(body: dict[str, Any], **content: Any) -> dict[str, Any]:
     changed = deepcopy(body)
     changed["content"].update(content)
     return changed
+
+
+def _examine(**payload: Any) -> dict[str, Any]:
+    return _with(EXAMINE, payload={**EXAMINE["content"]["payload"], **payload})
 
 
 def _ordering(**payload: Any) -> dict[str, Any]:
@@ -285,15 +290,11 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
             ]
         ),
         _with(ODD, payload={**ODD["content"]["payload"], "prompt": "Which is not a brother?"}),
-        _with(EXAMINE, prompt="x" * 301),
-        _with(EXAMINE, name="   "),
-        _without(EXAMINE, "wiki"),
-        _without(EXAMINE, "decoys"),
-        _with(EXAMINE, decoys=["Onion", "Potato"]),
-        _with(EXAMINE, decoys=["Onion", "Potato", "Leek", "Garlic", "Kale", "Swede"]),
-        _with(EXAMINE, decoys=["Onion", "Potato", " cabbage "]),
-        _with(EXAMINE, decoys=["Onion", "Potato", ""]),
-        _with(EXAMINE, decoys="Onion, Potato, Leek"),
+        _examine(prompt="x" * 301),
+        _examine(options=["Cabbage", "Onion", "Potato"], answer_index=0),
+        _examine(options=["Cabbage", "Onion", "Potato", " cabbage "]),
+        _with(_without(EXAMINE, "wiki"), source_url="https://example.com/cabbage"),
+        _with(EXAMINE, type="free_text", payload={"prompt": "Yuck.", "accepted": ["Cabbage"]}),
         _with(EVENT, payload={**EVENT["content"]["payload"], "intro": "x" * 151}),
         _with(EVENT, payload={**EVENT["content"]["payload"], "image": "https://example.com/a.png"}),
         _with(EVENT, payload={**EVENT["content"]["payload"], "image": "monster:12"}),
@@ -563,9 +564,16 @@ def test_export_holds_approved_playable_suggestions_in_creates_format(client: Te
                 "wiki": WIKI,
                 "credit": "AFKFisher",
                 "credit_shown": True,
-            }
+            },
+            {
+                "type": "multiple_choice",
+                "payload": EXAMINE["content"]["payload"],
+                "mode": "guess_examine",
+                "wiki": EXAMINE["content"]["wiki"],
+                "credit": "AFKFisher",
+                "credit_shown": False,
+            },
         ],
-        "examines": [{**EXAMINE["content"], "credit": "AFKFisher", "credit_shown": False}],
         "items": [{"name": "Ancient mace", "credit": "Woox", "credit_shown": False}],
     }
     approved = {row["id"]: row for row in queue(client, "approved")["suggestions"]}
@@ -639,14 +647,15 @@ def test_an_edit_is_checked_and_must_be_exported_again(client: TestClient) -> No
     kind_changed = client.put(url, headers=BEARER, json={**ITEM, "kind": "item"})
     assert kind_changed.status_code == 422
     edited = {
-        "content": {**EXAMINE["content"], "name": "Cabbage (Draynor)"},
+        "content": _examine(prompt="Yuck, I still don't like cabbage.")["content"],
         "credit": "AFKFisher",
         "credit_shown": True,
     }
     response = client.put(url, headers=BEARER, json=edited)
     assert response.status_code == 200, response.text
     row = response.json()
-    assert row["content"]["name"] == "Cabbage (Draynor)" and row["credit_shown"] is True
+    assert row["content"]["payload"]["prompt"] == "Yuck, I still don't like cabbage."
+    assert row["credit_shown"] is True
     assert row["exported_at"] is None
     refused = client.put(url, headers=BEARER, json={**edited, "content": {"name": "No line"}})
     assert refused.status_code == 422

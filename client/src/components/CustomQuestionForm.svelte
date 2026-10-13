@@ -44,6 +44,7 @@
     mode = 'custom',
     quote = false,
     promptFixed = false,
+    optionRange = undefined,
     pack = false,
     intro = false,
     picker = undefined,
@@ -69,6 +70,8 @@
     quote?: boolean
     /** Whether the prompt is the round's own, shown but not editable. */
     promptFixed?: boolean
+    /** How many options a multiple-choice question offers, when the round is stricter than the schema. */
+    optionRange?: readonly [number, number]
     /** Whether the intro and the picture show, which only pack questions carry. */
     pack?: boolean
     /** Whether the intro shows without the picture. */
@@ -103,9 +106,16 @@
   let draft = $state(draftOf(question))
   // svelte-ignore state_referenced_locally
   if (!types.includes(draft.type)) draft.type = types[0] ?? draft.type
+  // svelte-ignore state_referenced_locally
+  const [rangeMin, rangeMax] = optionRange ?? [0, Infinity]
+  // svelte-ignore state_referenced_locally
+  if (draft.type === 'multiple_choice') while (draft.options.length < rangeMin) draft.options.push('')
   let attempted = $state(false)
-  const optionsMin = $derived(limit(field(choicesOf(draft.type), 'options'), 'minItems') ?? 0)
-  const optionsMax = $derived(limit(field(choicesOf(draft.type), 'options'), 'maxItems') ?? 0)
+  const ranged = $derived(draft.type === 'multiple_choice')
+  const schemaMin = $derived(limit(field(choicesOf(draft.type), 'options'), 'minItems') ?? 0)
+  const schemaMax = $derived(limit(field(choicesOf(draft.type), 'options'), 'maxItems') ?? 0)
+  const optionsMin = $derived(ranged ? Math.max(schemaMin, rangeMin) : schemaMin)
+  const optionsMax = $derived(ranged ? Math.min(schemaMax, rangeMax) : schemaMax)
   const id = $props.id()
 
   const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
