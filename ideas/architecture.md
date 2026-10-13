@@ -367,8 +367,8 @@ open ─end_game / crash─▶ voided
 - A splash runs before each segment's first question, never before an event.
 - Open stamps `shown_at` and sets `answerable_at` and `ends_at`. Close grades, then writes
   `closed_at`, `correct` and `points` in one transaction.
-- `close_when_all_answered` closes once every connected eligible player has answered, also when a
-  disconnect or kick makes that true.
+- `close_when_all_answered` closes 1 s after every connected eligible player has answered (never
+  past the question's end), also when a disconnect or kick makes that true. A skip doesn't wait.
 - `skip` and all-answered set `Room.advance`; they never cancel the task.
 - Deadlines live on the monotonic clock, so a late wakeup closes at once and a clock jump moves
   nothing.

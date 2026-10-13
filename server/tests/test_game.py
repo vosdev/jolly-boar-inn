@@ -53,7 +53,14 @@ from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
 from app.rooms import state
 from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
-from app.rooms.state import CHANGE_COOLDOWN, BadState, Excluded, RoomQuestion, question_hold
+from app.rooms.state import (
+    ALL_ANSWERED_PAUSE_SECONDS,
+    CHANGE_COOLDOWN,
+    BadState,
+    Excluded,
+    RoomQuestion,
+    question_hold,
+)
 from app.ws.outbox import SEND_TIMEOUT
 from tests.conftest import stub_mode
 from tests.game_api import (
@@ -410,6 +417,32 @@ def test_all_answered_closes_the_question_early(game) -> None:
     assert time.monotonic() - started < 5  # not the 30 seconds the question had left
     assert len(closed["results"]) == 3
     assert game.room.phase == "reveal"
+
+
+def test_everyone_answering_early_holds_the_question_a_second_before_the_reveal(table) -> None:
+    pause = ALL_ANSWERED_PAUSE_SECONDS
+    assert pause == 1.0
+    game = table("Zezima", "Woox", seconds=10, all_answered_pause=pause)
+    game.start()
+    game.opened(0)
+    for seat in game.seats:
+        game.answer(seat, 0, game.right(0))
+        seat.take("answer_ack")
+    answered = time.monotonic()
+    game.admin.take("question_closed")
+    assert pause <= time.monotonic() - answered < pause + 2
+
+
+def test_a_skipped_question_closes_without_the_pause(table) -> None:
+    game = table("Zezima", "Woox", seconds=30, all_answered_pause=5)
+    game.start()
+    game.opened(0)
+    game.answer(game.admin, 0, game.right(0))
+    game.admin.take("answer_ack")
+    started = time.monotonic()
+    game.skip()
+    game.admin.take("question_closed")
+    assert time.monotonic() - started < 3
 
 
 def test_a_disconnected_player_does_not_hold_the_close_up(game) -> None:
