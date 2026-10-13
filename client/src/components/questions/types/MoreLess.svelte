@@ -26,7 +26,7 @@
    * button pressed — which it used to, by drawing the answer in the pressed style.
    */
   import { asOfDate } from '../../../lib/dates'
-  import GemButton, { gemState, indexSet } from '../GemButton.svelte'
+  import GemButton, { gemState, indexSet, pickCounts } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
   import { phrasingFor } from './moreLess'
 
@@ -54,7 +54,7 @@
     answer_index?: Index
   }
 
-  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<Index> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer, results = null }: TypeViewProps<Index> = $props()
 
   // The wire type is `Record<string, unknown>`; this component is the thing that knows
   // what the keys mean, which is why the type map lives one level up and not in here.
@@ -63,6 +63,9 @@
   const metric = $derived(phrasingFor(q.metric).label)
   const answer = $derived(revealed ? (q.answer_index ?? null) : null)
   const picked = $derived(yourValue === 0 || yourValue === 1 ? (yourValue as Index) : null)
+
+  const counts = $derived(revealed && results !== null ? pickCounts(results, 2) : null)
+  const answered = $derived(results === null ? 0 : Object.keys(results).length)
 
   const gp = new Intl.NumberFormat()
 
@@ -79,6 +82,7 @@
       gem={null}
       status={gemState(index, indexSet(picked), indexSet(answer), revealed)}
       mine={picked === index}
+      votes={counts === null ? null : { count: counts[index] ?? 0, of: answered }}
       disabled={revealed || !canAnswer || picked !== null}
       onclick={() => onAnswer(index as Index)}
     >

@@ -32,7 +32,7 @@
     answer_indices?: Indices
   }
 
-  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<Indices> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer, results = null }: TypeViewProps<Indices> = $props()
 
   const q = $derived(data as unknown as Data)
   const ticked = new SvelteSet<number>()
@@ -84,6 +84,7 @@
   {answer}
   {revealed}
   {canAnswer}
+  {results}
   onAnswer={toggle}
   ticked={sent ? null : ticked}
   {full}

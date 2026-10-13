@@ -49,6 +49,23 @@
   export function indexSet(index: number | null): ReadonlySet<number> {
     return new Set(index === null ? [] : [index])
   }
+
+  /**
+   * How many picked each of `options` options, from `question_closed.results`: an index
+   * for a pick of one, a list of indices for pick all that apply.
+   */
+  export function pickCounts(
+    results: Record<string, { value: unknown }>,
+    options: number,
+  ): number[] {
+    const counts: number[] = Array.from({ length: options }, () => 0)
+    for (const { value } of Object.values(results)) {
+      for (const index of Array.isArray(value) ? value : [value]) {
+        if (Number.isInteger(index) && index >= 0 && index < options) counts[index] = (counts[index] ?? 0) + 1
+      }
+    }
+    return counts
+  }
 </script>
 
 <script lang="ts">
@@ -80,6 +97,10 @@
    * so every option stays readable until the ticks are submitted. `place` puts a number in
    * the same box instead, for a question answered by tapping its options in order.
    *
+   * `votes` is the reveal's count of who picked it, with a bar along the bottom edge for
+   * its share of who answered: how the room split, which nobody is named in, so it shows
+   * whatever the room's `name_wrong_answers`. It is the one other thing a reveal adds.
+   *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
    * `FADED_GEM_SHARE`; change the two together.
@@ -94,6 +115,7 @@
     checked = null,
     place,
     said,
+    votes = null,
     disabled,
     onclick,
     children,
@@ -113,6 +135,8 @@
     place?: number | null
     /** What a screen reader hears after the label, in place of what `status` says. */
     said?: string
+    /** On a reveal: how many picked it, of how many answered; null for no count. */
+    votes?: { count: number; of: number } | null
     disabled: boolean
     onclick: () => void
     children: Snippet
@@ -136,6 +160,7 @@
   type="button"
   class="gem {gem ?? 'plain'} {status} {size}"
   class:ticks={checked !== null || place !== undefined}
+  class:counted={votes !== null}
   aria-pressed={checked ?? (place === undefined ? yours : place !== null)}
   {disabled}
   {onclick}
@@ -149,7 +174,12 @@
   {#if yours}
     <span class="you" aria-hidden="true">you</span>
   {/if}
+  {#if votes !== null}
+    <span class="votes" aria-hidden="true">{votes.count}</span>
+    <span class="bar" style:width="{votes.of === 0 ? 0 : (100 * votes.count) / votes.of}%"></span>
+  {/if}
   {#if spoken !== ''}<span class="sr">{spoken}</span>{/if}
+  {#if votes !== null}<span class="sr">, picked by {votes.count} of {votes.of}</span>{/if}
 </button>
 
 <style>
@@ -281,6 +311,37 @@
   .faded .tick.checked {
     background: none;
     color: var(--mark);
+  }
+
+  .counted {
+    overflow: hidden;
+  }
+
+  /* In the corner, clear of a centred label, like the tick box it never shares a button
+     with: a count only comes with the reveal, and the boxes go with it. */
+  .counted:not(.small) {
+    padding-inline: calc(2.5rem - var(--border-give));
+  }
+
+  .votes {
+    font-family: var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+
+  .counted:not(.small) .votes {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.55rem;
+  }
+
+  .bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--mark);
   }
 
   .you {

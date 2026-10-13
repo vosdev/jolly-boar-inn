@@ -55,6 +55,7 @@
     reveal = null,
     yourValue,
     result = null,
+    results = null,
     onAnswer,
     live = false,
     nextAt = null,
@@ -67,6 +68,8 @@
     reveal?: Record<string, unknown> | null
     yourValue: unknown
     result?: PlayerResult | null
+    /** `question_closed.results`, every player's row; null while open. */
+    results?: Record<string, PlayerResult> | null
     onAnswer: (value: unknown) => void
     /** The question arrived as it opened, so its entrance is the room's to see. */
     live?: boolean
@@ -178,6 +181,7 @@
   {reveal}
   {yourValue}
   {result}
+  {results}
   {onAnswer}
   {held}
   shown={prompt === '' ? typist.shown : undefined}

@@ -165,6 +165,7 @@ describe('Room', () => {
     applyServerMessage({ t: 'question_open', question: open })
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0, values: [1, 2] },
       results: {},
@@ -220,6 +221,7 @@ describe('Room', () => {
 
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
@@ -263,6 +265,7 @@ describe('Room', () => {
 
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q1',
       reveal: { ...open.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
@@ -358,6 +361,7 @@ describe('Room', () => {
 
       applyServerMessage({
         t: 'question_closed',
+        unanswered: [],
         question_id: 'q1',
         reveal: {},
         results: { b: { value: 0, correct: true, credit: 1, points: 900 } },
@@ -590,6 +594,7 @@ describe('a random event’s way out', () => {
   function close(nextAt: number): void {
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q_bob',
       reveal: { prompt: PROMPT, options: ['Catspeak', 'Camulet'], answer_index: 0 },
       results: {},
@@ -780,6 +785,7 @@ describe('the shared stage', () => {
     await vi.advanceTimersByTimeAsync(1000)
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q1',
       reveal: { values: [100, 50], answer_index: 0 },
       results: {},
@@ -1054,6 +1060,7 @@ describe('what a screen reader and the tab hear', () => {
     const region = live()
     applyServerMessage({
       t: 'question_closed',
+      unanswered: [],
       question_id: 'q1',
       reveal: { ...WHIP.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },

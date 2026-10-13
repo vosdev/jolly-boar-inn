@@ -13,6 +13,9 @@ from app.questions.types.timing import Pace
 
 # The ready check's 10 s countdown plus a few seconds of players tapping ready.
 SPLASH_SECONDS = 15
+# Added to every reveal that names who got it wrong, at any pace: the names are a second
+# thing to read after the answer.
+NAMES_SECONDS = 1
 PACES: tuple[str, ...] = get_args(Pace)
 
 
@@ -35,8 +38,15 @@ def typical_seconds(questions: Iterable[Mapping[str, Any]]) -> dict[str, float] 
 
 
 def game_seconds(
-    questions: Sequence[tuple[str, dict[str, Any]]], rounds: int, pace: str, standings: int
+    questions: Sequence[tuple[str, dict[str, Any]]],
+    rounds: int,
+    pace: str,
+    standings: int,
+    names: bool = False,
 ) -> int:
     """``questions`` as ``(type, payload)``, plus a splash per round and standings between them."""
-    played = sum(question_seconds(type_id, payload, pace) for type_id, payload in questions)
+    played = sum(
+        question_seconds(type_id, payload, pace) + (NAMES_SECONDS if names else 0)
+        for type_id, payload in questions
+    )
     return played + SPLASH_SECONDS * rounds + standings * max(0, rounds - 1)

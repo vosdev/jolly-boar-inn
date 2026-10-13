@@ -33,7 +33,7 @@
     answer_index?: Index
   }
 
-  let { data, revealed, yourValue, canAnswer, onAnswer }: TypeViewProps<Index> = $props()
+  let { data, revealed, yourValue, canAnswer, onAnswer, results = null }: TypeViewProps<Index> = $props()
 
   const q = $derived(data as unknown as Data)
   const answer = $derived(indexSet(revealed ? (q.answer_index ?? null) : null))
@@ -48,6 +48,7 @@
   {answer}
   {revealed}
   {canAnswer}
+  {results}
   {onAnswer}
 >
   {#snippet label(option: string)}{option}{/snippet}

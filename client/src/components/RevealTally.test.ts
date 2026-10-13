@@ -1,17 +1,28 @@
 /**
- * The lines under a reveal. The count always, and one per partial-credit band that
- * anyone reached; the names of who got it wrong only when the host asked for them, and
- * never a player who came within 70% or did not answer. A closest-number question counts
- * its bands as ranks, since its credit is a rank and not how near the guess was, a
- * pick-all-that-apply question its right picks, and an ordering question its entries in
- * place.
+ * The lines under a reveal. The count always; then, under "Got it wrong", a line per
+ * group of answers that were not right, with its count, and its names only when the host
+ * asked for them; then who did not answer, muted. What a group is depends on the type:
+ * the option for a pick of one, the typed form for free text, the entry for a list, the
+ * rank for closest number, right picks for pick all, entries in place for ordering.
  */
 
-import { render } from '@testing-library/svelte'
-import { describe, expect, it } from 'vitest'
+import { render, waitFor } from '@testing-library/svelte'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { PlayerResult } from '../lib/protocol'
 import RevealTally from './RevealTally.svelte'
+
+vi.mock('../lib/vocab', () => ({
+  loadVocab: () =>
+    Promise.resolve({
+      vocab: 'npcs',
+      version: '1',
+      entries: [
+        { id: 1, name: 'Hans' },
+        { id: 2, name: 'Bob' },
+      ],
+    }),
+}))
 
 const NAMES: Record<string, string> = {
   a: 'Zezima',
@@ -20,29 +31,46 @@ const NAMES: Record<string, string> = {
   d: 'Dorn',
   e: 'Alkan',
   f: 'Tehnoobshow',
+  g: 'Mod Ash',
+  h: 'B0aty',
+  i: 'Settled',
+  j: 'Odablock',
+  k: 'Durial321',
 }
 const nameOf = (id: string) => NAMES[id] ?? null
 
-const right = (points = 900): PlayerResult => ({ value: 0, correct: true, credit: 1, points })
-const wrong: PlayerResult = { value: 1, correct: false, credit: 0, points: 0 }
-const partly = (credit: number): PlayerResult => ({
-  value: 1,
+const right = (value: unknown = 0, points = 900): PlayerResult => ({
+  value,
+  correct: true,
+  credit: 1,
+  points,
+})
+const wrong = (value: unknown = 1): PlayerResult => ({ value, correct: false, credit: 0, points: 0 })
+const partly = (credit: number, value: unknown = 1): PlayerResult => ({
+  value,
   correct: false,
   credit,
   points: Math.round(900 * credit),
 })
 
-const lines = (container: HTMLElement) =>
-  [...container.querySelectorAll('.count')].map((p) => p.textContent?.replace(/\s+/g, ' ').trim())
+const text = (element: Element | null | undefined) =>
+  element?.textContent?.replace(/\s+/g, ' ').trim()
+const lines = (container: HTMLElement) => [...container.querySelectorAll('.group')].map(text)
+const count = (container: HTMLElement) => text(container.querySelector('.count'))
+
+const OPTIONS = { options: ['Abyssal whip', 'Granite maul', 'Dragon scimitar', 'Rune 2h sword'] }
 
 function draw(
   results: Record<string, PlayerResult>,
-  showNames: boolean,
-  youId = 'a',
-  type = 'multiple_choice',
-  reveal: Record<string, unknown> = {},
+  {
+    showNames = true,
+    youId = 'a',
+    type = 'multiple_choice',
+    reveal = OPTIONS as Record<string, unknown>,
+    unanswered = [] as string[],
+  } = {},
 ) {
-  return render(RevealTally, { type, reveal, results, nameOf, youId, showNames })
+  return render(RevealTally, { type, reveal, results, unanswered, nameOf, youId, showNames })
 }
 
 /** A pick-all answer graded as the server does: right picks over right or picked. */
@@ -54,94 +82,124 @@ const picks = (answer: number[], value: number[]): PlayerResult => {
 
 describe('RevealTally', () => {
   it('counts who got it right out of who answered', () => {
-    const { container } = draw({ a: right(), b: wrong, c: right(700) }, false)
-    expect(container.querySelector('.count')?.textContent?.trim()).toBe('2 of 3 got it right')
-    expect(container.querySelector('.wrong')).toBeNull()
+    const { container } = draw({ a: right(), b: wrong(), c: right() }, { showNames: false })
+    expect(count(container)).toBe('2 of 3 got it right')
   })
 
-  it('names who got it wrong when the host asked, alphabetically, marking you', () => {
-    const { container } = draw({ a: wrong, b: wrong, c: right(), d: wrong }, true)
-    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'Got it wrong: Dorn, Woox, Zezima (you)',
-    )
+  it('groups a pick of one by its option, the biggest first, with its gem and names', () => {
+    const { container } = draw({
+      a: wrong(1),
+      b: wrong(2),
+      c: right(0),
+      d: wrong(1),
+      e: wrong(3),
+      f: wrong(3),
+    })
+    expect(text(container.querySelector('.head'))).toBe('Got it wrong')
+    expect(lines(container)).toEqual([
+      'Granite maul (2): Zezima (you), Dorn',
+      'Rune 2h sword (2): Alkan, Tehnoobshow',
+      'Dragon scimitar (1): Woox',
+    ])
+    const chips = [...container.querySelectorAll('.group .chip')].map((chip) => chip.classList[1])
+    expect(chips).toEqual(['emerald', 'red-topaz', 'ruby'])
   })
 
-  it('does not call out a graded guess within 70%', () => {
-    const near: PlayerResult = { value: 99, correct: false, credit: 0.9, points: 750 }
-    const { container } = draw({ a: near, b: wrong }, true)
-    expect(container.querySelector('.count')?.textContent?.trim()).toBe('0 of 2 got it right')
-    expect(container.querySelector('.wrong')?.textContent).not.toContain('Zezima')
-    expect(container.querySelector('.wrong')?.textContent).toContain('Woox')
+  it('keeps the counts and drops the names when the host turned them off', () => {
+    const { container } = draw({ a: wrong(1), b: wrong(2), c: wrong(1) }, { showNames: false })
+    expect(lines(container)).toEqual(['Granite maul (2)', 'Dragon scimitar (1)'])
+    expect(container.textContent).not.toContain('Zezima')
   })
 
-  it('counts partial credit once, in the highest band it reached', () => {
+  it('names eight at most, and you whatever your place', () => {
+    const everyone = Object.fromEntries(Object.keys(NAMES).map((id) => [id, wrong(1)]))
+    const { container } = draw(everyone, { youId: 'a' })
+    expect(lines(container)).toEqual([
+      'Granite maul (11): Zezima (you), Alkan, B0aty, Dorn, Durial321, Lynx, Mod Ash, Odablock and 3 more',
+    ])
+    const last = draw(everyone, { youId: 'b' }).container
+    expect(lines(last)[0]).toContain('Woox (you),')
+  })
+
+  it('writes a price as coins and a more-or-less item by name, with no gem for the item', () => {
+    const prices = draw(
+      { a: wrong(2) },
+      { type: 'price_is_right', reveal: { options: [100, 1_500, 1_600_000, 9] } },
+    ).container
+    expect(lines(prices)).toEqual(['1.6M gp (1): Zezima (you)'])
+    const items = draw(
+      { a: wrong(1) },
+      {
+        type: 'more_less',
+        reveal: { options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Bones' } }] },
+      },
+    ).container
+    expect(lines(items)).toEqual(['Bones (1): Zezima (you)'])
+    expect(items.querySelector('.chip')).toBeNull()
+  })
+
+  it('groups typed answers as the server grades them, said as the first typed it', () => {
     const { container } = draw(
       {
-        a: right(),
-        b: partly(0.95),
-        c: partly(0.9),
-        d: partly(0.89),
-        e: partly(0.7),
-        f: partly(0.69),
+        a: wrong('Jadd'),
+        b: wrong('jadd!'),
+        c: wrong('Zuk'),
+        d: wrong('zuk'),
+        e: wrong('Zulrah'),
+        f: wrong('Vorkath'),
+        g: wrong('Olm'),
+        h: right('Jad'),
       },
-      false,
+      { type: 'free_text', reveal: { accepted: ['Jad'] } },
     )
     expect(lines(container)).toEqual([
-      '1 of 6 got it right',
-      '2 of 6 were at least 90% right',
-      '1 of 6 was at least 80% right',
-      '1 of 6 was at least 70% right',
+      '“Jadd” (2): Zezima (you), Woox',
+      '“Zuk” (2): Dorn, Lynx',
+      '“Zulrah” (1): Alkan',
+      'Something else (2): Mod Ash, Tehnoobshow',
     ])
   })
 
-  it('draws no line for a band nobody reached', () => {
-    const { container } = draw({ a: partly(0.85), b: partly(0.84), c: wrong }, false)
-    expect(lines(container)).toEqual(['0 of 3 got it right', '2 of 3 were at least 80% right'])
-  })
-
-  it('draws the one line it always did for a question that is right or wrong', () => {
-    const { container } = draw({ a: right(), b: wrong, c: right(700) }, true)
-    expect(lines(container)).toEqual(['2 of 3 got it right'])
-  })
-
-  it('names as wrong everyone under 70%, whatever they scored', () => {
-    const { container } = draw({ a: partly(0.7), b: partly(0.69), c: wrong, d: right() }, true)
-    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'Got it wrong: Lynx, Woox',
+  it('draws a fourth typed answer as itself rather than as something else', () => {
+    const { container } = draw(
+      { a: wrong('a'), b: wrong('b'), c: wrong('c'), d: wrong('d') },
+      { type: 'free_text', showNames: false },
     )
+    expect(lines(container)).toEqual(['“a” (1)', '“b” (1)', '“c” (1)', '“d” (1)'])
   })
 
-  it('counts a closest-number guess by its rank, not as a share right', () => {
+  it('names a list pick by its entry', async () => {
+    const { container } = draw(
+      { a: wrong(2), b: right(1) },
+      { type: 'pick_from_list', reveal: { vocab: 'npcs', answer_id: 1 } },
+    )
+    await waitFor(() => expect(lines(container)).toEqual(['Bob (1): Zezima (you)']))
+  })
+
+  it('groups a closest-number guess by its rank, with each guess, furthest off first', () => {
     const { container } = draw(
       {
-        a: right(1000),
-        b: partly(0.9),
-        c: partly(0.8),
-        d: partly(0.7),
-        e: partly(0.7),
-        f: wrong,
+        a: right(100, 1000),
+        b: partly(0.9, 98),
+        c: partly(0.8, 104),
+        d: partly(0.7, 90),
+        e: partly(0.7, 111),
+        f: wrong(5000),
+        g: wrong(300),
       },
-      false,
-      'a',
-      'closest_number',
+      { type: 'closest_number', reveal: { answer: 100 } },
     )
+    expect(count(container)).toBe('1 of 7 guessed it exactly')
     expect(lines(container)).toEqual([
-      '1 of 6 guessed it exactly',
-      '1 of 6 was closest',
-      '1 of 6 was second closest',
-      '2 of 6 were third closest',
+      'Closest (1): Woox 98',
+      'Second closest (1): Lynx 104',
+      'Third closest (2): Alkan 111 · Dorn 90',
+      'Further off (2): Tehnoobshow 5,000 · Mod Ash 300',
     ])
     expect(container.textContent).not.toContain('%')
   })
 
-  it('names as wrong a closest-number guess off the podium', () => {
-    const { container } = draw({ a: partly(0.9), b: wrong }, true, 'a', 'closest_number')
-    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'Got it wrong: Woox',
-    )
-  })
-
-  it('counts a pick-all answer by its right picks, with picks set', () => {
+  it('groups a pick-all answer by its right picks, with picks set', () => {
     const answer = [0, 1, 2, 3]
     const { container } = draw(
       {
@@ -151,16 +209,14 @@ describe('RevealTally', () => {
         d: picks(answer, [1, 2, 4, 5]),
         e: picks(answer, [0, 1, 2, 5]),
       },
-      false,
-      'a',
-      'pick_all_that_apply',
-      { options: ['a', 'b', 'c', 'd', 'e', 'f'], answer_indices: answer, picks: 4 },
+      {
+        showNames: false,
+        type: 'pick_all_that_apply',
+        reveal: { options: ['a', 'b', 'c', 'd', 'e', 'f'], answer_indices: answer, picks: 4 },
+      },
     )
-    expect(lines(container)).toEqual([
-      '1 of 5 got it right',
-      '2 of 5 got 3 of 4 right',
-      '2 of 5 got 2 of 4 right',
-    ])
+    expect(count(container)).toBe('1 of 5 got it right')
+    expect(lines(container)).toEqual(['3 of 4 right (2)', '2 of 4 right (2)'])
   })
 
   it('says how many a pick-all answer got wrong when any number could be picked', () => {
@@ -170,54 +226,36 @@ describe('RevealTally', () => {
         a: picks(answer, [0, 1, 2]),
         b: picks(answer, [0]),
         c: picks(answer, [0, 1, 2, 3]),
+        d: picks(answer, [1, 3]),
       },
-      false,
-      'a',
-      'pick_all_that_apply',
-      { options: ['a', 'b', 'c', 'd'], answer_indices: answer },
+      {
+        type: 'pick_all_that_apply',
+        reveal: { options: ['a', 'b', 'c', 'd'], answer_indices: answer },
+      },
     )
     expect(lines(container)).toEqual([
-      '0 of 3 got it right',
-      '1 of 3 got 2 of 2 right, 1 wrong',
-      '1 of 3 got 2 of 2 right, 2 wrong',
-      '1 of 3 got 1 of 2 right',
+      '2 of 2 right, 1 wrong (1): Zezima (you)',
+      '2 of 2 right, 2 wrong (1): Lynx',
+      '1 of 2 right (1): Woox',
+      'None right (1): Dorn',
     ])
   })
 
-  it('names as wrong only a pick-all answer with no right pick', () => {
-    const answer = [0, 1]
-    const { container } = draw(
-      { a: picks(answer, [0, 4]), b: picks(answer, [4, 5]), c: picks(answer, answer) },
-      true,
-      'a',
-      'pick_all_that_apply',
-      { options: ['a', 'b', 'c', 'd', 'e', 'f'], answer_indices: answer, picks: 2 },
-    )
-    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'Got it wrong: Woox',
-    )
-  })
-
-  it('counts an ordering answer by its entries in place, read off its credit', () => {
+  it('groups an ordering answer by its entries in place, read off its credit', () => {
     const entries = ['a', 'b', 'c', 'd', 'e'].map((text) => ({ text }))
     const { container } = draw(
-      { a: partly(0.6), b: right(), c: partly(0.6), d: partly(0.2), e: wrong },
-      true,
-      'a',
-      'ordering',
-      { entries, answer: [0, 1, 2, 3, 4] },
+      { a: partly(0.6), b: right(), c: partly(0.6), d: partly(0.2), e: wrong() },
+      { type: 'ordering', reveal: { entries, answer: [0, 1, 2, 3, 4] } },
     )
+    expect(count(container)).toBe('1 of 5 got it right')
     expect(lines(container)).toEqual([
-      '1 of 5 got it right',
-      '2 of 5 had 3 of 5 in place',
-      '1 of 5 had 1 of 5 in place',
+      '3 of 5 in place (2): Zezima (you), Lynx',
+      '1 of 5 in place (1): Dorn',
+      'None in place (1): Alkan',
     ])
-    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'Got it wrong: Alkan',
-    )
   })
 
-  it('with picks, counts an ordering answer by its value, in place and out of place', () => {
+  it('with picks, groups an ordering answer by its value, in place and out of place', () => {
     const entries = [1, 2, 3, 4, 5, 6].map((rank) => ({ text: String(rank), rank }))
     const answered = (value: number[], credit: number): PlayerResult => ({
       value,
@@ -232,30 +270,38 @@ describe('RevealTally', () => {
         c: answered([1, 0, 4], 1 / 3),
         d: answered([3, 4, 5], 0),
       },
-      true,
-      'a',
-      'ordering',
-      { entries, answer: [0, 1, 2, 3, 4, 5], picks: 3 },
+      { showNames: false, type: 'ordering', reveal: { entries, answer: [0, 1, 2, 3, 4, 5], picks: 3 } },
     )
+    expect(count(container)).toBe('0 of 4 got it right')
     expect(lines(container)).toEqual([
-      '0 of 4 got it right',
-      '1 of 4 had 2 of 3 in place',
-      '1 of 4 had 1 of 3 in place, 2 out of place',
-      '1 of 4 had 0 of 3 in place, 2 out of place',
+      '2 of 3 in place (1)',
+      '1 of 3 in place, 2 out of place (1)',
+      '0 of 3 in place, 2 out of place (1)',
+      'None in place (1)',
     ])
-    expect(container.querySelector('.wrong')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'Got it wrong: Dorn',
-    )
+  })
+
+  it('lists who did not answer last and muted, and does not count them as answering', () => {
+    const { container } = draw({ a: right(), b: wrong(1) }, { unanswered: ['d', 'c'] })
+    expect(count(container)).toBe('1 of 2 got it right')
+    expect(lines(container)).toEqual(['Granite maul (1): Woox', 'No answer (2): Dorn, Lynx'])
+    expect(container.querySelector('.group:last-child')?.classList.contains('quiet')).toBe(true)
+  })
+
+  it('draws no header when everyone who answered got it right and nobody sat it out', () => {
+    const { container } = draw({ a: right(), b: right() })
+    expect(container.querySelector('.head')).toBeNull()
+    expect(lines(container)).toEqual([])
   })
 
   it('says so when nobody answered', () => {
-    const { container } = draw({}, true)
+    const { container } = draw({}, { unanswered: ['a'] })
     expect(container.textContent?.trim()).toBe('Nobody answered this one.')
   })
 
   it('names somebody who has since left without their name', () => {
-    const { container } = draw({ z: wrong }, true)
-    expect(container.querySelector('.wrong')?.textContent).toContain('Someone who left')
+    const { container } = draw({ z: wrong() })
+    expect(lines(container)[0]).toContain('Someone who left')
   })
 })
 
@@ -287,7 +333,7 @@ describe('the suggester', () => {
   })
 
   it('is not there for a question nobody is credited for', () => {
-    const { container } = draw({ a: right() }, false)
+    const { container } = draw({ a: right() }, { showNames: false })
     expect(container.querySelector('.credit')).toBeNull()
   })
 })

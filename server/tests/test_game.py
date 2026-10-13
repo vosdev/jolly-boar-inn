@@ -47,11 +47,13 @@ from app.questions.types import (
     more_less,
     multiple_choice,
     pick_from_list,
+    reveal_seconds,
     scoring_of,
 )
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
 from app.rooms import state
+from app.rooms.duration import NAMES_SECONDS
 from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
 from app.rooms.state import (
     ALL_ANSWERED_PAUSE_SECONDS,
@@ -915,6 +917,32 @@ def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
     assert closed["reveal"] == more_less.reveal(game.question(0).payload)
     assert db("select * from answers") == []
     assert_memory_matches_db(game, db)
+
+
+def test_the_reveal_lists_who_could_answer_and_did_not(game) -> None:
+    """``unanswered``: connected and allowed, with no answer in. Not the author, not an answerer."""
+    author, other = game.players
+    question = game.room.questions[0]
+    question.source = "room"
+    question.author_player_id = UUID(author.id)
+    game.start()
+    game.opened(0)
+    game.answer(game.admin, 0, game.wrong(0))
+    game.admin.take("answer_ack")
+    game.skip()
+    closed = game.admin.take("question_closed")
+    assert closed["unanswered"] == [other.id]
+    assert list(closed["results"]) == [game.admin.id]
+
+
+def test_naming_wrong_answers_holds_the_reveal_a_second_longer(game) -> None:
+    """``NAMES_SECONDS`` on top of the type's reveal at the room's pace, only with the names on."""
+    room, question = game.room, game.question(0)
+    plain = reveal_seconds(question.type, question.payload, room.settings.pace)
+    assert room.settings.name_wrong_answers is True
+    assert room.question_reveal_seconds(question) == plain + NAMES_SECONDS
+    room.settings = room.settings.model_copy(update={"name_wrong_answers": False})
+    assert room.question_reveal_seconds(question) == plain
 
 
 def test_the_author_of_a_room_question_cannot_answer_it(game) -> None:
@@ -1787,8 +1815,8 @@ def test_a_player_connecting_mid_splash_sees_who_is_ready(table, client) -> None
 
 def test_a_question_and_its_reveal_last_what_its_type_says_at_the_rooms_pace(table) -> None:
     """``more_less`` is ten seconds open and five revealed at ``run``; ``walk`` adds a
-    quarter, rounded to whole seconds."""
-    game = table("Zezima", seconds=None, reveal_seconds=None, pace="walk")
+    quarter, rounded to whole seconds. Without names, which hold every reveal a second more."""
+    game = table("Zezima", seconds=None, reveal_seconds=None, pace="walk", name_wrong_answers=False)
     game.start()
     view = game.opened(0)[0]["question"]
     assert (at(view, "ends_at") - at(view, "opened_at")).total_seconds() == 13
@@ -1801,7 +1829,13 @@ def test_a_question_and_its_reveal_last_what_its_type_says_at_the_rooms_pace(tab
 
 
 def test_an_ordering_question_gets_five_seconds_an_entry_and_two_to_reveal_each(table) -> None:
-    game = table("Zezima", seconds=None, reveal_seconds=None, modes=["sort_it_out"])
+    game = table(
+        "Zezima",
+        seconds=None,
+        reveal_seconds=None,
+        modes=["sort_it_out"],
+        name_wrong_answers=False,
+    )
     entries = len(game.question(0).payload["entries"])
     game.start()
     view = game.opened(0)[0]["question"]

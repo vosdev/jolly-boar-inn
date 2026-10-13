@@ -451,6 +451,7 @@
         reveal={$lastClosed.reveal}
         yourValue={$yourAnswer}
         result={yourResult}
+        results={$lastClosed.results}
         onAnswer={() => {}}
         nextAt={$room.next_at}
       >
@@ -458,6 +459,7 @@
           type={$lastClosed.was.type}
           reveal={$lastClosed.reveal}
           results={$lastClosed.results}
+          unanswered={$lastClosed.unanswered}
           {nameOf}
           youId={$you?.id ?? null}
           showNames={$room.settings.name_wrong_answers === true}

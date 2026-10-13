@@ -11,8 +11,8 @@ import { fireEvent, render, screen } from '@testing-library/svelte'
 import { createRawSnippet } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { OpenQuestion } from '../../lib/protocol'
-import { GEMS, gemState, indexSet } from './GemButton.svelte'
+import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
+import { GEMS, gemState, indexSet, pickCounts } from './GemButton.svelte'
 import GemChoices from './GemChoices.svelte'
 import Question from './Question.svelte'
 
@@ -29,6 +29,7 @@ function draw(props: {
   canAnswer?: boolean
   options?: string[]
   onAnswer?: (index: number) => void
+  results?: Record<string, PlayerResult> | null
 }) {
   return render(GemChoices<string>, {
     options: props.options ?? SIX,
@@ -38,6 +39,7 @@ function draw(props: {
     canAnswer: props.canAnswer ?? true,
     onAnswer: props.onAnswer ?? (() => {}),
     label,
+    results: props.results ?? null,
   })
 }
 
@@ -231,5 +233,30 @@ describe('more_less on the plain buttons', () => {
     render(Question, { question: open, yourValue: null, onAnswer: () => {} })
     expect(buttons().every((b) => b.classList.contains('plain'))).toBe(true)
     expect(buttons().some((b) => GEMS.some((gem) => b.classList.contains(gem)))).toBe(false)
+  })
+})
+
+describe('how the room split', () => {
+  const picked = (value: unknown): PlayerResult => ({ value, correct: false, credit: 0, points: 0 })
+
+  it('counts a pick of one and a pick of several alike, ignoring what is not an option', () => {
+    const results = { a: picked(0), b: picked(2), c: picked([0, 1]), d: picked(9), e: picked('x') }
+    expect(pickCounts(results, 3)).toEqual([2, 1, 1])
+  })
+
+  it('puts on every gem how many picked it, with a bar for its share, on the reveal', () => {
+    const results = { a: picked(1), b: picked(1), c: picked(0), d: picked(3) }
+    const { container } = draw({ options: SIX.slice(0, 4), answer: 1, revealed: true, results })
+    const votes = [...container.querySelectorAll('.votes')].map((v) => v.textContent)
+    expect(votes).toEqual(['1', '2', '0', '1'])
+    const bars = [...container.querySelectorAll<HTMLElement>('.bar')].map((b) => b.style.width)
+    expect(bars).toEqual(['25%', '50%', '0%', '25%'])
+    expect(buttons()[1]?.textContent).toContain('picked by 2 of 4')
+  })
+
+  it('counts nothing while the question is open', () => {
+    const { container } = draw({ results: { a: picked(1) } })
+    expect(container.querySelector('.votes')).toBeNull()
+    expect(container.querySelector('.bar')).toBeNull()
   })
 })
