@@ -34,7 +34,7 @@ def test_every_question_is_a_sort_it_out_order_with_its_own_prompt(
     if tag == "procedure":
         assert prompt.endswith("?")
     else:
-        assert tag in {"tier", "combat", "release"} and prompt.startswith("Sort ")
+        assert tag in {"tier", "combat", "release", "geography"} and prompt.startswith("Sort ")
 
 
 def test_the_pack_has_twenty_orders_six_of_tiers_and_five_of_release_dates() -> None:
