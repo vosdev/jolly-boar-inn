@@ -35,7 +35,7 @@
       }
     },
     {
-      "id": "q_a45601098209cda0",
+      "id": "q_269302f1f56e9103",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -46,9 +46,9 @@
         "intro": "Be careful out there in the Wilderness! A Teleblock can really ruin an escape!",
         "prompt": "Without Protect from Magic, how many minutes does a full Teleblock last?",
         "options": [
+          "10 minutes",
           "3 minutes",
           "2.5 minutes",
-          "10 minutes",
           "5 minutes"
         ],
         "answer_index": 3
@@ -101,7 +101,7 @@
       }
     },
     {
-      "id": "q_671b55e2aa7f7077",
+      "id": "q_3e35436105df55f3",
       "type": "pick_all_that_apply",
       "mode": "random_event",
       "source": "pack",
@@ -117,13 +117,13 @@
           "Zulrah",
           "Venenatis",
           "Cerberus",
-          "Scorpia",
-          "Vorkath"
+          "Vorkath",
+          "Scorpia"
         ],
         "answer_indices": [
           0,
           2,
-          4
+          5
         ]
       }
     }

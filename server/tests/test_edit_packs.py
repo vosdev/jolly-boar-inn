@@ -135,6 +135,19 @@ def test_a_change_to_an_id_no_longer_in_the_packs_is_refused_by_name(
     assert f"deletes[0]: '{gone}' is not in the packs" in err
 
 
+def test_a_change_to_a_generated_pack_writes_nothing_and_names_the_pack(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    first, second = pack(repo, "prices.json")[:2]
+    edit = {"id": first["id"], "question": reworded(first, explanation="Better.")}
+    before = snapshot(repo)
+    assert run(repo, {"edits": [edit], "deletes": [second["id"]]}) == 1
+    assert snapshot(repo) == before
+    err = capsys.readouterr().err
+    assert f"edits[0]: {first['id']} is in prices.json, which" in err
+    assert f"deletes[0]: {second['id']} is in prices.json, which" in err
+
+
 def test_packs_that_would_not_load_write_nothing(
     repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
 ) -> None:

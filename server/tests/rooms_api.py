@@ -128,10 +128,12 @@ def create_fast(
     ``custom`` is the admin's own questions, placed as random events and authored by them.
     ``seconds`` and ``reveal_seconds``, one each by default, hold every question and reveal
     in the room to that length, whatever its type and pace: a game a test can sit through.
+    ``all_answered_pause`` is none unless a test asks for it.
     """
     app.state.rooms.splashes = overrides.pop("splash", False)
     app.state.rooms.answer_seconds = overrides.pop("seconds", 1)
     app.state.rooms.reveal_seconds = overrides.pop("reveal_seconds", 1)
+    app.state.rooms.all_answered_pause = overrides.pop("all_answered_pause", 0)
     settings = fast_settings(**overrides)
     return call(client, app.state.rooms.create, name, settings, custom or [])
 

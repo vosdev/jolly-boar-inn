@@ -2,7 +2,7 @@
   "pack": "who_said_that",
   "questions": [
     {
-      "id": "q_d73886de3961d116",
+      "id": "q_c77f770dfedf489e",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -13,18 +13,18 @@
         "prompt": "Who said this?",
         "quote": "What am I to do?",
         "options": [
-          "Cook",
           "Hans",
           "Duke Horacio",
+          "Cook",
           "Father Aereck"
         ],
-        "answer_index": 0,
+        "answer_index": 2,
         "explanation": "The Lumbridge Cook, who needs an egg, milk and flour for the Duke's birthday cake."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Transcript:Cook%27s_Assistant"
     },
     {
-      "id": "q_e8577cbcb40b10c5",
+      "id": "q_ed4653403015eb1a",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -36,17 +36,17 @@
         "quote": "By Guthix! THAT was good pie! Anyone who makes pie like THAT has got to be alright!",
         "options": [
           "Romily Weaklax",
-          "Thurgo",
           "Doric",
-          "Wise Old Man"
+          "Wise Old Man",
+          "Thurgo"
         ],
-        "answer_index": 1,
+        "answer_index": 3,
         "explanation": "Thurgo, the Imcando dwarf, once you bring him a redberry pie in The Knight's Sword."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Transcript:The_Knight%27s_Sword"
     },
     {
-      "id": "q_963d6423c72acca1",
+      "id": "q_d737aa4658649d16",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -58,9 +58,9 @@
         "quote": "Seriously, you'll be a monkey's uncle before you'll ever hold a dragon scimitar.",
         "options": [
           "Daga",
-          "King Awowogei",
+          "Monkey Child",
           "Zeke",
-          "Monkey Child"
+          "King Awowogei"
         ],
         "answer_index": 2,
         "explanation": "Zeke, of Al Kharid's scimitar shop, when asked about dragon scimitars."
@@ -68,7 +68,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Zeke"
     },
     {
-      "id": "q_5ff3cd895b2af5a7",
+      "id": "q_14b26202c32e01b5",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -79,18 +79,18 @@
         "prompt": "Who said this?",
         "quote": "Do you seek passage to holy Entrana? If so, you must leave your weaponry and armour behind. This is Saradomin's will.",
         "options": [
-          "Brother Jered",
+          "Monk of Entrana",
           "Captain Tobias",
-          "Drezel",
-          "Monk of Entrana"
+          "Brother Jered",
+          "Drezel"
         ],
-        "answer_index": 3,
+        "answer_index": 0,
         "explanation": "The Monks of Entrana, on the docks at Port Sarim."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Transcript:Monk_of_Entrana"
     },
     {
-      "id": "q_1eca4030f7be7fad",
+      "id": "q_0d0ee835605f1c9b",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -101,18 +101,18 @@
         "prompt": "Who said this?",
         "quote": "Welcome adventurer, to the world renowned Wizards' Tower, home to the Order of Wizards.",
         "options": [
-          "Archmage Sedridor",
+          "Wizard Mizgog",
           "Wizard Traiborn",
-          "Aubury",
-          "Wizard Mizgog"
+          "Archmage Sedridor",
+          "Aubury"
         ],
-        "answer_index": 0,
+        "answer_index": 2,
         "explanation": "Archmage Sedridor, in the Wizards' Tower basement, during Rune Mysteries."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Transcript:Rune_Mysteries"
     },
     {
-      "id": "q_de69dab1c7c8e8e1",
+      "id": "q_f235ec554829e420",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -124,16 +124,16 @@
         "quote": "As long as we remain vigilant and praise the Sun, all will be well.",
         "prompt": "Who said this?",
         "options": [
-          "Sol Heredit",
           "Metzli",
-          "Prince Itzla Arkan",
-          "Phoenix"
+          "Phoenix",
+          "Sol Heredit",
+          "Prince Itzla Arkan"
         ],
-        "answer_index": 3
+        "answer_index": 1
       }
     },
     {
-      "id": "q_50da701a9ea113f0",
+      "id": "q_bd24afe81ddbaf2c",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -144,18 +144,18 @@
         "quote": "That outfit is TOTALLY EVIL! And you've got an evil cat too! To be honest I'm a little bit scared of you!",
         "prompt": "Who said this?",
         "options": [
-          "Evil Dave",
-          "Zamorak",
           "Monk of Entrana",
+          "Zamorak",
+          "Gertrude",
           "Hans",
-          "Gertrude"
+          "Evil Dave"
         ],
         "explanation": "Evil Dave is evil!",
-        "answer_index": 0
+        "answer_index": 4
       }
     },
     {
-      "id": "q_f6c50ebc12a730ca",
+      "id": "q_5efc8cf302c36d33",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -166,19 +166,19 @@
         "quote": "Yeah! I'm going to use it to summon DEMONS to DO MY BIDDING, or raise an ARMY OF THE UNDEAD! And then I'm going to totally, like, take over the world!",
         "prompt": "Who said this?",
         "options": [
-          "Evil Dave",
-          "King Narnode Shareen",
-          "Evil Bob",
-          "Evil twin",
           "Evil chicken",
-          "Fairy Godfather"
+          "Evil Bob",
+          "King Narnode Shareen",
+          "Fairy Godfather",
+          "Evil Dave",
+          "Evil twin"
         ],
         "explanation": "Evil Dave! Ah-ha-ha-ha-ha-haa!",
-        "answer_index": 0
+        "answer_index": 4
       }
     },
     {
-      "id": "q_3eed7d939ecb2efb",
+      "id": "q_fa66716a3fbabf8a",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -189,18 +189,18 @@
         "quote": "Yous just-a better keep-a your nose outa my business. I's da Godfather and I's da one who's inna charge here.",
         "prompt": "Who said this?",
         "options": [
+          "Slim Louie",
           "Fairy Godfather",
-          "Fairy Nuff",
           "Fat Rocco",
           "Evil Dave",
-          "Slim Louie"
+          "Fairy Nuff"
         ],
         "explanation": "Bravo!",
-        "answer_index": 0
+        "answer_index": 1
       }
     },
     {
-      "id": "q_8c8727705737b7ed",
+      "id": "q_5a4fa5d6d2da45a1",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -213,16 +213,16 @@
         "prompt": "Who said this?",
         "options": [
           "Uri",
-          "Wise Old Man",
           "Party Pete",
-          "Charlie the Tramp"
+          "Charlie the Tramp",
+          "Wise Old Man"
         ],
         "explanation": "Uri may say this at random when you complete an emote clue step.",
         "answer_index": 0
       }
     },
     {
-      "id": "q_2fce13917b8747c2",
+      "id": "q_d0af98bd3b752ef8",
       "type": "multiple_choice",
       "mode": "who_said_that",
       "source": "pack",
@@ -235,9 +235,9 @@
         "prompt": "Who said this?",
         "options": [
           "Oziach",
-          "Brundt the Chieftain",
           "Jardric",
-          "Ned"
+          "Ned",
+          "Brundt the Chieftain"
         ],
         "explanation": "Oziach will say this when spoken to, after completion of Dragon Slayer I.",
         "answer_index": 0

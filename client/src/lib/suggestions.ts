@@ -99,6 +99,20 @@ export interface Choice {
   types: readonly SuggestedType[]
   /** Whether a multiple-choice question may carry a quotation: `QUOTE_MODES` on the server. */
   quote?: boolean
+  /** The question a new one starts with, and whether it may be changed. */
+  prompt?: RoundPrompt
+}
+
+export interface RoundPrompt {
+  text: string
+  /** `FIXED_PROMPTS` on the server: the round asks only this. */
+  fixed: boolean
+}
+
+/** What most of a round's questions ask, so a suggestion need not type it. */
+const ROUND_PROMPTS: Record<string, RoundPrompt> = {
+  who_said_that: { text: 'Who said that?', fixed: false },
+  odd_one_out: { text: "Which one doesn't belong?", fixed: true },
 }
 
 /** Rounds that take four-button questions, built or not, with `ROUND_TYPES`: `QUESTION_MODES` on the server. */
@@ -171,6 +185,7 @@ export const CHOICES: readonly Choice[] = [
       host: mode.host,
       types: ROUND_TYPES[mode.id] ?? ['multiple_choice'],
       quote: QUOTE_ROUNDS.includes(mode.id),
+      prompt: ROUND_PROMPTS[mode.id],
     }),
   ),
   ...ORDERING_ROUNDS.map(choiceRound).filter((mode) => mode !== undefined).map(
@@ -189,6 +204,12 @@ export const CHOICES: readonly Choice[] = [
 export function choiceOf(kind: SuggestionKind, content: SuggestionContent): Choice | undefined {
   const id = kind === 'question' ? (content as QuestionContent).mode : kind
   return CHOICES.find((choice) => choice.id === id)
+}
+
+/** The NPC a stored suggestion shows: a random event's own, else its choice's host. */
+export function hostOf(kind: SuggestionKind, content: SuggestionContent): string {
+  const event = kind === 'question' ? (content as QuestionContent).random_event : undefined
+  return event ?? choiceOf(kind, content)?.host ?? 'innkeeper'
 }
 
 /** A mode's name as players would read it, built or not. */

@@ -124,6 +124,9 @@ CHANGE_COOLDOWN = 1.0
 # Seconds an ``editing`` flag lasts without being sent again. A tab that froze or lost its
 # socket half-way would otherwise leave "picking a name…" up for the rest of the lobby.
 EDITING_SECONDS = 60.0
+# Seconds the reveal waits once everyone has answered early, so the last tap is seen to land
+# before the answer jumps up.
+ALL_ANSWERED_PAUSE_SECONDS = 1.0
 # Requests waiting on an admin at once, so somebody guessing codes cannot bury a lobby.
 MAX_JOIN_REQUESTS = 5
 # Seconds a request outlives its requester's last poll; the waiting page polls every two.
@@ -877,6 +880,8 @@ class RoomManager:
         # straight into its first question.
         self.splashes = True
         self.editing_seconds = EDITING_SECONDS
+        # Zero in most of the test suite, which plays a game in a second or two.
+        self.all_answered_pause = ALL_ANSWERED_PAUSE_SECONDS
         # Set only in the test suite, to play a game in seconds: every question open for
         # this long, every reveal this long, whatever their type and the room's pace.
         self.answer_seconds: int | None = None
@@ -2089,6 +2094,7 @@ class RoomManager:
                 if question is None or question.ends_mono is None:
                     return
                 await self._sleep_until(room, question.ends_mono)
+                await self._pause_if_all_answered(room, question)
                 reveal_ends = await self._close_question(room, question)
                 if reveal_ends is None:
                     return
@@ -2121,6 +2127,22 @@ class RoomManager:
                 await room.advance.wait()
         except TimeoutError:
             pass
+
+    async def _pause_if_all_answered(self, room: Room, question: RoomQuestion) -> None:
+        """Hold a question everyone answered early open ``all_answered_pause`` longer.
+
+        Never past its own end, and not for a timeout, a skip that came first or a room
+        that has moved on. The question still takes answers meanwhile.
+        """
+        async with room.lock:
+            if room.open_question() is not question or _closed_by(room, question) != (
+                Metric.QUESTIONS_ALL_ANSWERED
+            ):
+                return
+        assert question.ends_mono is not None  # set when the question opened
+        await asyncio.sleep(
+            min(self.all_answered_pause, max(0.0, question.ends_mono - self.clock()))
+        )
 
     async def _splash(self, room: Room, index: int) -> bool:
         """Introduce the round ``index`` starts, if it starts one. False: the room is gone.

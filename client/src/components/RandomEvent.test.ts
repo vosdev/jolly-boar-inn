@@ -284,7 +284,7 @@ describe('the interlude', () => {
     }
   })
 
-  it('hands the stage back to the host in the reveal’s last 375 ms', async () => {
+  it('hands the stage back to the host in the reveal’s last 900 ms', async () => {
     render(RandomEvent, {
       question: event(),
       reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
@@ -294,7 +294,7 @@ describe('the interlude', () => {
     })
     expect(row().classList.contains('event')).toBe(true)
     expect(row().classList.contains('returning')).toBe(false)
-    await after(7615)
+    await after(7090)
     expect(row().classList.contains('returning')).toBe(false)
     await after(20)
     expect(row().classList.contains('returning')).toBe(true)

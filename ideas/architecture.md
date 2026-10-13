@@ -23,7 +23,7 @@ final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
-                                   edit-roster, fetch-assets, logo, image; CI: release
+                                   edit-roster, rehash-questions, fetch-assets, logo, image; CI: release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/
 data/                              assets, pets, popular-items, player-names, room-words
@@ -36,8 +36,8 @@ server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normali
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
-                                   edit_roster, fetch_assets, build_logo, validate_packs, check_contrast,
-                                   smoke_ws, loadtest
+                                   edit_roster, rehash_questions, fetch_assets, build_logo,
+                                   validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
 client/src/components/questions/   viewFor(type, mode), Question, gem buttons; types/, stems/
@@ -367,8 +367,8 @@ open ─end_game / crash─▶ voided
 - A splash runs before each segment's first question, never before an event.
 - Open stamps `shown_at` and sets `answerable_at` and `ends_at`. Close grades, then writes
   `closed_at`, `correct` and `points` in one transaction.
-- `close_when_all_answered` closes once every connected eligible player has answered, also when a
-  disconnect or kick makes that true.
+- `close_when_all_answered` closes 1 s after every connected eligible player has answered (never
+  past the question's end), also when a disconnect or kick makes that true. A skip doesn't wait.
 - `skip` and all-answered set `Room.advance`; they never cancel the task.
 - Deadlines live on the monotonic clock, so a late wakeup closes at once and a clock jump moves
   nothing.
@@ -638,12 +638,15 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
-  they hold, keeping `credit`. An examine's name is its first option; an item's id
+  they hold, keeping `credit`. A question's options are stored in their seeded order (the form
+  puts the right one first). An examine's name is its first option; an item's id
   comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
   that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
-  an id the packs no longer hold, or packs that would not load, writes nothing.
+  an id the packs no longer hold or in a generated pack, or packs that would not load, writes nothing.
+- `make rehash-questions` rewrites each pack id that no longer matches its content, nothing else.
+  Packs that would still not load write nothing.
 - `make edit-roster FILE=…` applies an export of roster changes: a rename keeps the item's place, a
   removal drops it. A change to an id the roster lacks, or packs that would not load, writes nothing.
   The price pack keeps the old names until the next `gen-price-questions`.

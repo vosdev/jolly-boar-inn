@@ -58,6 +58,9 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
 # The rounds that show a quotation under the prompt (``multiple_choice.quote``).
 QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
 
+# Rounds whose questions all ask the same thing: the pack's tests hold them to it.
+FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?"}
+
 # The intro is an NPC's line before the question, so only an NPC's question takes one.
 INTRO_MODES = frozenset({"random_event"})
 
@@ -154,6 +157,9 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
     found = schema.schema_errors(envelope)
     if found:
         return found
+    fixed = FIXED_PROMPTS.get(mode)
+    if fixed is not None and content["payload"]["prompt"] != fixed:
+        return [f"$.payload.prompt: {mode!r} always asks {fixed!r}"]
     if mode in MODES:
         return schema.consistency_errors(envelope)
     return [f"$.payload.{message}" for message in TYPES[content["type"]].check(content["payload"])]

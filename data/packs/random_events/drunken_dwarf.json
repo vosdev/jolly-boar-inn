@@ -35,7 +35,7 @@
       }
     },
     {
-      "id": "q_134949b8c1bb1c76",
+      "id": "q_0e223aa0650195e5",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -48,18 +48,18 @@
         "prompt": "Who destroyed the ancient dwarven city of Camdozaal?",
         "options": [
           "Fremenniks",
+          "Imcando",
           "Zarosians",
-          "Mahjarrat",
           "Black Knights",
           "Saradominists",
-          "Imcando"
+          "Mahjarrat"
         ],
         "explanation": "In the early Fifth Age, the Fremenniks went on a series of crusades against all forms of magic. Camdozaal was one of the places that they destroyed, wiping out nearly all Imcando dwarves.",
         "answer_index": 0
       }
     },
     {
-      "id": "q_542c053eda49fb7a",
+      "id": "q_a89cb205519589c8",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -72,9 +72,9 @@
         "prompt": "What can you add to a kebab to turn it into a super kebab?",
         "options": [
           "Red hot sauce",
-          "Kebab mix",
           "Garlic powder",
           "Chopped tomato",
+          "Kebab mix",
           "Chopped garlic",
           "Spice"
         ],
@@ -100,7 +100,7 @@
       }
     },
     {
-      "id": "q_0034675d65c21c16",
+      "id": "q_e088eb00c3f95e45",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -113,9 +113,9 @@
         "prompt": "You\u2019ll see seven drunken dwarves on your boat when you taste a bottle of what?",
         "options": [
           "Platinum rum",
-          "Dwarven wizard\u2019s stout bomb",
+          "Crystal clear vodka",
           "Zul-rye beer",
-          "Crystal clear vodka"
+          "Dwarven wizard\u2019s stout bomb"
         ],
         "explanation": "One bottle of platinum rum can be found in a crate just south of Sunbleak Island.",
         "answer_index": 0

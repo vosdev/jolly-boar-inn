@@ -43,6 +43,7 @@
     asker = 'optional',
     mode = 'custom',
     quote = false,
+    promptFixed = false,
     pack = false,
     intro = false,
     picker = undefined,
@@ -66,6 +67,8 @@
     mode?: string
     /** Whether a multiple-choice question may carry a quotation under its prompt. */
     quote?: boolean
+    /** Whether the prompt is the round's own, shown but not editable. */
+    promptFixed?: boolean
     /** Whether the intro and the picture show, which only pack questions carry. */
     pack?: boolean
     /** Whether the intro shows without the picture. */
@@ -253,7 +256,7 @@
 
       <div class="field">
         <label for="{id}-prompt">Question</label>
-        <textarea id="{id}-prompt" rows="3" bind:value={draft.prompt}></textarea>
+        <textarea id="{id}-prompt" rows="3" bind:value={draft.prompt} readonly={promptFixed}></textarea>
         <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
         {@render errors('payload.prompt')}
       </div>

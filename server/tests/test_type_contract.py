@@ -15,8 +15,10 @@ from uuid import uuid4
 
 import pytest
 
+from app.config import REPO_ROOT
 from app.modes import type_questions
 from app.questions import schema
+from app.questions.packs import load_packs
 from app.questions.submission import Submission
 from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
@@ -291,6 +293,20 @@ def test_the_game_tests_answers_are_right_and_wrong_as_they_say(type_id: str) ->
     assert right is not None and wrong is not None
     assert grade_alone(type_id, right) == 1.0
     assert grade_alone(type_id, wrong) < 1.0
+
+
+SHIPPED = [q for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
+
+
+@pytest.mark.parametrize("question", SHIPPED, ids=lambda q: q["id"])
+def test_the_game_tests_answers_hold_for_every_shipped_question(question: dict[str, Any]) -> None:
+    """A room may draw any of them, and an answer the server refuses is never acked."""
+    module, payload = TYPES[question["type"]], question["payload"]
+    right = module.parse_value(payload, answers.right_value(question["type"], payload))
+    wrong = module.parse_value(payload, answers.wrong_value(question["type"], payload))
+    assert right is not None and wrong is not None
+    credit = module.grade(payload, [Submission(uuid4(), right), Submission(uuid4(), wrong)])
+    assert sorted(credit.values())[-1] == 1.0 > sorted(credit.values())[0]
 
 
 @per_type

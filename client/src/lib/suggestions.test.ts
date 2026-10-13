@@ -10,6 +10,7 @@ import {
   creditProblem,
   examineProblems,
   exportName,
+  hostOf,
   itemProblem,
   maySuggest,
   retryIn,
@@ -104,6 +105,12 @@ describe('the choices', () => {
   it('finds the one a stored suggestion was written under', () => {
     expect(choiceOf('question', QUESTION)?.id).toBe('odd_one_out')
     expect(choiceOf('item', { name: 'Abyssal whip' })?.id).toBe('item')
+  })
+
+  it("shows a random event's own NPC, and the round's host otherwise", () => {
+    expect(hostOf('question', { ...QUESTION, mode: 'random_event', random_event: 'thurgo' })).toBe('thurgo')
+    expect(hostOf('question', { ...QUESTION, mode: 'random_event' })).toBe('sandwich_lady')
+    expect(hostOf('item', { name: 'Abyssal whip' })).toBe('grand_exchange_clerk')
   })
 })
 
