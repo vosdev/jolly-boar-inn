@@ -24,7 +24,7 @@ import { applyServerMessage } from "./lib/stores";
 
 vi.mock("./lib/api", async (importOriginal) => {
   const real = await importOriginal<typeof import("./lib/api")>();
-  return { ...real, getModes: vi.fn(), getRoom: vi.fn(), joinRoom: vi.fn() };
+  return { ...real, getCredits: vi.fn(), getModes: vi.fn(), getRoom: vi.fn(), joinRoom: vi.fn() };
 });
 
 vi.mock("./lib/ws", () => ({
@@ -317,6 +317,14 @@ describe("App", () => {
 
     at("/history/ABYSSAL/2610012006");
     await screen.findByText("This browser kept no result for that game.");
+  });
+
+  it("draws the credits at /credits", async () => {
+    vi.mocked(api.getCredits).mockResolvedValue({ authors: [{ name: "Tayka", questions: 17 }] });
+    at("/credits");
+    await screen.findByRole("heading", { level: 1, name: "Credits" });
+    expect(await screen.findByRole("cell", { name: "Tayka" })).toBeTruthy();
+    expect(location.pathname).toBe("/credits");
   });
 
   it("opens the admin view at /admin, taking the token out of the address bar", async () => {

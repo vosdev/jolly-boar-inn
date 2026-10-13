@@ -11,6 +11,7 @@
  *   /admin/:tab      on its overview, or on its suggestions, reports or questions tab
    *   /suggest         A question for the packs, linked from Home once this browser has played
    *   /report          A problem with a pack question, linked from the same place
+   *   /credits         Who wrote the pack questions, linked from the footer
    *
    * `/r/:code/admin` was the claim screen. It still matches, and now resolves like
    * `/r/:code`: somebody holding a stale host link knows the code, and sending them to
@@ -29,6 +30,7 @@
   import TopBar from './components/TopBar.svelte'
   import Admin from './routes/Admin.svelte'
   import Create from './routes/Create.svelte'
+  import Credits from './routes/Credits.svelte'
   import History from './routes/History.svelte'
   import Home from './routes/Home.svelte'
   import Join from './routes/Join.svelte'
@@ -50,6 +52,7 @@
     | { name: 'admin'; tab: AdminTab }
     | { name: 'suggest' }
     | { name: 'report' }
+    | { name: 'credits' }
 
   // Section 1 lists `/r/:code/create` as well; it resolves to the same Create screen.
   const ROOM_PATH = /^\/r\/([A-Za-z0-9]{1,32})(?:\/(admin|create))?$/
@@ -66,6 +69,7 @@
     if (tab !== null) return { name: 'admin', tab }
     if (path === '/suggest') return { name: 'suggest' }
     if (path === '/report') return { name: 'report' }
+    if (path === '/credits') return { name: 'credits' }
     const past = HISTORY_PATH.exec(path)
     if (past !== null) return { name: 'history', code: normalizeCode(past[1] ?? ''), stamp: past[2] ?? '' }
     const match = ROOM_PATH.exec(path)
@@ -100,6 +104,7 @@
       route.name !== 'admin' &&
       route.name !== 'suggest' &&
       route.name !== 'report' &&
+      route.name !== 'credits' &&
       !invite &&
       (location.hash !== '' || currentPath().endsWith('/admin'))
     ) {
@@ -144,6 +149,8 @@
     <Suggest {navigate} />
   {:else if route.name === 'report'}
     <Report {navigate} />
+  {:else if route.name === 'credits'}
+    <Credits {navigate} />
   {:else if route.name === 'history'}
     {#key `${route.code}/${route.stamp}`}
       <History code={route.code} stamp={route.stamp} {navigate} />
