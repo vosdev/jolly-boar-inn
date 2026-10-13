@@ -350,7 +350,7 @@ describe("App", () => {
     }
   });
 
-  it("links to /admin from the footer alone, which shows it only to a browser holding the token", () => {
+  it("links to /admin from Home alone, which shows it only to a browser holding the token", () => {
     const sources = import.meta.glob(
       ["./**/*.svelte", "./**/*.ts", "!./**/*.test.ts"],
       {
@@ -367,6 +367,6 @@ describe("App", () => {
         ),
       )
       .map(([path]) => path);
-    expect(linking).toEqual(["./components/Footer.svelte"]);
+    expect(linking).toEqual(["./routes/Home.svelte"]);
   });
 });

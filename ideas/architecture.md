@@ -46,7 +46,7 @@ client/src/components/questions/   viewFor(type, mode), Question, gem buttons; t
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
-operator's view, section 10), linked from Home only once this
+operator's view, section 10), linked from Home's Suggest panel once this
 browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
