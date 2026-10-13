@@ -2,7 +2,7 @@
   "pack": "bestiary",
   "questions": [
     {
-      "id": "q_0e4d39742def508e",
+      "id": "q_f81f7ca15a0c0441",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -12,18 +12,18 @@
       "payload": {
         "prompt": "General Graardor wears Bandosian war armour, but what is he wearing on his feet?",
         "options": [
-          "Nothing",
           "Bandos boots",
+          "Rune boots",
           "Dragon boots",
-          "Rune boots"
+          "Nothing"
         ],
-        "answer_index": 0,
+        "answer_index": 3,
         "explanation": "Nothing at all: his model on the OSRS Wiki shows bare feet below the armour."
       },
       "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
     },
     {
-      "id": "q_b336742da7a480ac",
+      "id": "q_0550bf09cb598ba2",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -33,9 +33,9 @@
       "payload": {
         "prompt": "Which of Vorkath's eyes is torn out and scarred shut?",
         "options": [
-          "His right",
-          "His left",
           "Both",
+          "His left",
+          "His right",
           "Neither"
         ],
         "answer_index": 1,
@@ -107,7 +107,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Elvarg"
     },
     {
-      "id": "q_772bbf4e133605b2",
+      "id": "q_390b7f02ddd4603a",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -117,18 +117,18 @@
       "payload": {
         "prompt": "Where does the Giant Mole live?",
         "options": [
+          "Under Port Sarim jail",
           "Under Lumbridge Swamp",
           "Under Draynor Manor",
-          "Under Falador Park",
-          "Under Port Sarim jail"
+          "Under Falador Park"
         ],
-        "answer_index": 2,
+        "answer_index": 3,
         "explanation": "In the Mole Hole under Falador Park, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
     },
     {
-      "id": "q_810cbf0eda986419",
+      "id": "q_697de7d11a474386",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -139,17 +139,17 @@
         "prompt": "Which weapons hit the Corporeal Beast for full damage when they stab?",
         "options": [
           "Daggers and rapiers",
+          "Spears and halberds",
           "Maces and warhammers",
-          "Claws and scimitars",
-          "Spears and halberds"
+          "Claws and scimitars"
         ],
-        "answer_index": 3,
+        "answer_index": 1,
         "explanation": "Spears and halberds, with Osmumten's fang and a few others. Every other melee weapon does half, per the OSRS Wiki's Corpbane weapons page."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Corpbane_weapons"
     },
     {
-      "id": "q_701ea3778e10e4a0",
+      "id": "q_bd2cf843cb8b93b3",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -159,12 +159,12 @@
       "payload": {
         "prompt": "What race is General Graardor?",
         "options": [
-          "Ourg",
-          "Ogre",
           "Goblin",
-          "Troll"
+          "Troll",
+          "Ourg",
+          "Ogre"
         ],
-        "answer_index": 0,
+        "answer_index": 2,
         "explanation": "An ourg, and the only known living one, per his OSRS Wiki page."
       },
       "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
@@ -272,7 +272,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
     },
     {
-      "id": "q_6b25eab57b0cc5a8",
+      "id": "q_98bb0aaa41750d90",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -282,18 +282,18 @@
       "payload": {
         "prompt": "Which item shows where the Giant Mole has burrowed to?",
         "options": [
-          "Explorer's ring 3",
-          "Karamja gloves 3",
           "Ardougne cloak 3",
-          "Falador shield 3"
+          "Karamja gloves 3",
+          "Falador shield 3",
+          "Explorer's ring 3"
         ],
-        "answer_index": 3,
+        "answer_index": 2,
         "explanation": "A Falador shield 3 or better in your inventory, per the OSRS Wiki's Giant Mole page."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
     },
     {
-      "id": "q_9ac707288092b4c3",
+      "id": "q_bafdf3acbc287b6f",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -303,18 +303,18 @@
       "payload": {
         "prompt": "Which quest unlocks the fight against Vorkath?",
         "options": [
-          "Dragon Slayer II",
+          "Monkey Madness II",
           "Dragon Slayer I",
           "Legends' Quest",
-          "Monkey Madness II"
+          "Dragon Slayer II"
         ],
-        "answer_index": 0,
+        "answer_index": 3,
         "explanation": "Dragon Slayer II: Vorkath is fought after it, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
     },
     {
-      "id": "q_a296bf6e8b6f4cb8",
+      "id": "q_7897b8d5b9a01755",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -324,12 +324,12 @@
       "payload": {
         "prompt": "Which of these is not one of Zulrah's forms?",
         "options": [
-          "Serpentine",
           "Venom",
-          "Magma",
-          "Tanzanite"
+          "Tanzanite",
+          "Serpentine",
+          "Magma"
         ],
-        "answer_index": 1,
+        "answer_index": 0,
         "explanation": "Venom. Zulrah switches between its serpentine, magma and tanzanite forms, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
@@ -531,7 +531,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_(monster)"
     },
     {
-      "id": "q_d1f0ae1af0537160",
+      "id": "q_7dc45a85ab08a0fa",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -541,19 +541,19 @@
       "payload": {
         "prompt": "Without transmorphs and duplicate versions, how many unique pets can you obtain in Gielinor?",
         "options": [
-          "71",
-          "73",
-          "58",
           "69",
-          "64",
-          "67"
+          "73",
+          "67",
+          "71",
+          "58",
+          "64"
         ],
         "explanation": "There are currently 71 available pets in Old School RuneScape.",
-        "answer_index": 0
+        "answer_index": 3
       }
     },
     {
-      "id": "q_3bd13910885a59d2",
+      "id": "q_091b9972d587f35d",
       "type": "pick_all_that_apply",
       "mode": "bestiary",
       "source": "pack",
@@ -563,11 +563,11 @@
       "payload": {
         "prompt": "Which of these monsters are demons?",
         "options": [
-          "Greater demon",
-          "Gargoyle",
           "Hellhound",
+          "Gargoyle",
+          "Abyssal demon",
           "Kurask",
-          "Abyssal demon"
+          "Greater demon"
         ],
         "answer_indices": [
           0,
@@ -579,7 +579,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Demon"
     },
     {
-      "id": "q_5bcd71936496c95a",
+      "id": "q_3c7f6b47d51bf704",
       "type": "pick_all_that_apply",
       "mode": "bestiary",
       "source": "pack",
@@ -590,22 +590,22 @@
         "prompt": "Which of these bosses can only be fought on a Slayer task?",
         "options": [
           "Cerberus",
-          "Zulrah",
           "Alchemical Hydra",
           "Vorkath",
-          "Abyssal Sire"
+          "Abyssal Sire",
+          "Zulrah"
         ],
         "answer_indices": [
           0,
-          2,
-          4
+          1,
+          3
         ],
         "explanation": "Cerberus, the Alchemical Hydra and the Abyssal Sire are Slayer bosses: they or their monster must be your task. Zulrah and Vorkath need no task."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss"
     },
     {
-      "id": "q_4559a57b923b9c45",
+      "id": "q_89f971a419f9e906",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -616,19 +616,19 @@
       "payload": {
         "prompt": "Which skilling pet has the most metamorphosis options?",
         "options": [
-          "Rock golem",
-          "Rift guardian",
           "Beaver",
+          "Giant squirrel",
+          "Rift guardian",
           "Tangleroot",
-          "Phoenix",
-          "Giant squirrel"
+          "Rock golem",
+          "Phoenix"
         ],
         "explanation": "The rock golem can take on 19 different forms! It is followed by the rift guardian and beaver with 16 each.",
-        "answer_index": 0
+        "answer_index": 4
       }
     },
     {
-      "id": "q_2fec0c63e6c0f6c5",
+      "id": "q_78b10ab5c56db740",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -639,19 +639,19 @@
       "payload": {
         "prompt": "Which of these pets doesn't wear a hat around Christmas time?",
         "options": [
-          "Sraracha",
+          "Olmlet",
+          "Soup",
           "Prince Black Dragon",
           "Hellpuppy",
-          "Gulliver",
-          "Soup",
-          "Olmlet"
+          "Sraracha",
+          "Gulliver"
         ],
         "explanation": "Fun fact - the three-headed Prince Black Dragon even wears three different hats.",
-        "answer_index": 0
+        "answer_index": 4
       }
     },
     {
-      "id": "q_72322f4bfe6bd6bb",
+      "id": "q_0ea8042515f8ec7b",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -662,18 +662,18 @@
       "payload": {
         "prompt": "Which of these bosses has a speed-based combat achievement?",
         "options": [
-          "Mad Angel",
-          "Nex",
           "Kalphite Queen",
+          "Mad Angel",
+          "Zalcano",
           "Skotizo",
-          "Zalcano"
+          "Nex"
         ],
         "explanation": "Out of these, only the Mad Angel has such a combat achievement. It is earnt by killing her 5 times within 10 minutes of entering her arena.",
-        "answer_index": 0
+        "answer_index": 1
       }
     },
     {
-      "id": "q_55e48146f9419c6f",
+      "id": "q_e9a443e55e049b82",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -684,17 +684,17 @@
       "payload": {
         "prompt": "Which of these monsters drop regular ashes when killed?",
         "options": [
-          "Killerwatts",
-          "Ghosts",
           "Shadow warriors",
-          "Catablepons"
+          "Catablepons",
+          "Killerwatts",
+          "Ghosts"
         ],
         "explanation": "Ghosts and shadow warriors don't drop any remains, whereas catablepons drop regular bones.",
-        "answer_index": 0
+        "answer_index": 2
       }
     },
     {
-      "id": "q_7185549c84bfa28d",
+      "id": "q_d3ad37ad9fc837fe",
       "type": "multiple_choice",
       "mode": "bestiary",
       "source": "pack",
@@ -705,13 +705,13 @@
       "payload": {
         "prompt": "Which of these bosses will never drop a jar?",
         "options": [
-          "King Black Dragon",
-          "Vorkath",
+          "The Nightmare",
           "Corporeal Beast",
-          "The Nightmare"
+          "King Black Dragon",
+          "Vorkath"
         ],
         "explanation": "Vorkath may drop the Jar of Decay, the Corporeal Beast the Jar of Spirits, and the Nightmare the Jar of Souls.",
-        "answer_index": 0
+        "answer_index": 2
       }
     }
   ]

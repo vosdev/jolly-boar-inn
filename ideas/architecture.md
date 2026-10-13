@@ -638,7 +638,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
-  they hold, keeping `credit`. An examine's name is its first option; an item's id
+  they hold, keeping `credit`. A question's options are stored in their seeded order (the form
+  puts the right one first). An examine's name is its first option; an item's id
   comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
   that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question

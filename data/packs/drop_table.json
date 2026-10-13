@@ -2,7 +2,7 @@
   "pack": "drop_table",
   "questions": [
     {
-      "id": "q_0ac01d373ee11534",
+      "id": "q_f8a5fd257f68b755",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -13,18 +13,18 @@
         "prompt": "Which boss drops a Jar of sand?",
         "image": "item:12885",
         "options": [
-          "Kalphite Queen",
-          "Giant Mole",
           "Sarachnis",
-          "Zulrah"
+          "Kalphite Queen",
+          "Zulrah",
+          "Giant Mole"
         ],
-        "answer_index": 0,
+        "answer_index": 1,
         "explanation": "Kalphite Queen, per the OSRS Wiki's drop table. The others drop a jar too, just a different one."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen"
     },
     {
-      "id": "q_1641329f006d4d16",
+      "id": "q_f1048acec4717ba9",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -35,18 +35,18 @@
         "prompt": "Which boss drops the Ring of the gods?",
         "image": "item:12601",
         "options": [
-          "Callisto",
           "Vet'ion",
-          "Venenatis",
-          "Chaos Fanatic"
+          "Callisto",
+          "Chaos Fanatic",
+          "Venenatis"
         ],
-        "answer_index": 1,
+        "answer_index": 0,
         "explanation": "Vet'ion, per the OSRS Wiki's drop table. Calvar'ion, his smaller version, drops it as well."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Vet%27ion"
     },
     {
-      "id": "q_3ab4bd434c293e3f",
+      "id": "q_9e202855052a46bb",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -57,18 +57,18 @@
         "prompt": "Which boss drops the Dragonbone necklace?",
         "image": "item:22111",
         "options": [
-          "Zulrah",
-          "Alchemical Hydra",
           "Vorkath",
-          "King Black Dragon"
+          "Alchemical Hydra",
+          "King Black Dragon",
+          "Zulrah"
         ],
-        "answer_index": 2,
+        "answer_index": 0,
         "explanation": "Vorkath, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
     },
     {
-      "id": "q_3827cf5e68356347",
+      "id": "q_19b79725bf00b978",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -79,18 +79,18 @@
         "prompt": "Which boss drops the Pegasian crystal?",
         "image": "item:13229",
         "options": [
-          "Abyssal Sire",
+          "Cerberus",
           "Kraken",
-          "Thermonuclear smoke devil",
-          "Cerberus"
+          "Abyssal Sire",
+          "Thermonuclear smoke devil"
         ],
-        "answer_index": 3,
+        "answer_index": 0,
         "explanation": "Cerberus, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
     },
     {
-      "id": "q_c3bb349e221325f7",
+      "id": "q_3a83981aa1155e88",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -101,18 +101,18 @@
         "prompt": "Which boss drops the Tanzanite fang?",
         "image": "item:12922",
         "options": [
-          "Zulrah",
           "Vorkath",
-          "Kraken",
-          "Cerberus"
+          "Zulrah",
+          "Cerberus",
+          "Kraken"
         ],
-        "answer_index": 0,
+        "answer_index": 1,
         "explanation": "Zulrah, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
     },
     {
-      "id": "q_06ff622315f258e3",
+      "id": "q_c1226c9beb0609d8",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -123,18 +123,18 @@
         "prompt": "Which boss drops the Bandos chestplate?",
         "image": "item:11832",
         "options": [
-          "Kree'arra",
           "General Graardor",
+          "Kree'arra",
           "Commander Zilyana",
           "K'ril Tsutsaroth"
         ],
-        "answer_index": 1,
+        "answer_index": 0,
         "explanation": "General Graardor, per the OSRS Wiki's drop table. His bodyguards drop it as well."
       },
       "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
     },
     {
-      "id": "q_8342f20211213083",
+      "id": "q_72d79edf0f6b866e",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -145,18 +145,18 @@
         "prompt": "Which boss drops the Hydra's claw?",
         "image": "item:22966",
         "options": [
-          "Vorkath",
+          "Zulrah",
           "Cerberus",
-          "Alchemical Hydra",
-          "Zulrah"
+          "Vorkath",
+          "Alchemical Hydra"
         ],
-        "answer_index": 2,
+        "answer_index": 3,
         "explanation": "Alchemical Hydra, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
     },
     {
-      "id": "q_a7b982b259c05974",
+      "id": "q_4ee89a7ccf339588",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -168,17 +168,17 @@
         "image": "item:22124",
         "options": [
           "King Black Dragon",
-          "Alchemical Hydra",
+          "Vorkath",
           "Zulrah",
-          "Vorkath"
+          "Alchemical Hydra"
         ],
-        "answer_index": 3,
+        "answer_index": 1,
         "explanation": "Vorkath, per the OSRS Wiki's drop table. Frost dragons drop them too, but they are no boss."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
     },
     {
-      "id": "q_e1354ad32fbc4bce",
+      "id": "q_21f0184a1b537611",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -190,9 +190,9 @@
         "image": "item:5974",
         "options": [
           "Zulrah",
+          "Alchemical Hydra",
           "Kraken",
-          "Sarachnis",
-          "Alchemical Hydra"
+          "Sarachnis"
         ],
         "answer_index": 0,
         "explanation": "Zulrah, per the OSRS Wiki's drop table. Twenty at a time, noted."
@@ -200,7 +200,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
     },
     {
-      "id": "q_2a2d2f446f33259e",
+      "id": "q_11fe4aa81662657a",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -211,18 +211,18 @@
         "prompt": "Which boss drops a Trident of the seas (full)?",
         "image": "item:11905",
         "options": [
-          "Zulrah",
-          "Kraken",
           "Abyssal Sire",
-          "Thermonuclear smoke devil"
+          "Thermonuclear smoke devil",
+          "Zulrah",
+          "Kraken"
         ],
-        "answer_index": 1,
+        "answer_index": 3,
         "explanation": "Kraken, per the OSRS Wiki's drop table. Cave kraken drop it too, but they are no boss."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Kraken"
     },
     {
-      "id": "q_abea30db3626f38e",
+      "id": "q_de142ace6c3fa978",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -234,17 +234,17 @@
         "image": "item:11998",
         "options": [
           "Kraken",
+          "Abyssal Sire",
           "Cerberus",
-          "Thermonuclear smoke devil",
-          "Abyssal Sire"
+          "Thermonuclear smoke devil"
         ],
-        "answer_index": 2,
+        "answer_index": 3,
         "explanation": "Thermonuclear smoke devil, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Thermonuclear_smoke_devil"
     },
     {
-      "id": "q_6ab9206d2af6c3f1",
+      "id": "q_5fc575cce4e25823",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -255,18 +255,18 @@
         "prompt": "Which boss drops the Holy elixir?",
         "image": "item:12833",
         "options": [
-          "Commander Zilyana",
+          "Corporeal Beast",
           "Nex",
-          "Kalphite Queen",
-          "Corporeal Beast"
+          "Commander Zilyana",
+          "Kalphite Queen"
         ],
-        "answer_index": 3,
+        "answer_index": 0,
         "explanation": "Corporeal Beast, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
     },
     {
-      "id": "q_fe5efa86dc2a730a",
+      "id": "q_7f0a9627c54e462b",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -277,18 +277,18 @@
         "prompt": "Which boss drops the Nihil horn?",
         "image": "item:26372",
         "options": [
-          "Nex",
-          "K'ril Tsutsaroth",
           "Kree'arra",
-          "Corporeal Beast"
+          "Nex",
+          "Corporeal Beast",
+          "K'ril Tsutsaroth"
         ],
-        "answer_index": 0,
+        "answer_index": 1,
         "explanation": "Nex, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Nex"
     },
     {
-      "id": "q_84300a12aba70bfe",
+      "id": "q_42e242f25a2eef30",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -300,17 +300,17 @@
         "image": "item:21739",
         "options": [
           "Abyssal Sire",
-          "Grotesque Guardians",
           "Cerberus",
-          "Giant Mole"
+          "Giant Mole",
+          "Grotesque Guardians"
         ],
-        "answer_index": 1,
+        "answer_index": 3,
         "explanation": "Grotesque Guardians, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Grotesque_Guardians"
     },
     {
-      "id": "q_c6d9eb4c328b1133",
+      "id": "q_71e00664b82291b8",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -321,18 +321,18 @@
         "prompt": "Which boss drops the Venator shard?",
         "image": "item:27614",
         "options": [
-          "Nex",
-          "The Leviathan",
+          "Vorkath",
           "Phantom Muspah",
-          "Vorkath"
+          "Nex",
+          "The Leviathan"
         ],
-        "answer_index": 2,
+        "answer_index": 1,
         "explanation": "Phantom Muspah, per the OSRS Wiki's drop table. The Leviathan drops the venator vestige, which is a different item."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Phantom_Muspah"
     },
     {
-      "id": "q_558985033b0a8cfc",
+      "id": "q_72d2d6c328a27ca1",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -343,9 +343,9 @@
         "prompt": "Which boss drops a Giant egg sac(full)?",
         "image": "item:23517",
         "options": [
-          "Venenatis",
-          "Kalphite Queen",
           "Araxxor",
+          "Kalphite Queen",
+          "Venenatis",
           "Sarachnis"
         ],
         "answer_index": 3,
@@ -354,7 +354,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Sarachnis"
     },
     {
-      "id": "q_d037e43bc05adee0",
+      "id": "q_1feea5d6a259fb07",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -366,9 +366,9 @@
         "image": "item:22994",
         "options": [
           "Hespori",
-          "Tempoross",
+          "Zalcano",
           "Wintertodt",
-          "Zalcano"
+          "Tempoross"
         ],
         "answer_index": 0,
         "explanation": "Hespori, per the OSRS Wiki's drop table."
@@ -376,7 +376,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Hespori"
     },
     {
-      "id": "q_27f0fd42466b9727",
+      "id": "q_5dbb69d93d59e883",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -387,18 +387,18 @@
         "prompt": "Which boss drops the Crystal tool seed?",
         "image": "item:23953",
         "options": [
-          "Crystalline Hunllef",
-          "Zalcano",
+          "Wintertodt",
           "Tempoross",
-          "Wintertodt"
+          "Crystalline Hunllef",
+          "Zalcano"
         ],
-        "answer_index": 1,
+        "answer_index": 3,
         "explanation": "Zalcano, per the OSRS Wiki's drop table."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zalcano"
     },
     {
-      "id": "q_b5c64a889400149a",
+      "id": "q_449d9453d3e0e4e7",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -409,18 +409,18 @@
         "prompt": "Which boss drops an Uncut onyx?",
         "image": "item:6571",
         "options": [
+          "Giant Mole",
           "Cerberus",
           "Kalphite Queen",
-          "Skotizo",
-          "Giant Mole"
+          "Skotizo"
         ],
-        "answer_index": 2,
+        "answer_index": 3,
         "explanation": "Skotizo, per the OSRS Wiki's drop table. Zulrah and Zalcano drop one too, but neither is an option."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Skotizo"
     },
     {
-      "id": "q_77519d458efcca94",
+      "id": "q_b9cf85fb273cb6d8",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -431,18 +431,18 @@
         "prompt": "Which boss drops the Seers ring?",
         "image": "item:6731",
         "options": [
-          "Dagannoth Rex",
           "Dagannoth Supreme",
           "Kalphite Queen",
-          "Dagannoth Prime"
+          "Dagannoth Prime",
+          "Dagannoth Rex"
         ],
-        "answer_index": 3,
+        "answer_index": 2,
         "explanation": "Dagannoth Prime, per the OSRS Wiki's drop table. Rex drops the berserker ring and Supreme the archers ring."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_Prime"
     },
     {
-      "id": "q_1206d07797176743",
+      "id": "q_d57148b35e1ebf9a",
       "type": "pick_all_that_apply",
       "mode": "drop_table",
       "source": "pack",
@@ -453,15 +453,15 @@
         "prompt": "Which of these drop the Dragon pickaxe?",
         "image": "item:11920",
         "options": [
-          "King Black Dragon",
           "Giant Mole",
-          "Kalphite Queen",
+          "Chaos Elemental",
           "Zulrah",
-          "Chaos Elemental"
+          "Kalphite Queen",
+          "King Black Dragon"
         ],
         "answer_indices": [
-          0,
-          2,
+          1,
+          3,
           4
         ],
         "explanation": "King Black Dragon, Kalphite Queen and Chaos Elemental, per the OSRS Wiki. Callisto, Vet'ion, Venenatis and their smaller versions drop it too."
@@ -469,7 +469,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_pickaxe"
     },
     {
-      "id": "q_9e80f73a274d0224",
+      "id": "q_07e78cb5e9494756",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -479,12 +479,12 @@
       "payload": {
         "prompt": "Which of these items is dropped by Cerberus?",
         "options": [
-          "Hydra leather",
-          "Primordial crystal",
+          "Dragon pickaxe",
           "Kraken tentacle",
-          "Dragon pickaxe"
+          "Hydra leather",
+          "Primordial crystal"
         ],
-        "answer_index": 1,
+        "answer_index": 3,
         "explanation": "The Primordial crystal, one of Cerberus's four 1 in 520 uniques, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
@@ -507,7 +507,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer"
     },
     {
-      "id": "q_1aa0297543ac9f96",
+      "id": "q_afbb846b5d959bd4",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -518,18 +518,18 @@
         "prompt": "Which boss drops the Bludgeon claw?",
         "image": "item:13275",
         "options": [
-          "Abyssal Sire",
           "Kraken",
-          "Cerberus",
-          "Thermonuclear smoke devil"
+          "Abyssal Sire",
+          "Thermonuclear smoke devil",
+          "Cerberus"
         ],
-        "answer_index": 0,
+        "answer_index": 1,
         "explanation": "Abyssal Sire, through the Unsired it drops, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Bludgeon_claw"
     },
     {
-      "id": "q_c6a368b8a8bd5474",
+      "id": "q_3cec0018631bfd44",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -540,18 +540,18 @@
         "prompt": "Which boss drops the Kraken tentacle?",
         "image": "item:12004",
         "options": [
-          "Zulrah",
           "Kraken",
+          "Cerberus",
           "Abyssal Sire",
-          "Cerberus"
+          "Zulrah"
         ],
-        "answer_index": 1,
+        "answer_index": 0,
         "explanation": "Kraken, 1 in 400, per the OSRS Wiki. Cave kraken drop it too, far more rarely."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Kraken_tentacle"
     },
     {
-      "id": "q_a80ac73f119f7280",
+      "id": "q_1a7a526f0b1daf3e",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -562,18 +562,18 @@
         "prompt": "Which boss drops the Armadyl crossbow?",
         "image": "item:11785",
         "options": [
+          "K'ril Tsutsaroth",
           "Kree'arra",
-          "Commander Zilyana",
           "General Graardor",
-          "K'ril Tsutsaroth"
+          "Commander Zilyana"
         ],
-        "answer_index": 1,
+        "answer_index": 3,
         "explanation": "Commander Zilyana, per the OSRS Wiki. Armadyl's name, Saradomin's general."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Armadyl_crossbow"
     },
     {
-      "id": "q_876ffc7230dcbfde",
+      "id": "q_8c147f37927e8369",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -584,18 +584,18 @@
         "prompt": "Which boss drops the Zamorakian spear?",
         "image": "item:11824",
         "options": [
-          "Kree'arra",
           "Commander Zilyana",
           "General Graardor",
-          "K'ril Tsutsaroth"
+          "K'ril Tsutsaroth",
+          "Kree'arra"
         ],
-        "answer_index": 3,
+        "answer_index": 2,
         "explanation": "K'ril Tsutsaroth, per the OSRS Wiki. His bodyguards drop it too, very rarely."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zamorakian_spear"
     },
     {
-      "id": "q_7adb6321fbd2be6d",
+      "id": "q_2c8170bfecfd8b9f",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -606,18 +606,18 @@
         "prompt": "Which boss drops the Tyrannical ring?",
         "image": "item:12603",
         "options": [
+          "Chaos Elemental",
           "Callisto",
           "Vet'ion",
-          "Venenatis",
-          "Chaos Elemental"
+          "Venenatis"
         ],
-        "answer_index": 0,
+        "answer_index": 1,
         "explanation": "Callisto, per the OSRS Wiki. Artio, his smaller version, drops it as well."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Tyrannical_ring"
     },
     {
-      "id": "q_4b471130101db914",
+      "id": "q_0c4d6db403f71421",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -628,18 +628,18 @@
         "prompt": "Which boss drops the Berserker ring?",
         "image": "item:6737",
         "options": [
-          "Dagannoth Prime",
-          "Dagannoth Rex",
           "Dagannoth Supreme",
-          "Kalphite Queen"
+          "Kalphite Queen",
+          "Dagannoth Rex",
+          "Dagannoth Prime"
         ],
-        "answer_index": 1,
+        "answer_index": 2,
         "explanation": "Dagannoth Rex, 1 in 128, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Berserker_ring"
     },
     {
-      "id": "q_65dbbd53509b4961",
+      "id": "q_e981c29902f37e63",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -650,18 +650,18 @@
         "prompt": "Which boss drops the Sarachnis cudgel?",
         "image": "item:23528",
         "options": [
-          "Kalphite Queen",
-          "Sarachnis",
           "Venenatis",
-          "Giant Mole"
+          "Giant Mole",
+          "Sarachnis",
+          "Kalphite Queen"
         ],
-        "answer_index": 1,
+        "answer_index": 2,
         "explanation": "Sarachnis, 1 in 384, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Sarachnis_cudgel"
     },
     {
-      "id": "q_872e0de5da9a27e0",
+      "id": "q_95d820f582610dea",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -673,9 +673,9 @@
         "image": "item:21745",
         "options": [
           "Grotesque Guardians",
-          "Giant Mole",
+          "Skotizo",
           "Kalphite Queen",
-          "Skotizo"
+          "Giant Mole"
         ],
         "answer_index": 0,
         "explanation": "Grotesque Guardians, 1 in 5,000, per the OSRS Wiki."
@@ -683,7 +683,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Jar_of_stone"
     },
     {
-      "id": "q_b30072d39641aa3b",
+      "id": "q_ba1853913b85c1e7",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -694,9 +694,9 @@
         "prompt": "Which boss drops a Jar of chemicals?",
         "image": "item:23064",
         "options": [
-          "Vorkath",
-          "Alchemical Hydra",
           "Zulrah",
+          "Alchemical Hydra",
+          "Vorkath",
           "Thermonuclear smoke devil"
         ],
         "answer_index": 1,
@@ -705,7 +705,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Jar_of_chemicals"
     },
     {
-      "id": "q_3412c5b50ddb7a54",
+      "id": "q_293489f6e9bc804f",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -716,18 +716,18 @@
         "prompt": "Which boss drops a Jar of miasma?",
         "image": "item:13277",
         "options": [
+          "Abyssal Sire",
           "Thermonuclear smoke devil",
           "Kraken",
-          "Abyssal Sire",
           "Cerberus"
         ],
-        "answer_index": 2,
+        "answer_index": 0,
         "explanation": "Abyssal Sire, through the Unsired it drops, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Jar_of_miasma"
     },
     {
-      "id": "q_1dc1c7e57862e520",
+      "id": "q_36352d6ec04cebd0",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -738,10 +738,10 @@
         "prompt": "Where does the Twisted bow come from?",
         "image": "item:20997",
         "options": [
-          "Theatre of Blood",
+          "Nex",
           "Chambers of Xeric",
-          "Tombs of Amascut",
-          "Nex"
+          "Theatre of Blood",
+          "Tombs of Amascut"
         ],
         "answer_index": 1,
         "explanation": "The Chambers of Xeric reward chest, per the OSRS Wiki."
@@ -749,7 +749,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Twisted_bow"
     },
     {
-      "id": "q_331f102ba662603b",
+      "id": "q_a50a23a7db2c2fcb",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -760,10 +760,10 @@
         "prompt": "Where does the Scythe of vitur come from?",
         "image": "item:22486",
         "options": [
-          "Chambers of Xeric",
+          "The Nightmare",
           "Tombs of Amascut",
           "Theatre of Blood",
-          "The Nightmare"
+          "Chambers of Xeric"
         ],
         "answer_index": 2,
         "explanation": "The Theatre of Blood's Monumental chest, per the OSRS Wiki."
@@ -771,7 +771,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Scythe_of_vitur"
     },
     {
-      "id": "q_597149178622f0d1",
+      "id": "q_dd6cd0ee9748b076",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -782,18 +782,18 @@
         "prompt": "Where does the Tumeken's shadow come from?",
         "image": "item:27277",
         "options": [
-          "Tombs of Amascut",
-          "Chambers of Xeric",
           "Theatre of Blood",
-          "Nex"
+          "Tombs of Amascut",
+          "Nex",
+          "Chambers of Xeric"
         ],
-        "answer_index": 0,
+        "answer_index": 1,
         "explanation": "The Tombs of Amascut reward chest, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Tumeken%27s_shadow"
     },
     {
-      "id": "q_d68c002bc56f0df8",
+      "id": "q_36e803c38a566e8a",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -804,18 +804,18 @@
         "prompt": "Where does the Abyssal whip come from?",
         "image": "item:4151",
         "options": [
-          "Greater demon",
           "Nechryael",
-          "Dust devil",
-          "Abyssal demon"
+          "Greater demon",
+          "Abyssal demon",
+          "Dust devil"
         ],
-        "answer_index": 3,
+        "answer_index": 2,
         "explanation": "Abyssal demons, 1 in 512, per the OSRS Wiki. The Unsired can give one too."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip"
     },
     {
-      "id": "q_82c38aaa68535f2b",
+      "id": "q_b826bb7504a4a2c8",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -826,18 +826,18 @@
         "prompt": "Where does the Tome of fire come from?",
         "image": "item:20716",
         "options": [
-          "Tempoross",
           "Wintertodt",
+          "Tempoross",
           "Zalcano",
           "Guardians of the Rift"
         ],
-        "answer_index": 1,
+        "answer_index": 0,
         "explanation": "Wintertodt's reward cart, 1 in 1,000, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Tome_of_fire"
     },
     {
-      "id": "q_1f46da3331efafcd",
+      "id": "q_f83b811e6473b1b4",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -849,8 +849,8 @@
         "image": "item:4718",
         "options": [
           "Barrows",
-          "Pest Control",
           "Castle Wars",
+          "Pest Control",
           "Nightmare Zone"
         ],
         "answer_index": 0,
@@ -859,7 +859,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Dharok%27s_greataxe"
     },
     {
-      "id": "q_71210fbea9d65247",
+      "id": "q_edef275af5352d74",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -870,18 +870,18 @@
         "prompt": "Where does the Dragon boots come from?",
         "image": "item:11840",
         "options": [
-          "Abyssal demon",
-          "Spiritual mage",
+          "Gargoyle",
           "Kurask",
-          "Gargoyle"
+          "Abyssal demon",
+          "Spiritual mage"
         ],
-        "answer_index": 1,
+        "answer_index": 3,
         "explanation": "Spiritual mages in the God Wars Dungeon, 1 in 128, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_boots"
     },
     {
-      "id": "q_cf56f34e61f5cdf9",
+      "id": "q_0af5d61309e25b93",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -892,18 +892,18 @@
         "prompt": "Where does the Leaf-bladed battleaxe come from?",
         "image": "item:20727",
         "options": [
-          "Turoth",
           "Gargoyle",
-          "Kurask",
-          "Nechryael"
+          "Nechryael",
+          "Turoth",
+          "Kurask"
         ],
-        "answer_index": 2,
+        "answer_index": 3,
         "explanation": "Kurask, 1 in 1,026, per the OSRS Wiki. King kurask drop it too."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Leaf-bladed_battleaxe"
     },
     {
-      "id": "q_0b46ec9310bb8c93",
+      "id": "q_30f77611050c82fa",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -913,18 +913,18 @@
       "payload": {
         "prompt": "Which of these items is dropped by Kree'arra?",
         "options": [
-          "Bandos tassets",
-          "Saradomin sword",
           "Zamorakian spear",
-          "Armadyl chestplate"
+          "Bandos tassets",
+          "Armadyl chestplate",
+          "Saradomin sword"
         ],
-        "answer_index": 3,
+        "answer_index": 2,
         "explanation": "The Armadyl chestplate, 1 in 381, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Kree%27arra"
     },
     {
-      "id": "q_83fb8f3e6d288458",
+      "id": "q_b0f49fce8e6b9318",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -934,12 +934,12 @@
       "payload": {
         "prompt": "Which of these items is dropped by the Giant Mole?",
         "options": [
+          "Sarachnis cudgel",
           "Kraken tentacle",
           "Mole claw",
-          "Hydra leather",
-          "Sarachnis cudgel"
+          "Hydra leather"
         ],
-        "answer_index": 1,
+        "answer_index": 2,
         "explanation": "The Mole claw, on every kill, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
@@ -966,7 +966,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
     },
     {
-      "id": "q_80d6f6873a7fec93",
+      "id": "q_b0236843bfb321a1",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -976,12 +976,12 @@
       "payload": {
         "prompt": "Which of these items is dropped by Vet'ion?",
         "options": [
-          "Tyrannical ring",
-          "Voidwaker hilt",
           "Dragon 2h sword",
-          "Treasonous ring"
+          "Tyrannical ring",
+          "Treasonous ring",
+          "Voidwaker hilt"
         ],
-        "answer_index": 2,
+        "answer_index": 0,
         "explanation": "The Dragon 2h sword, 1 in 256, per the OSRS Wiki. The hilt is Callisto's, the rings Callisto's and Venenatis's."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Vet%27ion"
@@ -1008,7 +1008,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
     },
     {
-      "id": "q_ef2f5b458df67373",
+      "id": "q_98b89f9495fe70b2",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -1018,18 +1018,18 @@
       "payload": {
         "prompt": "Which of these is not dropped by General Graardor?",
         "options": [
-          "Bandos chestplate",
-          "Armadyl helmet",
+          "Bandos boots",
           "Bandos tassets",
-          "Bandos boots"
+          "Armadyl helmet",
+          "Bandos chestplate"
         ],
-        "answer_index": 1,
+        "answer_index": 2,
         "explanation": "The Armadyl helmet is Kree'arra's, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
     },
     {
-      "id": "q_1316c91a7e2747ae",
+      "id": "q_73c5936d3e73e11e",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -1039,18 +1039,18 @@
       "payload": {
         "prompt": "Which of these is not dropped by Zulrah?",
         "options": [
+          "Serpentine visage",
           "Tanzanite fang",
           "Magic fang",
-          "Hydra's eye",
-          "Serpentine visage"
+          "Hydra's eye"
         ],
-        "answer_index": 2,
+        "answer_index": 3,
         "explanation": "Hydra's eye is the Alchemical Hydra's, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
     },
     {
-      "id": "q_a0b8837f6223e47a",
+      "id": "q_31426f198b03c6dd",
       "type": "multiple_choice",
       "mode": "drop_table",
       "source": "pack",
@@ -1060,18 +1060,18 @@
       "payload": {
         "prompt": "Which of these is not dropped by the Alchemical Hydra?",
         "options": [
-          "Hydra's eye",
-          "Hydra's fang",
           "Hydra's heart",
-          "Serpentine visage"
+          "Serpentine visage",
+          "Hydra's fang",
+          "Hydra's eye"
         ],
-        "answer_index": 3,
+        "answer_index": 1,
         "explanation": "The Serpentine visage is Zulrah's, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
     },
     {
-      "id": "q_d0f4c4542cfb51ad",
+      "id": "q_ba881c95a2d43a05",
       "type": "pick_all_that_apply",
       "mode": "drop_table",
       "source": "pack",
@@ -1082,23 +1082,23 @@
         "prompt": "Which of these drop the Dragon axe?",
         "image": "item:6739",
         "options": [
-          "Dagannoth Rex",
-          "Giant Mole",
-          "Dagannoth Supreme",
           "Kalphite Queen",
-          "Dagannoth Prime"
+          "Dagannoth Prime",
+          "Dagannoth Rex",
+          "Dagannoth Supreme",
+          "Giant Mole"
         ],
         "answer_indices": [
-          0,
+          1,
           2,
-          4
+          3
         ],
         "explanation": "All three Dagannoth Kings, 1 in 128 each, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_axe"
     },
     {
-      "id": "q_3afe158d08b3b8b0",
+      "id": "q_a6207d8f25855e24",
       "type": "pick_all_that_apply",
       "mode": "drop_table",
       "source": "pack",
@@ -1110,21 +1110,21 @@
         "image": "item:3140",
         "options": [
           "Kalphite Queen",
-          "King Black Dragon",
           "Thermonuclear smoke devil",
           "Giant Mole",
-          "Zulrah"
+          "Zulrah",
+          "King Black Dragon"
         ],
         "answer_indices": [
           0,
-          2
+          1
         ],
         "explanation": "Kalphite Queen and the Thermonuclear smoke devil, per the OSRS Wiki. Dust and smoke devils drop it too, very rarely."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_chainbody"
     },
     {
-      "id": "q_259c413b35060767",
+      "id": "q_4af76d05b1538a06",
       "type": "pick_all_that_apply",
       "mode": "drop_table",
       "source": "pack",
@@ -1135,23 +1135,23 @@
         "prompt": "Which of these drop an Uncut onyx?",
         "image": "item:6571",
         "options": [
-          "Zulrah",
-          "Vorkath",
+          "Zalcano",
           "Skotizo",
-          "Cerberus",
-          "Zalcano"
+          "Vorkath",
+          "Zulrah",
+          "Cerberus"
         ],
         "answer_indices": [
           0,
-          2,
-          4
+          1,
+          3
         ],
         "explanation": "Zulrah, Skotizo and Zalcano, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Uncut_onyx"
     },
     {
-      "id": "q_a2cdd5d102fdbce7",
+      "id": "q_7f049636b333e016",
       "type": "pick_all_that_apply",
       "mode": "drop_table",
       "source": "pack",
@@ -1162,22 +1162,22 @@
         "prompt": "Which of these drop the Draconic visage?",
         "image": "item:11286",
         "options": [
-          "King Black Dragon",
-          "Zulrah",
+          "Cerberus",
           "Vorkath",
-          "Alchemical Hydra",
-          "Cerberus"
+          "Zulrah",
+          "King Black Dragon",
+          "Alchemical Hydra"
         ],
         "answer_indices": [
-          0,
-          2
+          1,
+          3
         ],
         "explanation": "The King Black Dragon and Vorkath, 1 in 5,000 each, per the OSRS Wiki. Most metal and brutal dragons do too."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Draconic_visage"
     },
     {
-      "id": "q_276fe97ec8198265",
+      "id": "q_95e7478f09e66581",
       "type": "pick_all_that_apply",
       "mode": "drop_table",
       "source": "pack",
@@ -1187,15 +1187,15 @@
       "payload": {
         "prompt": "Which of these items are dropped by Vet'ion?",
         "options": [
-          "Ring of the gods",
           "Treasonous ring",
-          "Dragon pickaxe",
           "Voidwaker hilt",
-          "Skull of Vet'ion"
+          "Skull of Vet'ion",
+          "Dragon pickaxe",
+          "Ring of the gods"
         ],
         "answer_indices": [
-          0,
           2,
+          3,
           4
         ],
         "explanation": "Ring of the gods, Dragon pickaxe and Skull of Vet'ion, per the OSRS Wiki. The ring is Venenatis's, the hilt Callisto's."
@@ -1203,7 +1203,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Vet%27ion"
     },
     {
-      "id": "q_7692e3fb82180b3e",
+      "id": "q_79fdc3d2d04f0ec9",
       "type": "pick_all_that_apply",
       "mode": "drop_table",
       "source": "pack",
@@ -1213,11 +1213,11 @@
       "payload": {
         "prompt": "Which of these items are dropped by the Kalphite Queen?",
         "options": [
-          "Dragon chainbody",
+          "Dragon 2h sword",
           "Dragon axe",
           "Jar of sand",
           "Mole claw",
-          "Dragon 2h sword"
+          "Dragon chainbody"
         ],
         "answer_indices": [
           0,

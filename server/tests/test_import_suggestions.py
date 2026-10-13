@@ -8,7 +8,9 @@ from typing import Any
 
 import pytest
 
+from app import suggestions
 from app.config import REPO_ROOT
+from app.questions import schema
 from app.suggestions import QUESTION_MODES
 
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
@@ -79,13 +81,24 @@ def examines(repo: dict[str, Path]) -> list[dict[str, Any]]:
     return json.loads((repo["packs"] / "examine.json").read_text())["questions"]
 
 
+def same_question(stored: dict[str, Any], written: dict[str, Any]) -> bool:
+    """Whether ``stored`` is ``written`` with only its options reordered, the answer kept."""
+    rest = {k: v for k, v in stored.items() if k not in ("options", "answer_index")}
+    right = stored["options"][stored["answer_index"]]
+    return (
+        sorted(stored["options"]) == sorted(written["options"])
+        and right == written["options"][written["answer_index"]]
+        and rest == {k: v for k, v in written.items() if k not in ("options", "answer_index")}
+    )
+
+
 def test_an_npc_question_lands_in_its_file_with_its_credit(repo: dict[str, Path]) -> None:
     assert run(repo, {"questions": [QUESTION]}) == 0
     bob = json.loads((repo["packs"] / "random_events" / "bob.json").read_text())
     added = bob["questions"][-1]
     assert added["mode"] == "random_event" and "random_event" not in added
     assert (added["credit"], added["credit_shown"], added["wiki"]) == ("AFKFisher", True, WIKI)
-    assert added["payload"] == QUESTION["payload"]
+    assert same_question(added["payload"], QUESTION["payload"])
     assert loads(repo)
 
 
@@ -108,9 +121,41 @@ def test_a_quote_and_its_source_url_reach_the_pack_as_they_are(repo: dict[str, P
     assert run(repo, {"questions": [question]}) == 0
     pack = json.loads((repo["packs"] / "who_said_that.json").read_text())
     added = pack["questions"][-1]
-    assert added["payload"] == payload and added["source_url"] == url
+    assert same_question(added["payload"], payload) and added["source_url"] == url
     assert "wiki" not in added
     assert loads(repo)
+
+
+def test_a_choice_question_is_stored_shuffled_and_its_id_follows() -> None:
+    envelope = suggestions.question_envelope(
+        {k: v for k, v in QUESTION.items() if "credit" not in k}
+    )
+    stored = import_suggestions.shuffled(envelope)
+    assert stored["payload"]["options"] != QUESTION["payload"]["options"]
+    assert same_question(stored["payload"], QUESTION["payload"])
+    assert stored["id"] == schema.content_id(stored) != envelope["id"]
+    assert list(stored) == list(envelope)
+
+
+def test_pick_all_that_apply_keeps_its_right_options_sorted() -> None:
+    options = ["Dharok", "Torag", "Hazelmere", "Karil", "Zezima", "Guthan"]
+    question = {
+        "type": "pick_all_that_apply",
+        "payload": {"prompt": "Barrows brothers?", "options": options, "answer_indices": [0, 1, 3]},
+    }
+    payload = import_suggestions.shuffled(question)["payload"]
+    assert payload["options"] != options and sorted(payload["options"]) == sorted(options)
+    assert payload["answer_indices"] == sorted(payload["answer_indices"])
+    assert {payload["options"][i] for i in payload["answer_indices"]} == {
+        "Dharok",
+        "Torag",
+        "Karil",
+    }
+
+
+def test_other_types_are_stored_as_written() -> None:
+    question = {"type": "closest_number", "payload": {"prompt": "How many?", "answer": 7}}
+    assert import_suggestions.shuffled(question) is question
 
 
 def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -> None:

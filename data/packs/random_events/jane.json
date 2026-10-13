@@ -3,7 +3,7 @@
   "random_event": "jane",
   "questions": [
     {
-      "id": "q_26629fa82f7c7f0e",
+      "id": "q_1daa418360451ee2",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -14,16 +14,16 @@
         "intro": "My back aches just watching you hack away at herbs with rusty garden shears!",
         "prompt": "Which enchanted tool increases your herb yield by 10%?",
         "options": [
-          "Farmer's fork",
-          "Magic secateurs",
           "Amulet of nature",
+          "Magic secateurs",
+          "Farmer's fork",
           "Magic watering can"
         ],
         "answer_index": 1
       }
     },
     {
-      "id": "q_3096c24e221a9626",
+      "id": "q_20066980ac018d89",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -34,16 +34,16 @@
         "intro": "Good labour doesn't come cheap, adventurer, and neither do my colleagues.",
         "prompt": "What does a gardener charge to watch over a growing Magic tree?",
         "options": [
-          "10 cactus spines",
-          "5 baskets of oranges",
           "15 papaya fruit",
-          "25 coconuts"
+          "25 coconuts",
+          "5 baskets of oranges",
+          "10 cactus spines"
         ],
-        "answer_index": 3
+        "answer_index": 1
       }
     },
     {
-      "id": "q_4e56e388d53c407a",
+      "id": "q_d5d94c9b56171571",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -54,11 +54,11 @@
         "intro": "I just packed a Tier 5 seed pack for a farmer who actually bothered finishing their contract.",
         "prompt": "Which of these seeds is least likely to be in a Tier 5 seed pack?",
         "options": [
-          "Redwood tree seed",
-          "Cadantine seed",
           "White lily seed",
-          "Ranarr seed",
           "Cactus seed",
+          "Redwood tree seed",
+          "Ranarr seed",
+          "Cadantine seed",
           "Yanillian seed"
         ],
         "answer_index": 5
@@ -99,7 +99,7 @@
       }
     },
     {
-      "id": "q_4ff93766002d174c",
+      "id": "q_a5caac2b9cd07519",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -111,11 +111,11 @@
         "prompt": "Which tree's bark is used to make battlestaves?",
         "options": [
           "Blisterwood tree",
-          "Celastrus tree",
           "Calquat tree",
+          "Celastrus tree",
           "Redwood tree"
         ],
-        "answer_index": 1
+        "answer_index": 2
       }
     }
   ]

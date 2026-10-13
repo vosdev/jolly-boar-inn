@@ -3,7 +3,7 @@
   "random_event": "bob",
   "questions": [
     {
-      "id": "q_167269f7bf57aae5",
+      "id": "q_79d7c07a2104ee00",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -14,16 +14,16 @@
         "intro": "Yawn... Look, two-legs, I don't waste my breath on hairless apes unless they wear the proper jewellery.",
         "prompt": "Which amulet lets you understand what a cat says?",
         "options": [
-          "Amulet of catspeak",
-          "Camulet",
           "Ghostspeak amulet",
+          "Camulet",
+          "Amulet of catspeak",
           "Amulet of fury"
         ],
-        "answer_index": 0
+        "answer_index": 2
       }
     },
     {
-      "id": "q_26335a572547f055",
+      "id": "q_eb6135b6071825cf",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -35,16 +35,16 @@
         "intro": "Humans are so desperate to bribe us with food. Gertrude's cat Fluffs was no different.",
         "prompt": "Which seasoned seafood snack did you make to win over Fluffs?",
         "options": [
-          "Doogle sardine",
-          "Poisoned karambwan",
           "Anchovy pizza",
-          "Buttered salmon"
+          "Buttered salmon",
+          "Doogle sardine",
+          "Poisoned karambwan"
         ],
-        "answer_index": 0
+        "answer_index": 2
       }
     },
     {
-      "id": "q_5b15920af3446a51",
+      "id": "q_c99bd5487991a053",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -57,11 +57,11 @@
         "prompt": "Which winged creatures of the Fourth Age was Robert the Strong famous for fighting?",
         "options": [
           "TzHaar",
-          "Dragonkin",
           "Mahjarrat",
+          "Dragonkin",
           "Aviansie"
         ],
-        "answer_index": 1
+        "answer_index": 2
       }
     },
     {
@@ -140,7 +140,7 @@
       }
     },
     {
-      "id": "q_870bfd9738174a0b",
+      "id": "q_7bf8c04e403aeba0",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -152,15 +152,15 @@
         "intro": "My not-so-evil counterpart has asked you to look after his human pet in Burthorpe.",
         "prompt": "What is the name of this human?",
         "options": [
-          "Unferth",
-          "Dunstan",
-          "Ghommal",
-          "Bernald",
           "Denulth",
-          "Turael"
+          "Ghommal",
+          "Unferth",
+          "Bernald",
+          "Turael",
+          "Dunstan"
         ],
         "explanation": "Unferth is the name of Bob's helpless human pet, whom you assist in A Tail of Two Cats.",
-        "answer_index": 0
+        "answer_index": 2
       }
     },
     {

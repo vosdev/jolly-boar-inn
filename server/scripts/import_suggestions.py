@@ -4,7 +4,8 @@ The file is ``{"questions": [...], "examines": [...], "items": [...]}``, as
 ``POST /api/admin/suggestions/export`` writes it:
 
 - a question goes into the pack of its mode: an NPC's into ``random_events/<npc>.json``,
-  any other into the pack already holding that mode, or a new ``<mode>.json``;
+  any other into the pack already holding that mode, or a new ``<mode>.json``. Its options
+  are stored shuffled, since the form puts the right one first;
 - an examine becomes a Guess the Examine question, its name and wrong names as the options;
 - an item joins ``data/popular-items.json`` under the id the wiki's item infobox gives its
   name, tradeable or not.
@@ -45,8 +46,9 @@ import wiki
 from app import suggestions
 from app.errors import ApiError
 from app.modes import MODES
-from app.questions import vocab
+from app.questions import schema, vocab
 from app.questions.packs import EVENT_MODE, EVENTS_DIR, PackError, load_packs
+from app.questions.types.shuffle import seeded_order
 from app.questions.vocab import fold
 from app.rooms.state import normalize_name
 
@@ -113,6 +115,26 @@ def pack_for(mode: str, npc: str | None, packs_dir: Path, plan: Plan) -> dict[st
     return plan.packs.setdefault(path, empty)
 
 
+def shuffled(question: dict[str, Any]) -> dict[str, Any]:
+    """A choice question with its options in a seeded order and its answers remapped.
+
+    Seeded by the payload, so shuffling an entry imported before gives the same question,
+    and its id, again. Any other type is returned as it is.
+    """
+    payload = question["payload"]
+    if question["type"] not in ("multiple_choice", "pick_all_that_apply"):
+        return question
+    order = seeded_order(question["type"], payload, len(payload["options"]))
+    moved = {old: new for new, old in enumerate(order)}
+    payload = {**payload, "options": [payload["options"][old] for old in order]}
+    if "answer_index" in payload:
+        payload["answer_index"] = moved[payload["answer_index"]]
+    if "answer_indices" in payload:
+        payload["answer_indices"] = sorted(moved[index] for index in payload["answer_indices"])
+    entry = {**question, "payload": payload}
+    return entry | {"id": schema.content_id(entry)}
+
+
 def placed(envelope: dict[str, Any], credit: dict[str, Any]) -> dict[str, Any]:
     """A pack entry in the packs' own key order, credit after the envelope fields."""
     entry = {k: v for k, v in envelope.items() if k not in ("payload", "random_event")}
@@ -136,7 +158,7 @@ def plan_questions(entries: list[Any], packs_dir: Path, ids: set[str], plan: Pla
             continue
         if credit is None:
             continue
-        envelope = suggestions.question_envelope(content)
+        envelope = shuffled(suggestions.question_envelope(content))
         if envelope["id"] in ids:
             plan.skipped.append(f"{where}: {envelope['id']} is already in a pack")
             continue

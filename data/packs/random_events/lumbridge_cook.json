@@ -3,7 +3,7 @@
   "random_event": "lumbridge_cook",
   "questions": [
     {
-      "id": "q_a8c3db55875d0bd5",
+      "id": "q_ef28f6afddb2344a",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -15,18 +15,18 @@
         "intro": "Quick, adventurer! The council members are freezing in time!",
         "prompt": "Who asked me for a Fishcake?",
         "options": [
-          "Pirate Pete",
-          "Skrach Uglogwee",
-          "Evil Dave",
           "Sir Amik Varze",
+          "King Awowogei",
+          "Pirate Pete",
+          "Evil Dave",
           "The Lumbridge Guide",
-          "King Awowogei"
+          "Skrach Uglogwee"
         ],
-        "answer_index": 0
+        "answer_index": 2
       }
     },
     {
-      "id": "q_0bf02b0ae992ae04",
+      "id": "q_8e7df7aa250e24be",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -38,17 +38,17 @@
         "intro": "I have a raw snake stuffed with red banana and tchiki nuts... what a monstrosity!",
         "prompt": "Who am I supposed to serve stuffed snake to?",
         "options": [
-          "General Bentnoze",
-          "King Awowogei",
-          "Evil Dave",
           "Skrach Uglogwee",
-          "General Wartface"
+          "General Wartface",
+          "Evil Dave",
+          "General Bentnoze",
+          "King Awowogei"
         ],
-        "answer_index": 1
+        "answer_index": 4
       }
     },
     {
-      "id": "q_b6c40f0ab935fa4e",
+      "id": "q_fc8f4ef467881cee",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -60,12 +60,12 @@
         "intro": "For Pirate Pete's fishcake, I pounded giant crab meat, raw cod and breadcrumbs in my pestle and mortar.",
         "prompt": "What was the fourth ingredient of Pirate Pete's fishcake?",
         "options": [
-          "Ground Kelp",
           "White Pearl Seed",
+          "Ground Kelp",
           "Ground Seaweed",
           "Crushed Oyster Pearl"
         ],
-        "answer_index": 0
+        "answer_index": 1
       }
     },
     {
@@ -99,7 +99,7 @@
       }
     },
     {
-      "id": "q_9a7cb197b9f8d2f6",
+      "id": "q_035b39f93d571c60",
       "type": "multiple_choice",
       "mode": "random_event",
       "source": "pack",
@@ -113,10 +113,10 @@
         "options": [
           "Ice Queen",
           "Ice Troll",
-          "Ice Giant",
-          "Icefiend"
+          "Icefiend",
+          "Ice Giant"
         ],
-        "answer_index": 3
+        "answer_index": 2
       }
     }
   ]
