@@ -103,18 +103,30 @@
       : undefined,
   )
 
+  // svelte-ignore state_referenced_locally
+  const roundPrompt = choice.prompt
+  /** A payload with the round's prompt: a fixed one always, any other only on a new question. */
+  function prompted(payload: Record<string, unknown>): Record<string, unknown> {
+    if (roundPrompt === undefined || (!roundPrompt.fixed && 'prompt' in payload)) return payload
+    return { ...payload, prompt: roundPrompt.text }
+  }
+  // svelte-ignore state_referenced_locally
   const question: CustomQuestion | undefined =
-    start?.type === undefined || start.type === 'ordering'
+    start?.type === 'ordering'
       ? undefined
-      : {
-          type: start.type,
-          payload: start.payload ?? {},
-          ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
-        }
+      : start?.type === undefined
+        ? roundPrompt === undefined
+          ? undefined
+          : { type: customTypes[0] ?? 'multiple_choice', payload: prompted({}) }
+        : {
+            type: start.type,
+            payload: prompted(start.payload ?? {}),
+            ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
+          }
   const picked = $derived(
     current === opened || current === undefined || current === 'ordering'
       ? question
-      : { type: current, payload: {} },
+      : { type: current, payload: prompted({}) },
   )
   const ordering: OrderingQuestion | undefined =
     start?.type === 'ordering' ? { type: 'ordering', payload: start.payload ?? {} } : undefined
@@ -260,6 +272,7 @@
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     mode={choice.id}
     quote={choice.quote ?? false}
+    promptFixed={roundPrompt?.fixed ?? false}
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
     {saveLabel}

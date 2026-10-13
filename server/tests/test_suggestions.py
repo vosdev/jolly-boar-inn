@@ -15,7 +15,7 @@ from app.config import REPO_ROOT, Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.rooms import state
-from app.suggestions import INTRO_MODES, QUESTION_MODES, QUOTE_MODES
+from app.suggestions import FIXED_PROMPTS, INTRO_MODES, QUESTION_MODES, QUOTE_MODES, check
 from tests import client_source
 from tests.conftest import BASE
 
@@ -32,6 +32,21 @@ EVENT = {
         "wiki": WIKI,
         "payload": {
             "prompt": "Which of these is not a Barrows brother?",
+            "options": ["Dharok", "Torag", "Hazelmere", "Karil"],
+            "answer_index": 2,
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+ODD = {
+    "kind": "question",
+    "content": {
+        "type": "multiple_choice",
+        "mode": "odd_one_out",
+        "wiki": WIKI,
+        "payload": {
+            "prompt": "Which one doesn't belong?",
             "options": ["Dharok", "Torag", "Hazelmere", "Karil"],
             "answer_index": 2,
         },
@@ -269,6 +284,7 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
                 {"text": text, "rank": 1} for text in ("Sapphire", "Emerald", "Ruby", "Diamond")
             ]
         ),
+        _with(ODD, payload={**ODD["content"]["payload"], "prompt": "Which is not a brother?"}),
         _with(EXAMINE, prompt="x" * 301),
         _with(EXAMINE, name="   "),
         _without(EXAMINE, "wiki"),
@@ -329,6 +345,18 @@ def test_the_form_offers_a_quote_only_to_the_rounds_that_show_one() -> None:
     rounds = re.search(r"const QUOTE_ROUNDS = \[([^\]]*)\]", source)
     assert rounds is not None
     assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(QUOTE_MODES)
+
+
+def test_an_odd_one_out_question_asks_the_rounds_own_prompt() -> None:
+    assert (
+        check("question", ODD["content"], True)["payload"]["prompt"] == FIXED_PROMPTS["odd_one_out"]
+    )
+
+
+def test_the_form_holds_the_same_rounds_to_the_same_prompts() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    fixed = re.findall(r"(\w+): \{ text: \"([^\"]*)\", fixed: true \}", source)
+    assert dict(fixed) == FIXED_PROMPTS
 
 
 def test_a_release_order_suggestion_waits_as_not_playable(client: TestClient) -> None:

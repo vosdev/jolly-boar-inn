@@ -143,13 +143,15 @@ describe('Suggest', () => {
     })
   })
 
-  it('writes a round’s question with no NPC, one type and its wiki page', async () => {
+  it('writes a round’s question with no NPC, one type, its fixed prompt and its wiki page', async () => {
     played()
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
     expect(screen.queryByLabelText('Who asks it')).toBeNull()
     expect(screen.queryByRole('group', { name: 'How players answer' })).toBeNull()
-    await type('Question', 'Which of these is not a Barrows brother?')
+    const question = screen.getByLabelText<HTMLTextAreaElement>('Question')
+    expect(question.value).toBe("Which one doesn't belong?")
+    expect(question.readOnly).toBe(true)
     await type('Answer 1', 'Dharok')
     await type('Answer 2', 'Hazelmere')
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
@@ -165,7 +167,7 @@ describe('Suggest', () => {
       content: {
         type: 'multiple_choice',
         payload: {
-          prompt: 'Which of these is not a Barrows brother?',
+          prompt: "Which one doesn't belong?",
           options: ['Dharok', 'Hazelmere'],
           answer_index: 1,
         },
@@ -181,6 +183,9 @@ describe('Suggest', () => {
     played()
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /Who Said That/ }))
+    const question = screen.getByLabelText<HTMLTextAreaElement>('Question')
+    expect(question.value).toBe('Who said that?')
+    expect(question.readOnly).toBe(false)
     await type('Question', 'Who said this?')
     await type(/The quotation/, 'Never gonna give you up')
     const preview = screen.getByRole('region', { name: 'Preview' })
