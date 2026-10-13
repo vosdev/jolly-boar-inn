@@ -80,9 +80,14 @@ export function takeAdminToken(): string | null {
   return readStored(TOKEN_KEY)
 }
 
+/** The token this browser holds, which is not to say the server still takes it. */
+export function storedAdminToken(): string | null {
+  return readStored(TOKEN_KEY)
+}
+
 /** Whether this browser holds a token, which is not to say the server still takes it. */
 export function hasAdminToken(): boolean {
-  return readStored(TOKEN_KEY) !== null
+  return storedAdminToken() !== null
 }
 
 export function forgetAdminToken(): void {

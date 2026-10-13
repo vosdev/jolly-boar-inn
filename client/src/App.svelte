@@ -159,4 +159,4 @@
   {/if}
 </main>
 
-<Footer {wide} {navigate} />
+<Footer {wide} />

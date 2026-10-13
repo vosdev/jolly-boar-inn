@@ -10,6 +10,7 @@ import {
 } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import * as admin from "../lib/admin";
 import * as api from "../lib/api";
 import { pastGames, savePastGame } from "../lib/history";
 import { npcArt } from "../lib/npcs";
@@ -20,6 +21,11 @@ import Home from "./Home.svelte";
 vi.mock("../lib/api", async (importOriginal) => {
   const real = await importOriginal<typeof import("../lib/api")>();
   return { ...real, deleteRoom: vi.fn(), getPublicRooms: vi.fn(), getRoom: vi.fn() };
+});
+
+vi.mock("../lib/admin", async (importOriginal) => {
+  const real = await importOriginal<typeof import("../lib/admin")>();
+  return { ...real, getQueue: vi.fn() };
 });
 
 const navigate = vi.fn();
@@ -557,5 +563,46 @@ describe("Suggest or report a question", () => {
     render(Home, { navigate });
     expect(screen.queryByRole("heading", { name: heading })).toBeNull();
     expect(screen.queryByRole("button", { name: "Report a question" })).toBeNull();
+  });
+
+  const TOKEN = "0123456789abcdef0123456789abcdef";
+
+  function queued(pending: number): void {
+    vi.mocked(admin.getQueue).mockResolvedValue({
+      suggestions: [],
+      counts: { pending, approved: 0, rejected: 0, imported: 0 },
+    });
+  }
+
+  it("offers Admin with the pending suggestions to a browser holding the admin token", async () => {
+    localStorage.setItem("jbi:admin", TOKEN);
+    queued(3);
+    render(Home, { navigate });
+    const section = screen.getByRole("heading", { name: heading }).closest("section")!;
+    const button = await within(section).findByRole("button", { name: "Admin (3)" });
+    expect(admin.getQueue).toHaveBeenCalledWith(TOKEN, "pending");
+    await fireEvent.click(button);
+    expect(navigate).toHaveBeenCalledWith("/admin");
+  });
+
+  it("leaves the count off Admin when nothing is pending or the token is refused", async () => {
+    localStorage.setItem("jbi:admin", TOKEN);
+    queued(0);
+    render(Home, { navigate });
+    await waitFor(() => expect(admin.getQueue).toHaveBeenCalled());
+    expect(screen.getByRole("button", { name: "Admin" })).toBeTruthy();
+    cleanup();
+
+    vi.mocked(admin.getQueue).mockRejectedValue(new api.ApiFailure(401, "unauthorized", "no"));
+    render(Home, { navigate });
+    await waitFor(() => expect(admin.getQueue).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("button", { name: "Admin" })).toBeTruthy();
+  });
+
+  it("offers Admin to no other browser, and asks the server nothing", () => {
+    played();
+    render(Home, { navigate });
+    expect(screen.queryByRole("button", { name: /^Admin/ })).toBeNull();
+    expect(admin.getQueue).not.toHaveBeenCalled();
   });
 });

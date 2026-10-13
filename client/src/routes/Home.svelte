@@ -25,6 +25,7 @@
   import { atRoomLimit } from '../lib/roomLimit'
   import type { Route } from '../lib/stats'
   import { maySuggest } from '../lib/suggestions'
+  import { getQueue, storedAdminToken } from '../lib/admin'
   import { modeLabel } from '../lib/modes'
   import {
     createdRoomExpiries,
@@ -50,6 +51,9 @@
   const pastPages = $derived(Math.ceil(past.length / PAST_PAGE))
   const pastShown = $derived(past.slice(pastPage * PAST_PAGE, (pastPage + 1) * PAST_PAGE))
   const suggesting = maySuggest()
+  const adminToken = storedAdminToken()
+  /** Pending suggestions, unknown until the server answers, and left so if it refuses the token. */
+  let pending = $state<number | null>(null)
   /** Where the two-column layout starts; keep it equal to the media query in the style. */
   const WIDE_QUERY = '(min-width: 50rem)'
   /**
@@ -61,6 +65,13 @@
   let theme = $state('')
   const heroArt = $derived(heroes[theme] ?? hero)
   onMount(() => watchTheme((current) => (theme = current)))
+  onMount(() => {
+    if (adminToken === null) return
+    getQueue(adminToken, 'pending').then(
+      (queue) => (pending = queue.counts.pending),
+      () => {},
+    )
+  })
 
   let wide = $state(typeof matchMedia === 'function' && matchMedia(WIDE_QUERY).matches)
   let code = $state('')
@@ -182,7 +193,7 @@
 </script>
 
 {#snippet suggest()}
-  {#if suggesting}
+  {#if suggesting || adminToken !== null}
     <section class="panel">
       <h2>Suggest or report a question</h2>
       <p class="note">
@@ -193,6 +204,11 @@
       <div class="row">
         <button type="button" onclick={() => navigate('/suggest')}>Suggest something</button>
         <button type="button" onclick={() => navigate('/report')}>Report a question</button>
+        {#if adminToken !== null}
+          <button type="button" onclick={() => navigate('/admin')}>
+            Admin{pending ? ` (${pending})` : ''}
+          </button>
+        {/if}
       </div>
     </section>
   {/if}
