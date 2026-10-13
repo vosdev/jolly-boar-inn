@@ -1144,6 +1144,1680 @@
         ],
         "explanation": "The gem and the bar can come in either order. The amulet takes 80 Crafting, then a ball of wool, Lvl-5 Enchant at 68 Magic and a dip in the Fountain of Heroes."
       }
+    },
+    {
+      "id": "q_8b841ee27375c8f1",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these logs by the Woodcutting level needed to chop them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Willow logs",
+            "rank": 1,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Teak logs",
+            "rank": 2,
+            "detail": "Level 35"
+          },
+          {
+            "text": "Maple logs",
+            "rank": 3,
+            "detail": "Level 45"
+          },
+          {
+            "text": "Mahogany logs",
+            "rank": 4,
+            "detail": "Level 50"
+          },
+          {
+            "text": "Yew logs",
+            "rank": 5,
+            "detail": "Level 60"
+          },
+          {
+            "text": "Magic logs",
+            "rank": 6,
+            "detail": "Level 75"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Willows take 30 Woodcutting, teaks 35, maples 45, mahoganies 50, yews 60 and magic trees 75."
+      }
+    },
+    {
+      "id": "q_4cce101be966997c",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these rocks by the Mining level needed to mine them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Silver",
+            "rank": 1,
+            "detail": "Level 20"
+          },
+          {
+            "text": "Coal",
+            "rank": 2,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Gold",
+            "rank": 3,
+            "detail": "Level 40"
+          },
+          {
+            "text": "Mithril",
+            "rank": 4,
+            "detail": "Level 55"
+          },
+          {
+            "text": "Adamantite",
+            "rank": 5,
+            "detail": "Level 70"
+          },
+          {
+            "text": "Runite",
+            "rank": 6,
+            "detail": "Level 85"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Silver takes 20 Mining, coal 30, gold 40, mithril 55, adamantite 70 and runite 85."
+      }
+    },
+    {
+      "id": "q_6c546727bb5df425",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these fruit trees by the Farming level needed to plant them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Apple tree",
+            "rank": 1,
+            "detail": "Level 27"
+          },
+          {
+            "text": "Banana tree",
+            "rank": 2,
+            "detail": "Level 33"
+          },
+          {
+            "text": "Orange tree",
+            "rank": 3,
+            "detail": "Level 39"
+          },
+          {
+            "text": "Pineapple plant",
+            "rank": 4,
+            "detail": "Level 51"
+          },
+          {
+            "text": "Papaya tree",
+            "rank": 5,
+            "detail": "Level 57"
+          },
+          {
+            "text": "Palm tree",
+            "rank": 6,
+            "detail": "Level 68"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Apple trees take 27 Farming, bananas 33, oranges 39, pineapples 51, papayas 57 and palms 68."
+      }
+    },
+    {
+      "id": "q_488aae08e69aee6e",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these implings by the Hunter level needed to catch them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Baby impling",
+            "rank": 1,
+            "detail": "Level 17"
+          },
+          {
+            "text": "Earth impling",
+            "rank": 2,
+            "detail": "Level 36"
+          },
+          {
+            "text": "Eclectic impling",
+            "rank": 3,
+            "detail": "Level 50"
+          },
+          {
+            "text": "Magpie impling",
+            "rank": 4,
+            "detail": "Level 65"
+          },
+          {
+            "text": "Ninja impling",
+            "rank": 5,
+            "detail": "Level 74"
+          },
+          {
+            "text": "Dragon impling",
+            "rank": 6,
+            "detail": "Level 83"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Baby implings take 17 Hunter, earth 36, eclectic 50, magpie 65, ninja 74 and dragon 83."
+      }
+    },
+    {
+      "id": "q_b212afb16cddee5d",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these stalls by the Thieving level needed to steal from them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Baker's stall",
+            "rank": 1,
+            "detail": "Level 5"
+          },
+          {
+            "text": "Silk stall",
+            "rank": 2,
+            "detail": "Level 20"
+          },
+          {
+            "text": "Fur stall",
+            "rank": 3,
+            "detail": "Level 35"
+          },
+          {
+            "text": "Silver stall",
+            "rank": 4,
+            "detail": "Level 50"
+          },
+          {
+            "text": "Spice stall",
+            "rank": 5,
+            "detail": "Level 65"
+          },
+          {
+            "text": "Gem stall",
+            "rank": 6,
+            "detail": "Level 75"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "The baker's stall takes 5 Thieving, silk 20, fur 35, silver 50, spice 65 and gems 75."
+      }
+    },
+    {
+      "id": "q_5e06aa16159049ac",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these teleports by the Magic level needed to cast them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Varrock Teleport",
+            "rank": 1,
+            "detail": "Level 25"
+          },
+          {
+            "text": "Lumbridge Teleport",
+            "rank": 2,
+            "detail": "Level 31"
+          },
+          {
+            "text": "Falador Teleport",
+            "rank": 3,
+            "detail": "Level 37"
+          },
+          {
+            "text": "Camelot Teleport",
+            "rank": 4,
+            "detail": "Level 45"
+          },
+          {
+            "text": "Ardougne Teleport",
+            "rank": 5,
+            "detail": "Level 51"
+          },
+          {
+            "text": "Trollheim Teleport",
+            "rank": 6,
+            "detail": "Level 61"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Varrock Teleport takes 25 Magic, Lumbridge 31, Falador 37, Camelot 45, Ardougne 51 and Trollheim 61."
+      }
+    },
+    {
+      "id": "q_49a309bbf829daa8",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort the Ancient Magicks barrages by the Magic level needed to cast them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Smoke Barrage",
+            "rank": 1,
+            "detail": "Level 86"
+          },
+          {
+            "text": "Shadow Barrage",
+            "rank": 2,
+            "detail": "Level 88"
+          },
+          {
+            "text": "Blood Barrage",
+            "rank": 3,
+            "detail": "Level 92"
+          },
+          {
+            "text": "Ice Barrage",
+            "rank": 4,
+            "detail": "Level 94"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Smoke Barrage takes 86 Magic, Shadow 88, Blood 92 and Ice 94."
+      }
+    },
+    {
+      "id": "q_dda2df2d8619e540",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these prayers by the Prayer level needed to use them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Protect from Magic",
+            "rank": 1,
+            "detail": "Level 37"
+          },
+          {
+            "text": "Protect from Melee",
+            "rank": 2,
+            "detail": "Level 43"
+          },
+          {
+            "text": "Smite",
+            "rank": 3,
+            "detail": "Level 52"
+          },
+          {
+            "text": "Chivalry",
+            "rank": 4,
+            "detail": "Level 60"
+          },
+          {
+            "text": "Piety",
+            "rank": 5,
+            "detail": "Level 70"
+          },
+          {
+            "text": "Augury",
+            "rank": 6,
+            "detail": "Level 77"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Protect from Magic unlocks at 37 Prayer, Protect from Melee at 43, Smite at 52, Chivalry at 60, Piety at 70 and Augury at 77."
+      }
+    },
+    {
+      "id": "q_d160c19237049fe4",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these amulets by the Magic level needed to enchant them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Amulet of magic",
+            "rank": 1,
+            "detail": "Level 7"
+          },
+          {
+            "text": "Amulet of defence",
+            "rank": 2,
+            "detail": "Level 27"
+          },
+          {
+            "text": "Amulet of strength",
+            "rank": 3,
+            "detail": "Level 49"
+          },
+          {
+            "text": "Amulet of power",
+            "rank": 4,
+            "detail": "Level 57"
+          },
+          {
+            "text": "Amulet of glory",
+            "rank": 5,
+            "detail": "Level 68"
+          },
+          {
+            "text": "Amulet of fury",
+            "rank": 6,
+            "detail": "Level 87"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "They follow the gems: sapphire takes 7 Magic, emerald 27, ruby 49, diamond 57, dragonstone 68 and onyx 87."
+      }
+    },
+    {
+      "id": "q_582812e6a7542d3e",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these bows by the Ranged level needed to wield them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Maple longbow",
+            "rank": 1,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Yew longbow",
+            "rank": 2,
+            "detail": "Level 40"
+          },
+          {
+            "text": "Magic longbow",
+            "rank": 3,
+            "detail": "Level 50"
+          },
+          {
+            "text": "Dark bow",
+            "rank": 4,
+            "detail": "Level 60"
+          },
+          {
+            "text": "Twisted bow",
+            "rank": 5,
+            "detail": "Level 75"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "A maple longbow takes 30 Ranged, a yew 40, a magic 50, a dark bow 60 and a twisted bow 75."
+      }
+    },
+    {
+      "id": "q_ebbedf34adc73225",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these house servants by the Construction level needed to hire them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Rick",
+            "rank": 1,
+            "detail": "Level 20"
+          },
+          {
+            "text": "Maid",
+            "rank": 2,
+            "detail": "Level 25"
+          },
+          {
+            "text": "Cook",
+            "rank": 3,
+            "detail": "Level 30"
+          },
+          {
+            "text": "Butler",
+            "rank": 4,
+            "detail": "Level 40"
+          },
+          {
+            "text": "Demon butler",
+            "rank": 5,
+            "detail": "Level 50"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Rick takes 20 Construction, the maid 25, the cook 30, the butler 40 and the demon butler 50."
+      }
+    },
+    {
+      "id": "q_5e6d56ac241cf941",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these by the Thieving level needed to pickpocket them, from highest to lowest.",
+        "ends": [
+          "Highest",
+          "Lowest"
+        ],
+        "entries": [
+          {
+            "text": "Elf",
+            "rank": 1,
+            "detail": "Level 85"
+          },
+          {
+            "text": "Hero",
+            "rank": 2,
+            "detail": "Level 80"
+          },
+          {
+            "text": "Paladin",
+            "rank": 3,
+            "detail": "Level 70"
+          },
+          {
+            "text": "Knight of Ardougne",
+            "rank": 4,
+            "detail": "Level 55"
+          },
+          {
+            "text": "Master Farmer",
+            "rank": 5,
+            "detail": "Level 38"
+          },
+          {
+            "text": "Farmer",
+            "rank": 6,
+            "detail": "Level 10"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "picks": 3,
+        "explanation": "Elves take 85 Thieving, heroes 80 and paladins 70. Knights of Ardougne take 55, master farmers 38 and farmers 10."
+      }
+    },
+    {
+      "id": "q_ba9774eb2a9ec70d",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these potions by the Herblore level needed to make them, from highest to lowest.",
+        "ends": [
+          "Highest",
+          "Lowest"
+        ],
+        "entries": [
+          {
+            "text": "Super combat potion",
+            "rank": 1,
+            "detail": "Level 90"
+          },
+          {
+            "text": "Saradomin brew",
+            "rank": 2,
+            "detail": "Level 81"
+          },
+          {
+            "text": "Stamina potion",
+            "rank": 3,
+            "detail": "Level 77"
+          },
+          {
+            "text": "Ranging potion",
+            "rank": 4,
+            "detail": "Level 72"
+          },
+          {
+            "text": "Super restore",
+            "rank": 5,
+            "detail": "Level 63"
+          },
+          {
+            "text": "Prayer potion",
+            "rank": 6,
+            "detail": "Level 38"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "picks": 3,
+        "explanation": "A super combat potion takes 90 Herblore, a Saradomin brew 81 and a stamina potion 77. A ranging potion takes 72, a super restore 63 and a prayer potion 38."
+      }
+    },
+    {
+      "id": "q_a443f1c24292cdcf",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these monsters by the Slayer level needed to kill them, from highest to lowest.",
+        "ends": [
+          "Highest",
+          "Lowest"
+        ],
+        "entries": [
+          {
+            "text": "Smoke devil",
+            "rank": 1,
+            "detail": "Level 93"
+          },
+          {
+            "text": "Dark beast",
+            "rank": 2,
+            "detail": "Level 90"
+          },
+          {
+            "text": "Abyssal demon",
+            "rank": 3,
+            "detail": "Level 85"
+          },
+          {
+            "text": "Nechryael",
+            "rank": 4,
+            "detail": "Level 80"
+          },
+          {
+            "text": "Gargoyle",
+            "rank": 5,
+            "detail": "Level 75"
+          },
+          {
+            "text": "Kurask",
+            "rank": 6,
+            "detail": "Level 70"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "picks": 3,
+        "explanation": "Smoke devils take 93 Slayer, dark beasts 90 and abyssal demons 85. Nechryael take 80, gargoyles 75 and kurask 70."
+      }
+    },
+    {
+      "id": "q_8d6730f5b456f3b3",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort this food by how much it heals, from most to least.",
+        "ends": [
+          "Most",
+          "Least"
+        ],
+        "entries": [
+          {
+            "text": "Manta ray",
+            "rank": 1,
+            "detail": "Heals 22"
+          },
+          {
+            "text": "Sea turtle",
+            "rank": 2,
+            "detail": "Heals 21"
+          },
+          {
+            "text": "Shark",
+            "rank": 3,
+            "detail": "Heals 20"
+          },
+          {
+            "text": "Monkfish",
+            "rank": 4,
+            "detail": "Heals 16"
+          },
+          {
+            "text": "Swordfish",
+            "rank": 5,
+            "detail": "Heals 14"
+          },
+          {
+            "text": "Lobster",
+            "rank": 6,
+            "detail": "Heals 12"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "picks": 3,
+        "explanation": "A manta ray heals 22, a sea turtle 21 and a shark 20. A monkfish heals 16, a swordfish 14 and a lobster 12."
+      }
+    },
+    {
+      "id": "q_560a1e1c640f76a1",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "tier"
+      ],
+      "payload": {
+        "prompt": "Sort these quests by the quest points needed to start them, from lowest to highest.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Dragon Slayer I",
+            "rank": 1,
+            "detail": "32 QP"
+          },
+          {
+            "text": "Heroes' Quest",
+            "rank": 2,
+            "detail": "55 QP"
+          },
+          {
+            "text": "Legends' Quest",
+            "rank": 3,
+            "detail": "107 QP"
+          },
+          {
+            "text": "Recipe for Disaster: the final battle",
+            "rank": 4,
+            "detail": "175 QP"
+          },
+          {
+            "text": "Dragon Slayer II",
+            "rank": 5,
+            "detail": "200 QP"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Dragon Slayer I needs 32 quest points, Heroes' Quest 55, Legends' Quest 107, the final battle of Recipe for Disaster 175 and Dragon Slayer II 200."
+      }
+    },
+    {
+      "id": "q_0c5810fb42e6a8b1",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "Sort these bosses by release date, from oldest to newest.",
+        "ends": [
+          "Oldest",
+          "Newest"
+        ],
+        "entries": [
+          {
+            "text": "Zulrah",
+            "rank": 1,
+            "detail": "8 January 2015"
+          },
+          {
+            "text": "Vorkath",
+            "rank": 2,
+            "detail": "4 January 2018"
+          },
+          {
+            "text": "Nex",
+            "rank": 3,
+            "detail": "5 January 2022"
+          },
+          {
+            "text": "Duke Sucellus",
+            "rank": 4,
+            "detail": "26 July 2023"
+          },
+          {
+            "text": "Araxxor",
+            "rank": 5,
+            "detail": "28 August 2024"
+          },
+          {
+            "text": "Yama",
+            "rank": 6,
+            "detail": "14 May 2025"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Zulrah came out on 8 January 2015, Vorkath on 4 January 2018, Nex on 5 January 2022, Duke Sucellus on 26 July 2023, Araxxor on 28 August 2024 and Yama on 14 May 2025."
+      }
+    },
+    {
+      "id": "q_99e822f688041307",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "release"
+      ],
+      "payload": {
+        "prompt": "Sort these Old School milestones by date, from oldest to newest.",
+        "ends": [
+          "Oldest",
+          "Newest"
+        ],
+        "entries": [
+          {
+            "text": "Old School launches",
+            "rank": 1,
+            "detail": "22 February 2013"
+          },
+          {
+            "text": "The Grand Exchange opens",
+            "rank": 2,
+            "detail": "26 February 2015"
+          },
+          {
+            "text": "Mobile release",
+            "rank": 3,
+            "detail": "30 October 2018"
+          },
+          {
+            "text": "Steam release",
+            "rank": 4,
+            "detail": "24 February 2021"
+          },
+          {
+            "text": "Sailing release",
+            "rank": 5,
+            "detail": "19 November 2025"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Old School launched on 22 February 2013, the Grand Exchange opened on 26 February 2015, mobile came out on 30 October 2018, Steam on 24 February 2021 and Sailing on 19 November 2025."
+      }
+    },
+    {
+      "id": "q_713d9768f7f9d565",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "geography"
+      ],
+      "payload": {
+        "prompt": "Sort these places from north to south.",
+        "ends": [
+          "North",
+          "South"
+        ],
+        "entries": [
+          {
+            "text": "Trollheim",
+            "rank": 1
+          },
+          {
+            "text": "Burthorpe",
+            "rank": 2
+          },
+          {
+            "text": "Falador",
+            "rank": 3
+          },
+          {
+            "text": "Port Sarim",
+            "rank": 4
+          },
+          {
+            "text": "Brimhaven",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Trollheim sits above Burthorpe, which is north of Falador. Port Sarim is on the south coast, and Brimhaven across the water on Karamja lies a little further south still."
+      }
+    },
+    {
+      "id": "q_1b9d2b273c6c5b38",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "geography"
+      ],
+      "payload": {
+        "prompt": "Sort these places from west to east.",
+        "ends": [
+          "West",
+          "East"
+        ],
+        "entries": [
+          {
+            "text": "Tree Gnome Stronghold",
+            "rank": 1
+          },
+          {
+            "text": "East Ardougne",
+            "rank": 2
+          },
+          {
+            "text": "Catherby",
+            "rank": 3
+          },
+          {
+            "text": "Falador",
+            "rank": 4
+          },
+          {
+            "text": "Varrock",
+            "rank": 5
+          },
+          {
+            "text": "Canifis",
+            "rank": 6
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "The Gnome Stronghold is in the far west of Kandarin, then come Ardougne and Catherby. Falador and Varrock lie east of White Wolf Mountain, and Canifis is across the River Salve in Morytania."
+      }
+    },
+    {
+      "id": "q_78b7db213d85669c",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "geography"
+      ],
+      "payload": {
+        "prompt": "Sort these desert places from north to south.",
+        "ends": [
+          "North",
+          "South"
+        ],
+        "entries": [
+          {
+            "text": "Al Kharid",
+            "rank": 1
+          },
+          {
+            "text": "Shantay Pass",
+            "rank": 2
+          },
+          {
+            "text": "Pollnivneach",
+            "rank": 3
+          },
+          {
+            "text": "Nardah",
+            "rank": 4
+          },
+          {
+            "text": "Sophanem",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Al Kharid is above the Shantay Pass, the way into the desert. Pollnivneach is further south, Nardah a little below it, and Sophanem near the southern coast."
+      }
+    },
+    {
+      "id": "q_f1ea7437b4230709",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you face the rooms of the Theatre of Blood?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "The Maiden of Sugadinti",
+            "rank": 1
+          },
+          {
+            "text": "Pestilent Bloat",
+            "rank": 2
+          },
+          {
+            "text": "Nylocas Vasilias",
+            "rank": 3
+          },
+          {
+            "text": "Sotetseg",
+            "rank": 4
+          },
+          {
+            "text": "Xarpus",
+            "rank": 5
+          },
+          {
+            "text": "Verzik Vitur",
+            "rank": 6
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "The Maiden comes first, then the Bloat, the Nylocas, Sotetseg and Xarpus, and Verzik Vitur waits at the end."
+      }
+    },
+    {
+      "id": "q_f81c3c9bfe8ac0fe",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you fight the Culinaromancer's servants in Recipe for Disaster?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Agrith-Na-Na",
+            "rank": 1
+          },
+          {
+            "text": "Flambeed",
+            "rank": 2
+          },
+          {
+            "text": "Karamel",
+            "rank": 3
+          },
+          {
+            "text": "Dessourt",
+            "rank": 4
+          },
+          {
+            "text": "Gelatinnoth Mother",
+            "rank": 5
+          },
+          {
+            "text": "Culinaromancer",
+            "rank": 6
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Agrith-Na-Na comes first, then Flambeed, Karamel, Dessourt and the Gelatinnoth Mother, and the Culinaromancer himself last."
+      }
+    },
+    {
+      "id": "q_1c01940e94e1c31b",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order must you complete these troll quests?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Death Plateau",
+            "rank": 1
+          },
+          {
+            "text": "Troll Stronghold",
+            "rank": 2
+          },
+          {
+            "text": "Eadgar's Ruse",
+            "rank": 3
+          },
+          {
+            "text": "My Arm's Big Adventure",
+            "rank": 4
+          },
+          {
+            "text": "Making Friends with My Arm",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Each quest needs the one before it: Death Plateau opens Troll Stronghold, which Eadgar's Ruse needs, and My Arm's Big Adventure comes before Making Friends with My Arm."
+      }
+    },
+    {
+      "id": "q_ebb4c379b68f3dea",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order must you complete these gnome quests?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Tree Gnome Village",
+            "rank": 1
+          },
+          {
+            "text": "The Grand Tree",
+            "rank": 1
+          },
+          {
+            "text": "Monkey Madness I",
+            "rank": 2
+          },
+          {
+            "text": "Monkey Madness II",
+            "rank": 3
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Monkey Madness I needs both Tree Gnome Village and The Grand Tree, but neither needs the other, so either may come first. Monkey Madness II comes last."
+      }
+    },
+    {
+      "id": "q_bd682b7ad2c85ead",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make an anchovy pizza?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Make a pizza base",
+            "rank": 1
+          },
+          {
+            "text": "Add a tomato",
+            "rank": 2
+          },
+          {
+            "text": "Add cheese",
+            "rank": 3
+          },
+          {
+            "text": "Cook it",
+            "rank": 4
+          },
+          {
+            "text": "Add anchovies",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Flour and water make a pizza base. A tomato and then cheese make an uncooked pizza, which you cook before adding the anchovies."
+      }
+    },
+    {
+      "id": "q_3a685f5a6baaf1c8",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make bread from wheat?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Pick wheat",
+            "rank": 1
+          },
+          {
+            "text": "Put the grain in the hopper",
+            "rank": 2
+          },
+          {
+            "text": "Pull the hopper controls",
+            "rank": 3
+          },
+          {
+            "text": "Collect flour from the bin",
+            "rank": 4
+          },
+          {
+            "text": "Mix it with water",
+            "rank": 5
+          },
+          {
+            "text": "Bake it on a range",
+            "rank": 6
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "explanation": "Grain goes into a windmill's hopper and the controls grind it into the flour bin downstairs. Flour and water make bread dough, which you bake."
+      }
+    },
+    {
+      "id": "q_2a7e9e49902b1f9a",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make a holy symbol?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Mine silver ore",
+            "rank": 1
+          },
+          {
+            "text": "Smelt a silver bar",
+            "rank": 2
+          },
+          {
+            "text": "Cast it in a holy mould",
+            "rank": 3
+          },
+          {
+            "text": "String it",
+            "rank": 4
+          },
+          {
+            "text": "Bless it",
+            "rank": 5
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "A silver bar in a holy mould makes an unstrung symbol. A ball of wool strings it, and only then can it be blessed."
+      }
+    },
+    {
+      "id": "q_8db8084ebb219557",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make a redberry pie?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Make pastry dough",
+            "rank": 1
+          },
+          {
+            "text": "Put it in a pie dish",
+            "rank": 2
+          },
+          {
+            "text": "Add redberries",
+            "rank": 3
+          },
+          {
+            "text": "Bake it",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Flour and water make pastry dough, a pie dish turns it into a pie shell, and redberries fill it before it goes in the oven."
+      }
+    },
+    {
+      "id": "q_6033250769b31c04",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make a chocolate cake?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Get a cake tin",
+            "rank": 1
+          },
+          {
+            "text": "Add an egg, milk and flour",
+            "rank": 2
+          },
+          {
+            "text": "Bake it on a range",
+            "rank": 3
+          },
+          {
+            "text": "Add a chocolate bar",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "An egg, a bucket of milk and a pot of flour go into a cake tin. The chocolate bar goes on the cake once it is baked."
+      }
+    },
+    {
+      "id": "q_a0a4a58f3f9aa363",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you end up firing a cannonball?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Mine iron ore and coal",
+            "rank": 1
+          },
+          {
+            "text": "Smelt a steel bar",
+            "rank": 2
+          },
+          {
+            "text": "Make cannonballs at a furnace",
+            "rank": 3
+          },
+          {
+            "text": "Load them into your cannon",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Iron ore and coal smelt into a steel bar. With an ammo mould, a furnace turns the bar into cannonballs, ready for your dwarf multicannon."
+      }
+    },
+    {
+      "id": "q_cf786c88b6ed3b6a",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you set up a bird house?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Make a clockwork",
+            "rank": 1
+          },
+          {
+            "text": "Craft the bird house from logs",
+            "rank": 2
+          },
+          {
+            "text": "Build it on a bird house space",
+            "rank": 3
+          },
+          {
+            "text": "Fill it with seeds",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "A clockwork comes from a steel bar at a crafting table in your house. With logs, a hammer and a chisel it becomes a bird house, which you set up and fill with seeds."
+      }
+    },
+    {
+      "id": "q_01e78b0daf878097",
+      "type": "ordering",
+      "mode": "sort_it_out",
+      "source": "pack",
+      "tags": [
+        "procedure"
+      ],
+      "payload": {
+        "prompt": "In what order do you make and use a teleport tablet?",
+        "ends": [
+          "First",
+          "Last"
+        ],
+        "entries": [
+          {
+            "text": "Mine clay",
+            "rank": 1
+          },
+          {
+            "text": "Soften it with water",
+            "rank": 2
+          },
+          {
+            "text": "Make the tablet at a lectern",
+            "rank": 3
+          },
+          {
+            "text": "Break the tablet",
+            "rank": 4
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Clay needs water to become soft clay. A lectern in your house turns soft clay and runes into a tablet, which teleports you when you break it."
+      }
     }
   ]
 }

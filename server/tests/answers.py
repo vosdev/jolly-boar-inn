@@ -38,11 +38,16 @@ def _rotated_past_ties(payload: dict[str, Any]) -> list[int]:
     # Rotated by its largest tie, the right order moves every rank off its place, so a round
     # can expect no points; that holds wherever the entries number twice that tie or more.
     # The first place is always wrong, so it grades below 1.0 even then, picks or not.
+    # With ``picks`` a rotated pick still earns its half, so entries past the cut go first.
     shown = ordering.reveal(payload)
     right = shown["answer"]
     ranks = [shown["entries"][index]["rank"] for index in right]
+    places = ordering.places(payload)
+    unpicked = [index for index, rank in zip(right, ranks, strict=True) if rank > ranks[places - 1]]
+    if "picks" in payload and len(unpicked) >= places:
+        return unpicked[:places]
     tie = max(ranks.count(rank) for rank in ranks)
-    return (right[tie:] + right[:tie])[: ordering.places(payload)]
+    return (right[tie:] + right[:tie])[:places]
 
 
 def _another_entry(payload: dict[str, Any]) -> int:
