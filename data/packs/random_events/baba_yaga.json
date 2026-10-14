@@ -1,0 +1,101 @@
+{
+  "pack": "random_events",
+  "random_event": "baba_yaga",
+  "questions": [
+    {
+      "id": "q_25215bd7d81bf760",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "magic"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ourania_Teleport",
+      "payload": {
+        "intro": "Berty and I see so many Lunar mages. I teach them a teleport, if they ask me nicely!",
+        "prompt": "Which teleport spell do I teach Lunar mages?",
+        "options": [
+          "Moonclan Teleport",
+          "Ourania Teleport",
+          "Waterbirth Teleport",
+          "Barbarian Teleport"
+        ],
+        "answer_index": 1,
+        "explanation": "With Lunar Diplomacy done, 71 Magic and the Lunar spellbook active, Baba Yaga teaches you Ourania Teleport."
+      }
+    },
+    {
+      "id": "q_45cf884aeac068b9",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "runecraft"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nature_rune",
+      "payload": {
+        "intro": "Nature runes, nature runes! The better you get, the more each essence gives you.",
+        "prompt": "At what Runecraft level do you always craft two nature runes per essence?",
+        "answer": 91,
+        "explanation": "Nature runes need 44 Runecraft, and from 91 every pure essence makes two."
+      }
+    },
+    {
+      "id": "q_161b3706ec0b7b53",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "magic"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/High_Level_Alchemy",
+      "payload": {
+        "intro": "Turn a thing into gold, dearie! Fire runes, yes, but what else?",
+        "prompt": "Besides fire runes, which rune does High Level Alchemy need?",
+        "accepted": [
+          "Nature rune",
+          "Nature"
+        ],
+        "explanation": "High Level Alchemy takes five fire runes and one nature rune, and turns an item into coins."
+      }
+    },
+    {
+      "id": "q_3c727bce23691fde",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "runecraft"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift",
+      "payload": {
+        "intro": "Berty and I peeked into the Temple of the Eye once. Such a commotion down there!",
+        "prompt": "Which minigame takes place in the Temple of the Eye?",
+        "options": [
+          "Mage Training Arena",
+          "Guardians of the Rift",
+          "Tithe Farm",
+          "Barbarian Assault"
+        ],
+        "answer_index": 1,
+        "explanation": "Guardians of the Rift is the Runecraft minigame in the Temple of the Eye, where you craft runes to power the Great Guardian."
+      }
+    },
+    {
+      "id": "q_098b13ba59c59b92",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "magic"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Vengeance",
+      "payload": {
+        "intro": "Moonclan mages are so vengeful! But how much Magic does it take to strike back?",
+        "prompt": "What Magic level do you need to cast Vengeance?",
+        "answer": 94,
+        "explanation": "Vengeance is a level 94 Lunar spell that sends 75% of the next hit you take back at the attacker."
+      }
+    }
+  ]
+}

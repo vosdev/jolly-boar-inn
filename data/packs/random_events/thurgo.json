@@ -1,0 +1,118 @@
+{
+  "pack": "random_events",
+  "random_event": "thurgo",
+  "questions": [
+    {
+      "id": "q_79946d3005dcc4cc",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Blurite_sword",
+      "payload": {
+        "intro": "You brought me a redberry pie, and I made you a sword from the ore under Ice Mountain. Remember?",
+        "prompt": "Which sword did I forge for you in The Knight's Sword?",
+        "accepted": [
+          "Blurite sword",
+          "Blurite"
+        ],
+        "explanation": "Thurgo forges a blurite sword from one blurite ore and two iron bars, to replace the one Sir Vyvin's squire lost."
+      }
+    },
+    {
+      "id": "q_e5b058caae12c40e",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "mining"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Runite_ore",
+      "payload": {
+        "intro": "Runite! The finest metal a dwarf can strike. Can you even mine it?",
+        "prompt": "What Mining level do you need to mine runite ore?",
+        "answer": 85,
+        "explanation": "Runite ore needs 85 Mining, and a mined rock takes twelve minutes to come back."
+      }
+    },
+    {
+      "id": "q_d679fa30c155e45c",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "mining"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Amethyst_crystals",
+      "payload": {
+        "intro": "The toughest rock I know takes a lifetime of swinging a pickaxe. Do you know which?",
+        "prompt": "Which rock needs level 92 Mining?",
+        "options": [
+          "Runite",
+          "Amethyst",
+          "Adamantite",
+          "Gem rock"
+        ],
+        "answer_index": 1,
+        "explanation": "Amethyst crystals need 92 Mining and grow only in the Mining Guild."
+      }
+    },
+    {
+      "id": "q_705e247d4567c4cd",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Blast_Furnace",
+      "payload": {
+        "intro": "A runite bar eats a lot of coal in a normal furnace. The Keldagrim lot do it cheaper.",
+        "prompt": "How much coal does a runite bar take at the Blast Furnace?",
+        "answer": 4,
+        "explanation": "The Blast Furnace needs half the usual coal, so a runite bar takes 4 instead of 8."
+      }
+    },
+    {
+      "id": "q_e7b2e85ca20215d0",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Smithing",
+      "payload": {
+        "intro": "A good platebody takes metal, and plenty of it. How many bars, then?",
+        "prompt": "How many bars does it take to smith a platebody?",
+        "answer": 5,
+        "explanation": "Every metal platebody takes 5 bars of its metal, from bronze to rune."
+      }
+    },
+    {
+      "id": "q_3e1c83550a8dde9d",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "smithing"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Giants'_Foundry",
+      "payload": {
+        "intro": "Kovac's lot need swords taller than a house. Someone has to pour the metal.",
+        "prompt": "In which minigame do you make swords for Kovac?",
+        "options": [
+          "Blast Furnace",
+          "Giants' Foundry",
+          "Motherlode Mine",
+          "Volcanic Mine"
+        ],
+        "answer_index": 1,
+        "explanation": "In Giants' Foundry, unlocked by Sleeping Giants, you cast and refine giant swords for Kovac."
+      }
+    }
+  ]
+}

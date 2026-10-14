@@ -1,0 +1,131 @@
+{
+  "pack": "random_events",
+  "random_event": "sergeant_damien",
+  "questions": [
+    {
+      "id": "q_e5f2532fb47f8954",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Combat_level",
+      "payload": {
+        "intro": "You call that a combat level, maggot? How high does it even go?",
+        "prompt": "What is the highest combat level?",
+        "answer": 126,
+        "explanation": "Every player starts at combat level 3 and tops out at 126."
+      }
+    },
+    {
+      "id": "q_e0812944be597495",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer",
+      "payload": {
+        "intro": "Before a boss fight you knock its Defence down first! With what, maggot?",
+        "prompt": "Which weapon's special attack lowers the target's Defence by 30%?",
+        "options": [
+          "Bandos godsword",
+          "Dragon warhammer",
+          "Dragon claws",
+          "Abyssal whip"
+        ],
+        "answer_index": 1,
+        "explanation": "The dragon warhammer's Smash hits 50% harder and lowers Defence by 30%, but only on a hit that deals damage."
+      }
+    },
+    {
+      "id": "q_268fb988dad48103",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Twisted_bow",
+      "payload": {
+        "intro": "Every maggot wants a twisted bow. Do you even know where to get one?",
+        "prompt": "Which raid drops the twisted bow?",
+        "accepted": [
+          "Chambers of Xeric",
+          "CoX"
+        ],
+        "explanation": "The twisted bow is a rare reward from the Chambers of Xeric, and needs 85 Ranged to wield."
+      }
+    },
+    {
+      "id": "q_5717a2d46842a0da",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Combat_triangle",
+      "payload": {
+        "intro": "There's a triangle to fighting, maggot, and you'd better know which corner wins!",
+        "prompt": "In the combat triangle, which style is strong against Ranged?",
+        "options": [
+          "Melee",
+          "Magic",
+          "Ranged"
+        ],
+        "answer_index": 0,
+        "explanation": "Melee beats Ranged, Ranged beats Magic and Magic beats Melee."
+      }
+    },
+    {
+      "id": "q_38c393139f5c2328",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/TzHaar_Fight_Cave",
+      "payload": {
+        "intro": "Want a fire cape, maggot? Then you'd better know how many waves stand in your way!",
+        "prompt": "How many waves does the TzHaar Fight Cave have?",
+        "answer": 63,
+        "explanation": "The Fight Cave has 63 waves, and TzTok-Jad waits at the last one."
+      }
+    },
+    {
+      "id": "q_04121876b71e5a9b",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "combat",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Barrows_brothers",
+      "payload": {
+        "intro": "Six brothers lie in the barrows of Morytania, maggot. Pick them out of this line-up!",
+        "prompt": "Which of these are Barrows brothers?",
+        "options": [
+          "Ahrim",
+          "Vorkath",
+          "Karil",
+          "K'ril",
+          "Torag",
+          "Torstol"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "The six are Ahrim, Dharok, Guthan, Karil, Torag and Verac. K'ril Tsutsaroth leads Zamorak's army in the God Wars Dungeon, Vorkath is a dragon and torstol is a herb."
+      }
+    }
+  ]
+}

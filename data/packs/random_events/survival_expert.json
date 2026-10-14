@@ -1,0 +1,112 @@
+{
+  "pack": "random_events",
+  "random_event": "survival_expert",
+  "questions": [
+    {
+      "id": "q_7ea932a06a30a256",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "woodcutting"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Redwood_tree",
+      "payload": {
+        "intro": "The biggest trees in Gielinor grow in the Woodcutting Guild. You'll need a sharp axe and sharper skills.",
+        "prompt": "What Woodcutting level do you need to cut a redwood tree?",
+        "answer": 90,
+        "explanation": "Redwoods need 90 Woodcutting and give 380 experience per log. Two of them grow in the Woodcutting Guild."
+      }
+    },
+    {
+      "id": "q_a9b19c22f5ba5d55",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "hunter",
+        "wilderness"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Black_chinchompa",
+      "payload": {
+        "intro": "Out in the Wilderness the chinchompas are black, and they explode. Catch one if you can.",
+        "prompt": "What Hunter level do you need to catch black chinchompas?",
+        "answer": 73,
+        "explanation": "Black chinchompas need 73 Hunter and give 315 experience a catch, in the Wilderness Hunter area."
+      }
+    },
+    {
+      "id": "q_073ac47625f5364a",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "woodcutting",
+        "firemaking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Infernal_axe",
+      "payload": {
+        "intro": "Some folk can't be bothered to light their own fires. They carry an axe that does it for them.",
+        "prompt": "Which axe sometimes burns the logs you chop, for Firemaking experience?",
+        "accepted": [
+          "Infernal axe",
+          "Infernal"
+        ],
+        "explanation": "The infernal axe has a 1 in 3 chance to burn each log you cut, for half the Firemaking experience you would get lighting it."
+      }
+    },
+    {
+      "id": "q_2649e8585dbf467c",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "firemaking",
+        "bosses"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Wintertodt",
+      "payload": {
+        "intro": "Up north, a whole order of pyromancers keeps the fires going day and night. If they go out, we're all in trouble.",
+        "prompt": "Which boss is kept contained by the heat of burning braziers?",
+        "options": [
+          "Tempoross",
+          "Wintertodt",
+          "Zalcano",
+          "Hespori"
+        ],
+        "answer_index": 1,
+        "explanation": "The Wintertodt is imprisoned behind the Doors of Dinh. The Order of the Sacred Flame keeps it weak with lit braziers, and you need 50 Firemaking to help."
+      }
+    },
+    {
+      "id": "q_5e05ffa68a8daa5a",
+      "type": "pick_all_that_apply",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "hunter",
+        "pets"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pet",
+      "payload": {
+        "intro": "Spend long enough in the wild and something small follows you home.",
+        "prompt": "Which of these pets come from Hunter?",
+        "options": [
+          "Quetzin",
+          "Beaver",
+          "Herbi",
+          "Baby chinchompa",
+          "Phoenix",
+          "Mr McGroot"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          3,
+          5
+        ],
+        "explanation": "Quetzin comes from Hunters' Rumours, Herbi from herbiboars, the baby chinchompa from chinchompas and Mr McGroot from goat hunting. The beaver is Woodcutting's, the phoenix the Wintertodt's."
+      }
+    }
+  ]
+}

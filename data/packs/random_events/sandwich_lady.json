@@ -1,0 +1,101 @@
+{
+  "pack": "random_events",
+  "random_event": "sandwich_lady",
+  "questions": [
+    {
+      "id": "q_f50d9f93d070e0e8",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Sandwich_lady",
+      "payload": {
+        "intro": "Sandwiches, dearie! Fresh from my tray. Only, one of these never makes it on there.",
+        "prompt": "Which of these is never on my tray?",
+        "options": [
+          "Baguette",
+          "Kebab",
+          "Doughnut",
+          "Meat pie"
+        ],
+        "answer_index": 2,
+        "explanation": "She offers a baguette, a triangle or square sandwich, a chocolate bar, a kebab, a roll or a meat pie. Never a doughnut."
+      }
+    },
+    {
+      "id": "q_4d56f9d9ab70a9ea",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Manta_ray",
+      "payload": {
+        "intro": "Manta ray on rye, dearie? Took me years before I could cook one without burning it.",
+        "prompt": "What Cooking level do you need to cook a manta ray?",
+        "answer": 91,
+        "explanation": "Raw manta ray needs 91 Cooking, and only a Cooking cape stops it burning altogether."
+      }
+    },
+    {
+      "id": "q_216b794f62d6e8f1",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking",
+        "quests"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cooking_gauntlets",
+      "payload": {
+        "intro": "Those Fitzharmon boys each hand out gauntlets. One pair keeps my fish from burning to a crisp.",
+        "prompt": "Which gauntlets from the Fitzharmon brothers make you burn fewer lobsters, swordfish and sharks?",
+        "accepted": [
+          "Cooking gauntlets"
+        ],
+        "explanation": "After Family Crest, Caleb Fitzharmon turns your gauntlets into cooking gauntlets. They also help with monkfish, anglerfish and kyatt."
+      }
+    },
+    {
+      "id": "q_3ccc5bbfa05f2cfc",
+      "type": "closest_number",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Anglerfish",
+      "payload": {
+        "intro": "An anglerfish sandwich fills you up past the brim, dear. But by how much?",
+        "prompt": "How many hitpoints does an anglerfish heal at 99 Hitpoints?",
+        "answer": 22,
+        "explanation": "At 99 Hitpoints an anglerfish heals 22, and it may take you above your maximum, up to 121."
+      }
+    },
+    {
+      "id": "q_e2c14f1b3c721e42",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "cooking"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cooked_karambwan",
+      "payload": {
+        "intro": "Four fish for your lunch, dearie, but one of them goes down differently from the rest.",
+        "prompt": "Which of these foods doesn't belong?",
+        "options": [
+          "Shark",
+          "Swordfish",
+          "Cooked karambwan",
+          "Tuna"
+        ],
+        "answer_index": 2,
+        "explanation": "A cooked karambwan can be eaten in the same tick right after other food. That trick is called combo eating."
+      }
+    }
+  ]
+}

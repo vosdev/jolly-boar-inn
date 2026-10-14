@@ -1,0 +1,113 @@
+{
+  "pack": "random_events",
+  "random_event": "reldo",
+  "questions": [
+    {
+      "id": "q_76f6bc305238a645",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "spelling"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pollnivneach",
+      "payload": {
+        "intro": "A visitor asked for books on a certain desert town, and I can't find its card. How is it spelled again?",
+        "prompt": "How do you spell the desert town fought over in The Feud?",
+        "accepted": [
+          "Pollnivneach"
+        ],
+        "max_distance": 0,
+        "explanation": "Pollnivneach, said POL-niv-neech. Its Menaphites and Bandits fight over the town in The Feud."
+      }
+    },
+    {
+      "id": "q_b6f94770e92626b4",
+      "type": "free_text",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "spelling"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Prifddinas",
+      "payload": {
+        "intro": "I'm cataloguing a book on elven architecture, and the title gives me terrible trouble.",
+        "prompt": "How do you spell the elven city in Tirannwn?",
+        "accepted": [
+          "Prifddinas"
+        ],
+        "max_distance": 0,
+        "explanation": "Prifddinas, the elven city, opens to you after Song of the Elves."
+      }
+    },
+    {
+      "id": "q_9c1f3f6473ee91f0",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "magic",
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Rune_essence_mine",
+      "payload": {
+        "intro": "Aubury and the wizards shout a curious phrase whenever they send someone to the essence mine.",
+        "prompt": "Which incantation teleports you to the Rune Essence mine?",
+        "options": [
+          "Senventior disthine molenko",
+          "Molenko disthine senventior",
+          "Senventior molenko vorteth",
+          "Arvak tellinor disthine",
+          "Disthine venturo molenko",
+          "Molenko senthine distrior"
+        ],
+        "answer_index": 0,
+        "explanation": "Aubury, Sedridor and the other wizards shout \"Senventior disthine molenko!\" to teleport you to the mine."
+      }
+    },
+    {
+      "id": "q_d3fca728ae98b0cd",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Avarrocka",
+      "payload": {
+        "intro": "Our library holds the oldest records of this city, from before it had its present name.",
+        "prompt": "What was Varrock called long ago?",
+        "options": [
+          "Misthalin",
+          "Avarrocka",
+          "Arravia",
+          "Varroch"
+        ],
+        "answer_index": 1,
+        "explanation": "Varrock began as Avarrocka, a Fourth Age settlement whose founders took in the child Arrav."
+      }
+    },
+    {
+      "id": "q_baed715fc6bfaedb",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [
+        "lore"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Hallowvale",
+      "payload": {
+        "intro": "Ah, Morytania. A gloomy place, but it wasn't always. The old maps call it something else.",
+        "prompt": "What was Morytania called before Drakan's vampyres took it?",
+        "options": [
+          "Senntisten",
+          "Hallowvale",
+          "Ullek",
+          "Paterdomus"
+        ],
+        "answer_index": 1,
+        "explanation": "Hallowvale was ruled by the icyene Queen Efaritay until Lowerniel Drakan conquered it in the God Wars and renamed it Morytania."
+      }
+    }
+  ]
+}
