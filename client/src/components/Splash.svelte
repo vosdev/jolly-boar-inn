@@ -14,8 +14,9 @@
    * The scroll holds only the mode's name, its host's greeting and the blurb. The name is
    * there whole; the greeting and the blurb type in once the stage has come over from the
    * screen before, at the questions' pace (`lib/interlude.ts`). The splash has no hold to
-   * fit, so nothing waits on the typing. The round's count and pace, the
-   * ready check and the countdown go under the line (section 8 of ideas/design.md).
+   * fit, so nothing waits on the typing. The round's count and pace, a price round's date,
+   * the ready check and the countdown go under the line (section 8 of ideas/design.md). The
+   * date is said here once, so the questions need not.
    *
    * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
    * name underneath (`RosterPet`): faded while away, checked once they tap ready. A tap can be
@@ -26,9 +27,11 @@
   import { untrack } from 'svelte'
   import { get } from 'svelte/store'
 
+  import { asOfDate } from '../lib/dates'
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { MODES, hostOf } from '../lib/modes'
   import type { PlayerView, Segment } from '../lib/protocol'
+  import { loadPricesAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
   import { readyThreshold } from '../lib/ready'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
@@ -111,6 +114,17 @@
     if (youReady) undone = true
     onReady(!youReady)
   }
+  const asOf = $derived(pricesAsOf.byMode[segment.mode] ?? null)
+  // The Price is Right's options are rounded to two figures, which a player should know
+  // before guessing; More or Less mixes metrics, and its stem names each one.
+  const prices = $derived(
+    segment.mode === 'price_is_right' ? 'Grand Exchange prices, rounded,' : 'Prices',
+  )
+
+  $effect(() => {
+    void loadPricesAsOf()
+  })
+
   // Built here rather than in the markup, where Svelte would trim the space before the dot.
   const length = $derived(
     `Round ${segment.index + 1} of ${segment.total} · ` +
@@ -130,6 +144,9 @@
 
     <div class="panel board">
       <p class="count">{length}</p>
+      {#if asOf !== null}
+        <p class="note asof">{prices} as of {asOfDate(asOf)}.</p>
+      {/if}
 
       <div class="ready">
         <button
@@ -198,7 +215,8 @@
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
   }
 
-  .count {
+  .count,
+  .asof {
     margin: 0 0 0.4rem;
     font-size: 0.9rem;
     color: var(--muted);

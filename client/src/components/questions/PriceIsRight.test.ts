@@ -97,7 +97,8 @@ describe('price_is_right', () => {
     // Position is identity: the ladder is sapphire, emerald, ruby, red topaz, revealed or not.
     const gems = ['sapphire', 'emerald', 'ruby', 'red-topaz']
     buttons.forEach((b, i) => expect(b.classList.contains(gems[i]!)).toBe(true))
-    expect(screen.getByText(/^Grand Exchange price, rounded, as of /)).toBeTruthy()
+    // The splash and the footer date the prices; the question does not.
+    expect(document.body.textContent).not.toContain('as of')
   })
 
   it('draws the stem as nothing when the subject has no name', () => {

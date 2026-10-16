@@ -105,4 +105,14 @@ describe('more_less’s question', () => {
     })
     expect([...container.querySelectorAll('.votes')].map((v) => v.textContent)).toEqual(['1', '2'])
   })
+
+  it('leaves the date of its prices to the splash and the footer', () => {
+    render(Question, {
+      question: open(),
+      reveal: { ...VIEW, answer_index: 0 },
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(document.body.textContent).not.toContain('as of')
+  })
 })

@@ -11,8 +11,9 @@
    *
    * `data` arrives in the two shapes `questions/types/price_is_right.py` sends:
    *
-   * - while open, `client_view(payload)`: the subject, the four options and `as_of`.
-   *   The options are the question, so they are on the wire from the start.
+   * - while open, `client_view(payload)`: the subject, the four options and `as_of`,
+   *   which the splash and footer say instead. The options are the question, so they are
+   *   on the wire from the start.
    * - after close, `reveal(payload)`: the same plus `value` and `answer_index`.
    *
    * The options come in ascending order and are drawn in that order. That is not a hint:
@@ -20,7 +21,6 @@
    * is how anyone would lay out a guess at one. The rungs are gems, sapphire at the
    * cheapest, and the verdict is the points slot's.
    */
-  import { asOfDate } from '../../../lib/dates'
   import { formatGp } from '../../../lib/gp'
   import { indexSet } from '../GemButton.svelte'
   import GemChoices from '../GemChoices.svelte'
@@ -31,7 +31,6 @@
 
   interface Data {
     options: number[]
-    as_of: string
     /** Reveal only. */
     answer_index?: Index
   }
@@ -59,10 +58,6 @@
   {/snippet}
 </GemChoices>
 
-{#if revealed}
-  <p class="note asof">Grand Exchange price, rounded, as of {asOfDate(q.as_of)}.</p>
-{/if}
-
 <style>
   /* In em, so the price grows with the answer's button on a reveal and shrinks with the
      rest beneath it. */
@@ -75,9 +70,5 @@
   .unit {
     font-size: 0.6em;
     font-weight: 400;
-  }
-
-  .note {
-    margin: 1rem 0 0;
   }
 </style>

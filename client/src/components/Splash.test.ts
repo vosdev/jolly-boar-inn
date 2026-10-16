@@ -4,13 +4,15 @@
  * that a `pong` moving the clock offset does not fill up again.
  */
 
-import { fireEvent, render, screen, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { asOfDate } from '../lib/dates'
 import { LETTERS_PER_SECOND, interludeFor } from '../lib/interlude'
 import { GENERIC_HOST, MODES } from '../lib/modes'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
+import { pricesAsOf } from '../lib/pricesAsOf.svelte'
 import type { PlayerView, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import { petsDrawn } from '../test-pets'
@@ -28,8 +30,14 @@ function players(youReady: boolean): PlayerView[] {
 
 const fill = () => (document.querySelector('.fill') as HTMLElement).style.width
 
+beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+})
+
 afterEach(() => {
   serverOffsetMs.set(0)
+  pricesAsOf.byMode = {}
+  vi.unstubAllGlobals()
 })
 
 function splash(segment: Segment = SEGMENT, youReady = false) {
@@ -55,6 +63,24 @@ describe('Splash stage', () => {
     // A round's questions each take their own type's time, so no one length is true.
     expect(under().textContent).not.toContain('seconds')
     expect(paper().textContent).not.toContain('Round 1 of 2')
+  })
+
+  it('dates a price round under the line, rounded for The Price is Right', () => {
+    pricesAsOf.byMode = { more_less: '2026-09-01', price_is_right: '2026-10-08' }
+    splash()
+    expect(under().textContent).toContain(`Prices as of ${asOfDate('2026-09-01')}.`)
+    expect(paper().textContent).not.toContain('as of')
+    cleanup()
+    splash({ ...SEGMENT, mode: 'price_is_right' })
+    expect(under().textContent).toContain(
+      `Grand Exchange prices, rounded, as of ${asOfDate('2026-10-08')}.`,
+    )
+  })
+
+  it('dates no round without prices', () => {
+    pricesAsOf.byMode = { more_less: '2026-09-01' }
+    splash({ ...SEGMENT, mode: 'bestiary' })
+    expect(under().textContent).not.toContain('as of')
   })
 
   it('heads a mode this build lacks with its id, and makes up no blurb', () => {

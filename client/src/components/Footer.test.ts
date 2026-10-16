@@ -1,12 +1,21 @@
 /** The band under every screen: the notices a visitor is owed, and the way to the code. */
 
 import { render, screen } from "@testing-library/svelte";
-import { beforeEach, describe, expect, it } from "vitest";
+import { tick } from "svelte";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { asOfDate } from "../lib/dates";
+import { pricesAsOf } from "../lib/pricesAsOf.svelte";
 import Footer from "./Footer.svelte";
 
 beforeEach(() => {
   localStorage.clear();
+  vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+});
+
+afterEach(() => {
+  pricesAsOf.byMode = {};
+  vi.unstubAllGlobals();
 });
 
 describe("Footer", () => {
@@ -28,5 +37,13 @@ describe("Footer", () => {
     const link = screen.getByRole("link", { name: "Credits" });
     expect(link.getAttribute("href")).toBe("/credits");
     expect(link.getAttribute("target")).toBe("_blank");
+  });
+
+  it("dates the Grand Exchange prices by the newest price mode's", async () => {
+    render(Footer);
+    expect(document.body.textContent).not.toContain("GE prices");
+    pricesAsOf.byMode = { more_less: "2026-09-01", price_is_right: "2026-10-08" };
+    await tick();
+    expect(screen.getByText(`GE prices as of ${asOfDate("2026-10-08")}`)).toBeTruthy();
   });
 });

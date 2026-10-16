@@ -5,8 +5,8 @@
    * The question is one line and two names. The line is `MoreLessStem`'s, on the scroll,
    * and names the metric: a pack mixes `ge_price` and `high_alch` questions, and the two
    * disagree wildly for the same item, so "which costs more?" alone is unanswerable. This
-   * view is the two names under it. The date the values come from is not needed to
-   * answer, so it stays on the reveal.
+   * view is the two names under it. The date the values come from is the splash's and the
+   * footer's to say, once, not every question's.
    *
    * `data` is whatever the server sent, and it arrives in two shapes from the same
    * module in `questions/types/more_less.py`:
@@ -25,10 +25,8 @@
    * and nothing that looks like a press, and a question left unanswered shows neither
    * button pressed — which it used to, by drawing the answer in the pressed style.
    */
-  import { asOfDate } from '../../../lib/dates'
   import GemButton, { gemState, indexSet, pickCounts } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
-  import { phrasingFor } from './moreLess'
 
   /** An option index: the two buttons are `options[0]` and `options[1]`. */
   type Index = 0 | 1
@@ -49,7 +47,6 @@
     metric: string
     direction: 'more' | 'less'
     options: Option[]
-    as_of: string
     /** Reveal only. */
     answer_index?: Index
   }
@@ -60,7 +57,6 @@
   // what the keys mean, which is why the type map lives one level up and not in here.
   const q = $derived(data as unknown as Data)
 
-  const metric = $derived(phrasingFor(q.metric).label)
   const answer = $derived(revealed ? (q.answer_index ?? null) : null)
   const picked = $derived(yourValue === 0 || yourValue === 1 ? (yourValue as Index) : null)
 
@@ -96,10 +92,6 @@
   {/each}
 </div>
 
-{#if revealed}
-  <p class="note asof">{metric}, as of {asOfDate(q.as_of)}.</p>
-{/if}
-
 <style>
   .choices {
     display: grid;
@@ -124,14 +116,6 @@
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
     font-size: 0.95rem;
     font-weight: 400;
-  }
-
-  .note {
-    margin: 1rem 0 0;
-  }
-
-  .asof {
-    margin: 1rem 0 0;
   }
 
   @media (max-width: 30rem) {
