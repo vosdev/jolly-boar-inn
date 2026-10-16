@@ -123,7 +123,7 @@ describe('Admin', () => {
     expect(rows('How questions closed, by mode')).toEqual(['More or Less'])
     expect(screen.getByText('(7 / 0 / 1)')).toBeTruthy()
     expect(rows('Join failures players saw')).toEqual(['Unknown code'])
-    expect(rows('Themes picked, once per browser')).toEqual(['TzHaar'])
+    expect(rows('Themes picked, once per browser')).toEqual(['Toktz'])
     expect(rows('Finished games by length')).toEqual(['10–20 min', '60+ min'])
     expect(rows("Hosts' own questions by type")).toEqual(['Type the answer'])
     expect(screen.getByText('In 1 game started.')).toBeTruthy()

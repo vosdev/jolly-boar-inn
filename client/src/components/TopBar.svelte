@@ -275,7 +275,7 @@
 
   .emblem-space {
     flex: none;
-    width: 24px;
+    width: 32px;
   }
 
   .head-face {

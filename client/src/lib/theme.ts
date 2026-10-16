@@ -29,7 +29,7 @@ export const THEME_LABELS: Record<Theme, { name: string }> = {
   pollnivneach: { name: 'Pollnivneach' },
   wilderness: { name: 'Wilderness' },
   party_room: { name: 'Party Room' },
-  tzhaar: { name: 'TzHaar' },
+  tzhaar: { name: 'Toktz' },
 }
 
 /** `configured` if it names a theme this build paints, else `jolly`, never an unstyled page. */

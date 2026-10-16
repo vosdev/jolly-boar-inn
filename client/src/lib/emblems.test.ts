@@ -1,5 +1,5 @@
 /**
- * A flag dropped into `assets/themes/` is that theme's emblem by name, and a checkout
+ * An icon fetched into `assets/themes/` is that theme's emblem by name, and a checkout
  * without one draws every placeholder.
  */
 
@@ -23,7 +23,8 @@ describe('emblemFile', () => {
     expect(EMBLEMS).toEqual([...THEMES])
   })
 
-  it('has no files in this checkout, so every emblem draws its placeholder', () => {
-    for (const theme of EMBLEMS) expect(emblemFile(theme)).toBeNull()
+  it('finds every theme’s icon or none, whatever this checkout has fetched', () => {
+    const found = EMBLEMS.filter((theme) => emblemFile(theme) !== null)
+    expect(found.length === 0 || found.length === EMBLEMS.length).toBe(true)
   })
 })

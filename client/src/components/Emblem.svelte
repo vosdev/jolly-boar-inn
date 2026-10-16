@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * A theme's emblem: its dropped-in Leagues flag, or the placeholder mark drawn here.
+   * A theme's emblem: its fetched item icon, or the placeholder mark drawn here.
    *
    * The mark is filled with `--accent`, so it takes the accent of whichever `data-theme`
    * it sits under: the page's in the bar, and each theme's own in the menu's list. It fills
@@ -81,6 +81,13 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+
+  /* The icons are game sprites of about 32px: kept at their own size, a pixel to a pixel,
+     since blurring them up or down loses what they are. */
+  img.emblem {
+    object-fit: scale-down;
+    image-rendering: pixelated;
   }
 
   .mark {

@@ -14,7 +14,7 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `pollnivneach` | Pollnivneach | Bright desert noon. | Sandstone, off-white panels | Terracotta, indigo shade |
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
 | `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
-| `tzhaar` | TzHaar | Hot. The volcano's cracked obsidian floor. | Brown-black, red seams, near-black panels | Lava orange |
+| `tzhaar` | Toktz | Hot. The volcano's cracked obsidian floor. | Brown-black, red seams, near-black panels | Lava orange |
 
 - `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
@@ -118,7 +118,7 @@ learns the position, which is worth more than variety.
 - **Right:** GitHub (`--muted`, the one control not about the game), then one control: the pet,
   the name and the current theme's **emblem**. One thumb target, not three. The name is the bar's
   priority: it shows at every width and is the one item that shrinks, ellipsising.
-- **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 165px.
+- **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 155px.
 - **Width:** the bar and the footer are as wide as the screen under them: 42rem, or 64rem on Home,
   Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
@@ -128,7 +128,7 @@ The control opens one panel: **You** (name and pet; the local profile outside a 
 player via `set_profile` inside one), **Sound** (§7) and **Theme**, a column of emblems beside their
 names, the chosen one ringed. Picking a theme repaints at once and the panel stays open. Escape, a
 tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
-elsewhere. An emblem is the Leagues flag of the theme's area (§14); until one is dropped in, a flat
+elsewhere. An emblem is an item icon of the theme's place (§14), 32px in the bar; unfetched, a flat
 mark in the theme's `--accent` stands in.
 
 ## 6. Names and pets
@@ -380,7 +380,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Clue scroll font | RuneStar/fonts, Quill 8 | **Yes**, 21 KB, with a note beside it |
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |
 | Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the innkeeper |
-| Theme emblems | Leagues area flags | No, fetched; inline placeholder marks |
+| Theme emblems | Wiki item icons, `make fetch-assets` | No, fetched; inline placeholder marks |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
 - Fetching keeps the checkout small. Fetch scripts refuse to run without the operator's own

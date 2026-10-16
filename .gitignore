@@ -34,7 +34,7 @@ client/src/assets/trophies/*
 client/src/assets/logo/*
 !client/src/assets/logo/README.md
 !client/src/assets/trophies/placeholder/
-# Leagues area flags, the themes' emblems: game assets too
+# Wiki item icons, the themes' emblems (make fetch-assets): game assets too
 client/src/assets/themes/*.png
 
 # The copies `make import-suggestions` and `make edit-packs` run on.

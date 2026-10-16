@@ -22,6 +22,13 @@ import { THEME_LABELS, THEMES } from '../lib/theme'
 import { petsDrawn } from '../test-pets'
 import SettingsMenu from './SettingsMenu.svelte'
 
+// The emblems are checked by their placeholders, which a checkout with the icons fetched
+// would replace.
+vi.mock('../lib/emblems', async (original) => ({
+  ...(await original<typeof import('../lib/emblems')>()),
+  emblemFile: () => null,
+}))
+
 const me: PlayerView = {
   id: 'p1',
   display_name: 'Zezima',
@@ -437,12 +444,12 @@ describe('SettingsMenu, the themes', () => {
     expect(names).toEqual(THEMES.map((theme) => THEME_LABELS[theme].name))
   })
 
-  it('offers TzHaar last, with its placeholder emblem, and nothing disabled', async () => {
+  it('offers Toktz last, with its placeholder emblem, and nothing disabled', async () => {
     await opened()
     expect(radios().filter((radio) => radio.disabled)).toEqual([])
     const tzhaar = radios().at(-1)!
     expect(tzhaar.value).toBe('tzhaar')
-    expect(tzhaar.closest('label')!.textContent!.trim()).toBe('TzHaar')
+    expect(tzhaar.closest('label')!.textContent!.trim()).toBe('Toktz')
     await fireEvent.click(tzhaar)
     expect(document.documentElement.dataset.theme).toBe('tzhaar')
     expect(barEmblem()).toBe('tzhaar')
