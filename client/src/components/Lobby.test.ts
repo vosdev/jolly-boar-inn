@@ -102,6 +102,28 @@ beforeEach(() => {
 })
 
 describe('Lobby', () => {
+  it("explains how to play the room's own ways of answering", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          Response.json([
+            { id: 'more_less', types: ['more_less'], questions: null, seconds: null, as_of: null },
+            { id: 'sort_it_out', types: ['ordering'], questions: null, seconds: null, as_of: null },
+          ]),
+        ),
+      ),
+    )
+    lobby()
+    await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
+    const sheet = screen.getByRole('dialog', { name: 'How to play' })
+    await within(sheet).findByRole('heading', { name: 'One answer' })
+    expect(within(sheet).getAllByRole('heading', { level: 3 })).toHaveLength(1)
+    await fireEvent.click(within(sheet).getByRole('button', { name: 'Got it' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    vi.unstubAllGlobals()
+  })
+
   it('kicks from the pet the host taps, the choice being its own confirmation', async () => {
     lobby()
     await fireEvent.click(tile('Woox'))

@@ -253,6 +253,11 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash:** "Waiting for 2 more" says the rest, never by name.
+- **How to play:** a link on the Lobby's scroll and on Home's opens a sheet, a row per way of
+  answering: a small drawing of the control and one plain sentence, with every Submit named in
+  bold, since players overlooked it. The Lobby shows its rounds' types, or all of them when
+  random events, host's questions or hidden rounds could bring any. It ends "Quicker and correct
+  answers score more."
 
 ## 10. The question screen and the reveal
 

@@ -47,6 +47,7 @@
   import ConfirmDialog from './ConfirmDialog.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
+  import HowToPlay from './HowToPlay.svelte'
   import Icon from './Icon.svelte'
   import Pet from './Pet.svelte'
   import RosterPet from './RosterPet.svelte'
@@ -112,6 +113,7 @@
     ),
   )
   let showRounds = $state(false)
+  let showHowTo = $state(false)
 
   const youReady = $derived($players.some((p) => p.id === $you?.id && p.ready === true))
   const readyCount = $derived($players.filter((p) => p.ready === true).length)
@@ -281,6 +283,9 @@
             {/if}
           {/if}
         {/if}
+        <button type="button" class="toggle" aria-haspopup="dialog" onclick={() => (showHowTo = true)}>
+          How to play
+        </button>
       {/if}
       {#if !isAdmin}
         <p class="foot">Waiting for the host to start…</p>
@@ -356,6 +361,10 @@
     </div>
   </Stage>
 </section>
+
+{#if showHowTo && settings !== null}
+  <HowToPlay room={{ settings, total: questions }} onclose={() => (showHowTo = false)} />
+{/if}
 
 {#if asking !== null}
   <ConfirmDialog

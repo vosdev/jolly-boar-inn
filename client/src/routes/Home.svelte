@@ -15,6 +15,7 @@
   import { hero, heroes, siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
+  import HowToPlay from '../components/HowToPlay.svelte'
   import Icon from '../components/Icon.svelte'
   import Pet from '../components/Pet.svelte'
   import Stage from '../components/stage/Stage.svelte'
@@ -75,6 +76,7 @@
 
   let wide = $state(typeof matchMedia === 'function' && matchMedia(WIDE_QUERY).matches)
   let code = $state('')
+  let showHowTo = $state(false)
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
   let confirming = $state<string | null>(null)
@@ -222,9 +224,16 @@
         Your Oldschool RuneScape knowledge will be tested. Create or Join a room, and race for the top of the
         leaderboard!
       </p>
+      <button type="button" class="how-to" aria-haspopup="dialog" onclick={() => (showHowTo = true)}>
+        How to play
+      </button>
     {/snippet}
   </Stage>
 </div>
+
+{#if showHowTo}
+  <HowToPlay onclose={() => (showHowTo = false)} />
+{/if}
 
 <div class="columns">
   <div class="column">
@@ -436,6 +445,17 @@
 
   .intro .tagline {
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+  }
+
+  .how-to {
+    --ink: var(--scroll-ink);
+    padding: 0.35rem 0;
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
   /* Join and Host are what you come to do, so they stand apart from the lists of rooms.
