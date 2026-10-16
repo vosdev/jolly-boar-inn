@@ -1195,19 +1195,26 @@ class RoomManager:
 
     # --- Broadcasting ---------------------------------------------------------------
 
-    def _room_updated(self, room: Room, exclude: UUID | None = None) -> Broadcast:
+    def _room_updated(
+        self, room: Room, exclude: UUID | None = None, standings: bool = False
+    ) -> Broadcast:
         """Snapshot ``room_updated`` and its recipients. Call with the room lock held.
 
         Join, leave, promote, kick, status change, ``set_profile`` -- and the start of a
         splash, which has no frame of its own because the ``RoomView`` in here says
         everything a client needs: the phase, the round, and when it ends. The ready
         check's countdown is that ``next_at``, so it travels in the same frame.
+        ``standings`` adds them, for the start of the standings.
         """
         players = room.player_views()
-        everyone = RoomUpdated(room=room.view(withhold=room.settings.hide_rounds), players=players)
+        ranked = room.standings() if standings else None
+        everyone = RoomUpdated(
+            room=room.view(withhold=room.settings.hide_rounds), players=players, standings=ranked
+        )
         admins = RoomUpdated(
             room=room.view(admin=True, withhold=bool(room.settings.surprise_modes)),
             players=players,
+            standings=ranked,
         )
         if admins == everyone:
             return Broadcast.to_all(room, everyone.model_dump(mode="json"), exclude)
@@ -2022,37 +2029,99 @@ class RoomManager:
         end the database refused leaves the game running for the host to end again.
         """
         code = code.upper()
-        pool = await self._pool()
         async with self._locked(code):
             room = await self._room(code)
             _require_admin(by)
             if room.status != "playing":
                 raise BadState(f"room {code} is {room.status}, not playing")
-            question = room.open_question()
-            voiding = question if question is not None and question.closed_at is None else None
-            cut_short = _round_under_way(room)
-            closed_at = datetime.now(UTC)
-            async with pool.acquire() as conn, conn.transaction():
-                if voiding is not None:
-                    await _void_question(conn, voiding, closed_at)
-                await conn.execute(
-                    "update rooms set status = 'finished', finished_at = $2 where id = $1",
-                    room.id,
-                    closed_at,
-                )
-                await bump(conn, Metric.GAMES_ENDED_EARLY)
-                if cut_short is not None:
-                    await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
-            _stop_timer(room)
+            broadcasts = await self._end_game(room)
+        for broadcast in broadcasts:
+            self._broadcast(broadcast)
+
+    async def _end_game(self, room: Room) -> list[Broadcast]:
+        """``end_game`` on a playing room. Lock held; send what it returns."""
+        pool = await self._pool()
+        voiding = _voidable(room)
+        cut_short = _round_under_way(room)
+        closed_at = datetime.now(UTC)
+        async with pool.acquire() as conn, conn.transaction():
             if voiding is not None:
-                voiding.closed_at, voiding.voided = closed_at, True
-            broadcasts = self._finish(room, closed_at)
+                await _void_question(conn, voiding, closed_at)
+            await conn.execute(
+                "update rooms set status = 'finished', finished_at = $2 where id = $1",
+                room.id,
+                closed_at,
+            )
+            await bump(conn, Metric.GAMES_ENDED_EARLY)
+            if cut_short is not None:
+                await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
+        _stop_timer(room)
+        if voiding is not None:
+            voiding.closed_at, voiding.voided = closed_at, True
+        return self._finish(room, closed_at)
+
+    async def end_round(self, code: str, by: Player, index: int) -> None:
+        """Admin: void whatever is open and cut the round short, on to its standings.
+
+        Only from the round's splash, a question or a reveal, and only while ``index`` is
+        still ``current_index``, so a double tap ends one round, as with ``skip``. In the
+        game's last round it is ``end_game``.
+
+        The rest of the round stays unshown. ``current_index`` is written as the next
+        round's start, so a restart during the standings resumes there (``_recover``)
+        rather than in the round that was cut. The timer is replaced rather than woken:
+        every phase it could be sleeping in would otherwise need to know about the cut.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            if (
+                room.status != "playing"
+                or room.phase not in ("splash", "open", "reveal")
+                or room.current_index != index
+            ):
+                return
+            segment = room.segment_at(index)
+            assert segment is not None  # every question belongs to a round
+            following = segment.start + segment.count
+            if following >= len(room.questions):
+                broadcasts = await self._end_game(room)
+            else:
+                voiding = _voidable(room)
+                cut_short = _round_under_way(room)
+                closed_at = datetime.now(UTC)
+                async with pool.acquire() as conn, conn.transaction():
+                    if voiding is not None:
+                        await _void_question(conn, voiding, closed_at)
+                    await conn.execute(
+                        "update rooms set current_index = $1 where id = $2", following, room.id
+                    )
+                    if cut_short is not None:
+                        await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
+                    # Re-read from this round's start: one cut on its splash gained nothing,
+                    # and the standings must not repeat the round before's gains.
+                    totals = await _fetch_totals(conn, room.id, segment.start)
+                _stop_timer(room)
+                if voiding is not None:
+                    voiding.closed_at, voiding.voided = closed_at, True
+                room.totals, room.totals_round = totals, segment.start
+                room.next_at = room.next_mono = None
+                self._start_timer(room, following, standings_after=following - 1)
+                return
         for broadcast in broadcasts:
             self._broadcast(broadcast)
 
     # --- The timer task --------------------------------------------------------------
 
-    def _start_timer(self, room: Room, index: int, resume_at: float | None = None) -> None:
+    def _start_timer(
+        self,
+        room: Room,
+        index: int,
+        resume_at: float | None = None,
+        standings_after: int | None = None,
+    ) -> None:
         """Hand the room to its one timer task, starting at ``index``.
 
         ``start_game`` calls this with the lock released, right after its own broadcast,
@@ -2064,10 +2133,17 @@ class RoomManager:
         if self.rooms.get(room.code) is not room or room.status != "playing":
             return
         room.timer = asyncio.create_task(
-            self._run_questions(room, index, resume_at), name=f"room-{room.code}-timer"
+            self._run_questions(room, index, resume_at, standings_after),
+            name=f"room-{room.code}-timer",
         )
 
-    async def _run_questions(self, room: Room, index: int, resume_at: float | None = None) -> None:
+    async def _run_questions(
+        self,
+        room: Room,
+        index: int,
+        resume_at: float | None = None,
+        standings_after: int | None = None,
+    ) -> None:
         """The one task per room: open → close → reveal → next, until the game ends.
 
         Every step takes the room lock again and re-checks that this room is still the
@@ -2079,6 +2155,9 @@ class RoomManager:
         rejoins at the top of the loop, so a recovered room that owes the first question
         of a round introduces that round again before opening it.
 
+        ``standings_after`` is the last question of a round ``end_round`` cut short: its
+        standings come first, then ``index`` opens as usual.
+
         A step that raises restarts the room (``_restart``) rather than leaving it in
         memory with nothing to move it on.
         """
@@ -2089,6 +2168,8 @@ class RoomManager:
                 if following is None:
                     return
                 index = following
+            if standings_after is not None and not await self._standings(room, standings_after):
+                return
             while True:
                 if not await self._splash(room, index):
                     return
@@ -2212,10 +2293,8 @@ class RoomManager:
 
         Only a round's last question ends one, and never the game's last: that one goes
         to ``finished``, whose final screen is these same standings. ``standings_seconds``
-        at zero turns the phase off. The standings themselves are not in the frame -- the
-        reveal just before this carried them, and a socket that arrives now gets them in
-        its ``welcome`` -- so ``room_updated`` says only that this is the phase and when it
-        ends.
+        at zero turns the phase off. ``room_updated`` carries the standings: a round
+        ``end_round`` cut short had no reveal to carry them.
 
         Like the splash, nothing is written: ``phase`` is not a column, and a restart
         here resumes in the reveal (``_recover``) and moves straight on, which costs that
@@ -2238,7 +2317,7 @@ class RoomManager:
             room.next_mono = ends = self.clock() + seconds
             # A skip that landed during the reveal has been spent on the reveal.
             room.advance.clear()
-            update = self._room_updated(room)
+            update = self._room_updated(room, standings=True)
         self._broadcast(update)
         await self._sleep_until(room, ends)
         return True
@@ -2586,6 +2665,12 @@ def _stop_timer(room: Room) -> None:
     timer, room.timer = room.timer, None
     if timer is not None and timer is not asyncio.current_task():
         timer.cancel()
+
+
+def _voidable(room: Room) -> RoomQuestion | None:
+    """The question an early end voids: the open one, unless it has just closed."""
+    question = room.open_question()
+    return question if question is not None and question.closed_at is None else None
 
 
 def _round_under_way(room: Room) -> Segment | None:

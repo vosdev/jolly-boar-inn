@@ -233,6 +233,7 @@ export function applyServerMessage(message: ServerMessage): void {
       if (get(room)?.status === 'playing' && message.room.status === 'finished') endedLive.set(true)
       room.set(message.room)
       setPlayers(message.players)
+      if (message.standings !== undefined) standings.set(message.standings)
       break
 
     case 'players_updated':

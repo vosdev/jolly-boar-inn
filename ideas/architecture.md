@@ -257,6 +257,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
 | `promote` | `player_id` | admin | Makes them admin. There is no demote. |
 | `kick` | `player_id` | admin | Deletes the player and their answers; closes 4003. Not on admins. |
+| `end_round` | `index` | admin | Splash, open or reveal of `index`: voids an open question, standings, next round. Last round: `end_game`. |
 | `end_game` | | admin | Voids an open question, `playing → finished`. |
 | `rotate_key` | | admin | Lobby, invite-only room. New key; the old link stops joining, nobody leaves. |
 | `decide_request` | `request_id`, `accept` | admin | Lets a waiting join request in or turns it away, once (section 10). |
@@ -264,7 +265,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | Server `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players` | Join, leave, promote, kick, rename, status change, a splash or standings starting, a ready change that moves `next_at`. |
+| `room_updated` | `room`, `players`, `standings`? | Join, leave, promote, kick, rename, status change, a splash or standings starting (with `standings`), a ready change that moves `next_at`. |
 | `players_updated` | `players` | A ready, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
@@ -362,7 +363,8 @@ One task per room runs `_run_questions(room, index, resume_at)`:
 (segment start) splash ─ready countdown / skip─▶ open ─timer / all answered / skip─▶ reveal
 reveal ─▶ standings (a round's last question, not the game's) ─▶ next question / finished
 reveal ─▶ next question / finished (every other question)
-open ─end_game / crash─▶ voided
+open ─end_game / end_round / crash─▶ voided
+splash / open / reveal ─end_round─▶ standings ─▶ next round's splash (the rest unshown)
 ```
 
 - `phase` is `idle` (lobby, finished), `splash`, `open`, `reveal` or `standings`. It is not a
