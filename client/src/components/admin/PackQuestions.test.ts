@@ -25,6 +25,12 @@ vi.mock('../../lib/admin', async (importOriginal) => {
   }
 })
 
+// The renders are not committed, so without this every NPC is the innkeeper's drawing.
+vi.mock('../../lib/npcs', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../lib/npcs')>()),
+  npcArt: (id: string) => ({ url: `/npcs/${id}.png`, cut: 'chathead' }),
+}))
+
 const WIKI = 'https://oldschool.runescape.wiki/w/Vorkath'
 
 const VORKATH: PackQuestion = {
@@ -258,6 +264,5 @@ describe('PackQuestions', () => {
     const pending = await screen.findByRole('region', { name: 'Pending changes' })
     await within(pending).findByText('Name the potion.')
     expect(pending.querySelector('img')?.getAttribute('src')).toBe(npcArt('dr_jekyll').url)
-    expect(npcArt('dr_jekyll').url).not.toBe(npcArt('sandwich_lady').url)
   })
 })
