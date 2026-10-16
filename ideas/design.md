@@ -20,8 +20,10 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
 - Variety between rounds comes from the round's host (§8), never from the palette. A palette that
   shifts under a question changes what the buttons mean.
-- `party_room` scatters balloons and red partyhats across its floor afresh each visit
-  (`PartyFloor.svelte`), the one theme whose page is not a static texture.
+- Two themes draw on the page behind the panels. `party_room` scatters balloons and red partyhats
+  across its floor afresh each visit (`PartyFloor.svelte`). `jolly` hangs a lit, flickering candle
+  lantern on the wall either side, level with Broav, the right one mirrored (`InnLanterns.svelte`);
+  only on a window wide enough to leave them a gutter, so never on a phone.
 
 ## 2. Colour: the token contract
 
