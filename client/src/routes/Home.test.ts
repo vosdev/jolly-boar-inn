@@ -20,7 +20,13 @@ import Home from "./Home.svelte";
 
 vi.mock("../lib/api", async (importOriginal) => {
   const real = await importOriginal<typeof import("../lib/api")>();
-  return { ...real, deleteRoom: vi.fn(), getPublicRooms: vi.fn(), getRoom: vi.fn() };
+  return {
+    ...real,
+    deleteRoom: vi.fn(),
+    getModes: vi.fn(),
+    getPublicRooms: vi.fn(),
+    getRoom: vi.fn(),
+  };
 });
 
 vi.mock("../lib/admin", async (importOriginal) => {
@@ -35,6 +41,7 @@ beforeEach(() => {
   localStorage.clear();
   vi.mocked(api.deleteRoom).mockResolvedValue(undefined);
   vi.mocked(api.getPublicRooms).mockResolvedValue([]);
+  vi.mocked(api.getModes).mockResolvedValue([]);
   vi.mocked(api.getRoom).mockResolvedValue({ status: "lobby", players: 1 });
 });
 
@@ -59,6 +66,14 @@ async function typeCode(typed: string): Promise<void> {
 }
 
 describe("Home", () => {
+  it("explains every way of answering from the scroll", async () => {
+    render(Home, { navigate });
+    await fireEvent.click(screen.getByRole("button", { name: "How to play" }));
+    const sheet = screen.getByRole("dialog", { name: "How to play" });
+    await within(sheet).findByRole("heading", { name: "One answer" });
+    expect(within(sheet).getAllByRole("heading", { level: 3 })).toHaveLength(5);
+  });
+
   it("challenges the visitor in the site's name, and one tap goes to Create", async () => {
     render(Home, { navigate });
     const heading = screen.getByRole("heading", { level: 1 });
