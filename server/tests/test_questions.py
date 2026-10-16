@@ -295,6 +295,24 @@ def test_a_price_type_is_refused_as_an_event(priced: dict[str, Any]) -> None:
         ]
 
 
+def test_a_pack_whose_prices_are_from_two_days_does_not_load(tmp_path: Path) -> None:
+    later = copy.deepcopy(PRICE_QUESTION)
+    later["payload"]["as_of"] = "2026-09-21"
+    later["id"] = schema.content_id(later)
+    _write_pack(tmp_path / "prices.json", [PRICE_QUESTION, later])
+    with pytest.raises(PackError, match=r"questions\[1\] payload.as_of '2026-09-21' differs"):
+        load_packs(tmp_path)
+
+
+def test_two_packs_may_price_one_mode_on_different_days(tmp_path: Path) -> None:
+    later = copy.deepcopy(PRICE_QUESTION)
+    later["payload"]["as_of"] = "2026-09-21"
+    later["id"] = schema.content_id(later)
+    _write_pack(tmp_path / "a.json", [PRICE_QUESTION])
+    _write_pack(tmp_path / "b.json", [later])
+    assert len(load_packs(tmp_path)) == 2
+
+
 def test_validate_packs_fails_a_price_question_in_an_npcs_file(tmp_path: Path) -> None:
     _write_npc(tmp_path, "death", [{**PRICE_QUESTION, "mode": "random_event"}])
     result = _validate_packs(tmp_path)

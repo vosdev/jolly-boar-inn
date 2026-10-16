@@ -640,6 +640,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
 - `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
   or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
+- A pack's prices share one `as_of`. `/api/modes` gives a mode its pool's newest, shown by the
+  footer and a price round's splash instead of on every question.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
   they hold, keeping `credit`. A question's options are stored in their seeded order (the form
   puts the right one first), but an examine's right name goes first and its line is asked once; an item's id

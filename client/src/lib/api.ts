@@ -102,6 +102,8 @@ export interface ModePacing {
   questions: ModeBounds | null
   /** What one of its pack questions typically takes, open and revealed, per pace; null with none. */
   seconds: Record<Pace, number> | null
+  /** The day a price mode's prices were fetched, `YYYY-MM-DD`; null for every other mode. */
+  as_of: string | null
 }
 
 /** Registry order, which is the order the create form lists them in. */

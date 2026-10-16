@@ -29,14 +29,16 @@ const PACING: api.ModePacing[] = [
     types: ['more_less'],
     questions: { default: 5, min: 1, max: 30 },
     seconds: { walk: 19, run: 15, teleport: 11 },
+    as_of: null,
   },
   {
     id: 'price_is_right',
     types: ['price_is_right'],
     questions: { default: 5, min: 1, max: 30 },
     seconds: { walk: 15, run: 12, teleport: 9 },
+    as_of: null,
   },
-  { id: 'custom', types: [], questions: null, seconds: null },
+  { id: 'custom', types: [], questions: null, seconds: null, as_of: null },
 ]
 
 vi.mock('../lib/api', async (importOriginal) => {
@@ -594,7 +596,7 @@ describe('Create', () => {
   it('estimates the minutes from each mode’s typical question, the pace, the events and the breaks', async () => {
     vi.mocked(api.getModes).mockResolvedValue([
       ...structuredClone(PACING),
-      { id: 'random_event', types: [], questions: null, seconds: { walk: 40, run: 30, teleport: 20 } },
+      { id: 'random_event', types: [], questions: null, seconds: { walk: 40, run: 30, teleport: 20 }, as_of: null },
     ])
     await loaded(...BOTH)
     await press(round('More or Less'), 'More questions', 5)

@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app.modes import MODES, Mode
+from app.questions.packs import mode_questions
 from app.rooms.settings import (
     EVENT_EVERY,
     MAX_QUESTIONS_PER_ROOM,
@@ -307,8 +308,11 @@ def test_a_room_stored_with_its_own_seconds_loads_at_run_pace() -> None:
 def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) -> None:
     response = client.get("/api/modes")
     assert response.status_code == 200
-    # ``seconds`` follows the shipped packs; ``test_duration.py`` checks it.
-    assert [{k: v for k, v in m.items() if k != "seconds"} for m in response.json()] == [
+    # ``seconds`` and ``as_of`` follow the shipped packs; ``test_duration.py`` and the test
+    # below check them.
+    assert [
+        {k: v for k, v in m.items() if k not in ("seconds", "as_of")} for m in response.json()
+    ] == [
         {
             "id": "more_less",
             "types": ["more_less"],
@@ -372,3 +376,11 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "questions": None,
         },
     ]
+
+
+def test_api_modes_dates_the_price_modes_by_their_newest_prices(client: TestClient) -> None:
+    packs = client.app.state.packs  # type: ignore[attr-defined]
+    as_of = {mode["id"]: mode["as_of"] for mode in client.get("/api/modes").json()}
+    for mode in ("more_less", "price_is_right"):
+        assert as_of.pop(mode) == max(q["payload"]["as_of"] for q in mode_questions(packs, mode))
+    assert set(as_of.values()) == {None}

@@ -1,17 +1,25 @@
 <script lang="ts">
   /**
    * A quiet band under every screen, the top bar's twin: the trademark notice, what is and
-   * is not collected, the way to the source, the licence, where the data comes from, the
-   * credits and the version.
+   * is not collected, the way to the source, the licence, where the data comes from and how
+   * old its prices are, the credits and the version.
    *
    * It sits in the page's flow, never fixed, so on a long screen it is below the last
    * answer rather than over it, and on a short one the shell pushes it to the bottom.
    */
   import Icon from './Icon.svelte'
+  import { asOfDate } from '../lib/dates'
   import { LICENSE_URL, RELEASE_URL, REPO_URL, VERSION_LABEL, WIKI_URL } from '../lib/links'
+  import { loadPricesAsOf, newestAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
 
   /** The screen above uses the wide page, so the footer's text follows it. */
   let { wide = false }: { wide?: boolean } = $props()
+
+  const asOf = $derived(newestAsOf(pricesAsOf.byMode))
+
+  $effect(() => {
+    void loadPricesAsOf()
+  })
 </script>
 
 <footer class="footer">
@@ -29,6 +37,7 @@
       <li>
         <a href={WIKI_URL} target="_blank" rel="noopener">Data from the OSRS Wiki</a> (CC BY-NC-SA)
       </li>
+      {#if asOf !== null}<li>GE prices as of {asOfDate(asOf)}</li>{/if}
       <li><a href="/credits" target="_blank" rel="noopener">Credits</a></li>
       <li>
         <a class="version" href={RELEASE_URL} target="_blank" rel="noopener">v{VERSION_LABEL}</a>

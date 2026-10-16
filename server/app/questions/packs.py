@@ -20,10 +20,11 @@ Three ways to get that wrong, each refused by name:
 Loading validates every question completely (schema, content id, consistency) and rejects
 duplicate ids within and across packs, the event folder included. It also refuses one
 ``pick_from_list`` prompt asked twice of a vocabulary, compared folded, because a line asked
-under two answers has two right entries in the list. ``random_event`` is an
-envelope field and stays out of the content id, so a question moved from one NPC to
-another keeps its id. Any problem raises ``PackError``: the app must not start with a
-broken pack, and CI runs the same check via ``scripts/validate_packs.py``.
+under two answers has two right entries in the list, and a pack whose questions disagree
+on ``as_of``: a price mode shows one date for its prices, not one per question.
+``random_event`` is an envelope field and stays out of the content id, so a question moved
+from one NPC to another keeps its id. Any problem raises ``PackError``: the app must not
+start with a broken pack, and CI runs the same check via ``scripts/validate_packs.py``.
 """
 
 import json
@@ -100,7 +101,21 @@ def pack_errors(data: Any, label: str, npc: str | None = None) -> list[str]:
                 )
             else:
                 seen[question["id"]] = index
-    return errors
+    return errors or _date_errors(data["questions"], label)
+
+
+def _date_errors(questions: list[dict[str, Any]], label: str) -> list[str]:
+    """Questions whose ``as_of`` differs from the pack's first one."""
+    dated = [(i, q["payload"]["as_of"]) for i, q in enumerate(questions) if "as_of" in q["payload"]]
+    if not dated:
+        return []
+    first, date = dated[0]
+    return [
+        f"{label}: questions[{index}] payload.as_of {other!r} differs from {date!r} at"
+        f" [{first}]; a pack's prices are all from one day"
+        for index, other in dated
+        if other != date
+    ]
 
 
 def _placement_errors(question: Any, npc: str | None) -> list[str]:
