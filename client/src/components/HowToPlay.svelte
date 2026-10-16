@@ -60,9 +60,9 @@
               <span class="bar ruby ticked">✓</span>
               {@render submit()}
             {:else if row.drawing === 'order'}
-              <span class="bar sapphire">1</span>
-              <span class="bar emerald">2</span>
-              <span class="bar ruby">3</span>
+              <span class="bar ruby">1</span>
+              <span class="bar sapphire">2</span>
+              <span class="bar emerald">3</span>
               {@render submit()}
             {:else if row.drawing === 'list'}
               <span class="list">

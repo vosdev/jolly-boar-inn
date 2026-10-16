@@ -52,7 +52,7 @@ export const HOW_TO_ROWS: HowToRow[] = [
   {
     types: ['closest_number'],
     title: 'Closest number',
-    text: 'Type a number, then press Submit. 12,500 and 1.6m both work.',
+    text: 'Type a number, then press Submit. 12500, 1600k and 1.8m all work.',
     drawing: 'number',
   },
   {
