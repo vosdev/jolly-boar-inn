@@ -380,8 +380,8 @@
 
   .bar-emblem {
     flex: none;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
   }
 
   /* Never wider than the screen it opens on, and never taller: a phone held sideways

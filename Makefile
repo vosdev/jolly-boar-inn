@@ -120,13 +120,14 @@ edit-roster:
 	$(DATA) scripts/edit_roster.py .edit-roster.json; status=$$?; \
 		rm -f server/.edit-roster.json; exit $$status
 
-# Fetch the NPC, pet and trophy art in data/assets.json from the wiki into client/src/assets/, where
-# the client looks for it. Never part of test or the image build (CI only dry-runs it), and never
+# Fetch the NPC, pet, theme and trophy art in data/assets.json from the wiki into client/src/assets/,
+# where the client looks for it. Never part of test or the image build (CI only dry-runs it), and never
 # committed: run it before `make image`, which bundles what is on disk. Skips files that are
 # there, so a re-run sends nothing. Needs WIKI_USER_AGENT (.env.example). The script's flags are
 # variables, since make reads `--force` as its own, e.g. `make fetch-assets FORCE=1 ONLY=npcs`:
 #   FORCE=1 refetches files that exist, DRY_RUN=1 lists what is missing and sends nothing,
-#   ONLY="npcs pets trophies" limits the categories, FROM_DIR=dir takes the files from dir instead.
+#   ONLY="npcs pets themes trophies" limits the categories, FROM_DIR=dir takes the files from dir
+#   instead.
 # Only the repo is mounted, so FROM_DIR is a folder inside it, relative to server/.
 FETCH_ASSETS_FLAGS = $(if $(filter 1,$(FORCE)),--force) $(if $(filter 1,$(DRY_RUN)),--dry-run) \
 	$(foreach c,$(ONLY),--only $(c)) $(if $(FROM_DIR),--from-dir $(FROM_DIR))

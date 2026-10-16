@@ -1,6 +1,6 @@
 /**
- * Each theme's emblem, found by name at build time: the Leagues flag of the area the
- * theme's place is in, or a placeholder until somebody drops the flag in.
+ * Each theme's emblem, found by name at build time: an item icon from the wiki that
+ * belongs to the theme's place (`make fetch-assets`), or a placeholder without one.
  *
  * A file in `assets/themes/<theme>.<ext>` is the emblem. Without one, `Emblem.svelte`
  * draws the committed placeholder: a flat mark inline rather than a file, because a mark
@@ -35,7 +35,7 @@ const emblemFiles = import.meta.glob<string>('../assets/themes/*.{avif,webp,png,
   import: 'default',
 })
 
-/** The dropped-in flag for `theme`, or null when it still has its placeholder. */
+/** The fetched icon for `theme`, or null when it still has its placeholder. */
 export function emblemFile(
   theme: EmblemId,
   files: Record<string, string> = emblemFiles,
