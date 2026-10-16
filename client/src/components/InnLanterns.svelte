@@ -114,12 +114,14 @@
     pointer-events: none;
 
     /* Either side of Broav and the clue scroll, which fill the reading column on Home: each
-       lantern stands halfway across the gap beside it, and shrinks as that gap narrows. */
+       lantern stands halfway across the gap beside it, and shrinks as that gap narrows. On
+       a wide screen it stays near the scroll rather than drifting off with the window's
+       edge, away from the centred page. */
     --beside-stage: calc((100vw - var(--page-width)) / 2);
     --lantern-width: clamp(2.5rem, var(--beside-stage) - 1rem, 5.25rem);
     --light-reach: calc(var(--lantern-width) * 7);
     --lantern-y: calc(var(--topbar-height) + 9.5rem);
-    --lantern-x: calc(var(--beside-stage) / 2);
+    --lantern-x: calc(var(--beside-stage) - min(var(--beside-stage) / 2, 10rem));
   }
 
   /* Below this the gap beside the stage is too narrow for even the smallest lantern. */
