@@ -29,11 +29,17 @@
   import { npcArt } from '../../lib/npcs'
   import {
     changesFileName,
+    groupingsFor,
+    groupQuestions,
+    loadGrouping,
+    questionHost,
+    saveGrouping,
     searchQuestions,
+    type Grouping,
     type QuestionChange,
     type QuestionEdit,
   } from '../../lib/questionEdits'
-  import { questionLine, reportHost, reportModeName, type PackQuestion } from '../../lib/reports'
+  import { questionLine, reportModeName, type PackQuestion } from '../../lib/reports'
   import PackQuestionForm from './PackQuestionForm.svelte'
   import PackQuestionView from './PackQuestionView.svelte'
 
@@ -49,8 +55,14 @@
   let openedChange = $state<string | null>(null)
   let failure = $state<string | null>(null)
   let busy = $state(false)
+  let grouping = $state<Grouping>(loadGrouping())
+
+  const GROUPING_LABELS: Record<Grouping, string> = { all: 'All', host: 'Host', type: 'Type' }
 
   const found = $derived(searchQuestions(questions ?? [], query))
+  const groupings = $derived(mode === null ? [] : groupingsFor(mode, questions ?? []))
+  // The stored choice outlives a round that cannot offer it, and returns with the next that can.
+  const groups = $derived(groupQuestions(found, groupings.includes(grouping) ? grouping : 'all'))
   const byId = $derived(new Map((changes ?? []).map((change) => [change.question_id, change])))
   const exported = $derived((changes ?? []).filter((change) => change.exported_at !== null).length)
 
@@ -137,6 +149,55 @@
   }
 </script>
 
+{#snippet rows(list: PackQuestion[])}
+  <ul class="list">
+    {#each list as question (question.id)}
+      {@const change = byId.get(question.id)}
+      <li>
+        <button
+          type="button"
+          class="summary"
+          aria-expanded={opened === question.id}
+          onclick={() => {
+            opened = opened === question.id ? null : question.id
+            editing = null
+          }}
+        >
+          <span class="text">{questionLine(question)}</span>
+          {#if change !== undefined}
+            <span class="chip" class:bad={change.action === 'delete'}>
+              {change.action === 'edit' ? 'Edited' : 'To delete'}
+            </span>
+          {/if}
+        </button>
+        {#if opened === question.id}
+          <div class="detail single">
+            {#if editing === question.id}
+              <PackQuestionForm
+                question={current(question)}
+                onsave={(edit) => save(question, edit)}
+                oncancel={() => (editing = null)}
+              />
+            {:else}
+              <PackQuestionView question={current(question)} />
+              <div class="row">
+                <button type="button" disabled={busy} onclick={() => (editing = question.id)}>
+                  Edit
+                </button>
+                {#if change?.action !== 'delete'}
+                  <button type="button" class="reject" disabled={busy} onclick={() => remove(question)}>
+                    Delete
+                  </button>
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </li>
+    {/each}
+  </ul>
+{/snippet}
+
 <section class="panel" aria-labelledby="changes-heading">
   <h2 id="changes-heading">Pending changes</h2>
 
@@ -162,7 +223,7 @@
             onclick={() =>
               (openedChange = openedChange === change.question_id ? null : change.question_id)}
           >
-            <img src={npcArt(reportHost(change.mode)).url} alt="" />
+            <img src={npcArt(questionHost(change.before)).url} alt="" />
             <span class="chip" class:bad={change.action === 'delete'}>{actionLabel(change)}</span>
             <span class="chip">{reportModeName(change.mode)}</span>
             <span class="text">{questionLine(change.before)}</span>
@@ -230,6 +291,23 @@
       <label for="pack-search">Search</label>
       <input id="pack-search" type="text" bind:value={query} />
     </div>
+    {#if groupings.length > 1}
+      <div class="field">
+        <label for="pack-grouping">Group by</label>
+        <select
+          id="pack-grouping"
+          value={groupings.includes(grouping) ? grouping : 'all'}
+          onchange={(event) => {
+            grouping = event.currentTarget.value as Grouping
+            saveGrouping(grouping)
+          }}
+        >
+          {#each groupings as each (each)}
+            <option value={each}>{GROUPING_LABELS[each]}</option>
+          {/each}
+        </select>
+      </div>
+    {/if}
   </div>
 
   {#if questions === null}
@@ -238,52 +316,20 @@
     <p class="note">No question matches.</p>
   {:else}
     <p class="note">{found.length} of {questions.length}</p>
-    <ul class="list">
-      {#each found as question (question.id)}
-        {@const change = byId.get(question.id)}
-        <li>
-          <button
-            type="button"
-            class="summary"
-            aria-expanded={opened === question.id}
-            onclick={() => {
-              opened = opened === question.id ? null : question.id
-              editing = null
-            }}
-          >
-            <span class="text">{questionLine(question)}</span>
-            {#if change !== undefined}
-              <span class="chip" class:bad={change.action === 'delete'}>
-                {change.action === 'edit' ? 'Edited' : 'To delete'}
-              </span>
-            {/if}
-          </button>
-          {#if opened === question.id}
-            <div class="detail single">
-              {#if editing === question.id}
-                <PackQuestionForm
-                  question={current(question)}
-                  onsave={(edit) => save(question, edit)}
-                  oncancel={() => (editing = null)}
-                />
-              {:else}
-                <PackQuestionView question={current(question)} />
-                <div class="row">
-                  <button type="button" disabled={busy} onclick={() => (editing = question.id)}>
-                    Edit
-                  </button>
-                  {#if change?.action !== 'delete'}
-                    <button type="button" class="reject" disabled={busy} onclick={() => remove(question)}>
-                      Delete
-                    </button>
-                  {/if}
-                </div>
-              {/if}
-            </div>
-          {/if}
-        </li>
-      {/each}
-    </ul>
+    {#each groups as group (group.key)}
+      {#if group.key === ''}
+        {@render rows(group.questions)}
+      {:else}
+        <div class="group" role="group" aria-labelledby="group-{group.key}">
+          <h3 id="group-{group.key}">
+            {#if group.host !== null}<img src={npcArt(group.host).url} alt="" />{/if}
+            <span>{group.label}</span>
+            <span class="chip">{group.questions.length}</span>
+          </h3>
+          {@render rows(group.questions)}
+        </div>
+      {/if}
+    {/each}
   {/if}
 </section>
 
@@ -310,6 +356,23 @@
 
   .filters input {
     width: 100%;
+  }
+
+  .group + .group {
+    margin-top: 1.25rem;
+  }
+
+  .group h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .group h3 img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    image-rendering: pixelated;
   }
 
   .list {

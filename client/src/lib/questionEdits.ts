@@ -8,7 +8,9 @@
  * fields an author checks and credits it by are edited; the type, mode, NPC and tags stay.
  */
 
-import { questionLine, type PackQuestion } from './reports'
+import { randomEventFor } from './randomEvents'
+import { questionLine, reportHost, type PackQuestion } from './reports'
+import { SUGGESTED_TYPE_LABELS } from './suggestions'
 import { fold } from './vocab'
 
 export type ChangeAction = 'edit' | 'delete'
@@ -82,6 +84,70 @@ export function searchQuestions(questions: readonly PackQuestion[], query: strin
     const line = fold(questionLine(question))
     return wanted.every((word) => line.includes(word))
   })
+}
+
+/** How the Questions tab lists a round: whole, by the NPC who asks, or by answer shape. */
+export type Grouping = 'all' | 'host' | 'type'
+
+/** One heading's worth of a grouped list; `host` is the NPC whose face it shows, if any. */
+export interface QuestionGroup {
+  key: string
+  label: string
+  host: string | null
+  questions: PackQuestion[]
+}
+
+const GROUPING_KEY = 'jbi:admin-grouping'
+
+/** The NPC who asks a question: its random event's, else its round's host. */
+export function questionHost(question: PackQuestion): string {
+  return question.random_event ?? reportHost(question.mode)
+}
+
+/** The groupings worth offering: by host only where hosts differ, by type only where types do. */
+export function groupingsFor(mode: string, questions: readonly PackQuestion[]): Grouping[] {
+  const offered: Grouping[] = ['all']
+  if (mode === 'random_event') offered.push('host')
+  if (new Set(questions.map((question) => question.type)).size > 1) offered.push('type')
+  return offered
+}
+
+/** `questions` under their headings, alphabetically; one unnamed group for `all`. */
+export function groupQuestions(questions: readonly PackQuestion[], by: Grouping): QuestionGroup[] {
+  if (by === 'all') return [{ key: '', label: '', host: null, questions: [...questions] }]
+  const groups = new Map<string, QuestionGroup>()
+  for (const question of questions) {
+    const key = by === 'host' ? questionHost(question) : question.type
+    let group = groups.get(key)
+    if (group === undefined) {
+      group =
+        by === 'host'
+          ? { key, label: randomEventFor(key).name, host: key, questions: [] }
+          : { key, label: SUGGESTED_TYPE_LABELS[key as keyof typeof SUGGESTED_TYPE_LABELS] ?? key, host: null, questions: [] }
+      groups.set(key, group)
+    }
+    group.questions.push(question)
+  }
+  return [...groups.values()].sort((a, b) => a.label.localeCompare(b.label))
+}
+
+/** The grouping this browser last picked, or `all`. */
+export function loadGrouping(): Grouping {
+  try {
+    const stored = localStorage.getItem(GROUPING_KEY)
+    return stored === 'host' || stored === 'type' ? stored : 'all'
+  } catch {
+    return 'all'
+  }
+}
+
+/** Remembers `grouping` for the next visit, as far as storage allows. */
+export function saveGrouping(grouping: Grouping): void {
+  try {
+    localStorage.setItem(GROUPING_KEY, grouping)
+  } catch {
+    // Storage denied: the choice lasts for this page only.
+  }
 }
 
 /** Today's file for a download, so two in a day sit side by side. */
