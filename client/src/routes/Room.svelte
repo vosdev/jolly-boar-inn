@@ -88,6 +88,8 @@
   let socket = $state<RoomSocket | null>(null)
   let departure = $state<{ reason: ClosureReason; detail: string } | null>(null)
   let endingGame = $state(false)
+  /** The question the host pressed End the round on, while they confirm it. */
+  let endingRound = $state<number | null>(null)
 
   onMount(() => {
     resetRoom()
@@ -348,6 +350,26 @@
       : 'Start the next round now'
   })
 
+  /** Ask before ending the round on screen; standings have no round left to end. */
+  const askEndRound = $derived.by(() => {
+    const current = $room
+    if (current === null || current.current_index === null) return null
+    if (current.phase !== 'splash' && current.phase !== 'open' && current.phase !== 'reveal') {
+      return null
+    }
+    const at = current.current_index
+    return () => (endingRound = at)
+  })
+
+  /** The last round's end is the game's, and the dialog says so. */
+  const endRoundMessage = $derived.by(() => {
+    const round = $room?.segment
+    if (round != null && $room !== null && round.start + round.count >= $room.total) {
+      return 'This is the last round. End the game now and show the final standings?'
+    }
+    return 'End this round now and move on to the next one?'
+  })
+
   const stage = new SharedStage()
   shareStage(stage)
 
@@ -412,6 +434,7 @@
       youId={$you?.id ?? null}
       onReady={(ready) => socket?.send({ t: 'ready', ready })}
       onSkip={isAdmin ? skip : null}
+      onEndRound={isAdmin ? askEndRound : null}
     />
   {:else}
     <!-- playing. A question's screen is the stage and nothing to read past it. -->
@@ -494,6 +517,9 @@
         <h2>Host</h2>
         <div class="row">
           <button type="button" onclick={skip}>{skipLabel}</button>
+          {#if askEndRound !== null}
+            <button type="button" onclick={askEndRound}>End the round</button>
+          {/if}
           <button type="button" onclick={() => (endingGame = true)}>End the game</button>
         </div>
         <p class="note">
@@ -513,6 +539,17 @@
         />
       {/if}
     </div>
+  {/if}
+  {#if endingRound !== null && isAdmin}
+    <ConfirmDialog
+      message={endRoundMessage}
+      confirmLabel="End the round"
+      onConfirm={() => {
+        if (endingRound !== null) socket?.send({ t: 'end_round', index: endingRound })
+        endingRound = null
+      }}
+      onCancel={() => (endingRound = null)}
+    />
   {/if}
 {/if}
 

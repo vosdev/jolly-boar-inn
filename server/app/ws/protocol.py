@@ -213,6 +213,13 @@ class EndGame(_Message):
     t: Literal["end_game"]
 
 
+class EndRound(_Message):
+    """End the round holding question ``index``, which must still be the room's."""
+
+    t: Literal["end_round"]
+    index: int = Field(ge=0, strict=True)
+
+
 class RotateKey(_Message):
     """Replace an invite-only room's key. Lobby only."""
 
@@ -263,6 +270,7 @@ ClientMessage = Annotated[
     | Promote
     | Kick
     | EndGame
+    | EndRound
     | RotateKey
     | DecideRequest
     | SetProfile
@@ -299,12 +307,13 @@ class Welcome(_Message):
 
 class RoomUpdated(_Message):
     """Join, leave, promote, kick, status change, ``set_profile``, and the start of a
-    splash or of the standings. Also a ready tap, connect or disconnect that moves the
-    room itself, which on a splash is its countdown."""
+    splash or of the standings, which carries ``standings``. Also a ready tap, connect or
+    disconnect that moves the room itself, which on a splash is its countdown."""
 
     t: Literal["room_updated"] = "room_updated"
     room: RoomView
     players: list[PlayerView]
+    standings: list[Standing] | None = Field(default=None, exclude_if=lambda s: s is None)
 
 
 class PlayersUpdated(_Message):

@@ -49,6 +49,7 @@
     youId,
     onReady,
     onSkip = null,
+    onEndRound = null,
   }: {
     segment: Segment
     /** When the countdown ends, from `room.next_at`; null while the splash waits. */
@@ -59,6 +60,8 @@
     onReady: (ready: boolean) => void
     /** The host's skip; null for everyone else. */
     onSkip?: (() => void) | null
+    /** The host's end of the round, which skips it whole; null for everyone else. */
+    onEndRound?: (() => void) | null
   } = $props()
 
   // A room can play a mode from a newer server than this client was built against. The
@@ -174,8 +177,15 @@
           {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
         </p>
       {/if}
-      {#if onSkip !== null}
-        <button type="button" class="small skip" onclick={onSkip}>Start the round now</button>
+      {#if onSkip !== null || onEndRound !== null}
+        <div class="host">
+          {#if onSkip !== null}
+            <button type="button" class="small" onclick={onSkip}>Start the round now</button>
+          {/if}
+          {#if onEndRound !== null}
+            <button type="button" class="small" onclick={onEndRound}>End the round</button>
+          {/if}
+        </div>
       {/if}
     </div>
   </Stage>
@@ -262,7 +272,10 @@
     text-align: right;
   }
 
-  .skip {
+  .host {
     align-self: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 </style>

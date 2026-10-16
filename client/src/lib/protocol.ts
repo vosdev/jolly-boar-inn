@@ -260,6 +260,12 @@ export interface EndGame {
   t: 'end_game'
 }
 
+/** End the round holding question `index`, if it is still the room's (see `Skip`). */
+export interface EndRound {
+  t: 'end_round'
+  index: number
+}
+
 /** Replace an invite-only room's key, so the old link stops working. Lobby only. */
 export interface RotateKey {
   t: 'rotate_key'
@@ -300,6 +306,7 @@ export type ClientMessage =
   | Promote
   | Kick
   | EndGame
+  | EndRound
   | RotateKey
   | DecideRequest
   | SetProfile
@@ -325,6 +332,8 @@ export interface RoomUpdated {
   t: 'room_updated'
   room: RoomView
   players: PlayerView[]
+  /** Sent when the standings start; a round ended early had no reveal to carry them. */
+  standings?: Standing[]
 }
 
 /** A ready tap, connect or disconnect that changed the players and nothing else. */

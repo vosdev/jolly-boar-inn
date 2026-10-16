@@ -964,6 +964,56 @@ describe('the host’s End the game', () => {
   })
 })
 
+describe('the host’s End the round', () => {
+  async function ask(view: RoomView): Promise<HTMLElement> {
+    await arrive(welcome(view, 'admin'))
+    await fireEvent.click(screen.getByRole('button', { name: 'End the round' }))
+    return screen.getByRole('dialog')
+  }
+
+  it('sits between the skip and End the game', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    const names = screen.getAllByRole('button').map((button) => button.textContent?.trim())
+    const at = names.indexOf('End the round')
+    expect(names[at - 1]).toBe('Show the standings now')
+    expect(names[at + 1]).toBe('End the game')
+  })
+
+  it('ends the round on screen only once the host confirms', async () => {
+    const dialog = await ask(roomView({ phase: 'open', next_at: null }))
+    expect(dialog.textContent).toContain('End this round now and move on to the next one?')
+    expect(sent).toEqual([])
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'End the round' }))
+    expect(sent).toEqual([{ t: 'end_round', index: 0 }])
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('says the last round ends the game', async () => {
+    const last = { ...SEGMENT, index: 1, start: 1 }
+    const dialog = await ask(roomView({ phase: 'open', current_index: 1, segment: last, next_at: null }))
+    expect(dialog.textContent).toContain('This is the last round. End the game now')
+  })
+
+  it('sends nothing when cancelled', async () => {
+    await fireEvent.click(within(await ask(roomView({ phase: 'reveal' }))).getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(sent).toEqual([])
+  })
+
+  it('is not offered during the standings', async () => {
+    await arrive(welcome(roomView({ phase: 'standings' }), 'admin'))
+    expect(screen.queryByRole('button', { name: 'End the round' })).toBeNull()
+  })
+
+  it('is on the splash, beside its skip', async () => {
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
+    await fireEvent.click(await screen.findByRole('button', { name: 'End the round' }))
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'End the round' }))
+    expect(sent).toEqual([{ t: 'end_round', index: 0 }])
+  })
+})
+
 describe('what a screen reader and the tab hear', () => {
   const WHIP: OpenQuestion = {
     question_id: 'q1',

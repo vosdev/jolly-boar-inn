@@ -17,6 +17,7 @@ import {
   requestsSettled,
   resetRoom,
   room,
+  standings,
   you,
 } from './stores'
 
@@ -80,6 +81,17 @@ beforeEach(() => {
 })
 
 describe('applyServerMessage', () => {
+  it('takes the standings a room_updated carries, and keeps them when it carries none', () => {
+    const ranked: Standing[] = [
+      { player_id: 'p1', display_name: 'Me', avatar: null, points: 10, rank: 1, points_gained: 0, previous_rank: 1 },
+    ]
+    applyServerMessage(welcome())
+    applyServerMessage({ t: 'room_updated', room: lobby, players: [host, me], standings: ranked })
+    expect(get(standings)).toEqual(ranked)
+    applyServerMessage({ t: 'room_updated', room: lobby, players: [host, me] })
+    expect(get(standings)).toEqual(ranked)
+  })
+
   it('takes the players, and us among them, from players_updated and leaves the room be', () => {
     applyServerMessage(welcome())
     const readied = { ...me, ready: true }
