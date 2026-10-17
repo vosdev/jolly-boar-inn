@@ -2,7 +2,7 @@ version: 2
 
 # Every ecosystem lands in one weekly PR, so a round of updates costs a single version bump.
 # Security updates are not version updates: they come as their own PRs, ignoring the
-# group and the cooldown.
+# group, the cooldown and the ignores.
 multi-ecosystem-groups:
   weekly:
     schedule:
@@ -11,6 +11,9 @@ multi-ecosystem-groups:
 
 # A compromised release is usually yanked within days; waiting a week keeps it off the
 # self-hosted runners, which run whatever an update PR installs.
+#
+# A major version is a migration, and one failing package holds back the whole group: those
+# are tasks of their own, not a weekly bump. So is a Python minor, a runtime change.
 updates:
   - package-ecosystem: uv
     directory: /server
@@ -18,6 +21,9 @@ updates:
     patterns: ["*"]
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /client
@@ -25,6 +31,9 @@ updates:
     patterns: ["*"]
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
@@ -32,9 +41,10 @@ updates:
     patterns: ["*"]
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
-  # A new Postgres major needs a dump and restore, a new Node major or Python minor is a
-  # runtime change: those are tasks of their own, not a weekly bump.
   - package-ecosystem: docker
     directory: /
     multi-ecosystem-group: weekly
