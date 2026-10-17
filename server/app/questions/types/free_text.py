@@ -18,7 +18,6 @@ player is being asked about, and a typo on a long answer is not a wrong answer.
 shows as *the* answer. ``max_distance`` is how many typos, one by default; an accepted
 answer under four characters takes none whatever it says, so "Jad" does not accept "Jam".
 
-``image`` is the question's picture, so it is shown while the question is open.
 ``subject`` is what the answer is -- the NPC it names, with its asset -- and waits for the
 reveal with ``accepted``, for the reason ``pick_from_list`` withholds its own.
 """
@@ -40,7 +39,7 @@ DEFAULT_DISTANCE = 1
 ANSWER = Timing(base=20)
 REVEAL = Timing(base=7)
 
-_OPEN_KEYS = ("intro", "prompt", "image")
+_OPEN_KEYS = ("intro", "prompt")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

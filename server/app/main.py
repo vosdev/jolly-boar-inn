@@ -47,6 +47,7 @@ from app.http.ratelimit import (
     RateLimiter,
 )
 from app.pets import assign_missing_pets, load_pickable_pets
+from app.pictures import load_pictures
 from app.questions import vocab as vocabularies
 from app.questions.packs import load_packs
 from app.rooms.codes import load_words
@@ -182,6 +183,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         settings=settings,
         words=load_words(),
         pets=load_pickable_pets(),
+        pictures=load_pictures(client=app.state.client_dist / "pictures"),
     )
     app.state.pool = None
     app.state.instance_lock = None
@@ -241,6 +243,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
         openapi_url=None,
     )
     app.state.settings = settings or get_settings()
+    app.state.client_dist = client_dist
     app.state.pool = None
     app.state.instance_lock = None
     app.state.connecting = asyncio.Lock()

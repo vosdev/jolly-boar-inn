@@ -60,7 +60,6 @@ def test_client_view_shows_the_options_shuffled_and_how_many_to_pick_but_not_whi
     view = pick_all_that_apply.client_view(p)
     assert view == {
         "prompt": "Which of these bosses are spiders?",
-        "image": "npc:8713",
         "options": [p["options"][index] for index in pick_all_that_apply.shown_order(p)],
         "picks": 2,
     }

@@ -23,6 +23,16 @@ def test_hashed_assets_are_immutable(settings: Settings, dist: Path) -> None:
     assert response.headers["cache-control"].startswith("public, max-age=31536000")
 
 
+def test_question_pictures_are_immutable(settings: Settings, dist: Path) -> None:
+    """A picture's random name changes whenever its file does, so it can be cached for good."""
+    (dist / "pictures").mkdir()
+    (dist / "pictures" / "0123456789abcdef.png").write_bytes(b"\x89PNG")
+    with TestClient(create_app(settings, dist)) as client:
+        response = client.get("/pictures/0123456789abcdef.png")
+    assert response.status_code == 200
+    assert response.headers["cache-control"].startswith("public, max-age=31536000")
+
+
 def test_unknown_api_path_is_404_not_index(settings: Settings, dist: Path) -> None:
     with TestClient(create_app(settings, dist)) as client:
         assert client.get("/api/nope").status_code == 404
