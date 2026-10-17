@@ -293,8 +293,9 @@ PlayerResult { value, correct, credit, points }
   mode differs from its segment's.
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.
 - `picture` is a pack question's file in `/pictures/` under a random name, from `data/pictures.json`
-  (section 12), or null: no image, a host's question, or a file the built client lacks. Served
-  immutable. Devtools still show the whole picture before it zooms out or loses its shadow.
+  (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
+  or `client/public` under `make dev`. Served immutable. Devtools still show the whole picture
+  before it zooms out or loses its shadow.
 - `answerable_at` is `opened_at` plus the hold the scroll types the question in (`rooms/hold.py`):
   0.4 s (0.9 s for an event), each line at 50 letters a second with a 0.5–1 s pause after it, then
   0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing

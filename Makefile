@@ -27,7 +27,7 @@ dev: db-up
 	$(MAKE) -j2 dev-server dev-client
 
 dev-server:
-	cd server && uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 --ws-max-size 65536
+	cd server && CLIENT_PICTURES=../client/public/pictures uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 --ws-max-size 65536
 
 dev-client:
 	cd client && pnpm dev
