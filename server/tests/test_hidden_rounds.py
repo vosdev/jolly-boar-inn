@@ -22,6 +22,7 @@ ROOM_KEYS = {
     "settings",
     "current_index",
     "total",
+    "events",
     "phase",
     "next_at",
     "reveal_seconds",

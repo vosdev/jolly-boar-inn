@@ -677,3 +677,16 @@ def test_join_unknown_and_expired_rooms(client: TestClient, db, evict) -> None:
     response = join(client, code, "x")
     assert response.status_code == 410
     assert response.json()["code"] == "expired"
+
+
+def test_the_room_counts_its_random_events_among_its_questions(client: TestClient, db) -> None:
+    code, admin = create(
+        client,
+        modes=[{"mode": "more_less", "questions": 5}, {"mode": "price_is_right", "questions": 5}],
+        random_event_frequency="more",
+    )
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        room = hello(ws, admin["session"])["room"]
+    events = db("select count(*) as n from questions where random_event is not null")[0]["n"]
+    assert events > 0
+    assert (room["total"], room["events"]) == (10 + events, events)

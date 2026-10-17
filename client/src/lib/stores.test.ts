@@ -36,6 +36,7 @@ const lobby: RoomView = {
   settings: {} as RoomView['settings'],
   current_index: null,
   total: 3,
+  events: 0,
   phase: 'idle',
   next_at: null,
   reveal_seconds: null,

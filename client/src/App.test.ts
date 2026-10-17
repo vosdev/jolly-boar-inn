@@ -85,6 +85,7 @@ const LIVE: RoomView = {
   },
   current_index: 0,
   total: 1,
+  events: 0,
   phase: "open",
   next_at: null,
   reveal_seconds: null,
