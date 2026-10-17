@@ -248,10 +248,18 @@ describe('how the room split', () => {
     const results = { a: picked(1), b: picked(1), c: picked(0), d: picked(3) }
     const { container } = draw({ options: SIX.slice(0, 4), answer: 1, revealed: true, results })
     const votes = [...container.querySelectorAll('.votes')].map((v) => v.textContent)
-    expect(votes).toEqual(['1', '2', '0', '1'])
+    expect(votes).toEqual(['1', '2', '1'])
     const bars = [...container.querySelectorAll<HTMLElement>('.bar')].map((b) => b.style.width)
     expect(bars).toEqual(['25%', '50%', '0%', '25%'])
     expect(buttons()[1]?.textContent).toContain('picked by 2 of 4')
+  })
+
+  it('shows no number on a gem nobody picked, but still says so to a screen reader', () => {
+    const results = { a: picked(1), b: picked(1) }
+    draw({ options: SIX.slice(0, 4), answer: 1, revealed: true, results })
+    expect(buttons()[0]?.querySelector('.votes')).toBeNull()
+    expect(buttons()[0]?.textContent).toContain('picked by 0 of 2')
+    expect(buttons()[1]?.querySelector('.votes')?.textContent).toBe('2')
   })
 
   it('counts nothing while the question is open', () => {

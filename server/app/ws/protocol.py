@@ -77,6 +77,8 @@ class RoomView(_Message):
     settings: RoomSettings
     current_index: int | None
     total: int
+    # The random events among ``total``, so the lobby can tell them from the rounds' questions.
+    events: int = 0
     phase: Phase
     # When the current timed phase ends: a splash gives way to its first question, a
     # reveal to the next question or to the standings, the standings to the next round.

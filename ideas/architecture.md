@@ -277,8 +277,8 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
 
 ```
-RoomView     { code, status, settings, current_index, total, phase, next_at, reveal_seconds,
-               estimated_seconds, segment, finished_at, rounds?, key?, requests? }
+RoomView     { code, status, settings, current_index, total, events, phase, next_at,
+               reveal_seconds, estimated_seconds, segment, finished_at, rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
@@ -288,7 +288,7 @@ OpenQuestion { question_id, index, total, type, mode, segment, view, picture, ra
 PlayerResult { value, correct, credit, points }
 ```
 
-- `total` counts stored questions, not what the settings asked for.
+- `total` counts stored questions, not what the settings asked for; `events` the random events among them.
 - `OpenQuestion.mode` sits beside `type` because the pair picks the view (`viewFor`), and an event's
   mode differs from its segment's.
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.

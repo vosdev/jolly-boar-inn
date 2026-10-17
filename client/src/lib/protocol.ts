@@ -116,6 +116,8 @@ export interface RoomView {
   settings: RoomSettings
   current_index: number | null
   total: number
+  /** The random events among `total`. */
+  events: number
   phase: Phase
   /**
    * When the current timed phase ends: a splash's first question, a reveal's next question

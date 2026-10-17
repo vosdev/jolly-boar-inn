@@ -36,6 +36,7 @@ const ROOM: RoomView = {
   },
   current_index: null,
   total: 5,
+  events: 0,
   phase: 'idle',
   next_at: null,
   reveal_seconds: null,

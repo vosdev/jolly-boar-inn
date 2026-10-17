@@ -91,15 +91,19 @@
    * stored set do: a mode whose pack pool ran short gives a round briefer than it asked
    * for, and a room created before per-mode rounds carries settings that cannot describe
    * the questions it already has. `total` is what the progress counter reads once the
-   * game starts, so it is what the lobby reads too.
+   * game starts. The lobby tells the random events apart, which a host would otherwise
+   * read as the rounds coming out longer than they set.
    */
-  const questions = $derived($room?.total ?? 0)
+  const events = $derived($room?.events ?? 0)
+  const questions = $derived(($room?.total ?? 0) - events)
   // Built here rather than in the markup, where Svelte would trim the spaces around the dots.
   const length = $derived(
     settings === null
       ? ''
       : `${rounds}${secret ? ' secret' : ''} ${rounds === 1 ? 'round' : 'rounds'} · ` +
-          `${questions} ${questions === 1 ? 'question' : 'questions'} · ${paceLabel(settings.pace)} pace` +
+          `${questions} ${questions === 1 ? 'question' : 'questions'} · ` +
+          (events === 0 ? '' : `${events} random ${events === 1 ? 'event' : 'events'} · `) +
+          `${paceLabel(settings.pace)} pace` +
           ` · ${minutes($room?.estimated_seconds ?? 0)}`,
   )
   /**
@@ -363,7 +367,7 @@
 </section>
 
 {#if showHowTo && settings !== null}
-  <HowToPlay room={{ settings, total: questions }} onclose={() => (showHowTo = false)} />
+  <HowToPlay room={{ settings, total: $room?.total ?? 0 }} onclose={() => (showHowTo = false)} />
 {/if}
 
 {#if asking !== null}
