@@ -14,8 +14,8 @@
    *
    * `data` arrives in the two shapes `questions/types/free_text.py` sends:
    *
-   * - while open, `client_view(payload)`: the prompt, and an `image` ref. Nothing about
-   *   the answer, not even its length.
+   * - while open, `client_view(payload)`: the prompt. Nothing about the answer, not even
+   *   its length.
    * - after close, `reveal(payload)`: the same plus `accepted`, every spelling the author
    *   would take with the first as *the* answer, and optionally `subject`, what the
    *   answer is, and an `explanation` that `Question` draws. A subject is named in place

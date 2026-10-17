@@ -194,13 +194,11 @@ def test_schema_rejects(mutate: Any, path: str) -> None:
 
 
 def test_client_view_withholds_the_answer_and_anything_that_names_it() -> None:
-    """The subject *is* the answer here, and an image is ``item:<answer_id>``, so both wait
-    for the reveal with ``answer_id``."""
+    """The subject *is* the answer here, so it waits for the reveal with ``answer_id``."""
     view = pick_from_list.client_view(EXAMPLE["payload"])
     assert view == {"prompt": "A weapon from the abyss.", "vocab": "items"}
     stepped = pick_from_list.client_view(payload(steps=8, image="item:4151"))
     assert stepped == {**view, "steps": 8}
-    assert pick_from_list.reveal(payload(image="item:4151"))["image"] == "item:4151"
 
 
 def test_reveal_adds_the_answer_and_what_it_was() -> None:

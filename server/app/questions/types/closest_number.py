@@ -47,7 +47,7 @@ EXACT = 1.0
 LADDER = (0.9, 0.8, 0.7)
 FURTHER = 0.0
 
-_OPEN_KEYS = ("intro", "prompt", "image", "unit")
+_OPEN_KEYS = ("intro", "prompt", "unit")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:

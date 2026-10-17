@@ -48,7 +48,6 @@ def test_client_view_shows_the_options_shuffled_and_withholds_the_answer() -> No
     view = multiple_choice.client_view(p)
     assert view == {
         "prompt": "Which boss drops the Tanzanite fang?",
-        "image": "npc:2042",
         "options": [p["options"][index] for index in multiple_choice.shown_order(p)],
     }
     assert sorted(view["options"]) == sorted(p["options"])

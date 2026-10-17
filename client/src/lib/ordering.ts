@@ -241,7 +241,7 @@ export function previewOf(question: OrderingQuestion, mode: string): OpenQuestio
   const entries = Array.isArray(p.entries) ? (p.entries as { text?: unknown }[]) : []
   const shown = [...entries.slice(1), ...entries.slice(0, 1)].map((entry) => ({ text: entry.text }))
   const view = Object.fromEntries(
-    ['intro', 'prompt', 'image', 'ends', 'picks']
+    ['intro', 'prompt', 'ends', 'picks']
       .filter((key) => key in p)
       .map((key) => [key, p[key]]),
   )

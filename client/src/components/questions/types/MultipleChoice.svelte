@@ -10,7 +10,7 @@
    *
    * `data` arrives in the two shapes `questions/types/multiple_choice.py` sends:
    *
-   * - while open, `client_view(payload)`: the prompt, the options, and an `image` ref.
+   * - while open, `client_view(payload)`: the prompt and the options.
    *   The options are the question, so they are on the wire from the start, in the
    *   server's seeded shuffle; an index here is a shown position, never the authored one.
    * - after close, `reveal(payload)`: the same plus `answer_index` and, if the author

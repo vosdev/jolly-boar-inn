@@ -48,7 +48,8 @@ def mount_client(app: FastAPI, dist: Path = CLIENT_DIST, base_url: str = "") -> 
             raise HTTPException(status_code=404)
         candidate = (dist / path).resolve()
         if path and candidate.is_relative_to(dist) and candidate.is_file():
-            cache = IMMUTABLE if path.startswith("assets/") else NO_CACHE
+            # A picture's random name changes with its file (``scripts/build_pictures.py``).
+            cache = IMMUTABLE if path.startswith(("assets/", "pictures/")) else NO_CACHE
             return FileResponse(candidate, headers={"Cache-Control": cache})
         page = index.read_text(encoding="utf-8").replace(BASE_URL_SLOT, address)
         return HTMLResponse(page, headers={"Cache-Control": NO_CACHE})

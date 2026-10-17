@@ -1,6 +1,7 @@
 .git
 .github
 ideas
+.pictures
 .env
 **/node_modules
 **/.venv

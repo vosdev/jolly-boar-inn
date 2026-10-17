@@ -83,11 +83,21 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(wiki.urllib.request, "urlopen", refuse)
 
 
+@pytest.fixture(autouse=True)
+def builds(monkeypatch: pytest.MonkeyPatch) -> list[int]:
+    """Each time a run went on to build the pictures, which here touches nothing."""
+    calls: list[int] = []
+    monkeypatch.setattr(fetch_assets, "build_pictures", lambda: calls.append(1) or 0)
+    return calls
+
+
 @pytest.fixture
 def assets(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
-    """An empty asset folder in place of the client's, every target in it ignored."""
+    """An empty asset folder in place of the client's, every target in it ignored, and an
+    empty staging folder for the pictures beside it."""
     folder = tmp_path / "assets"
     monkeypatch.setattr(fetch_assets, "ASSETS", folder)
+    monkeypatch.setattr(fetch_assets, "PICTURES", tmp_path / "pictures")
     monkeypatch.setattr(fetch_assets, "git_ignored", lambda paths: set(paths))
     return folder
 
@@ -311,10 +321,74 @@ def test_a_file_that_is_there_survives_unless_forced(
 # --- never committed ------------------------------------------------------------------
 
 
-def test_every_target_is_under_the_client_assets_and_git_ignored() -> None:
-    targets = [fetch_assets.ASSETS / target for target in MANIFEST]
-    assert all(path.resolve().is_relative_to(fetch_assets.ASSETS) for path in targets)
+def test_every_target_is_under_the_client_assets_or_staging_and_git_ignored() -> None:
+    targets = [
+        fetch_assets.destination(target, fetch_assets.ASSETS, fetch_assets.PICTURES)
+        for target in MANIFEST
+    ]
+    roots = (fetch_assets.ASSETS, fetch_assets.PICTURES)
+    assert all(any(path.resolve().is_relative_to(root) for root in roots) for path in targets)
     assert fetch_assets.git_ignored(targets) == set(targets)
+
+
+def test_a_picture_would_be_git_ignored_in_staging() -> None:
+    """The shipped manifest may hold no picture yet, and the staging folder is ignored anyway."""
+    path = fetch_assets.destination(
+        "pictures/item/4151.png", fetch_assets.ASSETS, fetch_assets.PICTURES
+    )
+    assert path == fetch_assets.PICTURES / "item" / "4151.png"
+    assert fetch_assets.git_ignored([path]) == {path}
+
+
+@pytest.mark.usefixtures("agent")
+def test_every_run_builds_the_pictures_after_its_fetch_but_a_dry_one(
+    monkeypatch: pytest.MonkeyPatch, assets: Path, builds: list[int]
+) -> None:
+    fake_wiki(monkeypatch, FakeWiki(every_file()))
+    assert fetch_assets.main(["--dry-run"]) == 0
+    assert builds == []
+    assert fetch_assets.main([]) == 0
+    assert builds == [1]
+
+
+@pytest.mark.usefixtures("agent")
+def test_the_pictures_are_built_even_when_a_fetch_failed(
+    monkeypatch: pytest.MonkeyPatch, assets: Path, builds: list[int]
+) -> None:
+    files = every_file()
+    del files["Thurgo chathead.png"]
+    fake_wiki(monkeypatch, FakeWiki(files))
+    assert fetch_assets.main([]) == 1
+    assert builds == [1]
+
+
+def test_a_failed_build_fails_the_run(
+    monkeypatch: pytest.MonkeyPatch, assets: Path, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(fetch_assets, "build_pictures", lambda: 1)
+    saved = tmp_path / "saved"
+    saved.mkdir()
+    for title in MANIFEST.values():
+        (saved / title).write_bytes(PNG)
+    assert fetch_assets.main(["--from-dir", str(saved)]) == 1
+
+
+def test_a_picture_is_staged_outside_the_client_under_its_asset_id(tmp_path: Path) -> None:
+    manifest = {
+        "npcs/bob_chathead.png": "Bob chathead.png",
+        "pictures/item/4151.png": "Abyssal whip.png",
+    }
+    saved = tmp_path / "saved"
+    saved.mkdir()
+    for title in manifest.values():
+        (saved / title).write_bytes(PNG)
+    assets, pictures = tmp_path / "assets", tmp_path / "pictures"
+    report = fetch_assets.fetch(
+        manifest, assets, pictures, fetch_assets.DirSource(saved), out=lambda line: None
+    )
+    assert report.ok
+    assert written(assets) == {"npcs/bob_chathead.png"}
+    assert written(pictures) == {"item/4151.png"}
 
 
 @pytest.mark.usefixtures("agent")
@@ -357,6 +431,13 @@ def test_every_random_event_npc_has_art_in_the_manifest() -> None:
         ({"npcs/bob.png": "File:Bob.png"}, "without 'File:'"),
         ({"npcs/bob.png": ""}, "wiki file name"),
         ({"npcs/bob.png": "Bob.png", "npcs/bob.webp": "Bob.webp"}, "another format"),
+        ({"pictures/item/whip.png": "Abyssal whip.png"}, "not pictures/<item|npc>/<id>"),
+        ({"pictures/pet/4151.png": "Abyssal whip.png"}, "not pictures/<item|npc>/<id>"),
+        ({"pictures/4151.png": "Abyssal whip.png"}, "not pictures/<item|npc>/<id>"),
+        (
+            {"pictures/item/4151.png": "A.png", "pictures/item/4151.webp": "A.webp"},
+            "another format",
+        ),
     ],
 )
 def test_a_malformed_manifest_is_refused(manifest: dict[str, str], problem: str) -> None:

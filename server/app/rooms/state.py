@@ -61,7 +61,15 @@ import secrets
 import time
 import unicodedata
 from collections import Counter
-from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Iterable, Sequence
+from collections.abc import (
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Collection,
+    Iterable,
+    Mapping,
+    Sequence,
+)
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -517,7 +525,12 @@ class RoomQuestion:
         return self.source != "room" or self.author_player_id != player_id
 
     def view(
-        self, total: int, player_id: UUID, segment: Segment, count: tuple[int, int] = (0, 0)
+        self,
+        total: int,
+        player_id: UUID,
+        segment: Segment,
+        count: tuple[int, int] = (0, 0),
+        picture: str | None = None,
     ) -> OpenQuestion:
         """The open question as ``player_id`` sees it. ``count`` is ``_answer_count``'s."""
         assert self.shown_at is not None and self.ends_at is not None
@@ -530,6 +543,7 @@ class RoomQuestion:
             mode=self.mode,
             segment=segment,
             view=TYPES[self.type].client_view(self.payload),
+            picture=picture,
             random_event=self.random_event,
             opened_at=self.shown_at,
             answerable_at=self.answerable_at,
@@ -865,6 +879,7 @@ class RoomManager:
         rng: random.Random | None = None,
         *,
         pets: frozenset[str],
+        pictures: Mapping[str, str] | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._pool = pool
@@ -873,6 +888,8 @@ class RoomManager:
         self.words = words
         # Every valid ``avatar``.
         self.pets = pets
+        # Asset id to its picture's name in the client (``app/pictures.py``).
+        self.pictures: Mapping[str, str] = pictures or {}
         self.rng = rng or random.Random()
         # Codes from the OS, not ``rng``: Mersenne Twister's next draw can be worked out
         # from enough of its past ones, and a code is only as private as its successors.
@@ -895,6 +912,17 @@ class RoomManager:
         # serialise with whatever else holds the room, and no longer than that: anyone
         # can ask for any code, so an entry kept for every code asked would never shrink.
         self._locks: dict[str, _Slot] = {}
+
+    def _picture(self, question: RoomQuestion) -> str | None:
+        """The name ``question``'s picture has in the client, never its asset id.
+
+        A pack question's only: a host who could name any asset in a question of their own
+        would learn which name each one has, and every later game's pictures with it.
+        """
+        image = question.payload.get("image")
+        if question.source != "pack" or not isinstance(image, str):
+            return None
+        return self.pictures.get(image)
 
     @asynccontextmanager
     async def _locked(self, code: str) -> AsyncIterator[asyncio.Lock]:
@@ -1292,7 +1320,13 @@ class RoomManager:
             # gets the same phase, round and ``next_at`` a live one was broadcast.
             segment = room.current_segment
             open_view = (
-                question.view(room.total, player.id, segment, _answer_count(room, question))
+                question.view(
+                    room.total,
+                    player.id,
+                    segment,
+                    _answer_count(room, question),
+                    self._picture(question),
+                )
                 if question is not None and segment is not None
                 else None
             )
@@ -2363,7 +2397,7 @@ class RoomManager:
             opened = Broadcast.per_player(
                 room,
                 lambda pid: QuestionOpen(
-                    question=question.view(room.total, pid, segment, count)
+                    question=question.view(room.total, pid, segment, count, self._picture(question))
                 ).model_dump(mode="json"),
             )
         self._broadcast(opened)
@@ -2436,6 +2470,7 @@ class RoomManager:
             message = QuestionClosed(
                 question_id=str(question.id),
                 reveal=reveal,
+                picture=self._picture(question),
                 results={
                     pid: PlayerResult(
                         value=answer.value,

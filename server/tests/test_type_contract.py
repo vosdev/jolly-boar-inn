@@ -91,7 +91,7 @@ EXAMPLES: dict[str, Example] = {
         invalid=[999999, -1, "Abyssal whip", "4151", 4151.0],
         right=4151,
         wrong=4587,
-        secret=frozenset({"answer_id", "subject", "name", "asset", "image", "explanation"}),
+        secret=frozenset({"answer_id", "subject", "name", "asset", "explanation"}),
         scoring=Scoring.STEP,
         seconds=(20, 6),
     ),
@@ -328,6 +328,18 @@ def test_the_open_view_has_none_of_what_the_reveal_adds(type_id: str) -> None:
     revealed = set(keys_anywhere(module.reveal(ex.payload)))
     assert view <= revealed
     assert revealed - view == ex.secret
+
+
+@per_type
+def test_no_frame_names_the_picture_s_asset(type_id: str) -> None:
+    """A picture goes on the wire as ``picture``, a random name, and never as ``image``: for
+    some modes that asset id is the answer, and beside the name it would say which is which."""
+    if "image" not in schema.load_schema()["$defs"][type_id]["properties"]:
+        return
+    ex, module = example(type_id), TYPES[type_id]
+    payload = {**ex.payload, "image": "item:4151"}
+    assert "image" not in module.client_view(payload)
+    assert "image" not in module.reveal(payload)
 
 
 @per_type

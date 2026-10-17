@@ -151,6 +151,9 @@ class OpenQuestion(_Message):
     # (a restart in the splash resumes at the question).
     segment: Segment
     view: dict[str, Any]
+    # The picture's random name in the client's bundle (``app/pictures.py``), or ``None``.
+    # Never the payload's ``image``: for some modes that asset id is the answer.
+    picture: str | None = None
     # The NPC interrupting the round with this question, or ``None`` for a question that
     # belongs to its round. An id from ``app/random_events.py``; the client has the copy.
     random_event: str | None = None
@@ -381,6 +384,8 @@ class QuestionClosed(_Message):
     t: Literal["question_closed"] = "question_closed"
     question_id: str
     reveal: dict[str, Any]
+    # The same name ``OpenQuestion.picture`` carried, so a reveal can show it too.
+    picture: str | None = None
     results: dict[UUID, PlayerResult]
     # Connected players who could have answered and did not, for the reveal's "No answer".
     # Only the server knows who could: the author of a room question is excluded.

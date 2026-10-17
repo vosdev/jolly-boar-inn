@@ -6,7 +6,10 @@ several chatheads for some NPCs and the owner picks which. A target's top folder
 category (``npcs``, ``pets``, ``themes``, ``trophies``): the folder a client lookup already
 globs, so a fetched file is used on the next build with no code change. ``logo`` is the
 exception: the sources ``make logo`` draws the owner's logo from, which the client never looks
-for.
+for. ``pictures`` is the other: ``pictures/<item|npc>/<id>.<ext>``, a question's picture, lands
+in ``.pictures/`` at the repo root, where the build never sees it under a name that is the
+answer. Every run but a dry one ends with ``build_pictures.py``, which copies each into the
+client under a random name, even when a fetch failed.
 
 Every request goes through ``wiki.py``: the operator's ``WIKI_USER_AGENT`` and one request
 a second. One ``imageinfo`` query resolves up to 50 titles to upload URLs, then each file
@@ -51,17 +54,22 @@ import wiki
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = REPO_ROOT / "data" / "assets.json"
 ASSETS = REPO_ROOT / "client" / "src" / "assets"
+PICTURES = REPO_ROOT / ".pictures"
 
 API = "https://oldschool.runescape.wiki/api.php"
 # MediaWiki's limit on titles per query for a client without the bot right.
 BATCH = 50
 # The folders a client lookup globs, and the logo's sources; a target anywhere else would
 # never be used.
-CATEGORIES = ("logo", "npcs", "pets", "themes", "trophies")
+CATEGORIES = ("logo", "npcs", "pets", "pictures", "themes", "trophies")
 # What those globs accept, so a fetched file is always one the client picks up.
 EXTENSIONS = ("avif", "webp", "png", "jpg", "jpeg", "svg")
 TARGET = re.compile(
     rf"^(?P<category>[a-z]+)/(?P<stem>[a-z0-9]+(?:_[a-z0-9]+)*)\.(?P<ext>{'|'.join(EXTENSIONS)})$"
+)
+# A question's picture is named by the asset id its payload's ``image`` holds.
+PICTURE = re.compile(
+    rf"^(?P<category>pictures)/(?P<stem>(?:item|npc)/[0-9]{{1,7}})\.(?P<ext>{'|'.join(EXTENSIONS)})$"
 )
 
 
@@ -97,9 +105,14 @@ def manifest_errors(manifest: Any) -> list[str]:
         errors.append("targets must be sorted")
     stems: dict[str, str] = {}
     for target, title in manifest.items():
-        match = TARGET.match(target)
+        if target.startswith("pictures/"):
+            match = PICTURE.match(target)
+            shape = "pictures/<item|npc>/<id>"
+        else:
+            match = TARGET.match(target)
+            shape = "<category>/<snake_case_name>"
         if match is None:
-            errors.append(f"{target}: not <category>/<snake_case_name>.<{'|'.join(EXTENSIONS)}>")
+            errors.append(f"{target}: not {shape}.<{'|'.join(EXTENSIONS)}>")
             continue
         if match["category"] not in CATEGORIES:
             errors.append(f"{target}: no category {match['category']!r}, only {CATEGORIES}")
@@ -125,6 +138,13 @@ def load_manifest(path: Path) -> dict[str, str]:
 
 def category(target: str) -> str:
     return target.split("/", 1)[0]
+
+
+def destination(target: str, assets: Path, pictures: Path) -> Path:
+    """Where ``target`` is written: a picture into staging, anything else into the client."""
+    if category(target) == "pictures":
+        return pictures / target.removeprefix("pictures/")
+    return assets / target
 
 
 def git_ignored(paths: Iterable[Path], repo: Path = REPO_ROOT) -> set[Path]:
@@ -297,6 +317,7 @@ class Report:
 def fetch(
     manifest: dict[str, str],
     assets: Path,
+    pictures: Path,
     source: Source | None,
     *,
     force: bool = False,
@@ -309,7 +330,7 @@ def fetch(
     report = Report()
     todo: dict[str, str] = {}
     for target, title in chosen.items():
-        if not force and (assets / target).exists():
+        if not force and destination(target, assets, pictures).exists():
             report.skipped.append(target)
         else:
             todo[target] = title
@@ -343,7 +364,7 @@ def fetch(
             report.refused.append(target)
             out(f"refused: {target}: File:{title} is not a .{ext} image, nothing written")
             continue
-        write_atomic(assets / target, body)
+        write_atomic(destination(target, assets, pictures), body)
         report.written.append(target)
         out(f"wrote {target}")
     out(
@@ -354,6 +375,14 @@ def fetch(
 
 
 # --- CLI ------------------------------------------------------------------------------
+
+
+def build_pictures() -> int:
+    """Copy the staged pictures into the client; ``build_pictures.py``'s exit status."""
+    # Imported here: that script imports this one for the paths it shares.
+    import build_pictures
+
+    return build_pictures.main([])
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -374,7 +403,7 @@ def main(argv: list[str]) -> int:
     args = parse_args(argv)
     try:
         manifest = load_manifest(MANIFEST)
-        targets = [ASSETS / target for target in manifest]
+        targets = [destination(target, ASSETS, PICTURES) for target in manifest]
         tracked = sorted(set(targets) - git_ignored(targets))
         if tracked:
             raise NotIgnored(
@@ -388,7 +417,8 @@ def main(argv: list[str]) -> int:
             source = DirSource(args.from_dir)
         else:
             source = WikiSource(wiki.connect())
-        report = fetch(manifest, ASSETS, source, force=args.force, only=args.only)
+        report = fetch(manifest, ASSETS, PICTURES, source, force=args.force, only=args.only)
+        built = 0 if args.dry_run else build_pictures()
     except ManifestError as exc:
         for line in exc.errors:
             print(f"data/assets.json: {line}", file=sys.stderr)
@@ -396,7 +426,7 @@ def main(argv: list[str]) -> int:
     except (wiki.MissingUserAgent, NotIgnored, OSError, ValueError, KeyError) as exc:
         print(f"FAILED: {exc}", file=sys.stderr)
         return 1
-    return 0 if report.ok else 1
+    return 0 if report.ok and built == 0 else 1
 
 
 if __name__ == "__main__":
