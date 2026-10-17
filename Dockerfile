@@ -44,7 +44,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # what the checkout ignores; Docker Desktop shows the mount point as root's, so git is told to
 # trust it. The scripts and the app package come from the mounted repo, so a run uses the
 # checkout's code rather than the code this image was built with.
-FROM python:3.14.2-slim-bookworm AS data
+FROM python:3.14.8-slim-bookworm AS data
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/* \
@@ -71,7 +71,7 @@ RUN --mount=from=builder,source=/usr/local/bin/uv,target=/usr/local/bin/uv \
 # ---- Stage 3: runtime ------------------------------------------------------
 # Same image the uv base is built from, so the venv's interpreter symlink into
 # /usr/local and the absolute shebang in .venv/bin/uvicorn still resolve.
-FROM python:3.14.2-slim-bookworm AS runtime
+FROM python:3.14.8-slim-bookworm AS runtime
 
 # `make image` passes the contents of /VERSION; a plain `docker build` leaves it unset.
 ARG VERSION=dev
@@ -83,7 +83,10 @@ ENV PYTHONUNBUFFERED=1 \
     HOME=/tmp \
     PATH="/app/server/.venv/bin:$PATH"
 
-RUN useradd --system --no-create-home --uid 10001 app
+# Nothing in the container installs packages, and pip's vendored urllib3 and msgpack would
+# be the image's only known vulnerabilities.
+RUN useradd --system --no-create-home --uid 10001 app \
+    && python -m pip uninstall --yes --root-user-action=ignore pip
 
 # Layout mirrors the repo so ../client/dist, ../data/packs and ../schema resolve unchanged.
 # Everything stays root-owned: the app user needs to read it, never to write it.
