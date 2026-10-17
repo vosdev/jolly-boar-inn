@@ -31,6 +31,7 @@ const ROOM: RoomView = {
   },
   current_index: null,
   total: 5,
+  events: 0,
   phase: 'idle',
   next_at: null,
   reveal_seconds: null,
@@ -46,6 +47,7 @@ const SECRET: RoomView = {
   ...ROOM,
   settings: { ...ROOM.settings, modes: [], hide_rounds: true },
   total: 42,
+  events: 2,
   rounds: 5,
 }
 
@@ -349,6 +351,19 @@ describe('Lobby', () => {
     expect(screen.queryByRole('button', { name: /^Start/ })).toBeNull()
   })
 
+  it.each([
+    [1, '3 rounds · 15 questions · 1 random event · Run pace · ~5 min'],
+    [3, '3 rounds · 15 questions · 3 random events · Run pace · ~5 min'],
+  ])('counts %i random events apart from the rounds’ questions', (events, line) => {
+    const modes = [
+      { mode: 'more_less', questions: 5 },
+      { mode: 'drop_table', questions: 5 },
+      { mode: 'sort_it_out', questions: 5 },
+    ]
+    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 15 + events, events })
+    expect(screen.getByText(line)).toBeTruthy()
+  })
+
   it('keeps the rounds behind a button, listed A–Z once it is pressed', async () => {
     const modes = [
       { mode: 'more_less', questions: 5 },
@@ -387,7 +402,7 @@ describe('Lobby', () => {
     ['host', HOST, { ...SECRET, settings: { ...SECRET.settings, modes: ROOM.settings.modes } }],
   ])('counts surprise rounds for the %s and offers none to show', (_, you, room) => {
     lobby([HOST, WOOX], room, you)
-    expect(screen.getByText('5 secret rounds · 42 questions · Run pace · ~5 min')).toBeTruthy()
+    expect(screen.getByText('5 secret rounds · 40 questions · 2 random events · Run pace · ~5 min')).toBeTruthy()
     expect(
       screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
     ).toBeTruthy()

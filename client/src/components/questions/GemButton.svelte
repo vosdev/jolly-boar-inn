@@ -102,7 +102,8 @@
    *
    * `votes` is the reveal's count of who picked it, with a bar along the bottom edge for
    * its share of who answered: how the room split, which nobody is named in, so it shows
-   * whatever the room's `name_wrong_answers`. It is the one other thing a reveal adds.
+   * whatever the room's `name_wrong_answers`. It is the one other thing a reveal adds. A
+   * gem nobody picked shows no number, which its empty bar already says.
    *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
@@ -175,7 +176,7 @@
     <span class="you" aria-hidden="true">you</span>
   {/if}
   {#if votes !== null}
-    <span class="votes" aria-hidden="true">{votes.count}</span>
+    {#if votes.count > 0}<span class="votes" aria-hidden="true">{votes.count}</span>{/if}
     <span class="bar" style:width="{votes.of === 0 ? 0 : (100 * votes.count) / votes.of}%"></span>
   {/if}
   {#if spoken !== ''}<span class="sr">{spoken}</span>{/if}

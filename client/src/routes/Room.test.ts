@@ -71,6 +71,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
     },
     current_index: 0,
     total: 2,
+    events: 0,
     phase: 'standings',
     next_at: new Date(Date.now() + 10_000).toISOString(),
     reveal_seconds: null,

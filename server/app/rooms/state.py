@@ -695,6 +695,7 @@ class Room:
             settings=settings,
             current_index=self.current_index,
             total=self.total,
+            events=sum(q.random_event is not None for q in self.questions),
             phase=self.phase,  # type: ignore[arg-type]
             next_at=self.next_at,
             reveal_seconds=self.reveal_seconds if self.phase == "reveal" else None,

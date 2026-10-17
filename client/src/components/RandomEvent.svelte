@@ -22,8 +22,9 @@
    * event takes the stage, and only for a question that arrived `live`: a reconnect, a
    * reveal and reduced motion get the settled stage. The typing is a mask over text that
    * is whole in the DOM, and whole for a screen reader, from the first frame. In the
-   * reveal the NPC says `right` or `wrong` to your answer beside the points, and hands
-   * the stage back in its last `RETURN_MS`, counted to `nextAt`.
+   * reveal the intro is gone, its room kept, the NPC says `right` or `wrong` to your
+   * answer beside the points, and hands the stage back in its last `RETURN_MS`, counted
+   * to `nextAt`.
    *
    * The sheet keeps room for two lines of the reveal's `explanation` and for the points
    * from the start, so the answers under it do not move when they arrive.
@@ -139,6 +140,9 @@
     <h2 class="who">{npc.name}</h2>
     {#if answers === null || prompt === ''}
       {@render stem()}
+    {:else if intro !== '' && reveal !== null}
+      {@render typed(1, 'ask')}
+      <p class="intro kept" aria-hidden="true">{intro}</p>
     {:else if intro !== ''}
       {@render typed(0, 'intro')}
       {@render typed(1, 'ask')}
@@ -212,6 +216,13 @@
     font-style: italic;
     line-height: 1.3;
     overflow-wrap: anywhere;
+  }
+
+  /* The intro has said its piece by the reveal, but its lines stay, under the question,
+     so the sheet and the answers under it keep still. */
+  .kept {
+    visibility: hidden;
+    margin: 0.5rem 0 0;
   }
 
   /* As a round's prompt on the scroll (`TextStem`), so the handwriting does not change. */

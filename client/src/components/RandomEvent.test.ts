@@ -384,15 +384,18 @@ describe('the NPC’s own words', () => {
     expect(spoken(ask())).toBe(PROMPT)
   })
 
-  it('keeps the intro on the sheet in the reveal', () => {
+  it('hides the intro in the reveal but keeps its room under the question', () => {
     render(RandomEvent, {
       question: introduced(),
       reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
       yourValue: 1,
       onAnswer: () => {},
     })
-    expect(intro().textContent).toBe(INTRO)
     expect(ask().textContent).toBe(PROMPT)
+    const kept = intro()
+    expect(kept.classList.contains('kept')).toBe(true)
+    expect(kept.getAttribute('aria-hidden')).toBe('true')
+    expect(ask().compareDocumentPosition(kept) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it.each([
