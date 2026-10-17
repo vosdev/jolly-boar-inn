@@ -688,5 +688,5 @@ CLAUDE.md has the bump rule.
   sends it in `welcome`.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
   `VERSION` went backwards. `make image` builds locally; no registry.
-- Dependabot gathers every ecosystem's updates into one weekly PR, which gets one patch bump
-  before merge. CI fails on a high or critical known vulnerability in a lockfile or the image.
+- Dependabot gathers every ecosystem's minor and patch updates into one weekly PR, which gets one
+  patch bump before merge. CI fails on a high or critical known vulnerability in a lockfile or the image.
