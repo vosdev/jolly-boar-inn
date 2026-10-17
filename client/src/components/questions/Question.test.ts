@@ -412,6 +412,59 @@ describe('every type on the stage', () => {
   })
 })
 
+describe('a pack question’s picture', () => {
+  const PROMPT = 'Which of these would a merchant rather hold?'
+  const pictured = (picture: string | null) => ({
+    ...open('more_less', 'stemmed', { ...VIEW, prompt: PROMPT }),
+    picture,
+  })
+  const paper = () => document.querySelector('.paper') as HTMLElement
+
+  it('is on the scroll above the prompt while the question is open', () => {
+    render(QuestionStage, { question: pictured('0123abcd.png'), yourValue: null, onAnswer })
+    const img = paper().querySelector('.picture img')!
+    expect(img.getAttribute('src')).toBe('/pictures/0123abcd.png')
+    expect(img.getAttribute('alt')).toBe('')
+    const prompt = screen.getByText(PROMPT)
+    expect(img.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('stays on the scroll for the reveal', () => {
+    render(QuestionStage, {
+      question: pictured('0123abcd.png'),
+      reveal: { ...REVEAL, prompt: PROMPT },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(paper().querySelector('.picture img')!.getAttribute('src')).toBe('/pictures/0123abcd.png')
+  })
+
+  it('leaves no image and no empty box without one, open or revealed', () => {
+    const { container, unmount } = render(QuestionStage, {
+      question: pictured(null),
+      yourValue: null,
+      onAnswer,
+    })
+    expect(container.querySelector('.picture, img[src^="/pictures/"]')).toBeNull()
+    expect(screen.getByText(PROMPT)).toBeTruthy()
+    unmount()
+
+    const revealed = render(QuestionStage, {
+      question: pictured(null),
+      reveal: { ...REVEAL, prompt: PROMPT },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(revealed.container.querySelector('.picture, img[src^="/pictures/"]')).toBeNull()
+  })
+
+  it('is left out of the fallback for a type this build cannot show', () => {
+    const question = { ...open('from_a_newer_server', 'stemmed'), picture: '0123abcd.png' }
+    const { container } = render(Question, { question, yourValue: null, onAnswer })
+    expect(container.querySelector('.picture, img[src^="/pictures/"]')).toBeNull()
+  })
+})
+
 describe('the ribbon', () => {
   const question = open('more_less', 'more_less')
   const award = () => document.querySelector('.award') as HTMLElement | null

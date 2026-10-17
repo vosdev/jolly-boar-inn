@@ -125,6 +125,20 @@ def written(folder: Path) -> set[str]:
     return {str(path.relative_to(folder)) for path in folder.rglob("*") if path.is_file()}
 
 
+def staged(assets: Path) -> Path:
+    """Where the ``assets`` fixture stages the pictures."""
+    return assets.parent / "pictures"
+
+
+def fetched(assets: Path) -> set[str]:
+    """Every target a run wrote, a picture's in staging included."""
+    return written(assets) | {f"pictures/{path}" for path in written(staged(assets))}
+
+
+def where(assets: Path, target: str) -> Path:
+    return fetch_assets.destination(target, assets, staged(assets))
+
+
 # --- the User-Agent -------------------------------------------------------------------
 
 
@@ -160,7 +174,7 @@ def test_dry_run_and_from_dir_need_no_user_agent(
         # Saved as a browser names a download: underscores for spaces.
         (saved / title.replace(" ", "_")).write_bytes(PNG)
     assert fetch_assets.main(["--from-dir", str(saved)]) == 0
-    assert written(assets) == set(MANIFEST)
+    assert fetched(assets) == set(MANIFEST)
 
 
 # --- a full run -----------------------------------------------------------------------
@@ -172,17 +186,17 @@ def test_a_full_run_writes_every_entry_and_a_second_writes_and_sends_nothing(
 ) -> None:
     fake = fake_wiki(monkeypatch, FakeWiki(every_file()))
     assert fetch_assets.main([]) == 0
-    assert written(assets) == set(MANIFEST)
-    assert all((assets / target).read_bytes() == PNG for target in MANIFEST)
+    assert fetched(assets) == set(MANIFEST)
+    assert all(where(assets, target).read_bytes() == PNG for target in MANIFEST)
     titles = len(set(MANIFEST.values()))
     assert len(fake.sent) == titles + math.ceil(titles / fetch_assets.BATCH)
     assert {agent for _, agent, _ in fake.sent} == {AGENT}
 
-    stamps = {target: (assets / target).stat().st_mtime_ns for target in MANIFEST}
+    stamps = {target: where(assets, target).stat().st_mtime_ns for target in MANIFEST}
     fake.sent.clear()
     assert fetch_assets.main([]) == 0
     assert fake.sent == []
-    assert {target: (assets / target).stat().st_mtime_ns for target in MANIFEST} == stamps
+    assert {target: where(assets, target).stat().st_mtime_ns for target in MANIFEST} == stamps
 
 
 @pytest.mark.usefixtures("agent")
@@ -229,7 +243,7 @@ def test_a_body_that_is_not_an_image_is_refused_and_not_written(
     files["Thurgo chathead.png"] = b"<!DOCTYPE html><title>502 Bad Gateway</title>"
     fake_wiki(monkeypatch, FakeWiki(files))
     assert fetch_assets.main([]) == 1
-    assert written(assets) == set(MANIFEST) - {"npcs/thurgo_chathead.png"}
+    assert fetched(assets) == set(MANIFEST) - {"npcs/thurgo_chathead.png"}
     assert "refused: npcs/thurgo_chathead.png" in capsys.readouterr().out
 
 
@@ -258,7 +272,7 @@ def test_a_missing_title_is_named_the_rest_still_fetch_and_the_run_fails(
     del files["Ned chathead.png"]
     fake_wiki(monkeypatch, FakeWiki(files))
     assert fetch_assets.main([]) == 1
-    assert written(assets) == set(MANIFEST) - {"npcs/ned_chathead.png"}
+    assert fetched(assets) == set(MANIFEST) - {"npcs/ned_chathead.png"}
     assert "missing: npcs/ned_chathead.png: the wiki has no File:Ned chathead.png" in (
         capsys.readouterr().out
     )

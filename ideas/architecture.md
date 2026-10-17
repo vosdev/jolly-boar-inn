@@ -130,7 +130,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
 | `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
 | `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done |
-| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`; `image` stored for the render | hand-written | done |
+| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`; `image` is its picture | hand-written | done |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
@@ -294,7 +294,8 @@ PlayerResult { value, correct, credit, points }
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.
 - `picture` is a pack question's file in `/pictures/` under a random name, from `data/pictures.json`
   (section 12), or null: no image, a host's question, or a file the built client lacks. Served
-  immutable. Devtools still show the whole picture before it zooms out or loses its shadow.
+  immutable, and drawn above the stem in every mode, open and revealed. Devtools still show the
+  whole picture before it zooms out or loses its shadow.
 - `answerable_at` is `opened_at` plus the hold the scroll types the question in (`rooms/hold.py`):
   0.4 s (0.9 s for an event), each line at 50 letters a second with a 0.5–1 s pause after it, then
   0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
