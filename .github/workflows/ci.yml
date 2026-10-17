@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # New vulnerabilities are published against code that has not changed.
+  schedule:
+    - cron: "17 6 * * 1"
 
 # Actions are pinned to commit SHAs, since a tag can be moved to other code. Only the
 # release job may write.
@@ -75,6 +78,35 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+  # Known vulnerabilities in what we import, high and critical only. Trivy skips those with
+  # no fix to move to. It reads uv.lock, but only the first document of pnpm's lockfile,
+  # which holds pnpm itself, so the client goes through pnpm audit, whose --ignore-unfixable
+  # reports nothing at all.
+  audit:
+    name: Audit (lockfiles)
+    runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Scan server/uv.lock
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: server/uv.lock
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 1
+          version: v0.75.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          package_json_file: client/package.json
+      - run: pnpm audit --audit-level high
+        working-directory: client
+
   containers:
     name: Containers (build, compose smoke test)
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
@@ -136,6 +168,16 @@ jobs:
       # rather than in the code: the websocket upgrade under uvicorn --proxy-headers.
       - name: Websocket smoke test
         run: docker compose exec -T app python scripts/smoke_ws.py
+      # After the smoke tests, so a vulnerable base image does not hide a broken one.
+      - name: Scan image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: jolly-boar-inn:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 1
+          version: v0.75.0
       - name: Compose logs
         if: always()
         run: docker compose logs
@@ -150,7 +192,7 @@ jobs:
   release:
     name: Release (tag when VERSION changes)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [server, client, containers]
+    needs: [server, client, audit, containers]
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     permissions:

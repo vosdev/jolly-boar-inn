@@ -23,7 +23,7 @@ final. The licence is AGPL-3.0.
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
-                                   edit-roster, rehash-questions, fetch-assets, logo, image; CI: release
+                                   edit-roster, rehash-questions, fetch-assets, logo, image; CI: audit, release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/
 data/                              assets, pets, popular-items, player-names, room-words
@@ -688,3 +688,5 @@ CLAUDE.md has the bump rule.
   sends it in `welcome`.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
   `VERSION` went backwards. `make image` builds locally; no registry.
+- Dependabot gathers every ecosystem's updates into one weekly PR, which gets one patch bump
+  before merge. CI fails on a high or critical known vulnerability in a lockfile or the image.
