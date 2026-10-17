@@ -267,6 +267,10 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
   `--scroll-ink`, and the answers, combobox, waiting state and tally are under the scroll. The
   question's heading is for a screen reader only.
+- A pack question's picture, the wiki's detail render, is centred under the prompt in a box 5rem
+  tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.
+  An item's inventory icon, in a 72px box at whole pixels, sits under The Price is Right's question
+  and above each More or Less name. Without a file, the name stands alone.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
   face, with a 56px Submit under it. On a phone its list opens *above* the field so the keyboard
   never covers it. Typed text reads as a search; only a selection lights Submit.
@@ -382,7 +386,8 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 
 | Art | Source | In the repo? |
 |---|---|---|
-| Item renders | Game assets, no importer yet | No |
+| Question pictures | Wiki detail renders, `make fetch-assets` | No, fetched; without one the prompt stands alone |
+| Item icons | Wiki inventory icons, `make fetch-assets` | No, fetched; without one the name stands alone |
 | Speedrunning trophies | Game renders, `make fetch-assets` | No, fetched; placeholders ship |
 | Clue scroll font | RuneStar/fonts, Quill 8 | **Yes**, 21 KB, with a note beside it |
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |

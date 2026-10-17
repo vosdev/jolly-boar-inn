@@ -12,6 +12,8 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
+from app.questions import vocab
+from app.questions.packs import load_packs
 from app.random_events import RANDOM_EVENTS
 from tests.test_wiki import FakeClock
 
@@ -125,6 +127,20 @@ def written(folder: Path) -> set[str]:
     return {str(path.relative_to(folder)) for path in folder.rglob("*") if path.is_file()}
 
 
+def staged(assets: Path) -> Path:
+    """Where the ``assets`` fixture stages the pictures."""
+    return assets.parent / "pictures"
+
+
+def fetched(assets: Path) -> set[str]:
+    """Every target a run wrote, a picture's in staging included."""
+    return written(assets) | {f"pictures/{path}" for path in written(staged(assets))}
+
+
+def where(assets: Path, target: str) -> Path:
+    return fetch_assets.destination(target, assets, staged(assets))
+
+
 # --- the User-Agent -------------------------------------------------------------------
 
 
@@ -160,7 +176,7 @@ def test_dry_run_and_from_dir_need_no_user_agent(
         # Saved as a browser names a download: underscores for spaces.
         (saved / title.replace(" ", "_")).write_bytes(PNG)
     assert fetch_assets.main(["--from-dir", str(saved)]) == 0
-    assert written(assets) == set(MANIFEST)
+    assert fetched(assets) == set(MANIFEST)
 
 
 # --- a full run -----------------------------------------------------------------------
@@ -172,17 +188,18 @@ def test_a_full_run_writes_every_entry_and_a_second_writes_and_sends_nothing(
 ) -> None:
     fake = fake_wiki(monkeypatch, FakeWiki(every_file()))
     assert fetch_assets.main([]) == 0
-    assert written(assets) == set(MANIFEST)
-    assert all((assets / target).read_bytes() == PNG for target in MANIFEST)
-    titles = len(set(MANIFEST.values()))
-    assert len(fake.sent) == titles + math.ceil(titles / fetch_assets.BATCH)
+    assert fetched(assets) == set(MANIFEST)
+    assert all(where(assets, target).read_bytes() == PNG for target in MANIFEST)
+    # One download per target, even for two targets with one title (an item and an emblem).
+    queries = math.ceil(len(set(MANIFEST.values())) / fetch_assets.BATCH)
+    assert len(fake.sent) == len(MANIFEST) + queries
     assert {agent for _, agent, _ in fake.sent} == {AGENT}
 
-    stamps = {target: (assets / target).stat().st_mtime_ns for target in MANIFEST}
+    stamps = {target: where(assets, target).stat().st_mtime_ns for target in MANIFEST}
     fake.sent.clear()
     assert fetch_assets.main([]) == 0
     assert fake.sent == []
-    assert {target: (assets / target).stat().st_mtime_ns for target in MANIFEST} == stamps
+    assert {target: where(assets, target).stat().st_mtime_ns for target in MANIFEST} == stamps
 
 
 @pytest.mark.usefixtures("agent")
@@ -229,7 +246,7 @@ def test_a_body_that_is_not_an_image_is_refused_and_not_written(
     files["Thurgo chathead.png"] = b"<!DOCTYPE html><title>502 Bad Gateway</title>"
     fake_wiki(monkeypatch, FakeWiki(files))
     assert fetch_assets.main([]) == 1
-    assert written(assets) == set(MANIFEST) - {"npcs/thurgo_chathead.png"}
+    assert fetched(assets) == set(MANIFEST) - {"npcs/thurgo_chathead.png"}
     assert "refused: npcs/thurgo_chathead.png" in capsys.readouterr().out
 
 
@@ -258,7 +275,7 @@ def test_a_missing_title_is_named_the_rest_still_fetch_and_the_run_fails(
     del files["Ned chathead.png"]
     fake_wiki(monkeypatch, FakeWiki(files))
     assert fetch_assets.main([]) == 1
-    assert written(assets) == set(MANIFEST) - {"npcs/ned_chathead.png"}
+    assert fetched(assets) == set(MANIFEST) - {"npcs/ned_chathead.png"}
     assert "missing: npcs/ned_chathead.png: the wiki has no File:Ned chathead.png" in (
         capsys.readouterr().out
     )
@@ -415,6 +432,37 @@ def test_without_a_git_checkout_nothing_counts_as_ignored(
 # --- the manifest ---------------------------------------------------------------------
 
 
+def icons() -> set[str]:
+    """Every item the manifest has an icon for, as its asset id."""
+    return {
+        f"item:{fetch_assets.TARGET.match(t)['stem']}" for t in MANIFEST if t.startswith("items/")
+    }
+
+
+def subjects(node: object) -> set[str]:
+    """Every item asset a subject names anywhere under ``node``."""
+    if isinstance(node, list):
+        return set().union(*(subjects(child) for child in node))
+    if not isinstance(node, dict):
+        return set()
+    found = set().union(*(subjects(child) for child in node.values()))
+    asset = node.get("subject", {}).get("asset") if isinstance(node.get("subject"), dict) else None
+    return found | ({asset} if isinstance(asset, str) and asset.startswith("item:") else set())
+
+
+def test_every_roster_item_has_an_icon_in_the_manifest() -> None:
+    roster = json.loads((REPO_ROOT / "data" / "popular-items.json").read_text(encoding="utf-8"))
+    assert [item["id"] for item in roster["items"] if f"item:{item['id']}" not in icons()] == []
+
+
+def test_every_item_a_pack_question_names_has_an_icon_in_the_manifest() -> None:
+    vocab.load_all()
+    named = subjects(
+        [q["payload"] for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
+    )
+    assert sorted(named - icons()) == []
+
+
 def test_every_random_event_npc_has_art_in_the_manifest() -> None:
     npcs = {fetch_assets.TARGET.match(t)["stem"] for t in MANIFEST if t.startswith("npcs/")}
     assert [n for n in RANDOM_EVENTS if n not in npcs and f"{n}_chathead" not in npcs] == []
@@ -424,7 +472,7 @@ def test_every_random_event_npc_has_art_in_the_manifest() -> None:
     ("manifest", "problem"),
     [
         ({"trophies/gold.png": "a.png", "npcs/bob.png": "b.png"}, "sorted"),
-        ({"items/4151.png": "Abyssal whip.png"}, "no category 'items'"),
+        ({"sounds/whip.png": "Abyssal whip.png"}, "no category 'sounds'"),
         ({"npcs/Bob.png": "Bob.png"}, "not <category>"),
         ({"npcs/../../evil.png": "Bob.png"}, "not <category>"),
         ({"npcs/bob.gif": "Bob.gif"}, "not <category>"),

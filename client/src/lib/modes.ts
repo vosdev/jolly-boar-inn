@@ -168,8 +168,8 @@ export const MODES: Record<string, Mode> = {
     blurb: 'Your task: know the loot. Who drops it, what they drop, and how rarely.',
     waiting: 'Patience. Good drops take time.',
     reveal: 'The loot is on the floor.',
-    // The prompt names the item or the monster, because no view draws a question's
-    // `picture` yet.
+    // The prompt still names the item or the monster: a question whose picture is
+    // missing has to read without it.
     stem: 'text',
   },
   odd_one_out: {

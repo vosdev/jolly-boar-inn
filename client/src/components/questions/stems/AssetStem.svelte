@@ -21,18 +21,14 @@
 
 <script lang="ts">
   /**
-   * A question about one thing: an item or an NPC, named, with its picture once there
-   * are pictures.
+   * A question about one thing: an item or an NPC, named.
    *
-   * The Price is Right is its first mode, and Drop Table will be the second: both ask
-   * about a single subject and let the view below do the asking. It reads `subject` —
-   * `{name, asset?}`, the schema's `$defs/subject` — and ignores the rest of `data`.
+   * The Price is Right is its mode: it asks about a single subject and lets the view below
+   * do the asking. It reads `subject` — `{name, asset?}`, the schema's `$defs/subject` — and
+   * ignores the rest of `data`.
    *
-   * `asset` is `item:<id>` or `npc:<id>`, never a URL (architecture section 2), and there
-   * is nothing to resolve it against until the Images milestone ships the renders. Until then
-   * the name is the whole stem, which is the rule's own fallback for a missing image rather than a
-   * placeholder: the question is answerable from the name, and a grey box would say it is
-   * not. The ref still rides on the element so the render has somewhere to go.
+   * `asset` is `item:<id>` or `npc:<id>`, never a URL (architecture section 2). The item's
+   * icon goes under the whole question, so `PriceStem` draws it after its own line.
    */
   import Typed from '../../stage/Typed.svelte'
   import type { StemProps } from '../props'

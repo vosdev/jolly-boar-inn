@@ -129,6 +129,18 @@ def test_the_assets_come_from_every_pack_questions_image() -> None:
     assert assets
 
 
+def test_every_pack_questions_image_has_a_picture_in_the_manifest() -> None:
+    vocab.load_all()
+    manifest = fetch_assets.load_manifest(fetch_assets.MANIFEST)
+    pictures = {
+        "{}:{}".format(*match["stem"].split("/"))
+        for target in manifest
+        if (match := fetch_assets.PICTURE.match(target))
+    }
+    assets = build_pictures.used_assets(load_packs(REPO_ROOT / "data" / "packs"))
+    assert [asset for asset in assets if asset not in pictures] == []
+
+
 def test_what_it_writes_is_git_ignored() -> None:
     written = [build_pictures.MAPPING, build_pictures.OUT / "0123456789abcdef.png"]
     assert fetch_assets.git_ignored(written) == set(written)

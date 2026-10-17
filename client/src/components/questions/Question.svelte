@@ -7,9 +7,9 @@
    * `OpenQuestion`, because the reveal frame names neither a type nor a mode. `reveal`
    * being null is what says which of the two this is.
    *
-   * It adds no markup of its own around the pair, and after it only what every type says
-   * the same way: the note for somebody who cannot answer, and the reveal's `explanation`
-   * where the author gave one. A mode with no stem, which is `more_less`, renders exactly
+   * It adds no markup of its own around the pair, only what every mode shows the same way:
+   * a pack question's `picture` under the stem, and after the view the note for somebody who
+   * cannot answer and the reveal's `explanation` where the author gave one. A mode with no stem, which is `more_less`, renders exactly
    * the view it rendered before stems existed, with nothing in between to shift a pixel.
    *
    * The stem also gets the question's schedule, counted on `lib/clock.ts`'s server clock,
@@ -42,6 +42,7 @@
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
   import { viewFor } from './index'
   import type { StemTiming } from './props'
+  import QuestionPicture from './QuestionPicture.svelte'
 
   let {
     question,
@@ -101,8 +102,11 @@
       <p>This question is a <code>{question.type}</code>, which this version cannot show.</p>
       <p class="note">Sit this one out — the game carries on.</p>
     {/if}
-  {:else if Stem !== null}
-    <Stem {data} {revealed} {timing} {shown} />
+  {:else}
+    {#if Stem !== null}
+      <Stem {data} {revealed} {timing} {shown} />
+    {/if}
+    <QuestionPicture name={question.picture} />
   {/if}
 {/snippet}
 
