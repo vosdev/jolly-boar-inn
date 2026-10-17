@@ -24,7 +24,7 @@ We would need money displayed like it is ingame. over 100,000 it becomes 100k. O
 
 
 # Medium
-(renders from MOID or structured data from Bucket):
+(wiki pictures fetched by `make fetch-assets`):
 
 ## Pixel Hunt
 item render at 800 percent, zooming out in steps, guessing earlier scores more.

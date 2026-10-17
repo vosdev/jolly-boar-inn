@@ -44,17 +44,14 @@ Do not email anyone, do not scrape HTML. Weird Gloop only asks for a descriptive
 Sources:
 
 - `prices.runescape.wiki`, `/mapping` for id, name, examine, high alch, low alch and buy limit. `/latest` for current prices.
-- MOID at `chisel.weirdgloop.org/moid` for clean item, NPC and object renders from the cache.
 - Bucket API (`meta.weirdgloop.org/w/Extension:Bucket/Api`) for structured infobox data and drops. Better than parsing wikitext.
 - MediaWiki API at `oldschool.runescape.wiki/api.php` for the rest. Use generators, for example `generator=categorymembers` with `prop=imageinfo`, 50 titles per request.
 
-Rules for the importer:
+Rules for fetching:
 
-- Runs as a separate job, never during a quiz. Live requests to the wiki while a game is running are forbidden.
-- Output: a local dataset plus a manifest with checksums.
-- Pre-generate zoom frames, eight per item. No resizing per request.
-- Convert every image to webp at 50 to 100KB.
-- Do not commit wiki images to the repo. Selfhosters run the importer themselves, under their own User-Agent.
+- Runs as a separate job (`make fetch-assets`), never during a quiz. Live requests to the wiki while a game is running are forbidden.
+- Pictures are bundled into the client. Question pictures get opaque names; Pixel Hunt zooms and Who's That NPC? shades in the browser.
+- Do not commit wiki images to the repo. Selfhosters fetch them themselves, under their own User-Agent.
 
 Licensing and credits: wiki text is CC BY-NC-SA, game assets remain Jagex property. Keep it non-commercial, no ads, no paywall. Wiki credit and a "not affiliated with Jagex" disclaimer in the footer.
 
