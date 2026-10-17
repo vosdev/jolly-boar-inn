@@ -23,7 +23,9 @@ branding/*
 .idea/
 .vscode/
 
-# NPC, pet and trophy art from the wiki (make fetch-assets): game assets, fetched and not committed
+# Item, NPC, pet and trophy art from the wiki (make fetch-assets): game assets, fetched and not committed
+client/src/assets/items/*
+!client/src/assets/items/README.md
 client/src/assets/npcs/*
 !client/src/assets/npcs/README.md
 !client/src/assets/npcs/innkeeper.svg

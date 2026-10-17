@@ -20,12 +20,13 @@
    * answer once the server has actually sent them.
    *
    * The two buttons are `GemButton`'s plain variant: panel-coloured, never a gem,
-   * because they will carry the item picture, but with the same five states as every
+   * because they carry the item's icon above its name, but with the same five states as every
    * other answer button. So the right answer on the reveal gets a ✓ and an `--ok` ring
    * and nothing that looks like a press, and a question left unanswered shows neither
    * button pressed — which it used to, by drawing the answer in the pressed style.
    */
   import GemButton, { gemState, indexSet, pickCounts } from '../GemButton.svelte'
+  import ItemIcon from '../ItemIcon.svelte'
   import type { TypeViewProps } from '../props'
 
   /** An option index: the two buttons are `options[0]` and `options[1]`. */
@@ -33,7 +34,7 @@
 
   interface Subject {
     name: string
-    /** `item:<id>`. Unused until the renders ship, which is when buttons get icons. */
+    /** `item:<id>`, whose icon the button shows. */
     asset?: string
   }
 
@@ -82,9 +83,8 @@
       disabled={revealed || !canAnswer || picked !== null}
       onclick={() => onAnswer(index as Index)}
     >
-      <!-- The item render goes here once the assets ship; `option.subject.asset` is
-           already `item:<id>` in every payload. -->
       <span class="choice">
+        <ItemIcon asset={option.subject.asset} />
         <span class="who">{option.subject.name}</span>
         {#if revealed}<span class="value">{coins(option.value)}</span>{/if}
       </span>

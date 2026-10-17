@@ -3,8 +3,8 @@
 ``data/assets.json`` maps each target, a path under ``client/src/assets/``, to the wiki file
 it comes from. Titles are written out rather than derived from an id, because the wiki has
 several chatheads for some NPCs and the owner picks which. A target's top folder is its
-category (``npcs``, ``pets``, ``themes``, ``trophies``): the folder a client lookup already
-globs, so a fetched file is used on the next build with no code change. ``logo`` is the
+category (``items``, ``npcs``, ``pets``, ``themes``, ``trophies``): the folder a client lookup
+already globs, so a fetched file is used on the next build with no code change. ``logo`` is the
 exception: the sources ``make logo`` draws the owner's logo from, which the client never looks
 for. ``pictures`` is the other: ``pictures/<item|npc>/<id>.<ext>``, a question's picture, lands
 in ``.pictures/`` at the repo root, where the build never sees it under a name that is the
@@ -61,7 +61,7 @@ API = "https://oldschool.runescape.wiki/api.php"
 BATCH = 50
 # The folders a client lookup globs, and the logo's sources; a target anywhere else would
 # never be used.
-CATEGORIES = ("logo", "npcs", "pets", "pictures", "themes", "trophies")
+CATEGORIES = ("items", "logo", "npcs", "pets", "pictures", "themes", "trophies")
 # What those globs accept, so a fetched file is always one the client picks up.
 EXTENSIONS = ("avif", "webp", "png", "jpg", "jpeg", "svg")
 TARGET = re.compile(

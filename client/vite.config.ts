@@ -25,10 +25,11 @@ export default defineConfig({
   plugins: [svelte(), svelteTesting(), siteBranding()],
   define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
   build: {
-    // Vite inlines every file under 4 kB, and nearly every pet file is: 440 data URLs would
-    // put the picker's whole catalogue in the script every visitor downloads. Left as files,
-    // each is fetched when an <img> needs it.
-    assetsInlineLimit: (file) => (file.includes('/src/assets/pets/') ? false : undefined),
+    // Vite inlines every file under 4 kB, and nearly every pet and item icon is: hundreds of
+    // data URLs would put both whole catalogues in the script every visitor downloads. Left
+    // as files, each is fetched when an <img> needs it.
+    assetsInlineLimit: (file) =>
+      /\/src\/assets\/(pets|items)\//.test(file) ? false : undefined,
   },
   test: {
     environment: 'jsdom',

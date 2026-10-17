@@ -188,8 +188,9 @@ def test_a_full_run_writes_every_entry_and_a_second_writes_and_sends_nothing(
     assert fetch_assets.main([]) == 0
     assert fetched(assets) == set(MANIFEST)
     assert all(where(assets, target).read_bytes() == PNG for target in MANIFEST)
-    titles = len(set(MANIFEST.values()))
-    assert len(fake.sent) == titles + math.ceil(titles / fetch_assets.BATCH)
+    # One download per target, even for two targets with one title (an item and an emblem).
+    queries = math.ceil(len(set(MANIFEST.values())) / fetch_assets.BATCH)
+    assert len(fake.sent) == len(MANIFEST) + queries
     assert {agent for _, agent, _ in fake.sent} == {AGENT}
 
     stamps = {target: where(assets, target).stat().st_mtime_ns for target in MANIFEST}
@@ -429,6 +430,12 @@ def test_without_a_git_checkout_nothing_counts_as_ignored(
 # --- the manifest ---------------------------------------------------------------------
 
 
+def test_every_roster_item_has_an_icon_in_the_manifest() -> None:
+    roster = json.loads((REPO_ROOT / "data" / "popular-items.json").read_text(encoding="utf-8"))
+    icons = {fetch_assets.TARGET.match(t)["stem"] for t in MANIFEST if t.startswith("items/")}
+    assert [item["id"] for item in roster["items"] if str(item["id"]) not in icons] == []
+
+
 def test_every_random_event_npc_has_art_in_the_manifest() -> None:
     npcs = {fetch_assets.TARGET.match(t)["stem"] for t in MANIFEST if t.startswith("npcs/")}
     assert [n for n in RANDOM_EVENTS if n not in npcs and f"{n}_chathead" not in npcs] == []
@@ -438,7 +445,7 @@ def test_every_random_event_npc_has_art_in_the_manifest() -> None:
     ("manifest", "problem"),
     [
         ({"trophies/gold.png": "a.png", "npcs/bob.png": "b.png"}, "sorted"),
-        ({"items/4151.png": "Abyssal whip.png"}, "no category 'items'"),
+        ({"sounds/whip.png": "Abyssal whip.png"}, "no category 'sounds'"),
         ({"npcs/Bob.png": "Bob.png"}, "not <category>"),
         ({"npcs/../../evil.png": "Bob.png"}, "not <category>"),
         ({"npcs/bob.gif": "Bob.gif"}, "not <category>"),
