@@ -22,10 +22,7 @@ have: a submission that could never be right is a malformed one, not a wrong one
 hands it to the engine. Without it the question shows one thing, and ``STEP`` scoring falls
 back to speed (section 6).
 
-The subject is the answer, so it is withheld with ``answer_id`` until the reveal. So is
-``image``: an asset reference is ``item:<id>``, and for this type the id *is* the answer.
-Pixel Hunt, in the Images milestone, has to show its frames under a name that does not say what
-they are of, and until then no ``pick_from_list`` payload's image goes on the wire while it is open.
+The subject is the answer, so it is withheld with ``answer_id`` until the reveal.
 """
 
 from typing import Any
@@ -53,7 +50,7 @@ def client_view(payload: dict[str, Any]) -> dict[str, Any]:
 def reveal(payload: dict[str, Any]) -> dict[str, Any]:
     """Shown after close: the same, plus the answer and what it was."""
     shown = {**client_view(payload), "answer_id": payload["answer_id"]}
-    for key in ("subject", "image", "explanation"):
+    for key in ("subject", "explanation"):
         if key in payload:
             shown[key] = payload[key]
     return shown

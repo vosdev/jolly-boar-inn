@@ -42,7 +42,7 @@ def items(payload: dict[str, Any]) -> int:
     return len(payload["options"])
 
 
-_OPEN_KEYS = ("intro", "prompt", "quote", "image", "options")
+_OPEN_KEYS = ("intro", "prompt", "quote", "options")
 
 
 def shown_order(payload: dict[str, Any]) -> list[int]:

@@ -203,7 +203,6 @@ def test_client_view_shows_the_entries_and_the_ends_and_nothing_that_orders_them
     view = ordering.client_view(pictured)
     assert view == {
         "prompt": "Put these metals in order.",
-        "image": "item:2349",
         "ends": ["Weakest", "Strongest"],
         "entries": [{"text": text} for text in shown(pictured)],
     }

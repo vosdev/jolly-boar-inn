@@ -67,7 +67,6 @@ def test_example_validates() -> None:
 def test_client_view_withholds_every_accepted_answer_and_what_it_names() -> None:
     assert free_text.client_view(EXAMPLE["payload"]) == {
         "prompt": "Who has the clan's highest Zulrah kill count?",
-        "image": "npc:2042",
     }
 
 

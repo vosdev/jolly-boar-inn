@@ -47,7 +47,7 @@ def items(payload: dict[str, Any]) -> int:
     return len(payload["entries"])
 
 
-_OPEN_KEYS = ("intro", "prompt", "image", "ends", "picks")
+_OPEN_KEYS = ("intro", "prompt", "ends", "picks")
 
 
 def places(payload: dict[str, Any]) -> int:

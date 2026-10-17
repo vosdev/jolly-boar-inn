@@ -36,6 +36,10 @@ client/src/assets/logo/*
 !client/src/assets/trophies/placeholder/
 # Wiki item icons, the themes' emblems (make fetch-assets): game assets too
 client/src/assets/themes/*.png
+# Question pictures: staged under their asset ids, copied into the client under random names
+.pictures/
+client/public/pictures/
+data/pictures.json
 
 # The copies `make import-suggestions` and `make edit-packs` run on.
 server/.import-suggestions.json

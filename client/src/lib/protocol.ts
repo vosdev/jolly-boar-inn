@@ -190,6 +190,11 @@ export interface OpenQuestion {
   segment: Segment
   view: Record<string, unknown>
   /**
+   * The picture's random name in the bundle, for `lib/pictures.ts`; null or absent without
+   * one. Never the payload's asset id, which for some modes is the answer.
+   */
+  picture?: string | null
+  /**
    * The NPC interrupting the round with this question, looked up in `lib/randomEvents.ts`;
    * null for a question that belongs to its round. Optional because a server from before
    * random events does not send it, and that reads as nobody interrupting.
@@ -383,6 +388,8 @@ export interface QuestionClosed {
   t: 'question_closed'
   question_id: string
   reveal: Record<string, unknown>
+  /** The same name the open question's `picture` carried. */
+  picture?: string | null
   results: Record<string, PlayerResult>
   /** Connected players who could have answered and did not. */
   unanswered: string[]

@@ -2,7 +2,7 @@
 
 How Jolly Boar Inn is built today, and the reason behind each choice that looks odd. The product is
 `ideas/plan.md`, the open tasks are `ideas/phase2.md` and `ideas/design.md`. Everything here is
-final unless it is under "Needs decision" at the end. The licence is AGPL-3.0.
+final. The licence is AGPL-3.0.
 
 ## 0. Stack
 
@@ -36,7 +36,8 @@ server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normali
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
-                                   edit_roster, rehash_questions, fetch_assets, build_logo,
+                                   edit_roster, rehash_questions, fetch_assets, build_pictures,
+                                   build_logo,
                                    validate_packs, check_contrast, smoke_ws, loadtest
 client/src/lib/                    api, ws, protocol, stores, session, history, profile, modes, …
 client/src/routes/, components/    Home, Create, Join, Room, History, Admin, Suggest, Report; TopBar, stage/, …
@@ -158,8 +159,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   envelope fields stay out, so a mode rename rewrites no id.
 - Length caps live in the schema, not only in forms. Every choice array references
   `$defs/choices`, six at most, one per gem; `ordering.entries` does too.
-- Assets are `item:<id>` or `npc:<id>`, never a URL. `pick_from_list` withholds `image` while open
-  ("Needs decision").
+- Assets are `item:<id>` or `npc:<id>`, never a URL. No `client_view` or `reveal` carries `image`:
+  for some modes that id is the answer. A pack question's picture goes out as `picture` (section 6).
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
 - `wiki` on the envelope is the page an author checked; `source_url` is any https link, for what
   the wiki cannot prove. Players never get either.
@@ -270,7 +271,7 @@ never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
-| `question_closed` | `question_id`, `reveal`, `results`, `unanswered`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
+| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings` | Final. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
@@ -282,7 +283,7 @@ JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
-OpenQuestion { question_id, index, total, type, mode, segment, view, random_event,
+OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
                opened_at, answerable_at, ends_at, you_can_answer, answered, of }
 PlayerResult { value, correct, credit, points }
 ```
@@ -291,6 +292,9 @@ PlayerResult { value, correct, credit, points }
 - `OpenQuestion.mode` sits beside `type` because the pair picks the view (`viewFor`), and an event's
   mode differs from its segment's.
 - `view` is `client_view(payload)`. `random_event` is the NPC id; an unknown id gets a generic card.
+- `picture` is a pack question's file in `/pictures/` under a random name, from `data/pictures.json`
+  (section 12), or null: no image, a host's question, or a file the built client lacks. Served
+  immutable. Devtools still show the whole picture before it zooms out or loses its shadow.
 - `answerable_at` is `opened_at` plus the hold the scroll types the question in (`rooms/hold.py`):
   0.4 s (0.9 s for an event), each line at 50 letters a second with a 0.5–1 s pause after it, then
   0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
@@ -662,7 +666,11 @@ Packs are committed, so a clone plays without a network; only prices are generat
   question.
 - `make fetch-assets` fetches `data/assets.json` (target under `client/src/assets/` to wiki title)
   into place, skipping files that exist. Images are never committed: every target must be
-  git-ignored. Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
+  git-ignored. A question's picture, `pictures/<item|npc>/<id>.<ext>`, is staged in `.pictures/`;
+  `build_pictures.py` then copies each one a pack uses to `client/public/pictures/<random>.<ext>`,
+  out of the bundle, which would merge it with an identical item icon. `data/pictures.json` maps
+  asset to file; a file keeps its name until its bytes change, and an unused one is removed.
+  Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
 - `make logo` is the owner's tool: it traces the fetched `logo/` sources into a boar per theme in
   `branding/boar/`, git-ignored like them. A selfhoster brings their own logo instead.
 
@@ -677,13 +685,3 @@ CLAUDE.md has the bump rule.
   sends it in `welcome`.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
   `VERSION` went backwards. `make image` builds locally; no registry.
-
-## Needs decision
-
-- **Where asset files live.** The container is read-only, and images will be served from it. Either
-  bake the importer's output into the image, or mount a read-only volume. Pixel Hunt and Who's That
-  NPC? need the answer.
-- **How an open question names its image.** `pick_from_list` withholds `image` while open, because
-  for that type the asset id is the answer id. Who's That NPC?, Pixel Hunt and Minimap Guesser need
-  an opaque per-room reference first, which changes the schema and the protocol. Never solve it by
-  adding `image` to `client_view`.

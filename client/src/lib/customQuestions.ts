@@ -277,10 +277,10 @@ export function questionOf(draft: Draft): CustomQuestion {
 
 /** What players see while it is open: each type's `client_view` on the server. */
 const OPEN_KEYS: Record<CustomType, string[]> = {
-  multiple_choice: ['intro', 'prompt', 'quote', 'image', 'options'],
-  free_text: ['intro', 'prompt', 'image'],
-  closest_number: ['intro', 'prompt', 'image', 'unit'],
-  pick_all_that_apply: ['intro', 'prompt', 'image', 'options', 'picks'],
+  multiple_choice: ['intro', 'prompt', 'quote', 'options'],
+  free_text: ['intro', 'prompt'],
+  closest_number: ['intro', 'prompt', 'unit'],
+  pick_all_that_apply: ['intro', 'prompt', 'options', 'picks'],
 }
 
 /**
