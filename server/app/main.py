@@ -183,7 +183,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         settings=settings,
         words=load_words(),
         pets=load_pickable_pets(),
-        pictures=load_pictures(client=app.state.client_dist / "pictures"),
+        pictures=load_pictures(
+            client=Path(settings.client_pictures or app.state.client_dist / "pictures")
+        ),
     )
     app.state.pool = None
     app.state.instance_lock = None
