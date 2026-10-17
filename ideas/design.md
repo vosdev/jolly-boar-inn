@@ -354,8 +354,9 @@ answerable_at: the answers appear under the line and the timer bar starts
   600 ms, then pauses less, then types faster. Under 800 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame. A
   screen reader reads it once, and a polite live region announces who interrupted.
-- In the reveal the NPC says its `right` or `wrong` line beside the points, and the `explanation`
-  goes on the scroll, in two lines the sheet keeps from the start.
+- In the reveal the intro goes, its lines left blank so the sheet keeps its height, the NPC says
+  its `right` or `wrong` line beside the points, and the `explanation` goes on the scroll, in two
+  lines the sheet keeps from the start.
 - The return takes the reveal's last 900 ms, off `next_at`, one step at a time: the NPC fades out
   (225 ms), the scroll slides back (375 ms), the host fades in (300 ms). A skipped reveal hands
   the stage back as §8.
