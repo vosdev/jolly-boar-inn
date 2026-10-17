@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 
 from app.errors import ApiError
-from app.rooms.state import RoomExpired, RoomNotFound
+from app.rooms.errors import RoomExpired, RoomNotFound
 
 # A host rerolling the code for one they like; a script listing taken codes slowly.
 FREE_CODES = 5

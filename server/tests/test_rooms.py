@@ -31,7 +31,7 @@ from fastapi.testclient import TestClient
 from app.modes import MODES, Mode
 from app.questions import schema
 from app.random_events import RANDOM_EVENTS
-from app.rooms import codes, state
+from app.rooms import codes, errors, joins, queries
 from app.rooms.settings import RoomSettings
 from tests.rooms_api import call, create, held, hello, join
 
@@ -135,7 +135,7 @@ def test_a_failed_player_insert_leaves_no_room(
     retried -- it has to take the room row down with it.
     """
     _, admin = create(client)
-    monkeypatch.setattr(state, "new_token", lambda: admin["session"])
+    monkeypatch.setattr(joins, "new_token", lambda: admin["session"])
     with pytest.raises(asyncpg.UniqueViolationError):
         call(client, app.state.rooms.create, "Other", RoomSettings(), [])
     assert db("select count(*) as n from rooms")[0]["n"] == 1
@@ -555,13 +555,13 @@ def test_an_exported_question_posts_back_as_it_came_out(client: TestClient) -> N
 def test_the_manager_refuses_what_the_body_would_have(app: FastAPI, client: TestClient, db) -> None:
     """``create`` checks again for callers that did not come through ``POST /api/rooms``."""
     settings = RoomSettings(modes=THREE_MODES)
-    with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.type"):
+    with pytest.raises(errors.BadQuestion, match=r"custom_questions\[0\] \$\.type"):
         call(client, app.state.rooms.create, "Zezima", settings, [own_question(type="x")])
     too_many = [own_question(f"Question {n}?") for n in range(3)]
-    with pytest.raises(state.BadSettings, match="3 custom questions"):
+    with pytest.raises(errors.BadSettings, match="3 custom questions"):
         call(client, app.state.rooms.create, "Zezima", settings, too_many)
     borrowed = [own_question(source="pack")]
-    with pytest.raises(state.BadQuestion, match=r"custom_questions\[0\] \$\.source"):
+    with pytest.raises(errors.BadQuestion, match=r"custom_questions\[0\] \$\.source"):
         call(client, app.state.rooms.create, "Zezima", settings, borrowed)
     assert_no_room(db)
 
@@ -572,7 +572,7 @@ def test_the_author_is_whoever_wrote_the_question_not_the_source_it_carries() ->
     room, author = uuid4(), uuid4()
     written = {**own_question(), "id": "q_written", "mode": "custom", "source": "community"}
     drawn = {**own_question("Who?"), "id": "q_drawn", "mode": "more_less", "source": "pack"}
-    rows = state._question_rows(room, [(0, drawn), (0, written)], author, {"q_written"})
+    rows = queries._question_rows(room, [(0, drawn), (0, written)], author, {"q_written"})
     assert [row[-1] for row in rows] == [None, author]
 
 

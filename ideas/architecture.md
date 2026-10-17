@@ -30,8 +30,8 @@ data/                              assets, pets, popular-items, player-names, ro
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
                                    suggestions, reports, question_edits, roster_edits
-server/app/rooms/                  state (RoomManager), settings, selection, segments, scoring,
-                                   ready, codes
+server/app/rooms/                  state (RoomManager), joins, lobby, loop (its parts), models,
+                                   errors, queries, settings, selection, segments, scoring, ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
 server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
@@ -53,8 +53,8 @@ The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds tha
 
 ## 2. Room state
 
-`rooms/state.py` owns every room. HTTP and websocket handlers call `RoomManager`. Nothing else writes
-`rooms`, `players`, `questions` or `answers` after creation.
+`RoomManager` (`rooms/state.py`, with `joins`, `lobby` and `loop`) owns every room. Handlers call it.
+Nothing else writes `rooms`, `players`, `questions` or `answers` after creation.
 
 `RoomManager` methods: `get` (rehydrates, section 9), `create`, `join`, `connect`, `disconnect`,
 `set_profile`, `set_ready`, `set_editing`, `start_game`, `submit_answer`, `skip(phase, index)`,

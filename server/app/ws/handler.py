@@ -32,13 +32,9 @@ from pydantic import ValidationError
 
 from app.errors import ApiError
 from app.http.ratelimit import RateLimited, room_lookup
-from app.rooms.state import (
-    BadSession,
-    Player,
-    RoomExpired,
-    RoomManager,
-    RoomNotFound,
-)
+from app.rooms.errors import BadSession, RoomExpired, RoomNotFound
+from app.rooms.models import Player
+from app.rooms.state import RoomManager
 from app.ws import protocol
 from app.ws.outbox import Outbox
 from app.ws.outbox import close as outbox_close

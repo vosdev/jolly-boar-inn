@@ -18,7 +18,7 @@ from app.db import _init_connection, create_pool, run_migrations
 from app.main import create_app
 from app.modes import MODES, Mode
 from app.questions.packs import Pack
-from app.rooms import state
+from app.rooms import loop
 from app.ws import handler as ws_handler
 from tests.game_api import Faults, Game, seat_table
 from tests.rooms_api import create, join
@@ -41,7 +41,7 @@ def no_hold(monkeypatch: pytest.MonkeyPatch) -> None:
     Every question would otherwise hold every test for a second or more; the tests about
     the hold set their own.
     """
-    monkeypatch.setattr(state, "question_hold", lambda question: 0)
+    monkeypatch.setattr(loop, "question_hold", lambda question: 0)
 
 
 @pytest.fixture

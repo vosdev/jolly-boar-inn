@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from app.http.ratelimit import RateLimited, RateLimiter, room_lookup
-from app.rooms.state import RoomNotFound
+from app.rooms.errors import RoomNotFound
 
 
 def test_limit_per_key_within_window() -> None:

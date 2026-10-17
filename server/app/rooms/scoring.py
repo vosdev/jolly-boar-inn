@@ -22,9 +22,13 @@ that have not arrived yet. ``answer_ack`` carries it, and ``points_for`` reads i
 the close.
 """
 
+import logging
+import math
 from typing import assert_never
 
 from app.questions.types.scoring import Scoring
+
+log = logging.getLogger("app.rooms")
 
 BUCKETS: tuple[tuple[float, int], ...] = (
     (0.10, 1000),
@@ -125,3 +129,26 @@ def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | N
         case _:
             assert_never(how)
     return round(top * credit)
+
+
+# Credit summed from fractions misses its target by a few ulps: ten tenths are
+# 0.9999999999999999, which would not be "correct".
+_CREDIT_DIGITS = 9
+
+
+def settle_credit(type_id: str, raw: object) -> float:
+    """One player's credit from ``grade``, rounded and held to 0..1; a bad one is logged."""
+    # A type's bug should cost its player the question, not everyone: ``points_for``
+    # raising would fail the whole close, and the restart voids the question for all.
+    if isinstance(raw, bool) or not isinstance(raw, int | float):
+        log.error("%s graded %r, which is not a number: counted as 0", type_id, raw)
+        return 0.0
+    if isinstance(raw, float) and math.isnan(raw):
+        log.error("%s graded NaN: counted as 0", type_id)
+        return 0.0
+    credit = round(raw, _CREDIT_DIGITS)
+    if not 0 <= credit <= 1:
+        log.error("%s graded %r, outside 0..1: clamped", type_id, raw)
+        credit = min(max(credit, 0), 1)
+    # ``+ 0.0`` turns a rounded -1e-12 into 0.0 rather than -0.0.
+    return float(credit) + 0.0

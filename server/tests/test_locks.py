@@ -12,7 +12,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from app.rooms.state import RoomManager, RoomNotFound
+from app.rooms.errors import RoomNotFound
+from app.rooms.state import RoomManager
 from tests.rooms_api import call, create, join
 
 

@@ -13,8 +13,9 @@ from app.http.ratelimit import RateLimited, client_key, room_lookup
 from app.modes import offered
 from app.questions import custom
 from app.rooms import codes
+from app.rooms.models import Room, normalize_name
 from app.rooms.settings import MAX_QUESTIONS_PER_ROOM, NewRoomSettings
-from app.rooms.state import Room, RoomManager, normalize_name
+from app.rooms.state import RoomManager
 from app.stats import Arrival, Device, Theme
 
 router = APIRouter(prefix="/api/rooms")

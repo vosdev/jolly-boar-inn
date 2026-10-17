@@ -8,7 +8,7 @@ import httpx
 from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 
-from app.rooms.state import MAX_JOIN_REQUESTS, REQUEST_LIFETIME_SECONDS
+from app.rooms.joins import MAX_JOIN_REQUESTS, REQUEST_LIFETIME_SECONDS
 from tests.rooms_api import hello, next_of
 from tests.test_invite_links import create_keyed, join, key_of
 

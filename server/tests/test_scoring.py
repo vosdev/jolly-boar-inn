@@ -24,6 +24,7 @@ import pytest
 
 from app.questions.types import TYPES, scoring_of
 from app.questions.types.scoring import Scoring
+from app.rooms.models import Player, Room, Totals
 from app.rooms.scoring import (
     BUCKETS,
     SLOWEST,
@@ -31,11 +32,11 @@ from app.rooms.scoring import (
     bucket,
     effective,
     points_for,
+    settle_credit,
     step,
     step_points,
 )
 from app.rooms.settings import RoomSettings
-from app.rooms.state import Player, Room, Totals, settle_credit
 
 # The section 6 table, verbatim. If this changes, the game changed.
 SECTION_6 = ((0.10, 1000), (0.25, 900), (0.50, 800), (0.75, 700), (1.00, 600))
