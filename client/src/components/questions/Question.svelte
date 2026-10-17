@@ -8,7 +8,7 @@
    * being null is what says which of the two this is.
    *
    * It adds no markup of its own around the pair, only what every mode shows the same way:
-   * a pack question's `picture` above the stem, and after the view the note for somebody who
+   * a pack question's `picture` under the stem, and after the view the note for somebody who
    * cannot answer and the reveal's `explanation` where the author gave one. A mode with no stem, which is `more_less`, renders exactly
    * the view it rendered before stems existed, with nothing in between to shift a pixel.
    *
@@ -103,10 +103,10 @@
       <p class="note">Sit this one out — the game carries on.</p>
     {/if}
   {:else}
-    <QuestionPicture name={question.picture} />
     {#if Stem !== null}
       <Stem {data} {revealed} {timing} {shown} />
     {/if}
+    <QuestionPicture name={question.picture} />
   {/if}
 {/snippet}
 

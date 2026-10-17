@@ -420,13 +420,13 @@ describe('a pack question’s picture', () => {
   })
   const paper = () => document.querySelector('.paper') as HTMLElement
 
-  it('is on the scroll above the prompt while the question is open', () => {
+  it('is on the scroll under the prompt while the question is open', () => {
     render(QuestionStage, { question: pictured('0123abcd.png'), yourValue: null, onAnswer })
     const img = paper().querySelector('.picture img')!
     expect(img.getAttribute('src')).toBe('/pictures/0123abcd.png')
     expect(img.getAttribute('alt')).toBe('')
     const prompt = screen.getByText(PROMPT)
-    expect(img.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(prompt.compareDocumentPosition(img) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('stays on the scroll for the reveal', () => {

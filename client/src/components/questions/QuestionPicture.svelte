@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * A pack question's picture, above its stem on the scroll, open and on the reveal alike.
+   * A pack question's picture, under its stem on the scroll, open and on the reveal alike.
    *
    * The box has its full height before the file arrives, so nothing on the sheet moves when
    * it loads. A render smaller than the box stays its own size: scaled up it would blur.
@@ -26,7 +26,7 @@
     align-items: center;
     justify-content: center;
     height: calc(5rem * var(--scroll-scale, 1));
-    margin: 0 0 0.5rem;
+    margin: 0.5rem 0 0;
   }
 
   img {
