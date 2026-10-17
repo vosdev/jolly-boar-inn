@@ -37,7 +37,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 - Always branch: `<N>-<slug>` for issue N (`82-release-order`), a short descriptive name otherwise. A PR for an issue says `Closes #N`, one line per issue it closes.
 - Every PR bumps the version once, however many issues it closes: minor if any is a `feature` or `design` issue, patch otherwise. Update `VERSION`, `server/pyproject.toml` and `client/package.json` together, then run `cd server && uv lock`.
 - PR descriptions under 10 lines.
-- Update project board
+- Give each new issue a milestone and a board Size: XS a line or a doc, S a few files, M one module with its tests, L several modules or a protocol or schema change, XL too big, so split it. When you start an issue, set its Status to In progress; the board adds issues and marks them Done on merge by itself. Item, field and option ids for `gh project item-edit` come from `gh project item-list 3 --owner vosdev` and `gh project field-list 3 --owner vosdev`.
 
 ## Subagents
 - Run at most one xhigh, two high or three medium subagents at a time.
