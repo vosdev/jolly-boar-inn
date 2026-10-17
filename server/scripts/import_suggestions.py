@@ -50,7 +50,7 @@ from app.questions import schema, vocab
 from app.questions.packs import EVENT_MODE, EVENTS_DIR, PackError, load_packs
 from app.questions.types.shuffle import seeded_order
 from app.questions.vocab import fold
-from app.rooms.state import normalize_name
+from app.rooms.models import normalize_name
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PACKS = REPO_ROOT / "data" / "packs"

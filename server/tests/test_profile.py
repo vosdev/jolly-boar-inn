@@ -24,8 +24,8 @@ from fastapi.testclient import TestClient
 from app.db import create_pool
 from app.pets import PETS as PETS_JSON
 from app.pets import assign_missing_pets, load_pickable_pets
+from app.rooms.lobby import CHANGE_COOLDOWN
 from app.rooms.settings import NewRoomSettings
-from app.rooms.state import CHANGE_COOLDOWN
 from tests.rooms_api import create, held, hello, next_of
 from tests.test_invite_links import create_keyed
 

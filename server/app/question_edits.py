@@ -25,7 +25,7 @@ from app.errors import ApiError
 from app.questions import schema, text
 from app.questions.packs import Pack, mode_questions
 from app.reports import ITEM_MODES, pack_modes
-from app.rooms.state import normalize_name
+from app.rooms.models import normalize_name
 
 EDITABLE = ("payload", "wiki", "source_url", "credit", "credit_shown")
 

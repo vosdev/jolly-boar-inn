@@ -16,7 +16,8 @@ from pydantic import BaseModel
 from app import stats
 from app.errors import ApiError
 from app.rooms import codes
-from app.rooms.state import Room, RoomManager
+from app.rooms.models import Room
+from app.rooms.state import RoomManager
 
 
 class Unauthorized(ApiError):

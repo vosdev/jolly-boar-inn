@@ -52,17 +52,13 @@ from app.questions.types import (
 )
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
-from app.rooms import state
+from app.rooms import loop, state
 from app.rooms.duration import NAMES_SECONDS
+from app.rooms.errors import BadState, Excluded
+from app.rooms.lobby import CHANGE_COOLDOWN
+from app.rooms.loop import ALL_ANSWERED_PAUSE_SECONDS, question_hold
+from app.rooms.models import RoomQuestion
 from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
-from app.rooms.state import (
-    ALL_ANSWERED_PAUSE_SECONDS,
-    CHANGE_COOLDOWN,
-    BadState,
-    Excluded,
-    RoomQuestion,
-    question_hold,
-)
 from app.ws.outbox import SEND_TIMEOUT
 from tests.conftest import stub_mode
 from tests.game_api import (
@@ -2476,7 +2472,7 @@ def next_open(seat: Seat) -> tuple[dict[str, Any], bool]:
 def test_an_ordinary_question_holds_while_its_scroll_types(game, monkeypatch) -> None:
     """The clock starts once the scroll has typed the question in, and runs its full
     seconds from there."""
-    monkeypatch.setattr(state, "question_hold", question_hold)
+    monkeypatch.setattr(loop, "question_hold", question_hold)
     game.start()
     (opened, *_) = game.opened(0)
     question = opened["question"]
@@ -2492,7 +2488,7 @@ def test_an_event_takes_no_answer_before_answerable_at(table, second_mode, db, m
     ``ends_at - answerable_at`` is its type's own seconds -- the hold comes on top. The
     hold is the time its intro and question take to type in, which the interlude is timed
     to. The event here is an NPC asking its own question, in the ``random_event`` mode."""
-    monkeypatch.setattr(state, "question_hold", question_hold)
+    monkeypatch.setattr(loop, "question_hold", question_hold)
     game = table("Zezima", **event_rooms(second_mode))
     game.app.state.rooms.answer_seconds = None  # the event's own time, not the table's
     event = the_event(game)
@@ -2519,7 +2515,7 @@ def test_answering_the_instant_the_buttons_appear_is_bucket_1(
     """The wait costs nobody a point. Two seconds on a twenty-second question
     would be bucket 2 counted from the open (0.1025 of it); from ``answerable_at`` it is
     the fastest there is."""
-    monkeypatch.setattr(state, "question_hold", lambda question: 2)
+    monkeypatch.setattr(loop, "question_hold", lambda question: 2)
     game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
@@ -2541,7 +2537,7 @@ def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(
     buttons appear, against its own ``server_time``, so the client can count the rest of
     the hold down without a message of its own. The client's half is RandomEvent.test.ts.
     """
-    monkeypatch.setattr(state, "question_hold", lambda question: 5)
+    monkeypatch.setattr(loop, "question_hold", lambda question: 5)
     game = table("Zezima", **event_rooms(second_mode))
     event = the_event(game)
     frames = reach(game, event.position)
@@ -2557,7 +2553,7 @@ def test_a_reconnect_inside_the_hold_is_told_how_long_is_left(
 
 
 def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db, monkeypatch) -> None:
-    monkeypatch.setattr(state, "question_hold", lambda question: 5)
+    monkeypatch.setattr(loop, "question_hold", lambda question: 5)
     game = table("Zezima", **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
@@ -2572,7 +2568,7 @@ def test_end_game_inside_the_hold_voids_the_event(table, second_mode, db, monkey
 def test_a_restart_inside_the_hold_voids_the_event_and_resumes_after_it(
     table, second_mode, client, db, evict, monkeypatch
 ) -> None:
-    monkeypatch.setattr(state, "question_hold", lambda question: 5)
+    monkeypatch.setattr(loop, "question_hold", lambda question: 5)
     game = table("Zezima", reveal_seconds=30, **event_rooms(second_mode))
     event = the_event(game)
     reach(game, event.position)
@@ -2598,7 +2594,7 @@ def test_no_hold_plays_an_event_as_a_plain_question(table, second_mode) -> None:
     """What the rest of the suite runs on: the NPC is there, and the buttons with it."""
     game = table("Zezima", custom=[TANZANITE], **event_rooms(second_mode))
     event = the_event(game)
-    assert state.question_hold(event) == 0
+    assert loop.question_hold(event) == 0
     frames = reach(game, event.position)
     assert frames["Zezima"]["random_event"] == event.random_event
     assert frames["Zezima"]["answerable_at"] == frames["Zezima"]["opened_at"]
@@ -3212,7 +3208,8 @@ def test_a_wall_clock_jump_moves_neither_the_cutoff_nor_the_band(
 ) -> None:
     game.start()
     game.opened(0)
-    monkeypatch.setattr(state, "datetime", jumped(hours))
+    for module in (state, loop):
+        monkeypatch.setattr(module, "datetime", jumped(hours))
     clock[0] += AFTER[2]
     game.answer(game.players[0], 0, game.right(0))
     ack = reply(game.players[0], acked)
@@ -3225,7 +3222,8 @@ def test_a_wall_clock_jump_leaves_a_splash_countdown_where_it_was(table, monkeyp
     game.splash()
     tap(game, game.admin)
     tap(game, game.players[0])  # two of three: ten seconds
-    monkeypatch.setattr(state, "datetime", jumped(1))
+    for module in (state, loop):
+        monkeypatch.setattr(module, "datetime", jumped(1))
     woox = game.players[1]
     woox.send(t="ready", ready=True)
     everyone = reply(woox, lambda m: m["t"] == "room_updated" and ready_of(m)[woox.name])

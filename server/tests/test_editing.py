@@ -9,7 +9,7 @@ from uuid import UUID
 
 import pytest
 
-from app.rooms.state import CHANGE_COOLDOWN
+from app.rooms.lobby import CHANGE_COOLDOWN
 from tests.game_api import Game, Seat, ready_of, tap, updated
 
 

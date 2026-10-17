@@ -13,7 +13,8 @@ from pathlib import Path
 import pytest
 
 from app.config import REPO_ROOT
-from app.rooms.state import NAME_MAX, BadName, normalize_name
+from app.rooms.errors import BadName
+from app.rooms.models import NAME_MAX, normalize_name
 from tests.client_source import CLIENT_SRC, read
 
 NAMES_JSON = REPO_ROOT / "data" / "player-names.json"

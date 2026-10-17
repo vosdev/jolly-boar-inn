@@ -2,7 +2,7 @@
 
 Counted from the loaded packs rather than kept as a list, so an import that credits someone
 new reaches the page with the release that ships it. Only a ``credit_shown`` question counts,
-the same opt-in the reveal reads (``rooms/state.py``): a player who asked not to be named on
+the same opt-in the reveal reads (``rooms/queries.py``): a player who asked not to be named on
 screen is not named here either.
 """
 

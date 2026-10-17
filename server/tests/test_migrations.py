@@ -16,8 +16,8 @@ from fastapi.testclient import TestClient
 from app.config import REPO_ROOT, Settings
 from app.db import MIGRATIONS_DIR, MigrationError, create_pool, migration_files, run_migrations
 from app.main import create_app
+from app.rooms.models import hash_token
 from app.rooms.settings import NewRoomSettings, RoomSettings
-from app.rooms.state import hash_token
 from tests.rooms_api import fast_settings, next_of
 
 # These apply the migrations themselves, so each starts from a database with none.

@@ -15,7 +15,7 @@
 
 import BASES from '../../../data/player-names.json'
 
-/** `normalize_name` in `server/app/rooms/state.py`. */
+/** `normalize_name` in `server/app/rooms/models.py`. */
 export const NAME_MAX = 24
 
 /** Leaves room for a three-digit suffix. `test_player_names.py` holds the corpus to it. */
@@ -26,7 +26,7 @@ function length(text: string): number {
   return [...text].length
 }
 
-/** `_LATIN_LETTERS` in `server/app/rooms/state.py`, then digits, space, `_` and `-`. */
+/** `_LATIN_LETTERS` in `server/app/rooms/models.py`, then digits, space, `_` and `-`. */
 const ALLOWED = /^[A-Za-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u024f\u1e00-\u1eff0-9 _-]*$/
 
 /** The name as the server stores it: NFKC, trimmed, and runs of spaces made one. */

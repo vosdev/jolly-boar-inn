@@ -10,8 +10,8 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
+from app.rooms.models import Player, Room
 from app.rooms.settings import RoomSettings
-from app.rooms.state import Player, Room
 
 
 def create(

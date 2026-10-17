@@ -14,7 +14,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.config import REPO_ROOT, Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
-from app.rooms import state
+from app.rooms import queries
 from app.suggestions import FIXED_PROMPTS, INTRO_MODES, QUESTION_MODES, QUOTE_MODES, check
 from tests import client_source
 from tests.conftest import BASE
@@ -715,6 +715,6 @@ def test_a_reveal_leaves_out_a_suggester_who_did_not(app: FastAPI, table) -> Non
 
 def test_only_a_pack_question_names_its_suggester() -> None:
     envelope = {"credit": "Zezima", "credit_shown": True}
-    assert state._suggested_by("pack", envelope) == "Zezima"
-    assert state._suggested_by("room", envelope) is None
-    assert state._suggested_by("pack", {"credit": "Zezima"}) is None
+    assert queries._suggested_by("pack", envelope) == "Zezima"
+    assert queries._suggested_by("room", envelope) is None
+    assert queries._suggested_by("pack", {"credit": "Zezima"}) is None

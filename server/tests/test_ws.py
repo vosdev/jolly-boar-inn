@@ -20,7 +20,8 @@ from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT
 from app.rooms import codes
-from app.rooms.state import Room, RoomManager
+from app.rooms.models import Room
+from app.rooms.state import RoomManager
 from app.ws import handler as ws_handler
 from app.ws import protocol
 from app.ws.outbox import Outbox

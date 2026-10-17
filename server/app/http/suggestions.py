@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app import suggestions
 from app.http.admin import require_token
 from app.http.ratelimit import RateLimited, client_key
-from app.rooms.state import normalize_name
+from app.rooms.models import normalize_name
 
 router = APIRouter(prefix="/api/suggestions")
 admin_router = APIRouter(prefix="/api/admin/suggestions", dependencies=[Depends(require_token)])

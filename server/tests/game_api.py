@@ -20,7 +20,7 @@ from fastapi.testclient import TestClient
 from starlette.testclient import WebSocketTestSession
 from starlette.websockets import WebSocketDisconnect
 
-from app.rooms.state import Room, RoomQuestion
+from app.rooms.models import Room, RoomQuestion
 from tests.answers import right_value, wrong_value
 from tests.rooms_api import call, create_fast, hello, join
 

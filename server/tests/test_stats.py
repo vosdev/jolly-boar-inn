@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from app.http.ratelimit import JOIN_FAILURES_PER_HOUR
 from app.modes import MODES
 from app.questions.types import TYPES
-from app.rooms import state
+from app.rooms import joins
 from app.rooms.settings import Frequency, RoomSettings
 from app.stats import (
     DURATION_BUCKETS,
@@ -232,7 +232,7 @@ def test_a_rolled_back_creation_counts_nothing(
     """A duplicated session token fails the host's insert, after the room row went in."""
     _, admin = create(client)
     before = counts(db)
-    monkeypatch.setattr(state, "new_token", lambda: admin["session"])
+    monkeypatch.setattr(joins, "new_token", lambda: admin["session"])
     with pytest.raises(asyncpg.UniqueViolationError):
         call(client, app.state.rooms.create, "Other", RoomSettings(), [], None, True)
     assert counts(db) == before
