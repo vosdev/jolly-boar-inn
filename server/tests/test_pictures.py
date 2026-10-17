@@ -12,6 +12,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app import main
+from app.config import Settings
+from app.main import create_app
 from app.pictures import load_pictures
 from tests.conftest import stub_mode
 from tests.game_api import Game, reseat
@@ -176,3 +179,20 @@ def test_a_malformed_file_refuses_to_load(tmp_path: Path, mapping: Any) -> None:
     path.write_text(json.dumps(mapping))
     with pytest.raises(ValueError):
         load_pictures(path, tmp_path)
+
+
+def test_a_dev_server_names_the_pictures_vite_serves(
+    settings: Settings, dist: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Under ``make dev`` Vite serves ``client/public``: a missing or stale build hides none."""
+    path = tmp_path / "pictures.json"
+    path.write_text(json.dumps({"item:4151": {"file": WHIP, "sha256": "ab"}}))
+    public = tmp_path / "public" / "pictures"
+    public.mkdir(parents=True)
+    (public / WHIP).write_bytes(b"\x89PNG")
+    monkeypatch.setattr(main, "load_pictures", lambda client: load_pictures(path, client))
+    built = create_app(settings, dist)
+    dev = create_app(settings.model_copy(update={"client_pictures": str(public)}), dist)
+    with TestClient(built), TestClient(dev):
+        assert built.state.rooms.pictures == {}
+        assert dev.state.rooms.pictures == {"item:4151": WHIP}

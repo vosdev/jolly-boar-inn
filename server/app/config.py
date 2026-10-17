@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     # Whether hosts can pick Random Events Only, a round of nothing but the NPCs' questions.
     random_event_game_mode: bool = False
     packs_dir: Path = Path("../data/packs")
+    # Set by ``make dev-server``: Vite serves ``client/public``, so a missing or stale build
+    # must not decide which question pictures exist.
+    client_pictures: str = ""
     log_level: Literal["debug", "info", "warning", "error"] = "info"
     # The operator's key to ``/admin``. Empty, the admin routes do not exist.
     admin_token: str = ""
