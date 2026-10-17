@@ -671,8 +671,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
   `build_pictures.py` then copies each one a pack uses to `client/public/pictures/<random>.<ext>`,
   out of the bundle, which would merge it with an identical item icon. `data/pictures.json` maps
   asset to file; a file keeps its name until its bytes change, and an unused one is removed.
-  Every roster item has an `items/<id>.png`, its inventory icon: never a picture's file, whose
-  bytes would match the icon bundled under the item's id.
+  Every item the roster or a pack question names has an `items/<id>.png`, its inventory icon:
+  never a picture's file, whose bytes would match the icon bundled under the item's id.
   Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
 - `make logo` is the owner's tool: it traces the fetched `logo/` sources into a boar per theme in
   `branding/boar/`, git-ignored like them. A selfhoster brings their own logo instead.

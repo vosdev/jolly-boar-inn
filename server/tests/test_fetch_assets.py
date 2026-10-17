@@ -12,6 +12,8 @@ from typing import Any
 import pytest
 
 from app.config import REPO_ROOT
+from app.questions import vocab
+from app.questions.packs import load_packs
 from app.random_events import RANDOM_EVENTS
 from tests.test_wiki import FakeClock
 
@@ -430,10 +432,35 @@ def test_without_a_git_checkout_nothing_counts_as_ignored(
 # --- the manifest ---------------------------------------------------------------------
 
 
+def icons() -> set[str]:
+    """Every item the manifest has an icon for, as its asset id."""
+    return {
+        f"item:{fetch_assets.TARGET.match(t)['stem']}" for t in MANIFEST if t.startswith("items/")
+    }
+
+
+def subjects(node: object) -> set[str]:
+    """Every item asset a subject names anywhere under ``node``."""
+    if isinstance(node, list):
+        return set().union(*(subjects(child) for child in node))
+    if not isinstance(node, dict):
+        return set()
+    found = set().union(*(subjects(child) for child in node.values()))
+    asset = node.get("subject", {}).get("asset") if isinstance(node.get("subject"), dict) else None
+    return found | ({asset} if isinstance(asset, str) and asset.startswith("item:") else set())
+
+
 def test_every_roster_item_has_an_icon_in_the_manifest() -> None:
     roster = json.loads((REPO_ROOT / "data" / "popular-items.json").read_text(encoding="utf-8"))
-    icons = {fetch_assets.TARGET.match(t)["stem"] for t in MANIFEST if t.startswith("items/")}
-    assert [item["id"] for item in roster["items"] if str(item["id"]) not in icons] == []
+    assert [item["id"] for item in roster["items"] if f"item:{item['id']}" not in icons()] == []
+
+
+def test_every_item_a_pack_question_names_has_an_icon_in_the_manifest() -> None:
+    vocab.load_all()
+    named = subjects(
+        [q["payload"] for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
+    )
+    assert sorted(named - icons()) == []
 
 
 def test_every_random_event_npc_has_art_in_the_manifest() -> None:
