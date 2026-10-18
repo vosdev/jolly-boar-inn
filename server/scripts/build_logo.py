@@ -408,9 +408,9 @@ _FRONDS = (
         "#5f9e34",
     ),
     (
-        "M660 140 Q620 -120 700 -300 Q760 -120 700 140 Z",
+        "M660 140 Q630 -80 700 -220 Q750 -80 700 140 Z",
         "#4f8f2c",
-        "M680 140 Q650 -120 700 -300 Q700 -80 700 140 Z",
+        "M680 140 Q655 -80 700 -220 Q700 -60 700 140 Z",
         "#78b444",
     ),
     (
@@ -449,7 +449,7 @@ def _leaves(rim: int) -> str:
         f'<path fill="{base}" d="{shape}"/><path fill="{light}" d="{lit}"/>'
         for shape, base, lit, light in _FRONDS
     )
-    return _crown("boar-leaves", 1.45, parts)
+    return _crown("boar-leaves", 1.3, parts)
 
 
 def _crystals(rim: int) -> str:
