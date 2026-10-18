@@ -11,6 +11,9 @@ describe('sheetFor', () => {
     expect(sheetFor('wilderness')).toBe('poster')
     expect(sheetFor('party_room')).toBe('bunting')
     expect(sheetFor('tzhaar')).toBe('slab')
+    expect(sheetFor('jungle')).toBe('bamboo')
+    expect(sheetFor('prifddinas')).toBe('gauntlet')
+    expect(sheetFor('morytania')).toBe('gravestone')
   })
 
   it('puts up the notice board on Home in the inn only', () => {
@@ -19,6 +22,9 @@ describe('sheetFor', () => {
     expect(sheetFor('wilderness', true)).toBe('poster')
     expect(sheetFor('party_room', true)).toBe('bunting')
     expect(sheetFor('tzhaar', true)).toBe('slab')
+    expect(sheetFor('jungle', true)).toBe('bamboo')
+    expect(sheetFor('prifddinas', true)).toBe('gauntlet')
+    expect(sheetFor('morytania', true)).toBe('gravestone')
   })
 
   it("falls back to the inn's for a theme it does not know", () => {
@@ -29,8 +35,7 @@ describe('sheetFor', () => {
 
 describe('hasRolls', () => {
   it('is the scroll alone', () => {
-    expect(['scroll', 'board', 'poster', 'bunting', 'slab'].filter((sheet) => hasRolls(sheet as never))).toEqual([
-      'scroll',
-    ])
+    const sheets = ['scroll', 'board', 'poster', 'bunting', 'slab', 'bamboo', 'gauntlet', 'gravestone']
+    expect(sheets.filter((sheet) => hasRolls(sheet as never))).toEqual(['scroll'])
   })
 })

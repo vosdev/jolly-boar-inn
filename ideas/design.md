@@ -15,6 +15,9 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
 | `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
 | `tzhaar` | Toktz | Hot. The volcano's cracked obsidian floor. | Brown-black, red seams, near-black panels | Lava orange |
+| `jungle` | Jungle | Karamja and Ape Atoll at noon. | Sunlit grass, bark-cloth panels with bamboo trim | Palm green |
+| `prifddinas` | Prifddinas | The elves' crystal city at night. | Blue-green glowing grass, white stone panels | Roof sea-green |
+| `morytania` | Morytania | Mort Myre's swamp. | Murky teal water and banks, dark stone panels | Moonlit lilac |
 
 - `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
@@ -39,7 +42,7 @@ and 7. Layers 3, 4 and 8 are a contract that `scripts/check_contrast.py` enforce
 | 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-zenyte` `--gem-ink` | Freely, within the gem checks |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
-| 8. Scroll | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` | Must pass contrast; must still read as parchment |
+| 8. Sheet | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` | Must pass contrast |
 
 No text sits on the bare page: each screen opens with its heading and tagline on a panel, and the
 `--bg-ink` page inks are only a fallback. `--more` and `--less` are not right and wrong, so they
@@ -57,8 +60,7 @@ The script asserts, per `[data-theme]` block:
   whole reveal. That is why there is no diamond or onyx: white and black wash into a panel of their
   own lightness.
 - Layer 8: `--scroll-ink` at 7:1 and `--scroll-muted` at 4.5:1 on `--scroll-paper`, and the
-  paper at least 10 ΔE from `--bg` and `--panel`, so the scroll stands off the page. `wilderness`
-  borrows `jolly`'s scroll: parchment reads as parchment, not as a dark sheet.
+  paper at least 10 ΔE from `--bg` and `--panel`, so the sheet stands off the page.
 
 ## 3. Gems and the reveal
 
@@ -184,7 +186,9 @@ Every round is presented by an NPC, the **host**, standing beside the theme's **
 (`lib/sheet.ts`). In `jolly` and `pollnivneach` it is a **clue scroll** drawn after the game's
 quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wilderness` nails up a
 sooty bounty poster under the game's skull, `party_room` hangs a cream card in a checked border
-under bunting, and `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn.
+under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
+`jungle` lashes bark cloth into a bamboo frame, `prifddinas` shows the Gauntlet's dark board in a
+glowing crystal rim, and `morytania` raises a gravestone, which a long sheet makes a pillar.
 The sheet carries the round's introduction on the splash and then every question; the answers
 sit under it.
 Create shows each mode on a card with its host's chathead. The stage was agreed in
@@ -225,7 +229,8 @@ Round 2 of 5 · 5 questions
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
   partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
-  `pollnivneach` a super kebab, `tzhaar` Tokkul, and `wilderness` the Bounty Hunter skull for the
+  `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, `prifddinas` a
+  crystal shard, `morytania` a pointed snelm, and `wilderness` the Bounty Hunter skull for the
   points: bronze under 200, then iron, green and blue, red from 800. A game sprite is drawn at
   twice its pixels, centred on the edge. Full credit alone adds a burst of confetti (900 ms) in
   the theme's gem colours. `+0` gets nothing.

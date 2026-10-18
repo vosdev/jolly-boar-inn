@@ -10,5 +10,8 @@ section covers it.
 |---|---|
 | `super-kebab.svg` | `Super_kebab.png` |
 | `tokkul.svg` | `Tokkul.png` |
+| `monkey.svg` | `Monkey_(Monkey_Madness_I).png` |
+| `crystal-shard.svg` | `Crystal_shard_1.png` |
+| `snelm.svg` | `Pointed_bruise_blue_snelm.png` |
 | `skull.svg` | `Skull.png` |
 | `bounty-skull-1.svg` … `bounty-skull-5.svg` | `Skull_(Bounty_Hunter)_icon_(1).png` … `(5).png` |

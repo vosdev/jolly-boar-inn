@@ -64,6 +64,24 @@
         class="mark"
         d="M9.8 7.3a1.6 1.6 0 1 0 3.2 0 1.6 1.6 0 1 0-3.2 0zM12.6 5a2 2 0 1 0 4 0 2 2 0 1 0-4 0zM16.4 2.6a1.3 1.3 0 1 0 2.6 0 1.3 1.3 0 1 0-2.6 0z"
       />
+    {:else if theme === 'jungle'}
+      <!-- A banana, stalk up. -->
+      <path class="mark" d="M5 5.2C5 13.4 10.6 19 19.6 19l1.1-1.9C13.2 16.9 8.7 12.3 7.7 5.2z" />
+      <path class="mark" d="M4.3 2.6h2.8l.5 2.6H4.5z" />
+    {:else if theme === 'prifddinas'}
+      <!-- Three crystal shards on a ledge. -->
+      <path
+        class="mark"
+        d="M12 2l3.2 5.5L14 19.5h-4L8.8 7.5zM5.4 9l2.2 3-.9 7.5H4.4L3.6 12zM18.6 9l1.8 3-.8 7.5h-2.3l-.9-7.5z"
+      />
+      <path class="mark" d="M2.5 20.5h19V22h-19z" />
+    {:else if theme === 'morytania'}
+      <!-- The ectophial: a stoppered flask, round below. -->
+      <path
+        class="mark"
+        fill-rule="evenodd"
+        d="M9.8 2h4.4v2.2h-.8v4.3a6.4 6.4 0 1 1-2.8 0V4.2h-.8zM8 15a4 4 0 0 0 8 0z"
+      />
     {:else}
       <!-- A skull, which is all the Wilderness has to say. -->
       <path

@@ -3,8 +3,9 @@
  *
  * The inn and the desert keep the quest reward scroll; the Wilderness nails up a bounty
  * poster, the Party Room hangs a card under bunting, and the TzHaar carve an obsidian slab,
- * since paper would burn. Home's sheet in the inn is a notice board instead, so the inn's
- * front door looks different from its games.
+ * since paper would burn. The jungle stretches bark cloth in a bamboo frame, Prifddinas
+ * shows the Gauntlet's board, and Morytania a gravestone. Home's sheet in the inn is a
+ * notice board instead, so the inn's front door looks different from its games.
  */
 
 /**
@@ -25,12 +26,29 @@ export const ART = {
   nailLight: '#8f8a86',
   tack: '#8a1a14',
   tackLight: '#e66a5c',
+  bambooLight: '#e3d28a',
+  bamboo: '#c9b46a',
+  bambooDark: '#8a7a3a',
+  bambooEdge: '#4a3f16',
+  lashing: '#4f6b2a',
+  lashingLight: '#6f8f3a',
+  moss: '#6f9248',
+  mossDark: '#3f5a2a',
+  earth: '#1f3324',
 }
 
 /** Where the board's planks meet, every 38px down, enough for any note on Home. */
 export const PLANK_SEAMS = Array.from({ length: 16 }, (_, plank) => (plank + 1) * 38 - 2)
 
-export type Sheet = 'scroll' | 'board' | 'poster' | 'bunting' | 'slab'
+export type Sheet =
+  | 'scroll'
+  | 'board'
+  | 'poster'
+  | 'bunting'
+  | 'slab'
+  | 'bamboo'
+  | 'gauntlet'
+  | 'gravestone'
 
 /** The sheet `theme` draws; `board` asks for Home's notice board, which only the inn has. */
 export function sheetFor(theme: string, board = false): Sheet {
@@ -41,6 +59,12 @@ export function sheetFor(theme: string, board = false): Sheet {
       return 'bunting'
     case 'tzhaar':
       return 'slab'
+    case 'jungle':
+      return 'bamboo'
+    case 'prifddinas':
+      return 'gauntlet'
+    case 'morytania':
+      return 'gravestone'
     case 'pollnivneach':
       return 'scroll'
     default:

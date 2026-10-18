@@ -6,7 +6,9 @@
    * game's quest reward scroll. The others have no rolls, so the stage makes no room for
    * them: the Wilderness's bounty poster, nailed up under the game's skull; the Party Room's
    * card under a string of bunting, in a checked tablecloth border; the TzHaar's obsidian
-   * slab, chipped and glowing at the edge; and Home's notice board in the inn, a note
+   * slab, chipped and glowing at the edge; the jungle's bark cloth in a frame of bamboo
+   * lashed at the corners; Prifddinas's Gauntlet board, dark inside a glowing crystal rim;
+   * Morytania's gravestone, moss at its foot; and Home's notice board in the inn, a note
    * tacked to planks.
    *
    * It is inline SVG and CSS on layer 8's tokens rather than an image, because an `<img>`
@@ -58,6 +60,24 @@
 {/snippet}
 
 <!-- A roll's end at its natural size: knob, neck, rim, and the start of the roll. -->
+<!-- A length of bamboo; its bands run along it, so it stretches without distorting. -->
+{#snippet pole(side: 'top' | 'bottom' | 'left' | 'right')}
+  {@const upright = side === 'left' || side === 'right'}
+  <svg
+    class="pole {side}"
+    viewBox={upright ? '0 0 10 100' : '0 0 100 10'}
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    <g transform={upright ? 'matrix(0 1 1 0 0 0)' : undefined}>
+      <rect width="100" height="10" fill={ART.bambooEdge} />
+      <rect y="1" width="100" height="8" fill={ART.bamboo} />
+      <rect y="2.5" width="100" height="2.5" fill={ART.bambooLight} />
+      <rect y="7" width="100" height="2" fill={ART.bambooDark} />
+    </g>
+  </svg>
+{/snippet}
+
 {#snippet finial(end: 'top' | 'bottom')}
   <svg class="finial {end}" viewBox="0 0 40 34">
     <rect class="p" x="1.5" y="25" width="37" height="9" />
@@ -82,6 +102,11 @@
 <div class="scroll" data-sheet={sheet}>
   {#if sheet === 'scroll'}{@render roll('left')}{/if}
   <div class="reveal">
+    {#if sheet === 'gravestone'}
+      <svg class="mound" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+        <ellipse cx="50" cy="5" rx="50" ry="5" fill={ART.earth} />
+      </svg>
+    {/if}
     {#if sheet === 'board'}
       <svg class="planks" aria-hidden="true">
         <rect width="100%" height="100%" fill={ART.plank} />
@@ -93,7 +118,7 @@
       </svg>
     {/if}
     <div class="paper">
-      {#if sheet === 'scroll' || sheet === 'slab'}
+      {#if sheet === 'scroll' || sheet === 'slab' || sheet === 'gravestone'}
         <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
           <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
           <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
@@ -107,6 +132,30 @@
         </svg>
       {:else if sheet === 'poster'}
         <img class="skull" src={skullUrl} alt="" width="50" height="50" draggable="false" />
+      {:else if sheet === 'gauntlet'}
+        <svg class="close" viewBox="0 0 22 22" aria-hidden="true">
+          <rect x="0.75" y="0.75" width="20.5" height="20.5" />
+          <path d="M6.5 6.5l9 9M15.5 6.5l-9 9" />
+        </svg>
+        <!-- The rim along each cut corner, which the inset rings cannot follow. -->
+        {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
+          <svg class="cut {corner}" viewBox="0 0 24 24" aria-hidden="true">
+            <path class="rim-outer" d="M0 13L13 0" />
+            <path class="rim-inner" d="M0 20L20 0" />
+          </svg>
+        {/each}
+      {/if}
+      {#if sheet === 'gravestone'}
+        <svg class="crack" viewBox="0 0 60 70" aria-hidden="true">
+          <path d="M40 0L34 18L42 28L30 46L34 56L26 70" />
+        </svg>
+        <svg class="moss" viewBox="0 0 100 16" preserveAspectRatio="none" aria-hidden="true">
+          <ellipse cx="14" cy="11" rx="13" ry="5" fill={ART.mossDark} />
+          <ellipse cx="13" cy="10" rx="10" ry="3.5" fill={ART.moss} />
+          <ellipse cx="27" cy="13" rx="8" ry="3" fill={ART.mossDark} />
+          <ellipse cx="90" cy="12" rx="9" ry="4" fill={ART.mossDark} />
+          <ellipse cx="89" cy="11" rx="6" ry="2.5" fill={ART.moss} />
+        </svg>
       {/if}
       <div class="content">
         {@render children()}
@@ -125,6 +174,17 @@
         <path class="blue" d="M316 17l22-4-10 22z" />
         <path d="M356 11l22-4-8 22z" fill={ART.flagRed} />
       </svg>
+    {:else if sheet === 'bamboo'}
+      {@render pole('top')}
+      {@render pole('bottom')}
+      {@render pole('left')}
+      {@render pole('right')}
+      {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
+        <svg class="lashing {corner}" viewBox="0 0 18 18" aria-hidden="true">
+          <rect width="18" height="18" rx="3" fill={ART.lashing} />
+          <path d="M0 4L4 0H8L0 8ZM0 12L12 0H16L0 16ZM4 18L18 4V8L8 18ZM12 18L18 12V16L16 18Z" fill={ART.lashingLight} />
+        </svg>
+      {/each}
     {:else if sheet === 'board' || sheet === 'poster'}
       {@const [head, shine] = sheet === 'board' ? [ART.tack, ART.tackLight] : [ART.nail, ART.nailLight]}
       {#each ['left', 'right'] as side (side)}
@@ -323,6 +383,220 @@
   [data-sheet='slab'] .fd {
     fill: black;
     fill-opacity: 0.16;
+  }
+
+  /* The jungle's bark cloth, woven fine, inside four lengths of bamboo lashed at the
+     corners. The poles overrun the frame a little, as cut cane does. */
+  :where(.scroll[data-sheet='bamboo']) .reveal {
+    padding: calc(11px * var(--k));
+  }
+
+  :where(.scroll[data-sheet='bamboo']) .paper {
+    background:
+      repeating-linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--scroll-edge) 10%, transparent) 0 1px,
+        transparent 1px 6px
+      ),
+      var(--scroll-paper);
+  }
+
+  .pole {
+    position: absolute;
+    z-index: 1;
+    --pole: calc(11px * var(--k));
+    --overrun: calc(6px * var(--k));
+  }
+
+  .pole.top,
+  .pole.bottom {
+    left: calc(-1 * var(--overrun));
+    width: calc(100% + 2 * var(--overrun));
+    height: var(--pole);
+  }
+
+  .pole.top {
+    top: calc(4px * var(--k));
+  }
+
+  .pole.bottom {
+    bottom: calc(4px * var(--k));
+  }
+
+  /* An upright pole is the same length of bamboo turned on its side. */
+  .pole.left,
+  .pole.right {
+    top: calc(-1 * var(--overrun));
+    height: calc(100% + 2 * var(--overrun));
+    width: var(--pole);
+  }
+
+  .pole.left {
+    left: calc(4px * var(--k));
+  }
+
+  .pole.right {
+    right: calc(4px * var(--k));
+  }
+
+  .lashing {
+    position: absolute;
+    z-index: 2;
+    width: calc(18px * var(--k));
+    height: calc(18px * var(--k));
+  }
+
+  .lashing.top-left {
+    left: 0;
+    top: 0;
+  }
+
+  .lashing.top-right {
+    right: 0;
+    top: 0;
+  }
+
+  .lashing.bottom-left {
+    left: 0;
+    bottom: 0;
+  }
+
+  .lashing.bottom-right {
+    right: 0;
+    bottom: 0;
+  }
+
+  /* The Gauntlet's board under Prifddinas: near-black inside a crystal rim that glows, its
+     corners cut, a close button at its head as the game draws it. Centred, like the
+     game's. */
+  .scroll[data-sheet='gauntlet'] {
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--scroll-edge) 55%, transparent))
+      drop-shadow(0 3px 0 rgb(0 0 0 / 0.35));
+  }
+
+  :where(.scroll[data-sheet='gauntlet']) .paper {
+    background:
+      radial-gradient(
+        ellipse 60% 50% at 50% 0%,
+        color-mix(in srgb, var(--scroll-edge) 8%, transparent),
+        transparent
+      ),
+      var(--scroll-paper);
+    box-shadow:
+      inset 0 0 0 2px var(--scroll-edge),
+      inset 0 0 0 5px var(--scroll-paper),
+      inset 0 0 0 6.5px color-mix(in srgb, var(--scroll-edge) 50%, var(--scroll-paper));
+    clip-path: polygon(
+      12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
+      calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px
+    );
+    padding-inline: calc(1.9rem * var(--k));
+    text-align: center;
+  }
+
+  .cut {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    fill: none;
+  }
+
+  .cut.top-left {
+    left: 0;
+    top: 0;
+  }
+
+  .cut.top-right {
+    right: 0;
+    top: 0;
+    transform: scaleX(-1);
+  }
+
+  .cut.bottom-left {
+    left: 0;
+    bottom: 0;
+    transform: scaleY(-1);
+  }
+
+  .cut.bottom-right {
+    right: 0;
+    bottom: 0;
+    transform: scale(-1);
+  }
+
+  .rim-outer {
+    stroke: var(--scroll-edge);
+    stroke-width: 3;
+  }
+
+  .rim-inner {
+    stroke: color-mix(in srgb, var(--scroll-edge) 50%, var(--scroll-paper));
+    stroke-width: 1.5;
+  }
+
+  .close {
+    position: absolute;
+    top: calc(10px * var(--k));
+    right: calc(12px * var(--k));
+    width: calc(20px * var(--k));
+    height: calc(20px * var(--k));
+    fill: none;
+    stroke: var(--scroll-edge);
+    stroke-width: 1.5;
+  }
+
+  .close path {
+    stroke: var(--scroll-ink);
+    stroke-width: 1.8;
+  }
+
+  /* Morytania's gravestone: an arched slab of grey stone with an engraved rule inside its
+     edge, a crack down one side, moss at its foot and the grave's earth under it. A long
+     sheet, the hiscores, stands up as a pillar. */
+  :where(.scroll[data-sheet='gravestone']) .reveal {
+    margin-bottom: calc(6px * var(--k));
+  }
+
+  :where(.scroll[data-sheet='gravestone']) .paper {
+    padding-top: calc(2.6rem * var(--k));
+    border-radius: 50% 50% 4px 4px / calc(56px * var(--k)) calc(56px * var(--k)) 4px 4px;
+    background:
+      radial-gradient(ellipse 25% 20% at 75% 30%, rgb(0 0 0 / 0.06), transparent),
+      radial-gradient(ellipse 30% 25% at 25% 55%, rgb(255 255 255 / 0.1), transparent),
+      var(--scroll-paper);
+    box-shadow:
+      inset 0 0 0 2px var(--scroll-edge),
+      inset 0 0 0 9px var(--scroll-paper),
+      inset 0 0 0 10.5px color-mix(in srgb, var(--scroll-edge) 45%, transparent);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .crack {
+    position: absolute;
+    right: calc(24px * var(--k));
+    top: calc(20px * var(--k));
+    width: calc(60px * var(--k));
+    height: calc(70px * var(--k));
+    fill: none;
+    stroke: var(--scroll-edge);
+    stroke-width: 1.5;
+  }
+
+  .moss {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: calc(16px * var(--k));
+  }
+
+  .mound {
+    position: absolute;
+    left: calc(-16px * var(--k));
+    bottom: calc(-10px * var(--k));
+    width: calc(100% + 32px * var(--k));
+    height: calc(14px * var(--k));
   }
 
   /* Home's notice board in the inn: a note tacked to planks, its corner folded back. */

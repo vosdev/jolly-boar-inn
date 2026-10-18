@@ -25,7 +25,7 @@ function rules(text: string): { selector: string; body: string }[] {
   }))
 }
 
-describe.each(['party_room', 'tzhaar'])('%s', (theme) => {
+describe.each(['party_room', 'tzhaar', 'jungle', 'prifddinas', 'morytania'])('%s', (theme) => {
   const own = `[data-theme='${theme}']`
 
   it('sets the verdict and semantic tokens nowhere but its own block', () => {

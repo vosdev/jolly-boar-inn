@@ -12,6 +12,9 @@ placeholder: a flat mark in its own accent colour.
 | `wilderness.png` | Wilderness | Skull | A skull |
 | `party_room.png` | Party Room | Red partyhat | A partyhat |
 | `tzhaar.png` | Toktz | Toktz-ket-xil | A volcano |
+| `jungle.png` | Jungle | Banana | A banana |
+| `prifddinas.png` | Prifddinas | Crystal teleport seed | Three crystal shards |
+| `morytania.png` | Morytania | Ectophial | A stoppered flask |
 
 Any file named `<theme>.<ext>` works, `<ext>` being `avif`, `webp`, `png`, `jpg`, `jpeg` or
 `svg`. The bar's slot is 32px; a sprite is drawn at its own size, pixelated, never blurred up. An
