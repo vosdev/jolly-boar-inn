@@ -1,31 +1,44 @@
 <script lang="ts">
   /**
-   * The clue scroll (section 8 of ideas/design.md): a sheet torn top and bottom between two
-   * upright rolls, drawn after the game's quest reward scroll.
+   * The stage's sheet (section 8 of ideas/design.md), drawn as the theme's `sheet` says.
+   *
+   * The clue scroll is a sheet torn top and bottom between two upright rolls, after the
+   * game's quest reward scroll. The others have no rolls, so the stage makes no room for
+   * them: the Wilderness's bounty poster, nailed up under the game's skull; the Party Room's
+   * card under a string of bunting, in a checked tablecloth border; the TzHaar's obsidian
+   * slab, chipped and glowing at the edge; and Home's notice board in the inn, a note
+   * tacked to planks.
    *
    * It is inline SVG and CSS on layer 8's tokens rather than an image, because an `<img>`
    * cannot read the theme's custom properties (section 13). The knobs are fixed-size
    * pieces and only a roll's body stretches, along its length, where its bands run, so no
    * height of sheet distorts them. `--scroll-scale` on any ancestor sizes the rolls,
-   * margins and ribbon, and `--scroll-text` the words.
+   * margins and pin, and `--scroll-text` the words.
    *
    * Whatever is drawn on the sheet reads `--ink` and `--muted`, which the sheet points at
-   * the scroll's own inks, so a stem needs no idea it is on parchment to be legible.
+   * the scroll's own inks, so a stem needs no idea what it is written on to be legible.
    */
   import type { Snippet } from 'svelte'
 
-  import ribbonUrl from '../../assets/stage/ribbon.svg'
-  import type { Award } from '../../lib/award'
+  import skullUrl from '../../assets/sprites/skull.svg'
+  import { NO_AWARD, pinFor, type Award } from '../../lib/award'
+  import { ART, PLANK_SEAMS, type Sheet } from '../../lib/sheet'
   import Confetti from './Confetti.svelte'
 
   let {
-    award = 'none',
+    award = NO_AWARD,
+    sheet = 'scroll',
+    theme = '',
     children,
   }: {
     award?: Award
+    sheet?: Sheet
+    /** The page's theme, which picks the pin. */
+    theme?: string
     children: Snippet
   } = $props()
 
+  const pin = $derived(pinFor(theme, award.points))
 </script>
 
 {#snippet roll(side: 'left' | 'right')}
@@ -66,36 +79,72 @@
   </svg>
 {/snippet}
 
-<div class="scroll">
-  {@render roll('left')}
+<div class="scroll" data-sheet={sheet}>
+  {#if sheet === 'scroll'}{@render roll('left')}{/if}
   <div class="reveal">
-    <div class="paper">
-      <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
-        <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
-        <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
-        <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
-        <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
-        <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
-        <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
-        <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
-        <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
-        <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
+    {#if sheet === 'board'}
+      <svg class="planks" aria-hidden="true">
+        <rect width="100%" height="100%" fill={ART.plank} />
+        {#each PLANK_SEAMS as seam (seam)}
+          <rect y={seam} width="100%" height="2" fill={ART.plankGap} />
+        {/each}
+        <rect width="100%" height="100%" fill="none" stroke={ART.frame} stroke-width="14" />
+        <rect width="100%" height="100%" fill="none" stroke={ART.frameEdge} stroke-width="4" />
       </svg>
+    {/if}
+    <div class="paper">
+      {#if sheet === 'scroll' || sheet === 'slab'}
+        <svg class="facets" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+          <path class="fl" d="M0 0L18 0L26 22L8 60L0 60Z" />
+          <path class="fd" d="M18 0L40 0L34 30L26 22Z" />
+          <path class="fl" d="M40 0L63 0L55 26L34 30Z" />
+          <path class="fd" d="M26 22L34 30L30 60L8 60Z" />
+          <path class="fl" d="M34 30L55 26L60 60L30 60Z" />
+          <path class="fd" d="M63 0L84 0L78 34L55 26Z" />
+          <path class="fd" d="M55 26L78 34L86 60L60 60Z" />
+          <path class="fl" d="M84 0L100 0L100 44L78 34Z" />
+          <path class="fd" d="M78 34L100 44L100 60L86 60Z" />
+        </svg>
+      {:else if sheet === 'poster'}
+        <img class="skull" src={skullUrl} alt="" width="50" height="50" draggable="false" />
+      {/if}
       <div class="content">
         {@render children()}
       </div>
     </div>
-    {#if award !== 'none'}
+    {#if sheet === 'bunting'}
+      <svg class="bunting" viewBox="0 0 400 44" aria-hidden="true">
+        <path d="M0 4Q200 34 400 4" fill="none" stroke={ART.string} stroke-width="1.5" />
+        <path d="M14 7l20 3-8 22z" fill={ART.flagRed} />
+        <path d="M52 13l22 4-10 22z" fill={ART.flagYellow} />
+        <path d="M94 18l22 2-9 22z" fill={ART.flagGreen} />
+        <path class="blue" d="M138 21l22 1-11 22z" />
+        <path d="M184 23h22l-11 21z" fill={ART.flagRed} />
+        <path d="M230 22l22-1-11 22z" fill={ART.flagYellow} />
+        <path d="M274 20l22-2-9 22z" fill={ART.flagGreen} />
+        <path class="blue" d="M316 17l22-4-10 22z" />
+        <path d="M356 11l22-4-8 22z" fill={ART.flagRed} />
+      </svg>
+    {:else if sheet === 'board' || sheet === 'poster'}
+      {@const [head, shine] = sheet === 'board' ? [ART.tack, ART.tackLight] : [ART.nail, ART.nailLight]}
+      {#each ['left', 'right'] as side (side)}
+        <svg class="fixing {side}" viewBox="0 0 10 10" aria-hidden="true">
+          <circle cx="5" cy="5" r="5" fill={head} />
+          <circle cx="3.6" cy="3.6" r="1.8" fill={shine} />
+        </svg>
+      {/each}
+    {/if}
+    {#if award.kind !== 'none'}
       <!-- Hidden from a screen reader: the points slot has already said the verdict. -->
-      <div class="award" aria-hidden="true" data-award={award}>
-        <img class="ribbon" src={ribbonUrl} alt="" draggable="false" />
-        {#if award === 'confetti'}
+      <div class="award" class:sprite={pin.sprite} aria-hidden="true" data-award={award.kind}>
+        <img class="pin" src={pin.url} alt="" draggable="false" />
+        {#if award.kind === 'confetti'}
           <Confetti />
         {/if}
       </div>
     {/if}
   </div>
-  {@render roll('right')}
+  {#if sheet === 'scroll'}{@render roll('right')}{/if}
 </div>
 
 <style>
@@ -107,6 +156,13 @@
     position: relative;
     padding: calc(var(--finial) * 0.75) calc(var(--roll-w) - var(--tuck));
     filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.22));
+  }
+
+  /* Only the scroll has rolls to make room for. */
+  .scroll:not([data-sheet='scroll']) {
+    --roll-w: 0px;
+    --finial: 0px;
+    --tuck: 0px;
   }
 
   .roll {
@@ -150,6 +206,7 @@
 
   .reveal {
     position: relative;
+    box-sizing: border-box;
   }
 
   .paper {
@@ -167,6 +224,14 @@
     --font-numeric: var(--font-display);
     font-family: var(--font-display);
     font-synthesis: none;
+  }
+
+  /* Each sheet's own rules sit in :where(), so the stage's phone padding still wins. */
+  :where(.scroll:not([data-sheet='scroll'])) .paper {
+    padding-inline: calc(1.3rem * var(--k));
+  }
+
+  :where(.scroll[data-sheet='scroll']) .paper {
     box-shadow:
       inset 14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent),
       inset -14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent);
@@ -178,6 +243,133 @@
       61% calc(100% - 4px), 49% calc(100% - 3px), 47% calc(100% - 12px), 45% calc(100% - 2px),
       33% calc(100% - 6px), 22% calc(100% - 1px), 12% calc(100% - 5px), 0 calc(100% - 2px)
     );
+  }
+
+  /* The bounty poster: sooty paper inside a faded rule, a corner torn off, the game's skull
+     at its head and a nail through each top corner. */
+  :where(.scroll[data-sheet='poster']) .paper {
+    padding-top: calc(1.6rem * var(--k) + 50px * var(--k));
+    background:
+      radial-gradient(ellipse 30% 20% at 80% 30%, rgb(0 0 0 / 0.18), transparent),
+      radial-gradient(ellipse 35% 25% at 20% 85%, rgb(0 0 0 / 0.2), transparent),
+      var(--scroll-paper);
+    box-shadow:
+      inset 0 0 0 6px var(--scroll-paper),
+      inset 0 0 0 7.5px color-mix(in srgb, var(--scroll-ink) 35%, transparent),
+      inset 0 0 22px 4px rgb(0 0 0 / 0.45);
+    clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 20px, 100% 100%, 0 100%);
+  }
+
+  .skull {
+    position: absolute;
+    left: 50%;
+    top: calc(0.9rem * var(--k));
+    width: calc(50px * var(--k));
+    height: auto;
+    transform: translateX(-50%);
+  }
+
+  /* The Party Room's card, in a border of the tablecloth's checks under a string of
+     bunting. */
+  :where(.scroll[data-sheet='bunting']) .reveal {
+    padding: calc(10px * var(--k));
+    border-radius: 4px;
+    background: repeating-conic-gradient(
+        var(--accent) 0 25%,
+        color-mix(in srgb, var(--accent), white 35%) 0 50%
+      )
+      0 0 / calc(12px * var(--k)) calc(12px * var(--k));
+  }
+
+  :where(.scroll[data-sheet='bunting']) .paper {
+    padding-top: calc(1.1rem * var(--k) + 26px * var(--k));
+    border-radius: 2px;
+  }
+
+  .bunting {
+    position: absolute;
+    z-index: 1;
+    left: calc(-10px * var(--k));
+    top: calc(-4px * var(--k));
+    width: calc(100% + 20px * var(--k));
+    height: auto;
+  }
+
+  .blue {
+    fill: var(--accent);
+  }
+
+  /* The TzHaar's obsidian slab, chipped at the edges and lit from within by the lava. */
+  .scroll[data-sheet='slab'] {
+    filter: drop-shadow(0 0 1.5px var(--scroll-edge))
+      drop-shadow(0 0 9px color-mix(in srgb, var(--scroll-edge) 35%, transparent))
+      drop-shadow(0 3px 0 rgb(0 0 0 / 0.4));
+  }
+
+  :where(.scroll[data-sheet='slab']) .paper {
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--scroll-paper), white 8%),
+      var(--scroll-paper) 40%,
+      color-mix(in srgb, var(--scroll-paper), black 25%)
+    );
+    clip-path: polygon(
+      0 10px, 4% 2px, 18% 0, 30% 5px, 44% 1px, 61% 3px, 70% 0, 86% 4px, 97% 0, 100% 12px,
+      99% 40%, 100% 72%, 98% calc(100% - 8px), 88% 100%, 71% calc(100% - 4px), 58% 100%,
+      40% calc(100% - 5px), 24% 100%, 9% calc(100% - 3px), 0 calc(100% - 12px), 1% 60%, 0 30%
+    );
+  }
+
+  [data-sheet='slab'] .fd {
+    fill: black;
+    fill-opacity: 0.16;
+  }
+
+  /* Home's notice board in the inn: a note tacked to planks, its corner folded back. */
+  :where(.scroll[data-sheet='board']) .reveal {
+    padding: calc(29px * var(--k)) calc(25px * var(--k)) calc(31px * var(--k));
+  }
+
+  .planks {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  :where(.scroll[data-sheet='board']) .paper {
+    clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 24px, 100% 100%, 0 100%);
+  }
+
+  .fixing {
+    position: absolute;
+    z-index: 1;
+    top: calc(8px * var(--k));
+    width: calc(8px * var(--k));
+    height: calc(8px * var(--k));
+  }
+
+  .fixing.left {
+    left: calc(10px * var(--k));
+  }
+
+  .fixing.right {
+    right: calc(34px * var(--k));
+  }
+
+  [data-sheet='board'] .fixing {
+    top: calc(32px * var(--k));
+    width: calc(13px * var(--k));
+    height: calc(13px * var(--k));
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.35));
+  }
+
+  [data-sheet='board'] .fixing.left {
+    left: calc(37px * var(--k));
+  }
+
+  [data-sheet='board'] .fixing.right {
+    right: calc(55px * var(--k));
   }
 
   .facets {
@@ -269,7 +461,7 @@
     overflow: hidden;
   }
 
-  /* The ribbon hangs from the sheet's bottom edge, 65% of the way across. */
+  /* The pin hangs from the sheet's bottom edge, 65% of the way across. */
   .award {
     position: absolute;
     z-index: 2;
@@ -280,13 +472,28 @@
     transform: translateX(-50%);
   }
 
-  .ribbon {
+  .pin {
     display: block;
     width: 100%;
     height: 100%;
     filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.3));
     transform-origin: 50% 30%;
     animation: pin 200ms ease-out;
+  }
+
+  /* A game sprite at twice its pixels, centred on the edge rather than hanging below it. */
+  .award.sprite {
+    bottom: 0;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, 55%);
+  }
+
+  .sprite .pin {
+    width: auto;
+    height: auto;
+    scale: calc(2 * var(--k));
+    transform-origin: 50% 50%;
   }
 
   @keyframes pin {
@@ -297,7 +504,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ribbon {
+    .pin {
       animation: none !important;
     }
   }

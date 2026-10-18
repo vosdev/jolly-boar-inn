@@ -31,19 +31,25 @@
    * top-left beside the line it speaks, and the sheet keeps its full width below. What is
    * written beside the host clears it by `--host-clear`. `beside` stands on the right,
    * over the right roll at the sheet's foot: the final's trophy.
+   *
+   * The sheet is the theme's (`lib/sheet.ts`), and `board` asks for Home's notice board. A
+   * sheet without rolls takes their room away, so the host laps over the sheet's own edge.
    */
-  import type { Snippet } from 'svelte'
+  import { onMount, type Snippet } from 'svelte'
 
-  import type { Award } from '../../lib/award'
+  import { NO_AWARD, type Award } from '../../lib/award'
   import { FALLBACK_NPC, npcArt } from '../../lib/npcs'
   import { STRANGER } from '../../lib/randomEvents'
   import type { Presence } from '../../lib/sharedStage.svelte'
+  import { hasRolls, sheetFor } from '../../lib/sheet'
+  import { watchTheme } from '../../lib/theme'
   import ClueScroll from './ClueScroll.svelte'
 
   let {
     host = FALLBACK_NPC,
     paper,
-    award = 'none',
+    award = NO_AWARD,
+    board = false,
     guest = null,
     entering = false,
     returning = false,
@@ -62,6 +68,8 @@
     /** What is written on the sheet. */
     paper?: Snippet
     award?: Award
+    /** Home's notice board in place of the scroll, where the theme has one. */
+    board?: boolean
     /** The NPC id of a random event's NPC, who takes the stage from the host. */
     guest?: string | null
     /** Play the guest's entrance rather than start with it in place. */
@@ -84,11 +92,17 @@
   const art = $derived(npcArt(host))
   // An event NPC with no art is not drawn as the innkeeper, who would read as a host.
   const guestArt = $derived(guest === null ? null : npcArt(guest, undefined, STRANGER))
+
+  let theme = $state(document.documentElement.dataset.theme ?? '')
+  const sheet = $derived(sheetFor(theme, board))
+
+  onMount(() => watchTheme((now) => (theme = now)))
 </script>
 
 <div class="stage" class:with-hero={hero !== null} bind:this={root}>
   <div
     class="stage-row presence-{presence}"
+    class:flat={!hasRolls(sheet)}
     class:tall
     class:event={guestArt !== null && !returning}
     class:entering={guestArt !== null && entering && !returning}
@@ -97,7 +111,7 @@
     <div class="npc host" aria-hidden="true">
       <img class={hero === null ? art.cut : 'hero'} src={hero ?? art.url} alt="" draggable="false" />
     </div>
-    <ClueScroll {award}>
+    <ClueScroll {award} {sheet} {theme}>
       {@render paper?.()}
     </ClueScroll>
     {#if guestArt !== null}
@@ -139,6 +153,18 @@
     align-items: flex-end;
   }
 
+  /* How far the host laps over the sheet's edge: over a roll, or as far into a sheet
+     without rolls as it would reach past a roll into the scroll's paper. */
+  .stage-row {
+    --lap: var(--npc-lap);
+  }
+
+  .stage-row.flat {
+    --roll-w: 0px;
+    --finial: 0px;
+    --lap: calc(var(--npc-lap) - 21px * var(--k));
+  }
+
   .stage-row > :global(.scroll) {
     flex: 1;
     min-width: 0;
@@ -154,7 +180,7 @@
     position: relative;
     z-index: 3;
     width: var(--npc-w);
-    margin-right: calc(-1 * var(--npc-lap));
+    margin-right: calc(-1 * var(--lap));
   }
 
   /* The text beside the host starts this far in from the sheet's left edge. */
@@ -199,7 +225,7 @@
   .event .guest {
     order: 2;
     margin-right: 0;
-    margin-left: calc(-1 * var(--npc-lap));
+    margin-left: calc(-1 * var(--lap));
   }
 
   .event .host {
@@ -283,13 +309,13 @@
 
   @keyframes slide-right {
     from {
-      transform: translateX(calc(var(--npc-lap) - var(--npc-w)));
+      transform: translateX(calc(var(--lap) - var(--npc-w)));
     }
   }
 
   @keyframes slide-left {
     from {
-      transform: translateX(calc(var(--npc-w) - var(--npc-lap)));
+      transform: translateX(calc(var(--npc-w) - var(--lap)));
     }
   }
 

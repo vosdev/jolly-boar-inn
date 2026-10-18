@@ -178,11 +178,15 @@ who sends none is given one by the server, so every client draws the same pet fo
   audio-only question that cannot play says so rather than sitting silent.
 - `prefers-reduced-motion` is the sibling setting: anything that moves has a static fallback.
 
-## 8. The stage: a host and a clue scroll
+## 8. The stage: a host and a sheet
 
-Every round is presented by an NPC, the **host**, standing beside a **clue scroll** drawn after the
-game's quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. The scroll
-carries the round's introduction on the splash and then every question; the answers sit under it.
+Every round is presented by an NPC, the **host**, standing beside the theme's **sheet**
+(`lib/sheet.ts`). In `jolly` and `pollnivneach` it is a **clue scroll** drawn after the game's
+quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wilderness` nails up a
+sooty bounty poster under the game's skull, `party_room` hangs a cream card in a checked border
+under bunting, and `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn.
+The sheet carries the round's introduction on the splash and then every question; the answers
+sit under it.
 Create shows each mode on a card with its host's chathead. The stage was agreed in
 `client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it is at
 `/prototypes/clue-scroll.html`.
@@ -193,17 +197,18 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
    ▄▄   ║ "Psst. Seen this one before?"  ║   the host's line, body face
   (••)  ║ Are you sure you are a fan?    ║   the blurb, in the host's voice
  ▟████▙ ║                                ║
-        ╨──────────────────────✿─────────╨   the ribbon, for any points
+        ╨──────────────────────✿─────────╨   the pin, for any points
 ──────────────────────────────────────────────
 Round 2 of 5 · 5 questions
 [ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
 ```
 
 - **One size.** The stage is at most 30rem wide at every width, and the answers under it take the
-  same width. `--scroll-scale` sizes the rolls, margins and ribbon, `--scroll-text` the words; a
+  same width. `--scroll-scale` sizes the rolls, margins and pin, `--scroll-text` the words; a
   stage under 26rem, a phone, sets 0.8 and 0.9.
 - **The host** stands at the scroll's bottom-left, over its left roll: 78px wide overlapping 30px,
-  and 68px overlapping 32px on a phone. Its chathead at both. A sheet longer than the host, the hiscores
+  and 68px overlapping 32px on a phone. A sheet without rolls it overlaps only as far as it
+  would reach past a roll. Its chathead at both. A sheet longer than the host, the hiscores
   (§11), has it at the top-left instead.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
   edges. The host then stands on the sheet, which keeps a column clear for it.
@@ -218,13 +223,15 @@ Round 2 of 5 · 5 questions
 - **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
   blurb once the scroll is in place, and a question's stem from 400 ms in the server's hold before
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
-- **Any answer that scores** pins a red rosette ribbon on the sheet's bottom edge, 65% across:
-  right, partial credit or a graded guess alike. Full credit alone adds a burst of confetti
-  (900 ms) in the theme's gem colours. `+0` gets nothing.
-- **The scroll** is an original inline SVG component in layer 8's tokens. An `<img>` could not read
-  the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only along its
-  length. `jolly`, `pollnivneach`, `party_room` and `tzhaar` have their own paper; `wilderness` uses
-  `jolly`'s.
+- **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
+  partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
+  `pollnivneach` a super kebab, `tzhaar` Tokkul, and `wilderness` the Bounty Hunter skull for the
+  points: bronze under 200, then iron, green and blue, red from 800. A game sprite is drawn at
+  twice its pixels, centred on the edge. Full credit alone adds a burst of confetti (900 ms) in
+  the theme's gem colours. `+0` gets nothing.
+- **The sheet** is an original inline SVG and CSS component in layer 8's tokens. An `<img>` could
+  not read the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only
+  along its length. Every theme has its own paper.
 - **Below the scroll** is a panel: on the splash the round's count and pace and the ready check;
   on a question the answers, and once answered a slim panel saying who is in. Gems never sit on parchment, so every gem check
   still measures against `--panel`. The round is said on the splash only.
@@ -236,8 +243,9 @@ Round 2 of 5 · 5 questions
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
-- **Home** opens with the same stage and the site's challenge on the scroll, in place of a panel,
-  and the lobby (§9) with the room on it. Their host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
+- **Home** opens with the same stage and the site's challenge on the sheet, in place of a panel,
+  and the lobby (§9) with the room on it. Home's sheet in `jolly` is a note tacked to a notice
+  board, so the inn's front door differs from its games. Their host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
   stage, else 120px in the host's place, partly off a phone's edge. Without one, the Wise Old Man.
 
 ## 9. The splash and the ready check
@@ -391,6 +399,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Item icons | Wiki inventory icons, `make fetch-assets` | No, fetched; without one the name stands alone |
 | Speedrunning trophies | Game renders, `make fetch-assets` | No, fetched; placeholders ship |
 | Clue scroll font | RuneStar/fonts, Quill 8 | **Yes**, 21 KB, with a note beside it |
+| Pins, the poster's skull | Wiki sprites, as SVGs pixel for pixel | **Yes**, `assets/sprites/`, with a note beside it |
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |
 | Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the innkeeper |
 | Theme emblems | Wiki item icons, `make fetch-assets` | No, fetched; inline placeholder marks |

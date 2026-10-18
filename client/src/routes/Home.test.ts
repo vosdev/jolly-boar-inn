@@ -89,6 +89,22 @@ describe("Home", () => {
     expect(navigate).toHaveBeenCalledWith("/create");
   });
 
+  it("puts its challenge on the inn's notice board, and on the theme's own sheet elsewhere", () => {
+    document.documentElement.dataset.theme = "jolly";
+    try {
+      const { unmount } = render(Home, { navigate });
+      const sheet = () =>
+        (screen.getByRole("heading", { level: 1 }).closest(".scroll") as HTMLElement).dataset.sheet;
+      expect(sheet()).toBe("board");
+      unmount();
+      document.documentElement.dataset.theme = "tzhaar";
+      render(Home, { navigate });
+      expect(sheet()).toBe("slab");
+    } finally {
+      delete document.documentElement.dataset.theme;
+    }
+  });
+
   it("is hosted by the Wise Old Man without a hero in the branding", () => {
     render(Home, { navigate });
     const art = [...document.querySelectorAll(".stage .npc img")];

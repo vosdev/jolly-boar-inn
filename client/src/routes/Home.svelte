@@ -217,7 +217,7 @@
 {/snippet}
 
 <div class="intro">
-  <Stage host="wise_old_man" hero={heroArt}>
+  <Stage host="wise_old_man" hero={heroArt} board>
     {#snippet paper()}
       <h1>Think you know Gielinor? Prove it at {siteName}.</h1>
       <p class="tagline">
