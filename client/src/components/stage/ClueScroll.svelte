@@ -149,12 +149,15 @@
         <svg class="crack" viewBox="0 0 60 70" aria-hidden="true">
           <path d="M40 0L34 18L42 28L30 46L34 56L26 70" />
         </svg>
-        <svg class="moss" viewBox="0 0 100 16" preserveAspectRatio="none" aria-hidden="true">
-          <ellipse cx="14" cy="11" rx="13" ry="5" fill={ART.mossDark} />
-          <ellipse cx="13" cy="10" rx="10" ry="3.5" fill={ART.moss} />
-          <ellipse cx="27" cy="13" rx="8" ry="3" fill={ART.mossDark} />
-          <ellipse cx="90" cy="12" rx="9" ry="4" fill={ART.mossDark} />
-          <ellipse cx="89" cy="11" rx="6" ry="2.5" fill={ART.moss} />
+        <!-- A clump of moss in each corner of its foot, the same size on any width of stone. -->
+        <svg class="moss left" viewBox="0 0 48 16" aria-hidden="true">
+          <ellipse cx="18" cy="11" rx="17" ry="5" fill={ART.mossDark} />
+          <ellipse cx="17" cy="10" rx="13" ry="3.5" fill={ART.moss} />
+          <ellipse cx="38" cy="13" rx="10" ry="3" fill={ART.mossDark} />
+        </svg>
+        <svg class="moss right" viewBox="0 0 48 16" aria-hidden="true">
+          <ellipse cx="34" cy="12" rx="12" ry="4" fill={ART.mossDark} />
+          <ellipse cx="33" cy="11" rx="8" ry="2.5" fill={ART.moss} />
         </svg>
       {/if}
       <div class="content">
@@ -585,10 +588,17 @@
 
   .moss {
     position: absolute;
-    left: 0;
     bottom: 0;
-    width: 100%;
+    width: calc(48px * var(--k));
     height: calc(16px * var(--k));
+  }
+
+  .moss.left {
+    left: calc(4px * var(--k));
+  }
+
+  .moss.right {
+    right: calc(4px * var(--k));
   }
 
   .mound {
