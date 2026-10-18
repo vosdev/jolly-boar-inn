@@ -129,9 +129,10 @@
   --texture-panel: url('./assets/textures/inn-trim.svg');
   --texture-bg: url('./assets/textures/inn-rug.svg');
 
-  /* 8. Scroll: the clue scroll's parchment, its brown edge and the ink on it. Checked
-     like a panel: --scroll-ink 7:1 and --scroll-muted 4.5:1 on the paper, which also has to
-     stand off --bg and --panel. --scroll-facet-light is how much white the creases catch. */
+  /* 8. Sheet: the stage's sheet (the clue scroll, a poster, a card, a slab), its edge and
+     the ink on it. Checked like a panel: --scroll-ink 7:1 and --scroll-muted 4.5:1 on the
+     paper, which also has to stand off --bg and --panel. --scroll-facet-light is how much
+     white the creases catch. */
   --scroll-paper: #cfbb88;
   --scroll-edge: #7a5e30;
   --scroll-ink: #241708;
@@ -255,12 +256,12 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/wild-wall.svg');
 
-  /* The inn's scroll: parchment reads as parchment, where a dark sheet would read as slate. */
-  --scroll-paper: #cfbb88;
-  --scroll-edge: #7a5e30;
-  --scroll-ink: #241708;
-  --scroll-muted: #4f3a1c;
-  --scroll-facet-light: 0.08;
+  /* A bounty poster gone dark with soot, so the dark theme stays dark around the words. */
+  --scroll-paper: #54473d;
+  --scroll-edge: #1a1513;
+  --scroll-ink: #efe8df;
+  --scroll-muted: #cbc1b5;
+  --scroll-facet-light: 0.04;
 
   color-scheme: dark;
 }
@@ -319,10 +320,11 @@
   --texture-panel: none;
   --texture-bg: url('./assets/textures/party-floor.svg');
 
-  --scroll-paper: #e6d3a0;
-  --scroll-edge: #9c7238;
-  --scroll-ink: #2a1c08;
-  --scroll-muted: #5a4629;
+  /* A cream card, so the checks around it are not all that keeps it from being a panel. */
+  --scroll-paper: #fbf1d6;
+  --scroll-edge: #3f5f99;
+  --scroll-ink: #23263a;
+  --scroll-muted: #565c73;
   --scroll-facet-light: 0.08;
 
   color-scheme: light;
@@ -382,11 +384,12 @@
   --texture-bg: url('./assets/textures/tzhaar-cracks.svg');
 
   /* Parchment lit by the lava, on rolls scorched red. */
-  --scroll-paper: #e6c88e;
-  --scroll-edge: #9a2e12;
-  --scroll-ink: #2a1206;
-  --scroll-muted: #5a2a10;
-  --scroll-facet-light: 0.08;
+  /* Paper would burn: an obsidian slab, its edge the lava's glow. */
+  --scroll-paper: #3a302c;
+  --scroll-edge: #ff6a1a;
+  --scroll-ink: #fbeee2;
+  --scroll-muted: #d6b9a4;
+  --scroll-facet-light: 0.05;
 
   color-scheme: dark;
 }

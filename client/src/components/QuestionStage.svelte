@@ -28,7 +28,7 @@
   import { get } from 'svelte/store'
 
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
-  import { awardFor } from '../lib/award'
+  import { NO_AWARD, awardFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
   import { hostOf } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
@@ -129,7 +129,7 @@
     {scene}
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}
-    award={reveal === null ? 'none' : awardFor(result)}
+    award={reveal === null ? NO_AWARD : awardFor(result)}
   >
     {#if (answers !== null && !stemOnly) || children}
       <section class="panel answers">

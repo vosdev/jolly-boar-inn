@@ -28,6 +28,7 @@
     host?: string
     paper: Snippet
     award?: Award
+    board?: boolean
     guest?: string | null
     entering?: boolean
     returning?: boolean

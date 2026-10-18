@@ -1,14 +1,14 @@
 """The parts that live in the stage's stylesheet rather than its behaviour.
 
 The component tests (``Splash.test.ts``, ``Question.test.ts``, ``Room.test.ts``) cover what
-goes on the scroll and what under the line, and the ribbon. This reads the source for the
+goes on the sheet and what under the line, and the pin. This reads the source for the
 rest: no inline colour, knobs that cannot stretch, the written animation budget, and the
 reduced-motion branch.
 
-What a browser confirmed, and a test cannot: the scroll reads as parchment in all three
-themes; under 448px the screen's edges cut the rolls in half and nothing scrolls sideways,
-320px included; the sheet is at least four prompt lines tall; at 375x812 six gems at 56px
-and a two-line prompt fit in 650px.
+What a browser confirmed, and a test cannot: each theme's sheet stands off its own floor;
+under 448px the screen's edges cut the rolls in half and nothing scrolls sideways, 320px
+included; the sheet is at least four prompt lines tall; at 375x812 six gems at 56px and a
+two-line prompt fit in 650px.
 """
 
 import re
@@ -49,16 +49,16 @@ def test_a_host_leaves_and_arrives_in_200ms_and_the_confetti_lasts_900ms() -> No
     assert re.search(r"animation: pin 200ms", SCROLL)
 
 
-def test_the_ribbon_hangs_65_percent_across() -> None:
+def test_the_pin_hangs_65_percent_across() -> None:
     award = re.search(r"\.award \{(.*?)\}", SCROLL, re.S)
     assert award is not None
     assert "left: 65%;" in award.group(1)
 
 
 def test_reduced_motion_stills_the_scroll_and_drops_the_confetti() -> None:
-    """The scroll simply appears and the ribbon comes without confetti."""
+    """The scroll simply appears and the pin comes without confetti."""
     branch = _reduced_motion(SCROLL)
-    assert re.search(r"\.ribbon \{\s*animation: none", branch)
+    assert re.search(r"\.pin \{\s*animation: none", branch)
     assert re.search(r"\.confetti \{\s*display: none;", _reduced_motion(CONFETTI))
 
 

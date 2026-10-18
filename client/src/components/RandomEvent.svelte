@@ -38,7 +38,7 @@
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
 
-  import { awardFor } from '../lib/award'
+  import { NO_AWARD, awardFor } from '../lib/award'
   import { RETURN_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
   import { hostOf } from '../lib/modes'
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
@@ -168,7 +168,7 @@
     {returning}
     scene={question.question_id}
     paper={sheet}
-    award={reveal === null ? 'none' : awardFor(result)}
+    award={reveal === null ? NO_AWARD : awardFor(result)}
   >
     {#if answers !== null || children}
       <section class="panel answers">
