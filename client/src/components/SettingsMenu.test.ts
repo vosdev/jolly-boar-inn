@@ -445,15 +445,15 @@ describe('SettingsMenu, the themes', () => {
     expect(names).toEqual(THEMES.map((theme) => THEME_LABELS[theme].name))
   })
 
-  it('offers Toktz, Jungle, Prifddinas and Morytania last, each with its emblem, and nothing disabled', async () => {
+  it('offers Toktz, Jungle, Gauntlet and Morytania last, each with its emblem, and nothing disabled', async () => {
     await opened()
     expect(radios().filter((radio) => radio.disabled)).toEqual([])
     const newest = radios().slice(-4)
-    expect(newest.map((radio) => radio.value)).toEqual(['tzhaar', 'jungle', 'prifddinas', 'morytania'])
+    expect(newest.map((radio) => radio.value)).toEqual(['tzhaar', 'jungle', 'gauntlet', 'morytania'])
     expect(newest.map((radio) => radio.closest('label')!.textContent!.trim())).toEqual([
       'Toktz',
       'Jungle',
-      'Prifddinas',
+      'Gauntlet',
       'Morytania',
     ])
     for (const radio of newest) {

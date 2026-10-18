@@ -3,7 +3,7 @@
 import { favicons } from 'virtual:branding'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { applyTheme } from './theme'
+import { applyTheme, DEFAULT_THEME, getTheme, storedTheme } from './theme'
 
 let icon: HTMLLinkElement
 
@@ -25,5 +25,20 @@ describe('applyTheme', () => {
 
     applyTheme('jolly')
     expect(icon.getAttribute('href')).toBe(favicons.jolly!.href)
+  })
+})
+
+describe('getTheme', () => {
+  afterEach(() => localStorage.clear())
+
+  it('gives a browser that stored the retired Prifddinas theme the default', () => {
+    localStorage.setItem('jbi:theme', 'prifddinas')
+    expect(storedTheme()).toBeNull()
+    expect(getTheme()).toBe(DEFAULT_THEME)
+  })
+
+  it('keeps a browser that picked the Gauntlet in it', () => {
+    localStorage.setItem('jbi:theme', 'gauntlet')
+    expect(getTheme()).toBe('gauntlet')
   })
 })

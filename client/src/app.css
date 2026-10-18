@@ -110,7 +110,7 @@
 
   /* 6. Shape. This layer does more to make a theme feel like a different place than
      colour does. Wooden edges, and panels lit by the lanterns on the wall
-     (`InnLanterns.svelte`): a dark drop and a warm glow onto the floor. --font-display is the body face; only the clue
+     (`WallLights.svelte`): a dark drop and a warm glow onto the floor. --font-display is the body face; only the clue
      scroll swaps in a pixel one. --font-numeric is the display face plus tabular figures, which are applied
      where they are used, so the timer does not twitch. */
   --radius: 6px;
@@ -456,66 +456,67 @@
   color-scheme: light;
 }
 
-/* Prifddinas, the elves' crystal city: white walls under sea-green roofs, on grass that
-   glows blue-green at night. The floor leans blue so the theme is not a third green one
-   beside the jungle and the swamp. The sheet is the Gauntlet's board, dark inside a
-   glowing crystal rim, as the game draws it under the city. */
-[data-theme='prifddinas'] {
-  /* The night grass, and the city's white stone. */
-  --bg: #17566e;
-  --panel: #eeeef4;
-  --panel-raised: #fafafd;
-  --line: #b9bccb;
-  --ink: #1d2230;
-  --muted: #4b5163;
-  --bg-ink: #eaf8fb;
-  --bg-muted: #b4dce6;
+/* The Gauntlet, the crystal dungeon under Prifddinas: rock-grey walls over a navy tiled
+   floor, crystal cyan along every edge, and the dungeon's door logo glowing on the wall.
+   Dark like Morytania, but cold and tiled where that is wet and green. The sheet is the
+   Gauntlet's board, dark inside a glowing crystal rim, as the game draws it. */
+[data-theme='gauntlet'] {
+  /* The tiled floor, and the dungeon's rock. */
+  --bg: #081828;
+  --panel: #2a2727;
+  --panel-raised: #363232;
+  --line: #4c4644;
+  --ink: #ece6dc;
+  --muted: #b1a99e;
+  --bg-ink: #ece6dc;
+  --bg-muted: #a9bccb;
 
-  /* The roofs. */
-  --accent: #3d7d6a;
-  --accent-ink: #ffffff;
-  --accent-hover: #326a59;
+  /* The crystal. */
+  --accent: #1ac8d8;
+  --accent-ink: #06181c;
+  --accent-hover: #52dae6;
 
-  --ok: #2a6a1a;
-  --ok-ink: #ffffff;
-  --bad: #a8283e;
-  --bad-ink: #ffffff;
-  --warn: #855400;
-  --warn-ink: #ffffff;
+  --ok: #7dc08a;
+  --ok-ink: #161313;
+  --bad: #ec7a6c;
+  --bad-ink: #161313;
+  --warn: #dcae5c;
+  --warn-ink: #161313;
 
-  --more: #2c5a94;
-  --less: #9a3b16;
+  /* Violet and amber: neither is a verdict, nor the crystal's cyan. */
+  --more: #b5a2f2;
+  --less: #e8a86a;
 
-  /* Pale stones, cooled like the crystal around them. */
-  --gem-sapphire: #a6c0ee;
-  --gem-emerald: #a6dcc4;
-  --gem-ruby: #f2b2b8;
-  --gem-red-topaz: #efa6d2;
-  --gem-dragonstone: #cdb6ee;
-  --gem-zenyte: #f0cf86;
-  --gem-ink: #1d2230;
+  --gem-sapphire: #1e3f7a;
+  --gem-emerald: #15613a;
+  --gem-ruby: #7d1c22;
+  --gem-red-topaz: #9a2f6e;
+  --gem-dragonstone: #5a2172;
+  --gem-zenyte: #7c4510;
+  --gem-ink: #ece6dc;
 
-  /* Dressed stone: barely rounded, lifted off the grass by a soft shadow. */
+  /* Cut rock: barely rounded, a dark rim and a deep drop onto the floor. */
   --radius: 4px;
   --border-width: 2px;
-  --shadow: 0 4px 14px rgb(8 30 40 / 0.35);
-  --scrim: rgb(8 30 40 / 0.55);
+  --shadow: 0 0 0 1px rgb(0 0 0 / 0.35), 0 6px 18px rgb(0 0 0 / 0.5);
+  --scrim: rgb(0 0 0 / 0.6);
   --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
 
-  /* Tufts of glowing grass; a roof's green edge along every panel. */
-  --texture-panel: url('./assets/textures/prifddinas-roof.svg');
-  --texture-bg: url('./assets/textures/prifddinas-grass.svg');
+  /* Floor tiles in a teal grid; a line of crystal light along every panel's top. */
+  --texture-panel: url('./assets/textures/gauntlet-edge.svg');
+  --texture-bg: url('./assets/textures/gauntlet-tiles.svg');
 
-  /* The Gauntlet's board: near-black, its rim the crystal's cyan. */
-  --scroll-paper: #201e1e;
+  /* The Gauntlet's board: near-black, darker than the rock so it stands off a panel, its
+     rim the crystal's cyan. */
+  --scroll-paper: #131212;
   --scroll-edge: #7acdd2;
   --scroll-ink: #f0ead2;
   --scroll-muted: #8adfe3;
   --scroll-facet-light: 0.04;
 
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 /* Morytania's Mort Myre: murky teal water between banks of land, and the gravestone as the

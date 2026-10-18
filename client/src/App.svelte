@@ -24,7 +24,7 @@
   import { onMount } from 'svelte'
 
   import Footer from './components/Footer.svelte'
-  import InnLanterns from './components/InnLanterns.svelte'
+  import WallLights from './components/WallLights.svelte'
   import PartyFloor from './components/PartyFloor.svelte'
   import SettingsMenu from './components/SettingsMenu.svelte'
   import TimerBar from './components/TimerBar.svelte'
@@ -123,7 +123,7 @@
      profile. `you` outlives the Room screen until the next one resets it, so the route
      decides which, not the store. -->
 <PartyFloor />
-<InnLanterns />
+<WallLights />
 
 <TopBar {navigate} {wide}>
   {#snippet menu()}

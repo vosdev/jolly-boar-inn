@@ -3,8 +3,8 @@
  *
  * The inn and the desert keep the quest reward scroll; the Wilderness nails up a bounty
  * poster, the Party Room hangs a card under bunting, and the TzHaar carve an obsidian slab,
- * since paper would burn. The jungle stretches bark cloth in a bamboo frame, Prifddinas
- * shows the Gauntlet's board, and Morytania a gravestone. Home's sheet in the inn is a
+ * since paper would burn. The jungle stretches bark cloth in a bamboo frame, the Gauntlet
+ * keeps its board, and Morytania a gravestone. Home's sheet in the inn is a
  * notice board instead, so the inn's front door looks different from its games.
  */
 
@@ -61,7 +61,7 @@ export function sheetFor(theme: string, board = false): Sheet {
       return 'slab'
     case 'jungle':
       return 'bamboo'
-    case 'prifddinas':
+    case 'gauntlet':
       return 'gauntlet'
     case 'morytania':
       return 'gravestone'

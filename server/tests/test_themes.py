@@ -56,7 +56,7 @@ def test_the_eight_themes_in_menu_order() -> None:
         "party_room",
         "tzhaar",
         "jungle",
-        "prifddinas",
+        "gauntlet",
         "morytania",
     ]
 
@@ -223,19 +223,23 @@ def test_tzhaar_is_not_the_wilderness_twice() -> None:
     assert floors["--accent"] >= 15
 
 
-# --- jungle, prifddinas, morytania ----------------------------------------------------
+# --- jungle, gauntlet, morytania ------------------------------------------------------
 
 
-def test_prifddinas_is_not_a_third_green_theme() -> None:
-    """The jungle's grass and Morytania's swamp are green; Prifddinas's glowing grass leans
-    blue, and its panels are the city's white, so the three stay three places."""
-    floors = {
-        name: check.hue(colour(name, "--bg")) for name in ("jungle", "prifddinas", "morytania")
-    }
-    assert floors["prifddinas"] >= 190, floors
-    assert all(floors[name] < 180 for name in ("jungle", "morytania")), floors
-    panel = colour("prifddinas", "--panel")
-    assert max(panel) - min(panel) <= 8, "the panels are the city's white, not a tint"
+def test_the_gauntlet_is_not_toktz_or_morytania_again() -> None:
+    """All three are dark; the Gauntlet's floor is a cold navy and its accent the crystal's
+    cyan, where Toktz is warm and Morytania green."""
+    assert check.luminance(colour("gauntlet", "--bg")) < check.luminance(
+        colour("gauntlet", "--bg-ink")
+    )
+    assert 190 <= check.hue(colour("gauntlet", "--bg")) <= 230
+    for other in ("tzhaar", "morytania"):
+        gaps = {
+            token: check.delta_e(colour("gauntlet", token), colour(other, token))
+            for token in ("--bg", "--panel", "--accent")
+        }
+        assert gaps["--bg"] >= 10, (other, gaps)
+        assert gaps["--accent"] >= 30, (other, gaps)
 
 
 def test_the_jungle_is_the_light_one() -> None:

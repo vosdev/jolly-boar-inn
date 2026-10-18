@@ -12,7 +12,7 @@ describe('sheetFor', () => {
     expect(sheetFor('party_room')).toBe('bunting')
     expect(sheetFor('tzhaar')).toBe('slab')
     expect(sheetFor('jungle')).toBe('bamboo')
-    expect(sheetFor('prifddinas')).toBe('gauntlet')
+    expect(sheetFor('gauntlet')).toBe('gauntlet')
     expect(sheetFor('morytania')).toBe('gravestone')
   })
 
@@ -23,7 +23,7 @@ describe('sheetFor', () => {
     expect(sheetFor('party_room', true)).toBe('bunting')
     expect(sheetFor('tzhaar', true)).toBe('slab')
     expect(sheetFor('jungle', true)).toBe('bamboo')
-    expect(sheetFor('prifddinas', true)).toBe('gauntlet')
+    expect(sheetFor('gauntlet', true)).toBe('gauntlet')
     expect(sheetFor('morytania', true)).toBe('gravestone')
   })
 

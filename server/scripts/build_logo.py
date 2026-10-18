@@ -145,7 +145,7 @@ THEMES: dict[str, dict[str, str]] = {
         "eye-lo": "#9a9a7a",
         "eye-hi": "#fffbe6",
     },
-    "prifddinas": {
+    "gauntlet": {
         "ornament": "crystals",
         "rim": "#123c40",
         "hide-lo": "#0e1416",
@@ -398,7 +398,7 @@ def _fez(rim: int) -> str:
     )
 
 
-# Three palm fronds and a banana for the jungle, three crystal shards for Prifddinas: drawn,
+# Three palm fronds and a banana for the jungle, three crystal shards for the Gauntlet: drawn,
 # like the fez, in the render's pixels over the crown, and as large as the fez stands.
 _FRONDS = (
     (

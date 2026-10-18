@@ -7,7 +7,7 @@
    * them: the Wilderness's bounty poster, nailed up under the game's skull; the Party Room's
    * card under a string of bunting, in a checked tablecloth border; the TzHaar's obsidian
    * slab, chipped and glowing at the edge; the jungle's bark cloth in a frame of bamboo
-   * lashed at the corners; Prifddinas's Gauntlet board, dark inside a glowing crystal rim;
+   * lashed at the corners; the Gauntlet's board, dark inside a glowing crystal rim;
    * Morytania's gravestone, moss at its foot; and Home's notice board in the inn, a note
    * tacked to planks.
    *
@@ -133,10 +133,6 @@
       {:else if sheet === 'poster'}
         <img class="skull" src={skullUrl} alt="" width="50" height="50" draggable="false" />
       {:else if sheet === 'gauntlet'}
-        <svg class="close" viewBox="0 0 22 22" aria-hidden="true">
-          <rect x="0.75" y="0.75" width="20.5" height="20.5" />
-          <path d="M6.5 6.5l9 9M15.5 6.5l-9 9" />
-        </svg>
         <!-- The rim along each cut corner, which the inset rings cannot follow. -->
         {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
           <svg class="cut {corner}" viewBox="0 0 24 24" aria-hidden="true">
@@ -469,9 +465,8 @@
     bottom: 0;
   }
 
-  /* The Gauntlet's board under Prifddinas: near-black inside a crystal rim that glows, its
-     corners cut, a close button at its head as the game draws it. Centred, like the
-     game's. */
+  /* The Gauntlet's board: near-black inside a crystal rim that glows, its
+     corners cut. Centred, like the game's. */
   .scroll[data-sheet='gauntlet'] {
     filter: drop-shadow(0 0 5px color-mix(in srgb, var(--scroll-edge) 55%, transparent))
       drop-shadow(0 3px 0 rgb(0 0 0 / 0.35));
@@ -535,22 +530,6 @@
   .rim-inner {
     stroke: color-mix(in srgb, var(--scroll-edge) 50%, var(--scroll-paper));
     stroke-width: 1.5;
-  }
-
-  .close {
-    position: absolute;
-    top: calc(10px * var(--k));
-    right: calc(12px * var(--k));
-    width: calc(20px * var(--k));
-    height: calc(20px * var(--k));
-    fill: none;
-    stroke: var(--scroll-edge);
-    stroke-width: 1.5;
-  }
-
-  .close path {
-    stroke: var(--scroll-ink);
-    stroke-width: 1.8;
   }
 
   /* Morytania's gravestone: an arched slab of grey stone with an engraved rule inside its

@@ -53,7 +53,7 @@ def test_every_theme_defines_every_token(css: str) -> None:
         "party_room",
         "tzhaar",
         "jungle",
-        "prifddinas",
+        "gauntlet",
         "morytania",
     }
     for name, tokens in themes.items():
