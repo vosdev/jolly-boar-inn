@@ -54,8 +54,35 @@ describe('the sheet', () => {
     expect(slab.querySelector('.roll')).toBeNull()
   })
 
+  it('is bark cloth in a bamboo frame lashed at its corners in the jungle', () => {
+    const { container, sheet } = stage('jungle')
+    expect(sheet.dataset.sheet).toBe('bamboo')
+    expect(sheet.querySelectorAll('svg.pole')).toHaveLength(4)
+    expect(sheet.querySelectorAll('svg.lashing')).toHaveLength(4)
+    expect(sheet.querySelector('.roll')).toBeNull()
+    expect(container.querySelector('.stage-row')?.classList.contains('flat')).toBe(true)
+  })
+
+  it("is the Gauntlet's board in Prifddinas, its corners cut and a close button at its head", () => {
+    const { sheet } = stage('prifddinas')
+    expect(sheet.dataset.sheet).toBe('gauntlet')
+    expect(sheet.querySelector('.paper svg.close')).not.toBeNull()
+    expect(sheet.querySelectorAll('.paper svg.cut')).toHaveLength(4)
+    expect(sheet.querySelector('.roll')).toBeNull()
+  })
+
+  it('is a gravestone in Morytania, moss at its foot and earth under it', () => {
+    const { sheet } = stage('morytania')
+    expect(sheet.dataset.sheet).toBe('gravestone')
+    expect(sheet.querySelector('.paper svg.moss')).not.toBeNull()
+    expect(sheet.querySelector('.paper svg.crack')).not.toBeNull()
+    expect(sheet.querySelector('svg.mound')).not.toBeNull()
+    expect(sheet.querySelector('.roll')).toBeNull()
+  })
+
   it('keeps the words on the sheet whatever it is', () => {
-    for (const theme of ['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar']) {
+    const themes = ['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar', 'jungle', 'prifddinas', 'morytania']
+    for (const theme of themes) {
       const { sheet } = stage(theme)
       expect(sheet.querySelector('.paper .content')?.textContent).toBe('Which boss drops the Tanzanite fang?')
       cleanup()

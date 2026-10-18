@@ -1,4 +1,4 @@
-"""Three themes, each one block a selfhoster can copy.
+"""The themes, each one block a selfhoster can copy.
 
 This reads the stylesheet. The contract itself — all three themes passing the token contract —
 is ``test_check_contrast.py``'s ``test_every_shipped_theme_passes``, and the picker is
@@ -46,10 +46,19 @@ def listed_themes() -> list[str]:
 # --- the themes ----------------------------------------------------------------------
 
 
-def test_the_five_themes_in_menu_order() -> None:
-    """party_room and tzhaar come last: each built against the contract on its own, and cut
-    if it ever fails."""
-    assert listed_themes() == ["jolly", "pollnivneach", "wilderness", "party_room", "tzhaar"]
+def test_the_eight_themes_in_menu_order() -> None:
+    """Each theme after the first three was built against the contract on its own, and is
+    cut if it ever fails; the newest come last."""
+    assert listed_themes() == [
+        "jolly",
+        "pollnivneach",
+        "wilderness",
+        "party_room",
+        "tzhaar",
+        "jungle",
+        "prifddinas",
+        "morytania",
+    ]
 
 
 def test_each_theme_is_one_contiguous_block() -> None:
@@ -212,6 +221,40 @@ def test_tzhaar_is_not_the_wilderness_twice() -> None:
     assert floors["--panel"] >= 12
     assert floors["--line"] >= 70
     assert floors["--accent"] >= 15
+
+
+# --- jungle, prifddinas, morytania ----------------------------------------------------
+
+
+def test_prifddinas_is_not_a_third_green_theme() -> None:
+    """The jungle's grass and Morytania's swamp are green; Prifddinas's glowing grass leans
+    blue, and its panels are the city's white, so the three stay three places."""
+    floors = {
+        name: check.hue(colour(name, "--bg")) for name in ("jungle", "prifddinas", "morytania")
+    }
+    assert floors["prifddinas"] >= 190, floors
+    assert all(floors[name] < 180 for name in ("jungle", "morytania")), floors
+    panel = colour("prifddinas", "--panel")
+    assert max(panel) - min(panel) <= 8, "the panels are the city's white, not a tint"
+
+
+def test_the_jungle_is_the_light_one() -> None:
+    """Sunlit grass, unlike the swamp's dark water: the floor is lighter than its own ink."""
+    assert check.luminance(colour("jungle", "--bg")) > check.luminance(colour("jungle", "--bg-ink"))
+    assert check.luminance(colour("morytania", "--bg")) < check.luminance(
+        colour("morytania", "--bg-ink")
+    )
+
+
+def test_morytania_is_not_the_wilderness_twice() -> None:
+    """Both are dark; the swamp's teal water and its moonlit accent tell them apart."""
+    gaps = {
+        token: check.delta_e(colour("morytania", token), colour("wilderness", token))
+        for token in ("--bg", "--panel", "--accent")
+    }
+    assert gaps["--bg"] >= 15
+    assert gaps["--panel"] >= 8
+    assert gaps["--accent"] >= 30
 
 
 def test_the_crack_texture_tiles_on_all_four_edges() -> None:

@@ -8,6 +8,9 @@ import bountySkull2 from '../assets/sprites/bounty-skull-2.svg'
 import bountySkull3 from '../assets/sprites/bounty-skull-3.svg'
 import bountySkull4 from '../assets/sprites/bounty-skull-4.svg'
 import bountySkull5 from '../assets/sprites/bounty-skull-5.svg'
+import crystalShard from '../assets/sprites/crystal-shard.svg'
+import monkey from '../assets/sprites/monkey.svg'
+import snelm from '../assets/sprites/snelm.svg'
 import superKebab from '../assets/sprites/super-kebab.svg'
 import tokkul from '../assets/sprites/tokkul.svg'
 import { NO_AWARD, awardFor, pinFor } from './award'
@@ -39,6 +42,14 @@ describe('pinFor', () => {
     for (const points of [1, 600, 1000]) {
       expect(pinFor('pollnivneach', points)).toEqual({ url: superKebab, sprite: true })
       expect(pinFor('tzhaar', points)).toEqual({ url: tokkul, sprite: true })
+    }
+  })
+
+  it('pins a monkey in the jungle, a crystal shard in Prifddinas and a snelm in Morytania', () => {
+    for (const points of [1, 600, 1000]) {
+      expect(pinFor('jungle', points)).toEqual({ url: monkey, sprite: true })
+      expect(pinFor('prifddinas', points)).toEqual({ url: crystalShard, sprite: true })
+      expect(pinFor('morytania', points)).toEqual({ url: snelm, sprite: true })
     }
   })
 

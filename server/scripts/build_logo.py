@@ -135,8 +135,44 @@ THEMES: dict[str, dict[str, str]] = {
         "flame-2": "#ff7a1e",
         "flame-3": "#ffd27a",
     },
+    "jungle": {
+        "ornament": "leaves",
+        "rim": "#1d2a12",
+        "hide-lo": "#16110a",
+        "hide-hi": "#9a7a52",
+        "tusk-lo": "#4a4a2c",
+        "tusk-hi": "#f3ecc6",
+        "eye-lo": "#9a9a7a",
+        "eye-hi": "#fffbe6",
+    },
+    "prifddinas": {
+        "ornament": "crystals",
+        "rim": "#123c40",
+        "hide-lo": "#0e1416",
+        "hide-hi": "#a69a8c",
+        "tusk-lo": "#2f7c80",
+        "tusk-hi": "#e9ffff",
+        "eye-lo": "#5fc9cf",
+        "eye-hi": "#f0ffff",
+        "eye-glow": "#5fe6ea",
+        "tusk-glow": "#8fe3e6",
+    },
+    # A Ghast, the swamp's near-invisible ghost: the body half gone, the eyes still lit.
+    "morytania": {
+        "ornament": "",
+        "rim": "#8fb0a0",
+        "hide-lo": "#2f4a40",
+        "hide-hi": "#c4d8cc",
+        "tusk-lo": "#7a9a8a",
+        "tusk-hi": "#eef6ee",
+        "eye-lo": "#2f9a3a",
+        "eye-hi": "#b8ff8a",
+        "eye-glow": "#7dff6a",
+        "ghost": "0.5",
+        "ghost-tusk": "0.65",
+    },
 }
-ORNAMENTS = ("board", "fez", "skull", "partyhat", "eye-fire")
+ORNAMENTS = ("board", "fez", "skull", "partyhat", "eye-fire", "leaves", "crystals")
 DEFAULT = THEMES["jolly"]
 
 # What Broav_detail.png looks like, in its own pixels. A new upload of the file would need
@@ -257,6 +293,8 @@ def _shows(ornament: str) -> str:
 RULES = "\n".join(
     [
         f".boar-rim {{ fill: {_var('rim')}; stroke: {_var('rim')}; stroke-linejoin: round; }}",
+        f".boar-outline, .boar-hide {{ opacity: {_var('ghost', '1')}; }}",
+        f".boar-tusk {{ opacity: {_var('ghost-tusk', '1')}; }}",
         *(
             f".boar-{part} > * {{ fill: {_var(f'{part}-hi')}; }}\n"
             f".boar-{part} > .boar-lo {{ fill: {_var(f'{part}-lo')}; }}"
@@ -272,6 +310,8 @@ RULES = "\n".join(
         f".boar-hat-lo {{ fill: {_var('hat-lo', '#1d3a9c')}; }}",
         f".boar-hat-hi {{ fill: {_var('hat-hi', '#4c78e8')}; }}",
         f".boar-eye-fire {{ {_shows('eye-fire')} }}",
+        f".boar-leaves {{ {_shows('leaves')} }}",
+        f".boar-crystals {{ {_shows('crystals')} }}",
         *(
             f".boar-flame-{n} {{ fill: {_var(f'flame-{n}', c)}; }}"
             for n, c in ((1, "#c42a16"), (2, "#ff7a1e"), (3, "#ffd27a"))
@@ -315,7 +355,7 @@ def _head(geometry: Geometry, uid: str, rim: int) -> str:
     return (
         f"<defs>{_glow(uid + '-eg', 'boar-eye-glow', 30)}"
         f"{_glow(uid + '-tg', 'boar-tusk-glow', 30)}</defs>"
-        f'<path class="boar-rim" stroke-width="{rim}" d="{geometry["silhouette"]}"/>'
+        f'<path class="boar-rim boar-outline" stroke-width="{rim}" d="{geometry["silhouette"]}"/>'
         f'<g class="boar-hide">{_bands(geometry["hide"])}</g>'
         f'<g class="boar-tusk" filter="url(#{uid}-tg)">{_bands(geometry["tusk"])}</g>'
         f'<g class="boar-eye" filter="url(#{uid}-eg)">{_bands(geometry["eye"])}</g>'
@@ -355,6 +395,71 @@ def _fez(rim: int) -> str:
         'd="M655 -150 Q700 -60 735 40"/>'
         '<path fill="#1a1a1a" d="M720 30 L752 30 L760 110 L712 110 Z"/>'
         "</g>"
+    )
+
+
+# Three palm fronds and a banana for the jungle, three crystal shards for Prifddinas: drawn,
+# like the fez, in the render's pixels over the crown, and as large as the fez stands.
+_FRONDS = (
+    (
+        "M655 140 Q520 -40 300 -120 Q520 -120 655 60 Z",
+        "#3f7a26",
+        "M655 100 Q520 -60 300 -120 Q520 -100 655 60 Z",
+        "#5f9e34",
+    ),
+    (
+        "M660 140 Q630 -80 700 -220 Q750 -80 700 140 Z",
+        "#4f8f2c",
+        "M680 140 Q655 -80 700 -220 Q700 -60 700 140 Z",
+        "#78b444",
+    ),
+    (
+        "M700 140 Q820 -60 1040 -110 Q840 -110 690 60 Z",
+        "#3f7a26",
+        "M700 110 Q820 -80 1040 -110 Q840 -90 690 60 Z",
+        "#5f9e34",
+    ),
+    (
+        "M770 120 Q880 40 900 -60 Q930 -40 925 0 Q900 110 790 150 Z",
+        "#e8cf3a",
+        "M780 120 Q880 40 900 -60 Q905 40 800 135 Z",
+        "#f7e77a",
+    ),
+)
+_SHARDS = (
+    ("M520 140 L470 -20 L520 -110 L570 -20 L575 140 Z", "M520 140 L470 -20 L520 -110 L520 140 Z"),
+    (
+        "M610 140 L580 -100 L660 -300 L740 -100 L710 140 Z",
+        "M610 140 L580 -100 L660 -300 L660 140 Z",
+    ),
+    ("M750 140 L760 -30 L820 -130 L860 -20 L810 140 Z", "M750 140 L760 -30 L820 -130 L790 140 Z"),
+)
+
+
+def _crown(cls: str, scale: float, parts: str) -> str:
+    return (
+        f'<g class="{cls}" transform="rotate(-6 650 40) translate(657 140) scale({scale}) '
+        f'translate(-657 -140)">{parts}</g>'
+    )
+
+
+def _leaves(rim: int) -> str:
+    parts = "".join(
+        f'<path class="boar-rim" stroke-width="{rim}" d="{shape}"/>'
+        f'<path fill="{base}" d="{shape}"/><path fill="{light}" d="{lit}"/>'
+        for shape, base, lit, light in _FRONDS
+    )
+    return _crown("boar-leaves", 1.3, parts)
+
+
+def _crystals(rim: int) -> str:
+    parts = "".join(
+        f'<path class="boar-rim" stroke-width="{rim}" d="{shape}"/>'
+        f'<path fill="#bff3f3" d="{shape}"/><path fill="#e9ffff" d="{lit}"/>'
+        for shape, lit in _SHARDS
+    )
+    return _crown(
+        "boar-crystals", 1.15, parts + '<path fill="#8fe3e6" d="M660 -300 L740 -100 L660 -60 Z"/>'
     )
 
 
@@ -428,7 +533,7 @@ class Logo:
             f'<g transform="translate({self.left + self.width * s:.4f} {self.top}) '
             f'scale({-s:.6f} {s:.6f})">'
             f"{_head(self.geometry[size], uid, rim)}{_eye_fire(uid)}{_fez(hat_rim)}"
-            f"{_partyhat(hat_rim)}</g>"
+            f"{_partyhat(hat_rim)}{_leaves(hat_rim)}{_crystals(hat_rim)}</g>"
         )
         board = (
             '<rect class="boar-board" stroke-width="1.5" x="2" y="2" width="28" height="28" '

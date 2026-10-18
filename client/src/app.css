@@ -394,6 +394,191 @@
   color-scheme: dark;
 }
 
+/* Karamja and Ape Atoll under a noon sun: bright grass between the palms, bark-cloth panels
+   trimmed with bamboo, and the bamboo frame as the stage's sheet. The light one of the three
+   green places, so the grass is sunlit yellow-green and the panels nearly white. */
+[data-theme='jungle'] {
+  /* The grass, and bark cloth bleached in the sun. */
+  --bg: #9cbc4a;
+  --panel: #fbf9ef;
+  --panel-raised: #ffffff;
+  --line: #8a7a3a;
+  --ink: #1f2414;
+  --muted: #4d5638;
+  --bg-ink: #1a2410;
+  --bg-muted: #2f3d14;
+
+  /* A palm frond in shade. */
+  --accent: #2e6a2c;
+  --accent-ink: #fbf8ec;
+  --accent-hover: #24561f;
+
+  /* Teal for right, so it is not the accent's leaf green. */
+  --ok: #1d6a6a;
+  --ok-ink: #fbf8ec;
+  --bad: #a3301c;
+  --bad-ink: #fff8f2;
+  --warn: #855400;
+  --warn-ink: #fffaf2;
+
+  /* The sea around the atoll, and a ripe mahogany. */
+  --more: #2f5f8a;
+  --less: #9a3b16;
+
+  --gem-sapphire: #a6c6ec;
+  --gem-emerald: #a2dab0;
+  --gem-ruby: #f2aca2;
+  --gem-red-topaz: #f08fc0;
+  --gem-dragonstone: #dcb5e6;
+  --gem-zenyte: #f2c47e;
+  --gem-ink: #1f2414;
+
+  /* Soft as leaves, with the hard shadow of a noon sun. */
+  --radius: 8px;
+  --border-width: 2px;
+  --shadow: 0 3px 0 rgb(40 60 10 / 0.35);
+  --scrim: rgb(26 36 16 / 0.5);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* Tufts of grass and the shadow of a frond; a length of bamboo along every panel. */
+  --texture-panel: url('./assets/textures/jungle-bamboo.svg');
+  --texture-bg: url('./assets/textures/jungle-grass.svg');
+
+  /* Bark cloth, darker than the panels, inside its bamboo frame. */
+  --scroll-paper: #eadcb4;
+  --scroll-edge: #8a7a3a;
+  --scroll-ink: #2a2210;
+  --scroll-muted: #54471f;
+  --scroll-facet-light: 0.08;
+
+  color-scheme: light;
+}
+
+/* Prifddinas, the elves' crystal city: white walls under sea-green roofs, on grass that
+   glows blue-green at night. The floor leans blue so the theme is not a third green one
+   beside the jungle and the swamp. The sheet is the Gauntlet's board, dark inside a
+   glowing crystal rim, as the game draws it under the city. */
+[data-theme='prifddinas'] {
+  /* The night grass, and the city's white stone. */
+  --bg: #17566e;
+  --panel: #eeeef4;
+  --panel-raised: #fafafd;
+  --line: #b9bccb;
+  --ink: #1d2230;
+  --muted: #4b5163;
+  --bg-ink: #eaf8fb;
+  --bg-muted: #b4dce6;
+
+  /* The roofs. */
+  --accent: #3d7d6a;
+  --accent-ink: #ffffff;
+  --accent-hover: #326a59;
+
+  --ok: #2a6a1a;
+  --ok-ink: #ffffff;
+  --bad: #a8283e;
+  --bad-ink: #ffffff;
+  --warn: #855400;
+  --warn-ink: #ffffff;
+
+  --more: #2c5a94;
+  --less: #9a3b16;
+
+  /* Pale stones, cooled like the crystal around them. */
+  --gem-sapphire: #a6c0ee;
+  --gem-emerald: #a6dcc4;
+  --gem-ruby: #f2b2b8;
+  --gem-red-topaz: #efa6d2;
+  --gem-dragonstone: #cdb6ee;
+  --gem-zenyte: #f0cf86;
+  --gem-ink: #1d2230;
+
+  /* Dressed stone: barely rounded, lifted off the grass by a soft shadow. */
+  --radius: 4px;
+  --border-width: 2px;
+  --shadow: 0 4px 14px rgb(8 30 40 / 0.35);
+  --scrim: rgb(8 30 40 / 0.55);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* Tufts of glowing grass; a roof's green edge along every panel. */
+  --texture-panel: url('./assets/textures/prifddinas-roof.svg');
+  --texture-bg: url('./assets/textures/prifddinas-grass.svg');
+
+  /* The Gauntlet's board: near-black, its rim the crystal's cyan. */
+  --scroll-paper: #201e1e;
+  --scroll-edge: #7acdd2;
+  --scroll-ink: #f0ead2;
+  --scroll-muted: #8adfe3;
+  --scroll-facet-light: 0.04;
+
+  color-scheme: light;
+}
+
+/* Morytania's Mort Myre: murky teal water between banks of land, and the gravestone as the
+   stage's sheet. Dark like the Wilderness, but wet and green where that is dry and grey;
+   the accent is the moonlight on the fog. */
+[data-theme='morytania'] {
+  /* The swamp water, and wet stone. */
+  --bg: #0f3d35;
+  --panel: #1b2a26;
+  --panel-raised: #23352f;
+  --line: #3f5f55;
+  --ink: #e4ece2;
+  --muted: #a3b7ad;
+  --bg-ink: #e4ece2;
+  --bg-muted: #a3c2b6;
+
+  /* Moonlight through the fog. */
+  --accent: #b9a3e3;
+  --accent-ink: #141a16;
+  --accent-hover: #cbb9ee;
+
+  --ok: #7dc08a;
+  --ok-ink: #141a16;
+  --bad: #e8806f;
+  --bad-ink: #141a16;
+  --warn: #d9ab5b;
+  --warn-ink: #141a16;
+
+  /* Blue and amber: neither is a verdict, nor the fog's lilac. */
+  --more: #8ab4f0;
+  --less: #e8a86a;
+
+  --gem-sapphire: #1e3f7a;
+  --gem-emerald: #15613a;
+  --gem-ruby: #7d1c22;
+  --gem-red-topaz: #9a2f6e;
+  --gem-dragonstone: #5a2172;
+  --gem-zenyte: #7c4510;
+  --gem-ink: #e4ece2;
+
+  /* Worn stone, and a heavy drop into the mud. */
+  --radius: 5px;
+  --border-width: 2px;
+  --shadow: 0 3px 0 rgb(0 0 0 / 0.5);
+  --scrim: rgb(0 0 0 / 0.6);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* Banks, ripples and reeds. The panels stay plain stone. */
+  --texture-panel: none;
+  --texture-bg: url('./assets/textures/morytania-swamp.svg');
+
+  /* The gravestone: grey stone, engraved dark. */
+  --scroll-paper: #b0b0a6;
+  --scroll-edge: #4a4c48;
+  --scroll-ink: #1c201d;
+  --scroll-muted: #363b37;
+  --scroll-facet-light: 0.06;
+
+  color-scheme: dark;
+}
+
 :root {
   /* The reading column, and the wide page that Home, Create and Admin take. The bar and
      footer follow whichever the screen under them uses. */

@@ -21,7 +21,16 @@ from typing import Literal
 import asyncpg
 
 # Kept equal to ``THEMES`` in ``client/src/lib/theme.ts`` by ``tests/test_stats.py``.
-Theme = Literal["jolly", "pollnivneach", "wilderness", "party_room", "tzhaar"]
+Theme = Literal[
+    "jolly",
+    "pollnivneach",
+    "wilderness",
+    "party_room",
+    "tzhaar",
+    "jungle",
+    "prifddinas",
+    "morytania",
+]
 Device = Literal["mobile", "desktop"]
 # How the player reached the room: Home's public list, an invite link with its key, a code
 # typed on Home, or a plain link to the room.

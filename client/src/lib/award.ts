@@ -13,6 +13,9 @@ import bountySkull2 from '../assets/sprites/bounty-skull-2.svg'
 import bountySkull3 from '../assets/sprites/bounty-skull-3.svg'
 import bountySkull4 from '../assets/sprites/bounty-skull-4.svg'
 import bountySkull5 from '../assets/sprites/bounty-skull-5.svg'
+import crystalShard from '../assets/sprites/crystal-shard.svg'
+import monkey from '../assets/sprites/monkey.svg'
+import snelm from '../assets/sprites/snelm.svg'
 import superKebab from '../assets/sprites/super-kebab.svg'
 import tokkul from '../assets/sprites/tokkul.svg'
 import type { PlayerResult } from './protocol'
@@ -58,6 +61,12 @@ export function pinFor(theme: string, points: number): Pin {
       return sprite(tokkul)
     case 'wilderness':
       return sprite(bountySkull(points))
+    case 'jungle':
+      return sprite(monkey)
+    case 'prifddinas':
+      return sprite(crystalShard)
+    case 'morytania':
+      return sprite(snelm)
     default:
       return RIBBON
   }

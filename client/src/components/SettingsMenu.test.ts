@@ -445,15 +445,22 @@ describe('SettingsMenu, the themes', () => {
     expect(names).toEqual(THEMES.map((theme) => THEME_LABELS[theme].name))
   })
 
-  it('offers Toktz last, with its placeholder emblem, and nothing disabled', async () => {
+  it('offers Toktz, Jungle, Prifddinas and Morytania last, each with its emblem, and nothing disabled', async () => {
     await opened()
     expect(radios().filter((radio) => radio.disabled)).toEqual([])
-    const tzhaar = radios().at(-1)!
-    expect(tzhaar.value).toBe('tzhaar')
-    expect(tzhaar.closest('label')!.textContent!.trim()).toBe('Toktz')
-    await fireEvent.click(tzhaar)
-    expect(document.documentElement.dataset.theme).toBe('tzhaar')
-    expect(barEmblem()).toBe('tzhaar')
+    const newest = radios().slice(-4)
+    expect(newest.map((radio) => radio.value)).toEqual(['tzhaar', 'jungle', 'prifddinas', 'morytania'])
+    expect(newest.map((radio) => radio.closest('label')!.textContent!.trim())).toEqual([
+      'Toktz',
+      'Jungle',
+      'Prifddinas',
+      'Morytania',
+    ])
+    for (const radio of newest) {
+      await fireEvent.click(radio)
+      expect(document.documentElement.dataset.theme).toBe(radio.value)
+      expect(barEmblem()).toBe(radio.value)
+    }
   })
 
   it('shows jolly selected to a browser that never chose, on a dark device too', async () => {

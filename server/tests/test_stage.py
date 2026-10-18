@@ -33,10 +33,17 @@ def test_no_style_attribute_or_directive_on_the_stage() -> None:
         assert re.search(r"(?<![\w-])style:", source) is None
 
 
-def test_only_the_roll_body_stretches() -> None:
-    """The knobs keep their aspect ratio at every height; the body stretches lengthwise."""
-    stretched = re.findall(r'<svg class="([^"]+)"[^>]*preserveAspectRatio="none"', SCROLL)
-    assert stretched == ["body", "facets"]
+def test_only_what_runs_lengthwise_stretches() -> None:
+    """The knobs, lashings and corners keep their aspect ratio at every size; only what has
+    no ends to distort stretches: a roll's body, the facets, a bamboo pole along its bands
+    and the earth under the gravestone."""
+    svgs = re.findall(r"<svg\s[^>]*>", SCROLL)
+    stretched = [
+        re.search(r'class="([^"\s]+)', tag).group(1)  # type: ignore[union-attr]
+        for tag in svgs
+        if 'preserveAspectRatio="none"' in tag
+    ]
+    assert stretched == ["body", "pole", "mound", "facets"]
     assert re.search(r'<svg class="finial[^>]*preserveAspectRatio', SCROLL) is None
 
 

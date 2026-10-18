@@ -46,7 +46,16 @@ def test_every_shipped_theme_passes(css: str) -> None:
 
 def test_every_theme_defines_every_token(css: str) -> None:
     themes = check.parse_themes(css)
-    assert set(themes) == {"jolly", "pollnivneach", "wilderness", "party_room", "tzhaar"}
+    assert set(themes) == {
+        "jolly",
+        "pollnivneach",
+        "wilderness",
+        "party_room",
+        "tzhaar",
+        "jungle",
+        "prifddinas",
+        "morytania",
+    }
     for name, tokens in themes.items():
         missing = [token for token in check.REQUIRED_TOKENS if token not in tokens]
         assert missing == [], f"{name} is missing {missing}"
