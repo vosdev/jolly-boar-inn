@@ -16,17 +16,18 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
 | `tzhaar` | Toktz | Hot. The volcano's cracked obsidian floor. | Brown-black, red seams, near-black panels | Lava orange |
 | `jungle` | Jungle | Karamja and Ape Atoll at noon. | Sunlit grass, bark-cloth panels with bamboo trim | Palm green |
-| `prifddinas` | Prifddinas | The elves' crystal city at night. | Blue-green glowing grass, white stone panels | Roof sea-green |
+| `gauntlet` | Gauntlet | The crystal dungeon under Prifddinas. | Navy tiled floor, rock-grey panels with a cyan top edge | Crystal cyan |
 | `morytania` | Morytania | Mort Myre's swamp. | Murky teal water and banks, dark stone panels | Moonlit lilac |
 
 - `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
 - Variety between rounds comes from the round's host (§8), never from the palette. A palette that
   shifts under a question changes what the buttons mean.
-- Two themes draw on the page behind the panels. `party_room` scatters balloons and red partyhats
-  across its floor afresh each visit (`PartyFloor.svelte`). `jolly` hangs a lit, flickering candle
-  lantern on the wall either side, level with Broav, the right one mirrored (`InnLanterns.svelte`);
-  only from 800px wide, shrinking as the room beside the clue scroll narrows, so never on a phone.
+- Three themes draw on the page behind the panels. `party_room` scatters balloons and red
+  partyhats across its floor afresh each visit (`PartyFloor.svelte`). A wall light hangs either
+  side, level with Broav, the right one mirrored (`WallLights.svelte`): `jolly` a flickering candle
+  lantern, `gauntlet` the dungeon's door logo, glowing steady cyan. Only from 800px wide, shrinking
+  as the room beside the sheet narrows, so never on a phone.
 
 ## 2. Colour: the token contract
 
@@ -187,7 +188,7 @@ Every round is presented by an NPC, the **host**, standing beside the theme's **
 quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wilderness` nails up a
 sooty bounty poster under the game's skull, `party_room` hangs a cream card in a checked border
 under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
-`jungle` lashes bark cloth into a bamboo frame, `prifddinas` shows the Gauntlet's dark board in a
+`jungle` lashes bark cloth into a bamboo frame, `gauntlet` shows the Gauntlet's dark board in a
 glowing crystal rim, and `morytania` raises a gravestone, which a long sheet makes a pillar.
 The sheet carries the round's introduction on the splash and then every question; the answers
 sit under it.
@@ -229,7 +230,7 @@ Round 2 of 5 · 5 questions
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
   partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
-  `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, `prifddinas` a
+  `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, `gauntlet` a
   crystal shard, `morytania` a pointed snelm, and `wilderness` the Bounty Hunter skull for the
   points: bronze under 200, then iron, green and blue, red from 800. A game sprite is drawn at
   twice its pixels, centred on the edge. Full credit alone adds a burst of confetti (900 ms) in

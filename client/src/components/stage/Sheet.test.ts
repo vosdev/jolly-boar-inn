@@ -63,10 +63,10 @@ describe('the sheet', () => {
     expect(container.querySelector('.stage-row')?.classList.contains('flat')).toBe(true)
   })
 
-  it("is the Gauntlet's board in Prifddinas, its corners cut and a close button at its head", () => {
-    const { sheet } = stage('prifddinas')
+  it("is the Gauntlet's board in the Gauntlet, its corners cut and no close button", () => {
+    const { sheet } = stage('gauntlet')
     expect(sheet.dataset.sheet).toBe('gauntlet')
-    expect(sheet.querySelector('.paper svg.close')).not.toBeNull()
+    expect(sheet.querySelector('.paper svg.close')).toBeNull()
     expect(sheet.querySelectorAll('.paper svg.cut')).toHaveLength(4)
     expect(sheet.querySelector('.roll')).toBeNull()
   })
@@ -81,7 +81,7 @@ describe('the sheet', () => {
   })
 
   it('keeps the words on the sheet whatever it is', () => {
-    const themes = ['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar', 'jungle', 'prifddinas', 'morytania']
+    const themes = ['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar', 'jungle', 'gauntlet', 'morytania']
     for (const theme of themes) {
       const { sheet } = stage(theme)
       expect(sheet.querySelector('.paper .content')?.textContent).toBe('Which boss drops the Tanzanite fang?')

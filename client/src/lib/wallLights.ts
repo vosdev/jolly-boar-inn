@@ -1,10 +1,11 @@
 /**
- * The colours of the inn's wall lanterns, drawn after the game's lit white candle lantern:
- * fixed art, the same whatever the panels around them are painted.
+ * The colours of the wall lights: fixed art, the same whatever the panels around them are
+ * painted.
  */
 
-/** Iron, glass, candle and flame, each face shaded as the game's model shades it. */
-export const ART = {
+/** The inn's lantern, after the game's lit white candle lantern: iron, glass, candle and
+ * flame, each face shaded as the game's model shades it. */
+export const LANTERN = {
   glassEdge: '#f6d87a',
   glassLit: '#fde9a0',
   glassFar: '#f3d475',
@@ -27,4 +28,11 @@ export const ART = {
   shelfEdge: '#2a2624',
   shelfTop: '#5a534e',
   bracketLit: '#4a4441',
+} as const
+
+/** The Gauntlet's door logo: the crystal's cyan, its paler core, and the dark it is cut into. */
+export const DOOR_LOGO = {
+  glow: '#1ac8d8',
+  core: '#78f8f8',
+  cut: '#0c1414',
 } as const

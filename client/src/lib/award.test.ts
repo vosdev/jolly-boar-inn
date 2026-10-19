@@ -45,10 +45,10 @@ describe('pinFor', () => {
     }
   })
 
-  it('pins a monkey in the jungle, a crystal shard in Prifddinas and a snelm in Morytania', () => {
+  it('pins a monkey in the jungle, a crystal shard in the Gauntlet and a snelm in Morytania', () => {
     for (const points of [1, 600, 1000]) {
       expect(pinFor('jungle', points)).toEqual({ url: monkey, sprite: true })
-      expect(pinFor('prifddinas', points)).toEqual({ url: crystalShard, sprite: true })
+      expect(pinFor('gauntlet', points)).toEqual({ url: crystalShard, sprite: true })
       expect(pinFor('morytania', points)).toEqual({ url: snelm, sprite: true })
     }
   })
