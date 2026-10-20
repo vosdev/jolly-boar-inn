@@ -125,6 +125,16 @@ def test_a_scroll_the_colour_of_the_panel_fails(css: str) -> None:
     assert any("--scroll-paper" in line and "--panel" in line for line in problems)
 
 
+def test_a_shadow_lost_on_its_sheet_fails(css: str) -> None:
+    """Black on the Wilderness's dark poster: the outline, which is the question, is gone."""
+    problems = check.check(_swap(css, "wilderness", "--silhouette", "#0b0908"))
+    assert any(
+        line.startswith("wilderness: --silhouette reaches only")
+        and line.endswith("against --scroll-paper, needs 3.0:1")
+        for line in problems
+    ), problems
+
+
 def test_ok_and_bad_of_the_same_hue_fail(css: str) -> None:
     """Green and red is not the cue; the 60 degrees between them is."""
     broken = _swap(css, "wilderness", "--bad", "#5fae6f")

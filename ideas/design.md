@@ -43,7 +43,7 @@ and 7. Layers 3, 4 and 8 are a contract that `scripts/check_contrast.py` enforce
 | 5. Gems | `--gem-sapphire` `--gem-emerald` `--gem-ruby` `--gem-red-topaz` `--gem-dragonstone` `--gem-zenyte` `--gem-ink` | Freely, within the gem checks |
 | 6. Shape | `--radius` `--border-width` `--shadow` `--font-display` `--font-body` `--font-numeric` | Freely |
 | 7. Texture | `--texture-panel` `--texture-bg` (a local `url()` or `none`) | Freely |
-| 8. Sheet | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` | Must pass contrast |
+| 8. Sheet | `--scroll-paper` `--scroll-edge` `--scroll-ink` `--scroll-muted` `--silhouette` | Must pass contrast |
 
 No text sits on the bare page: each screen opens with its heading and tagline on a panel, and the
 `--bg-ink` page inks are only a fallback. `--more` and `--less` are not right and wrong, so they
@@ -61,7 +61,8 @@ The script asserts, per `[data-theme]` block:
   whole reveal. That is why there is no diamond or onyx: white and black wash into a panel of their
   own lightness.
 - Layer 8: `--scroll-ink` at 7:1 and `--scroll-muted` at 4.5:1 on `--scroll-paper`, and the
-  paper at least 10 ΔE from `--bg` and `--panel`, so the sheet stands off the page.
+  paper at least 10 ΔE from `--bg` and `--panel`, so the sheet stands off the page. `--silhouette`
+  at 3:1 on the paper.
 
 ## 3. Gems and the reveal
 
@@ -283,6 +284,9 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   question's heading is for a screen reader only.
 - A pack question's picture, the wiki's detail render, is centred under the prompt in a box 5rem
   tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.
+  Who's That NPC? gives it 12rem and its shadow, which fades into the render (700 ms) with the name
+  under it on the reveal. One flat colour, no glow or gradient, so a see-through part shows lighter
+  in every theme: the scroll ink, Toktz's lava orange and the Gauntlet's crystal cyan.
   An item's inventory icon, in a 72px box at whole pixels, sits under The Price is Right's question
   and above each More or Less name. Without a file, the name stands alone.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body

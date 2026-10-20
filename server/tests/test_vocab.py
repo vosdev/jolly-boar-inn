@@ -1,6 +1,6 @@
 """The vocabulary half: a roster with two entries of the same name refuses to
 load, and ``GET /api/vocab/{name}`` serves the list a ``pick_from_list`` round answers
-from -- ``items`` from the roster, ``npcs`` a 404 until its facts are written.
+from -- ``items`` and ``npcs`` from their curated lists.
 """
 
 import json
@@ -107,14 +107,21 @@ def test_api_vocab_items_serves_the_roster(client: TestClient) -> None:
     assert set(body["entries"][0]) == {"id", "name"}
 
 
-@pytest.mark.parametrize("name", ["npcs", "quests", "examines"])
+def test_the_shipped_npc_list_loads_as_the_npcs_vocabulary(client: TestClient) -> None:
+    npcs = vocab.get("npcs")
+    listed = json.loads(vocab.SOURCES["npcs"].read_text(encoding="utf-8"))["npcs"]
+    assert npcs is not None and len(npcs.entries) == len(listed)
+    assert npcs.name_of(2042) == "Zulrah"
+    body = client.get("/api/vocab/npcs").json()
+    assert (body["vocab"], body["version"]) == ("npcs", npcs.version)
+    assert {"id": 3105, "name": "Hans"} in body["entries"]
+
+
+@pytest.mark.parametrize("name", ["quests", "examines"])
 def test_api_vocab_is_a_404_for_a_list_this_build_does_not_have(
     client: TestClient, name: str
 ) -> None:
-    """``npcs`` until ``data/facts/npcs.json`` is written; anything else always, ``examines``
-    included now that Guess the Examine plays with buttons."""
-    if name == "npcs" and vocab.get("npcs") is not None:
-        pytest.skip("npcs.json exists now")
+    """``examines`` included, now that Guess the Examine plays with buttons."""
     response = client.get(f"/api/vocab/{name}")
     assert response.status_code == 404
     assert response.json()["code"] == "not_found"

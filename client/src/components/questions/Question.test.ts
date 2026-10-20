@@ -461,10 +461,48 @@ describe('a pack question’s picture', () => {
     expect(revealed.container.querySelector('.picture, img[src^="/pictures/"]')).toBeNull()
   })
 
+  it('is never a shadow and has no caption in a mode that does not ask for one', () => {
+    render(QuestionStage, {
+      question: pictured('0123abcd.png'),
+      reveal: { ...REVEAL, prompt: PROMPT, subject: { name: 'Abyssal whip' } },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(paper().querySelector('.shadow, .fill, .lifted, .caption, .large')).toBeNull()
+  })
+
   it('is left out of the fallback for a type this build cannot show', () => {
     const question = { ...open('from_a_newer_server', 'stemmed'), picture: '0123abcd.png' }
     const { container } = render(Question, { question, yourValue: null, onAnswer })
     expect(container.querySelector('.picture, img[src^="/pictures/"]')).toBeNull()
+  })
+})
+
+describe('Who’s That NPC?’s shadow', () => {
+  const VIEW_NPC = { prompt: "Who's that NPC?", vocab: 'npcs' }
+  const question = { ...open('pick_from_list', 'whos_that_npc', VIEW_NPC), picture: 'feedc0de.png' }
+  const paper = () => document.querySelector('.paper') as HTMLElement
+
+  it('is the picture’s outline in the theme’s colour while the question is open', () => {
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    const frame = paper().querySelector('.picture.large .frame.shadow')!
+    expect(frame.querySelector('img')!.getAttribute('src')).toBe('/pictures/feedc0de.png')
+    const fill = frame.querySelector<HTMLElement>('.fill')!
+    expect(fill.style.getPropertyValue('--outline')).toBe("url('/pictures/feedc0de.png')")
+    expect(frame.classList.contains('lifted')).toBe(false)
+    expect(paper().querySelector('.caption')).toBeNull()
+  })
+
+  it('fades into the render with its name on the reveal', () => {
+    render(QuestionStage, {
+      question,
+      reveal: { ...VIEW_NPC, answer_id: 8058, subject: { name: 'Vorkath' } },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(paper().querySelector('.picture.large img')!.getAttribute('src')).toBe('/pictures/feedc0de.png')
+    expect(paper().querySelector('.frame.shadow.lifted .fill')).toBeTruthy()
+    expect(paper().querySelector('.caption')!.textContent).toBe('Vorkath')
   })
 })
 

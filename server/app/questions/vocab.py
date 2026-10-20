@@ -10,10 +10,10 @@ sound, and this module is where it is held to that:
   rather than shipping a question nobody can be sure of.
 - **Ids are distinct**, because the id is the answer.
 
-``items`` is the curated roster, ``data/popular-items.json``, which exists before any
-importer does. ``npcs`` is ``data/facts/npcs.json``, which an importer writes; until then
-it is simply absent, and ``GET /api/vocab/npcs`` is a 404 rather than an empty list that
-would look like a vocabulary with nobody in it.
+``items`` is the curated item roster, ``data/popular-items.json``, and ``npcs`` its
+counterpart for monsters and NPCs, ``data/popular-npcs.json``. A missing file is no
+vocabulary, and ``GET /api/vocab/<name>`` a 404, rather than an empty list that would look
+like a vocabulary with nobody in it.
 
 Both are read once and never change while the process runs. ``version`` is a hash of the
 entries, so a client holding a list from one build can tell it is not this build's. It is
@@ -33,7 +33,7 @@ from app.config import REPO_ROOT
 
 SOURCES: dict[str, Path] = {
     "items": REPO_ROOT / "data" / "popular-items.json",
-    "npcs": REPO_ROOT / "data" / "facts" / "npcs.json",
+    "npcs": REPO_ROOT / "data" / "popular-npcs.json",
 }
 
 

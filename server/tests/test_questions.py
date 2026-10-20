@@ -200,8 +200,8 @@ def test_an_unknown_mode_is_reported() -> None:
     assert schema.consistency_errors(q) == [
         "$.mode: 'zoom_quiz' is not a mode this build plays"
         " (it plays more_less, price_is_right, guess_examine, sort_it_out, who_said_that,"
-        " know_your_content_creator, bestiary, drop_table, odd_one_out, random_events_only,"
-        " custom, random_event)"
+        " know_your_content_creator, bestiary, drop_table, odd_one_out, whos_that_npc,"
+        " random_events_only, custom, random_event)"
     ]
 
 
@@ -766,8 +766,8 @@ def test_a_hand_written_pack_needs_no_generated_at(tmp_path: Path) -> None:
     assert (loaded.generated_at, len(loaded.questions)) == (None, 1)
 
 
-def _picked(prompt: str, answer_id: int, name: str) -> dict[str, Any]:
-    # No round plays pick_from_list yet, so these are an NPC's questions.
+def _picked(prompt: str, answer_id: int, name: str, image: str | None = None) -> dict[str, Any]:
+    # An NPC's questions, so one file can hold them without a round of the item list.
     q: dict[str, Any] = {
         "type": "pick_from_list",
         "mode": "random_event",
@@ -780,6 +780,8 @@ def _picked(prompt: str, answer_id: int, name: str) -> dict[str, Any]:
             "subject": {"name": name},
         },
     }
+    if image is not None:
+        q["payload"]["image"] = image
     q["id"] = schema.content_id(q)
     return q
 
@@ -802,6 +804,15 @@ def test_validate_packs_fails_one_prompt_under_two_answers(tmp_path: Path) -> No
         " asked in random_events/bob.json questions[0], answered 4151 there and 4587 here;"
         " a line may have only one answer"
     ) in result.stderr
+
+
+def test_one_prompt_may_head_several_answers_when_each_shows_its_picture(tmp_path: Path) -> None:
+    """The picture is the question, as in Who's That NPC?, so the line can stay the same."""
+    first = _picked("Whose is this?", 4151, "Abyssal whip", image="item:4151")
+    second = _picked("Whose is this?", 4587, "Dragon scimitar", image="item:4587")
+    _write_npc(tmp_path, "bob", [first, second])
+    result = _validate_packs(tmp_path)
+    assert result.returncode == 0, result.stderr
 
 
 def test_one_answer_may_be_asked_in_several_lines(tmp_path: Path) -> None:

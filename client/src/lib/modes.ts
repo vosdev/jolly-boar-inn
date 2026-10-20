@@ -53,6 +53,11 @@ export interface Mode extends HostLines {
    * this file stays free of `.svelte` imports.
    */
   stem: StemId | null
+  /**
+   * How the question's picture shows while it is open: `shadow` fills its outline with the
+   * theme's `--silhouette` and puts the name under it on the reveal. Left out, as it is.
+   */
+  picture?: 'shadow'
 }
 
 /**
@@ -184,6 +189,19 @@ export const MODES: Record<string, Mode> = {
     // The question is the same line each time; the names below it are all there is to read.
     stem: 'text',
   },
+  whos_that_npc: {
+    id: 'whos_that_npc',
+    label: 'Who is That NPC?',
+    hint: "It's Elvarg!",
+    host: { id: 'postie_pete', name: 'Postie Pete' },
+    greeting: 'Parcel for you! No name on it, mind. Only a shadow.',
+    blurb: "Everyone in Gielinor gets post from me. I'll show you a shadow; you tell me who it's for.",
+    waiting: 'Hold on, still sorting the post.',
+    reveal: 'Signed, sealed, delivered.',
+    // The prompt is the same line every time; the shadow under it is the question.
+    stem: 'text',
+    picture: 'shadow',
+  },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {
     id: 'random_events_only',
@@ -236,7 +254,6 @@ export const MODES: Record<string, Mode> = {
  * interruption.
  */
 export const UPCOMING_MODES: { id: string; label: string; hint: string; host: string }[] = [
-  { id: 'whos_that_npc', label: 'Who is That NPC?', hint: "It's Elvarg!", host: 'postie_pete' },
   { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'aris' },
   { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
   { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!', host: 'aubury' },

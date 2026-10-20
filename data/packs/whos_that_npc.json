@@ -1,0 +1,955 @@
+{
+  "pack": "whos_that_npc",
+  "questions": [
+    {
+      "id": "q_b32c5b46cd355128",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7241,
+        "image": "npc:7241",
+        "subject": {
+          "name": "Abyssal demon"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_demon"
+    },
+    {
+      "id": "q_b6b1706e27081e73",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8615,
+        "image": "npc:8615",
+        "subject": {
+          "name": "Alchemical Hydra"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
+    },
+    {
+      "id": "q_e854660450947713",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8195,
+        "image": "npc:8195",
+        "subject": {
+          "name": "Bryophyta"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Bryophyta"
+    },
+    {
+      "id": "q_460370c206b53e8b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6609,
+        "image": "npc:6609",
+        "subject": {
+          "name": "Callisto"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Callisto"
+    },
+    {
+      "id": "q_1a74007194f5e695",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 5862,
+        "image": "npc:5862",
+        "subject": {
+          "name": "Cerberus"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
+    },
+    {
+      "id": "q_63df5eb489bd0d27",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2054,
+        "image": "npc:2054",
+        "subject": {
+          "name": "Chaos Elemental"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Chaos_Elemental"
+    },
+    {
+      "id": "q_28a2a95e4f60ad36",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 1173,
+        "image": "npc:1173",
+        "subject": {
+          "name": "Chicken"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Chicken"
+    },
+    {
+      "id": "q_4c16aabe7a2ea297",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2205,
+        "image": "npc:2205",
+        "subject": {
+          "name": "Commander Zilyana"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Commander_Zilyana"
+    },
+    {
+      "id": "q_72392f417d44a123",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 319,
+        "image": "npc:319",
+        "subject": {
+          "name": "Corporeal Beast"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+    },
+    {
+      "id": "q_9516fce827e342ee",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3481,
+        "image": "npc:3481",
+        "subject": {
+          "name": "Count Draynor"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Count_Draynor"
+    },
+    {
+      "id": "q_2a0bdde842487b5e",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2790,
+        "image": "npc:2790",
+        "subject": {
+          "name": "Cow"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Cow"
+    },
+    {
+      "id": "q_9f5108cebeb9229f",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2267,
+        "image": "npc:2267",
+        "subject": {
+          "name": "Dagannoth Rex"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Dagannoth_Rex"
+    },
+    {
+      "id": "q_3b8990b46107c0b7",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3893,
+        "image": "npc:3893",
+        "subject": {
+          "name": "Doric"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Doric"
+    },
+    {
+      "id": "q_576f5f37dc12b768",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 815,
+        "image": "npc:815",
+        "subject": {
+          "name": "Duke Horacio"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Duke_Horacio"
+    },
+    {
+      "id": "q_080f746e34b171e9",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 817,
+        "image": "npc:817",
+        "subject": {
+          "name": "Elvarg"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Elvarg"
+    },
+    {
+      "id": "q_87163b923d77f418",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 1543,
+        "image": "npc:1543",
+        "subject": {
+          "name": "Gargoyle"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Gargoyle"
+    },
+    {
+      "id": "q_af912a3d56d4301c",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2215,
+        "image": "npc:2215",
+        "subject": {
+          "name": "General Graardor"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+    },
+    {
+      "id": "q_9c04714916098887",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7723,
+        "image": "npc:7723",
+        "subject": {
+          "name": "Gertrude"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Gertrude"
+    },
+    {
+      "id": "q_52b215b671fc28c0",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 5779,
+        "image": "npc:5779",
+        "subject": {
+          "name": "Giant Mole"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
+    },
+    {
+      "id": "q_afa459cde5293808",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3045,
+        "image": "npc:3045",
+        "subject": {
+          "name": "Goblin"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Goblin"
+    },
+    {
+      "id": "q_c576f776f9b2910b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7551,
+        "image": "npc:7551",
+        "subject": {
+          "name": "Great Olm"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Great_Olm"
+    },
+    {
+      "id": "q_314a5cf9008006fd",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3105,
+        "image": "npc:3105",
+        "subject": {
+          "name": "Hans"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Hans"
+    },
+    {
+      "id": "q_0aa8eb164c243158",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2098,
+        "image": "npc:2098",
+        "subject": {
+          "name": "Hill Giant"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Hill_Giant"
+    },
+    {
+      "id": "q_2feccf5babb56810",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 5007,
+        "image": "npc:5007",
+        "subject": {
+          "name": "Imp"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Imp"
+    },
+    {
+      "id": "q_58ed5aa0837d98fd",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 5035,
+        "image": "npc:5035",
+        "subject": {
+          "name": "Juliet"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Juliet"
+    },
+    {
+      "id": "q_340ca4b79ccb0cea",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3129,
+        "image": "npc:3129",
+        "subject": {
+          "name": "K'ril Tsutsaroth"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/K'ril_Tsutsaroth"
+    },
+    {
+      "id": "q_1bb1ade6a4fbacc9",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 965,
+        "image": "npc:965",
+        "subject": {
+          "name": "Kalphite Queen"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen"
+    },
+    {
+      "id": "q_135ad8a936fa26f3",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 239,
+        "image": "npc:239",
+        "subject": {
+          "name": "King Black Dragon"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon"
+    },
+    {
+      "id": "q_956e1801692d94fb",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8019,
+        "image": "npc:8019",
+        "subject": {
+          "name": "King Narnode Shareen"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/King_Narnode_Shareen"
+    },
+    {
+      "id": "q_cb42d70e16a50dd8",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 4163,
+        "image": "npc:4163",
+        "subject": {
+          "name": "King Roald"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/King_Roald"
+    },
+    {
+      "id": "q_fbcc5b9388a1d074",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 494,
+        "image": "npc:494",
+        "subject": {
+          "name": "Kraken"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kraken"
+    },
+    {
+      "id": "q_5b2951b082bfb447",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3162,
+        "image": "npc:3162",
+        "subject": {
+          "name": "Kree'arra"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Kree'arra"
+    },
+    {
+      "id": "q_02460fb5a7b14df4",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7247,
+        "image": "npc:7247",
+        "subject": {
+          "name": "Lesser demon"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lesser_demon"
+    },
+    {
+      "id": "q_73f1562aff2ba5f2",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7416,
+        "image": "npc:7416",
+        "subject": {
+          "name": "Obor"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Obor"
+    },
+    {
+      "id": "q_d41dbb85a5a5af4c",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 822,
+        "image": "npc:822",
+        "subject": {
+          "name": "Oziach"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Oziach"
+    },
+    {
+      "id": "q_f8845214077a0222",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 5792,
+        "image": "npc:5792",
+        "subject": {
+          "name": "Party Pete"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Party_Pete"
+    },
+    {
+      "id": "q_421b4e6a6e0a52c7",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 5037,
+        "image": "npc:5037",
+        "subject": {
+          "name": "Romeo"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Romeo"
+    },
+    {
+      "id": "q_6df687637f973814",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8713,
+        "image": "npc:8713",
+        "subject": {
+          "name": "Sarachnis"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sarachnis"
+    },
+    {
+      "id": "q_2bae07cf449a0f70",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6615,
+        "image": "npc:6615",
+        "subject": {
+          "name": "Scorpia"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Scorpia"
+    },
+    {
+      "id": "q_cf2c14c2b55226b9",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 1867,
+        "image": "npc:1867",
+        "subject": {
+          "name": "Sir Amik Varze"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Sir_Amik_Varze"
+    },
+    {
+      "id": "q_8d764aaee89573f7",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 9425,
+        "image": "npc:9425",
+        "subject": {
+          "name": "The Nightmare"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/The_Nightmare"
+    },
+    {
+      "id": "q_29e4e013591e0d5b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 4733,
+        "image": "npc:4733",
+        "subject": {
+          "name": "Thurgo"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Thurgo"
+    },
+    {
+      "id": "q_183527e875d01757",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7706,
+        "image": "npc:7706",
+        "subject": {
+          "name": "TzKal-Zuk"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/TzKal-Zuk"
+    },
+    {
+      "id": "q_4c5c5ac2f0b76c0c",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3127,
+        "image": "npc:3127",
+        "subject": {
+          "name": "TzTok-Jad"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/TzTok-Jad"
+    },
+    {
+      "id": "q_f163f7bbf7683b46",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6610,
+        "image": "npc:6610",
+        "subject": {
+          "name": "Venenatis"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Venenatis"
+    },
+    {
+      "id": "q_58b8cbdbf6c108f3",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6611,
+        "image": "npc:6611",
+        "subject": {
+          "name": "Vet'ion"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vet'ion"
+    },
+    {
+      "id": "q_6e6f75ceba3a713f",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 8058,
+        "image": "npc:8058",
+        "subject": {
+          "name": "Vorkath"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+    },
+    {
+      "id": "q_6c45a5e3ca5d32fe",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2108,
+        "image": "npc:2108",
+        "subject": {
+          "name": "Wise Old Man"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Wise_Old_Man"
+    },
+    {
+      "id": "q_4b9837f1f8757c46",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2318,
+        "image": "npc:2318",
+        "subject": {
+          "name": "Zanik"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zanik"
+    },
+    {
+      "id": "q_39bf2967d79ac90c",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2042,
+        "image": "npc:2042",
+        "subject": {
+          "name": "Zulrah"
+        }
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+    }
+  ]
+}

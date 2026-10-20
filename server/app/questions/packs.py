@@ -20,8 +20,10 @@ Three ways to get that wrong, each refused by name:
 Loading validates every question completely (schema, content id, consistency) and rejects
 duplicate ids within and across packs, the event folder included. It also refuses one
 ``pick_from_list`` prompt asked twice of a vocabulary, compared folded, because a line asked
-under two answers has two right entries in the list, and a pack whose questions disagree
-on ``as_of``: a price mode shows one date for its prices, not one per question.
+under two answers has two right entries in the list. A question with a picture is exempt:
+the picture is what it asks, so "Who's that NPC?" can head every one. It also refuses a
+pack whose questions disagree on ``as_of``: a price mode shows one date for its prices,
+not one per question.
 ``random_event`` is an envelope field and stays out of the content id, so a question moved
 from one NPC to another keeps its id. Any problem raises ``PackError``: the app must not
 start with a broken pack, and CI runs the same check via ``scripts/validate_packs.py``.
@@ -148,7 +150,7 @@ def _repeated_prompts(
     """``pick_from_list`` prompts already asked of the same vocabulary, recorded in ``seen``."""
     errors: list[str] = []
     for index, question in enumerate(questions):
-        if question["type"] != "pick_from_list":
+        if question["type"] != "pick_from_list" or "image" in question["payload"]:
             continue
         payload = question["payload"]
         key = (payload["vocab"], fold(" ".join(payload["prompt"].split())))
