@@ -24,10 +24,10 @@ import asyncpg
 Theme = Literal[
     "jolly",
     "pollnivneach",
-    "wilderness",
+    "jungle",
     "party_room",
     "tzhaar",
-    "jungle",
+    "wilderness",
     "gauntlet",
     "morytania",
 ]

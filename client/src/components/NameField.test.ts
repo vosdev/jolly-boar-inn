@@ -15,6 +15,12 @@ describe('NameField', () => {
     expect(field().maxLength).toBe(NAME_MAX)
   })
 
+  it('writes no line under the field unless given a hint or a problem', () => {
+    const { container } = render(NameField, { id: 'name', value: 'Zezima' })
+    expect(container.querySelector('p')).toBeNull()
+    expect(field().hasAttribute('aria-describedby')).toBe(false)
+  })
+
   it('rolls a new name without taking focus off the field', async () => {
     render(NameField, { id: 'name', value: 'Zezima' })
     field().focus()

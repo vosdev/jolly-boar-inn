@@ -22,10 +22,10 @@ import { defaultTheme, favicons } from 'virtual:branding'
 export const THEMES = [
   'jolly',
   'pollnivneach',
-  'wilderness',
+  'jungle',
   'party_room',
   'tzhaar',
-  'jungle',
+  'wilderness',
   'gauntlet',
   'morytania',
 ] as const
@@ -36,10 +36,10 @@ export type Theme = (typeof THEMES)[number]
 export const THEME_LABELS: Record<Theme, { name: string }> = {
   jolly: { name: 'Jolly Boar Inn' },
   pollnivneach: { name: 'Pollnivneach' },
-  wilderness: { name: 'Wilderness' },
+  jungle: { name: 'Jungle' },
   party_room: { name: 'Party Room' },
   tzhaar: { name: 'Toktz' },
-  jungle: { name: 'Jungle' },
+  wilderness: { name: 'Wilderness' },
   gauntlet: { name: 'Gauntlet' },
   morytania: { name: 'Morytania' },
 }

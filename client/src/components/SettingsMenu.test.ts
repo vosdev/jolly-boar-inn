@@ -445,18 +445,20 @@ describe('SettingsMenu, the themes', () => {
     expect(names).toEqual(THEMES.map((theme) => THEME_LABELS[theme].name))
   })
 
-  it('offers Toktz, Jungle, Gauntlet and Morytania last, each with its emblem, and nothing disabled', async () => {
+  it('puts the light themes first and the dark ones after, each with its emblem, nothing disabled', async () => {
     await opened()
     expect(radios().filter((radio) => radio.disabled)).toEqual([])
-    const newest = radios().slice(-4)
-    expect(newest.map((radio) => radio.value)).toEqual(['tzhaar', 'jungle', 'gauntlet', 'morytania'])
-    expect(newest.map((radio) => radio.closest('label')!.textContent!.trim())).toEqual([
-      'Toktz',
-      'Jungle',
-      'Gauntlet',
-      'Morytania',
+    expect(radios().map((radio) => radio.value)).toEqual([
+      'jolly',
+      'pollnivneach',
+      'jungle',
+      'party_room',
+      'tzhaar',
+      'wilderness',
+      'gauntlet',
+      'morytania',
     ])
-    for (const radio of newest) {
+    for (const radio of radios().slice(1)) {
       await fireEvent.click(radio)
       expect(document.documentElement.dataset.theme).toBe(radio.value)
       expect(barEmblem()).toBe(radio.value)
@@ -476,7 +478,7 @@ describe('SettingsMenu, the themes', () => {
     expect(radios().find((radio) => radio.checked)?.value).toBe('wilderness')
   })
 
-  it('draws each emblem on a tile in its own theme, beside its name', async () => {
+  it('draws each emblem on a tile in its own theme, its name for a screen reader only', async () => {
     await opened()
     const rows = radios().map((radio) => radio.closest('label')!)
     expect(rows.map((row) => row.querySelector<HTMLElement>('.tile')?.dataset.theme)).toEqual([
@@ -485,6 +487,20 @@ describe('SettingsMenu, the themes', () => {
     expect(
       rows.map((row) => row.querySelector<SVGElement>('[data-placeholder]')?.dataset.placeholder),
     ).toEqual([...EMBLEMS])
+    for (const row of rows) {
+      expect([...row.querySelectorAll('span')].filter((span) => span.textContent!.trim() !== ''))
+        .toEqual([row.querySelector('.sr')])
+    }
+  })
+
+  it('writes the chosen theme’s name under the grid, and follows a new pick', async () => {
+    localStorage.setItem('jbi:theme', 'wilderness')
+    await opened()
+    const group = screen.getByRole('group', { name: 'Theme' })
+    const shown = () => group.querySelector('.current')!.textContent
+    expect(shown()).toBe('Wilderness')
+    await fireEvent.click(radios().find((radio) => radio.value === 'morytania')!)
+    expect(shown()).toBe('Morytania')
   })
 
   it('repaints at once, changes the bar’s emblem, stays open, and remembers', async () => {
@@ -506,7 +522,7 @@ describe('SettingsMenu, the themes', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(denied)
     await opened()
     expect(radios().find((radio) => radio.checked)?.value).toBe('jolly')
-    await fireEvent.click(radios()[2]!)
+    await fireEvent.click(radios().find((radio) => radio.value === 'wilderness')!)
     expect(document.documentElement.dataset.theme).toBe('wilderness')
   })
 })

@@ -16,7 +16,7 @@
     value = $bindable(),
     label = 'Your display name',
     avoid = '',
-    hint = '1–24 characters.',
+    hint = '',
   }: {
     id: string
     value: string
@@ -50,7 +50,7 @@
       autocapitalize="off"
       spellcheck="false"
       aria-invalid={problem !== null}
-      aria-describedby="{id}-hint"
+      aria-describedby={problem !== null || hint !== '' ? `${id}-hint` : undefined}
     />
     <button
       type="button"
@@ -66,7 +66,7 @@
   </div>
   {#if problem !== null}
     <p class="error" id="{id}-hint">{problem}</p>
-  {:else}
+  {:else if hint !== ''}
     <p class="note" id="{id}-hint">{hint}</p>
   {/if}
 </div>

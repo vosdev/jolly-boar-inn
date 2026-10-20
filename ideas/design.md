@@ -12,10 +12,10 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 |---|---|---|---|---|
 | `jolly` | Jolly Boar Inn | Default. Oak, candlelight, spilled ale. | Warm mid-brown, cream panels | Ale amber / hearth orange |
 | `pollnivneach` | Pollnivneach | Bright desert noon. | Sandstone, off-white panels | Terracotta, indigo shade |
-| `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
+| `jungle` | Jungle | Karamja and Ape Atoll at noon. | Sunlit grass, bark-cloth panels with bamboo trim | Palm green |
 | `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
 | `tzhaar` | Toktz | Hot. The volcano's cracked obsidian floor. | Brown-black, ember seams, near-black panels | Lava orange |
-| `jungle` | Jungle | Karamja and Ape Atoll at noon. | Sunlit grass, bark-cloth panels with bamboo trim | Palm green |
+| `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
 | `gauntlet` | Gauntlet | The crystal dungeon under Prifddinas. | Navy tiled floor, rock-grey panels with a cyan top edge | Crystal cyan |
 | `morytania` | Morytania | Mort Myre's swamp. | Murky teal water and banks, dark stone panels | Moonlit lilac |
 
@@ -131,8 +131,8 @@ learns the position, which is worth more than variety.
   or push the controls off a phone. The lobby and Join show the code instead.
 
 The control opens one panel: **You** (name and pet; the local profile outside a room, the live
-player via `set_profile` inside one), **Sound** (§7) and **Theme**, a column of emblems beside their
-names, the chosen one ringed. Picking a theme repaints at once and the panel stays open. Escape, a
+player via `set_profile` inside one), **Sound** (§7) and **Theme**, a grid of emblems four abreast,
+the chosen one ringed and named under it. Picking a theme repaints at once and the panel stays open. Escape, a
 tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
 elsewhere. An emblem is an item icon of the theme's place (§14), 32px in the bar; unfetched, a flat
 mark in the theme's `--accent` stands in.

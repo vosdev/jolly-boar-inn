@@ -1,12 +1,16 @@
 <script lang="ts">
   /**
-   * The menu's Theme section (section 1 of ideas/design.md): one row per theme, its emblem
-   * on the left and its name on the right, the chosen one ringed.
+   * The menu's Theme section (section 1 of ideas/design.md): a grid of emblem tiles, the
+   * chosen one ringed.
    *
-   * One row per theme `app.css` defines — `THEMES`, which a test holds to the stylesheet —
+   * One tile per theme `app.css` defines — `THEMES`, which a test holds to the stylesheet —
    * then the themes still to come, disabled, so players see what is on its way. Nothing
    * else: no "follow my device", because nothing in this app follows the device. A
-   * browser that has never chosen is on `jolly`, and the list says so.
+   * browser that has never chosen is on `jolly`, and the grid says so.
+   *
+   * A list of rows grew a full row per theme and pushed the menu past a phone's height, so
+   * the tiles sit four abreast and only the chosen theme's name is written out, under them.
+   * Every tile still carries its name for a screen reader.
    *
    * Each emblem sits on a tile carrying its own `data-theme`, so the tile is that theme's
    * panel and the mark is in that theme's accent, whatever the page is painted in.
@@ -16,32 +20,37 @@
    * `data-theme` on <html> changes, so nothing remounts: a question stays open and its
    * timer keeps running on the server's clock.
    */
-  import { EMBLEMS, isBuilt, UNBUILT_THEMES } from '../lib/emblems'
+  import { EMBLEMS, isBuilt, UNBUILT_THEMES, type EmblemId } from '../lib/emblems'
   import { THEME_LABELS, type Theme } from '../lib/theme'
   import Emblem from './Emblem.svelte'
 
   let { current, onpick }: { current: Theme; onpick: (theme: Theme) => void } = $props()
+
+  function nameOf(theme: EmblemId): string {
+    return isBuilt(theme) ? THEME_LABELS[theme].name : UNBUILT_THEMES[theme]
+  }
 </script>
 
 <fieldset>
   <legend class="section-title">Theme</legend>
-  {#each EMBLEMS as theme (theme)}
-    {@const built = isBuilt(theme)}
-    <label class="option" class:selected={theme === current} class:unbuilt={!built}>
-      <input
-        type="radio"
-        name="theme"
-        value={theme}
-        disabled={!built}
-        checked={theme === current}
-        onchange={() => isBuilt(theme) && onpick(theme)}
-      />
-      <span class="tile" data-theme={theme} aria-hidden="true"><Emblem {theme} /></span>
-      <span class="theme-name">
-        {isBuilt(theme) ? THEME_LABELS[theme].name : UNBUILT_THEMES[theme]}
-      </span>
-    </label>
-  {/each}
+  <div class="grid">
+    {#each EMBLEMS as theme (theme)}
+      {@const built = isBuilt(theme)}
+      <label class="option" class:selected={theme === current} class:unbuilt={!built}>
+        <input
+          type="radio"
+          name="theme"
+          value={theme}
+          disabled={!built}
+          checked={theme === current}
+          onchange={() => isBuilt(theme) && onpick(theme)}
+        />
+        <span class="tile" data-theme={theme} aria-hidden="true"><Emblem {theme} /></span>
+        <span class="sr">{nameOf(theme)}</span>
+      </label>
+    {/each}
+  </div>
+  <p class="current" aria-hidden="true">{THEME_LABELS[current].name}</p>
 </fieldset>
 
 <style>
@@ -49,21 +58,23 @@
     margin: 0;
     padding: 0;
     border: none;
+  }
+
+  .grid {
     display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.3rem;
   }
 
   .option {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
+    position: relative;
+    display: grid;
+    justify-items: center;
     margin: 0;
-    padding: 0.35rem;
+    padding: 0.3rem 0;
     border: var(--border-width) solid transparent;
     border-radius: var(--radius);
     color: var(--ink);
-    font-size: 0.95rem;
-    font-weight: 600;
     cursor: pointer;
   }
 
@@ -86,7 +97,7 @@
     outline-offset: 2px;
   }
 
-  /* The radio is the keyboard's way in — arrows move through the themes — and the row
+  /* The radio is the keyboard's way in — arrows move through the themes — and the tile
      around it is what the eye reads, so the circle itself is not drawn. */
   input {
     position: absolute;
@@ -100,12 +111,19 @@
   /* Resolves against the tile's own data-theme, not the page's. Plain panel, without
      the texture, which is busier than a 32px mark can stand against. */
   .tile {
-    flex: none;
     width: 2.75rem;
     height: 2.75rem;
     padding: 0.35rem;
     background: var(--panel);
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
+  }
+
+
+  .current {
+    margin: 0.4rem 0 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
   }
 </style>

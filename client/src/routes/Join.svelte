@@ -306,7 +306,6 @@
           id="name"
           bind:value={displayName}
           avoid={code}
-          hint="1–24 characters, and not one somebody else already took."
         />
         <button
           class="primary"
