@@ -14,7 +14,7 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `pollnivneach` | Pollnivneach | Bright desert noon. | Sandstone, off-white panels | Terracotta, indigo shade |
 | `wilderness` | Wilderness | Dark. Cold ash and ember. | Near-black slate | Ember red, bone white |
 | `party_room` | Party Room | Loud. A drop party, as in game. | Two-blue checks, balloons, white panels | Tablecloth blue |
-| `tzhaar` | Toktz | Hot. The volcano's cracked obsidian floor. | Brown-black, red seams, near-black panels | Lava orange |
+| `tzhaar` | Toktz | Hot. The volcano's cracked obsidian floor. | Brown-black, ember seams, near-black panels | Lava orange |
 | `jungle` | Jungle | Karamja and Ape Atoll at noon. | Sunlit grass, bark-cloth panels with bamboo trim | Palm green |
 | `gauntlet` | Gauntlet | The crystal dungeon under Prifddinas. | Navy tiled floor, rock-grey panels with a cyan top edge | Crystal cyan |
 | `morytania` | Morytania | Mort Myre's swamp. | Murky teal water and banks, dark stone panels | Moonlit lilac |

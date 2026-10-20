@@ -211,15 +211,15 @@ def test_tzhaar_keeps_wrong_apart_from_lava_with_colour_blindness_simulated() ->
 
 
 def test_tzhaar_is_not_the_wilderness_twice() -> None:
-    """Both are near-black, so the floor alone barely differs: the red edge and the lava
-    accent are what tell them apart, with the cracks under them."""
+    """Both are near-black, so the floor alone barely differs: the lava accent and the
+    cracks under it tell them apart, and the edge only has to stay warm rock, not grey."""
     floors = {
         token: check.delta_e(colour("tzhaar", token), colour("wilderness", token))
         for token in ("--bg", "--panel", "--line", "--accent")
     }
     assert floors["--bg"] >= 5
     assert floors["--panel"] >= 12
-    assert floors["--line"] >= 70
+    assert floors["--line"] >= 15
     assert floors["--accent"] >= 15
 
 
