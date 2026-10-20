@@ -13,8 +13,8 @@ placeholder: a flat mark in its own accent colour.
 | `party_room.png` | Party Room | Red partyhat | A partyhat |
 | `tzhaar.png` | Toktz | Toktz-ket-xil | A volcano |
 | `jungle.png` | Jungle | Banana | A banana |
-| `gauntlet.png` | Gauntlet | Crystal teleport seed | Three crystal shards |
-| `corrupted_gauntlet.png` | Corrupted Gauntlet | Crystal teleport seed | Three crystal shards |
+| `gauntlet.png` | Gauntlet | Crystal of Amlodd | Three crystal shards |
+| `corrupted_gauntlet.png` | Corrupted Gauntlet | Crystal of Hefin | Three crystal shards |
 | `morytania.png` | Morytania | Ectophial | A stoppered flask |
 
 Any file named `<theme>.<ext>` works, `<ext>` being `avif`, `webp`, `png`, `jpg`, `jpeg` or
