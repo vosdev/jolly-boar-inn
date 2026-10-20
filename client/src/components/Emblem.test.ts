@@ -21,16 +21,18 @@ describe('Emblem', () => {
     expect(container.querySelector('svg')).toBeNull()
   })
 
-  it('draws a mark of its own for every emblem without a file', () => {
-    const marks = new Set<string>()
+  it('draws a mark of its own for every emblem without a file, a recolour its original’s', () => {
+    const marks = new Map<string, string>()
     for (const theme of EMBLEMS.filter((id) => id !== 'wilderness')) {
       const { container, unmount } = render(Emblem, { theme })
       expect(container.querySelector('img')).toBeNull()
       const svg = container.querySelector('svg')!
       expect(svg.dataset.placeholder).toBe(theme)
-      marks.add(svg.innerHTML)
+      marks.set(theme, svg.innerHTML)
       unmount()
     }
-    expect(marks.size).toBe(EMBLEMS.length - 1)
+    expect(marks.get('corrupted_gauntlet')).toBe(marks.get('gauntlet'))
+    marks.delete('corrupted_gauntlet')
+    expect(new Set(marks.values()).size).toBe(EMBLEMS.length - 2)
   })
 })

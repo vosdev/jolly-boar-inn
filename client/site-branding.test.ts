@@ -141,6 +141,7 @@ describe('definedThemes', () => {
         'tzhaar',
         'jungle',
         'gauntlet',
+        'corrupted_gauntlet',
         'morytania',
       ]),
     )

@@ -13,6 +13,7 @@ describe('sheetFor', () => {
     expect(sheetFor('tzhaar')).toBe('slab')
     expect(sheetFor('jungle')).toBe('bamboo')
     expect(sheetFor('gauntlet')).toBe('gauntlet')
+    expect(sheetFor('corrupted_gauntlet')).toBe('gauntlet')
     expect(sheetFor('morytania')).toBe('gravestone')
   })
 
@@ -24,6 +25,7 @@ describe('sheetFor', () => {
     expect(sheetFor('tzhaar', true)).toBe('slab')
     expect(sheetFor('jungle', true)).toBe('bamboo')
     expect(sheetFor('gauntlet', true)).toBe('gauntlet')
+    expect(sheetFor('corrupted_gauntlet', true)).toBe('gauntlet')
     expect(sheetFor('morytania', true)).toBe('gravestone')
   })
 

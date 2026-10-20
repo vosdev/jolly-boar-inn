@@ -54,6 +54,7 @@ def test_every_theme_defines_every_token(css: str) -> None:
         "tzhaar",
         "jungle",
         "gauntlet",
+        "corrupted_gauntlet",
         "morytania",
     }
     for name, tokens in themes.items():

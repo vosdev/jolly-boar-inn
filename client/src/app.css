@@ -528,6 +528,69 @@
   color-scheme: dark;
 }
 
+/* The Corrupted Gauntlet: the same dungeon gone red, a maroon grid on its floor and the
+   door logos burning red. Only the colours differ from the Gauntlet. Wrong is a rose red,
+   because the accent is the red that wrong would otherwise be. */
+[data-theme='corrupted_gauntlet'] {
+  /* The tiled floor, and the dungeon's rock. */
+  --bg: #240c14;
+  --panel: #2a2424;
+  --panel-raised: #352d2d;
+  --line: #4e4040;
+  --ink: #eee2dc;
+  --muted: #b9a59e;
+  --bg-ink: #f6e6e2;
+  --bg-muted: #c8aaa6;
+
+  /* The corruption. */
+  --accent: #e2483e;
+  --accent-ink: #1a0606;
+  --accent-hover: #ec6c62;
+
+  --ok: #7dc08a;
+  --ok-ink: #161313;
+  --bad: #ef6c98;
+  --bad-ink: #161313;
+  --warn: #dcae5c;
+  --warn-ink: #161313;
+
+  /* Violet and amber: neither is a verdict, nor the corruption's red. */
+  --more: #b5a2f2;
+  --less: #e8a86a;
+
+  --gem-sapphire: #1e3f7a;
+  --gem-emerald: #15613a;
+  --gem-ruby: #7d1c22;
+  --gem-red-topaz: #9a2f6e;
+  --gem-dragonstone: #5a2172;
+  --gem-zenyte: #7c4510;
+  --gem-ink: #eee2dc;
+
+  /* Cut rock: barely rounded, a dark rim and a deep drop onto the floor. */
+  --radius: 4px;
+  --border-width: 2px;
+  --shadow: 0 0 0 1px rgb(0 0 0 / 0.35), 0 6px 18px rgb(0 0 0 / 0.5);
+  --scrim: rgb(0 0 0 / 0.6);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  /* Floor tiles in a maroon grid; a line of red light along every panel's top. */
+  --texture-panel: url('./assets/textures/corrupted-gauntlet-edge.svg');
+  --texture-bg: url('./assets/textures/corrupted-gauntlet-tiles.svg');
+
+  /* The Gauntlet's board, its rim red, and blacker than the Gauntlet's so it stands off a
+     floor this warm. */
+  --scroll-paper: #0b0b0b;
+  --scroll-edge: #e0705e;
+  --scroll-ink: #f0ead2;
+  --scroll-muted: #f2a08e;
+  --scroll-facet-light: 0.04;
+  --silhouette: #e2483e;
+
+  color-scheme: dark;
+}
+
 /* Morytania's Mort Myre: murky teal water between banks of land, and the gravestone as the
    stage's sheet. Dark like the Wilderness, but wet and green where that is dry and grey;
    the accent is the moonlight on the fog. */

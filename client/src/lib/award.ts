@@ -64,6 +64,7 @@ export function pinFor(theme: string, points: number): Pin {
     case 'jungle':
       return sprite(monkey)
     case 'gauntlet':
+    case 'corrupted_gauntlet':
       return sprite(crystalShard)
     case 'morytania':
       return sprite(snelm)

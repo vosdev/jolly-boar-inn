@@ -458,6 +458,7 @@ describe('SettingsMenu, the themes', () => {
       'tzhaar',
       'wilderness',
       'gauntlet',
+      'corrupted_gauntlet',
       'morytania',
     ])
     for (const radio of radios().slice(1)) {

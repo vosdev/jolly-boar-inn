@@ -29,6 +29,7 @@ Theme = Literal[
     "tzhaar",
     "wilderness",
     "gauntlet",
+    "corrupted_gauntlet",
     "morytania",
 ]
 Device = Literal["mobile", "desktop"]

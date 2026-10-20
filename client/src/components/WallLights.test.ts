@@ -1,7 +1,7 @@
 /**
  * The wall lights hang while a theme that has them is on, and only then, following
  * `data-theme` on <html> as the menu changes it: the inn's lanterns under Jolly, the door
- * logos under the Gauntlet.
+ * logos under both Gauntlets.
  */
 
 import { render } from '@testing-library/svelte'
@@ -42,6 +42,24 @@ describe('WallLights', () => {
       2,
     )
     expect(container.querySelector('[data-light] svg[viewBox="0 0 97 160"]')).toBeNull()
+  })
+
+  it('lights the door logos red under the Corrupted Gauntlet, cyan under the Gauntlet', async () => {
+    const glows = (container: HTMLElement): string[] => [
+      ...new Set(
+        [...container.querySelectorAll('[data-light] svg circle[r="37"]')].map(
+          (ring) => ring.closest('g')?.getAttribute('stroke') ?? '',
+        ),
+      ),
+    ]
+    const corrupted = await shown('corrupted_gauntlet')
+    expect(corrupted.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe(
+      'corrupted_gauntlet',
+    )
+    expect(lights(corrupted)).toEqual(['left', 'right'])
+    expect(glows(corrupted)).toEqual(['#0c1414', '#e2483e'])
+    corrupted.remove()
+    expect(glows(await shown('gauntlet'))).toEqual(['#0c1414', '#1ac8d8'])
   })
 
   it('gives each lantern its own glass, so the two drawings never share an id', async () => {

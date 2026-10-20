@@ -55,6 +55,7 @@ export function sheetFor(theme: string, board = false): Sheet {
     case 'jungle':
       return 'bamboo'
     case 'gauntlet':
+    case 'corrupted_gauntlet':
       return 'gauntlet'
     case 'morytania':
       return 'gravestone'

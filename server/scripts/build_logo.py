@@ -153,6 +153,25 @@ THEMES: dict[str, dict[str, str]] = {
         "eye-hi": "#f0ffff",
         "eye-glow": "#5fe6ea",
         "tusk-glow": "#8fe3e6",
+        "crystal-lo": "#bff3f3",
+        "crystal-hi": "#e9ffff",
+        "crystal-facet": "#8fe3e6",
+    },
+    # The same boar, its crystals, tusks and eyes corrupted red.
+    "corrupted_gauntlet": {
+        "ornament": "crystals",
+        "rim": "#40121a",
+        "hide-lo": "#160e0e",
+        "hide-hi": "#a6928c",
+        "tusk-lo": "#80302c",
+        "tusk-hi": "#ffe6e2",
+        "eye-lo": "#cf5f55",
+        "eye-hi": "#fff0ee",
+        "eye-glow": "#ea5f50",
+        "tusk-glow": "#e6908a",
+        "crystal-lo": "#f0928a",
+        "crystal-hi": "#ffd6d0",
+        "crystal-facet": "#e2483e",
     },
     # A Ghast, the swamp's near-invisible ghost: the body half gone, the eyes still lit.
     "morytania": {
@@ -307,6 +326,9 @@ RULES = "\n".join(
         f".boar-hat-hi {{ fill: {_var('hat-hi', '#4c78e8')}; }}",
         f".boar-leaves {{ {_shows('leaves')} }}",
         f".boar-crystals {{ {_shows('crystals')} }}",
+        f".boar-crystal-lo {{ fill: {_var('crystal-lo', '#bff3f3')}; }}",
+        f".boar-crystal-hi {{ fill: {_var('crystal-hi', '#e9ffff')}; }}",
+        f".boar-crystal-facet {{ fill: {_var('crystal-facet', '#8fe3e6')}; }}",
     ]
 )
 
@@ -446,11 +468,13 @@ def _leaves(rim: int) -> str:
 def _crystals(rim: int) -> str:
     parts = "".join(
         f'<path class="boar-rim" stroke-width="{rim}" d="{shape}"/>'
-        f'<path fill="#bff3f3" d="{shape}"/><path fill="#e9ffff" d="{lit}"/>'
+        f'<path class="boar-crystal-lo" d="{shape}"/><path class="boar-crystal-hi" d="{lit}"/>'
         for shape, lit in _SHARDS
     )
     return _crown(
-        "boar-crystals", 1.15, parts + '<path fill="#8fe3e6" d="M660 -300 L740 -100 L660 -60 Z"/>'
+        "boar-crystals",
+        1.15,
+        parts + '<path class="boar-crystal-facet" d="M660 -300 L740 -100 L660 -60 Z"/>',
     )
 
 

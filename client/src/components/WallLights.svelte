@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * A light on the wall either side of the page, behind everything, in the themes that
-   * hang one: the inn's candle lanterns, the Gauntlet's glowing door logos.
+   * hang one: the inn's candle lanterns, both Gauntlets' glowing door logos.
    *
    * Drawn only on a window wide enough to leave them room beside the stage: on a phone the
    * sheet and its host stand where they would hang. The right one is the left one mirrored,
@@ -13,7 +13,7 @@
   import GauntletDoorLogo from './GauntletDoorLogo.svelte'
   import InnLantern from './InnLantern.svelte'
 
-  const LIT = ['jolly', 'gauntlet'] as const
+  const LIT = ['jolly', 'gauntlet', 'corrupted_gauntlet'] as const
   type Lit = (typeof LIT)[number]
 
   let lit = $state<Lit | null>(null)
@@ -35,7 +35,7 @@
         {#if lit === 'jolly'}
           <InnLantern {side} />
         {:else}
-          <GauntletDoorLogo />
+          <GauntletDoorLogo gauntlet={lit} />
         {/if}
       </div>
     {/each}
@@ -84,6 +84,16 @@
     --light-near: rgb(26 200 216 / 0.42);
     --light-mid: rgb(26 200 216 / 0.2);
     --light-far: rgb(26 200 216 / 0.07);
+    --logo-glow: rgb(26 200 216 / 0.9);
+    --flicker: none;
+  }
+
+  /* The corruption's red, as steady. */
+  [data-lights='corrupted_gauntlet'] {
+    --light-near: rgb(226 72 62 / 0.42);
+    --light-mid: rgb(226 72 62 / 0.2);
+    --light-far: rgb(226 72 62 / 0.07);
+    --logo-glow: rgb(226 72 62 / 0.9);
     --flicker: none;
   }
 
