@@ -32,7 +32,15 @@ vi.mock('../lib/api', async (importOriginal) => {
 const navigate = vi.fn()
 const CREDENTIALS: api.Credentials = {
   session: 'token',
-  player: { id: 'a', display_name: 'Zezima', role: 'player', connected: true },
+  player: {
+    id: 'a',
+    display_name: 'Zezima',
+    role: 'player',
+    connected: true,
+    avatar: null,
+    ready: false,
+    editing: false,
+  },
 }
 const taken = () => new ApiFailure(409, 'name_taken', 'that name is taken')
 
@@ -337,6 +345,7 @@ describe('Join for a room that is gone', () => {
           rank: 1,
           points_gained: 900,
           previous_rank: null,
+          avatar: null,
         },
       ],
       youId: 'a',
@@ -411,6 +420,7 @@ describe('What a join tells the counters', () => {
           rank: 1,
           points_gained: 900,
           previous_rank: null,
+          avatar: null,
         },
       ],
       youId: 'a',

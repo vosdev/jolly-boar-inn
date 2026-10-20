@@ -36,6 +36,7 @@ const me: PlayerView = {
   role: 'player',
   connected: true,
   ready: false,
+  editing: false,
 }
 
 let sent: ClientMessage[]
@@ -78,6 +79,7 @@ const LOBBY: RoomView = {
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
+    name_wrong_answers: false,
   },
   current_index: null,
   total: 5,

@@ -1,4 +1,4 @@
-.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
+.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-price-questions import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -73,6 +73,12 @@ validate-packs:
 # D1: every theme in client/src/app.css against the token contract in ideas/design.md.
 check-contrast:
 	cd server && uv run python scripts/check_contrast.py
+
+# The websocket protocol's schema from server/app/ws/protocol.py, then the client's types from
+# it. Run after changing a message; a server and a client test fail until it has been.
+gen-protocol:
+	cd server && uv run python scripts/gen_protocol_schema.py
+	cd client && pnpm gen:protocol
 
 lint:
 	cd server && uv run ruff check . && uv run ruff format --check .

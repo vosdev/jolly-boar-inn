@@ -113,7 +113,7 @@ class ModeSettings(BaseModel):
     which is what the game loop and the lobby read.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
 
     mode: str
     questions: int = Field(ge=0)
@@ -144,41 +144,49 @@ def default_modes() -> list[ModeSettings]:
 class RoomSettings(BaseModel):
     """A room's settings as stored in and read back from ``rooms.settings``."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
 
-    # One round each, in this order unless ``mode_order`` says to shuffle them.
     modes: list[ModeSettings] = Field(default_factory=default_modes, min_length=1)
-    # ``"listed"``: the rounds play in the order the host arranged them, which is the
-    # order this list is in. ``"random"``: shuffled once, at creation.
+    """One round each, in this order unless ``mode_order`` says to shuffle them."""
     mode_order: Literal["listed", "random"] = "listed"
-    # One random event per 20, 10 or 5 round questions. ``None`` is a room stored while the
-    # choice was a boolean, with ``random_events: false``: its host's questions only (see the module
-    # docstring). Never ``None`` for a room created since.
+    """``"listed"``: the rounds play in the order the host arranged them, which is the order
+    this list is in. ``"random"``: shuffled once, at creation.
+    """
     random_event_frequency: Frequency | None = "default"
-    # Scales every question's time to answer and its reveal. A room stored before pace was
-    # a setting reads as ``run``, the times each type was written for.
+    """One random event per 20, 10 or 5 round questions. ``None`` is a room stored while the
+    choice was a boolean, with ``random_events: false``: its host's questions only (see the
+    module docstring). Never ``None`` for a room created since.
+    """
     pace: Pace = "run"
-    # How long the standings hold the floor between two rounds. Zero turns them off; the
-    # game's last round never has them, because the final screen is its standings.
-    # Defaulted, so a room stored before the field existed reads as a room that has them.
+    """Scales every question's time to answer and its reveal. A room stored before pace was a
+    setting reads as ``run``, the times each type was written for.
+    """
     standings_seconds: int = Field(default=10, ge=0)
+    """How long the standings hold the floor between two rounds. Zero turns them off; the game's
+    last round never has them, because the final screen is its standings. Defaulted, so a room
+    stored before the field existed reads as a room that has them.
+    """
     close_when_all_answered: bool = True
-    # Name the players who answered wrong under a reveal. The host's call, on unless
-    # they turn it off: the count of who got it right is always shown, the names are a
-    # room's taste. Nothing on the wire changes, since ``question_closed.results`` already
-    # carries every row; the setting only says whether the client prints the names.
     name_wrong_answers: bool = True
-    # Surprise rounds: a non-admin is sent only the rounds that have started
-    # (``Room.view``). Left off the wire while false, so a room without it reads exactly
-    # as one created before it existed.
+    """Name the players who answered wrong under a reveal. The host's call, on unless they turn
+    it off: the count of who got it right is always shown, the names are a room's taste. Nothing
+    on the wire changes, since ``question_closed.results`` already carries every row; the
+    setting only says whether the client prints the names.
+    """
     hide_rounds: bool = Field(default=False, exclude_if=lambda hide: not hide)
-    # Surprise modes: this many rounds drawn by the server at creation, hidden from the
-    # admin too, who did not pick them either. Implies ``hide_rounds``. Left off the wire
-    # at 0, like ``hide_rounds``.
+    """Surprise rounds: a non-admin is sent only the rounds that have started (``Room.view``).
+    Left off the wire while false, so a room without it reads exactly as one created before it
+    existed.
+    """
     surprise_modes: int = Field(default=0, ge=0, exclude_if=lambda count: count == 0)
-    # ``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
-    # so a stored room always has a number here.
+    """Surprise modes: this many rounds drawn by the server at creation, hidden from the admin
+    too, who did not pick them either. Implies ``hide_rounds``. Left off the wire at 0, like
+    ``hide_rounds``.
+    """
     max_players: int | None = Field(default=None, ge=1)
+    """``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
+    so a stored room always has a number here.
+    """
 
     @classmethod
     def stored(cls, data: Any) -> Self:

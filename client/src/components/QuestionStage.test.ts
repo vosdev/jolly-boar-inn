@@ -32,6 +32,10 @@ function open(patch: Partial<OpenQuestion> = {}, hold = HOLD): OpenQuestion {
     answerable_at: new Date(NOW + hold).toISOString(),
     ends_at: new Date(NOW + hold + 15_000).toISOString(),
     you_can_answer: true,
+    picture: null,
+    random_event: null,
+    answered: 0,
+    of: 0,
     ...patch,
   }
 }

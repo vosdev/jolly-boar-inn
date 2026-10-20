@@ -102,7 +102,15 @@ describe('Hiscores', () => {
 
   it('draws the pet and name the room last sent over the standing’s', () => {
     players.set([
-      { id: 'Woox', display_name: 'Woox2', avatar: 'baby_mole', role: 'player', connected: true },
+      {
+        id: 'Woox',
+        display_name: 'Woox2',
+        avatar: 'baby_mole',
+        role: 'player',
+        connected: true,
+        ready: false,
+        editing: false,
+      },
     ])
     const { container } = render(Hiscores, { rows: ROUND_TWO })
     expect(petsDrawn(rows(container)[0]!)).toEqual([{ pet: 'baby_mole', size: 28 }])

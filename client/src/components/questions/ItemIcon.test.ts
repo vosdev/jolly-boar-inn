@@ -31,6 +31,11 @@ function open(type: string, view: Record<string, unknown>): OpenQuestion {
     opened_at: '2026-09-21T20:00:00Z',
     ends_at: '2026-09-21T20:00:15Z',
     you_can_answer: true,
+    picture: null,
+    random_event: null,
+    answerable_at: '2026-09-21T20:00:00Z',
+    answered: 0,
+    of: 0,
   }
 }
 

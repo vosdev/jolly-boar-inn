@@ -309,6 +309,7 @@ describe('Layout', () => {
           rank: 1,
           points_gained: 900,
           previous_rank: null,
+          avatar: null,
         },
       ],
       youId: 'a',
@@ -364,6 +365,7 @@ describe('Past games', () => {
           rank: 1,
           points_gained: 900,
           previous_rank: null,
+          avatar: null,
         },
       ],
       youId: 'a',
@@ -394,6 +396,7 @@ describe('Past games', () => {
           rank: 1,
           points_gained: 900,
           previous_rank: null,
+          avatar: null,
         },
         {
           player_id: 'b',
@@ -402,6 +405,7 @@ describe('Past games', () => {
           rank: 2,
           points_gained: 400,
           previous_rank: null,
+          avatar: null,
         },
       ],
       youId: 'b',
@@ -424,6 +428,7 @@ describe('Past games', () => {
         rank: 1,
         points_gained: 900,
         previous_rank: null,
+        avatar: null,
       },
     ]
 
@@ -558,6 +563,7 @@ describe('Suggest or report a question', () => {
           rank: 1,
           points_gained: 900,
           previous_rank: null,
+          avatar: null,
         },
       ],
       youId: 'a',

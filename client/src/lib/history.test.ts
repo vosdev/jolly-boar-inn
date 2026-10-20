@@ -25,6 +25,7 @@ const STANDINGS: Standing[] = [
     rank: 1,
     points_gained: 900,
     previous_rank: null,
+    avatar: null,
   },
   {
     player_id: 'b',
@@ -33,6 +34,7 @@ const STANDINGS: Standing[] = [
     rank: 2,
     points_gained: 600,
     previous_rank: null,
+    avatar: null,
   },
   {
     player_id: 'c',
@@ -41,6 +43,7 @@ const STANDINGS: Standing[] = [
     rank: 2,
     points_gained: 600,
     previous_rank: null,
+    avatar: null,
   },
 ]
 

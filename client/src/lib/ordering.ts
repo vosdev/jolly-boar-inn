@@ -272,11 +272,14 @@ export function previewOf(question: OrderingQuestion, mode: string): OpenQuestio
     mode,
     segment: { mode, index: 0, total: 1, start: 0, count: 1 },
     view: { ...view, entries: shown },
+    picture: null,
     random_event: null,
     opened_at: opened,
     answerable_at: opened,
     ends_at: new Date(8.64e15).toISOString(),
     you_can_answer: true,
+    answered: 0,
+    of: 0,
   }
 }
 

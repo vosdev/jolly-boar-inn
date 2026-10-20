@@ -27,6 +27,8 @@ const me: PlayerView = {
   role: 'player',
   connected: true,
   ready: false,
+  avatar: null,
+  editing: false,
 }
 const host: PlayerView = { ...me, id: 'p0', display_name: 'Host', role: 'admin' }
 
@@ -59,6 +61,9 @@ function open(id: string): OpenQuestion {
     you_can_answer: true,
     answered: 0,
     of: 2,
+    picture: null,
+    random_event: null,
+    answerable_at: new Date(0).toISOString(),
   }
 }
 
@@ -170,6 +175,7 @@ describe('applyServerMessage', () => {
       standings: [],
       next_at: null,
       reveal_seconds: 8,
+      picture: null,
     })
     applyServerMessage({ t: 'error', code: 'not_open', message: 'no question is open' })
     expect(errorText(get(lastError)!)).toBe('Too late, that question had closed.')
@@ -187,6 +193,7 @@ describe('applyServerMessage', () => {
       standings: [],
       next_at: new Date(Date.now() + 16_000).toISOString(),
       reveal_seconds: 16,
+      picture: null,
     })
     expect(get(room)?.reveal_seconds).toBe(16)
     applyServerMessage({ t: 'question_open', question: open('q2') })
@@ -208,6 +215,7 @@ describe('a finished game', () => {
       rank: 1,
       points_gained: 900,
       previous_rank: null,
+      avatar: null,
     },
     {
       player_id: 'p1',
@@ -216,6 +224,7 @@ describe('a finished game', () => {
       rank: 2,
       points_gained: 400,
       previous_rank: null,
+      avatar: null,
     },
   ]
 

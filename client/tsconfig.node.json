@@ -24,6 +24,8 @@
     "site-branding.ts",
     "site-branding.test.ts",
     "theme-contract.test.ts",
-    "lint.test.ts"
+    "lint.test.ts",
+    "gen-protocol.ts",
+    "gen-protocol.test.ts"
   ]
 }

@@ -65,6 +65,11 @@ function open(type: string, mode: string, view: Record<string, unknown> = VIEW):
     opened_at: '2026-09-21T20:00:00Z',
     ends_at: '2026-09-21T20:00:10Z',
     you_can_answer: true,
+    picture: null,
+    random_event: null,
+    answerable_at: '2026-09-21T20:00:00Z',
+    answered: 0,
+    of: 0,
   }
 }
 

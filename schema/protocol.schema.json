@@ -1,0 +1,1337 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Protocol",
+  "description": "Every websocket frame: server/app/ws/protocol.py.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/ClientMessage"
+    },
+    {
+      "$ref": "#/$defs/ServerMessage"
+    }
+  ],
+  "$defs": {
+    "Answer": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "answer",
+          "type": "string"
+        },
+        "question_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "value": {}
+      },
+      "required": [
+        "t",
+        "question_id",
+        "value"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "AnswerAck": {
+      "additionalProperties": false,
+      "description": "How the answer will be scored and where it landed, never whether it was right.\n\n``band`` is the speed bucket (1..5) for ``speed``, the step the answer arrived on for\n``step``, and null for ``rank``: a guess ranked against everyone else's is worth\nnothing anybody can know until they have all answered.",
+      "properties": {
+        "t": {
+          "const": "answer_ack",
+          "default": "answer_ack",
+          "type": "string"
+        },
+        "question_id": {
+          "type": "string"
+        },
+        "scoring": {
+          "$ref": "#/$defs/Scoring"
+        },
+        "band": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "answered": {
+          "description": "The room's count with this answer in it: the answerer is left out of the ``answer_count``\nbroadcast, so the ack is where they hear it.",
+          "type": "integer"
+        },
+        "of": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t",
+        "question_id",
+        "scoring",
+        "band",
+        "answered",
+        "of"
+      ],
+      "title": "AnswerAck",
+      "type": "object"
+    },
+    "AnswerCount": {
+      "additionalProperties": false,
+      "description": "Somebody else has answered the open question: how many have, of how many can.\n\nOnly a count, never who, and never what: the waiting state shows \"4 of 6\nanswered\" and nothing a player could read an answer off. ``of`` is every connected\nplayer allowed to answer plus anyone who answered and has since dropped, so the count\nnever reads more than the total. A disconnect does not send a fresh count; the next\nanswer does.",
+      "properties": {
+        "t": {
+          "const": "answer_count",
+          "default": "answer_count",
+          "type": "string"
+        },
+        "question_id": {
+          "type": "string"
+        },
+        "answered": {
+          "type": "integer"
+        },
+        "of": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t",
+        "question_id",
+        "answered",
+        "of"
+      ],
+      "title": "AnswerCount",
+      "type": "object"
+    },
+    "ClientMessage": {
+      "discriminator": {
+        "mapping": {
+          "answer": "#/$defs/Answer",
+          "decide_request": "#/$defs/DecideRequest",
+          "editing": "#/$defs/Editing",
+          "end_game": "#/$defs/EndGame",
+          "end_round": "#/$defs/EndRound",
+          "hello": "#/$defs/Hello",
+          "kick": "#/$defs/Kick",
+          "ping": "#/$defs/Ping",
+          "promote": "#/$defs/Promote",
+          "ready": "#/$defs/Ready",
+          "rotate_key": "#/$defs/RotateKey",
+          "set_profile": "#/$defs/SetProfile",
+          "skip": "#/$defs/Skip",
+          "start_game": "#/$defs/StartGame"
+        },
+        "propertyName": "t"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Hello"
+        },
+        {
+          "$ref": "#/$defs/Ping"
+        },
+        {
+          "$ref": "#/$defs/Answer"
+        },
+        {
+          "$ref": "#/$defs/StartGame"
+        },
+        {
+          "$ref": "#/$defs/Skip"
+        },
+        {
+          "$ref": "#/$defs/Promote"
+        },
+        {
+          "$ref": "#/$defs/Kick"
+        },
+        {
+          "$ref": "#/$defs/EndGame"
+        },
+        {
+          "$ref": "#/$defs/EndRound"
+        },
+        {
+          "$ref": "#/$defs/RotateKey"
+        },
+        {
+          "$ref": "#/$defs/DecideRequest"
+        },
+        {
+          "$ref": "#/$defs/SetProfile"
+        },
+        {
+          "$ref": "#/$defs/Ready"
+        },
+        {
+          "$ref": "#/$defs/Editing"
+        }
+      ]
+    },
+    "DecideRequest": {
+      "additionalProperties": false,
+      "description": "Let a join request in, or turn it away. Lobby of an invite-only room only.",
+      "properties": {
+        "t": {
+          "const": "decide_request",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "accept": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "t",
+        "request_id",
+        "accept"
+      ],
+      "title": "DecideRequest",
+      "type": "object"
+    },
+    "Editing": {
+      "additionalProperties": false,
+      "description": "The name field gained focus (``on``), or lost it. Lobby only; ignored anywhere else.",
+      "properties": {
+        "t": {
+          "const": "editing",
+          "type": "string"
+        },
+        "on": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "t",
+        "on"
+      ],
+      "title": "Editing",
+      "type": "object"
+    },
+    "EndGame": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "end_game",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "EndGame",
+      "type": "object"
+    },
+    "EndRound": {
+      "additionalProperties": false,
+      "description": "End the round holding question ``index``, which must still be the room's.",
+      "properties": {
+        "t": {
+          "const": "end_round",
+          "type": "string"
+        },
+        "index": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t",
+        "index"
+      ],
+      "title": "EndRound",
+      "type": "object"
+    },
+    "Error": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "error",
+          "default": "error",
+          "type": "string"
+        },
+        "code": {
+          "enum": [
+            "bad_hello",
+            "bad_message",
+            "not_admin",
+            "not_open",
+            "already_answered",
+            "excluded",
+            "bad_value",
+            "bad_state",
+            "bad_name",
+            "name_taken",
+            "bad_avatar"
+          ],
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "code",
+        "message"
+      ],
+      "title": "Error",
+      "type": "object"
+    },
+    "GameFinished": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "game_finished",
+          "default": "game_finished",
+          "type": "string"
+        },
+        "standings": {
+          "items": {
+            "$ref": "#/$defs/Standing"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "t",
+        "standings"
+      ],
+      "title": "GameFinished",
+      "type": "object"
+    },
+    "Hello": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "hello",
+          "type": "string"
+        },
+        "session": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "session"
+      ],
+      "title": "Hello",
+      "type": "object"
+    },
+    "JoinRequestView": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "avatar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "As on ``PlayerView``."
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "avatar"
+      ],
+      "title": "JoinRequestView",
+      "type": "object"
+    },
+    "Kick": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "kick",
+          "type": "string"
+        },
+        "player_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "player_id"
+      ],
+      "title": "Kick",
+      "type": "object"
+    },
+    "ModeSettings": {
+      "additionalProperties": false,
+      "description": "One mode's round: how many questions it holds.\n\nOptional on the way in and filled from the mode's own ``Bounds``, so\n``{\"mode\": \"more_less\"}`` is a complete round. After validation it is always present,\nwhich is what the game loop and the lobby read.",
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "questions": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "mode",
+        "questions"
+      ],
+      "title": "ModeSettings",
+      "type": "object"
+    },
+    "OpenQuestion": {
+      "additionalProperties": false,
+      "description": "What every socket sees while a question is open: ``client_view`` only, never the\nanswer or the raw payload (section 3, \"What the server withholds from the admin\").",
+      "properties": {
+        "question_id": {
+          "description": "The ``questions`` row id, never the content id: that one hashes the answer.",
+          "type": "string"
+        },
+        "index": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "type": {
+          "description": "How it is answered: the key into ``questions/types``.",
+          "type": "string"
+        },
+        "mode": {
+          "description": "Which mode it was drawn for (``app/modes``); not always the same string as ``type``. On\nthe question itself rather than only on ``segment``, because it is a fact about the\nquestion, and the round it sits in is a different fact that merely agrees today.",
+          "type": "string"
+        },
+        "segment": {
+          "$ref": "#/$defs/Segment",
+          "description": "Repeated from ``RoomView`` because the client patches its room from this frame rather\nthan replacing it, and a round can change without a splash to announce it (a restart in the\nsplash resumes at the question)."
+        },
+        "view": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "picture": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The picture's random name in the client's bundle (``app/pictures.py``), or ``None``.\nNever the payload's ``image``: for some modes that asset id is the answer."
+        },
+        "random_event": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The NPC interrupting the round with this question, or ``None`` for a question that\nbelongs to its round. An id from ``app/random_events.py``; the client has the copy."
+        },
+        "opened_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "answerable_at": {
+          "description": "When the buttons appear and the clock starts: ``opened_at`` plus the time the scroll\ntakes to type the question in (``rooms/hold.py``). An answer before it is ``not_open``, and\n``ends_at`` is this plus the question's seconds.",
+          "format": "date-time",
+          "type": "string"
+        },
+        "ends_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "you_can_answer": {
+          "type": "boolean"
+        },
+        "answered": {
+          "default": 0,
+          "description": "How many have answered, of how many can, for the waiting state. Current as of this frame:\nzero on ``question_open``, the live count in a ``welcome``, and kept up to date after that\nby ``answer_count`` and the answerer's own ``answer_ack``.",
+          "type": "integer"
+        },
+        "of": {
+          "default": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "question_id",
+        "index",
+        "total",
+        "type",
+        "mode",
+        "segment",
+        "view",
+        "picture",
+        "random_event",
+        "opened_at",
+        "answerable_at",
+        "ends_at",
+        "you_can_answer",
+        "answered",
+        "of"
+      ],
+      "title": "OpenQuestion",
+      "type": "object"
+    },
+    "Ping": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "ping",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "Ping",
+      "type": "object"
+    },
+    "PlayerResult": {
+      "additionalProperties": false,
+      "description": "One player's row in the reveal.\n\n``credit`` is what the type's ``grade`` returned. It is here so a reveal can say\n\"three of five in the right place\"; ``correct`` is the tie-break's boolean, and is\n``credit >= 1.0``.",
+      "properties": {
+        "value": {},
+        "correct": {
+          "type": "boolean"
+        },
+        "credit": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        "points": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "value",
+        "correct",
+        "credit",
+        "points"
+      ],
+      "title": "PlayerResult",
+      "type": "object"
+    },
+    "PlayerView": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "avatar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A pet's id in ``data/pets.json``; the server stores one for every player."
+        },
+        "role": {
+          "enum": [
+            "player",
+            "admin"
+          ],
+          "type": "string"
+        },
+        "connected": {
+          "type": "boolean"
+        },
+        "ready": {
+          "description": "The ready check: ready to start in the lobby, ready for this round on a splash. Every\nsplash starts it false for everyone again.",
+          "type": "boolean"
+        },
+        "editing": {
+          "description": "Is typing a name in the lobby: \"picking a name…\". Advice, never a gate.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "avatar",
+        "role",
+        "connected",
+        "ready",
+        "editing"
+      ],
+      "title": "PlayerView",
+      "type": "object"
+    },
+    "PlayersUpdated": {
+      "additionalProperties": false,
+      "description": "A ready tap, an ``editing`` change, connect or disconnect that changed the players\nand nothing else.",
+      "properties": {
+        "t": {
+          "const": "players_updated",
+          "default": "players_updated",
+          "type": "string"
+        },
+        "players": {
+          "items": {
+            "$ref": "#/$defs/PlayerView"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "t",
+        "players"
+      ],
+      "title": "PlayersUpdated",
+      "type": "object"
+    },
+    "Pong": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "pong",
+          "default": "pong",
+          "type": "string"
+        },
+        "server_time": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "server_time"
+      ],
+      "title": "Pong",
+      "type": "object"
+    },
+    "Promote": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "promote",
+          "type": "string"
+        },
+        "player_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "player_id"
+      ],
+      "title": "Promote",
+      "type": "object"
+    },
+    "QuestionClosed": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "question_closed",
+          "default": "question_closed",
+          "type": "string"
+        },
+        "question_id": {
+          "type": "string"
+        },
+        "reveal": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "picture": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The same name ``OpenQuestion.picture`` carried, so a reveal can show it too."
+        },
+        "results": {
+          "additionalProperties": {
+            "$ref": "#/$defs/PlayerResult"
+          },
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "type": "object"
+        },
+        "unanswered": {
+          "description": "Connected players who could have answered and did not, for the reveal's \"No answer\". Only\nthe server knows who could: the author of a room question is excluded.",
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "standings": {
+          "items": {
+            "$ref": "#/$defs/Standing"
+          },
+          "type": "array"
+        },
+        "next_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reveal_seconds": {
+          "description": "How long this reveal holds, even for the last question, whose ``next_at`` is null.",
+          "type": "integer"
+        },
+        "suggested_by": {
+          "description": "The player who suggested the question, when they asked to be named. Left out otherwise.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "question_id",
+        "reveal",
+        "picture",
+        "results",
+        "unanswered",
+        "standings",
+        "next_at",
+        "reveal_seconds"
+      ],
+      "title": "QuestionClosed",
+      "type": "object"
+    },
+    "QuestionOpen": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "question_open",
+          "default": "question_open",
+          "type": "string"
+        },
+        "question": {
+          "$ref": "#/$defs/OpenQuestion"
+        }
+      },
+      "required": [
+        "t",
+        "question"
+      ],
+      "title": "QuestionOpen",
+      "type": "object"
+    },
+    "Ready": {
+      "additionalProperties": false,
+      "description": "Tap ready, or take it back. In the lobby and on a splash; nowhere else.",
+      "properties": {
+        "t": {
+          "const": "ready",
+          "type": "string"
+        },
+        "ready": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "t",
+        "ready"
+      ],
+      "title": "Ready",
+      "type": "object"
+    },
+    "RoomSettings": {
+      "additionalProperties": false,
+      "description": "A room's settings as stored in and read back from ``rooms.settings``.",
+      "properties": {
+        "modes": {
+          "description": "One round each, in this order unless ``mode_order`` says to shuffle them.",
+          "items": {
+            "$ref": "#/$defs/ModeSettings"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "mode_order": {
+          "default": "listed",
+          "description": "``\"listed\"``: the rounds play in the order the host arranged them, which is the order\nthis list is in. ``\"random\"``: shuffled once, at creation.",
+          "enum": [
+            "listed",
+            "random"
+          ],
+          "type": "string"
+        },
+        "random_event_frequency": {
+          "anyOf": [
+            {
+              "enum": [
+                "less",
+                "default",
+                "more"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "default",
+          "description": "One random event per 20, 10 or 5 round questions. ``None`` is a room stored while the\nchoice was a boolean, with ``random_events: false``: its host's questions only (see the\nmodule docstring). Never ``None`` for a room created since."
+        },
+        "pace": {
+          "default": "run",
+          "description": "Scales every question's time to answer and its reveal. A room stored before pace was a\nsetting reads as ``run``, the times each type was written for.",
+          "enum": [
+            "walk",
+            "run",
+            "teleport"
+          ],
+          "type": "string"
+        },
+        "standings_seconds": {
+          "default": 10,
+          "description": "How long the standings hold the floor between two rounds. Zero turns them off; the game's\nlast round never has them, because the final screen is its standings. Defaulted, so a room\nstored before the field existed reads as a room that has them.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "close_when_all_answered": {
+          "default": true,
+          "type": "boolean"
+        },
+        "name_wrong_answers": {
+          "default": true,
+          "description": "Name the players who answered wrong under a reveal. The host's call, on unless they turn\nit off: the count of who got it right is always shown, the names are a room's taste. Nothing\non the wire changes, since ``question_closed.results`` already carries every row; the\nsetting only says whether the client prints the names.",
+          "type": "boolean"
+        },
+        "hide_rounds": {
+          "default": false,
+          "description": "Surprise rounds: a non-admin is sent only the rounds that have started (``Room.view``).\nLeft off the wire while false, so a room without it reads exactly as one created before it\nexisted.",
+          "type": "boolean"
+        },
+        "surprise_modes": {
+          "default": 0,
+          "description": "Surprise modes: this many rounds drawn by the server at creation, hidden from the admin\ntoo, who did not pick them either. Implies ``hide_rounds``. Left off the wire at 0, like\n``hide_rounds``.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max_players": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "``None`` means \"the server's MAX_PLAYERS_PER_ROOM\"; ``RoomManager.create`` resolves it,\nso a stored room always has a number here."
+        }
+      },
+      "required": [
+        "modes",
+        "mode_order",
+        "random_event_frequency",
+        "pace",
+        "standings_seconds",
+        "close_when_all_answered",
+        "name_wrong_answers",
+        "max_players"
+      ],
+      "title": "RoomSettings",
+      "type": "object"
+    },
+    "RoomUpdated": {
+      "additionalProperties": false,
+      "description": "Join, leave, promote, kick, status change, ``set_profile``, and the start of a\nsplash or of the standings, which carries ``standings``. Also a ready tap, connect or\ndisconnect that moves the room itself, which on a splash is its countdown.",
+      "properties": {
+        "t": {
+          "const": "room_updated",
+          "default": "room_updated",
+          "type": "string"
+        },
+        "room": {
+          "$ref": "#/$defs/RoomView"
+        },
+        "players": {
+          "items": {
+            "$ref": "#/$defs/PlayerView"
+          },
+          "type": "array"
+        },
+        "standings": {
+          "items": {
+            "$ref": "#/$defs/Standing"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "t",
+        "room",
+        "players"
+      ],
+      "title": "RoomUpdated",
+      "type": "object"
+    },
+    "RoomView": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "lobby",
+            "playing",
+            "finished"
+          ],
+          "type": "string"
+        },
+        "settings": {
+          "$ref": "#/$defs/RoomSettings"
+        },
+        "current_index": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total": {
+          "type": "integer"
+        },
+        "events": {
+          "default": 0,
+          "description": "The random events among ``total``, so the lobby can tell them from the rounds' questions.",
+          "type": "integer"
+        },
+        "phase": {
+          "enum": [
+            "idle",
+            "splash",
+            "open",
+            "reveal",
+            "standings"
+          ],
+          "type": "string"
+        },
+        "next_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When the current timed phase ends: a splash gives way to its first question, a reveal to\nthe next question or to the standings, the standings to the next round. Null while a\nquestion is open, during a splash still waiting for the room to be ready, and in a room that\nis not playing. Also on ``question_closed``, but a splash, reveal or standings a client\narrives into (a reconnect, or a room that just came back from a restart) has no frame of its\nown to carry it."
+        },
+        "reveal_seconds": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How long the reveal ending at ``next_at`` holds, so a countdown bar knows its full\nlength: each question's is its own. Null outside a reveal."
+        },
+        "estimated_seconds": {
+          "default": 0,
+          "description": "How long the game takes at most, for the lobby's minutes: ``rooms/duration.py``.",
+          "type": "integer"
+        },
+        "segment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Segment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The round in progress, null before the first question and once the game is over."
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When the game ended, null until it has. Every browser files the result under it, so it\ncomes from the server's clock and not each one's own."
+        },
+        "rounds": {
+          "description": "How many rounds the room plays, sent only when ``settings.hide_rounds`` keeps the rest of\n``settings.modes`` from a non-admin. Counted off the stored questions, so it agrees with\n``Segment.total``.",
+          "type": "integer"
+        },
+        "key": {
+          "description": "An invite-only room's key, sent to its admins only: settings reach every player.",
+          "type": "string"
+        },
+        "requests": {
+          "description": "Who is asking to be let in without the key, oldest first: an invite-only room's, sent to\nits admins only, as the key is.",
+          "items": {
+            "$ref": "#/$defs/JoinRequestView"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "status",
+        "settings",
+        "current_index",
+        "total",
+        "events",
+        "phase",
+        "next_at",
+        "reveal_seconds",
+        "estimated_seconds",
+        "segment",
+        "finished_at"
+      ],
+      "title": "RoomView",
+      "type": "object"
+    },
+    "RotateKey": {
+      "additionalProperties": false,
+      "description": "Replace an invite-only room's key. Lobby only.",
+      "properties": {
+        "t": {
+          "const": "rotate_key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "RotateKey",
+      "type": "object"
+    },
+    "Scoring": {
+      "description": "The values are what ``answer_ack.scoring`` carries on the wire.",
+      "enum": [
+        "speed",
+        "rank",
+        "step"
+      ],
+      "title": "Scoring",
+      "type": "string"
+    },
+    "Segment": {
+      "additionalProperties": false,
+      "description": "The round the room is in: one mode, a run of consecutive questions.\n\nGrouped from the ``questions.round`` column rather than stored a second time, so it\ncannot drift from the questions it describes. ``start`` is a position in the room's\nquestion list, which is what ``OpenQuestion.index`` counts in too, so the question\nnumber within the round is ``index - start + 1``.",
+      "properties": {
+        "mode": {
+          "description": "A mode id (``app/modes``), never a type id; the client's mode registry key.",
+          "type": "string"
+        },
+        "index": {
+          "description": "0-based round number.",
+          "type": "integer"
+        },
+        "total": {
+          "description": "Rounds in this room.",
+          "type": "integer"
+        },
+        "start": {
+          "description": "Position of the round's first question.",
+          "type": "integer"
+        },
+        "count": {
+          "description": "Questions in the round.",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "mode",
+        "index",
+        "total",
+        "start",
+        "count"
+      ],
+      "title": "Segment",
+      "type": "object"
+    },
+    "ServerMessage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Welcome"
+        },
+        {
+          "$ref": "#/$defs/RoomUpdated"
+        },
+        {
+          "$ref": "#/$defs/PlayersUpdated"
+        },
+        {
+          "$ref": "#/$defs/QuestionOpen"
+        },
+        {
+          "$ref": "#/$defs/AnswerAck"
+        },
+        {
+          "$ref": "#/$defs/AnswerCount"
+        },
+        {
+          "$ref": "#/$defs/QuestionClosed"
+        },
+        {
+          "$ref": "#/$defs/GameFinished"
+        },
+        {
+          "$ref": "#/$defs/Pong"
+        },
+        {
+          "$ref": "#/$defs/Error"
+        }
+      ]
+    },
+    "SetProfile": {
+      "additionalProperties": false,
+      "description": "Rename, change the pet, or both. One message for both, because they are the\nsame operation on the same row: validated like a join, broadcast as ``room_updated``.\n\nAn omitted field is left as it is. The bounds here are only the outer ones; the name\nrules and the list of pets are the manager's to apply.",
+      "properties": {
+        "t": {
+          "const": "set_profile",
+          "type": "string"
+        },
+        "display_name": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "avatar": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "SetProfile",
+      "type": "object"
+    },
+    "Skip": {
+      "additionalProperties": false,
+      "description": "End ``phase`` of the question at ``index``: what the host was looking at when they\npressed it, so a second tap that lands once the room has moved on ends nothing.",
+      "properties": {
+        "t": {
+          "const": "skip",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "splash",
+            "open",
+            "reveal",
+            "standings"
+          ],
+          "type": "string"
+        },
+        "index": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t",
+        "phase",
+        "index"
+      ],
+      "title": "Skip",
+      "type": "object"
+    },
+    "Standing": {
+      "additionalProperties": false,
+      "properties": {
+        "player_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "avatar": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "As on ``PlayerView``."
+        },
+        "points": {
+          "type": "integer"
+        },
+        "rank": {
+          "type": "integer"
+        },
+        "points_gained": {
+          "description": "What the round of the latest close added, and the rank before it; None in the first.",
+          "type": "integer"
+        },
+        "previous_rank": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "player_id",
+        "display_name",
+        "avatar",
+        "points",
+        "rank",
+        "points_gained",
+        "previous_rank"
+      ],
+      "title": "Standing",
+      "type": "object"
+    },
+    "StartGame": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "const": "start_game",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "StartGame",
+      "type": "object"
+    },
+    "Welcome": {
+      "additionalProperties": false,
+      "description": "Reply to ``hello``: the full snapshot the client rebuilds all state from.",
+      "properties": {
+        "t": {
+          "const": "welcome",
+          "default": "welcome",
+          "type": "string"
+        },
+        "room": {
+          "$ref": "#/$defs/RoomView"
+        },
+        "you": {
+          "$ref": "#/$defs/PlayerView"
+        },
+        "players": {
+          "items": {
+            "$ref": "#/$defs/PlayerView"
+          },
+          "type": "array"
+        },
+        "question": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OpenQuestion"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "your_answer": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "standings": {
+          "items": {
+            "$ref": "#/$defs/Standing"
+          },
+          "type": "array"
+        },
+        "server_time": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "server_version": {
+          "description": "``/VERSION`` of the running server. A client built from another version reloads itself,\nso a deploy never leaves an old bundle reading frames it does not know.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "room",
+        "you",
+        "players",
+        "question",
+        "your_answer",
+        "standings",
+        "server_time",
+        "server_version"
+      ],
+      "title": "Welcome",
+      "type": "object"
+    }
+  }
+}
