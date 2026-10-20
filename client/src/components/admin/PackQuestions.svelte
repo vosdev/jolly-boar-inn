@@ -137,7 +137,9 @@
   }
 
   function download(): void {
-    void run(async () => downloadJson(await exportQuestionChanges(token), changesFileName(new Date())))
+    void run(async () =>
+      downloadJson(await exportQuestionChanges(token), changesFileName(new Date())),
+    )
   }
 
   function applied(): void {
@@ -185,7 +187,12 @@
                   Edit
                 </button>
                 {#if change?.action !== 'delete'}
-                  <button type="button" class="reject" disabled={busy} onclick={() => remove(question)}>
+                  <button
+                    type="button"
+                    class="reject"
+                    disabled={busy}
+                    onclick={() => remove(question)}
+                  >
                     Delete
                   </button>
                 {/if}
@@ -258,8 +265,8 @@
     <div class="export">
       {#if exported > 0}
         <p>
-          <strong>{exported} downloaded.</strong> Run <code>make edit-packs FILE=…</code>, merge
-          it, then mark them applied. A change made since waits for the next download.
+          <strong>{exported} downloaded.</strong> Run <code>make edit-packs FILE=…</code>, merge it,
+          then mark them applied. A change made since waits for the next download.
         </p>
       {/if}
       <div class="row">

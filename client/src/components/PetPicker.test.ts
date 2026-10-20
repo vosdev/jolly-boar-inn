@@ -22,7 +22,9 @@ describe('PetPicker', () => {
     expect(screen.getByText('Aggy')).toBeTruthy()
     expect(petsDrawn(container)).toEqual([{ pet: 'aggy', size: 64 }])
     expect(screen.queryByRole('radiogroup')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Change pet' }).getAttribute('aria-expanded')).toBe('false')
+    expect(screen.getByRole('button', { name: 'Change pet' }).getAttribute('aria-expanded')).toBe(
+      'false',
+    )
   })
 
   it('opens a grid of every pickable pet, A to Z, as radios named for the pet', async () => {
@@ -39,24 +41,36 @@ describe('PetPicker', () => {
   it('moves focus to the search box on opening', async () => {
     picker()
     await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
-    await vi.waitFor(() => expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Search pets' })))
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Search pets' })),
+    )
   })
 
   it('narrows the grid by name as you type, and says how many are left', async () => {
     picker()
     await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
-    await fireEvent.input(screen.getByRole('textbox', { name: 'Search pets' }), { target: { value: 'ROCK' } })
-    const names = within(grid()).getAllByRole('radio').map((radio) => (radio as HTMLInputElement).value)
+    await fireEvent.input(screen.getByRole('textbox', { name: 'Search pets' }), {
+      target: { value: 'ROCK' },
+    })
+    const names = within(grid())
+      .getAllByRole('radio')
+      .map((radio) => (radio as HTMLInputElement).value)
     expect(names.length).toBeGreaterThan(0)
     expect(names.length).toBeLessThan(PICKABLE.length)
-    expect(names).toEqual(PICKABLE.filter((pet) => pet.name.toLowerCase().includes('rock')).map((pet) => pet.id))
-    expect(screen.getByRole('status').textContent).toBe(`${names.length} ${names.length === 1 ? 'pet' : 'pets'}`)
+    expect(names).toEqual(
+      PICKABLE.filter((pet) => pet.name.toLowerCase().includes('rock')).map((pet) => pet.id),
+    )
+    expect(screen.getByRole('status').textContent).toBe(
+      `${names.length} ${names.length === 1 ? 'pet' : 'pets'}`,
+    )
   })
 
   it('says so when nothing matches', async () => {
     picker()
     await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
-    await fireEvent.input(screen.getByRole('textbox', { name: 'Search pets' }), { target: { value: 'zzzzz' } })
+    await fireEvent.input(screen.getByRole('textbox', { name: 'Search pets' }), {
+      target: { value: 'zzzzz' },
+    })
     expect(within(grid()).queryAllByRole('radio')).toHaveLength(0)
     expect(screen.getByRole('status').textContent).toBe('No pet has that name.')
   })
@@ -78,7 +92,9 @@ describe('PetPicker', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
     await fireEvent.click(screen.getByRole('radio', { name: 'Baby Mole' }))
     expect(onchange).toHaveBeenCalledTimes(1)
-    expect(petsDrawn(container.querySelector('.current')!)).toEqual([{ pet: 'baby_mole', size: 64 }])
+    expect(petsDrawn(container.querySelector('.current')!)).toEqual([
+      { pet: 'baby_mole', size: 64 },
+    ])
     expect(container.querySelector('.pet-name')!.textContent).toBe('Baby Mole')
   })
 
@@ -94,7 +110,9 @@ describe('PetPicker', () => {
   })
 
   it('has Random lean away from the pets already in the room', async () => {
-    const taken = PICKABLE.filter((pet) => pet.id !== 'aggy' && pet.id !== 'baby_mole').map((pet) => pet.id)
+    const taken = PICKABLE.filter((pet) => pet.id !== 'aggy' && pet.id !== 'baby_mole').map(
+      (pet) => pet.id,
+    )
     const { container } = picker('aggy', { taken })
     await fireEvent.click(screen.getByRole('button', { name: 'Random' }))
     expect(container.querySelector('.pet-name')!.textContent).toBe('Baby Mole')
@@ -114,7 +132,11 @@ describe('PetPicker', () => {
 
   it('disables every control while a change is in flight', async () => {
     picker('aggy', { disabled: true })
-    expect((screen.getByRole('button', { name: 'Random' }) as HTMLButtonElement).disabled).toBe(true)
-    expect((screen.getByRole('button', { name: 'Change pet' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: 'Random' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    )
+    expect((screen.getByRole('button', { name: 'Change pet' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    )
   })
 })

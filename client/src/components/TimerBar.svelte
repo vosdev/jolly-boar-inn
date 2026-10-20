@@ -32,9 +32,7 @@
   // than the whole: a random event's clock starts after its NPC's hold, and until
   // then the bar sits full on the question's own length rather than counting the hold.
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
-  const fraction = $derived(
-    totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0,
-  )
+  const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
   const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
 </script>
 

@@ -23,7 +23,11 @@ function rows(): string[][] {
   const body = screen.getByRole('table').querySelector('tbody') as HTMLElement
   return within(body)
     .getAllByRole('row')
-    .map((row) => within(row).getAllByRole('cell').map((cell) => cell.textContent ?? ''))
+    .map((row) =>
+      within(row)
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent ?? ''),
+    )
 }
 
 describe('Credits', () => {
@@ -54,7 +58,9 @@ describe('Credits', () => {
   })
 
   it('shows the failure when the authors do not load', async () => {
-    vi.mocked(api.getCredits).mockRejectedValue(new api.ApiFailure(0, 'unreachable', 'cannot reach the server'))
+    vi.mocked(api.getCredits).mockRejectedValue(
+      new api.ApiFailure(0, 'unreachable', 'cannot reach the server'),
+    )
     render(Credits, { navigate })
     expect((await screen.findByRole('alert')).textContent).toContain('cannot reach the server')
   })

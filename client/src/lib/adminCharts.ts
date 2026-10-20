@@ -83,7 +83,15 @@ export function buckets(counts: Count[], range: Range, today: string): Bucket[] 
     const index = total - 1 - Math.floor((days.length - 1 - i) / size)
     let bar = bars[index]
     if (bar === undefined) {
-      bar = { start: day, days: 0, finished: 0, endedEarly: 0, abandoned: 0, joined: 0, returning: 0 }
+      bar = {
+        start: day,
+        days: 0,
+        finished: 0,
+        endedEarly: 0,
+        abandoned: 0,
+        joined: 0,
+        returning: 0,
+      }
       bars[index] = bar
     }
     bar.days += 1

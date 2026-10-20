@@ -83,8 +83,24 @@ function roomView(patch: Partial<RoomView>): RoomView {
 }
 
 const STANDINGS: Standing[] = [
-  { player_id: 'a', display_name: 'Zezima', avatar: null, points: 1000, rank: 1, points_gained: 1000, previous_rank: null },
-  { player_id: 'b', display_name: 'Woox', avatar: null, points: 0, rank: 2, points_gained: 0, previous_rank: null },
+  {
+    player_id: 'a',
+    display_name: 'Zezima',
+    avatar: null,
+    points: 1000,
+    rank: 1,
+    points_gained: 1000,
+    previous_rank: null,
+  },
+  {
+    player_id: 'b',
+    display_name: 'Woox',
+    avatar: null,
+    points: 0,
+    rank: 2,
+    points_gained: 0,
+    previous_rank: null,
+  },
 ]
 
 function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
@@ -281,7 +297,8 @@ describe('Room', () => {
       (node) =>
         node.closest('.sr') === null &&
         [...node.childNodes].some(
-          (child) => child.nodeType === Node.TEXT_NODE && /Round 1 of/.test(child.textContent ?? ''),
+          (child) =>
+            child.nodeType === Node.TEXT_NODE && /Round 1 of/.test(child.textContent ?? ''),
         ),
     )
     expect(drawnRound).toEqual([])
@@ -393,7 +410,9 @@ describe('Room', () => {
   })
 
   it('goes straight to the final hiscores for a client arriving after the end', async () => {
-    await arrive(welcome(roomView({ status: 'finished', phase: 'idle', next_at: null, segment: null })))
+    await arrive(
+      welcome(roomView({ status: 'finished', phase: 'idle', next_at: null, segment: null })),
+    )
     const heading = screen.getByRole('heading', { level: 1 })
     expect(heading.textContent).toBe('Final standings')
     expect(screen.getByText('Gz, Zezima! Here are the full hiscores.')).toBeTruthy()
@@ -448,7 +467,16 @@ describe('the room’s own headings', () => {
 })
 
 describe('a room that is gone', () => {
-  const FINAL = [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1, points_gained: 900, previous_rank: null }]
+  const FINAL = [
+    {
+      player_id: 'a',
+      display_name: 'Zezima',
+      points: 900,
+      rank: 1,
+      points_gained: 900,
+      previous_rank: null,
+    },
+  ]
 
   beforeEach(() => {
     resetRoom()
@@ -837,8 +865,19 @@ describe('the shared stage', () => {
     }
     let layout = boxes.lobby
     const box = (left: number, width: number, height = 100) =>
-      ({ left, top: 88, width, height, right: left + width, bottom: 88 + height, x: left, y: 88 }) as DOMRect
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      ({
+        left,
+        top: 88,
+        width,
+        height,
+        right: left + width,
+        bottom: 88 + height,
+        x: left,
+        y: 88,
+      }) as DOMRect
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
       const at = layout
       if (this.classList.contains('stage')) return box(at.stage[0]!, at.stage[1]!)
       if (this.classList.contains('scroll')) return box(at.scroll[0]!, at.scroll[1]!, at.scroll[2])
@@ -909,7 +948,13 @@ describe('the host’s skip', () => {
       phase: 'reveal',
       current_index: index,
       total: 4,
-      segment: { mode: 'more_less', index: index < 2 ? 0 : 1, total: 2, start: index < 2 ? 0 : 2, count: 2 },
+      segment: {
+        mode: 'more_less',
+        index: index < 2 ? 0 : 1,
+        total: 2,
+        start: index < 2 ? 0 : 2,
+        count: 2,
+      },
     })
     view.settings.standings_seconds = standingsSeconds
     return view
@@ -991,12 +1036,16 @@ describe('the host’s End the round', () => {
 
   it('says the last round ends the game', async () => {
     const last = { ...SEGMENT, index: 1, start: 1 }
-    const dialog = await ask(roomView({ phase: 'open', current_index: 1, segment: last, next_at: null }))
+    const dialog = await ask(
+      roomView({ phase: 'open', current_index: 1, segment: last, next_at: null }),
+    )
     expect(dialog.textContent).toContain('This is the last round. End the game now')
   })
 
   it('sends nothing when cancelled', async () => {
-    await fireEvent.click(within(await ask(roomView({ phase: 'reveal' }))).getByRole('button', { name: 'Cancel' }))
+    await fireEvent.click(
+      within(await ask(roomView({ phase: 'reveal' }))).getByRole('button', { name: 'Cancel' }),
+    )
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(sent).toEqual([])
   })
@@ -1010,7 +1059,9 @@ describe('the host’s End the round', () => {
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
     applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
     await fireEvent.click(await screen.findByRole('button', { name: 'End the round' }))
-    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'End the round' }))
+    await fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'End the round' }),
+    )
     expect(sent).toEqual([{ t: 'end_round', index: 0 }])
   })
 })
@@ -1133,10 +1184,18 @@ describe('what a screen reader and the tab hear', () => {
   })
 
   it.each([
-    ['the lobby', roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null }), 'Lobby'],
+    [
+      'the lobby',
+      roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null }),
+      'Lobby',
+    ],
     ['a splash', roomView({ phase: 'splash', next_at: null }), 'Round 1 of 2'],
     ['the standings', roomView({}), 'Standings'],
-    ['the final screen', roomView({ status: 'finished', phase: 'idle', next_at: null }), 'Final standings'],
+    [
+      'the final screen',
+      roomView({ status: 'finished', phase: 'idle', next_at: null }),
+      'Final standings',
+    ],
   ])('names %s in the tab title', async (_, view, title) => {
     applyServerMessage(welcome(view))
     await waitFor(() => expect(document.title).toBe(`${title} · Jolly Boar Inn`))

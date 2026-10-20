@@ -161,21 +161,21 @@
 <!-- Keyed on the question so a view with state of its own — the combobox's search, its
      selection — starts clean for each question even if nothing between them unmounts it. -->
 {#key question.question_id}
-<svelte:boundary onerror={(error) => console.error('The question could not be drawn:', error)}>
-{#if frame}
-  {@render frame(stem, View === null ? null : answers)}
-{:else}
-  {@render stem()}
-  {@render answers()}
-{/if}
-{#snippet failed()}
-  {#if frame}
-    {@render frame(broken, null)}
-  {:else}
-    {@render broken()}
-  {/if}
-{/snippet}
-</svelte:boundary>
+  <svelte:boundary onerror={(error) => console.error('The question could not be drawn:', error)}>
+    {#if frame}
+      {@render frame(stem, View === null ? null : answers)}
+    {:else}
+      {@render stem()}
+      {@render answers()}
+    {/if}
+    {#snippet failed()}
+      {#if frame}
+        {@render frame(broken, null)}
+      {:else}
+        {@render broken()}
+      {/if}
+    {/snippet}
+  </svelte:boundary>
 {/key}
 
 <style>

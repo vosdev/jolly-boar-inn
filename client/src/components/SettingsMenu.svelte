@@ -43,14 +43,7 @@
   import { petOf } from '../lib/pets'
   import { profile, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
-  import {
-    connection,
-    players,
-    profileError,
-    requestsSettled,
-    room,
-    roomSend,
-  } from '../lib/stores'
+  import { connection, players, profileError, requestsSettled, room, roomSend } from '../lib/stores'
   import { getTheme, setTheme, THEME_LABELS, type Theme } from '../lib/theme'
   import Emblem from './Emblem.svelte'
   import NameField from './NameField.svelte'
@@ -107,9 +100,7 @@
   const currentName = $derived(live?.display_name ?? $profile?.name ?? '')
   const nameChanged = $derived(draft.trim() !== currentName)
   const petChanged = $derived(draftPet !== null && draftPet !== shownPet)
-  const ok = $derived(
-    canRename && nameProblem(draft) === null && (nameChanged || petChanged),
-  )
+  const ok = $derived(canRename && nameProblem(draft) === null && (nameChanged || petChanged))
   /** The room's refusal, in words for the person holding the phone. */
   const refusal = $derived(
     $profileError === null
@@ -299,11 +290,7 @@
             onfocusin={(event) => (nameFocused = isNameField(event.target))}
             onfocusout={() => (nameFocused = false)}
           >
-            <NameField
-              id="profile-name"
-              bind:value={draft}
-              avoid={$room?.code ?? ''}
-            />
+            <NameField id="profile-name" bind:value={draft} avoid={$room?.code ?? ''} />
             <div class="row">
               <button class="primary small" type="submit" disabled={!ok || pending !== null}>
                 Save
@@ -416,5 +403,4 @@
     letter-spacing: 0.12em;
     color: var(--muted);
   }
-
 </style>

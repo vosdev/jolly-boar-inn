@@ -146,7 +146,9 @@ describe('problems', () => {
 
   it('refuses a missing end label and over-long text', () => {
     expect(paths(questionOf(draft({ ends: ['', 'Highest'] })))).toContain('payload.ends[0]')
-    expect(paths(questionOf(draft({ ends: ['Lowest', 'x'.repeat(41)] })))).toContain('payload.ends[1]')
+    expect(paths(questionOf(draft({ ends: ['Lowest', 'x'.repeat(41)] })))).toContain(
+      'payload.ends[1]',
+    )
     const entries = draft().entries
     entries[2]!.text = 'x'.repeat(121)
     entries[3]!.detail = 'y'.repeat(41)
@@ -207,7 +209,10 @@ describe('a round whose entries are dated', () => {
   })
 
   it('words its form for dates', () => {
-    expect(wordingOf('release_order')).toMatchObject({ ends: ['Oldest', 'Newest'], detailRequired: true })
+    expect(wordingOf('release_order')).toMatchObject({
+      ends: ['Oldest', 'Newest'],
+      detailRequired: true,
+    })
     expect(wordingOf('sort_it_out').detailRequired).toBe(false)
   })
 })

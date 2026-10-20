@@ -6,14 +6,7 @@
    * because a near-white gem looked the same lit as faded; onyx, black on the dark
    * themes, went for the same reason.
    */
-  export const GEMS = [
-    'sapphire',
-    'emerald',
-    'ruby',
-    'red-topaz',
-    'dragonstone',
-    'zenyte',
-  ] as const
+  export const GEMS = ['sapphire', 'emerald', 'ruby', 'red-topaz', 'dragonstone', 'zenyte'] as const
 
   export type Gem = (typeof GEMS)[number]
 
@@ -61,7 +54,8 @@
     const counts: number[] = Array.from({ length: options }, () => 0)
     for (const { value } of Object.values(results)) {
       for (const index of Array.isArray(value) ? value : [value]) {
-        if (Number.isInteger(index) && index >= 0 && index < options) counts[index] = (counts[index] ?? 0) + 1
+        if (Number.isInteger(index) && index >= 0 && index < options)
+          counts[index] = (counts[index] ?? 0) + 1
       }
     }
     return counts
@@ -155,13 +149,13 @@
   /** What lit, faded and the "you" say, in words, for a screen reader. */
   const spoken = $derived(
     said ??
-    {
-      idle: '',
-      waiting: ', your answer',
-      correct: mine ? ', the correct answer, yours' : ', the correct answer',
-      faded: '',
-      wrong: ', your answer, wrong',
-    }[status],
+      {
+        idle: '',
+        waiting: ', your answer',
+        correct: mine ? ', the correct answer, yours' : ', the correct answer',
+        faded: '',
+        wrong: ', your answer, wrong',
+      }[status],
   )
 </script>
 

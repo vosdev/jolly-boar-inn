@@ -41,7 +41,9 @@ describe('the asset manifest', () => {
   })
 
   it('has a chathead for every random-event NPC, since the stage mirrors it to face left', () => {
-    expect(RANDOM_EVENTS.filter((npc) => !hasEntry('npcs', `${npc.id}_chathead`)).map((npc) => npc.id)).toEqual([])
+    expect(
+      RANDOM_EVENTS.filter((npc) => !hasEntry('npcs', `${npc.id}_chathead`)).map((npc) => npc.id),
+    ).toEqual([])
   })
 
   it('has a trophy for every place in the ceremony', () => {

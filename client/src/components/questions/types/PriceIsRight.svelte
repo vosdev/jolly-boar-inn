@@ -35,7 +35,14 @@
     answer_index?: Index
   }
 
-  let { data, revealed, yourValue, canAnswer, onAnswer, results = null }: TypeViewProps<Index> = $props()
+  let {
+    data,
+    revealed,
+    yourValue,
+    canAnswer,
+    onAnswer,
+    results = null,
+  }: TypeViewProps<Index> = $props()
 
   const q = $derived(data as unknown as Data)
   const answer = $derived(indexSet(revealed ? (q.answer_index ?? null) : null))
@@ -44,15 +51,7 @@
   )
 </script>
 
-<GemChoices
-  options={q.options}
-  {picked}
-  {answer}
-  {revealed}
-  {canAnswer}
-  {results}
-  {onAnswer}
->
+<GemChoices options={q.options} {picked} {answer} {revealed} {canAnswer} {results} {onAnswer}>
   {#snippet label(option: number)}
     <span class="price">{formatGp(option)} <span class="unit">gp</span></span>
   {/snippet}

@@ -69,7 +69,9 @@ describe('RosterItems', () => {
     show()
     await fireEvent.click(await screen.findByText('Abyssal whip'))
     expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Abyssal whip')
-    await fireEvent.input(screen.getByLabelText('Name'), { target: { value: ' Abyssal tentacle ' } })
+    await fireEvent.input(screen.getByLabelText('Name'), {
+      target: { value: ' Abyssal tentacle ' },
+    })
     await fireEvent.click(screen.getByRole('button', { name: 'Queue the rename' }))
     expect(admin.renameRosterItem).toHaveBeenCalledWith('t', WHIP.id, 'Abyssal tentacle')
   })
@@ -77,7 +79,9 @@ describe('RosterItems', () => {
   it('refuses a name another item has before anything is sent', async () => {
     show()
     await fireEvent.click(await screen.findByText('Abyssal whip'))
-    await fireEvent.input(screen.getByLabelText('Name'), { target: { value: '<B>granite</B> MAUL' } })
+    await fireEvent.input(screen.getByLabelText('Name'), {
+      target: { value: '<B>granite</B> MAUL' },
+    })
     await fireEvent.click(screen.getByRole('button', { name: 'Queue the rename' }))
     expect(screen.getByText('Another item has that name.')).toBeTruthy()
     expect(admin.renameRosterItem).not.toHaveBeenCalled()

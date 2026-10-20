@@ -19,12 +19,21 @@ function question(id: string, prompt: string, over: Partial<PackQuestion> = {}):
 
 describe('an edit', () => {
   it('carries the fields a question may change, and only the ones it has', () => {
-    const credited = question('q_a', 'Q?', { wiki: 'https://oldschool.runescape.wiki/w/Jad', credit: 'Zezima' })
-    expect(editOf(credited)).toEqual({ payload: credited.payload, wiki: credited.wiki, credit: 'Zezima' })
+    const credited = question('q_a', 'Q?', {
+      wiki: 'https://oldschool.runescape.wiki/w/Jad',
+      credit: 'Zezima',
+    })
+    expect(editOf(credited)).toEqual({
+      payload: credited.payload,
+      wiki: credited.wiki,
+      credit: 'Zezima',
+    })
   })
 
   it('leaves out what was emptied, and a shown credit without a name', () => {
-    expect(envelopeOf({ wiki: ' ', sourceUrl: ' https://x.test ', credit: '', creditShown: true })).toEqual({
+    expect(
+      envelopeOf({ wiki: ' ', sourceUrl: ' https://x.test ', credit: '', creditShown: true }),
+    ).toEqual({
       source_url: 'https://x.test',
     })
     expect(envelopeOf({ wiki: '', sourceUrl: '', credit: ' Zezima ', creditShown: true })).toEqual({
@@ -35,7 +44,10 @@ describe('an edit', () => {
 })
 
 describe('the search', () => {
-  const questions = [question('q_a', 'Which dragon is metal?'), question('q_b', 'How many Zúlrah phases?')]
+  const questions = [
+    question('q_a', 'Which dragon is metal?'),
+    question('q_b', 'How many Zúlrah phases?'),
+  ]
 
   it('keeps every question for an empty query, and folds case and accents', () => {
     expect(searchQuestions(questions, '  ')).toHaveLength(2)
@@ -71,8 +83,10 @@ describe('the forms the editor opens', () => {
     for (const question of forms) {
       const payload =
         question.type === 'ordering'
-          ? orderingQuestionOf(orderingDraftOf({ type: 'ordering', payload: question.payload })).payload
-          : questionOf(draftOf({ type: question.type as CustomType, payload: question.payload })).payload
+          ? orderingQuestionOf(orderingDraftOf({ type: 'ordering', payload: question.payload }))
+              .payload
+          : questionOf(draftOf({ type: question.type as CustomType, payload: question.payload }))
+              .payload
       expect(payload, question.id).toEqual(question.payload)
     }
   })

@@ -38,7 +38,9 @@ describe('WallLights', () => {
     const container = await shown('gauntlet')
     expect(container.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe('gauntlet')
     expect(lights(container)).toEqual(['left', 'right'])
-    expect(container.querySelectorAll('[data-light] svg[viewBox="-66 -66 132 132"]')).toHaveLength(2)
+    expect(container.querySelectorAll('[data-light] svg[viewBox="-66 -66 132 132"]')).toHaveLength(
+      2,
+    )
     expect(container.querySelector('[data-light] svg[viewBox="0 0 97 160"]')).toBeNull()
   })
 
@@ -65,7 +67,9 @@ describe('WallLights', () => {
     document.documentElement.dataset.theme = 'gauntlet'
     await new Promise((settle) => setTimeout(settle))
     await tick()
-    expect(container.querySelectorAll('[data-light] svg[viewBox="-66 -66 132 132"]')).toHaveLength(2)
+    expect(container.querySelectorAll('[data-light] svg[viewBox="-66 -66 132 132"]')).toHaveLength(
+      2,
+    )
     document.documentElement.dataset.theme = 'tzhaar'
     await new Promise((settle) => setTimeout(settle))
     await tick()
@@ -77,6 +81,8 @@ describe('WallLights', () => {
     expect(style).toMatch(/\.wall-lights \{[^}]*display: none;/)
     const shown = [...style.matchAll(/display: block;/g)]
     expect(shown).toHaveLength(1)
-    expect(style).toMatch(/@media \(min-width: 50rem\) \{\s*\.wall-lights \{\s*display: block;\s*\}/)
+    expect(style).toMatch(
+      /@media \(min-width: 50rem\) \{\s*\.wall-lights \{\s*display: block;\s*\}/,
+    )
   })
 })

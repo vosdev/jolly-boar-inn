@@ -71,7 +71,9 @@
       </span>
     {/if}
     <p>
-      <b>{rounds}{surprise === null ? '' : ' surprise'} round{rounds === 1 ? '' : 's'} · {questions} questions</b><br />
+      <b
+        >{rounds}{surprise === null ? '' : ' surprise'} round{rounds === 1 ? '' : 's'} · {questions} questions</b
+      ><br />
       <span class="note">{details}</span>
     </p>
   </div>

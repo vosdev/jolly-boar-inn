@@ -12,7 +12,9 @@ import source from './StageView.svelte?raw'
 
 /** The duration and delay of the animation a `.returning` rule plays, in ms. */
 function timing(selector: string): { duration: number; delay: number } {
-  const rule = source.match(new RegExp(`\\.returning ${selector} \\{[^}]*?animation: [\\w-]+ ([^;]+);`))
+  const rule = source.match(
+    new RegExp(`\\.returning ${selector} \\{[^}]*?animation: [\\w-]+ ([^;]+);`),
+  )
   const [duration = NaN, delay = 0] = [...(rule?.[1] ?? '').matchAll(/(\d+)ms/g)].map((m) =>
     Number(m[1]),
   )

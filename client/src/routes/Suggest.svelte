@@ -106,8 +106,8 @@
   <section class="panel">
     <h1>Thanks, it's on the innkeeper's desk</h1>
     <p>
-      The innkeeper reads every suggestion. An approved one joins the game in a later
-      update. There's no account, so you won't hear back: watch for it in a game.
+      The innkeeper reads every suggestion. An approved one joins the game in a later update.
+      There's no account, so you won't hear back: watch for it in a game.
     </p>
     <div class="row">
       <button type="button" class="primary" onclick={() => void another()}>Suggest another</button>
@@ -118,8 +118,7 @@
   <section class="panel">
     <h1>Suggest a question</h1>
     <p class="note">
-      Everything here is written by players and read by the innkeeper before anyone plays
-      it.
+      Everything here is written by players and read by the innkeeper before anyone plays it.
     </p>
   </section>
   {#if failure !== null}

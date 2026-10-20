@@ -70,9 +70,7 @@
     const rest = options.length - answer.size
     return rest === 4 ? 2 : Math.max(1, Math.min(rest, 3))
   })
-  const counts = $derived(
-    revealed && results !== null ? pickCounts(results, options.length) : null,
-  )
+  const counts = $derived(revealed && results !== null ? pickCounts(results, options.length) : null)
   const answered = $derived(results === null ? 0 : Object.keys(results).length)
   const sizeAt = (index: number) =>
     !settled ? 'normal' : !answer.has(index) ? 'small' : answer.size > 1 ? 'normal' : 'large'

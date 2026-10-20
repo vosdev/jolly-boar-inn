@@ -25,12 +25,23 @@ const VIEW = {
 }
 const REVEAL = {
   ...VIEW,
-  entries: SHOWN.map((text, index) => ({ text, rank: RANKS[index], detail: `Rank ${RANKS[index]}` })),
+  entries: SHOWN.map((text, index) => ({
+    text,
+    rank: RANKS[index],
+    detail: `Rank ${RANKS[index]}`,
+  })),
   answer: [1, 3, 4, 0, 2],
 }
 
 // The top three of six, as the server shuffles them.
-const ITEMS = ['Lobster', 'Twisted bow', 'Abyssal whip', 'Scythe of vitur', 'Rune platebody', 'Tumeken']
+const ITEMS = [
+  'Lobster',
+  'Twisted bow',
+  'Abyssal whip',
+  'Scythe of vitur',
+  'Rune platebody',
+  'Tumeken',
+]
 const VALUES = [6, 1, 4, 2, 5, 3]
 const PICKED = {
   prompt: 'The three most valuable.',
@@ -60,23 +71,38 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
 }
 
 const gem = (name: string) => screen.getByText(name).closest('.gem') as HTMLElement
-const handle = (name: string) => screen.getByRole('button', { name: `Move ${name}` }) as HTMLButtonElement
+const handle = (name: string) =>
+  screen.getByRole('button', { name: `Move ${name}` }) as HTMLButtonElement
 const submit = () => screen.getByRole('button', { name: 'Submit' }) as HTMLButtonElement
 const rewind = () => screen.getByRole('button', { name: 'Start over' }) as HTMLButtonElement
 /** The entry at each place, null where a place is empty. */
 const placed = () =>
-  [...document.querySelectorAll('ol.entries > li')].map((li) => li.querySelector('.content')?.textContent ?? null)
+  [...document.querySelectorAll('ol.entries > li')].map(
+    (li) => li.querySelector('.content')?.textContent ?? null,
+  )
 const tray = () => [...document.querySelectorAll('.tray .content')].map((text) => text.textContent)
 const news = () => document.querySelector('[aria-live]')?.textContent
 const press = (name: string, key: string) => fireEvent.keyDown(handle(name), { key })
 
 /** Places 60px apart from the top of the window, and the tray from 400px. */
 function layout(): void {
-  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+    this: HTMLElement,
+  ) {
     const inTray = this.dataset.tray !== undefined
-    const top = this.dataset.place !== undefined ? Number(this.dataset.place) * 60 : inTray ? 400 : 0
+    const top =
+      this.dataset.place !== undefined ? Number(this.dataset.place) * 60 : inTray ? 400 : 0
     const height = inTray ? 300 : 56
-    return { top, bottom: top + height, left: 0, right: 300, width: 300, height, x: 0, y: top } as DOMRect
+    return {
+      top,
+      bottom: top + height,
+      left: 0,
+      right: 300,
+      width: 300,
+      height,
+      x: 0,
+      y: top,
+    } as DOMRect
   })
 }
 
@@ -90,7 +116,9 @@ async function dragTo(name: string, y: number): Promise<void> {
 
 /** Ten seconds before `open()`'s question closes, on a clock the test moves. */
 function closingSoon(): void {
-  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'] })
+  vi.useFakeTimers({
+    toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+  })
   vi.setSystemTime(new Date('2026-10-04T20:00:15Z'))
 }
 
@@ -114,7 +142,8 @@ describe('ordering', () => {
   it('says which end comes first, on a gem that goes where its entry goes', async () => {
     render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
     expect(screen.getByText('Drag into order: Weakest → Strongest')).toBeTruthy()
-    const gems = () => SHOWN.map((name) => [...gem(name).classList].find((c) => GEMS.includes(c as never)))
+    const gems = () =>
+      SHOWN.map((name) => [...gem(name).classList].find((c) => GEMS.includes(c as never)))
     expect(gems()).toEqual(GEMS.slice(0, SHOWN.length))
     await press('Bronze', ' ')
     await press('Bronze', 'ArrowUp')
@@ -203,7 +232,9 @@ describe('ordering', () => {
     const { rerender } = render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
     await press('Bronze', ' ')
     await press('Bronze', 'ArrowUp')
-    await rerender({ question: open({ ...VIEW, entries: VIEW.entries.map((entry) => ({ ...entry })) }) })
+    await rerender({
+      question: open({ ...VIEW, entries: VIEW.entries.map((entry) => ({ ...entry })) }),
+    })
     expect(placed()).toEqual(['Bronze', 'Mithril', 'Adamant', 'Iron', 'Steel'])
     await rerender({ question: open({ ...VIEW, picks: 2 }) })
     expect(placed()).toEqual([null, null])
@@ -314,7 +345,8 @@ describe('ordering', () => {
 
   describe('with picks', () => {
     const item = gem
-    const revealed = () => [...document.querySelectorAll('.entries .text')].map((t) => t.textContent)
+    const revealed = () =>
+      [...document.querySelectorAll('.entries .text')].map((t) => t.textContent)
 
     it('starts with that many empty places over a tray of every entry, and waits for them', async () => {
       const onAnswer = vi.fn()
@@ -331,7 +363,10 @@ describe('ordering', () => {
       expect(placed()).toEqual(['Tumeken', 'Scythe of vitur', 'Twisted bow'])
       expect(tray()).toEqual(['Lobster', 'Abyssal whip', 'Rune platebody'])
       expect(submit().disabled).toBe(false)
-      for (const [name, steps] of [['Scythe of vitur', 1], ['Twisted bow', 2]] as const) {
+      for (const [name, steps] of [
+        ['Scythe of vitur', 1],
+        ['Twisted bow', 2],
+      ] as const) {
         await press(name, ' ')
         for (let step = 0; step < steps; step += 1) await press(name, 'ArrowUp')
         await press(name, ' ')

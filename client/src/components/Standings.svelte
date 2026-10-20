@@ -11,13 +11,7 @@
    */
   import { untrack } from 'svelte'
 
-  import {
-    HISCORES_HOST,
-    previousOrder,
-    roundLine,
-    SHUFFLE,
-    shuffleTimes,
-  } from '../lib/hiscores'
+  import { HISCORES_HOST, previousOrder, roundLine, SHUFFLE, shuffleTimes } from '../lib/hiscores'
   import { reducedMotion } from '../lib/interlude'
   import type { Segment, Standing } from '../lib/protocol'
   import { stageArrival } from '../lib/sharedStage.svelte'
@@ -77,4 +71,3 @@
     <Hiscores {rows} {youId} {settled} {pinned} {instant} />
   {/snippet}
 </Stage>
-

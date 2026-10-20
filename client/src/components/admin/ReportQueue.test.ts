@@ -77,7 +77,9 @@ describe('ReportQueue', () => {
   it('draws what a player typed as text, beside the question with its answer and wiki', async () => {
     const { container } = render(ReportQueue, { token: 't', onrefused: vi.fn() })
     await openFirst("Crafting Guild, Heroes' Guild, Mining Guild")
-    expect(screen.getByText('<script>alert(1)</script> The <b>Heroes</b> one is right.')).toBeTruthy()
+    expect(
+      screen.getByText('<script>alert(1)</script> The <b>Heroes</b> one is right.'),
+    ).toBeTruthy()
     expect(container.querySelector('.detail script, .detail b')).toBeNull()
     expect(screen.getByText("Heroes' Guild", { selector: 'strong' })).toBeTruthy()
     expect(screen.getByRole('link', { name: new RegExp(WIKI) }).getAttribute('href')).toBe(WIKI)
@@ -95,7 +97,9 @@ describe('ReportQueue', () => {
 
   it('lists the questions of this build that ask about a reported item', async () => {
     vi.mocked(admin.getReports).mockResolvedValue({
-      reports: [report({ mode: 'more_less', question_id: null, snapshot: { id: 373, name: 'Swordfish' } })],
+      reports: [
+        report({ mode: 'more_less', question_id: null, snapshot: { id: 373, name: 'Swordfish' } }),
+      ],
       counts: { open: 1, closed: 0 },
     })
     render(ReportQueue, { token: 't', onrefused: vi.fn() })

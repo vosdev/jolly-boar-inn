@@ -43,7 +43,11 @@
 
   const textError = $derived(reportTextProblem(text))
   const pickError = $derived(
-    picked !== null ? null : listed?.by === 'item' ? 'Pick the item, or Something else.' : 'Pick the question, or Something else.',
+    picked !== null
+      ? null
+      : listed?.by === 'item'
+        ? 'Pick the item, or Something else.'
+        : 'Pick the question, or Something else.',
   )
   const length = $derived([...text.trim()].length)
 
@@ -154,8 +158,7 @@
   <section class="panel">
     <h1>Thanks, the innkeeper will look into it</h1>
     <p>
-      A fixed question comes back in a later update. There's no account, so you won't hear
-      back.
+      A fixed question comes back in a later update. There's no account, so you won't hear back.
     </p>
     <div class="row">
       <button type="button" class="primary" onclick={() => void another()}>Report another</button>

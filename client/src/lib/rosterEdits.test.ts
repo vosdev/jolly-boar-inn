@@ -37,6 +37,8 @@ describe('renameProblem', () => {
 
 describe('rosterChangesFileName', () => {
   it('is dated', () => {
-    expect(rosterChangesFileName(new Date('2026-10-06T12:00:00Z'))).toBe('roster-changes-2026-10-06.json')
+    expect(rosterChangesFileName(new Date('2026-10-06T12:00:00Z'))).toBe(
+      'roster-changes-2026-10-06.json',
+    )
   })
 })

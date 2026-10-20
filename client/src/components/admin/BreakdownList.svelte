@@ -34,7 +34,8 @@
           <span class="label">{label(row.key)}</span>
           <span class="track" aria-hidden="true">
             {#each parts as part, i (part.label)}
-              <span class="tone-{part.tone}" style:width="{((row.values[i] ?? 0) / top) * 100}%"></span>
+              <span class="tone-{part.tone}" style:width="{((row.values[i] ?? 0) / top) * 100}%"
+              ></span>
             {/each}
           </span>
           <span class="count">

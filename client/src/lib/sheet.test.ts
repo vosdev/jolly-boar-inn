@@ -35,7 +35,16 @@ describe('sheetFor', () => {
 
 describe('hasRolls', () => {
   it('is the scroll alone', () => {
-    const sheets = ['scroll', 'board', 'poster', 'bunting', 'slab', 'bamboo', 'gauntlet', 'gravestone']
+    const sheets = [
+      'scroll',
+      'board',
+      'poster',
+      'bunting',
+      'slab',
+      'bamboo',
+      'gauntlet',
+      'gravestone',
+    ]
     expect(sheets.filter((sheet) => hasRolls(sheet as never))).toEqual(['scroll'])
   })
 })

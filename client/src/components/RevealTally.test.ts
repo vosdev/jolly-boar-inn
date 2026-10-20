@@ -45,7 +45,12 @@ const right = (value: unknown = 0, points = 900): PlayerResult => ({
   credit: 1,
   points,
 })
-const wrong = (value: unknown = 1): PlayerResult => ({ value, correct: false, credit: 0, points: 0 })
+const wrong = (value: unknown = 1): PlayerResult => ({
+  value,
+  correct: false,
+  credit: 0,
+  points: 0,
+})
 const partly = (credit: number, value: unknown = 1): PlayerResult => ({
   value,
   correct: false,
@@ -131,7 +136,9 @@ describe('RevealTally', () => {
       { a: wrong(1) },
       {
         type: 'more_less',
-        reveal: { options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Bones' } }] },
+        reveal: {
+          options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Bones' } }],
+        },
       },
     ).container
     expect(lines(items)).toEqual(['Bones (1): Zezima (you)'])
@@ -270,7 +277,11 @@ describe('RevealTally', () => {
         c: answered([1, 0, 4], 1 / 3),
         d: answered([3, 4, 5], 0),
       },
-      { showNames: false, type: 'ordering', reveal: { entries, answer: [0, 1, 2, 3, 4, 5], picks: 3 } },
+      {
+        showNames: false,
+        type: 'ordering',
+        reveal: { entries, answer: [0, 1, 2, 3, 4, 5], picks: 3 },
+      },
     )
     expect(count(container)).toBe('0 of 4 got it right')
     expect(lines(container)).toEqual([

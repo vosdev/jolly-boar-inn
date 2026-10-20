@@ -16,7 +16,10 @@ describe('npcArt', () => {
       '../assets/npcs/ali_morrisane.png': '/assets/ali.png',
       '../assets/npcs/ali_morrisane_chathead.webp': '/assets/ali-head.webp',
     }
-    expect(npcArt('ali_morrisane', files)).toEqual({ url: '/assets/ali-head.webp', cut: 'chathead' })
+    expect(npcArt('ali_morrisane', files)).toEqual({
+      url: '/assets/ali-head.webp',
+      cut: 'chathead',
+    })
   })
 
   it('shows the render, cropped, for an NPC with no chathead', () => {

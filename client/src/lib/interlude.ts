@@ -104,7 +104,5 @@ export function typedAt(typing: Typing | undefined, letters: number, elapsed: nu
 
 /** Whether the viewer asked for reduced motion; false where nobody can say. */
 export function reducedMotion(): boolean {
-  return (
-    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
-  )
+  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 }

@@ -273,7 +273,11 @@ export function applyServerMessage(message: ServerMessage): void {
           was: open?.question_id === message.question_id ? open : null,
         })
       }
-      patchRoom({ phase: 'reveal', next_at: message.next_at, reveal_seconds: message.reveal_seconds })
+      patchRoom({
+        phase: 'reveal',
+        next_at: message.next_at,
+        reveal_seconds: message.reveal_seconds,
+      })
       break
 
     case 'game_finished':

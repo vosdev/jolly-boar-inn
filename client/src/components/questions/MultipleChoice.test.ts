@@ -154,14 +154,24 @@ describe('multiple_choice in a quote round', () => {
 })
 
 describe('multiple_choice in Guess the Examine', () => {
-  const EXAMINE = { prompt: 'Future web developers.', options: ['Spider eggs', 'Web', 'Giant spider', 'Spider carcass'] }
+  const EXAMINE = {
+    prompt: 'Future web developers.',
+    options: ['Spider eggs', 'Web', 'Giant spider', 'Spider carcass'],
+  }
 
   it('is drawn by the examine stem', () => {
-    expect(viewFor('multiple_choice', 'guess_examine')).toEqual({ stem: ExamineStem, view: MultipleChoice })
+    expect(viewFor('multiple_choice', 'guess_examine')).toEqual({
+      stem: ExamineStem,
+      view: MultipleChoice,
+    })
   })
 
   it('sets the examine line as a quotation above the options', () => {
-    render(Question, { question: open(true, EXAMINE, 'guess_examine'), yourValue: null, onAnswer: () => {} })
+    render(Question, {
+      question: open(true, EXAMINE, 'guess_examine'),
+      yourValue: null,
+      onAnswer: () => {},
+    })
     const line = screen.getByText('Future web developers.')
     expect(line.tagName).toBe('BLOCKQUOTE')
     expect(line.compareDocumentPosition(screen.getByRole('button', { name: /Spider eggs/ }))).toBe(

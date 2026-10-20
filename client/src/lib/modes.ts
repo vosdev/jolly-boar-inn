@@ -86,8 +86,7 @@ export const MODES: Record<string, Mode> = {
     hint: 'A mix of Grand Exchange, High Alchemy and NPC prices.',
     host: { id: 'ali_morrisane', name: 'Ali Morrisane' },
     greeting: 'Ah, my friend! Come, come, see what Ali has on his stall today.',
-    blurb:
-      'Two items, one question: which is worth more, or less? Ali is always honest. Mostly.',
+    blurb: 'Two items, one question: which is worth more, or less? Ali is always honest. Mostly.',
     waiting: 'Patience, my friend. A good trade is never rushed.',
     reveal: 'Who knows the value of things?',
     // Which of the two costs more, on the scroll; the names are the buttons below it.
@@ -123,7 +122,8 @@ export const MODES: Record<string, Mode> = {
     hint: 'Are you a skiller or a slacker?',
     host: { id: 'historian_minas', name: 'Historian Minas' },
     greeting: 'Welcome to the Varrock Museum. Mind the display cases.',
-    blurb: 'I have muddled up my exhibits again. Put them back in order before the curator notices.',
+    blurb:
+      'I have muddled up my exhibits again. Put them back in order before the curator notices.',
     waiting: 'Take your time. History is not going anywhere.',
     reveal: 'Let us check the records.',
     // Each question says what it sorts by; the entries below it are only what gets sorted.
@@ -183,7 +183,8 @@ export const MODES: Record<string, Mode> = {
     hint: 'All alike but one. Spot the odd one out.',
     host: { id: 'dunce', name: 'Dunce' },
     greeting: "I'm in the corner for getting it wrong. Let's see if you do better.",
-    blurb: "Most of these belong together. One does not. Find it before I'm sent back to the corner.",
+    blurb:
+      "Most of these belong together. One does not. Find it before I'm sent back to the corner.",
     waiting: "Take your time. Nobody's making me stand here for it.",
     reveal: "Told you it didn't fit.",
     // The question is the same line each time; the names below it are all there is to read.
@@ -195,7 +196,8 @@ export const MODES: Record<string, Mode> = {
     hint: "It's Elvarg!",
     host: { id: 'postie_pete', name: 'Postie Pete' },
     greeting: 'Parcel for you! No name on it, mind. Only a shadow.',
-    blurb: "Everyone in Gielinor gets post from me. I'll show you a shadow; you tell me who it's for.",
+    blurb:
+      "Everyone in Gielinor gets post from me. I'll show you a shadow; you tell me who it's for.",
     waiting: 'Hold on, still sorting the post.',
     reveal: 'Signed, sealed, delivered.',
     // The prompt is the same line every time; the shadow under it is the question.
@@ -254,12 +256,42 @@ export const MODES: Record<string, Mode> = {
  * interruption.
  */
 export const UPCOMING_MODES: { id: string; label: string; hint: string; host: string }[] = [
-  { id: 'release_order', label: 'Release Order', hint: 'Put quests and monsters in the order they came out.', host: 'aris' },
-  { id: 'pixel_hunt', label: 'Pixel Hunt', hint: 'How fast can you recognize the item?', host: 'sherlock' },
-  { id: 'name_that_spell', label: 'Name that spell', hint: 'Because everyone plays with sound effects on!', host: 'aubury' },
-  { id: 'minimap_guesser', label: 'Minimap Guesser', hint: 'Where in the name of Gielinor is that?', host: 'captain_errdo' },
-  { id: 'scrying_pool', label: 'Scrying Pool', hint: 'Where did that teleport drop you?', host: 'archmage_sedridor' },
-  { id: 'lost_in_gielinor', label: 'Lost in Gielinor', hint: 'Hans has wandered off. Follow his clues and find him.', host: 'hans' },
+  {
+    id: 'release_order',
+    label: 'Release Order',
+    hint: 'Put quests and monsters in the order they came out.',
+    host: 'aris',
+  },
+  {
+    id: 'pixel_hunt',
+    label: 'Pixel Hunt',
+    hint: 'How fast can you recognize the item?',
+    host: 'sherlock',
+  },
+  {
+    id: 'name_that_spell',
+    label: 'Name that spell',
+    hint: 'Because everyone plays with sound effects on!',
+    host: 'aubury',
+  },
+  {
+    id: 'minimap_guesser',
+    label: 'Minimap Guesser',
+    hint: 'Where in the name of Gielinor is that?',
+    host: 'captain_errdo',
+  },
+  {
+    id: 'scrying_pool',
+    label: 'Scrying Pool',
+    hint: 'Where did that teleport drop you?',
+    host: 'archmage_sedridor',
+  },
+  {
+    id: 'lost_in_gielinor',
+    label: 'Lost in Gielinor',
+    hint: 'Hans has wandered off. Follow his clues and find him.',
+    host: 'hans',
+  },
 ]
 
 /**

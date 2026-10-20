@@ -115,10 +115,7 @@
   const startedAt = Date.now()
   const interlude = untrack(() =>
     live && reveal === null && !reducedMotion()
-      ? interludeFor(
-          answerableMs - (startedAt + get(serverOffsetMs)),
-          letters,
-        )
+      ? interludeFor(answerableMs - (startedAt + get(serverOffsetMs)), letters)
       : SETTLED,
   )
 

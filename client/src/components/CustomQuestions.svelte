@@ -176,7 +176,11 @@
   {/if}
 
   {#if open !== null && sheet}
-    <Sheet full label={open === 'new' ? 'New question' : 'Edit question'} onclose={() => (open = null)}>
+    <Sheet
+      full
+      label={open === 'new' ? 'New question' : 'Edit question'}
+      onclose={() => (open = null)}
+    >
       <div class="in-sheet">{@render editor(open === 'new' ? undefined : questions[open])}</div>
     </Sheet>
   {/if}

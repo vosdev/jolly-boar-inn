@@ -41,7 +41,10 @@ const SUFFIX: Record<string, string> = { k: 'e3', m: 'e6', b: 'e9' }
  * Null for anything else, which is what keeps Submit disabled.
  */
 export function parseAmount(text: string): number | null {
-  const cleaned = text.trim().toLowerCase().replace(/[\s,_]/g, '')
+  const cleaned = text
+    .trim()
+    .toLowerCase()
+    .replace(/[\s,_]/g, '')
   const match = /^(-?(?:\d+\.?\d*|\.\d+))([kmb]?)$/.exec(cleaned)
   if (match === null) return null
   const value = Number(match[1] + (SUFFIX[match[2] ?? ''] ?? ''))

@@ -13,7 +13,13 @@ import { players } from '../lib/stores'
 import { stubAnimations } from '../test-animate'
 import Standings from './Standings.svelte'
 
-function standing(name: string, points: number, rank: number, gained: number, previous: number): Standing {
+function standing(
+  name: string,
+  points: number,
+  rank: number,
+  gained: number,
+  previous: number,
+): Standing {
   return {
     player_id: name,
     display_name: name,

@@ -87,10 +87,13 @@
     const times = ceremonyTimes(lines.map(lettersOf), open)
     timers = [
       ...places.flatMap((_, i) => [
-        setTimeout(() => {
-          line = i + 1
-          shown = null
-        }, times.lines[i + 1]),
+        setTimeout(
+          () => {
+            line = i + 1
+            shown = null
+          },
+          times.lines[i + 1],
+        ),
         setTimeout(() => (shown = i), times.shows[i]),
       ]),
       setTimeout(leave, times.end),
@@ -109,9 +112,7 @@
 
   const winners = $derived(
     winnersLine(
-      standings
-        .filter((standing) => standing.rank === 1 && standing.points > 0)
-        .map(nameOf),
+      standings.filter((standing) => standing.rank === 1 && standing.points > 0).map(nameOf),
     ),
   )
   const place = $derived<Place | null>(shown === null ? null : (places[shown] ?? null))
@@ -154,8 +155,14 @@
                 </span>
                 {#if place.more > 0}<span class="more">+{place.more}</span>{/if}
                 <div class="who">
-                  <!-- One line, so no space slips in before a comma. -->
-                  <p class="names">{#each place.standings as standing, i (standing.player_id)}{i > 0 ? ', ' : ''}{nameOf(standing)}{#if standing.player_id === youId}{' '}<span class="note">(you)</span>{/if}{/each}</p>
+                  <!-- No whitespace between the tags, so no space slips in before a comma. -->
+                  <p class="names">
+                    {#each place.standings as standing, i (standing.player_id)}{i > 0
+                        ? ', '
+                        : ''}{nameOf(standing)}{#if standing.player_id === youId}{' '}<span
+                          class="note">(you)</span
+                        >{/if}{/each}
+                  </p>
                   <p class="points">
                     {numbers.format(place.standings[0]?.points ?? 0)} points
                     <span class="tier">{tierName(place.tier)} trophy</span>
@@ -185,8 +192,8 @@
       <!-- Rank is dense (section 6), so level scores genuinely share a place; what the
            sort settles is the order they are listed in, not the rank. -->
       <p class="note">
-        Level scores share a place. Between them, more correct answers comes first, and
-        after that the earliest to join.
+        Level scores share a place. Between them, more correct answers comes first, and after that
+        the earliest to join.
       </p>
       {@render children()}
     </div>

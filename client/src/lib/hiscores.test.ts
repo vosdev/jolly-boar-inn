@@ -40,7 +40,9 @@ function standing(
 
 describe('ceremonyPlaces', () => {
   it('presents fifth first and first last, Bronze up to Diamond', () => {
-    const places = ceremonyPlaces([1, 2, 3, 4, 5, 6].map((rank) => standing(`p${rank}`, 700 - rank * 100, rank)))
+    const places = ceremonyPlaces(
+      [1, 2, 3, 4, 5, 6].map((rank) => standing(`p${rank}`, 700 - rank * 100, rank)),
+    )
     expect(places.map((place) => [place.rank, place.tier])).toEqual([
       [5, 'bronze'],
       [4, 'silver'],
@@ -62,7 +64,9 @@ describe('ceremonyPlaces', () => {
   })
 
   it('gives nobody on 0 points a place, so a quiet room has no ceremony', () => {
-    expect(ceremonyPlaces([standing('a', 300, 1), standing('b', 0, 2)]).map((p) => p.rank)).toEqual([1])
+    expect(ceremonyPlaces([standing('a', 300, 1), standing('b', 0, 2)]).map((p) => p.rank)).toEqual(
+      [1],
+    )
     expect(ceremonyPlaces([standing('a', 0, 1), standing('b', 0, 1)])).toEqual([])
   })
 })

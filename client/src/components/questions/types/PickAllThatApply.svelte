@@ -32,7 +32,14 @@
     answer_indices?: Indices
   }
 
-  let { data, revealed, yourValue, canAnswer, onAnswer, results = null }: TypeViewProps<Indices> = $props()
+  let {
+    data,
+    revealed,
+    yourValue,
+    canAnswer,
+    onAnswer,
+    results = null,
+  }: TypeViewProps<Indices> = $props()
 
   const q = $derived(data as unknown as Data)
   const ticked = new SvelteSet<number>()
@@ -59,7 +66,8 @@
   async function fit(): Promise<void> {
     compact = false
     await tick()
-    if (submitEl) compact = submitEl.getBoundingClientRect().bottom + window.scrollY > window.innerHeight
+    if (submitEl)
+      compact = submitEl.getBoundingClientRect().bottom + window.scrollY > window.innerHeight
   }
 
   $effect(() => {

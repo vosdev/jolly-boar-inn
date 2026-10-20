@@ -20,7 +20,7 @@
    * rather than as a question of ours, because it is not one: "Future web developers."
    * is a clue, and a player should read it as the game's voice, not the host's.
    * The line above it says what to do with it, which the examine itself never does, and
- * the examine sits centred in whatever height of the scroll is left.
+   * the examine sits centred in whatever height of the scroll is left.
    *
    * It reads `prompt` and nothing else. What the answer was is the buttons' to show at the
    * reveal: the stem stays the same clue before and after, so the eye has one place to

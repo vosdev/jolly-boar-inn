@@ -138,7 +138,10 @@
   }
 
   /** `attempt` as `name`, turning its number over on `name_taken`. Throws what is left. */
-  async function withFreshNumber<T>(name: string, attempt: (name: string) => Promise<T>): Promise<T> {
+  async function withFreshNumber<T>(
+    name: string,
+    attempt: (name: string) => Promise<T>,
+  ): Promise<T> {
     let tried = name
     for (let n = 0; ; n++) {
       joiningAs = tried
@@ -173,7 +176,10 @@
       land(credentials, remember ? name : null)
     } catch (error) {
       reportFailure(failureOf(error))
-      if (error instanceof ApiFailure && (error.code === 'key_required' || error.code === 'bad_key')) {
+      if (
+        error instanceof ApiFailure &&
+        (error.code === 'key_required' || error.code === 'bad_key')
+      ) {
         inviteOnly = true
         interrupted = { name, remember }
         return
@@ -302,16 +308,8 @@
   {:else if failure !== null}
     <section class="panel">
       <form onsubmit={submit}>
-        <NameField
-          id="name"
-          bind:value={displayName}
-          avoid={code}
-        />
-        <button
-          class="primary"
-          type="submit"
-          disabled={busy || nameProblem(displayName) !== null}
-        >
+        <NameField id="name" bind:value={displayName} avoid={code} />
+        <button class="primary" type="submit" disabled={busy || nameProblem(displayName) !== null}>
           {busy ? 'Joining…' : 'Join'}
         </button>
         <p class="error">{failure}</p>

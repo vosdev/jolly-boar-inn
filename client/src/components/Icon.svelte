@@ -22,7 +22,9 @@
     {:else if name === 'more'}
       <path d="M5 12h.01M12 12h.01M19 12h.01" class="dots" />
     {:else}
-      <path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8" />
+      <path
+        d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8"
+      />
     {/if}
   </svg>
 {/if}

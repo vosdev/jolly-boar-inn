@@ -11,7 +11,14 @@
   import { onMount } from 'svelte'
 
   import type { ModePacing } from '../lib/api'
-  import { SCORING_LINE, allTypes, loadModes, roomTypes, rowsFor, type HowToRow } from '../lib/howToPlay'
+  import {
+    SCORING_LINE,
+    allTypes,
+    loadModes,
+    roomTypes,
+    rowsFor,
+    type HowToRow,
+  } from '../lib/howToPlay'
   import type { RoomSettings } from '../lib/protocol'
   import Sheet from './Sheet.svelte'
 
@@ -35,7 +42,9 @@
   })
 
   const rows = $derived<HowToRow[]>(
-    modes === null ? [] : rowsFor(room === null ? allTypes(modes) : roomTypes(room.settings, room.total, modes)),
+    modes === null
+      ? []
+      : rowsFor(room === null ? allTypes(modes) : roomTypes(room.settings, room.total, modes)),
   )
 </script>
 

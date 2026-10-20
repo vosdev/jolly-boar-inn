@@ -209,9 +209,7 @@
       const standing = current.phase === 'standings'
       timerBar.set({
         endsAt: current.next_at,
-        totalSeconds: standing
-          ? current.settings.standings_seconds
-          : (current.reveal_seconds ?? 0),
+        totalSeconds: standing ? current.settings.standings_seconds : (current.reveal_seconds ?? 0),
         label: standing ? 'to the next round' : 'to the next question',
         ...(standing ? {} : { progress: `${number}/${total}` }),
       })
@@ -439,73 +437,73 @@
   {:else}
     <!-- playing. A question's screen is the stage and nothing to read past it. -->
     <div class:column={$room.phase !== 'standings'}>
-    {#if $room.phase === 'standings'}
-      <h1 class="sr">
-        {#if segment !== null}
-          <span class="round">After round {segment.index + 1} of {segment.total}</span>
-        {/if}
-        Standings
-      </h1>
-    {:else}
-      <!-- The splash said which round this is, and the timer bar's tab says which
+      {#if $room.phase === 'standings'}
+        <h1 class="sr">
+          {#if segment !== null}
+            <span class="round">After round {segment.index + 1} of {segment.total}</span>
+          {/if}
+          Standings
+        </h1>
+      {:else}
+        <!-- The splash said which round this is, and the timer bar's tab says which
            question: the heading is only for a screen reader and for focus. -->
-      <h1 class="sr" bind:this={heading} tabindex="-1">
-        {#if segment !== null && segment.total > 1}
-          <span class="round">Round {segment.index + 1} of {segment.total}</span>
-        {/if}
-        {questionTitle}
-      </h1>
-    {/if}
+        <h1 class="sr" bind:this={heading} tabindex="-1">
+          {#if segment !== null && segment.total > 1}
+            <span class="round">Round {segment.index + 1} of {segment.total}</span>
+          {/if}
+          {questionTitle}
+        </h1>
+      {/if}
 
-    <ErrorBanner />
+      <ErrorBanner />
 
-    {#if $room.phase === 'standings'}
-      <Standings standings={$standings} {segment} youId={$you?.id ?? null} />
-    {:else if $room.phase === 'open' && $question !== null}
-      <QuestionStage
-        question={$question}
-        yourValue={$yourAnswer}
-        onAnswer={answer}
-        live={$questionLive}
-      />
-    {:else if $lastClosed !== null && $lastClosed.was !== null}
-      <QuestionStage
-        question={$lastClosed.was}
-        reveal={$lastClosed.reveal}
-        yourValue={$yourAnswer}
-        result={yourResult}
-        results={$lastClosed.results}
-        onAnswer={() => {}}
-        nextAt={$room.next_at}
-      >
-        <RevealTally
-          type={$lastClosed.was.type}
-          reveal={$lastClosed.reveal}
-          results={$lastClosed.results}
-          unanswered={$lastClosed.unanswered}
-          {nameOf}
-          youId={$you?.id ?? null}
-          showNames={$room.settings.name_wrong_answers === true}
-          suggestedBy={$lastClosed.suggested_by ?? null}
+      {#if $room.phase === 'standings'}
+        <Standings standings={$standings} {segment} youId={$you?.id ?? null} />
+      {:else if $room.phase === 'open' && $question !== null}
+        <QuestionStage
+          question={$question}
+          yourValue={$yourAnswer}
+          onAnswer={answer}
+          live={$questionLive}
         />
-      </QuestionStage>
-    {:else if $lastClosed !== null}
-      <section class="panel">
-        <p class="note">That question is closed.</p>
-      </section>
-    {:else}
-      <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
+      {:else if $lastClosed !== null && $lastClosed.was !== null}
+        <QuestionStage
+          question={$lastClosed.was}
+          reveal={$lastClosed.reveal}
+          yourValue={$yourAnswer}
+          result={yourResult}
+          results={$lastClosed.results}
+          onAnswer={() => {}}
+          nextAt={$room.next_at}
+        >
+          <RevealTally
+            type={$lastClosed.was.type}
+            reveal={$lastClosed.reveal}
+            results={$lastClosed.results}
+            unanswered={$lastClosed.unanswered}
+            {nameOf}
+            youId={$you?.id ?? null}
+            showNames={$room.settings.name_wrong_answers === true}
+            suggestedBy={$lastClosed.suggested_by ?? null}
+          />
+        </QuestionStage>
+      {:else if $lastClosed !== null}
+        <section class="panel">
+          <p class="note">That question is closed.</p>
+        </section>
+      {:else}
+        <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
            back from a restart. No `question_closed` reached this client, so there is
            nothing to reveal. There is no board here either: inside a round, where
            everyone stands waits for the round's end. -->
-      <section class="panel">
-        <p class="note">
-          {$room.phase === 'reveal'
-            ? 'Between questions — the next one opens shortly.'
-            : 'Waiting for the next question…'}
-        </p>
-      </section>
-    {/if}
+        <section class="panel">
+          <p class="note">
+            {$room.phase === 'reveal'
+              ? 'Between questions — the next one opens shortly.'
+              : 'Waiting for the next question…'}
+          </p>
+        </section>
+      {/if}
     </div>
   {/if}
 
@@ -559,7 +557,6 @@
     margin-inline: auto;
   }
 
-
   .round {
     display: block;
     font-size: 0.8rem;
@@ -568,5 +565,4 @@
     letter-spacing: 0.12em;
     color: var(--muted);
   }
-
 </style>

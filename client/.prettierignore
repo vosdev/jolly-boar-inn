@@ -1,0 +1,6 @@
+dist
+public
+prototypes
+pnpm-lock.yaml
+# The repo's docs keep compact tables, and the rest of them are not formatted either.
+*.md

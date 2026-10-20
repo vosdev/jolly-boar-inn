@@ -46,7 +46,9 @@
 
   /** The entries in no place, in their shown order. */
   export function trayOf(slots: Slots, entries: number): number[] {
-    return Array.from({ length: entries }, (_, shown) => shown).filter((shown) => !slots.includes(shown))
+    return Array.from({ length: entries }, (_, shown) => shown).filter(
+      (shown) => !slots.includes(shown),
+    )
   }
 
   /**
@@ -158,15 +160,8 @@
   /** How close to the window's edge a dragged row scrolls the page. */
   const EDGE_PX = 48
 
-  let {
-    data,
-    revealed,
-    yourValue,
-    canAnswer,
-    result,
-    timing,
-    onAnswer,
-  }: TypeViewProps<Positions> = $props()
+  let { data, revealed, yourValue, canAnswer, result, timing, onAnswer }: TypeViewProps<Positions> =
+    $props()
 
   const q = $derived(data as unknown as Data)
   const gemAt = (index: number) => GEMS[Math.min(index, GEMS.length - 1)] ?? null
@@ -223,7 +218,13 @@
     const left = msUntil(timing.endsAt, get(timing.now))
     if (left === 0) return
     const timer = setTimeout(
-      () => onAnswer(filled(untrack(() => slots), q.entries.length)),
+      () =>
+        onAnswer(
+          filled(
+            untrack(() => slots),
+            q.entries.length,
+          ),
+        ),
       Math.max(0, left - EARLY_MS),
     )
     return () => clearTimeout(timer)
@@ -278,7 +279,8 @@
   /** A mouse drags the whole row; a finger only the handle, so the rest still scrolls. */
   function grab(event: PointerEvent, shown: number): void {
     if (!movable || event.button !== 0) return
-    if (event.pointerType !== 'mouse' && (event.target as Element).closest('.handle') === null) return
+    if (event.pointerType !== 'mouse' && (event.target as Element).closest('.handle') === null)
+      return
     event.preventDefault()
     ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
     lifted = null
@@ -324,7 +326,8 @@
   }
   const verdict = $derived.by(() => {
     if (result == null || answer.length === 0) return null
-    if (q.picks === undefined) return `You had ${inPlace(result.credit, places)} of ${places} in place`
+    if (q.picks === undefined)
+      return `You had ${inPlace(result.credit, places)} of ${places} in place`
     const { inPlace: placed, outOfPlace } = placement(data, result.value)
     return `You had ${placed} of ${places} in place${outOfPlace > 0 ? `, ${outOfPlace} out of place` : ''}`
   })
@@ -368,7 +371,9 @@
         {#each board as shown, index (shown ?? `empty ${index}`)}
           <li data-place={index} class:over={over === index}>
             {#if shown === null}
-              <div class="empty"><span class="sr">Place </span>{index + 1}<span class="sr">, empty</span></div>
+              <div class="empty">
+                <span class="sr">Place </span>{index + 1}<span class="sr">, empty</span>
+              </div>
             {:else}
               {@render row(shown, index + 1)}
             {/if}

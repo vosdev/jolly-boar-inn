@@ -77,11 +77,15 @@
   const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
   const ranks = $derived(ranksOf(draft.entries))
   const pickChoices = $derived(
-    Array.from({ length: Math.max(0, picksMax(draft.entries.length) - PICKS_MIN + 1) }, (_, i) => PICKS_MIN + i),
+    Array.from(
+      { length: Math.max(0, picksMax(draft.entries.length) - PICKS_MIN + 1) },
+      (_, i) => PICKS_MIN + i,
+    ),
   )
 
   /** Paths the form has a place for; anything else is listed under the form. */
-  const PLACED = /^payload\.(prompt|ends\[\d\]|entries(\[\d+\](\.(text|detail))?)?|picks|explanation)$/
+  const PLACED =
+    /^payload\.(prompt|ends\[\d\]|entries(\[\d+\](\.(text|detail))?)?|picks|explanation)$/
   const unplaced = $derived(shown.filter((problem) => !PLACED.test(problem.path)))
 
   function errorsAt(path: string): string[] {
@@ -141,7 +145,9 @@
 <div class="editor surface" role="group" aria-labelledby="{id}-title" {@attach enterSaves}>
   <div class="layout">
     <div class="fields">
-      <h3 id="{id}-title">{title ?? (question === undefined ? 'New question' : 'Edit question')}</h3>
+      <h3 id="{id}-title">
+        {title ?? (question === undefined ? 'New question' : 'Edit question')}
+      </h3>
       {#if picker !== undefined}
         <Segmented
           legend="How players answer"
@@ -160,13 +166,23 @@
       <div class="pair">
         <div class="field">
           <label for="{id}-first">First end</label>
-          <input id="{id}-first" type="text" placeholder={wording.ends[0]} bind:value={draft.ends[0]} />
+          <input
+            id="{id}-first"
+            type="text"
+            placeholder={wording.ends[0]}
+            bind:value={draft.ends[0]}
+          />
           <p class="note counter">{codePoints(draft.ends[0].trim())}/{ENDS_MAX}</p>
           {@render errors('payload.ends[0]')}
         </div>
         <div class="field">
           <label for="{id}-last">Last end</label>
-          <input id="{id}-last" type="text" placeholder={wording.ends[1]} bind:value={draft.ends[1]} />
+          <input
+            id="{id}-last"
+            type="text"
+            placeholder={wording.ends[1]}
+            bind:value={draft.ends[1]}
+          />
           <p class="note counter">{codePoints(draft.ends[1].trim())}/{ENDS_MAX}</p>
           {@render errors('payload.ends[1]')}
         </div>
@@ -178,11 +194,7 @@
           <div class="entry">
             <span class="place" aria-hidden="true">{ranks[index]}</span>
             <div class="inputs">
-              <input
-                type="text"
-                aria-label="Entry {index + 1}"
-                bind:value={entry.text}
-              />
+              <input type="text" aria-label="Entry {index + 1}" bind:value={entry.text} />
               <input
                 type="text"
                 aria-label="Detail of entry {index + 1}"
@@ -255,8 +267,7 @@
             {/each}
           </select>
           <p class="note">
-            With fewer, the rest are decoys: players must pick the right ones as well as order
-            them.
+            With fewer, the rest are decoys: players must pick the right ones as well as order them.
           </p>
           {@render errors('payload.picks')}
         </div>

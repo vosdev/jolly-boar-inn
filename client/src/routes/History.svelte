@@ -7,11 +7,8 @@
   import { finishedTime } from '../lib/dates'
   import { findPastGame } from '../lib/history'
 
-  let {
-    code,
-    stamp,
-    navigate,
-  }: { code: string; stamp: string; navigate: (to: string) => void } = $props()
+  let { code, stamp, navigate }: { code: string; stamp: string; navigate: (to: string) => void } =
+    $props()
 
   const game = $derived(findPastGame(code, stamp))
 </script>
@@ -24,7 +21,9 @@
   </section>
 {:else}
   <FinalStandings standings={game.standings} youId={game.youId} past>
-    <p class="note">Room {game.code}, finished {finishedTime(game.finishedAt)}. The room has closed.</p>
+    <p class="note">
+      Room {game.code}, finished {finishedTime(game.finishedAt)}. The room has closed.
+    </p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </FinalStandings>
 {/if}

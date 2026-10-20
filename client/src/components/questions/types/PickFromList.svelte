@@ -186,9 +186,7 @@
     if (selected !== null && !locked) onAnswer(selected.id)
   }
 
-  const answerName = $derived(
-    revealed ? (q.subject?.name ?? nameOf(q.answer_id) ?? null) : null,
-  )
+  const answerName = $derived(revealed ? (q.subject?.name ?? nameOf(q.answer_id) ?? null) : null)
   const pickedName = $derived(answered === null ? null : nameOf(answered))
 </script>
 

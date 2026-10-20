@@ -23,7 +23,11 @@ import { RANDOM_EVENTS } from './randomEvents'
 
 const CHOICE: CustomQuestion = {
   type: 'multiple_choice',
-  payload: { prompt: 'Who runs the Jolly Boar Inn?', options: ['Bartender', 'Hans'], answer_index: 0 },
+  payload: {
+    prompt: 'Who runs the Jolly Boar Inn?',
+    options: ['Bartender', 'Hans'],
+    answer_index: 0,
+  },
 }
 const TEXT: CustomQuestion = {
   type: 'free_text',
@@ -32,12 +36,22 @@ const TEXT: CustomQuestion = {
 }
 const NUMBER: CustomQuestion = {
   type: 'closest_number',
-  payload: { prompt: 'Zulrah kills for a pet, on average?', answer: 4000, unit: 'kills', explanation: '1/4000.' },
+  payload: {
+    prompt: 'Zulrah kills for a pet, on average?',
+    answer: 4000,
+    unit: 'kills',
+    explanation: '1/4000.',
+  },
   random_event: 'death',
 }
 const PICK_ALL: CustomQuestion = {
   type: 'pick_all_that_apply',
-  payload: { prompt: 'Which of these are demons?', options: ['Hellhound', 'Gargoyle', 'Imp'], answer_indices: [0, 2], picks: 2 },
+  payload: {
+    prompt: 'Which of these are demons?',
+    options: ['Hellhound', 'Gargoyle', 'Imp'],
+    answer_indices: [0, 2],
+    picks: 2,
+  },
 }
 
 function paths(question: unknown): string[] {
@@ -56,10 +70,12 @@ describe('problems', () => {
     expect(paths({ ...CHOICE, payload: { ...CHOICE.payload, options } })).toEqual([
       `payload.options: At most ${max} answers.`,
     ])
-    expect(paths({ ...CHOICE, payload: { ...CHOICE.payload, prompt: 'x'.repeat(prompt) } })).toEqual([])
-    expect(paths({ ...CHOICE, payload: { ...CHOICE.payload, prompt: 'x'.repeat(prompt + 1) } })).toEqual([
-      `payload.prompt: At most ${prompt} characters; this has ${prompt + 1}.`,
-    ])
+    expect(
+      paths({ ...CHOICE, payload: { ...CHOICE.payload, prompt: 'x'.repeat(prompt) } }),
+    ).toEqual([])
+    expect(
+      paths({ ...CHOICE, payload: { ...CHOICE.payload, prompt: 'x'.repeat(prompt + 1) } }),
+    ).toEqual([`payload.prompt: At most ${prompt} characters; this has ${prompt + 1}.`])
   })
 
   it('counts length in code points, as the server does', () => {
@@ -83,9 +99,9 @@ describe('problems', () => {
     expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [0, 1, 2] } })).toEqual([
       'payload.answer_indices: Leave at least one answer wrong.',
     ])
-    expect(paths({ ...PICK_ALL, payload: { ...open, options: ['Imp', 'imp', 'Hellhound'] } })).toEqual([
-      'payload.options[1]: Same as answer 1.',
-    ])
+    expect(
+      paths({ ...PICK_ALL, payload: { ...open, options: ['Imp', 'imp', 'Hellhound'] } }),
+    ).toEqual(['payload.options[1]: Same as answer 1.'])
   })
 
   it('refuses an accepted answer nothing could match', () => {
@@ -114,7 +130,9 @@ describe('problems', () => {
     expect(paths({ ...CHOICE, payload: { ...CHOICE.payload, colour: 'red' } })).toEqual([
       'payload.colour: “colour” is not a field of this question.',
     ])
-    expect(paths({ ...CHOICE, id: 'q_0000000000000000' })[0]).toMatch(/^id: “id” is not part of a question here/)
+    expect(paths({ ...CHOICE, id: 'q_0000000000000000' })[0]).toMatch(
+      /^id: “id” is not part of a question here/,
+    )
     expect(paths({ type: 'pick_from_list', payload: {} })).toEqual([
       'type: Must be one of multiple_choice, free_text, closest_number, pick_all_that_apply.',
     ])
@@ -143,7 +161,11 @@ describe('the form', () => {
   })
 
   it('trims, and leaves empty optional fields and the default typo allowance out', () => {
-    const draft = { ...draftOf({ ...TEXT, payload: { ...TEXT.payload, max_distance: 1 } }), prompt: ' Q ', explanation: '  ' }
+    const draft = {
+      ...draftOf({ ...TEXT, payload: { ...TEXT.payload, max_distance: 1 } }),
+      prompt: ' Q ',
+      explanation: '  ',
+    }
     expect(questionOf(draft).payload).toEqual({ prompt: 'Q', accepted: ['Fluffs'] })
   })
 
@@ -157,7 +179,10 @@ describe('the form', () => {
   })
 
   it('edits the intro and the picture, trimmed, and leaves them out when emptied', () => {
-    const draft = draftOf({ ...TEXT, payload: { ...TEXT.payload, intro: 'Hm.', image: 'npc:2042' } })
+    const draft = draftOf({
+      ...TEXT,
+      payload: { ...TEXT.payload, intro: 'Hm.', image: 'npc:2042' },
+    })
     expect([draft.intro, draft.image]).toEqual(['Hm.', 'npc:2042'])
     const edited = questionOf({ ...draft, intro: '  Hmm, yes.  ', image: '' }).payload
     expect(edited.intro).toBe('Hmm, yes.')
@@ -223,7 +248,11 @@ describe('export and import', () => {
       ok: false,
       errors: ['This file should be a list of questions, the way Export writes it.'],
     })
-    const bad = [CHOICE, { ...TEXT, random_event: 'zezima' }, { ...CHOICE, payload: { ...CHOICE.payload, options: ['A'] } }]
+    const bad = [
+      CHOICE,
+      { ...TEXT, random_event: 'zezima' },
+      { ...CHOICE, payload: { ...CHOICE.payload, options: ['A'] } },
+    ]
     expect(importText(JSON.stringify(bad))).toEqual({
       ok: false,
       errors: [

@@ -28,18 +28,30 @@ export default defineConfig({
     // Vite inlines every file under 4 kB, and nearly every pet and item icon is: hundreds of
     // data URLs would put both whole catalogues in the script every visitor downloads. Left
     // as files, each is fetched when an <img> needs it.
-    assetsInlineLimit: (file) =>
-      /\/src\/assets\/(pets|items)\//.test(file) ? false : undefined,
+    assetsInlineLimit: (file) => (/\/src\/assets\/(pets|items)\//.test(file) ? false : undefined),
   },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.ts', 'site-branding.test.ts', 'theme-contract.test.ts'],
+    include: [
+      'src/**/*.test.ts',
+      'site-branding.test.ts',
+      'theme-contract.test.ts',
+      'lint.test.ts',
+    ],
     setupFiles: ['src/test-setup.ts'],
   },
   server: {
     port: 5173,
     strictPort: true,
-    fs: { allow: ['.', '../data/player-names.json', '../data/pets.json', '../data/assets.json', '../schema/question.schema.json'] },
+    fs: {
+      allow: [
+        '.',
+        '../data/player-names.json',
+        '../data/pets.json',
+        '../data/assets.json',
+        '../schema/question.schema.json',
+      ],
+    },
     proxy: {
       '/api': { target: 'http://localhost:8000', changeOrigin: true },
       '/ws': { target: 'ws://localhost:8000', ws: true, changeOrigin: true },

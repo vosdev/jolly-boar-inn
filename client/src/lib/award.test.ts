@@ -17,12 +17,21 @@ import { NO_AWARD, awardFor, pinFor } from './award'
 
 describe('awardFor', () => {
   it('throws confetti for full credit', () => {
-    expect(awardFor({ value: 0, correct: true, credit: 1, points: 850 })).toEqual({ kind: 'confetti', points: 850 })
+    expect(awardFor({ value: 0, correct: true, credit: 1, points: 850 })).toEqual({
+      kind: 'confetti',
+      points: 850,
+    })
   })
 
   it('pins alone on partial credit or a graded guess that scored', () => {
-    expect(awardFor({ value: 'Zezma', correct: false, credit: 0.9, points: 400 })).toEqual({ kind: 'pin', points: 400 })
-    expect(awardFor({ value: 120, correct: false, credit: 0.3, points: 1 })).toEqual({ kind: 'pin', points: 1 })
+    expect(awardFor({ value: 'Zezma', correct: false, credit: 0.9, points: 400 })).toEqual({
+      kind: 'pin',
+      points: 400,
+    })
+    expect(awardFor({ value: 120, correct: false, credit: 0.3, points: 1 })).toEqual({
+      kind: 'pin',
+      points: 1,
+    })
   })
 
   it('gives +0 and no answer nothing', () => {

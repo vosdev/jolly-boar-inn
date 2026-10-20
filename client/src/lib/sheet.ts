@@ -41,14 +41,7 @@ export const ART = {
 export const PLANK_SEAMS = Array.from({ length: 16 }, (_, plank) => (plank + 1) * 38 - 2)
 
 export type Sheet =
-  | 'scroll'
-  | 'board'
-  | 'poster'
-  | 'bunting'
-  | 'slab'
-  | 'bamboo'
-  | 'gauntlet'
-  | 'gravestone'
+  'scroll' | 'board' | 'poster' | 'bunting' | 'slab' | 'bamboo' | 'gauntlet' | 'gravestone'
 
 /** The sheet `theme` draws; `board` asks for Home's notice board, which only the inn has. */
 export function sheetFor(theme: string, board = false): Sheet {

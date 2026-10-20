@@ -49,7 +49,7 @@ def test_the_clients_mode_list_is_this_registry() -> None:
     upcoming = _between(source, "export const UPCOMING_MODES", "\n]\n")
     keys = re.findall(r"^  ([a-z0-9_]+): \{$", shipped, flags=re.MULTILINE)
     ids = re.findall(r"^    id: '([^']*)',$", shipped, flags=re.MULTILINE)
-    soon = re.findall(r"^  \{ id: '([^']*)',", upcoming, flags=re.MULTILINE)
+    soon = re.findall(r"^ +(?:\{ )?id: '([^']*)',", upcoming, flags=re.MULTILINE)
     assert keys and keys == ids, "an entry filed under another id, or the file's shape moved"
     assert {mode.id for mode in round_modes()} <= set(keys), "a round with no client copy"
     assert set(keys) <= set(MODES), "client copy for a mode this server does not have"

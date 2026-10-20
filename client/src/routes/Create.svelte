@@ -65,7 +65,12 @@
   import PickForMe from '../components/PickForMe.svelte'
   import RandomEvents from '../components/RandomEvents.svelte'
   import RoundList from '../components/RoundList.svelte'
-  import { FREQUENCY_LABELS, eventSlots, overCap, type CustomQuestion } from '../lib/customQuestions'
+  import {
+    FREQUENCY_LABELS,
+    eventSlots,
+    overCap,
+    type CustomQuestion,
+  } from '../lib/customQuestions'
   import { minutes, plannedSeconds } from '../lib/duration'
   import { MODES, UPCOMING_MODES, hostOf, modeLabel } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
@@ -137,9 +142,10 @@
   /** The modes a host can pick as rounds: every one with a round length to set. */
   const roundModes = $derived(pacing?.filter((mode) => mode.questions !== null) ?? [])
   const bounds = $derived(
-    Object.fromEntries(
-      roundModes.map((mode) => [mode.id, mode.questions]),
-    ) as Record<string, ModeBounds>,
+    Object.fromEntries(roundModes.map((mode) => [mode.id, mode.questions])) as Record<
+      string,
+      ModeBounds
+    >,
   )
   /** Coming soon, minus any this server already plays: those are in `roundModes` instead. */
   const upcomingModes = $derived(
@@ -177,7 +183,10 @@
       plannedSeconds(
         surprise
           ? lengths.map((questions) => ({ questions, seconds: averageRound }))
-          : rounds.map((round) => ({ questions: round.questions, seconds: typical[round.mode] ?? 0 })),
+          : rounds.map((round) => ({
+              questions: round.questions,
+              seconds: typical[round.mode] ?? 0,
+            })),
         eventCount,
         typical.random_event ?? averageRound,
         standingsSeconds,
@@ -245,7 +254,8 @@
     void getModes().then(
       (modes) => (pacing = modes),
       (error: unknown) =>
-        (pacingFailure = error instanceof ApiFailure ? error.message : 'could not reach the server'),
+        (pacingFailure =
+          error instanceof ApiFailure ? error.message : 'could not reach the server'),
     )
     return () => query.removeEventListener('change', change)
   })
@@ -266,9 +276,7 @@
   function toggle(mode: ModePacing, on: boolean): void {
     // Click order, deliberately: the list is the running order, so a mode ticked last
     // plays last — until the host moves it, or hands the order to `random`.
-    rounds = on
-      ? [...rounds, roundFor(mode)]
-      : rounds.filter((round) => round.mode !== mode.id)
+    rounds = on ? [...rounds, roundFor(mode)] : rounds.filter((round) => round.mode !== mode.id)
   }
 
   /** Draw `count` modes for the server to keep secret, or tick that many in place of the ticked. */
@@ -556,15 +564,23 @@
                 {@const art = npcArt(hostOf(round.mode).host.id)}
                 <li>
                   <img class={art.cut} src={art.url} alt="" />
-                  <span>{modeOrder === 'listed' ? `${index + 1} · ` : ''}{modeLabel(round.mode)}</span>
+                  <span
+                    >{modeOrder === 'listed' ? `${index + 1} · ` : ''}{modeLabel(round.mode)}</span
+                  >
                   <span class="note">{round.questions}</span>
                 </li>
               {/each}
             </ol>
           {/if}
           <dl>
-            <div><dt>Pace</dt><dd>{paceLabel}</dd></div>
-            <div><dt>Who can join</dt><dd>{ACCESS_LABELS[access]}</dd></div>
+            <div>
+              <dt>Pace</dt>
+              <dd>{paceLabel}</dd>
+            </div>
+            <div>
+              <dt>Who can join</dt>
+              <dd>{ACCESS_LABELS[access]}</dd>
+            </div>
             <div>
               <dt>Random events</dt>
               <dd>{FREQUENCY_LABELS[frequency]} · {eventCount}</dd>
@@ -895,7 +911,6 @@
     padding-inline: calc(0.7rem - var(--border-give));
     white-space: nowrap;
   }
-
 
   .final {
     margin: 0.5rem 0 0;

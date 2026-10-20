@@ -37,7 +37,7 @@ function store(profile: Profile): void {
 
 /** What is stored, if it is a profile the server would accept a name from. */
 function load(): Profile | null {
-  let raw: string | null = null
+  let raw: string | null
   try {
     raw = localStorage.getItem(PROFILE_KEY)
   } catch {

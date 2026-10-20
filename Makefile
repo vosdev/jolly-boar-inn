@@ -25,10 +25,11 @@ all:
 	@if grep -q '^PUBLIC_SITE_LOGO=branding/boar/' .env 2>/dev/null; then $(MAKE) logo; fi
 	docker compose build --build-arg VERSION=$(VERSION)
 
-# Install all dependencies (server via uv, client via pnpm).
+# Install all dependencies (server via uv, client via pnpm); `git blame` skips bulk reformats.
 setup:
 	cd server && uv sync
 	cd client && pnpm install --frozen-lockfile
+	git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 # Start the dev database, then run server on :8000 and client on :5173
 # (Vite proxies /api and /ws to :8000).
@@ -75,7 +76,7 @@ check-contrast:
 
 lint:
 	cd server && uv run ruff check . && uv run ruff format --check .
-	cd client && pnpm check
+	cd client && pnpm lint && pnpm check
 
 # T15: 30 bot players through one room over websockets, asserting no error frames, a p99
 # answer -> answer_ack under 200 ms, an exact answers row count and identical standings.

@@ -26,7 +26,9 @@ export interface PastGame {
 /** `finishedAt` as `YYMMDDHHMM` in UTC: every browser's clock agrees on it, not on a zone. */
 export function historyStamp(finishedAt: string): string {
   const iso = new Date(finishedAt).toISOString()
-  return iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10) + iso.slice(11, 13) + iso.slice(14, 16)
+  return (
+    iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10) + iso.slice(11, 13) + iso.slice(14, 16)
+  )
 }
 
 /** Where a past game opens. */
@@ -35,8 +37,14 @@ export function historyPath(game: Pick<PastGame, 'code' | 'finishedAt'>): string
 }
 
 /** Which game an entry is, whatever case its code was filed in. */
-function sameGame(a: Pick<PastGame, 'code' | 'finishedAt'>, b: Pick<PastGame, 'code' | 'finishedAt'>): boolean {
-  return normalizeCode(a.code) === normalizeCode(b.code) && historyStamp(a.finishedAt) === historyStamp(b.finishedAt)
+function sameGame(
+  a: Pick<PastGame, 'code' | 'finishedAt'>,
+  b: Pick<PastGame, 'code' | 'finishedAt'>,
+): boolean {
+  return (
+    normalizeCode(a.code) === normalizeCode(b.code) &&
+    historyStamp(a.finishedAt) === historyStamp(b.finishedAt)
+  )
 }
 
 function isPastGame(raw: unknown): raw is PastGame {
