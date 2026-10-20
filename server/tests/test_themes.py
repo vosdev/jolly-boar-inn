@@ -48,14 +48,14 @@ def listed_themes() -> list[str]:
 
 def test_the_eight_themes_in_menu_order() -> None:
     """Each theme after the first three was built against the contract on its own, and is
-    cut if it ever fails; the newest come last."""
+    cut if it ever fails; the light ones come first, then the dark."""
     assert listed_themes() == [
         "jolly",
         "pollnivneach",
-        "wilderness",
+        "jungle",
         "party_room",
         "tzhaar",
-        "jungle",
+        "wilderness",
         "gauntlet",
         "morytania",
     ]
