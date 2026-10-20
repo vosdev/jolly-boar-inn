@@ -155,7 +155,7 @@
                 </span>
                 {#if place.more > 0}<span class="more">+{place.more}</span>{/if}
                 <div class="who">
-                  <!-- One line, so no space slips in before a comma. -->
+                  <!-- No whitespace between the tags, so no space slips in before a comma. -->
                   <p class="names">
                     {#each place.standings as standing, i (standing.player_id)}{i > 0
                         ? ', '
