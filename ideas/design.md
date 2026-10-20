@@ -217,7 +217,8 @@ Round 2 of 5 · 5 questions
   would reach past a roll. Its chathead at both. A sheet longer than the host, the hiscores
   (§11), has it at the top-left instead.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
-  edges. The host then stands on the sheet, which keeps a column clear for it.
+  edges. The host, an event's NPC or Home's hero then stands on the sheet, and the words wrap
+  around it: the lines above its head run the sheet's full width.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
   and faint facets crease it. An examine line sits centred in the height the prompt leaves.
 - **One scroll, always open**, from the lobby to the final hiscores. Between screens the words
