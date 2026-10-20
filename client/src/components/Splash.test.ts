@@ -31,7 +31,10 @@ function players(youReady: boolean): PlayerView[] {
 const fill = () => (document.querySelector('.fill') as HTMLElement).style.width
 
 beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise(() => {})),
+  )
 })
 
 afterEach(() => {
@@ -92,7 +95,11 @@ describe('Splash stage', () => {
   it("has the mode's host greet the room on the scroll, between the name and the blurb", () => {
     splash()
     const lines = [...paper().querySelectorAll('h2, p')].map(spoken)
-    expect(lines).toEqual(['More or Less', `“${MODES.more_less!.greeting}”`, MODES.more_less!.blurb])
+    expect(lines).toEqual([
+      'More or Less',
+      `“${MODES.more_less!.greeting}”`,
+      MODES.more_less!.blurb,
+    ])
   })
 
   it('has the innkeeper present a mode this build lacks, in the generic greeting', () => {
@@ -136,11 +143,20 @@ describe('Splash ready check', () => {
       { pet: '', size: 48 },
       { pet: '', size: 48 },
     ])
-    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('lit'))).toEqual([true, false])
+    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('lit'))).toEqual([
+      true,
+      false,
+    ])
   })
 
   it('keeps an away player in the row, faded and marked away, out of the count', () => {
-    const away: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false, ready: true }
+    const away: PlayerView = {
+      id: 'c',
+      display_name: 'Lynx',
+      role: 'player',
+      connected: false,
+      ready: true,
+    }
     render(Splash, {
       segment: SEGMENT,
       endsAt: null,
@@ -154,11 +170,9 @@ describe('Splash ready check', () => {
       'Woox not ready',
       'Lynx away ready',
     ])
-    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('away'))).toEqual([
-      false,
-      false,
-      true,
-    ])
+    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('away'))).toEqual(
+      [false, false, true],
+    )
   })
 })
 
@@ -249,8 +263,12 @@ describe('Splash typing', () => {
   })
 
   it('pauses after the greeting, then types the blurb at the same pace', async () => {
-    const [, typed] = interludeFor(Infinity, [[...GREETING].length, [...BLURB].length], 300, 300)
-      .lines
+    const [, typed] = interludeFor(
+      Infinity,
+      [[...GREETING].length, [...BLURB].length],
+      300,
+      300,
+    ).lines
     splash()
     await after(Math.floor(typed!.from))
     expect(typing(greeting())).toBe(false)

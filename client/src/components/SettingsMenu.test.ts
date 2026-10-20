@@ -113,11 +113,11 @@ describe('SettingsMenu', () => {
 
   it('draws the pet the room knows inside one, or the innkeeper for none', async () => {
     const chip = render(SettingsMenu, { live: me })
-    expect(petsDrawn(document.querySelector('.chip')!)).toEqual([{ pet: 'abyssal_orphan', size: 32 }])
-    await chip.rerender({ live: { ...me, avatar: null } })
     expect(petsDrawn(document.querySelector('.chip')!)).toEqual([
-      { pet: '', size: 32 },
+      { pet: 'abyssal_orphan', size: 32 },
     ])
+    await chip.rerender({ live: { ...me, avatar: null } })
+    expect(petsDrawn(document.querySelector('.chip')!)).toEqual([{ pet: '', size: 32 }])
   })
 
   it('answers a name the room already has in the menu, and keeps the old one', async () => {
@@ -127,7 +127,9 @@ describe('SettingsMenu', () => {
     await rename('Woox')
     applyServerMessage({ t: 'error', code: 'name_taken', message: 'that name is taken' })
     await tick()
-    expect(screen.getByRole('alert').textContent).toBe('Somebody in this room already has that name.')
+    expect(screen.getByRole('alert').textContent).toBe(
+      'Somebody in this room already has that name.',
+    )
     expect(screen.getByRole('button', { name: /^You are Zezima/ })).toBeTruthy()
     expect(get(profile)?.name).toBe('Zezima')
   })
@@ -250,10 +252,7 @@ describe('SettingsMenu, picking a name', () => {
     await tick()
     connection.set('open')
     await tick()
-    expect(editing().map((message) => message.t === 'editing' && message.on)).toEqual([
-      true,
-      true,
-    ])
+    expect(editing().map((message) => message.t === 'editing' && message.on)).toEqual([true, true])
   })
 
   it('goes quiet after a save the room accepts, until the name is touched again', async () => {
@@ -300,7 +299,8 @@ describe('SettingsMenu, picking a name', () => {
 const control = () => screen.getByRole('button', { name: /Open settings$/ })
 const menu = () => screen.queryByRole('dialog', { name: 'Settings' })
 const radios = () => screen.getAllByRole('radio') as HTMLInputElement[]
-const barEmblem = () => control().querySelector<SVGElement>('[data-placeholder]')?.dataset.placeholder
+const barEmblem = () =>
+  control().querySelector<SVGElement>('[data-placeholder]')?.dataset.placeholder
 
 async function opened(live: PlayerView | null = null): Promise<void> {
   render(SettingsMenu, { live })
@@ -467,7 +467,11 @@ describe('SettingsMenu, the themes', () => {
 
   it('shows jolly selected to a browser that never chose, on a dark device too', async () => {
     await opened()
-    expect(radios().filter((radio) => radio.checked).map((radio) => radio.value)).toEqual(['jolly'])
+    expect(
+      radios()
+        .filter((radio) => radio.checked)
+        .map((radio) => radio.value),
+    ).toEqual(['jolly'])
     expect(control().getAttribute('aria-label')).toContain('theme Jolly Boar Inn.')
     expect(barEmblem()).toBe('jolly')
   })
@@ -488,8 +492,9 @@ describe('SettingsMenu, the themes', () => {
       rows.map((row) => row.querySelector<SVGElement>('[data-placeholder]')?.dataset.placeholder),
     ).toEqual([...EMBLEMS])
     for (const row of rows) {
-      expect([...row.querySelectorAll('span')].filter((span) => span.textContent!.trim() !== ''))
-        .toEqual([row.querySelector('.sr')])
+      expect(
+        [...row.querySelectorAll('span')].filter((span) => span.textContent!.trim() !== ''),
+      ).toEqual([row.querySelector('.sr')])
     }
   })
 

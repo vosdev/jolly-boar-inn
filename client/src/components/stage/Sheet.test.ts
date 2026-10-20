@@ -7,7 +7,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import skull from '../../assets/sprites/skull.svg'
 import StageView from './StageView.svelte'
 
-const paper = createRawSnippet(() => ({ render: () => '<p>Which boss drops the Tanzanite fang?</p>' }))
+const paper = createRawSnippet(() => ({
+  render: () => '<p>Which boss drops the Tanzanite fang?</p>',
+}))
 
 function stage(theme: string, board = false) {
   document.documentElement.dataset.theme = theme
@@ -81,10 +83,21 @@ describe('the sheet', () => {
   })
 
   it('keeps the words on the sheet whatever it is', () => {
-    const themes = ['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar', 'jungle', 'gauntlet', 'morytania']
+    const themes = [
+      'jolly',
+      'pollnivneach',
+      'wilderness',
+      'party_room',
+      'tzhaar',
+      'jungle',
+      'gauntlet',
+      'morytania',
+    ]
     for (const theme of themes) {
       const { sheet } = stage(theme)
-      expect(sheet.querySelector('.paper .content')?.textContent).toBe('Which boss drops the Tanzanite fang?')
+      expect(sheet.querySelector('.paper .content')?.textContent).toBe(
+        'Which boss drops the Tanzanite fang?',
+      )
       cleanup()
     }
   })

@@ -32,7 +32,9 @@
   const width = $derived(measured > 0 ? measured : 640)
   const plot = $derived(height - BOTTOM - TOP)
 
-  const totals = $derived(days.map((_, i) => series.reduce((sum, s) => sum + (s.values[i] ?? 0), 0)))
+  const totals = $derived(
+    days.map((_, i) => series.reduce((sum, s) => sum + (s.values[i] ?? 0), 0)),
+  )
   const max = $derived(
     Math.max(1, ...(kind === 'stacked' ? totals : series.flatMap((s) => s.values))),
   )
@@ -72,7 +74,14 @@
       ? []
       : [...new Set([0, Math.floor((days.length - 1) / 2), days.length - 1])].map((i) => ({
           i,
-          anchor: days.length === 1 ? 'middle' : i === 0 ? 'start' : i === days.length - 1 ? 'end' : 'middle',
+          anchor:
+            days.length === 1
+              ? 'middle'
+              : i === 0
+                ? 'start'
+                : i === days.length - 1
+                  ? 'end'
+                  : 'middle',
         })),
   )
 
@@ -101,7 +110,9 @@
         {#each stacks as stack, i (days[i])}
           <g>
             <title>
-              {shortDate(days[i] ?? '')}: {series.map((s) => `${s.values[i] ?? 0} ${s.label}`).join(', ')}
+              {shortDate(days[i] ?? '')}: {series
+                .map((s) => `${s.values[i] ?? 0} ${s.label}`)
+                .join(', ')}
             </title>
             {#each stack as segment, j (j)}
               {#if segment.bottom > segment.top}

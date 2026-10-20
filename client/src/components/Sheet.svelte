@@ -34,7 +34,14 @@
   }
 </script>
 
-<dialog bind:this={dialog} class="sheet" class:full aria-labelledby={labelledby} aria-label={label} oncancel={escape}>
+<dialog
+  bind:this={dialog}
+  class="sheet"
+  class:full
+  aria-labelledby={labelledby}
+  aria-label={label}
+  oncancel={escape}
+>
   {@render children()}
 </dialog>
 

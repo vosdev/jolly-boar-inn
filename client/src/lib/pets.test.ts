@@ -13,7 +13,9 @@ const targets = new Set(Object.keys(MANIFEST))
 
 describe('the pet list', () => {
   it('has a manifest entry for every pet, a chathead or an icon', () => {
-    const bare = PETS.filter((pet) => !targets.has(`pets/${pet.id}.png`) && !targets.has(`pets/${pet.id}_chathead.png`))
+    const bare = PETS.filter(
+      (pet) => !targets.has(`pets/${pet.id}.png`) && !targets.has(`pets/${pet.id}_chathead.png`),
+    )
     expect(bare.map((pet) => pet.id)).toEqual([])
   })
 
@@ -49,7 +51,11 @@ describe('who can be picked', () => {
   }
 
   it('is every pet with both pictures in the manifest, A to Z whatever the case', () => {
-    expect(pickablePets(pets, manifest).map((pet) => pet.id)).toEqual(['aggy', 'baby_mole', 'zulrah'])
+    expect(pickablePets(pets, manifest).map((pet) => pet.id)).toEqual([
+      'aggy',
+      'baby_mole',
+      'zulrah',
+    ])
   })
 
   it('leaves out a pet with only one picture, however the manifest lists it', () => {
@@ -59,7 +65,9 @@ describe('who can be picked', () => {
   it('has a pet for every seat of a full room, each with both pictures', () => {
     expect(PICKABLE.length).toBeGreaterThanOrEqual(50)
     for (const pet of PICKABLE) {
-      expect(targets.has(`pets/${pet.id}.png`) && targets.has(`pets/${pet.id}_chathead.png`)).toBe(true)
+      expect(targets.has(`pets/${pet.id}.png`) && targets.has(`pets/${pet.id}_chathead.png`)).toBe(
+        true,
+      )
     }
   })
 })
@@ -98,10 +106,16 @@ describe('randomPet', () => {
 })
 
 describe('avatarArt', () => {
-  const both = { '../assets/pets/aggy_chathead.png': '/assets/aggy-head.png', '../assets/pets/aggy.png': '/assets/aggy.png' }
+  const both = {
+    '../assets/pets/aggy_chathead.png': '/assets/aggy-head.png',
+    '../assets/pets/aggy.png': '/assets/aggy.png',
+  }
 
   it('draws the chathead by default', () => {
-    expect(avatarArt('aggy', 'chathead', both)).toEqual({ url: '/assets/aggy-head.png', cut: 'chathead' })
+    expect(avatarArt('aggy', 'chathead', both)).toEqual({
+      url: '/assets/aggy-head.png',
+      cut: 'chathead',
+    })
   })
 
   it('draws the icon when asked to', () => {
@@ -111,11 +125,20 @@ describe('avatarArt', () => {
   it('uses the other picture when the preferred one has no file', () => {
     const iconOnly = { '../assets/pets/aggy.png': '/assets/aggy.png' }
     const chatOnly = { '../assets/pets/aggy_chathead.png': '/assets/aggy-head.png' }
-    expect(avatarArt('aggy', 'chathead', iconOnly)).toEqual({ url: '/assets/aggy.png', cut: 'icon' })
-    expect(avatarArt('aggy', 'icon', chatOnly)).toEqual({ url: '/assets/aggy-head.png', cut: 'chathead' })
+    expect(avatarArt('aggy', 'chathead', iconOnly)).toEqual({
+      url: '/assets/aggy.png',
+      cut: 'icon',
+    })
+    expect(avatarArt('aggy', 'icon', chatOnly)).toEqual({
+      url: '/assets/aggy-head.png',
+      cut: 'chathead',
+    })
   })
 
   it('falls back to the innkeeper for a pet with no file', () => {
-    expect(avatarArt('aggy', 'chathead', {})).toEqual({ url: npcArt('innkeeper').url, cut: 'fallback' })
+    expect(avatarArt('aggy', 'chathead', {})).toEqual({
+      url: npcArt('innkeeper').url,
+      cut: 'fallback',
+    })
   })
 })

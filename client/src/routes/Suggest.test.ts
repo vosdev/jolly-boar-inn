@@ -166,7 +166,9 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
-    expect(screen.getByText(/Required: the wiki page you checked it on, or another https link/)).toBeTruthy()
+    expect(
+      screen.getByText(/Required: the wiki page you checked it on, or another https link/),
+    ).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
@@ -254,7 +256,9 @@ describe('Suggest', () => {
     await type('Your name', 'AFKFisher')
     expect(screen.getByText('Pssst, adventurer.', { selector: '.intro' })).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
-    const sent = vi.mocked(api.sendSuggestion).mock.calls[0]?.[0] as { content: { payload: object } }
+    const sent = vi.mocked(api.sendSuggestion).mock.calls[0]?.[0] as {
+      content: { payload: object }
+    }
     expect(sent.content.payload).toMatchObject({ intro: 'Pssst, adventurer.' })
   })
 
@@ -389,7 +393,9 @@ describe('Suggest', () => {
     played()
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /Sort It Out/ }))
-    expect(screen.getByRole('button', { name: 'Remove entry 1' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Remove entry 1' }).hasAttribute('disabled')).toBe(
+      true,
+    )
     for (let i = 0; i < 3; i += 1) {
       await fireEvent.click(screen.getByRole('button', { name: 'Add an entry' }))
     }
@@ -405,14 +411,20 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getByLabelText('Type the answer'))
     await type('Question', 'Which monster drops the Abyssal whip?')
     await type('Accepted answer 1', 'Abyssal demon')
-    await fireEvent.click(within(screen.getByRole('group', { name: 'Typos allowed' })).getByLabelText('2'))
+    await fireEvent.click(
+      within(screen.getByRole('group', { name: 'Typos allowed' })).getByLabelText('2'),
+    )
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
       type: 'free_text',
       mode: 'drop_table',
-      payload: { prompt: 'Which monster drops the Abyssal whip?', accepted: ['Abyssal demon'], max_distance: 2 },
+      payload: {
+        prompt: 'Which monster drops the Abyssal whip?',
+        accepted: ['Abyssal demon'],
+        max_distance: 2,
+      },
     })
   })
 
@@ -424,7 +436,12 @@ describe('Suggest', () => {
       within(screen.getByRole('group', { name: 'How players answer' }))
         .getAllByRole('radio')
         .map((radio) => radio.parentElement?.textContent?.trim())
-    expect(labels()).toEqual(['Multiple choice', 'Type the answer', 'Pick all that apply', 'Put in order'])
+    expect(labels()).toEqual([
+      'Multiple choice',
+      'Type the answer',
+      'Pick all that apply',
+      'Put in order',
+    ])
     await fireEvent.click(screen.getByLabelText('Put in order'))
     expect(screen.getByLabelText('First end')).toBeTruthy()
     expect(screen.getByLabelText('Put in order')).toHaveProperty('checked', true)
@@ -453,7 +470,9 @@ describe('Suggest', () => {
     played()
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
-    const faces = within(screen.getByRole('radiogroup', { name: 'Who asks it' })).getAllByRole('radio')
+    const faces = within(screen.getByRole('radiogroup', { name: 'Who asks it' })).getAllByRole(
+      'radio',
+    )
     expect(faces.map((face) => face.getAttribute('aria-label'))).not.toContain('A random NPC')
     expect(faces.some((face) => (face as HTMLInputElement).checked)).toBe(false)
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))

@@ -52,7 +52,14 @@
     answer_index?: Index
   }
 
-  let { data, revealed, yourValue, canAnswer, onAnswer, results = null }: TypeViewProps<Index> = $props()
+  let {
+    data,
+    revealed,
+    yourValue,
+    canAnswer,
+    onAnswer,
+    results = null,
+  }: TypeViewProps<Index> = $props()
 
   // The wire type is `Record<string, unknown>`; this component is the thing that knows
   // what the keys mean, which is why the type map lives one level up and not in here.

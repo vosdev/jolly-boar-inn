@@ -108,7 +108,9 @@
   }
 
   function download(): void {
-    void run(async () => downloadJson(await exportRosterChanges(token), rosterChangesFileName(new Date())))
+    void run(async () =>
+      downloadJson(await exportRosterChanges(token), rosterChangesFileName(new Date())),
+    )
   }
 
   function applied(): void {

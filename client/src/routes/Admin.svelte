@@ -103,7 +103,8 @@
   const per = $derived(bars.some((b) => b.days === 7) ? 'week' : 'day')
   const ranking = $derived(modeRanking(counts, range, today))
   const topStarted = $derived(Math.max(1, ...ranking.map((r) => r.started)))
-  const of = (metrics: string[], order?: string[]) => breakdown(counts, range, today, metrics, order)
+  const of = (metrics: string[], order?: string[]) =>
+    breakdown(counts, range, today, metrics, order)
   const closes = $derived(
     of(['questions_all_answered', 'questions_timed_out', 'questions_skipped']),
   )
@@ -165,7 +166,8 @@
       view = 'ready'
       failure = null
     } catch (error) {
-      if (!decides(error)) failure = error instanceof ApiFailure ? error.message : 'the refresh failed'
+      if (!decides(error))
+        failure = error instanceof ApiFailure ? error.message : 'the refresh failed'
     } finally {
       busy = false
     }
@@ -278,9 +280,18 @@
     <section class="panel" aria-labelledby="live-heading">
       <h2 id="live-heading">Live rooms</h2>
       <dl class="tiles">
-        <div><dt>Rooms in memory</dt><dd>{live.rooms.length}</dd></div>
-        <div><dt>Open sockets</dt><dd>{live.sockets}</dd></div>
-        <div><dt>Players connected</dt><dd>{connected} <small>/ {players}</small></dd></div>
+        <div>
+          <dt>Rooms in memory</dt>
+          <dd>{live.rooms.length}</dd>
+        </div>
+        <div>
+          <dt>Open sockets</dt>
+          <dd>{live.sockets}</dd>
+        </div>
+        <div>
+          <dt>Players connected</dt>
+          <dd>{connected} <small>/ {players}</small></dd>
+        </div>
       </dl>
       {#if live.rooms.length === 0}
         <p class="note">No rooms in memory.</p>
@@ -309,7 +320,10 @@
                   <td>
                     <span class="players">
                       <span class="meter" aria-hidden="true">
-                        <span style:width="{room.players > 0 ? (room.connected / room.players) * 100 : 0}%"
+                        <span
+                          style:width="{room.players > 0
+                            ? (room.connected / room.players) * 100
+                            : 0}%"
                         ></span>
                       </span>
                       {room.connected} / {room.players}
@@ -360,7 +374,9 @@
               <span class="mode">{modeName(rank.mode)}</span>
               <span class="track" aria-hidden="true">
                 <span class="finished" style:width="{(rank.finished / topStarted) * 100}%"></span>
-                <span class="unfinished" style:width="{((rank.started - rank.finished) / topStarted) * 100}%"
+                <span
+                  class="unfinished"
+                  style:width="{((rank.started - rank.finished) / topStarted) * 100}%"
                 ></span>
               </span>
               <span class="count">{rank.started} <small>({rank.finished} finished)</small></span>

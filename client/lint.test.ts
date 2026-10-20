@@ -23,16 +23,15 @@ function formatted(name: string, source: string): boolean {
 
 describe('prettier', () => {
   it('rejects a misformatted .ts file', () => {
-    expect(formatted('x.ts', "export const a = 1\n")).toBe(true)
+    expect(formatted('x.ts', 'export const a = 1\n')).toBe(true)
     expect(formatted('x.ts', 'export const a = "1";\n')).toBe(false)
   })
 
   it('rejects a misformatted .svelte file', () => {
-    const good = "<script lang=\"ts\">\n  let { a }: { a: string } = $props()\n</script>\n\n<p>{a}</p>\n"
+    const good =
+      '<script lang="ts">\n  let { a }: { a: string } = $props()\n</script>\n\n<p>{a}</p>\n'
     expect(formatted('X.svelte', good)).toBe(true)
-    expect(formatted('X.svelte', good.replace('  let', 'let').replace(')\n', ');\n'))).toBe(
-      false,
-    )
+    expect(formatted('X.svelte', good.replace('  let', 'let').replace(')\n', ');\n'))).toBe(false)
   })
 })
 

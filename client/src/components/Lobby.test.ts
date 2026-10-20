@@ -51,7 +51,11 @@ const SECRET: RoomView = {
   rounds: 5,
 }
 
-function lobby(players: PlayerView[] = [HOST, WOOX], room: RoomView = ROOM, you: PlayerView = HOST): void {
+function lobby(
+  players: PlayerView[] = [HOST, WOOX],
+  room: RoomView = ROOM,
+  you: PlayerView = HOST,
+): void {
   resetRoom()
   applyServerMessage({
     t: 'welcome',
@@ -186,12 +190,14 @@ describe('Lobby', () => {
 
   it('stands the Wise Old Man, without a hero in the branding, beside a scroll that holds the heading, the code and the night', () => {
     lobby()
-    expect([...document.querySelectorAll('.stage .npc img')].map((img) => img.getAttribute('src'))).toEqual([
-      npcArt('wise_old_man').url,
-    ])
+    expect(
+      [...document.querySelectorAll('.stage .npc img')].map((img) => img.getAttribute('src')),
+    ).toEqual([npcArt('wise_old_man').url])
     const paper = document.querySelector('.paper') as HTMLElement
     expect(within(paper).getByRole('heading', { level: 1, name: 'Lobby' })).toBeTruthy()
-    expect(within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' })).toBeTruthy()
+    expect(
+      within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' }),
+    ).toBeTruthy()
     expect(within(paper).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
   })
 
@@ -233,7 +239,9 @@ describe('Lobby', () => {
     lobby([HOST, WOOX], { ...ROOM, key: 'abc' })
     await fireEvent.click(screen.getByRole('button', { name: 'New link' }))
     expect(sent).toEqual([])
-    expect(dialog().textContent).toContain('The current one stops working. Players already here stay.')
+    expect(dialog().textContent).toContain(
+      'The current one stops working. Players already here stay.',
+    )
     await fireEvent.click(within(dialog()).getByRole('button', { name: 'New link' }))
     expect(sent).toEqual([{ t: 'rotate_key' }])
   })
@@ -287,7 +295,10 @@ describe('Lobby', () => {
   })
 
   it('draws each player’s own pet, or the innkeeper for none, at 48px as the splash does', () => {
-    lobby([{ ...HOST, avatar: 'baby_mole' }, { ...WOOX, avatar: null }])
+    lobby([
+      { ...HOST, avatar: 'baby_mole' },
+      { ...WOOX, avatar: null },
+    ])
     expect(petsDrawn(screen.getByRole('list', { name: /^Players/ }))).toEqual([
       { pet: 'baby_mole', size: 48 },
       { pet: '', size: 48 },
@@ -307,7 +318,12 @@ describe('Lobby', () => {
 
   it('outlines a ready pet and fades an away one, ready or not', () => {
     const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false }
-    lobby([{ ...HOST, ready: true }, WOOX, lynx, { ...lynx, id: 'd', display_name: 'Cow', ready: true }])
+    lobby([
+      { ...HOST, ready: true },
+      WOOX,
+      lynx,
+      { ...lynx, id: 'd', display_name: 'Cow', ready: true },
+    ])
     expect(pets().map(looks)).toEqual([
       { lit: true, away: false },
       { lit: false, away: false },
@@ -319,9 +335,9 @@ describe('Lobby', () => {
 
   it('shows the code as the server spells it', () => {
     lobby([HOST], { ...ROOM, code: 'AbyssalWhip07' })
-    expect(screen.getByRole('button', { name: 'AbyssalWhip07, copy the invite link' }).textContent).toContain(
-      'AbyssalWhip07',
-    )
+    expect(
+      screen.getByRole('button', { name: 'AbyssalWhip07, copy the invite link' }).textContent,
+    ).toContain('AbyssalWhip07')
   })
 
   it('says under each pet who hosts, who is away and which is you', () => {
@@ -335,7 +351,10 @@ describe('Lobby', () => {
   })
 
   it('says who is picking a name, dims them, and counts them as before', () => {
-    lobby([{ ...HOST, ready: true }, { ...WOOX, editing: true }])
+    lobby([
+      { ...HOST, ready: true },
+      { ...WOOX, editing: true },
+    ])
     const [host, woox] = pets()
     expect(woox?.textContent).toContain('picking a name…')
     expect(woox?.classList.contains('editing')).toBe(true)
@@ -360,7 +379,12 @@ describe('Lobby', () => {
       { mode: 'drop_table', questions: 5 },
       { mode: 'sort_it_out', questions: 5 },
     ]
-    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 15 + events, events })
+    lobby([HOST, WOOX], {
+      ...ROOM,
+      settings: { ...ROOM.settings, modes },
+      total: 15 + events,
+      events,
+    })
     expect(screen.getByText(line)).toBeTruthy()
   })
 
@@ -402,7 +426,9 @@ describe('Lobby', () => {
     ['host', HOST, { ...SECRET, settings: { ...SECRET.settings, modes: ROOM.settings.modes } }],
   ])('counts surprise rounds for the %s and offers none to show', (_, you, room) => {
     lobby([HOST, WOOX], room, you)
-    expect(screen.getByText('5 secret rounds · 40 questions · 2 random events · Run pace · ~5 min')).toBeTruthy()
+    expect(
+      screen.getByText('5 secret rounds · 40 questions · 2 random events · Run pace · ~5 min'),
+    ).toBeTruthy()
     expect(
       screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
     ).toBeTruthy()

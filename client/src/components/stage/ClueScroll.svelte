@@ -95,7 +95,10 @@
     <path class="wood" d="M8 14.5C8 8 13 3.5 20 3.5S32 8 32 14.5z" />
     <path class="wood2" d="M20 3.5c7 0 12 4.5 12 11H20z" />
     <rect class="wood2" x="17" y="0.8" width="6" height="3" />
-    <path class="stroke" d="M8 14.5C8 8 13 3.5 20 3.5S32 8 32 14.5zM13 14h14v5H13zM17 0.8h6v2.7h-6z" />
+    <path
+      class="stroke"
+      d="M8 14.5C8 8 13 3.5 20 3.5S32 8 32 14.5zM13 14h14v5H13zM17 0.8h6v2.7h-6z"
+    />
   </svg>
 {/snippet}
 
@@ -181,11 +184,15 @@
       {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
         <svg class="lashing {corner}" viewBox="0 0 18 18" aria-hidden="true">
           <rect width="18" height="18" rx="3" fill={ART.lashing} />
-          <path d="M0 4L4 0H8L0 8ZM0 12L12 0H16L0 16ZM4 18L18 4V8L8 18ZM12 18L18 12V16L16 18Z" fill={ART.lashingLight} />
+          <path
+            d="M0 4L4 0H8L0 8ZM0 12L12 0H16L0 16ZM4 18L18 4V8L8 18ZM12 18L18 12V16L16 18Z"
+            fill={ART.lashingLight}
+          />
         </svg>
       {/each}
     {:else if sheet === 'board' || sheet === 'poster'}
-      {@const [head, shine] = sheet === 'board' ? [ART.tack, ART.tackLight] : [ART.nail, ART.nailLight]}
+      {@const [head, shine] =
+        sheet === 'board' ? [ART.tack, ART.tackLight] : [ART.nail, ART.nailLight]}
       {#each ['left', 'right'] as side (side)}
         <svg class="fixing {side}" viewBox="0 0 10 10" aria-hidden="true">
           <circle cx="5" cy="5" r="5" fill={head} />
@@ -296,11 +303,33 @@
       inset -14px 0 12px -10px color-mix(in srgb, var(--scroll-edge) 55%, transparent);
     /* Torn top and bottom: the notches keep their depth in px and spread across in %. */
     clip-path: polygon(
-      0 7px, 7% 3px, 15% 6px, 24% 1px, 29% 3px, 31% 13px, 33.5% 3px, 45% 5px, 57% 0,
-      66% 4px, 72% 1px, 74% 10px, 76.5% 2px, 88% 6px, 100% 3px,
-      100% calc(100% - 6px), 92% calc(100% - 2px), 81% calc(100% - 5px), 69% calc(100% - 1px),
-      61% calc(100% - 4px), 49% calc(100% - 3px), 47% calc(100% - 12px), 45% calc(100% - 2px),
-      33% calc(100% - 6px), 22% calc(100% - 1px), 12% calc(100% - 5px), 0 calc(100% - 2px)
+      0 7px,
+      7% 3px,
+      15% 6px,
+      24% 1px,
+      29% 3px,
+      31% 13px,
+      33.5% 3px,
+      45% 5px,
+      57% 0,
+      66% 4px,
+      72% 1px,
+      74% 10px,
+      76.5% 2px,
+      88% 6px,
+      100% 3px,
+      100% calc(100% - 6px),
+      92% calc(100% - 2px),
+      81% calc(100% - 5px),
+      69% calc(100% - 1px),
+      61% calc(100% - 4px),
+      49% calc(100% - 3px),
+      47% calc(100% - 12px),
+      45% calc(100% - 2px),
+      33% calc(100% - 6px),
+      22% calc(100% - 1px),
+      12% calc(100% - 5px),
+      0 calc(100% - 2px)
     );
   }
 
@@ -373,9 +402,28 @@
       color-mix(in srgb, var(--scroll-paper), black 25%)
     );
     clip-path: polygon(
-      0 10px, 4% 2px, 18% 0, 30% 5px, 44% 1px, 61% 3px, 70% 0, 86% 4px, 97% 0, 100% 12px,
-      99% 40%, 100% 72%, 98% calc(100% - 8px), 88% 100%, 71% calc(100% - 4px), 58% 100%,
-      40% calc(100% - 5px), 24% 100%, 9% calc(100% - 3px), 0 calc(100% - 12px), 1% 60%, 0 30%
+      0 10px,
+      4% 2px,
+      18% 0,
+      30% 5px,
+      44% 1px,
+      61% 3px,
+      70% 0,
+      86% 4px,
+      97% 0,
+      100% 12px,
+      99% 40%,
+      100% 72%,
+      98% calc(100% - 8px),
+      88% 100%,
+      71% calc(100% - 4px),
+      58% 100%,
+      40% calc(100% - 5px),
+      24% 100%,
+      9% calc(100% - 3px),
+      0 calc(100% - 12px),
+      1% 60%,
+      0 30%
     );
   }
 
@@ -485,8 +533,14 @@
       inset 0 0 0 5px var(--scroll-paper),
       inset 0 0 0 6.5px color-mix(in srgb, var(--scroll-edge) 50%, var(--scroll-paper));
     clip-path: polygon(
-      12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
-      calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px
+      12px 0,
+      calc(100% - 12px) 0,
+      100% 12px,
+      100% calc(100% - 12px),
+      calc(100% - 12px) 100%,
+      12px 100%,
+      0 calc(100% - 12px),
+      0 12px
     );
     padding-inline: calc(1.9rem * var(--k));
     text-align: center;

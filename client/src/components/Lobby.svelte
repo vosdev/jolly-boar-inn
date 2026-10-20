@@ -112,9 +112,7 @@
    * order (or handed it to `random`) on the way in.
    */
   const listed = $derived(
-    [...(settings?.modes ?? [])].sort((a, b) =>
-      modeLabel(a.mode).localeCompare(modeLabel(b.mode)),
-    ),
+    [...(settings?.modes ?? [])].sort((a, b) => modeLabel(a.mode).localeCompare(modeLabel(b.mode))),
   )
   let showRounds = $state(false)
   let showHowTo = $state(false)
@@ -254,7 +252,14 @@
       </div>
       {#if copyFailed}
         <p class="copy-failed" role="alert">Couldn't copy the link. Copy it from here:</p>
-        <input class="link-field" type="text" readonly aria-label="Link for players" value={link} use:selectAll />
+        <input
+          class="link-field"
+          type="text"
+          readonly
+          aria-label="Link for players"
+          value={link}
+          use:selectAll
+        />
       {/if}
       {#if settings !== null}
         <p class="count">{length}</p>
@@ -287,7 +292,12 @@
             {/if}
           {/if}
         {/if}
-        <button type="button" class="toggle" aria-haspopup="dialog" onclick={() => (showHowTo = true)}>
+        <button
+          type="button"
+          class="toggle"
+          aria-haspopup="dialog"
+          onclick={() => (showHowTo = true)}
+        >
           How to play
         </button>
       {/if}
@@ -305,7 +315,9 @@
               <span class="face"><Pet pet={petOf(request)} size={40} label="" /></span>
               <span class="name">{request.display_name}</span>
               <span class="decide">
-                <button type="button" class="primary" onclick={() => decide(request, true)}>Let in</button>
+                <button type="button" class="primary" onclick={() => decide(request, true)}
+                  >Let in</button
+                >
                 <button type="button" onclick={() => decide(request, false)}>Turn away</button>
               </span>
             </li>
@@ -335,9 +347,9 @@
               <button
                 type="button"
                 class="tile"
-                aria-label="{player.display_name}, {player.connected ? '' : 'away, '}{player.ready === true
-                  ? 'ready'
-                  : 'not ready'}: kick or make host"
+                aria-label="{player.display_name}, {player.connected
+                  ? ''
+                  : 'away, '}{player.ready === true ? 'ready' : 'not ready'}: kick or make host"
                 onclick={() => manage(player)}
               >
                 <RosterPet {player} {status} />
@@ -358,7 +370,13 @@
             Waiting on {listFormat.format(waitingOn)}.
           {/if}
         </p>
-        <button class="start" class:primary={enoughReady} type="button" disabled={!canStart} onclick={start}>
+        <button
+          class="start"
+          class:primary={enoughReady}
+          type="button"
+          disabled={!canStart}
+          onclick={start}
+        >
           {enoughReady ? 'Start the game' : 'Start anyway'}
         </button>
       {/if}

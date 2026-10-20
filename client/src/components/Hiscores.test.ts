@@ -48,7 +48,11 @@ describe('Hiscores', () => {
   it('heads the rank column "#", and still says Rank to a screen reader', () => {
     const { container } = render(Hiscores, { rows: ROUND_TWO })
     const head = container.querySelector('th.rank')!
-    expect(within(head as HTMLElement).getByText('#').getAttribute('aria-hidden')).toBe('true')
+    expect(
+      within(head as HTMLElement)
+        .getByText('#')
+        .getAttribute('aria-hidden'),
+    ).toBe('true')
     expect(head.querySelector('.sr')?.textContent).toBe('Rank')
   })
 
@@ -78,7 +82,10 @@ describe('Hiscores', () => {
 
   it('draws neither moves nor gains for a past game, even one kept before standings had them', () => {
     const kept = { player_id: 'Dorn', display_name: 'Dorn', avatar: null, points: 900, rank: 1 }
-    const { container } = render(Hiscores, { rows: [...ROUND_TWO, kept as Standing], changes: false })
+    const { container } = render(Hiscores, {
+      rows: [...ROUND_TWO, kept as Standing],
+      changes: false,
+    })
     expect(container.querySelector('.move')).toBeNull()
     expect(container.querySelector('.gain')).toBeNull()
     expect(container.textContent).not.toContain('NaN')

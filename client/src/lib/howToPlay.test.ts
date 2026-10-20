@@ -13,7 +13,13 @@ function mode(id: string, types: string[]): ModePacing {
 const MODES = [
   mode('more_less', ['more_less']),
   mode('sort_it_out', ['ordering']),
-  mode('bestiary', ['closest_number', 'free_text', 'multiple_choice', 'ordering', 'pick_all_that_apply']),
+  mode('bestiary', [
+    'closest_number',
+    'free_text',
+    'multiple_choice',
+    'ordering',
+    'pick_all_that_apply',
+  ]),
   mode('whos_that_npc', ['pick_from_list']),
   mode('custom', []),
   mode('random_event', []),
@@ -67,7 +73,9 @@ describe('allTypes', () => {
 
   it('lists the combobox only once a mode answers with it', () => {
     expect(titles(allTypes(MODES))).toContain('Pick from a list')
-    expect(titles(allTypes(MODES.filter((m) => m.id !== 'whos_that_npc')))).not.toContain('Pick from a list')
+    expect(titles(allTypes(MODES.filter((m) => m.id !== 'whos_that_npc')))).not.toContain(
+      'Pick from a list',
+    )
   })
 })
 
@@ -81,7 +89,9 @@ describe('rows', () => {
   it('say Submit for every type that has one, and only for those', () => {
     const tapped = new Set(['multiple_choice', 'more_less', 'price_is_right'])
     for (const row of HOW_TO_ROWS) {
-      expect(row.text.includes('Submit'), row.title).toBe(!row.types.some((type) => tapped.has(type)))
+      expect(row.text.includes('Submit'), row.title).toBe(
+        !row.types.some((type) => tapped.has(type)),
+      )
     }
   })
 })

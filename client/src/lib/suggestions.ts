@@ -35,7 +35,10 @@ export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 /** The types a suggestion may be: Create's three, and an ordering for the rounds that sort. */
 export type SuggestedType = CustomType | 'ordering'
 
-export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = { ...TYPE_LABELS, ordering: 'Put in order' }
+export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
+  ...TYPE_LABELS,
+  ordering: 'Put in order',
+}
 
 export interface QuestionContent {
   type: SuggestedType
@@ -51,7 +54,10 @@ export interface QuestionContent {
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
 export function questionPreview(content: QuestionContent): OpenQuestion {
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, content.mode)
-  return previewOf(content as CustomQuestion, content.mode === 'random_event' ? undefined : content.mode)
+  return previewOf(
+    content as CustomQuestion,
+    content.mode === 'random_event' ? undefined : content.mode,
+  )
 }
 
 export interface ItemContent {
@@ -120,7 +126,9 @@ const CHOICE_ROUNDS = [
   'know_your_content_creator',
 ]
 
-function choiceRound(id: string): { id: string; label: string; hint: string; host: string } | undefined {
+function choiceRound(
+  id: string,
+): { id: string; label: string; hint: string; host: string } | undefined {
   const built = MODES[id]
   if (built !== undefined) return { id, label: built.label, hint: built.hint, host: built.host.id }
   return UPCOMING_MODES.find((mode) => mode.id === id)
@@ -170,8 +178,9 @@ export const CHOICES: readonly Choice[] = [
     host: 'sandwich_lady',
     types: CUSTOM_TYPES,
   },
-  ...CHOICE_ROUNDS.map(choiceRound).filter((mode) => mode !== undefined).map(
-    (mode): Choice => ({
+  ...CHOICE_ROUNDS.map(choiceRound)
+    .filter((mode) => mode !== undefined)
+    .map((mode): Choice => ({
       id: mode.id,
       kind: 'question',
       label: mode.label,
@@ -182,18 +191,17 @@ export const CHOICES: readonly Choice[] = [
       prompt: ROUND_PROMPTS[mode.id],
       options: ROUND_OPTIONS[mode.id],
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
-    }),
-  ),
-  ...ORDERING_ROUNDS.map(choiceRound).filter((mode) => mode !== undefined).map(
-    (mode): Choice => ({
+    })),
+  ...ORDERING_ROUNDS.map(choiceRound)
+    .filter((mode) => mode !== undefined)
+    .map((mode): Choice => ({
       id: mode.id,
       kind: 'question',
       label: mode.label,
       hint: ORDERING_HINTS[mode.id] ?? mode.hint,
       host: mode.host,
       types: ['ordering'],
-    }),
-  ),
+    })),
 ]
 
 /** The choice a stored suggestion was written under. */
@@ -254,7 +262,9 @@ export function sourceProblems(
             ? null
             : 'A link starting https://.',
     either:
-      w === '' && u === '' ? 'Required: the wiki page you checked it on, or another https link.' : null,
+      w === '' && u === ''
+        ? 'Required: the wiki page you checked it on, or another https link.'
+        : null,
   }
 }
 
@@ -270,7 +280,10 @@ function textProblem(text: string, most: number, what: string): string | null {
 }
 
 /** `roster` is the `items` list, so a name already in the game is refused before it is sent. */
-export function itemProblem(content: ItemContent, roster: readonly VocabEntry[] = []): string | null {
+export function itemProblem(
+  content: ItemContent,
+  roster: readonly VocabEntry[] = [],
+): string | null {
   const wanted = fold(content.name.trim())
   if (roster.some((entry) => fold(entry.name) === wanted)) return 'Already in the game.'
   return textProblem(content.name, ITEM_NAME_MAX, 'the item’s name')

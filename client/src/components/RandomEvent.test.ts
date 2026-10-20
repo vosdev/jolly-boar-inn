@@ -118,7 +118,11 @@ describe('RandomEvent', () => {
   it('keeps the NPC on the reveal, with nothing held', () => {
     render(RandomEvent, {
       question: event(),
-      reveal: { prompt: 'Which prayer level unlocks Augury?', options: ['70', '77', '74'], answer_index: 1 },
+      reveal: {
+        prompt: 'Which prayer level unlocks Augury?',
+        options: ['70', '77', '74'],
+        answer_index: 1,
+      },
       yourValue: 1,
       onAnswer: () => {},
     })
@@ -141,7 +145,11 @@ describe('RandomEvent', () => {
   })
 
   it('stands the NPC on the right of the round host’s scroll, the host gone', () => {
-    const { container } = render(RandomEvent, { question: event(), yourValue: null, onAnswer: () => {} })
+    const { container } = render(RandomEvent, {
+      question: event(),
+      yourValue: null,
+      onAnswer: () => {},
+    })
     const row = container.querySelector('.stage-row')!
     expect(row.classList.contains('event')).toBe(true)
     const npcs = [...row.querySelectorAll('.npc')].map((npc) => npc.classList[1])
@@ -172,7 +180,16 @@ describe('RandomEvent', () => {
     expect(entering({ answerable_at: new Date(NOW).toISOString() })).toBe(false)
     // A reconnect with all the hold ahead lands settled too: no replay.
     expect(entering({}, null, false)).toBe(false)
-    expect(entering({}, { prompt: 'Which prayer level unlocks Augury?', options: ['70', '77', '74'], answer_index: 1 })).toBe(false)
+    expect(
+      entering(
+        {},
+        {
+          prompt: 'Which prayer level unlocks Augury?',
+          options: ['70', '77', '74'],
+          answer_index: 1,
+        },
+      ),
+    ).toBe(false)
   })
 })
 

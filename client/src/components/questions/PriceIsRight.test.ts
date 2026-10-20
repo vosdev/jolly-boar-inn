@@ -66,9 +66,7 @@ describe('price_is_right', () => {
 
   it('holds the buttons once answered, and for someone who cannot answer', () => {
     const answered = render(Question, { question: open(), yourValue: 0, onAnswer: () => {} })
-    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(
-      true,
-    )
+    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
     expect(screen.getAllByRole('button')[0]!.getAttribute('aria-pressed')).toBe('true')
     answered.unmount()
     render(Question, {
@@ -76,9 +74,7 @@ describe('price_is_right', () => {
       yourValue: null,
       onAnswer: () => {},
     })
-    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(
-      true,
-    )
+    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
     expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
   })
 

@@ -89,7 +89,8 @@ export interface SignColours {
 export function themeColours(css = readFileSync(APP_CSS, 'utf8')): Record<string, SignColours> {
   const colours: Record<string, SignColours> = {}
   for (const [, theme, body] of css.matchAll(/\[data-theme='([a-z_]+)'\]\s*\{([^}]*)\}/g)) {
-    const token = (name: string) => body!.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1]?.trim() ?? ''
+    const token = (name: string) =>
+      body!.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1]?.trim() ?? ''
     colours[theme!] = {
       line: token('line'),
       accent: token('accent'),
@@ -135,7 +136,9 @@ export function readBranding(
     if (!existsSync(file) || !statSync(file).isFile()) {
       warnings.push(`PUBLIC_SITE_LOGO: ${file} does not exist; using the bundled sign`)
     } else if (type === undefined) {
-      warnings.push(`PUBLIC_SITE_LOGO: ${file} is not a png, svg, webp, gif, jpg or ico; using the bundled sign`)
+      warnings.push(
+        `PUBLIC_SITE_LOGO: ${file} is not a png, svg, webp, gif, jpg or ico; using the bundled sign`,
+      )
     } else {
       logo = { file, extension, type }
     }
@@ -165,8 +168,23 @@ export function readBranding(
     if (hero !== null) perTheme(hero, themeHeroes)
   }
 
-  const initial = name.replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase()
-  return { name, initial, logo, themeLogos, touchIcon, card, hero, themeHeroes, defaultTheme, warnings }
+  const initial = name
+    .replace(/^(the|a|an)\s+/i, '')
+    .trim()
+    .charAt(0)
+    .toUpperCase()
+  return {
+    name,
+    initial,
+    logo,
+    themeLogos,
+    touchIcon,
+    card,
+    hero,
+    themeHeroes,
+    defaultTheme,
+    warnings,
+  }
 }
 
 function escapeXml(text: string): string {
@@ -212,7 +230,11 @@ export function favicons(branding: Branding, colours = themeColours()): Record<s
   for (const theme of Object.keys(colours).sort()) {
     const own = branding.themeLogos[theme]
     if (own !== undefined) {
-      icons[theme] = { source: readFileSync(own.file), type: own.type, fileName: `favicon-${theme}${own.extension}` }
+      icons[theme] = {
+        source: readFileSync(own.file),
+        type: own.type,
+        fileName: `favicon-${theme}${own.extension}`,
+      }
     } else if (branding.logo !== null) {
       const { file, type, extension } = branding.logo
       icons[theme] = { source: readFileSync(file), type, fileName: `favicon${extension}` }
@@ -293,7 +315,8 @@ export function siteBranding(): Plugin {
         [branding.touchIcon, TOUCH_ICON],
         [branding.card, CARD],
       ] as const) {
-        if (image !== null) this.emitFile({ type: 'asset', fileName, source: readFileSync(image.file) })
+        if (image !== null)
+          this.emitFile({ type: 'asset', fileName, source: readFileSync(image.file) })
       }
     },
     resolveId(id) {
@@ -315,7 +338,10 @@ export function siteBranding(): Plugin {
         )
       const hero = branding.hero === null ? 'null' : url(branding.hero, 'hero')
       const tabIcons = Object.fromEntries(
-        Object.entries(icons).map(([theme, icon]) => [theme, { href: iconHref(icon), type: icon.type }]),
+        Object.entries(icons).map(([theme, icon]) => [
+          theme,
+          { href: iconHref(icon), type: icon.type },
+        ]),
       )
       return [
         `export const siteName = ${JSON.stringify(branding.name)}`,
@@ -332,11 +358,23 @@ export function siteBranding(): Plugin {
       // The theme a first visit paints; `lib/theme.ts` swaps the icon for a stored one.
       const first = icons[branding.defaultTheme] ?? icons.jolly!
       const tags: HtmlTagDescriptor[] = [
-        { tag: 'link', attrs: { rel: 'icon', type: first.type, href: iconHref(first) }, injectTo: 'head' },
+        {
+          tag: 'link',
+          attrs: { rel: 'icon', type: first.type, href: iconHref(first) },
+          injectTo: 'head',
+        },
       ]
       if (branding.touchIcon !== null) {
-        const touch = { source: readFileSync(branding.touchIcon.file), type: 'image/png', fileName: TOUCH_ICON }
-        tags.push({ tag: 'link', attrs: { rel: 'apple-touch-icon', href: iconHref(touch) }, injectTo: 'head' })
+        const touch = {
+          source: readFileSync(branding.touchIcon.file),
+          type: 'image/png',
+          fileName: TOUCH_ICON,
+        }
+        tags.push({
+          tag: 'link',
+          attrs: { rel: 'apple-touch-icon', href: iconHref(touch) },
+          injectTo: 'head',
+        })
       }
       return { html: retitle(html, branding.name), tags: [...tags, ...shareTags(branding)] }
     },

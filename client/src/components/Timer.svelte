@@ -26,9 +26,7 @@
   const remainingMs = $derived(msUntil(endsAt, $serverNow))
   // Ceil, so the last whole second on screen is "1" and not a flash of "0".
   const seconds = $derived(Math.ceil(remainingMs / 1000))
-  const fraction = $derived(
-    totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0,
-  )
+  const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
   const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
 </script>
 

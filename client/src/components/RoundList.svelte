@@ -60,7 +60,13 @@
     if (by === 0) return
     event.preventDefault()
     const grip = event.currentTarget as HTMLElement
-    if (!move(rounds.findIndex((round) => round.mode === mode), by)) return
+    if (
+      !move(
+        rounds.findIndex((round) => round.mode === mode),
+        by,
+      )
+    )
+      return
     // The keyed row moves in the DOM, and focus can drop off it on the way.
     await tick()
     grip.focus()
@@ -110,7 +116,9 @@
 
   {#if surprise !== null}
     <p class="count">{surprise} surprise round{surprise === 1 ? '' : 's'}</p>
-    <p class="note">Drawn when the room is created. Nobody sees them, you included, until each round starts.</p>
+    <p class="note">
+      Drawn when the room is created. Nobody sees them, you included, until each round starts.
+    </p>
   {:else if rounds.length === 0}
     <p class="empty">Tick a host to add their round.</p>
   {:else}
@@ -143,7 +151,9 @@
             </button>
             <span class="number" aria-hidden="true">{index + 1}</span>
           {/if}
-          <span class="face" aria-hidden="true"><img class={art.cut} src={art.url} alt="" draggable="false" /></span>
+          <span class="face" aria-hidden="true"
+            ><img class={art.cut} src={art.url} alt="" draggable="false" /></span
+          >
           {#if bounds[round.mode]}
             <Stepper
               {label}

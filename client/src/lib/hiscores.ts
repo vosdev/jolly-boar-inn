@@ -69,7 +69,10 @@ export function pointsBefore(standing: Standing): number {
  * The hiscores as they stood before the round: by the rank then, and within a rank, and
  * in the first round, which has none, in `joinOrder`, the room's player ids.
  */
-export function previousOrder(standings: readonly Standing[], joinOrder: readonly string[]): Standing[] {
+export function previousOrder(
+  standings: readonly Standing[],
+  joinOrder: readonly string[],
+): Standing[] {
   const joined = (standing: Standing): number => {
     const at = joinOrder.indexOf(standing.player_id)
     return at === -1 ? joinOrder.length : at

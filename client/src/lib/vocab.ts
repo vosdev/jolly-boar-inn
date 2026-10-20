@@ -82,7 +82,11 @@ const indexes = new WeakMap<readonly VocabEntry[], Indexed[]>()
 function indexOf(entries: readonly VocabEntry[]): Indexed[] {
   let index = indexes.get(entries)
   if (index === undefined) {
-    const keyed = entries.map((entry) => ({ entry, key: fold(entry.name), words: words(entry.name) }))
+    const keyed = entries.map((entry) => ({
+      entry,
+      key: fold(entry.name),
+      words: words(entry.name),
+    }))
     keyed.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : a.entry.id - b.entry.id))
     index = keyed.map(({ entry, words }) => ({ entry, words }))
     indexes.set(entries, index)

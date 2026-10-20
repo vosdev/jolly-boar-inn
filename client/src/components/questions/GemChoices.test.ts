@@ -67,9 +67,7 @@ describe('gemState', () => {
 describe('GemChoices', () => {
   it('draws the gems in value order, one per option, sapphire first', () => {
     draw({})
-    expect(buttons().map((b) => GEMS.find((gem) => b.classList.contains(gem)))).toEqual([
-      ...GEMS,
-    ])
+    expect(buttons().map((b) => GEMS.find((gem) => b.classList.contains(gem)))).toEqual([...GEMS])
     draw({ options: ['Yes', 'No'] })
     const two = buttons().slice(6)
     expect(two[0]!.classList.contains('sapphire')).toBe(true)

@@ -58,8 +58,11 @@ describe('takeAdminToken', () => {
 
 describe('the admin reads', () => {
   it('send the token as a bearer header and never in the URL', async () => {
-    const fetch = vi.fn(async (url: string) =>
-      new Response(JSON.stringify(url.endsWith('rooms') ? { rooms: [], sockets: 0 } : { counts: [] })),
+    const fetch = vi.fn(
+      async (url: string) =>
+        new Response(
+          JSON.stringify(url.endsWith('rooms') ? { rooms: [], sockets: 0 } : { counts: [] }),
+        ),
     )
     vi.stubGlobal('fetch', fetch)
     await getLive(TOKEN)
@@ -72,7 +75,10 @@ describe('the admin reads', () => {
   })
 
   it('fail with the status', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 401 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{}', { status: 401 })),
+    )
     await expect(getLive(TOKEN)).rejects.toMatchObject({ status: 401 })
   })
 })

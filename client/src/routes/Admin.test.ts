@@ -148,7 +148,9 @@ describe('Admin', () => {
   it('is not found on a server without the admin view', async () => {
     serve(404)
     render(Admin)
-    await waitFor(() => expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Not found'))
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Not found'),
+    )
   })
 
   it('opens on the overview, tabs badged with what waits in each queue', async () => {
@@ -171,9 +173,21 @@ describe('Admin', () => {
     await waitFor(() =>
       expect(within(nav).getByRole('link', { name: /Suggestions/ }).textContent).toContain('3'),
     )
-    expect(within(nav).getByRole('link', { name: /Reports/ }).querySelector('.badge')).toBeNull()
-    expect(within(nav).getByRole('link', { name: /Questions/ }).getAttribute('href')).toBe('/admin/questions')
-    expect(within(nav).getByRole('link', { name: /Roster/ }).getAttribute('href')).toBe('/admin/roster')
+    expect(
+      within(nav)
+        .getByRole('link', { name: /Reports/ })
+        .querySelector('.badge'),
+    ).toBeNull()
+    expect(
+      within(nav)
+        .getByRole('link', { name: /Questions/ })
+        .getAttribute('href'),
+    ).toBe('/admin/questions')
+    expect(
+      within(nav)
+        .getByRole('link', { name: /Roster/ })
+        .getAttribute('href'),
+    ).toBe('/admin/roster')
   })
 
   it('moves between tabs by path, refreshing the rooms on the overview alone', async () => {
@@ -192,4 +206,3 @@ describe('Admin', () => {
     expect(navigate).toHaveBeenCalledWith('/admin/reports')
   })
 })
-

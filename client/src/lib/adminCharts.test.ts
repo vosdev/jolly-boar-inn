@@ -45,7 +45,11 @@ describe('buckets', () => {
   })
 
   it('is a bar a week beyond 90 days, whole weeks counted back from today', () => {
-    const bars = buckets([count('2026-09-25', 'games_finished', 2), count(TODAY, 'games_finished', 1)], '365', TODAY)
+    const bars = buckets(
+      [count('2026-09-25', 'games_finished', 2), count(TODAY, 'games_finished', 1)],
+      '365',
+      TODAY,
+    )
     expect(bars).toHaveLength(53)
     expect(bars.at(-1)).toMatchObject({ start: '2026-09-25', days: 7, finished: 3 })
     expect(bars[0]?.days).toBe(365 - 52 * 7)
@@ -67,7 +71,11 @@ describe('modeRanking', () => {
       { mode: 'guess_examine', started: 5, finished: 5 },
       { mode: 'more_less', started: 2, finished: 1 },
     ])
-    expect(modeRanking(counts, 'all', TODAY)[0]).toEqual({ mode: 'more_less', started: 101, finished: 1 })
+    expect(modeRanking(counts, 'all', TODAY)[0]).toEqual({
+      mode: 'more_less',
+      started: 101,
+      finished: 1,
+    })
   })
 })
 

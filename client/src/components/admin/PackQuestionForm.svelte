@@ -142,7 +142,8 @@
         <h3 id="{id}-title">Edit question</h3>
         <div class="field">
           <label for="{id}-json">Payload, as JSON</label>
-          <textarea id="{id}-json" class="code" rows="14" spellcheck="false" bind:value={json}></textarea>
+          <textarea id="{id}-json" class="code" rows="14" spellcheck="false" bind:value={json}
+          ></textarea>
           <p class="note">No form writes this type yet. The server checks it on Save.</p>
           {@render problem(typeof parsed === 'string' ? parsed : null, true)}
         </div>

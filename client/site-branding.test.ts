@@ -41,7 +41,11 @@ beforeAll(() => {
 })
 
 const BOAR = { PUBLIC_SITE_LOGO: 'branding/boar/logo.svg' }
-const svgLogo = (file: string) => ({ file: join(root, file), extension: '.svg', type: 'image/svg+xml' })
+const svgLogo = (file: string) => ({
+  file: join(root, file),
+  extension: '.svg',
+  type: 'image/svg+xml',
+})
 
 const ALL_SET = {
   PUBLIC_SITE_NAME: 'The Dancing Donkey',
@@ -51,7 +55,10 @@ const ALL_SET = {
 
 describe('readBranding', () => {
   it('is the stock inn with nothing set, or with everything set blank', () => {
-    for (const env of [{}, { PUBLIC_SITE_NAME: ' ', PUBLIC_SITE_LOGO: '', PUBLIC_DEFAULT_THEME: '' }]) {
+    for (const env of [
+      {},
+      { PUBLIC_SITE_NAME: ' ', PUBLIC_SITE_LOGO: '', PUBLIC_DEFAULT_THEME: '' },
+    ]) {
       expect(readBranding(env, root)).toEqual({
         name: DEFAULT_SITE_NAME,
         initial: 'J',
@@ -126,7 +133,16 @@ describe('readBranding', () => {
 describe('definedThemes', () => {
   it('finds every theme app.css paints', () => {
     expect(definedThemes()).toEqual(
-      new Set(['jolly', 'pollnivneach', 'wilderness', 'party_room', 'tzhaar', 'jungle', 'gauntlet', 'morytania']),
+      new Set([
+        'jolly',
+        'pollnivneach',
+        'wilderness',
+        'party_room',
+        'tzhaar',
+        'jungle',
+        'gauntlet',
+        'morytania',
+      ]),
     )
   })
 })
@@ -187,13 +203,15 @@ describe('a shared link', () => {
     Object.fromEntries(tags.map(({ attrs }) => [attrs!.property ?? attrs!.name, attrs!.content]))
 
   it('is titled and described with the site’s name, and has no image without a card', () => {
-    expect(meta(shareTags(readBranding({ PUBLIC_SITE_NAME: 'The Dancing Donkey' }, root)))).toEqual({
-      'og:type': 'website',
-      'og:site_name': 'The Dancing Donkey',
-      'og:title': 'The Dancing Donkey',
-      'og:description': 'Think you know Gielinor? Prove it at The Dancing Donkey.',
-      'twitter:card': 'summary',
-    })
+    expect(meta(shareTags(readBranding({ PUBLIC_SITE_NAME: 'The Dancing Donkey' }, root)))).toEqual(
+      {
+        'og:type': 'website',
+        'og:site_name': 'The Dancing Donkey',
+        'og:title': 'The Dancing Donkey',
+        'og:description': 'Think you know Gielinor? Prove it at The Dancing Donkey.',
+        'twitter:card': 'summary',
+      },
+    )
     expect(meta(shareTags(readBranding(ALL_SET, root)))).not.toHaveProperty('og:image')
   })
 

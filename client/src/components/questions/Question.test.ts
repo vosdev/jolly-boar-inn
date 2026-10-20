@@ -395,7 +395,7 @@ describe('every type on the stage', () => {
     expect(said!.textContent?.trim()).toBe('')
   })
 
-  it("has the host say its waiting line at the foot of the sheet once you have answered", () => {
+  it('has the host say its waiting line at the foot of the sheet once you have answered', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: 0, onAnswer })
     expect(paper().querySelector('.said')!.textContent?.trim()).toBe(MODES.more_less!.waiting)
   })
@@ -439,7 +439,9 @@ describe('a pack question’s picture', () => {
       yourValue: null,
       onAnswer,
     })
-    expect(paper().querySelector('.picture img')!.getAttribute('src')).toBe('/pictures/0123abcd.png')
+    expect(paper().querySelector('.picture img')!.getAttribute('src')).toBe(
+      '/pictures/0123abcd.png',
+    )
   })
 
   it('leaves no image and no empty box without one, open or revealed', () => {
@@ -500,7 +502,9 @@ describe('Who’s That NPC?’s shadow', () => {
       yourValue: null,
       onAnswer,
     })
-    expect(paper().querySelector('.picture.large img')!.getAttribute('src')).toBe('/pictures/feedc0de.png')
+    expect(paper().querySelector('.picture.large img')!.getAttribute('src')).toBe(
+      '/pictures/feedc0de.png',
+    )
     expect(paper().querySelector('.frame.shadow.lifted .fill')).toBeTruthy()
     expect(paper().querySelector('.caption')!.textContent).toBe('Vorkath')
   })

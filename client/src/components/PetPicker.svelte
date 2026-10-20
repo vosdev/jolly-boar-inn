@@ -45,7 +45,9 @@
 
   const matches = $derived.by(() => {
     const needle = query.trim().toLowerCase()
-    return needle === '' ? PICKABLE : PICKABLE.filter((pet) => pet.name.toLowerCase().includes(needle))
+    return needle === ''
+      ? PICKABLE
+      : PICKABLE.filter((pet) => pet.name.toLowerCase().includes(needle))
   })
 
   function pick(pet: string): void {

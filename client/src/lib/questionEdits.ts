@@ -123,7 +123,12 @@ export function groupQuestions(questions: readonly PackQuestion[], by: Grouping)
       group =
         by === 'host'
           ? { key, label: randomEventFor(key).name, host: key, questions: [] }
-          : { key, label: SUGGESTED_TYPE_LABELS[key as keyof typeof SUGGESTED_TYPE_LABELS] ?? key, host: null, questions: [] }
+          : {
+              key,
+              label: SUGGESTED_TYPE_LABELS[key as keyof typeof SUGGESTED_TYPE_LABELS] ?? key,
+              host: null,
+              questions: [],
+            }
       groups.set(key, group)
     }
     group.questions.push(question)

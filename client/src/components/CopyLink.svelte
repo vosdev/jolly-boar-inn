@@ -36,7 +36,14 @@
 <div class="field">
   <label for={id}>{label}</label>
   <div class="row">
-    <input {id} type="text" readonly value={revealed ? value : shown} bind:this={field} onfocus={() => field?.select()} />
+    <input
+      {id}
+      type="text"
+      readonly
+      value={revealed ? value : shown}
+      bind:this={field}
+      onfocus={() => field?.select()}
+    />
     <button type="button" class="small" onclick={copy}>{copied ? 'Copied' : 'Copy'}</button>
   </div>
 </div>

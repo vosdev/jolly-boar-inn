@@ -16,7 +16,12 @@
   const ready = $derived(player.ready === true)
 </script>
 
-<span class="roster-pet" class:lit={ready} class:away={!player.connected} class:editing={player.editing === true}>
+<span
+  class="roster-pet"
+  class:lit={ready}
+  class:away={!player.connected}
+  class:editing={player.editing === true}
+>
   <span class="face">
     <Pet pet={petOf(player)} size={48} label="" />
   </span>

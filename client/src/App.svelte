@@ -8,7 +8,7 @@
    *   /r/:code/create  Create
    *   /history/:code/:stamp  A finished game from this browser's history
    *   /admin           The operator's view, linked from Home once this browser has its token,
- *   /admin/:tab      on its overview, or on its suggestions, reports or questions tab
+   *   /admin/:tab      on its overview, or on its suggestions, reports or questions tab
    *   /suggest         A question for the packs, linked from Home once this browser has played
    *   /report          A problem with a pack question, linked from the same place
    *   /credits         Who wrote the pack questions, linked from the footer
@@ -72,7 +72,8 @@
     if (path === '/report') return { name: 'report' }
     if (path === '/credits') return { name: 'credits' }
     const past = HISTORY_PATH.exec(path)
-    if (past !== null) return { name: 'history', code: normalizeCode(past[1] ?? ''), stamp: past[2] ?? '' }
+    if (past !== null)
+      return { name: 'history', code: normalizeCode(past[1] ?? ''), stamp: past[2] ?? '' }
     const match = ROOM_PATH.exec(path)
     if (match === null) return { name: 'home' }
     const code = normalizeCode(match[1] ?? '')

@@ -58,7 +58,9 @@ async function search(typed: string, option: string): Promise<void> {
 }
 
 async function write(text: string): Promise<void> {
-  await fireEvent.input(screen.getByLabelText('What is wrong with it?'), { target: { value: text } })
+  await fireEvent.input(screen.getByLabelText('What is wrong with it?'), {
+    target: { value: text },
+  })
 }
 
 const send = () => fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))

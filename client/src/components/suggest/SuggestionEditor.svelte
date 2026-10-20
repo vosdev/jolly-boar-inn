@@ -87,7 +87,10 @@
   const picker = $derived(
     choice.types.includes('ordering') && customTypes.length > 0
       ? {
-          options: choice.types.map((type) => ({ value: type, label: SUGGESTED_TYPE_LABELS[type] })),
+          options: choice.types.map((type) => ({
+            value: type,
+            label: SUGGESTED_TYPE_LABELS[type],
+          })),
           onpick: (type: string) => (current = type as SuggestedType),
         }
       : undefined,
@@ -134,7 +137,9 @@
   /** The fields beside a question: whether they pass, asked on the editor's Save. */
   function questionFieldsPass(): boolean {
     attempted = true
-    const checked = choice.wikiOnly ? wikiError === null : Object.values(sourceErrors).every((e) => e === null)
+    const checked = choice.wikiOnly
+      ? wikiError === null
+      : Object.values(sourceErrors).every((e) => e === null)
     return creditError === null && checked
   }
 
@@ -168,7 +173,9 @@
       placeholder="https://oldschool.runescape.wiki/w/…"
       bind:value={wiki}
     />
-    <p class="note hint">All submissions are fact-checked by the innkeeper against the OSRS wiki.</p>
+    <p class="note hint">
+      All submissions are fact-checked by the innkeeper against the OSRS wiki.
+    </p>
     {@render problem(wikiError, show)}
   </div>
 {/snippet}
@@ -188,8 +195,8 @@
     </label>
     {#if choice.kind === 'item'}
       <p class="note hint">
-        More or Less and The Price is Right do not support displaying the author of a question. The innkeeper
-        still sees your name.
+        More or Less and The Price is Right do not support displaying the author of a question. The
+        innkeeper still sees your name.
       </p>
     {/if}
   </fieldset>
@@ -214,7 +221,9 @@
       placeholder="https://oldschool.runescape.wiki/w/…"
       bind:value={wiki}
     />
-    <p class="note hint">All submissions are fact-checked by the innkeeper against the OSRS wiki.</p>
+    <p class="note hint">
+      All submissions are fact-checked by the innkeeper against the OSRS wiki.
+    </p>
     {@render problem(sourceErrors.wiki, show)}
   </div>
   <div class="field">
@@ -226,7 +235,9 @@
       placeholder="https://…"
       bind:value={sourceUrl}
     />
-    <p class="note hint">A clip or page that proves it, such as what a streamer said. Either one is enough.</p>
+    <p class="note hint">
+      A clip or page that proves it, such as what a streamer said. Either one is enough.
+    </p>
     {@render problem(sourceErrors.source_url ?? sourceErrors.either, show)}
   </div>
   {@render creditFields(show)}
@@ -274,40 +285,40 @@
     <div class="layout">
       <div class="fields">
         <h3 id="{id}-title">{choice.label}</h3>
-          <p class="note">
-            An item players will recognise, for More or Less and The Price is Right. Untradeable
-            items are welcome: those rounds use alch and shop prices too.
-          </p>
-          <div class="field">
-            <label for="{id}-item">Item name, as the wiki spells it</label>
-            <input id="{id}-item" type="text" bind:value={name} />
-            {@render problem(itemError, attempted)}
-          </div>
+        <p class="note">
+          An item players will recognise, for More or Less and The Price is Right. Untradeable items
+          are welcome: those rounds use alch and shop prices too.
+        </p>
+        <div class="field">
+          <label for="{id}-item">Item name, as the wiki spells it</label>
+          <input id="{id}-item" type="text" bind:value={name} />
+          {@render problem(itemError, attempted)}
+        </div>
         {@render creditFields(attempted)}
         {@render buttons(saveItem)}
       </div>
-        <section class="roster" aria-labelledby="{id}-roster">
-          <h4 id="{id}-roster">Already in the game</h4>
-          <input
-            type="search"
-            aria-label="Search the items already in the game"
-            placeholder="Search"
-            bind:value={rosterQuery}
-          />
-          {#if roster === 'loading'}
-            <p class="note">Fetching the list…</p>
-          {:else if roster === 'failed'}
-            <p class="note">The list didn't load. An item the game has is still turned away.</p>
-          {:else if rosterFound.length === 0}
-            <p class="note">None of them match.</p>
-          {:else}
-            <ul>
-              {#each rosterFound as entry (entry.id)}
-                <li>{entry.name}</li>
-              {/each}
-            </ul>
-          {/if}
-        </section>
+      <section class="roster" aria-labelledby="{id}-roster">
+        <h4 id="{id}-roster">Already in the game</h4>
+        <input
+          type="search"
+          aria-label="Search the items already in the game"
+          placeholder="Search"
+          bind:value={rosterQuery}
+        />
+        {#if roster === 'loading'}
+          <p class="note">Fetching the list…</p>
+        {:else if roster === 'failed'}
+          <p class="note">The list didn't load. An item the game has is still turned away.</p>
+        {:else if rosterFound.length === 0}
+          <p class="note">None of them match.</p>
+        {:else}
+          <ul>
+            {#each rosterFound as entry (entry.id)}
+              <li>{entry.name}</li>
+            {/each}
+          </ul>
+        {/if}
+      </section>
     </div>
   </div>
 {/if}

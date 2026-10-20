@@ -119,7 +119,6 @@
     border-radius: var(--radius);
   }
 
-
   .current {
     margin: 0.4rem 0 0;
     font-size: 0.95rem;

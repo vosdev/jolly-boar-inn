@@ -62,7 +62,8 @@
 <table class="hiscores" class:arriving>
   <thead>
     <tr>
-      <th scope="col" class="rank"><span aria-hidden="true">#</span><span class="sr">Rank</span></th>
+      <th scope="col" class="rank"><span aria-hidden="true">#</span><span class="sr">Rank</span></th
+      >
       <th scope="col" class="name">Name</th>
       <th scope="col" class="points">Points</th>
     </tr>
@@ -88,7 +89,9 @@
         <td class="name">
           <span class="who">
             <Pet pet={petFor(standing)} size={28} label="" />
-            <span>{nameOf(standing)}{#if you}{' '}<span class="note">(you)</span>{/if}</span>
+            <span
+              >{nameOf(standing)}{#if you}{' '}<span class="note">(you)</span>{/if}</span
+            >
           </span>
         </td>
         <td class="points">
@@ -100,7 +103,8 @@
           >
           {#if changes}
             <span class="gain" class:shown={settled}
-              >+{numbers.format(standing.points_gained)}<span class="sr">{' this round'}</span></span
+              >+{numbers.format(standing.points_gained)}<span class="sr">{' this round'}</span
+              ></span
             >
           {/if}
         </td>

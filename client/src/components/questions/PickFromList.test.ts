@@ -118,7 +118,9 @@ describe('pick_from_list', () => {
     }))
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response(JSON.stringify({ vocab: 'items', version: 'v2', entries: many }))),
+      vi.fn(
+        async () => new Response(JSON.stringify({ vocab: 'items', version: 'v2', entries: many })),
+      ),
     )
     const { box } = await mount()
     await fireEvent.focus(box)

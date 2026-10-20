@@ -45,7 +45,9 @@
     <table class="authors">
       <thead>
         <tr>
-          <th scope="col" class="rank"><span aria-hidden="true">#</span><span class="sr">Rank</span></th>
+          <th scope="col" class="rank"
+            ><span aria-hidden="true">#</span><span class="sr">Rank</span></th
+          >
           <th scope="col" class="name">Name</th>
           <th scope="col" class="count">Questions</th>
         </tr>
@@ -71,17 +73,23 @@
   <h2>The OSRS Wiki</h2>
   <p>
     Pretty much every question here was checked against the Old School RuneScape Wiki. The item IDs,
-    prices, examine texts, drop tables, transcripts and chatheads all come from years of work by
-    its volunteer editors. This game could not exist without them.
+    prices, examine texts, drop tables, transcripts and chatheads all come from years of work by its
+    volunteer editors. This game could not exist without them.
+  </p>
+  <p>Thank you.</p>
+  <p>
+    Grand Exchange prices are taken from the <a
+      class="link"
+      href="https://prices.runescape.wiki/"
+      target="_blank"
+      rel="noopener">real-time prices API</a
+    >. Each time the game is built, the prices are obtained through a single <code>/mapping</code>
+    and <code>/latest</code> request.
   </p>
   <p>
-    Thank you.
-  </p>
-  <p>
-    Grand Exchange prices are taken from the <a class="link" href="https://prices.runescape.wiki/" target="_blank" rel="noopener">real-time prices API</a>. Each time the game is built, the prices are obtained through a single <code>/mapping</code> and <code>/latest</code> request.
-  </p>
-  <p>
-    Other assets, such as chatheads and pictures, are a one-time download from the wiki at a rate of 1 asset per second; stored locally and served from this game server. The game does not hotlink to the wiki.
+    Other assets, such as chatheads and pictures, are a one-time download from the wiki at a rate of
+    1 asset per second; stored locally and served from this game server. The game does not hotlink
+    to the wiki.
   </p>
   <p class="note">
     <a class="link" href={WIKI_URL} target="_blank" rel="noopener">oldschool.runescape.wiki</a> · CC BY-NC-SA

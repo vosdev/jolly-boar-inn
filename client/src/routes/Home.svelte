@@ -199,8 +199,8 @@
     <section class="panel">
       <h2>Suggest or report a question</h2>
       <p class="note">
-        Know something the inn doesn't ask yet? Write a question, an examine line or an item for
-        the Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
+        Know something the inn doesn't ask yet? Write a question, an examine line or an item for the
+        Grand Exchange rounds. Spotted a wrong answer, a typo or an outdated fact? Tell the
         innkeeper which question. The innkeeper reads every one.
       </p>
       <div class="row">
@@ -221,10 +221,15 @@
     {#snippet paper()}
       <h1>Think you know Gielinor? Prove it at {siteName}.</h1>
       <p class="tagline">
-        Your Oldschool RuneScape knowledge will be tested. Create or Join a room, and race for the top of the
-        leaderboard!
+        Your Oldschool RuneScape knowledge will be tested. Create or Join a room, and race for the
+        top of the leaderboard!
       </p>
-      <button type="button" class="how-to" aria-haspopup="dialog" onclick={() => (showHowTo = true)}>
+      <button
+        type="button"
+        class="how-to"
+        aria-haspopup="dialog"
+        onclick={() => (showHowTo = true)}
+      >
         How to play
       </button>
     {/snippet}
@@ -331,7 +336,9 @@
                 <span class="code-small">{room}</span>
                 <span class="when">Expires {expiresIn(expiresAt, now)}</span>
               </span>
-              <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}>Open</button>
+              <button type="button" class="small" onclick={() => navigate(`/r/${room}`)}
+                >Open</button
+              >
               <button
                 type="button"
                 class="small"

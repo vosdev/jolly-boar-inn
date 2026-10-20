@@ -154,8 +154,14 @@ describe('CustomQuestions', () => {
     expect(listed(panel)).toEqual(['Who runs the inn?', 'Zulrah kills for a pet?', 'Name the cat'])
 
     expect(await submitted()).toEqual([
-      { type: 'multiple_choice', payload: { prompt: 'Who runs the inn?', options: ['Hans', 'Bartender'], answer_index: 1 } },
-      { type: 'closest_number', payload: { prompt: 'Zulrah kills for a pet?', answer: 4000, unit: 'kills' } },
+      {
+        type: 'multiple_choice',
+        payload: { prompt: 'Who runs the inn?', options: ['Hans', 'Bartender'], answer_index: 1 },
+      },
+      {
+        type: 'closest_number',
+        payload: { prompt: 'Zulrah kills for a pet?', answer: 4000, unit: 'kills' },
+      },
       { type: 'free_text', payload: { prompt: 'Name the cat', accepted: ['Fluffs'] } },
     ])
   })
@@ -167,23 +173,31 @@ describe('CustomQuestions', () => {
     let form = editor()
     await pick(form, 'Pick all that apply')
     await type(form, 'Question', 'Which of these are demons?')
-    for (const [i, name] of ['Hellhound', 'Gargoyle', 'Imp'].entries()) await type(form, `Answer ${i + 1}`, name)
+    for (const [i, name] of ['Hellhound', 'Gargoyle', 'Imp'].entries())
+      await type(form, `Answer ${i + 1}`, name)
     await click(form, 'Add question')
     expect(within(form).getByText('Tick at least one right answer.')).toBeTruthy()
     for (const name of ['Answer 3 is right', 'Answer 1 is right']) {
       await fireEvent.click(within(form).getByRole('checkbox', { name }))
     }
-    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Tell players how many are right' }))
+    await fireEvent.click(
+      within(form).getByRole('checkbox', { name: 'Tell players how many are right' }),
+    )
     await click(form, 'Add question')
 
     await click(panel, 'Edit question 1')
     form = editor()
-    expect(within(form).getByRole('button', { name: 'Remove answer 2' })).toHaveProperty('disabled', true)
+    expect(within(form).getByRole('button', { name: 'Remove answer 2' })).toHaveProperty(
+      'disabled',
+      true,
+    )
     await click(form, 'Add an answer')
     await type(form, 'Answer 4', 'Black demon')
     await fireEvent.click(within(form).getByRole('checkbox', { name: 'Answer 1 is right' }))
     await click(form, 'Remove answer 1')
-    await fireEvent.click(within(form).getByRole('checkbox', { name: 'Tell players how many are right' }))
+    await fireEvent.click(
+      within(form).getByRole('checkbox', { name: 'Tell players how many are right' }),
+    )
     await click(form, 'Save question')
 
     expect(await submitted()).toEqual([
@@ -245,7 +259,10 @@ describe('CustomQuestions', () => {
     await writeChoice(panel, 'Named', 'Death')
     await click(panel, 'Edit question 1')
     form = editor()
-    expect(within(askers(form)).getByRole('radio', { name: 'Death' })).toHaveProperty('checked', true)
+    expect(within(askers(form)).getByRole('radio', { name: 'Death' })).toHaveProperty(
+      'checked',
+      true,
+    )
     expect(asker()).toBe('Who asks it · Death')
   })
 
@@ -296,10 +313,16 @@ describe('CustomQuestions', () => {
     const panel = await loaded()
     await click(panel, 'Write a question')
     for (let i = 0; i < 4; i++) await click(editor(), 'Add an answer')
-    expect((within(editor()).getByRole('button', { name: 'Add an answer' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(
+      (within(editor()).getByRole('button', { name: 'Add an answer' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true)
     await pick(editor(), 'Type the answer')
     for (let i = 0; i < 19; i++) await click(editor(), 'Add another spelling')
-    expect((within(editor()).getByRole('button', { name: 'Add another spelling' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(
+      (within(editor()).getByRole('button', { name: 'Add another spelling' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true)
     // Two dozen clicks and renders; the self-hosted runner needs more than the default 5 s.
   }, 10_000)
 
@@ -310,7 +333,9 @@ describe('CustomQuestions', () => {
     await type(form, 'Question', 'Who runs the inn?')
     await type(form, 'Answer 1', 'Hans')
     await type(form, 'Answer 2', 'Bartender')
-    await fireEvent.keyDown(within(form).getByRole('textbox', { name: 'Answer 2' }), { key: 'Enter' })
+    await fireEvent.keyDown(within(form).getByRole('textbox', { name: 'Answer 2' }), {
+      key: 'Enter',
+    })
     expect(listed(panel)).toEqual(['Who runs the inn?'])
     expect(api.createRoom).not.toHaveBeenCalled()
   })
@@ -329,7 +354,10 @@ describe('CustomQuestions', () => {
     const panel = await loaded()
     await writeChoice(panel, 'One')
     await writeChoice(panel, 'Two')
-    expect((within(panel).getByRole('button', { name: 'Write a question' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(
+      (within(panel).getByRole('button', { name: 'Write a question' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true)
     expect(panel.textContent).toContain('Every random event is already one of yours.')
     expect(panel.textContent).toContain('pick More frequency')
   })
@@ -343,9 +371,13 @@ describe('CustomQuestions', () => {
       'Your rounds make room for 1 random event at Less frequency, and you have 2 questions of your own. More frequency would make room for 4.'
     expect(within(panel).getByRole('alert').textContent).toBe(message)
     expect(screen.getAllByText(message)).toHaveLength(2)
-    expect((screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(
+      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
+    ).toBe(true)
     await setFrequency('Default')
-    expect((screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled).toBe(false)
+    expect(
+      (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
+    ).toBe(false)
   })
 
   it('exports the list as the file Import reads', async () => {
@@ -362,7 +394,11 @@ describe('CustomQuestions', () => {
     const read = importText(text)
     expect(read.ok && exportText(read.questions)).toBe(text)
     expect(JSON.parse(text)).toEqual([
-      { type: 'multiple_choice', payload: { prompt: 'Named', options: ['Hans', 'Bartender'], answer_index: 1 }, random_event: 'genie' },
+      {
+        type: 'multiple_choice',
+        payload: { prompt: 'Named', options: ['Hans', 'Bartender'], answer_index: 1 },
+        random_event: 'genie',
+      },
     ])
   })
 
@@ -382,7 +418,11 @@ describe('CustomQuestions', () => {
     const panel = await loaded()
     await writeChoice(panel, 'Kept')
     const bad = [
-      { type: 'multiple_choice', payload: { prompt: 'Q', options: ['A', 'B'], answer_index: 0 }, random_event: 'zezima' },
+      {
+        type: 'multiple_choice',
+        payload: { prompt: 'Q', options: ['A', 'B'], answer_index: 0 },
+        random_event: 'zezima',
+      },
     ]
     await chooseFile(panel, JSON.stringify(bad))
     const alert = await within(panel).findByRole('alert')

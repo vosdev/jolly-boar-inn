@@ -22,7 +22,11 @@ const QUESTION = {
   type: 'multiple_choice' as const,
   mode: 'odd_one_out',
   wiki: 'https://oldschool.runescape.wiki/w/Barrows_Brothers',
-  payload: { prompt: 'Which is not a Barrows brother?', options: ['Dharok', 'Hazelmere'], answer_index: 1 },
+  payload: {
+    prompt: 'Which is not a Barrows brother?',
+    options: ['Dharok', 'Hazelmere'],
+    answer_index: 1,
+  },
 }
 
 beforeEach(() => localStorage.clear())
@@ -30,7 +34,12 @@ beforeEach(() => localStorage.clear())
 describe('who may suggest', () => {
   it('is a browser that has finished a game', () => {
     expect(maySuggest()).toBe(false)
-    savePastGame({ code: 'ABYSSAL', finishedAt: '2026-10-01T20:05:00Z', standings: [], youId: null })
+    savePastGame({
+      code: 'ABYSSAL',
+      finishedAt: '2026-10-01T20:05:00Z',
+      standings: [],
+      youId: null,
+    })
     expect(maySuggest()).toBe(true)
   })
 })
@@ -46,9 +55,13 @@ describe('where a question was checked', () => {
   })
 
   it('holds what is filled in to its form', () => {
-    expect(sourceProblems('https://example.com/w/Zezima', '').wiki).toMatch(/oldschool\.runescape\.wiki/)
+    expect(sourceProblems('https://example.com/w/Zezima', '').wiki).toMatch(
+      /oldschool\.runescape\.wiki/,
+    )
     expect(sourceProblems('', 'http://example.com').source_url).toBe('A link starting https://.')
-    expect(sourceProblems('', `https://example.com/${'x'.repeat(300)}`).source_url).toMatch(/At most 300/)
+    expect(sourceProblems('', `https://example.com/${'x'.repeat(300)}`).source_url).toMatch(
+      /At most 300/,
+    )
   })
 })
 
@@ -68,10 +81,16 @@ describe('the choices', () => {
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
     const examine = CHOICES.find((c) => c.id === 'guess_examine')
-    expect([examine?.kind, examine?.types, examine?.options]).toEqual(['question', ['multiple_choice'], [4, 6]])
+    expect([examine?.kind, examine?.types, examine?.options]).toEqual([
+      'question',
+      ['multiple_choice'],
+      [4, 6],
+    ])
     expect(examine?.host).toBe('examiner')
     expect(CHOICES.filter((c) => c.wikiOnly).map((c) => c.id)).toEqual(['guess_examine'])
-    expect(CHOICES.filter((c) => c.options !== undefined).map((c) => c.id)).toEqual(['guess_examine'])
+    expect(CHOICES.filter((c) => c.options !== undefined).map((c) => c.id)).toEqual([
+      'guess_examine',
+    ])
     expect(CHOICES.find((c) => c.id === 'bestiary')?.types).toEqual([
       'multiple_choice',
       'free_text',
@@ -112,7 +131,9 @@ describe('the choices', () => {
   })
 
   it("shows a random event's own NPC, and the round's host otherwise", () => {
-    expect(hostOf('question', { ...QUESTION, mode: 'random_event', random_event: 'thurgo' })).toBe('thurgo')
+    expect(hostOf('question', { ...QUESTION, mode: 'random_event', random_event: 'thurgo' })).toBe(
+      'thurgo',
+    )
     expect(hostOf('question', { ...QUESTION, mode: 'random_event' })).toBe('sandwich_lady')
     expect(hostOf('item', { name: 'Abyssal whip' })).toBe('grand_exchange_clerk')
   })
@@ -147,11 +168,23 @@ describe('the queue', () => {
   it('says each kind in one line, with its answer', () => {
     expect(summary({ kind: 'question', content: QUESTION })).toBe('Which is not a Barrows brother?')
     expect(answerOf({ kind: 'question', content: QUESTION })).toBe('Hazelmere')
-    const typed = { ...QUESTION, type: 'free_text' as const, payload: { prompt: 'p', accepted: ['Jad', 'TzTok-Jad'] } }
+    const typed = {
+      ...QUESTION,
+      type: 'free_text' as const,
+      payload: { prompt: 'p', accepted: ['Jad', 'TzTok-Jad'] },
+    }
     expect(answerOf({ kind: 'question', content: typed })).toBe('Jad / TzTok-Jad')
-    const number = { ...QUESTION, type: 'closest_number' as const, payload: { prompt: 'p', answer: 99, unit: 'gp' } }
+    const number = {
+      ...QUESTION,
+      type: 'closest_number' as const,
+      payload: { prompt: 'p', answer: 99, unit: 'gp' },
+    }
     expect(answerOf({ kind: 'question', content: number })).toBe('99 gp')
-    const payload = { prompt: 'p', options: ['Imp', 'Gargoyle', 'Hellhound'], answer_indices: [0, 2] }
+    const payload = {
+      prompt: 'p',
+      options: ['Imp', 'Gargoyle', 'Hellhound'],
+      answer_indices: [0, 2],
+    }
     const pickAll = { ...QUESTION, type: 'pick_all_that_apply' as const, payload }
     expect(answerOf({ kind: 'question', content: pickAll })).toBe('Imp / Hellhound')
   })

@@ -15,8 +15,7 @@
     picked = $bindable(null),
     label,
     problem = null,
-  }: { choices: ReportChoice[]; picked?: Picked; label: string; problem?: string | null } =
-    $props()
+  }: { choices: ReportChoice[]; picked?: Picked; label: string; problem?: string | null } = $props()
 
   const OTHER = 'Something else'
   const uid = $props.id()
@@ -49,7 +48,9 @@
 
   function highlight(index: number): void {
     active = Math.max(0, Math.min(shown.length - 1, index))
-    listbox?.querySelector(`#${CSS.escape(optionId(active))}`)?.scrollIntoView?.({ block: 'nearest' })
+    listbox
+      ?.querySelector(`#${CSS.escape(optionId(active))}`)
+      ?.scrollIntoView?.({ block: 'nearest' })
   }
 
   function onKeydown(event: KeyboardEvent): void {

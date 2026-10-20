@@ -12,7 +12,15 @@
 
 import { at, unstorable } from './customQuestions'
 import type { OpenQuestion } from './protocol'
-import { check, definition, field, fields, limit, type Problem, type Schema } from './questionSchema'
+import {
+  check,
+  definition,
+  field,
+  fields,
+  limit,
+  type Problem,
+  type Schema,
+} from './questionSchema'
 
 export interface OrderingQuestion {
   type: 'ordering'
@@ -47,7 +55,10 @@ export const PICKS_MIN = limit(field('ordering', 'picks'), 'minimum') ?? 0
 export const ENDS_MAX = limit(field('ordering', 'ends').items as Schema, 'maxLength') ?? 0
 export const TEXT_MAX = limit(definition('short_text'), 'maxLength') ?? 0
 export const DETAIL_MAX =
-  limit(((ENTRIES.items as Schema).properties as Record<string, Schema>).detail ?? {}, 'maxLength') ?? 0
+  limit(
+    ((ENTRIES.items as Schema).properties as Record<string, Schema>).detail ?? {},
+    'maxLength',
+  ) ?? 0
 
 /** What an ordering round's form says to its author, where the generic wording would not do. */
 export interface OrderingWording {
@@ -151,7 +162,9 @@ function consistency(payload: Record<string, unknown>): Problem[] {
   if (!Array.isArray(entries)) return found
   const shaped = entries.filter(
     (entry): entry is { text: unknown; rank: number } =>
-      typeof entry === 'object' && entry !== null && Number.isInteger((entry as { rank?: unknown }).rank),
+      typeof entry === 'object' &&
+      entry !== null &&
+      Number.isInteger((entry as { rank?: unknown }).rank),
   )
   if (shaped.length !== entries.length) return found
   const ranks = shaped.map((entry) => entry.rank).sort((a, b) => a - b)
@@ -175,11 +188,17 @@ function consistency(payload: Record<string, unknown>): Problem[] {
   const picks = payload.picks
   if (typeof picks === 'number' && picks >= entries.length) {
     found.push(
-      at('payload.picks', `Only fewer than the ${entries.length} entries can be ordered; leave it to order all.`),
+      at(
+        'payload.picks',
+        `Only fewer than the ${entries.length} entries can be ordered; leave it to order all.`,
+      ),
     )
   } else if (typeof picks === 'number' && new Set(ranks.slice(0, picks + 1)).size === 1) {
     found.push(
-      at('payload.picks', `The first ${picks + 1} entries are tied, so any ${picks} of them in any order would win.`),
+      at(
+        'payload.picks',
+        `The first ${picks + 1} entries are tied, so any ${picks} of them in any order would win.`,
+      ),
     )
   }
   if (ranks.length > 0 && new Set(ranks).size === 1) {
@@ -221,7 +240,9 @@ export function problems(question: unknown, detailRequired = false): Problem[] {
     if (detailRequired && Array.isArray(entries)) {
       entries.forEach((entry: { detail?: unknown }, i) => {
         if (entry?.detail === undefined) {
-          found.push(at(`payload.entries[${i}].detail`, 'Required: the date it came out.', 'missing'))
+          found.push(
+            at(`payload.entries[${i}].detail`, 'Required: the date it came out.', 'missing'),
+          )
         }
       })
     }
@@ -241,9 +262,7 @@ export function previewOf(question: OrderingQuestion, mode: string): OpenQuestio
   const entries = Array.isArray(p.entries) ? (p.entries as { text?: unknown }[]) : []
   const shown = [...entries.slice(1), ...entries.slice(0, 1)].map((entry) => ({ text: entry.text }))
   const view = Object.fromEntries(
-    ['intro', 'prompt', 'ends', 'picks']
-      .filter((key) => key in p)
-      .map((key) => [key, p[key]]),
+    ['intro', 'prompt', 'ends', 'picks'].filter((key) => key in p).map((key) => [key, p[key]]),
   )
   return {
     question_id: 'preview',
@@ -275,5 +294,7 @@ export function answerLine(payload: Record<string, unknown>): string {
     line += i === 0 ? '' : before?.rank === entry.rank ? ' = ' : ' → '
     line += label(entry)
   })
-  return typeof payload.picks === 'number' ? `${line} (the first ${payload.picks} are ordered)` : line
+  return typeof payload.picks === 'number'
+    ? `${line} (the first ${payload.picks} are ordered)`
+    : line
 }

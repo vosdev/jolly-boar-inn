@@ -109,7 +109,12 @@
     class:returning={guestArt !== null && returning}
   >
     <div class="npc host" aria-hidden="true">
-      <img class={hero === null ? art.cut : 'hero'} src={hero ?? art.url} alt="" draggable="false" />
+      <img
+        class={hero === null ? art.cut : 'hero'}
+        src={hero ?? art.url}
+        alt=""
+        draggable="false"
+      />
     </div>
     <ClueScroll {award} {sheet} {theme}>
       {@render paper?.()}

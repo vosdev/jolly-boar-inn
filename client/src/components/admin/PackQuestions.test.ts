@@ -101,7 +101,9 @@ beforeEach(() => {
   vi.mocked(admin.getEditModes).mockResolvedValue(['bestiary', 'random_event'])
   vi.mocked(admin.getPackQuestions).mockResolvedValue([VORKATH, JAD])
   vi.mocked(admin.editPackQuestion).mockResolvedValue(change())
-  vi.mocked(admin.deletePackQuestion).mockResolvedValue(change({ action: 'delete', question: null }))
+  vi.mocked(admin.deletePackQuestion).mockResolvedValue(
+    change({ action: 'delete', question: null }),
+  )
   vi.mocked(admin.discardQuestionChange).mockResolvedValue()
   vi.mocked(admin.exportQuestionChanges).mockResolvedValue({ edits: [], deletes: [] })
   vi.mocked(admin.markQuestionChangesApplied).mockResolvedValue(1)
@@ -119,7 +121,9 @@ async function openRandomEvents(): Promise<HTMLElement> {
   show()
   const list = await screen.findByRole('region', { name: 'Pack questions' })
   await screen.findByText('Which <b>dragon</b> sleeps on Ungael?')
-  await fireEvent.change(within(list).getByLabelText('Round'), { target: { value: 'random_event' } })
+  await fireEvent.change(within(list).getByLabelText('Round'), {
+    target: { value: 'random_event' },
+  })
   await within(list).findByText('Which bread is it?')
   return list
 }
@@ -162,7 +166,9 @@ describe('PackQuestions', () => {
     show()
     await fireEvent.click(await screen.findByText('Which <b>dragon</b> sleeps on Ungael?'))
     await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    await fireEvent.input(screen.getByLabelText(/^Picture/), { target: { value: 'https://x.test/a.png' } })
+    await fireEvent.input(screen.getByLabelText(/^Picture/), {
+      target: { value: 'https://x.test/a.png' },
+    })
     await fireEvent.click(screen.getByRole('button', { name: 'Queue the edit' }))
     expect(admin.editPackQuestion).not.toHaveBeenCalled()
   })

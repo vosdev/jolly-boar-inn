@@ -33,7 +33,12 @@
   ]
 
   /** What a room gets unless the host changes it; Fine print counts the differences. */
-  const STANDARD = { standingsSeconds: 10, hideRounds: false, closeWhenAllAnswered: true, nameWrongAnswers: true }
+  const STANDARD = {
+    standingsSeconds: 10,
+    hideRounds: false,
+    closeWhenAllAnswered: true,
+    nameWrongAnswers: true,
+  }
 
   let {
     pace = $bindable(),
@@ -96,7 +101,11 @@
     <p class="note">{PACES.find((option) => option.value === pace)?.note}</p>
   </div>
 
-  {@render head('access', 'Who can join', ACCESS.find((option) => option.value === access)?.label ?? access)}
+  {@render head(
+    'access',
+    'Who can join',
+    ACCESS.find((option) => option.value === access)?.label ?? access,
+  )}
   <div class="open" id="{id}-access" hidden={open !== 'access'}>
     <Segmented legend="Access" hideLegend options={ACCESS} bind:value={access} />
     <p class="note">{ACCESS.find((option) => option.value === access)?.note}</p>
@@ -119,7 +128,11 @@
         <p class="note">Hide the game modes in the lobby from the players</p>
       </div>
     {/if}
-    <Segmented legend="Close when everyone has answered" options={OFF_ON} bind:value={closeWhenAllAnswered} />
+    <Segmented
+      legend="Close when everyone has answered"
+      options={OFF_ON}
+      bind:value={closeWhenAllAnswered}
+    />
     <Segmented legend="Name who got it wrong" options={OFF_ON} bind:value={nameWrongAnswers} />
   </div>
 </section>

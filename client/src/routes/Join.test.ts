@@ -73,7 +73,14 @@ describe('Join', () => {
     render(Join, { code: 'ABYSSAL', navigate })
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/r/ABYSSAL'))
     expect(api.joinRoom).toHaveBeenCalledTimes(1)
-    expect(api.joinRoom).toHaveBeenCalledWith('ABYSSAL', 'Zezima', 'aggy', false, null, FIRST_ARRIVAL)
+    expect(api.joinRoom).toHaveBeenCalledWith(
+      'ABYSSAL',
+      'Zezima',
+      'aggy',
+      false,
+      null,
+      FIRST_ARRIVAL,
+    )
     expect(getSession('ABYSSAL')).toBe('token')
   })
 
@@ -322,7 +329,16 @@ describe('Join for a room that is gone', () => {
     savePastGame({
       code: 'ABYSSAL',
       finishedAt: '2026-10-01T20:05:00Z',
-      standings: [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1, points_gained: 900, previous_rank: null }],
+      standings: [
+        {
+          player_id: 'a',
+          display_name: 'Zezima',
+          points: 900,
+          rank: 1,
+          points_gained: 900,
+          previous_rank: null,
+        },
+      ],
       youId: 'a',
     })
 
@@ -387,7 +403,16 @@ describe('What a join tells the counters', () => {
     savePastGame({
       code: 'ABYSSAL',
       finishedAt: '2026-10-01T20:05:00Z',
-      standings: [{ player_id: 'a', display_name: 'Zezima', points: 900, rank: 1, points_gained: 900, previous_rank: null }],
+      standings: [
+        {
+          player_id: 'a',
+          display_name: 'Zezima',
+          points: 900,
+          rank: 1,
+          points_gained: 900,
+          previous_rank: null,
+        },
+      ],
       youId: 'a',
     })
     render(Join, { code: 'ABYSSAL', navigate })

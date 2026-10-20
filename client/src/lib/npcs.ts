@@ -34,7 +34,10 @@ export interface NpcPicture {
 }
 
 /** The file whose name without its extension is `name`, and that extension. */
-function fileNamed(files: Record<string, string>, name: string): { url: string; ext: string } | null {
+function fileNamed(
+  files: Record<string, string>,
+  name: string,
+): { url: string; ext: string } | null {
   for (const [path, url] of Object.entries(files)) {
     const base = path.slice(path.lastIndexOf('/') + 1)
     const dot = base.lastIndexOf('.')

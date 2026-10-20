@@ -62,8 +62,9 @@ describe('The Price is Right’s icon', () => {
     const paper = document.querySelector('.paper')!
     expect(icons(paper)).toEqual(['item:4151'])
     const icon = paper.querySelector('.item')!
-    expect(screen.getByText(ASK).compareDocumentPosition(icon) & Node.DOCUMENT_POSITION_FOLLOWING)
-      .toBeTruthy()
+    expect(
+      screen.getByText(ASK).compareDocumentPosition(icon) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     unmount()
 
     const reveal = { ...price(WHIP), value: 1_600_000, answer_index: 1 }
@@ -88,8 +89,10 @@ describe('More or Less’s icons', () => {
     const [whip, bones] = screen.getAllByRole('button')
     expect(icons(whip)).toEqual(['item:4151'])
     const name = screen.getByText('Abyssal whip')
-    expect(whip!.querySelector('.item')!.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING)
-      .toBeTruthy()
+    expect(
+      whip!.querySelector('.item')!.compareDocumentPosition(name) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     expect(bones!.querySelector('.item, img')).toBeNull()
   })
 

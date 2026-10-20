@@ -18,7 +18,12 @@ import type { EventFrequency, OpenQuestion } from './protocol'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 import { check, codePoints, envelopeProperty, field, fields, type Problem } from './questionSchema'
 
-export const CUSTOM_TYPES = ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply'] as const
+export const CUSTOM_TYPES = [
+  'multiple_choice',
+  'free_text',
+  'closest_number',
+  'pick_all_that_apply',
+] as const
 export type CustomType = (typeof CUSTOM_TYPES)[number]
 
 export const TYPE_LABELS: Record<CustomType, string> = {

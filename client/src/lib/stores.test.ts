@@ -84,7 +84,15 @@ beforeEach(() => {
 describe('applyServerMessage', () => {
   it('takes the standings a room_updated carries, and keeps them when it carries none', () => {
     const ranked: Standing[] = [
-      { player_id: 'p1', display_name: 'Me', avatar: null, points: 10, rank: 1, points_gained: 0, previous_rank: 1 },
+      {
+        player_id: 'p1',
+        display_name: 'Me',
+        avatar: null,
+        points: 10,
+        rank: 1,
+        points_gained: 0,
+        previous_rank: 1,
+      },
     ]
     applyServerMessage(welcome())
     applyServerMessage({ t: 'room_updated', room: lobby, players: [host, me], standings: ranked })
@@ -193,8 +201,22 @@ describe('a finished game', () => {
     finished_at: '2026-10-01T20:05:00.123456Z',
   }
   const FINAL: Standing[] = [
-    { player_id: 'p0', display_name: 'Host', points: 900, rank: 1, points_gained: 900, previous_rank: null },
-    { player_id: 'p1', display_name: 'Zezima', points: 400, rank: 2, points_gained: 400, previous_rank: null },
+    {
+      player_id: 'p0',
+      display_name: 'Host',
+      points: 900,
+      rank: 1,
+      points_gained: 900,
+      previous_rank: null,
+    },
+    {
+      player_id: 'p1',
+      display_name: 'Zezima',
+      points: 400,
+      rank: 2,
+      points_gained: 400,
+      previous_rank: null,
+    },
   ]
 
   beforeEach(() => {

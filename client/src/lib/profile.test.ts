@@ -30,7 +30,10 @@ describe('profile', () => {
     const first = await visit()
     expect(get(first.profile)).toBeNull()
     first.saveProfile('  Zezima ', 'aggy')
-    expect(JSON.parse(localStorage.getItem('jbi:profile')!)).toEqual({ name: 'Zezima', pet: 'aggy' })
+    expect(JSON.parse(localStorage.getItem('jbi:profile')!)).toEqual({
+      name: 'Zezima',
+      pet: 'aggy',
+    })
     expect(get((await visit()).profile)).toEqual({ name: 'Zezima', pet: 'aggy' })
   })
 

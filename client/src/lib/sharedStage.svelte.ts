@@ -338,7 +338,11 @@ function ghostsOf(root: HTMLElement, parts: Parts, ms: number): HTMLElement[] {
     })
     ghost.append(node)
     parent.append(ghost)
-    ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms, easing: 'ease-in', fill: 'forwards' })
+    ghost.animate([{ opacity: 1 }, { opacity: 0 }], {
+      duration: ms,
+      easing: 'ease-in',
+      fill: 'forwards',
+    })
     ghosts.push(ghost)
   }
   return ghosts

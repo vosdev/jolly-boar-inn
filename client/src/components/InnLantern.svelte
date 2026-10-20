@@ -51,13 +51,7 @@
     <path d="M25 54 49 61 72 47 51 62 66 58 51 63z" fill={ART.flare} opacity=".7" />
     <path d="M49 63 49.5 56 51.5 63z" fill={ART.flame} />
   </g>
-  <g
-    fill="none"
-    stroke={ART.frame}
-    stroke-width="4"
-    stroke-linejoin="round"
-    stroke-linecap="round"
-  >
+  <g fill="none" stroke={ART.frame} stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
     <path d="M2 46 14 104" />
     <path d="M30 70 37 121" />
     <path d="M95 59 85 111" />

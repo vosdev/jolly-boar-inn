@@ -108,7 +108,8 @@
   if (!types.includes(draft.type)) draft.type = types[0] ?? draft.type
   // svelte-ignore state_referenced_locally
   const [rangeMin, rangeMax] = optionRange ?? [0, Infinity]
-  if (draft.type === 'multiple_choice') while (draft.options.length < rangeMin) draft.options.push('')
+  if (draft.type === 'multiple_choice')
+    while (draft.options.length < rangeMin) draft.options.push('')
   let attempted = $state(false)
   const ranged = $derived(draft.type === 'multiple_choice')
   const schemaMin = $derived(limit(field(choicesOf(draft.type), 'options'), 'minItems') ?? 0)
@@ -223,18 +224,32 @@
       {#if asker === 'optional' || asker === 'required'}
         <div class="field">
           <p class="asker">
-            <span id="{id}-npc">Who asks it</span>{#if askerName !== ''}<span class="picked">{` · ${askerName}`}</span>{/if}
+            <span id="{id}-npc">Who asks it</span>{#if askerName !== ''}<span class="picked"
+                >{` · ${askerName}`}</span
+              >{/if}
           </p>
           <div class="npcs" role="radiogroup" aria-labelledby="{id}-npc" {@attach showPicked}>
             {#if asker === 'optional'}
               <label class="npc" title="A random NPC">
-                <input type="radio" name="{id}-npc" value="" aria-label="A random NPC" bind:group={draft.npc} />
+                <input
+                  type="radio"
+                  name="{id}-npc"
+                  value=""
+                  aria-label="A random NPC"
+                  bind:group={draft.npc}
+                />
                 <NpcFace npc={STRANGER} />
               </label>
             {/if}
             {#each RANDOM_EVENTS as npc (npc.id)}
               <label class="npc" title="{npc.name}: {npc.theme}">
-                <input type="radio" name="{id}-npc" value={npc.id} aria-label={npc.name} bind:group={draft.npc} />
+                <input
+                  type="radio"
+                  name="{id}-npc"
+                  value={npc.id}
+                  aria-label={npc.name}
+                  bind:group={draft.npc}
+                />
                 <NpcFace npc={npc.id} />
               </label>
             {/each}
@@ -249,7 +264,10 @@
           options={offered}
           bind:value={
             () => draft.type,
-            (type) => (types.includes(type as CustomType) ? setType(type as CustomType) : picker?.onpick(type))
+            (type) =>
+              types.includes(type as CustomType)
+                ? setType(type as CustomType)
+                : picker?.onpick(type)
           }
         />
       {/if}
@@ -265,14 +283,17 @@
 
       <div class="field">
         <label for="{id}-prompt">Question</label>
-        <textarea id="{id}-prompt" rows="3" bind:value={draft.prompt} readonly={promptFixed}></textarea>
+        <textarea id="{id}-prompt" rows="3" bind:value={draft.prompt} readonly={promptFixed}
+        ></textarea>
         <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
         {@render errors('payload.prompt')}
       </div>
 
       {#if draft.type === 'multiple_choice' && (quote || draft.quote !== '')}
         <div class="field">
-          <label for="{id}-quote">The quotation, if the question asks about words someone said</label>
+          <label for="{id}-quote"
+            >The quotation, if the question asks about words someone said</label
+          >
           <textarea id="{id}-quote" rows="2" bind:value={draft.quote}></textarea>
           <p class="note counter">{codePoints(draft.quote.trim())}/{quoteMax}</p>
           {@render errors('payload.quote')}
@@ -292,7 +313,11 @@
                 checked={right}
                 onchange={() => (draft.answerIndex = index)}
               />
-              <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
+              <input
+                type="text"
+                aria-label="Answer {index + 1}"
+                bind:value={draft.options[index]}
+              />
               {#if right}
                 <span class="mark">Right</span>
               {:else}
@@ -329,7 +354,11 @@
                 checked={right}
                 onchange={(event) => tick(index, event.currentTarget.checked)}
               />
-              <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
+              <input
+                type="text"
+                aria-label="Answer {index + 1}"
+                bind:value={draft.options[index]}
+              />
               {#if right}
                 <span class="mark">Right</span>
               {:else}
@@ -350,7 +379,9 @@
             disabled={draft.options.length >= optionsMax}
             onclick={addOption}>Add an answer</button
           >
-          <p class="note">{optionsMin} to {optionsMax} answers: at least one right, and one wrong.</p>
+          <p class="note">
+            {optionsMin} to {optionsMax} answers: at least one right, and one wrong.
+          </p>
           {@render errors('payload.options')}
           {@render errors('payload.answer_indices')}
         </fieldset>
@@ -420,7 +451,12 @@
       {#if pack}
         <div class="field">
           <label for="{id}-image">Picture, if any</label>
-          <input id="{id}-image" type="text" placeholder="item:4151 or npc:2042" bind:value={draft.image} />
+          <input
+            id="{id}-image"
+            type="text"
+            placeholder="item:4151 or npc:2042"
+            bind:value={draft.image}
+          />
           {@render errors('payload.image')}
         </div>
       {/if}
