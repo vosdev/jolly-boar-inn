@@ -108,7 +108,6 @@
   if (!types.includes(draft.type)) draft.type = types[0] ?? draft.type
   // svelte-ignore state_referenced_locally
   const [rangeMin, rangeMax] = optionRange ?? [0, Infinity]
-  // svelte-ignore state_referenced_locally
   if (draft.type === 'multiple_choice') while (draft.options.length < rangeMin) draft.options.push('')
   let attempted = $state(false)
   const ranged = $derived(draft.type === 'multiple_choice')

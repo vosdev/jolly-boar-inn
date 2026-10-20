@@ -33,7 +33,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.ts', 'site-branding.test.ts', 'theme-contract.test.ts'],
+    include: ['src/**/*.test.ts', 'site-branding.test.ts', 'theme-contract.test.ts', 'lint.test.ts'],
     setupFiles: ['src/test-setup.ts'],
   },
   server: {

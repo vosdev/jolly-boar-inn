@@ -55,7 +55,7 @@ jobs:
       - run: uv run python scripts/check_contrast.py
 
   client:
-    name: Client (svelte-check, vitest, build)
+    name: Client (lint, svelte-check, vitest, build)
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     defaults:
@@ -74,6 +74,7 @@ jobs:
           cache: true
           cache_dependency_path: client/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
