@@ -43,7 +43,7 @@ ErrorCode = Literal[
 
 
 class _Message(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", use_attribute_docstrings=True)
 
 
 # --- Shared shapes ----------------------------------------------------------------
@@ -58,17 +58,23 @@ class Segment(_Message):
     number within the round is ``index - start + 1``.
     """
 
-    mode: str  # a mode id (``app/modes``), never a type id; the client's mode registry key
-    index: int  # 0-based round number
-    total: int  # rounds in this room
-    start: int  # position of the round's first question
-    count: int  # questions in the round
+    mode: str
+    """A mode id (``app/modes``), never a type id; the client's mode registry key."""
+    index: int
+    """0-based round number."""
+    total: int
+    """Rounds in this room."""
+    start: int
+    """Position of the round's first question."""
+    count: int
+    """Questions in the round."""
 
 
 class JoinRequestView(_Message):
     id: UUID
     display_name: str
-    avatar: str | None  # as on ``PlayerView``
+    avatar: str | None
+    """As on ``PlayerView``."""
 
 
 class RoomView(_Message):
@@ -77,61 +83,68 @@ class RoomView(_Message):
     settings: RoomSettings
     current_index: int | None
     total: int
-    # The random events among ``total``, so the lobby can tell them from the rounds' questions.
     events: int = 0
+    """The random events among ``total``, so the lobby can tell them from the rounds' questions."""
     phase: Phase
-    # When the current timed phase ends: a splash gives way to its first question, a
-    # reveal to the next question or to the standings, the standings to the next round.
-    # Null while a question is open, during a splash still waiting for the room to be
-    # ready, and in a room that is not playing. Also on ``question_closed``, but a
-    # splash, reveal or standings a client arrives into (a reconnect, or a room that just
-    # came back from a restart) has no frame of its own to carry it.
     next_at: datetime | None
-    # How long the reveal ending at ``next_at`` holds, so a countdown bar knows its full
-    # length: each question's is its own. Null outside a reveal.
+    """When the current timed phase ends: a splash gives way to its first question, a reveal to
+    the next question or to the standings, the standings to the next round. Null while a
+    question is open, during a splash still waiting for the room to be ready, and in a room that
+    is not playing. Also on ``question_closed``, but a splash, reveal or standings a client
+    arrives into (a reconnect, or a room that just came back from a restart) has no frame of its
+    own to carry it.
+    """
     reveal_seconds: int | None = None
-    # How long the game takes at most, for the lobby's minutes: ``rooms/duration.py``.
+    """How long the reveal ending at ``next_at`` holds, so a countdown bar knows its full
+    length: each question's is its own. Null outside a reveal.
+    """
     estimated_seconds: int = 0
-    # The round in progress, null before the first question and once the game is over.
+    """How long the game takes at most, for the lobby's minutes: ``rooms/duration.py``."""
     segment: Segment | None
-    # When the game ended, null until it has. Every browser files the result under it, so
-    # it comes from the server's clock and not each one's own.
+    """The round in progress, null before the first question and once the game is over."""
     finished_at: datetime | None
-    # How many rounds the room plays, sent only when ``settings.hide_rounds`` keeps the
-    # rest of ``settings.modes`` from a non-admin. Counted off the stored questions, so it
-    # agrees with ``Segment.total``.
+    """When the game ended, null until it has. Every browser files the result under it, so it
+    comes from the server's clock and not each one's own.
+    """
     rounds: int | None = Field(default=None, exclude_if=lambda rounds: rounds is None)
-    # An invite-only room's key, sent to its admins only: settings reach every player.
+    """How many rounds the room plays, sent only when ``settings.hide_rounds`` keeps the rest of
+    ``settings.modes`` from a non-admin. Counted off the stored questions, so it agrees with
+    ``Segment.total``.
+    """
     key: str | None = Field(default=None, exclude_if=lambda key: key is None)
-    # Who is asking to be let in without the key, oldest first: an invite-only room's,
-    # sent to its admins only, as the key is.
+    """An invite-only room's key, sent to its admins only: settings reach every player."""
     requests: list[JoinRequestView] | None = Field(
         default=None, exclude_if=lambda requests: requests is None
     )
+    """Who is asking to be let in without the key, oldest first: an invite-only room's, sent to
+    its admins only, as the key is.
+    """
 
 
 class PlayerView(_Message):
     id: UUID
     display_name: str
-    # A pet's id in ``data/pets.json``; the server stores one for every player.
     avatar: str | None
+    """A pet's id in ``data/pets.json``; the server stores one for every player."""
     role: Role
     connected: bool
-    # The ready check: ready to start in the lobby, ready for this round on a splash.
-    # Every splash starts it false for everyone again.
     ready: bool
-    # Is typing a name in the lobby: "picking a name…". Advice, never a gate.
+    """The ready check: ready to start in the lobby, ready for this round on a splash. Every
+    splash starts it false for everyone again.
+    """
     editing: bool
+    """Is typing a name in the lobby: "picking a name…". Advice, never a gate."""
 
 
 class Standing(_Message):
     player_id: UUID
     display_name: str
-    avatar: str | None  # as on ``PlayerView``
+    avatar: str | None
+    """As on ``PlayerView``."""
     points: int
     rank: int
-    # What the round of the latest close added, and the rank before it; None in the first.
     points_gained: int
+    """What the round of the latest close added, and the rank before it; None in the first."""
     previous_rank: int | None
 
 
@@ -139,37 +152,44 @@ class OpenQuestion(_Message):
     """What every socket sees while a question is open: ``client_view`` only, never the
     answer or the raw payload (section 3, "What the server withholds from the admin")."""
 
-    # The ``questions`` row id, never the content id: that one hashes the answer.
     question_id: str
+    """The ``questions`` row id, never the content id: that one hashes the answer."""
     index: int
     total: int
-    type: str  # how it is answered: the key into ``questions/types``
-    # Which mode it was drawn for (``app/modes``); not always the same string as ``type``.
-    # On the question itself rather than only on ``segment``, because it is a fact about
-    # the question, and the round it sits in is a different fact that merely agrees today.
+    type: str
+    """How it is answered: the key into ``questions/types``."""
     mode: str
-    # Repeated from ``RoomView`` because the client patches its room from this frame
-    # rather than replacing it, and a round can change without a splash to announce it
-    # (a restart in the splash resumes at the question).
+    """Which mode it was drawn for (``app/modes``); not always the same string as ``type``. On
+    the question itself rather than only on ``segment``, because it is a fact about the
+    question, and the round it sits in is a different fact that merely agrees today.
+    """
     segment: Segment
+    """Repeated from ``RoomView`` because the client patches its room from this frame rather
+    than replacing it, and a round can change without a splash to announce it (a restart in the
+    splash resumes at the question).
+    """
     view: dict[str, Any]
-    # The picture's random name in the client's bundle (``app/pictures.py``), or ``None``.
-    # Never the payload's ``image``: for some modes that asset id is the answer.
     picture: str | None = None
-    # The NPC interrupting the round with this question, or ``None`` for a question that
-    # belongs to its round. An id from ``app/random_events.py``; the client has the copy.
+    """The picture's random name in the client's bundle (``app/pictures.py``), or ``None``.
+    Never the payload's ``image``: for some modes that asset id is the answer.
+    """
     random_event: str | None = None
+    """The NPC interrupting the round with this question, or ``None`` for a question that
+    belongs to its round. An id from ``app/random_events.py``; the client has the copy.
+    """
     opened_at: datetime
-    # When the buttons appear and the clock starts: ``opened_at`` plus the time the scroll
-    # takes to type the question in (``rooms/hold.py``). An answer before it is
-    # ``not_open``, and ``ends_at`` is this plus the question's seconds.
     answerable_at: datetime
+    """When the buttons appear and the clock starts: ``opened_at`` plus the time the scroll
+    takes to type the question in (``rooms/hold.py``). An answer before it is ``not_open``, and
+    ``ends_at`` is this plus the question's seconds.
+    """
     ends_at: datetime
     you_can_answer: bool
-    # How many have answered, of how many can, for the waiting state. Current as of this
-    # frame: zero on ``question_open``, the live count in a ``welcome``, and kept up to
-    # date after that by ``answer_count`` and the answerer's own ``answer_ack``.
     answered: int = 0
+    """How many have answered, of how many can, for the waiting state. Current as of this frame:
+    zero on ``question_open``, the live count in a ``welcome``, and kept up to date after that
+    by ``answer_count`` and the answerer's own ``answer_ack``.
+    """
     of: int = 0
 
 
@@ -305,9 +325,10 @@ class Welcome(_Message):
     your_answer: Any | None
     standings: list[Standing]
     server_time: datetime
-    # ``/VERSION`` of the running server. A client built from another version reloads
-    # itself, so a deploy never leaves an old bundle reading frames it does not know.
     server_version: str
+    """``/VERSION`` of the running server. A client built from another version reloads itself,
+    so a deploy never leaves an old bundle reading frames it does not know.
+    """
 
 
 class RoomUpdated(_Message):
@@ -346,9 +367,10 @@ class AnswerAck(_Message):
     question_id: str
     scoring: Scoring
     band: Annotated[int, Field(ge=1)] | None
-    # The room's count with this answer in it: the answerer is left out of the
-    # ``answer_count`` broadcast, so the ack is where they hear it.
     answered: int
+    """The room's count with this answer in it: the answerer is left out of the ``answer_count``
+    broadcast, so the ack is where they hear it.
+    """
     of: int
 
 
@@ -386,18 +408,19 @@ class QuestionClosed(_Message):
     t: Literal["question_closed"] = "question_closed"
     question_id: str
     reveal: dict[str, Any]
-    # The same name ``OpenQuestion.picture`` carried, so a reveal can show it too.
     picture: str | None = None
+    """The same name ``OpenQuestion.picture`` carried, so a reveal can show it too."""
     results: dict[UUID, PlayerResult]
-    # Connected players who could have answered and did not, for the reveal's "No answer".
-    # Only the server knows who could: the author of a room question is excluded.
     unanswered: list[UUID]
+    """Connected players who could have answered and did not, for the reveal's "No answer". Only
+    the server knows who could: the author of a room question is excluded.
+    """
     standings: list[Standing]
     next_at: datetime | None
-    # How long this reveal holds, even for the last question, whose ``next_at`` is null.
     reveal_seconds: int
-    # The player who suggested the question, when they asked to be named. Left out otherwise.
+    """How long this reveal holds, even for the last question, whose ``next_at`` is null."""
     suggested_by: str | None = Field(default=None, exclude_if=lambda name: name is None)
+    """The player who suggested the question, when they asked to be named. Left out otherwise."""
 
 
 class GameFinished(_Message):

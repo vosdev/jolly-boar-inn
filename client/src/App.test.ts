@@ -68,6 +68,7 @@ const LIVE: RoomView = {
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
+    name_wrong_answers: false,
   },
   current_index: 0,
   total: 1,
@@ -96,6 +97,11 @@ const QUESTION: OpenQuestion = {
   opened_at: new Date().toISOString(),
   ends_at: new Date(Date.now() + 10_000).toISOString(),
   you_can_answer: true,
+  picture: null,
+  random_event: null,
+  answerable_at: new Date().toISOString(),
+  answered: 0,
+  of: 0,
 }
 
 beforeEach(() => {
@@ -111,6 +117,9 @@ beforeEach(() => {
       display_name: 'Zezima',
       role: 'player',
       connected: true,
+      avatar: null,
+      ready: false,
+      editing: false,
     },
   })
 })
@@ -185,6 +194,9 @@ describe('App', () => {
       display_name: 'Zezima',
       role: 'player' as const,
       connected: true,
+      avatar: null,
+      ready: false,
+      editing: false,
     }
     applyServerMessage({
       t: 'welcome',
@@ -271,6 +283,7 @@ describe('App', () => {
           rank: 1,
           points_gained: 900,
           previous_rank: null,
+          avatar: null,
         },
       ],
       youId: 'a',

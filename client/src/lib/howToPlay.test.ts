@@ -36,6 +36,7 @@ const SETTINGS: RoomSettings = {
   standings_seconds: 10,
   close_when_all_answered: true,
   max_players: 50,
+  name_wrong_answers: false,
 }
 
 const titles = (types: Set<string>): string[] => rowsFor(types).map((row) => row.title)

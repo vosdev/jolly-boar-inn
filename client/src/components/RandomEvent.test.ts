@@ -35,6 +35,9 @@ function event(patch: Partial<OpenQuestion> = {}): OpenQuestion {
     answerable_at: new Date(NOW + 2000).toISOString(),
     ends_at: new Date(NOW + 22_000).toISOString(),
     you_can_answer: true,
+    picture: null,
+    answered: 0,
+    of: 0,
     ...patch,
   }
 }
@@ -109,9 +112,9 @@ describe('RandomEvent', () => {
       onAnswer: () => {},
     })
     expect(buttons()).toHaveLength(3)
-    const old = event()
+    const old: Partial<OpenQuestion> = event()
     delete old.answerable_at
-    render(RandomEvent, { question: old, yourValue: null, onAnswer: () => {} })
+    render(RandomEvent, { question: old as OpenQuestion, yourValue: null, onAnswer: () => {} })
     expect(buttons()).toHaveLength(6)
   })
 

@@ -309,11 +309,14 @@ export function previewOf(question: CustomQuestion, mode = 'custom'): OpenQuesti
     mode,
     segment: { mode, index: 0, total: 1, start: 0, count: 1 },
     view,
+    picture: null,
     random_event: question.random_event ?? '',
     opened_at: opened,
     answerable_at: opened,
     ends_at: new Date(8.64e15).toISOString(),
     you_can_answer: true,
+    answered: 0,
+    of: 0,
   }
 }
 

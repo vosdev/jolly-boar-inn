@@ -68,6 +68,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
       standings_seconds: 10,
       close_when_all_answered: true,
       max_players: 50,
+      name_wrong_answers: false,
     },
     current_index: 0,
     total: 2,
@@ -104,12 +105,31 @@ const STANDINGS: Standing[] = [
 ]
 
 function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
-  const you = { id: 'a', display_name: 'Zezima', role, connected: true }
+  const you = {
+    id: 'a',
+    display_name: 'Zezima',
+    role,
+    connected: true,
+    avatar: null,
+    ready: false,
+    editing: false,
+  }
   return {
     t: 'welcome',
     room,
     you,
-    players: [you, { id: 'b', display_name: 'Woox', role: 'player', connected: true }],
+    players: [
+      you,
+      {
+        id: 'b',
+        display_name: 'Woox',
+        role: 'player',
+        connected: true,
+        avatar: null,
+        ready: false,
+        editing: false,
+      },
+    ],
     question: null,
     your_answer: null,
     standings: STANDINGS,
@@ -177,6 +197,11 @@ describe('Room', () => {
       opened_at: new Date().toISOString(),
       ends_at: new Date(Date.now() + 10_000).toISOString(),
       you_can_answer: true,
+      picture: null,
+      random_event: null,
+      answerable_at: new Date().toISOString(),
+      answered: 0,
+      of: 0,
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -189,6 +214,7 @@ describe('Room', () => {
       standings: STANDINGS,
       next_at: new Date(Date.now() + 8_000).toISOString(),
       reveal_seconds: 8,
+      picture: null,
     })
     await screen.findByText(/Question 1 of 2/)
     expect(document.querySelector('.hiscores')).toBeNull()
@@ -213,6 +239,9 @@ describe('Room', () => {
       you_can_answer: true,
       answered: 0,
       of: 2,
+      picture: null,
+      random_event: null,
+      answerable_at: new Date().toISOString(),
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -245,6 +274,7 @@ describe('Room', () => {
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 16_000).toISOString(),
       reveal_seconds: 16,
+      picture: null,
     })
     await waitFor(() => expect(document.querySelector('.slot')).toBeTruthy())
     expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('+850')
@@ -273,6 +303,11 @@ describe('Room', () => {
       opened_at: new Date().toISOString(),
       ends_at: new Date(Date.now() + 10_000).toISOString(),
       you_can_answer: true,
+      picture: null,
+      random_event: null,
+      answerable_at: new Date().toISOString(),
+      answered: 0,
+      of: 0,
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -289,6 +324,7 @@ describe('Room', () => {
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 8_000).toISOString(),
       reveal_seconds: 8,
+      picture: null,
     })
     await waitFor(() => expect(document.querySelector('.paper .slot')).toBeTruthy())
     expect(get(timerBar)?.progress).toBe('1/2')
@@ -325,6 +361,9 @@ describe('Room', () => {
         answerable_at: new Date(server + 1500).toISOString(),
         ends_at: new Date(server + 21_500).toISOString(),
         you_can_answer: true,
+        picture: null,
+        answered: 0,
+        of: 0,
       }
       render(Room, { code: 'ABYSSAL', navigate: () => {} })
       applyServerMessage({
@@ -370,6 +409,11 @@ describe('Room', () => {
         opened_at: new Date().toISOString(),
         ends_at: new Date(Date.now() + 10_000).toISOString(),
         you_can_answer: true,
+        picture: null,
+        random_event: null,
+        answerable_at: new Date().toISOString(),
+        answered: 0,
+        of: 0,
       }
       await arrive(welcome(roomView({ phase: 'open', next_at: null })))
       applyServerMessage({ t: 'question_open', question: open })
@@ -386,6 +430,7 @@ describe('Room', () => {
         standings: STANDINGS,
         next_at: new Date(Date.now() + 8_000).toISOString(),
         reveal_seconds: 8,
+        picture: null,
       })
       await screen.findByText('1 of 1')
       expect(screen.getByText(fallback)).toBeTruthy()
@@ -475,6 +520,7 @@ describe('a room that is gone', () => {
       rank: 1,
       points_gained: 900,
       previous_rank: null,
+      avatar: null,
     },
   ]
 
@@ -539,6 +585,11 @@ describe('the list a question is answered from', () => {
       opened_at: new Date().toISOString(),
       ends_at: new Date(Date.now() + 20_000).toISOString(),
       you_can_answer: true,
+      picture: null,
+      random_event: null,
+      answered: 0,
+      of: 0,
+      answerable_at: new Date().toISOString(),
       ...patch,
     }
   }
@@ -616,6 +667,9 @@ describe('a random event’s way out', () => {
       answerable_at: new Date().toISOString(),
       ends_at: new Date(Date.now() + 10_000).toISOString(),
       you_can_answer: true,
+      picture: null,
+      answered: 0,
+      of: 0,
       ...patch,
     }
   }
@@ -630,6 +684,7 @@ describe('a random event’s way out', () => {
       standings: STANDINGS,
       next_at: new Date(nextAt).toISOString(),
       reveal_seconds: 8,
+      picture: null,
     })
   }
 
@@ -649,6 +704,11 @@ describe('a random event’s way out', () => {
     opened_at: new Date().toISOString(),
     ends_at: new Date(Date.now() + 10_000).toISOString(),
     you_can_answer: true,
+    picture: null,
+    random_event: null,
+    answerable_at: new Date().toISOString(),
+    answered: 0,
+    of: 0,
   } satisfies OpenQuestion
 
   beforeEach(() => {
@@ -753,6 +813,11 @@ describe('the shared stage', () => {
     opened_at: new Date().toISOString(),
     ends_at: new Date(Date.now() + 10_000).toISOString(),
     you_can_answer: true,
+    picture: null,
+    random_event: null,
+    answerable_at: new Date().toISOString(),
+    answered: 0,
+    of: 0,
   }
 
   let restore = () => {}
@@ -821,6 +886,7 @@ describe('the shared stage', () => {
       standings: STANDINGS,
       next_at: inSeconds(5),
       reveal_seconds: 5,
+      picture: null,
     })
     await tick()
     applyServerMessage({
@@ -1083,6 +1149,11 @@ describe('what a screen reader and the tab hear', () => {
     opened_at: new Date().toISOString(),
     ends_at: new Date(Date.now() + 10_000).toISOString(),
     you_can_answer: true,
+    picture: null,
+    random_event: null,
+    answerable_at: new Date().toISOString(),
+    answered: 0,
+    of: 0,
   }
 
   let container: HTMLElement
@@ -1169,6 +1240,7 @@ describe('what a screen reader and the tab hear', () => {
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
       next_at: new Date(Date.now() + 8_000).toISOString(),
       reveal_seconds: 8,
+      picture: null,
     })
     await waitFor(() => expect(live()?.textContent).toBe('Right, +850 points. 1,850 in total.'))
     expect(live()).toBe(region)

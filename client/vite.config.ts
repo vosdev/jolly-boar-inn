@@ -37,6 +37,7 @@ export default defineConfig({
       'site-branding.test.ts',
       'theme-contract.test.ts',
       'lint.test.ts',
+      'gen-protocol.test.ts',
     ],
     setupFiles: ['src/test-setup.ts'],
   },

@@ -24,7 +24,7 @@ final. The licence is AGPL-3.0.
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
 Makefile, .github/workflows/ci.yml all, setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
                                    edit-roster, rehash-questions, fetch-assets, logo, image; CI: audit, release
-schema/question.schema.json        the question schema (section 4)
+schema/                            question.schema.json (section 4), protocol.schema.json (section 6)
 data/packs/                        prices (generated, ignored), examine, sample, random_events/
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
@@ -34,7 +34,7 @@ server/app/rooms/                  state (RoomManager), joins, lobby, loop (its 
                                    errors, queries, settings, selection, segments, scoring, ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
                                    submission, text; types/ one module per type
-server/app/ws/, http/              handler, protocol, outbox; one module per route or middleware
+server/app/ws/, http/              handler, protocol, schema, outbox; one module per route or middleware
 server/scripts/                    wiki, gen_price_questions, import_suggestions, edit_packs,
                                    edit_roster, rehash_questions, fetch_assets, build_pictures,
                                    build_logo,
@@ -247,6 +247,11 @@ event.
 
 `GET /ws/{code}`, JSON text frames, `{"t": "<type>", ...}`. The session goes in the first frame,
 never the URL. The client keeps it in `localStorage["jbi:session:" + code]`.
+
+`ws/protocol.py`'s models are the one definition. `make gen-protocol` writes
+`schema/protocol.schema.json` from them and `client/src/lib/protocol.gen.ts` from that; both are
+committed, and a server and a client test fail while either is stale. `protocol.ts` only names
+what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolError`.
 
 | Client `t` | Fields | Who | Effect |
 |---|---|---|---|

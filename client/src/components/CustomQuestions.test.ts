@@ -45,7 +45,15 @@ beforeEach(() => {
     code: 'ABYSSAL',
     session: 's',
     expires_at: '2099-01-01T00:00:00Z',
-    player: { id: 'p', display_name: 'Zezima', role: 'admin', connected: false },
+    player: {
+      id: 'p',
+      display_name: 'Zezima',
+      role: 'admin',
+      connected: false,
+      avatar: null,
+      ready: false,
+      editing: false,
+    },
   })
   profile.set({ name: 'Zezima', pet: 'aggy' })
 })

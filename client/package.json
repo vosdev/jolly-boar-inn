@@ -1,7 +1,7 @@
 {
   "name": "jolly-boar-inn-client",
   "private": true,
-  "version": "0.109.1",
+  "version": "0.109.2",
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
@@ -11,7 +11,8 @@
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
     "lint": "eslint . && prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "gen:protocol": "node gen-protocol.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -23,6 +24,7 @@
     "eslint-plugin-svelte": "^3.23.1",
     "globals": "^17.13.0",
     "jsdom": "^30.1.2",
+    "json-schema-to-typescript": "^16.0.0",
     "prettier": "^3.9.10",
     "prettier-plugin-svelte": "^4.1.1",
     "svelte": "^5.57.2",

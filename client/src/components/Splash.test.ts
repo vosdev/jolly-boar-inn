@@ -23,8 +23,24 @@ const SEGMENT: Segment = { mode: 'more_less', index: 0, total: 2, start: 0, coun
 
 function players(youReady: boolean): PlayerView[] {
   return [
-    { id: 'a', display_name: 'Zezima', role: 'player', connected: true, ready: youReady },
-    { id: 'b', display_name: 'Woox', role: 'player', connected: true, ready: false },
+    {
+      id: 'a',
+      display_name: 'Zezima',
+      role: 'player',
+      connected: true,
+      ready: youReady,
+      avatar: null,
+      editing: false,
+    },
+    {
+      id: 'b',
+      display_name: 'Woox',
+      role: 'player',
+      connected: true,
+      ready: false,
+      avatar: null,
+      editing: false,
+    },
   ]
 }
 
@@ -156,6 +172,8 @@ describe('Splash ready check', () => {
       role: 'player',
       connected: false,
       ready: true,
+      avatar: null,
+      editing: false,
     }
     render(Splash, {
       segment: SEGMENT,

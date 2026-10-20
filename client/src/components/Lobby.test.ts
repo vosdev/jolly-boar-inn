@@ -14,8 +14,24 @@ import type { RoomSocket } from '../lib/ws'
 import { petsDrawn } from '../test-pets'
 import Lobby from './Lobby.svelte'
 
-const HOST: PlayerView = { id: 'a', display_name: 'Zezima', role: 'admin', connected: true }
-const WOOX: PlayerView = { id: 'b', display_name: 'Woox', role: 'player', connected: true }
+const HOST: PlayerView = {
+  id: 'a',
+  display_name: 'Zezima',
+  role: 'admin',
+  connected: true,
+  avatar: null,
+  ready: false,
+  editing: false,
+}
+const WOOX: PlayerView = {
+  id: 'b',
+  display_name: 'Woox',
+  role: 'player',
+  connected: true,
+  avatar: null,
+  ready: false,
+  editing: false,
+}
 
 const ROOM: RoomView = {
   code: 'ABYSSAL',
@@ -28,6 +44,7 @@ const ROOM: RoomView = {
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
+    name_wrong_answers: false,
   },
   current_index: null,
   total: 5,
@@ -288,7 +305,15 @@ describe('Lobby', () => {
   })
 
   it('counts only who is connected toward Start, and names the rest', async () => {
-    const away: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false }
+    const away: PlayerView = {
+      id: 'c',
+      display_name: 'Lynx',
+      role: 'player',
+      connected: false,
+      avatar: null,
+      ready: false,
+      editing: false,
+    }
     lobby([{ ...HOST, ready: true }, WOOX, { ...away, ready: true }])
     await fireEvent.click(screen.getByRole('button', { name: 'Start the game' }))
     expect(sent).toEqual([{ t: 'start_game' }])
@@ -306,7 +331,15 @@ describe('Lobby', () => {
   })
 
   it('names who is not ready to the host, and lights who is', () => {
-    const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: true }
+    const lynx: PlayerView = {
+      id: 'c',
+      display_name: 'Lynx',
+      role: 'player',
+      connected: true,
+      avatar: null,
+      ready: false,
+      editing: false,
+    }
     lobby([{ ...HOST, ready: true }, WOOX, lynx])
     expect(screen.getByText('Waiting on Woox and Lynx.')).toBeTruthy()
     expect(pets().map((pet) => [looks(pet).lit, pet.textContent])).toEqual([
@@ -317,7 +350,15 @@ describe('Lobby', () => {
   })
 
   it('outlines a ready pet and fades an away one, ready or not', () => {
-    const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false }
+    const lynx: PlayerView = {
+      id: 'c',
+      display_name: 'Lynx',
+      role: 'player',
+      connected: false,
+      avatar: null,
+      ready: false,
+      editing: false,
+    }
     lobby([
       { ...HOST, ready: true },
       WOOX,
@@ -341,7 +382,15 @@ describe('Lobby', () => {
   })
 
   it('says under each pet who hosts, who is away and which is you', () => {
-    const lynx: PlayerView = { id: 'c', display_name: 'Lynx', role: 'player', connected: false }
+    const lynx: PlayerView = {
+      id: 'c',
+      display_name: 'Lynx',
+      role: 'player',
+      connected: false,
+      avatar: null,
+      ready: false,
+      editing: false,
+    }
     lobby([HOST, WOOX, lynx])
     expect(pets().map((pet) => pet.querySelector('.status')?.textContent ?? '')).toEqual([
       'host · you',

@@ -39,6 +39,11 @@ function open(overrides: Partial<OpenQuestion> = {}): OpenQuestion {
     opened_at: '2026-09-21T20:00:00Z',
     ends_at: '2026-09-21T20:00:20Z',
     you_can_answer: true,
+    picture: null,
+    random_event: null,
+    answered: 0,
+    of: 0,
+    answerable_at: '2026-09-21T20:00:00Z',
     ...overrides,
   }
 }

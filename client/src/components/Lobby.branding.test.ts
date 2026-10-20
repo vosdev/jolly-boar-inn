@@ -33,6 +33,7 @@ const ROOM: RoomView = {
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
+    name_wrong_answers: false,
   },
   current_index: null,
   total: 5,
@@ -51,7 +52,15 @@ const stageArt = () =>
 beforeEach(() => {
   document.documentElement.dataset.theme = 'jolly'
   resetRoom()
-  const you = { id: 'a', display_name: 'Zezima', role: 'admin' as const, connected: true }
+  const you = {
+    id: 'a',
+    display_name: 'Zezima',
+    role: 'admin' as const,
+    connected: true,
+    avatar: null,
+    ready: false,
+    editing: false,
+  }
   applyServerMessage({
     t: 'welcome',
     room: ROOM,
