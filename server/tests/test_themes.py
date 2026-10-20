@@ -25,6 +25,9 @@ sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
 import check_contrast as check  # noqa: E402
 
+# Each recolour, and the theme whose shape it keeps.
+RECOLOURS = {"corrupted_gauntlet": "gauntlet"}
+HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
 THEME_BLOCK = re.compile(r"([^{}]*\[data-theme=['\"]?([\w-]+)['\"]?\][^{}]*)\{([^{}]*)\}")
 
 
@@ -46,7 +49,7 @@ def listed_themes() -> list[str]:
 # --- the themes ----------------------------------------------------------------------
 
 
-def test_the_eight_themes_in_menu_order() -> None:
+def test_the_nine_themes_in_menu_order() -> None:
     """Each theme after the first three was built against the contract on its own, and is
     cut if it ever fails; the light ones come first, then the dark."""
     assert listed_themes() == [
@@ -57,6 +60,7 @@ def test_the_eight_themes_in_menu_order() -> None:
         "tzhaar",
         "wilderness",
         "gauntlet",
+        "corrupted_gauntlet",
         "morytania",
     ]
 
@@ -87,11 +91,16 @@ def test_each_theme_says_whether_it_is_light_or_dark() -> None:
 
 
 def test_layers_five_to_seven_differ_between_themes() -> None:
-    """Section 2: shape does more to make a theme a different place than colour does."""
+    """Section 2: shape does more to make a theme a different place than colour does. A
+    recolour is the same place, so it takes its original's shape exactly."""
     blocks = dict(theme_blocks())
+    places = {name: tokens for name, tokens in blocks.items() if name not in RECOLOURS}
     for token in ("--radius", "--shadow", "--texture-bg"):
-        values = {blocks[name][token].strip() for name in blocks}
-        assert len(values) == len(blocks), f"{token} is the same in two themes"
+        values = {places[name][token].strip() for name in places}
+        assert len(values) == len(places), f"{token} is the same in two themes"
+    for recolour, original in RECOLOURS.items():
+        for token in ("--radius", "--shadow", "--border-width"):
+            assert blocks[recolour][token].strip() == blocks[original][token].strip(), token
     assert blocks["wilderness"]["--border-width"].strip() == "2px"
     assert blocks["wilderness"]["--radius"].strip() == "2px"
 
@@ -240,6 +249,37 @@ def test_the_gauntlet_is_not_toktz_or_morytania_again() -> None:
         }
         assert gaps["--bg"] >= 10, (other, gaps)
         assert gaps["--accent"] >= 30, (other, gaps)
+
+
+def test_the_corrupted_gauntlet_is_the_gauntlet_in_red() -> None:
+    """Its floor and edge are the Gauntlet's drawn in other colours, its accent and the
+    sheet's rim red, and it is dark like the Gauntlet."""
+    blocks = dict(theme_blocks())
+    for token in ("--texture-bg", "--texture-panel"):
+        files = [
+            CLIENT_SRC / re.search(r"url\('\./([^']+)'\)", blocks[name][token]).group(1)
+            for name in ("gauntlet", "corrupted_gauntlet")
+        ]
+        own, corrupted = (HEX.sub("#", path.read_text(encoding="utf-8")) for path in files)
+        assert own == corrupted, token
+    for token in ("--accent", "--scroll-edge"):
+        hue = check.hue(colour("corrupted_gauntlet", token))
+        assert hue <= 15 or hue >= 345, (token, hue)
+    assert check.luminance(colour("corrupted_gauntlet", "--bg")) < check.luminance(
+        colour("corrupted_gauntlet", "--bg-ink")
+    )
+    assert (
+        check.delta_e(colour("corrupted_gauntlet", "--accent"), colour("tzhaar", "--accent")) >= 30
+    )
+
+
+def test_the_corrupted_gauntlet_keeps_wrong_apart_from_red_when_colour_blind() -> None:
+    """Its accent is the red that wrong would be anywhere else, so wrong turns rose."""
+    bad = colour("corrupted_gauntlet", "--bad")
+    accent = colour("corrupted_gauntlet", "--accent")
+    for name, matrix in DICHROMACY.items():
+        gap = check.delta_e(simulate(bad, matrix), simulate(accent, matrix))
+        assert gap >= check.MIN_FADE_DELTA_E, f"{name}: --bad and --accent only {gap:.1f} apart"
 
 
 def test_the_jungle_is_the_light_one() -> None:

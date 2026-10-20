@@ -68,7 +68,7 @@
       <!-- A banana, stalk up. -->
       <path class="mark" d="M5 5.2C5 13.4 10.6 19 19.6 19l1.1-1.9C13.2 16.9 8.7 12.3 7.7 5.2z" />
       <path class="mark" d="M4.3 2.6h2.8l.5 2.6H4.5z" />
-    {:else if theme === 'gauntlet'}
+    {:else if theme === 'gauntlet' || theme === 'corrupted_gauntlet'}
       <!-- Three crystal shards on a ledge. -->
       <path
         class="mark"

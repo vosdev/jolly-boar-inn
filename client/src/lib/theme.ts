@@ -27,6 +27,7 @@ export const THEMES = [
   'tzhaar',
   'wilderness',
   'gauntlet',
+  'corrupted_gauntlet',
   'morytania',
 ] as const
 
@@ -41,6 +42,7 @@ export const THEME_LABELS: Record<Theme, { name: string }> = {
   tzhaar: { name: 'Toktz' },
   wilderness: { name: 'Wilderness' },
   gauntlet: { name: 'Gauntlet' },
+  corrupted_gauntlet: { name: 'Corrupted Gauntlet' },
   morytania: { name: 'Morytania' },
 }
 

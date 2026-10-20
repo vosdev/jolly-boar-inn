@@ -73,6 +73,12 @@ describe('the sheet', () => {
     expect(sheet.querySelector('.roll')).toBeNull()
   })
 
+  it("is the Gauntlet's board in the Corrupted Gauntlet too", () => {
+    const { sheet } = stage('corrupted_gauntlet')
+    expect(sheet.dataset.sheet).toBe('gauntlet')
+    expect(sheet.querySelectorAll('.paper svg.cut')).toHaveLength(4)
+  })
+
   it('is a gravestone in Morytania, moss at its foot and earth under it', () => {
     const { sheet } = stage('morytania')
     expect(sheet.dataset.sheet).toBe('gravestone')
@@ -91,6 +97,7 @@ describe('the sheet', () => {
       'tzhaar',
       'jungle',
       'gauntlet',
+      'corrupted_gauntlet',
       'morytania',
     ]
     for (const theme of themes) {

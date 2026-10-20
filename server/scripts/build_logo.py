@@ -169,6 +169,8 @@ THEMES: dict[str, dict[str, str]] = {
         "ghost-tusk": "0.65",
     },
 }
+# The Corrupted Gauntlet keeps the crystal boar until it has one of its own.
+THEMES["corrupted_gauntlet"] = THEMES["gauntlet"]
 ORNAMENTS = ("board", "fez", "skull", "partyhat", "leaves", "crystals")
 DEFAULT = THEMES["jolly"]
 
