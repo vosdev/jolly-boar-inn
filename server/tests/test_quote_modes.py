@@ -16,6 +16,7 @@ from app.questions.types import TYPES
 from app.rooms.selection import select
 from app.rooms.settings import RoomSettings
 from tests.answers import right_value
+from tests.packs import PACKS_DIR
 
 QUOTE_MODES = ("who_said_that", "know_your_content_creator")
 
@@ -39,7 +40,7 @@ def test_know_your_content_creator_mixes_three_types() -> None:
 def test_a_know_your_content_creator_round_draws_and_scores_all_three_types() -> None:
     mode = "know_your_content_creator"
     settings = RoomSettings(modes=[{"mode": mode, "questions": len(questions(mode))}])
-    (played,) = select(load_packs(REPO_ROOT / "data" / "packs"), [], settings, random.Random(1))
+    (played,) = select(load_packs(PACKS_DIR), [], settings, random.Random(1))
     own = [q for q in played.questions if q["mode"] == mode]
     assert {q["type"] for q in own} == MODES[mode].types
     for question in own:

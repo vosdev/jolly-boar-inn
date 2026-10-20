@@ -21,6 +21,7 @@ from app.questions.packs import Pack
 from app.rooms import loop
 from app.ws import handler as ws_handler
 from tests.game_api import Faults, Game, seat_table
+from tests.packs import PACKS_DIR
 from tests.rooms_api import create, join
 
 BASE = "https://quiz.example"
@@ -151,7 +152,7 @@ def app(test_db_dsn: str, dist: Path) -> FastAPI:
     settings = Settings(
         _env_file=None,
         database_url=test_db_dsn,
-        packs_dir=REPO_ROOT / "data" / "packs",
+        packs_dir=PACKS_DIR,
         public_base_url=BASE,
     )
     return create_app(settings, dist)

@@ -14,11 +14,12 @@ import asyncpg
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT, Settings
+from app.config import Settings
 from app.db import MIGRATIONS_DIR, MigrationError, create_pool, migration_files, run_migrations
 from app.main import create_app
 from app.rooms.models import hash_token
 from app.rooms.settings import NewRoomSettings, RoomSettings
+from tests.packs import PACKS_DIR
 from tests.rooms_api import fast_settings, next_of
 
 # These apply the migrations themselves, so each starts from a database with none.
@@ -498,7 +499,7 @@ def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
     room plays the two it still owes through to ``finished``, grading both answers.
     """
     session = "a-session-from-the-previous-release"
-    pack = json.loads((REPO_ROOT / "data" / "packs" / "prices.json").read_text())
+    pack = json.loads((PACKS_DIR / "prices.json").read_text())
     questions = pack["questions"][:3]
     for _, path in migration_files(MIGRATIONS_DIR)[:5]:
         (tmp_path / path.name).write_text(path.read_text())
@@ -538,9 +539,7 @@ def test_0006_a_room_from_before_modes_rehydrates_and_plays_to_finished(
             await pool.close()
 
     asyncio.run(previous_release())
-    settings = Settings(
-        _env_file=None, database_url=test_db_dsn, packs_dir=REPO_ROOT / "data" / "packs"
-    )
+    settings = Settings(_env_file=None, database_url=test_db_dsn, packs_dir=PACKS_DIR)
     with TestClient(create_app(settings, dist)) as client:
         versions = db("select version from schema_migrations order by version")
         assert [row["version"] for row in versions] == ALL
@@ -646,7 +645,7 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
     its author kept out of it as before.
     """
     host_session, player_session = "host-from-before-events", "player-from-before-events"
-    pack = json.loads((REPO_ROOT / "data" / "packs" / "prices.json").read_text())
+    pack = json.loads((PACKS_DIR / "prices.json").read_text())
     questions = [q for q in pack["questions"] if q["mode"] == "more_less"][:4]
     for _, path in migration_files(MIGRATIONS_DIR)[:6]:
         (tmp_path / path.name).write_text(path.read_text())
@@ -703,9 +702,7 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
             await pool.close()
 
     asyncio.run(previous_release())
-    settings = Settings(
-        _env_file=None, database_url=test_db_dsn, packs_dir=REPO_ROOT / "data" / "packs"
-    )
+    settings = Settings(_env_file=None, database_url=test_db_dsn, packs_dir=PACKS_DIR)
     with TestClient(create_app(settings, dist)) as client:
         # The migration is the subject, not the splashes.
         client.app.state.rooms.splashes = False

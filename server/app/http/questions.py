@@ -28,12 +28,12 @@ changes_router = APIRouter(
 @router.get("/modes")
 def modes(request: Request) -> list[str]:
     """The modes a player may report from, in registry order."""
-    return reports.report_modes(request.app.state.settings)
+    return reports.report_modes(request.app.state.settings, request.app.state.packs)
 
 
 @router.get("")
 def choices(mode: str, request: Request) -> dict[str, Any]:
-    if mode not in reports.report_modes(request.app.state.settings):
+    if mode not in reports.report_modes(request.app.state.settings, request.app.state.packs):
         raise reports.BadMode(f"{mode!r} is not a mode with pack questions here")
     return reports.choices(request.app.state.packs, mode)
 

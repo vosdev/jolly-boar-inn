@@ -25,7 +25,6 @@ from app.questions.types.scoring import Scoring
 from app.rooms import scoring
 
 SERVER_DIR = REPO_ROOT / "server"
-PACKS_DIR = REPO_ROOT / "data" / "packs"
 
 EXAMPLE: dict[str, Any] = {
     "type": "pick_from_list",

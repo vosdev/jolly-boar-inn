@@ -34,22 +34,18 @@ Besides assets, some questions are dynamically generated based on Grand Exchange
 
 4. Modify `.env` accordingly to your personal setup.
 
-5. `make fetch-assets`
+5. `make all`: fetches the assets, generates the price questions and builds the image
 
-6. `docker compose build`
+6. `docker compose up -d`
 
-7. `docker compose up -d`
-
-8. Set up a reverse proxy for port 8000
+7. Set up a reverse proxy for port 8000
 
 
 ## Update instructions
 
 1. git pull
-2. `make fetch-assets`
-3. `make gen-price-questions`
-4. `docker compose build`
-5. `docker compose up -d`
+2. `make all`
+3. `docker compose up -d`, once no games are running: it restarts the app
 
 
 ## Branding

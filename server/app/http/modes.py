@@ -42,7 +42,7 @@ def list_modes(request: Request) -> list[dict[str, Any]]:
             "seconds": typical_seconds(pool),
             "as_of": _as_of(pool),
         }
-        for mode in offered(request.app.state.settings)
+        for mode in offered(request.app.state.settings, packs)
         for pool in [mode_questions(packs, mode.pool or mode.id)]
     ]
 

@@ -12,13 +12,16 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT, Settings
+from app.config import Settings
 from app.main import create_app
 from app.modes import MODES, offered
+from app.questions.packs import load_packs
+from tests.packs import PACKS_DIR
 from tests.rooms_api import create
 
 MODE = "random_events_only"
 SEED = 0
+PACKS = load_packs(PACKS_DIR)
 
 
 @pytest.fixture
@@ -27,7 +30,7 @@ def on(test_db_dsn: str, dist: Path) -> Iterator[TestClient]:
     settings = Settings(
         _env_file=None,
         database_url=test_db_dsn,
-        packs_dir=REPO_ROOT / "data" / "packs",
+        packs_dir=PACKS_DIR,
         random_event_game_mode=True,
     )
     with TestClient(create_app(settings, dist)) as client:
@@ -48,8 +51,9 @@ def test_every_gating_setting_is_a_real_setting() -> None:
 
 
 def test_the_mode_is_not_offered_unless_switched_on() -> None:
-    assert MODE not in [m.id for m in offered(Settings(_env_file=None))]
-    assert MODE in [m.id for m in offered(Settings(_env_file=None, random_event_game_mode=True))]
+    assert MODE not in [m.id for m in offered(Settings(_env_file=None), PACKS)]
+    switched_on = Settings(_env_file=None, random_event_game_mode=True)
+    assert MODE in [m.id for m in offered(switched_on, PACKS)]
 
 
 def test_off_it_is_left_out_of_the_create_form(client: TestClient) -> None:

@@ -8,15 +8,15 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT, Settings
+from app.config import Settings
 from app.main import create_app
 from app.questions import schema
 from app.questions.packs import load_packs, mode_questions
 from tests.conftest import BASE
+from tests.packs import PACKS_DIR
 
 TOKEN = "0123456789abcdef0123456789abcdef"
 BEARER = {"Authorization": f"Bearer {TOKEN}"}
-PACKS_DIR = REPO_ROOT / "data" / "packs"
 PACKS = load_packs(PACKS_DIR)
 ODD = mode_questions(PACKS, "odd_one_out")[0]
 SECOND_ODD = mode_questions(PACKS, "odd_one_out")[1]

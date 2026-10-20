@@ -9,13 +9,13 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app import roster_edits
-from app.config import REPO_ROOT, Settings
+from app.config import Settings
 from app.main import create_app
 from tests.conftest import BASE
+from tests.packs import PACKS_DIR
 
 TOKEN = "0123456789abcdef0123456789abcdef"
 BEARER = {"Authorization": f"Bearer {TOKEN}"}
-PACKS_DIR = REPO_ROOT / "data" / "packs"
 FIRST, SECOND, THIRD = roster_edits.roster()[:3]
 
 ADMIN_ROUTES = (

@@ -21,12 +21,16 @@ Copy -- what a mode is called and how it is explained -- is not here. It stays o
 client, in ``lib/modes.ts``.
 """
 
-from collections.abc import Callable
-from typing import Any
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Any
 
 from app.modes.mode import Mode
 from app.questions.types import TYPES
 from app.questions.types.bounds import Bounds
+
+# Only for the annotation: the packs import the registry to check a question's mode.
+if TYPE_CHECKING:
+    from app.questions.packs import Pack
 
 # For a mode whose types say nothing about round length. Deliberately unremarkable: a
 # mode or a type that cares says so.
@@ -77,9 +81,16 @@ def round_modes() -> list[Mode]:
     return [mode for mode in MODES.values() if mode.is_round]
 
 
-def offered(settings: Any) -> list[Mode]:
-    """The modes this instance lets a host pick: every one whose ``setting`` is on."""
-    return [m for m in MODES.values() if m.setting is None or getattr(settings, m.setting)]
+def offered(settings: Any, packs: Iterable[Pack]) -> list[Mode]:
+    """The modes this instance lets a host pick: switched on, and a round only with questions."""
+    # The price pack is generated on each instance, so a fresh clone has none yet.
+    pooled = {question["mode"] for pack in packs for question in pack.questions}
+    return [
+        m
+        for m in MODES.values()
+        if (m.setting is None or getattr(settings, m.setting))
+        and (not m.is_round or (m.pool or m.id) in pooled)
+    ]
 
 
 def type_questions(type_id: str) -> Bounds:

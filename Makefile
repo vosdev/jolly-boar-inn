@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
+.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-price-questions import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -15,6 +15,15 @@ LOGO := HOST_UID=$$(id -u) HOST_GID=$$(id -g) docker compose -f docker-compose.d
 # Postgres server the test suite creates throwaway databases on. Defaults to the dev
 # database above; override with `make test DATABASE_URL_TEST=...`.
 DATABASE_URL_TEST ?= postgresql://jbi:jbi@localhost:5432/jbi
+
+# Everything a production checkout needs after `git pull`, ending in the compose image; then
+# `docker compose up -d` swaps it in. One step at a time, since the data steps share an image.
+# The owner's logo is redrawn only when .env uses it.
+all:
+	$(MAKE) fetch-assets
+	$(MAKE) gen-price-questions
+	@if grep -q '^PUBLIC_SITE_LOGO=branding/boar/' .env 2>/dev/null; then $(MAKE) logo; fi
+	docker compose build --build-arg VERSION=$(VERSION)
 
 # Install all dependencies (server via uv, client via pnpm).
 setup:
@@ -80,9 +89,10 @@ loadtest:
 	cd server && uv run python scripts/loadtest.py $(LOADTEST_ARGS)
 
 # Regenerate data/packs/prices.json from the roster and the wiki price API (two requests,
-# /mapping and /latest). Never part of test, CI or app startup: run it about monthly and
-# commit the result. Idempotent, so a re-run against unchanged prices is a no-op. Needs
-# WIKI_USER_AGENT, from .env or the environment (.env.example).
+# /mapping and /latest). Never part of test, CI or app startup, and never committed: each
+# instance runs it, through `make all`, and offers no Price is Right until then. Idempotent, so
+# a re-run against unchanged prices is a no-op. Needs WIKI_USER_AGENT, from .env or the
+# environment (.env.example).
 gen-price-questions:
 	$(DATA) scripts/gen_price_questions.py
 

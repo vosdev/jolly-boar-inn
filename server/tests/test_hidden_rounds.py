@@ -251,7 +251,9 @@ def test_surprise_modes_are_drawn_from_the_offered_rounds_at_their_default_lengt
 ) -> None:
     code, _ = create(client, surprise_modes=3)
     settings = client.app.state.rooms.rooms[code].settings
-    offered_rounds = {m.id for m in offered(client.app.state.settings) if m.is_round}
+    offered_rounds = {
+        m.id for m in offered(client.app.state.settings, client.app.state.packs) if m.is_round
+    }
     assert settings.surprise_modes == 3
     assert settings.hide_rounds is True
     assert len(set(settings.mode_ids)) == 3
@@ -286,7 +288,9 @@ def test_surprise_modes_refuse_picked_modes_alongside(client) -> None:
 
 
 def test_surprise_modes_refuse_more_modes_than_are_offered(client) -> None:
-    offered_rounds = [m for m in offered(client.app.state.settings) if m.is_round]
+    offered_rounds = [
+        m for m in offered(client.app.state.settings, client.app.state.packs) if m.is_round
+    ]
     response = client.post(
         "/api/rooms",
         json={

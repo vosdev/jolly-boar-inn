@@ -12,15 +12,15 @@ from fastapi.testclient import TestClient
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app import reports
-from app.config import REPO_ROOT, Settings
+from app.config import Settings
 from app.http.ratelimit import REPORTS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.questions.packs import load_packs, mode_questions
 from tests.conftest import BASE
+from tests.packs import PACKS_DIR
 
 TOKEN = "0123456789abcdef0123456789abcdef"
 BEARER = {"Authorization": f"Bearer {TOKEN}"}
-PACKS_DIR = REPO_ROOT / "data" / "packs"
 PACKS = load_packs(PACKS_DIR)
 EXAMINE = mode_questions(PACKS, "guess_examine")[0]
 ODD = mode_questions(PACKS, "odd_one_out")[0]
