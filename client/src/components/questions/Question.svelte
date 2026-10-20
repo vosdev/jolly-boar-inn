@@ -8,7 +8,8 @@
    * being null is what says which of the two this is.
    *
    * It adds no markup of its own around the pair, only what every mode shows the same way:
-   * a pack question's `picture` under the stem, and after the view the note for somebody who
+   * a pack question's `picture` under the stem (its shadow until the reveal, in a mode whose
+   * `picture` says so), and after the view the note for somebody who
    * cannot answer and the reveal's `explanation` where the author gave one. A mode with no stem, which is `more_less`, renders exactly
    * the view it rendered before stems existed, with nothing in between to shift a pixel.
    *
@@ -39,6 +40,7 @@
   import type { Snippet } from 'svelte'
 
   import { serverNow } from '../../lib/clock'
+  import { MODES } from '../../lib/modes'
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
   import { viewFor } from './index'
   import type { StemTiming } from './props'
@@ -84,6 +86,11 @@
       ? data.explanation
       : null,
   )
+  const shadowed = $derived(MODES[question.mode]?.picture === 'shadow')
+  const subjectName = $derived.by(() => {
+    const subject = data.subject as { name?: unknown } | undefined
+    return typeof subject?.name === 'string' ? subject.name : null
+  })
   const timing: StemTiming = $derived({
     answerableAt: question.answerable_at ?? question.opened_at,
     endsAt: question.ends_at,
@@ -106,7 +113,13 @@
     {#if Stem !== null}
       <Stem {data} {revealed} {timing} {shown} />
     {/if}
-    <QuestionPicture name={question.picture} />
+    <QuestionPicture
+      name={question.picture}
+      large={shadowed}
+      shadow={shadowed}
+      lifted={revealed}
+      caption={shadowed && revealed ? subjectName : null}
+    />
   {/if}
 {/snippet}
 

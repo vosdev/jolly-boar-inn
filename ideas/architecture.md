@@ -26,7 +26,7 @@ Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggest
                                    edit-roster, rehash-questions, fetch-assets, logo, image; CI: audit, release
 schema/question.schema.json        the question schema (section 4)
 data/packs/                        prices, examine, sample (the tests'), random_events/
-data/                              assets, pets, popular-items, player-names, room-words
+data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
                                    suggestions, reports, question_edits, roster_edits
@@ -136,14 +136,15 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `pick_all_that_apply` | hand-written | done |
-| `whos_that_npc`, `pixel_hunt` | Who's That NPC?, Pixel Hunt | `pick_from_list` | renders | Images |
+| `whos_that_npc` | Who's That NPC? | `pick_from_list`, a shadow | `popular-npcs.json` | done |
+| `pixel_hunt` | Pixel Hunt | `pick_from_list` | renders | Images |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
 
 - Sort It Out and Release Order are two modes over one type: their splash, prompt and pool differ.
 - Who's That NPC? uses a strict list, not buttons or free text: free text needs an alias list and a
-  typo argument per item. Guess the Examine dropped its list for buttons: players found it too hard.
+  typo argument per item. Mostly monsters: people look alike in shadow. Guess the Examine dropped its list for buttons: players found it too hard.
 - Examine lines are hand-picked, not taken from `/mapping`. The wiki's were accurate and not funny.
 - The Price is Right is its own type: its options are integers, and it stores the price again as
   `value` so `check()` has something to compare against.
@@ -204,7 +205,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   the NPC on each question and refuses a file named after nobody on the roster.
 - `validate_packs.py` fails CI on a schema error, a duplicate or mismatched id, an unknown mode, a
   type its mode does not allow, a stray `random_event`, a price type filed as an event, or one
-  `pick_from_list` prompt under two answers.
+  `pick_from_list` prompt under two answers, unless each has a picture.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
 - Create's editor writes `multiple_choice`, `free_text`, `closest_number` and `pick_all_that_apply`
   (`picks` only as a "tell players how many" box) with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
@@ -339,9 +340,8 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 | 1011 | a send failed or timed out, or the database was down on connect | reconnects |
 | 1012 | the room left memory; the reconnect rehydrates it | reconnects |
 
-`GET /api/vocab/{name}` serves `items` (`popular-items.json`) and
-`npcs` (404 until Who's That NPC? writes its list) as `{vocab, version, entries: [{id, name}]}`, built at
-startup. One name under two ids, or one id under two names, refuses to load. The client fetches a list once, when a question
+`GET /api/vocab/{name}` serves `items` (`popular-items.json`) and `npcs` (`popular-npcs.json`,
+each the infobox's first NPC id) as `{vocab, version, entries: [{id, name}]}`, built at startup. One name under two ids, or one id under two names, refuses to load. The client fetches a list once, when a question
 first names it; per question it would resend the list every time. It gives nothing away: it is every
 entry, not the question's options.
 

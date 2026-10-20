@@ -28,6 +28,8 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 * ``--scroll-ink`` reaches 7:1 and ``--scroll-muted`` 4.5:1 against ``--scroll-paper``, and
   the paper stands a colour difference of ``MIN_SCROLL_DELTA_E`` from ``--bg`` and
   ``--panel``, so the clue scroll reads as a sheet laid on the page, not a panel;
+* ``--silhouette`` reaches 3:1 against ``--scroll-paper``, as a shape that carries
+  meaning must: the shadow's outline is the question;
 * each ``--texture-*`` is ``none`` or a local ``url()``: the CSP would block a remote
   one anyway, and this says so at build time rather than as a blank page background.
 
@@ -80,12 +82,14 @@ SHAPE = (
     "--font-numeric",
 )
 TEXTURE = ("--texture-panel", "--texture-bg")
-SCROLL = ("--scroll-paper", "--scroll-edge", "--scroll-ink", "--scroll-muted")
+SCROLL = ("--scroll-paper", "--scroll-edge", "--scroll-ink", "--scroll-muted", "--silhouette")
 
 COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL
 REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + ("--scroll-facet-light",)
 
 TEXT_RATIO = 4.5
+# WCAG's floor for a shape that carries meaning.
+SHAPE_RATIO = 3.0
 BODY_TEXT_RATIO = 7.0
 MIN_HUE_GAP = 60.0
 # How much gem is left in a faded gem button's fill, the rest being --panel. The same
@@ -277,6 +281,7 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
     ratio("--scroll-muted", "--scroll-paper", TEXT_RATIO)
     apart("--ok", "--bad")
     apart("--more", "--less")
+    ratio("--silhouette", "--scroll-paper", SHAPE_RATIO)
     for ground in ("--bg", "--panel"):
         if "--scroll-paper" in colours and ground in colours:
             difference = delta_e(colours["--scroll-paper"], colours[ground])

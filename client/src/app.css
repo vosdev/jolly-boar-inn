@@ -132,12 +132,14 @@
   /* 8. Sheet: the stage's sheet (the clue scroll, a poster, a card, a slab), its edge and
      the ink on it. Checked like a panel: --scroll-ink 7:1 and --scroll-muted 4.5:1 on the
      paper, which also has to stand off --bg and --panel. --scroll-facet-light is how much
-     white the creases catch. */
+     white the creases catch. --silhouette fills a shadow on the sheet, 3:1 on the paper:
+     one flat colour, so a see-through part of a render shows lighter in every theme. */
   --scroll-paper: #cfbb88;
   --scroll-edge: #7a5e30;
   --scroll-ink: #241708;
   --scroll-muted: #4f3a1c;
   --scroll-facet-light: 0.08;
+  --silhouette: #241708;
 
   color-scheme: light;
 }
@@ -202,6 +204,7 @@
   --scroll-ink: #2b2319;
   --scroll-muted: #5a4629;
   --scroll-facet-light: 0.08;
+  --silhouette: #2b2319;
 
   color-scheme: light;
 }
@@ -262,6 +265,7 @@
   --scroll-ink: #efe8df;
   --scroll-muted: #cbc1b5;
   --scroll-facet-light: 0.04;
+  --silhouette: #efe8df;
 
   color-scheme: dark;
 }
@@ -326,6 +330,7 @@
   --scroll-ink: #23263a;
   --scroll-muted: #565c73;
   --scroll-facet-light: 0.08;
+  --silhouette: #23263a;
 
   color-scheme: light;
 }
@@ -391,6 +396,7 @@
   --scroll-ink: #fbeee2;
   --scroll-muted: #d6b9a4;
   --scroll-facet-light: 0.05;
+  --silhouette: #ff8a1e;
 
   color-scheme: dark;
 }
@@ -453,6 +459,7 @@
   --scroll-ink: #2a2210;
   --scroll-muted: #54471f;
   --scroll-facet-light: 0.08;
+  --silhouette: #2a2210;
 
   color-scheme: light;
 }
@@ -516,6 +523,7 @@
   --scroll-ink: #f0ead2;
   --scroll-muted: #8adfe3;
   --scroll-facet-light: 0.04;
+  --silhouette: #1ac8d8;
 
   color-scheme: dark;
 }
@@ -577,6 +585,7 @@
   --scroll-ink: #1c201d;
   --scroll-muted: #363b37;
   --scroll-facet-light: 0.06;
+  --silhouette: #1c201d;
 
   color-scheme: dark;
 }

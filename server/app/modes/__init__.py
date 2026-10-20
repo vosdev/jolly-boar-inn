@@ -55,6 +55,7 @@ MODES: dict[str, Mode] = {
         types=frozenset({"multiple_choice", "free_text", "pick_all_that_apply", "closest_number"}),
     ),
     "odd_one_out": Mode(id="odd_one_out", types=frozenset({"multiple_choice"})),
+    "whos_that_npc": Mode(id="whos_that_npc", types=frozenset({"pick_from_list"})),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",

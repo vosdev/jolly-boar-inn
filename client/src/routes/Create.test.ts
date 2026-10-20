@@ -311,7 +311,7 @@ describe('Create', () => {
 
   it('names the modes still coming by face and name, with nothing to pick', async () => {
     await loaded()
-    for (const name of ['Who is That NPC?', 'Name that spell', 'Minimap Guesser']) {
+    for (const name of ['Pixel Hunt', 'Name that spell', 'Minimap Guesser']) {
       const soon = screen.getByText(name).closest('li')!
       expect(soon.classList.contains('upcoming')).toBe(true)
       expect(soon.querySelector('img')).toBeTruthy()
@@ -338,7 +338,7 @@ describe('Create', () => {
 
   it('offers nothing to pick on a mode still coming', async () => {
     await loaded(...BOTH)
-    await fireEvent.click(screen.getByText('Who is That NPC?'))
+    await fireEvent.click(screen.getByText('Pixel Hunt'))
     expect((await submitted()).modes.map((round) => round.mode)).toEqual(['more_less', 'price_is_right'])
   })
 
@@ -407,13 +407,13 @@ describe('Create', () => {
     const shipped = { ...PACING[0]!, types: ['pick_from_list'] }
     vi.mocked(api.getModes).mockResolvedValue([
       ...structuredClone(PACING),
-      { ...shipped, id: 'whos_that_npc' },
+      { ...shipped, id: 'pixel_hunt' },
       { ...shipped, id: 'minimap_guesser' },
     ])
     await loaded()
-    expect(screen.queryByText('Who is That NPC?')).toBeNull()
+    expect(screen.queryByText('Pixel Hunt')).toBeNull()
     expect(screen.queryByText('Minimap Guesser')).toBeNull()
-    for (const id of ['whos_that_npc', 'minimap_guesser']) {
+    for (const id of ['pixel_hunt', 'minimap_guesser']) {
       expect((screen.getByRole('checkbox', { name: id }) as HTMLInputElement).checked).toBe(false)
     }
     expect(screen.getByText('Name that spell').closest('li')?.classList.contains('upcoming')).toBe(true)
