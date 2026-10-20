@@ -34,8 +34,8 @@ from app.questions.types import (
     pick_from_list,
     price_is_right,
 )
+from tests.packs import PACKS_DIR
 
-PACKS_DIR = REPO_ROOT / "data" / "packs"
 SERVER_DIR = REPO_ROOT / "server"
 
 EXAMPLE: dict[str, Any] = {

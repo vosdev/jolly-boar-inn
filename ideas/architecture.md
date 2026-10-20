@@ -22,10 +22,10 @@ final. The licence is AGPL-3.0.
 
 ```
 Dockerfile, docker-compose.yml     three-stage image + data; app + postgres:18 (+ .dev.yml, .data.yml)
-Makefile, .github/workflows/ci.yml setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
+Makefile, .github/workflows/ci.yml all, setup, dev, lint, test, gen-*, import-suggestions, edit-packs,
                                    edit-roster, rehash-questions, fetch-assets, logo, image; CI: audit, release
 schema/question.schema.json        the question schema (section 4)
-data/packs/                        prices, examine, sample (the tests'), random_events/
+data/packs/                        prices (generated, ignored), examine, sample, random_events/
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
 server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
@@ -88,9 +88,10 @@ planned modes share `multiple_choice`; as five types they would be five copies o
   and `random_event` are not rounds. They state no types and no numbers.
 - Copy (label, hint, blurb, host lines) lives on the client in `lib/modes.ts`.
 - `pool` names the mode whose pack questions a round draws, restamped with its own id. `setting` names
-  the `Settings` flag that offers the mode; off, `/api/modes` omits it and `POST /api/rooms` is a 403
-  `mode_not_offered`. A stored room keeps playing it. `options` holds a round's `multiple_choice`
-  questions to fewer options than the schema's two to six; `mode_errors` refuses the rest.
+  the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
+  `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
+  round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
+  refuses the rest.
 
 Each module in `questions/types/` exports:
 
@@ -636,7 +637,8 @@ key into them, so cleanup leaves it.
 
 ## 12. Data pipeline
 
-Packs are committed, so a clone plays without a network; only prices are generated.
+Packs are committed, bar `prices.json`: each instance generates its own, and offers no Price is
+Right until it does (More/Less keeps `sample.json`'s five). The tests generate one offline (`tests/packs.py`).
 
 - The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`, `logo`) run
   them in `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is
@@ -645,8 +647,8 @@ Packs are committed, so a clone plays without a network; only prices are generat
 - Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
-- `make gen-price-questions` fetches `/mapping` and `/latest` once each. It never runs at startup
-  or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
+- `make gen-price-questions` (also in `make all`) fetches `/mapping` and `/latest` once each. It
+  never runs at startup or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
 - A pack's prices share one `as_of`. `/api/modes` gives a mode its pool's newest, shown by the
   footer and a price round's splash instead of on every question.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what

@@ -22,6 +22,8 @@ sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 import fetch_assets  # noqa: E402
 import wiki  # noqa: E402
 
+from tests.packs import PACKS_DIR
+
 MANIFEST = fetch_assets.load_manifest(fetch_assets.MANIFEST)
 PNG = b"\x89PNG\r\n\x1a\n" + b"\0" * 16
 AGENT = "quiz-importer - Zezima on Discord"
@@ -457,9 +459,7 @@ def test_every_roster_item_has_an_icon_in_the_manifest() -> None:
 
 def test_every_item_a_pack_question_names_has_an_icon_in_the_manifest() -> None:
     vocab.load_all()
-    named = subjects(
-        [q["payload"] for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
-    )
+    named = subjects([q["payload"] for pack in load_packs(PACKS_DIR) for q in pack.questions])
     assert sorted(named - icons()) == []
 
 

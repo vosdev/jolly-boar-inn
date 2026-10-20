@@ -56,9 +56,9 @@ def pack_modes() -> list[str]:
     ]
 
 
-def report_modes(settings: Any) -> list[str]:
+def report_modes(settings: Any, packs: list[Pack]) -> list[str]:
     """The pack modes this instance plays, which a player may report from."""
-    on = {mode.id for mode in offered(settings)}
+    on = {mode.id for mode in offered(settings, packs)}
     return [mode for mode in pack_modes() if mode in on]
 
 
@@ -126,7 +126,7 @@ def check(
     body: str,
 ) -> tuple[dict[str, Any] | None, str]:
     """The snapshot and the tidied text of a report, or ``BadReport`` naming the problem."""
-    if mode not in report_modes(settings):
+    if mode not in report_modes(settings, packs):
         raise BadReport(f"$.mode: {mode!r} takes no reports")
     return _snapshot(packs, mode, question, item), _text(body)
 

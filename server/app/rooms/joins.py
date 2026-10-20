@@ -134,7 +134,7 @@ class Joins:
             settings = settings.model_copy(update={"max_players": cap})
         elif settings.max_players > cap:
             raise BadSettings(f"max_players may not exceed {cap}")
-        rounds_offered = [mode.id for mode in offered(self.settings) if mode.is_round]
+        rounds_offered = [mode.id for mode in offered(self.settings, self.packs) if mode.is_round]
         try:
             settings = settings.drawn(rounds_offered, self.rng)
         except ValueError as exc:

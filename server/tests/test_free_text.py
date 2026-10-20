@@ -10,13 +10,13 @@ from uuid import uuid4
 
 import pytest
 
-from app.config import REPO_ROOT
 from app.modes import MODES
 from app.questions import schema
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
 from app.questions.types import TYPES, free_text, scoring_of
 from app.questions.types.scoring import Scoring
+from tests.packs import PACKS_DIR
 
 EXAMPLE: dict[str, Any] = {
     "type": "free_text",
@@ -52,7 +52,7 @@ def test_only_hand_written_one_answer_questions_play_it() -> None:
     assert {
         mode.id for mode in MODES.values() if mode.pool is None and "free_text" in mode.types
     } == {"bestiary", "drop_table"}
-    shipped = [q for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
+    shipped = [q for pack in load_packs(PACKS_DIR) for q in pack.questions]
     assert {q["mode"] for q in shipped if q["type"] == "free_text"} == {
         "random_event",
         "bestiary",

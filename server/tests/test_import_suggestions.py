@@ -17,6 +17,8 @@ sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
 import import_suggestions  # noqa: E402
 
+from tests.packs import PACKS_DIR
+
 WIKI = "https://oldschool.runescape.wiki/w/Barrows_Brothers"
 QUESTION = {
     "type": "multiple_choice",
@@ -56,7 +58,7 @@ ITEM_ROWS = [
 def repo(tmp_path: Path) -> dict[str, Path]:
     """A copy of the shipped packs and roster, and saved wiki rows."""
     packs = tmp_path / "packs"
-    shutil.copytree(REPO_ROOT / "data" / "packs", packs)
+    shutil.copytree(PACKS_DIR, packs)
     roster = tmp_path / "popular-items.json"
     shutil.copy(REPO_ROOT / "data" / "popular-items.json", roster)
     rows = tmp_path / "items.json"

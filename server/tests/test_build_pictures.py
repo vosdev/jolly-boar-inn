@@ -17,6 +17,8 @@ sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 import build_pictures  # noqa: E402
 import fetch_assets  # noqa: E402
 
+from tests.packs import PACKS_DIR
+
 PNG = b"\x89PNG\r\n\x1a\n" + b"\0" * 16
 
 
@@ -120,7 +122,7 @@ def test_a_file_nobody_mapped_is_removed_from_the_client(install: Install) -> No
 
 def test_the_assets_come_from_every_pack_questions_image() -> None:
     vocab.load_all()
-    packs = load_packs(REPO_ROOT / "data" / "packs")
+    packs = load_packs(PACKS_DIR)
     expected = {
         q["payload"]["image"] for pack in packs for q in pack.questions if "image" in q["payload"]
     }
@@ -137,7 +139,7 @@ def test_every_pack_questions_image_has_a_picture_in_the_manifest() -> None:
         for target in manifest
         if (match := fetch_assets.PICTURE.match(target))
     }
-    assets = build_pictures.used_assets(load_packs(REPO_ROOT / "data" / "packs"))
+    assets = build_pictures.used_assets(load_packs(PACKS_DIR))
     assert [asset for asset in assets if asset not in pictures] == []
 
 

@@ -13,15 +13,13 @@ from uuid import uuid4
 
 import pytest
 
-from app.config import REPO_ROOT
 from app.modes import MODES
 from app.questions import schema
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
 from app.questions.types import TYPES, price_is_right, scoring_of
 from app.questions.types.scoring import Scoring
-
-PACKS_DIR = REPO_ROOT / "data" / "packs"
+from tests.packs import PACKS_DIR
 
 EXAMPLE: dict[str, Any] = {
     "type": "price_is_right",

@@ -23,9 +23,9 @@ import pytest
 from app.config import REPO_ROOT
 from app.questions import schema
 from app.questions.packs import load_packs, pack_errors
+from tests.packs import PACKS_DIR
 
 SERVER_DIR = REPO_ROOT / "server"
-PACKS_DIR = REPO_ROOT / "data" / "packs"
 sys.path.insert(0, str(SERVER_DIR / "scripts"))
 
 import gen_price_questions as gen  # noqa: E402

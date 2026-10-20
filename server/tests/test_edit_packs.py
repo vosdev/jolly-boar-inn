@@ -16,12 +16,14 @@ sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
 
 import edit_packs  # noqa: E402
 
+from tests.packs import PACKS_DIR
+
 
 @pytest.fixture
 def repo(tmp_path: Path) -> dict[str, Path]:
     """A copy of the shipped packs and roster."""
     packs = tmp_path / "packs"
-    shutil.copytree(REPO_ROOT / "data" / "packs", packs)
+    shutil.copytree(PACKS_DIR, packs)
     roster = tmp_path / "popular-items.json"
     shutil.copy(REPO_ROOT / "data" / "popular-items.json", roster)
     return {"packs": packs, "roster": roster, "dir": tmp_path}

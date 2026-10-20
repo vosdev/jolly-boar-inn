@@ -14,6 +14,7 @@ from app.questions.submission import Submission
 from app.questions.types import TYPES
 from app.rooms.selection import select
 from app.rooms.settings import RoomSettings
+from tests.packs import PACKS_DIR
 
 
 def questions(mode: str) -> list[dict[str, Any]]:
@@ -46,7 +47,7 @@ def test_drop_table_mixes_four_types() -> None:
 
 @pytest.mark.parametrize("mode", ["bestiary", "drop_table"])
 def test_a_round_draws_and_scores_every_type_its_mode_plays(mode: str) -> None:
-    packs = load_packs(REPO_ROOT / "data" / "packs")
+    packs = load_packs(PACKS_DIR)
     settings = RoomSettings(modes=[{"mode": mode, "questions": questions_bounds(mode).maximum}])
     # A pool larger than one round may leave a type out of any one draw, but not out of ten.
     # The random events dropped into the round are not its own.

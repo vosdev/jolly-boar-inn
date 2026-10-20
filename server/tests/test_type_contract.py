@@ -15,7 +15,6 @@ from uuid import uuid4
 
 import pytest
 
-from app.config import REPO_ROOT
 from app.modes import type_questions
 from app.questions import schema
 from app.questions.packs import load_packs
@@ -23,6 +22,7 @@ from app.questions.submission import Submission
 from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of, steps_of
 from app.questions.types.scoring import Scoring
 from tests import answers
+from tests.packs import PACKS_DIR
 
 
 @dataclass(frozen=True)
@@ -295,7 +295,7 @@ def test_the_game_tests_answers_are_right_and_wrong_as_they_say(type_id: str) ->
     assert grade_alone(type_id, wrong) < 1.0
 
 
-SHIPPED = [q for pack in load_packs(REPO_ROOT / "data" / "packs") for q in pack.questions]
+SHIPPED = [q for pack in load_packs(PACKS_DIR) for q in pack.questions]
 
 
 @pytest.mark.parametrize("question", SHIPPED, ids=lambda q: q["id"])

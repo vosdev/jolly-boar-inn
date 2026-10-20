@@ -18,12 +18,13 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app.config import REPO_ROOT, Settings
+from app.config import Settings
 from app.http import admin
 from app.main import create_app
 from app.rooms import codes
 from tests.conftest import BASE
 from tests.game_api import Game
+from tests.packs import PACKS_DIR
 
 TOKEN = "0123456789abcdef0123456789abcdef"
 BEARER = {"Authorization": f"Bearer {TOKEN}"}
@@ -36,7 +37,7 @@ def app(test_db_dsn: str, dist: Path) -> FastAPI:
     settings = Settings(
         _env_file=None,
         database_url=test_db_dsn,
-        packs_dir=REPO_ROOT / "data" / "packs",
+        packs_dir=PACKS_DIR,
         public_base_url=BASE,
         admin_token=TOKEN,
     )
