@@ -330,8 +330,8 @@
   color-scheme: light;
 }
 
-/* The TzHaar volcano: an obsidian floor split by lava, and the fight cave's heat. Warm where
-   the Wilderness is cold: brown-black, not slate, and a red edge where it has grey stone.
+/* The TzHaar volcano: an obsidian floor split by cooling lava. Warm where the Wilderness is
+   cold: brown-black, not slate, and warm rock where it has grey stone.
    The accent is molten orange, far enough from the red of a wrong answer that the two stay
    apart with any of the three colour blindnesses simulated. */
 [data-theme='tzhaar'] {
@@ -339,7 +339,7 @@
   --bg: #140c0a;
   --panel: #1c1210;
   --panel-raised: #2a1914;
-  --line: #c42a16;
+  --line: #4a2a20;
   --ink: #fbeee2;
   --muted: #c9a993;
   --bg-ink: #fbeee2;
@@ -369,17 +369,18 @@
   --gem-zenyte: #7c4510;
   --gem-ink: #fbeee2;
 
-  /* Cut basalt: no rounding, a hard edge, and the lava's glow under it. */
+  /* Cut basalt: no rounding and a hard edge. The lava's glow stays on the floor, so the
+     accent is the one hot colour on a panel. */
   --radius: 0;
   --border-width: 2px;
-  --shadow: 0 0 14px rgb(255 90 30 / 0.16);
+  --shadow: none;
   --scrim: rgb(0 0 0 / 0.6);
   --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-body);
   --font-numeric: var(--font-display);
 
-  /* Obsidian slabs between glowing seams, on a tile wide enough to hide its repeat. The
-     panels stay plain rock. */
+  /* Large obsidian slabs between seams of dull ember, drawn at twice the tile's size to hide
+     its repeat. The panels stay plain rock. */
   --texture-panel: none;
   --texture-bg: url('./assets/textures/tzhaar-cracks.svg');
 
