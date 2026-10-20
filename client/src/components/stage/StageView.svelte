@@ -11,7 +11,8 @@
    *
    * It is one size at every width: at most 30rem, and a stage under 26rem, a phone, sets
    * the smaller numbers the prototype settled on. Under 448px of screen the row runs out
-   * to the screen's edges, which cut the rolls in half, and the host steps onto the sheet.
+   * to the screen's edges, which cut the rolls in half, and the host steps onto the sheet,
+   * the words wrapping around it.
    *
    * The host is its chathead, at 78px and at 68px on a phone.
    *
@@ -24,7 +25,7 @@
    * the stage (section 12). `entering` plays that change: the host fades out, the scroll
    * slides left into the space it leaves, and the guest fades in. Without it the guest is
    * simply there, which is what a reveal or a reconnect late in the hold wants. On a phone
-   * the scroll stays put and the guest takes the host's column, on the sheet's other side.
+   * the scroll stays put and the guest takes the host's place, on the sheet's other side.
    * `returning` mirrors it at the reveal's end, so the host is in place for what follows.
    *
    * A `tall` sheet, the hiscores, runs longer than a screen, so the host stands at its
@@ -41,6 +42,7 @@
   import { FALLBACK_NPC, npcArt } from '../../lib/npcs'
   import { STRANGER } from '../../lib/randomEvents'
   import type { Presence } from '../../lib/sharedStage.svelte'
+  import { keepSeated } from '../../lib/seat'
   import { hasRolls, sheetFor } from '../../lib/sheet'
   import { watchTheme } from '../../lib/theme'
   import ClueScroll from './ClueScroll.svelte'
@@ -97,6 +99,19 @@
   const sheet = $derived(sheetFor(theme, board))
 
   onMount(() => watchTheme((now) => (theme = now)))
+
+  const event = $derived(guestArt !== null && !returning)
+
+  let hostNpc = $state<HTMLElement | null>(null)
+  let guestNpc = $state<HTMLElement | null>(null)
+
+  // A tall sheet needs no wrapping: the host stands only beside its top line.
+  $effect(() => {
+    const content = root?.querySelector<HTMLElement>('.content') ?? null
+    const npc = event ? guestNpc : hostNpc
+    if (tall || content === null || npc === null) return
+    return keepSeated(content, npc, event ? 'right' : 'left')
+  })
 </script>
 
 <div class="stage" class:with-hero={hero !== null} bind:this={root}>
@@ -104,11 +119,11 @@
     class="stage-row presence-{presence}"
     class:flat={!hasRolls(sheet)}
     class:tall
-    class:event={guestArt !== null && !returning}
+    class:event
     class:entering={guestArt !== null && entering && !returning}
     class:returning={guestArt !== null && returning}
   >
-    <div class="npc host" aria-hidden="true">
+    <div class="npc host" aria-hidden="true" bind:this={hostNpc}>
       <img
         class={hero === null ? art.cut : 'hero'}
         src={hero ?? art.url}
@@ -120,7 +135,7 @@
       {@render paper?.()}
     </ClueScroll>
     {#if guestArt !== null}
-      <div class="npc guest" aria-hidden="true">
+      <div class="npc guest" aria-hidden="true" bind:this={guestNpc}>
         <img class={guestArt.cut} src={guestArt.url} alt="" draggable="false" />
       </div>
     {/if}
@@ -370,7 +385,7 @@
 
   /* Out to the screen's edges, past main's 1rem gutter, with the rolls' outer halves cut
      off there rather than scrolling the page sideways. The host stands on the sheet, and
-     the sheet keeps a column clear for it. */
+     the words wrap around it (`lib/seat.ts`). */
   @media (max-width: 447.98px) {
     .stage-row {
       margin-inline: -1rem;
@@ -378,8 +393,7 @@
     }
 
     .stage-row :global(.paper) {
-      padding-left: calc(var(--roll-w) / 2 + var(--npc-w) + 1.1rem);
-      padding-right: calc(var(--roll-w) / 2 + 1rem);
+      padding-inline: calc(var(--roll-w) / 2 + 1rem);
     }
 
     .npc {
@@ -389,12 +403,7 @@
       margin: 0;
     }
 
-    /* The NPCs swap sides and the scroll stays put: the column moves with the guest. */
-    .event :global(.paper) {
-      padding-left: calc(var(--roll-w) / 2 + 1rem);
-      padding-right: calc(var(--roll-w) / 2 + var(--npc-w) + 1.1rem);
-    }
-
+    /* The NPCs swap sides and the scroll stays put: the words wrap around the guest. */
     .event .host {
       left: calc(var(--roll-w) / 2 + 6px);
       bottom: calc(var(--finial) * 0.75);
@@ -408,11 +417,6 @@
 
     :is(.entering, .returning) > :global(.scroll) {
       animation: none;
-    }
-
-    /* A tall sheet needs no column kept clear: the host stands only beside its top. */
-    .tall :global(.paper) {
-      padding-left: calc(var(--roll-w) / 2 + 1rem);
     }
 
     .tall {
@@ -448,9 +452,27 @@
       left: calc(-1 * var(--hero-off));
       bottom: 0;
     }
+  }
 
-    .with-hero .stage-row :global(.paper) {
-      padding-left: calc(var(--npc-w) - var(--hero-off) + 0.3rem);
-    }
+  /* What `lib/seat.ts` marks beside the NPC on a phone: a line wraps around a float that is
+     solid only from the NPC's head down; a row or a control steps aside whole. */
+  .stage :global([data-seat^='wrap']::before) {
+    content: '';
+    float: left;
+    width: var(--seat-w);
+    height: var(--seat-h);
+    shape-outside: inset(var(--seat-from) 0 0 0);
+  }
+
+  .stage :global([data-seat='wrap-right']::before) {
+    float: right;
+  }
+
+  .stage :global([data-seat='shift-left']) {
+    margin-left: var(--seat-w);
+  }
+
+  .stage :global([data-seat='shift-right']) {
+    margin-right: var(--seat-w);
   }
 </style>
