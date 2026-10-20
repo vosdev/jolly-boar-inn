@@ -120,20 +120,17 @@ THEMES: dict[str, dict[str, str]] = {
         "hat-lo": "#1d3a9c",
         "hat-hi": "#4c78e8",
     },
+    # A TzHaar-Mej's red, the obsidian of its weapons for tusks, the eyes lit by the lava.
     "tzhaar": {
-        "ornament": "eye-fire",
-        "rim": "#c42a16",
-        "hide-lo": "#060303",
-        "hide-hi": "#4d2a22",
-        "tusk-lo": "#c42a16",
-        "tusk-hi": "#ffd27a",
+        "ornament": "",
+        "rim": "#1a0604",
+        "hide-lo": "#3a0a06",
+        "hide-hi": "#d42c18",
+        "tusk-lo": "#0e0b0b",
+        "tusk-hi": "#5c5450",
         "eye-lo": "#ff7a1e",
-        "eye-hi": "#fff1b0",
-        "eye-glow": "#ff7a1e",
-        "tusk-glow": "#ff5a1e",
-        "flame-1": "#c42a16",
-        "flame-2": "#ff7a1e",
-        "flame-3": "#ffd27a",
+        "eye-hi": "#ffe08a",
+        "eye-glow": "#ff9a2e",
     },
     "jungle": {
         "ornament": "leaves",
@@ -172,13 +169,12 @@ THEMES: dict[str, dict[str, str]] = {
         "ghost-tusk": "0.65",
     },
 }
-ORNAMENTS = ("board", "fez", "skull", "partyhat", "eye-fire", "leaves", "crystals")
+ORNAMENTS = ("board", "fez", "skull", "partyhat", "leaves", "crystals")
 DEFAULT = THEMES["jolly"]
 
 # What Broav_detail.png looks like, in its own pixels. A new upload of the file would need
 # these measured again.
 CROWN_PEAK_X = 645
-EYES = ((325, 349, 456, 507), (699, 347, 911, 507))  # left, top, right, bottom
 
 Geometry = dict[str, Any]
 
@@ -309,13 +305,8 @@ RULES = "\n".join(
         f".boar-partyhat {{ {_shows('partyhat')} }}",
         f".boar-hat-lo {{ fill: {_var('hat-lo', '#1d3a9c')}; }}",
         f".boar-hat-hi {{ fill: {_var('hat-hi', '#4c78e8')}; }}",
-        f".boar-eye-fire {{ {_shows('eye-fire')} }}",
         f".boar-leaves {{ {_shows('leaves')} }}",
         f".boar-crystals {{ {_shows('crystals')} }}",
-        *(
-            f".boar-flame-{n} {{ fill: {_var(f'flame-{n}', c)}; }}"
-            for n, c in ((1, "#c42a16"), (2, "#ff7a1e"), (3, "#ffd27a"))
-        ),
     ]
 )
 
@@ -463,44 +454,6 @@ def _crystals(rim: int) -> str:
     )
 
 
-# How high each of an eye's tongues of fire reaches, as a share of the flame.
-TONGUES = (0.7, 1.0, 0.6)
-
-
-def _flame(left: float, top: float, right: float, bottom: float) -> str:
-    """Tongues standing on an eye, narrowing as they rise and leaning back as if it charges."""
-    h, cx, n = bottom - top, (left + right) / 2, len(TONGUES)
-
-    def taper(x: float, rise: float) -> float:
-        return cx + (x - cx) * (1 - 0.45 * rise)
-
-    points = [
-        (right, bottom - 0.25 * h),
-        (cx + (right - cx) * 0.35, bottom),
-        (cx - (cx - left) * 0.35, bottom),
-        (left, bottom - 0.25 * h),
-    ]
-    for k, reach in enumerate(TONGUES):
-        x = left + (k + 0.5) * (right - left) / n
-        points.append((taper(x, reach) + 40 * reach, bottom - h * reach))
-        if k < n - 1:
-            x = left + (k + 1) * (right - left) / n
-            points.append((taper(x, 0.5), bottom - 0.5 * h))
-    return "M" + " L".join(f"{x:.0f} {y:.0f}" for x, y in points) + " Z"
-
-
-def _eye_fire(uid: str) -> str:
-    layers = []
-    for n, inset, reach in ((1, -40, 340), (2, -5, 250), (3, 30, 150)):
-        bottom_shift = -inset * 0.5 if inset < 0 else -inset * 0.6
-        d = "".join(
-            _flame(left + inset, top - reach, right - inset, bottom + bottom_shift)
-            for left, top, right, bottom in EYES
-        )
-        layers.append(f'<path class="boar-flame-{n}" d="{d}"/>')
-    return f'<g class="boar-eye-fire" filter="url(#{uid}-eg)">{"".join(layers)}</g>'
-
-
 class Logo:
     """Draws the logo in a 32-unit square, the size the top bar shows it at.
 
@@ -532,7 +485,7 @@ class Logo:
         mirrored = (
             f'<g transform="translate({self.left + self.width * s:.4f} {self.top}) '
             f'scale({-s:.6f} {s:.6f})">'
-            f"{_head(self.geometry[size], uid, rim)}{_eye_fire(uid)}{_fez(hat_rim)}"
+            f"{_head(self.geometry[size], uid, rim)}{_fez(hat_rim)}"
             f"{_partyhat(hat_rim)}{_leaves(hat_rim)}{_crystals(hat_rim)}</g>"
         )
         board = (
