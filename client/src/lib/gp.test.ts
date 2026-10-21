@@ -87,4 +87,12 @@ describe('formatGp with three figures', () => {
     expect(formatGp(125_000, { figures: 3 })).toBe('125k')
     expect(formatGp(1_650_000)).toBe('1.6M')
   })
+
+  it('writes every three-figure million without float noise', () => {
+    expect(formatGp(5_270_000, { figures: 3 })).toBe('5.27M')
+    for (let k = 100; k < 1000; k++) {
+      expect(formatGp(k * 10_000, { figures: 3 })).toBe(`${String(k / 100)}M`)
+      expect(formatGp(k * 100_000, { figures: 3 })).toBe(`${String(k / 10)}M`)
+    }
+  })
 })

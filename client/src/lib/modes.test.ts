@@ -55,3 +55,8 @@ describe('hosts', () => {
     expect(GENERIC_HOST.host).toEqual(INNKEEPER)
   })
 })
+
+it('describes The Price is Right as a slider, not four prices', () => {
+  expect(MODES.price_is_right?.blurb).not.toMatch(/four/i)
+  expect(MODES.price_is_right?.blurb).toMatch(/slide/i)
+})

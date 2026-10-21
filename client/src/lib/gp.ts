@@ -1,7 +1,7 @@
 /**
  * A coin amount the way the game writes it: `999`, `12,500`, `100k`, `1.6M`, `10M`.
  *
- * The Price is Right sends its four options as integers and leaves the writing to us
+ * The Price is Right sends its prices as integers and leaves the writing to us
  * (architecture section 2): a pack that baked in `"1.6M"` could no longer be checked
  * against the price it claims to be. So this is where the notation lives, and it follows
  * the game rather than the reader's locale — commas whatever the language, and never a
@@ -26,8 +26,9 @@ export function formatGp(amount: number, { figures = 2 }: { figures?: 2 | 3 } = 
   if (n < 0) return `-${formatGp(-n, { figures })}`
   if (n < 100 * K) return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   if (n < M) return `${Math.floor(n / K)}k`
-  const extra = figures === 3 ? 10 : 1
-  if (n < 10 * M) return `${Math.floor(n / (M / 10 / extra)) / 10 / extra}M`
+  // One division by the whole scale: dividing by 10 twice leaves 5.2700000000000005.
+  const scale = figures === 3 ? 100 : 10
+  if (n < 10 * M) return `${Math.floor(n / (M / scale)) / scale}M`
   if (n < 100 * M && figures === 3) return `${Math.floor(n / (M / 10)) / 10}M`
   return `${Math.floor(n / M)}M`
 }
