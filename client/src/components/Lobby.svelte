@@ -260,7 +260,10 @@
       .filter((t) => t.id !== player.team)
       .map((t) => ({
         label: t.name,
-        act: () => socket.send({ t: 'move_team', player_id: player.id, team: t.id }),
+        act: () => {
+          asking = null
+          socket.send({ t: 'move_team', player_id: player.id, team: t.id })
+        },
       }))
     if (first === undefined) return
     asking = {

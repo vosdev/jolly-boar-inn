@@ -588,6 +588,7 @@ describe('Lobby', () => {
       expect(dialog().textContent).toContain('Move Woox to which team?')
       expect(within(dialog()).queryByRole('button', { name: 'Saradomin' })).toBeNull()
       await fireEvent.click(within(dialog()).getByRole('button', { name: 'Guthix' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
       expect(sent).toEqual([{ t: 'move_team', player_id: 'b', team: 'guthix' }])
     })
 
