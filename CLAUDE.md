@@ -12,6 +12,7 @@ Kahoot-style OSRS quiz game. Server: Python 3.14, FastAPI, asyncpg with hand-wri
 - One uvicorn worker holds all room state in memory. Never assume several workers.
 - Migrations are numbered `.sql` files in `server/app/migrations/`. Add a new one; never edit an existing one.
 - Session tokens travel only in POST bodies and the first websocket frame, never in a URL. Admin rights come from `player.role` on the server.
+- The wiki allows one request per second, including ad-hoc lookups: never in parallel, and prefer one bulk query (`/mapping`, a Bucket query) over fetching pages. Scripts go through `server/scripts/wiki.py`, which throttles.
 
 ## Docs
 - `ideas/architecture.md` describes the current architecture and wins over older notes. Read the section you need, not the whole file.
