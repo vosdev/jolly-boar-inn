@@ -66,6 +66,7 @@ def test_on_the_create_form_gets_its_pace(on: TestClient) -> None:
         "closest_number",
         "free_text",
         "multiple_choice",
+        "number_slider",
         "ordering",
         "pick_all_that_apply",
     ]

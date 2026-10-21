@@ -169,6 +169,10 @@ export function packAnswer(question: PackQuestion): string {
       return (payload.accepted as string[]).join(' / ')
     case 'closest_number':
       return [str(payload.answer), str(payload.unit)].filter((part) => part !== '').join(' ')
+    case 'number_slider': {
+      const answer = [str(payload.answer), str(payload.unit)].filter((part) => part !== '')
+      return `${answer.join(' ')} (${str(payload.min)} to ${str(payload.max)}, ${str(payload.scale)})`
+    }
     case 'pick_from_list': {
       const subject = payload.subject as Subject | undefined
       return subject?.name ?? `entry ${str(payload.answer_id)}`

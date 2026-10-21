@@ -495,6 +495,48 @@ def test_bestiary_takes_a_number(client: TestClient) -> None:
     assert (question["mode"], question["type"]) == ("bestiary", "closest_number")
 
 
+SLIDER = _with(
+    DROP_RATE,
+    type="number_slider",
+    mode="bestiary",
+    wiki="https://oldschool.runescape.wiki/w/General_Graardor",
+    payload={
+        "prompt": "What is General Graardor's combat level?",
+        "answer": 624,
+        "min": 100,
+        "max": 1000,
+        "scale": "log",
+    },
+)
+
+
+def test_a_slider_suggestion_keeps_its_bounds_and_plays(client: TestClient) -> None:
+    approve(client, suggest(client, SLIDER))
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["type"]) == ("bestiary", "number_slider")
+    assert question["payload"] == SLIDER["content"]["payload"]
+
+
+@pytest.mark.parametrize(
+    ("changes", "error"),
+    [
+        ({"min": None}, "'min' is a required property"),
+        ({"scale": None}, "'scale' is a required property"),
+        ({"min": 1000, "max": 100}, "is not above min"),
+        ({"max": 1234}, "more than three significant figures"),
+        ({"answer": 1000}, "not strictly between"),
+    ],
+)
+def test_a_slider_suggestion_without_a_usable_track_is_refused(
+    client: TestClient, changes: dict[str, Any], error: str
+) -> None:
+    payload = {**SLIDER["content"]["payload"], **changes}
+    payload = {key: value for key, value in payload.items() if value is not None}
+    response = client.post("/api/suggestions", json=_with(SLIDER, payload=payload))
+    assert response.status_code == 422
+    assert error in response.text
+
+
 def test_a_drop_table_question_names_an_item_to_picture(client: TestClient) -> None:
     approve(client, suggest(client, _with(DROP_RATE, picture_item="  Dragon warhammer ")))
     (row,) = queue(client, "approved")["suggestions"]

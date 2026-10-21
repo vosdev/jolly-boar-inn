@@ -22,10 +22,15 @@ def questions(mode: str) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["questions"]
 
 
-def test_bestiary_mixes_five_types() -> None:
+# Types a round plays before its pack holds one: they wait for a player's suggestion.
+AWAITING = {"bestiary": set(), "drop_table": {"number_slider"}}
+
+
+def test_bestiary_mixes_six_types() -> None:
     assert MODES["bestiary"].types == {
         "multiple_choice",
         "closest_number",
+        "number_slider",
         "free_text",
         "ordering",
         "pick_all_that_apply",
@@ -34,15 +39,17 @@ def test_bestiary_mixes_five_types() -> None:
     assert {q["type"] for q in questions("bestiary")} == MODES["bestiary"].types
 
 
-def test_drop_table_mixes_four_types() -> None:
+def test_drop_table_mixes_five_types() -> None:
     assert MODES["drop_table"].types == {
         "multiple_choice",
         "free_text",
         "pick_all_that_apply",
         "closest_number",
+        "number_slider",
     }
     assert questions_bounds("drop_table").default == 5
-    assert {q["type"] for q in questions("drop_table")} == MODES["drop_table"].types
+    held = {q["type"] for q in questions("drop_table")}
+    assert held == MODES["drop_table"].types - AWAITING["drop_table"]
 
 
 @pytest.mark.parametrize("mode", ["bestiary", "drop_table"])
@@ -57,7 +64,7 @@ def test_a_round_draws_and_scores_every_type_its_mode_plays(mode: str) -> None:
         for q in select(packs, [], settings, random.Random(seed))[0].questions
         if q["mode"] == mode
     ]
-    assert {q["type"] for q in drawn} == MODES[mode].types
+    assert {q["type"] for q in drawn} == MODES[mode].types - AWAITING[mode]
     right, wrong = uuid.uuid4(), uuid.uuid4()
     for question in drawn:
         if question["type"] != "pick_all_that_apply":

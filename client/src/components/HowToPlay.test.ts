@@ -55,6 +55,7 @@ describe('HowToPlay', () => {
       'Put in order',
       'Type the answer',
       'Closest number',
+      'Slide to a number',
     ])
   })
 

@@ -176,9 +176,27 @@ function choiceRound(
 
 /** A round whose editor offers more than four buttons. */
 const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
-  bestiary: ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply', 'ordering'],
-  drop_table: ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply'],
-  know_your_content_creator: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
+  bestiary: [
+    'multiple_choice',
+    'free_text',
+    'closest_number',
+    'number_slider',
+    'pick_all_that_apply',
+    'ordering',
+  ],
+  drop_table: [
+    'multiple_choice',
+    'free_text',
+    'closest_number',
+    'number_slider',
+    'pick_all_that_apply',
+  ],
+  know_your_content_creator: [
+    'multiple_choice',
+    'closest_number',
+    'number_slider',
+    'pick_all_that_apply',
+  ],
 }
 
 /** Rounds that hold their options to a range: `Mode.options` on the server. */

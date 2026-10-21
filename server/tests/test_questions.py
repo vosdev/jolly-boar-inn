@@ -29,6 +29,7 @@ from app.questions.types import (
     free_text,
     more_less,
     multiple_choice,
+    number_slider,
     ordering,
     pick_all_that_apply,
     pick_from_list,
@@ -541,6 +542,7 @@ def test_registry_has_every_shipped_type() -> None:
         "pick_from_list": pick_from_list,
         "multiple_choice": multiple_choice,
         "closest_number": closest_number,
+        "number_slider": number_slider,
         "free_text": free_text,
         "pick_all_that_apply": pick_all_that_apply,
         "ordering": ordering,
@@ -621,6 +623,7 @@ def test_schema_file_is_draft_2020_12_and_loads() -> None:
         "multiple_choice",
         "free_text",
         "closest_number",
+        "number_slider",
         "pick_from_list",
     }
     schema.validate(EXAMPLE)

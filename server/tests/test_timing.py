@@ -30,6 +30,7 @@ def entries(count: int) -> dict[str, Any]:
         ("pick_from_list", {}, 20, 6),
         ("free_text", {}, 20, 7),
         ("closest_number", {}, 20, 8),
+        ("number_slider", {}, 15, 8),
     ],
 )
 def test_each_type_at_run_pace(

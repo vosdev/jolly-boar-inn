@@ -68,8 +68,8 @@
       }
     },
     {
-      "id": "q_9493e4d24e2d8030",
-      "type": "closest_number",
+      "id": "q_b6915e02a1766495",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -81,6 +81,9 @@
         "intro": "You mortals now want my rings in your own gardens. How very bold.",
         "prompt": "What Construction level do you need to build a fairy ring in your house?",
         "answer": 85,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "A fairy ring in the superior garden needs level 85 Construction, and dials as DIQ."
       }
     },

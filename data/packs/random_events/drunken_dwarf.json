@@ -3,8 +3,8 @@
   "random_event": "drunken_dwarf",
   "questions": [
     {
-      "id": "q_5700ecef8e93ca3f",
-      "type": "closest_number",
+      "id": "q_e1ffcb6a5a1a7009",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [],
@@ -14,6 +14,9 @@
       "payload": {
         "intro": "'Ello der *hic*, I needsh you to help me count these *hic* red numbers fer me.",
         "answer": 35,
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
         "prompt": "What is the maximum hit of a dwarf multicannon with granite cannonballs?",
         "explanation": "Granite cannonballs deal a maximum of 35 damage, while steel cannonballs can deal up to 30 damage through a multicannon."
       }

@@ -134,8 +134,75 @@ describe('problems', () => {
       /^id: “id” is not part of a question here/,
     )
     expect(paths({ type: 'pick_from_list', payload: {} })).toEqual([
-      'type: Must be one of multiple_choice, free_text, closest_number, pick_all_that_apply.',
+      'type: Must be one of multiple_choice, free_text, closest_number, number_slider, pick_all_that_apply.',
     ])
+  })
+})
+
+describe('a slider', () => {
+  const SLIDER: CustomQuestion = {
+    type: 'number_slider',
+    payload: {
+      prompt: 'Runite ore needs what Mining level?',
+      answer: 85,
+      min: 1,
+      max: 99,
+      scale: 'linear',
+    },
+  }
+  const slider = (changes: Record<string, unknown>) =>
+    paths({ ...SLIDER, payload: { ...SLIDER.payload, ...changes } })
+
+  it('passes with its ends, and is refused without them', () => {
+    expect(paths(SLIDER)).toEqual([])
+    const { min: _min, max: _max, ...bare } = SLIDER.payload
+    expect(paths({ ...SLIDER, payload: bare })).toEqual([
+      'payload.min: Required.',
+      'payload.max: Required.',
+    ])
+  })
+
+  it('holds the track and the answer to number_slider.check()', () => {
+    expect(slider({ min: 99, max: 1 })).toEqual(['payload.max: Must be above the lowest.'])
+    expect(slider({ scale: 'log', min: 0 })).toEqual([
+      'payload.min: A log slider starts at 1 or more.',
+    ])
+    expect(slider({ scale: 'log', max: 1234, answer: 85 })).toEqual([
+      'payload.max: A log slider takes three significant figures at most.',
+    ])
+    expect(slider({ scale: 'log', max: 9990, answer: 1234 })).toEqual([
+      'payload.answer: A log slider takes three significant figures at most.',
+    ])
+    expect(slider({ answer: 99 })).toEqual([
+      'payload.answer: Must lie between the lowest and the highest.',
+    ])
+    expect(slider({ answer: 50 })).toEqual([
+      'payload.answer: The slider starts here: move the answer or the ends.',
+    ])
+  })
+
+  it('takes the scale its ends suggest until one is picked', () => {
+    const draft = {
+      ...draftOf(),
+      type: 'number_slider' as const,
+      answer: '30',
+      min: '5',
+      max: '99',
+    }
+    expect(questionOf(draft).payload.scale).toBe('linear')
+    expect(questionOf({ ...draft, min: '1' }).payload.scale).toBe('log')
+    expect(questionOf({ ...draft, min: '1', scale: 'linear' }).payload.scale).toBe('linear')
+    expect(draftOf(SLIDER).scale).toBe('linear')
+    expect(questionOf(draftOf(SLIDER))).toEqual(SLIDER)
+  })
+
+  it('previews its track to players, not its answer', () => {
+    expect(previewOf(SLIDER).view).toEqual({
+      prompt: SLIDER.payload.prompt,
+      min: 1,
+      max: 99,
+      scale: 'linear',
+    })
   })
 })
 

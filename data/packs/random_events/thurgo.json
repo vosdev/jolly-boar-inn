@@ -23,8 +23,8 @@
       }
     },
     {
-      "id": "q_e5b058caae12c40e",
-      "type": "closest_number",
+      "id": "q_9024a0710175a615",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -35,6 +35,9 @@
         "intro": "Runite! The finest metal a dwarf can strike. Can you even mine it?",
         "prompt": "What Mining level do you need to mine runite ore?",
         "answer": 85,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "Runite ore needs 85 Mining, and a mined rock takes twelve minutes to come back."
       }
     },

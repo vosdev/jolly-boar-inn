@@ -97,8 +97,8 @@
       }
     },
     {
-      "id": "q_af66ad2c60bdd7c0",
-      "type": "closest_number",
+      "id": "q_820a3097b320a7a3",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -107,7 +107,10 @@
       "payload": {
         "intro": "*Stretches claws* I'm in the mood to hunt a real beast of the deep.",
         "prompt": "What Fishing level do you need to harpoon a Shark?",
-        "answer": 76
+        "answer": 76,
+        "min": 1,
+        "max": 99,
+        "scale": "linear"
       }
     },
     {
@@ -126,8 +129,8 @@
       }
     },
     {
-      "id": "q_ff359e0d2ba429e1",
-      "type": "closest_number",
+      "id": "q_24605d05d27cc85a",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -136,7 +139,10 @@
       "payload": {
         "intro": "Now that's a meal worth hunting. Just don't go chugging fishing potions like a coward.",
         "prompt": "What Fishing level do you need to catch an Anglerfish, without a boost?",
-        "answer": 82
+        "answer": 82,
+        "min": 1,
+        "max": 99,
+        "scale": "linear"
       }
     },
     {

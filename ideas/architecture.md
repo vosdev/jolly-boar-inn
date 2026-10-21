@@ -116,7 +116,8 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   `walk`, ×1 `run`, ×0.75 `teleport`, a half rounded up, at least 5 s to answer and 4 s to reveal.
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
   4 + 1, `ordering` 10 + 5/entry and 4 + 2/entry, `price_is_right` 15 and 6,
-  `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8.
+  `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8,
+  `number_slider` 15 and 8.
   `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
 - A game's minutes (`rooms/duration.py`) are a ceiling: every question's full answer and reveal,
   15 s per splash, standings between rounds. Create multiplies each round by its mode's `seconds`
@@ -129,14 +130,14 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `guess_examine` | Guess the Examine | `multiple_choice`, four to six names | `examine.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
-| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
-| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done |
-| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`; `image` is its picture | hand-written | done |
+| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `number_slider`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
+| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `number_slider`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done |
+| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`, `number_slider`; `image` is its picture | hand-written | done |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
-| `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `pick_all_that_apply` | hand-written | done |
+| `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `number_slider`, `pick_all_that_apply` | hand-written | done |
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` | renders | Images |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
@@ -149,6 +150,9 @@ Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
 - Examine lines are hand-picked, not taken from `/mapping`. The wiki's were accurate and not funny.
 - The Price is Right is its own type: a log slider from `min` to `max` (`types/slider.py`,
   `lib/slider.ts`) on a three-figure grid; `value`, the price at two figures, lies strictly inside.
+- `number_slider` shares that slider, `linear` (steps of 1) or `log` by its `scale`. Every round
+  with `closest_number` offers it too: typed where the exact number matters, a slider where close
+  counts. Editors default to log once `max` ≥ 20 × `min`.
 
 ## 4. Questions
 
@@ -177,6 +181,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `multiple_choice` | shown position | 1 or 0 |
 | `free_text` | string, at most 80 characters, no NUL or lone surrogate | 1 or 0 |
 | `closest_number` | number | by rank (section 8) |
+| `number_slider` | an integer on the slider's track, in `[min, max]` | by distance (section 8) |
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
 | `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
 | `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
@@ -195,6 +200,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `multiple_choice`, `pick_all_that_apply` and `ordering` show options or entries in a shuffle
   seeded by the payload (`types/shuffle.py`): one order for every socket and restart, and the
   authored order (often answer first) never leaks. Values and the reveal name shown positions.
+- `number_slider` stores integers. `check()` rejects `min` ≥ `max`, a log `min` below 1, a log
+  `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
+  where the slider starts (half rounded up).
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects none or every option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
@@ -432,7 +440,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 
 | `SCORING` | Points | Types |
 |---|---|---|
-| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering` |
+| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering` |
 | `RANK` | the rank's share of 1000 | `closest_number` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` with `steps` |
 
@@ -454,6 +462,7 @@ credit and 1000 points. The closest three otherwise get 0.9, 0.8 and 0.7, paid 7
 
 Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figures, then falling
 linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.
+`number_slider` has no band: 1.0 on the answer, 0 a quarter of the track's width away.
 
 Steps (Pixel Hunt): `steps` frames over the question's seconds. Points fall from 1000 on step 1 to
 400 on the last, `round(400 + 600 × (steps - k) / (steps - 1))`; one step pays 1000. A payload

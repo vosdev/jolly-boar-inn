@@ -517,6 +517,29 @@ describe('Suggest', () => {
     expect(content).not.toHaveProperty('payload.image')
   })
 
+  it('sends a slider with its ends only once they are given, and previews the slider', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
+    await fireEvent.click(screen.getByLabelText('Slider'))
+    await type('Question', "What is General Graardor's combat level?")
+    await type('Answer', '624')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/General_Graardor')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+    await type('Lowest', '100')
+    await type('Highest', '1000')
+    expect(screen.getByRole('slider').getAttribute('aria-valuenow')).toBe('550')
+    await fireEvent.click(screen.getByLabelText('Log'))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
+      type: 'number_slider',
+      mode: 'bestiary',
+      payload: { answer: 624, min: 100, max: 1000, scale: 'log' },
+    })
+  })
+
   it('sends no item to show when none is named, and asks only Drop Table', async () => {
     played()
     render(Suggest, { navigate })
@@ -583,6 +606,7 @@ describe('Suggest', () => {
       'Multiple choice',
       'Type the answer',
       'Closest number',
+      'Slider',
       'Pick all that apply',
       'Put in order',
     ])
@@ -666,7 +690,7 @@ describe('Suggest', () => {
     expect(screen.getByText('Pick who asks it.')).toBeTruthy()
   })
 
-  it('offers a question with no round last, its five types and no more, and sends it with no mode', async () => {
+  it('offers a question with no round last, its six types and no more, and sends it with no mode', async () => {
     played()
     render(Suggest, { navigate })
     const cards = (await screen.findAllByRole('button')).filter((b) => b.closest('.choices'))
@@ -682,6 +706,7 @@ describe('Suggest', () => {
       'Multiple choice',
       'Type the answer',
       'Closest number',
+      'Slider',
       'Pick all that apply',
       'Put in order',
     ])

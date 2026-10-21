@@ -25,10 +25,12 @@
     previewOf,
     problems,
     questionOf,
+    scaleFor,
     type CustomQuestion,
     type CustomType,
   } from '../lib/customQuestions'
   import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
+  import type { Scale } from '../lib/slider'
   import NpcPicker from './NpcPicker.svelte'
   import QuestionStage from './QuestionStage.svelte'
   import { GEMS } from './questions/GemButton.svelte'
@@ -105,6 +107,10 @@
     value: String(DISTANCE_MIN + i),
     label: String(DISTANCE_MIN + i),
   }))
+  const SCALES: { value: Scale; label: string }[] = [
+    { value: 'linear', label: 'Linear' },
+    { value: 'log', label: 'Log' },
+  ]
   const offered = $derived(
     picker?.options ?? types.map((type) => ({ value: type, label: TYPE_LABELS[type] })),
   )
@@ -141,7 +147,7 @@
 
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
-    /^(payload\.(prompt|quote|options|answer_index|answer_indices|picks|accepted|max_distance|answer|unit|explanation)(\[\d+\])?|random_event)$/
+    /^(payload\.(prompt|quote|options|answer_index|answer_indices|picks|accepted|max_distance|answer|unit|min|max|scale|explanation)(\[\d+\])?|random_event)$/
   const showIntro = $derived(pack || intro)
   const unplaced = $derived(
     shown.filter(
@@ -414,7 +420,34 @@
             {@render errors('payload.unit')}
           </div>
         </div>
-        <p class="note closest">The closest guess wins, ties included.</p>
+        {#if draft.type === 'number_slider'}
+          <div class="pair even">
+            <div class="field">
+              <label for="{id}-min">Lowest</label>
+              <input id="{id}-min" type="text" inputmode="numeric" bind:value={draft.min} />
+              {@render errors('payload.min')}
+            </div>
+            <div class="field">
+              <label for="{id}-max">Highest</label>
+              <input id="{id}-max" type="text" inputmode="numeric" bind:value={draft.max} />
+              {@render errors('payload.max')}
+            </div>
+          </div>
+          <div class="field">
+            <Segmented
+              legend="Slider steps"
+              options={SCALES}
+              bind:value={() => draft.scale || scaleFor(draft), (value) => (draft.scale = value)}
+            />
+            {@render errors('payload.scale')}
+          </div>
+          <p class="note closest">
+            Players slide between the two. Keep the answer off the ends and the middle, where the
+            slider starts. The closer a guess, the more it scores.
+          </p>
+        {:else}
+          <p class="note closest">The closest guess wins, ties included.</p>
+        {/if}
       {/if}
 
       {#if pack}
@@ -657,6 +690,10 @@
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 1rem;
+  }
+
+  .pair.even {
+    grid-template-columns: 1fr 1fr;
   }
 
   .preview {

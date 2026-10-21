@@ -69,8 +69,8 @@
       }
     },
     {
-      "id": "q_5e1485c2187b3763",
-      "type": "closest_number",
+      "id": "q_46f08f8f823e30cd",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -80,12 +80,15 @@
         "intro": "The gypsy says the magic barrier protecting the Culinaromancer will only drop for seasoned adventurers.",
         "prompt": "How many Quest Points do you need to enter the final portal?",
         "answer": 175,
+        "min": 0,
+        "max": 300,
+        "scale": "linear",
         "unit": "quest points"
       }
     },
     {
-      "id": "q_968ef52b591694df",
-      "type": "closest_number",
+      "id": "q_40af191f1e0c4c09",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -95,6 +98,9 @@
         "intro": "You save the whole world from a rogue wizard, and that cheeky chest in my basement still wants paying!",
         "prompt": "How many coins do Barrows gloves cost from the chest?",
         "answer": 130000,
+        "min": 1000,
+        "max": 1000000,
+        "scale": "log",
         "unit": "coins"
       }
     },

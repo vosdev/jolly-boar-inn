@@ -62,6 +62,12 @@ export const HOW_TO_ROWS: HowToRow[] = [
     drawing: 'number',
   },
   {
+    types: ['number_slider'],
+    title: 'Slide to a number',
+    text: 'Slide to your guess, then press Submit. The closer it is, the more it scores.',
+    drawing: 'number',
+  },
+  {
     types: ['pick_from_list'],
     title: 'Pick from a list',
     text: 'Start typing, pick a name from the list, then press Submit.',

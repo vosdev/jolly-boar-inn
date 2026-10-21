@@ -206,6 +206,12 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
     reveal: { prompt: 'How many?', answer: 100 },
   },
   {
+    type: 'number_slider',
+    mode: 'custom',
+    view: { prompt: 'How many?', min: 1, max: 99, scale: 'linear' },
+    reveal: { prompt: 'How many?', min: 1, max: 99, scale: 'linear', answer: 85 },
+  },
+  {
     type: 'free_text',
     mode: 'custom',
     view: { prompt: 'Who?' },
@@ -252,6 +258,7 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
 const EXPLAINED = [
   'multiple_choice',
   'closest_number',
+  'number_slider',
   'free_text',
   'pick_from_list',
   'pick_all_that_apply',

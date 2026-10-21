@@ -9,7 +9,7 @@
  * the schema cannot say. A list only ever holds questions that pass, so the one thing
  * left for submit to refuse is the event cap (`eventSlots`).
  *
- * Four types are offered. `more_less` and `price_is_right` cannot be events yet,
+ * Five types are offered. `more_less` and `price_is_right` cannot be events yet,
  * `pick_from_list` needs vocabulary ids a host does not have, and `ordering` has its own
  * form (`OrderingForm`).
  */
@@ -17,11 +17,13 @@
 import type { EventFrequency, OpenQuestion } from './protocol'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 import { check, codePoints, envelopeProperty, field, fields, type Problem } from './questionSchema'
+import { defaultScale, middle, onTrack, type Scale } from './slider'
 
 export const CUSTOM_TYPES = [
   'multiple_choice',
   'free_text',
   'closest_number',
+  'number_slider',
   'pick_all_that_apply',
 ] as const
 export type CustomType = (typeof CUSTOM_TYPES)[number]
@@ -30,6 +32,7 @@ export const TYPE_LABELS: Record<CustomType, string> = {
   multiple_choice: 'Multiple choice',
   free_text: 'Type the answer',
   closest_number: 'Closest number',
+  number_slider: 'Slider',
   pick_all_that_apply: 'Pick all that apply',
 }
 
@@ -123,6 +126,31 @@ function consistency(type: CustomType, payload: Record<string, unknown>): Proble
       }
     })
   }
+  if (type === 'number_slider') found.push(...track(payload))
+  return found
+}
+
+const whole = (value: unknown): value is number => Number.isInteger(value)
+
+/** `number_slider.check()`: a track the slider can draw, and an answer it reaches but does not start on. */
+function track(payload: Record<string, unknown>): Problem[] {
+  const { min, max, answer, scale } = payload
+  if (!whole(min) || !whole(max) || (scale !== 'linear' && scale !== 'log')) return []
+  if (scale === 'log' && min < 1) {
+    return [at('payload.min', 'A log slider starts at 1 or more.')]
+  }
+  if (min >= max) return [at('payload.max', 'Must be above the lowest.')]
+  const found = (['min', 'max'] as const)
+    .filter((key) => !onTrack(payload[key] as number, scale))
+    .map((key) => at(`payload.${key}`, 'A log slider takes three significant figures at most.'))
+  if (!whole(answer)) return found
+  if (!onTrack(answer, scale)) {
+    found.push(at('payload.answer', 'A log slider takes three significant figures at most.'))
+  } else if (answer <= min || answer >= max) {
+    found.push(at('payload.answer', 'Must lie between the lowest and the highest.'))
+  } else if (answer === middle(min, max, scale)) {
+    found.push(at('payload.answer', 'The slider starts here: move the answer or the ends.'))
+  }
   return found
 }
 
@@ -186,6 +214,11 @@ export interface Draft {
   /** As typed: a number is only a number once it parses. */
   answer: string
   unit: string
+  /** A slider's ends, as typed. */
+  min: string
+  max: string
+  /** A slider's scale, or '' to take the one its ends suggest (`defaultScale`). */
+  scale: Scale | ''
   explanation: string
   /** An NPC id, or '' for the room to draw one. */
   npc: string
@@ -206,6 +239,9 @@ const EDITED = new Set([
   'max_distance',
   'answer',
   'unit',
+  'min',
+  'max',
+  'scale',
   'explanation',
 ])
 
@@ -231,6 +267,9 @@ export function draftOf(question?: CustomQuestion): Draft {
     maxDistance: typeof p.max_distance === 'number' ? p.max_distance : MAX_DISTANCE_DEFAULT,
     answer: typeof p.answer === 'number' ? String(p.answer) : '',
     unit: text(p.unit),
+    min: typeof p.min === 'number' ? String(p.min) : '',
+    max: typeof p.max === 'number' ? String(p.max) : '',
+    scale: p.scale === 'linear' || p.scale === 'log' ? p.scale : '',
     explanation: text(p.explanation),
     npc: question?.random_event ?? '',
     extra: Object.fromEntries(Object.entries(p).filter(([key]) => !EDITED.has(key))),
@@ -266,12 +305,20 @@ export function questionOf(draft: Draft): CustomQuestion {
     payload.accepted = draft.accepted.map((answer) => answer.trim())
     if (draft.maxDistance !== MAX_DISTANCE_DEFAULT) payload.max_distance = draft.maxDistance
   } else {
-    const typed = draft.answer.trim()
-    const number = Number(typed)
     // Anything that is not a number goes through as typed, so the check names the field.
-    if (typed !== '') payload.answer = Number.isFinite(number) ? number : typed
+    const put = (key: string, text: string) => {
+      const typed = text.trim()
+      const number = Number(typed)
+      if (typed !== '') payload[key] = Number.isFinite(number) ? number : typed
+    }
+    put('answer', draft.answer)
     const unit = draft.unit.trim()
     if (unit !== '') payload.unit = unit
+    if (draft.type === 'number_slider') {
+      put('min', draft.min)
+      put('max', draft.max)
+      payload.scale = draft.scale === '' ? scaleFor(draft) : draft.scale
+    }
   }
   const explanation = draft.explanation.trim()
   if (explanation !== '') payload.explanation = explanation
@@ -280,11 +327,19 @@ export function questionOf(draft: Draft): CustomQuestion {
     : { type: draft.type, payload, random_event: draft.npc }
 }
 
+/** The scale a slider's ends suggest, before its author picks one. */
+export function scaleFor(draft: Draft): Scale {
+  const low = Number(draft.min.trim())
+  const high = Number(draft.max.trim())
+  return Number.isFinite(low) && Number.isFinite(high) ? defaultScale(low, high) : 'linear'
+}
+
 /** What players see while it is open: each type's `client_view` on the server. */
 const OPEN_KEYS: Record<CustomType, string[]> = {
   multiple_choice: ['intro', 'prompt', 'quote', 'options'],
   free_text: ['intro', 'prompt'],
   closest_number: ['intro', 'prompt', 'unit'],
+  number_slider: ['intro', 'prompt', 'unit', 'min', 'max', 'scale'],
   pick_all_that_apply: ['intro', 'prompt', 'options', 'picks'],
 }
 
@@ -348,6 +403,9 @@ const PLACES: Record<string, string> = {
   'payload.max_distance': 'typos allowed',
   'payload.answer': 'answer',
   'payload.unit': 'unit',
+  'payload.min': 'lowest',
+  'payload.max': 'highest',
+  'payload.scale': 'slider scale',
   'payload.explanation': 'explanation',
   'payload.image': 'picture',
 }

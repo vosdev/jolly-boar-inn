@@ -3,8 +3,8 @@
   "random_event": "wise_old_man",
   "questions": [
     {
-      "id": "q_5570132804d8c619",
-      "type": "closest_number",
+      "id": "q_bfd88352aa873f19",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -15,6 +15,9 @@
         "intro": "The Champions' Guild was a fine place in my day. They still keep the riff-raff out.",
         "prompt": "How many quest points do you need to enter the Champions' Guild?",
         "answer": 32,
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
         "unit": "quest points",
         "explanation": "The Champions' Guild south of Varrock needs 32 quest points. Dragon Slayer I starts there."
       }

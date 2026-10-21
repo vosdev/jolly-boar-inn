@@ -25,8 +25,8 @@
       }
     },
     {
-      "id": "q_4d56f9d9ab70a9ea",
-      "type": "closest_number",
+      "id": "q_011afc01f6e24116",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -37,6 +37,9 @@
         "intro": "Manta ray on rye, dearie? Took me years before I could cook one without burning it.",
         "prompt": "What Cooking level do you need to cook a manta ray?",
         "answer": 91,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "Raw manta ray needs 91 Cooking, and only a Cooking cape stops it burning altogether."
       }
     },
@@ -60,8 +63,8 @@
       }
     },
     {
-      "id": "q_3ccc5bbfa05f2cfc",
-      "type": "closest_number",
+      "id": "q_f47080674e7f6908",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -72,6 +75,9 @@
         "intro": "An anglerfish sandwich fills you up past the brim, dear. But by how much?",
         "prompt": "How many hitpoints does an anglerfish heal at 99 Hitpoints?",
         "answer": 22,
+        "min": 0,
+        "max": 40,
+        "scale": "linear",
         "explanation": "At 99 Hitpoints an anglerfish heals 22, and it may take you above your maximum, up to 121."
       }
     },

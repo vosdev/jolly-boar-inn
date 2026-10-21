@@ -71,7 +71,7 @@ def _answers(type_: str, payload: dict[str, Any]) -> tuple[frozenset[Any], str]:
     if type_ == "free_text":
         accepted = [normalize(answer) for answer in payload["accepted"]]
         return frozenset(accepted), accepted[0] if accepted else ""
-    if type_ == "closest_number":
+    if type_ in ("closest_number", "number_slider"):
         return frozenset({float(payload["answer"])}), f"{payload['answer']:g}"
     if type_ == "pick_from_list":
         name = vocab.fold(_npc_name(payload))

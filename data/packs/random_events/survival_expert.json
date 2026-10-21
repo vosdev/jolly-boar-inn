@@ -3,8 +3,8 @@
   "random_event": "survival_expert",
   "questions": [
     {
-      "id": "q_7ea932a06a30a256",
-      "type": "closest_number",
+      "id": "q_51a45b93d849d490",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -15,12 +15,15 @@
         "intro": "The biggest trees in Gielinor grow in the Woodcutting Guild. You'll need a sharp axe and sharper skills.",
         "prompt": "What Woodcutting level do you need to cut a redwood tree?",
         "answer": 90,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "Redwoods need 90 Woodcutting and give 380 experience per log. Two of them grow in the Woodcutting Guild."
       }
     },
     {
-      "id": "q_a9b19c22f5ba5d55",
-      "type": "closest_number",
+      "id": "q_acf69985511873da",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -32,6 +35,9 @@
         "intro": "Out in the Wilderness the chinchompas are black, and they explode. Catch one if you can.",
         "prompt": "What Hunter level do you need to catch black chinchompas?",
         "answer": 73,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "Black chinchompas need 73 Hunter and give 315 experience a catch, in the Wilderness Hunter area."
       }
     },

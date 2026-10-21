@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { middle, position, roundSig, sigStep, stepFrom, valueAt } from './slider'
+import {
+  defaultScale,
+  middle,
+  onTrack,
+  pageSteps,
+  position,
+  roundSig,
+  sigStep,
+  stepFrom,
+  valueAt,
+} from './slider'
 
 describe('slider grid', () => {
   it('keeps three significant figures', () => {
@@ -37,5 +47,32 @@ describe('slider grid', () => {
     let count = 1
     for (let v = 110_000; v < 300_000; v = stepFrom(v, 1, 110_000, 300_000)) count++
     expect(count).toBe(191)
+  })
+})
+
+describe('linear track', () => {
+  it('stops on every whole number and starts halfway, a half rounded up', () => {
+    expect(onTrack(1234, 'linear')).toBe(true)
+    expect(onTrack(1234, 'log')).toBe(false)
+    expect(middle(1, 99, 'linear')).toBe(50)
+    expect(middle(0, 3, 'linear')).toBe(2)
+    expect(valueAt(0.5, 0, 10, 'linear')).toBe(5)
+    expect(position(25, 0, 100, 'linear')).toBe(0.25)
+  })
+
+  it('steps by one and pages by a twentieth of the width', () => {
+    expect(stepFrom(98, 1, 1, 99, 'linear')).toBe(99)
+    expect(stepFrom(99, 1, 1, 99, 'linear')).toBe(99)
+    expect(stepFrom(5, -10, 1, 99, 'linear')).toBe(1)
+    expect(pageSteps(0, 15_000, 'linear')).toBe(750)
+    expect(pageSteps(1, 10, 'linear')).toBe(1)
+    expect(pageSteps(100, 10_000, 'log')).toBe(10)
+  })
+
+  it('defaults to log once max is at least 20 times min', () => {
+    expect(defaultScale(1, 99)).toBe('log')
+    expect(defaultScale(5, 99)).toBe('linear')
+    expect(defaultScale(100, 2000)).toBe('log')
+    expect(defaultScale(0, 2000)).toBe('linear')
   })
 })
