@@ -44,7 +44,7 @@
       <li><a href="/credits" target="_blank" rel="noopener">Credits</a></li>
       <li>
         <button type="button" class="version" onclick={() => (showChangelog = true)}
-          >v{VERSION_LABEL}</button
+          >What's new in v{VERSION_LABEL}</button
         >
       </li>
     </ul>
