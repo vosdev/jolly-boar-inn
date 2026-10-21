@@ -14,6 +14,8 @@
    * up an item the game already has; its credit is kept but cannot be shown.
    *
    * Nothing is red until the first Save, and Save hands back only a body the server takes.
+   * A new question names the pack questions it looks like above Save; the operator, editing
+   * one, has the queue's own matches instead.
    */
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
@@ -44,6 +46,7 @@
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
   import QuestionStage from '../QuestionStage.svelte'
+  import SimilarQuestions from './SimilarQuestions.svelte'
 
   let {
     choice,
@@ -169,6 +172,16 @@
     mode: choice.id,
   })
   const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
+  // svelte-ignore state_referenced_locally
+  const checksSimilar = initial === undefined
+  let drafted = $state<CustomQuestion | OrderingQuestion | undefined>(undefined)
+  const similarTo = $derived<QuestionContent | undefined>(
+    choice.named
+      ? npcError === null
+        ? npcQuestion
+        : undefined
+      : drafted && { ...drafted, ...(choice.id === NO_ROUND ? {} : { mode: choice.id }) },
+  )
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
 
@@ -305,6 +318,12 @@
   {@render creditFields(show)}
 {/snippet}
 
+{#snippet similar()}
+  {#if checksSimilar}
+    <SimilarQuestions content={similarTo} />
+  {/if}
+{/snippet}
+
 {#snippet buttons(save: () => void)}
   <div class="row actions">
     <button type="button" class="primary" onclick={save}>{saveLabel}</button>
@@ -324,6 +343,7 @@
         </div>
         {@render wikiField(attempted)}
         {@render creditFields(attempted)}
+        {@render similar()}
         {@render buttons(saveNpc)}
       </div>
       <section class="preview" aria-label="Preview">
@@ -348,6 +368,8 @@
     fields={questionFields}
     onattempt={questionFieldsPass}
     {onnpc}
+    ondraft={(question) => (drafted = question)}
+    nearSave={similar}
     onsave={saveQuestion}
     {oncancel}
   />
@@ -367,6 +389,8 @@
     fields={questionFields}
     onattempt={questionFieldsPass}
     {onnpc}
+    ondraft={(question) => (drafted = question)}
+    nearSave={similar}
     onsave={saveQuestion}
     {oncancel}
   />

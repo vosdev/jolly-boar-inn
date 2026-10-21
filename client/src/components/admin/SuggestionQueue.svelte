@@ -32,6 +32,7 @@
     exportName,
     hasRound,
     hostOf,
+    matchLine,
     modeName,
     NO_ROUND,
     placedIn,
@@ -337,6 +338,28 @@
                     </dd>
                     <dt>Sent</dt>
                     <dd>{sent(row.created_at)}</dd>
+                    {#if row.matches?.length}
+                      <dt>Looks like</dt>
+                      <dd>
+                        <ul class="matches">
+                          {#each row.matches as match, index (index)}
+                            <li>
+                              <strong>{match.score}%</strong>
+                              <span class="note">
+                                {match.suggestion === null ? 'In' : 'Suggested for'}
+                                {match.question.mode === undefined
+                                  ? 'no round yet'
+                                  : modeName(match.question.mode)}
+                              </span>
+                              {matchLine(match.question)}
+                              <strong
+                                >{answerOf({ kind: 'question', content: match.question })}</strong
+                              >
+                            </li>
+                          {/each}
+                        </ul>
+                      </dd>
+                    {/if}
                   </dl>
                   {#each checksOf(row) as link, index (link)}
                     <p class="check">
@@ -539,6 +562,20 @@
     font-size: 1.2rem;
     font-weight: 700;
     margin: 0;
+  }
+
+  .matches {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .matches li {
+    overflow-wrap: anywhere;
+  }
+
+  .matches li + li {
+    margin-top: 0.3rem;
   }
 
   dl {

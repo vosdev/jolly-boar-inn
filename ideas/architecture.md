@@ -626,9 +626,17 @@ key into them, so cleanup leaves it.
   true for an item. Pending, approved, rejected or imported. A round not built yet takes
   questions; they wait in approved. The client offers the form after a finished game; 10 an hour
   per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
-- `/api/admin/suggestions` lists, edits and moves them; a question with no round can't be approved
-  (422). Export downloads the playable approved ones and stamps `exported_at`; "mark as imported"
-  moves exactly those. An edit clears the stamp.
+- `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
+  normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
+  spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
+  for the same NPC, else 0. `POST /api/suggestions/similar` takes a question as `POST
+  /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
+  the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
+  address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
+- `/api/admin/suggestions` lists, edits and moves them, each question with its top 3 matches at 60
+  or more among the packs and the other pending and approved suggestions, whole; a question with no
+  round can't be approved (422). Export downloads the playable approved ones and stamps
+  `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
 - `reports` holds what players send to `POST /api/reports` (`app/reports.py`): a mode, a question
   id or null, a snapshot (the question whole, a price mode's roster item, or null for "something
   else"), up to 500 characters of text, open or closed. Closed ones are kept. It and `/suggest`

@@ -398,4 +398,44 @@ describe('SuggestionQueue', () => {
     await vi.waitFor(() => expect(onrefused).toHaveBeenCalled())
     expect(within(document.body).queryByRole('list')).toBeNull()
   })
+
+  it('lists the pack questions and other suggestions it looks like, answers included', async () => {
+    const matches = [
+      {
+        score: 100,
+        suggestion: null,
+        question: {
+          type: 'multiple_choice',
+          mode: 'bestiary',
+          payload: {
+            prompt: 'Which boss?',
+            options: ['Kalphite Queen', 'Zulrah'],
+            answer_index: 0,
+          },
+        },
+      },
+      {
+        score: 71,
+        suggestion: 'two',
+        question: {
+          type: 'free_text',
+          payload: { prompt: 'Who guards the lair?', accepted: ['KQ'] },
+        },
+      },
+    ] satisfies QueuedSuggestion['matches']
+    vi.mocked(admin.getQueue).mockResolvedValue({
+      suggestions: [row({ matches })],
+      counts: COUNTS,
+    })
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    const summary = await screen.findByText('<b>Which</b> is not a Barrows brother?')
+    await fireEvent.click(summary.closest('button')!)
+    const listed = [...document.querySelectorAll('.matches li')].map((li) =>
+      (li.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    )
+    expect(listed).toEqual([
+      '100% In Bestiary Which boss? Kalphite Queen',
+      '71% Suggested for no round yet Who guards the lair? KQ',
+    ])
+  })
 })

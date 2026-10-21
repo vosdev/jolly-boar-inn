@@ -22,7 +22,7 @@ import type {
 } from './protocol'
 import type { ReportBody, ReportChoices } from './reports'
 import type { Arrival } from './stats'
-import type { SuggestionBody } from './suggestions'
+import type { QuestionContent, SimilarMatch, SuggestionBody } from './suggestions'
 
 export class ApiFailure extends Error {
   readonly status: number
@@ -307,6 +307,15 @@ export function sendSuggestion(body: SuggestionBody): Promise<{ id: string }> {
     method: 'POST',
     body: JSON.stringify(body),
   })
+}
+
+/** `bad_suggestion` for a question not whole yet; `rate_limited` past the limit. */
+export async function findSimilar(content: QuestionContent): Promise<SimilarMatch[]> {
+  const found = await request<{ matches: SimilarMatch[] }>('/api/suggestions/similar', {
+    method: 'POST',
+    body: JSON.stringify({ content }),
+  })
+  return found.matches
 }
 
 export function getReportAllowance(): Promise<Allowance> {

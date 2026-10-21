@@ -98,6 +98,24 @@ export interface QueuedSuggestion extends SuggestionBody {
   exported_at: string | null
   /** False for a question with no round, or one not built yet: no export includes it. */
   playable: boolean
+  /** The questions a question looks most like, best first; none for an item. */
+  matches?: QueueMatch[]
+}
+
+/** A pack question a question being written looks like: named by label, never its answer. */
+export interface SimilarMatch {
+  mode: string
+  label: string
+  /** 0 to 100. */
+  score: number
+}
+
+/** A question in the packs, or another suggestion, that a queued one looks like: whole. */
+export interface QueueMatch {
+  score: number
+  /** The other suggestion's id, or null for a pack question. */
+  suggestion: string | null
+  question: QuestionContent
 }
 
 /** One thing the form offers to write. */
@@ -437,6 +455,29 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
   }
   if (type === 'free_text') return (payload.accepted as string[]).join(' / ')
   return [String(payload.answer), payload.unit].filter((part) => part !== undefined).join(' ')
+}
+
+// --- similar questions ----------------------------------------------------------------
+
+/**
+ * What a similarity check depends on: the prompt, any quote and the answer, and Odd One
+ * Out's options, which are its question. Null until the prompt and the answer are filled.
+ */
+export function similarKey(content: QuestionContent): string | null {
+  const { type, mode, payload } = content
+  const prompt = typeof payload.prompt === 'string' ? payload.prompt.trim() : ''
+  const answer = answerOf({ kind: 'question', content }).trim()
+  if (prompt === '' || answer === '') return null
+  const options = mode === 'odd_one_out' ? payload.options : null
+  return JSON.stringify([type, prompt, payload.quote ?? null, answer, options])
+}
+
+/** One line naming a matched question as the operator reads it, without its answer. */
+export function matchLine(question: QuestionContent): string {
+  const { mode, payload } = question
+  if (mode === 'odd_one_out') return (payload.options as string[]).join(', ')
+  const prompt = typeof payload.prompt === 'string' ? payload.prompt : ''
+  return typeof payload.quote === 'string' ? `${prompt} “${payload.quote}”` : prompt
 }
 
 /** "in 23 minutes", for a limit that frees up at `retryAt`. */

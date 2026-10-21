@@ -51,6 +51,8 @@
     fields: more = undefined,
     onattempt = () => true,
     onnpc = undefined,
+    ondraft = undefined,
+    nearSave = undefined,
     onsave,
     oncancel,
   }: {
@@ -85,6 +87,10 @@
     onattempt?: () => boolean
     /** Told who asks it whenever that changes, `''` for nobody yet. */
     onnpc?: (npc: string) => void
+    /** Told the question whenever it changes: whole, or `undefined` while it has problems. */
+    ondraft?: (question: CustomQuestion | undefined) => void
+    /** Shown just above Save. */
+    nearSave?: Snippet
     onsave: (question: CustomQuestion) => void
     oncancel: () => void
   } = $props()
@@ -149,6 +155,8 @@
   function errorsAt(path: string): string[] {
     return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
   }
+
+  $effect(() => ondraft?.(found.length === 0 ? built : undefined))
 
   function save(): void {
     attempted = true
@@ -434,6 +442,8 @@
       {#each unplaced as problem (problem.path + problem.message)}
         <p class="error">{problem.path}: {problem.message}</p>
       {/each}
+
+      {@render nearSave?.()}
 
       <div class="row">
         <button type="button" class="primary" onclick={save}>

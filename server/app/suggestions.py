@@ -31,9 +31,11 @@ from uuid import UUID
 
 import asyncpg
 
+from app import reports, similar
 from app.errors import ApiError
 from app.modes import MODES
 from app.questions import schema, text, vocab
+from app.questions.packs import Pack, mode_questions
 from app.questions.types import TYPES
 
 Kind = Literal["question", "item"]
@@ -141,16 +143,16 @@ def _keys(
     return missing + extra
 
 
-def _question_errors(content: dict[str, Any]) -> list[str]:
+def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     found = _keys(content, _QUESTION_KEYS, _QUESTION_OPTIONAL)
     if found:
         return found
-    if not {"wiki", "source_url"} & content.keys():
+    if sourced and not {"wiki", "source_url"} & content.keys():
         return ["$.wiki: a wiki page, or $.source_url: another https link, to check it against"]
     mode = content.get("mode")
     if "mode" in content and not isinstance(mode, str):
         return ["$.mode: a round's name, or no mode at all for the operator to pick one"]
-    if mode in WIKI_MODES and "wiki" not in content:
+    if sourced and mode in WIKI_MODES and "wiki" not in content:
         return [f"$.wiki: required, since {mode!r} is checked against the wiki"]
     types = UNPLACED_TYPES if mode is None else QUESTION_MODES.get(mode)
     if types is None:
@@ -231,15 +233,18 @@ def _item_errors(content: dict[str, Any]) -> list[str]:
     return []
 
 
-def errors(kind: str, content: Any) -> list[str]:
-    """Every problem with ``content`` as a suggestion of ``kind``; empty when it is good."""
+def errors(kind: str, content: Any, sourced: bool = True) -> list[str]:
+    """Every problem with ``content`` as a suggestion of ``kind``; empty when it is good.
+
+    Without ``sourced`` a question needs no link: a similarity check comes before one.
+    """
     if not isinstance(content, dict):
         return ["$: a suggestion is a JSON object"]
     found = text.errors(content)
     if found:
         return found
     if kind == "question":
-        return _question_errors(content)
+        return _question_errors(content, sourced)
     return _item_errors(content)
 
 
@@ -291,6 +296,68 @@ def check(kind: str, content: Any, shown: bool) -> dict[str, Any]:
     return content
 
 
+# --- similar questions ----------------------------------------------------------------
+
+# Content hashes as ids, so a reloaded pack's unchanged questions keep theirs.
+_pack_features: dict[str, similar.Features] = {}
+
+
+def _pack_candidates(packs: list[Pack]) -> list[tuple[dict[str, Any], similar.Features]]:
+    # Every mode with a pack of its own, events too: the same question in two rounds is
+    # still a duplicate. The price modes' packs are generated per instance from the roster.
+    found = []
+    for mode in reports.pack_modes():
+        if mode in reports.ITEM_MODES:
+            continue
+        for question in mode_questions(packs, mode):
+            if question["id"] not in _pack_features:
+                _pack_features[question["id"]] = similar.features(question)
+            found.append((question, _pack_features[question["id"]]))
+    return found
+
+
+def check_similar(content: Any) -> dict[str, Any]:
+    """A question to look for in the packs, tidied, or ``BadSuggestion``; it needs no link."""
+    found = errors("question", content, sourced=False)
+    if not found:
+        content = tidy("question", content)
+        found = errors("question", content, sourced=False)
+    if found:
+        raise BadSuggestion("; ".join(found))
+    return content
+
+
+def similar_in_packs(packs: list[Pack], content: dict[str, Any]) -> list[dict[str, Any]]:
+    """The pack questions a checked question looks like, as labels: never an answer."""
+    matches = similar.best(similar.features(content), _pack_candidates(packs))
+    return [
+        {"mode": question["mode"], "label": reports.label(question), "score": score}
+        for score, question in matches
+    ]
+
+
+def _matches(
+    row: asyncpg.Record,
+    packs: list[dict[str, Any]],
+    queued: list[asyncpg.Record],
+    features: dict[UUID, similar.Features],
+) -> list[dict[str, Any]]:
+    # The operator sees answers anyway, so a match is the whole question.
+    candidates: list[tuple[tuple[UUID | None, dict[str, Any]], similar.Features]] = [
+        ((None, question), found) for question, found in packs
+    ]
+    candidates += [
+        ((other["id"], other["content"]), features[other["id"]])
+        for other in queued
+        if other["id"] != row["id"]
+    ]
+    own = features.get(row["id"]) or similar.features(row["content"])
+    return [
+        {"score": score, "suggestion": suggestion, "question": question}
+        for score, (suggestion, question) in similar.best(own, candidates)
+    ]
+
+
 # --- storage --------------------------------------------------------------------------
 
 _COLUMNS = "id, kind, content, credit, credit_shown, status, created_at, exported_at"
@@ -329,8 +396,12 @@ async def add(
     )
 
 
-async def listing(pool: asyncpg.Pool, status: Status) -> dict[str, Any]:
-    """The suggestions with ``status``, oldest first, and how many each status holds."""
+async def listing(pool: asyncpg.Pool, status: Status, packs: list[Pack]) -> dict[str, Any]:
+    """The suggestions with ``status``, oldest first, and how many each status holds.
+
+    Each question carries the ``similar.TOP`` pack questions and other pending or approved
+    suggestions it looks most like, never itself.
+    """
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             f"select {_COLUMNS} from suggestions where status = $1 order by created_at, id",
@@ -339,9 +410,26 @@ async def listing(pool: asyncpg.Pool, status: Status) -> dict[str, Any]:
         counts = await conn.fetch(
             "select status, count(*)::int as n from suggestions group by status"
         )
+        queued = await conn.fetch(
+            "select id, content from suggestions"
+            " where kind = 'question' and status in ('pending', 'approved')"
+        )
     totals = {"pending": 0, "approved": 0, "rejected": 0, "imported": 0}
     totals.update({row["status"]: row["n"] for row in counts})
-    return {"suggestions": [view(row) for row in rows], "counts": totals}
+    features = {row["id"]: similar.features(row["content"]) for row in queued}
+    candidates = _pack_candidates(packs)
+    return {
+        "suggestions": [
+            view(row)
+            | {
+                "matches": _matches(row, candidates, queued, features)
+                if row["kind"] == "question"
+                else []
+            }
+            for row in rows
+        ],
+        "counts": totals,
+    }
 
 
 async def edit(

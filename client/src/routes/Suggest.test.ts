@@ -19,6 +19,7 @@ vi.mock('../lib/api', async (importOriginal) => {
     sendSuggestion: vi.fn(),
     getVocab: vi.fn(),
     getReportChoices: vi.fn(),
+    findSimilar: vi.fn(),
   }
 })
 
@@ -45,6 +46,7 @@ beforeEach(() => {
   vi.mocked(api.getVocab).mockResolvedValue({ vocab: 'items', version: 'v', entries: ROSTER })
   vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 10, retry_at: null })
   vi.mocked(api.sendSuggestion).mockResolvedValue({ id: 'x' })
+  vi.mocked(api.findSimilar).mockResolvedValue([])
   vi.mocked(api.getReportChoices).mockImplementation(async (mode) => {
     if (mode === 'release_order') throw new ApiFailure(422, 'bad_mode', 'not here')
     if (mode === 'random_event') {
@@ -719,5 +721,62 @@ describe('Suggest', () => {
     vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 0, retry_at: null })
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     await waitFor(() => expect(screen.getByText(/Try again later/)).toBeTruthy())
+  })
+
+  describe('questions the game already has', () => {
+    const SIMILAR_WAIT = { timeout: 3000 }
+
+    async function writeOddOneOut(first: string): Promise<void> {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
+      await type('Answer 1', first)
+      await type('Answer 2', 'Hazelmere')
+      await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
+    }
+
+    it('shows a match for a copied pack question, and Send still works', async () => {
+      vi.mocked(api.findSimilar).mockResolvedValue([
+        { mode: 'odd_one_out', label: 'Dharok, Hazelmere', score: 100 },
+        { mode: 'bestiary', label: 'Which brother?', score: 64 },
+      ])
+      await writeOddOneOut('Dharok')
+      await screen.findByText('Looks like one we have (100%)', {}, SIMILAR_WAIT)
+      const status = screen.getByRole('status')
+      expect(status.textContent).toContain('Dharok, Hazelmere')
+      expect(status.textContent).toContain('Which brother?')
+      expect(status.textContent).toContain('(64%)')
+      expect(api.findSimilar).toHaveBeenCalledTimes(1)
+      expect(api.findSimilar).toHaveBeenCalledWith({
+        type: 'multiple_choice',
+        payload: {
+          prompt: "Which one doesn't belong?",
+          options: ['Dharok', 'Hazelmere'],
+          answer_index: 1,
+        },
+        mode: 'odd_one_out',
+      })
+
+      await type('Your name', 'AFKFisher')
+      await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
+      const send = screen.getByRole('button', { name: 'Send to the innkeeper' })
+      expect((send as HTMLButtonElement).disabled).toBe(false)
+      await fireEvent.click(send)
+      expect(api.sendSuggestion).toHaveBeenCalledTimes(1)
+      expect(api.findSimilar).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows nothing for a new question', async () => {
+      await writeOddOneOut('Zezima')
+      await waitFor(() => expect(api.findSimilar).toHaveBeenCalled(), SIMILAR_WAIT)
+      expect(screen.queryByText(/Looks like one we have/)).toBeNull()
+    })
+
+    it('shows nothing when the check is refused', async () => {
+      vi.mocked(api.findSimilar).mockRejectedValue(new ApiFailure(429, 'rate_limited', 'slow'))
+      await writeOddOneOut('Dharok')
+      await waitFor(() => expect(api.findSimilar).toHaveBeenCalled(), SIMILAR_WAIT)
+      expect(screen.queryByText(/Looks like one we have/)).toBeNull()
+    })
   })
 })

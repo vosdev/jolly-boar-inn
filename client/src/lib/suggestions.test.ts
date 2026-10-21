@@ -14,6 +14,7 @@ import {
   hostOf,
   inGameOrder,
   itemProblem,
+  matchLine,
   maySuggest,
   NO_ROUND,
   npcNameProblem,
@@ -22,9 +23,11 @@ import {
   questionPreview,
   retryIn,
   roundsFor,
+  similarKey,
   sourceProblems,
   summary,
   wikiProblem,
+  type QuestionContent,
 } from './suggestions'
 
 const QUESTION = {
@@ -337,5 +340,36 @@ describe('what the game already asks', () => {
       { id: 'a', label: 'A' },
     ]
     expect(inGameOrder(plain, 'reldo')).toEqual(plain)
+  })
+})
+
+describe('similar questions', () => {
+  const asked: QuestionContent = {
+    type: 'multiple_choice',
+    mode: 'bestiary',
+    payload: { prompt: 'Which boss?', options: ['Kalphite Queen', 'Zulrah'], answer_index: 0 },
+  }
+
+  it('asks again only when the prompt or the answer changes', () => {
+    const key = similarKey(asked)
+    expect(key).not.toBeNull()
+    expect(similarKey({ ...asked, payload: { ...asked.payload, explanation: 'Why' } })).toBe(key)
+    expect(similarKey({ ...asked, payload: { ...asked.payload, prompt: 'Which?' } })).not.toBe(key)
+    expect(similarKey({ ...asked, payload: { ...asked.payload, answer_index: 1 } })).not.toBe(key)
+  })
+
+  it('waits for both a prompt and an answer', () => {
+    expect(similarKey({ ...asked, payload: { ...asked.payload, prompt: ' ' } })).toBeNull()
+    expect(
+      similarKey({ ...asked, payload: { ...asked.payload, options: ['', 'Zulrah'] } }),
+    ).toBeNull()
+  })
+
+  it('names an Odd One Out by its options', () => {
+    const odd = { ...asked, mode: 'odd_one_out' }
+    expect(matchLine(odd)).toBe('Kalphite Queen, Zulrah')
+    expect(
+      similarKey({ ...odd, payload: { ...odd.payload, options: ['Kalphite Queen', 'Vorkath'] } }),
+    ).not.toBe(similarKey(odd))
   })
 })
