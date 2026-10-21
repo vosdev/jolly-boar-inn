@@ -15,6 +15,7 @@ section covers it.
 | `crystal-shard.svg` | `Crystal_shard_1.png` |
 | `snelm.svg` | `Pointed_bruise_blue_snelm.png` |
 | `cosmic-rune.svg` | `Cosmic_rune.png` |
+| `fairy-ring.svg` | `Fairy_ring.png`, a render: cropped below its butterflies, 250px wide, 48 colours |
 | `skull.svg` | `Skull.png` |
 | `bounty-skull-1.svg` … `bounty-skull-5.svg` | `Skull_(Bounty_Hunter)_icon_(1).png` … `(5).png` |
 | `banana.svg`, `red-banana.svg`, `monkey-nuts.svg`, `pineapple.svg` | `Banana.png`, `Red_banana.png`, `Monkey_nuts.png`, `Pineapple.png` |

@@ -29,7 +29,8 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
   `jungle` fruit, `pollnivneach` desert finds, afresh each visit (`Floor.svelte`). A wall light hangs either
   side, level with Broav, the right one mirrored (`WallLights.svelte`): `jolly` a flickering candle
   lantern, both Gauntlets the dungeon's door logo, glowing steady cyan or red. Only from 800px wide, shrinking
-  as the room beside the sheet narrows, so never on a phone.
+  as the room beside the sheet narrows, so never on a phone. `zanaris` lays a fairy ring there instead,
+  at its own size and unlit, and keeps the left one in a phone's bottom corner.
 
 ## 2. Colour: the token contract
 
