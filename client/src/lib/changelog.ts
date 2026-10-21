@@ -1,0 +1,831 @@
+/**
+ * What's new, newest first: one entry per version that reached `main`, dated the day it
+ * did, and 0.0 for the first commit, in words a player follows. A minor gets up to two
+ * lines, a patch one; the footer's sheet nests each patch under its minor.
+ */
+
+export interface ChangelogEntry {
+  version: string
+  /** The day the version reached `main`, as an ISO date. */
+  date: string
+  text: string
+}
+
+/** Up to two lines in the sheet on a desktop. */
+export const MINOR_MAX = 120
+/** One line in the sheet on a desktop. */
+export const PATCH_MAX = 60
+
+export interface ChangelogGroup {
+  /** `0.6` for 0.6.0 and its patches. */
+  key: string
+  /** The minor's entry; null when only its patches are listed. */
+  minor: ChangelogEntry | null
+  patches: ChangelogEntry[]
+}
+
+/** True for a patch release, `0.6.1`; false for a minor, `0.6.0`. */
+export function isPatch(version: string): boolean {
+  return !version.endsWith('.0')
+}
+
+/** The entries as the sheet shows them: a group per minor, its patches newest first. */
+export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
+  const groups = new Map<string, ChangelogGroup>()
+  for (const entry of entries) {
+    const key = entry.version.split('.').slice(0, 2).join('.')
+    const group = groups.get(key) ?? { key, minor: null, patches: [] }
+    if (isPatch(entry.version)) group.patches.push(entry)
+    else group.minor = entry
+    groups.set(key, group)
+  }
+  return [...groups.values()]
+}
+
+export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.120.0',
+    date: '2026-10-21',
+    text: "The credits open as a popup from Home's footer, instead of a page of their own.",
+  },
+  {
+    version: '0.119.0',
+    date: '2026-10-21',
+    text: "What's new: this list, opened from the version number in the footer.",
+  },
+  {
+    version: '0.118.0',
+    date: '2026-10-21',
+    text: 'The Price is Right is answered with a slider: the closer your guess, the more points.',
+  },
+  {
+    version: '0.117.0',
+    date: '2026-10-21',
+    text: "Suggest questions for every round, Who's That NPC? included. The form warns when the game already has one like it.",
+  },
+  {
+    version: '0.111.0',
+    date: '2026-10-20',
+    text: 'A new theme: the Corrupted Gauntlet, with a corrupted boar.',
+  },
+  {
+    version: '0.110.0',
+    date: '2026-10-20',
+    text: "On a phone, the clue scroll's words wrap around the host.",
+  },
+  {
+    version: '0.109.2',
+    date: '2026-10-20',
+    text: 'Behind the scenes: stricter messages to and from the server.',
+  },
+  {
+    version: '0.109.1',
+    date: '2026-10-20',
+    text: 'Behind the scenes: tidier client code.',
+  },
+  {
+    version: '0.109.0',
+    date: '2026-10-20',
+    text: 'The settings menu fits on a phone.',
+  },
+  {
+    version: '0.108.1',
+    date: '2026-10-20',
+    text: 'Self-hosters build their own price questions in one command.',
+  },
+  {
+    version: '0.108.0',
+    date: '2026-10-20',
+    text: "A new round: Who's That NPC?",
+  },
+  {
+    version: '0.107.0',
+    date: '2026-10-20',
+    text: 'The Toktz theme is calmer, and its boar wears TzHaar colours.',
+  },
+  {
+    version: '0.105.0',
+    date: '2026-10-19',
+    text: 'The Prifddinas theme is now called the Gauntlet.',
+  },
+  {
+    version: '0.104.0',
+    date: '2026-10-18',
+    text: 'Three new themes: Jungle, Prifddinas and Morytania.',
+  },
+  {
+    version: '0.103.0',
+    date: '2026-10-18',
+    text: 'Every theme has its own sheet and pin.',
+  },
+  {
+    version: '0.102.2',
+    date: '2026-10-17',
+    text: 'Behind the scenes: the room code is split into parts.',
+  },
+  {
+    version: '0.102.1',
+    date: '2026-10-17',
+    text: 'Behind the scenes: updated dependencies.',
+  },
+  {
+    version: '0.102.0',
+    date: '2026-10-17',
+    text: "A random event's reveal leaves out its intro, a gem nobody picked shows no count, and the lobby counts events apart.",
+  },
+  {
+    version: '0.99.2',
+    date: '2026-10-17',
+    text: 'Behind the scenes: calmer dependency updates.',
+  },
+  {
+    version: '0.99.1',
+    date: '2026-10-17',
+    text: 'Behind the scenes: dependencies are scanned for flaws.',
+  },
+  {
+    version: '0.99.0',
+    date: '2026-10-17',
+    text: 'Items show their icons, and a question can have a picture under its prompt.',
+  },
+  {
+    version: '0.97.2',
+    date: '2026-10-17',
+    text: 'Behind the scenes: pictures show in development builds.',
+  },
+  {
+    version: '0.97.1',
+    date: '2026-10-17',
+    text: 'Behind the scenes: notes on how work is tracked.',
+  },
+  {
+    version: '0.97.0',
+    date: '2026-10-17',
+    text: "A question's picture no longer gives its answer away by its file name.",
+  },
+  {
+    version: '0.96.1',
+    date: '2026-10-17',
+    text: 'Behind the scenes: tidier notes.',
+  },
+  {
+    version: '0.96.0',
+    date: '2026-10-16',
+    text: 'The admin view groups pack questions by host or type.',
+  },
+  {
+    version: '0.95.0',
+    date: '2026-10-16',
+    text: 'How to play, from Home and the lobby.',
+  },
+  {
+    version: '0.94.0',
+    date: '2026-10-16',
+    text: 'The host can end a round early and go straight to the standings.',
+  },
+  {
+    version: '0.93.0',
+    date: '2026-10-16',
+    text: 'Grand Exchange prices are dated once, on the splash and in the footer.',
+  },
+  {
+    version: '0.92.0',
+    date: '2026-10-16',
+    text: 'The Jolly theme hangs two lit lanterns on the wall on wide screens.',
+  },
+  {
+    version: '0.91.0',
+    date: '2026-10-16',
+    text: 'Themes show item icons as emblems, and TzHaar is now called Toktz.',
+  },
+  {
+    version: '0.90.0',
+    date: '2026-10-14',
+    text: 'Every random event NPC has questions of their own, and Reldo joins them.',
+  },
+  {
+    version: '0.89.2',
+    date: '2026-10-13',
+    text: 'A new random event: the Fairy Queen and her fairy rings.',
+  },
+  {
+    version: '0.89.1',
+    date: '2026-10-13',
+    text: 'Sort It Out gets 33 more questions.',
+  },
+  {
+    version: '0.89.0',
+    date: '2026-10-13',
+    text: 'A credits page for the question authors, and a thank-you to the OSRS Wiki.',
+  },
+  {
+    version: '0.88.0',
+    date: '2026-10-13',
+    text: 'Suggest an examine as a Guess the Examine question.',
+  },
+  {
+    version: '0.87.0',
+    date: '2026-10-13',
+    text: 'Ordering questions are answered by dragging the entries into place.',
+  },
+  {
+    version: '0.86.0',
+    date: '2026-10-13',
+    text: 'Every reveal shows how the room split and who picked what.',
+  },
+  {
+    version: '0.85.0',
+    date: '2026-10-13',
+    text: 'When everyone has answered, a second passes before the reveal; random events hand the stage back more smoothly.',
+  },
+  {
+    version: '0.81.0',
+    date: '2026-10-13',
+    text: 'Guess the Examine is multiple choice, with four to six names.',
+  },
+  {
+    version: '0.80.3',
+    date: '2026-10-13',
+    text: "The admin button moves to Home's Suggest panel.",
+  },
+  {
+    version: '0.80.2',
+    date: '2026-10-11',
+    text: 'More questions, including some for the Drunken Dwarf.',
+  },
+  {
+    version: '0.80.1',
+    date: '2026-10-11',
+    text: 'Scrying Pool and Lost in Gielinor show as upcoming rounds.',
+  },
+  {
+    version: '0.80.0',
+    date: '2026-10-11',
+    text: 'Create and the lobby estimate how many minutes a game takes.',
+  },
+  {
+    version: '0.79.0',
+    date: '2026-10-11',
+    text: 'Create is rebuilt as steps: rounds, rules and random events.',
+  },
+  {
+    version: '0.77.0',
+    date: '2026-10-11',
+    text: 'The host sees the room code before creating, and can reroll it.',
+  },
+  {
+    version: '0.76.3',
+    date: '2026-10-11',
+    text: "The last question's reveal lasts as long as the others.",
+  },
+  {
+    version: '0.76.1',
+    date: '2026-10-11',
+    text: 'Behind the scenes: faster tests.',
+  },
+  {
+    version: '0.76.0',
+    date: '2026-10-11',
+    text: 'Room codes are spelled as words, and the lobby shows who is away.',
+  },
+  {
+    version: '0.75.0',
+    date: '2026-10-11',
+    text: 'Pick for me: let Create choose the rounds, or keep them a surprise.',
+  },
+  {
+    version: '0.74.0',
+    date: '2026-10-11',
+    text: 'The clue scroll moves smoothly from screen to screen.',
+  },
+  {
+    version: '0.73.0',
+    date: '2026-10-09',
+    text: "The standings are the Wise Old Man's hiscores.",
+  },
+  {
+    version: '0.72.0',
+    date: '2026-10-09',
+    text: 'The lobby is on the stage, with a grid of pets.',
+  },
+  {
+    version: '0.71.0',
+    date: '2026-10-09',
+    text: 'Every line on the clue scroll is typed out.',
+  },
+  {
+    version: '0.70.0',
+    date: '2026-10-09',
+    text: 'Answer options are shuffled, so the right one is not always in the same place.',
+  },
+  {
+    version: '0.69.0',
+    date: '2026-10-09',
+    text: 'A full screen switch in the lobby and on the splash.',
+  },
+  {
+    version: '0.68.0',
+    date: '2026-10-09',
+    text: "Each question's time depends on its type and the room's pace.",
+  },
+  {
+    version: '0.67.0',
+    date: '2026-10-08',
+    text: 'Bestiary and Drop Table ask typed answers too.',
+  },
+  {
+    version: '0.66.1',
+    date: '2026-10-08',
+    text: 'Behind the scenes: a test fix.',
+  },
+  {
+    version: '0.66.0',
+    date: '2026-10-08',
+    text: 'Write pick-all-that-apply questions for your room or as suggestions; more rounds play them.',
+  },
+  {
+    version: '0.63.1',
+    date: '2026-10-08',
+    text: '40 more Drop Table questions.',
+  },
+  {
+    version: '0.63.0',
+    date: '2026-10-08',
+    text: 'Drop Table plays pick all that apply and closest number, with new questions from players.',
+  },
+  {
+    version: '0.62.1',
+    date: '2026-10-08',
+    text: 'Behind the scenes: a note for self-hosters.',
+  },
+  {
+    version: '0.62.0',
+    date: '2026-10-08',
+    text: "Home's stage shows the inn's hero, dressed for each theme.",
+  },
+  {
+    version: '0.61.1',
+    date: '2026-10-07',
+    text: 'Behind the scenes: a smaller data image.',
+  },
+  {
+    version: '0.61.0',
+    date: '2026-10-07',
+    text: 'A shared link shows a preview card, and the sign and tab icon follow the theme.',
+  },
+  {
+    version: '0.59.1',
+    date: '2026-10-07',
+    text: 'The inn gets its logo.',
+  },
+  {
+    version: '0.59.0',
+    date: '2026-10-07',
+    text: 'The admin view counts how games end, how long they last and how players join.',
+  },
+  {
+    version: '0.58.3',
+    date: '2026-10-07',
+    text: 'Your pet stays the same between games.',
+  },
+  {
+    version: '0.58.2',
+    date: '2026-10-07',
+    text: 'Submit stays on screen for pick all that apply on phones.',
+  },
+  {
+    version: '0.58.1',
+    date: '2026-10-06',
+    text: 'Behind the scenes: renamed plan notes.',
+  },
+  {
+    version: '0.58.0',
+    date: '2026-10-06',
+    text: 'Suggestions for NPC questions can have an intro, and the admin can edit popular items.',
+  },
+  {
+    version: '0.56.0',
+    date: '2026-10-06',
+    text: 'A rebalanced Home with icon buttons, dates under room codes and a no-cookies notice.',
+  },
+  {
+    version: '0.55.0',
+    date: '2026-10-06',
+    text: 'The admin can edit and delete pack questions.',
+  },
+  {
+    version: '0.54.0',
+    date: '2026-10-06',
+    text: 'Suggest Sort It Out and Release Order questions, with quotes and sources beyond the wiki.',
+  },
+  {
+    version: '0.51.0',
+    date: '2026-10-05',
+    text: 'Report a problem with a question.',
+  },
+  {
+    version: '0.50.0',
+    date: '2026-10-05',
+    text: 'The clue scroll is set in the RuneScape font.',
+  },
+  {
+    version: '0.49.1',
+    date: '2026-10-05',
+    text: 'Behind the scenes: a steadier test.',
+  },
+  {
+    version: '0.49.0',
+    date: '2026-10-05',
+    text: 'A new round: Odd One Out.',
+  },
+  {
+    version: '0.48.0',
+    date: '2026-10-05',
+    text: 'Every round opens with a splash, reveals last 6 seconds, and Create starts with no rounds picked.',
+  },
+  {
+    version: '0.47.0',
+    date: '2026-10-05',
+    text: 'Pick a pet as your avatar.',
+  },
+  {
+    version: '0.46.0',
+    date: '2026-10-05',
+    text: 'Pets arrive, with their chatheads and metamorphoses; Sort It Out and Bestiary get more questions.',
+  },
+  {
+    version: '0.44.0',
+    date: '2026-10-05',
+    text: 'Two new rounds: Bestiary and Drop Table.',
+  },
+  {
+    version: '0.43.0',
+    date: '2026-10-04',
+    text: 'Two new rounds: Who Said That? and Know Your Content Creator.',
+  },
+  {
+    version: '0.42.1',
+    date: '2026-10-04',
+    text: 'Past games are listed five to a page.',
+  },
+  {
+    version: '0.42.0',
+    date: '2026-10-04',
+    text: 'Rooms you created show roughly when they are cleaned up.',
+  },
+  {
+    version: '0.41.1',
+    date: '2026-10-04',
+    text: 'Behind the scenes: a dropped task.',
+  },
+  {
+    version: '0.41.0',
+    date: '2026-10-04',
+    text: 'Past games get a Hi-scores button and can be removed.',
+  },
+  {
+    version: '0.40.0',
+    date: '2026-10-04',
+    text: 'Create and Home show how many rooms you can still host.',
+  },
+  {
+    version: '0.39.0',
+    date: '2026-10-04',
+    text: 'A new round: Sort It Out.',
+  },
+  {
+    version: '0.38.0',
+    date: '2026-10-04',
+    text: 'A new question type: put things in order.',
+  },
+  {
+    version: '0.37.0',
+    date: '2026-10-04',
+    text: 'Suggest questions, examines and items for the game.',
+  },
+  {
+    version: '0.36.0',
+    date: '2026-10-04',
+    text: 'The clue scroll keeps room for two lines, and the reveal counts partial answers.',
+  },
+  {
+    version: '0.35.0',
+    date: '2026-10-03',
+    text: 'A new question type: pick all that apply.',
+  },
+  {
+    version: '0.34.3',
+    date: '2026-10-03',
+    text: 'A random event types its intro, pauses, then its question.',
+  },
+  {
+    version: '0.34.2',
+    date: '2026-10-03',
+    text: 'Behind the scenes: one file for Guess the Examine.',
+  },
+  {
+    version: '0.34.1',
+    date: '2026-10-03',
+    text: 'Random events open with an intro before their question.',
+  },
+  {
+    version: '0.33.1',
+    date: '2026-10-03',
+    text: "Create shows each upcoming round's host.",
+  },
+  {
+    version: '0.33.0',
+    date: '2026-10-03',
+    text: 'A new round: Random Events Only, every question from the event NPCs.',
+  },
+  {
+    version: '0.32.0',
+    date: '2026-10-03',
+    text: 'The random event NPC stands on the stage.',
+  },
+  {
+    version: '0.31.1',
+    date: '2026-10-02',
+    text: 'Self-hosters run the data scripts in a container.',
+  },
+  {
+    version: '0.31.0',
+    date: '2026-10-02',
+    text: 'Self-hosters fetch the NPC and trophy art in one command.',
+  },
+  {
+    version: '0.30.1',
+    date: '2026-10-02',
+    text: 'Behind the scenes: notes on the question packs.',
+  },
+  {
+    version: '0.30.0',
+    date: '2026-10-02',
+    text: 'New players pick a name before their first room.',
+  },
+  {
+    version: '0.29.0',
+    date: '2026-10-02',
+    text: 'Home is laid out for desktop and opens with the Wise Old Man.',
+  },
+  {
+    version: '0.28.0',
+    date: '2026-10-02',
+    text: 'The host can let players into an invite-only room from the lobby.',
+  },
+  {
+    version: '0.27.0',
+    date: '2026-10-02',
+    text: 'Random events get their own panel on Create, and the rest folds under Advanced.',
+  },
+  {
+    version: '0.26.0',
+    date: '2026-10-02',
+    text: "Every screen's text sits on a panel, and the footer on a band.",
+  },
+  {
+    version: '0.25.0',
+    date: '2026-10-02',
+    text: 'Write your own questions for a room.',
+  },
+  {
+    version: '0.24.1',
+    date: '2026-10-02',
+    text: 'Behind the scenes: tidier code comments.',
+  },
+  {
+    version: '0.24.0',
+    date: '2026-10-02',
+    text: 'Public lobbies: list your room on Home for anyone to join.',
+  },
+  {
+    version: '0.23.0',
+    date: '2026-10-01',
+    text: 'A new theme: TzHaar, an obsidian floor split by glowing lava.',
+  },
+  {
+    version: '0.22.0',
+    date: '2026-10-01',
+    text: 'A new theme: the Party Room, a checkered floor strewn with balloons.',
+  },
+  {
+    version: '0.21.0',
+    date: '2026-10-01',
+    text: 'Invite links: an invite-only room lets in only those with the link.',
+  },
+  {
+    version: '0.20.0',
+    date: '2026-10-01',
+    text: 'Surprise rounds: players learn each round as it starts.',
+  },
+  {
+    version: '0.19.0',
+    date: '2026-10-01',
+    text: 'An admin view with the live rooms and charts.',
+  },
+  {
+    version: '0.18.0',
+    date: '2026-10-01',
+    text: 'The game counts rooms, games, rounds and players per day.',
+  },
+  {
+    version: '0.17.0',
+    date: '2026-10-01',
+    text: 'Finished games are kept on Home with the players.',
+  },
+  {
+    version: '0.16.0',
+    date: '2026-10-01',
+    text: 'The lobby shows when someone is picking a name; names are fixed once the game starts.',
+  },
+  {
+    version: '0.15.0',
+    date: '2026-10-01',
+    text: 'A new Create page, with a card per round.',
+  },
+  {
+    version: '0.14.0',
+    date: '2026-09-30',
+    text: 'One menu in the top bar.',
+  },
+  {
+    version: '0.13.2',
+    date: '2026-09-30',
+    text: 'Behind the scenes: open tasks moved to GitHub.',
+  },
+  {
+    version: '0.13.1',
+    date: '2026-09-30',
+    text: 'Behind the scenes: updated notes.',
+  },
+  {
+    version: '0.13.0',
+    date: '2026-09-29',
+    text: 'Every round has a host from the wiki, with lines of their own.',
+  },
+  {
+    version: '0.12.0',
+    date: '2026-09-27',
+    text: 'The splash and every question play on the stage, on a clue scroll.',
+  },
+  {
+    version: '0.11.1',
+    date: '2026-09-27',
+    text: 'Random events hold for 3.5 seconds.',
+  },
+  {
+    version: '0.11.0',
+    date: '2026-09-26',
+    text: 'A host can run up to five rooms at once.',
+  },
+  {
+    version: '0.10.2',
+    date: '2026-09-26',
+    text: 'Behind the scenes: a build fix.',
+  },
+  {
+    version: '0.10.1',
+    date: '2026-09-26',
+    text: 'Behind the scenes: builds run on our own machines.',
+  },
+  {
+    version: '0.10.0',
+    date: '2026-09-26',
+    text: 'A footer, a GitHub link in the top bar, and branding for self-hosters.',
+  },
+  {
+    version: '0.9.1',
+    date: '2026-09-26',
+    text: 'The code is open source under AGPL-3.0.',
+  },
+  {
+    version: '0.9.0',
+    date: '2026-09-26',
+    text: "The game follows the OSRS Wiki's rules for fetching its data.",
+  },
+  {
+    version: '0.6.28',
+    date: '2026-09-25',
+    text: 'Behind the scenes: up-to-date notes.',
+  },
+  {
+    version: '0.6.27',
+    date: '2026-09-25',
+    text: 'Screen reader support, steadier phones, and Kick asks first.',
+  },
+  {
+    version: '0.6.20',
+    date: '2026-09-25',
+    text: 'Closest guesses earn 750, 500 or 250 points.',
+  },
+  {
+    version: '0.6.14',
+    date: '2026-09-25',
+    text: 'A round can mix question types.',
+  },
+  {
+    version: '0.6.13',
+    date: '2026-09-25',
+    text: 'Behind the scenes: safer deploys.',
+  },
+  {
+    version: '0.6.12',
+    date: '2026-09-25',
+    text: 'Behind the scenes: limits on joins and room lookups.',
+  },
+  {
+    version: '0.6.11',
+    date: '2026-09-24',
+    text: 'Behind the scenes: questions are named by id.',
+  },
+  {
+    version: '0.6.10',
+    date: '2026-09-24',
+    text: 'A room closes when the last player it waits on leaves.',
+  },
+  {
+    version: '0.6.9',
+    date: '2026-09-24',
+    text: 'Answers are timed on arrival; a stuck room restarts itself.',
+  },
+  {
+    version: '0.6.8',
+    date: '2026-09-24',
+    text: 'Behind the scenes: a steadier test.',
+  },
+  {
+    version: '0.6.7',
+    date: '2026-09-24',
+    text: 'Names, typed answers and custom questions are checked.',
+  },
+  {
+    version: '0.6.6',
+    date: '2026-09-24',
+    text: 'Behind the scenes: the server uses less memory.',
+  },
+  {
+    version: '0.6.5',
+    date: '2026-09-24',
+    text: 'Behind the scenes: limits on connections and messages.',
+  },
+  {
+    version: '0.6.4',
+    date: '2026-09-24',
+    text: 'Behind the scenes: a code review and ideas for new rounds.',
+  },
+  {
+    version: '0.6.3',
+    date: '2026-09-23',
+    text: 'Behind the scenes: house rules for tests.',
+  },
+  {
+    version: '0.6.2',
+    date: '2026-09-23',
+    text: 'Behind the scenes: house rules.',
+  },
+  {
+    version: '0.6.1',
+    date: '2026-09-22',
+    text: 'Behind the scenes: a list of upcoming rounds.',
+  },
+  {
+    version: '0.6.0',
+    date: '2026-09-22',
+    text: 'Random events get a face, a theme and questions of their own.',
+  },
+  {
+    version: '0.5.0',
+    date: '2026-09-22',
+    text: 'New question screens: gem buttons, a points slot and a timer bar.',
+  },
+  {
+    version: '0.4.0',
+    date: '2026-09-22',
+    text: 'Standings and a podium between rounds.',
+  },
+  {
+    version: '0.3.1',
+    date: '2026-09-22',
+    text: 'Behind the scenes: reorganised notes.',
+  },
+  {
+    version: '0.3.0',
+    date: '2026-09-22',
+    text: 'Multiple choice, closest number, typed answers and random events.',
+  },
+  {
+    version: '0.2.0',
+    date: '2026-09-21',
+    text: 'A new round: Guess the Examine.',
+  },
+  {
+    version: '0.1.0',
+    date: '2026-09-21',
+    text: 'The first version: host a room, friends join by its code, and play More or Less and The Price is Right for speed.',
+  },
+  {
+    version: '0.0.0',
+    date: '2026-09-13',
+    text: 'An idea for a quiz night at the inn is brought to life.',
+  },
+]

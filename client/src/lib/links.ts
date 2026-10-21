@@ -6,9 +6,12 @@
 
 export const REPO_URL = 'https://github.com/vosdev/jolly-boar-inn'
 export const LICENSE_URL = `${REPO_URL}/blob/main/LICENSE`
-/** CI tags every release `v<VERSION>`. */
-export const RELEASE_URL = `${REPO_URL}/releases/tag/v${__APP_VERSION__}`
+export const RELEASES_URL = `${REPO_URL}/releases`
 export const WIKI_URL = 'https://oldschool.runescape.wiki'
 
 /** `0.10.0` reads as `0.10`; a fix release keeps its patch number. */
-export const VERSION_LABEL = __APP_VERSION__.replace(/\.0$/, '')
+export function versionLabel(version: string): string {
+  return version.replace(/\.0$/, '')
+}
+
+export const VERSION_LABEL = versionLabel(__APP_VERSION__)

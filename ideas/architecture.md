@@ -48,7 +48,7 @@ Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
 operator's view, section 10), linked from Home's Suggest panel once this
-browser holds the admin token, `/suggest` and `/report` (section 11), linked once it has finished a game, and `/credits`, linked from the footer.
+browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game. The credits are a sheet from Home's footer.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state
@@ -168,7 +168,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   the wiki cannot prove. Players never get either.
 - An optional `multiple_choice.quote` is shown as a quotation under `prompt`.
 - `credit` names the player who suggested a pack question; with `credit_shown` the reveal says it,
-  and `GET /api/credits` counts it: `{authors: [{name, questions}]}`, most first, for `/credits`.
+  and `GET /api/credits` counts it: `{authors: [{name, questions}]}`, most first, for the credits.
 
 | Type | `value` | Credit |
 |---|---|---|
@@ -714,7 +714,8 @@ CLAUDE.md has the bump rule.
   task, even when one session does several.
 - `/VERSION` is the source; `pyproject.toml` and `package.json` copy it and `test_version.py` fails
   on drift. The client builds it in as `__APP_VERSION__` and shows `0.6` for `0.6.0`; the server
-  sends it in `welcome`.
+  sends it in `welcome`. The footer's version opens What's new from `lib/changelog.ts`, which
+  needs an entry for every version, the Dependabot bump's too.
 - CI's `release` job tags `v<VERSION>` with a GitHub Release once the other jobs pass, and fails if
   `VERSION` went backwards. `make image` builds locally; no registry.
 - Dependabot gathers every ecosystem's minor and patch updates into one weekly PR, which gets one

@@ -1,4 +1,4 @@
-/** `/credits`: the opted-in authors ranked by count, the way to suggest, and the wiki's thanks. */
+/** The credits sheet: the opted-in authors ranked by count, the way to suggest, and the wiki's thanks. */
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -11,7 +11,7 @@ vi.mock('../lib/api', async (importOriginal) => {
   return { ...real, getCredits: vi.fn() }
 })
 
-const navigate = vi.fn()
+const onclose = vi.fn()
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -40,7 +40,7 @@ describe('Credits', () => {
         { name: 'Woox', questions: 1 },
       ],
     })
-    render(Credits, { navigate })
+    render(Credits, { onclose })
     await screen.findByRole('table')
     expect(rows()).toEqual([
       ['1', 'Tayka', '17'],
@@ -52,7 +52,7 @@ describe('Credits', () => {
 
   it('says so when nobody is named yet', async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
-    render(Credits, { navigate })
+    render(Credits, { onclose })
     expect(await screen.findByText('No player-written questions yet.')).toBeTruthy()
     expect(screen.queryByRole('table')).toBeNull()
   })
@@ -61,20 +61,29 @@ describe('Credits', () => {
     vi.mocked(api.getCredits).mockRejectedValue(
       new api.ApiFailure(0, 'unreachable', 'cannot reach the server'),
     )
-    render(Credits, { navigate })
+    render(Credits, { onclose })
     expect((await screen.findByRole('alert')).textContent).toContain('cannot reach the server')
   })
 
-  it('leads to /suggest from the authors', async () => {
+  it('leads to /suggest from the authors, in a new tab', async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
-    render(Credits, { navigate })
-    await fireEvent.click(screen.getByRole('button', { name: 'Suggest one →' }))
-    expect(navigate).toHaveBeenCalledWith('/suggest')
+    render(Credits, { onclose })
+    const link = screen.getByRole('link', { name: 'Suggest one →' })
+    expect(link.getAttribute('href')).toBe('/suggest')
+    expect(link.getAttribute('target')).toBe('_blank')
+  })
+
+  it('closes on Got it and on Escape', async () => {
+    vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
+    render(Credits, { onclose })
+    await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    await fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }))
+    expect(onclose).toHaveBeenCalledTimes(2)
   })
 
   it('thanks the OSRS Wiki and links it in a new tab', async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [] })
-    render(Credits, { navigate })
+    render(Credits, { onclose })
     expect(screen.getByRole('heading', { name: 'The OSRS Wiki' })).toBeTruthy()
     const link = screen.getByRole('link', { name: 'oldschool.runescape.wiki' })
     expect(link.getAttribute('href')).toBe('https://oldschool.runescape.wiki')

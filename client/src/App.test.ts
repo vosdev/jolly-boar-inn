@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App.svelte'
 import * as api from './lib/api'
 import { savePastGame } from './lib/history'
-import { LICENSE_URL, RELEASE_URL, REPO_URL, VERSION_LABEL } from './lib/links'
+import { LICENSE_URL, REPO_URL, VERSION_LABEL } from './lib/links'
 import { profile } from './lib/profile'
 import type { OpenQuestion, RoomView } from './lib/protocol'
 import { applyServerMessage } from './lib/stores'
@@ -51,7 +51,9 @@ function overOneFooter(): void {
   expect(footers).toHaveLength(1)
   const main = document.querySelector('main')!
   expect(main.compareDocumentPosition(footers[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  expect(within(footers[0]!).getByRole('link', { name: `v${VERSION_LABEL}` })).toBeTruthy()
+  expect(
+    within(footers[0]!).getByRole('button', { name: `What's new in v${VERSION_LABEL}` }),
+  ).toBeTruthy()
   expect(bar().textContent).not.toContain(VERSION_LABEL)
 }
 
@@ -226,14 +228,8 @@ describe('App', () => {
       REPO_URL,
     )
     expect(footer.getByRole('link', { name: 'AGPL-3.0' }).getAttribute('href')).toBe(LICENSE_URL)
-    expect(footer.getByRole('link', { name: `v${VERSION_LABEL}` }).getAttribute('href')).toBe(
-      RELEASE_URL,
-    )
     expect(footer.getByText(/trademarks of Jagex Limited/)).toBeTruthy()
     expect(LICENSE_URL).toBe('https://github.com/vosdev/jolly-boar-inn/blob/main/LICENSE')
-    expect(RELEASE_URL).toBe(
-      `https://github.com/vosdev/jolly-boar-inn/releases/tag/v${__APP_VERSION__}`,
-    )
   })
 
   it('points to the source from the footer of Home', () => {
@@ -299,12 +295,23 @@ describe('App', () => {
     await screen.findByText('This browser kept no result for that game.')
   })
 
-  it('draws the credits at /credits', async () => {
+  it("offers the credits in Home's footer only", async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [{ name: 'Tayka', questions: 17 }] })
-    at('/credits')
-    await screen.findByRole('heading', { level: 1, name: 'Credits' })
+    at('/')
+    const footer = within(document.querySelector('footer')!)
+    await fireEvent.click(footer.getByRole('button', { name: 'Credits' }))
     expect(await screen.findByRole('cell', { name: 'Tayka' })).toBeTruthy()
-    expect(location.pathname).toBe('/credits')
+    cleanup()
+    at('/create')
+    expect(
+      within(document.querySelector('footer')!).queryByRole('button', { name: 'Credits' }),
+    ).toBeNull()
+  })
+
+  it('no longer draws the credits at /credits', async () => {
+    at('/credits')
+    expect(screen.queryByRole('heading', { name: 'Credits' })).toBeNull()
+    expect(api.getCredits).not.toHaveBeenCalled()
   })
 
   it('opens the admin view at /admin, taking the token out of the address bar', async () => {
