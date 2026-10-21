@@ -216,6 +216,75 @@ def test_fewer_available_than_asked_shortens_and_then_drops_rounds(
     assert all(r.questions for r in rounds)
 
 
+def _tiered(easy: int, medium: int, hard: int, untagged: int = 0) -> Pack:
+    """A ``more_less`` pack with that many questions in each tier, plus some without one."""
+    tiers = ["easy"] * easy + ["medium"] * medium + ["hard"] * hard + [None] * untagged
+    questions = tuple(
+        {"id": f"q_t{i}", "type": "more_less", "mode": "more_less", "payload": {}}
+        | ({"difficulty": tier} if tier else {})
+        for i, tier in enumerate(tiers)
+    )
+    return Pack(name="t", generated_at=None, questions=questions, path=Path("t"))
+
+
+def _tiers(rounds: list[Round]) -> Counter[str | None]:
+    return Counter(q.get("difficulty") for q in rounds[0].questions)
+
+
+@pytest.mark.parametrize("seed", range(20))
+def test_easy_never_draws_hard_and_hard_never_easy(seed: int) -> None:
+    pack = _tiered(easy=10, medium=10, hard=10)
+    easy = select([pack], [], _settings(("more_less", 20), difficulty="easy"), random.Random(seed))
+    hard = select([pack], [], _settings(("more_less", 20), difficulty="hard"), random.Random(seed))
+    assert _tiers(easy) == {"easy": 10, "medium": 10}
+    assert _tiers(hard) == {"medium": 10, "hard": 10}
+
+
+def test_mixed_draws_every_tier() -> None:
+    pack = _tiered(easy=10, medium=10, hard=10)
+    rounds = select([pack], [], _settings(("more_less", 30)), random.Random(1))
+    assert _tiers(rounds) == {"easy": 10, "medium": 10, "hard": 10}
+
+
+@pytest.mark.parametrize("difficulty", ["easy", "mixed", "hard"])
+def test_a_question_without_a_tier_is_drawn_under_every_difficulty(difficulty: str) -> None:
+    pack = _tiered(easy=5, medium=0, hard=5, untagged=5)
+    # Exactly as many as the tiers it allows hold, so nothing is left to chance.
+    settings = _settings(("more_less", 15 if difficulty == "mixed" else 10), difficulty=difficulty)
+    assert _tiers(select([pack], [], settings, random.Random(1)))[None] == 5
+
+
+def test_a_round_its_tiers_cannot_fill_is_topped_up_from_the_others() -> None:
+    pack = _tiered(easy=8, medium=0, hard=2)
+    rounds = select([pack], [], _settings(("more_less", 6), difficulty="hard"), random.Random(1))
+    assert _tiers(rounds) == {"hard": 2, "easy": 4}
+
+
+def test_the_difficulty_leaves_random_events_and_the_hosts_questions_alone() -> None:
+    """Events and custom questions are placed whatever their tier, even an easy one in a
+    hard room with harder ones left."""
+    pack = _tiered(easy=0, medium=0, hard=20)
+    events = [
+        Pack(
+            name="random_events",
+            generated_at=None,
+            questions=tuple(
+                {**q, "difficulty": "easy"}
+                for q in _event_pack(npc, ("multiple_choice",)).questions
+            ),
+            path=Path(npc),
+        )
+        for npc in ASKERS
+    ]
+    custom = [{**q, "difficulty": "easy"} for q in _custom(1)]
+    settings = _settings(("more_less", 20), difficulty="hard", random_event_frequency="more")
+    placed = _questions(select([pack, *events], custom, settings, random.Random(1)))
+    events_placed = [q for q in placed if q.get("random_event")]
+    assert len(events_placed) == settings.random_event_slots
+    assert all(q["difficulty"] == "easy" for q in events_placed)
+    assert any(q["id"] == "q_custom_0" for q in events_placed)
+
+
 def test_seeded_and_deterministic(stubs: tuple[str, ...]) -> None:
     settings = _settings(
         *((mode, 5) for mode in ("more_less", *STUBS[:3])), random_event_frequency="more"

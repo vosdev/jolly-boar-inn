@@ -77,6 +77,7 @@ const LOBBY: RoomView = {
     mode_order: 'listed',
     random_event_frequency: 'default',
     pace: 'run',
+    difficulty: 'mixed',
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,

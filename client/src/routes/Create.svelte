@@ -72,7 +72,13 @@
   import { npcArt } from '../lib/npcs'
   import { PACES } from '../lib/pace'
   import { profile, returningVisitor, saveProfile } from '../lib/profile'
-  import { EVENT_EVERY, type EventFrequency, type ModeSettings, type Pace } from '../lib/protocol'
+  import {
+    EVENT_EVERY,
+    type Difficulty,
+    type EventFrequency,
+    type ModeSettings,
+    type Pace,
+  } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
   import { MIN_TEAMS, type TeamId } from '../lib/teams'
   import { rememberCreated, setSession } from '../lib/session'
@@ -96,6 +102,8 @@
 
   /** Scales every question's time to answer and its reveal. */
   let pace = $state<Pace>('run')
+  /** Which question tiers the rounds draw first; random events take any. */
+  let difficulty = $state<Difficulty>('mixed')
   /** How long the standings hold between rounds; 0 runs the rounds straight on. */
   let standingsSeconds = $state(10)
   /** How often an NPC interrupts a round: one per 20, 10 or 5 round questions. */
@@ -356,6 +364,7 @@
       mode_order: surprise ? 'random' : modeOrder,
       random_event_frequency: frequency,
       pace,
+      difficulty,
       standings_seconds: standingsSeconds,
       close_when_all_answered: closeWhenAllAnswered,
       name_wrong_answers: nameWrongAnswers,
@@ -544,6 +553,7 @@
         />
         <HouseRules
           bind:pace
+          bind:difficulty
           bind:access
           bind:standingsSeconds
           bind:hideRounds

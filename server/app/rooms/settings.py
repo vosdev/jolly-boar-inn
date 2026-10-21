@@ -43,6 +43,9 @@ and as ``None`` for false -- "the host's questions only, one per round after the
 the rules it was created under. ``NewRoomSettings`` never takes ``None``, so no new room
 is made that way; it exists so every stored room still loads.
 
+``difficulty`` says which question tiers the rounds draw first; random events and the
+host's questions ignore it, since an NPC's handful of questions has no tiers to spare.
+
 ``teams`` makes a team game: the gods playing, ``rooms/teams.py``'s, 2 to 6 of them in its
 order, or ``[]`` for everyone on their own. ``NewRoomSettings`` holds a new room to that;
 the stored model reads back whatever list a room was created with.
@@ -71,6 +74,14 @@ from app.rooms.teams import God, check_teams
 MAX_QUESTIONS_PER_ROOM = 100
 
 Frequency = Literal["less", "default", "more"]
+Difficulty = Literal["easy", "mixed", "hard"]
+# The question tiers each room difficulty draws first. A question without a tier is medium,
+# so it plays in every room, and neither end shuts out the middle a pack is mostly made of.
+TIERS: dict[str, frozenset[str]] = {
+    "easy": frozenset({"easy", "medium"}),
+    "mixed": frozenset({"easy", "medium", "hard"}),
+    "hard": frozenset({"medium", "hard"}),
+}
 # One random event per this many round questions (ideas/phase2.md, "How often"). Ten is
 # roughly once a round at the default round lengths, which is about as often as the game
 # itself interrupts anyone; five is a room that came for the NPCs.
@@ -165,6 +176,10 @@ class RoomSettings(BaseModel):
     pace: Pace = "run"
     """Scales every question's time to answer and its reveal. A room stored before pace was a
     setting reads as ``run``, the times each type was written for.
+    """
+    difficulty: Difficulty = "mixed"
+    """Which question tiers the rounds draw first (``TIERS``). A room stored before the setting
+    existed reads as ``mixed``, every question, which is what it drew.
     """
     standings_seconds: int = Field(default=10, ge=0)
     """How long the standings hold the floor between two rounds. Zero turns them off; the game's

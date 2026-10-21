@@ -285,6 +285,7 @@ def test_create_stores_settings_with_resolved_max_players(client: TestClient, db
         "mode_order": "random",
         "random_event_frequency": "default",
         "pace": "walk",
+        "difficulty": "mixed",
         "standings_seconds": 10,
         "close_when_all_answered": True,
         "name_wrong_answers": True,
@@ -318,6 +319,7 @@ def test_create_rejects_bad_settings(client: TestClient) -> None:
         {"random_event_seconds": 2},  # gone: the NPC's hold is the server's, not the room's
         {"reveal_seconds": 6},  # gone: a reveal's type times it
         {"pace": "sprint"},
+        {"difficulty": "medium"},  # a question's tier, not a room's
         {"splash_seconds": 0},  # gone: every round is introduced
         {"standings_seconds": -1},
         {"standings_seconds": 31},

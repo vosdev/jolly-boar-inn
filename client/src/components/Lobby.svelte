@@ -45,6 +45,7 @@
   import { inviteLink } from '../lib/invite'
   import { modeLabel } from '../lib/modes'
   import { minutes } from '../lib/duration'
+  import { difficultyLabel } from '../lib/difficulty'
   import { paceLabel } from '../lib/pace'
   import { petOf } from '../lib/pets'
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
@@ -134,6 +135,10 @@
           `${questions} ${questions === 1 ? 'question' : 'questions'} · ` +
           (events === 0 ? '' : `${events} random ${events === 1 ? 'event' : 'events'} · `) +
           `${paceLabel(settings.pace)} pace` +
+          // Mixed is every question, the default, so only a narrowed room says so.
+          (settings.difficulty === 'mixed'
+            ? ''
+            : ` · ${difficultyLabel(settings.difficulty)} questions`) +
           ` · ${minutes($room?.estimated_seconds ?? 0)}`,
   )
   /**

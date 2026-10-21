@@ -33,6 +33,7 @@ export type Role = PlayerView['role']
 
 /** Scales every question's time to answer and its reveal: a quarter more, as is, a quarter less. */
 export type Pace = RoomSettings['pace']
+export type Difficulty = RoomSettings['difficulty']
 /** How often an NPC interrupts: there is no off switch, `less` is the fewest. */
 export type EventFrequency = NonNullable<RoomSettings['random_event_frequency']>
 

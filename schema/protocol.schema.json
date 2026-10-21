@@ -910,6 +910,16 @@
           ],
           "type": "string"
         },
+        "difficulty": {
+          "default": "mixed",
+          "description": "Which question tiers the rounds draw first (``TIERS``). A room stored before the setting\nexisted reads as ``mixed``, every question, which is what it drew.",
+          "enum": [
+            "easy",
+            "mixed",
+            "hard"
+          ],
+          "type": "string"
+        },
         "standings_seconds": {
           "default": 10,
           "description": "How long the standings hold the floor between two rounds. Zero turns them off; the game's\nlast round never has them, because the final screen is its standings. Defaulted, so a room\nstored before the field existed reads as a room that has them.",
@@ -970,6 +980,7 @@
         "mode_order",
         "random_event_frequency",
         "pace",
+        "difficulty",
         "standings_seconds",
         "close_when_all_answered",
         "name_wrong_answers",

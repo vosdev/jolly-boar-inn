@@ -169,6 +169,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Assets are `item:<id>` or `npc:<id>`, never a URL. No `client_view` or `reveal` carries `image`:
   for some modes that id is the answer. A pack question's picture goes out as `picture` (section 6),
   a `matching` field's `icon` as the field's `picture`, added by the type's `pictured`.
+- `difficulty` on the envelope is `easy`, `medium` or `hard`; a question without one counts as medium.
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
 - `wiki` on the envelope is the page an author checked; `source_url` is any https link, for what
   the wiki cannot prove. Players never get either.
@@ -241,6 +242,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 
 - `surprise_modes: N` draws N distinct offered round modes in `create`, each at its default
   `questions`, and forces `hide_rounds`. A request with both it and `modes` is a 422.
+- `difficulty` draws `easy` and `medium` (`easy`), every tier (`mixed`) or `medium` and `hard`
+  (`hard`) first, and tops a round up from the other tier before cutting it short. Events and
+  the host's questions ignore it.
 - One round per mode picked, of that mode's `questions`. Pools are keyed by mode, never by type, or
   modes sharing a type would draw each other's questions.
 - `mode_order: random` shuffles the rounds once, here. The stored order is the running order.
@@ -437,6 +441,7 @@ Settings (`rooms.settings`, fixed at creation but for `teams`, which `set_teams`
   "mode_order": "random",                // or "listed"
   "random_event_frequency": "default",   // "less" | "default" | "more"
   "pace": "run",                         // "walk" | "run" | "teleport", section 3
+  "difficulty": "mixed",                 // "easy" | "mixed" | "hard", section 5
   "standings_seconds": 10,               // 0..30; 0 turns standings off
   "close_when_all_answered": true,
   "name_wrong_answers": true,            // name who got it wrong under the reveal

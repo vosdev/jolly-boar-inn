@@ -291,6 +291,20 @@ def test_a_room_runs_unless_its_host_picks_another_pace() -> None:
         NewRoomSettings(pace="sprint")
 
 
+def test_a_room_draws_every_tier_unless_its_host_picks_another_difficulty() -> None:
+    assert NewRoomSettings().difficulty == "mixed"
+    assert NewRoomSettings(difficulty="easy").difficulty == "easy"
+    assert NewRoomSettings(difficulty="hard").difficulty == "hard"
+    with pytest.raises(ValidationError, match="difficulty"):
+        NewRoomSettings(difficulty="medium")
+
+
+def test_a_room_stored_without_a_difficulty_loads_as_mixed() -> None:
+    stored = RoomSettings().model_dump()
+    del stored["difficulty"]
+    assert RoomSettings.stored(stored).difficulty == "mixed"
+
+
 def test_a_room_stored_with_its_own_seconds_loads_at_run_pace() -> None:
     """Per-round seconds and the room's reveal were settings once; a room stored with them
     plays on at the times its questions' types give."""
