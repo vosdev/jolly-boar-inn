@@ -1,13 +1,13 @@
 /**
  * The pet list, its manifest entries, who can be picked, which pet a player wears, and the
- * fall back to the innkeeper for a pet with no file.
+ * fall back to the boar for a pet with no file.
  */
 
 import { describe, expect, it } from 'vitest'
 
 import MANIFEST from '../../../data/assets.json'
 import { avatarArt, PETS, PICKABLE, pickablePets, petName, petOf, randomPet } from './pets'
-import { npcArt } from './npcs'
+import { FALLBACK_NPC, npcArt } from './npcs'
 
 const targets = new Set(Object.keys(MANIFEST))
 
@@ -75,7 +75,7 @@ describe('who can be picked', () => {
 describe('which pet a player wears', () => {
   it('is the one they chose, and never one the pet list happens to give them', () => {
     expect(petOf({ id: 'u1', avatar: 'aggy' })).toBe('aggy')
-    // The server stores a pet for everybody; a missing or unknown one is the innkeeper,
+    // The server stores a pet for everybody; a missing or unknown one is the boar,
     // which does not move when the pickable list does.
     expect(petOf({ id: 'u1', avatar: null })).toBe('')
     expect(petOf({ id: 'u1' })).toBe('')
@@ -135,9 +135,9 @@ describe('avatarArt', () => {
     })
   })
 
-  it('falls back to the innkeeper for a pet with no file', () => {
+  it('falls back to the boar for a pet with no file', () => {
     expect(avatarArt('aggy', 'chathead', {})).toEqual({
-      url: npcArt('innkeeper').url,
+      url: npcArt(FALLBACK_NPC).url,
       cut: 'fallback',
     })
   })

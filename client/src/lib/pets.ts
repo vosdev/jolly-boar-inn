@@ -10,11 +10,11 @@
  *
  * The server stores a pet for every player, one it picks when the client sends none, so
  * every browser draws the same pet and it never moves when the pickable list grows. An id
- * this build does not offer is drawn as the innkeeper rather than leaving a gap.
+ * this build does not offer is drawn as the boar rather than leaving a gap.
  *
  * The files are game assets and not committed, so one may be missing: found by name at
  * build time, like the NPCs, and dropping one in replaces it on the next build with no code
- * change. A pet with neither file is drawn as the innkeeper.
+ * change. A pet with neither file is drawn as the boar.
  */
 
 import ASSETS_JSON from '../../../data/assets.json'
@@ -50,7 +50,7 @@ const NAMES = new Map(PICKABLE.map((pet) => [pet.id, pet.name]))
 /** Which picture a player is drawn as: the big chathead, or the small inventory icon. */
 export type PetCut = 'chathead' | 'icon'
 
-/** A picture to draw; `cut` is `fallback` for the innkeeper standing in for a pet with no file. */
+/** A picture to draw; `cut` is `fallback` for the boar standing in for a pet with no file. */
 export interface AvatarArt {
   url: string
   cut: PetCut | 'fallback'
@@ -68,7 +68,7 @@ export function isPet(pet: unknown): pet is string {
 
 /**
  * The pet to draw for a player or a standing: their own. The server stores one for every
- * player, so an empty string is only an id this build does not offer, drawn as the innkeeper.
+ * player, so an empty string is only an id this build does not offer, drawn as the boar.
  */
 export function petOf(player: { id: string; avatar?: string | null }): string {
   return isPet(player.avatar) ? player.avatar : ''
@@ -100,7 +100,7 @@ function fileNamed(files: Record<string, string>, stem: string): string | null {
   return null
 }
 
-/** The art for a player wearing `pet`: the `prefer`red picture, else the other, else the innkeeper. */
+/** The art for a player wearing `pet`: the `prefer`red picture, else the other, else the boar. */
 export function avatarArt(
   pet: string,
   prefer: PetCut = 'chathead',

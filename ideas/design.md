@@ -167,7 +167,7 @@ who sends none is given one by the server, so every client draws the same pet fo
   name, a Random button for those who cannot decide, and Change pet, a search box over a scrolling
   A-to-Z grid of icons: a native radio group, so arrows, one tab stop and screen readers work.
   Like names, pets are fixed once the game starts.
-- A pet with no file is drawn as the innkeeper.
+- A pet with no file is drawn as the boar.
 
 ## 7. Sound (#102)
 
@@ -252,7 +252,7 @@ Round 2 of 5 · 5 questions
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
-  sheet. A mode with no host, or a host with no art, gets the generic innkeeper.
+  sheet. A mode with no host, or a host with no art, gets the generic boar.
 - **Home** opens with the same stage and the site's challenge on the sheet, in place of a panel,
   and the lobby (§9) with the room on it. Home's sheet in `jolly` is a note tacked to a notice
   board, so the inn's front door differs from its games. Their host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
@@ -414,8 +414,8 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Speedrunning trophies | Game renders, `make fetch-assets` | No, fetched; placeholders ship |
 | Clue scroll font | RuneStar/fonts, Quill 8 | **Yes**, 21 KB, with a note beside it |
 | Pins, the poster's skull | Wiki sprites, as SVGs pixel for pixel | **Yes**, `assets/sprites/`, with a note beside it |
-| Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the innkeeper is committed |
-| Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the innkeeper |
+| Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the boar is committed |
+| Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the boar |
 | Theme emblems | Wiki item icons, `make fetch-assets` | No, fetched; inline placeholder marks |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
