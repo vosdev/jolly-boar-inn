@@ -38,6 +38,9 @@ export const TEAMS: readonly Team[] = [
   { id: 'zaros', name: 'Zaros', colour: '#6b3fa0', trim: '#6b3fa0' },
 ]
 
+/** The fewest gods a team game has; the server refuses fewer. */
+export const MIN_TEAMS = 2
+
 /** The team called `id`. */
 export function team(id: TeamId): Team {
   return TEAMS.find((t) => t.id === id)!

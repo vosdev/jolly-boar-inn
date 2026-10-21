@@ -156,6 +156,20 @@ function shownNames(selector: string): string[] {
   return [...document.querySelectorAll(selector)].map((node) => node.textContent?.trim() ?? '')
 }
 
+/** Turn the team game on. */
+async function teamGame(): Promise<void> {
+  const choice = screen.getByRole('group', { name: 'Team game' })
+  await fireEvent.click(within(choice).getByRole('radio', { name: 'On' }))
+}
+
+/** The gods ticked, by name. */
+function ticked(): string[] {
+  return within(screen.getByRole('group', { name: 'Gods' }))
+    .getAllByRole('checkbox')
+    .filter((box) => (box as HTMLInputElement).checked)
+    .map((box) => box.closest('label')?.textContent?.trim() ?? '')
+}
+
 describe('Create', () => {
   it('puts its heading, how long a room keeps and that its settings are final on panels', async () => {
     await loaded()
@@ -617,6 +631,53 @@ describe('Create', () => {
     )
     await fireEvent.click(within(choice).getByRole('radio', { name: 'On' }))
     expect((await submitted()).hide_rounds).toBe(true)
+  })
+
+  it('sends no teams unless the host turns the team game on', async () => {
+    await loaded(...BOTH)
+    expect(screen.queryByRole('checkbox', { name: 'Saradomin' })).toBeNull()
+    expect((await submitted()).teams).toEqual([])
+  })
+
+  it('starts a team game on Saradomin and Zamorak, each god with its logo and name', async () => {
+    await loaded(...BOTH)
+    await teamGame()
+    const gods = screen.getByRole('group', { name: 'Gods' })
+    expect(
+      within(gods)
+        .getAllByRole('checkbox')
+        .map((box) => box.closest('label')?.textContent?.trim()),
+    ).toEqual(['Saradomin', 'Zamorak', 'Guthix', 'Armadyl', 'Bandos', 'Zaros'])
+    expect(gods.querySelectorAll('.logo .logo')).toHaveLength(6)
+    expect(ticked()).toEqual(['Saradomin', 'Zamorak'])
+  })
+
+  it('sends the ticked gods in their own order, whatever order they were ticked in', async () => {
+    await loaded(...BOTH)
+    await teamGame()
+    await pick('Zaros', 'Guthix', 'Saradomin')
+    await pick('Bandos')
+    expect((await submitted()).teams).toEqual(['zamorak', 'guthix', 'bandos', 'zaros'])
+  })
+
+  it('blocks Create with a hint when fewer than two gods are ticked', async () => {
+    await loaded(...BOTH)
+    await teamGame()
+    await pick('Zamorak')
+    expect(status()).toBe('Tick at least two gods for a team game.')
+    expect(createButton().disabled).toBe(true)
+    await pick('Bandos')
+    expect(createButton().disabled).toBe(false)
+  })
+
+  it('sends no teams once the switch is off again, whatever is ticked', async () => {
+    await loaded(...BOTH)
+    await teamGame()
+    await pick('Zamorak')
+    const choice = screen.getByRole('group', { name: 'Team game' })
+    await fireEvent.click(within(choice).getByRole('radio', { name: 'Off' }))
+    expect(createButton().disabled).toBe(false)
+    expect((await submitted()).teams).toEqual([])
   })
 
   it('lets anyone with the code in unless the host picks the link or the public list', async () => {

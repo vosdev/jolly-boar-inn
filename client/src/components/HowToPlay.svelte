@@ -1,8 +1,9 @@
 <script lang="ts">
   /**
    * How to play, as a sheet: a row per way of answering, each with a small drawing of its
-   * control, and the scoring in one line. From the lobby it shows only what the room
-   * plays (`lib/howToPlay.ts`); from Home, everything.
+   * control, the scoring in one line, and how teams score. From the lobby it shows only
+   * what the room plays (`lib/howToPlay.ts`), and a team room's scoring is the teams';
+   * from Home, everything.
    *
    * The drawings are pictures, hidden from a screen reader, which the sentence beside
    * each says in full. Their Submit is the real button's colour, so it is the thing that
@@ -13,10 +14,12 @@
   import type { ModePacing } from '../lib/api'
   import {
     SCORING_LINE,
+    TEAMS_PARAGRAPH,
     allTypes,
     loadModes,
     roomTypes,
     rowsFor,
+    showsTeams,
     type HowToRow,
   } from '../lib/howToPlay'
   import type { RoomSettings } from '../lib/protocol'
@@ -105,7 +108,12 @@
         </li>
       {/each}
     </ul>
-    <p class="scoring">{SCORING_LINE}</p>
+    {#if room === null || !showsTeams(room.settings)}
+      <p class="scoring">{SCORING_LINE}</p>
+    {/if}
+    {#if showsTeams(room?.settings ?? null)}
+      <p class="teams"><strong>Teams.</strong> {TEAMS_PARAGRAPH}</p>
+    {/if}
   {/if}
   <button type="button" class="primary done" onclick={onclose}>Got it</button>
 </Sheet>
@@ -239,6 +247,10 @@
   .scoring {
     margin: 1rem 0 0;
     font-weight: 700;
+  }
+
+  .teams {
+    margin: 0.75rem 0 0;
   }
 
   .done {
