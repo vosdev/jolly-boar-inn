@@ -176,17 +176,18 @@ export class SharedStage {
     const end = scroll.getBoundingClientRect()
     const endAt = offsetIn(root, end)
     lock(scroll, end)
-    this.#moving = scroll.animate(
-      [
-        {
-          width: `${start.width}px`,
-          height: `${start.height}px`,
-          transform: `translate(${startAt.x - endAt.x}px, ${startAt.y - endAt.y}px)`,
-        },
-        { width: `${end.width}px`, height: `${end.height}px`, transform: 'none' },
-      ],
-      { duration: handoff.move, easing: 'ease-in-out' },
-    )
+    const before: Keyframe = { width: `${start.width}px`, height: `${start.height}px` }
+    const after: Keyframe = { width: `${end.width}px`, height: `${end.height}px` }
+    // An event's entrance slides the scroll itself (`StageView`), so only its size moves here.
+    const enter = handoff.kind === 'enter'
+    if (!enter) {
+      before.transform = `translate(${startAt.x - endAt.x}px, ${startAt.y - endAt.y}px)`
+      after.transform = 'none'
+    }
+    this.#moving = scroll.animate([before, after], {
+      duration: handoff.move,
+      easing: enter ? 'ease-out' : 'ease-in-out',
+    })
     await wait(handoff.move)
     if (run !== this.#run) return
     this.#moving = null
@@ -338,7 +339,8 @@ function ghostsOf(root: HTMLElement, parts: Parts, ms: number): HTMLElement[] {
     })
     ghost.append(node)
     parent.append(ghost)
-    ghost.animate([{ opacity: 1 }, { opacity: 0 }], {
+    // From where the slot stood: a returned event's words have already faded off.
+    ghost.animate([{ opacity: style.opacity }, { opacity: 0 }], {
       duration: ms,
       easing: 'ease-in',
       fill: 'forwards',

@@ -1,4 +1,4 @@
-/** The random event's return: each step waits for the last, in `lib/interlude.ts`'s numbers. */
+/** A random event's entrance and return: each step waits for the last, in the libs' numbers. */
 
 import { describe, expect, it } from 'vitest'
 
@@ -8,12 +8,13 @@ import {
   RETURN_MOVE_MS,
   RETURN_MS,
 } from '../../lib/interlude'
+import { ENTER_MOVE_MS } from '../../lib/stageMoves'
 import source from './StageView.svelte?raw'
 
-/** The duration and delay of the animation a `.returning` rule plays, in ms. */
-function timing(selector: string): { duration: number; delay: number } {
+/** The duration and delay of the animation a rule for `state` plays, in ms. */
+function timing(selector: string, state = 'returning'): { duration: number; delay: number } {
   const rule = source.match(
-    new RegExp(`\\.returning ${selector} \\{[^}]*?animation: [\\w-]+ ([^;]+);`),
+    new RegExp(`\\.${state} ${selector} \\{[^}]*?animation: [\\w-]+ ([^;]+);`),
   )
   const [duration = NaN, delay = 0] = [...(rule?.[1] ?? '').matchAll(/(\d+)ms/g)].map((m) =>
     Number(m[1]),
@@ -30,5 +31,16 @@ describe('the return', () => {
     expect(scroll).toEqual({ duration: RETURN_MOVE_MS, delay: guest.duration })
     expect(host).toEqual({ duration: RETURN_HOST_IN_MS, delay: scroll.delay + scroll.duration })
     expect(host.delay + host.duration).toBe(RETURN_MS)
+  })
+
+  it('takes the words off the sheet with the NPC, before the scroll moves', () => {
+    expect(timing('> :global\\(\\.scroll \\.content\\)')).toEqual(timing('\\.guest'))
+  })
+})
+
+describe('the entrance', () => {
+  it('slides the scroll over for as long as the shared stage holds the words back', () => {
+    const scroll = timing('> :global\\(\\.scroll\\)', 'entering')
+    expect(scroll).toEqual({ duration: ENTER_MOVE_MS, delay: 0 })
   })
 })

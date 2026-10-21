@@ -6,6 +6,7 @@
  * words fade off the sheet, the scroll moves to its new size and place, and only then
  * do the new words appear. If somebody else is to stand beside it, the old host leaves
  * with the words and the new one walks on once the scroll is in place, before the words.
+ * A random event's entrance (section 12) waits for the words too, then plays its own.
  */
 
 import { reducedMotion } from './interlude'
@@ -30,7 +31,7 @@ export interface Cast {
 
 /** The parts of a hand-over, in ms, and when the new words appear. */
 export interface Handoff {
-  kind: 'cut' | 'same' | 'swap'
+  kind: 'cut' | 'same' | 'swap' | 'enter'
   out: number
   move: number
   in: number
@@ -43,6 +44,8 @@ export const MOVE_MS = 250
 export const HOST_IN_MS = 200
 /** The new words fade up over this, from their arrival. */
 export const WORDS_IN_MS = 150
+/** An event's entrance: the host fades out and the scroll slides left (`StageView`). */
+export const ENTER_MOVE_MS = 375
 
 /** No hand-over: the new screen is simply there. */
 export const CUT: Handoff = { kind: 'cut', out: 0, move: 0, in: 0, arrival: 0 }
@@ -59,6 +62,13 @@ const SWAP: Handoff = {
   move: MOVE_MS,
   in: HOST_IN_MS,
   arrival: HOST_OUT_MS + MOVE_MS + HOST_IN_MS,
+}
+const ENTER: Handoff = {
+  kind: 'enter',
+  out: WORDS_OUT_MS,
+  move: ENTER_MOVE_MS,
+  in: 0,
+  arrival: WORDS_OUT_MS + ENTER_MOVE_MS,
 }
 
 /** A cast from what a screen says about its stage; the rest is a round's plain stage. */
@@ -83,15 +93,15 @@ function standing(cast: Cast): string {
 /**
  * How `to` takes the stage over from `from`, which is null when nothing was on it.
  *
- * A first stage, the same screen moving on (a question's reveal), and a random event,
- * which has its own entrance and return, are cuts. So is anything under reduced motion,
- * and a screen that could not wait for the hand-over: a question that arrived late must
- * not hide its answers past `answerable_at`.
+ * A random event playing its entrance clears the sheet before the scroll slides. A first
+ * stage, the same screen moving on (a question's reveal), and an event already standing
+ * are cuts. So is anything under reduced motion, and a screen that could not wait for the
+ * hand-over: a question that arrived late must not hide its answers past `answerable_at`.
  */
 export function handoffFor(from: Cast | null, to: Cast, motion = !reducedMotion()): Handoff {
   if (from === null || !motion) return CUT
-  if (to.entering || to.guest !== null) return CUT
   if (to.scene !== null && to.scene === from.scene) return CUT
-  const handoff = standing(from) === standing(to) ? SAME : SWAP
+  if (!to.entering && to.guest !== null) return CUT
+  const handoff = to.entering ? ENTER : standing(from) === standing(to) ? SAME : SWAP
   return handoff.arrival > to.within ? CUT : handoff
 }

@@ -26,7 +26,8 @@
    * slides left into the space it leaves, and the guest fades in. Without it the guest is
    * simply there, which is what a reveal or a reconnect late in the hold wants. On a phone
    * the scroll stays put and the guest takes the host's place, on the sheet's other side.
-   * `returning` mirrors it at the reveal's end, so the host is in place for what follows.
+   * `returning` mirrors it at the reveal's end, the words leaving with the guest, so the
+   * host is in place for what follows and nothing moves with words on it.
    *
    * A `tall` sheet, the hiscores, runs longer than a screen, so the host stands at its
    * top-left beside the line it speaks, and the sheet keeps its full width below. What is
@@ -276,8 +277,13 @@
     animation: guest-in 375ms ease-out 225ms both;
   }
 
-  /* The way back, a step at a time in `RETURN_*_MS` of `lib/interlude.ts`: the guest leaves
-     where it stood, then the scroll slides home, then the host walks back on. */
+  /* The way back, a step at a time in `RETURN_*_MS` of `lib/interlude.ts`: the guest and
+     the words leave, then the scroll slides home, then the host walks back on. */
+  .returning > :global(.scroll .content) {
+    opacity: 0;
+    animation: fade-out 225ms ease-in both;
+  }
+
   .returning .guest {
     position: absolute;
     right: 0;
@@ -348,7 +354,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     :is(.entering, .returning) :is(.host, .guest),
-    :is(.entering, .returning) > :global(.scroll) {
+    :is(.entering, .returning) > :global(.scroll),
+    .returning > :global(.scroll .content) {
       animation: none;
     }
   }

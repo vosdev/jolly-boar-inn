@@ -20,7 +20,7 @@ import { HISCORES_HOST } from '../lib/hiscores'
 import { RETURN_MS } from '../lib/interlude'
 import { MODES } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
-import { HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
+import { ENTER_MOVE_MS, HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
 import { timerBar } from '../lib/timerbar'
 import { stubAnimations } from '../test-animate'
@@ -871,6 +871,33 @@ describe('the shared stage', () => {
     await vi.advanceTimersByTimeAsync(MOVE_MS)
     expect(words().style.opacity).toBe('')
     expect(row().classList.contains('presence-here')).toBe(true)
+  })
+
+  it('clears the sheet before a random event slides the scroll over, then shows its words', async () => {
+    await onSplash()
+    applyServerMessage({
+      t: 'question_open',
+      question: {
+        ...ASKED,
+        type: 'multiple_choice',
+        mode: 'random_event',
+        random_event: 'bob',
+        view: { prompt: 'What amulet lets you talk to cats?', options: ['Catspeak', 'Camulet'] },
+        opened_at: new Date().toISOString(),
+        answerable_at: inSeconds(6),
+      },
+    })
+    await tick()
+    expect(document.querySelector('.stage-ghost')?.textContent).toContain(MODES.more_less!.label)
+    expect(words().style.opacity).toBe('0')
+    expect(row().classList.contains('entering')).toBe(false)
+    await vi.advanceTimersByTimeAsync(WORDS_OUT_MS)
+    expect(document.querySelector('.stage-ghost')).toBeNull()
+    expect(row().classList.contains('entering')).toBe(true)
+    expect(words().style.opacity).toBe('0')
+    await vi.advanceTimersByTimeAsync(ENTER_MOVE_MS)
+    expect(words().style.opacity).toBe('')
+    expect(words().textContent).toContain('Evil Bob')
   })
 
   it('swaps the host for the Wise Old Man at the standings, before his words', async () => {
