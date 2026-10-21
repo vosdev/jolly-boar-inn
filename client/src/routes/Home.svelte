@@ -22,7 +22,14 @@
   import { ApiFailure, deleteRoom, getPublicRooms, type PublicRoom } from '../lib/api'
   import { expiresIn, finishedTime } from '../lib/dates'
   import { petOf } from '../lib/pets'
-  import { historyPath, pastGames, placeIn, removePastGame, type PastGame } from '../lib/history'
+  import {
+    historyPath,
+    pastGames,
+    placeIn,
+    removePastGame,
+    winnerIn,
+    type PastGame,
+  } from '../lib/history'
   import { atRoomLimit } from '../lib/roomLimit'
   import type { Route } from '../lib/stats'
   import { maySuggest } from '../lib/suggestions'
@@ -359,7 +366,7 @@
         <h2>Past games</h2>
         <ul class="players">
           {#each pastShown as game (historyPath(game))}
-            {@const place = placeIn(game)}
+            {@const place = winnerIn(game) ?? placeIn(game)}
             <li>
               <span class="name">
                 <span class="code-small">{game.code}</span>

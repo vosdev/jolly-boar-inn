@@ -9,6 +9,9 @@
    * rows arriving top to bottom, and he congratulates the winners. Skip goes straight to
    * that last step. Without `ceremony`, a reload or a past game, and under reduced motion,
    * the hiscores are simply there.
+   *
+   * A team game's table ranks its teams, each with its members under it, and he names the
+   * winning team instead.
    */
   import type { Snippet } from 'svelte'
   import { untrack } from 'svelte'
@@ -21,15 +24,17 @@
     FINAL_INTRO,
     HISCORES_HOST,
     placeLine,
+    teamWinnersLine,
     unrollMs,
     winnersLine,
     type Place,
   } from '../lib/hiscores'
   import { reducedMotion } from '../lib/interlude'
   import { petOf } from '../lib/pets'
-  import type { Standing } from '../lib/protocol'
+  import type { Standing, TeamStanding } from '../lib/protocol'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
+  import type { TeamId } from '../lib/teams'
   import { tierName, trophyArt } from '../lib/trophies'
   import { lettersOf } from '../lib/typing.svelte'
   import Hiscores from './Hiscores.svelte'
@@ -38,15 +43,22 @@
   import Confetti from './stage/Confetti.svelte'
   import Stage from './stage/Stage.svelte'
   import TypeIn from './stage/TypeIn.svelte'
+  import TeamHiscores from './TeamHiscores.svelte'
 
   let {
     standings,
+    teamStandings = null,
+    teamOf = {},
     youId,
     ceremony = false,
     past = false,
     children,
   }: {
     standings: Standing[]
+    /** A team game's teams; null outside one. */
+    teamStandings?: TeamStanding[] | null
+    /** Each player's team by id, in a team game. */
+    teamOf?: Record<string, TeamId>
     youId: string | null
     /** Present the top five before the table. */
     ceremony?: boolean
@@ -111,9 +123,11 @@
   }
 
   const winners = $derived(
-    winnersLine(
-      standings.filter((standing) => standing.rank === 1 && standing.points > 0).map(nameOf),
-    ),
+    teamStandings !== null
+      ? teamWinnersLine(teamStandings)
+      : winnersLine(
+          standings.filter((standing) => standing.rank === 1 && standing.points > 0).map(nameOf),
+        ),
   )
   const place = $derived<Place | null>(shown === null ? null : (places[shown] ?? null))
 
@@ -140,8 +154,25 @@
     </HiscoresHead>
     <div class="board" bind:clientHeight={boardHeight}>
       {#if phase === 'table'}
-        <div in:unroll={{ from: unrollFrom, duration: unrollMs(standings.length + 1) }}>
-          <Hiscores rows={standings} {youId} arriving={playing} {instant} changes={!past} />
+        <div
+          in:unroll={{
+            from: unrollFrom,
+            duration: unrollMs(standings.length + (teamStandings?.length ?? 0) + 1),
+          }}
+        >
+          {#if teamStandings !== null}
+            <TeamHiscores
+              teams={teamStandings}
+              {standings}
+              {teamOf}
+              {youId}
+              arriving={playing}
+              {instant}
+              changes={!past}
+            />
+          {:else}
+            <Hiscores rows={standings} {youId} arriving={playing} {instant} changes={!past} />
+          {/if}
         </div>
       {:else}
         <div class="place" class:leaving={phase === 'leaving'}>

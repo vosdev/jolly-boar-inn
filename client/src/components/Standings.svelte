@@ -8,26 +8,40 @@
    * for each move, and last your row may pin to the foot of the screen. It all starts once
    * the stage has come over to him and fits well inside the phase's ten seconds; reduced
    * motion starts at the end.
+   *
+   * A team game ranks its teams the same way, each with its members under it.
    */
   import { untrack } from 'svelte'
 
-  import { HISCORES_HOST, previousOrder, roundLine, SHUFFLE, shuffleTimes } from '../lib/hiscores'
+  import {
+    HISCORES_HOST,
+    previousOrder,
+    previousTeamOrder,
+    roundLine,
+    SHUFFLE,
+    shuffleTimes,
+  } from '../lib/hiscores'
   import { reducedMotion } from '../lib/interlude'
-  import type { Segment, Standing } from '../lib/protocol'
+  import type { Segment, Standing, TeamStanding } from '../lib/protocol'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
+  import { teamsOf } from '../lib/teams'
   import { lettersOf } from '../lib/typing.svelte'
   import Hiscores from './Hiscores.svelte'
   import HiscoresHead from './HiscoresHead.svelte'
   import Stage from './stage/Stage.svelte'
   import TypeIn from './stage/TypeIn.svelte'
+  import TeamHiscores from './TeamHiscores.svelte'
 
   let {
     standings,
+    teamStandings = null,
     segment,
     youId = null,
   }: {
     standings: Standing[]
+    /** A team game's teams; null outside one. */
+    teamStandings?: TeamStanding[] | null
     /** The round just played. */
     segment: Segment | null
     youId?: string | null
@@ -53,6 +67,18 @@
       : before.flatMap((id) => standings.filter((standing) => standing.player_id === id)),
   )
 
+  const teamsBefore = untrack(() =>
+    teamStandings === null ? [] : previousTeamOrder(teamStandings).map((row) => row.team),
+  )
+  const teamRows = $derived(
+    teamStandings === null
+      ? null
+      : moved
+        ? teamStandings
+        : teamsBefore.flatMap((god) => teamStandings.filter((row) => row.team === god)),
+  )
+  const teamOf = $derived(teamsOf($players))
+
   $effect(() => {
     if (instant) return
     const times = untrack(() => shuffleTimes(lettersOf(line), open))
@@ -68,6 +94,10 @@
 <Stage host={HISCORES_HOST} tall>
   {#snippet paper()}
     <HiscoresHead title="Hiscores"><TypeIn {line} from={open} /></HiscoresHead>
-    <Hiscores {rows} {youId} {settled} {pinned} {instant} />
+    {#if teamRows !== null}
+      <TeamHiscores teams={teamRows} {standings} {teamOf} {youId} {settled} {instant} />
+    {:else}
+      <Hiscores {rows} {youId} {settled} {pinned} {instant} />
+    {/if}
   {/snippet}
 </Stage>

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import css from '../app.css?raw'
-import { logoFile, TEAM_IDS, TEAMS } from './teams'
+import { logoFile, TEAM_IDS, TEAMS, teamsOf } from './teams'
 
 describe('TEAMS', () => {
   it('lists the six gods in order, each named alone', () => {
@@ -40,5 +40,16 @@ describe('logoFile', () => {
     expect(logoFile('zamorak', files)).toBe('/assets/zamorak-abc.png')
     expect(logoFile('zaros', files)).toBe('/assets/zaros-def.svg')
     expect(logoFile('saradomin', files)).toBeNull()
+  })
+})
+
+describe('teamsOf', () => {
+  it('maps each player to their team, leaving out the teamless', () => {
+    const players = [
+      { id: 'a', team: 'guthix' as const },
+      { id: 'b', team: null },
+      { id: 'c', team: 'zaros' as const },
+    ]
+    expect(teamsOf(players)).toEqual({ a: 'guthix', c: 'zaros' })
   })
 })

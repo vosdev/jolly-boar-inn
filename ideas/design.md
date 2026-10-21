@@ -355,6 +355,12 @@ The ceremony plays only for a client that watched the game end. A reload, a late
 past game from history show the table at once, as does reduced motion; a past game shows only the
 totals, without moves or gains. Trophies are art, not tokens.
 
+**A team game** ranks its teams instead, with the same moves, gains and timing: rank, logo, name
+and points, the god's colour on the team's edge, and under each its members with their own
+totals, best first, so the weak link shows. The ceremony still presents players; the final line
+names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
+on the game's entry.
+
 ## 12. Random events: the interlude (#106)
 
 A random event is a question from an NPC who has nothing to do with the round. How often and who

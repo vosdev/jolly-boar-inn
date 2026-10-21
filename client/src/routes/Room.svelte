@@ -75,9 +75,11 @@
     room,
     roomSend,
     standings,
+    teamStandings,
     you,
     yourAnswer,
   } from '../lib/stores'
+  import { teamsOf } from '../lib/teams'
   import { timerBar } from '../lib/timerbar'
   import { reloadIfStale } from '../lib/version'
   import { listFor, prefetchVocab } from '../lib/vocab'
@@ -418,7 +420,13 @@
       <Lobby {socket} />
     {/if}
   {:else if $room.status === 'finished'}
-    <FinalStandings standings={$standings} youId={$you?.id ?? null} ceremony={$endedLive}>
+    <FinalStandings
+      standings={$standings}
+      teamStandings={$teamStandings}
+      teamOf={teamsOf($players)}
+      youId={$you?.id ?? null}
+      ceremony={$endedLive}
+    >
       <button type="button" onclick={leave}>Home</button>
     </FinalStandings>
   {:else if $room.phase === 'splash' && $room.segment !== null}
@@ -458,7 +466,12 @@
       <ErrorBanner />
 
       {#if $room.phase === 'standings'}
-        <Standings standings={$standings} {segment} youId={$you?.id ?? null} />
+        <Standings
+          standings={$standings}
+          teamStandings={$teamStandings}
+          {segment}
+          youId={$you?.id ?? null}
+        />
       {:else if $room.phase === 'open' && $question !== null}
         <QuestionStage
           question={$question}

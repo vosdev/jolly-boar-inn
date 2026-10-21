@@ -11,6 +11,7 @@
  * `make fetch-assets`; without one, `TeamLogo.svelte` draws a flat placeholder.
  */
 
+import type { PlayerView } from './protocol'
 import { fileNamed } from './trophies'
 
 /** Every team, in order. */
@@ -55,4 +56,13 @@ const logoFiles = import.meta.glob<string>('../assets/teams/*.{avif,webp,png,jpg
 /** The fetched symbol for `id`, or null when it still has its placeholder. */
 export function logoFile(id: TeamId, files: Record<string, string> = logoFiles): string | null {
   return fileNamed(files, id)
+}
+
+/** Each player's team by id, leaving out the teamless. */
+export function teamsOf(
+  players: readonly Pick<PlayerView, 'id' | 'team'>[],
+): Record<string, TeamId> {
+  return Object.fromEntries(
+    players.flatMap((player) => (player.team === null ? [] : [[player.id, player.team]])),
+  )
 }

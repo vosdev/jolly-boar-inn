@@ -419,6 +419,23 @@ describe('Past games', () => {
     expect(navigate).toHaveBeenCalledWith('/history/ABYSSAL/2610012005')
   })
 
+  it('names the winning team of a team game', () => {
+    savePastGame({
+      code: 'ABYSSAL',
+      finishedAt: '2026-10-01T20:05:00Z',
+      standings: [],
+      youId: null,
+      teamStandings: [
+        { team: 'guthix', points: 800, rank: 1, points_gained: 800, previous_rank: null },
+        { team: 'bandos', points: 300, rank: 2, points_gained: 300, previous_rank: null },
+      ],
+      teams: {},
+    })
+    render(Home, { navigate })
+    const row = screen.getByText('ABYSSAL').closest('li')!
+    expect(row.textContent).toContain('Guthix won')
+  })
+
   describe('removing one', () => {
     const standings = [
       {

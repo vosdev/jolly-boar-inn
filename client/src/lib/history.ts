@@ -7,8 +7,10 @@
  * fatal, when localStorage refuses.
  */
 
-import type { Standing } from './protocol'
+import { listNames, winningTeams } from './hiscores'
+import type { Standing, TeamStanding } from './protocol'
 import { dropCreated, normalizeCode, readStored, writeStored } from './session'
+import { team, type TeamId } from './teams'
 
 const HISTORY_KEY = 'jbi:history'
 export const HISTORY_LIMIT = 20
@@ -21,6 +23,10 @@ export interface PastGame {
   standings: Standing[]
   /** This browser's player in `standings`. */
   youId: string | null
+  /** A team game's teams, ranked; absent or null outside one. */
+  teamStandings?: TeamStanding[] | null
+  /** Each player's team by id, in a team game. */
+  teams?: Record<string, TeamId>
 }
 
 /** `finishedAt` as `YYMMDDHHMM` in UTC: every browser's clock agrees on it, not on a zone. */
@@ -49,13 +55,18 @@ function sameGame(
 
 function isPastGame(raw: unknown): raw is PastGame {
   if (typeof raw !== 'object' || raw === null) return false
-  const { code, finishedAt, standings, youId } = raw as Record<string, unknown>
+  const { code, finishedAt, standings, youId, teamStandings, teams } = raw as Record<
+    string,
+    unknown
+  >
   return (
     typeof code === 'string' &&
     typeof finishedAt === 'string' &&
     !Number.isNaN(Date.parse(finishedAt)) &&
     Array.isArray(standings) &&
-    (youId === null || typeof youId === 'string')
+    (youId === null || typeof youId === 'string') &&
+    (teamStandings === undefined || teamStandings === null || Array.isArray(teamStandings)) &&
+    (teams === undefined || (typeof teams === 'object' && teams !== null))
   )
 }
 
@@ -114,4 +125,12 @@ export function placeIn(game: PastGame): string | null {
   if (own === undefined) return null
   const suffix = SUFFIX[ORDINAL.select(own.rank)] ?? 'th'
   return `${own.rank}${suffix} of ${game.standings.length}`
+}
+
+/** Who won a past team game, "Saradomin won", or null outside one or when nobody scored. */
+export function winnerIn(game: PastGame): string | null {
+  const teams = game.teamStandings ?? null
+  if (teams === null) return null
+  const names = winningTeams(teams).map((god) => team(god).name)
+  return names.length === 0 ? null : `${listNames(names)} won`
 }
