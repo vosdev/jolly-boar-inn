@@ -186,7 +186,12 @@
         {#each draft.pairs as pair, index (index)}
           <div class="pair">
             <div class="inputs">
-              <input type="text" aria-label="Field {index + 1}" bind:value={pair.field} />
+              <input
+                type="text"
+                aria-label="Field {index + 1}"
+                placeholder="Field {index + 1}, such as Zulrah"
+                bind:value={pair.field}
+              />
               {#if icons}
                 <input
                   type="text"
@@ -198,6 +203,7 @@
               <input
                 type="text"
                 aria-label="Answer for field {index + 1}"
+                placeholder="Its answer, such as Zul-Andra"
                 bind:value={pair.option}
               />
               <input
@@ -237,6 +243,7 @@
               <input
                 type="text"
                 aria-label="Left-over answer {index + 1}"
+                placeholder="An answer that fits no field"
                 bind:value={decoy.option}
               />
               <input
