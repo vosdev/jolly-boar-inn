@@ -51,7 +51,9 @@ function overOneFooter(): void {
   expect(footers).toHaveLength(1)
   const main = document.querySelector('main')!
   expect(main.compareDocumentPosition(footers[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  expect(within(footers[0]!).getByRole('button', { name: `v${VERSION_LABEL}` })).toBeTruthy()
+  expect(
+    within(footers[0]!).getByRole('button', { name: `What's new in v${VERSION_LABEL}` }),
+  ).toBeTruthy()
   expect(bar().textContent).not.toContain(VERSION_LABEL)
 }
 

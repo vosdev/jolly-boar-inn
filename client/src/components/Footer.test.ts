@@ -52,7 +52,7 @@ describe('Footer', () => {
   it("opens What's new from the version, and closes it again", async () => {
     render(Footer)
     expect(screen.queryByRole('dialog')).toBeNull()
-    await fireEvent.click(screen.getByRole('button', { name: `v${VERSION_LABEL}` }))
+    await fireEvent.click(screen.getByRole('button', { name: `What's new in v${VERSION_LABEL}` }))
     expect(screen.getByRole('dialog', { name: "What's new" })).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
     expect(screen.queryByRole('dialog')).toBeNull()

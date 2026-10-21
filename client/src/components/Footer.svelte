@@ -58,7 +58,7 @@
       {/if}
       <li>
         <button type="button" class="plain" onclick={() => (showChangelog = true)}
-          >v{VERSION_LABEL}</button
+          >What's new in v{VERSION_LABEL}</button
         >
       </li>
     </ul>
