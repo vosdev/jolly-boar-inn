@@ -293,8 +293,8 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   An item's inventory icon, in a 72px box at whole pixels, sits under The Price is Right's question
   and above each More or Less name. Without a file, the name stands alone.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
-  face, with a 56px Submit under it. On a phone its list opens *above* the field so the keyboard
-  never covers it. Typed text reads as a search; only a selection lights Submit.
+  face, with a 56px Submit under it. Its list floats over the page, so opening it never scrolls: below the field, and on a phone
+  *above* it, clear of the keyboard. Typed text reads as a search; only a selection lights Submit.
 - Answered and waiting shows your answer held and dimmed, "waiting for the room" and the answered
   count.
 

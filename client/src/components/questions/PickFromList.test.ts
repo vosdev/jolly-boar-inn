@@ -116,6 +116,65 @@ describe('pick_from_list', () => {
     ])
   })
 
+  describe('where the list opens', () => {
+    function screenOf(phone: boolean, top: number, viewportHeight: number): void {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({ matches: phone && query.includes('max-width') })),
+      )
+      vi.stubGlobal('visualViewport', {
+        offsetTop: 0,
+        height: viewportHeight,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })
+      vi.spyOn(HTMLInputElement.prototype, 'getBoundingClientRect').mockReturnValue({
+        top,
+        bottom: top + 56,
+      } as DOMRect)
+    }
+
+    afterEach(() => vi.restoreAllMocks())
+
+    it('opens below the box on a desktop', async () => {
+      screenOf(false, 200, 800)
+      const { box } = await mount()
+      await fireEvent.focus(box)
+      expect(listbox().classList.contains('above')).toBe(false)
+    })
+
+    it('opens above the box on a phone, clear of the keyboard', async () => {
+      screenOf(true, 300, 400)
+      const { box } = await mount()
+      await fireEvent.focus(box)
+      expect(listbox().classList.contains('above')).toBe(true)
+      expect(listbox().style.maxHeight).toBe('288px')
+    })
+
+    it('flips below when a phone has no room above the box', async () => {
+      screenOf(true, 40, 800)
+      const { box } = await mount()
+      await fireEvent.focus(box)
+      expect(listbox().classList.contains('above')).toBe(false)
+    })
+
+    it('flips above when a desktop has no room below the box', async () => {
+      screenOf(false, 700, 800)
+      const { box } = await mount()
+      await fireEvent.focus(box)
+      expect(listbox().classList.contains('above')).toBe(true)
+    })
+
+    it('scrolls the page for a box the keyboard hides, never to the top', async () => {
+      screenOf(true, 300, 400)
+      const scroll = vi.fn()
+      HTMLElement.prototype.scrollIntoView = scroll
+      const { box } = await mount()
+      await fireEvent.focus(box)
+      expect(scroll).toHaveBeenCalledWith(expect.objectContaining({ block: 'nearest' }))
+    })
+  })
+
   it('draws at most fifty matches, and says how many more typing would find', async () => {
     const many = Array.from({ length: 120 }, (_, i) => ({
       id: i + 1,
