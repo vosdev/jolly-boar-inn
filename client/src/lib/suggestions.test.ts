@@ -8,8 +8,10 @@ import {
   answerOf,
   choiceOf,
   creditProblem,
+  existingMode,
   exportName,
   hostOf,
+  inGameOrder,
   itemProblem,
   maySuggest,
   retryIn,
@@ -196,5 +198,31 @@ describe('the queue', () => {
     expect(retryIn('2026-10-04T12:00:10Z', now)).toBe('in 1 minute')
     expect(retryIn(null, now)).toBe('later')
     expect(exportName('approved', new Date(now))).toBe('suggestions-approved-2026-10-04.json')
+  })
+})
+
+describe('what the game already asks', () => {
+  it('lists the packs beside every question card, and nothing beside the item', () => {
+    for (const choice of CHOICES) {
+      expect(existingMode(choice)).toBe(choice.kind === 'item' ? null : choice.id)
+    }
+  })
+
+  it('puts random events in roster order, the picked NPC’s first, each NPC’s in pack order', () => {
+    const rows = [
+      { id: 'r1', label: 'Reldo 1', random_event: 'reldo' },
+      { id: 'x', label: 'Newer', random_event: 'someone_new' },
+      { id: 'b1', label: 'Bob 1', random_event: 'bob' },
+      { id: 'r2', label: 'Reldo 2', random_event: 'reldo' },
+      { id: 's1', label: 'Sandwich 1', random_event: 'sandwich_lady' },
+    ]
+    const ids = (npc: string) => inGameOrder(rows, npc).map((row) => row.id)
+    expect(ids('')).toEqual(['s1', 'b1', 'r1', 'r2', 'x'])
+    expect(ids('reldo')).toEqual(['r1', 'r2', 's1', 'b1', 'x'])
+    const plain = [
+      { id: 'b', label: 'B' },
+      { id: 'a', label: 'A' },
+    ]
+    expect(inGameOrder(plain, 'reldo')).toEqual(plain)
   })
 })

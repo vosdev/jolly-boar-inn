@@ -20,6 +20,8 @@ import { nameProblem } from './names'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
 import type { OpenQuestion } from './protocol'
 import { codePoints, envelopeProperty, limit } from './questionSchema'
+import { RANDOM_EVENTS } from './randomEvents'
+import type { ReportChoice } from './reports'
 import { fold, type VocabEntry } from './vocab'
 
 /** How many finished games this browser needs before it is offered the form. */
@@ -219,6 +221,26 @@ export function hostOf(kind: SuggestionKind, content: SuggestionContent): string
 /** A mode's name as players would read it, built or not. */
 export function modeName(mode: string): string {
   return MODES[mode]?.label ?? UPCOMING_MODES.find((m) => m.id === mode)?.label ?? mode
+}
+
+// --- what the game already asks -------------------------------------------------------
+
+/** The mode whose pack questions show beside the editor, or null for a card that has none. */
+export function existingMode(choice: Choice): string | null {
+  return choice.kind === 'question' ? choice.id : null
+}
+
+const ROSTER_PLACE = new Map(RANDOM_EVENTS.map((npc, index) => [npc.id, index]))
+
+/** A mode's pack questions as the panel lists them: a random event's by roster, `npc`'s first. */
+export function inGameOrder(choices: readonly ReportChoice[], npc: string): ReportChoice[] {
+  const place = (choice: ReportChoice): number => {
+    const asker = choice.random_event
+    if (asker === undefined) return 0
+    if (asker === npc) return -1
+    return ROSTER_PLACE.get(asker) ?? RANDOM_EVENTS.length
+  }
+  return [...choices].sort((a, b) => place(a) - place(b))
 }
 
 // --- the fields beside a question ------------------------------------------------------

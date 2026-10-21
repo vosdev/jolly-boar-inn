@@ -50,6 +50,7 @@
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
+    onnpc = undefined,
     onsave,
     oncancel,
   }: {
@@ -82,6 +83,8 @@
     fields?: Snippet<[boolean]>
     /** Whether those fields are fine, asked on every Save. */
     onattempt?: () => boolean
+    /** Told who asks it whenever that changes, `''` for nobody yet. */
+    onnpc?: (npc: string) => void
     onsave: (question: CustomQuestion) => void
     oncancel: () => void
   } = $props()
@@ -105,6 +108,7 @@
   let draft = $state(draftOf(question))
   // svelte-ignore state_referenced_locally
   if (!types.includes(draft.type)) draft.type = types[0] ?? draft.type
+  $effect(() => onnpc?.(draft.npc))
   // svelte-ignore state_referenced_locally
   const [rangeMin, rangeMax] = optionRange ?? [0, Infinity]
   if (draft.type === 'multiple_choice')

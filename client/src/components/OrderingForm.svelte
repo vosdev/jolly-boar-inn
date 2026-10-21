@@ -48,6 +48,7 @@
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
+    onnpc = undefined,
     onsave,
     oncancel,
   }: {
@@ -67,6 +68,8 @@
     fields?: Snippet<[boolean]>
     /** Whether those fields are fine, asked on every Save. */
     onattempt?: () => boolean
+    /** Told who asks it whenever that changes, `''` for nobody yet. */
+    onnpc?: (npc: string) => void
     onsave: (question: OrderingQuestion) => void
     oncancel: () => void
   } = $props()
@@ -80,6 +83,7 @@
   let draft = $state(draftOf(question))
   // svelte-ignore state_referenced_locally
   let npc = $state(question?.random_event ?? '')
+  $effect(() => onnpc?.(npc))
   let attempted = $state(false)
   const id = $props.id()
 

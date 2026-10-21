@@ -40,6 +40,7 @@
     choice,
     initial = undefined,
     saveLabel = 'Send to the innkeeper',
+    onnpc = undefined,
     onsave,
     oncancel,
   }: {
@@ -47,6 +48,8 @@
     /** The suggestion to edit, or none for a new one. */
     initial?: SuggestionBody
     saveLabel?: string
+    /** Told which NPC asks a random event's question whenever that changes, `''` for none. */
+    onnpc?: (npc: string) => void
     onsave: (body: SuggestionBody) => void
     oncancel: () => void
   } = $props()
@@ -267,6 +270,7 @@
     {saveLabel}
     fields={questionFields}
     onattempt={questionFieldsPass}
+    {onnpc}
     onsave={saveQuestion}
     {oncancel}
   />
@@ -285,6 +289,7 @@
     {saveLabel}
     fields={questionFields}
     onattempt={questionFieldsPass}
+    {onnpc}
     onsave={saveQuestion}
     {oncancel}
   />

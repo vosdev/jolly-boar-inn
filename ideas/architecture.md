@@ -625,9 +625,9 @@ key into them, so cleanup leaves it.
   and stamps `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
 - `reports` holds what players send to `POST /api/reports` (`app/reports.py`): a mode, a question
   id or null, a snapshot (the question whole, a price mode's roster item, or null for "something
-  else"), up to 500 characters of text, open or closed. Closed ones are kept. The form searches
-  `GET /api/questions?mode=…`, `{id, label}` with no answer (Odd One Out's label is its options
-  in pack order); 3 an hour per address (`REPORTS_PER_HOUR`). `/api/admin/reports` lists and
+  else"), up to 500 characters of text, open or closed. Closed ones are kept. It and `/suggest`
+  list `GET /api/questions?mode=…`, `{id, label}` (`reports.label`: no answer but Who's That NPC?'s,
+  plus `npc` or `random_event`); 3 an hour per address. `/api/admin/reports` lists and
   closes them; `/api/admin/questions?mode=…` returns a mode's pack questions whole.
 - `question_edits` holds the operator's pending edits and deletes of hand-written pack questions
   (`app/question_edits.py`), one per question, keyed by its id in the packs as they are; a second

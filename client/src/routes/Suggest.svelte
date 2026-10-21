@@ -6,15 +6,19 @@
    * Only for a browser that has finished a game, as Home's link is. Before any field the
    * page asks the server how many suggestions this address has left this hour, so a
    * player at the limit is told before writing a question rather than after. Built for a
-   * computer: writing a question is desk work, not something done at the pub table.
+   * computer: writing a question is desk work, not something done at the pub table. So the
+   * pack's questions for the card stand open beside the editor there, and wait folded up
+   * under it on a phone.
    */
   import { onMount } from 'svelte'
 
+  import ExistingQuestions from '../components/suggest/ExistingQuestions.svelte'
   import SuggestionEditor from '../components/suggest/SuggestionEditor.svelte'
   import { ApiFailure, getSuggestionAllowance, sendSuggestion } from '../lib/api'
   import { npcArt } from '../lib/npcs'
   import {
     CHOICES,
+    existingMode,
     maySuggest,
     retryIn,
     type Choice,
@@ -30,6 +34,11 @@
   let failure = $state<string | null>(null)
   /** Remounts the editor for a fresh form after "Suggest another". */
   let round = $state(0)
+  /** Who asks the random event being written, so the list starts with theirs. */
+  let asker = $state('')
+  const existing = $derived(choice === null ? null : existingMode(choice))
+  /** Whether the list starts open: beside the editor, at the width `.writing` sets it there. */
+  let beside = $state(false)
 
   async function checkAllowance(): Promise<boolean> {
     try {
@@ -54,6 +63,7 @@
   function pick(next: Choice): void {
     choice = next
     failure = null
+    beside = typeof matchMedia === 'function' && matchMedia('(min-width: 70rem)').matches
     view = 'write'
   }
 
@@ -143,21 +153,27 @@
       </ul>
     </section>
   {:else}
-    <section class="panel">
-      <p class="back">
-        <button type="button" class="link" onclick={() => (choice = null)}>
-          ← Everything you can suggest
-        </button>
-      </p>
-      {#key round}
-        <SuggestionEditor
-          {choice}
-          saveLabel={view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
-          onsave={(body) => void send(body)}
-          oncancel={() => (choice = null)}
-        />
-      {/key}
-    </section>
+    <div class="writing" class:aside={existing !== null}>
+      <section class="panel">
+        <p class="back">
+          <button type="button" class="link" onclick={() => (choice = null)}>
+            ← Everything you can suggest
+          </button>
+        </p>
+        {#key round}
+          <SuggestionEditor
+            {choice}
+            saveLabel={view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
+            onnpc={(npc) => (asker = npc)}
+            onsave={(body) => void send(body)}
+            oncancel={() => (choice = null)}
+          />
+        {/key}
+      </section>
+      {#if existing !== null}
+        <ExistingQuestions mode={existing} npc={asker} open={beside} />
+      {/if}
+    </div>
   {/if}
 {/if}
 
@@ -206,5 +222,27 @@
 
   .back {
     margin: 0 0 0.75rem;
+  }
+
+  .writing {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  /* Beside the list the editor would be too narrow for its preview, so writing takes more
+     than the page's width, centred on it. */
+  @media (min-width: 70rem) {
+    .writing.aside {
+      --writing: min(86rem, 100vw - 3rem);
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      width: var(--writing);
+      margin-inline: calc((100% - var(--writing)) / 2);
+    }
+
+    .writing.aside > :global(.existing) {
+      position: sticky;
+      top: 1rem;
+    }
   }
 </style>

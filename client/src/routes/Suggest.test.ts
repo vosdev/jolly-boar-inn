@@ -4,13 +4,21 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
+import { ApiFailure } from '../lib/api'
 import { savePastGame } from '../lib/history'
+import { CHOICES } from '../lib/suggestions'
 import { clearVocabCache } from '../lib/vocab'
 import Suggest from './Suggest.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getSuggestionAllowance: vi.fn(), sendSuggestion: vi.fn(), getVocab: vi.fn() }
+  return {
+    ...real,
+    getSuggestionAllowance: vi.fn(),
+    sendSuggestion: vi.fn(),
+    getVocab: vi.fn(),
+    getReportChoices: vi.fn(),
+  }
 })
 
 const navigate = vi.fn()
@@ -36,7 +44,30 @@ beforeEach(() => {
   vi.mocked(api.getVocab).mockResolvedValue({ vocab: 'items', version: 'v', entries: ROSTER })
   vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 10, retry_at: null })
   vi.mocked(api.sendSuggestion).mockResolvedValue({ id: 'x' })
+  vi.mocked(api.getReportChoices).mockImplementation(async (mode) => {
+    if (mode === 'release_order') throw new ApiFailure(422, 'bad_mode', 'not here')
+    if (mode === 'random_event') {
+      return {
+        by: 'question',
+        choices: [
+          { id: 'q1', label: 'Which skill?', random_event: 'bob' },
+          { id: 'q2', label: 'Which tome?', random_event: 'reldo' },
+        ],
+      }
+    }
+    return { by: 'question', choices: [{ id: `${mode}-1`, label: `A ${mode} question` }] }
+  })
 })
+
+function existing(): HTMLElement {
+  return screen.getByRole('group', { name: 'Already in the game' })
+}
+
+function existingRows(): string[] {
+  return [...existing().querySelectorAll('li')].map((li) =>
+    (li.textContent ?? '').replace(/\s+/g, ' ').trim(),
+  )
+}
 
 afterEach(cleanup)
 
@@ -89,6 +120,8 @@ describe('Suggest', () => {
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
     const roster = screen.getByRole('region', { name: 'Already in the game' })
+    expect(screen.queryByRole('group', { name: 'Already in the game' })).toBeNull()
+    expect(api.getReportChoices).not.toHaveBeenCalled()
     await waitFor(() => expect(roster.querySelectorAll('li')).toHaveLength(3))
     await fireEvent.input(screen.getByLabelText('Search the items already in the game'), {
       target: { value: 'abys' },
@@ -101,6 +134,42 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(screen.getByText('Already in the game.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
+  })
+
+  it('shows each question card’s pack questions beside the editor, searchable', async () => {
+    played()
+    render(Suggest, { navigate })
+    const cards = CHOICES.filter((choice) => choice.kind === 'question')
+    for (const card of cards.filter((c) => !['random_event', 'release_order'].includes(c.id))) {
+      await fireEvent.click(await screen.findByRole('button', { name: new RegExp(card.label) }))
+      await waitFor(() => expect(existingRows()).toEqual([`A ${card.id} question`]))
+      expect(screen.getByLabelText('Search the questions already in the game')).toBeTruthy()
+      await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
+    }
+    expect(vi.mocked(api.getReportChoices).mock.calls.map(([mode]) => mode)).toEqual(
+      cards.map((c) => c.id).filter((id) => !['random_event', 'release_order'].includes(id)),
+    )
+  })
+
+  it('says Release Order has no questions yet, in one line and no error', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Release Order/ }))
+    await within(existing()).findByText('The game has no questions here yet.')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('names the NPC on each random event row, the one picked to ask first', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
+    await waitFor(() =>
+      expect(existingRows()).toEqual(['Evil Bob Which skill?', 'Reldo Which tome?']),
+    )
+    await fireEvent.click(screen.getByRole('radio', { name: 'Reldo' }))
+    expect(existingRows()).toEqual(['Reldo Which tome?', 'Evil Bob Which skill?'])
+    await fireEvent.click(screen.getByLabelText('Put in order'))
+    expect(existingRows()).toEqual(['Evil Bob Which skill?', 'Reldo Which tome?'])
   })
 
   it('writes an examine as a multiple-choice question of four to six names', async () => {

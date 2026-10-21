@@ -92,8 +92,9 @@ def test_the_question_list_never_carries_an_answer(offline: TestClient, mode: st
         return
     body = response.json()
     assert body["choices"], mode
+    extra = {"whos_that_npc": {"npc"}, "random_event": {"random_event"}}.get(mode, set())
     for choice in body["choices"]:
-        assert choice.keys() == {"id", "label"}
+        assert choice.keys() == {"id", "label"} | extra
     if body["by"] == "question":
         ids = [choice["id"] for choice in body["choices"]]
         assert ids == [q["id"] for q in mode_questions(PACKS, mode)]
@@ -105,6 +106,52 @@ def test_the_question_list_never_carries_an_answer(offline: TestClient, mode: st
     flat = json.dumps(body)
     for field in ("answer", "accepted", "explanation", "payload", "wiki"):
         assert f'"{field}' not in flat
+
+
+def _prompt(question: dict[str, Any]) -> str:
+    payload = question["payload"]
+    quote = payload.get("quote")
+    return payload["prompt"] if quote is None else f"{payload['prompt']} “{quote}”"
+
+
+# What players read while a question is open, per pack mode. A new mode must say.
+WHAT_PLAYERS_READ = {
+    "guess_examine": _prompt,
+    "sort_it_out": _prompt,
+    "who_said_that": _prompt,
+    "know_your_content_creator": _prompt,
+    "bestiary": _prompt,
+    "drop_table": _prompt,
+    "random_event": _prompt,
+    "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
+    "whos_that_npc": lambda q: q["payload"]["subject"]["name"],
+}
+
+
+@pytest.mark.parametrize("mode", [m for m in reports.pack_modes() if m not in reports.ITEM_MODES])
+def test_each_pack_mode_is_labelled_by_what_players_read(mode: str) -> None:
+    assert mode in WHAT_PLAYERS_READ, f"{mode}: say what its questions' label is"
+    questions = mode_questions(PACKS, mode)
+    assert questions, mode
+    for question in questions:
+        assert reports.label(question) == WHAT_PLAYERS_READ[mode](question), question["id"]
+
+
+def test_whos_that_npc_is_listed_by_the_npc_and_its_id(offline: TestClient) -> None:
+    question = mode_questions(PACKS, "whos_that_npc")[0]
+    body = offline.get("/api/questions?mode=whos_that_npc").json()
+    assert body["choices"][0] == {
+        "id": question["id"],
+        "label": question["payload"]["subject"]["name"],
+        "npc": question["payload"]["answer_id"],
+    }
+    assert len({choice["label"] for choice in body["choices"]}) == len(body["choices"])
+
+
+def test_a_random_event_is_listed_with_its_npc(offline: TestClient) -> None:
+    body = offline.get("/api/questions?mode=random_event").json()
+    asked = {q["id"]: q["random_event"] for q in mode_questions(PACKS, "random_event")}
+    assert {choice["id"]: choice["random_event"] for choice in body["choices"]} == asked
 
 
 def test_a_price_mode_lists_the_roster(offline: TestClient) -> None:
