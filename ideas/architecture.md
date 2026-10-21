@@ -296,14 +296,14 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 
 | Server `t` | Fields | When |
 |---|---|---|
-| `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players`, `standings`? | Join, leave, promote, kick, rename, status change, a splash or standings starting (with `standings`), a ready change that moves `next_at`. |
+| `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
+| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, kick, rename, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
-| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
-| `game_finished` | `standings` | Final. |
+| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
+| `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
 
@@ -313,6 +313,7 @@ RoomView     { code, status, settings, current_index, total, events, phase, next
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
+TeamStanding { team, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
                opened_at, answerable_at, ends_at, you_can_answer, answered, of }
@@ -500,6 +501,11 @@ Standings sort by points, then correct answers, then `joined_at`. Rank is dense 
 correct answers; join time only orders players who share a rank. `points_gained` is what the round
 of the latest close added and `previous_rank` the rank before that round by the same rule, null
 in the first; the totals query splits its sum at that round's first position.
+
+Team standings average the same totals: a team's members' points summed over its member count,
+rounded half up, so a silent member pulls it down. Rank is dense over points, ties in
+`settings.teams` order; gains and previous ranks are the rounded averages before the round. A team
+without members is left out.
 
 ## 9. Reconnect and restart
 

@@ -28,7 +28,15 @@ from app.rooms.settings import RoomSettings
 from app.rooms.teams import God
 from app.stats import Arrival
 from app.ws.outbox import Outbox
-from app.ws.protocol import JoinRequestView, OpenQuestion, PlayerView, RoomView, Segment, Standing
+from app.ws.protocol import (
+    JoinRequestView,
+    OpenQuestion,
+    PlayerView,
+    RoomView,
+    Segment,
+    Standing,
+    TeamStanding,
+)
 
 NAME_MAX = 24
 # Letters only, from the Latin blocks whose accented letters a player could type:
@@ -507,6 +515,36 @@ class Room:
             for player, rank in ranked
         ]
 
+    def team_standings(self) -> list[TeamStanding] | None:
+        """Section 8's team standings from the same ``totals`` as ``standings``; None
+        outside a team game."""
+        if not self.settings.teams:
+            return None
+        members = {
+            god: [p for p in self.players.values() if p.team == god] for god in self.settings.teams
+        }
+        playing = [god for god in self.settings.teams if members[god]]
+        now = {
+            god: _rounded_mean([self.score(p.id).points for p in members[god]]) for god in playing
+        }
+        before = {
+            god: _rounded_mean(
+                [self.score(p.id).points - self.score(p.id).round_points for p in members[god]]
+            )
+            for god in playing
+        }
+        previous = None if self.totals_round == 0 else dict(_dense_team_ranks(playing, before))
+        return [
+            TeamStanding(
+                team=god,
+                points=now[god],
+                rank=rank,
+                points_gained=now[god] - before[god],
+                previous_rank=None if previous is None else previous[god],
+            )
+            for god, rank in _dense_team_ranks(playing, now)
+        ]
+
     def score(self, player_id: UUID) -> Totals:
         """This player's row of ``totals``; a player who has not scored is a fresh zero.
 
@@ -559,6 +597,23 @@ def _dense_ranks(
             rank += 1
             previous = score(player)
         ranked.append((player, rank))
+    return ranked
+
+
+def _rounded_mean(values: list[int]) -> int:
+    """The mean of non-negative ``values``, halves rounded up rather than to even."""
+    return (2 * sum(values) + len(values)) // (2 * len(values))
+
+
+def _dense_team_ranks(teams: list[God], points: Mapping[God, int]) -> list[tuple[God, int]]:
+    """Dense ranks over ``points``; a stable sort keeps ``teams``' order among ties."""
+    ranked: list[tuple[God, int]] = []
+    rank, previous = 0, None
+    for god in sorted(teams, key=lambda g: -points[g]):
+        if points[god] != previous:
+            rank += 1
+            previous = points[god]
+        ranked.append((god, rank))
     return ranked
 
 

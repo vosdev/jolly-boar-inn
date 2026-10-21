@@ -499,13 +499,18 @@ class RoomManager(Joins, Lobby, Loop):
         """
         players = room.player_views()
         ranked = room.standings() if standings else None
+        teams = room.team_standings() if standings else None
         everyone = RoomUpdated(
-            room=room.view(withhold=room.settings.hide_rounds), players=players, standings=ranked
+            room=room.view(withhold=room.settings.hide_rounds),
+            players=players,
+            standings=ranked,
+            team_standings=teams,
         )
         admins = RoomUpdated(
             room=room.view(admin=True, withhold=bool(room.settings.surprise_modes)),
             players=players,
             standings=ranked,
+            team_standings=teams,
         )
         if admins == everyone:
             return Broadcast.to_all(room, everyone.model_dump(mode="json"), exclude)
@@ -601,6 +606,7 @@ class RoomManager(Joins, Lobby, Loop):
                 question=open_view,
                 your_answer=answered.value if answered is not None else None,
                 standings=room.standings(),
+                team_standings=room.team_standings(),
                 server_time=datetime.now(UTC),
                 server_version=APP_VERSION,
             ).model_dump(mode="json")

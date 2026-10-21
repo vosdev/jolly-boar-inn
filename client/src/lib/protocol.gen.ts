@@ -148,6 +148,10 @@ export interface Welcome {
   question: OpenQuestion | null
   your_answer: unknown
   standings: Standing[]
+  /**
+   * Null outside a team game, here and on every frame that carries it.
+   */
+  team_standings: TeamStanding[] | null
   server_time: string
   /**
    * `/VERSION` of the running server. A client built from another version reloads itself,
@@ -417,6 +421,20 @@ export interface Standing {
   previous_rank: number | null
 }
 /**
+ * A team game's team: its members' points averaged and rounded, so a silent member counts.
+ *
+ * `rank` is dense over `points`, ties in `settings.teams` order; `points_gained` and
+ * `previous_rank` follow `Standing`'s rule on the averages. A team without members is
+ * left out.
+ */
+export interface TeamStanding {
+  team: 'saradomin' | 'zamorak' | 'guthix' | 'armadyl' | 'bandos' | 'zaros'
+  points: number
+  rank: number
+  points_gained: number
+  previous_rank: number | null
+}
+/**
  * Join, leave, promote, kick, status change, `set_profile`, and the start of a
  * splash or of the standings, which carries `standings`. Also a ready tap, connect or
  * disconnect that moves the room itself, which on a splash is its countdown.
@@ -426,6 +444,7 @@ export interface RoomUpdated {
   room: RoomView
   players: PlayerView[]
   standings?: Standing[]
+  team_standings?: TeamStanding[]
 }
 /**
  * A ready tap, a team change, an `editing` change, connect or disconnect that changed
@@ -492,6 +511,7 @@ export interface QuestionClosed {
    */
   unanswered: string[]
   standings: Standing[]
+  team_standings: TeamStanding[] | null
   next_at: string | null
   /**
    * How long this reveal holds, even for the last question, whose `next_at` is null.
@@ -518,6 +538,7 @@ export interface PlayerResult {
 export interface GameFinished {
   t: 'game_finished'
   standings: Standing[]
+  team_standings: TeamStanding[] | null
 }
 export interface Pong {
   t: 'pong'

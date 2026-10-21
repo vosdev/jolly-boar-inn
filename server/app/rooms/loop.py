@@ -640,6 +640,7 @@ class Loop:
                     if question.can_answer(pid) and pid not in question.answers
                 ],
                 standings=room.standings(),
+                team_standings=room.team_standings(),
                 next_at=room.next_at,
                 reveal_seconds=room.reveal_seconds,
                 suggested_by=question.suggested_by,
@@ -696,7 +697,7 @@ class Loop:
         room.finished_at = finished_at
         room.phase = "idle"
         room.next_at = room.next_mono = None
-        finished = GameFinished(standings=room.standings())
+        finished = GameFinished(standings=room.standings(), team_standings=room.team_standings())
         return [
             self._room_updated(room),
             Broadcast.to_all(room, finished.model_dump(mode="json")),

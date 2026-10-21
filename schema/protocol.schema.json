@@ -305,11 +305,25 @@
             "$ref": "#/$defs/Standing"
           },
           "type": "array"
+        },
+        "team_standings": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TeamStanding"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
         "t",
-        "standings"
+        "standings",
+        "team_standings"
       ],
       "title": "GameFinished",
       "type": "object"
@@ -758,6 +772,19 @@
           },
           "type": "array"
         },
+        "team_standings": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TeamStanding"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "next_at": {
           "anyOf": [
             {
@@ -786,6 +813,7 @@
         "results",
         "unanswered",
         "standings",
+        "team_standings",
         "next_at",
         "reveal_seconds"
       ],
@@ -968,6 +996,12 @@
         "standings": {
           "items": {
             "$ref": "#/$defs/Standing"
+          },
+          "type": "array"
+        },
+        "team_standings": {
+          "items": {
+            "$ref": "#/$defs/TeamStanding"
           },
           "type": "array"
         }
@@ -1368,6 +1402,51 @@
       "title": "StartGame",
       "type": "object"
     },
+    "TeamStanding": {
+      "additionalProperties": false,
+      "description": "A team game's team: its members' points averaged and rounded, so a silent member counts.\n\n``rank`` is dense over ``points``, ties in ``settings.teams`` order; ``points_gained`` and\n``previous_rank`` follow ``Standing``'s rule on the averages. A team without members is\nleft out.",
+      "properties": {
+        "team": {
+          "enum": [
+            "saradomin",
+            "zamorak",
+            "guthix",
+            "armadyl",
+            "bandos",
+            "zaros"
+          ],
+          "type": "string"
+        },
+        "points": {
+          "type": "integer"
+        },
+        "rank": {
+          "type": "integer"
+        },
+        "points_gained": {
+          "type": "integer"
+        },
+        "previous_rank": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "team",
+        "points",
+        "rank",
+        "points_gained",
+        "previous_rank"
+      ],
+      "title": "TeamStanding",
+      "type": "object"
+    },
     "Welcome": {
       "additionalProperties": false,
       "description": "Reply to ``hello``: the full snapshot the client rebuilds all state from.",
@@ -1413,6 +1492,20 @@
           },
           "type": "array"
         },
+        "team_standings": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TeamStanding"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Null outside a team game, here and on every frame that carries it."
+        },
         "server_time": {
           "format": "date-time",
           "type": "string"
@@ -1430,6 +1523,7 @@
         "question",
         "your_answer",
         "standings",
+        "team_standings",
         "server_time",
         "server_version"
       ],

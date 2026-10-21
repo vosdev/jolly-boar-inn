@@ -77,6 +77,7 @@ function welcome(patch: Partial<Extract<ServerMessage, { t: 'welcome' }>> = {}):
     question: null,
     your_answer: null,
     standings: [],
+    team_standings: null,
     server_time: new Date(0).toISOString(),
     server_version: __APP_VERSION__,
     ...patch,
@@ -174,6 +175,7 @@ describe('applyServerMessage', () => {
       reveal: {},
       results: {},
       standings: [],
+      team_standings: null,
       next_at: null,
       reveal_seconds: 8,
       picture: null,
@@ -192,6 +194,7 @@ describe('applyServerMessage', () => {
       reveal: {},
       results: {},
       standings: [],
+      team_standings: null,
       next_at: new Date(Date.now() + 16_000).toISOString(),
       reveal_seconds: 16,
       picture: null,
@@ -238,7 +241,7 @@ describe('a finished game', () => {
     // The host saw the last question close.
     applyServerMessage(welcome({ you: host, room: { ...lobby, status: 'playing' } }))
     applyServerMessage({ t: 'room_updated', room: FINISHED, players: [host, me] })
-    applyServerMessage({ t: 'game_finished', standings: FINAL })
+    applyServerMessage({ t: 'game_finished', standings: FINAL, team_standings: null })
     const there = pastGames()
 
     // Another browser: its phone locked, and it reconnects into the finished room.

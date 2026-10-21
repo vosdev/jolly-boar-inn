@@ -103,6 +103,7 @@ function welcome(you: PlayerView, room: RoomView = LOBBY): void {
     question: null,
     your_answer: null,
     standings: [],
+    team_standings: null,
     server_time: new Date(0).toISOString(),
     server_version: __APP_VERSION__,
   })
@@ -180,6 +181,7 @@ describe('SettingsMenu in a room', () => {
       question: null,
       your_answer: null,
       standings: [],
+      team_standings: null,
       server_time: new Date(0).toISOString(),
       server_version: __APP_VERSION__,
     })

@@ -151,6 +151,21 @@ class Standing(_Message):
     previous_rank: int | None
 
 
+class TeamStanding(_Message):
+    """A team game's team: its members' points averaged and rounded, so a silent member counts.
+
+    ``rank`` is dense over ``points``, ties in ``settings.teams`` order; ``points_gained`` and
+    ``previous_rank`` follow ``Standing``'s rule on the averages. A team without members is
+    left out.
+    """
+
+    team: God
+    points: int
+    rank: int
+    points_gained: int
+    previous_rank: int | None
+
+
 class OpenQuestion(_Message):
     """What every socket sees while a question is open: ``client_view`` only, never the
     answer or the raw payload (section 3, "What the server withholds from the admin")."""
@@ -344,6 +359,8 @@ class Welcome(_Message):
     question: OpenQuestion | None
     your_answer: Any | None
     standings: list[Standing]
+    team_standings: list[TeamStanding] | None
+    """Null outside a team game, here and on every frame that carries it."""
     server_time: datetime
     server_version: str
     """``/VERSION`` of the running server. A client built from another version reloads itself,
@@ -360,6 +377,7 @@ class RoomUpdated(_Message):
     room: RoomView
     players: list[PlayerView]
     standings: list[Standing] | None = Field(default=None, exclude_if=lambda s: s is None)
+    team_standings: list[TeamStanding] | None = Field(default=None, exclude_if=lambda s: s is None)
 
 
 class PlayersUpdated(_Message):
@@ -435,6 +453,7 @@ class QuestionClosed(_Message):
     unanswered: list[UUID]
     """Connected players who could have answered and did not, for the reveal's "No answer"."""
     standings: list[Standing]
+    team_standings: list[TeamStanding] | None
     next_at: datetime | None
     reveal_seconds: int
     """How long this reveal holds, even for the last question, whose ``next_at`` is null."""
@@ -445,6 +464,7 @@ class QuestionClosed(_Message):
 class GameFinished(_Message):
     t: Literal["game_finished"] = "game_finished"
     standings: list[Standing]
+    team_standings: list[TeamStanding] | None
 
 
 class Pong(_Message):

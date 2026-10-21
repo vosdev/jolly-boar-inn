@@ -71,6 +71,7 @@ beforeEach(() => {
     question: null,
     your_answer: null,
     standings: [],
+    team_standings: null,
     server_time: new Date().toISOString(),
     server_version: __APP_VERSION__,
   })
