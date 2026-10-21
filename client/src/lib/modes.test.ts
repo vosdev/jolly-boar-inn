@@ -43,6 +43,19 @@ describe('hosts', () => {
     expect(hostOf('bestiary').host).toEqual({ id: 'zoo_keeper', name: 'Zoo keeper' })
     expect(hostOf('drop_table').host).toEqual({ id: 'nieve', name: 'Nieve' })
     expect(hostOf('odd_one_out').host).toEqual({ id: 'dunce', name: 'Dunce' })
+    expect(hostOf('minigame_madness').host).toEqual({ id: 'lanthus', name: 'Lanthus' })
+  })
+
+  it('has Lanthus greet Minigame Madness in his own lines', () => {
+    const lanthus = hostOf('minigame_madness')
+    expect(lanthus.greeting).toBe(
+      "Are you team Castle Wars, Barbarian Assault or Pest Control? It doesn't matter tonight. Everyone's on the quiz team!",
+    )
+    expect(MODES.minigame_madness?.blurb).toBe(
+      "I've watched every lobby in Gielinor fill up. Prizes, points, places: tell me what you know.",
+    )
+    expect(lanthus.waiting).toBe('Waiting for enough players. As always.')
+    expect(lanthus.reveal).toBe('The game has ended! Who won?')
   })
 
   it('has a mode still being built presented by its host-to-be, in the generic lines', () => {

@@ -170,6 +170,7 @@ const CHOICE_ROUNDS = [
   'bestiary',
   'drop_table',
   'odd_one_out',
+  'minigame_madness',
   'who_said_that',
   'know_your_content_creator',
 ]
@@ -201,6 +202,15 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
     'pick_all_that_apply',
     'matching',
   ],
+  minigame_madness: [
+    'multiple_choice',
+    'free_text',
+    'closest_number',
+    'number_slider',
+    'pick_all_that_apply',
+    'ordering',
+    'matching',
+  ],
   know_your_content_creator: [
     'multiple_choice',
     'closest_number',
@@ -216,7 +226,7 @@ const ROUND_OPTIONS: Record<string, readonly [number, number]> = { guess_examine
 const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc']
 
 /** Rounds whose questions may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
-const PICTURE_ITEM_ROUNDS = ['drop_table']
+const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
 
 /** Rounds that show a quotation under the prompt. */
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']

@@ -507,5 +507,6 @@ dependencies, on the [project board](https://github.com/users/vosdev/projects/3)
 | `bestiary` | Ardougne Zoo keeper 
 | `who_said_that` | Cracked Jenny's Tea Cup, the parrot in Brimhaven
 | `odd_one_out` | Dunce
+| `minigame_madness` | Lanthus, who runs Castle Wars
 | `name_that_spell` | Aubury
 | `minimap_guesser` | Captain Errdo |

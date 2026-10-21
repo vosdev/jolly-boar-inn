@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.143.0',
+    date: '2026-10-21',
+    text: 'New round: Minigame Madness, hosted by Lanthus. Prizes, points and places from Castle Wars to Tempoross.',
+  },
+  {
     version: '0.142.0',
     date: '2026-10-21',
     text: 'How to play draws the slider questions as a slider, in one row for prices and numbers.',

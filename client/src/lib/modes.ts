@@ -190,6 +190,20 @@ export const MODES: Record<string, Mode> = {
     // The question is the same line each time; the names below it are all there is to read.
     stem: 'text',
   },
+  minigame_madness: {
+    id: 'minigame_madness',
+    label: 'Minigame Madness',
+    hint: 'Every lobby in Gielinor, from Castle Wars to Tempoross.',
+    host: { id: 'lanthus', name: 'Lanthus' },
+    greeting:
+      "Are you team Castle Wars, Barbarian Assault or Pest Control? It doesn't matter tonight. Everyone's on the quiz team!",
+    blurb:
+      "I've watched every lobby in Gielinor fill up. Prizes, points, places: tell me what you know.",
+    waiting: 'Waiting for enough players. As always.',
+    reveal: 'The game has ended! Who won?',
+    // A pictured item's question still names it: the prompt has to read without the picture.
+    stem: 'text',
+  },
   whos_that_npc: {
     id: 'whos_that_npc',
     label: 'Who is That NPC?',

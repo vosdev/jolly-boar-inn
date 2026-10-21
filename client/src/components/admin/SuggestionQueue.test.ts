@@ -234,6 +234,7 @@ describe('SuggestionQueue', () => {
         'Bestiary',
         'Drop Table',
         'Odd One Out',
+        'Minigame Madness',
         'Who Said That?',
         'Know Your Content Creator',
       ])
@@ -290,6 +291,7 @@ describe('SuggestionQueue', () => {
       expect(rounds()).toEqual([
         'A random event question',
         'Bestiary',
+        'Minigame Madness',
         'Sort It Out',
         'Release Order',
       ])

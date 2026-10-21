@@ -135,6 +135,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `number_slider`, `free_text`, `ordering`, `pick_all_that_apply`, `matching` | hand-written | done |
 | `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`, `number_slider`, `matching`; `image` is its picture | hand-written | done |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done |
+| `minigame_madness` | Minigame Madness | Bestiary's seven types; `image` is its picture | hand-written | done, a tag per minigame it covers |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
