@@ -252,6 +252,11 @@ export interface RoomSettings {
    */
   pace: 'walk' | 'run' | 'teleport'
   /**
+   * Which question tiers the rounds draw first (`TIERS`). A room stored before the setting
+   * existed reads as `mixed`, every question, which is what it drew.
+   */
+  difficulty: 'easy' | 'mixed' | 'hard'
+  /**
    * How long the standings hold the floor between two rounds. Zero turns them off; the game's
    * last round never has them, because the final screen is its standings. Defaulted, so a room
    * stored before the field existed reads as a room that has them.

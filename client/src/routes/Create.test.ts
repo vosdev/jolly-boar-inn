@@ -797,6 +797,21 @@ describe('Create', () => {
     expect((await submitted()).pace).toBe('teleport')
   })
 
+  it('sends mixed questions unless changed', async () => {
+    await loaded(...BOTH)
+    expect((await submitted()).difficulty).toBe('mixed')
+  })
+
+  it('offers easy, mixed and hard questions, and sends the one picked', async () => {
+    await loaded(...BOTH)
+    await rule('Questions')
+    for (const name of ['Easy', 'Mixed', 'Hard'])
+      expect(screen.getByRole('radio', { name })).toBeTruthy()
+    await fireEvent.click(screen.getByRole('radio', { name: 'Hard' }))
+    expect(screen.getByText('Leaves out the easiest questions.')).toBeTruthy()
+    expect((await submitted()).difficulty).toBe('hard')
+  })
+
   it('remembers the room it created until the server says it expires', async () => {
     await loaded(...BOTH)
     await submitted()

@@ -43,6 +43,7 @@ const ROOM: RoomView = {
     mode_order: 'listed',
     random_event_frequency: 'default',
     pace: 'run',
+    difficulty: 'mixed',
     standings_seconds: 10,
     close_when_all_answered: true,
     max_players: 50,
@@ -179,6 +180,13 @@ describe('Lobby', () => {
     expect(dialog().textContent).toContain('Start anyway? Still waiting on you and Woox.')
     await fireEvent.click(within(dialog()).getByRole('button', { name: 'Start anyway' }))
     expect(sent).toEqual([{ t: 'start_game' }])
+  })
+
+  it('names the difficulty only when the host narrowed it', () => {
+    lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, difficulty: 'hard' } })
+    expect(
+      screen.getByText('1 round · 5 questions · Run pace · Hard questions · ~5 min'),
+    ).toBeTruthy()
   })
 
   it.each([

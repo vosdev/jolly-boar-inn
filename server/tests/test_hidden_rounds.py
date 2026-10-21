@@ -35,6 +35,7 @@ SETTINGS_KEYS = {
     "mode_order",
     "random_event_frequency",
     "pace",
+    "difficulty",
     "standings_seconds",
     "close_when_all_answered",
     "name_wrong_answers",

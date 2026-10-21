@@ -27,7 +27,7 @@ from typing import Any
 from app.modes import MODES
 from app.questions.packs import EVENT_MODE, Pack
 from app.random_events import RANDOM_EVENTS
-from app.rooms.settings import EVENT_EVERY, RoomSettings, event_windows
+from app.rooms.settings import EVENT_EVERY, TIERS, RoomSettings, event_windows
 
 
 class TooManyEvents(ValueError):
@@ -89,13 +89,21 @@ def select(
     types -- five of them will be ``multiple_choice`` -- and pooling by type would have
     each of those rounds drawing the other four's questions. The NPCs' questions are the
     ``random_event`` pool, which only a mode with that ``pool`` draws a round from.
+
+    ``settings.difficulty`` orders each round pool so the tiers it allows are drawn first
+    and the rest only top up a round they cannot fill: a hard room with too few hard
+    questions plays easier ones rather than a short round. The NPCs' pool is never ordered.
     """
     pools: dict[str, list[dict[str, Any]]] = {}
     for pack in packs:
         for question in pack.questions:
             pools.setdefault(question["mode"], []).append(question)
-    for pool in pools.values():
+    allowed = TIERS[settings.difficulty]
+    for mode_id, pool in pools.items():
         rng.shuffle(pool)
+        if mode_id != EVENT_MODE:
+            # Stable, so each tier stays shuffled; ``pop`` takes the allowed ones, at the end.
+            pool.sort(key=lambda question: question.get("difficulty", "medium") in allowed)
     order = list(settings.modes)
     if settings.mode_order == "random":
         rng.shuffle(order)

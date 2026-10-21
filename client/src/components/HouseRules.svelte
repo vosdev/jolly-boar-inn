@@ -1,15 +1,16 @@
 <script lang="ts">
   /**
    * Everything about a room that is not its rounds or its random events, as a row each
-   * with its current value: Pace, Who can join, and Fine print for the rest. One row is
+   * with its current value: Pace, Questions, Who can join, and Fine print for the rest. One row is
    * open at a time, so the panel never grows longer than one choice.
    *
    * Closed rows keep their controls in the page, hidden, so a value set in one is still
    * there when another opens.
    */
   import type { RoomAccess } from '../lib/api'
+  import { DIFFICULTIES } from '../lib/difficulty'
   import { PACES } from '../lib/pace'
-  import type { Pace } from '../lib/protocol'
+  import type { Difficulty, Pace } from '../lib/protocol'
   import Segmented from './Segmented.svelte'
   import Stepper from './Stepper.svelte'
 
@@ -42,6 +43,7 @@
 
   let {
     pace = $bindable(),
+    difficulty = $bindable(),
     access = $bindable(),
     standingsSeconds = $bindable(),
     hideRounds = $bindable(),
@@ -50,6 +52,7 @@
     surprise,
   }: {
     pace: Pace
+    difficulty: Difficulty
     access: RoomAccess
     standingsSeconds: number
     hideRounds: boolean
@@ -59,7 +62,7 @@
     surprise: boolean
   } = $props()
 
-  let open = $state<'pace' | 'access' | 'fine' | null>(null)
+  let open = $state<'pace' | 'difficulty' | 'access' | 'fine' | null>(null)
   const id = $props.id()
 
   const changed = $derived(
@@ -71,12 +74,12 @@
     ].filter(Boolean).length,
   )
 
-  function toggle(row: 'pace' | 'access' | 'fine'): void {
+  function toggle(row: 'pace' | 'difficulty' | 'access' | 'fine'): void {
     open = open === row ? null : row
   }
 </script>
 
-{#snippet head(row: 'pace' | 'access' | 'fine', label: string, value: string)}
+{#snippet head(row: 'pace' | 'difficulty' | 'access' | 'fine', label: string, value: string)}
   <button
     type="button"
     class="rule"
@@ -99,6 +102,16 @@
   <div class="open" id="{id}-pace" hidden={open !== 'pace'}>
     <Segmented legend="Pace" hideLegend options={PACES} bind:value={pace} />
     <p class="note">{PACES.find((option) => option.value === pace)?.note}</p>
+  </div>
+
+  {@render head(
+    'difficulty',
+    'Questions',
+    DIFFICULTIES.find((option) => option.value === difficulty)?.label ?? difficulty,
+  )}
+  <div class="open" id="{id}-difficulty" hidden={open !== 'difficulty'}>
+    <Segmented legend="Questions" hideLegend options={DIFFICULTIES} bind:value={difficulty} />
+    <p class="note">{DIFFICULTIES.find((option) => option.value === difficulty)?.note}</p>
   </div>
 
   {@render head(
