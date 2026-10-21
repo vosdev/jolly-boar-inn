@@ -60,7 +60,7 @@ def test_the_walk_finds_the_choice_arrays_there_are() -> None:
     assert found == {
         *(
             f"/$defs/{kind}/properties/options"
-            for kind in ("more_less", "price_is_right", "multiple_choice", "pick_all_that_apply")
+            for kind in ("more_less", "multiple_choice", "pick_all_that_apply")
         ),
         "/$defs/ordering/properties/entries",
     }

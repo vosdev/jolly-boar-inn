@@ -98,7 +98,7 @@ learns the position, which is worth more than variety.
   beside Submit, starts over. An unsent order goes 1 s before `ends_at`, empty places filled from the
   top of the rest. The reveal lists the right order, ties sharing a number, with each `detail`; a
   misplaced entry fades and says where you had it. With `picks` it lists only the top ones.
-- Gems are for `multiple_choice`, `price_is_right`, `pick_all_that_apply` and `ordering`. `more_less` keeps `--more` and
+- Gems are for `multiple_choice`, `pick_all_that_apply` and `ordering`; `price_is_right` is a slider. `more_less` keeps `--more` and
   `--less`, because its buttons carry item pictures, which a gem fill would drown.
   `pick_from_list` has a list of hundreds, answered through a combobox, with no gems.
 

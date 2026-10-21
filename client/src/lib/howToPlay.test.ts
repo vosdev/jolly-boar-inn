@@ -81,20 +81,24 @@ describe('allTypes', () => {
 })
 
 describe('rows', () => {
-  it('share one row for the three one-tap types', () => {
-    for (const type of ['multiple_choice', 'more_less', 'price_is_right']) {
+  it('share one row for the two one-tap types', () => {
+    for (const type of ['multiple_choice', 'more_less']) {
       expect(titles(new Set([type]))).toEqual(['One answer'])
     }
   })
 
   it('say Submit for every type that has one, and only for those', () => {
-    const tapped = new Set(['multiple_choice', 'more_less', 'price_is_right'])
+    const tapped = new Set(['multiple_choice', 'more_less'])
     for (const row of HOW_TO_ROWS) {
       expect(row.text.includes('Submit'), row.title).toBe(
         !row.types.some((type) => tapped.has(type)),
       )
     }
   })
+})
+
+it('gives the price slider its own row', () => {
+  expect(titles(new Set(['price_is_right']))).toEqual(['Slide to a price'])
 })
 
 describe('loadModes', () => {

@@ -25,7 +25,7 @@ def entries(count: int) -> dict[str, Any]:
         ("pick_all_that_apply", options(6), 28, 10),
         ("ordering", entries(4), 30, 12),
         ("ordering", entries(6), 40, 16),
-        ("price_is_right", options(4), 10, 6),
+        ("price_is_right", {}, 15, 6),
         ("more_less", {}, 10, 5),
         ("pick_from_list", {}, 20, 6),
         ("free_text", {}, 20, 7),

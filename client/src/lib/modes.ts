@@ -98,10 +98,10 @@ export const MODES: Record<string, Mode> = {
     hint: 'Test your Grand Exchange knowledge.',
     host: { id: 'grand_exchange_clerk', name: 'Grand Exchange Clerk' },
     greeting: 'Welcome to the Grand Exchange. How may I help you today?',
-    blurb: 'One item, four prices. Tell me which one it really trades for on the Exchange.',
+    blurb: 'One item, a range of prices. Slide to what it really trades for on the Exchange.',
     waiting: 'Your offer has been placed. Please wait while the market catches up.',
     reveal: 'Your offer has completed.',
-    // The item and the question, above four prices that would not say what they price.
+    // The item and the question, above a slider whose prices would not say what they price.
     stem: 'price',
   },
   guess_examine: {

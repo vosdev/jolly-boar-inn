@@ -79,8 +79,8 @@ def test_a_host_may_not_write_a_price_question_yet() -> None:
         "payload": {
             "subject": {"name": "Abyssal whip", "asset": "item:4151"},
             "value": 1600000,
-            "options": [1100000, 1600000, 2100000, 2900000],
-            "answer_index": 1,
+            "min": 1100000,
+            "max": 3000000,
             "as_of": "2026-09-20",
         },
     }

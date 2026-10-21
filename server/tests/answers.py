@@ -9,7 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 from app.questions import normalize, vocab
-from app.questions.types import multiple_choice, ordering, pick_all_that_apply
+from app.questions.types import multiple_choice, ordering, pick_all_that_apply, slider
 from app.questions.types.free_text import MAX_LENGTH
 
 
@@ -62,9 +62,15 @@ def _nothing_like_it(payload: dict[str, Any]) -> str:
     return "q" * min(longest + 3, MAX_LENGTH)
 
 
+def _far_end(payload: dict[str, Any]) -> int:
+    # The answer sits in a band away from the middle, so the far end is past credit's reach.
+    low, high = payload["min"], payload["max"]
+    return high if slider.position(payload["value"], low, high) < 0.5 else low
+
+
 _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "more_less": lambda payload: payload["answer_index"],
-    "price_is_right": lambda payload: payload["answer_index"],
+    "price_is_right": lambda payload: payload["value"],
     "multiple_choice": lambda payload: multiple_choice.reveal(payload)["answer_index"],
     "pick_from_list": lambda payload: payload["answer_id"],
     "closest_number": lambda payload: payload["answer"],
@@ -76,7 +82,7 @@ _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
 
 _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "more_less": _another_option,
-    "price_is_right": _another_option,
+    "price_is_right": _far_end,
     "multiple_choice": _another_shown_option,
     "pick_from_list": _another_entry,
     "closest_number": lambda payload: payload["answer"] + 1,

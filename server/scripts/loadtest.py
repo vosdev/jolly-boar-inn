@@ -388,8 +388,13 @@ class Bot:
         if current is None or current["question_id"] != qid or qid in self.answered:
             self.missed.append(index)
             return
-        options = current["view"].get("options")
-        value = self.run.rng.randrange(len(options)) if options else 0
+        view = current["view"]
+        options = view.get("options")
+        if "min" in view:
+            # A slider's ends are always on its grid, whatever the range.
+            value = self.run.rng.choice((view["min"], view["max"]))
+        else:
+            value = self.run.rng.randrange(len(options)) if options else 0
         # The clock starts here, before the send, so it covers everything between this
         # bot deciding and the server answering: the frame on the wire, the wait for the
         # room lock, the insert, and the ack coming back.

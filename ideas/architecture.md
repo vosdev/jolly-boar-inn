@@ -115,7 +115,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 - A question's time to answer and its reveal are its type's alone, at the room's `pace`: ×1.25
   `walk`, ×1 `run`, ×0.75 `teleport`, a half rounded up, at least 5 s to answer and 4 s to reveal.
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
-  4 + 1, `ordering` 10 + 5/entry and 4 + 2/entry, `price_is_right` 6 + 1/option and 6,
+  4 + 1, `ordering` 10 + 5/entry and 4 + 2/entry, `price_is_right` 15 and 6,
   `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8.
   `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
 - A game's minutes (`rooms/duration.py`) are a ceiling: every question's full answer and reveal,
@@ -147,8 +147,8 @@ Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
 - Who's That NPC? uses a strict list, not buttons or free text: free text needs an alias list and a
   typo argument per item. Mostly monsters: people look alike in shadow. Guess the Examine dropped its list for buttons: players found it too hard.
 - Examine lines are hand-picked, not taken from `/mapping`. The wiki's were accurate and not funny.
-- The Price is Right is its own type: its options are integers, and it stores the price again as
-  `value` so `check()` has something to compare against.
+- The Price is Right is its own type: a log slider from `min` to `max` (`types/slider.py`,
+  `lib/slider.ts`) on a three-figure grid; `value`, the price at two figures, lies strictly inside.
 
 ## 4. Questions
 
@@ -172,7 +172,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 
 | Type | `value` | Credit |
 |---|---|---|
-| `more_less`, `price_is_right` | option index | 1 or 0 |
+| `more_less` | option index | 1 or 0 |
+| `price_is_right` | gp on the slider's grid, in `[min, max]` | by distance (section 8) |
 | `multiple_choice` | shown position | 1 or 0 |
 | `free_text` | string, at most 80 characters, no NUL or lone surrogate | 1 or 0 |
 | `closest_number` | number | by rank (section 8) |
@@ -451,6 +452,9 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 Rank: answers rank by distance, ties share the better rank, and speed does not count. Exact is 1.0
 credit and 1000 points. The closest three otherwise get 0.9, 0.8 and 0.7, paid 750, 500 and 250.
 
+Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figures, then falling
+linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.
+
 Steps (Pixel Hunt): `steps` frames over the question's seconds. Points fall from 1000 on step 1 to
 400 on the last, `round(400 + 600 × (steps - k) / (steps - 1))`; one step pays 1000. A payload
 without `steps` scores on speed.
@@ -668,6 +672,7 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
 - `make gen-price-questions` (also in `make all`) fetches `/mapping` and `/latest` once each. It
   never runs at startup or in CI. Its pairs are 1.25x to 4x apart: closer is a coin flip, and the mode shows no values.
+  A price's range spans three 1.15x–1.5x steps, its answer 10–45% or 55–90% along the log width.
 - A pack's prices share one `as_of`. `/api/modes` gives a mode its pool's newest, shown by the
   footer and a price round's splash instead of on every question.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
