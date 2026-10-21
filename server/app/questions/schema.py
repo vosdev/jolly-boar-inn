@@ -66,6 +66,20 @@ def schema_errors(question: Any) -> list[str]:
     return [f"{error.json_path}: {error.message}" for error in found]
 
 
+@cache
+def _payload_validator(kind: str) -> Draft202012Validator:
+    whole = load_schema()
+    return Draft202012Validator(
+        {"$defs": whole["$defs"], "$ref": f"#/$defs/{kind}"}, format_checker=FormatChecker()
+    )
+
+
+def payload_errors(kind: str, payload: Any) -> list[str]:
+    """Every violation of ``kind``'s payload schema alone, as ``$.payload<path>: <message>``."""
+    found = sorted(_payload_validator(kind).iter_errors(payload), key=lambda e: e.json_path)
+    return [f"$.payload{error.json_path[1:]}: {error.message}" for error in found]
+
+
 def consistency_errors(question: dict[str, Any]) -> list[str]:
     """Problems a schema cannot express: unsupported type, a mode this build does not play
     or one the type disagrees with, an NPC where none may ask, wrong id, answer vs facts.

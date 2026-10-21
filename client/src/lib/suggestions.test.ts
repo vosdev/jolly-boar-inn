@@ -10,14 +10,18 @@ import {
   creditProblem,
   existingMode,
   exportName,
+  hasRound,
   hostOf,
   inGameOrder,
   itemProblem,
   maySuggest,
+  NO_ROUND,
   npcNameProblem,
   pictureItemProblem,
+  placedIn,
   questionPreview,
   retryIn,
+  roundsFor,
   sourceProblems,
   summary,
   wikiProblem,
@@ -71,7 +75,7 @@ describe('where a question was checked', () => {
 })
 
 describe('the choices', () => {
-  it('are an item, an NPC question, the four-button rounds and Sort It Out', () => {
+  it('are an item, an NPC question, the rounds, and last a question with no round', () => {
     expect(CHOICES.map((choice) => choice.id)).toEqual([
       'item',
       'random_event',
@@ -84,6 +88,7 @@ describe('the choices', () => {
       'whos_that_npc',
       'sort_it_out',
       'release_order',
+      'no_round',
     ])
     expect(CHOICES.find((c) => c.id === 'odd_one_out')?.types).toEqual(['multiple_choice'])
     const examine = CHOICES.find((c) => c.id === 'guess_examine')
@@ -144,8 +149,36 @@ describe('the choices', () => {
     ])
   })
 
+  it('offers one with no round all five types, from the innkeeper, and nothing a round adds', () => {
+    const any = CHOICES.find((c) => c.id === NO_ROUND)
+    expect([any?.kind, any?.label, any?.hint, any?.host]).toEqual([
+      'question',
+      'Not sure where it fits',
+      'Any question. The innkeeper picks its round.',
+      'innkeeper',
+    ])
+    expect(any?.types).toEqual([
+      'multiple_choice',
+      'free_text',
+      'closest_number',
+      'pick_all_that_apply',
+      'ordering',
+    ])
+    expect([any?.quote, any?.prompt, any?.wikiOnly, any?.pictureItem, any?.named]).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ])
+  })
+
   it('finds the one a stored suggestion was written under', () => {
     expect(choiceOf('question', QUESTION)?.id).toBe('odd_one_out')
+    const { mode: _mode, ...unplaced } = QUESTION
+    expect(choiceOf('question', unplaced)?.id).toBe(NO_ROUND)
+    expect(hostOf('question', unplaced)).toBe('innkeeper')
+    expect(questionPreview(unplaced).mode).toBe(NO_ROUND)
     expect(choiceOf('item', { name: 'Abyssal whip' })?.id).toBe('item')
   })
 
@@ -246,10 +279,45 @@ describe('the queue', () => {
   })
 })
 
+describe('a question’s round', () => {
+  const { mode: _mode, ...unplaced } = QUESTION
+
+  it('is wanted before a question is approved, and never of an item', () => {
+    expect(hasRound('question', unplaced)).toBe(false)
+    expect(hasRound('question', QUESTION)).toBe(true)
+    expect(hasRound('item', { name: 'Abyssal whip' })).toBe(true)
+  })
+
+  it('is picked from the rounds whose editor offers its type', () => {
+    expect(roundsFor('free_text').map((c) => c.id)).toEqual([
+      'random_event',
+      'bestiary',
+      'drop_table',
+    ])
+    expect(roundsFor('ordering').map((c) => c.id)).toEqual([
+      'random_event',
+      'bestiary',
+      'sort_it_out',
+      'release_order',
+    ])
+    expect(roundsFor('pick_from_list').map((c) => c.id)).toEqual(['whos_that_npc'])
+    expect(roundsFor('multiple_choice').map((c) => c.id)).not.toContain(NO_ROUND)
+  })
+
+  it('keeps an NPC only for a random event, and leaves the rest as written', () => {
+    const event = { ...QUESTION, mode: 'random_event', random_event: 'bob' }
+    expect(placedIn(unplaced, 'bestiary')).toEqual({ ...QUESTION, mode: 'bestiary' })
+    expect(placedIn(event, 'random_event')).toEqual(event)
+    expect(placedIn(event, 'bestiary')).toEqual({ ...QUESTION, mode: 'bestiary' })
+    expect(placedIn(QUESTION, NO_ROUND)).toEqual(unplaced)
+  })
+})
+
 describe('what the game already asks', () => {
-  it('lists the packs beside every question card, and nothing beside the item', () => {
+  it('lists the packs beside every round’s card, and nothing beside the item or no round', () => {
     for (const choice of CHOICES) {
-      expect(existingMode(choice)).toBe(choice.kind === 'item' ? null : choice.id)
+      const listed = choice.kind === 'question' && choice.id !== NO_ROUND
+      expect(existingMode(choice)).toBe(listed ? choice.id : null)
     }
   })
 

@@ -3,7 +3,8 @@
  * (`server/app/suggestions.py`).
  *
  * Two kinds. A `question` is what Create's editor writes, for a mode, with the wiki
- * page that proves it. An `item` is only a name not on the roster yet: the import script finds its
+ * page that proves it. A player who can't place one sends it with no mode, and the
+ * operator picks its round before approving it. An `item` is only a name not on the roster yet: the import script finds its
  * id. Every one carries a credit, a name held to a display name's rules, and whether
  * players may see it, which an item's never may: its rounds name no author.
  *
@@ -15,7 +16,7 @@
 import type { CustomQuestion, CustomType } from './customQuestions'
 import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
-import { MODES, UPCOMING_MODES } from './modes'
+import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
 import type { OpenQuestion } from './protocol'
@@ -51,7 +52,8 @@ export interface QuestionContent {
   payload: Record<string, unknown>
   /** The NPC who asks it, for a random event's. */
   random_event?: string
-  mode: string
+  /** The round it is for, missing until the operator picks one for a question sent without. */
+  mode?: string
   /** Where it was checked: either of these, or both. */
   wiki?: string
   source_url?: string
@@ -61,20 +63,18 @@ export interface QuestionContent {
 
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
 export function questionPreview(content: QuestionContent): OpenQuestion {
-  if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, content.mode)
+  const mode = content.mode ?? NO_ROUND
+  if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
   if (content.type === 'pick_from_list') {
     // No picture: there is none until the import finds the NPC's id.
-    const open = previewOf({ type: 'multiple_choice', payload: {} }, content.mode)
+    const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
     return {
       ...open,
       type: 'pick_from_list',
       view: { prompt: content.payload.prompt, vocab: 'npcs' },
     }
   }
-  return previewOf(
-    content as CustomQuestion,
-    content.mode === 'random_event' ? undefined : content.mode,
-  )
+  return previewOf(content as CustomQuestion, mode === 'random_event' ? undefined : mode)
 }
 
 export interface ItemContent {
@@ -96,7 +96,7 @@ export interface QueuedSuggestion extends SuggestionBody {
   status: SuggestionStatus
   created_at: string
   exported_at: string | null
-  /** False for a question whose round is not built yet: no export includes it. */
+  /** False for a question with no round, or one not built yet: no export includes it. */
   playable: boolean
 }
 
@@ -189,6 +189,12 @@ const ORDERING_HINTS: Record<string, string> = {
   release_order: 'Something worth putting in release order.',
 }
 
+/**
+ * The card for a question that fits no round the player can name. It is no mode: it is
+ * stored with none, previewed in no round and presented by the innkeeper.
+ */
+export const NO_ROUND = 'no_round'
+
 export const CHOICES: readonly Choice[] = [
   {
     id: 'item',
@@ -244,12 +250,45 @@ export const CHOICES: readonly Choice[] = [
       host: mode.host,
       types: ['ordering'],
     })),
+  {
+    id: NO_ROUND,
+    kind: 'question',
+    label: 'Not sure where it fits',
+    hint: 'Any question. The innkeeper picks its round.',
+    host: INNKEEPER.id,
+    types: [...CUSTOM_TYPES, 'ordering'],
+  },
 ]
 
 /** The choice a stored suggestion was written under. */
 export function choiceOf(kind: SuggestionKind, content: SuggestionContent): Choice | undefined {
-  const id = kind === 'question' ? (content as QuestionContent).mode : kind
+  const id = kind === 'question' ? ((content as QuestionContent).mode ?? NO_ROUND) : kind
   return CHOICES.find((choice) => choice.id === id)
+}
+
+/** Whether a question has its round, without which it can't be approved. */
+export function hasRound(kind: SuggestionKind, content: SuggestionContent): boolean {
+  return kind !== 'question' || (content as QuestionContent).mode !== undefined
+}
+
+/** The rounds the operator may move a question of `type` to: those whose editor offers it. */
+export function roundsFor(type: SuggestedType): Choice[] {
+  return CHOICES.filter(
+    (choice) => choice.kind === 'question' && choice.id !== NO_ROUND && choice.types.includes(type),
+  )
+}
+
+/**
+ * A question as it opens in `round`'s editor. Only an NPC's question keeps its NPC; the rest
+ * is left as written, so what the round refuses is the server's to say.
+ */
+export function placedIn(content: QuestionContent, round: string): QuestionContent {
+  const { mode: _mode, random_event: npc, ...rest } = content
+  return {
+    ...rest,
+    ...(round === NO_ROUND ? {} : { mode: round }),
+    ...(round === 'random_event' && npc !== undefined ? { random_event: npc } : {}),
+  }
 }
 
 /** The NPC a stored suggestion shows: a random event's own, else its choice's host. */
@@ -267,7 +306,7 @@ export function modeName(mode: string): string {
 
 /** The mode whose pack questions show beside the editor, or null for a card that has none. */
 export function existingMode(choice: Choice): string | null {
-  return choice.kind === 'question' ? choice.id : null
+  return choice.kind === 'question' && choice.id !== NO_ROUND ? choice.id : null
 }
 
 const ROSTER_PLACE = new Map(RANDOM_EVENTS.map((npc, index) => [npc.id, index]))

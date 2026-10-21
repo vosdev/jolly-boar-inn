@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
 import { savePastGame } from '../lib/history'
+import { npcArt } from '../lib/npcs'
 import { CHOICES } from '../lib/suggestions'
 import { clearVocabCache } from '../lib/vocab'
 import Suggest from './Suggest.svelte'
@@ -139,7 +140,7 @@ describe('Suggest', () => {
   it('shows each question card’s pack questions beside the editor, searchable', async () => {
     played()
     render(Suggest, { navigate })
-    const cards = CHOICES.filter((choice) => choice.kind === 'question')
+    const cards = CHOICES.filter((choice) => choice.kind === 'question' && choice.id !== 'no_round')
     for (const card of cards.filter((c) => !['random_event', 'release_order'].includes(c.id))) {
       await fireEvent.click(await screen.findByRole('button', { name: new RegExp(card.label) }))
       await waitFor(() => expect(existingRows()).toEqual([`A ${card.id} question`]))
@@ -661,6 +662,49 @@ describe('Suggest', () => {
     expect(faces.some((face) => (face as HTMLInputElement).checked)).toBe(false)
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(screen.getByText('Pick who asks it.')).toBeTruthy()
+  })
+
+  it('offers a question with no round last, its five types and no more, and sends it with no mode', async () => {
+    played()
+    render(Suggest, { navigate })
+    const cards = (await screen.findAllByRole('button')).filter((b) => b.closest('.choices'))
+    expect(cards.at(-1)?.textContent).toMatch(
+      /Not sure where it fits\s*Any question\. The innkeeper picks its round\./,
+    )
+    expect(cards.at(-1)?.querySelector('img')?.getAttribute('src')).toBe(npcArt('innkeeper').url)
+    await fireEvent.click(cards.at(-1)!)
+    const labels = within(screen.getByRole('group', { name: 'How players answer' }))
+      .getAllByRole('radio')
+      .map((radio) => radio.parentElement?.textContent?.trim())
+    expect(labels).toEqual([
+      'Multiple choice',
+      'Type the answer',
+      'Closest number',
+      'Pick all that apply',
+      'Put in order',
+    ])
+    expect(screen.queryByText('Who asks it')).toBeNull()
+    expect(screen.queryByLabelText(/^Quote/)).toBeNull()
+    expect(screen.queryByLabelText(/^Intro/)).toBeNull()
+    expect(screen.queryByLabelText(/Item to show/)).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Already in the game' })).toBeNull()
+    expect(screen.getByLabelText<HTMLTextAreaElement>('Question').readOnly).toBe(false)
+    expect(api.getReportChoices).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByLabelText('Type the answer'))
+    await type('Question', 'Which monster drops the Abyssal whip?')
+    await type('Accepted answer 1', 'Abyssal demon')
+    await type('Another source, if the wiki can’t show it', 'https://example.com/clip')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    const sent = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
+    expect(sent).toMatchObject({
+      type: 'free_text',
+      payload: { prompt: 'Which monster drops the Abyssal whip?', accepted: ['Abyssal demon'] },
+      source_url: 'https://example.com/clip',
+    })
+    expect(sent).not.toHaveProperty('mode')
+    expect(sent).not.toHaveProperty('random_event')
   })
 
   it('shows the limit when the server refuses the send for it', async () => {

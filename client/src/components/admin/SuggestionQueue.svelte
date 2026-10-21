@@ -7,6 +7,8 @@
    * the file held, and once the import is merged "Mark as imported" moves exactly those to
    * Imported, where they stay and can be exported again if an import goes wrong. A question
    * for a round not built yet waits in Approved: no export includes it until the round is.
+   * One sent with no round can't be approved until it has one: editing a question offers
+   * the rounds that take its type, and picking one reopens the editor in it.
    *
    * Everything a player typed is drawn as text, never as markup.
    */
@@ -28,9 +30,13 @@
     answerOf,
     choiceOf,
     exportName,
+    hasRound,
     hostOf,
     modeName,
+    NO_ROUND,
+    placedIn,
     questionPreview,
+    roundsFor,
     summary,
     type ItemContent,
     type QueuedSuggestion,
@@ -51,6 +57,8 @@
   let queue = $state<Queue | null>(null)
   let opened = $state<string | null>(null)
   let editing = $state<string | null>(null)
+  /** The round the suggestion being edited is placed in, `NO_ROUND` while it has none. */
+  let round = $state(NO_ROUND)
   let failure = $state<string | null>(null)
   let busy = $state(false)
 
@@ -95,6 +103,17 @@
 
   function move(row: QueuedSuggestion, next: 'pending' | 'approved' | 'rejected'): void {
     void run(() => setSuggestionStatus(token, row.id, next))
+  }
+
+  function edit(row: QueuedSuggestion): void {
+    round = row.kind === 'question' ? ((row.content as QuestionContent).mode ?? NO_ROUND) : ''
+    editing = row.id
+  }
+
+  /** The row as it opens in the editor: in the round picked for it, if it is a question. */
+  function editedAs(row: QueuedSuggestion): SuggestionBody {
+    if (row.kind !== 'question') return row
+    return { ...row, content: placedIn(row.content as QuestionContent, round) }
   }
 
   function save(row: QueuedSuggestion, body: SuggestionBody): void {
@@ -144,8 +163,8 @@
 
   function kindLine(row: QueuedSuggestion): string {
     if (row.kind !== 'question') return KIND_LABELS[row.kind]
-    const content = row.content as QuestionContent
-    return modeName(content.mode)
+    const { mode } = row.content as QuestionContent
+    return mode === undefined ? 'No round yet' : modeName(mode)
   }
 </script>
 
@@ -236,7 +255,9 @@
             <img src={npcArt(hostOf(row.kind, row.content)).url} alt="" />
             <span class="chip">{kindLine(row)}</span>
             <span class="text">{summary(row)}</span>
-            {#if !row.playable}<span class="chip warn">Waits for its round</span>{/if}
+            {#if hasRound(row.kind, row.content) && !row.playable}
+              <span class="chip warn">Waits for its round</span>
+            {/if}
             {#if row.exported_at !== null}<span class="chip ok">Exported</span>{/if}
             <span class="who">{row.credit}{row.credit_shown ? '' : ' · hidden'}</span>
             <span class="when">{sent(row.created_at)}</span>
@@ -245,13 +266,35 @@
           {#if opened === row.id}
             <div class="detail">
               {#if editing === row.id && choice !== undefined}
-                <SuggestionEditor
-                  {choice}
-                  initial={row}
-                  saveLabel="Save"
-                  onsave={(body) => save(row, body)}
-                  oncancel={() => (editing = null)}
-                />
+                {@const placed = choiceOf(row.kind, editedAs(row).content)}
+                <div class="editing">
+                  {#if row.kind === 'question'}
+                    {@const type = (row.content as QuestionContent).type}
+                    <div class="field round">
+                      <label for="round-{row.id}">Round</label>
+                      <select id="round-{row.id}" bind:value={round}>
+                        {#if !hasRound(row.kind, row.content)}
+                          <option value={NO_ROUND}>No round yet</option>
+                        {/if}
+                        {#each roundsFor(type) as option (option.id)}
+                          <option value={option.id}>{option.label}</option>
+                        {/each}
+                      </select>
+                      <p class="note">
+                        Picking another starts the editor afresh from what is saved.
+                      </p>
+                    </div>
+                  {/if}
+                  {#key round}
+                    <SuggestionEditor
+                      choice={placed ?? choice}
+                      initial={editedAs(row)}
+                      saveLabel="Save"
+                      onsave={(body) => save(row, body)}
+                      oncancel={() => (editing = null)}
+                    />
+                  {/key}
+                </div>
               {:else}
                 <div class="preview" aria-label="As players will see it">
                   {#if row.kind === 'question'}
@@ -301,19 +344,22 @@
                       <a href={link} target="_blank" rel="noopener noreferrer">{link} ↗</a>
                     </p>
                   {/each}
+                  {#if !hasRound(row.kind, row.content)}
+                    <p class="note">Edit it to pick its round before approving it.</p>
+                  {/if}
                   {#if row.status !== 'imported'}
                     <div class="row">
                       {#if row.status !== 'approved'}
                         <button
                           type="button"
                           class="primary"
-                          disabled={busy}
+                          disabled={busy || !hasRound(row.kind, row.content)}
                           onclick={() => move(row, 'approved')}
                         >
                           Approve
                         </button>
                       {/if}
-                      <button type="button" disabled={busy} onclick={() => (editing = row.id)}>
+                      <button type="button" disabled={busy} onclick={() => edit(row)}>
                         Edit
                       </button>
                       {#if row.status !== 'rejected'}
@@ -480,8 +526,13 @@
     border-top: 1px dashed var(--line);
   }
 
-  .detail > :global(.editor) {
+  .detail > .editing {
     grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .round select {
+    max-width: 20rem;
   }
 
   .item {

@@ -831,6 +831,126 @@ def test_reject_and_reopen(client: TestClient) -> None:
     assert len(queue(client)["suggestions"]) == 1
 
 
+# --- a question with no round ---------------------------------------------------------
+
+
+UNPLACED = _without(EVENT, "mode")
+del UNPLACED["content"]["random_event"]
+FREE_TEXT = _with(
+    UNPLACED,
+    type="free_text",
+    payload={"prompt": "Which brother wields a greataxe?", "accepted": ["Dharok"]},
+)
+
+
+def _status(client: TestClient, suggestion: str, status: str) -> Any:
+    return client.post(
+        f"/api/admin/suggestions/{suggestion}/status", json={"status": status}, headers=BEARER
+    )
+
+
+def _edit(client: TestClient, suggestion: str, body: dict[str, Any]) -> Any:
+    edit = {key: body[key] for key in ("content", "credit", "credit_shown")}
+    return client.put(f"/api/admin/suggestions/{suggestion}", headers=BEARER, json=edit)
+
+
+def test_a_question_with_no_round_takes_the_five_types_and_waits(client: TestClient) -> None:
+    unplaced = (UNPLACED, FREE_TEXT, _without(DROP_RATE, "mode"), _without(PICK_ALL, "mode"))
+    for body in (*unplaced, _without(SORT_IT_OUT, "mode")):
+        suggest(client, body)
+    rows = queue(client)["suggestions"]
+    assert [row["content"]["type"] for row in rows] == [
+        "multiple_choice",
+        "free_text",
+        "closest_number",
+        "pick_all_that_apply",
+        "ordering",
+    ]
+    assert all("mode" not in row["content"] for row in rows)
+    assert not any(row["playable"] for row in rows)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        # What its type's ``check`` refuses: a pick-all needs a wrong option, an ordering a
+        # rank for its answer.
+        _with(
+            _without(PICK_ALL, "mode"),
+            payload={**PICK_ALL["content"]["payload"], "answer_indices": [0, 1, 2]},
+        ),
+        _without(_ordering(answer=[1, 0, 2, 3]), "mode"),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "prompt": ""}),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "answer_index": 9}),
+        _with(UNPLACED, mode=None),
+        _with(UNPLACED, random_event="bob"),
+        _with(UNPLACED, picture_item="Dragon warhammer"),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "quote": "Said by Bob"}),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "intro": "Ahoy."}),
+        _without(NPC, "mode"),
+        _without(UNPLACED, "wiki"),
+    ],
+)
+def test_a_question_with_no_round_is_held_to_its_type(
+    client: TestClient, body: dict[str, Any]
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert queue(client)["suggestions"] == []
+
+
+def test_a_question_is_approved_and_exported_only_once_it_has_a_round(client: TestClient) -> None:
+    suggestion = suggest(client, UNPLACED)
+    refused = _status(client, suggestion, "approved")
+    assert refused.status_code == 422, refused.text
+    assert refused.json()["code"] == "no_round"
+    assert queue(client)["counts"]["approved"] == 0
+    placed = _with(UNPLACED, mode="random_event", random_event="bob")
+    assert _edit(client, suggestion, placed).status_code == 200
+    approve(client, suggestion)
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["random_event"]) == ("random_event", "bob")
+
+
+def test_an_approved_question_keeps_its_round(client: TestClient) -> None:
+    suggestion = suggest(client, EXAMINE)
+    approve(client, suggestion)
+    response = _edit(client, suggestion, _without(EXAMINE, "mode"))
+    assert response.status_code == 422, response.text
+    assert queue(client, "approved")["suggestions"][0]["content"]["mode"] == "guess_examine"
+
+
+@pytest.mark.parametrize(
+    ("body", "moved"),
+    [
+        # A round whose types leave its type out.
+        (_without(SORT_IT_OUT, "mode"), {"mode": "drop_table"}),
+        (FREE_TEXT, {"mode": "who_said_that"}),
+        # A round whose rules it breaks: an NPC's question names its NPC and only it does,
+        # and Bestiary shows no quote.
+        (UNPLACED, {"mode": "random_event"}),
+        (_with(UNPLACED, mode="random_event", random_event="bob"), {"mode": "guess_examine"}),
+        (QUOTE, {"mode": "bestiary"}),
+    ],
+)
+def test_a_move_to_a_round_it_does_not_fit_is_a_422(
+    client: TestClient, body: dict[str, Any], moved: dict[str, Any]
+) -> None:
+    suggestion = suggest(client, body)
+    response = _edit(client, suggestion, _with(body, **moved))
+    assert response.status_code == 422, response.text
+    assert queue(client)["suggestions"][0]["content"] == body["content"]
+
+
+def test_a_question_moves_to_another_round_that_takes_it(client: TestClient) -> None:
+    suggestion = suggest(client, _without(DROP_RATE, "mode"))
+    for mode in ("drop_table", "bestiary"):
+        moved = _with(DROP_RATE, mode=mode)
+        response = _edit(client, suggestion, moved)
+        assert response.status_code == 200, response.text
+        assert response.json()["content"]["mode"] == mode
+
+
 # --- the credit in a game -------------------------------------------------------------
 
 

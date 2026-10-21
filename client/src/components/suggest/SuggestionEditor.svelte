@@ -4,7 +4,8 @@
    * kind, the wiki page that proves it, and the credit.
    *
    * A question is Create's editor, held to the types its mode offers: an NPC's question
-   * names its NPC, a round's names none and is previewed in its round. A round may hold
+   * names its NPC, a round's names none and is previewed in its round, and one sent with no
+   * round is saved with no mode and previewed in none. A round may hold
    * its options to a range, or its proof to a wiki page. A Drop Table question may name an
    * item to picture, and a Who's That NPC? question is only the NPC's name: the preview shows
    * no picture for either, since it exists only once imported. An NPC the game already asks
@@ -25,6 +26,7 @@
     creditProblem,
     INTRO_ROUNDS,
     itemProblem,
+    NO_ROUND,
     npcNameProblem,
     pictureItemProblem,
     questionPreview,
@@ -189,7 +191,7 @@
     const pictured = choice.pictureItem && pictureItem.trim() !== ''
     send({
       ...built,
-      mode: choice.id,
+      ...(choice.id === NO_ROUND ? {} : { mode: choice.id }),
       ...given,
       ...(pictured ? { picture_item: pictureItem.trim() } : {}),
     })

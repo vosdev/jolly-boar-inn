@@ -617,16 +617,18 @@ key into them, so cleanup leaves it.
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
-  `question` in Create's shape plus `mode` and a `wiki` or `source_url`, or both (a `quote` only
+  `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode` (a `quote` only
   for the two quote rounds, an `intro` only for an NPC's, a `picture_item` name only for Drop
-  Table's; Guess the Examine's and Who's That NPC?'s need a `wiki`) or an `item` (a name not on the
-  roster). Who's That NPC?'s payload is its fixed prompt and `subject.name`, an NPC not on its list
+  Table's; Guess the Examine's and Who's That NPC?'s need a `wiki`) or none, held to its type alone
+  (`UNPLACED_TYPES`) until the operator picks its round; or an `item` (a name not on the roster).
+  Who's That NPC?'s payload is its fixed prompt and `subject.name`, an NPC not on its list
   (`NAMED_MODES`). Each has a `credit` held to the name rules and `credit_shown`, never
   true for an item. Pending, approved, rejected or imported. A round not built yet takes
   questions; they wait in approved. The client offers the form after a finished game; 10 an hour
   per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
-- `/api/admin/suggestions` lists, edits and moves them. Export downloads the playable approved ones
-  and stamps `exported_at`; "mark as imported" moves exactly those. An edit clears the stamp.
+- `/api/admin/suggestions` lists, edits and moves them; a question with no round can't be approved
+  (422). Export downloads the playable approved ones and stamps `exported_at`; "mark as imported"
+  moves exactly those. An edit clears the stamp.
 - `reports` holds what players send to `POST /api/reports` (`app/reports.py`): a mode, a question
   id or null, a snapshot (the question whole, a price mode's roster item, or null for "something
   else"), up to 500 characters of text, open or closed. Closed ones are kept. It and `/suggest`

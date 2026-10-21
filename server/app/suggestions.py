@@ -8,7 +8,9 @@ A player who has finished a game may suggest one of two kinds of content:
   ``picture_item``; the import script turns the name into the payload's ``image``. A Who's
   That NPC? question is only its fixed prompt and the NPC's name, an NPC not asked about yet:
   the import script finds the rest. A round not built yet takes them too, so its pack is
-  ready when it opens; such a suggestion waits in the queue until it is.
+  ready when it opens; such a suggestion waits in the queue until it is. A player who
+  cannot place a question may send it with no mode: the operator picks its round before
+  approving it.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
 
@@ -18,8 +20,9 @@ that names a question's author. Nothing here plays: an approved suggestion reach
 only through an export, ``scripts/import_suggestions.py`` and a release, so packs stay in git.
 
 Validation is the packs' own wherever a pack question results: the schema, the type's
-``check`` and, for a built mode, the mode and NPC rules. Content the server stores goes
-back out only to the operator, and the client draws it as text.
+``check`` and, for a built mode, the mode and NPC rules. A question with no round yet is
+held to its type's alone, and to the rest once the operator gives it one. Content the
+server stores goes back out only to the operator, and the client draws it as text.
 """
 
 from collections.abc import Sequence
@@ -82,8 +85,14 @@ NPC_NAME_MAX = 80
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
 
-_QUESTION_KEYS = {"type", "payload", "mode"}
-_QUESTION_OPTIONAL = frozenset({"random_event", "wiki", "source_url", "picture_item"})
+# What a question with no round may be: Create's four buttons and an ordering, as most
+# rounds take them. No NPC, intro, quote or fixed prompt, which only a round gives.
+UNPLACED_TYPES = frozenset(
+    {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
+)
+
+_QUESTION_KEYS = {"type", "payload"}
+_QUESTION_OPTIONAL = frozenset({"mode", "random_event", "wiki", "source_url", "picture_item"})
 # Players know an item by name, not id: the import script finds the id and sets the picture.
 PICTURE_ITEM_MODES = frozenset({"drop_table"})
 _ITEM_KEYS = {"name"}
@@ -93,12 +102,16 @@ class BadSuggestion(ApiError):
     status, code = 422, "bad_suggestion"
 
 
+class NoRound(ApiError):
+    status, code = 422, "no_round"
+
+
 class SuggestionNotFound(ApiError):
     status, code = 404, "not_found"
 
 
 def playable(kind: str, content: dict[str, Any]) -> bool:
-    """Whether the import script can place it now: false for a round not built yet."""
+    """Whether the import script can place it now: false with no round, or one not built yet."""
     return kind != "question" or content.get("mode") in MODES
 
 
@@ -134,14 +147,17 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
         return found
     if not {"wiki", "source_url"} & content.keys():
         return ["$.wiki: a wiki page, or $.source_url: another https link, to check it against"]
-    mode = content["mode"]
+    mode = content.get("mode")
+    if "mode" in content and not isinstance(mode, str):
+        return ["$.mode: a round's name, or no mode at all for the operator to pick one"]
     if mode in WIKI_MODES and "wiki" not in content:
         return [f"$.wiki: required, since {mode!r} is checked against the wiki"]
-    types = QUESTION_MODES.get(mode)
+    types = UNPLACED_TYPES if mode is None else QUESTION_MODES.get(mode)
     if types is None:
         return [f"$.mode: {mode!r} takes no suggestions (it takes {', '.join(QUESTION_MODES)})"]
     if content["type"] not in types:
-        return [f"$.type: {content['type']!r} is not offered for {mode!r}"]
+        where = "a question with no round" if mode is None else repr(mode)
+        return [f"$.type: {content['type']!r} is not offered for {where}"]
     if (mode == "random_event") != ("random_event" in content):
         return ["$.random_event: an NPC's question names its NPC, and only it does"]
     links = [content[key] for key in ("wiki", "source_url") if key in content]
@@ -157,6 +173,11 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
         found = _picture_item_errors(mode, content["picture_item"])
         if found:
             return found
+    if mode is None:
+        found = schema.payload_errors(content["type"], content["payload"])
+        return found or [
+            f"$.payload.{message}" for message in TYPES[content["type"]].check(content["payload"])
+        ]
     envelope = question_envelope(content)
     found = schema.schema_errors(envelope)
     if found:
@@ -275,6 +296,10 @@ def check(kind: str, content: Any, shown: bool) -> dict[str, Any]:
 _COLUMNS = "id, kind, content, credit, credit_shown, status, created_at, exported_at"
 
 
+def _placed(kind: str, content: dict[str, Any]) -> bool:
+    return kind != "question" or "mode" in content
+
+
 def view(row: asyncpg.Record) -> dict[str, Any]:
     """One row as the admin page gets it."""
     return {
@@ -323,10 +348,13 @@ async def edit(
     pool: asyncpg.Pool, suggestion: UUID, content: dict[str, Any], credit: str, shown: bool
 ) -> dict[str, Any]:
     """Replace what a suggestion says. It must be exported again before it counts as imported."""
-    kind = await pool.fetchval("select kind from suggestions where id = $1", suggestion)
-    if kind is None:
+    current = await pool.fetchrow("select kind, status from suggestions where id = $1", suggestion)
+    if current is None:
         raise SuggestionNotFound("no such suggestion")
+    kind = current["kind"]
     content = check(kind, content, shown)
+    if current["status"] == "approved" and not _placed(kind, content):
+        raise NoRound("an approved question keeps a round")
     row = await pool.fetchrow(
         "update suggestions set content = $2, credit = $3, credit_shown = $4, exported_at = null"
         f" where id = $1 returning {_COLUMNS}",
@@ -343,7 +371,18 @@ async def edit(
 async def set_status(
     pool: asyncpg.Pool, suggestion: UUID, status: Literal["pending", "approved", "rejected"]
 ) -> dict[str, Any]:
-    """Approve, reject or reopen one. It must be exported again before it counts as imported."""
+    """Approve, reject or reopen one. It must be exported again before it counts as imported.
+
+    A question with no round cannot be approved: no export would ever include it.
+    """
+    if status == "approved":
+        current = await pool.fetchrow(
+            "select kind, content from suggestions where id = $1", suggestion
+        )
+        if current is None:
+            raise SuggestionNotFound("no such suggestion")
+        if not _placed(current["kind"], current["content"]):
+            raise NoRound("pick its round before approving it")
     row = await pool.fetchrow(
         "update suggestions set status = $2, exported_at = null"
         f" where id = $1 returning {_COLUMNS}",

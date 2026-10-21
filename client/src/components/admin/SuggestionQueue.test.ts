@@ -4,7 +4,8 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/sve
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as admin from '../../lib/admin'
-import type { QueuedSuggestion } from '../../lib/suggestions'
+import { npcArt } from '../../lib/npcs'
+import type { QuestionContent, QueuedSuggestion } from '../../lib/suggestions'
 import SuggestionQueue from './SuggestionQueue.svelte'
 
 vi.mock('../../lib/admin', async (importOriginal) => {
@@ -194,6 +195,108 @@ describe('SuggestionQueue', () => {
       type: 'ordering',
       random_event: 'fairy_queen',
       payload: { intro: 'Dial, mortal.', answer: [0, 1, 2] },
+    })
+  })
+
+  describe('a question with no round', () => {
+    const { mode: _mode, ...content } = row().content as QuestionContent
+    const unplaced = row({
+      content: { ...content, payload: { ...content.payload, prompt: 'Unplaced?' } },
+    })
+
+    function rounds(): string[] {
+      const select = screen.getByLabelText<HTMLSelectElement>('Round')
+      return [...select.options].map((option) => option.textContent ?? '')
+    }
+
+    it('reads "No round yet", from the innkeeper, and cannot be approved', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      const summary = (await screen.findByText('Unplaced?')).closest('button')!
+      expect(within(summary).getByText('No round yet')).toBeTruthy()
+      expect(within(summary).queryByText('Waits for its round')).toBeNull()
+      expect(summary.querySelector('img')?.getAttribute('src')).toBe(npcArt('innkeeper').url)
+      await fireEvent.click(summary)
+      expect(screen.getByRole('button', { name: 'Approve' })).toHaveProperty('disabled', true)
+      expect(screen.getByText(/pick its round before approving it/)).toBeTruthy()
+    })
+
+    it('offers the rounds that take its type, and an NPC is then required', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(unplaced)
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText('Unplaced?')).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect(rounds()).toEqual([
+        'No round yet',
+        'A random event question',
+        'Guess the Examine',
+        'Bestiary',
+        'Drop Table',
+        'Odd One Out',
+        'Who Said That?',
+        'Know Your Content Creator',
+      ])
+      expect(screen.queryByText('Who asks it')).toBeNull()
+      await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'random_event' } })
+      expect(screen.getByText('Who asks it')).toBeTruthy()
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      expect(screen.getByText('Pick who asks it.')).toBeTruthy()
+      expect(admin.editSuggestion).not.toHaveBeenCalled()
+
+      await fireEvent.change(screen.getByRole('combobox', { name: "What's it about?" }), {
+        target: { value: 'bob' },
+      })
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(body.content).toMatchObject({ mode: 'random_event', random_event: 'bob' })
+    })
+
+    it('saves with no mode while it stays without a round', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(unplaced)
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText('Unplaced?')).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(body.content).not.toHaveProperty('mode')
+    })
+
+    it('moves a placed question only among the rounds that take its type', async () => {
+      const ordering = row({
+        content: {
+          type: 'ordering',
+          mode: 'sort_it_out',
+          wiki: WIKI,
+          payload: {
+            prompt: 'Sort these.',
+            ends: ['Lowest', 'Highest'],
+            entries: [
+              { text: 'A', rank: 1 },
+              { text: 'B', rank: 2 },
+              { text: 'C', rank: 3 },
+            ],
+            answer: [0, 1, 2],
+          },
+        },
+      })
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [ordering], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(ordering)
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText('Sort these.')).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect(screen.getByLabelText<HTMLSelectElement>('Round').value).toBe('sort_it_out')
+      expect(rounds()).toEqual([
+        'A random event question',
+        'Bestiary',
+        'Sort It Out',
+        'Release Order',
+      ])
+      await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'bestiary' } })
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(body.content).toMatchObject({ type: 'ordering', mode: 'bestiary' })
     })
   })
 
