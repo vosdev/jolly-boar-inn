@@ -4,7 +4,7 @@
  * An NPC is up to two wiki files in `assets/npcs/`: `<id>_chathead.<ext>`, its chathead,
  * and `<id>.<ext>`, the full-body render. The stage shows the chathead: the render's upper
  * body looked worse at this size. Without a chathead it shows the top of the render, and
- * without either the committed innkeeper drawing. Renders are game assets and not
+ * without either the committed boar drawing. Renders are game assets and not
  * committed, so a file may be missing: dropping one in replaces it on the next build with
  * no code change.
  *
@@ -23,7 +23,7 @@ const npcFiles = import.meta.glob<string>('../assets/npcs/*.{avif,webp,png,jpg,j
 })
 
 /** Who stands in for an NPC with no art at all: the one drawing that is committed. */
-export const FALLBACK_NPC = 'innkeeper'
+export const FALLBACK_NPC = 'boar'
 
 /** How a picture is drawn: a chathead or drawing as it is, a render cropped and mirrored. */
 export type NpcCut = 'chathead' | 'render' | 'drawing'
@@ -46,7 +46,7 @@ function fileNamed(
   return null
 }
 
-/** The picture for NPC `id`: its chathead, else its render, else `fallback`'s, else the innkeeper. */
+/** The picture for NPC `id`: its chathead, else its render, else `fallback`'s, else the boar. */
 export function npcArt(
   id: string,
   files: Record<string, string> = npcFiles,
@@ -58,6 +58,6 @@ export function npcArt(
   if (body !== null) return { url: body.url, cut: body.ext === 'svg' ? 'drawing' : 'render' }
   if (id !== fallback) return npcArt(fallback, files)
   if (id !== FALLBACK_NPC) return npcArt(FALLBACK_NPC, files)
-  // The innkeeper is committed, so this is never the empty string in a real build.
+  // The boar is committed, so this is never the empty string in a real build.
   return { url: '', cut: 'drawing' }
 }

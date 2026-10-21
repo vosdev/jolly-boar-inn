@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '../lib/api'
 import { ApiFailure } from '../lib/api'
 import { savePastGame } from '../lib/history'
-import { npcArt } from '../lib/npcs'
+import { FALLBACK_NPC, npcArt } from '../lib/npcs'
 import { CHOICES } from '../lib/suggestions'
 import { clearVocabCache } from '../lib/vocab'
 import Suggest from './Suggest.svelte'
@@ -697,7 +697,7 @@ describe('Suggest', () => {
     expect(cards.at(-1)?.textContent).toMatch(
       /Not sure where it fits\s*Any question\. The innkeeper picks its round\./,
     )
-    expect(cards.at(-1)?.querySelector('img')?.getAttribute('src')).toBe(npcArt('innkeeper').url)
+    expect(cards.at(-1)?.querySelector('img')?.getAttribute('src')).toBe(npcArt(FALLBACK_NPC).url)
     await fireEvent.click(cards.at(-1)!)
     const labels = within(screen.getByRole('group', { name: 'How players answer' }))
       .getAllByRole('radio')

@@ -11,10 +11,12 @@
    * under it on a phone.
    */
   import { onMount } from 'svelte'
+  import { hero, heroes } from 'virtual:branding'
 
   import ExistingQuestions from '../components/suggest/ExistingQuestions.svelte'
   import SuggestionEditor from '../components/suggest/SuggestionEditor.svelte'
   import { ApiFailure, getSuggestionAllowance, sendSuggestion } from '../lib/api'
+  import { INNKEEPER } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
   import {
     CHOICES,
@@ -24,10 +26,15 @@
     type Choice,
     type SuggestionBody,
   } from '../lib/suggestions'
+  import { watchTheme } from '../lib/theme'
 
   let { navigate }: { navigate: (to: string) => void } = $props()
 
   const allowed = maySuggest()
+  // The card for the inn's own host shows the selfhoster's hero, as Home does, else the boar.
+  let theme = $state('')
+  const heroArt = $derived(heroes[theme] ?? hero)
+  onMount(() => watchTheme((current) => (theme = current)))
   let view = $state<'checking' | 'pick' | 'write' | 'sending' | 'sent' | 'limited'>('checking')
   let choice = $state<Choice | null>(null)
   let retryAt = $state<string | null>(null)
@@ -142,7 +149,10 @@
       <h2>What would you like to suggest?</h2>
       <ul class="choices">
         {#each CHOICES as option (option.id)}
-          {@const art = npcArt(option.host)}
+          {@const art =
+            option.host === INNKEEPER.id && heroArt !== null
+              ? { url: heroArt, cut: 'hero' }
+              : npcArt(option.host)}
           <li>
             <button type="button" class="choice" onclick={() => pick(option)}>
               <img src={art.url} alt="" class={art.cut} />

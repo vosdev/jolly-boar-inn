@@ -93,7 +93,7 @@
   } = $props()
 
   const art = $derived(npcArt(host))
-  // An event NPC with no art is not drawn as the innkeeper, who would read as a host.
+  // An event NPC with no art is not drawn as the fallback boar, who would read as a host.
   const guestArt = $derived(guest === null ? null : npcArt(guest, undefined, STRANGER))
 
   let theme = $state(document.documentElement.dataset.theme ?? '')
