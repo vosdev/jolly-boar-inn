@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.142.0',
+    date: '2026-10-21',
+    text: 'How to play draws the slider questions as a slider, in one row for prices and numbers.',
+  },
+  {
     version: '0.141.0',
     date: '2026-10-21',
     text: 'A new theme: Zanaris, the fairy city, with its mushrooms and the Cosmic altar sign.',

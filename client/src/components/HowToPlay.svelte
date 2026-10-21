@@ -92,6 +92,10 @@
               </span>
               <span class="box">Zul</span>
               {@render submit()}
+            {:else if row.drawing === 'slider'}
+              <span class="value">1.6m</span>
+              <span class="rail"><span class="thumb"></span></span>
+              {@render submit()}
             {:else}
               <span class="box">{row.drawing === 'number' ? '1.6m' : 'Zulrah'}</span>
               {@render submit()}
@@ -242,6 +246,32 @@
 
   .option.picked {
     background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+  }
+
+  .value {
+    align-self: center;
+    font-weight: 700;
+  }
+
+  .rail {
+    position: relative;
+    height: 4px;
+    margin: 0.35rem 0.3rem;
+    background: var(--bg-muted);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+  }
+
+  .thumb {
+    position: absolute;
+    top: 50%;
+    left: 65%;
+    width: 0.7rem;
+    height: 0.7rem;
+    background: var(--accent);
+    border: 2px solid var(--panel);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .scoring {

@@ -2,7 +2,8 @@
  * How to play: one row per way of answering, and which rows a room needs.
  *
  * Players overlooked Submit, so every row whose type has one says so in the same words.
- * A row lists the types it covers: the three one-tap types answer alike, so they share one.
+ * A row lists the types it covers: types that answer alike, the one-tap ones or the two
+ * sliders, share one.
  *
  * Which types a room plays comes from `/api/modes`, the server's say, rather than a copy
  * here. A random event or a host's question can be any type a host or event may use, and
@@ -14,7 +15,7 @@ import { getModes, type ModePacing } from './api'
 import { CUSTOM_TYPES } from './customQuestions'
 import type { RoomSettings } from './protocol'
 
-export type Drawing = 'tap' | 'basket' | 'order' | 'match' | 'text' | 'number' | 'list'
+export type Drawing = 'tap' | 'basket' | 'order' | 'match' | 'text' | 'number' | 'slider' | 'list'
 
 export interface HowToRow {
   types: string[]
@@ -62,16 +63,10 @@ export const HOW_TO_ROWS: HowToRow[] = [
     drawing: 'number',
   },
   {
-    types: ['price_is_right'],
-    title: 'Slide to a price',
+    types: ['price_is_right', 'number_slider'],
+    title: 'Slide to your guess',
     text: 'Slide to your guess, then press Submit. The closer it is, the more it scores.',
-    drawing: 'number',
-  },
-  {
-    types: ['number_slider'],
-    title: 'Slide to a number',
-    text: 'Slide to your guess, then press Submit. The closer it is, the more it scores.',
-    drawing: 'number',
+    drawing: 'slider',
   },
   {
     types: ['pick_from_list'],
