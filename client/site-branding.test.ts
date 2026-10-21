@@ -138,12 +138,12 @@ describe('definedThemes', () => {
         'pollnivneach',
         'wilderness',
         'party_room',
+        'zanaris',
         'tzhaar',
         'jungle',
         'gauntlet',
         'corrupted_gauntlet',
         'morytania',
-        'zanaris',
       ]),
     )
   })

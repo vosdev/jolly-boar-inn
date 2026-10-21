@@ -56,6 +56,7 @@ def test_every_theme_defines_every_token(css: str) -> None:
         "gauntlet",
         "corrupted_gauntlet",
         "morytania",
+        "zanaris",
     }
     for name, tokens in themes.items():
         missing = [token for token in check.REQUIRED_TOKENS if token not in tokens]

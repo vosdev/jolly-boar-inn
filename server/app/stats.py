@@ -26,12 +26,12 @@ Theme = Literal[
     "pollnivneach",
     "jungle",
     "party_room",
+    "zanaris",
     "tzhaar",
     "wilderness",
     "gauntlet",
     "corrupted_gauntlet",
     "morytania",
-    "zanaris",
 ]
 Device = Literal["mobile", "desktop"]
 # How the player reached the room: Home's public list, an invite link with its key, a code

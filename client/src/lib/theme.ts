@@ -24,12 +24,12 @@ export const THEMES = [
   'pollnivneach',
   'jungle',
   'party_room',
+  'zanaris',
   'tzhaar',
   'wilderness',
   'gauntlet',
   'corrupted_gauntlet',
   'morytania',
-  'zanaris',
 ] as const
 
 export type Theme = (typeof THEMES)[number]
@@ -40,12 +40,12 @@ export const THEME_LABELS: Record<Theme, { name: string }> = {
   pollnivneach: { name: 'Pollnivneach' },
   jungle: { name: 'Jungle' },
   party_room: { name: 'Party Room' },
+  zanaris: { name: 'Zanaris' },
   tzhaar: { name: 'Toktz' },
   wilderness: { name: 'Wilderness' },
   gauntlet: { name: 'Gauntlet' },
   corrupted_gauntlet: { name: 'Corrupted Gauntlet' },
   morytania: { name: 'Morytania' },
-  zanaris: { name: 'Zanaris' },
 }
 
 /** `configured` if it names a theme this build paints, else `jolly`, never an unstyled page. */

@@ -49,7 +49,7 @@ def listed_themes() -> list[str]:
 # --- the themes ----------------------------------------------------------------------
 
 
-def test_the_nine_themes_in_menu_order() -> None:
+def test_the_ten_themes_in_menu_order() -> None:
     """Each theme after the first three was built against the contract on its own, and is
     cut if it ever fails; the light ones come first, then the dark."""
     assert listed_themes() == [
@@ -57,6 +57,7 @@ def test_the_nine_themes_in_menu_order() -> None:
         "pollnivneach",
         "jungle",
         "party_room",
+        "zanaris",
         "tzhaar",
         "wilderness",
         "gauntlet",
