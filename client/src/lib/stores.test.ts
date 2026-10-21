@@ -5,7 +5,14 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { errorText } from './errors'
 import { pastGames } from './history'
-import type { OpenQuestion, PlayerView, RoomView, ServerMessage, Standing } from './protocol'
+import type {
+  OpenQuestion,
+  PlayerView,
+  RoomView,
+  ServerMessage,
+  Standing,
+  TeamStanding,
+} from './protocol'
 import {
   answerAck,
   answerCount,
@@ -18,6 +25,7 @@ import {
   resetRoom,
   room,
   standings,
+  teamStandings,
   you,
 } from './stores'
 
@@ -29,6 +37,7 @@ const me: PlayerView = {
   ready: false,
   avatar: null,
   editing: false,
+  team: null,
 }
 const host: PlayerView = { ...me, id: 'p0', display_name: 'Host', role: 'admin' }
 
@@ -76,6 +85,7 @@ function welcome(patch: Partial<Extract<ServerMessage, { t: 'welcome' }>> = {}):
     question: null,
     your_answer: null,
     standings: [],
+    team_standings: null,
     server_time: new Date(0).toISOString(),
     server_version: __APP_VERSION__,
     ...patch,
@@ -173,6 +183,7 @@ describe('applyServerMessage', () => {
       reveal: {},
       results: {},
       standings: [],
+      team_standings: null,
       next_at: null,
       reveal_seconds: 8,
       picture: null,
@@ -191,6 +202,7 @@ describe('applyServerMessage', () => {
       reveal: {},
       results: {},
       standings: [],
+      team_standings: null,
       next_at: new Date(Date.now() + 16_000).toISOString(),
       reveal_seconds: 16,
       picture: null,
@@ -237,7 +249,7 @@ describe('a finished game', () => {
     // The host saw the last question close.
     applyServerMessage(welcome({ you: host, room: { ...lobby, status: 'playing' } }))
     applyServerMessage({ t: 'room_updated', room: FINISHED, players: [host, me] })
-    applyServerMessage({ t: 'game_finished', standings: FINAL })
+    applyServerMessage({ t: 'game_finished', standings: FINAL, team_standings: null })
     const there = pastGames()
 
     // Another browser: its phone locked, and it reconnects into the finished room.
@@ -263,6 +275,30 @@ describe('a finished game', () => {
     resetRoom()
     applyServerMessage(welcome({ room: FINISHED, standings: FINAL }))
     expect(get(endedLive)).toBe(false)
+  })
+
+  it('files a team game with its teams and each player’s team, and a normal game with none', () => {
+    const TEAMS: TeamStanding[] = [
+      { team: 'zamorak', points: 900, rank: 1, points_gained: 900, previous_rank: null },
+      { team: 'saradomin', points: 400, rank: 2, points_gained: 400, previous_rank: null },
+    ]
+    const sara = { ...me, team: 'saradomin' as const }
+    const zam = { ...host, team: 'zamorak' as const }
+    applyServerMessage(
+      welcome({ you: sara, players: [zam, sara], room: { ...lobby, status: 'playing' } }),
+    )
+    applyServerMessage({ t: 'room_updated', room: FINISHED, players: [zam, sara] })
+    applyServerMessage({ t: 'game_finished', standings: FINAL, team_standings: TEAMS })
+    expect(get(teamStandings)).toEqual(TEAMS)
+    expect(pastGames()[0]?.teamStandings).toEqual(TEAMS)
+    expect(pastGames()[0]?.teams).toEqual({ p0: 'zamorak', p1: 'saradomin' })
+
+    resetRoom()
+    localStorage.clear()
+    expect(get(teamStandings)).toBeNull()
+    applyServerMessage(welcome({ room: FINISHED, standings: FINAL }))
+    expect(pastGames()[0]?.teamStandings).toBeNull()
+    expect(pastGames()[0]?.teams).toEqual({})
   })
 
   it('is not filed while the room is still being played', () => {

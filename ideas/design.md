@@ -322,7 +322,9 @@ in display tabular numerals and the scroll's ink:
   `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (#106).
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.
-- No standings under a reveal: a board every question makes the game a spreadsheet.
+- No standings under a reveal: a board every question makes the game a spreadsheet. A team game
+  ends the tally with a row per team, logo, name and its members' median points on the question
+  (silent is 0), in god order, not ranked.
 - A suggested question whose player asked to be named ends the tally with "Question by Name",
   muted and off the scroll, so the reveal reads the same without it.
 
@@ -354,6 +356,12 @@ top to bottom, and he says "Gz, Name! Here are the full hiscores." A Skip button
 The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
 past game from history show the table at once, as does reduced motion; a past game shows only the
 totals, without moves or gains. Trophies are art, not tokens.
+
+**A team game** ranks its teams instead, with the same moves, gains and timing: rank, logo, name
+and points, the god's colour on the team's edge, and under each its members with their own
+totals, best first, so the weak link shows. The ceremony still presents players; the final line
+names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
+on the game's entry.
 
 ## 12. Random events: the interlude (#106)
 
@@ -425,13 +433,14 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the boar is committed |
 | Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the boar |
 | Theme emblems | Wiki item icons, `make fetch-assets` | No, fetched; inline placeholder marks |
+| Team logos | Wiki god symbols, `make fetch-assets` | No, fetched; inline shields in the god's colours |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
 - Fetching keeps the checkout small. Fetch scripts refuse to run without the operator's own
   User-Agent, per the wiki's terms.
 - Every art slot takes a file with no code change: the sign, the trophies, the pets, the NPCs, the
-  emblems (`client/src/assets/themes/<theme>.<ext>`). The display face and the logo are the
-  owner's, and no D task waits on them.
+  emblems (`client/src/assets/themes/<theme>.<ext>`), the team logos (`assets/teams/<god>.<ext>`).
+  The display face and the logo are the owner's, and no D task waits on them.
 
 **Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
 never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under

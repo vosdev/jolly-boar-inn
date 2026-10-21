@@ -37,6 +37,7 @@ const me: PlayerView = {
   connected: true,
   ready: false,
   editing: false,
+  team: null,
 }
 
 let sent: ClientMessage[]
@@ -80,6 +81,7 @@ const LOBBY: RoomView = {
     close_when_all_answered: true,
     max_players: 50,
     name_wrong_answers: false,
+    teams: [],
   },
   current_index: null,
   total: 5,
@@ -101,6 +103,7 @@ function welcome(you: PlayerView, room: RoomView = LOBBY): void {
     question: null,
     your_answer: null,
     standings: [],
+    team_standings: null,
     server_time: new Date(0).toISOString(),
     server_version: __APP_VERSION__,
   })
@@ -178,6 +181,7 @@ describe('SettingsMenu in a room', () => {
       question: null,
       your_answer: null,
       standings: [],
+      team_standings: null,
       server_time: new Date(0).toISOString(),
       server_version: __APP_VERSION__,
     })

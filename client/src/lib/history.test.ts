@@ -12,6 +12,7 @@ import {
   placeIn,
   removePastGame,
   savePastGame,
+  winnerIn,
   type PastGame,
 } from './history'
 import type { Standing } from './protocol'
@@ -177,5 +178,30 @@ describe('with storage throwing', () => {
     expect(() => savePastGame(game(1, { code: 'BARROWS' }))).not.toThrow()
     expect(() => pastGames()).not.toThrow()
     expect(getSession('BARROWS')).toBe('token')
+  })
+})
+
+describe('a team game', () => {
+  const TEAMS = {
+    teamStandings: [
+      { team: 'zamorak', points: 750, rank: 1, points_gained: 300, previous_rank: 2 },
+      { team: 'saradomin', points: 600, rank: 2, points_gained: 0, previous_rank: 1 },
+    ],
+    teams: { a: 'saradomin', b: 'zamorak', c: 'zamorak' },
+  } satisfies Partial<PastGame>
+
+  it('keeps its teams and each player’s team, so it reopens as a team game', () => {
+    savePastGame(game(1, TEAMS))
+    const kept = findPastGame('DRAGON', '2610012001')
+    expect(kept?.teamStandings).toEqual(TEAMS.teamStandings)
+    expect(kept?.teams).toEqual(TEAMS.teams)
+  })
+
+  it('names its winning team, or both on a tie, and a normal game none', () => {
+    expect(winnerIn(game(1, TEAMS))).toBe('Zamorak won')
+    const tied = TEAMS.teamStandings.map((t) => ({ ...t, points: 700, rank: 1 }))
+    expect(winnerIn(game(1, { ...TEAMS, teamStandings: tied }))).toBe('Zamorak and Saradomin won')
+    expect(winnerIn(game(1))).toBeNull()
+    expect(winnerIn(game(1, { teamStandings: null }))).toBeNull()
   })
 })

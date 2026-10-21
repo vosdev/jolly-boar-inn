@@ -9,8 +9,9 @@ import { createRawSnippet, tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CEREMONY, ceremonyTimes, FINAL_INTRO } from '../lib/hiscores'
-import type { Standing } from '../lib/protocol'
+import type { Standing, TeamStanding } from '../lib/protocol'
 import { players } from '../lib/stores'
+import type { TeamId } from '../lib/teams'
 import { trophyArt } from '../lib/trophies'
 import { stubAnimations } from '../test-animate'
 import FinalStandings from './FinalStandings.svelte'
@@ -92,5 +93,63 @@ describe('FinalStandings', () => {
     render(FinalStandings, { standings: quiet, youId: null, ceremony: true, children })
     expect(document.querySelector('.hiscores')).not.toBeNull()
     expect(screen.getByText('Nobody scored. A quiet night at the inn.')).toBeTruthy()
+  })
+
+  describe('in a team game', () => {
+    const TEAMS: TeamStanding[] = [
+      { team: 'zamorak', points: 650, rank: 1, points_gained: 650, previous_rank: null },
+      { team: 'saradomin', points: 400, rank: 2, points_gained: 400, previous_rank: null },
+    ]
+    const teamOf: Record<string, TeamId> = { Zezima: 'zamorak', Woox: 'saradomin', Lynx: 'zamorak' }
+    const rows = (selector: string) =>
+      [...document.querySelectorAll(selector)].map((el) =>
+        el.textContent?.replace(/\s+/g, ' ').trim(),
+      )
+
+    it('ranks the teams with their members and points under each, and names the winner', () => {
+      render(FinalStandings, {
+        standings: TWO,
+        teamStandings: TEAMS,
+        teamOf,
+        youId: 'Woox',
+        past: true,
+        children,
+      })
+      expect(document.querySelector('.hiscores')).toBeNull()
+      expect(rows('.team .head .name')).toEqual(['Zamorak', 'Saradomin'])
+      expect(rows('.team .head .total')).toEqual(['650 points', '400 points'])
+      expect(rows(".team[data-team='zamorak'] .members li")).toEqual(['Zezima 900', 'Lynx 0'])
+      expect(rows(".team[data-team='saradomin'] .members li")).toEqual(['Woox (you) 400'])
+      expect(screen.getByText('Zamorak wins!')).toBeTruthy()
+    })
+
+    it('names both teams on a tie for first', () => {
+      const tied = TEAMS.map((row) => ({ ...row, points: 500, rank: 1 }))
+      render(FinalStandings, {
+        standings: TWO,
+        teamStandings: tied,
+        teamOf,
+        youId: null,
+        past: true,
+        children,
+      })
+      expect(screen.getByText('Zamorak and Saradomin win!')).toBeTruthy()
+    })
+
+    it('names the winner after the ceremony', async () => {
+      render(FinalStandings, {
+        standings: TWO,
+        teamStandings: TEAMS,
+        teamOf,
+        youId: null,
+        ceremony: true,
+        children,
+      })
+      await fireEvent.click(screen.getByRole('button', { name: 'Skip to the hiscores' }))
+      await vi.advanceTimersByTimeAsync(CEREMONY.leave)
+      await tick()
+      expect(document.querySelectorAll('.team')).toHaveLength(2)
+      expect(document.querySelector('.says')?.textContent).toContain('Zamorak wins!')
+    })
   })
 })

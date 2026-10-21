@@ -65,6 +65,7 @@
   import PickForMe from '../components/PickForMe.svelte'
   import RandomEvents from '../components/RandomEvents.svelte'
   import RoundList from '../components/RoundList.svelte'
+  import TeamPicker from '../components/TeamPicker.svelte'
   import { FREQUENCY_LABELS, eventSlots, overCap, type HostQuestion } from '../lib/customQuestions'
   import { minutes, plannedSeconds } from '../lib/duration'
   import { MODES, UPCOMING_MODES, hostOf, modeLabel } from '../lib/modes'
@@ -73,6 +74,7 @@
   import { profile, returningVisitor, saveProfile } from '../lib/profile'
   import { EVENT_EVERY, type EventFrequency, type ModeSettings, type Pace } from '../lib/protocol'
   import { atRoomLimit } from '../lib/roomLimit'
+  import { MIN_TEAMS, type TeamId } from '../lib/teams'
   import { rememberCreated, setSession } from '../lib/session'
   import { arrival, counted } from '../lib/stats'
 
@@ -113,6 +115,9 @@
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
   let customQuestions = $state<HostQuestion[]>([])
+  /** A team game, and its gods in `TEAMS` order; Saradomin and Zamorak to begin with. */
+  let teamGame = $state(false)
+  let gods = $state<TeamId[]>(['saradomin', 'zamorak'])
   /** A question open in the editor, unsaved: submitting now would leave it behind. */
   let editingQuestion = $state(false)
 
@@ -198,10 +203,12 @@
         ? 'Pick at least one host; a room with no rounds is no game.'
         : !surprise && totalCount > MAX_QUESTIONS
           ? `${totalCount} questions, over the ${MAX_QUESTIONS} cap.`
-          : (tooManyOwn ??
-            (editingQuestion
-              ? 'Add or cancel the question you are writing before you create the room.'
-              : null)),
+          : teamGame && gods.length < MIN_TEAMS
+            ? 'Tick at least two gods for a team game.'
+            : (tooManyOwn ??
+              (editingQuestion
+                ? 'Add or cancel the question you are writing before you create the room.'
+                : null)),
   )
   const ready = $derived(
     pacing !== null &&
@@ -353,6 +360,7 @@
       close_when_all_answered: closeWhenAllAnswered,
       name_wrong_answers: nameWrongAnswers,
       hide_rounds: surprise || hideRounds,
+      teams: teamGame ? gods : [],
     }
     try {
       const reporting = arrival()
@@ -543,6 +551,7 @@
           bind:nameWrongAnswers
           {surprise}
         />
+        <TeamPicker bind:on={teamGame} bind:picked={gods} />
       </div>
 
       {#if !narrow}

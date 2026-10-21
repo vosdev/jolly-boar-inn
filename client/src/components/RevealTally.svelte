@@ -30,15 +30,21 @@
    * names `NAMES_SHOWN` at most, you first so you always find yourself, then the rest
    * alphabetically.
    *
+   * In a team game, a row per team with a member: its logo, name and the median of its
+   * members' points on this question, in the room's order of gods rather than ranked,
+   * because a reveal carries no standings.
+   *
    * Last, the player who suggested the question, when they asked to be named. It sits off
    * the scroll and under everything else, so the reveal reads the same with or without it.
    */
   import { normalize } from '../lib/customQuestions'
   import { formatGp } from '../lib/gp'
   import type { PlayerResult } from '../lib/protocol'
+  import { team as god, teamMedians, type TeamId } from '../lib/teams'
   import { loadVocab } from '../lib/vocab'
   import { GEMS, type Gem } from './questions/GemButton.svelte'
   import { inPlace, placement } from './questions/types/Ordering.svelte'
+  import TeamLogo from './TeamLogo.svelte'
 
   let {
     type,
@@ -49,6 +55,8 @@
     youId,
     showNames,
     suggestedBy = null,
+    teams = [],
+    teamOf = {},
   }: {
     /** The question's type, which decides what an answer's group is. */
     type: string
@@ -63,6 +71,10 @@
     showNames: boolean
     /** `question_closed.suggested_by`. */
     suggestedBy?: string | null
+    /** `settings.teams`: empty outside a team game. */
+    teams?: readonly TeamId[]
+    /** Each player's team by id. */
+    teamOf?: Readonly<Record<string, TeamId>>
   } = $props()
 
   const NAMES_SHOWN = 8
@@ -325,6 +337,8 @@
     quiet: true,
   })
 
+  const teamRows = $derived(teamMedians(teams, teamOf, results))
+
   const shown = $derived(
     [...groups, missed]
       .filter((group) => group.players.length > 0)
@@ -366,6 +380,18 @@
         {/each}
       </ul>
     {/if}
+  {/if}
+  {#if teamRows.length > 0}
+    <p class="head">Teams</p>
+    <ul class="teams">
+      {#each teamRows as row (row.team)}
+        <li class="team" data-team={row.team}>
+          <span class="logo"><TeamLogo team={row.team} /></span>
+          <span class="label">{god(row.team).name}</span>
+          <span class="number points">+{count.format(row.points)}</span>
+        </li>
+      {/each}
+    </ul>
   {/if}
   {#if suggestedBy !== null}
     <p class="credit">Question by {suggestedBy}</p>
@@ -467,6 +493,40 @@
 
   .guess {
     color: var(--muted);
+  }
+
+  /* One column, narrow enough that each team's points stay beside its name. */
+  .teams {
+    display: grid;
+    gap: 0.3rem;
+    max-width: 16rem;
+    margin: 0.3rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .team {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    padding-left: 0.45rem;
+    border-left: 3px solid var(--team-trim);
+  }
+
+  .team .logo {
+    flex: none;
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .team .label {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .points {
+    font-weight: 600;
   }
 
   .credit {

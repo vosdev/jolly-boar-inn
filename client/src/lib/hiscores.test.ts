@@ -9,16 +9,29 @@ import {
   CEREMONY,
   ceremonyPlaces,
   ceremonyTimes,
+  membersOf,
   movement,
   placeLine,
   pointsBefore,
   previousOrder,
+  previousTeamOrder,
   roundLine,
   shuffleTimes,
+  teamWinnersLine,
   TIERS,
   winnersLine,
 } from './hiscores'
-import type { Standing } from './protocol'
+import type { Standing, TeamStanding } from './protocol'
+import type { TeamId } from './teams'
+
+function teamRow(
+  team: TeamId,
+  points: number,
+  rank: number,
+  previous: number | null = null,
+): TeamStanding {
+  return { team, points, rank, points_gained: points, previous_rank: previous }
+}
 
 function standing(
   name: string,
@@ -116,5 +129,33 @@ describe('timing', () => {
 
   it('counts the gains once the line has typed, and moves the rows a second later', () => {
     expect(shuffleTimes(50)).toEqual({ settle: 1600, move: 2600, pin: 3250 })
+  })
+})
+
+describe('team standings', () => {
+  it('start the teams where they stood before the round, the first round in god order', () => {
+    const now = [teamRow('guthix', 900, 1, 2), teamRow('zamorak', 500, 2, 1)]
+    expect(previousTeamOrder(now).map((t) => t.team)).toEqual(['zamorak', 'guthix'])
+    const first = [teamRow('zaros', 900, 1), teamRow('saradomin', 500, 2)]
+    expect(previousTeamOrder(first).map((t) => t.team)).toEqual(['saradomin', 'zaros'])
+  })
+
+  it('list a team’s members by their own points, best first', () => {
+    const all = [standing('A', 300, 3), standing('B', 900, 1), standing('C', 600, 2)]
+    const teamOf: Record<string, TeamId> = { A: 'zamorak', B: 'saradomin', C: 'zamorak' }
+    expect(membersOf('zamorak', all, teamOf).map((s) => s.player_id)).toEqual(['C', 'A'])
+    expect(membersOf('guthix', all, teamOf)).toEqual([])
+  })
+
+  it('name the winning team, both on a tie for first, or nobody', () => {
+    expect(teamWinnersLine([teamRow('saradomin', 900, 1), teamRow('zamorak', 400, 2)])).toBe(
+      'Saradomin wins!',
+    )
+    expect(teamWinnersLine([teamRow('saradomin', 900, 1), teamRow('zamorak', 900, 1)])).toBe(
+      'Saradomin and Zamorak win!',
+    )
+    expect(teamWinnersLine([teamRow('saradomin', 0, 1), teamRow('zamorak', 0, 1)])).toBe(
+      'Nobody scored. A quiet night at the inn.',
+    )
   })
 })

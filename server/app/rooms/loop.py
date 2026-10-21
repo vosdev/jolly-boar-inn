@@ -579,10 +579,11 @@ class Loop:
                 [Submission(pid, answer.value) for pid, answer in question.answers.items()],
             )
             how = question.scoring
+            team = bool(room.settings.teams)
             graded: dict[UUID, tuple[float, bool, int]] = {}
             for pid, answer in question.answers.items():
                 got = scoring.settle_credit(question.type, credit.get(pid, 0.0))
-                points = scoring.points_for(how, got, answer.band, question.steps)
+                points = scoring.points_for(how, got, answer.band, question.steps, team=team)
                 # Full marks only. Three of five in the right order scores, and is not
                 # "correct" for the standings tie-break (section 6).
                 graded[pid] = (got, got >= 1.0, points)
@@ -639,6 +640,7 @@ class Loop:
                     if question.can_answer(pid) and pid not in question.answers
                 ],
                 standings=room.standings(),
+                team_standings=room.team_standings(),
                 next_at=room.next_at,
                 reveal_seconds=room.reveal_seconds,
                 suggested_by=question.suggested_by,
@@ -695,7 +697,7 @@ class Loop:
         room.finished_at = finished_at
         room.phase = "idle"
         room.next_at = room.next_mono = None
-        finished = GameFinished(standings=room.standings())
+        finished = GameFinished(standings=room.standings(), team_standings=room.team_standings())
         return [
             self._room_updated(room),
             Broadcast.to_all(room, finished.model_dump(mode="json")),

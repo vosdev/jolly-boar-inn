@@ -71,6 +71,9 @@ def test_both_unions_name_every_message() -> None:
         "DecideRequest",
         "SetProfile",
         "Ready",
+        "SetTeam",
+        "MoveTeam",
+        "SetTeams",
         "Editing",
     }
     assert "Error" in server and "Welcome" in server

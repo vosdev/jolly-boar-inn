@@ -20,7 +20,13 @@
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
 {:else}
-  <FinalStandings standings={game.standings} youId={game.youId} past>
+  <FinalStandings
+    standings={game.standings}
+    teamStandings={game.teamStandings ?? null}
+    teamOf={game.teams ?? {}}
+    youId={game.youId}
+    past
+  >
     <p class="note">
       Room {game.code}, finished {finishedTime(game.finishedAt)}. The room has closed.
     </p>

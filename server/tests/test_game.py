@@ -876,8 +876,8 @@ def test_a_player_cannot_end_the_game(game) -> None:
         (True, "pack", False, False),  # host_only: nobody scores
         (True, "room", True, False),
         (False, "room", False, True),
-        (False, "room", True, False),  # the author of a room question
-        (False, "community", True, True),  # only source: room excludes an author
+        (False, "room", True, True),  # the author answers their own
+        (False, "community", True, True),
     ],
 )
 def test_can_answer(host_only: bool, source: str, is_author: bool, expected: bool) -> None:
@@ -916,7 +916,7 @@ def test_a_host_only_question_cannot_be_answered_by_anyone(game, db) -> None:
 
 
 def test_the_reveal_lists_who_could_answer_and_did_not(game) -> None:
-    """``unanswered``: connected and allowed, with no answer in. Not the author, not an answerer."""
+    """``unanswered``: connected and allowed, with no answer in. The author counts like anyone."""
     author, other = game.players
     question = game.room.questions[0]
     question.source = "room"
@@ -927,7 +927,7 @@ def test_the_reveal_lists_who_could_answer_and_did_not(game) -> None:
     game.admin.take("answer_ack")
     game.skip()
     closed = game.admin.take("question_closed")
-    assert closed["unanswered"] == [other.id]
+    assert sorted(closed["unanswered"]) == sorted([author.id, other.id])
     assert list(closed["results"]) == [game.admin.id]
 
 
@@ -941,31 +941,36 @@ def test_naming_wrong_answers_holds_the_reveal_a_second_longer(game) -> None:
     assert room.question_reveal_seconds(question) == plain
 
 
-def test_the_author_of_a_room_question_cannot_answer_it(game) -> None:
-    """The author exclusion. Phase 2 sets ``author_player_id``; the loop honours it already."""
+def test_the_author_of_a_room_question_answers_and_scores_on_it(game, db) -> None:
+    """An author is a player like any other on their own question, and holds up the early close."""
     author, other = game.players
     question = game.room.questions[0]
     question.source = "room"
     question.author_player_id = UUID(author.id)
     game.start()
     opened = {seat.name: seat.take("question_open") for seat in game.seats}
-    assert opened[author.name]["question"]["you_can_answer"] is False
-    assert opened[other.name]["question"]["you_can_answer"] is True
-    assert opened["Admin"]["question"]["you_can_answer"] is True
+    assert {name: frame["question"]["you_can_answer"] for name, frame in opened.items()} == {
+        "Admin": True,
+        other.name: True,
+        author.name: True,
+    }
+    assert opened[other.name]["question"]["of"] == 3
 
-    game.answer(author, 0, game.right(0))
-    assert author.take("error")["code"] == "excluded"
-    # The excluded author does not hold the early close up either.
     for seat in (other, game.admin):
         game.answer(seat, 0, game.right(0))
         seat.take("answer_ack")
+    assert game.room.phase == "open"  # only the author is left, and they count
+    game.answer(author, 0, game.right(0))
+    own = opened[author.name]["question"]["question_id"]
+    assert author.take("answer_ack")["question_id"] == own
     closed = game.admin.take("question_closed")
-    assert set(closed["results"]) == {other.id, game.admin.id}
-    assert [(s["display_name"], s["points"], s["rank"]) for s in closed["standings"]] == [
-        ("Admin", 1000, 1),  # the tie is ordered by join time, and shares the rank
-        (other.name, 1000, 1),
-        (author.name, 0, 2),
-    ]
+    assert set(closed["results"]) == {author.id, other.id, game.admin.id}
+    assert closed["results"][author.id]["correct"] is True
+    assert closed["results"][author.id]["points"] > 0
+    assert closed["unanswered"] == []
+    row = db("select correct, points from answers where player_id = $1", UUID(author.id))
+    assert [(r["correct"], r["points"] > 0) for r in row] == [(True, True)]
+    assert_memory_matches_db(game, db)
 
 
 # --- promote and kick ----------------------------------------------------------------
@@ -2225,11 +2230,10 @@ def reach(game: Game, index: int) -> dict[str, dict[str, Any]]:
     return frames
 
 
-def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
+def test_the_author_of_a_custom_question_answers_and_scores_like_everyone(
     table, second_mode, db
 ) -> None:
-    """Author exclusion's first real caller. The host who wrote it cannot
-    answer it and scores nothing on it; everyone else is graded as on any question.
+    """The host who wrote it answers it, and is stored, graded and scored as on any question.
 
     It plays in the middle of the round it interrupts -- its own mode on the question, the
     round's on the segment -- asked by an NPC from the roster.
@@ -2244,7 +2248,7 @@ def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
 
     frames = reach(game, event.position)
     assert {name: frame["you_can_answer"] for name, frame in frames.items()} == {
-        "Admin": False,
+        "Admin": True,
         "Zezima": True,
         "Woox": True,
     }
@@ -2255,20 +2259,23 @@ def test_the_author_of_a_custom_question_is_excluded_and_everyone_else_scores(
     assert (opened["segment"]["mode"], opened["segment"]["index"]) == (round_mode, event.round)
     assert opened["view"] == multiple_choice.client_view(TANZANITE["payload"])
 
-    game.answer(admin, event.position, 0)
-    assert admin.take("error")["code"] == "excluded"
     game.answer(zezima, event.position, 0)
     game.answer(woox, event.position, 2)
     assert zezima.take("answer_ack")["scoring"] == "speed"
     woox.take("answer_ack")
-    closed = admin.take("question_closed")  # everyone who may answer has: it closes early
-    assert set(closed["results"]) == {zezima.id, woox.id}
+    assert game.room.phase == "open"  # the author has not answered yet
+    game.answer(admin, event.position, 0)
+    admin.take("answer_ack")
+    closed = admin.take("question_closed")  # everyone has answered: it closes early
+    assert set(closed["results"]) == {admin.id, zezima.id, woox.id}
+    assert closed["results"][admin.id]["correct"] is True
+    assert closed["results"][admin.id]["points"] >= 600
     assert closed["results"][zezima.id]["correct"] is True
     assert closed["results"][zezima.id]["points"] >= 600
     assert closed["results"][woox.id]["points"] == 0
     assert closed["reveal"] == multiple_choice.reveal(TANZANITE["payload"])
     points = {s["display_name"]: s["points"] for s in closed["standings"]}
-    assert points["Admin"] == 0 and points["Zezima"] >= 600
+    assert points["Admin"] >= 600 and points["Zezima"] >= 600
     assert_memory_matches_db(game, db)
 
 
@@ -2295,6 +2302,7 @@ def test_a_six_option_question_plays_and_its_sixth_option_can_be_the_answer(
     game.answer(woox, event.position, 0)
     zezima.take("answer_ack")
     woox.take("answer_ack")
+    game.skip()  # the host who wrote it could still answer, so it would run its full time
     results = admin.take("question_closed")["results"]
     assert results[zezima.id]["correct"] is True
     assert results[woox.id]["correct"] is False
@@ -2319,6 +2327,7 @@ def test_two_identical_custom_questions_each_take_their_own_answers(table, secon
     game.answer(zezima, first.position, 0)
     game.answer(woox, first.position, 2)
     assert zezima.take("answer_ack")["t"] == woox.take("answer_ack")["t"] == "answer_ack"
+    game.skip()  # the author could still answer, so it would run its full time
     admin.take("question_closed")
     game.skip()
     for between in range(first.position + 1, second.position):
@@ -2336,6 +2345,7 @@ def test_two_identical_custom_questions_each_take_their_own_answers(table, secon
     game.answer(zezima, second.position, 2)
     game.answer(woox, second.position, 0)
     assert reply(zezima, acked)["t"] == reply(woox, acked)["t"] == "answer_ack"
+    game.skip()
     admin.take("question_closed")
     rows = db("select question_id, player_id, value from answers")
     answered = {(row["question_id"], str(row["player_id"])): row["value"] for row in rows}

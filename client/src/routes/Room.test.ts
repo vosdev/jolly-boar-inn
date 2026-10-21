@@ -69,6 +69,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
       close_when_all_answered: true,
       max_players: 50,
       name_wrong_answers: false,
+      teams: [],
     },
     current_index: 0,
     total: 2,
@@ -113,6 +114,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
     avatar: null,
     ready: false,
     editing: false,
+    team: null,
   }
   return {
     t: 'welcome',
@@ -128,11 +130,13 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
         avatar: null,
         ready: false,
         editing: false,
+        team: null,
       },
     ],
     question: null,
     your_answer: null,
     standings: STANDINGS,
+    team_standings: null,
     server_time: new Date().toISOString(),
     server_version: __APP_VERSION__,
   }
@@ -212,6 +216,7 @@ describe('Room', () => {
       reveal: { ...open.view, answer_index: 0, values: [1, 2] },
       results: {},
       standings: STANDINGS,
+      team_standings: null,
       next_at: new Date(Date.now() + 8_000).toISOString(),
       reveal_seconds: 8,
       picture: null,
@@ -272,6 +277,7 @@ describe('Room', () => {
       reveal: { ...open.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
+      team_standings: null,
       next_at: new Date(Date.now() + 16_000).toISOString(),
       reveal_seconds: 16,
       picture: null,
@@ -322,6 +328,7 @@ describe('Room', () => {
       reveal: { ...open.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
+      team_standings: null,
       next_at: new Date(Date.now() + 8_000).toISOString(),
       reveal_seconds: 8,
       picture: null,
@@ -428,6 +435,7 @@ describe('Room', () => {
         reveal: {},
         results: { b: { value: 0, correct: true, credit: 1, points: 900 } },
         standings: STANDINGS,
+        team_standings: null,
         next_at: new Date(Date.now() + 8_000).toISOString(),
         reveal_seconds: 8,
         picture: null,
@@ -472,7 +480,7 @@ describe('Room', () => {
       room: roomView({ status: 'finished', phase: 'idle', next_at: null, segment: null }),
       players: [],
     })
-    applyServerMessage({ t: 'game_finished', standings: STANDINGS })
+    applyServerMessage({ t: 'game_finished', standings: STANDINGS, team_standings: null })
     await screen.findByRole('button', { name: 'Skip to the hiscores' })
     expect(document.querySelector('.hiscores')).toBeNull()
   })
@@ -682,6 +690,7 @@ describe('a random event’s way out', () => {
       reveal: { prompt: PROMPT, options: ['Catspeak', 'Camulet'], answer_index: 0 },
       results: {},
       standings: STANDINGS,
+      team_standings: null,
       next_at: new Date(nextAt).toISOString(),
       reveal_seconds: 8,
       picture: null,
@@ -911,6 +920,7 @@ describe('the shared stage', () => {
       reveal: { values: [100, 50], answer_index: 0 },
       results: {},
       standings: STANDINGS,
+      team_standings: null,
       next_at: inSeconds(5),
       reveal_seconds: 5,
       picture: null,
@@ -1265,6 +1275,7 @@ describe('what a screen reader and the tab hear', () => {
       reveal: { ...WHIP.view, answer_index: 0 },
       results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
       standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
+      team_standings: null,
       next_at: new Date(Date.now() + 8_000).toISOString(),
       reveal_seconds: 8,
       picture: null,

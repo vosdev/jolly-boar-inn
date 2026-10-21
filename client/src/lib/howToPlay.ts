@@ -83,6 +83,15 @@ export const HOW_TO_ROWS: HowToRow[] = [
 
 export const SCORING_LINE = 'Quicker and correct answers score more.'
 
+/** A team game scores otherwise, so a room with teams shows this in place of the line above. */
+export const TEAMS_PARAGRAPH =
+  "In a team game everyone picks a team in the lobby. Speed doesn't count: your team scores the average of its members' points."
+
+/** Whether to explain teams: in a team room, and from Home, where any room might be one. */
+export function showsTeams(settings: RoomSettings | null): boolean {
+  return settings === null || settings.teams.length > 0
+}
+
 /** What a host's question or a random event may be: the custom types, ordering and matching. */
 const EVENT_TYPES = [...CUSTOM_TYPES, 'ordering', 'matching']
 

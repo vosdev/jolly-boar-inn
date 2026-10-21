@@ -8,7 +8,7 @@ import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { roundLine, shuffleTimes } from '../lib/hiscores'
-import type { Segment, Standing } from '../lib/protocol'
+import type { PlayerView, Segment, Standing, TeamStanding } from '../lib/protocol'
 import { players } from '../lib/stores'
 import { stubAnimations } from '../test-animate'
 import Standings from './Standings.svelte'
@@ -70,5 +70,63 @@ describe('Standings', () => {
     await vi.advanceTimersByTimeAsync(times.pin - times.move)
     await tick()
     expect(container.querySelector('tr.you')?.classList.contains('pinned')).toBe(true)
+  })
+
+  it('ranks a team game’s teams, each with its members by their own points', async () => {
+    const teams: TeamStanding[] = [
+      { team: 'zamorak', points: 1500, rank: 1, points_gained: 1000, previous_rank: 2 },
+      { team: 'saradomin', points: 1200, rank: 2, points_gained: 200, previous_rank: 1 },
+    ]
+    const now = [
+      standing('Woox', 2400, 1, 1900, 2),
+      standing('Zezima', 1700, 2, 600, 1),
+      standing('Lynx', 700, 3, 100, 3),
+      standing('Mod Ash', 600, 4, 100, 4),
+    ]
+    const member = (id: string, team: PlayerView['team']): PlayerView => ({
+      id,
+      display_name: id,
+      avatar: null,
+      role: 'player',
+      team,
+      connected: true,
+      ready: false,
+      editing: false,
+    })
+    players.set([
+      member('Woox', 'zamorak'),
+      member('Zezima', 'saradomin'),
+      member('Lynx', 'zamorak'),
+      member('Mod Ash', 'saradomin'),
+    ])
+    const { container } = render(Standings, {
+      standings: now,
+      teamStandings: teams,
+      segment: SEGMENT,
+      youId: 'Lynx',
+    })
+    const teamNames = () =>
+      [...container.querySelectorAll('.team .head .name')].map((cell) => cell.textContent)
+    const members = (god: string) =>
+      [...container.querySelectorAll(`.team[data-team='${god}'] .members .who`)].map((who) =>
+        who.textContent?.trim(),
+      )
+
+    expect(container.querySelector('.hiscores')).toBeNull()
+    expect(teamNames()).toEqual(['Saradomin', 'Zamorak'])
+
+    const times = shuffleTimes([...roundLine(2)].length)
+    await vi.advanceTimersByTimeAsync(times.move)
+    await tick()
+    expect(teamNames()).toEqual(['Zamorak', 'Saradomin'])
+    expect(container.querySelector(".team[data-team='zamorak'] .move.up")?.textContent).toBe('up 1')
+    expect(members('zamorak')).toEqual(['Woox', 'Lynx (you)'])
+    expect(members('saradomin')).toEqual(['Zezima', 'Mod Ash'])
+  })
+
+  it('keeps the player hiscores in a normal game', () => {
+    const { container } = render(Standings, { standings: NOW, segment: SEGMENT })
+    expect(container.querySelector('.hiscores')).not.toBeNull()
+    expect(container.querySelector('.team-hiscores')).toBeNull()
   })
 })

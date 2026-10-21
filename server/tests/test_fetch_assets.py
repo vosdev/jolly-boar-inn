@@ -507,3 +507,11 @@ def test_the_logo_sources_are_fetched_though_the_client_never_shows_them() -> No
 def test_the_shipped_manifest_is_sound() -> None:
     raw = json.loads(fetch_assets.MANIFEST.read_text(encoding="utf-8"))
     assert fetch_assets.manifest_errors(raw) == []
+
+
+def test_every_god_has_its_symbol_in_the_manifest() -> None:
+    """The six teams' logos, which the client finds in ``assets/teams/<god>.png``."""
+    gods = ("saradomin", "zamorak", "guthix", "armadyl", "bandos", "zaros")
+    assert {f"teams/{god}.png": f"{god.capitalize()} symbol.png" for god in gods}.items() <= (
+        MANIFEST.items()
+    )

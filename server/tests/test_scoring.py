@@ -434,6 +434,48 @@ def test_a_scoring_the_tables_do_not_know_fails_loudly() -> None:
         points_for(unknown, 1.0, 1, None)
 
 
+# --- team games: accuracy alone ------------------------------------------------------
+
+
+@pytest.mark.parametrize("elapsed_s", [0.0, 1.0, 2.5, 5.0, 7.5, 9.99])
+def test_multiple_choice_in_a_team_game_pays_1000_whatever_the_time(elapsed_s: float) -> None:
+    how = scoring_of("multiple_choice")
+    got = band(how, elapsed_s, 10, None, team=True)
+    assert got is None
+    assert points_for(how, 1.0, got, None, team=True) == 1000
+    assert points_for(how, 0.0, got, None, team=True) == 0
+
+
+@pytest.mark.parametrize(("credit", "points"), [(0.6, 600), (0.25, 250), (1.0, 1000)])
+def test_partial_credit_in_a_team_game_is_its_share_of_1000(credit: float, points: int) -> None:
+    how = scoring_of("ordering")
+    got = band(how, 9.0, 10, None, team=True)
+    assert points_for(how, credit, got, None, team=True) == points
+
+
+@pytest.mark.parametrize("credit", [1.0, 0.9, 0.8, 0.7, 0.5, 0.0])
+def test_closest_number_pays_its_usual_points_in_a_team_game(credit: float) -> None:
+    how = scoring_of("closest_number")
+    assert band(how, 3.0, 10, None, team=True) is None
+    assert points_for(how, credit, None, None, team=True) == points_for(how, credit, None, None)
+
+
+@pytest.mark.parametrize("elapsed_s", [0.5, 3.0, 6.0, 9.9])
+def test_pixel_hunt_pays_its_usual_points_in_a_team_game(elapsed_s: float) -> None:
+    how = scoring_of("pick_from_list")
+    team_band = band(how, elapsed_s, 10, 8, team=True)
+    assert team_band == band(how, elapsed_s, 10, 8) == step(elapsed_s, 10, 8)
+    assert points_for(how, 1.0, team_band, 8, team=True) == step_points(team_band, 8)
+
+
+@pytest.mark.parametrize("elapsed_s", [0.5, 3.0, 9.9])
+def test_a_team_game_scores_a_still_picture_on_accuracy_too(elapsed_s: float) -> None:
+    """Who's That NPC? has no steps, so it is ``SPEED``, and a team game drops the speed."""
+    how = scoring_of("pick_from_list")
+    assert band(how, elapsed_s, 10, None, team=True) is None
+    assert points_for(how, 1.0, None, None, team=True) == 1000
+
+
 # --- standings ----------------------------------------------------------------------
 
 

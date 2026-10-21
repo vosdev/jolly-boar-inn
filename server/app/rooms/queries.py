@@ -27,6 +27,7 @@ def _player_from_row(row: asyncpg.Record) -> Player:
         display_name=row["display_name"],
         avatar=row["avatar"],
         role=row["role"],
+        team=row["team"],
         joined_at=row["joined_at"],
         session_hash=row["session_token_hash"],
     )
@@ -58,10 +59,9 @@ def _question_rows(
     """Rows for ``selection.flatten``'s ``(round, question)`` pairs, position by position.
 
     ``author`` is the room's creator, and it is written against the questions they wrote
-    -- the content ids in ``authored`` -- and nothing else. That column is what keeps them
-    from scoring on their own questions (``RoomQuestion.can_answer``). It goes by where a
-    question came from rather than by the ``source`` it carries, so a claim in the
-    envelope can never be what decides who the author is.
+    -- the content ids in ``authored`` -- and nothing else. It goes by where a question came
+    from rather than by the ``source`` it carries, so a claim in the envelope can never be
+    what decides who the author is.
     """
     return [
         (

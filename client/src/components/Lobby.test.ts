@@ -22,6 +22,7 @@ const HOST: PlayerView = {
   avatar: null,
   ready: false,
   editing: false,
+  team: null,
 }
 const WOOX: PlayerView = {
   id: 'b',
@@ -31,6 +32,7 @@ const WOOX: PlayerView = {
   avatar: null,
   ready: false,
   editing: false,
+  team: null,
 }
 
 const ROOM: RoomView = {
@@ -45,6 +47,7 @@ const ROOM: RoomView = {
     close_when_all_answered: true,
     max_players: 50,
     name_wrong_answers: false,
+    teams: [],
   },
   current_index: null,
   total: 5,
@@ -82,6 +85,7 @@ function lobby(
     question: null,
     your_answer: null,
     standings: [],
+    team_standings: null,
     server_time: new Date().toISOString(),
     server_version: __APP_VERSION__,
   })
@@ -98,9 +102,9 @@ function dialog(): HTMLElement {
   return screen.getByRole('dialog')
 }
 
-/** The pet an admin taps to kick or promote its player. */
-function tile(name: string): HTMLElement {
-  return screen.getByRole('button', { name: new RegExp(`^${name}, .*kick or make host$`) })
+/** The pet an admin taps to kick, promote or move its player. */
+function tile(name: string, menu = 'kick or make host'): HTMLElement {
+  return screen.getByRole('button', { name: new RegExp(`^${name}, .*: ${menu}$`) })
 }
 
 function clipboard(writeText: ReturnType<typeof vi.fn> | undefined): void {
@@ -313,6 +317,7 @@ describe('Lobby', () => {
       avatar: null,
       ready: false,
       editing: false,
+      team: null,
     }
     lobby([{ ...HOST, ready: true }, WOOX, { ...away, ready: true }])
     await fireEvent.click(screen.getByRole('button', { name: 'Start the game' }))
@@ -339,6 +344,7 @@ describe('Lobby', () => {
       avatar: null,
       ready: false,
       editing: false,
+      team: null,
     }
     lobby([{ ...HOST, ready: true }, WOOX, lynx])
     expect(screen.getByText('Waiting on Woox and Lynx.')).toBeTruthy()
@@ -358,6 +364,7 @@ describe('Lobby', () => {
       avatar: null,
       ready: false,
       editing: false,
+      team: null,
     }
     lobby([
       { ...HOST, ready: true },
@@ -390,6 +397,7 @@ describe('Lobby', () => {
       avatar: null,
       ready: false,
       editing: false,
+      team: null,
     }
     lobby([HOST, WOOX, lynx])
     expect(pets().map((pet) => pet.querySelector('.status')?.textContent ?? '')).toEqual([
@@ -489,5 +497,195 @@ describe('Lobby', () => {
     lobby()
     applyServerMessage({ t: 'error', code: 'not_admin', message: 'only an admin can do that' })
     expect(await screen.findByText('Only a host can do that.')).toBeTruthy()
+  })
+  describe('in a team game', () => {
+    const TEAMS_ROOM: RoomView = {
+      ...ROOM,
+      settings: { ...ROOM.settings, teams: ['saradomin', 'zamorak', 'guthix'] },
+    }
+    const LYNX: PlayerView = { ...WOOX, id: 'c', display_name: 'Lynx' }
+
+    function group(name: string): HTMLElement {
+      return screen.getByRole('list', { name })
+    }
+
+    function names(list: HTMLElement): string[] {
+      return within(list)
+        .getAllByRole('listitem')
+        .map((item) => item.querySelector('.pet-name')?.textContent ?? '')
+    }
+
+    function god(name: string): HTMLElement {
+      return screen.getByRole('button', { name: new RegExp(`^${name}, \\d+ players?$`) })
+    }
+
+    it('shows players under their team, every team even an empty one, and the teamless under No team', () => {
+      lobby([{ ...HOST, team: 'zamorak' }, WOOX, { ...LYNX, team: 'zamorak' }], TEAMS_ROOM)
+      expect(names(group('Zamorak'))).toEqual(['Zezima', 'Lynx'])
+      expect(names(group('No team'))).toEqual(['Woox'])
+      expect(god('Saradomin').getAttribute('aria-label')).toBe('Saradomin, 0 players')
+      expect(god('Guthix')).toBeTruthy()
+      expect(screen.queryByRole('button', { name: /^Bandos/ })).toBeNull()
+      expect(screen.getAllByText('Nobody yet')).toHaveLength(2)
+    })
+
+    it('drops No team once everyone has one', () => {
+      lobby(
+        [
+          { ...HOST, team: 'zamorak' },
+          { ...WOOX, team: 'guthix' },
+        ],
+        TEAMS_ROOM,
+      )
+      expect(screen.queryByRole('list', { name: 'No team' })).toBeNull()
+    })
+
+    it('sends set_team for the god tapped, and marks yours', async () => {
+      lobby([HOST, { ...WOOX, team: 'guthix' }], TEAMS_ROOM, WOOX)
+      expect(god('Guthix').getAttribute('aria-pressed')).toBe('true')
+      expect(god('Saradomin').getAttribute('aria-pressed')).toBe('false')
+      await fireEvent.click(god('Saradomin'))
+      await fireEvent.click(god('Guthix'))
+      expect(sent).toEqual([{ t: 'set_team', team: 'saradomin' }])
+    })
+
+    it('lets nobody tap a god while ready, and says how to change', async () => {
+      const ready = { ...WOOX, team: 'guthix' as const, ready: true }
+      lobby([HOST, ready], TEAMS_ROOM, ready)
+      for (const name of ['Saradomin', 'Zamorak', 'Guthix']) {
+        expect((god(name) as HTMLButtonElement).disabled).toBe(true)
+      }
+      await fireEvent.click(god('Saradomin'))
+      expect(sent).toEqual([])
+      expect(screen.getByText('Take your ready back to change team.')).toBeTruthy()
+    })
+
+    it('disables ready while you are teamless, saying to pick a team first', async () => {
+      lobby([HOST, WOOX], TEAMS_ROOM, WOOX)
+      const ready = screen.getByRole('button', { name: "✓ I'm ready" }) as HTMLButtonElement
+      expect(ready.disabled).toBe(true)
+      expect(ready.getAttribute('aria-describedby')).toBe('pick-first')
+      expect(screen.getByText('Pick a team first.')).toBeTruthy()
+      cleanup()
+      lobby([HOST, { ...WOOX, team: 'zamorak' }], TEAMS_ROOM, { ...WOOX, team: 'zamorak' })
+      expect(
+        (screen.getByRole('button', { name: "✓ I'm ready" }) as HTMLButtonElement).disabled,
+      ).toBe(false)
+      expect(screen.queryByText('Pick a team first.')).toBeNull()
+    })
+
+    it('lets an admin move a player to another team from their menu', async () => {
+      lobby(
+        [
+          { ...HOST, team: 'zamorak' },
+          { ...WOOX, team: 'saradomin' },
+        ],
+        TEAMS_ROOM,
+      )
+      await fireEvent.click(tile('Woox', 'kick, make host or move team'))
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Move team…' }))
+      expect(sent).toEqual([])
+      expect(dialog().textContent).toContain('Move Woox to which team?')
+      expect(within(dialog()).queryByRole('button', { name: 'Saradomin' })).toBeNull()
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Guthix' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(sent).toEqual([{ t: 'move_team', player_id: 'b', team: 'guthix' }])
+    })
+
+    it('lets an admin move another admin, who cannot be kicked', async () => {
+      const lynx = { ...LYNX, role: 'admin' as const }
+      lobby([HOST, WOOX, lynx], TEAMS_ROOM)
+      await fireEvent.click(tile('Lynx', 'move team'))
+      expect(within(dialog()).queryByRole('button', { name: 'Kick' })).toBeNull()
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Zamorak' }))
+      expect(sent).toEqual([{ t: 'move_team', player_id: 'c', team: 'zamorak' }])
+    })
+
+    it('lets an admin add a god the room lacks', async () => {
+      lobby([HOST, WOOX], TEAMS_ROOM)
+      await fireEvent.click(screen.getByRole('button', { name: 'Add a team…' }))
+      expect(dialog().textContent).toContain('Add which team?')
+      expect(within(dialog()).queryByRole('button', { name: 'Zamorak' })).toBeNull()
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Bandos' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(sent).toEqual([
+        { t: 'set_teams', teams: ['saradomin', 'zamorak', 'guthix', 'bandos'] },
+      ])
+    })
+
+    it('offers no add once all six gods play', () => {
+      const all = ['saradomin', 'zamorak', 'guthix', 'armadyl', 'bandos', 'zaros'] as const
+      lobby([HOST, WOOX], { ...TEAMS_ROOM, settings: { ...TEAMS_ROOM.settings, teams: [...all] } })
+      expect(screen.queryByRole('button', { name: 'Add a team…' })).toBeNull()
+      expect(screen.getAllByRole('button', { name: /^Remove / })).toHaveLength(6)
+    })
+
+    it('removes an empty team at once, and asks before removing one with players', async () => {
+      lobby([HOST, { ...WOOX, team: 'zamorak' }], TEAMS_ROOM)
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove Guthix' }))
+      expect(sent).toEqual([{ t: 'set_teams', teams: ['saradomin', 'zamorak'] }])
+      sent = []
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove Zamorak' }))
+      expect(sent).toEqual([])
+      expect(dialog().textContent).toContain('Remove Zamorak? Its player goes back to no team')
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Remove' }))
+      expect(sent).toEqual([{ t: 'set_teams', teams: ['saradomin', 'guthix'] }])
+    })
+
+    it('never offers to go below two teams', () => {
+      const two = {
+        ...TEAMS_ROOM,
+        settings: { ...TEAMS_ROOM.settings, teams: ['saradomin', 'zamorak'] },
+      }
+      lobby([HOST, WOOX], two as RoomView)
+      expect(screen.queryByRole('button', { name: /^Remove / })).toBeNull()
+      expect(screen.getByRole('button', { name: 'Add a team…' })).toBeTruthy()
+    })
+
+    it('gives a player no add or remove control', () => {
+      lobby([HOST, WOOX], TEAMS_ROOM, WOOX)
+      expect(screen.queryByRole('button', { name: 'Add a team…' })).toBeNull()
+      expect(screen.queryByRole('button', { name: /^Remove / })).toBeNull()
+    })
+
+    it('gives a player no move control', () => {
+      lobby([HOST, WOOX, LYNX], TEAMS_ROOM, WOOX)
+      expect(screen.queryByRole('button', { name: /move team/ })).toBeNull()
+      expect(screen.queryByRole('button', { name: /^(Woox|Lynx|Zezima),/ })).toBeNull()
+    })
+
+    it.each([
+      [
+        'someone is teamless',
+        [{ ...HOST, team: 'zamorak' as const }, WOOX, LYNX],
+        'Waiting on Woox and Lynx to pick a team.',
+      ],
+      [
+        'fewer than two teams have players',
+        [
+          { ...HOST, team: 'zamorak' as const },
+          { ...WOOX, team: 'zamorak' as const },
+        ],
+        'Players are needed in two teams or more.',
+      ],
+    ])('disables Start, saying why, while %s', (_, players, why) => {
+      lobby(players, TEAMS_ROOM)
+      const start = screen.getByRole('button', { name: /^Start/ }) as HTMLButtonElement
+      expect(start.disabled).toBe(true)
+      expect(screen.getByText(why).id).toBe(start.getAttribute('aria-describedby'))
+    })
+
+    it('enables Start once everyone has a team, in two teams', () => {
+      lobby(
+        [
+          { ...HOST, team: 'zamorak' },
+          { ...WOOX, team: 'guthix' },
+        ],
+        TEAMS_ROOM,
+      )
+      const start = screen.getByRole('button', { name: /^Start/ }) as HTMLButtonElement
+      expect(start.disabled).toBe(false)
+      expect(start.getAttribute('aria-describedby')).toBeNull()
+    })
   })
 })

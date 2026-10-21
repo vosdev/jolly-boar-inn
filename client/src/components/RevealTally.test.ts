@@ -11,6 +11,7 @@ import { render, waitFor } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { PlayerResult } from '../lib/protocol'
+import type { TeamId } from '../lib/teams'
 import RevealTally from './RevealTally.svelte'
 
 vi.mock('../lib/vocab', () => ({
@@ -390,5 +391,61 @@ describe('the suggester', () => {
   it('is not there for a question nobody is credited for', () => {
     const { container } = draw({ a: right() }, { showNames: false })
     expect(container.querySelector('.credit')).toBeNull()
+  })
+})
+
+describe('RevealTally in a team game', () => {
+  const teamLines = (container: HTMLElement) => [...container.querySelectorAll('.team')].map(text)
+  const scored = (points: number): PlayerResult => ({
+    value: 0,
+    correct: points > 0,
+    credit: 1,
+    points,
+  })
+
+  function drawTeams(results: Record<string, PlayerResult>, teamOf: Record<string, TeamId>) {
+    return render(RevealTally, {
+      type: 'multiple_choice',
+      reveal: OPTIONS,
+      results,
+      nameOf,
+      youId: 'a',
+      showNames: true,
+      teams: ['saradomin', 'zamorak', 'guthix'],
+      teamOf,
+    })
+  }
+
+  it("shows each team with its members' median points, after the groups", () => {
+    const { container } = drawTeams(
+      { a: scored(900), b: scored(100), c: scored(400), d: scored(1200), e: wrong(1) },
+      { a: 'saradomin', b: 'saradomin', c: 'saradomin', d: 'guthix', e: 'zamorak' },
+    )
+    expect(teamLines(container)).toEqual(['Saradomin +400', 'Zamorak +0', 'Guthix +1,200'])
+    const heads = [...container.querySelectorAll('.head')].map(text)
+    expect(heads).toEqual(['Got it wrong', 'Teams'])
+    expect(container.querySelectorAll('.team .logo .logo')).toHaveLength(3)
+  })
+
+  it("counts a member who didn't answer as 0", () => {
+    const { container } = drawTeams(
+      { a: scored(900), b: scored(600) },
+      { a: 'saradomin', b: 'saradomin', c: 'saradomin', d: 'zamorak' },
+    )
+    expect(teamLines(container)).toEqual(['Saradomin +600', 'Zamorak +0'])
+  })
+
+  it('takes the mean of the middle two of an even count, rounded', () => {
+    const { container } = drawTeams(
+      { a: scored(0), b: scored(301), c: scored(600), d: scored(900) },
+      { a: 'zamorak', b: 'zamorak', c: 'zamorak', d: 'zamorak' },
+    )
+    expect(teamLines(container)).toEqual(['Zamorak +451'])
+  })
+
+  it('leaves a normal game without team rows', () => {
+    const { container } = draw({ a: right(), b: wrong() })
+    expect(container.querySelector('.teams')).toBeNull()
+    expect(container.textContent).not.toContain('Teams')
   })
 })

@@ -25,9 +25,18 @@ from app.questions.types.scoring import Scoring
 from app.rooms import codes, duration, scoring, segments
 from app.rooms.errors import BadName, NotAdmin
 from app.rooms.settings import RoomSettings
+from app.rooms.teams import God
 from app.stats import Arrival
 from app.ws.outbox import Outbox
-from app.ws.protocol import JoinRequestView, OpenQuestion, PlayerView, RoomView, Segment, Standing
+from app.ws.protocol import (
+    JoinRequestView,
+    OpenQuestion,
+    PlayerView,
+    RoomView,
+    Segment,
+    Standing,
+    TeamStanding,
+)
 
 NAME_MAX = 24
 # Letters only, from the Latin blocks whose accented letters a player could type:
@@ -82,6 +91,8 @@ class Player:
     connected: bool = False
     # A pet's id. ``None`` only for a row startup has not yet given one.
     avatar: str | None = None
+    # ``None`` outside a team game and until they get one.
+    team: God | None = None
     # The ready check, in memory only: it means "ready to start" in the lobby and
     # "ready for this round" on a splash, and every splash starts everybody afresh. A
     # restart forgets it, which costs one tap -- the same as the splash it replays.
@@ -90,10 +101,11 @@ class Player:
     # splash, so a player hammering the button cannot stop and restart the room's
     # countdown over and over. The lobby has ``CHANGE_COOLDOWN`` instead.
     unreadied: bool = False
-    # When this player last changed their lobby ready or their profile, on the manager's
+    # When this player last changed their lobby ready, profile or team, on the manager's
     # monotonic clock. Each change is a broadcast to every socket in the room.
     ready_changed_at: float = field(default=-math.inf, repr=False)
     profile_changed_at: float = field(default=-math.inf, repr=False)
+    team_changed_at: float = field(default=-math.inf, repr=False)
     # Has the name field focused in the lobby. In memory only, like ``ready``, and advice only:
     # it holds up neither the ready check nor Start.
     editing: bool = False
@@ -107,6 +119,7 @@ class Player:
             display_name=self.display_name,
             avatar=self.avatar,
             role=self.role,  # type: ignore[arg-type]  # the column's check constraint
+            team=self.team,
             connected=self.connected,
             ready=self.ready,
             editing=self.editing,
@@ -158,10 +171,11 @@ class Submitted:
 
     ``band`` is fixed at receive time from ``received_at - answerable_at`` (section 6); the
     client never sends a time. It is ``None`` for a question scored on ``RANK``, where
-    nothing is known until everyone has answered. ``credit``, ``correct`` and ``points``
-    stay ``None`` until the question closes and grading writes them here, and the last
-    two to the ``answers`` row. ``credit`` has no column: it goes out once with the
-    reveal, and the table keeps what the standings are built from.
+    nothing is known until everyone has answered, and for ``SPEED`` in a team game.
+    ``credit``, ``correct`` and ``points`` stay ``None`` until the question closes and
+    grading writes them here, and the last two to the ``answers`` row. ``credit`` has no
+    column: it goes out once with the reveal, and the table keeps what the standings are
+    built from.
     """
 
     value: Any
@@ -253,11 +267,8 @@ class RoomQuestion:
         return scoring.effective(scoring_of(self.type), self.steps)
 
     def can_answer(self, player_id: UUID) -> bool:
-        """Section 6 exclusions: nobody answers a ``host_only`` question, and the author
-        of a ``source: room`` question cannot answer their own."""
-        if self.host_only:
-            return False
-        return self.source != "room" or self.author_player_id != player_id
+        """Section 6's one exclusion: nobody answers ``host_only``. Authors answer their own."""
+        return not self.host_only
 
     def view(
         self,
@@ -504,6 +515,36 @@ class Room:
             for player, rank in ranked
         ]
 
+    def team_standings(self) -> list[TeamStanding] | None:
+        """Section 8's team standings from the same ``totals`` as ``standings``; None
+        outside a team game."""
+        if not self.settings.teams:
+            return None
+        members = {
+            god: [p for p in self.players.values() if p.team == god] for god in self.settings.teams
+        }
+        playing = [god for god in self.settings.teams if members[god]]
+        now = {
+            god: _rounded_mean([self.score(p.id).points for p in members[god]]) for god in playing
+        }
+        before = {
+            god: _rounded_mean(
+                [self.score(p.id).points - self.score(p.id).round_points for p in members[god]]
+            )
+            for god in playing
+        }
+        previous = None if self.totals_round == 0 else dict(_dense_team_ranks(playing, before))
+        return [
+            TeamStanding(
+                team=god,
+                points=now[god],
+                rank=rank,
+                points_gained=now[god] - before[god],
+                previous_rank=None if previous is None else previous[god],
+            )
+            for god, rank in _dense_team_ranks(playing, now)
+        ]
+
     def score(self, player_id: UUID) -> Totals:
         """This player's row of ``totals``; a player who has not scored is a fresh zero.
 
@@ -524,10 +565,8 @@ class Room:
 class Broadcast:
     """Rendered messages and the sockets they go to, snapshotted under the room lock.
 
-    One entry per socket, because ``question_open`` is not the same frame for everyone:
-    ``you_can_answer`` is false for the author of a room question and for ``host_only``
-    ones. ``room_updated`` differs too: only admins are sent the key and, with
-    ``hide_rounds``, the rounds still to come.
+    One entry per socket, because not every frame is the same for everyone: only admins are
+    sent ``room_updated``'s key and, with ``hide_rounds``, the rounds still to come.
     """
 
     targets: list[tuple[Outbox, dict[str, Any]]]
@@ -558,6 +597,23 @@ def _dense_ranks(
             rank += 1
             previous = score(player)
         ranked.append((player, rank))
+    return ranked
+
+
+def _rounded_mean(values: list[int]) -> int:
+    """The mean of non-negative ``values``, halves rounded up rather than to even."""
+    return (2 * sum(values) + len(values)) // (2 * len(values))
+
+
+def _dense_team_ranks(teams: list[God], points: Mapping[God, int]) -> list[tuple[God, int]]:
+    """Dense ranks over ``points``; a stable sort keeps ``teams``' order among ties."""
+    ranked: list[tuple[God, int]] = []
+    rank, previous = 0, None
+    for god in sorted(teams, key=lambda g: -points[g]):
+        if points[god] != previous:
+            rank += 1
+            previous = points[god]
+        ranked.append((god, rank))
     return ranked
 
 

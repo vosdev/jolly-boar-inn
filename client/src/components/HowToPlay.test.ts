@@ -1,10 +1,10 @@
-/** The how-to sheet: the room's ways of answering, Submit in bold, and the scoring line. */
+/** The how-to sheet: the room's ways of answering, Submit in bold, scoring and teams. */
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ModePacing } from '../lib/api'
-import { loadModes } from '../lib/howToPlay'
+import { SCORING_LINE, TEAMS_PARAGRAPH, loadModes } from '../lib/howToPlay'
 import type { RoomSettings } from '../lib/protocol'
 import HowToPlay from './HowToPlay.svelte'
 
@@ -22,6 +22,7 @@ const SETTINGS: RoomSettings = {
   close_when_all_answered: true,
   max_players: 50,
   name_wrong_answers: false,
+  teams: [],
 }
 
 vi.mock('../lib/howToPlay', async (importOriginal) => {
@@ -64,6 +65,27 @@ describe('HowToPlay', () => {
     vi.mocked(loadModes).mockRejectedValue(new TypeError('offline'))
     render(HowToPlay, { room: { settings: SETTINGS, total: 5 }, onclose: () => {} })
     expect(await screen.findByRole('heading', { name: 'Type the answer' })).toBeTruthy()
+  })
+
+  it('explains teams in place of the speed line in a team room', async () => {
+    const settings = { ...SETTINGS, teams: ['saradomin', 'zamorak'] } satisfies RoomSettings
+    render(HowToPlay, { room: { settings, total: 5 }, onclose: () => {} })
+    await screen.findByRole('heading', { name: 'Put in order' })
+    expect(document.querySelector('.teams')?.textContent).toBe(`Teams. ${TEAMS_PARAGRAPH}`)
+    expect(TEAMS_PARAGRAPH).toContain("Speed doesn't count")
+    expect(TEAMS_PARAGRAPH).toContain('average')
+    expect(screen.queryByText(SCORING_LINE)).toBeNull()
+  })
+
+  it('leaves teams out of a room without them, and shows both lines from Home', async () => {
+    render(HowToPlay, { room: { settings: SETTINGS, total: 5 }, onclose: () => {} })
+    await screen.findByRole('heading', { name: 'Put in order' })
+    expect(document.querySelector('.teams')).toBeNull()
+    cleanup()
+    render(HowToPlay, { onclose: () => {} })
+    await screen.findByRole('heading', { name: 'One answer' })
+    expect(screen.getByText(SCORING_LINE)).toBeTruthy()
+    expect(document.querySelector('.teams')).not.toBeNull()
   })
 
   it('closes on Got it', async () => {

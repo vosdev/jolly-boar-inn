@@ -44,6 +44,61 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.138.0',
+    date: '2026-10-21',
+    text: 'The host of a team game can add and remove gods in the lobby, keeping two to six.',
+  },
+  {
+    version: '0.137.0',
+    date: '2026-10-21',
+    text: 'In a team game, each answer’s reveal shows how every team did: its players’ middle score on that question.',
+  },
+  {
+    version: '0.136.0',
+    date: '2026-10-21',
+    text: 'Team games rank the gods between rounds and at the end, each team’s players under it. Past games names the winners.',
+  },
+  {
+    version: '0.135.0',
+    date: '2026-10-21',
+    text: 'In a team game, tap a god in the lobby to join it. The host can move players, and starts once everyone has a team.',
+  },
+  {
+    version: '0.134.0',
+    date: '2026-10-21',
+    text: 'Create can now make a team game: turn Teams on and tick two to six gods. How to play explains how teams score.',
+  },
+  {
+    version: '0.133.0',
+    date: '2026-10-21',
+    text: 'Getting ready for team games: each team scores the average of its members, so a silent member counts.',
+  },
+  {
+    version: '0.132.0',
+    date: '2026-10-21',
+    text: 'Getting ready for team games: there, a right answer is worth the same however long you take.',
+  },
+  {
+    version: '0.131.0',
+    date: '2026-10-21',
+    text: 'Getting ready for team games: players can join a god in the lobby, and the host can move them.',
+  },
+  {
+    version: '0.130.0',
+    date: '2026-10-21',
+    text: 'Getting ready for team games: a room can now be made with two to six gods as its teams.',
+  },
+  {
+    version: '0.129.0',
+    date: '2026-10-21',
+    text: 'The host now answers and scores on the questions they wrote, like everyone else.',
+  },
+  {
+    version: '0.128.0',
+    date: '2026-10-21',
+    text: 'Getting ready for team games: each of the six gods gets its symbol and colours.',
+  },
+  {
     version: '0.127.0',
     date: '2026-10-21',
     text: "What's new lists every version, also those released together in one go.",

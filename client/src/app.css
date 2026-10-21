@@ -653,6 +653,45 @@
   color-scheme: dark;
 }
 
+/* The gods' colours, which are the teams' (`lib/teams.ts`, kept equal by its test). They
+   belong to the god, not the theme, so every theme shows them alike. `--team-ink` is what
+   reads on `--team`. */
+[data-team='saradomin'] {
+  --team: #2f5fb3;
+  --team-trim: #2f5fb3;
+  --team-ink: #fff8e6;
+}
+
+[data-team='zamorak'] {
+  --team: #b3302a;
+  --team-trim: #b3302a;
+  --team-ink: #fff8e6;
+}
+
+[data-team='guthix'] {
+  --team: #3d8a3a;
+  --team-trim: #3d8a3a;
+  --team-ink: #fff8e6;
+}
+
+[data-team='armadyl'] {
+  --team: #9cc9de;
+  --team-trim: #d4a52a;
+  --team-ink: #1d3644;
+}
+
+[data-team='bandos'] {
+  --team: #7a5230;
+  --team-trim: #7a5230;
+  --team-ink: #fff8e6;
+}
+
+[data-team='zaros'] {
+  --team: #6b3fa0;
+  --team-trim: #6b3fa0;
+  --team-ink: #fff8e6;
+}
+
 :root {
   /* The reading column, and the wide page that Home, Create and Admin take. The bar and
      footer follow whichever the screen under them uses. */

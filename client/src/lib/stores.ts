@@ -24,7 +24,9 @@ import type {
   RoomView,
   ServerMessage,
   Standing,
+  TeamStanding,
 } from './protocol'
+import { teamsOf } from './teams'
 import type { ConnectionState } from './ws'
 
 export const room = writable<RoomView | null>(null)
@@ -39,6 +41,8 @@ export const question = writable<OpenQuestion | null>(null)
 export const questionLive = writable(false)
 export const yourAnswer = writable<unknown>(null)
 export const standings = writable<Standing[]>([])
+/** A team game's teams, ranked as `standings` ranks players; null outside one. */
+export const teamStandings = writable<TeamStanding[] | null>(null)
 /**
  * The game ended while this client watched, so the final screen plays its ceremony. A
  * `welcome` into a finished room, a reload included, goes straight to the hiscores.
@@ -172,6 +176,8 @@ function fileFinishedGame(): void {
     finishedAt: current.finished_at,
     standings: get(standings),
     youId: get(you)?.id ?? null,
+    teamStandings: get(teamStandings),
+    teams: teamsOf(get(players)),
   })
 }
 
@@ -183,6 +189,7 @@ export function resetRoom(): void {
   question.set(null)
   questionLive.set(false)
   standings.set([])
+  teamStandings.set(null)
   endedLive.set(false)
   forgetQuestion()
   lastError.set(null)
@@ -215,6 +222,7 @@ export function applyServerMessage(message: ServerMessage): void {
       question.set(message.question)
       questionLive.set(false)
       standings.set(message.standings)
+      teamStandings.set(message.team_standings)
       endedLive.set(false)
       // No reveal and no ack in a snapshot: a client that arrives mid-reveal shows
       // the scoreboard, not the answer it never saw revealed.
@@ -234,6 +242,7 @@ export function applyServerMessage(message: ServerMessage): void {
       room.set(message.room)
       setPlayers(message.players)
       if (message.standings !== undefined) standings.set(message.standings)
+      if (message.team_standings !== undefined) teamStandings.set(message.team_standings)
       break
 
     case 'players_updated':
@@ -268,6 +277,7 @@ export function applyServerMessage(message: ServerMessage): void {
         const open = get(question)
         question.set(null)
         standings.set(message.standings)
+        teamStandings.set(message.team_standings)
         lastClosed.set({
           ...message,
           was: open?.question_id === message.question_id ? open : null,
@@ -284,6 +294,7 @@ export function applyServerMessage(message: ServerMessage): void {
       endedLive.set(true)
       question.set(null)
       standings.set(message.standings)
+      teamStandings.set(message.team_standings)
       // The `room_updated` that precedes this frame already says `finished`; saying it
       // again costs nothing and means the final screen never waits on frame order.
       patchRoom({ status: 'finished', phase: 'idle', next_at: null })

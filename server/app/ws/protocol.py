@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from app.questions.types.scoring import Scoring
 from app.rooms.settings import RoomSettings
+from app.rooms.teams import God
 
 RoomStatus = Literal["lobby", "playing", "finished"]
 # ``standings`` sits between a round's last reveal and the next round, never between
@@ -127,6 +128,8 @@ class PlayerView(_Message):
     avatar: str | None
     """A pet's id in ``data/pets.json``; the server stores one for every player."""
     role: Role
+    team: God | None
+    """The god they play for in a team game; null outside one, and for everyone who just joined."""
     connected: bool
     ready: bool
     """The ready check: ready to start in the lobby, ready for this round on a splash. Every
@@ -145,6 +148,21 @@ class Standing(_Message):
     rank: int
     points_gained: int
     """What the round of the latest close added, and the rank before it; None in the first."""
+    previous_rank: int | None
+
+
+class TeamStanding(_Message):
+    """A team game's team: its members' points averaged and rounded, so a silent member counts.
+
+    ``rank`` is dense over ``points``, ties in ``settings.teams`` order; ``points_gained`` and
+    ``previous_rank`` follow ``Standing``'s rule on the averages. A team without members is
+    left out.
+    """
+
+    team: God
+    points: int
+    rank: int
+    points_gained: int
     previous_rank: int | None
 
 
@@ -279,6 +297,30 @@ class Ready(_Message):
     ready: bool = Field(strict=True)
 
 
+class SetTeam(_Message):
+    """Join one of the room's teams. Lobby of a team game only, and not while ready."""
+
+    t: Literal["set_team"]
+    team: God
+
+
+class MoveTeam(_Message):
+    """Put any player on one of the room's teams, keeping their ready. Lobby only."""
+
+    t: Literal["move_team"]
+    player_id: UUID
+    team: God
+
+
+class SetTeams(_Message):
+    """Admin: the whole list of a team game's gods, in the lobby. Names are checked by the
+    manager, so an unknown god is ``bad_value`` like any other wrong list.
+    """
+
+    t: Literal["set_teams"]
+    teams: list[Annotated[str, Field(max_length=32, strict=True)]] = Field(max_length=16)
+
+
 class Editing(_Message):
     """The name field gained focus (``on``), or lost it. Lobby only; ignored anywhere else."""
 
@@ -300,6 +342,9 @@ ClientMessage = Annotated[
     | DecideRequest
     | SetProfile
     | Ready
+    | SetTeam
+    | MoveTeam
+    | SetTeams
     | Editing,
     Field(discriminator="t"),
 ]
@@ -324,6 +369,8 @@ class Welcome(_Message):
     question: OpenQuestion | None
     your_answer: Any | None
     standings: list[Standing]
+    team_standings: list[TeamStanding] | None
+    """Null outside a team game, here and on every frame that carries it."""
     server_time: datetime
     server_version: str
     """``/VERSION`` of the running server. A client built from another version reloads itself,
@@ -340,11 +387,12 @@ class RoomUpdated(_Message):
     room: RoomView
     players: list[PlayerView]
     standings: list[Standing] | None = Field(default=None, exclude_if=lambda s: s is None)
+    team_standings: list[TeamStanding] | None = Field(default=None, exclude_if=lambda s: s is None)
 
 
 class PlayersUpdated(_Message):
-    """A ready tap, an ``editing`` change, connect or disconnect that changed the players
-    and nothing else."""
+    """A ready tap, a team change, an ``editing`` change, connect or disconnect that changed
+    the players and nothing else."""
 
     t: Literal["players_updated"] = "players_updated"
     players: list[PlayerView]
@@ -360,7 +408,8 @@ class AnswerAck(_Message):
 
     ``band`` is the speed bucket (1..5) for ``speed``, the step the answer arrived on for
     ``step``, and null for ``rank``: a guess ranked against everyone else's is worth
-    nothing anybody can know until they have all answered.
+    nothing anybody can know until they have all answered. A team game scores ``speed`` on
+    accuracy alone, so its band is null there too.
     """
 
     t: Literal["answer_ack"] = "answer_ack"
@@ -412,10 +461,9 @@ class QuestionClosed(_Message):
     """The same name ``OpenQuestion.picture`` carried, so a reveal can show it too."""
     results: dict[UUID, PlayerResult]
     unanswered: list[UUID]
-    """Connected players who could have answered and did not, for the reveal's "No answer". Only
-    the server knows who could: the author of a room question is excluded.
-    """
+    """Connected players who could have answered and did not, for the reveal's "No answer"."""
     standings: list[Standing]
+    team_standings: list[TeamStanding] | None
     next_at: datetime | None
     reveal_seconds: int
     """How long this reveal holds, even for the last question, whose ``next_at`` is null."""
@@ -426,6 +474,7 @@ class QuestionClosed(_Message):
 class GameFinished(_Message):
     t: Literal["game_finished"] = "game_finished"
     standings: list[Standing]
+    team_standings: list[TeamStanding] | None
 
 
 class Pong(_Message):

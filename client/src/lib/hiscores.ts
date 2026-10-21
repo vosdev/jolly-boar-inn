@@ -10,7 +10,8 @@
  * rank and everyone holding it is presented together; nobody on 0 points gets a trophy.
  */
 
-import type { Standing } from './protocol'
+import type { Standing, TeamStanding } from './protocol'
+import { team, TEAM_IDS, type TeamId } from './teams'
 
 /** Who presents every standings screen: wiseoldman.net is where OSRS players track gains. */
 export const HISCORES_HOST = 'wise_old_man'
@@ -54,14 +55,14 @@ export interface Movement {
 }
 
 /** Places moved since the round before; null in the first round, or for no move. */
-export function movement(standing: Standing): Movement | null {
+export function movement(standing: Pick<Standing, 'rank' | 'previous_rank'>): Movement | null {
   if (standing.previous_rank === null) return null
   const by = standing.previous_rank - standing.rank
   return by === 0 ? null : { up: by > 0, by: Math.abs(by) }
 }
 
 /** The total before the round the standings are for. */
-export function pointsBefore(standing: Standing): number {
+export function pointsBefore(standing: Pick<Standing, 'points' | 'points_gained'>): number {
   return standing.points - standing.points_gained
 }
 
@@ -80,6 +81,31 @@ export function previousOrder(
   return [...standings].sort(
     (a, b) => (a.previous_rank ?? 0) - (b.previous_rank ?? 0) || joined(a) - joined(b),
   )
+}
+
+/** The teams as they stood before the round: by the rank then, ties and the first round in god order. */
+export function previousTeamOrder(teams: readonly TeamStanding[]): TeamStanding[] {
+  return [...teams].sort(
+    (a, b) =>
+      (a.previous_rank ?? 0) - (b.previous_rank ?? 0) ||
+      TEAM_IDS.indexOf(a.team) - TEAM_IDS.indexOf(b.team),
+  )
+}
+
+/** A team's members by `teamOf`, best first; level ones keep the server's order. */
+export function membersOf(
+  god: TeamId,
+  standings: readonly Standing[],
+  teamOf: Readonly<Record<string, TeamId>>,
+): Standing[] {
+  return standings
+    .filter((standing) => teamOf[standing.player_id] === god)
+    .sort((a, b) => b.points - a.points)
+}
+
+/** The teams sharing first place, if any of them scored. */
+export function winningTeams(teams: readonly TeamStanding[]): TeamId[] {
+  return teams.filter((t) => t.rank === 1 && t.points > 0).map((t) => t.team)
 }
 
 const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth']
@@ -115,6 +141,13 @@ export function winnersLine(winners: readonly string[]): string {
   return winners.length === 0
     ? 'Nobody scored. A quiet night at the inn.'
     : `Gz, ${listNames(winners)}! Here are the full hiscores.`
+}
+
+/** The Wise Old Man over a team game's final hiscores: "Saradomin wins!", or nobody. */
+export function teamWinnersLine(teams: readonly TeamStanding[]): string {
+  const names = winningTeams(teams).map((god) => team(god).name)
+  if (names.length === 0) return winnersLine([])
+  return `${listNames(names)} ${names.length === 1 ? 'wins' : 'win'}!`
 }
 
 /** The ms of one line typed at the scroll's 50 letters a second. */

@@ -42,6 +42,10 @@ as well as the host. A stored room still says so, and reads back as ``default`` 
 and as ``None`` for false -- "the host's questions only, one per round after the first",
 the rules it was created under. ``NewRoomSettings`` never takes ``None``, so no new room
 is made that way; it exists so every stored room still loads.
+
+``teams`` makes a team game: the gods playing, ``rooms/teams.py``'s, 2 to 6 of them in its
+order, or ``[]`` for everyone on their own. ``NewRoomSettings`` holds a new room to that;
+the stored model reads back whatever list a room was created with.
 """
 
 import random
@@ -59,6 +63,7 @@ from pydantic import (
 
 from app.modes import MODES, questions_bounds
 from app.questions.types.timing import Pace
+from app.rooms.teams import God, check_teams
 
 # The most questions one room may be created with, over all of its rounds and the events
 # inside them. Nothing in the game loop cares; it is there so a host cannot ask for an
@@ -187,6 +192,10 @@ class RoomSettings(BaseModel):
     """``None`` means "the server's MAX_PLAYERS_PER_ROOM"; ``RoomManager.create`` resolves it,
     so a stored room always has a number here.
     """
+    teams: list[God] = Field(default_factory=list)
+    """The gods of a team game, in ``GODS`` order; ``[]`` is a game without teams, as is a room
+    stored before teams existed.
+    """
 
     @classmethod
     def stored(cls, data: Any) -> Self:
@@ -310,6 +319,13 @@ class NewRoomSettings(RoomSettings):
                     f" {questions.minimum}..{questions.maximum}, not {entry.questions}"
                 )
         return modes
+
+    @field_validator("teams")
+    @classmethod
+    def _two_to_six_gods_in_order(cls, teams: list[God]) -> list[God]:
+        if not teams:
+            return teams
+        return check_teams(teams)
 
     @model_validator(mode="before")
     @classmethod

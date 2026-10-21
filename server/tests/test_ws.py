@@ -65,6 +65,7 @@ def test_hello_gets_welcome_with_players_and_you(client: TestClient, lobby) -> N
             "question",
             "your_answer",
             "standings",
+            "team_standings",
             "server_time",
             "server_version",
         }

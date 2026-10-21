@@ -110,6 +110,7 @@ describe('Hiscores', () => {
         connected: true,
         ready: false,
         editing: false,
+        team: null,
       },
     ])
     const { container } = render(Hiscores, { rows: ROUND_TWO })

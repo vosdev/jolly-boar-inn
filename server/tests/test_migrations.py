@@ -47,6 +47,7 @@ TABLES = {
         "avatar",
         "session_token_hash",
         "role",
+        "team",
         "joined_at",
     },
     "questions": {
@@ -90,7 +91,7 @@ TABLES = {
     },
     "roster_edits": {"item_id", "action", "name", "before", "updated_at", "exported_at"},
 }
-ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 INDEXES = {
     "rooms_code_idx",
     "rooms_expires_at_idx",
@@ -122,6 +123,7 @@ SHA256 = {
     17: "ba2f52276eb9eaeeab21d8e212a2ae68f240f302d7692923621034183fd7378e",
     18: "536c677461ce01f7047f0c71336cf23685775bd71086aedd68e2c536e658f919",
     19: "a1691800ce95ff0768268e1e950083e2a4e514558b6a5a18a0f553caea81b98c",
+    20: "c23b655cde296a23093d58eed3c89a9f47c4b552142c642dde11dbb0d1f81b12",
 }
 
 
@@ -173,6 +175,7 @@ def test_migration_files_are_numbered_and_ordered() -> None:
         "0017_roster_edits.sql",
         "0018_examine_suggestions.sql",
         "0019_gauntlet_theme.sql",
+        "0020_player_team.sql",
     ]
 
 
@@ -333,7 +336,7 @@ async def test_0004_rewrites_a_room_created_before_per_mode_rounds(
     }
     # Loaded by today's model once the migrations after it have run too, which is what
     # the room meets on its way back into a release: 0007 is where ``order`` went.
-    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     loaded = RoomSettings.model_validate(
         without_the_hold(await pool.fetchval("select settings from rooms where code = 'ABYSSAL'"))
     )
@@ -380,7 +383,7 @@ async def test_0005_gives_a_room_from_before_heads_players_with_no_avatar(
         room_id,
     )
 
-    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    assert await run_migrations(pool) == [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     rows = await pool.fetch("select display_name, avatar from players order by display_name")
     assert [(r["display_name"], r["avatar"]) for r in rows] == [("Woox", None), ("Zezima", None)]
 
@@ -403,7 +406,7 @@ async def test_0014_clears_the_head_a_player_chose_before_pets(
         room_id,
     )
 
-    assert await run_migrations(pool) == [14, 15, 16, 17, 18, 19]
+    assert await run_migrations(pool) == [14, 15, 16, 17, 18, 19, 20]
     assert await pool.fetchval("select avatar from players") is None
     await pool.execute("update players set avatar = 'aggy'")
     assert await pool.fetchval("select avatar from players") == "aggy"
@@ -432,7 +435,7 @@ async def test_0018_turns_an_examine_suggestion_into_its_question(
         [(content, index) for index, content in enumerate(examines)],
     )
 
-    assert await run_migrations(pool) == [18, 19]
+    assert await run_migrations(pool) == [18, 19, 20]
     rows = await pool.fetch("select kind, content from suggestions order by created_at")
     assert [(row["kind"], row["content"]) for row in rows] == [
         ("item", {"name": "Cabbage"}),
@@ -477,7 +480,7 @@ async def test_0019_counts_the_prifddinas_days_under_the_gauntlet(
         ],
     )
 
-    assert await run_migrations(pool) == [19]
+    assert await run_migrations(pool) == [19, 20]
     rows = await pool.fetch("select day, metric, key, count from daily_stats order by 1, 2, 3")
     assert [tuple(row) for row in rows] == [
         (date(2026, 10, 1), "themes", "gauntlet", 3),
@@ -605,7 +608,7 @@ async def test_0007_swaps_order_for_the_event_settings_once(
         before,
     )
 
-    assert await run_migrations(pool) == [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    assert await run_migrations(pool) == [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     after = await pool.fetchval("select settings from rooms where code = 'ABYSSAL'")
     expected = {k: v for k, v in before.items() if k != "order"}
     assert after == {**expected, "random_events": False, "random_event_seconds": 2}
@@ -642,7 +645,7 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
     settings that still say so. An app then starts on the database and applies 0007. The
     settings lose ``order``; the rows are not touched, so the custom round is still a round
     -- its own segment, after the pack one, events nowhere -- and it plays that way, with
-    its author kept out of it as before.
+    its author answering and scoring on it like anyone.
     """
     host_session, player_session = "host-from-before-events", "player-from-before-events"
     pack = json.loads((PACKS_DIR / "prices.json").read_text())
@@ -736,20 +739,17 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
                     ("custom", 1, 2) if own else ("more_less", 0, 2)
                 )
                 assert (segment["start"], segment["count"]) == ((2, 2) if own else (0, 2))
-                assert seen["host"]["you_can_answer"] is not own
+                assert seen["host"]["you_can_answer"] is True
                 answer = question["payload"]["answer_index"]
                 for ws in (host, player):
                     ws.send_json(
                         {"t": "answer", "question_id": opened["question_id"], "value": answer}
                     )
-                if own:
-                    assert next_of(host, "error", limit=30)["code"] == "excluded"
-                else:
-                    next_of(host, "answer_ack", limit=30)
+                next_of(host, "answer_ack", limit=30)
                 next_of(player, "answer_ack", limit=30)
                 results = next_of(host, "question_closed", limit=30)["results"]
                 next_of(player, "question_closed", limit=30)
-                assert set(results) == ({player_id} if own else {host_id, player_id})
+                assert set(results) == {host_id, player_id}
                 if index == 1:
                     # Stored before ``standings_seconds`` existed, it reads as the
                     # default, and the first round ends in standings the host can skip.
@@ -762,12 +762,12 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
             finished = next_of(host, "game_finished", limit=30)
 
     points = {s["display_name"]: s["points"] for s in finished["standings"]}
-    assert points["Woox"] > points["Zezima"] > 0
+    assert points["Woox"] > 0 and points["Zezima"] > 0
     rows = db(
         "select q.position, a.player_id from answers a join questions q on q.id = a.question_id"
     )
     assert sorted((row["position"], str(row["player_id"])) for row in rows) == sorted(
-        [(0, host_id), (0, player_id), (1, host_id), (1, player_id), (2, player_id), (3, player_id)]
+        [(position, pid) for position in range(4) for pid in (host_id, player_id)]
     )
 
 
@@ -817,7 +817,7 @@ async def test_0009_dates_a_room_finished_before_it_from_its_last_close(
             closed_at,
         )
 
-    assert await run_migrations(pool) == [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    assert await run_migrations(pool) == [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     rows = await pool.fetch("select code, finished_at from rooms")
     assert {row["code"]: row["finished_at"] for row in rows} == {
         "CLOSED": last_close,
@@ -839,7 +839,7 @@ async def test_0011_leaves_a_room_from_before_it_without_a_key(
         " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
         NewRoomSettings().model_dump(),
     )
-    assert await run_migrations(pool) == [11, 12, 13, 14, 15, 16, 17, 18, 19]
+    assert await run_migrations(pool) == [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     assert await pool.fetchval("select invite_key from rooms where code = 'ABYSSAL'") is None
 
 
@@ -855,8 +855,32 @@ async def test_0012_leaves_a_room_from_before_it_unlisted(
         " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day')",
         NewRoomSettings().model_dump(),
     )
-    assert await run_migrations(pool) == [12, 13, 14, 15, 16, 17, 18, 19]
+    assert await run_migrations(pool) == [12, 13, 14, 15, 16, 17, 18, 19, 20]
     assert await pool.fetchval("select public from rooms where code = 'ABYSSAL'") is False
+
+
+async def test_0020_leaves_a_player_from_before_it_teamless(
+    pool: asyncpg.Pool, tmp_path: Path
+) -> None:
+    """A player who joined before team games plays for nobody."""
+    for _, path in migration_files(MIGRATIONS_DIR)[:19]:
+        (tmp_path / path.name).write_text(path.read_text())
+    assert await run_migrations(pool, tmp_path) == ALL[:19]
+    room_id = await pool.fetchval(
+        "insert into rooms (code, status, settings, expires_at)"
+        " values ('ABYSSAL', 'lobby', $1, now() + interval '1 day') returning id",
+        RoomSettings().model_dump(exclude={"teams"}),
+    )
+    await pool.execute(
+        "insert into players (room_id, display_name, session_token_hash, role)"
+        " values ($1, 'Zezima', $2, 'admin')",
+        room_id,
+        hash_token("before teams"),
+    )
+    assert await run_migrations(pool) == [20]
+    assert await pool.fetchval("select team from players") is None
+    settings = await pool.fetchval("select settings from rooms")
+    assert RoomSettings.stored(settings).teams == []
 
 
 async def test_0013_holds_a_suggestion_to_its_kinds_and_statuses(pool: asyncpg.Pool) -> None:

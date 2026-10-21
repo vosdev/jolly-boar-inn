@@ -54,7 +54,7 @@ export interface TypeViewProps<Value = unknown> extends Drawn {
   /** What we answered, optimistic or acked; null if we have not. */
   yourValue: unknown
   /**
-   * False for a `host_only` question, and for our own room question in Phase 2. Stays the
+   * False for a `host_only` question. Stays the
    * question's own `you_can_answer` during the reveal — what the buttons do then is
    * decided by `revealed`, and this stays the reason we were left out.
    */

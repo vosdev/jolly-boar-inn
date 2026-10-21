@@ -58,7 +58,7 @@ from app.rooms.errors import (
     RoomNotFound,
 )
 from app.rooms.joins import REQUEST_STALE_SECONDS, Joins
-from app.rooms.lobby import EDITING_SECONDS, Lobby
+from app.rooms.lobby import EDITING_SECONDS, Lobby, _check_teams_ready
 from app.rooms.loop import (
     ALL_ANSWERED_PAUSE_SECONDS,
     Loop,
@@ -245,7 +245,8 @@ class RoomManager(Joins, Lobby, Loop):
             row = await _fetch_room(conn, code, self._grace)
             questions = await _fetch_questions(conn, row["id"])
             players = await conn.fetch(
-                "select id, display_name, avatar, role, joined_at, session_token_hash from players"
+                "select id, display_name, avatar, role, team, joined_at, session_token_hash"
+                " from players"
                 " where room_id = $1 order by joined_at, id",
                 row["id"],
             )
@@ -498,13 +499,18 @@ class RoomManager(Joins, Lobby, Loop):
         """
         players = room.player_views()
         ranked = room.standings() if standings else None
+        teams = room.team_standings() if standings else None
         everyone = RoomUpdated(
-            room=room.view(withhold=room.settings.hide_rounds), players=players, standings=ranked
+            room=room.view(withhold=room.settings.hide_rounds),
+            players=players,
+            standings=ranked,
+            team_standings=teams,
         )
         admins = RoomUpdated(
             room=room.view(admin=True, withhold=bool(room.settings.surprise_modes)),
             players=players,
             standings=ranked,
+            team_standings=teams,
         )
         if admins == everyone:
             return Broadcast.to_all(room, everyone.model_dump(mode="json"), exclude)
@@ -600,6 +606,7 @@ class RoomManager(Joins, Lobby, Loop):
                 question=open_view,
                 your_answer=answered.value if answered is not None else None,
                 standings=room.standings(),
+                team_standings=room.team_standings(),
                 server_time=datetime.now(UTC),
                 server_version=APP_VERSION,
             ).model_dump(mode="json")
@@ -659,6 +666,8 @@ class RoomManager(Joins, Lobby, Loop):
                 raise BadState(f"room {code} has no questions")
             if not room.sockets:
                 raise BadState("nobody is connected to play")
+            if room.settings.teams:
+                _check_teams_ready(room)
             # A room made near its expiry must not expire mid-game, so it gets a full
             # lifetime from here.
             expires_at = datetime.now(UTC) + timedelta(days=self.settings.room_ttl_days)
@@ -738,7 +747,9 @@ class RoomManager(Joins, Lobby, Loop):
             # the fastest bucket of a room set to a minute.
             assert question.seconds is not None  # set when the question opened
             how = question.scoring
-            band = scoring.band(how, elapsed, question.seconds, question.steps)
+            band = scoring.band(
+                how, elapsed, question.seconds, question.steps, team=bool(room.settings.teams)
+            )
             async with pool.acquire() as conn:
                 try:
                     await conn.execute(

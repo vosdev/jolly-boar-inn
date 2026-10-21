@@ -280,8 +280,11 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `hello` | `session` | all | Must be first. Replies `welcome`. |
 | `ping` | | all | Replies `pong`. |
 | `answer` | `question_id`, `value` | all | Stored if open, unanswered and allowed. `answer_ack` or `error`. |
-| `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. |
+| `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. Teamless in a team game: `bad_state`. |
 | `set_profile` | `display_name?`, `avatar?` | all | Lobby only. Validated exactly like a join. One change a second. Clears `editing`. |
+| `set_team` | `team` | all | Lobby of a team game, not while ready; a god not in the room is `bad_value`. One change a second. |
+| `move_team` | `player_id`, `team` | admin | Lobby of a team game: anyone, ready or not, connected or not. Their ready stays. |
+| `set_teams` | `teams` | admin | Lobby of a team game: the whole list, 2 to 6 gods in order, else `bad_value`. A dropped team's players go teamless and un-ready. |
 | `editing` | `on: bool` | all | Name field focused. Lobby only, else ignored. An `on` within 1 s of a change is ignored; 60 s unsent, a disconnect or `start_game` clears it. |
 | `start_game` | | admin | `lobby → playing`. |
 | `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
@@ -294,14 +297,14 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 
 | Server `t` | Fields | When |
 |---|---|---|
-| `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players`, `standings`? | Join, leave, promote, kick, rename, status change, a splash or standings starting (with `standings`), a ready change that moves `next_at`. |
-| `players_updated` | `players` | A ready, editing, connect or disconnect that changed players only. |
+| `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
+| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, kick, rename, `set_teams`, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
+| `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
-| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
-| `game_finished` | `standings` | Final. |
+| `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
+| `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
 | `error` | `code`, `message` | `bad_hello`, `bad_message`, `not_admin`, `not_open`, `already_answered`, `excluded`, `bad_value`, `bad_state`, `bad_name`, `name_taken`, `bad_avatar`. |
 
@@ -309,8 +312,9 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
                reveal_seconds, estimated_seconds, segment, finished_at, rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
-PlayerView   { id, display_name, avatar, role, connected, ready, editing }
+PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
+TeamStanding { team, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
                opened_at, answerable_at, ends_at, you_can_answer, answered, of }
@@ -343,8 +347,8 @@ PlayerResult { value, correct, credit, points }
 
 What the server withholds. The admin is a player with a flag; there is no admin channel.
 
-- Open-question frames are identical for every socket, admin included, except `you_can_answer`
-  (false for the author and on `host_only`) and the live counts. They never carry the answer.
+- Open-question frames are identical for every socket, admin included, except the live counts.
+  `you_can_answer` is false only on `host_only`. They never carry the answer.
 - `question_id` is the row uuid, never the content id, which hashes the answer and could be
   brute-forced.
 - Results and correct answers first appear in `question_closed`, to everyone at once.
@@ -387,7 +391,9 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
   for that code, if any.
 
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable.
-- `start_game` needs an admin, a question and a connected player. It resets `expires_at`.
+- `start_game` needs an admin, a question and a connected player. It resets `expires_at`. A team
+  game also needs every player, connected or not, in a team and players in two teams or more.
+  Teams are fixed from then on; `players.team` and `settings.teams` are written before memory.
 - A deleted room closes its sockets with 4004, and its code is free again.
 
 One task per room runs `_run_questions(room, index, resume_at)`:
@@ -415,14 +421,15 @@ splash / open / reveal ─end_round─▶ standings ─▶ next round's splash (
 The ready check (`rooms/ready.py`):
 
 - `ready` is an in-memory flag, never stored; a restart costs one tap.
-- In the lobby it is advice. Start below the threshold asks first, and the server allows it.
+- In the lobby it is advice. Start below the threshold asks first, and the server allows it. In a
+  team game only a player with a team can ready up, and must un-ready to change team.
 - On a splash, eligible players are the connected ones who can answer. The threshold is
   `min(ceil(0.8 × eligible), eligible - 1)`, and 1 for a room of one.
 - The splash has no clock until the threshold. Then it counts 10 s, or 3 s once everyone is ready.
 - A countdown is never pushed back. An un-ready below the threshold stops it, once per player per
   splash. A disconnect lowers the threshold instead of stalling the round.
 
-Settings (`rooms.settings`, fixed at creation):
+Settings (`rooms.settings`, fixed at creation but for `teams`, which `set_teams` changes in the lobby):
 
 ```jsonc
 {
@@ -435,11 +442,14 @@ Settings (`rooms.settings`, fixed at creation):
   "name_wrong_answers": true,            // name who got it wrong under the reveal
   "hide_rounds": false,                  // surprise rounds, section 6
   "surprise_modes": 0,                   // > 0: the server draws that many rounds, section 5
-  "max_players": null                    // null: MAX_PLAYERS_PER_ROOM, stored at create
+  "max_players": null,                   // null: MAX_PLAYERS_PER_ROOM, stored at create
+  "teams": []                            // 2..6 gods, or [] for no teams
 }
 ```
 
 - `modes[].mode` keys `MODES`, never `TYPES`, once each. `questions` is optional.
+- `teams` are distinct gods in `rooms/teams.py`'s order (`GODS`), the one list of them, checked by
+  `check_teams` at creation and on `set_teams`. A room never gains or loses teams altogether.
 - `NewRoomSettings` checks the ranges at creation. `RoomSettings`, the stored model, keeps a round
   whose mode was removed and ignores unknown keys (an old room's `seconds` and `reveal_seconds`
   too, playing at `run`), so no downgrade strands a room.
@@ -467,6 +477,8 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
   network difference irrelevant, so there is no RTT compensation.
 - An answer from `ends_at` on is `not_open`, even if the close runs late.
 - Partial credit rides the bucket: 0.6 in bucket 2 is 540.
+- A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and
+  `answer_ack.band` is null. `RANK` and `STEP` score as ever.
 
 Rank: answers rank by distance, ties share the better rank, and speed does not count. Exact is 1.0
 credit and 1000 points. The closest three otherwise get 0.9, 0.8 and 0.7, paid 750, 500 and 250.
@@ -481,16 +493,21 @@ without `steps` scores on speed.
 
 - There is no `question_update` message. The step schedule is a function of `answerable_at`,
   `ends_at` and `steps`, so clients advance it themselves and a reconnect lands on the right frame.
-- `points_for(scoring, credit, band, steps)` is the one entry point. It refuses credit outside 0..1
+- `points_for(scoring, credit, band, steps, team=)` is the one entry point. It refuses credit outside 0..1
   rather than paying for a type's bug.
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".
-- `host_only` scores nobody. An author scores 0 on their own question and gets `excluded`. A kicked
+- `host_only` scores nobody and gets `excluded`. Authors score on their own questions. A kicked
   player's answers are deleted.
 
 Standings sort by points, then correct answers, then `joined_at`. Rank is dense over points and
 correct answers; join time only orders players who share a rank. `points_gained` is what the round
 of the latest close added and `previous_rank` the rank before that round by the same rule, null
 in the first; the totals query splits its sum at that round's first position.
+
+Team standings average the same totals: a team's members' points summed over its member count,
+rounded half up, so a silent member pulls it down. Rank is dense over points, ties in
+`settings.teams` order; gains and previous ranks are the rounded averages before the round. A team
+without members is left out.
 
 ## 9. Reconnect and restart
 
@@ -637,6 +654,7 @@ key into them, so cleanup leaves it.
 - `players.avatar` is a pet's id in `pets.json`. A join or room with none sent gets a random pet
   nobody in the room wears, and startup gives one to any row still null. The server checks it against
   the pets with both pictures in `assets.json`, because that list grows without a migration.
+- `players.team` is a god in `GODS`, checked by the server, or null; everyone joins teamless.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.

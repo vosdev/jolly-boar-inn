@@ -1,13 +1,15 @@
-"""A player's own lobby state: profile, ready check and the ``editing`` flag."""
+"""A player's own lobby state: profile, team, ready check and the ``editing`` flag."""
 
 import asyncio
 from collections.abc import Iterable
+from uuid import UUID
 
 import asyncpg
 
-from app.rooms.errors import BadAvatar, BadState, NameTaken
+from app.rooms.errors import BadAvatar, BadState, BadValue, NameTaken
 from app.rooms.loop import _recount_splash
-from app.rooms.models import Player, Room, normalize_name
+from app.rooms.models import Player, Room, _require_admin, normalize_name
+from app.rooms.teams import God, check_teams
 
 # Seconds between one player's lobby ready changes, and between their profile changes.
 CHANGE_COOLDOWN = 1.0
@@ -19,6 +21,24 @@ EDITING_SECONDS = 60.0
 def _cool_down(last: float, now: float) -> None:
     if now - last < CHANGE_COOLDOWN:
         raise BadState("wait a moment before changing that again")
+
+
+def _check_team(room: Room, team: God) -> None:
+    """Refuse a team change outside the lobby of a team game, or to a god not playing."""
+    if not room.settings.teams:
+        raise BadState("this room is not a team game")
+    if room.status != "lobby":
+        raise BadState("teams are fixed once the game has started")
+    if team not in room.settings.teams:
+        raise BadValue(f"{team} is not a team in this room")
+
+
+def _check_teams_ready(room: Room) -> None:
+    """Refuse to start a team game with anyone teamless, disconnected or not, or one team."""
+    if any(player.team is None for player in room.players.values()):
+        raise BadState("everyone needs a team before the game starts")
+    if len({player.team for player in room.players.values()}) < 2:
+        raise BadState("a team game needs players on at least two teams")
 
 
 class Lobby:
@@ -88,6 +108,96 @@ class Lobby:
         if avatar is not None and avatar not in self.pets:
             raise BadAvatar("avatar must be the id of a pet in the picker")
 
+    async def set_team(self, code: str, player: Player, team: God) -> None:
+        """Join one of the room's teams, in the lobby of a team game, while not ready.
+
+        Ready is a promise to the others about the team you are on, so it has to be taken
+        back first. A change within ``CHANGE_COOLDOWN`` of the last one is ``bad_state``.
+        """
+        code = code.upper()
+        async with self._locked(code):
+            room = await self._room(code)
+            target = room.players.get(player.id)
+            if target is None:
+                raise BadState("you are no longer in this room")
+            _check_team(room, team)
+            if target.ready:
+                raise BadState("take your ready back before changing team")
+            if target.team == team:
+                return
+            now = self.clock()
+            _cool_down(target.team_changed_at, now)
+            await self._store_team(target, team)
+            target.team_changed_at = now
+            update = self._players_updated(room, room.view())
+        self._broadcast(update)
+
+    async def move_team(self, code: str, by: Player, player_id: UUID, team: God) -> None:
+        """Admin: put anyone on one of the room's teams, in the lobby, ready or not.
+
+        A disconnected player can be moved too, so the host can settle every team before
+        the start. Their ready stays: the host's move is not theirs to take back.
+        """
+        code = code.upper()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            target = room.players.get(player_id)
+            if target is None:
+                raise BadState("there is no such player in this room")
+            _check_team(room, team)
+            if target.team == team:
+                return
+            await self._store_team(target, team)
+            update = self._players_updated(room, room.view())
+        self._broadcast(update)
+
+    async def set_teams(self, code: str, by: Player, teams: list[str]) -> None:
+        """Admin: change which gods a team game has, in the lobby, keeping 2 to 6 of them.
+
+        A room without teams stays one, and a team room stays one. Players on a dropped
+        team go back to no team and lose their ready: they promised it to a team that is
+        gone. The rows are written before memory, in one transaction.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            if not room.settings.teams:
+                raise BadState("this room is not a team game")
+            if room.status != "lobby":
+                raise BadState("teams are fixed once the game has started")
+            try:
+                gods = check_teams(teams)
+            except ValueError as exc:
+                raise BadValue(str(exc)) from None
+            if gods == room.settings.teams:
+                return
+            settings = room.settings.model_copy(update={"teams": gods})
+            dropped = [p for p in room.players.values() if p.team and p.team not in gods]
+            async with pool.acquire() as conn, conn.transaction():
+                await conn.execute(
+                    "update rooms set settings = $2 where id = $1", room.id, settings.model_dump()
+                )
+                await conn.execute(
+                    "update players set team = null where id = any($1::uuid[])",
+                    [p.id for p in dropped],
+                )
+            room.settings = settings
+            for target in dropped:
+                target.team = None
+                target.ready = False
+            update = self._room_updated(room)
+        self._broadcast(update)
+
+    async def _store_team(self, target: Player, team: God) -> None:
+        """Write the row, then the player: a failed write leaves memory as it was. Lock held."""
+        pool = await self._pool()
+        async with pool.acquire() as conn:
+            await conn.execute("update players set team = $2 where id = $1", target.id, team)
+        target.team = team
+
     async def set_ready(self, code: str, player: Player, is_ready: bool) -> None:
         """Tap ready, or take it back (section 7.1 of ideas/design.md).
 
@@ -113,6 +223,8 @@ class Lobby:
                 raise BadState("there is nothing to be ready for")
             if target.ready == is_ready:
                 return
+            if is_ready and room.settings.teams and target.team is None:
+                raise BadState("pick a team before you ready up")
             before = room.view()
             if in_splash and not is_ready:
                 if target.unreadied:

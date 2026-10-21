@@ -39,6 +39,7 @@ SETTINGS_KEYS = {
     "close_when_all_answered",
     "name_wrong_answers",
     "max_players",
+    "teams",
 }
 
 

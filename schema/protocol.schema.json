@@ -35,7 +35,7 @@
     },
     "AnswerAck": {
       "additionalProperties": false,
-      "description": "How the answer will be scored and where it landed, never whether it was right.\n\n``band`` is the speed bucket (1..5) for ``speed``, the step the answer arrived on for\n``step``, and null for ``rank``: a guess ranked against everyone else's is worth\nnothing anybody can know until they have all answered.",
+      "description": "How the answer will be scored and where it landed, never whether it was right.\n\n``band`` is the speed bucket (1..5) for ``speed``, the step the answer arrived on for\n``step``, and null for ``rank``: a guess ranked against everyone else's is worth\nnothing anybody can know until they have all answered. A team game scores ``speed`` on\naccuracy alone, so its band is null there too.",
       "properties": {
         "t": {
           "const": "answer_ack",
@@ -116,11 +116,14 @@
           "end_round": "#/$defs/EndRound",
           "hello": "#/$defs/Hello",
           "kick": "#/$defs/Kick",
+          "move_team": "#/$defs/MoveTeam",
           "ping": "#/$defs/Ping",
           "promote": "#/$defs/Promote",
           "ready": "#/$defs/Ready",
           "rotate_key": "#/$defs/RotateKey",
           "set_profile": "#/$defs/SetProfile",
+          "set_team": "#/$defs/SetTeam",
+          "set_teams": "#/$defs/SetTeams",
           "skip": "#/$defs/Skip",
           "start_game": "#/$defs/StartGame"
         },
@@ -165,6 +168,15 @@
         },
         {
           "$ref": "#/$defs/Ready"
+        },
+        {
+          "$ref": "#/$defs/SetTeam"
+        },
+        {
+          "$ref": "#/$defs/MoveTeam"
+        },
+        {
+          "$ref": "#/$defs/SetTeams"
         },
         {
           "$ref": "#/$defs/Editing"
@@ -297,11 +309,25 @@
             "$ref": "#/$defs/Standing"
           },
           "type": "array"
+        },
+        "team_standings": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TeamStanding"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
         "t",
-        "standings"
+        "standings",
+        "team_standings"
       ],
       "title": "GameFinished",
       "type": "object"
@@ -392,6 +418,38 @@
         "questions"
       ],
       "title": "ModeSettings",
+      "type": "object"
+    },
+    "MoveTeam": {
+      "additionalProperties": false,
+      "description": "Put any player on one of the room's teams, keeping their ready. Lobby only.",
+      "properties": {
+        "t": {
+          "const": "move_team",
+          "type": "string"
+        },
+        "player_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "team": {
+          "enum": [
+            "saradomin",
+            "zamorak",
+            "guthix",
+            "armadyl",
+            "bandos",
+            "zaros"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "player_id",
+        "team"
+      ],
+      "title": "MoveTeam",
       "type": "object"
     },
     "OpenQuestion": {
@@ -562,6 +620,25 @@
           ],
           "type": "string"
         },
+        "team": {
+          "anyOf": [
+            {
+              "enum": [
+                "saradomin",
+                "zamorak",
+                "guthix",
+                "armadyl",
+                "bandos",
+                "zaros"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The god they play for in a team game; null outside one, and for everyone who just joined."
+        },
         "connected": {
           "type": "boolean"
         },
@@ -579,6 +656,7 @@
         "display_name",
         "avatar",
         "role",
+        "team",
         "connected",
         "ready",
         "editing"
@@ -588,7 +666,7 @@
     },
     "PlayersUpdated": {
       "additionalProperties": false,
-      "description": "A ready tap, an ``editing`` change, connect or disconnect that changed the players\nand nothing else.",
+      "description": "A ready tap, a team change, an ``editing`` change, connect or disconnect that changed\nthe players and nothing else.",
       "properties": {
         "t": {
           "const": "players_updated",
@@ -685,7 +763,7 @@
           "type": "object"
         },
         "unanswered": {
-          "description": "Connected players who could have answered and did not, for the reveal's \"No answer\". Only\nthe server knows who could: the author of a room question is excluded.",
+          "description": "Connected players who could have answered and did not, for the reveal's \"No answer\".",
           "items": {
             "format": "uuid",
             "type": "string"
@@ -697,6 +775,19 @@
             "$ref": "#/$defs/Standing"
           },
           "type": "array"
+        },
+        "team_standings": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TeamStanding"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "next_at": {
           "anyOf": [
@@ -726,6 +817,7 @@
         "results",
         "unanswered",
         "standings",
+        "team_standings",
         "next_at",
         "reveal_seconds"
       ],
@@ -856,6 +948,21 @@
           ],
           "default": null,
           "description": "``None`` means \"the server's MAX_PLAYERS_PER_ROOM\"; ``RoomManager.create`` resolves it,\nso a stored room always has a number here."
+        },
+        "teams": {
+          "description": "The gods of a team game, in ``GODS`` order; ``[]`` is a game without teams, as is a room\nstored before teams existed.",
+          "items": {
+            "enum": [
+              "saradomin",
+              "zamorak",
+              "guthix",
+              "armadyl",
+              "bandos",
+              "zaros"
+            ],
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -866,7 +973,8 @@
         "standings_seconds",
         "close_when_all_answered",
         "name_wrong_answers",
-        "max_players"
+        "max_players",
+        "teams"
       ],
       "title": "RoomSettings",
       "type": "object"
@@ -892,6 +1000,12 @@
         "standings": {
           "items": {
             "$ref": "#/$defs/Standing"
+          },
+          "type": "array"
+        },
+        "team_standings": {
+          "items": {
+            "$ref": "#/$defs/TeamStanding"
           },
           "type": "array"
         }
@@ -1167,6 +1281,57 @@
       "title": "SetProfile",
       "type": "object"
     },
+    "SetTeam": {
+      "additionalProperties": false,
+      "description": "Join one of the room's teams. Lobby of a team game only, and not while ready.",
+      "properties": {
+        "t": {
+          "const": "set_team",
+          "type": "string"
+        },
+        "team": {
+          "enum": [
+            "saradomin",
+            "zamorak",
+            "guthix",
+            "armadyl",
+            "bandos",
+            "zaros"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "team"
+      ],
+      "title": "SetTeam",
+      "type": "object"
+    },
+    "SetTeams": {
+      "additionalProperties": false,
+      "description": "Admin: the whole list of a team game's gods, in the lobby. Names are checked by the\nmanager, so an unknown god is ``bad_value`` like any other wrong list.",
+      "properties": {
+        "t": {
+          "const": "set_teams",
+          "type": "string"
+        },
+        "teams": {
+          "items": {
+            "maxLength": 32,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
+        }
+      },
+      "required": [
+        "t",
+        "teams"
+      ],
+      "title": "SetTeams",
+      "type": "object"
+    },
     "Skip": {
       "additionalProperties": false,
       "description": "End ``phase`` of the question at ``index``: what the host was looking at when they\npressed it, so a second tap that lands once the room has moved on ends nothing.",
@@ -1265,6 +1430,51 @@
       "title": "StartGame",
       "type": "object"
     },
+    "TeamStanding": {
+      "additionalProperties": false,
+      "description": "A team game's team: its members' points averaged and rounded, so a silent member counts.\n\n``rank`` is dense over ``points``, ties in ``settings.teams`` order; ``points_gained`` and\n``previous_rank`` follow ``Standing``'s rule on the averages. A team without members is\nleft out.",
+      "properties": {
+        "team": {
+          "enum": [
+            "saradomin",
+            "zamorak",
+            "guthix",
+            "armadyl",
+            "bandos",
+            "zaros"
+          ],
+          "type": "string"
+        },
+        "points": {
+          "type": "integer"
+        },
+        "rank": {
+          "type": "integer"
+        },
+        "points_gained": {
+          "type": "integer"
+        },
+        "previous_rank": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "team",
+        "points",
+        "rank",
+        "points_gained",
+        "previous_rank"
+      ],
+      "title": "TeamStanding",
+      "type": "object"
+    },
     "Welcome": {
       "additionalProperties": false,
       "description": "Reply to ``hello``: the full snapshot the client rebuilds all state from.",
@@ -1310,6 +1520,20 @@
           },
           "type": "array"
         },
+        "team_standings": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TeamStanding"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Null outside a team game, here and on every frame that carries it."
+        },
         "server_time": {
           "format": "date-time",
           "type": "string"
@@ -1327,6 +1551,7 @@
         "question",
         "your_answer",
         "standings",
+        "team_standings",
         "server_time",
         "server_version"
       ],
