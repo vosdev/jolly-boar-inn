@@ -495,10 +495,11 @@
     color: var(--muted);
   }
 
+  /* One column, narrow enough that each team's points stay beside its name. */
   .teams {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-    gap: 0.3rem 1rem;
+    gap: 0.3rem;
+    max-width: 16rem;
     margin: 0.3rem 0 0;
     padding: 0;
     list-style: none;
