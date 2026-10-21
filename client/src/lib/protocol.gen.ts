@@ -444,7 +444,8 @@ export interface QuestionOpen {
  *
  * `band` is the speed bucket (1..5) for `speed`, the step the answer arrived on for
  * `step`, and null for `rank`: a guess ranked against everyone else's is worth
- * nothing anybody can know until they have all answered.
+ * nothing anybody can know until they have all answered. A team game scores `speed` on
+ * accuracy alone, so its band is null there too.
  */
 export interface AnswerAck {
   t: 'answer_ack'

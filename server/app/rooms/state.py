@@ -741,7 +741,9 @@ class RoomManager(Joins, Lobby, Loop):
             # the fastest bucket of a room set to a minute.
             assert question.seconds is not None  # set when the question opened
             how = question.scoring
-            band = scoring.band(how, elapsed, question.seconds, question.steps)
+            band = scoring.band(
+                how, elapsed, question.seconds, question.steps, team=bool(room.settings.teams)
+            )
             async with pool.acquire() as conn:
                 try:
                     await conn.execute(

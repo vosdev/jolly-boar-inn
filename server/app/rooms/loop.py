@@ -579,10 +579,11 @@ class Loop:
                 [Submission(pid, answer.value) for pid, answer in question.answers.items()],
             )
             how = question.scoring
+            team = bool(room.settings.teams)
             graded: dict[UUID, tuple[float, bool, int]] = {}
             for pid, answer in question.answers.items():
                 got = scoring.settle_credit(question.type, credit.get(pid, 0.0))
-                points = scoring.points_for(how, got, answer.band, question.steps)
+                points = scoring.points_for(how, got, answer.band, question.steps, team=team)
                 # Full marks only. Three of five in the right order scores, and is not
                 # "correct" for the standings tie-break (section 6).
                 graded[pid] = (got, got >= 1.0, points)

@@ -20,6 +20,10 @@ The *band* is what an answer earns the moment it arrives, before anything is gra
 bucket, its step, or nothing at all for ``RANK``, where a guess's worth depends on guesses
 that have not arrived yet. ``answer_ack`` carries it, and ``points_for`` reads it back at
 the close.
+
+A team game scores on accuracy alone: ``SPEED`` has no band there and pays its top bucket
+times credit, so a teammate who reads slowly costs the team nothing. ``RANK`` and ``STEP``
+already pay for something other than speed and score as ever.
 """
 
 import logging
@@ -93,11 +97,14 @@ def effective(scoring: Scoring, steps: int | None) -> Scoring:
     return Scoring.SPEED if scoring is Scoring.STEP and steps is None else scoring
 
 
-def band(scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None) -> int | None:
-    """What an answer has earned on arrival: its bucket, its step, or ``None`` for ``RANK``."""
+def band(
+    scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None, *, team: bool = False
+) -> int | None:
+    """What an answer has earned on arrival: its bucket, its step, or ``None`` for ``RANK``
+    and for ``SPEED`` in a team game."""
     match how := effective(scoring, steps):
         case Scoring.SPEED:
-            return bucket(elapsed_s, question_s)
+            return None if team else bucket(elapsed_s, question_s)
         case Scoring.STEP:
             assert steps is not None  # ``effective`` made it SPEED otherwise
             return step(elapsed_s, question_s, steps)
@@ -107,16 +114,21 @@ def band(scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None)
             assert_never(how)
 
 
-def points_for(scoring: Scoring, credit: float, band: int | None, steps: int | None) -> int:
+def points_for(
+    scoring: Scoring, credit: float, band: int | None, steps: int | None, *, team: bool = False
+) -> int:
     """Points for one graded answer: the scoring's table at ``band`` times ``credit``, or for
     ``RANK`` the share of its top for the rung ``credit`` reached.
 
-    ``band`` is one this module's ``band()`` returned for the same scoring and steps;
-    nothing else produces them. A wrong answer, like no answer at all, is worth 0.
+    ``band`` is one this module's ``band()`` returned for the same scoring, steps and
+    ``team``; nothing else produces them. A wrong answer, like no answer at all, is worth 0.
     """
     if not 0.0 <= credit <= 1.0:
         raise ValueError(f"credit {credit} is outside 0..1")
     match how := effective(scoring, steps):
+        case Scoring.SPEED if team:
+            assert band is None
+            top = BUCKETS[0][1]
         case Scoring.SPEED:
             assert band is not None
             top = BUCKETS[band - 1][1]

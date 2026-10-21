@@ -474,6 +474,8 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
   network difference irrelevant, so there is no RTT compensation.
 - An answer from `ends_at` on is `not_open`, even if the close runs late.
 - Partial credit rides the bucket: 0.6 in bucket 2 is 540.
+- A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and
+  `answer_ack.band` is null. `RANK` and `STEP` score as ever.
 
 Rank: answers rank by distance, ties share the better rank, and speed does not count. Exact is 1.0
 credit and 1000 points. The closest three otherwise get 0.9, 0.8 and 0.7, paid 750, 500 and 250.
@@ -488,7 +490,7 @@ without `steps` scores on speed.
 
 - There is no `question_update` message. The step schedule is a function of `answerable_at`,
   `ends_at` and `steps`, so clients advance it themselves and a reconnect lands on the right frame.
-- `points_for(scoring, credit, band, steps)` is the one entry point. It refuses credit outside 0..1
+- `points_for(scoring, credit, band, steps, team=)` is the one entry point. It refuses credit outside 0..1
   rather than paying for a type's bug.
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".
 - `host_only` scores nobody and gets `excluded`. Authors score on their own questions. A kicked
