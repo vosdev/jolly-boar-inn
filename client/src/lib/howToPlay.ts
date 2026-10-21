@@ -14,7 +14,7 @@ import { getModes, type ModePacing } from './api'
 import { CUSTOM_TYPES } from './customQuestions'
 import type { RoomSettings } from './protocol'
 
-export type Drawing = 'tap' | 'ticks' | 'order' | 'match' | 'text' | 'number' | 'list'
+export type Drawing = 'tap' | 'basket' | 'order' | 'match' | 'text' | 'number' | 'list'
 
 export interface HowToRow {
   types: string[]
@@ -34,8 +34,8 @@ export const HOW_TO_ROWS: HowToRow[] = [
   {
     types: ['pick_all_that_apply'],
     title: 'Pick all that apply',
-    text: 'Tap every right one, then press Submit.',
-    drawing: 'ticks',
+    text: 'Drag every right one into the basket, then press Submit.',
+    drawing: 'basket',
   },
   {
     types: ['ordering'],

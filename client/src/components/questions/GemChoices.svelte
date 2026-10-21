@@ -14,9 +14,7 @@
    * which gem it is, and what state it is in, is decided here, the same way for every
    * mode that uses it.
    *
-   * With `ticked`, a tap ticks or unticks an option instead of answering with it, and
-   * `full` holds the unticked ones once as many are ticked as the question takes. An
-   * answer of several options reveals with all of them lit across the top at their usual
+   * An answer of several options reveals with all of them lit across the top at their usual
    * size, since several large ones would push the rest off a phone.
    *
    * Given `results` on the reveal, every option says how many picked it.
@@ -34,9 +32,6 @@
     canAnswer,
     onAnswer,
     label,
-    ticked = null,
-    full = false,
-    compact = false,
     results = null,
   }: {
     options: Option[]
@@ -48,12 +43,6 @@
     canAnswer: boolean
     onAnswer: (index: number) => void
     label: Snippet<[Option, number]>
-    /** The options ticked so far, before submitting; null where a tap answers. */
-    ticked?: ReadonlySet<number> | null
-    /** As many are ticked as may be: the rest are held. */
-    full?: boolean
-    /** Gems drop to 44px, for a caller whose button would otherwise sit below the screen. */
-    compact?: boolean
     /** `question_closed.results`, for each option's count; null while open. */
     results?: Record<string, PlayerResult> | null
   } = $props()
@@ -74,22 +63,18 @@
   const answered = $derived(results === null ? 0 : Object.keys(results).length)
   const sizeAt = (index: number) =>
     !settled ? 'normal' : !answer.has(index) ? 'small' : answer.size > 1 ? 'normal' : 'large'
-  const heldAt = (index: number) =>
-    revealed || !canAnswer || picked.size > 0 || (full && !ticked?.has(index))
+  const held = $derived(revealed || !canAnswer || picked.size > 0)
 </script>
 
-<div class="gems" class:settled class:compact={compact && !revealed} style:--columns={columns}>
+<div class="gems" class:settled style:--columns={columns}>
   {#each options as option, index (index)}
     <GemButton
       gem={gemAt(index)}
       status={gemState(index, picked, answer, revealed)}
       mine={picked.has(index)}
       size={sizeAt(index)}
-      checked={ticked === null || picked.size > 0 || revealed || !canAnswer
-        ? null
-        : ticked.has(index)}
       votes={counts === null ? null : { count: counts[index] ?? 0, of: answered }}
-      disabled={heldAt(index)}
+      disabled={held}
       onclick={() => onAnswer(index)}
     >
       {@render label(option, index)}
@@ -102,10 +87,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     gap: 0.5rem;
-  }
-
-  .compact > :global(.gem) {
-    min-height: 44px;
   }
 
   .settled {

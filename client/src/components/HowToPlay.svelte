@@ -63,10 +63,12 @@
               <span class="bar sapphire"></span>
               <span class="bar emerald pressed"></span>
               <span class="bar ruby"></span>
-            {:else if row.drawing === 'ticks'}
-              <span class="bar sapphire ticked">✓</span>
+            {:else if row.drawing === 'basket'}
+              <span class="box held">
+                <span class="bar sapphire"></span>
+                <span class="bar ruby"></span>
+              </span>
               <span class="bar emerald"></span>
-              <span class="bar ruby ticked">✓</span>
               {@render submit()}
             {:else if row.drawing === 'order'}
               <span class="bar ruby">1</span>
@@ -182,6 +184,16 @@
 
   .ruby {
     background: var(--gem-ruby);
+  }
+
+  /* The basket: two gems dropped in, one left out under it. */
+  .box.held {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    height: auto;
+    padding: 2px;
+    border-style: dashed;
   }
 
   .pair {

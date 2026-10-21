@@ -90,9 +90,10 @@ learns the position, which is worth more than variety.
   first, then "and N more". "No answer" comes last, muted: it is not wrong. With
   `name_wrong_answers` off the lines keep their counts and drop the names.
 - Six gems means no question offers more than six options.
-- `pick_all_that_apply` ticks rather than picks: a box in each gem's top right corner, as on a
-  Create round, and nothing fades until Submit sends the ticks. Every right gem goes across the top
-  at normal size.
+- `pick_all_that_apply` drags the right gems from a tray into a basket, as `ordering` does, nothing
+  fading until Submit. Without `picks` the basket grows, unnumbered; with it, that many empty places.
+  A basket that would be valid goes 1 s before `ends_at`. Every right gem goes across the top at
+  normal size.
 - `ordering` is answered by dragging the entries into order, each keeping its gem: a mouse takes
   the whole row, a finger or the keyboard its handle. They start as shown, unnumbered, so Submit
   works at once. With `picks`, that many numbered places start empty above "the rest". Rewind,
