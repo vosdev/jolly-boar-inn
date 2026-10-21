@@ -241,6 +241,14 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
     return changed
 
 
+EVENT_ORDERING = _with(
+    SORT_IT_OUT,
+    mode="random_event",
+    random_event="bob",
+    payload={**SORT_IT_OUT["content"]["payload"], "intro": "Gems, adventurer!"},
+)
+
+
 @pytest.mark.parametrize(
     "body",
     [
@@ -269,8 +277,9 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(RELEASE_ORDER, type="multiple_choice"),
         _with(RELEASE_ORDER, type="free_text"),
         _with(SORT_IT_OUT, mode="drop_table"),
-        _with(SORT_IT_OUT, mode="random_event", random_event="bob"),
-        _with(EVENT, type="ordering", payload=SORT_IT_OUT["content"]["payload"]),
+        _without(EVENT_ORDERING, "random_event"),
+        _with(EVENT_ORDERING, random_event="nobody_at_all"),
+        _with(EVENT_ORDERING, payload={**EVENT_ORDERING["content"]["payload"], "intro": ""}),
         _ordering(entries=SORT_IT_OUT["content"]["payload"]["entries"][:2], answer=[0, 1]),
         _ordering(ends=["Lowest"]),
         _ordering(prompt=""),
@@ -603,6 +612,20 @@ def test_an_intro_and_a_picture_are_stored_and_exported(client: TestClient) -> N
     approve(client, suggestion)
     (question,) = export(client)["questions"]
     assert question["payload"] == payload
+
+
+def test_an_npc_may_ask_an_ordering_with_an_intro(client: TestClient) -> None:
+    approve(client, suggest(client, EVENT_ORDERING))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == EVENT_ORDERING["content"]
+    assert row["playable"] is True
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["type"], question["random_event"]) == (
+        "random_event",
+        "ordering",
+        "bob",
+    )
+    assert question["payload"] == EVENT_ORDERING["content"]["payload"]
 
 
 def test_the_form_offers_an_intro_only_to_the_rounds_that_show_one() -> None:

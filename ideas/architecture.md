@@ -211,9 +211,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Create's editor writes `multiple_choice`, `free_text`, `closest_number` and `pick_all_that_apply`
   (`picks` only as a "tell players how many" box) with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
-- `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's beside its other types
-  in one picker: entries first to last and a "tied with the one above" box, so ranks follow and
-  none is skipped, with `picks` optional. Release Order's entries carry their date as `detail`.
+- `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's and random events'
+  (NPC and intro) beside their other types: entries first to last and a "tied with the one
+  above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:
 

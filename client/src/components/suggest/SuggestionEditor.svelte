@@ -122,7 +122,13 @@
       : { type: current, payload: prompted({}) },
   )
   const ordering: OrderingQuestion | undefined =
-    start?.type === 'ordering' ? { type: 'ordering', payload: start.payload ?? {} } : undefined
+    start?.type === 'ordering'
+      ? {
+          type: 'ordering',
+          payload: start.payload ?? {},
+          ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
+        }
+      : undefined
 
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
@@ -255,6 +261,8 @@
     question={ordering}
     title={choice.label}
     mode={choice.id}
+    asker={choice.id === 'random_event' ? 'required' : 'none'}
+    intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
     {saveLabel}
     fields={questionFields}

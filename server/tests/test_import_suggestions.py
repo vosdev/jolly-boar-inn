@@ -194,6 +194,23 @@ def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -
     assert loads(repo)
 
 
+def test_an_npc_ordering_lands_in_its_file_as_written(repo: dict[str, Path]) -> None:
+    payload = {
+        "intro": "Mind the dials, mortal.",
+        "prompt": "Which letters dial the fairy ring to Zanaris, in order?",
+        "ends": ["First", "Last"],
+        "entries": [{"text": "A", "rank": 1}, {"text": "I", "rank": 2}, {"text": "Q", "rank": 3}],
+        "answer": [0, 1, 2],
+    }
+    question = {**QUESTION, "type": "ordering", "payload": payload, "random_event": "fairy_queen"}
+    assert run(repo, {"questions": [question]}) == 0
+    queen = json.loads((repo["packs"] / "random_events" / "fairy_queen.json").read_text())
+    added = queen["questions"][-1]
+    assert (added["type"], added["mode"], added["payload"]) == ("ordering", "random_event", payload)
+    assert "random_event" not in added
+    assert loads(repo)
+
+
 def test_an_examine_keeps_its_name_first_and_the_packs_tag(repo: dict[str, Path]) -> None:
     assert run(repo, {"questions": [NEW_EXAMINE]}) == 0
     *_, new = examines(repo)

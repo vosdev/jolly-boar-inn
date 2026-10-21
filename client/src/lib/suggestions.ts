@@ -32,7 +32,7 @@ export function maySuggest(): boolean {
 export type SuggestionKind = 'question' | 'item'
 export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
-/** The types a suggestion may be: Create's three, and an ordering for the rounds that sort. */
+/** The types a suggestion may be: Create's, and an ordering for the rounds that sort and the NPCs. */
 export type SuggestedType = CustomType | 'ordering'
 
 export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
@@ -176,7 +176,7 @@ export const CHOICES: readonly Choice[] = [
     label: 'A random event question',
     hint: 'Asked by an NPC in the middle of a round.',
     host: 'sandwich_lady',
-    types: CUSTOM_TYPES,
+    types: [...CUSTOM_TYPES, 'ordering'],
   },
   ...CHOICE_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)

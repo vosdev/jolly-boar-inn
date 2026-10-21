@@ -6,8 +6,8 @@
  * and cannot skip one.
  *
  * Like Create's questions (`lib/customQuestions.ts`) it is held to the schema's limits,
- * read from the schema, then to what `check()` adds. Only a suggestion offers it: Create's
- * editor and the random events keep their three types.
+ * read from the schema, then to what `check()` adds. Only a suggestion offers it, a random
+ * event's among them: Create's editor keeps its own types.
  */
 
 import { at, unstorable } from './customQuestions'
@@ -25,6 +25,8 @@ import {
 export interface OrderingQuestion {
   type: 'ordering'
   payload: Record<string, unknown>
+  /** The NPC who asks it, for a random event's. */
+  random_event?: string
 }
 
 export interface OrderingEntry {
@@ -37,6 +39,8 @@ export interface OrderingEntry {
 
 /** One question as the form edits it: text as typed, and what it does not edit. */
 export interface OrderingDraft {
+  /** The NPC's line before the prompt, for a random event's. */
+  intro: string
   prompt: string
   /** What the first and the last entry are, such as "Lowest" and "Highest". */
   ends: [string, string]
@@ -89,7 +93,7 @@ export function wordingOf(mode: string): OrderingWording {
   return WORDING[mode] ?? GENERIC
 }
 
-const EDITED = new Set(['prompt', 'ends', 'entries', 'answer', 'picks', 'explanation'])
+const EDITED = new Set(['intro', 'prompt', 'ends', 'entries', 'answer', 'picks', 'explanation'])
 
 const blank = (): OrderingEntry => ({ text: '', detail: '', tied: false })
 
@@ -124,6 +128,7 @@ export function draftOf(question?: OrderingQuestion): OrderingDraft {
   }))
   while (question === undefined && entries.length < ENTRIES_MIN) entries.push(blank())
   return {
+    intro: text(p.intro),
     prompt: text(p.prompt),
     ends: [ends[0] ?? '', ends[1] ?? ''],
     entries,
@@ -136,7 +141,9 @@ export function draftOf(question?: OrderingQuestion): OrderingDraft {
 /** The question a draft says, trimmed, with empty optional fields left out. */
 export function questionOf(draft: OrderingDraft): OrderingQuestion {
   const allowed = new Set(fields('ordering'))
-  const payload: Record<string, unknown> = { prompt: draft.prompt.trim() }
+  const intro = draft.intro.trim()
+  const payload: Record<string, unknown> = intro === '' ? {} : { intro }
+  payload.prompt = draft.prompt.trim()
   for (const [key, value] of Object.entries(draft.extra)) {
     if (allowed.has(key)) payload[key] = value
   }
@@ -273,7 +280,7 @@ export function previewOf(question: OrderingQuestion, mode: string): OpenQuestio
     segment: { mode, index: 0, total: 1, start: 0, count: 1 },
     view: { ...view, entries: shown },
     picture: null,
-    random_event: null,
+    random_event: question.random_event ?? null,
     opened_at: opened,
     answerable_at: opened,
     ends_at: new Date(8.64e15).toISOString(),

@@ -35,10 +35,11 @@ Status = Literal["pending", "approved", "rejected", "imported"]
 
 _CHOICE = frozenset({"multiple_choice"})
 # The modes a player may write a question for, and the types its editor offers. An NPC's
-# question is any type a host may write; the rounds still to be built are all four buttons.
+# question is any type a host may write or an ordering, as an NPC's file holds; the rounds
+# still to be built are all four buttons.
 QUESTION_MODES: dict[str, frozenset[str]] = {
     "random_event": frozenset(
-        {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}
+        {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
     ),
     "bestiary": frozenset({"multiple_choice", "free_text", "pick_all_that_apply", "ordering"}),
     "drop_table": frozenset(

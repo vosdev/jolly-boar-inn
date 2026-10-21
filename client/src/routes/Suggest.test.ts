@@ -466,6 +466,49 @@ describe('Suggest', () => {
     })
   })
 
+  it('lets an NPC ask an order, with its intro, previewed on the NPC’s card', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
+    await fireEvent.click(screen.getByLabelText('Put in order'))
+    expect(screen.getByLabelText('First end')).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Pick who asks it.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByRole('radio', { name: 'Fairy Queen' }))
+    await type(/^Intro/, 'Turn the dials, mortal.')
+    await type('What are they sorted by?', 'Which letters dial Zanaris, in order?')
+    await type('First end', 'First')
+    await type('Last end', 'Last')
+    await type('Entry 1', 'A')
+    await type('Entry 2', 'I')
+    await type('Entry 3', 'Q')
+    const preview = within(screen.getByRole('region', { name: 'Preview' }))
+    expect(preview.getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
+    expect(preview.getByText('Turn the dials, mortal.', { selector: '.intro' })).toBeTruthy()
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Fairy_ring')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toEqual({
+      type: 'ordering',
+      mode: 'random_event',
+      random_event: 'fairy_queen',
+      wiki: 'https://oldschool.runescape.wiki/w/Fairy_ring',
+      payload: {
+        intro: 'Turn the dials, mortal.',
+        prompt: 'Which letters dial Zanaris, in order?',
+        ends: ['First', 'Last'],
+        entries: [
+          { text: 'A', rank: 1 },
+          { text: 'I', rank: 2 },
+          { text: 'Q', rank: 3 },
+        ],
+        answer: [0, 1, 2],
+      },
+    })
+  })
+
   it('makes an NPC’s question name its NPC', async () => {
     played()
     render(Suggest, { navigate })

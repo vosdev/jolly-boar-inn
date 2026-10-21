@@ -153,6 +153,50 @@ describe('SuggestionQueue', () => {
     })
   })
 
+  it('previews an NPC’s order on their card and edits it in the same form', async () => {
+    const event = row({
+      content: {
+        type: 'ordering',
+        mode: 'random_event',
+        random_event: 'fairy_queen',
+        wiki: 'https://oldschool.runescape.wiki/w/Fairy_ring',
+        payload: {
+          intro: 'Turn the dials, mortal.',
+          prompt: 'Which letters dial Zanaris, in order?',
+          ends: ['First', 'Last'],
+          entries: [
+            { text: 'A', rank: 1 },
+            { text: 'I', rank: 2 },
+            { text: 'Q', rank: 3 },
+          ],
+          answer: [0, 1, 2],
+        },
+      },
+      playable: true,
+    })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [event], counts: COUNTS })
+    vi.mocked(admin.editSuggestion).mockResolvedValue(event)
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText(/Which letters dial/)).closest('button')!)
+    const preview = screen.getByLabelText('As players will see it')
+    expect(within(preview).getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByRole('radio', { name: 'Fairy Queen' })).toHaveProperty('checked', true)
+    expect((screen.getByLabelText(/^Intro/) as HTMLTextAreaElement).value).toBe(
+      'Turn the dials, mortal.',
+    )
+    await fireEvent.input(screen.getByLabelText(/^Intro/), { target: { value: 'Dial, mortal.' } })
+    await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    const [, id, body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+    expect(id).toBe('one')
+    expect(body.content).toMatchObject({
+      type: 'ordering',
+      random_event: 'fairy_queen',
+      payload: { intro: 'Dial, mortal.', answer: [0, 1, 2] },
+    })
+  })
+
   it('links a question’s non-wiki source beside, or instead of, its wiki page', async () => {
     const clip = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
     const only = row({
