@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.121.0',
+    date: '2026-10-21',
+    text: "The answer list in Who's That NPC? no longer scrolls your screen. On a phone it opens above the box.",
+  },
+  {
     version: '0.120.0',
     date: '2026-10-21',
     text: "The credits open as a popup from Home's footer, instead of a page of their own.",

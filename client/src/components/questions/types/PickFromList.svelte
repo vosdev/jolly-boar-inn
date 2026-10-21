@@ -24,10 +24,10 @@
    * - Submit is disabled until something is selected, and selecting is not submitting: on a
    *   phone a mis-tap costs a second tap, not the question.
    *
-   * On a phone the keyboard takes half the screen, and a list that opens under the text
-   * box opens behind it. So focusing scrolls the box to the top of what is visible, and the
-   * list is never taller than the space left between the box and the keyboard, measured
-   * off `visualViewport`, which is the part of the page the keyboard is not covering.
+   * The list floats over the page, so opening it moves nothing and the page never scrolls
+   * for its length. On a phone the keyboard takes half the screen, so the list opens above
+   * the box, and is never taller than the space between the box and the screen edge,
+   * measured off `visualViewport`, the part of the page the keyboard is not covering.
    *
    * The list comes from `lib/vocab.ts`, fetched once per session — `Room` starts that as
    * the question arrives, so during a random event's hold it is already on its way.
@@ -74,6 +74,11 @@
     if (typeof q.vocab === 'string') void fetchList(q.vocab)
   })
 
+  /** The width where the keyboard covers the room below the box: the list opens above. */
+  const PHONE_QUERY = '(max-width: 40rem)'
+  /** The least height worth opening a list in. */
+  const MIN_LIST_HEIGHT = 120
+
   const nameOf = (id: unknown): string | null =>
     typeof id === 'number' ? (list?.entries.find((e) => e.id === id)?.name ?? null) : null
 
@@ -84,6 +89,7 @@
   let input = $state<HTMLInputElement | null>(null)
   let listbox = $state<HTMLUListElement | null>(null)
   let maxHeight = $state<number | null>(null)
+  let above = $state(false)
 
   const matches = $derived(list === null ? [] : search(list.entries, query))
   const shown = $derived(matches.slice(0, SHOWN_MAX))
@@ -152,19 +158,35 @@
 
   function onFocus(): void {
     open()
-    // Put the box at the top of what the keyboard leaves visible, so the list has room.
-    input?.scrollIntoView?.({ block: 'start', behavior: 'smooth' })
+    // The list floats, so the page never has to move for it. Only a box the keyboard
+    // hides is brought into view.
+    input?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
   }
 
-  /** The list's height: what is left between the box and the bottom of the visual viewport. */
+  /**
+   * Which side of the box the list opens on, and how tall it may be there. A phone opens
+   * it above, clear of the keyboard; a desktop below. Either flips when the other side
+   * has more room and the preferred one is too small to use.
+   */
   function fitList(): void {
     const viewport = window.visualViewport
+    const preferAbove = window.matchMedia?.(PHONE_QUERY).matches ?? false
     if (input === null || viewport === null || viewport === undefined) {
+      above = preferAbove
       maxHeight = null
       return
     }
-    const below = viewport.offsetTop + viewport.height - input.getBoundingClientRect().bottom
-    maxHeight = Math.max(120, Math.floor(below) - 12)
+    const box = input.getBoundingClientRect()
+    const room = {
+      above: box.top - viewport.offsetTop,
+      below: viewport.offsetTop + viewport.height - box.bottom,
+    }
+    const preferred = preferAbove ? 'above' : 'below'
+    const other = preferAbove ? 'below' : 'above'
+    const side =
+      room[preferred] < MIN_LIST_HEIGHT && room[other] > room[preferred] ? other : preferred
+    above = side === 'above'
+    maxHeight = Math.max(MIN_LIST_HEIGHT, Math.floor(room[side]) - 12)
   }
 
   // The keyboard opening resizes the visual viewport; the scroll that focusing starts
@@ -239,6 +261,7 @@
         role="listbox"
         aria-label="Matches"
         hidden={!expanded}
+        class:above
         style:max-height={maxHeight === null ? null : `${maxHeight}px`}
       >
         {#each shown as entry, index (entry.id)}
@@ -294,9 +317,13 @@
     font-size: 1.1rem;
   }
 
-  /* In the flow rather than floating, so it pushes Submit down instead of covering it,
-     and so the page, not a popup, is what scrolls when the keyboard is up. */
+  /* Floating over the page rather than in the flow, so opening it never moves anything
+     and the page never scrolls for its length. */
   [role='listbox'] {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    z-index: 10;
     list-style: none;
     margin: 0.35rem 0 0;
     padding: 0.25rem;
@@ -306,6 +333,12 @@
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
     background: var(--panel-raised);
+  }
+
+  [role='listbox'].above {
+    top: auto;
+    bottom: 100%;
+    margin: 0 0 0.35rem;
   }
 
   [role='listbox'][hidden] {
