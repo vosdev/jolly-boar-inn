@@ -1,10 +1,11 @@
 /** The band under every screen: the notices a visitor is owed, and the way to the code. */
 
-import { render, screen } from '@testing-library/svelte'
+import { fireEvent, render, screen } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { asOfDate } from '../lib/dates'
+import { VERSION_LABEL } from '../lib/links'
 import { pricesAsOf } from '../lib/pricesAsOf.svelte'
 import Footer from './Footer.svelte'
 
@@ -40,6 +41,15 @@ describe('Footer', () => {
     const link = screen.getByRole('link', { name: 'Credits' })
     expect(link.getAttribute('href')).toBe('/credits')
     expect(link.getAttribute('target')).toBe('_blank')
+  })
+
+  it("opens What's new from the version, and closes it again", async () => {
+    render(Footer)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: `v${VERSION_LABEL}` }))
+    expect(screen.getByRole('dialog', { name: "What's new" })).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it("dates the Grand Exchange prices by the newest price mode's", async () => {
