@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
-   * `/credits`: the players whose questions are in the packs, and a thank-you to the OSRS
-   * Wiki, linked from the footer.
+   * The credits, as a sheet from Home's footer: the players whose questions are in the
+   * packs, and a thank-you to the OSRS Wiki.
    *
    * Authors are ranked by how many questions carry their name, ties sharing a rank, as a
    * hiscores table would. The server names only those who agreed to be named.
@@ -10,8 +10,11 @@
 
   import { ApiFailure, getCredits, type Author } from '../lib/api'
   import { WIKI_URL } from '../lib/links'
+  import Sheet from './Sheet.svelte'
 
-  let { navigate }: { navigate: (to: string) => void } = $props()
+  let { onclose }: { onclose: () => void } = $props()
+
+  const id = $props.id()
 
   let authors = $state<Author[] | null>(null)
   let failure = $state<string | null>(null)
@@ -32,9 +35,9 @@
   })
 </script>
 
-<section class="panel">
-  <h1>Credits</h1>
-  <h2>Question authors</h2>
+<Sheet labelledby="{id}-title" {onclose}>
+  <h2 id="{id}-title">Credits</h2>
+  <h3>Question authors</h3>
   {#if failure !== null}
     <div class="banner bad" role="alert">{failure}</div>
   {:else if authors === null}
@@ -42,35 +45,35 @@
   {:else if authors.length === 0}
     <p class="note">No player-written questions yet.</p>
   {:else}
-    <table class="authors">
-      <thead>
-        <tr>
-          <th scope="col" class="rank"
-            ><span aria-hidden="true">#</span><span class="sr">Rank</span></th
-          >
-          <th scope="col" class="name">Name</th>
-          <th scope="col" class="count">Questions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each ranked as author (author.name)}
+    <div class="scroll">
+      <table class="authors">
+        <thead>
           <tr>
-            <td class="rank">{author.rank}</td>
-            <td class="name">{author.name}</td>
-            <td class="count">{author.questions}</td>
+            <th scope="col" class="rank"
+              ><span aria-hidden="true">#</span><span class="sr">Rank</span></th
+            >
+            <th scope="col" class="name">Name</th>
+            <th scope="col" class="count">Questions</th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {#each ranked as author (author.name)}
+            <tr>
+              <td class="rank">{author.rank}</td>
+              <td class="name">{author.name}</td>
+              <td class="count">{author.questions}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
   {/if}
   <p class="suggest">
     Want your name here?
-    <button type="button" class="link" onclick={() => navigate('/suggest')}>Suggest one →</button>
+    <a class="link" href="/suggest" target="_blank" rel="noopener">Suggest one →</a>
   </p>
-</section>
 
-<section class="panel">
-  <h2>The OSRS Wiki</h2>
+  <h3>The OSRS Wiki</h3>
   <p>
     Pretty much every question here was checked against the Old School RuneScape Wiki. The item IDs,
     prices, examine texts, drop tables, transcripts and chatheads all come from years of work by its
@@ -94,11 +97,28 @@
   <p class="note">
     <a class="link" href={WIKI_URL} target="_blank" rel="noopener">oldschool.runescape.wiki</a> · CC BY-NC-SA
   </p>
-</section>
+  <button type="button" class="primary done" onclick={onclose}>Got it</button>
+</Sheet>
 
 <style>
-  h1 {
+  h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1rem;
+  }
+
+  h2 + h3 {
     margin-top: 0;
+  }
+
+  /* A long list scrolls on its own, so the wiki's thanks stays a short scroll away. */
+  .scroll {
+    max-height: min(40dvh, 20rem);
+    overflow-y: auto;
   }
 
   .authors {
@@ -140,5 +160,10 @@
 
   .suggest {
     margin: 1rem 0 0;
+  }
+
+  .done {
+    width: 100%;
+    margin-top: 1rem;
   }
 </style>

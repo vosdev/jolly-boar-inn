@@ -293,12 +293,23 @@ describe('App', () => {
     await screen.findByText('This browser kept no result for that game.')
   })
 
-  it('draws the credits at /credits', async () => {
+  it("offers the credits in Home's footer only", async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [{ name: 'Tayka', questions: 17 }] })
-    at('/credits')
-    await screen.findByRole('heading', { level: 1, name: 'Credits' })
+    at('/')
+    const footer = within(document.querySelector('footer')!)
+    await fireEvent.click(footer.getByRole('button', { name: 'Credits' }))
     expect(await screen.findByRole('cell', { name: 'Tayka' })).toBeTruthy()
-    expect(location.pathname).toBe('/credits')
+    cleanup()
+    at('/create')
+    expect(
+      within(document.querySelector('footer')!).queryByRole('button', { name: 'Credits' }),
+    ).toBeNull()
+  })
+
+  it('no longer draws the credits at /credits', async () => {
+    at('/credits')
+    expect(screen.queryByRole('heading', { name: 'Credits' })).toBeNull()
+    expect(api.getCredits).not.toHaveBeenCalled()
   })
 
   it('opens the admin view at /admin, taking the token out of the address bar', async () => {

@@ -2,21 +2,31 @@
   /**
    * A quiet band under every screen, the top bar's twin: the trademark notice, what is and
    * is not collected, the way to the source, the licence, where the data comes from and how
-   * old its prices are, the credits and the version, which opens what's new.
+   * old its prices are, the credits (on Home only, so nobody opens them mid-game) and the
+   * version, which opens what's new.
    *
    * It sits in the page's flow, never fixed, so on a long screen it is below the last
    * answer rather than over it, and on a short one the shell pushes it to the bottom.
    */
   import Changelog from './Changelog.svelte'
+  import Credits from './Credits.svelte'
   import Icon from './Icon.svelte'
   import { asOfDate } from '../lib/dates'
   import { LICENSE_URL, REPO_URL, VERSION_LABEL, WIKI_URL } from '../lib/links'
   import { loadPricesAsOf, newestAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
 
-  /** The screen above uses the wide page, so the footer's text follows it. */
-  let { wide = false }: { wide?: boolean } = $props()
+  let {
+    wide = false,
+    credits = false,
+  }: {
+    /** The screen above uses the wide page, so the footer's text follows it. */
+    wide?: boolean
+    /** Offer the credits. */
+    credits?: boolean
+  } = $props()
 
   let showChangelog = $state(false)
+  let showCredits = $state(false)
 
   const asOf = $derived(newestAsOf(pricesAsOf.byMode))
 
@@ -41,9 +51,13 @@
         <a href={WIKI_URL} target="_blank" rel="noopener">Data from the OSRS Wiki</a> (CC BY-NC-SA)
       </li>
       {#if asOf !== null}<li>GE prices as of {asOfDate(asOf)}</li>{/if}
-      <li><a href="/credits" target="_blank" rel="noopener">Credits</a></li>
+      {#if credits}
+        <li>
+          <button type="button" class="plain" onclick={() => (showCredits = true)}>Credits</button>
+        </li>
+      {/if}
       <li>
-        <button type="button" class="version" onclick={() => (showChangelog = true)}
+        <button type="button" class="plain" onclick={() => (showChangelog = true)}
           >v{VERSION_LABEL}</button
         >
       </li>
@@ -53,6 +67,9 @@
 
 {#if showChangelog}
   <Changelog onclose={() => (showChangelog = false)} />
+{/if}
+{#if showCredits}
+  <Credits onclose={() => (showCredits = false)} />
 {/if}
 
 <style>
@@ -91,11 +108,11 @@
   }
 
   a,
-  .version {
+  .plain {
     color: inherit;
   }
 
-  .version {
+  .plain {
     padding: 0;
     background: none;
     border: none;
