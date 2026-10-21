@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.124.0',
+    date: '2026-10-21',
+    text: 'New question type, Match them up: drag the right answer onto each one. Some answers are left over.',
+  },
+  {
     version: '0.123.0',
     date: '2026-10-21',
     text: 'Broav now greets you on the Suggest page, and stands in wherever an NPC has no picture.',

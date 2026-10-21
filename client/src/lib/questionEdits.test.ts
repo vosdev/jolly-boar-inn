@@ -78,7 +78,8 @@ describe('the forms the editor opens', () => {
     .flatMap(([, file]) => file.questions)
 
   it('give every hand-written question back unchanged when nothing is edited', () => {
-    const forms = questions.filter((q) => q.type !== 'pick_from_list')
+    // A list's answer is an id no form writes, and matching has no form here yet.
+    const forms = questions.filter((q) => q.type !== 'pick_from_list' && q.type !== 'matching')
     expect(forms.length).toBeGreaterThan(100)
     for (const question of forms) {
       const payload =

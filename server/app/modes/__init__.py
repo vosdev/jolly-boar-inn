@@ -60,6 +60,7 @@ MODES: dict[str, Mode] = {
                 "free_text",
                 "ordering",
                 "pick_all_that_apply",
+                "matching",
             }
         ),
     ),
@@ -72,6 +73,7 @@ MODES: dict[str, Mode] = {
                 "pick_all_that_apply",
                 "closest_number",
                 "number_slider",
+                "matching",
             }
         ),
     ),
@@ -88,6 +90,7 @@ MODES: dict[str, Mode] = {
                 "number_slider",
                 "pick_all_that_apply",
                 "ordering",
+                "matching",
             }
         ),
         # The pool is small: 20 leaves room for the events the room adds on top.

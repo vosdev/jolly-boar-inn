@@ -30,6 +30,7 @@ import QuoteStem, { lines as quoteLines } from './stems/QuoteStem.svelte'
 import TextStem, { lines as textLines } from './stems/TextStem.svelte'
 import ClosestNumber from './types/ClosestNumber.svelte'
 import FreeText from './types/FreeText.svelte'
+import Matching from './types/Matching.svelte'
 import MoreLess from './types/MoreLess.svelte'
 import MultipleChoice from './types/MultipleChoice.svelte'
 import NumberSlider from './types/NumberSlider.svelte'
@@ -48,6 +49,7 @@ export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
   free_text: FreeText,
   pick_all_that_apply: PickAllThatApply,
   ordering: Ordering,
+  matching: Matching,
 }
 
 // Keyed on `StemId` rather than `string`, so naming a stem in `lib/modes.ts` that has no

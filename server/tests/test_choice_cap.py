@@ -23,6 +23,8 @@ NOT_CHOICES = {
     "/$defs/pick_all_that_apply/properties/answer_indices": "the right options, never buttons",
     "/$defs/ordering/properties/ends": "the labels at either end, never buttons",
     "/$defs/ordering/properties/answer": "the right order of the entries, never buttons",
+    "/$defs/matching/properties/fields": "the places options are dropped on, never buttons",
+    "/$defs/matching/properties/answer": "the option on each field, never buttons",
 }
 
 
@@ -63,6 +65,7 @@ def test_the_walk_finds_the_choice_arrays_there_are() -> None:
             for kind in ("more_less", "multiple_choice", "pick_all_that_apply")
         ),
         "/$defs/ordering/properties/entries",
+        "/$defs/matching/properties/options",
     }
 
 

@@ -85,7 +85,8 @@ learns the position, which is worth more than variety.
 - Under every reveal: "22 of 41 got it right", then under "Got it wrong" a line per group,
   `label (count): names`. A group is the option (with its gem's chip), the typed answer (three,
   then "Something else"), the list entry, the closest-number rank ("Further off" last, every name
-  with its guess, furthest first), right picks, or entries in place. Eight names a line, you
+  with its guess, furthest first), right picks, entries in place, or fields right ("N of M got
+  them all" for `matching`). Eight names a line, you
   first, then "and N more". "No answer" comes last, muted: it is not wrong. With
   `name_wrong_answers` off the lines keep their counts and drop the names.
 - Six gems means no question offers more than six options.
@@ -98,7 +99,13 @@ learns the position, which is worth more than variety.
   beside Submit, starts over. An unsent order goes 1 s before `ends_at`, empty places filled from the
   top of the rest. The reveal lists the right order, ties sharing a number, with each `detail`; a
   misplaced entry fades and says where you had it. With `picks` it lists only the top ones.
-- Gems are for `multiple_choice`, `pick_all_that_apply` and `ordering`; `price_is_right` is a slider. `more_less` keeps `--more` and
+- `matching` drags an option onto each field, labelled by name or picture ("Picture N" to a screen
+  reader), from a tray of gems in two columns; decoys stay in the tray. The drag and keyboard are
+  ordering's, with no tap-to-place. A drop on a filled field swaps, a placed option's × sends it
+  back, and an unsent answer fills empty fields from the top of the tray. The reveal sets the right
+  option on each field with its `detail`, fades a wrong one with "you: …" under it, and lists the
+  decoys as "Left over".
+- Gems are for `multiple_choice`, `pick_all_that_apply`, `ordering` and `matching`; `price_is_right` is a slider. `more_less` keeps `--more` and
   `--less`, because its buttons carry item pictures, which a gem fill would drown.
   `pick_from_list` has a list of hundreds, answered through a combobox, with no gems.
 

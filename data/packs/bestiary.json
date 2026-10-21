@@ -725,6 +725,64 @@
         "explanation": "Vorkath may drop the Jar of Decay, the Corporeal Beast the Jar of Spirits, and the Nightmare the Jar of Souls.",
         "answer_index": 2
       }
+    },
+    {
+      "id": "q_71260cfff9108cba",
+      "type": "matching",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [
+        "bosses"
+      ],
+      "payload": {
+        "prompt": "Match each boss to where it is fought.",
+        "fields": [
+          {
+            "text": "Zulrah"
+          },
+          {
+            "text": "Vorkath"
+          },
+          {
+            "text": "Sarachnis"
+          },
+          {
+            "text": "Kraken"
+          }
+        ],
+        "options": [
+          {
+            "text": "Zul-Andra",
+            "detail": "Tirannwn"
+          },
+          {
+            "text": "Ungael",
+            "detail": "By boat from Rellekka"
+          },
+          {
+            "text": "Forthos Dungeon",
+            "detail": "Kourend"
+          },
+          {
+            "text": "Kraken Cove",
+            "detail": "Piscatoris"
+          },
+          {
+            "text": "Karuulm Slayer Dungeon"
+          },
+          {
+            "text": "Lithkren Vault"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "The Karuulm Slayer Dungeon holds the Alchemical Hydra, and Lithkren's vault its metal dragons."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Bosses"
     }
   ]
 }

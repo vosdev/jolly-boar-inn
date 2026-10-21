@@ -53,6 +53,7 @@ describe('HowToPlay', () => {
       'One answer',
       'Pick all that apply',
       'Put in order',
+      'Match them up',
       'Type the answer',
       'Closest number',
       'Slide to a number',

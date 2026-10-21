@@ -18,7 +18,8 @@
    * that apply groups by right picks against the reveal's `answer_indices`, because its
    * credit punishes misses and extras alike. Ordering groups by entries in place, read
    * off `credit`, and with `picks` also those out of place, read off the value. Grouping
-   * by how many, not by which, keeps six entries to six lines.
+   * by how many, not by which, keeps six entries to six lines. Matching groups the same
+   * way, by fields right, read off `credit`.
    *
    * Not answering is not getting it wrong (the points slot makes the same distinction),
    * so it is its own line, last and muted.
@@ -295,6 +296,19 @@
         }
         return byCredit([...lines.values()])
       }
+      case 'matching': {
+        const fields = (reveal.fields as unknown[] | undefined)?.length ?? 0
+        const lines = new Map<string, Group & { credit: number; hits: number }>()
+        for (const [id, { credit }] of wrong) {
+          const hits = Math.round(credit * fields)
+          const key = String(hits)
+          const label = hits === 0 ? 'None' : `${hits} of ${fields}`
+          const line = lines.get(key) ?? { key, label, gem: null, players: [], credit, hits }
+          line.players.push(who(id))
+          lines.set(key, line)
+        }
+        return byCredit([...lines.values()])
+      }
       default:
         return grouped(
           () => 'wrong',
@@ -332,7 +346,7 @@
   {:else}
     <p class="count">
       <strong class="number">{right} of {rows.length}</strong>
-      {ranked ? 'guessed it exactly' : 'got it right'}
+      {ranked ? 'guessed it exactly' : type === 'matching' ? 'got them all' : 'got it right'}
     </p>
     {#if shown.length > 0}
       <p class="head">Got it wrong</p>

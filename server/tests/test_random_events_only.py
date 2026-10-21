@@ -65,6 +65,7 @@ def test_on_the_create_form_gets_its_pace(on: TestClient) -> None:
     assert entry["types"] == [
         "closest_number",
         "free_text",
+        "matching",
         "multiple_choice",
         "number_slider",
         "ordering",

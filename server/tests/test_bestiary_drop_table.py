@@ -26,7 +26,7 @@ def questions(mode: str) -> list[dict[str, Any]]:
 AWAITING = {"bestiary": set(), "drop_table": {"number_slider"}}
 
 
-def test_bestiary_mixes_six_types() -> None:
+def test_bestiary_mixes_seven_types() -> None:
     assert MODES["bestiary"].types == {
         "multiple_choice",
         "closest_number",
@@ -34,18 +34,20 @@ def test_bestiary_mixes_six_types() -> None:
         "free_text",
         "ordering",
         "pick_all_that_apply",
+        "matching",
     }
     assert questions_bounds("bestiary").default == 5
     assert {q["type"] for q in questions("bestiary")} == MODES["bestiary"].types
 
 
-def test_drop_table_mixes_five_types() -> None:
+def test_drop_table_mixes_six_types() -> None:
     assert MODES["drop_table"].types == {
         "multiple_choice",
         "free_text",
         "pick_all_that_apply",
         "closest_number",
         "number_slider",
+        "matching",
     }
     assert questions_bounds("drop_table").default == 5
     held = {q["type"] for q in questions("drop_table")}

@@ -10,7 +10,7 @@
     "type": {
       "enum": ["more_less", "price_is_right", "multiple_choice", "free_text",
                "closest_number", "number_slider", "pick_from_list",
-               "pick_all_that_apply", "ordering"]
+               "pick_all_that_apply", "ordering", "matching"]
     },
     "mode": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
     "payload": { "type": "object" },
@@ -60,7 +60,9 @@
     { "if": { "properties": { "type": { "const": "pick_all_that_apply" } } },
       "then": { "properties": { "payload": { "$ref": "#/$defs/pick_all_that_apply" } } } },
     { "if": { "properties": { "type": { "const": "ordering" } } },
-      "then": { "properties": { "payload": { "$ref": "#/$defs/ordering" } } } }
+      "then": { "properties": { "payload": { "$ref": "#/$defs/ordering" } } } },
+    { "if": { "properties": { "type": { "const": "matching" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/matching" } } } }
   ],
   "$defs": {
     "choices": {
@@ -189,6 +191,49 @@
           "items": { "type": "integer", "minimum": 0, "maximum": 5 }
         },
         "picks": { "$comment": "Order only this many, from the first end; fewer than the entries.", "type": "integer", "minimum": 2, "maximum": 5 },
+        "explanation": { "type": "string", "maxLength": 300 }
+      }
+    },
+
+    "matching": {
+      "type": "object",
+      "required": ["prompt", "fields", "options", "answer"],
+      "additionalProperties": false,
+      "properties": {
+        "prompt": { "$ref": "#/$defs/prompt" },
+        "intro": { "$ref": "#/$defs/intro" },
+        "image": { "$ref": "#/$defs/asset" },
+        "fields": {
+          "$comment": "Where the options go, each a name, an icon or both.",
+          "type": "array", "minItems": 3, "maxItems": 6,
+          "items": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+              "text": { "$ref": "#/$defs/short_text" },
+              "icon": { "$ref": "#/$defs/asset" }
+            }
+          }
+        },
+        "options": {
+          "$comment": "At least one per field (check), the rest decoys.",
+          "$ref": "#/$defs/choices", "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["text"],
+            "additionalProperties": false,
+            "properties": {
+              "text": { "$ref": "#/$defs/short_text" },
+              "detail": { "$comment": "Shown beside the option in the reveal.", "type": "string", "minLength": 1, "maxLength": 40 }
+            }
+          }
+        },
+        "answer": {
+          "$comment": "The option index that belongs on each field, in field order.",
+          "type": "array", "minItems": 3, "maxItems": 6,
+          "items": { "type": "integer", "minimum": 0, "maximum": 5 }
+        },
         "explanation": { "type": "string", "maxLength": 300 }
       }
     },

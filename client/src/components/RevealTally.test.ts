@@ -3,7 +3,8 @@
  * group of answers that were not right, with its count, and its names only when the host
  * asked for them; then who did not answer, muted. What a group is depends on the type:
  * the option for a pick of one, the typed form for free text, the entry for a list, the
- * rank for closest number, right picks for pick all, entries in place for ordering.
+ * rank for closest number, right picks for pick all, entries in place for ordering,
+ * fields right for matching.
  */
 
 import { render, waitFor } from '@testing-library/svelte'
@@ -282,6 +283,26 @@ describe('RevealTally', () => {
       '3 of 5 in place (2): Zezima (you), Lynx',
       '1 of 5 in place (1): Dorn',
       'None in place (1): Alkan',
+    ])
+  })
+
+  it('groups a matching answer by its fields right, with no answer last', () => {
+    const fields = ['a', 'b', 'c', 'd'].map((text) => ({ text }))
+    const options = ['w', 'x', 'y', 'z', 'q'].map((text) => ({ text }))
+    const { container } = draw(
+      { a: partly(0.5), b: right(), c: partly(0.75), d: partly(0.5), e: wrong(), f: right() },
+      {
+        type: 'matching',
+        reveal: { fields, options, answer: [0, 1, 2, 3] },
+        unanswered: ['g'],
+      },
+    )
+    expect(count(container)).toBe('2 of 6 got them all')
+    expect(lines(container)).toEqual([
+      '3 of 4 (1): Lynx',
+      '2 of 4 (2): Zezima (you), Dorn',
+      'None (1): Alkan',
+      'No answer (1): Mod Ash',
     ])
   })
 
