@@ -24,8 +24,8 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
 - Variety between rounds comes from the round's host (§8), never from the palette. A palette that
   shifts under a question changes what the buttons mean.
-- Three themes draw on the page behind the panels. `party_room` scatters balloons and red
-  partyhats across its floor afresh each visit (`PartyFloor.svelte`). A wall light hangs either
+- Themes draw on the page behind the panels. `party_room` strews balloons and partyhats,
+  `jungle` fruit, `pollnivneach` desert finds, afresh each visit (`Floor.svelte`). A wall light hangs either
   side, level with Broav, the right one mirrored (`WallLights.svelte`): `jolly` a flickering candle
   lantern, both Gauntlets the dungeon's door logo, glowing steady cyan or red. Only from 800px wide, shrinking
   as the room beside the sheet narrows, so never on a phone.

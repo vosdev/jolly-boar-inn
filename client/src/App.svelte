@@ -24,7 +24,7 @@
 
   import Footer from './components/Footer.svelte'
   import WallLights from './components/WallLights.svelte'
-  import PartyFloor from './components/PartyFloor.svelte'
+  import Floor from './components/Floor.svelte'
   import SettingsMenu from './components/SettingsMenu.svelte'
   import TimerBar from './components/TimerBar.svelte'
   import TopBar from './components/TopBar.svelte'
@@ -118,7 +118,7 @@
 <!-- Inside a room the menu's You is the player the server knows; anywhere else it is the
      profile. `you` outlives the Room screen until the next one resets it, so the route
      decides which, not the store. -->
-<PartyFloor />
+<Floor />
 <WallLights />
 
 <TopBar {navigate} {wide}>
