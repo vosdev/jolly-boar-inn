@@ -1,7 +1,7 @@
 /**
- * What's new, newest first: one entry per version that reached `main`, dated the day it
- * did, and 0.0 for the first commit, in words a player follows. A minor gets up to two
- * lines, a patch one; the footer's sheet nests each patch under its minor.
+ * What's new, newest first: one entry per version `VERSION` has held, a stacked PR's too,
+ * dated the day it reached `main`, and 0.0 for the first commit, in words a player follows.
+ * A minor gets up to two lines, a patch one; the footer's sheet nests each patch under its minor.
  */
 
 export interface ChangelogEntry {
@@ -43,6 +43,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.127.0',
+    date: '2026-10-21',
+    text: "What's new lists every version, also those released together in one go.",
+  },
   {
     version: '0.126.0',
     date: '2026-10-21',
@@ -96,7 +101,32 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.117.0',
     date: '2026-10-21',
-    text: "Suggest questions for every round, Who's That NPC? included. The form warns when the game already has one like it.",
+    text: 'Suggest warns when the game already has a question like yours.',
+  },
+  {
+    version: '0.116.0',
+    date: '2026-10-21',
+    text: 'Not sure where it fits? Suggest a question with no round.',
+  },
+  {
+    version: '0.115.0',
+    date: '2026-10-21',
+    text: 'Suggest describes what each round asks for.',
+  },
+  {
+    version: '0.114.0',
+    date: '2026-10-21',
+    text: "Suggest lists a round's questions beside the editor.",
+  },
+  {
+    version: '0.113.0',
+    date: '2026-10-21',
+    text: 'An NPC can ask a Put in order question on Suggest.',
+  },
+  {
+    version: '0.112.0',
+    date: '2026-10-21',
+    text: 'Suggest asks what an NPC question is about.',
   },
   {
     version: '0.111.0',
@@ -136,7 +166,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.107.0',
     date: '2026-10-20',
-    text: 'The Toktz theme is calmer, and its boar wears TzHaar colours.',
+    text: 'The Toktz theme is calmer.',
+  },
+  {
+    version: '0.106.0',
+    date: '2026-10-20',
+    text: "The Toktz boar wears a TzHaar's colours.",
   },
   {
     version: '0.105.0',
@@ -166,7 +201,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.102.0',
     date: '2026-10-17',
-    text: "A random event's reveal leaves out its intro, a gem nobody picked shows no count, and the lobby counts events apart.",
+    text: "A random event's reveal leaves out its intro.",
+  },
+  {
+    version: '0.101.0',
+    date: '2026-10-17',
+    text: 'A gem nobody picked shows no count.',
+  },
+  {
+    version: '0.100.0',
+    date: '2026-10-17',
+    text: "The lobby counts random events apart from the rounds' questions.",
   },
   {
     version: '0.99.2',
@@ -184,6 +229,11 @@ export const CHANGELOG: ChangelogEntry[] = [
     text: 'Items show their icons, and a question can have a picture under its prompt.',
   },
   {
+    version: '0.98.0',
+    date: '2026-10-17',
+    text: 'A pack question can show a picture, open and on its reveal.',
+  },
+  {
     version: '0.97.2',
     date: '2026-10-17',
     text: 'Behind the scenes: pictures show in development builds.',
@@ -197,6 +247,11 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '0.97.0',
     date: '2026-10-17',
     text: "A question's picture no longer gives its answer away by its file name.",
+  },
+  {
+    version: '0.96.2',
+    date: '2026-10-17',
+    text: 'Behind the scenes: notes on the project board.',
   },
   {
     version: '0.96.1',
@@ -271,7 +326,42 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.85.0',
     date: '2026-10-13',
-    text: 'When everyone has answered, a second passes before the reveal; random events hand the stage back more smoothly.',
+    text: 'When everyone has answered, a second passes before the reveal.',
+  },
+  {
+    version: '0.84.0',
+    date: '2026-10-13',
+    text: 'Random events hand the stage back one step at a time.',
+  },
+  {
+    version: '0.83.2',
+    date: '2026-10-13',
+    text: 'Behind the scenes: a test fix.',
+  },
+  {
+    version: '0.83.1',
+    date: '2026-10-13',
+    text: 'Pack questions keep their answers shuffled.',
+  },
+  {
+    version: '0.83.0',
+    date: '2026-10-13',
+    text: 'Behind the scenes: a tool that fixes question ids in place.',
+  },
+  {
+    version: '0.82.2',
+    date: '2026-10-13',
+    text: 'Behind the scenes: generated packs are not hand-edited.',
+  },
+  {
+    version: '0.82.1',
+    date: '2026-10-13',
+    text: 'Who Said That? and Odd One Out suggestions open on a prompt.',
+  },
+  {
+    version: '0.82.0',
+    date: '2026-10-13',
+    text: "The admin's suggestion list shows each random event's own NPC.",
   },
   {
     version: '0.81.0',
@@ -301,6 +391,11 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.79.0',
     date: '2026-10-11',
+    text: 'The question editor picks who asks from a row of chatheads, and answers wear their gem.',
+  },
+  {
+    version: '0.78.0',
+    date: '2026-10-11',
     text: 'Create is rebuilt as steps: rounds, rules and random events.',
   },
   {
@@ -312,6 +407,11 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '0.76.3',
     date: '2026-10-11',
     text: "The last question's reveal lasts as long as the others.",
+  },
+  {
+    version: '0.76.2',
+    date: '2026-10-11',
+    text: 'Room codes keep their spelling in your lists and links.',
   },
   {
     version: '0.76.1',
@@ -335,6 +435,11 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '0.73.0',
+    date: '2026-10-09',
+    text: 'No changes: the hiscores move up to a minor version.',
+  },
+  {
+    version: '0.72.1',
     date: '2026-10-09',
     text: "The standings are the Wise Old Man's hiscores.",
   },
@@ -376,7 +481,22 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.66.0',
     date: '2026-10-08',
-    text: 'Write pick-all-that-apply questions for your room or as suggestions; more rounds play them.',
+    text: 'Write pick-all-that-apply questions for your room or as suggestions.',
+  },
+  {
+    version: '0.65.0',
+    date: '2026-10-08',
+    text: 'Know Your Content Creator plays closest number and pick all that apply.',
+  },
+  {
+    version: '0.64.0',
+    date: '2026-10-08',
+    text: 'Bestiary plays pick all that apply.',
+  },
+  {
+    version: '0.63.2',
+    date: '2026-10-08',
+    text: 'Behind the scenes: a test fix.',
   },
   {
     version: '0.63.1',
@@ -406,7 +526,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.61.0',
     date: '2026-10-07',
-    text: 'A shared link shows a preview card, and the sign and tab icon follow the theme.',
+    text: 'A shared link shows a preview card.',
+  },
+  {
+    version: '0.60.0',
+    date: '2026-10-07',
+    text: 'The sign and tab icon follow the theme.',
   },
   {
     version: '0.59.1',
@@ -436,7 +561,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.58.0',
     date: '2026-10-06',
-    text: 'Suggestions for NPC questions can have an intro, and the admin can edit popular items.',
+    text: 'The admin can rename and remove popular items.',
+  },
+  {
+    version: '0.57.0',
+    date: '2026-10-06',
+    text: 'Suggestions for NPC questions can have an intro.',
   },
   {
     version: '0.56.0',
@@ -451,7 +581,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.54.0',
     date: '2026-10-06',
-    text: 'Suggest Sort It Out and Release Order questions, with quotes and sources beyond the wiki.',
+    text: 'Suggestions can quote, and cite sources beyond the wiki.',
+  },
+  {
+    version: '0.53.0',
+    date: '2026-10-06',
+    text: 'Suggest Release Order questions.',
+  },
+  {
+    version: '0.52.0',
+    date: '2026-10-06',
+    text: 'Suggest Sort It Out questions.',
   },
   {
     version: '0.51.0',
@@ -476,7 +616,22 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.48.0',
     date: '2026-10-05',
-    text: 'Every round opens with a splash, reveals last 6 seconds, and Create starts with no rounds picked.',
+    text: 'Every round opens with a splash, and reveals last 6 seconds.',
+  },
+  {
+    version: '0.47.3',
+    date: '2026-10-05',
+    text: 'Create starts with no rounds picked.',
+  },
+  {
+    version: '0.47.2',
+    date: '2026-10-05',
+    text: 'Behind the scenes: an old note removed.',
+  },
+  {
+    version: '0.47.1',
+    date: '2026-10-05',
+    text: 'Behind the scenes: a steadier test.',
   },
   {
     version: '0.47.0',
@@ -486,7 +641,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.46.0',
     date: '2026-10-05',
-    text: 'Pets arrive, with their chatheads and metamorphoses; Sort It Out and Bestiary get more questions.',
+    text: 'Pets arrive, with their chatheads and metamorphoses.',
+  },
+  {
+    version: '0.45.0',
+    date: '2026-10-05',
+    text: 'Sort It Out gets 22 questions, and Bestiary plays put in order.',
   },
   {
     version: '0.44.0',
@@ -541,7 +701,17 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.36.0',
     date: '2026-10-04',
-    text: 'The clue scroll keeps room for two lines, and the reveal counts partial answers.',
+    text: 'The clue scroll keeps room for two lines.',
+  },
+  {
+    version: '0.35.2',
+    date: '2026-10-04',
+    text: 'The reveal counts right picks in pick all that apply.',
+  },
+  {
+    version: '0.35.1',
+    date: '2026-10-04',
+    text: 'The reveal counts closest-number guesses by rank.',
   },
   {
     version: '0.35.0',
@@ -562,6 +732,11 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '0.34.1',
     date: '2026-10-03',
     text: 'Random events open with an intro before their question.',
+  },
+  {
+    version: '0.34.0',
+    date: '2026-10-03',
+    text: 'A random event plays as an interlude: its NPC walks on and asks the question.',
   },
   {
     version: '0.33.1',
@@ -739,6 +914,16 @@ export const CHANGELOG: ChangelogEntry[] = [
     text: "The game follows the OSRS Wiki's rules for fetching its data.",
   },
   {
+    version: '0.8.0',
+    date: '2026-09-26',
+    text: 'Behind the scenes: at most six answers a question, one per gem.',
+  },
+  {
+    version: '0.7.0',
+    date: '2026-09-26',
+    text: "Create hosts under your profile's name, without asking for one.",
+  },
+  {
     version: '0.6.28',
     date: '2026-09-25',
     text: 'Behind the scenes: up-to-date notes.',
@@ -746,12 +931,67 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.6.27',
     date: '2026-09-25',
-    text: 'Screen reader support, steadier phones, and Kick asks first.',
+    text: 'A browser that blocks storage can still join a room.',
+  },
+  {
+    version: '0.6.26',
+    date: '2026-09-25',
+    text: 'Behind the scenes: tests for every phase of a game.',
+  },
+  {
+    version: '0.6.25',
+    date: '2026-09-25',
+    text: 'Behind the scenes: faster, stricter tests.',
+  },
+  {
+    version: '0.6.24',
+    date: '2026-09-25',
+    text: 'Screen readers announce each question and how it went.',
+  },
+  {
+    version: '0.6.23',
+    date: '2026-09-25',
+    text: 'Kick, Promote and End game ask first.',
+  },
+  {
+    version: '0.6.22',
+    date: '2026-09-25',
+    text: 'A room lasts its full time from when its game starts.',
+  },
+  {
+    version: '0.6.21',
+    date: '2026-09-25',
+    text: 'A phone that wakes from sleep reconnects at once.',
   },
   {
     version: '0.6.20',
     date: '2026-09-25',
     text: 'Closest guesses earn 750, 500 or 250 points.',
+  },
+  {
+    version: '0.6.19',
+    date: '2026-09-25',
+    text: 'Behind the scenes: stricter checks on host questions.',
+  },
+  {
+    version: '0.6.18',
+    date: '2026-09-25',
+    text: 'Behind the scenes: answer lists load ahead of time.',
+  },
+  {
+    version: '0.6.17',
+    date: '2026-09-25',
+    text: 'Guess the Examine shows its explanation on the reveal.',
+  },
+  {
+    version: '0.6.16',
+    date: '2026-09-25',
+    text: 'The reveal counts near misses as partly right.',
+  },
+  {
+    version: '0.6.15',
+    date: '2026-09-25',
+    text: 'Behind the scenes: one way to check every answer.',
   },
   {
     version: '0.6.14',
