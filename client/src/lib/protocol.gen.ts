@@ -249,6 +249,11 @@ export interface RoomSettings {
    * so a stored room always has a number here.
    */
   max_players: number | null
+  /**
+   * The gods of a team game, in `GODS` order; `[]` is a game without teams, as is a room
+   * stored before teams existed.
+   */
+  teams: ('saradomin' | 'zamorak' | 'guthix' | 'armadyl' | 'bandos' | 'zaros')[]
 }
 /**
  * One mode's round: how many questions it holds.
@@ -307,6 +312,10 @@ export interface PlayerView {
    */
   avatar: string | null
   role: 'player' | 'admin'
+  /**
+   * The god they play for in a team game; null outside one, and for everyone who just joined.
+   */
+  team: ('saradomin' | 'zamorak' | 'guthix' | 'armadyl' | 'bandos' | 'zaros') | null
   connected: boolean
   /**
    * The ready check: ready to start in the lobby, ready for this round on a splash. Every

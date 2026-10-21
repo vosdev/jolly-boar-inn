@@ -34,6 +34,7 @@ const ROOM: RoomView = {
     close_when_all_answered: true,
     max_players: 50,
     name_wrong_answers: false,
+    teams: [],
   },
   current_index: null,
   total: 5,
@@ -60,6 +61,7 @@ beforeEach(() => {
     avatar: null,
     ready: false,
     editing: false,
+    team: null,
   }
   applyServerMessage({
     t: 'welcome',

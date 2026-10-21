@@ -37,6 +37,7 @@ const me: PlayerView = {
   connected: true,
   ready: false,
   editing: false,
+  team: null,
 }
 
 let sent: ClientMessage[]
@@ -80,6 +81,7 @@ const LOBBY: RoomView = {
     close_when_all_answered: true,
     max_players: 50,
     name_wrong_answers: false,
+    teams: [],
   },
   current_index: null,
   total: 5,

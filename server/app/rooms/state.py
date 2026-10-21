@@ -245,7 +245,8 @@ class RoomManager(Joins, Lobby, Loop):
             row = await _fetch_room(conn, code, self._grace)
             questions = await _fetch_questions(conn, row["id"])
             players = await conn.fetch(
-                "select id, display_name, avatar, role, joined_at, session_token_hash from players"
+                "select id, display_name, avatar, role, team, joined_at, session_token_hash"
+                " from players"
                 " where room_id = $1 order by joined_at, id",
                 row["id"],
             )

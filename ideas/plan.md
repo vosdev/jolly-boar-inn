@@ -9,7 +9,7 @@ Run a quiz night for the clan where everyone plays on their laptop or phone, sco
 
 What existing projects do not do: OSRSGuesser, Jingle, GieliGuessr and Scapedle are all singleplayer dailies. Nobody offers a multiplayer room with mixed game modes and live scoring. That is where the value sits: every 30 seconds or so a new question pops up and people click the right answer as quickly as they can, solely OSRS themed.
 
-Out of scope: accounts, a mobile app, i18n. Teams are an open idea, the Teams milestone. Interface language is English.
+Out of scope: accounts, a mobile app, i18n. Team games of 2 to 6 gods are the Teams milestone. Interface language is English.
 
 ## Custom room questions
 

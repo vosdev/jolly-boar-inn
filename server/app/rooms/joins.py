@@ -188,7 +188,7 @@ class Joins:
             player_row = await conn.fetchrow(
                 "insert into players (room_id, display_name, session_token_hash, role, avatar)"
                 " values ($1, $2, $3, 'admin', $4)"
-                " returning id, display_name, avatar, role, joined_at, session_token_hash",
+                " returning id, display_name, avatar, role, team, joined_at, session_token_hash",
                 room_row["id"],
                 name,
                 hash_token(session),
@@ -258,8 +258,8 @@ class Joins:
             try:
                 row = await conn.fetchrow(
                     "insert into players (room_id, display_name, session_token_hash, avatar)"
-                    " values ($1, $2, $3, $4)"
-                    " returning id, display_name, avatar, role, joined_at, session_token_hash",
+                    " values ($1, $2, $3, $4) returning id, display_name, avatar, role, team,"
+                    " joined_at, session_token_hash",
                     room.id,
                     name,
                     hash_token(session),

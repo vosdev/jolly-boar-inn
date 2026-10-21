@@ -562,6 +562,25 @@
           ],
           "type": "string"
         },
+        "team": {
+          "anyOf": [
+            {
+              "enum": [
+                "saradomin",
+                "zamorak",
+                "guthix",
+                "armadyl",
+                "bandos",
+                "zaros"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The god they play for in a team game; null outside one, and for everyone who just joined."
+        },
         "connected": {
           "type": "boolean"
         },
@@ -579,6 +598,7 @@
         "display_name",
         "avatar",
         "role",
+        "team",
         "connected",
         "ready",
         "editing"
@@ -856,6 +876,21 @@
           ],
           "default": null,
           "description": "``None`` means \"the server's MAX_PLAYERS_PER_ROOM\"; ``RoomManager.create`` resolves it,\nso a stored room always has a number here."
+        },
+        "teams": {
+          "description": "The gods of a team game, in ``GODS`` order; ``[]`` is a game without teams, as is a room\nstored before teams existed.",
+          "items": {
+            "enum": [
+              "saradomin",
+              "zamorak",
+              "guthix",
+              "armadyl",
+              "bandos",
+              "zaros"
+            ],
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -866,7 +901,8 @@
         "standings_seconds",
         "close_when_all_answered",
         "name_wrong_answers",
-        "max_players"
+        "max_players",
+        "teams"
       ],
       "title": "RoomSettings",
       "type": "object"

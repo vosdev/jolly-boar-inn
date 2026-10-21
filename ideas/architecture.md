@@ -309,7 +309,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
                reveal_seconds, estimated_seconds, segment, finished_at, rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
-PlayerView   { id, display_name, avatar, role, connected, ready, editing }
+PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
@@ -435,11 +435,13 @@ Settings (`rooms.settings`, fixed at creation):
   "name_wrong_answers": true,            // name who got it wrong under the reveal
   "hide_rounds": false,                  // surprise rounds, section 6
   "surprise_modes": 0,                   // > 0: the server draws that many rounds, section 5
-  "max_players": null                    // null: MAX_PLAYERS_PER_ROOM, stored at create
+  "max_players": null,                   // null: MAX_PLAYERS_PER_ROOM, stored at create
+  "teams": []                            // 2..6 gods, or [] for no teams
 }
 ```
 
 - `modes[].mode` keys `MODES`, never `TYPES`, once each. `questions` is optional.
+- `teams` are distinct gods in `rooms/teams.py`'s order (`GODS`), the one list of them.
 - `NewRoomSettings` checks the ranges at creation. `RoomSettings`, the stored model, keeps a round
   whose mode was removed and ignores unknown keys (an old room's `seconds` and `reveal_seconds`
   too, playing at `run`), so no downgrade strands a room.
@@ -637,6 +639,7 @@ key into them, so cleanup leaves it.
 - `players.avatar` is a pet's id in `pets.json`. A join or room with none sent gets a random pet
   nobody in the room wears, and startup gives one to any row still null. The server checks it against
   the pets with both pictures in `assets.json`, because that list grows without a migration.
+- `players.team` is a god in `GODS`, checked by the server, or null; everyone joins teamless.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.

@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from app.questions.types.scoring import Scoring
 from app.rooms.settings import RoomSettings
+from app.rooms.teams import God
 
 RoomStatus = Literal["lobby", "playing", "finished"]
 # ``standings`` sits between a round's last reveal and the next round, never between
@@ -127,6 +128,8 @@ class PlayerView(_Message):
     avatar: str | None
     """A pet's id in ``data/pets.json``; the server stores one for every player."""
     role: Role
+    team: God | None
+    """The god they play for in a team game; null outside one, and for everyone who just joined."""
     connected: bool
     ready: bool
     """The ready check: ready to start in the lobby, ready for this round on a splash. Every

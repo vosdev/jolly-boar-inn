@@ -69,6 +69,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
       close_when_all_answered: true,
       max_players: 50,
       name_wrong_answers: false,
+      teams: [],
     },
     current_index: 0,
     total: 2,
@@ -113,6 +114,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
     avatar: null,
     ready: false,
     editing: false,
+    team: null,
   }
   return {
     t: 'welcome',
@@ -128,6 +130,7 @@ function welcome(room: RoomView, role: 'admin' | 'player' = 'player'): Welcome {
         avatar: null,
         ready: false,
         editing: false,
+        team: null,
       },
     ],
     question: null,

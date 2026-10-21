@@ -64,10 +64,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
  */
 export type NewRoomSettings = Omit<
   RoomSettings,
-  'max_players' | 'random_event_frequency' | 'modes'
+  'max_players' | 'random_event_frequency' | 'modes' | 'teams'
 > & {
   /** Left out when `surprise_modes` asks the server to draw the rounds. */
   modes?: ModeSettings[]
+  /** Left out for a game without teams. */
+  teams?: RoomSettings['teams']
   random_event_frequency: EventFrequency
   max_players?: number | null
 }

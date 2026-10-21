@@ -31,6 +31,7 @@ function players(youReady: boolean): PlayerView[] {
       ready: youReady,
       avatar: null,
       editing: false,
+      team: null,
     },
     {
       id: 'b',
@@ -40,6 +41,7 @@ function players(youReady: boolean): PlayerView[] {
       ready: false,
       avatar: null,
       editing: false,
+      team: null,
     },
   ]
 }
@@ -174,6 +176,7 @@ describe('Splash ready check', () => {
       ready: true,
       avatar: null,
       editing: false,
+      team: null,
     }
     render(Splash, {
       segment: SEGMENT,

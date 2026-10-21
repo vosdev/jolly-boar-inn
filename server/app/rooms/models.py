@@ -25,6 +25,7 @@ from app.questions.types.scoring import Scoring
 from app.rooms import codes, duration, scoring, segments
 from app.rooms.errors import BadName, NotAdmin
 from app.rooms.settings import RoomSettings
+from app.rooms.teams import God
 from app.stats import Arrival
 from app.ws.outbox import Outbox
 from app.ws.protocol import JoinRequestView, OpenQuestion, PlayerView, RoomView, Segment, Standing
@@ -82,6 +83,8 @@ class Player:
     connected: bool = False
     # A pet's id. ``None`` only for a row startup has not yet given one.
     avatar: str | None = None
+    # ``None`` outside a team game and until they get one.
+    team: God | None = None
     # The ready check, in memory only: it means "ready to start" in the lobby and
     # "ready for this round" on a splash, and every splash starts everybody afresh. A
     # restart forgets it, which costs one tap -- the same as the splash it replays.
@@ -107,6 +110,7 @@ class Player:
             display_name=self.display_name,
             avatar=self.avatar,
             role=self.role,  # type: ignore[arg-type]  # the column's check constraint
+            team=self.team,
             connected=self.connected,
             ready=self.ready,
             editing=self.editing,

@@ -71,6 +71,7 @@ const LIVE: RoomView = {
     close_when_all_answered: true,
     max_players: 50,
     name_wrong_answers: false,
+    teams: [],
   },
   current_index: 0,
   total: 1,
@@ -122,6 +123,7 @@ beforeEach(() => {
       avatar: null,
       ready: false,
       editing: false,
+      team: null,
     },
   })
 })
@@ -199,6 +201,7 @@ describe('App', () => {
       avatar: null,
       ready: false,
       editing: false,
+      team: null,
     }
     applyServerMessage({
       t: 'welcome',

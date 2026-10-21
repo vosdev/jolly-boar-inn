@@ -74,6 +74,7 @@ beforeEach(() => {
       avatar: null,
       ready: false,
       editing: false,
+      team: null,
     },
   })
   profile.set({ name: 'Zezima', pet: 'aggy' })

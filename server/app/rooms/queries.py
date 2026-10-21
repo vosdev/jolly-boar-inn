@@ -27,6 +27,7 @@ def _player_from_row(row: asyncpg.Record) -> Player:
         display_name=row["display_name"],
         avatar=row["avatar"],
         role=row["role"],
+        team=row["team"],
         joined_at=row["joined_at"],
         session_hash=row["session_token_hash"],
     )
