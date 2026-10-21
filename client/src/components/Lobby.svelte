@@ -21,6 +21,13 @@
    * confirmation, since a kicked player can join again; Make host asks once more, because
    * there is no demote and an admin cannot be kicked.
    *
+   * A team game groups the pets under the room's gods, every god even with nobody on it yet,
+   * since an empty team is one to join, and the teamless under "No team". Tapping a god
+   * joins it; the server refuses that while ready, so the gods are not tappable then. Ready
+   * waits for a team, and Start for everyone to have one, in two teams or more (section 7 of
+   * ideas/architecture.md); each says why. The host moves a player from the same menu as
+   * kick, an admin too, since admins cannot be kicked but can play for the wrong god.
+   *
    * The code copies the invite link. An invite-only room's link carries its key, which
    * only admins are sent, and the key is never drawn, because lobbies get streamed; only a
    * refused clipboard shows the link, so it can be copied by hand. The refresh button makes
@@ -42,6 +49,7 @@
   import { readyThreshold } from '../lib/ready'
   import { players, room, you } from '../lib/stores'
   import { watchTheme } from '../lib/theme'
+  import { MIN_TEAMS, TEAMS, type TeamId } from '../lib/teams'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import type { RoomSocket } from '../lib/ws'
   import ConfirmDialog from './ConfirmDialog.svelte'
@@ -52,6 +60,7 @@
   import Pet from './Pet.svelte'
   import RosterPet from './RosterPet.svelte'
   import Stage from './stage/Stage.svelte'
+  import TeamLogo from './TeamLogo.svelte'
   import Typed from './stage/Typed.svelte'
 
   let { socket }: { socket: RoomSocket } = $props()
@@ -71,8 +80,27 @@
   )
 
   const isAdmin = $derived($you?.role === 'admin')
-  const canStart = $derived(isAdmin && $room?.status === 'lobby' && $players.length > 0)
+  const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
   const settings = $derived($room?.settings ?? null)
+  const teamIds = $derived(settings?.teams ?? [])
+  const teamGame = $derived(teamIds.length > 0)
+  const roomTeams = $derived(TEAMS.filter((t) => teamIds.includes(t.id)))
+  const yourTeam = $derived($players.find((p) => p.id === $you?.id)?.team ?? null)
+  const teamless = $derived(teamGame ? $players.filter((p) => p.team === null) : [])
+  const teamsWithPlayers = $derived(new Set($players.map((p) => p.team).filter((t) => t !== null)))
+  /** Why the server would refuse Start in a team game, or null when it would not. */
+  const teamsBlockStart = $derived(
+    !teamGame
+      ? null
+      : teamless.length > 0
+        ? `Waiting on ${listFormat.format(teamless.map((p) => (p.id === $you?.id ? 'you' : p.display_name)))} to pick a team.`
+        : teamsWithPlayers.size < MIN_TEAMS
+          ? 'Players are needed in two teams or more.'
+          : null,
+  )
+  const canStart = $derived(
+    isAdmin && $room?.status === 'lobby' && $players.length > 0 && teamsBlockStart === null,
+  )
   const code = $derived($room?.code ?? '')
   const link = $derived(inviteLink(location.origin, code, $room?.key))
   /**
@@ -126,13 +154,13 @@
   const present = $derived($players.filter((p) => p.connected))
   const presentReady = $derived(present.filter((p) => p.ready === true).length)
   const enoughReady = $derived(presentReady >= readyThreshold(present.length))
+  const needTeam = $derived(teamGame && yourTeam === null && !youReady)
   /** Who is not ready yet, by name, in join order — the host included, as "you". */
   const waitingOn = $derived(
     $players
       .filter((p) => p.ready !== true)
       .map((p) => (p.id === $you?.id ? 'you' : p.display_name)),
   )
-  const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
 
   /** What the line under a pet's name says, if anything. */
   function statusOf(player: PlayerView): string {
@@ -173,7 +201,7 @@
     message: string
     label: string
     act: () => void
-    also?: { label: string; act: () => void }
+    also?: { label: string; act: () => void }[]
   } | null>(null)
 
   function toggleReady(): void {
@@ -193,12 +221,51 @@
     }
   }
 
+  function joinTeam(team: TeamId): void {
+    if (!youReady && team !== yourTeam) socket.send({ t: 'set_team', team })
+  }
+
+  /** Whether an admin's tap on this player opens a menu: kick and promote, or a move. */
+  function manageable(player: PlayerView): boolean {
+    return isAdmin && player.id !== $you?.id && (player.role !== 'admin' || teamGame)
+  }
+
+  function menuOf(player: PlayerView): string {
+    if (player.role === 'admin') return 'move team'
+    return teamGame ? 'kick, make host or move team' : 'kick or make host'
+  }
+
   function manage(player: PlayerView): void {
+    if (player.role === 'admin') {
+      move(player)
+      return
+    }
     asking = {
-      message: `Kick ${player.display_name}, or make them a host?`,
+      message: teamGame
+        ? `Kick ${player.display_name}, make them a host, or move them to another team?`
+        : `Kick ${player.display_name}, or make them a host?`,
       label: 'Kick',
       act: () => socket.send({ t: 'kick', player_id: player.id }),
-      also: { label: 'Make host…', act: () => promote(player) },
+      also: [
+        { label: 'Make host…', act: () => promote(player) },
+        ...(teamGame ? [{ label: 'Move team…', act: () => move(player) }] : []),
+      ],
+    }
+  }
+
+  function move(player: PlayerView): void {
+    const [first, ...rest] = roomTeams
+      .filter((t) => t.id !== player.team)
+      .map((t) => ({
+        label: t.name,
+        act: () => socket.send({ t: 'move_team', player_id: player.id, team: t.id }),
+      }))
+    if (first === undefined) return
+    asking = {
+      message: `Move ${player.display_name} to which team?`,
+      label: first.label,
+      act: first.act,
+      also: rest,
     }
   }
 
@@ -224,6 +291,32 @@
     socket.send({ t: 'decide_request', request_id: request.id, accept })
   }
 </script>
+
+{#snippet roster(list: PlayerView[], label: string)}
+  <ul class="pets" aria-label={label}>
+    {#each list as player (player.id)}
+      {@const status = statusOf(player)}
+      <li class:editing={player.editing === true}>
+        {#if manageable(player)}
+          <button
+            type="button"
+            class="tile"
+            aria-label="{player.display_name}, {player.connected ? '' : 'away, '}{player.ready ===
+            true
+              ? 'ready'
+              : 'not ready'}: {menuOf(player)}"
+            onclick={() => manage(player)}
+          >
+            <RosterPet {player} {status} />
+            <span class="more"><Icon name="more" /></span>
+          </button>
+        {:else}
+          <div class="tile"><RosterPet {player} {status} /></div>
+        {/if}
+      </li>
+    {/each}
+  </ul>
+{/snippet}
 
 <ErrorBanner />
 
@@ -332,35 +425,57 @@
           type="button"
           class:primary={!youReady}
           aria-pressed={youReady}
+          aria-describedby={needTeam ? 'pick-first' : undefined}
+          disabled={needTeam}
           onclick={toggleReady}
         >
           {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
         </button>
         <FullScreenSwitch />
       </div>
+      {#if needTeam}
+        <p class="hint" id="pick-first">Pick a team first.</p>
+      {/if}
 
-      <ul class="pets" aria-label="Players, {readyCount} of {$players.length} ready">
-        {#each $players as player (player.id)}
-          {@const status = statusOf(player)}
-          <li class:editing={player.editing === true}>
-            {#if isAdmin && player.role !== 'admin'}
+      {#if teamGame}
+        <div class="teams" role="group" aria-label="Teams, {readyCount} of {$players.length} ready">
+          {#if youReady}
+            <p class="hint">Take your ready back to change team.</p>
+          {/if}
+          {#each roomTeams as god (god.id)}
+            {@const members = $players.filter((p) => p.team === god.id)}
+            <section class="team" data-team={god.id}>
               <button
                 type="button"
-                class="tile"
-                aria-label="{player.display_name}, {player.connected
-                  ? ''
-                  : 'away, '}{player.ready === true ? 'ready' : 'not ready'}: kick or make host"
-                onclick={() => manage(player)}
+                class="join"
+                aria-label="{god.name}, {members.length} {members.length === 1
+                  ? 'player'
+                  : 'players'}"
+                aria-pressed={yourTeam === god.id}
+                disabled={youReady}
+                onclick={() => joinTeam(god.id)}
               >
-                <RosterPet {player} {status} />
-                <span class="more"><Icon name="more" /></span>
+                <span class="logo"><TeamLogo team={god.id} /></span>
+                <span class="team-name">{god.name}</span>
+                <span class="aside">{members.length}</span>
               </button>
-            {:else}
-              <div class="tile"><RosterPet {player} {status} /></div>
-            {/if}
-          </li>
-        {/each}
-      </ul>
+              {#if members.length === 0}
+                <p class="aside empty">Nobody yet</p>
+              {:else}
+                {@render roster(members, god.name)}
+              {/if}
+            </section>
+          {/each}
+          {#if teamless.length > 0}
+            <section class="team">
+              <h3 class="no-team">No team</h3>
+              {@render roster(teamless, 'No team')}
+            </section>
+          {/if}
+        </div>
+      {:else}
+        {@render roster($players, `Players, ${readyCount} of ${$players.length} ready`)}
+      {/if}
 
       {#if isAdmin}
         <p class="waiting" aria-live="polite">
@@ -370,11 +485,15 @@
             Waiting on {listFormat.format(waitingOn)}.
           {/if}
         </p>
+        {#if teamsBlockStart !== null}
+          <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+        {/if}
         <button
           class="start"
           class:primary={enoughReady}
           type="button"
           disabled={!canStart}
+          aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
           onclick={start}
         >
           {enoughReady ? 'Start the game' : 'Start anyway'}
@@ -397,7 +516,7 @@
       asking = null
     }}
     onCancel={() => (asking = null)}
-    also={asking.also ?? null}
+    also={asking.also ?? []}
   />
 {/if}
 
@@ -576,6 +695,70 @@
     top: 0.1rem;
     right: 0.4rem;
     color: var(--muted);
+  }
+
+  .hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .teams {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .team {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  /* The god's colour sits on its edge, never behind the words, so the name reads in the
+     panel's own ink whatever the theme. */
+  .join {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.6rem;
+    border-color: var(--team-trim);
+    border-left-width: 0.35rem;
+    background: var(--panel-raised);
+    color: var(--ink);
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .join[aria-pressed='true'] {
+    box-shadow: inset 0 0 0 1px var(--team-trim);
+  }
+
+  .join .logo {
+    flex: none;
+    display: block;
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  .team-name {
+    flex: 1;
+  }
+
+  .join[aria-pressed='true'] .team-name::after {
+    content: ' · you';
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .no-team {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .empty {
+    padding-left: 0.6rem;
   }
 
   .waiting {
