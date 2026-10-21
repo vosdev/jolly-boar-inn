@@ -122,6 +122,7 @@ describe('the choices', () => {
       'free_text',
       'closest_number',
       'pick_all_that_apply',
+      'ordering',
     ])
   })
 

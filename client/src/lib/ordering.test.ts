@@ -16,6 +16,7 @@ import {
 
 function draft(over: Partial<OrderingDraft> = {}): OrderingDraft {
   return {
+    intro: '',
     prompt: 'Sort the gems by the Crafting level that cuts them.',
     ends: ['Lowest', 'Highest'],
     entries: [
