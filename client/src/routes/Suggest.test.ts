@@ -497,6 +497,42 @@ describe('Suggest', () => {
     })
   })
 
+  it('sends a Drop Table question with the item to show, previewed without a picture', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+    await fireEvent.click(screen.getByLabelText('Closest number'))
+    await type('Question', 'A Lizardman shaman drops a Dragon warhammer once in how many kills?')
+    await type('Answer', '3000')
+    await type('Item to show, if any', '  Dragon warhammer ')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Dragon_warhammer')
+    await type('Your name', 'AFKFisher')
+    expect(document.querySelector('.picture')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    const content = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
+    expect(content).toMatchObject({ type: 'closest_number', picture_item: 'Dragon warhammer' })
+    expect(content).not.toHaveProperty('payload.image')
+  })
+
+  it('sends no item to show when none is named, and asks only Drop Table', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+    await type('Question', 'Which monster drops the Abyssal whip?')
+    await type('Answer 1', 'Abyssal demon')
+    await type('Answer 2', 'Greater demon')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).not.toHaveProperty(
+      'picture_item',
+    )
+    cleanup()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
+    expect(screen.queryByLabelText('Item to show, if any')).toBeNull()
+  })
+
   it('swaps Bestiary’s form between asking and sorting from one type picker', async () => {
     played()
     render(Suggest, { navigate })
@@ -508,6 +544,7 @@ describe('Suggest', () => {
     expect(labels()).toEqual([
       'Multiple choice',
       'Type the answer',
+      'Closest number',
       'Pick all that apply',
       'Put in order',
     ])

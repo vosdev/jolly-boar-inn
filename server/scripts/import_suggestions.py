@@ -10,6 +10,10 @@ The file is ``{"questions": [...], "items": [...]}``, as
 - an item joins ``data/popular-items.json`` under the id the wiki's item infobox gives its
   name, tradeable or not.
 
+A Drop Table question's ``picture_item`` is found the same way and becomes its payload's
+``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and inventory icon
+when it lacks either, for ``make fetch-assets``.
+
 Each keeps its ``credit``, and ``credit_shown`` when it is true. Anything a pack or the
 roster already holds is skipped: a question by content id, an examine line also by its
 line, an item by name or id. So a file imported twice changes nothing the second time.
@@ -26,11 +30,12 @@ is refused, to be edited in ``/admin``. ``--items-file`` reads saved rows instea
 Usage (from ``server/``)::
 
     uv run python scripts/import_suggestions.py FILE [--packs-dir DIR] [--roster PATH]
-        [--items-file PATH]
+        [--assets PATH] [--items-file PATH]
 """
 
 import argparse
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -55,6 +60,7 @@ from app.rooms.models import normalize_name
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PACKS = REPO_ROOT / "data" / "packs"
 DEFAULT_ROSTER = REPO_ROOT / "data" / "popular-items.json"
+DEFAULT_ASSETS = REPO_ROOT / "data" / "assets.json"
 WIKI_API = "https://oldschool.runescape.wiki/api.php"
 SECTIONS = ("questions", "items")
 # The rounds whose pack lists the right option first, and asks each line once.
@@ -69,6 +75,8 @@ class Plan:
     # Pack files by path, as they will be written.
     packs: dict[Path, dict[str, Any]] = field(default_factory=dict)
     items: list[dict[str, Any]] = field(default_factory=list)
+    # ``data/assets.json``, target to wiki file, as it will be written.
+    assets: dict[str, str] = field(default_factory=dict)
     added: list[str] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)
     refused: list[str] = field(default_factory=list)
@@ -152,7 +160,75 @@ def placed(envelope: dict[str, Any], credit: dict[str, Any]) -> dict[str, Any]:
     return entry | credit | {"payload": envelope["payload"]}
 
 
-def plan_questions(entries: list[Any], packs_dir: Path, ids: set[str], plan: Plan) -> None:
+def has_target(assets: dict[str, str], stem: str) -> bool:
+    """Whether ``assets`` holds ``stem`` (``items/4151``) in any format."""
+    return any(target.rpartition(".")[0] == stem for target in assets)
+
+
+def file_title(image: Any) -> str | None:
+    """The first file a Bucket ``image`` field names, without ``File:`` or the link around it."""
+    first = image[0] if isinstance(image, list) and image else image
+    if not isinstance(first, str):
+        return None
+    found = re.search(r"(?:File:)?([^\[\]|:]+\.(?:png|gif|jpe?g|webp|svg))", first, re.IGNORECASE)
+    return found[1].strip() if found else None
+
+
+def find_item(
+    name: str, lookup: Callable[[str], list[dict[str, Any]]]
+) -> tuple[int, str, str] | str:
+    """``name``'s id, its spelling and its icon on the wiki, or why it has not one id there.
+
+    The wiki matches names exactly, and every item name there starts with a capital, so a
+    name typed in lower case is asked again capitalised.
+    """
+    rows = lookup(name)
+    known = item_id(name, rows)
+    if isinstance(known, str) and name[:1].islower():
+        rows = lookup(name[:1].upper() + name[1:])
+        known = item_id(name, rows)
+    if isinstance(known, str):
+        return known
+    number, spelled = known
+    icons = (file_title(row.get("image")) for row in rows if str(number) in row.get("item_id", []))
+    return number, spelled, next((icon for icon in icons if icon), f"{spelled}.png")
+
+
+def pictured(
+    content: dict[str, Any],
+    where: str,
+    lookup: Callable[[str], list[dict[str, Any]]],
+    plan: Plan,
+) -> dict[str, Any] | None:
+    """``content`` with its ``picture_item`` made its ``image``, or ``None`` with it refused.
+
+    Adds the item's detail image and inventory icon to the manifest when it lacks either: a
+    picture's bytes would match the icon, so the icon is never the picture's own file.
+    """
+    if "picture_item" not in content:
+        return content
+    name = content["picture_item"].strip()
+    known = find_item(name, lookup)
+    if isinstance(known, str):
+        plan.refused.append(f"{where}: picture_item {name!r} {known}")
+        return None
+    number, spelled, icon = known
+    if not has_target(plan.assets, f"pictures/item/{number}"):
+        plan.assets[f"pictures/item/{number}.png"] = f"{spelled} detail.png"
+    if not has_target(plan.assets, f"items/{number}"):
+        plan.assets[f"items/{number}.png"] = icon
+    rest = {k: v for k, v in content.items() if k != "picture_item"}
+    return rest | {"payload": {**content["payload"], "image": f"item:{number}"}}
+
+
+def plan_questions(
+    entries: list[Any],
+    packs_dir: Path,
+    ids: set[str],
+    plan: Plan,
+    lookup: Callable[[str], list[dict[str, Any]]],
+) -> None:
+    """``lookup`` gives the wiki's item rows for a name, for a ``picture_item``."""
     for index, entry in enumerate(entries):
         where = f"questions[{index}]"
         if not isinstance(entry, dict):
@@ -168,6 +244,9 @@ def plan_questions(entries: list[Any], packs_dir: Path, ids: set[str], plan: Pla
             plan.refused.append(f"{where}: {content['mode']!r} is not a round this build plays")
             continue
         if credit is None:
+            continue
+        content = pictured(content, where, lookup, plan)
+        if content is None:
             continue
         mode = content["mode"]
         envelope = suggestions.question_envelope(content)
@@ -191,7 +270,7 @@ def bucket_query(name: str) -> str:
     """The Bucket query for the item infobox rows named ``name``, quoted as a Lua string."""
     literal = name.replace("\\", "\\\\").replace("'", "\\'")
     return (
-        "bucket('infobox_item').select('page_name','item_name','item_id')"
+        "bucket('infobox_item').select('page_name','item_name','item_id','image')"
         f".where('item_name','{literal}').run()"
     )
 
@@ -240,14 +319,11 @@ def plan_items(
         if fold(name) in names:
             plan.skipped.append(f"{where}: {name!r} is already on the roster")
             continue
-        known = item_id(name, lookup(name))
-        if isinstance(known, str) and name[:1].islower():
-            # The wiki matches names exactly, and every item name there starts with a capital.
-            known = item_id(name, lookup(name[:1].upper() + name[1:]))
+        known = find_item(name, lookup)
         if isinstance(known, str):
             plan.refused.append(f"{where}: {name!r} {known}")
             continue
-        number, spelled = known
+        number, spelled, _ = known
         if number in on_roster:
             plan.skipped.append(f"{where}: id {number} is already on the roster")
             continue
@@ -269,6 +345,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("file", type=Path, help="the file /admin exported")
     parser.add_argument("--packs-dir", type=Path, default=DEFAULT_PACKS)
     parser.add_argument("--roster", type=Path, default=DEFAULT_ROSTER)
+    parser.add_argument("--assets", type=Path, default=DEFAULT_ASSETS)
     parser.add_argument("--items-file", type=Path, help="saved infobox_item rows, for offline runs")
     return parser.parse_args(argv)
 
@@ -293,7 +370,8 @@ def main(argv: list[str]) -> int:
         with lists_of(args.roster):
             loaded = load_packs(args.packs_dir)
         roster_text = args.roster.read_text(encoding="utf-8")
-    except (OSError, PackError, vocab.VocabError) as exc:
+        assets = json.loads(args.assets.read_text(encoding="utf-8"))
+    except (OSError, ValueError, PackError, vocab.VocabError) as exc:
         print(f"FAILED: {exc}", file=sys.stderr)
         return 1
 
@@ -307,14 +385,14 @@ def main(argv: list[str]) -> int:
         source = source or wiki.connect()
         return wiki_rows(source)(name)
 
-    plan = Plan(items=list(json.loads(roster_text)["items"]))
+    plan = Plan(items=list(json.loads(roster_text)["items"]), assets=dict(assets))
     for pack in loaded:
         plan.packs[pack.path] = json.loads(pack.path.read_text(encoding="utf-8"))
     ids = {question["id"] for pack in loaded for question in pack.questions}
     original = {path: render_pack(pack) for path, pack in plan.packs.items()}
     roster_before = len(plan.items)
     try:
-        plan_questions(data.get("questions", []), args.packs_dir, ids, plan)
+        plan_questions(data.get("questions", []), args.packs_dir, ids, plan, lookup)
         plan_items(data.get("items", []), lookup, plan)
     except (wiki.MissingUserAgent, OSError, ValueError) as exc:
         print(f"FAILED: {exc}", file=sys.stderr)
@@ -343,6 +421,11 @@ def main(argv: list[str]) -> int:
         path.write_text(text, encoding="utf-8")
     if len(items) > roster_before:
         args.roster.write_text(roster, encoding="utf-8")
+    if plan.assets != assets:
+        manifest = dict(sorted(plan.assets.items()))
+        args.assets.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    for target in sorted(plan.assets.keys() - assets.keys()):
+        print(f"added {target} to {args.assets.name}: run make fetch-assets")
     for line in plan.added:
         print(f"added {line}")
     for line in plan.skipped:

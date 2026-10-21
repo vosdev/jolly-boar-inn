@@ -14,8 +14,16 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.config import Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
+from app.modes import round_modes
 from app.rooms import queries
-from app.suggestions import FIXED_PROMPTS, INTRO_MODES, QUESTION_MODES, QUOTE_MODES, check
+from app.suggestions import (
+    FIXED_PROMPTS,
+    INTRO_MODES,
+    PICTURE_ITEM_MODES,
+    QUESTION_MODES,
+    QUOTE_MODES,
+    check,
+)
 from tests import client_source
 from tests.conftest import BASE
 from tests.packs import PACKS_DIR
@@ -473,6 +481,67 @@ def test_a_pick_all_is_held_to_its_types_check(client: TestClient) -> None:
     response = client.post("/api/suggestions", json=_with(PICK_ALL, mode="odd_one_out"))
     assert response.status_code == 422
     assert "'pick_all_that_apply' is not offered for 'odd_one_out'" in response.text
+
+
+def test_bestiary_takes_a_number(client: TestClient) -> None:
+    number = _with(
+        DROP_RATE,
+        mode="bestiary",
+        wiki="https://oldschool.runescape.wiki/w/General_Graardor",
+        payload={"prompt": "What is General Graardor's combat level?", "answer": 624},
+    )
+    approve(client, suggest(client, number))
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["type"]) == ("bestiary", "closest_number")
+
+
+def test_a_drop_table_question_names_an_item_to_picture(client: TestClient) -> None:
+    approve(client, suggest(client, _with(DROP_RATE, picture_item="  Dragon warhammer ")))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"]["picture_item"] == "Dragon warhammer"
+    (question,) = export(client)["questions"]
+    assert question["picture_item"] == "Dragon warhammer"
+    assert "image" not in question["payload"]
+
+
+@pytest.mark.parametrize(
+    ("body", "problem"),
+    [
+        (_with(DROP_RATE, picture_item="   "), "an item name of 1 to 80"),
+        (_with(DROP_RATE, picture_item="x" * 81), "an item name of 1 to 80"),
+        (_with(DROP_RATE, picture_item=4151), "an item name of 1 to 80"),
+        (_with(DROP_RATE, mode="bestiary", picture_item="Dragon warhammer"), "only drop_table"),
+    ],
+    ids=["blank", "too_long", "an_id", "bestiary"],
+)
+def test_only_drop_table_names_a_picture_item(
+    client: TestClient, body: dict[str, Any], problem: str
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert problem in response.text
+
+
+def test_the_form_offers_a_picture_item_only_to_the_rounds_that_take_one() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    rounds = re.search(r"const PICTURE_ITEM_ROUNDS = \[([^\]]*)\]", source)
+    assert rounds is not None
+    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(PICTURE_ITEM_MODES)
+
+
+# Rounds suggested for on another card: the price rounds play the items players suggest,
+# and Random Events Only plays the NPCs' questions.
+COVERED_ELSEWHERE = {
+    "more_less": "item",
+    "price_is_right": "item",
+    "random_events_only": "random_event",
+}
+
+
+def test_every_round_on_create_is_suggestable_or_covered_elsewhere() -> None:
+    rounds = {mode.id for mode in round_modes()}
+    assert sorted(rounds - set(QUESTION_MODES) - set(COVERED_ELSEWHERE)) == []
+    assert set(COVERED_ELSEWHERE.values()) <= {"item", *QUESTION_MODES}
 
 
 def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:

@@ -51,6 +51,8 @@ export interface QuestionContent {
   /** Where it was checked: either of these, or both. */
   wiki?: string
   source_url?: string
+  /** The item a Drop Table question pictures, by name: the import script finds its id. */
+  picture_item?: string
 }
 
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
@@ -104,6 +106,8 @@ export interface Choice {
   options?: readonly [number, number]
   /** Whether only a wiki page proves it: `WIKI_MODES` on the server. */
   wikiOnly?: boolean
+  /** Whether it may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
+  pictureItem?: boolean
 }
 
 export interface RoundPrompt {
@@ -138,7 +142,7 @@ function choiceRound(
 
 /** A round whose editor offers more than four buttons. */
 const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
-  bestiary: ['multiple_choice', 'free_text', 'pick_all_that_apply', 'ordering'],
+  bestiary: ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply', 'ordering'],
   drop_table: ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply'],
   know_your_content_creator: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
 }
@@ -148,6 +152,9 @@ const ROUND_OPTIONS: Record<string, readonly [number, number]> = { guess_examine
 
 /** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
 const WIKI_ROUNDS = ['guess_examine']
+
+/** Rounds whose questions may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
+const PICTURE_ITEM_ROUNDS = ['drop_table']
 
 /** Rounds that show a quotation under the prompt. */
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
@@ -193,6 +200,7 @@ export const CHOICES: readonly Choice[] = [
       prompt: ROUND_PROMPTS[mode.id],
       options: ROUND_OPTIONS[mode.id],
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
+      pictureItem: PICTURE_ITEM_ROUNDS.includes(mode.id),
     })),
   ...ORDERING_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -299,6 +307,11 @@ function textProblem(text: string, most: number, what: string): string | null {
   if (trimmed === '') return `Required: ${what}.`
   if (codePoints(trimmed) > most) return `At most ${most} characters.`
   return null
+}
+
+/** The item a question pictures, which it need not name. */
+export function pictureItemProblem(name: string): string | null {
+  return codePoints(name.trim()) > ITEM_NAME_MAX ? `At most ${ITEM_NAME_MAX} characters.` : null
 }
 
 /** `roster` is the `items` list, so a name already in the game is refused before it is sent. */

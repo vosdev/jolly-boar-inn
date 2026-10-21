@@ -14,6 +14,7 @@ import {
   inGameOrder,
   itemProblem,
   maySuggest,
+  pictureItemProblem,
   retryIn,
   sourceProblems,
   summary,
@@ -96,6 +97,7 @@ describe('the choices', () => {
     expect(CHOICES.find((c) => c.id === 'bestiary')?.types).toEqual([
       'multiple_choice',
       'free_text',
+      'closest_number',
       'pick_all_that_apply',
       'ordering',
     ])
@@ -114,6 +116,7 @@ describe('the choices', () => {
     expect(sort?.types).toEqual(['ordering'])
     expect(sort?.host).toBe('historian_minas')
     expect(sort?.hint).toBe('Something worth putting in order.')
+    expect(CHOICES.filter((c) => c.pictureItem).map((c) => c.id)).toEqual(['drop_table'])
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
     const release = CHOICES.find((c) => c.id === 'release_order')
@@ -164,6 +167,12 @@ describe('the checks', () => {
     const roster = [{ id: 4151, name: 'Abyssal whip' }]
     expect(itemProblem({ name: ' ABYSSAL whip' }, roster)).toBe('Already in the game.')
     expect(itemProblem({ name: 'Abyssal dagger' }, roster)).toBeNull()
+  })
+
+  it('take a picture item or none, up to an item name long', () => {
+    expect(pictureItemProblem('  ')).toBeNull()
+    expect(pictureItemProblem('Dragon warhammer')).toBeNull()
+    expect(pictureItemProblem('x'.repeat(81))).toMatch(/At most 80/)
   })
 })
 

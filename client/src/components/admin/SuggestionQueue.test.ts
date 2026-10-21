@@ -197,6 +197,23 @@ describe('SuggestionQueue', () => {
     })
   })
 
+  it('names the item a Drop Table question asks to show', async () => {
+    const pictured = row({
+      content: {
+        type: 'closest_number',
+        mode: 'drop_table',
+        wiki: 'https://oldschool.runescape.wiki/w/Dragon_warhammer',
+        picture_item: 'Dragon warhammer',
+        payload: { prompt: 'Once in how many kills?', answer: 3000 },
+      },
+    })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [pictured], counts: COUNTS })
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText('Once in how many kills?')).closest('button')!)
+    const term = screen.getByText('Item to show')
+    expect(term.nextElementSibling?.textContent).toBe('Dragon warhammer')
+  })
+
   it('links a question’s non-wiki source beside, or instead of, its wiki page', async () => {
     const clip = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
     const only = row({

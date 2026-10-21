@@ -4,7 +4,8 @@ A player who has finished a game may suggest one of two kinds of content:
 
 - ``question``: a question for a mode, in the shape Create's editor writes it, plus the
   mode it is for and where it was checked: the wiki page, an https ``source_url`` for what
-  the wiki cannot prove, or both. A round not built yet takes them too, so its pack is
+  the wiki cannot prove, or both. A Drop Table question may name an item to picture, as
+  ``picture_item``; the import script turns the name into the payload's ``image``. A round not built yet takes them too, so its pack is
   ready when it opens; such a suggestion waits in the queue until it is.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
@@ -41,7 +42,9 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "random_event": frozenset(
         {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
     ),
-    "bestiary": frozenset({"multiple_choice", "free_text", "pick_all_that_apply", "ordering"}),
+    "bestiary": frozenset(
+        {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
+    ),
     "drop_table": frozenset(
         {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}
     ),
@@ -72,7 +75,9 @@ WIKI_MODES = frozenset({"guess_examine"})
 ITEM_NAME_MAX = 80
 
 _QUESTION_KEYS = {"type", "payload", "mode"}
-_QUESTION_OPTIONAL = frozenset({"random_event", "wiki", "source_url"})
+_QUESTION_OPTIONAL = frozenset({"random_event", "wiki", "source_url", "picture_item"})
+# Players know an item by name, not id: the import script finds the id and sets the picture.
+PICTURE_ITEM_MODES = frozenset({"drop_table"})
 _ITEM_KEYS = {"name"}
 
 
@@ -138,6 +143,10 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
         return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
     if "intro" in content["payload"] and mode not in INTRO_MODES:
         return [f"$.payload.intro: only {', '.join(sorted(INTRO_MODES))} show an intro"]
+    if "picture_item" in content:
+        found = _picture_item_errors(mode, content["picture_item"])
+        if found:
+            return found
     envelope = question_envelope(content)
     found = schema.schema_errors(envelope)
     if found:
@@ -148,6 +157,14 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
     if mode in MODES:
         return schema.consistency_errors(envelope)
     return [f"$.payload.{message}" for message in TYPES[content["type"]].check(content["payload"])]
+
+
+def _picture_item_errors(mode: str, name: Any) -> list[str]:
+    if mode not in PICTURE_ITEM_MODES:
+        return [f"$.picture_item: only {', '.join(sorted(PICTURE_ITEM_MODES))} show an item"]
+    if not isinstance(name, str) or not 1 <= len(name.strip()) <= ITEM_NAME_MAX:
+        return [f"$.picture_item: an item name of 1 to {ITEM_NAME_MAX} characters"]
+    return []
 
 
 def _item_errors(content: dict[str, Any]) -> list[str]:
@@ -176,6 +193,8 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
     """``content`` as it is stored: strings a player typed, trimmed."""
     if kind == "item":
         return {"name": content["name"].strip()}
+    if "picture_item" in content:
+        return {**content, "picture_item": content["picture_item"].strip()}
     return content
 
 
@@ -300,7 +319,9 @@ def export_entry(kind: str, content: dict[str, Any], credit: str, shown: bool) -
         if "random_event" in content:
             entry["random_event"] = content["random_event"]
         entry["mode"] = content["mode"]
-        entry |= {key: content[key] for key in ("wiki", "source_url") if key in content}
+        entry |= {
+            key: content[key] for key in ("wiki", "source_url", "picture_item") if key in content
+        }
     else:
         entry = dict(content)
     return entry | {"credit": credit, "credit_shown": shown}

@@ -5,7 +5,8 @@
    *
    * A question is Create's editor, held to the types its mode offers: an NPC's question
    * names its NPC, a round's names none and is previewed in its round. A round may hold
-   * its options to a range, or its proof to a wiki page. An item is only a name, since the import script finds its id; nothing
+   * its options to a range, or its proof to a wiki page. A Drop Table question may name an
+   * item to picture; the preview shows none, since the picture exists only once imported. An item is only a name, since the import script finds its id; nothing
    * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
    * up an item the game already has; its credit is kept but cannot be shown.
    *
@@ -22,6 +23,7 @@
     creditProblem,
     INTRO_ROUNDS,
     itemProblem,
+    pictureItemProblem,
     sourceProblems,
     SUGGESTED_TYPE_LABELS,
     wikiProblem,
@@ -66,6 +68,7 @@
   let wiki = $state(start?.wiki ?? '')
   let sourceUrl = $state(start?.source_url ?? '')
   let name = $state(start?.name ?? '')
+  let pictureItem = $state(start?.picture_item ?? '')
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
   let rosterQuery = $state('')
@@ -135,6 +138,7 @@
 
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
+  const pictureItemError = $derived(pictureItemProblem(pictureItem))
   const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
@@ -149,13 +153,19 @@
     const checked = choice.wikiOnly
       ? wikiError === null
       : Object.values(sourceErrors).every((e) => e === null)
-    return creditError === null && checked
+    return creditError === null && pictureItemError === null && checked
   }
 
   function saveQuestion(built: CustomQuestion | OrderingQuestion): void {
     const links = { wiki: wiki.trim(), source_url: sourceUrl.trim() }
     const given = Object.fromEntries(Object.entries(links).filter(([, url]) => url !== ''))
-    send({ ...built, mode: choice.id, ...given })
+    const pictured = choice.pictureItem && pictureItem.trim() !== ''
+    send({
+      ...built,
+      mode: choice.id,
+      ...given,
+      ...(pictured ? { picture_item: pictureItem.trim() } : {}),
+    })
   }
 
   function saveItem(): void {
@@ -212,6 +222,14 @@
 {/snippet}
 
 {#snippet questionFields(show: boolean)}
+  {#if choice.pictureItem}
+    <div class="field">
+      <label for="{id}-picture">Item to show, if any</label>
+      <input id="{id}-picture" type="text" bind:value={pictureItem} />
+      <p class="note hint">Its name, as the wiki spells it. Players see its picture.</p>
+      {@render problem(pictureItemError, show)}
+    </div>
+  {/if}
   {#if choice.wikiOnly}
     {@render wikiField(show)}
     {@render creditFields(show)}

@@ -138,6 +138,10 @@
     return typeof explanation === 'string' ? explanation : null
   }
 
+  function pictureItemOf(row: QueuedSuggestion): string | null {
+    return row.kind === 'question' ? ((row.content as QuestionContent).picture_item ?? null) : null
+  }
+
   function kindLine(row: QueuedSuggestion): string {
     if (row.kind !== 'question') return KIND_LABELS[row.kind]
     const content = row.content as QuestionContent
@@ -276,6 +280,10 @@
                     {#if explanationOf(row) !== null}
                       <dt>Explanation</dt>
                       <dd>{explanationOf(row)}</dd>
+                    {/if}
+                    {#if pictureItemOf(row) !== null}
+                      <dt>Item to show</dt>
+                      <dd>{pictureItemOf(row)}</dd>
                     {/if}
                     <dt>Credit</dt>
                     <dd>
