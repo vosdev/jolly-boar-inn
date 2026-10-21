@@ -190,23 +190,19 @@ describe('the checks', () => {
   })
 
   it('preview a Who’s That NPC? as its prompt and the list, with no picture', () => {
-    const open = questionPreview({
-      type: 'pick_from_list',
+    const content = {
+      type: 'pick_from_list' as const,
       mode: 'whos_that_npc',
       payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
-    })
+    }
+    const open = questionPreview(content)
     expect([open.type, open.mode, open.view, open.picture]).toEqual([
       'pick_from_list',
       'whos_that_npc',
       { prompt: "Who's that NPC?", vocab: 'npcs' },
       null,
     ])
-    expect(
-      answerOf({
-        kind: 'question',
-        content: { ...open, type: 'pick_from_list', payload: { subject: { name: 'Araxxor' } } },
-      }),
-    ).toBe('Araxxor')
+    expect(answerOf({ kind: 'question', content })).toBe('Araxxor')
   })
 
   it('take a picture item or none, up to an item name long', () => {
