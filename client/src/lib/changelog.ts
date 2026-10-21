@@ -1,7 +1,7 @@
 /**
  * What's new, newest first: one entry per version that reached `main`, dated the day it
- * did, in words a player follows. A minor gets up to two lines, a patch one; the footer's
- * sheet nests each patch under its minor.
+ * did, and 0.0 for the first commit, in words a player follows. A minor gets up to two
+ * lines, a patch one; the footer's sheet nests each patch under its minor.
  */
 
 export interface ChangelogEntry {
@@ -822,5 +822,10 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '0.1.0',
     date: '2026-09-21',
     text: 'The first version: host a room, friends join by its code, and play More or Less and The Price is Right for speed.',
+  },
+  {
+    version: '0.0.0',
+    date: '2026-09-13',
+    text: 'An idea for a quiz night at the inn is brought to life.',
   },
 ]

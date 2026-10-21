@@ -20,8 +20,8 @@ describe('CHANGELOG', () => {
     expect(CHANGELOG[0]!.version).toBe(__APP_VERSION__)
   })
 
-  it('ends at 0.1.0', () => {
-    expect(CHANGELOG.at(-1)!.version).toBe('0.1.0')
+  it('ends at 0.0.0, the first commit', () => {
+    expect(CHANGELOG.at(-1)).toMatchObject({ version: '0.0.0', date: '2026-09-13' })
   })
 
   it('lists versions strictly newest first', () => {
