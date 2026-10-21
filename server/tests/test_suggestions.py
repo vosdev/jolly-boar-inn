@@ -105,6 +105,27 @@ SORT_IT_OUT = {
     "credit": "AFKFisher",
     "credit_shown": False,
 }
+MATCHING = {
+    "kind": "question",
+    "content": {
+        "type": "matching",
+        "mode": "bestiary",
+        "wiki": "https://oldschool.runescape.wiki/w/Bosses",
+        "payload": {
+            "prompt": "Match each boss to where it is fought.",
+            "fields": [{"text": "Zulrah"}, {"text": "Vorkath"}, {"text": "Kraken"}],
+            "options": [
+                {"text": "Zul-Andra", "detail": "Tirannwn"},
+                {"text": "Ungael"},
+                {"text": "Kraken Cove"},
+                {"text": "Lithkren Vault"},
+            ],
+            "answer": [0, 1, 2],
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
 # Streamer quotes and facts have no wiki page: a clip is their source.
 QUOTE = {
     "kind": "question",
@@ -456,8 +477,20 @@ TYPED = _with(
 
 @pytest.mark.parametrize(
     "body",
-    [TYPED, _with(TYPED, mode="bestiary"), _with(SORT_IT_OUT, mode="bestiary")],
-    ids=["drop_table_free_text", "bestiary_free_text", "bestiary_ordering"],
+    [
+        TYPED,
+        _with(TYPED, mode="bestiary"),
+        _with(SORT_IT_OUT, mode="bestiary"),
+        MATCHING,
+        _with(MATCHING, mode="drop_table"),
+    ],
+    ids=[
+        "drop_table_free_text",
+        "bestiary_free_text",
+        "bestiary_ordering",
+        "bestiary_matching",
+        "drop_table_matching",
+    ],
 )
 def test_bestiary_and_drop_table_take_these_types_and_play_them(
     client: TestClient, body: dict[str, Any]
@@ -470,6 +503,43 @@ def test_bestiary_and_drop_table_take_these_types_and_play_them(
     content = body["content"]
     assert (question["mode"], question["type"]) == (content["mode"], content["type"])
     assert question["payload"] == body["content"]["payload"]
+
+
+@pytest.mark.parametrize(
+    ("body", "said"),
+    [
+        (_with(MATCHING, mode="who_said_that"), "'matching' is not offered for 'who_said_that'"),
+        (_with(MATCHING, mode="sort_it_out"), "'matching' is not offered for 'sort_it_out'"),
+        (
+            _with(
+                MATCHING,
+                payload={
+                    **MATCHING["content"]["payload"],
+                    "fields": [{"text": "Zulrah"}, {"icon": "item:12004"}, {"text": "Kraken"}],
+                },
+            ),
+            "$.payload.fields[1].icon",
+        ),
+        (
+            _with(MATCHING, payload={**MATCHING["content"]["payload"], "answer": [0, 1, 1]}),
+            "uses an option on two fields",
+        ),
+    ],
+    ids=["a round without it", "a sorting round", "an icon", "an option used twice"],
+)
+def test_a_matching_suggestion_is_refused_where_it_does_not_fit(
+    client: TestClient, body: dict[str, Any], said: str
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422
+    assert said in response.text
+
+
+def test_an_npc_may_ask_a_matching_and_one_may_come_with_no_round(client: TestClient) -> None:
+    npc = _with(MATCHING, mode="random_event", random_event="bob")
+    for body in (npc, _without(MATCHING, "mode")):
+        suggest(client, body)
+    assert [row["content"]["type"] for row in queue(client)["suggestions"]] == ["matching"] * 2
 
 
 def test_a_pick_all_is_held_to_its_types_check(client: TestClient) -> None:

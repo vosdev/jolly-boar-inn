@@ -18,6 +18,11 @@ import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
+import {
+  answerLine as matchingLine,
+  previewOf as matchingPreview,
+  type MatchingQuestion,
+} from './matching'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
 import type { OpenQuestion } from './protocol'
 import { codePoints, envelopeProperty, limit } from './questionSchema'
@@ -37,13 +42,15 @@ export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
 /**
  * The types a suggestion may be: Create's, an ordering for the rounds that sort and the NPCs,
- * and a pick from the list for Who's That NPC?.
+ * a matching for the rounds that match, text fields only, and a pick from the list for
+ * Who's That NPC?.
  */
-export type SuggestedType = CustomType | 'ordering' | 'pick_from_list'
+export type SuggestedType = CustomType | 'ordering' | 'matching' | 'pick_from_list'
 
 export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
   ...TYPE_LABELS,
   ordering: 'Put in order',
+  matching: 'Match them up',
   pick_from_list: 'Pick from the list',
 }
 
@@ -65,6 +72,7 @@ export interface QuestionContent {
 export function questionPreview(content: QuestionContent): OpenQuestion {
   const mode = content.mode ?? NO_ROUND
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
+  if (content.type === 'matching') return matchingPreview(content as MatchingQuestion, mode)
   if (content.type === 'pick_from_list') {
     // No picture: there is none until the import finds the NPC's id.
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
@@ -183,6 +191,7 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
     'number_slider',
     'pick_all_that_apply',
     'ordering',
+    'matching',
   ],
   drop_table: [
     'multiple_choice',
@@ -190,6 +199,7 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
     'closest_number',
     'number_slider',
     'pick_all_that_apply',
+    'matching',
   ],
   know_your_content_creator: [
     'multiple_choice',
@@ -246,7 +256,7 @@ export const CHOICES: readonly Choice[] = [
     label: 'A random event question',
     hint: 'Asked by an NPC in the middle of a round.',
     host: 'sandwich_lady',
-    types: [...CUSTOM_TYPES, 'ordering'],
+    types: [...CUSTOM_TYPES, 'ordering', 'matching'],
   },
   ...CHOICE_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -292,7 +302,7 @@ export const CHOICES: readonly Choice[] = [
     label: 'Not sure where it fits',
     hint: 'Any question. The innkeeper picks its round.',
     host: INNKEEPER.id,
-    types: [...CUSTOM_TYPES, 'ordering'],
+    types: [...CUSTOM_TYPES, 'ordering', 'matching'],
   },
 ]
 
@@ -462,6 +472,7 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
   const { type, payload } = suggestion.content as QuestionContent
   if (type === 'ordering') return answerLine(payload)
+  if (type === 'matching') return matchingLine(payload)
   if (type === 'pick_from_list') return (payload.subject as { name: string }).name
   if (type === 'multiple_choice') {
     const options = payload.options as string[]

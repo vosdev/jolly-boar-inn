@@ -14,7 +14,7 @@ import { getModes, type ModePacing } from './api'
 import { CUSTOM_TYPES } from './customQuestions'
 import type { RoomSettings } from './protocol'
 
-export type Drawing = 'tap' | 'ticks' | 'order' | 'text' | 'number' | 'list'
+export type Drawing = 'tap' | 'basket' | 'order' | 'match' | 'text' | 'number' | 'list'
 
 export interface HowToRow {
   types: string[]
@@ -34,14 +34,20 @@ export const HOW_TO_ROWS: HowToRow[] = [
   {
     types: ['pick_all_that_apply'],
     title: 'Pick all that apply',
-    text: 'Tap every right one, then press Submit.',
-    drawing: 'ticks',
+    text: 'Drag every right one into the basket, then press Submit.',
+    drawing: 'basket',
   },
   {
     types: ['ordering'],
     title: 'Put in order',
     text: 'Drag them into order between the two ends, then press Submit.',
     drawing: 'order',
+  },
+  {
+    types: ['matching'],
+    title: 'Match them up',
+    text: 'Drag one answer onto each, then press Submit. Some may be left over.',
+    drawing: 'match',
   },
   {
     types: ['free_text'],
@@ -77,8 +83,8 @@ export const HOW_TO_ROWS: HowToRow[] = [
 
 export const SCORING_LINE = 'Quicker and correct answers score more.'
 
-/** What a host's question or a random event may be: the custom types, and ordering's own form. */
-const EVENT_TYPES = [...CUSTOM_TYPES, 'ordering']
+/** What a host's question or a random event may be: the custom types, ordering and matching. */
+const EVENT_TYPES = [...CUSTOM_TYPES, 'ordering', 'matching']
 
 /** Every type this build plays: every offered mode's, and what an event may be. */
 export function allTypes(modes: ModePacing[]): Set<string> {

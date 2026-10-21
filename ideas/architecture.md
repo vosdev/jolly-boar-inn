@@ -102,6 +102,7 @@ def parse_value(payload, value)       # the canonical answer, or None for bad_va
 def grade(payload, submissions) -> dict[player_id, float]   # credit, 0.0 to 1.0
 def check(payload) -> list[str]       # the stored answer follows from the stored facts
 def steps(payload) -> int | None      # optional: frames it reveals itself in
+def pictured(view, payload, pictures) # optional: a pack question's pictures inside its view
 SCORING: Scoring                      # SPEED by default (section 8)
 ANSWER, REVEAL: Timing                # base + per_item seconds, at run pace
 def items(payload) -> int             # optional: options or entries; 0 without it
@@ -115,7 +116,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 - A question's time to answer and its reveal are its type's alone, at the room's `pace`: ×1.25
   `walk`, ×1 `run`, ×0.75 `teleport`, a half rounded up, at least 5 s to answer and 4 s to reveal.
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
-  4 + 1, `ordering` 10 + 5/entry and 4 + 2/entry, `price_is_right` 15 and 6,
+  4 + 1, `ordering` and `matching` 10 + 5 and 4 + 2 per entry or field, `price_is_right` 15 and 6,
   `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8,
   `number_slider` 15 and 8.
   `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
@@ -130,9 +131,9 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `guess_examine` | Guess the Examine | `multiple_choice`, four to six names | `examine.json` | done |
 | `custom` | Host's Questions | per question | the host | done, as events |
 | `random_event` | Random Event | per question | one file per NPC | done, as events |
-| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `number_slider`, `pick_all_that_apply`, `ordering` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
-| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `number_slider`, `free_text`, `ordering`, `pick_all_that_apply` | hand-written | done |
-| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`, `number_slider`; `image` is its picture | hand-written | done |
+| `random_events_only` | Random Events Only | `multiple_choice`, `free_text`, `closest_number`, `number_slider`, `pick_all_that_apply`, `ordering`, `matching` | the `random_event` pool | done, 20 at most, `RANDOM_EVENT_GAME_MODE` |
+| `bestiary` | Bestiary | `multiple_choice`, `closest_number`, `number_slider`, `free_text`, `ordering`, `pick_all_that_apply`, `matching` | hand-written | done |
+| `drop_table` | Drop Table | `multiple_choice`, `free_text`, `pick_all_that_apply`, `closest_number`, `number_slider`, `matching`; `image` is its picture | hand-written | done |
 | `odd_one_out` | Odd One Out | `multiple_choice`, four to six names | hand-written | done |
 | `release_order` | Release Order | `ordering` | hand-written | on hold: too few questions, waiting for player suggestions |
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
@@ -164,9 +165,10 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `id` is `q_` plus 16 hex of `sha256(type + "\n" + canonical_json(payload))`. `mode` and the other
   envelope fields stay out, so a mode rename rewrites no id.
 - Length caps live in the schema, not only in forms. Every choice array references
-  `$defs/choices`, six at most, one per gem; `ordering.entries` does too.
+  `$defs/choices`, six at most, one per gem; `ordering.entries` and `matching.options` do too.
 - Assets are `item:<id>` or `npc:<id>`, never a URL. No `client_view` or `reveal` carries `image`:
-  for some modes that id is the answer. A pack question's picture goes out as `picture` (section 6).
+  for some modes that id is the answer. A pack question's picture goes out as `picture` (section 6),
+  a `matching` field's `icon` as the field's `picture`, added by the type's `pictured`.
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
 - `wiki` on the envelope is the page an author checked; `source_url` is any https link, for what
   the wiki cannot prove. Players never get either.
@@ -185,6 +187,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
 | `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
 | `ordering` | shown positions, first end first: all, or `picks` of them | per place: 1 for its rank; with `picks`, ½ for another picked one |
+| `matching` | a distinct shown option position per field, in field order | right fields ÷ fields |
 
 - Free text is NFKC-normalised, lowercased, stripped of punctuation and whitespace-collapsed, then
   matched within `max_distance` of an accepted answer. Levenshtein runs only inside that band, so it
@@ -197,7 +200,12 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `client_view` shows the entries without rank in a shuffle, rotated by one if its played places
   land in order. The half credit needs `picks`: without it every entry belongs somewhere, so the
   half would pay for any answer.
-- `multiple_choice`, `pick_all_that_apply` and `ordering` show options or entries in a shuffle
+- `matching` is three to six `fields` (a `text`, an `icon` asset or both), `options` of `text` and a
+  reveal-only `detail`, at least one per field, the rest decoys, and `answer`, an option index per
+  field. `check()` rejects a repeated field or option, an option used twice and too few options.
+  `client_view` shows the fields in order and the options shuffled, rotated by one if every
+  field's option would sit at its own position.
+- `multiple_choice`, `pick_all_that_apply`, `ordering` and `matching` show options or entries in a shuffle
   seeded by the payload (`types/shuffle.py`): one order for every socket and restart, and the
   authored order (often answer first) never leaks. Values and the reveal name shown positions.
 - `number_slider` stores integers. `check()` rejects `min` ≥ `max`, a log `min` below 1, a log
@@ -217,12 +225,15 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   type its mode does not allow, a stray `random_event`, a price type filed as an event, or one
   `pick_from_list` prompt under two answers, unless each has a picture.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
-- Create's editor writes `multiple_choice`, `free_text`, `closest_number` and `pick_all_that_apply`
-  (`picks` only as a "tell players how many" box) with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
+- Create's editor writes `multiple_choice`, `free_text`, `closest_number`, `number_slider` and
+  `pick_all_that_apply` (`picks` only as a "tell players how many" box), and `MatchingForm` a
+  text-only `matching` with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
 - `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's and random events'
   (NPC and intro) beside their other types: entries first to last and a "tied with the one
   above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.
+  `MatchingForm` writes field and answer pairs side by side, then decoys, for Bestiary, Drop Table,
+  the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
 - Every round on Create takes suggestions, the price rounds as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
 
@@ -440,7 +451,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 
 | `SCORING` | Points | Types |
 |---|---|---|
-| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering` |
+| `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
 | `RANK` | the rank's share of 1000 | `closest_number` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` with `steps` |
 

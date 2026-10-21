@@ -68,6 +68,13 @@ def _answers(type_: str, payload: dict[str, Any]) -> tuple[frozenset[Any], str]:
     if type_ == "ordering":
         order = tuple(normalize(payload["entries"][i]["text"]) for i in payload["answer"])
         return frozenset({order}), " ".join(order)
+    if type_ == "matching":
+        options = payload["options"]
+        matched = frozenset(
+            (normalize(field.get("text", field.get("icon", ""))), normalize(options[i]["text"]))
+            for field, i in zip(payload["fields"], payload["answer"], strict=False)
+        )
+        return frozenset({matched}), " ".join(sorted(f"{a} {b}" for a, b in matched))
     if type_ == "free_text":
         accepted = [normalize(answer) for answer in payload["accepted"]]
         return frozenset(accepted), accepted[0] if accepted else ""
@@ -102,7 +109,10 @@ def features(question: dict[str, Any]) -> Features:
         prompt=_trigrams(normalize(prompt)),
         answers=answers,
         answer=_trigrams(answer),
-        options=frozenset(normalize(option) for option in payload.get("options", ())),
+        # Matching's options are objects, and only Odd One Out reads these.
+        options=frozenset(
+            normalize(option) for option in payload.get("options", ()) if isinstance(option, str)
+        ),
         npc=npc,
     )
 

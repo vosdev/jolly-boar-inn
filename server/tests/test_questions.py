@@ -27,6 +27,7 @@ from app.questions.types import (
     TYPES,
     closest_number,
     free_text,
+    matching,
     more_less,
     multiple_choice,
     number_slider,
@@ -546,6 +547,7 @@ def test_registry_has_every_shipped_type() -> None:
         "free_text": free_text,
         "pick_all_that_apply": pick_all_that_apply,
         "ordering": ordering,
+        "matching": matching,
     }
     for module in TYPES.values():
         for name in ("client_view", "reveal", "grade", "parse_value", "check"):

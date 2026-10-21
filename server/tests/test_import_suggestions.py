@@ -244,6 +244,30 @@ def test_an_npc_ordering_lands_in_its_file_as_written(repo: dict[str, Path]) -> 
     assert loads(repo)
 
 
+def test_a_matching_question_is_appended_to_its_pack_as_written(repo: dict[str, Path]) -> None:
+    payload = {
+        "prompt": "Match each boss to where it is fought.",
+        "fields": [{"text": "Zulrah"}, {"text": "Vorkath"}, {"text": "Sarachnis"}],
+        "options": [{"text": "Zul-Andra"}, {"text": "Ungael"}, {"text": "Forthos Dungeon"}],
+        "answer": [0, 1, 2],
+    }
+    question = {
+        "type": "matching",
+        "payload": payload,
+        "mode": "bestiary",
+        "wiki": WIKI,
+        "credit": "AFKFisher",
+        "credit_shown": False,
+    }
+    pack = repo["packs"] / "bestiary.json"
+    before = len(json.loads(pack.read_text())["questions"])
+    assert run(repo, {"questions": [question]}) == 0
+    added = json.loads(pack.read_text())["questions"]
+    assert len(added) == before + 1
+    assert (added[-1]["type"], added[-1]["payload"]) == ("matching", payload)
+    assert loads(repo)
+
+
 def test_an_examine_keeps_its_name_first_and_the_packs_tag(repo: dict[str, Path]) -> None:
     assert run(repo, {"questions": [NEW_EXAMINE]}) == 0
     *_, new = examines(repo)

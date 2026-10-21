@@ -122,6 +122,7 @@ describe('the choices', () => {
       'number_slider',
       'pick_all_that_apply',
       'ordering',
+      'matching',
     ])
     expect(CHOICES.find((c) => c.id === 'drop_table')?.types).toEqual([
       'multiple_choice',
@@ -129,6 +130,7 @@ describe('the choices', () => {
       'closest_number',
       'number_slider',
       'pick_all_that_apply',
+      'matching',
     ])
     expect(CHOICES.find((c) => c.id === 'know_your_content_creator')?.types).toEqual([
       'multiple_choice',
@@ -153,10 +155,11 @@ describe('the choices', () => {
       'number_slider',
       'pick_all_that_apply',
       'ordering',
+      'matching',
     ])
   })
 
-  it('offers one with no round all six types, from the innkeeper, and nothing a round adds', () => {
+  it('offers one with no round all seven types, from the innkeeper, and nothing a round adds', () => {
     const any = CHOICES.find((c) => c.id === NO_ROUND)
     expect([any?.kind, any?.label, any?.hint, any?.host]).toEqual([
       'question',
@@ -171,6 +174,7 @@ describe('the choices', () => {
       'number_slider',
       'pick_all_that_apply',
       'ordering',
+      'matching',
     ])
     expect([any?.quote, any?.prompt, any?.wikiOnly, any?.pictureItem, any?.named]).toEqual([
       undefined,

@@ -1401,6 +1401,64 @@
         "explanation": "Lizardman shamans, per the OSRS Wiki's drop table, and nothing else does."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Lizardman_shaman"
+    },
+    {
+      "id": "q_496272cc74f01ff0",
+      "type": "matching",
+      "mode": "drop_table",
+      "source": "pack",
+      "tags": [
+        "drops"
+      ],
+      "payload": {
+        "prompt": "Match each drop to the monster that drops it.",
+        "fields": [
+          {
+            "icon": "item:4151"
+          },
+          {
+            "icon": "item:13576"
+          },
+          {
+            "icon": "item:4153"
+          },
+          {
+            "icon": "item:12002"
+          }
+        ],
+        "options": [
+          {
+            "text": "Abyssal demon",
+            "detail": "Abyssal whip"
+          },
+          {
+            "text": "Lizardman shaman",
+            "detail": "Dragon warhammer"
+          },
+          {
+            "text": "Gargoyle",
+            "detail": "Granite maul"
+          },
+          {
+            "text": "Smoke devil",
+            "detail": "Occult necklace"
+          },
+          {
+            "text": "Cave horror"
+          },
+          {
+            "text": "Kurask"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Cave horrors drop the Black mask and kurasks the leaf-bladed weapons."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer"
     }
   ]
 }

@@ -43,8 +43,8 @@ Status = Literal["pending", "approved", "rejected", "imported"]
 
 _CHOICE = frozenset({"multiple_choice"})
 # The modes a player may write a question for, and the types its editor offers. An NPC's
-# question is any type a host may write or an ordering, as an NPC's file holds; the rounds
-# still to be built are all four buttons.
+# question is any type a host may write, an ordering or a matching, as an NPC's file holds;
+# the rounds still to be built are all four buttons.
 QUESTION_MODES: dict[str, frozenset[str]] = {
     "random_event": frozenset(
         {
@@ -54,6 +54,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
             "number_slider",
             "pick_all_that_apply",
             "ordering",
+            "matching",
         }
     ),
     "bestiary": frozenset(
@@ -64,10 +65,18 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
             "number_slider",
             "pick_all_that_apply",
             "ordering",
+            "matching",
         }
     ),
     "drop_table": frozenset(
-        {"multiple_choice", "free_text", "closest_number", "number_slider", "pick_all_that_apply"}
+        {
+            "multiple_choice",
+            "free_text",
+            "closest_number",
+            "number_slider",
+            "pick_all_that_apply",
+            "matching",
+        }
     ),
     "guess_examine": _CHOICE,
     "odd_one_out": _CHOICE,
@@ -101,7 +110,7 @@ NPC_NAME_MAX = 80
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
 
-# What a question with no round may be: Create's four buttons and an ordering, as most
+# What a question with no round may be: Create's types, an ordering and a matching, as most
 # rounds take them. No NPC, intro, quote or fixed prompt, which only a round gives.
 UNPLACED_TYPES = frozenset(
     {
@@ -111,6 +120,7 @@ UNPLACED_TYPES = frozenset(
         "number_slider",
         "pick_all_that_apply",
         "ordering",
+        "matching",
     }
 )
 
@@ -192,6 +202,9 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
         return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
     if "intro" in content["payload"] and mode not in INTRO_MODES:
         return [f"$.payload.intro: only {', '.join(sorted(INTRO_MODES))} show an intro"]
+    found = _icon_errors(content["type"], content["payload"])
+    if found:
+        return found
     if "picture_item" in content:
         found = _picture_item_errors(mode, content["picture_item"])
         if found:
@@ -211,6 +224,18 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     if mode in MODES:
         return schema.consistency_errors(envelope)
     return [f"$.payload.{message}" for message in TYPES[content["type"]].check(content["payload"])]
+
+
+def _icon_errors(type_: str, payload: dict[str, Any]) -> list[str]:
+    # A player knows a field by name, not by asset id; the operator adds pictures in /admin.
+    fields = payload.get("fields")
+    if type_ != "matching" or not isinstance(fields, list):
+        return []
+    return [
+        f"$.payload.fields[{index}].icon: a suggestion names its fields; pictures come later"
+        for index, field in enumerate(fields)
+        if isinstance(field, dict) and "icon" in field
+    ]
 
 
 def _named_errors(mode: str, payload: dict[str, Any]) -> list[str]:

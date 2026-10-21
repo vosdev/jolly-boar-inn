@@ -11,6 +11,7 @@
  * shows the snapshot the report was filed against, and says whether the pack still has it.
  */
 
+import { answerLine as matchingLine } from './matching'
 import { MODES } from './modes'
 
 /** `TEXT_MAX` on the server, counted in characters. */
@@ -165,6 +166,8 @@ export function packAnswer(question: PackQuestion): string {
       const entries = payload.entries as { text: string }[]
       return (payload.answer as number[]).map((index) => entries[index]?.text).join(' → ')
     }
+    case 'matching':
+      return matchingLine(payload)
     case 'free_text':
       return (payload.accepted as string[]).join(' / ')
     case 'closest_number':

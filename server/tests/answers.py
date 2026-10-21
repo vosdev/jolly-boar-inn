@@ -9,7 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 from app.questions import normalize, vocab
-from app.questions.types import multiple_choice, ordering, pick_all_that_apply, slider
+from app.questions.types import matching, multiple_choice, ordering, pick_all_that_apply, slider
 from app.questions.types.free_text import MAX_LENGTH
 
 
@@ -84,6 +84,7 @@ _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "pick_all_that_apply": lambda payload: pick_all_that_apply.reveal(payload)["answer_indices"],
     # With ``picks`` only the first places are played, and a longer answer is refused.
     "ordering": lambda payload: ordering.reveal(payload)["answer"][: ordering.places(payload)],
+    "matching": lambda payload: matching.reveal(payload)["answer"],
 }
 
 _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
@@ -96,6 +97,10 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "free_text": _nothing_like_it,
     "pick_all_that_apply": _only_wrong,
     "ordering": _rotated_past_ties,
+    # Each field's option moved to the next field: no field holds its own.
+    "matching": lambda payload: (lambda right: right[1:] + right[:1])(
+        matching.reveal(payload)["answer"]
+    ),
 }
 
 

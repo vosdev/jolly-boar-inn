@@ -1,8 +1,9 @@
 """Copy each question's picture into the client under a name that says nothing about it.
 
-A pack question's ``image`` is an asset id, ``item:<id>`` or ``npc:<id>``, and for Who's That
-NPC? and Pixel Hunt that id is the answer. ``fetch_assets.py`` stages the files under those
-ids in ``.pictures/<kind>/<id>.<ext>``, outside the client. This copies every one a pack uses
+A pack question's ``image``, and a ``matching`` field's ``icon``, is an asset id, ``item:<id>``
+or ``npc:<id>``, and for Who's That NPC? and Pixel Hunt that id is the answer.
+``fetch_assets.py`` stages the files under those ids in ``.pictures/<kind>/<id>.<ext>``,
+outside the client. This copies every one a pack uses
 to ``client/public/pictures/<random>.<ext>`` and records ``asset -> file`` in
 ``data/pictures.json``, which the server loads to name a question's picture. Both are
 git-ignored, so every install has its own names. ``public/`` because Vite copies it as it is:
@@ -56,10 +57,15 @@ class Report:
 
 
 def used_assets(packs: Iterable[Pack]) -> list[str]:
-    """Every asset a pack question shows as its ``image``, sorted."""
-    return sorted(
-        {q["payload"]["image"] for pack in packs for q in pack.questions if "image" in q["payload"]}
-    )
+    """Every asset a pack question shows, as its ``image`` or a field's ``icon``, sorted."""
+    used: set[str] = set()
+    for pack in packs:
+        for q in pack.questions:
+            payload = q["payload"]
+            if "image" in payload:
+                used.add(payload["image"])
+            used.update(field["icon"] for field in payload.get("fields", []) if "icon" in field)
+    return sorted(used)
 
 
 def staged(staging: Path, asset: str) -> Path | None:

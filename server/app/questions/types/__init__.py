@@ -17,12 +17,14 @@ as, and six entries to order are six entries in any round. The room's pace scale
 (``app.modes`` reads it).
 """
 
+from collections.abc import Mapping
 from types import ModuleType
 from typing import Any
 
 from app.questions.types import (
     closest_number,
     free_text,
+    matching,
     more_less,
     multiple_choice,
     number_slider,
@@ -44,6 +46,7 @@ TYPES: dict[str, ModuleType] = {
     "free_text": free_text,
     "pick_all_that_apply": pick_all_that_apply,
     "ordering": ordering,
+    "matching": matching,
 }
 
 
@@ -56,6 +59,14 @@ def steps_of(type_id: str, payload: dict[str, Any]) -> int | None:
     """How many steps this question shows itself in: its type's ``steps(payload)``, or ``None``."""
     hook = getattr(TYPES[type_id], "steps", None)
     return None if hook is None else hook(payload)
+
+
+def pictured(
+    type_id: str, view: dict[str, Any], payload: dict[str, Any], pictures: Mapping[str, str]
+) -> dict[str, Any]:
+    """``view`` with the pictures its type shows inside it, by the type's optional ``pictured``."""
+    hook = getattr(TYPES[type_id], "pictured", None)
+    return view if hook is None else hook(view, payload, pictures)
 
 
 def _items(type_id: str, payload: dict[str, Any]) -> int:

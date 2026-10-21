@@ -120,15 +120,15 @@ def test_a_file_nobody_mapped_is_removed_from_the_client(install: Install) -> No
     assert install.files() == set()
 
 
-def test_the_assets_come_from_every_pack_questions_image() -> None:
+def test_the_assets_come_from_every_pack_questions_image_and_field_icons() -> None:
     vocab.load_all()
     packs = load_packs(PACKS_DIR)
-    expected = {
-        q["payload"]["image"] for pack in packs for q in pack.questions if "image" in q["payload"]
-    }
+    payloads = [q["payload"] for pack in packs for q in pack.questions]
+    images = {p["image"] for p in payloads if "image" in p}
+    icons = {f["icon"] for p in payloads for f in p.get("fields", []) if "icon" in f}
     assets = build_pictures.used_assets(packs)
-    assert assets == sorted(expected)
-    assert assets
+    assert assets == sorted(images | icons)
+    assert images and icons
 
 
 def test_every_pack_questions_image_has_a_picture_in_the_manifest() -> None:

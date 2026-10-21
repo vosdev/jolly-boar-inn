@@ -7,13 +7,20 @@ import math
 import re
 import secrets
 import unicodedata
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of, steps_of
+from app.questions.types import (
+    TYPES,
+    answer_seconds,
+    pictured,
+    reveal_seconds,
+    scoring_of,
+    steps_of,
+)
 from app.questions.types.scoring import Scoring
 from app.rooms import codes, duration, scoring, segments
 from app.rooms.errors import BadName, NotAdmin
@@ -259,8 +266,10 @@ class RoomQuestion:
         segment: Segment,
         count: tuple[int, int] = (0, 0),
         picture: str | None = None,
+        pictures: Mapping[str, str] | None = None,
     ) -> OpenQuestion:
-        """The open question as ``player_id`` sees it. ``count`` is ``_answer_count``'s."""
+        """The open question as ``player_id`` sees it. ``count`` is ``_answer_count``'s, and
+        ``pictures`` names the pictures the view shows inside it."""
         assert self.shown_at is not None and self.ends_at is not None
         assert self.answerable_at is not None
         return OpenQuestion(
@@ -270,7 +279,9 @@ class RoomQuestion:
             type=self.type,
             mode=self.mode,
             segment=segment,
-            view=TYPES[self.type].client_view(self.payload),
+            view=pictured(
+                self.type, TYPES[self.type].client_view(self.payload), self.payload, pictures or {}
+            ),
             picture=picture,
             random_event=self.random_event,
             opened_at=self.shown_at,

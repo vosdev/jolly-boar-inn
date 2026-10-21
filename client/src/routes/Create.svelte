@@ -65,12 +65,7 @@
   import PickForMe from '../components/PickForMe.svelte'
   import RandomEvents from '../components/RandomEvents.svelte'
   import RoundList from '../components/RoundList.svelte'
-  import {
-    FREQUENCY_LABELS,
-    eventSlots,
-    overCap,
-    type CustomQuestion,
-  } from '../lib/customQuestions'
+  import { FREQUENCY_LABELS, eventSlots, overCap, type HostQuestion } from '../lib/customQuestions'
   import { minutes, plannedSeconds } from '../lib/duration'
   import { MODES, UPCOMING_MODES, hostOf, modeLabel } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
@@ -117,7 +112,7 @@
   let access = $state<RoomAccess>('code')
   /** The rounds, in the order they will play: one per mode, and the list is the order. */
   let rounds = $state<ModeSettings[]>([])
-  let customQuestions = $state<CustomQuestion[]>([])
+  let customQuestions = $state<HostQuestion[]>([])
   /** A question open in the editor, unsaved: submitting now would leave it behind. */
   let editingQuestion = $state(false)
 

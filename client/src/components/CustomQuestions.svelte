@@ -10,16 +10,18 @@
    * then Create refuses to submit and this panel says why.
    */
   import {
+    CUSTOM_TYPES,
     EXPORT_FILENAME,
-    TYPE_LABELS,
+    HOST_TYPE_LABELS,
     askedBy,
     exportText,
     importText,
     overCap,
-    type CustomQuestion,
+    type HostQuestion,
   } from '../lib/customQuestions'
   import type { EventFrequency } from '../lib/protocol'
   import CustomQuestionForm from './CustomQuestionForm.svelte'
+  import MatchingForm from './MatchingForm.svelte'
   import NpcFace from './NpcFace.svelte'
   import Sheet from './Sheet.svelte'
 
@@ -31,7 +33,7 @@
     atMore,
     sheet = false,
   }: {
-    questions: CustomQuestion[]
+    questions: HostQuestion[]
     /** Whether a question is open in the form, which Create will not submit past. */
     editing: boolean
     /** Random events the rounds make room for at `frequency`. */
@@ -58,7 +60,22 @@
     editing = open !== null
   })
 
-  function save(question: CustomQuestion): void {
+  /** Whether the open form is `MatchingForm`: picked in the editor, or the question's type. */
+  let matching = $state(false)
+  const picker = {
+    options: [...CUSTOM_TYPES, 'matching' as const].map((type) => ({
+      value: type,
+      label: HOST_TYPE_LABELS[type],
+    })),
+    onpick: (type: string) => (matching = type === 'matching'),
+  }
+
+  function edit(at: number | 'new'): void {
+    matching = at !== 'new' && questions[at]?.type === 'matching'
+    open = at
+  }
+
+  function save(question: HostQuestion): void {
     if (open === 'new') questions = [...questions, question]
     else if (open !== null) questions = questions.map((q, i) => (i === open ? question : q))
     open = null
@@ -109,8 +126,23 @@
   }
 </script>
 
-{#snippet editor(question: CustomQuestion | undefined)}
-  <CustomQuestionForm {question} onsave={save} oncancel={() => (open = null)} />
+{#snippet editor(question: HostQuestion | undefined)}
+  {#if matching}
+    <MatchingForm
+      question={question?.type === 'matching' ? question : undefined}
+      asker="optional"
+      {picker}
+      onsave={save}
+      oncancel={() => (open = null)}
+    />
+  {:else}
+    <CustomQuestionForm
+      question={question?.type === 'matching' ? undefined : question}
+      {picker}
+      onsave={save}
+      oncancel={() => (open = null)}
+    />
+  {/if}
 {/snippet}
 
 <section class="panel own" aria-labelledby="own-title">
@@ -133,7 +165,7 @@
               <span class="face"><NpcFace npc={question.random_event} /></span>
               <div class="words">
                 <p class="prompt">{question.payload.prompt}</p>
-                <p class="note">{TYPE_LABELS[question.type]} · {askedBy(question)}</p>
+                <p class="note">{HOST_TYPE_LABELS[question.type]} · {askedBy(question)}</p>
               </div>
               <div class="row actions">
                 <button
@@ -155,7 +187,7 @@
                   class="small"
                   aria-label="Edit question {index + 1}"
                   disabled={open !== null}
-                  onclick={() => (open = index)}>Edit</button
+                  onclick={() => edit(index)}>Edit</button
                 >
                 <button
                   type="button"
@@ -191,7 +223,7 @@
 
   <div class="row tools">
     {#if open !== 'new' || sheet}
-      <button type="button" disabled={full || open !== null} onclick={() => (open = 'new')}>
+      <button type="button" disabled={full || open !== null} onclick={() => edit('new')}>
         Write a question
       </button>
     {/if}

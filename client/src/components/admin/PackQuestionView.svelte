@@ -47,7 +47,21 @@
   {:else if question.type === 'more_less'}
     <p class="note">{p.direction} {p.metric}, as of {p.as_of}</p>
   {/if}
-  {#if question.type === 'ordering'}
+  {#if question.type === 'matching'}
+    <ul class="options">
+      {#each p.fields as { text?: string; icon?: string }[] as entry, index (index)}
+        {@const option = (p.options as { text: string; detail?: string }[])[
+          (p.answer as number[])[index] ?? -1
+        ]}
+        <li>
+          {entry.text ?? ''}{#if entry.icon}{' '}<code>{entry.icon}</code>{/if} →
+          <strong>{option?.text}</strong>{#if option?.detail}{' '}<span class="note"
+              >{option.detail}</span
+            >{/if}
+        </li>
+      {/each}
+    </ul>
+  {:else if question.type === 'ordering'}
     <ol>
       {#each p.answer as number[] as index (index)}
         {@const entry = (p.entries as { text: string; rank: number }[])[index]}

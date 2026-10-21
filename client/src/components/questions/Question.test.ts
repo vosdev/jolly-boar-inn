@@ -252,6 +252,21 @@ const EVERY_TYPE: { type: string; mode: string; view: object; reveal: object }[]
       answer: [1, 0, 2],
     },
   },
+  {
+    type: 'matching',
+    mode: 'custom',
+    view: {
+      prompt: 'Which?',
+      fields: [{ text: 'Zulrah' }, { text: 'Vorkath' }, { text: 'Kraken' }],
+      options: [{ text: 'Ungael' }, { text: 'Kraken Cove' }, { text: 'Zul-Andra' }],
+    },
+    reveal: {
+      prompt: 'Which?',
+      fields: [{ text: 'Zulrah' }, { text: 'Vorkath' }, { text: 'Kraken' }],
+      options: [{ text: 'Ungael' }, { text: 'Kraken Cove' }, { text: 'Zul-Andra' }],
+      answer: [2, 0, 1],
+    },
+  },
 ]
 
 /** The types whose `reveal` carries the author's `explanation` (`questions/types/*.py`). */
@@ -263,6 +278,7 @@ const EXPLAINED = [
   'pick_from_list',
   'pick_all_that_apply',
   'ordering',
+  'matching',
 ]
 
 const entries = [{ id: 6585, name: 'Amulet of fury' }]

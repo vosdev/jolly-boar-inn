@@ -28,7 +28,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from app.questions.submission import Submission
-from app.questions.types import TYPES
+from app.questions.types import TYPES, pictured
 from app.rooms import ready, scoring
 from app.rooms.errors import BadState
 from app.rooms.hold import hold_seconds, typed_lines
@@ -538,7 +538,14 @@ class Loop:
             opened = Broadcast.per_player(
                 room,
                 lambda pid: QuestionOpen(
-                    question=question.view(room.total, pid, segment, count, self._picture(question))
+                    question=question.view(
+                        room.total,
+                        pid,
+                        segment,
+                        count,
+                        self._picture(question),
+                        self._pictures(question),
+                    )
                 ).model_dump(mode="json"),
             )
         self._broadcast(opened)
@@ -579,7 +586,12 @@ class Loop:
                 # Full marks only. Three of five in the right order scores, and is not
                 # "correct" for the standings tie-break (section 6).
                 graded[pid] = (got, got >= 1.0, points)
-            reveal = module.reveal(question.payload)
+            reveal = pictured(
+                question.type,
+                module.reveal(question.payload),
+                question.payload,
+                self._pictures(question),
+            )
             async with pool.acquire() as conn, conn.transaction():
                 await conn.execute(
                     "update questions set closed_at = $1 where id = $2", closed_at, question.id

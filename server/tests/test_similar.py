@@ -49,6 +49,17 @@ CHOICE = {
 }
 
 
+MATCHING = {
+    "type": "matching",
+    "payload": {
+        "prompt": "Match each boss to where it is fought.",
+        "fields": [{"text": "Zulrah"}, {"text": "Vorkath"}, {"icon": "item:12004"}],
+        "options": [{"text": "Zul-Andra"}, {"text": "Ungael"}, {"text": "Kraken Cove"}],
+        "answer": [0, 1, 2],
+    },
+}
+
+
 def _score(a: dict[str, Any], b: dict[str, Any]) -> int:
     return score(features(a), features(b))
 
@@ -89,6 +100,7 @@ def _with(question: dict[str, Any], **payload: Any) -> dict[str, Any]:
         },
         {"type": "free_text", "payload": {"prompt": "Who runs the inn?", "accepted": ["Bob"]}},
         {"type": "closest_number", "payload": {"prompt": "Max total level?", "answer": 2277}},
+        MATCHING,
     ],
 )
 def test_an_identical_question_scores_100(question: dict[str, Any]) -> None:
@@ -139,6 +151,17 @@ def test_odd_one_out_with_its_options_shuffled_scores_100() -> None:
 def test_a_free_text_answer_matches_on_any_accepted_spelling() -> None:
     asked = {"type": "free_text", "payload": {"prompt": "Who?", "accepted": ["Kril", "K'ril"]}}
     assert _score(asked, _with(asked, accepted=["k'ril tsutsaroth", "k'ril"])) == 100
+
+
+def test_a_matching_answer_is_its_pairs_whatever_order_they_are_written_in() -> None:
+    written = _with(
+        MATCHING,
+        options=[{"text": "Kraken Cove"}, {"text": "Ungael"}, {"text": "Zul-Andra"}],
+        answer=[2, 1, 0],
+    )
+    assert _score(MATCHING, written) == 100
+    swapped = _with(MATCHING, answer=[1, 0, 2])
+    assert THRESHOLD <= _score(MATCHING, swapped) < 100
 
 
 def test_questions_of_different_types_compare_their_prompts_alone() -> None:

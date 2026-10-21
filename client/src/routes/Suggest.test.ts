@@ -609,6 +609,7 @@ describe('Suggest', () => {
       'Slider',
       'Pick all that apply',
       'Put in order',
+      'Match them up',
     ])
     await fireEvent.click(screen.getByLabelText('Put in order'))
     expect(screen.getByLabelText('First end')).toBeTruthy()
@@ -631,6 +632,38 @@ describe('Suggest', () => {
       type: 'ordering',
       mode: 'bestiary',
       payload: { ends: ['Lowest', 'Highest'], answer: [0, 1, 2] },
+    })
+  })
+
+  it('writes a Drop Table matching with names, no pictures, and sends it', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+    await fireEvent.click(screen.getByLabelText('Match them up'))
+    expect(screen.queryByLabelText('Picture of field 1')).toBeNull()
+    await type('Question', 'Match each drop to the monster that drops it.')
+    const pairs = [
+      ['Abyssal whip', 'Abyssal demon'],
+      ['Dragon warhammer', 'Lizardman shaman'],
+      ['Granite maul', 'Gargoyle'],
+    ]
+    for (const [i, [drop, monster]] of pairs.entries()) {
+      await type(`Field ${i + 1}`, drop!)
+      await type(`Answer for field ${i + 1}`, monster!)
+    }
+    const preview = within(screen.getByRole('region', { name: 'Preview' }))
+    expect(preview.getByText('Dragon warhammer')).toBeTruthy()
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Slayer')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
+      type: 'matching',
+      mode: 'drop_table',
+      payload: {
+        fields: pairs.map(([text]) => ({ text })),
+        options: pairs.map(([, text]) => ({ text })),
+        answer: [0, 1, 2],
+      },
     })
   })
 
@@ -690,7 +723,7 @@ describe('Suggest', () => {
     expect(screen.getByText('Pick who asks it.')).toBeTruthy()
   })
 
-  it('offers a question with no round last, its six types and no more, and sends it with no mode', async () => {
+  it('offers a question with no round last, its seven types and no more, and sends it with no mode', async () => {
     played()
     render(Suggest, { navigate })
     const cards = (await screen.findAllByRole('button')).filter((b) => b.closest('.choices'))
@@ -709,6 +742,7 @@ describe('Suggest', () => {
       'Slider',
       'Pick all that apply',
       'Put in order',
+      'Match them up',
     ])
     expect(screen.queryByText('Who asks it')).toBeNull()
     expect(screen.queryByLabelText(/^Quote/)).toBeNull()

@@ -215,6 +215,46 @@ EXAMPLES: dict[str, Example] = {
         scoring=Scoring.SPEED,
         seconds=(30, 12),
     ),
+    "matching": Example(
+        payload={
+            "prompt": "Match each boss to where it is fought.",
+            "fields": [
+                {"text": "Zulrah"},
+                {"text": "Vorkath"},
+                {"text": "Kraken"},
+                {"text": "Sarachnis"},
+            ],
+            "options": [
+                {"text": "Zul-Andra", "detail": "West of Tirannwn"},
+                {"text": "Ungael"},
+                {"text": "Kraken Cove"},
+                {"text": "Forthos Dungeon"},
+                {"text": "Karuulm Slayer Dungeon"},
+            ],
+            "answer": [0, 1, 2, 3],
+            "image": "item:12934",
+            "explanation": "Each lives alone in its lair.",
+        },
+        # Shown as Forthos Dungeon, Zul-Andra, Ungael, Kraken Cove, Karuulm Slayer Dungeon.
+        valid=[[1, 2, 3, 0], [4, 3, 2, 1], [0, 1, 2, 3]],
+        invalid=[
+            [1, 2, 3],
+            [1, 2, 3, 3],
+            [1, 2, 3, 5],
+            [-1, 1, 2, 3],
+            [1, 2, 3, True],
+            [1.0, 2, 3, 0],
+            [1, 2, 3, 0, 4],
+            [],
+            "1230",
+            1,
+        ],
+        right=[1, 2, 3, 0],
+        wrong=[2, 3, 0, 1],
+        secret=frozenset({"detail", "answer", "explanation"}),
+        scoring=Scoring.SPEED,
+        seconds=(30, 12),
+    ),
 }
 
 # Refused by every type, whatever its shape: ``true`` is ``1`` to Python, ``null`` is

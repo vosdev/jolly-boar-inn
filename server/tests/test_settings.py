@@ -353,6 +353,7 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "types": [
                 "closest_number",
                 "free_text",
+                "matching",
                 "multiple_choice",
                 "number_slider",
                 "ordering",
@@ -365,6 +366,7 @@ def test_api_modes_serves_the_create_form_what_it_may_offer(client: TestClient) 
             "types": [
                 "closest_number",
                 "free_text",
+                "matching",
                 "multiple_choice",
                 "number_slider",
                 "pick_all_that_apply",

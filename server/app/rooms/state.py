@@ -180,9 +180,11 @@ class RoomManager(Joins, Lobby, Loop):
         would learn which name each one has, and every later game's pictures with it.
         """
         image = question.payload.get("image")
-        if question.source != "pack" or not isinstance(image, str):
-            return None
-        return self.pictures.get(image)
+        return self._pictures(question).get(image) if isinstance(image, str) else None
+
+    def _pictures(self, question: RoomQuestion) -> Mapping[str, str]:
+        """The pictures ``question`` may show, by asset id: a pack question's, as ``_picture``."""
+        return self.pictures if question.source == "pack" else {}
 
     @asynccontextmanager
     async def _locked(self, code: str) -> AsyncIterator[asyncio.Lock]:
@@ -586,6 +588,7 @@ class RoomManager(Joins, Lobby, Loop):
                     segment,
                     _answer_count(room, question),
                     self._picture(question),
+                    self._pictures(question),
                 )
                 if question is not None and segment is not None
                 else None
