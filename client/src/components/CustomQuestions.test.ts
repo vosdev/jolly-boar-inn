@@ -174,6 +174,39 @@ describe('CustomQuestions', () => {
     ])
   })
 
+  it('writes a slider, refused without its ends, its scale defaulting by their ratio', async () => {
+    const panel = await loaded()
+    await click(panel, 'Write a question')
+    const form = editor()
+    await pick(form, 'Slider')
+    await type(form, 'Question', 'How many Hitpoints does the Corporeal Beast have?')
+    await type(form, 'Answer', '2000')
+    await click(form, 'Add question')
+    expect(within(form).getAllByText('Required.').length).toBeGreaterThan(0)
+    expect(listed(panel)).toHaveLength(0)
+
+    const scale = (name: string) => within(form).getByRole('radio', { name }) as HTMLInputElement
+    await type(form, 'Lowest', '100')
+    await type(form, 'Highest', '1000')
+    expect(scale('Linear').checked).toBe(true)
+    await type(form, 'Highest', '10000')
+    expect(scale('Log').checked).toBe(true)
+    await click(form, 'Add question')
+
+    expect(await submitted()).toEqual([
+      {
+        type: 'number_slider',
+        payload: {
+          prompt: 'How many Hitpoints does the Corporeal Beast have?',
+          answer: 2000,
+          min: 100,
+          max: 10000,
+          scale: 'log',
+        },
+      },
+    ])
+  })
+
   it('writes a pick all that apply, starting at three answers, with picks only when asked', async () => {
     const panel = await loaded()
     await setFrequency('More')

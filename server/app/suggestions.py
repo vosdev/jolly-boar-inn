@@ -47,19 +47,33 @@ _CHOICE = frozenset({"multiple_choice"})
 # still to be built are all four buttons.
 QUESTION_MODES: dict[str, frozenset[str]] = {
     "random_event": frozenset(
-        {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
+        {
+            "multiple_choice",
+            "free_text",
+            "closest_number",
+            "number_slider",
+            "pick_all_that_apply",
+            "ordering",
+        }
     ),
     "bestiary": frozenset(
-        {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
+        {
+            "multiple_choice",
+            "free_text",
+            "closest_number",
+            "number_slider",
+            "pick_all_that_apply",
+            "ordering",
+        }
     ),
     "drop_table": frozenset(
-        {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply"}
+        {"multiple_choice", "free_text", "closest_number", "number_slider", "pick_all_that_apply"}
     ),
     "guess_examine": _CHOICE,
     "odd_one_out": _CHOICE,
     "who_said_that": _CHOICE,
     "know_your_content_creator": frozenset(
-        {"multiple_choice", "closest_number", "pick_all_that_apply"}
+        {"multiple_choice", "closest_number", "number_slider", "pick_all_that_apply"}
     ),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
@@ -90,7 +104,14 @@ ITEM_NAME_MAX = 80
 # What a question with no round may be: Create's four buttons and an ordering, as most
 # rounds take them. No NPC, intro, quote or fixed prompt, which only a round gives.
 UNPLACED_TYPES = frozenset(
-    {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
+    {
+        "multiple_choice",
+        "free_text",
+        "closest_number",
+        "number_slider",
+        "pick_all_that_apply",
+        "ordering",
+    }
 )
 
 _QUESTION_KEYS = {"type", "payload"}

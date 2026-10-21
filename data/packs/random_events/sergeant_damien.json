@@ -82,8 +82,8 @@
       }
     },
     {
-      "id": "q_38c393139f5c2328",
-      "type": "closest_number",
+      "id": "q_7eae709dc107bd9c",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -95,6 +95,9 @@
         "intro": "Want a fire cape, maggot? Then you'd better know how many waves stand in your way!",
         "prompt": "How many waves does the TzHaar Fight Cave have?",
         "answer": 63,
+        "min": 1,
+        "max": 100,
+        "scale": "linear",
         "explanation": "The Fight Cave has 63 waves, and TzTok-Jad waits at the last one."
       }
     },

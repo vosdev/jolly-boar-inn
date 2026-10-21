@@ -25,8 +25,8 @@
       }
     },
     {
-      "id": "q_45cf884aeac068b9",
-      "type": "closest_number",
+      "id": "q_2cefc98ba189c058",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -37,6 +37,9 @@
         "intro": "Nature runes, nature runes! The better you get, the more each essence gives you.",
         "prompt": "At what Runecraft level do you always craft two nature runes per essence?",
         "answer": 91,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "Nature runes need 44 Runecraft, and from 91 every pure essence makes two."
       }
     },
@@ -82,8 +85,8 @@
       }
     },
     {
-      "id": "q_098b13ba59c59b92",
-      "type": "closest_number",
+      "id": "q_6da650a8cfea5601",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -94,6 +97,9 @@
         "intro": "Moonclan mages are so vengeful! But how much Magic does it take to strike back?",
         "prompt": "What Magic level do you need to cast Vengeance?",
         "answer": 94,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "Vengeance is a level 94 Lunar spell that sends 75% of the next hit you take back at the attacker."
       }
     }

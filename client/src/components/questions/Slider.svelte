@@ -1,13 +1,13 @@
 <script lang="ts">
   /**
-   * A logarithmic slider over `lib/slider.ts`'s grid, with marks for a reveal.
+   * A linear or logarithmic slider over `lib/slider.ts`'s grid, with marks for a reveal.
    *
    * A `role="slider"` of its own rather than `<input type="range">`: a native range is
    * linear and pages by a tenth of its width, and this one must page by ten grid steps
    * along a log track. Dragging works by pointer, so touch and mouse alike; the thumb's
    * hit area is the whole track.
    */
-  import { position, stepFrom, valueAt } from '../../lib/slider'
+  import { pageSteps, position, stepFrom, valueAt, type Scale } from '../../lib/slider'
 
   interface Mark {
     value: number
@@ -17,6 +17,7 @@
   let {
     low,
     high,
+    scale = 'log',
     value = $bindable(),
     disabled = false,
     label,
@@ -25,6 +26,7 @@
   }: {
     low: number
     high: number
+    scale?: Scale
     value: number | null
     disabled?: boolean
     /** The id of the element that names the slider. */
@@ -36,21 +38,22 @@
   let track: HTMLDivElement | undefined = $state()
   let dragging = false
 
-  const at = (v: number) => `${(position(v, low, high) * 100).toFixed(3)}%`
+  const at = (v: number) => `${(position(v, low, high, scale) * 100).toFixed(3)}%`
 
   function fromPointer(event: PointerEvent): void {
     if (track === undefined) return
     const box = track.getBoundingClientRect()
-    if (box.width > 0) value = valueAt((event.clientX - box.left) / box.width, low, high)
+    if (box.width > 0) value = valueAt((event.clientX - box.left) / box.width, low, high, scale)
   }
 
+  const step = (v: number, steps: number) => stepFrom(v, steps, low, high, scale)
   const KEYS: Record<string, (v: number) => number> = {
-    ArrowRight: (v) => stepFrom(v, 1, low, high),
-    ArrowUp: (v) => stepFrom(v, 1, low, high),
-    ArrowLeft: (v) => stepFrom(v, -1, low, high),
-    ArrowDown: (v) => stepFrom(v, -1, low, high),
-    PageUp: (v) => stepFrom(v, 10, low, high),
-    PageDown: (v) => stepFrom(v, -10, low, high),
+    ArrowRight: (v) => step(v, 1),
+    ArrowUp: (v) => step(v, 1),
+    ArrowLeft: (v) => step(v, -1),
+    ArrowDown: (v) => step(v, -1),
+    PageUp: (v) => step(v, pageSteps(low, high, scale)),
+    PageDown: (v) => step(v, -pageSteps(low, high, scale)),
     Home: () => low,
     End: () => high,
   }

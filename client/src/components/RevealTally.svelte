@@ -203,30 +203,38 @@
     return [...lines, { key: 'further', label: 'Further off', gem: null, players: furthest }]
   }
 
+  /** A slider's misses: credit falls with distance along it, so it orders them by closeness. */
+  function slid(written: (value: number) => string): Group[] {
+    const guesses = (rows: typeof wrong) =>
+      [...rows]
+        .sort((a, b) => b[1].credit - a[1].credit)
+        .map(([id, { value }]) => who(id, written(Number(value))))
+    const lines: Group[] = [
+      {
+        key: 'close',
+        label: 'Close',
+        gem: null,
+        players: guesses(wrong.filter(([, r]) => r.credit > 0)),
+      },
+      {
+        key: 'further',
+        label: 'Further off',
+        gem: null,
+        players: guesses(wrong.filter(([, r]) => r.credit === 0)),
+      },
+    ]
+    return lines.filter((line) => line.players.length > 0)
+  }
+
   const groups = $derived.by((): Group[] => {
     switch (type) {
-      case 'price_is_right': {
-        // Credit falls with distance along the slider, so it orders guesses by closeness.
-        const guesses = (rows: typeof wrong) =>
-          [...rows]
-            .sort((a, b) => b[1].credit - a[1].credit)
-            .map(([id, { value }]) => who(id, `${formatGp(Number(value))} gp`))
-        const lines: Group[] = [
-          {
-            key: 'close',
-            label: 'Close',
-            gem: null,
-            players: guesses(wrong.filter(([, r]) => r.credit > 0)),
-          },
-          {
-            key: 'further',
-            label: 'Further off',
-            gem: null,
-            players: guesses(wrong.filter(([, r]) => r.credit === 0)),
-          },
-        ]
-        return lines.filter((line) => line.players.length > 0)
-      }
+      case 'price_is_right':
+        return slid((value) => `${formatGp(value)} gp`)
+      case 'number_slider':
+        return slid((value) => {
+          const unit = typeof reveal.unit === 'string' && reveal.unit !== '' ? reveal.unit : null
+          return unit === null ? count.format(value) : `${count.format(value)} ${unit}`
+        })
       case 'multiple_choice':
       case 'more_less': {
         const gemmed = type !== 'more_less'

@@ -64,7 +64,7 @@ describe('Home', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
     const sheet = screen.getByRole('dialog', { name: 'How to play' })
     await within(sheet).findByRole('heading', { name: 'One answer' })
-    expect(within(sheet).getAllByRole('heading', { level: 3 })).toHaveLength(5)
+    expect(within(sheet).getAllByRole('heading', { level: 3 })).toHaveLength(6)
   })
 
   it("challenges the visitor in the site's name, and one tap goes to Create", async () => {

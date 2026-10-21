@@ -84,8 +84,8 @@
       }
     },
     {
-      "id": "q_295de04077d64ace",
-      "type": "closest_number",
+      "id": "q_205757f30d432e52",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -95,7 +95,10 @@
       "payload": {
         "intro": "The mighty Hespori rests in a cave in my Guild. Its roots can snap a man in two, and you look like you'd faint at the first sign of poison.",
         "prompt": "What is Hespori's combat level?",
-        "answer": 284
+        "answer": 284,
+        "min": 10,
+        "max": 1000,
+        "scale": "log"
       }
     },
     {

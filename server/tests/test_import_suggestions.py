@@ -12,6 +12,7 @@ import pytest
 from app import suggestions
 from app.config import REPO_ROOT
 from app.questions import schema
+from app.questions.types import number_slider
 from app.suggestions import QUESTION_MODES
 
 sys.path.insert(0, str(REPO_ROOT / "server" / "scripts"))
@@ -415,6 +416,20 @@ DROP_RATE = {
 
 def drop_table(repo: dict[str, Path]) -> list[dict[str, Any]]:
     return json.loads((repo["packs"] / "drop_table.json").read_text())["questions"]
+
+
+def test_a_slider_question_imports_with_its_bounds(repo: dict[str, Path]) -> None:
+    slider = {
+        **DROP_RATE,
+        "type": "number_slider",
+        "payload": {**DROP_RATE["payload"], "min": 100, "max": 10000, "scale": "log"},
+    }
+    assert run(repo, {"questions": [slider]}) == 0
+    added = drop_table(repo)[-1]
+    assert added["type"] == "number_slider"
+    assert added["payload"] == slider["payload"]
+    assert number_slider.check(added["payload"]) == []
+    assert loads(repo)
 
 
 def test_a_picture_item_becomes_the_image_and_its_manifest_entries(

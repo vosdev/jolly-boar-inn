@@ -119,6 +119,7 @@ describe('the choices', () => {
       'multiple_choice',
       'free_text',
       'closest_number',
+      'number_slider',
       'pick_all_that_apply',
       'ordering',
     ])
@@ -126,11 +127,13 @@ describe('the choices', () => {
       'multiple_choice',
       'free_text',
       'closest_number',
+      'number_slider',
       'pick_all_that_apply',
     ])
     expect(CHOICES.find((c) => c.id === 'know_your_content_creator')?.types).toEqual([
       'multiple_choice',
       'closest_number',
+      'number_slider',
       'pick_all_that_apply',
     ])
     const sort = CHOICES.find((c) => c.id === 'sort_it_out')
@@ -147,12 +150,13 @@ describe('the choices', () => {
       'multiple_choice',
       'free_text',
       'closest_number',
+      'number_slider',
       'pick_all_that_apply',
       'ordering',
     ])
   })
 
-  it('offers one with no round all five types, from the innkeeper, and nothing a round adds', () => {
+  it('offers one with no round all six types, from the innkeeper, and nothing a round adds', () => {
     const any = CHOICES.find((c) => c.id === NO_ROUND)
     expect([any?.kind, any?.label, any?.hint, any?.host]).toEqual([
       'question',
@@ -164,6 +168,7 @@ describe('the choices', () => {
       'multiple_choice',
       'free_text',
       'closest_number',
+      'number_slider',
       'pick_all_that_apply',
       'ordering',
     ])

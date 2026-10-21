@@ -32,6 +32,7 @@ import ClosestNumber from './types/ClosestNumber.svelte'
 import FreeText from './types/FreeText.svelte'
 import MoreLess from './types/MoreLess.svelte'
 import MultipleChoice from './types/MultipleChoice.svelte'
+import NumberSlider from './types/NumberSlider.svelte'
 import Ordering from './types/Ordering.svelte'
 import PickAllThatApply from './types/PickAllThatApply.svelte'
 import PickFromList from './types/PickFromList.svelte'
@@ -43,6 +44,7 @@ export const TYPE_VIEWS: Record<string, Component<TypeViewProps>> = {
   pick_from_list: PickFromList,
   multiple_choice: MultipleChoice,
   closest_number: ClosestNumber,
+  number_slider: NumberSlider,
   free_text: FreeText,
   pick_all_that_apply: PickAllThatApply,
   ordering: Ordering,

@@ -68,12 +68,18 @@ def _far_end(payload: dict[str, Any]) -> int:
     return high if slider.position(payload["value"], low, high) < 0.5 else low
 
 
+def _far_bound(payload: dict[str, Any]) -> int:
+    low, high = payload["min"], payload["max"]
+    return high if slider.middle(low, high, payload["scale"]) > payload["answer"] else low
+
+
 _RIGHT: dict[str, Callable[[dict[str, Any]], Any]] = {
     "more_less": lambda payload: payload["answer_index"],
     "price_is_right": lambda payload: payload["value"],
     "multiple_choice": lambda payload: multiple_choice.reveal(payload)["answer_index"],
     "pick_from_list": lambda payload: payload["answer_id"],
     "closest_number": lambda payload: payload["answer"],
+    "number_slider": lambda payload: payload["answer"],
     "free_text": lambda payload: payload["accepted"][0],
     "pick_all_that_apply": lambda payload: pick_all_that_apply.reveal(payload)["answer_indices"],
     # With ``picks`` only the first places are played, and a longer answer is refused.
@@ -86,6 +92,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "multiple_choice": _another_shown_option,
     "pick_from_list": _another_entry,
     "closest_number": lambda payload: payload["answer"] + 1,
+    "number_slider": _far_bound,
     "free_text": _nothing_like_it,
     "pick_all_that_apply": _only_wrong,
     "ordering": _rotated_past_ties,

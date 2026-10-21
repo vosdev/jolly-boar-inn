@@ -20,8 +20,8 @@
       }
     },
     {
-      "id": "q_6721e7e1cc684e36",
-      "type": "closest_number",
+      "id": "q_0d32a97737a62073",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -31,6 +31,9 @@
         "intro": "Braving the Wilderness carries real risks, so I always make sure the payoff is worth your time.",
         "prompt": "How many Slayer points does Krystilia give as a base reward for a task?",
         "answer": 25,
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
         "unit": "points"
       }
     },
@@ -69,8 +72,8 @@
       }
     },
     {
-      "id": "q_7797859381eefa16",
-      "type": "closest_number",
+      "id": "q_d60ad51a645d4805",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -80,6 +83,9 @@
         "intro": "Mandro runs a handy resource haven out past the lava, though he asks for a little toll at the gate.",
         "prompt": "Without diary perks, how many coins does it cost to enter the Resource Area?",
         "answer": 7500,
+        "min": 100,
+        "max": 100000,
+        "scale": "log",
         "unit": "coins"
       }
     },

@@ -60,8 +60,8 @@
       "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon"
     },
     {
-      "id": "q_cec00708556f86a1",
-      "type": "closest_number",
+      "id": "q_92504cb0d50a724d",
+      "type": "number_slider",
       "mode": "bestiary",
       "source": "pack",
       "tags": [
@@ -70,6 +70,9 @@
       "payload": {
         "prompt": "What is Zulrah's combat level?",
         "answer": 725,
+        "min": 100,
+        "max": 2000,
+        "scale": "log",
         "explanation": "725, per Zulrah's infobox on the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
@@ -170,8 +173,8 @@
       "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
     },
     {
-      "id": "q_71d24862370f3916",
-      "type": "closest_number",
+      "id": "q_2c4891e1da3bc4c7",
+      "type": "number_slider",
       "mode": "bestiary",
       "source": "pack",
       "tags": [
@@ -180,6 +183,9 @@
       "payload": {
         "prompt": "What is the King Black Dragon's combat level?",
         "answer": 276,
+        "min": 10,
+        "max": 1000,
+        "scale": "log",
         "explanation": "276, per his infobox on the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon"
@@ -257,8 +263,8 @@
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
     },
     {
-      "id": "q_74c4f2318926279b",
-      "type": "closest_number",
+      "id": "q_86e9052465a63977",
+      "type": "number_slider",
       "mode": "bestiary",
       "source": "pack",
       "tags": [
@@ -267,6 +273,9 @@
       "payload": {
         "prompt": "What Slayer level do you need to fight the Alchemical Hydra?",
         "answer": 95,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "95 Slayer, per the Alchemical Hydra's infobox on the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
@@ -335,8 +344,8 @@
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
     },
     {
-      "id": "q_b1a2beab68d04cba",
-      "type": "closest_number",
+      "id": "q_534f317c7519cb77",
+      "type": "number_slider",
       "mode": "bestiary",
       "source": "pack",
       "tags": [
@@ -345,6 +354,9 @@
       "payload": {
         "prompt": "How many Hitpoints does the Corporeal Beast have?",
         "answer": 2000,
+        "min": 100,
+        "max": 10000,
+        "scale": "log",
         "explanation": "2,000, per the Corporeal Beast's infobox on the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"

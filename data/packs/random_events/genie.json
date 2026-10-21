@@ -20,8 +20,8 @@
       }
     },
     {
-      "id": "q_dc1b68424b67a96f",
-      "type": "closest_number",
+      "id": "q_3d61aea8be1a4d03",
+      "type": "number_slider",
       "mode": "random_event",
       "source": "pack",
       "tags": [
@@ -32,6 +32,9 @@
         "intro": "A secret of the lamps, master: halfway to 99 is not where you think.",
         "prompt": "Which level is about halfway to 99 in experience?",
         "answer": 92,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
         "explanation": "Level 92 takes 6,517,253 experience, almost exactly half of 99's 13,034,431."
       }
     },

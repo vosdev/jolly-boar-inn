@@ -46,17 +46,34 @@ MODES: dict[str, Mode] = {
     "who_said_that": Mode(id="who_said_that", types=frozenset({"multiple_choice"})),
     "know_your_content_creator": Mode(
         id="know_your_content_creator",
-        types=frozenset({"multiple_choice", "closest_number", "pick_all_that_apply"}),
+        types=frozenset(
+            {"multiple_choice", "closest_number", "number_slider", "pick_all_that_apply"}
+        ),
     ),
     "bestiary": Mode(
         id="bestiary",
         types=frozenset(
-            {"multiple_choice", "closest_number", "free_text", "ordering", "pick_all_that_apply"}
+            {
+                "multiple_choice",
+                "closest_number",
+                "number_slider",
+                "free_text",
+                "ordering",
+                "pick_all_that_apply",
+            }
         ),
     ),
     "drop_table": Mode(
         id="drop_table",
-        types=frozenset({"multiple_choice", "free_text", "pick_all_that_apply", "closest_number"}),
+        types=frozenset(
+            {
+                "multiple_choice",
+                "free_text",
+                "pick_all_that_apply",
+                "closest_number",
+                "number_slider",
+            }
+        ),
     ),
     "odd_one_out": Mode(id="odd_one_out", types=frozenset({"multiple_choice"})),
     "whos_that_npc": Mode(id="whos_that_npc", types=frozenset({"pick_from_list"})),
@@ -64,7 +81,14 @@ MODES: dict[str, Mode] = {
     "random_events_only": Mode(
         id="random_events_only",
         types=frozenset(
-            {"multiple_choice", "free_text", "closest_number", "pick_all_that_apply", "ordering"}
+            {
+                "multiple_choice",
+                "free_text",
+                "closest_number",
+                "number_slider",
+                "pick_all_that_apply",
+                "ordering",
+            }
         ),
         # The pool is small: 20 leaves room for the events the room adds on top.
         questions=Bounds(default=10, minimum=1, maximum=20),

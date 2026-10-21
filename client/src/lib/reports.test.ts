@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { questionLine } from './reports'
+import { packAnswer, questionLine } from './reports'
 
 describe('questionLine', () => {
   it('names a Who’s That NPC? question by its NPC, as the form lists it', () => {
@@ -18,5 +18,24 @@ describe('questionLine', () => {
       },
     }
     expect(questionLine(question)).toBe('Abyssal demon')
+  })
+})
+
+describe('packAnswer', () => {
+  it('gives a slider’s answer with its ends and scale, for the admin to check', () => {
+    const question = {
+      id: 'q_1',
+      type: 'number_slider',
+      mode: 'bestiary',
+      payload: {
+        prompt: 'Hitpoints?',
+        answer: 2000,
+        unit: 'hp',
+        min: 100,
+        max: 10000,
+        scale: 'log',
+      },
+    }
+    expect(packAnswer(question)).toBe('2000 hp (100 to 10000, log)')
   })
 })

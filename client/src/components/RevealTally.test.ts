@@ -151,6 +151,23 @@ describe('RevealTally', () => {
     expect(items.querySelector('.chip')).toBeNull()
   })
 
+  it('groups slider guesses by closeness, written with their unit', () => {
+    const { container } = draw(
+      {
+        a: { value: 1_500, correct: false, credit: 0.6, points: 480 },
+        b: { value: 90, correct: false, credit: 0, points: 0 },
+      },
+      {
+        type: 'number_slider',
+        reveal: { answer: 2_000, min: 100, max: 10_000, scale: 'log', unit: 'hp' },
+      },
+    )
+    const [close, further] = lines(container)
+    expect(close).toMatch(/^Close \(1\): Zezima \(you\)/)
+    expect(close).toContain('1,500 hp')
+    expect(further).toMatch(/^Further off \(1\)/)
+  })
+
   it('groups typed answers as the server grades them, said as the first typed it', () => {
     const { container } = draw(
       {

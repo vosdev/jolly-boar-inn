@@ -127,6 +127,25 @@ EXAMPLES: dict[str, Example] = {
         scoring=Scoring.RANK,
         seconds=(20, 8),
     ),
+    "number_slider": Example(
+        payload={
+            "prompt": "What Mining level do you need to mine runite ore?",
+            "answer": 85,
+            "min": 1,
+            "max": 99,
+            "scale": "linear",
+            "unit": "level",
+            "image": "item:451",
+            "explanation": "Runite ore needs 85 Mining.",
+        },
+        valid=[1, 50, 85, 99],
+        invalid=[0, 100, "85", 85.0, True, None],
+        right=85,
+        wrong=50,
+        secret=frozenset({"answer", "explanation"}),
+        scoring=Scoring.SPEED,
+        seconds=(15, 8),
+    ),
     "free_text": Example(
         payload={
             "prompt": "Who was the first to 99 in every skill?",
