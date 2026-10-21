@@ -1,26 +1,37 @@
 <script lang="ts">
   /**
-   * The balloons and red partyhats strewn across the Party Room's floor, behind everything.
+   * What lies strewn across a theme's floor, behind everything: the Party Room's balloons
+   * and red partyhats, the jungle's fruit and the desert's finds.
    *
-   * Drawn only while `party_room` is the page's theme. A theme is nothing but `data-theme`
-   * on <html>, so that attribute is what this watches. Positions and colours are SVG
+   * Drawn only while such a theme is the page's. A theme is nothing but `data-theme` on
+   * <html>, so that attribute is what this watches. Positions and colours are SVG
    * attributes rather than styles, which `style-src 'self'` would refuse.
    */
   import { onMount } from 'svelte'
 
-  import { ART, darker, lighter, scatter } from '../lib/partyFloor'
+  import {
+    ART,
+    darker,
+    FLOORS,
+    type FloorTheme,
+    hasFloor,
+    lighter,
+    scatter,
+    SPRITES,
+  } from '../lib/floor'
 
-  let party = $state(false)
+  let theme = $state<FloorTheme | null>(null)
   let width = $state(0)
   let height = $state(0)
   const seed = Math.floor(Math.random() * 2 ** 32)
 
-  const drops = $derived(party ? scatter(width, height, seed) : [])
+  const drops = $derived(theme === null ? [] : scatter(FLOORS[theme], width, height, seed))
 
   onMount(() => {
     const root = document.documentElement
     const look = (): void => {
-      party = root.dataset.theme === 'party_room'
+      const name = root.dataset.theme
+      theme = hasFloor(name) ? name : null
     }
     look()
     const watcher = new MutationObserver(look)
@@ -29,11 +40,23 @@
   })
 </script>
 
-{#if party}
-  <div class="party-floor" aria-hidden="true" bind:clientWidth={width} bind:clientHeight={height}>
+{#if theme !== null}
+  <div class="floor" aria-hidden="true" bind:clientWidth={width} bind:clientHeight={height}>
     <svg {width} {height} focusable="false">
       {#each drops as drop, index (index)}
-        {#if drop.kind === 'hat'}
+        {#if drop.kind === 'sprite'}
+          {@const art = SPRITES[drop.sprite]}
+          <!-- Whole pixels either way round, so the sprite stays as sharp as in game. -->
+          <image
+            href={art.url}
+            x={-Math.floor(art.width / 2)}
+            y={-Math.floor(art.height / 2)}
+            width={art.width}
+            height={art.height}
+            transform="translate({drop.x} {drop.y}){drop.mirrored ? ' scale(-1 1)' : ''}"
+            data-drop={drop.sprite}
+          />
+        {:else if drop.kind === 'hat'}
           <g
             transform="translate({drop.x} {drop.y}) rotate({drop.angle})"
             stroke-linejoin="round"
@@ -82,7 +105,7 @@
 <style>
   /* Under #app's content, which is its own stacking context so that -1 stops above the
      floor texture on <body> rather than beneath it. */
-  .party-floor {
+  .floor {
     position: absolute;
     inset: 0;
     z-index: -1;

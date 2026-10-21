@@ -146,7 +146,8 @@
 
 /* The desert town, and the whitewashed stone house style: white walls framed in light
    timber, sand underfoot, a row of red-brown dentils under every roofline. The lightest
-   of the three, for a garden or a sunny window. */
+   of the three, for a garden or a sunny window. Cacti, camels, waterskins and kalphite
+   workers lie about the sand, sparsely (`Floor.svelte`). */
 [data-theme='pollnivneach'] {
   /* The sand, and the whitewash. */
   --bg: #dcc48a;
@@ -273,7 +274,7 @@
 /* The Falador Party Room, as it is in game: a checkered floor strewn with balloons, whitewashed walls, and the long table under its blue cloth. The page is
    the floor, a panel is the wall, and the blue is the cloth. The floor is two blues, not
    the game's grey and sand, because sand next to the clue scroll reads as more scroll. The balloons and Party
-   Pete's red partyhats are scattered by `PartyFloor.svelte`, fresh each visit, because a
+   Pete's red partyhats are scattered by `Floor.svelte`, fresh each visit, because a
    tile repeats and the floor of a drop party never does. */
 [data-theme='party_room'] {
   /* The lighter flagstone, and the wall. */
@@ -403,7 +404,8 @@
 
 /* Karamja and Ape Atoll under a noon sun: bright grass between the palms, bark-cloth panels
    trimmed with bamboo, and the bamboo frame as the stage's sheet. The light one of the three
-   green places, so the grass is sunlit yellow-green and the panels nearly white. */
+   green places, so the grass is sunlit yellow-green and the panels nearly white. Bananas,
+   monkey nuts and other fruit lie in the grass (`Floor.svelte`). */
 [data-theme='jungle'] {
   /* The grass, and bark cloth bleached in the sun. */
   --bg: #9cbc4a;
@@ -741,7 +743,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  /* The party_room floor is drawn at z-index -1 in here, above <body>'s texture. */
+  /* A theme's strewn floor is drawn at z-index -1 in here, above <body>'s texture. */
   position: relative;
   isolation: isolate;
 }
