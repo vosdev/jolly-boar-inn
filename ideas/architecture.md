@@ -280,8 +280,10 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `hello` | `session` | all | Must be first. Replies `welcome`. |
 | `ping` | | all | Replies `pong`. |
 | `answer` | `question_id`, `value` | all | Stored if open, unanswered and allowed. `answer_ack` or `error`. |
-| `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. |
+| `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. Teamless in a team game: `bad_state`. |
 | `set_profile` | `display_name?`, `avatar?` | all | Lobby only. Validated exactly like a join. One change a second. Clears `editing`. |
+| `set_team` | `team` | all | Lobby of a team game, not while ready; a god not in the room is `bad_value`. One change a second. |
+| `move_team` | `player_id`, `team` | admin | Lobby of a team game: anyone, ready or not, connected or not. Their ready stays. |
 | `editing` | `on: bool` | all | Name field focused. Lobby only, else ignored. An `on` within 1 s of a change is ignored; 60 s unsent, a disconnect or `start_game` clears it. |
 | `start_game` | | admin | `lobby → playing`. |
 | `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
@@ -296,7 +298,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
 | `room_updated` | `room`, `players`, `standings`? | Join, leave, promote, kick, rename, status change, a splash or standings starting (with `standings`), a ready change that moves `next_at`. |
-| `players_updated` | `players` | A ready, editing, connect or disconnect that changed players only. |
+| `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
 | `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
@@ -387,7 +389,9 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
   for that code, if any.
 
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable.
-- `start_game` needs an admin, a question and a connected player. It resets `expires_at`.
+- `start_game` needs an admin, a question and a connected player. It resets `expires_at`. A team
+  game also needs every player, connected or not, in a team and players in two teams or more.
+  Teams are fixed from then on; `players.team` is written before memory.
 - A deleted room closes its sockets with 4004, and its code is free again.
 
 One task per room runs `_run_questions(room, index, resume_at)`:
@@ -415,7 +419,8 @@ splash / open / reveal ─end_round─▶ standings ─▶ next round's splash (
 The ready check (`rooms/ready.py`):
 
 - `ready` is an in-memory flag, never stored; a restart costs one tap.
-- In the lobby it is advice. Start below the threshold asks first, and the server allows it.
+- In the lobby it is advice. Start below the threshold asks first, and the server allows it. In a
+  team game only a player with a team can ready up, and must un-ready to change team.
 - On a splash, eligible players are the connected ones who can answer. The threshold is
   `min(ceil(0.8 × eligible), eligible - 1)`, and 1 for a room of one.
 - The splash has no clock until the threshold. Then it counts 10 s, or 3 s once everyone is ready.

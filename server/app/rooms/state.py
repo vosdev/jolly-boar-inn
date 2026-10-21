@@ -58,7 +58,7 @@ from app.rooms.errors import (
     RoomNotFound,
 )
 from app.rooms.joins import REQUEST_STALE_SECONDS, Joins
-from app.rooms.lobby import EDITING_SECONDS, Lobby
+from app.rooms.lobby import EDITING_SECONDS, Lobby, _check_teams_ready
 from app.rooms.loop import (
     ALL_ANSWERED_PAUSE_SECONDS,
     Loop,
@@ -660,6 +660,8 @@ class RoomManager(Joins, Lobby, Loop):
                 raise BadState(f"room {code} has no questions")
             if not room.sockets:
                 raise BadState("nobody is connected to play")
+            if room.settings.teams:
+                _check_teams_ready(room)
             # A room made near its expiry must not expire mid-game, so it gets a full
             # lifetime from here.
             expires_at = datetime.now(UTC) + timedelta(days=self.settings.room_ttl_days)

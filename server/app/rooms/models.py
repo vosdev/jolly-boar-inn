@@ -93,10 +93,11 @@ class Player:
     # splash, so a player hammering the button cannot stop and restart the room's
     # countdown over and over. The lobby has ``CHANGE_COOLDOWN`` instead.
     unreadied: bool = False
-    # When this player last changed their lobby ready or their profile, on the manager's
+    # When this player last changed their lobby ready, profile or team, on the manager's
     # monotonic clock. Each change is a broadcast to every socket in the room.
     ready_changed_at: float = field(default=-math.inf, repr=False)
     profile_changed_at: float = field(default=-math.inf, repr=False)
+    team_changed_at: float = field(default=-math.inf, repr=False)
     # Has the name field focused in the lobby. In memory only, like ``ready``, and advice only:
     # it holds up neither the ready check nor Start.
     editing: bool = False

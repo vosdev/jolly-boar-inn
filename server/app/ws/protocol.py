@@ -282,6 +282,21 @@ class Ready(_Message):
     ready: bool = Field(strict=True)
 
 
+class SetTeam(_Message):
+    """Join one of the room's teams. Lobby of a team game only, and not while ready."""
+
+    t: Literal["set_team"]
+    team: God
+
+
+class MoveTeam(_Message):
+    """Put any player on one of the room's teams, keeping their ready. Lobby only."""
+
+    t: Literal["move_team"]
+    player_id: UUID
+    team: God
+
+
 class Editing(_Message):
     """The name field gained focus (``on``), or lost it. Lobby only; ignored anywhere else."""
 
@@ -303,6 +318,8 @@ ClientMessage = Annotated[
     | DecideRequest
     | SetProfile
     | Ready
+    | SetTeam
+    | MoveTeam
     | Editing,
     Field(discriminator="t"),
 ]
@@ -346,8 +363,8 @@ class RoomUpdated(_Message):
 
 
 class PlayersUpdated(_Message):
-    """A ready tap, an ``editing`` change, connect or disconnect that changed the players
-    and nothing else."""
+    """A ready tap, a team change, an ``editing`` change, connect or disconnect that changed
+    the players and nothing else."""
 
     t: Literal["players_updated"] = "players_updated"
     players: list[PlayerView]

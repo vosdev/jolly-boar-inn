@@ -21,6 +21,8 @@ export type ClientMessage =
   | DecideRequest
   | SetProfile
   | Ready
+  | SetTeam
+  | MoveTeam
   | Editing
 export type ServerMessage =
   | Welcome
@@ -112,6 +114,21 @@ export interface SetProfile {
 export interface Ready {
   t: 'ready'
   ready: boolean
+}
+/**
+ * Join one of the room's teams. Lobby of a team game only, and not while ready.
+ */
+export interface SetTeam {
+  t: 'set_team'
+  team: 'saradomin' | 'zamorak' | 'guthix' | 'armadyl' | 'bandos' | 'zaros'
+}
+/**
+ * Put any player on one of the room's teams, keeping their ready. Lobby only.
+ */
+export interface MoveTeam {
+  t: 'move_team'
+  player_id: string
+  team: 'saradomin' | 'zamorak' | 'guthix' | 'armadyl' | 'bandos' | 'zaros'
 }
 /**
  * The name field gained focus (`on`), or lost it. Lobby only; ignored anywhere else.
@@ -411,8 +428,8 @@ export interface RoomUpdated {
   standings?: Standing[]
 }
 /**
- * A ready tap, an `editing` change, connect or disconnect that changed the players
- * and nothing else.
+ * A ready tap, a team change, an `editing` change, connect or disconnect that changed
+ * the players and nothing else.
  */
 export interface PlayersUpdated {
   t: 'players_updated'

@@ -116,11 +116,13 @@
           "end_round": "#/$defs/EndRound",
           "hello": "#/$defs/Hello",
           "kick": "#/$defs/Kick",
+          "move_team": "#/$defs/MoveTeam",
           "ping": "#/$defs/Ping",
           "promote": "#/$defs/Promote",
           "ready": "#/$defs/Ready",
           "rotate_key": "#/$defs/RotateKey",
           "set_profile": "#/$defs/SetProfile",
+          "set_team": "#/$defs/SetTeam",
           "skip": "#/$defs/Skip",
           "start_game": "#/$defs/StartGame"
         },
@@ -165,6 +167,12 @@
         },
         {
           "$ref": "#/$defs/Ready"
+        },
+        {
+          "$ref": "#/$defs/SetTeam"
+        },
+        {
+          "$ref": "#/$defs/MoveTeam"
         },
         {
           "$ref": "#/$defs/Editing"
@@ -394,6 +402,38 @@
       "title": "ModeSettings",
       "type": "object"
     },
+    "MoveTeam": {
+      "additionalProperties": false,
+      "description": "Put any player on one of the room's teams, keeping their ready. Lobby only.",
+      "properties": {
+        "t": {
+          "const": "move_team",
+          "type": "string"
+        },
+        "player_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "team": {
+          "enum": [
+            "saradomin",
+            "zamorak",
+            "guthix",
+            "armadyl",
+            "bandos",
+            "zaros"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "player_id",
+        "team"
+      ],
+      "title": "MoveTeam",
+      "type": "object"
+    },
     "OpenQuestion": {
       "additionalProperties": false,
       "description": "What every socket sees while a question is open: ``client_view`` only, never the\nanswer or the raw payload (section 3, \"What the server withholds from the admin\").",
@@ -608,7 +648,7 @@
     },
     "PlayersUpdated": {
       "additionalProperties": false,
-      "description": "A ready tap, an ``editing`` change, connect or disconnect that changed the players\nand nothing else.",
+      "description": "A ready tap, a team change, an ``editing`` change, connect or disconnect that changed\nthe players and nothing else.",
       "properties": {
         "t": {
           "const": "players_updated",
@@ -1201,6 +1241,33 @@
         "t"
       ],
       "title": "SetProfile",
+      "type": "object"
+    },
+    "SetTeam": {
+      "additionalProperties": false,
+      "description": "Join one of the room's teams. Lobby of a team game only, and not while ready.",
+      "properties": {
+        "t": {
+          "const": "set_team",
+          "type": "string"
+        },
+        "team": {
+          "enum": [
+            "saradomin",
+            "zamorak",
+            "guthix",
+            "armadyl",
+            "bandos",
+            "zaros"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "team"
+      ],
+      "title": "SetTeam",
       "type": "object"
     },
     "Skip": {
