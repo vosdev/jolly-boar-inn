@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   CUT,
+  ENTER_MOVE_MS,
   HOST_IN_MS,
   HOST_OUT_MS,
   MOVE_MS,
@@ -49,10 +50,20 @@ describe('handoffFor', () => {
     expect(handoffFor(open, castOf({ host: 'bob_barter', scene: 'q1' }), true)).toEqual(CUT)
   })
 
-  it('leaves a random event to its own entrance', () => {
+  it('clears the sheet before a random event’s entrance slides the scroll', () => {
     const event = castOf({ host: 'bob_barter', guest: 'evil_bob', entering: true })
+    expect(handoffFor(round, event, true)).toEqual({
+      kind: 'enter',
+      out: WORDS_OUT_MS,
+      move: ENTER_MOVE_MS,
+      in: 0,
+      arrival: WORDS_OUT_MS + ENTER_MOVE_MS,
+    })
+  })
+
+  it('cuts to a random event already standing', () => {
+    const event = castOf({ host: 'bob_barter', guest: 'evil_bob' })
     expect(handoffFor(round, event, true)).toEqual(CUT)
-    expect(handoffFor(round, { ...event, entering: false }, true)).toEqual(CUT)
   })
 
   it('swaps an event NPC still standing for the host', () => {

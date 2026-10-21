@@ -9,7 +9,7 @@
  * shorter hold and still settles before `answerable_at`.
  */
 
-/** The host fades out and the scroll slides over in 375 ms; the NPC is in 600 ms in. */
+/** Typing never starts sooner: the old words fade and the scroll slides over by 525 ms. */
 export const ENTRANCE_MS = 600
 /** Where an event's typing starts when the hold leaves room for it. */
 export const TYPE_FROM_MS = 900

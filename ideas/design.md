@@ -227,8 +227,8 @@ Round 2 of 5 · 5 questions
   fade off (150 ms), the scroll moves to the next screen's size and place (250 ms), and the new
   words fade up. When somebody else is to stand there (the lobby's hero, the Wise Old Man, an
   event NPC still standing), the host leaves with the words (200 ms) and the next walks on before
-  them (200 ms). An open question's reveal, an event's own entrance and return (§12), a hidden
-  page and reduced motion cut instead.
+  them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
+  event clears the words before its own entrance and return (§12).
 - **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
   blurb once the scroll is in place, and a question's stem from 400 ms in the server's hold before
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
@@ -359,9 +359,10 @@ Everything happens inside the server's hold before `answerable_at`, timed to the
 wait costs nobody points and the server times nothing:
 
 ```
-  0 ms   the NPC's name is on the scroll, whole; the scroll takes the text's height
-         the host fades out; the scroll slides left into the space it leaves   ≤ 375 ms
-225 ms   the event NPC fades in on the right                                   ≤ 375 ms
+  0 ms   the round's words fade off the sheet                                  ≤ 150 ms
+150 ms   the host fades out; the empty scroll slides left to the text's height ≤ 375 ms
+375 ms   the event NPC fades in on the right                                   ≤ 375 ms
+525 ms   the NPC's name fades up on the scroll                                 ≤ 150 ms
 900 ms   the NPC's `intro` "types" in at 50 letters a second
 then     a pause of 0.5–1 s, and the plain question types in under it, in bold
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
@@ -378,9 +379,9 @@ answerable_at: the answers appear under the line and the timer bar starts
 - In the reveal the intro goes, its lines left blank so the sheet keeps its height, the NPC says
   its `right` or `wrong` line beside the points, and the `explanation` goes on the scroll, in two
   lines the sheet keeps from the start.
-- The return takes the reveal's last 900 ms, off `next_at`, one step at a time: the NPC fades out
-  (225 ms), the scroll slides back (375 ms), the host fades in (300 ms). A skipped reveal hands
-  the stage back as §8.
+- The return takes the reveal's last 900 ms, off `next_at`, one step at a time: the NPC and the
+  words fade out (225 ms), the scroll slides back (375 ms), the host fades in (300 ms). A skipped
+  reveal hands the stage back as §8.
 - A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
 - With reduced motion the NPC replaces the host in one frame and the text shows whole. The
   answers still wait, because that is a rule of the game, not an animation.
