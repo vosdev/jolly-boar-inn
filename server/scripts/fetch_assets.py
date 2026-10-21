@@ -3,13 +3,13 @@
 ``data/assets.json`` maps each target, a path under ``client/src/assets/``, to the wiki file
 it comes from. Titles are written out rather than derived from an id, because the wiki has
 several chatheads for some NPCs and the owner picks which. A target's top folder is its
-category (``items``, ``npcs``, ``pets``, ``themes``, ``trophies``): the folder a client lookup
-already globs, so a fetched file is used on the next build with no code change. ``logo`` is the
-exception: the sources ``make logo`` draws the owner's logo from, which the client never looks
-for. ``pictures`` is the other: ``pictures/<item|npc>/<id>.<ext>``, a question's picture, lands
-in ``.pictures/`` at the repo root, where the build never sees it under a name that is the
-answer. Every run but a dry one ends with ``build_pictures.py``, which copies each into the
-client under a random name, even when a fetch failed.
+category (``items``, ``npcs``, ``pets``, ``teams``, ``themes``, ``trophies``): the folder a
+client lookup already globs, so a fetched file is used on the next build with no code change.
+``logo`` is the exception: the sources ``make logo`` draws the owner's logo from, which the
+client never looks for. ``pictures`` is the other: ``pictures/<item|npc>/<id>.<ext>``, a
+question's picture, lands in ``.pictures/`` at the repo root, where the build never sees it
+under a name that is the answer. Every run but a dry one ends with ``build_pictures.py``,
+which copies each into the client under a random name, even when a fetch failed.
 
 Every request goes through ``wiki.py``: the operator's ``WIKI_USER_AGENT`` and one request
 a second. One ``imageinfo`` query resolves up to 50 titles to upload URLs, then each file
@@ -61,7 +61,7 @@ API = "https://oldschool.runescape.wiki/api.php"
 BATCH = 50
 # The folders a client lookup globs, and the logo's sources; a target anywhere else would
 # never be used.
-CATEGORIES = ("items", "logo", "npcs", "pets", "pictures", "themes", "trophies")
+CATEGORIES = ("items", "logo", "npcs", "pets", "pictures", "teams", "themes", "trophies")
 # What those globs accept, so a fetched file is always one the client picks up.
 EXTENSIONS = ("avif", "webp", "png", "jpg", "jpeg", "svg")
 TARGET = re.compile(

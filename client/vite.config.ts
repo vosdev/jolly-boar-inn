@@ -40,6 +40,8 @@ export default defineConfig({
       'gen-protocol.test.ts',
     ],
     setupFiles: ['src/test-setup.ts'],
+    // Vitest hands any other stylesheet over empty, `?raw` too; `lib/teams.test.ts` reads this one.
+    css: { include: [/\/src\/app\.css/] },
   },
   server: {
     port: 5173,

@@ -38,6 +38,8 @@ client/src/assets/logo/*
 !client/src/assets/trophies/placeholder/
 # Wiki item icons, the themes' emblems (make fetch-assets): game assets too
 client/src/assets/themes/*.png
+# The gods' symbols, the teams' logos (make fetch-assets)
+client/src/assets/teams/*.png
 # Question pictures: staged under their asset ids, copied into the client under random names
 .pictures/
 client/public/pictures/

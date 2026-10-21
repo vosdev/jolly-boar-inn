@@ -425,13 +425,14 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 | Hosts and event NPCs | Wiki chatheads (§8), `make fetch-assets` | No, fetched; the boar is committed |
 | Pet art | Wiki chatheads and inventory icons, `make fetch-assets` | No, fetched; a pet with no file shows the boar |
 | Theme emblems | Wiki item icons, `make fetch-assets` | No, fetched; inline placeholder marks |
+| Team logos | Wiki god symbols, `make fetch-assets` | No, fetched; inline shields in the god's colours |
 | Clue scroll, logo, palettes, icons | Original | **Yes** |
 
 - Fetching keeps the checkout small. Fetch scripts refuse to run without the operator's own
   User-Agent, per the wiki's terms.
 - Every art slot takes a file with no code change: the sign, the trophies, the pets, the NPCs, the
-  emblems (`client/src/assets/themes/<theme>.<ext>`). The display face and the logo are the
-  owner's, and no D task waits on them.
+  emblems (`client/src/assets/themes/<theme>.<ext>`), the team logos (`assets/teams/<god>.<ext>`).
+  The display face and the logo are the owner's, and no D task waits on them.
 
 **Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
 never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
