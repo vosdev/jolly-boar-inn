@@ -23,6 +23,7 @@ export type ClientMessage =
   | Ready
   | SetTeam
   | MoveTeam
+  | SetTeams
   | Editing
 export type ServerMessage =
   | Welcome
@@ -129,6 +130,17 @@ export interface MoveTeam {
   t: 'move_team'
   player_id: string
   team: 'saradomin' | 'zamorak' | 'guthix' | 'armadyl' | 'bandos' | 'zaros'
+}
+/**
+ * Admin: the whole list of a team game's gods, in the lobby. Names are checked by the
+ * manager, so an unknown god is `bad_value` like any other wrong list.
+ */
+export interface SetTeams {
+  t: 'set_teams'
+  /**
+   * @maxItems 16
+   */
+  teams: string[]
 }
 /**
  * The name field gained focus (`on`), or lost it. Lobby only; ignored anywhere else.

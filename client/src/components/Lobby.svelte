@@ -27,6 +27,8 @@
    * waits for a team, and Start for everyone to have one, in two teams or more (section 7 of
    * ideas/architecture.md); each says why. The host moves a player from the same menu as
    * kick, an admin too, since admins cannot be kicked but can play for the wrong god.
+   * The host also adds a god the room lacks and removes one, never below two; removing a
+   * team with players asks first, since they go back to no team and lose their ready.
    *
    * The code copies the invite link. An invite-only room's link carries its key, which
    * only admins are sent, and the key is never drawn, because lobbies get streamed; only a
@@ -49,7 +51,7 @@
   import { readyThreshold } from '../lib/ready'
   import { players, room, you } from '../lib/stores'
   import { watchTheme } from '../lib/theme'
-  import { MIN_TEAMS, TEAMS, type TeamId } from '../lib/teams'
+  import { MIN_TEAMS, TEAMS, teamsWith, type TeamId } from '../lib/teams'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import type { RoomSocket } from '../lib/ws'
   import ConfirmDialog from './ConfirmDialog.svelte'
@@ -269,6 +271,39 @@
     }
   }
 
+  const canRemoveTeam = $derived(isAdmin && roomTeams.length > MIN_TEAMS)
+  const missingTeams = $derived(isAdmin ? TEAMS.filter((t) => !teamIds.includes(t.id)) : [])
+
+  function setTeams(id: TeamId, on: boolean): void {
+    socket.send({ t: 'set_teams', teams: teamsWith(teamIds, id, on) })
+  }
+
+  function addTeam(): void {
+    const [first, ...rest] = missingTeams.map((t) => ({
+      label: t.name,
+      // The dialog's other choices run without closing it, so each closes it itself.
+      act: () => {
+        asking = null
+        setTeams(t.id, true)
+      },
+    }))
+    if (first === undefined) return
+    asking = { message: 'Add which team?', label: first.label, act: first.act, also: rest }
+  }
+
+  function removeTeam(id: TeamId, name: string, members: number): void {
+    if (members === 0) {
+      setTeams(id, false)
+      return
+    }
+    const who = members === 1 ? 'Its player goes' : `Its ${members} players go`
+    asking = {
+      message: `Remove ${name}? ${who} back to no team and must ready up again.`,
+      label: 'Remove',
+      act: () => setTeams(id, false),
+    }
+  }
+
   function promote(player: PlayerView): void {
     asking = {
       message: `Make ${player.display_name} a host? This can't be undone.`,
@@ -445,20 +480,32 @@
           {#each roomTeams as god (god.id)}
             {@const members = $players.filter((p) => p.team === god.id)}
             <section class="team" data-team={god.id}>
-              <button
-                type="button"
-                class="join"
-                aria-label="{god.name}, {members.length} {members.length === 1
-                  ? 'player'
-                  : 'players'}"
-                aria-pressed={yourTeam === god.id}
-                disabled={youReady}
-                onclick={() => joinTeam(god.id)}
-              >
-                <span class="logo"><TeamLogo team={god.id} /></span>
-                <span class="team-name">{god.name}</span>
-                <span class="aside">{members.length}</span>
-              </button>
+              <div class="team-head">
+                <button
+                  type="button"
+                  class="join"
+                  aria-label="{god.name}, {members.length} {members.length === 1
+                    ? 'player'
+                    : 'players'}"
+                  aria-pressed={yourTeam === god.id}
+                  disabled={youReady}
+                  onclick={() => joinTeam(god.id)}
+                >
+                  <span class="logo"><TeamLogo team={god.id} /></span>
+                  <span class="team-name">{god.name}</span>
+                  <span class="aside">{members.length}</span>
+                </button>
+                {#if canRemoveTeam}
+                  <button
+                    type="button"
+                    class="glyph remove"
+                    aria-label="Remove {god.name}"
+                    onclick={() => removeTeam(god.id, god.name, members.length)}
+                  >
+                    <Icon name="trash" />
+                  </button>
+                {/if}
+              </div>
               {#if members.length === 0}
                 <p class="aside empty">Nobody yet</p>
               {:else}
@@ -466,6 +513,9 @@
               {/if}
             </section>
           {/each}
+          {#if missingTeams.length > 0}
+            <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
+          {/if}
           {#if teamless.length > 0}
             <section class="team">
               <h3 class="no-team">No team</h3>
@@ -713,6 +763,21 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+  }
+
+  .team-head {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .team-head .join {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .add-team {
+    align-self: flex-start;
+    min-height: 44px;
   }
 
   /* The god's colour sits on its edge, never behind the words, so the name reads in the

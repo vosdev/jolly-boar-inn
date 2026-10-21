@@ -314,3 +314,109 @@ def test_both_messages_are_refused_in_a_room_without_teams(
         ws.send_json({"t": "ready", "ready": True})  # a room without teams readies as ever
         assert next_of(ws, "players_updated")["players"][0]["ready"] is True
     assert [p["team"] for p in held(client, code)["players"]] == [None, None]
+
+
+# --- Adding and removing teams -----------------------------------------------------
+
+
+def test_an_admin_adds_and_removes_teams_and_everyone_hears_it(
+    client: TestClient, team_lobby: dict[str, Any], db: Any, evict: Any
+) -> None:
+    code, admin, player = team_lobby["code"], team_lobby["admin"], team_lobby["player"]
+    with (
+        client.websocket_connect(f"/ws/{code}") as one,
+        client.websocket_connect(f"/ws/{code}") as two,
+    ):
+        hello(one, admin["session"])
+        hello(two, player["session"])
+        next_of(one, "players_updated")
+        for teams in (["saradomin", "zamorak", "guthix", "zaros"], ["zamorak", "zaros"]):
+            one.send_json({"t": "set_teams", "teams": teams})
+            for ws in (one, two):
+                assert next_of(ws, "room_updated")["room"]["settings"]["teams"] == teams
+    rows = db("select settings from rooms where code = $1", code.upper())
+    assert rows[0]["settings"]["teams"] == ["zamorak", "zaros"]
+    assert evict(code)
+    assert held(client, code)["room"]["settings"]["teams"] == ["zamorak", "zaros"]
+
+
+def test_removing_a_team_sends_its_players_to_no_team_unready(
+    client: TestClient, team_lobby: dict[str, Any], db: Any
+) -> None:
+    code, admin, player = team_lobby["code"], team_lobby["admin"], team_lobby["player"]
+    with (
+        client.websocket_connect(f"/ws/{code}") as one,
+        client.websocket_connect(f"/ws/{code}") as two,
+    ):
+        hello(one, admin["session"])
+        hello(two, player["session"])
+        next_of(one, "players_updated")
+        move(one, admin, "saradomin")
+        next_of(two, "players_updated")
+        for frame in ({"t": "set_team", "team": "zamorak"}, {"t": "ready", "ready": True}):
+            two.send_json(frame)
+            for ws in (one, two):
+                next_of(ws, "players_updated")
+        one.send_json({"t": "set_teams", "teams": ["saradomin", "guthix"]})
+        for ws in (one, two):
+            players = next_of(ws, "room_updated")["players"]
+            assert teams_of(players) == {"Admin": "saradomin", "Zezima": None}
+            assert [p["ready"] for p in players] == [False, False]
+    row = db("select team from players where id = $1", UUID(player["player"]["id"]))
+    assert row[0]["team"] is None
+
+
+@pytest.mark.parametrize(
+    "teams",
+    [
+        ["saradomin"],
+        [*GODS, "saradomin"],
+        ["saradomin", "saradomin"],
+        ["saradomin", "seren"],
+        ["zamorak", "saradomin"],
+        [],
+    ],
+    ids=["one", "seven", "duplicate", "unknown", "out_of_order", "none"],
+)
+def test_set_teams_refuses_any_other_list(
+    client: TestClient, team_lobby: dict[str, Any], teams: list[str]
+) -> None:
+    code, admin = team_lobby["code"], team_lobby["admin"]
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, admin["session"])
+        assert refused(ws, {"t": "set_teams", "teams": teams}) == "bad_value"
+    assert held(client, code)["room"]["settings"]["teams"] == TWO
+
+
+def test_set_teams_from_a_player_is_not_admin(
+    client: TestClient, team_lobby: dict[str, Any]
+) -> None:
+    code, player = team_lobby["code"], team_lobby["player"]
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, player["session"])
+        assert refused(ws, {"t": "set_teams", "teams": [*TWO, "guthix"]}) == "not_admin"
+    assert held(client, code)["room"]["settings"]["teams"] == TWO
+
+
+def test_set_teams_is_refused_once_the_game_starts(
+    client: TestClient, team_lobby: dict[str, Any]
+) -> None:
+    code, admin, player = team_lobby["code"], team_lobby["admin"], team_lobby["player"]
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, admin["session"])
+        move(ws, admin, "saradomin")
+        move(ws, player, "zamorak")
+        ws.send_json({"t": "start_game"})
+        next_of(ws, "room_updated")
+        assert refused(ws, {"t": "set_teams", "teams": [*TWO, "guthix"]}) == "bad_state"
+    assert held(client, code)["room"]["settings"]["teams"] == TWO
+
+
+def test_a_room_without_teams_cannot_become_a_team_room(
+    client: TestClient, lobby: dict[str, Any]
+) -> None:
+    code, admin = lobby["code"], lobby["admin"]
+    with client.websocket_connect(f"/ws/{code}") as ws:
+        hello(ws, admin["session"])
+        assert refused(ws, {"t": "set_teams", "teams": TWO}) == "bad_state"
+    assert held(client, code)["room"]["settings"]["teams"] == []

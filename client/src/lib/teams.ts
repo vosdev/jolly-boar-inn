@@ -42,6 +42,11 @@ export const TEAMS: readonly Team[] = [
 /** The fewest gods a team game has; the server refuses fewer. */
 export const MIN_TEAMS = 2
 
+/** `teams` with `id` added or (`on` false) taken out, in `TEAM_IDS` order, as `set_teams` sends it. */
+export function teamsWith(teams: readonly TeamId[], id: TeamId, on: boolean): TeamId[] {
+  return TEAM_IDS.filter((t) => (t === id ? on : teams.includes(t)))
+}
+
 /** The team called `id`. */
 export function team(id: TeamId): Team {
   return TEAMS.find((t) => t.id === id)!

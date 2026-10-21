@@ -9,7 +9,7 @@ import asyncpg
 from app.rooms.errors import BadAvatar, BadState, BadValue, NameTaken
 from app.rooms.loop import _recount_splash
 from app.rooms.models import Player, Room, _require_admin, normalize_name
-from app.rooms.teams import God
+from app.rooms.teams import God, check_teams
 
 # Seconds between one player's lobby ready changes, and between their profile changes.
 CHANGE_COOLDOWN = 1.0
@@ -150,6 +150,45 @@ class Lobby:
                 return
             await self._store_team(target, team)
             update = self._players_updated(room, room.view())
+        self._broadcast(update)
+
+    async def set_teams(self, code: str, by: Player, teams: list[str]) -> None:
+        """Admin: change which gods a team game has, in the lobby, keeping 2 to 6 of them.
+
+        A room without teams stays one, and a team room stays one. Players on a dropped
+        team go back to no team and lose their ready: they promised it to a team that is
+        gone. The rows are written before memory, in one transaction.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            if not room.settings.teams:
+                raise BadState("this room is not a team game")
+            if room.status != "lobby":
+                raise BadState("teams are fixed once the game has started")
+            try:
+                gods = check_teams(teams)
+            except ValueError as exc:
+                raise BadValue(str(exc)) from None
+            if gods == room.settings.teams:
+                return
+            settings = room.settings.model_copy(update={"teams": gods})
+            dropped = [p for p in room.players.values() if p.team and p.team not in gods]
+            async with pool.acquire() as conn, conn.transaction():
+                await conn.execute(
+                    "update rooms set settings = $2 where id = $1", room.id, settings.model_dump()
+                )
+                await conn.execute(
+                    "update players set team = null where id = any($1::uuid[])",
+                    [p.id for p in dropped],
+                )
+            room.settings = settings
+            for target in dropped:
+                target.team = None
+                target.ready = False
+            update = self._room_updated(room)
         self._broadcast(update)
 
     async def _store_team(self, target: Player, team: God) -> None:

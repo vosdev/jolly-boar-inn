@@ -600,6 +600,53 @@ describe('Lobby', () => {
       expect(sent).toEqual([{ t: 'move_team', player_id: 'c', team: 'zamorak' }])
     })
 
+    it('lets an admin add a god the room lacks', async () => {
+      lobby([HOST, WOOX], TEAMS_ROOM)
+      await fireEvent.click(screen.getByRole('button', { name: 'Add a team…' }))
+      expect(dialog().textContent).toContain('Add which team?')
+      expect(within(dialog()).queryByRole('button', { name: 'Zamorak' })).toBeNull()
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Bandos' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(sent).toEqual([
+        { t: 'set_teams', teams: ['saradomin', 'zamorak', 'guthix', 'bandos'] },
+      ])
+    })
+
+    it('offers no add once all six gods play', () => {
+      const all = ['saradomin', 'zamorak', 'guthix', 'armadyl', 'bandos', 'zaros'] as const
+      lobby([HOST, WOOX], { ...TEAMS_ROOM, settings: { ...TEAMS_ROOM.settings, teams: [...all] } })
+      expect(screen.queryByRole('button', { name: 'Add a team…' })).toBeNull()
+      expect(screen.getAllByRole('button', { name: /^Remove / })).toHaveLength(6)
+    })
+
+    it('removes an empty team at once, and asks before removing one with players', async () => {
+      lobby([HOST, { ...WOOX, team: 'zamorak' }], TEAMS_ROOM)
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove Guthix' }))
+      expect(sent).toEqual([{ t: 'set_teams', teams: ['saradomin', 'zamorak'] }])
+      sent = []
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove Zamorak' }))
+      expect(sent).toEqual([])
+      expect(dialog().textContent).toContain('Remove Zamorak? Its player goes back to no team')
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Remove' }))
+      expect(sent).toEqual([{ t: 'set_teams', teams: ['saradomin', 'guthix'] }])
+    })
+
+    it('never offers to go below two teams', () => {
+      const two = {
+        ...TEAMS_ROOM,
+        settings: { ...TEAMS_ROOM.settings, teams: ['saradomin', 'zamorak'] },
+      }
+      lobby([HOST, WOOX], two as RoomView)
+      expect(screen.queryByRole('button', { name: /^Remove / })).toBeNull()
+      expect(screen.getByRole('button', { name: 'Add a team…' })).toBeTruthy()
+    })
+
+    it('gives a player no add or remove control', () => {
+      lobby([HOST, WOOX], TEAMS_ROOM, WOOX)
+      expect(screen.queryByRole('button', { name: 'Add a team…' })).toBeNull()
+      expect(screen.queryByRole('button', { name: /^Remove / })).toBeNull()
+    })
+
     it('gives a player no move control', () => {
       lobby([HOST, WOOX, LYNX], TEAMS_ROOM, WOOX)
       expect(screen.queryByRole('button', { name: /move team/ })).toBeNull()

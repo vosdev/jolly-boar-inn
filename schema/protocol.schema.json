@@ -123,6 +123,7 @@
           "rotate_key": "#/$defs/RotateKey",
           "set_profile": "#/$defs/SetProfile",
           "set_team": "#/$defs/SetTeam",
+          "set_teams": "#/$defs/SetTeams",
           "skip": "#/$defs/Skip",
           "start_game": "#/$defs/StartGame"
         },
@@ -173,6 +174,9 @@
         },
         {
           "$ref": "#/$defs/MoveTeam"
+        },
+        {
+          "$ref": "#/$defs/SetTeams"
         },
         {
           "$ref": "#/$defs/Editing"
@@ -1302,6 +1306,30 @@
         "team"
       ],
       "title": "SetTeam",
+      "type": "object"
+    },
+    "SetTeams": {
+      "additionalProperties": false,
+      "description": "Admin: the whole list of a team game's gods, in the lobby. Names are checked by the\nmanager, so an unknown god is ``bad_value`` like any other wrong list.",
+      "properties": {
+        "t": {
+          "const": "set_teams",
+          "type": "string"
+        },
+        "teams": {
+          "items": {
+            "maxLength": 32,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
+        }
+      },
+      "required": [
+        "t",
+        "teams"
+      ],
+      "title": "SetTeams",
       "type": "object"
     },
     "Skip": {

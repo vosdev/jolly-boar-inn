@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import css from '../app.css?raw'
-import { logoFile, TEAM_IDS, TEAMS, teamMedians, teamsOf } from './teams'
+import { logoFile, TEAM_IDS, TEAMS, teamMedians, teamsOf, teamsWith } from './teams'
 
 describe('TEAMS', () => {
   it('lists the six gods in order, each named alone', () => {
@@ -51,6 +51,20 @@ describe('teamsOf', () => {
       { id: 'c', team: 'zaros' as const },
     ]
     expect(teamsOf(players)).toEqual({ a: 'guthix', c: 'zaros' })
+  })
+})
+
+describe('teamsWith', () => {
+  it('adds a god in its place in the order and takes one out', () => {
+    expect(teamsWith(['zamorak', 'zaros'], 'saradomin', true)).toEqual([
+      'saradomin',
+      'zamorak',
+      'zaros',
+    ])
+    expect(teamsWith(['saradomin', 'zamorak', 'zaros'], 'zamorak', false)).toEqual([
+      'saradomin',
+      'zaros',
+    ])
   })
 })
 

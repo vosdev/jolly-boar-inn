@@ -284,6 +284,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `set_profile` | `display_name?`, `avatar?` | all | Lobby only. Validated exactly like a join. One change a second. Clears `editing`. |
 | `set_team` | `team` | all | Lobby of a team game, not while ready; a god not in the room is `bad_value`. One change a second. |
 | `move_team` | `player_id`, `team` | admin | Lobby of a team game: anyone, ready or not, connected or not. Their ready stays. |
+| `set_teams` | `teams` | admin | Lobby of a team game: the whole list, 2 to 6 gods in order, else `bad_value`. A dropped team's players go teamless and un-ready. |
 | `editing` | `on: bool` | all | Name field focused. Lobby only, else ignored. An `on` within 1 s of a change is ignored; 60 s unsent, a disconnect or `start_game` clears it. |
 | `start_game` | | admin | `lobby → playing`. |
 | `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
@@ -297,7 +298,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | Server `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, kick, rename, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
+| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, kick, rename, `set_teams`, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
@@ -392,7 +393,7 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable.
 - `start_game` needs an admin, a question and a connected player. It resets `expires_at`. A team
   game also needs every player, connected or not, in a team and players in two teams or more.
-  Teams are fixed from then on; `players.team` is written before memory.
+  Teams are fixed from then on; `players.team` and `settings.teams` are written before memory.
 - A deleted room closes its sockets with 4004, and its code is free again.
 
 One task per room runs `_run_questions(room, index, resume_at)`:
@@ -428,7 +429,7 @@ The ready check (`rooms/ready.py`):
 - A countdown is never pushed back. An un-ready below the threshold stops it, once per player per
   splash. A disconnect lowers the threshold instead of stalling the round.
 
-Settings (`rooms.settings`, fixed at creation):
+Settings (`rooms.settings`, fixed at creation but for `teams`, which `set_teams` changes in the lobby):
 
 ```jsonc
 {
@@ -447,7 +448,8 @@ Settings (`rooms.settings`, fixed at creation):
 ```
 
 - `modes[].mode` keys `MODES`, never `TYPES`, once each. `questions` is optional.
-- `teams` are distinct gods in `rooms/teams.py`'s order (`GODS`), the one list of them.
+- `teams` are distinct gods in `rooms/teams.py`'s order (`GODS`), the one list of them, checked by
+  `check_teams` at creation and on `set_teams`. A room never gains or loses teams altogether.
 - `NewRoomSettings` checks the ranges at creation. `RoomSettings`, the stored model, keeps a round
   whose mode was removed and ignores unknown keys (an old room's `seconds` and `reveal_seconds`
   too, playing at `run`), so no downgrade strands a room.

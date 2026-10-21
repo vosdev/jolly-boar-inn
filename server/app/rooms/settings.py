@@ -63,7 +63,7 @@ from pydantic import (
 
 from app.modes import MODES, questions_bounds
 from app.questions.types.timing import Pace
-from app.rooms.teams import GODS, MAX_TEAMS, MIN_TEAMS, God
+from app.rooms.teams import God, check_teams
 
 # The most questions one room may be created with, over all of its rounds and the events
 # inside them. Nothing in the game loop cares; it is there so a host cannot ask for an
@@ -325,15 +325,7 @@ class NewRoomSettings(RoomSettings):
     def _two_to_six_gods_in_order(cls, teams: list[God]) -> list[God]:
         if not teams:
             return teams
-        if not MIN_TEAMS <= len(teams) <= MAX_TEAMS:
-            raise ValueError(
-                f"teams must be {MIN_TEAMS}..{MAX_TEAMS} gods or none, not {len(teams)}"
-            )
-        if len(set(teams)) != len(teams):
-            raise ValueError("teams must be distinct: a god is one team")
-        if teams != [god for god in GODS if god in teams]:
-            raise ValueError(f"teams must be listed in the order {list(GODS)}")
-        return teams
+        return check_teams(teams)
 
     @model_validator(mode="before")
     @classmethod

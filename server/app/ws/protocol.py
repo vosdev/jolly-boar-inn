@@ -312,6 +312,15 @@ class MoveTeam(_Message):
     team: God
 
 
+class SetTeams(_Message):
+    """Admin: the whole list of a team game's gods, in the lobby. Names are checked by the
+    manager, so an unknown god is ``bad_value`` like any other wrong list.
+    """
+
+    t: Literal["set_teams"]
+    teams: list[Annotated[str, Field(max_length=32, strict=True)]] = Field(max_length=16)
+
+
 class Editing(_Message):
     """The name field gained focus (``on``), or lost it. Lobby only; ignored anywhere else."""
 
@@ -335,6 +344,7 @@ ClientMessage = Annotated[
     | Ready
     | SetTeam
     | MoveTeam
+    | SetTeams
     | Editing,
     Field(discriminator="t"),
 ]
