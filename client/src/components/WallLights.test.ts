@@ -75,7 +75,7 @@ describe('WallLights', () => {
   })
 
   it('keeps the left fairy ring on a phone, in the bottom corner, and only under Zanaris', () => {
-    const phone = /@media \(max-width: 49\.99rem\) \{([\s\S]*?)\n  \}/.exec(source)?.[1] ?? ''
+    const phone = /@media \(max-width: 49\.99rem\) \{([\s\S]*?)\n {2}\}/.exec(source)?.[1] ?? ''
     expect(phone).toMatch(/\.wall-lights\[data-lights='zanaris'\] \{\s*display: block;/)
     expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.left \{[^}]*bottom: 0;/)
     expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.right \{\s*display: none;/)
