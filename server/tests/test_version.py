@@ -8,6 +8,7 @@ checks is a copy that drifts. Bump all three, or this fails.
 
 import json
 import re
+import subprocess
 import tomllib
 
 from app.config import APP_VERSION, REPO_ROOT
@@ -40,3 +41,23 @@ def test_the_runtime_image_carries_the_version() -> None:
     dockerfile = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8")
     runtime = dockerfile[dockerfile.index("AS runtime") :]
     assert "COPY VERSION /app/VERSION" in runtime
+
+
+def test_the_changelog_lists_every_version_main_has_held() -> None:
+    """A stack of PRs merges several bumps at once, and each still needs a What's new entry."""
+    git = ["git", "-C", str(REPO_ROOT)]
+    shallow = subprocess.run(
+        [*git, "rev-parse", "--is-shallow-repository"], capture_output=True, text=True, check=True
+    )
+    assert shallow.stdout.strip() == "false", "a shallow clone hides VERSION's history"
+    log = subprocess.run(
+        [*git, "log", "-p", "-m", "--format=", "--", "VERSION"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    held = set(re.findall(r"^\+(\d+\.\d+\.\d+)$", log, re.MULTILINE))
+    changelog = (REPO_ROOT / "client" / "src" / "lib" / "changelog.ts").read_text(encoding="utf-8")
+    listed = set(re.findall(r"version: '(\d+\.\d+\.\d+)'", changelog))
+    missing = sorted(held - listed, key=lambda v: tuple(map(int, v.split("."))))
+    assert missing == []
