@@ -137,7 +137,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `pick_all_that_apply` | hand-written | done |
-| `whos_that_npc` | Who's That NPC? | `pick_from_list`, a shadow | `popular-npcs.json` | done |
+| `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` | renders | Images |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
@@ -214,6 +214,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's and random events'
   (NPC and intro) beside their other types: entries first to last and a "tied with the one
   above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.
+- Every round on Create takes suggestions, the price rounds as items and Random Events Only as the
+  NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
 
 `select(packs, custom, settings, rng)` fixes a room's questions at creation:
 
@@ -616,8 +618,10 @@ key into them, so cleanup leaves it.
   and the next runs. There is no external cron.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus `mode` and a `wiki` or `source_url`, or both (a `quote` only
-  for the two quote rounds, an `intro` only for an NPC's; Guess the Examine's needs a `wiki`) or an `item`
-  (a name not on the roster), with a `credit` held to the name rules and `credit_shown`, never
+  for the two quote rounds, an `intro` only for an NPC's, a `picture_item` name only for Drop
+  Table's; Guess the Examine's and Who's That NPC?'s need a `wiki`) or an `item` (a name not on the
+  roster). Who's That NPC?'s payload is its fixed prompt and `subject.name`, an NPC not on its list
+  (`NAMED_MODES`). Each has a `credit` held to the name rules and `credit_shown`, never
   true for an item. Pending, approved, rejected or imported. A round not built yet takes
   questions; they wait in approved. The client offers the form after a finished game; 10 an hour
   per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
@@ -659,8 +663,11 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
   they hold, keeping `credit`. A question's options are stored in their seeded order (the form
   puts the right one first), but an examine's right name goes first and its line is asked once; an item's id
-  comes from the wiki's `infobox_item` bucket, untradeables included. One refused entry, or packs
-  that would not load, writes nothing.
+  comes from the wiki's `infobox_item` bucket, untradeables included, as does a `picture_item`'s,
+  which becomes `image`. A named NPC takes the first infobox row's id on its page (one
+  `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`
+  and gets its question filled in. Missing `assets.json` entries are added: the NPC's picture, the
+  item's detail image and icon. One refused entry, or packs that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to
   an id the packs no longer hold or in a generated pack, or packs that would not load, writes nothing.
