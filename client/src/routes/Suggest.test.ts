@@ -533,6 +533,41 @@ describe('Suggest', () => {
     expect(screen.queryByLabelText('Item to show, if any')).toBeNull()
   })
 
+  it('names a Who’s That NPC?, refusing one the game asks about, and needs its wiki page', async () => {
+    played()
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [{ id: 'q9', label: 'Vorkath', npc: 8058 }],
+    })
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
+    await waitFor(() => expect(existingRows()).toEqual(['Vorkath']))
+    await type('Monster or NPC, as the wiki spells it', ' vorkath')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Already in the game.')).toBeTruthy()
+    expect(screen.getByText(/Required: the page you checked it on/)).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type('Monster or NPC, as the wiki spells it', ' Araxxor ')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Araxxor')
+    const preview = screen.getByRole('region', { name: 'Preview' })
+    expect(within(preview).getByText("Who's that NPC?")).toBeTruthy()
+    expect(preview.querySelector('.picture')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'pick_from_list',
+        payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
+        mode: 'whos_that_npc',
+        wiki: 'https://oldschool.runescape.wiki/w/Araxxor',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
   it('swaps Bestiary’s form between asking and sorting from one type picker', async () => {
     played()
     render(Suggest, { navigate })

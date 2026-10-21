@@ -14,7 +14,9 @@ import {
   inGameOrder,
   itemProblem,
   maySuggest,
+  npcNameProblem,
   pictureItemProblem,
+  questionPreview,
   retryIn,
   sourceProblems,
   summary,
@@ -79,6 +81,7 @@ describe('the choices', () => {
       'odd_one_out',
       'who_said_that',
       'know_your_content_creator',
+      'whos_that_npc',
       'sort_it_out',
       'release_order',
     ])
@@ -90,7 +93,17 @@ describe('the choices', () => {
       [4, 6],
     ])
     expect(examine?.host).toBe('examiner')
-    expect(CHOICES.filter((c) => c.wikiOnly).map((c) => c.id)).toEqual(['guess_examine'])
+    expect(CHOICES.filter((c) => c.wikiOnly).map((c) => c.id)).toEqual([
+      'guess_examine',
+      'whos_that_npc',
+    ])
+    const npc = CHOICES.find((c) => c.id === 'whos_that_npc')
+    expect([npc?.types, npc?.host, npc?.prompt, npc?.named]).toEqual([
+      ['pick_from_list'],
+      'postie_pete',
+      { text: "Who's that NPC?", fixed: true },
+      true,
+    ])
     expect(CHOICES.filter((c) => c.options !== undefined).map((c) => c.id)).toEqual([
       'guess_examine',
     ])
@@ -167,6 +180,33 @@ describe('the checks', () => {
     const roster = [{ id: 4151, name: 'Abyssal whip' }]
     expect(itemProblem({ name: ' ABYSSAL whip' }, roster)).toBe('Already in the game.')
     expect(itemProblem({ name: 'Abyssal dagger' }, roster)).toBeNull()
+  })
+
+  it('want an NPC’s name the game does not ask about yet', () => {
+    expect(npcNameProblem(' ')).toMatch(/Required/)
+    expect(npcNameProblem('x'.repeat(81))).toMatch(/At most 80/)
+    expect(npcNameProblem(' VORKATH ', ['Vorkath'])).toBe('Already in the game.')
+    expect(npcNameProblem('Araxxor', ['Vorkath'])).toBeNull()
+  })
+
+  it('preview a Who’s That NPC? as its prompt and the list, with no picture', () => {
+    const open = questionPreview({
+      type: 'pick_from_list',
+      mode: 'whos_that_npc',
+      payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
+    })
+    expect([open.type, open.mode, open.view, open.picture]).toEqual([
+      'pick_from_list',
+      'whos_that_npc',
+      { prompt: "Who's that NPC?", vocab: 'npcs' },
+      null,
+    ])
+    expect(
+      answerOf({
+        kind: 'question',
+        content: { ...open, type: 'pick_from_list', payload: { subject: { name: 'Araxxor' } } },
+      }),
+    ).toBe('Araxxor')
   })
 
   it('take a picture item or none, up to an item name long', () => {

@@ -214,6 +214,22 @@ describe('SuggestionQueue', () => {
     expect(term.nextElementSibling?.textContent).toBe('Dragon warhammer')
   })
 
+  it('shows a Who’s That NPC? by its prompt, with the NPC as its answer', async () => {
+    const npc = row({
+      content: {
+        type: 'pick_from_list',
+        mode: 'whos_that_npc',
+        wiki: 'https://oldschool.runescape.wiki/w/Araxxor',
+        payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
+      },
+    })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [npc], counts: COUNTS })
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText("Who's that NPC?")).closest('button')!)
+    expect(screen.getByText('Araxxor', { selector: 'strong' })).toBeTruthy()
+    expect(screen.getByLabelText('As players will see it').querySelector('.picture')).toBeNull()
+  })
+
   it('links a question’s non-wiki source beside, or instead of, its wiki page', async () => {
     const clip = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
     const only = row({

@@ -22,12 +22,15 @@
     mode,
     npc = '',
     open = false,
+    onloaded = undefined,
   }: {
     mode: string
     /** The NPC picked to ask a random event's question, `''` for none yet. */
     npc?: string
     /** Whether it starts open. */
     open?: boolean
+    /** Told the questions once they arrive, so the editor can refuse one already asked. */
+    onloaded?: (rows: readonly ReportChoice[]) => void
   } = $props()
 
   const uid = $props.id()
@@ -36,8 +39,10 @@
 
   onMount(() => {
     getReportChoices(mode).then(
-      (found) =>
-        (rows = found.by === 'question' && found.choices.length > 0 ? found.choices : 'none'),
+      (found) => {
+        rows = found.by === 'question' && found.choices.length > 0 ? found.choices : 'none'
+        if (typeof rows !== 'string') onloaded?.(rows)
+      },
       () => (rows = 'none'),
     )
   })

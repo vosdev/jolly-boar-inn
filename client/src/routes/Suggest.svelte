@@ -36,6 +36,8 @@
   let round = $state(0)
   /** Who asks the random event being written, so the list starts with theirs. */
   let asker = $state('')
+  /** The pack questions' labels, which for Who's That NPC? are the NPCs already asked about. */
+  let asked = $state<readonly string[]>([])
   const existing = $derived(choice === null ? null : existingMode(choice))
   /** Whether the list starts open: beside the editor, at the width `.writing` sets it there. */
   let beside = $state(false)
@@ -62,6 +64,7 @@
 
   function pick(next: Choice): void {
     choice = next
+    asked = []
     failure = null
     beside = typeof matchMedia === 'function' && matchMedia('(min-width: 70rem)').matches
     view = 'write'
@@ -163,6 +166,7 @@
         {#key round}
           <SuggestionEditor
             {choice}
+            {asked}
             saveLabel={view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
             onnpc={(npc) => (asker = npc)}
             onsave={(body) => void send(body)}
@@ -171,7 +175,12 @@
         {/key}
       </section>
       {#if existing !== null}
-        <ExistingQuestions mode={existing} npc={asker} open={beside} />
+        <ExistingQuestions
+          mode={existing}
+          npc={asker}
+          open={beside}
+          onloaded={(rows) => (asked = rows.map((row) => row.label))}
+        />
       {/if}
     </div>
   {/if}

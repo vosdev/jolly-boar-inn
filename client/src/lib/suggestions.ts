@@ -34,12 +34,16 @@ export function maySuggest(): boolean {
 export type SuggestionKind = 'question' | 'item'
 export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
-/** The types a suggestion may be: Create's, and an ordering for the rounds that sort and the NPCs. */
-export type SuggestedType = CustomType | 'ordering'
+/**
+ * The types a suggestion may be: Create's, an ordering for the rounds that sort and the NPCs,
+ * and a pick from the list for Who's That NPC?.
+ */
+export type SuggestedType = CustomType | 'ordering' | 'pick_from_list'
 
 export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
   ...TYPE_LABELS,
   ordering: 'Put in order',
+  pick_from_list: 'Pick from the list',
 }
 
 export interface QuestionContent {
@@ -58,6 +62,15 @@ export interface QuestionContent {
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
 export function questionPreview(content: QuestionContent): OpenQuestion {
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, content.mode)
+  if (content.type === 'pick_from_list') {
+    // No picture: there is none until the import finds the NPC's id.
+    const open = previewOf({ type: 'multiple_choice', payload: {} }, content.mode)
+    return {
+      ...open,
+      type: 'pick_from_list',
+      view: { prompt: content.payload.prompt, vocab: 'npcs' },
+    }
+  }
   return previewOf(
     content as CustomQuestion,
     content.mode === 'random_event' ? undefined : content.mode,
@@ -108,6 +121,8 @@ export interface Choice {
   wikiOnly?: boolean
   /** Whether it may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
   pictureItem?: boolean
+  /** Whether its answer is an NPC's name, which the import looks up: `NAMED_MODES` on the server. */
+  named?: boolean
 }
 
 export interface RoundPrompt {
@@ -120,6 +135,7 @@ export interface RoundPrompt {
 const ROUND_PROMPTS: Record<string, RoundPrompt> = {
   who_said_that: { text: 'Who said that?', fixed: false },
   odd_one_out: { text: "Which one doesn't belong?", fixed: true },
+  whos_that_npc: { text: "Who's that NPC?", fixed: true },
 }
 
 /** Rounds that take four-button questions, built or not, with `ROUND_TYPES`: `QUESTION_MODES` on the server. */
@@ -151,7 +167,7 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
 const ROUND_OPTIONS: Record<string, readonly [number, number]> = { guess_examine: [4, 6] }
 
 /** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
-const WIKI_ROUNDS = ['guess_examine']
+const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc']
 
 /** Rounds whose questions may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
 const PICTURE_ITEM_ROUNDS = ['drop_table']
@@ -161,6 +177,9 @@ const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
 /** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
 export const INTRO_ROUNDS = ['random_event']
+
+/** Rounds whose answer is an NPC's name: `NAMED_MODES` on the server. */
+const NAMED_ROUNDS = ['whos_that_npc']
 
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
 const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
@@ -201,6 +220,19 @@ export const CHOICES: readonly Choice[] = [
       options: ROUND_OPTIONS[mode.id],
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
       pictureItem: PICTURE_ITEM_ROUNDS.includes(mode.id),
+    })),
+  ...NAMED_ROUNDS.map(choiceRound)
+    .filter((mode) => mode !== undefined)
+    .map((mode): Choice => ({
+      id: mode.id,
+      kind: 'question',
+      label: mode.label,
+      hint: mode.hint,
+      host: mode.host,
+      types: ['pick_from_list'],
+      prompt: ROUND_PROMPTS[mode.id],
+      wikiOnly: WIKI_ROUNDS.includes(mode.id),
+      named: true,
     })),
   ...ORDERING_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -309,6 +341,16 @@ function textProblem(text: string, most: number, what: string): string | null {
   return null
 }
 
+/** The longest NPC name Who's That NPC? takes: `NPC_NAME_MAX` on the server. */
+export const NPC_NAME_MAX = 80
+
+/** `asked` is the names the game already asks about, so one of them is refused before it is sent. */
+export function npcNameProblem(name: string, asked: readonly string[] = []): string | null {
+  const wanted = fold(name.trim())
+  if (wanted !== '' && asked.some((known) => fold(known) === wanted)) return 'Already in the game.'
+  return textProblem(name, NPC_NAME_MAX, 'the NPC’s name')
+}
+
 /** The item a question pictures, which it need not name. */
 export function pictureItemProblem(name: string): string | null {
   return codePoints(name.trim()) > ITEM_NAME_MAX ? `At most ${ITEM_NAME_MAX} characters.` : null
@@ -345,6 +387,7 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
   const { type, payload } = suggestion.content as QuestionContent
   if (type === 'ordering') return answerLine(payload)
+  if (type === 'pick_from_list') return (payload.subject as { name: string }).name
   if (type === 'multiple_choice') {
     const options = payload.options as string[]
     return options[payload.answer_index as number] ?? ''

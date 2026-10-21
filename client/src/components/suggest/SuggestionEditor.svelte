@@ -6,7 +6,9 @@
    * A question is Create's editor, held to the types its mode offers: an NPC's question
    * names its NPC, a round's names none and is previewed in its round. A round may hold
    * its options to a range, or its proof to a wiki page. A Drop Table question may name an
-   * item to picture; the preview shows none, since the picture exists only once imported. An item is only a name, since the import script finds its id; nothing
+   * item to picture, and a Who's That NPC? question is only the NPC's name: the preview shows
+   * no picture for either, since it exists only once imported. An NPC the game already asks
+   * about is refused before it is sent, given the list beside the editor. An item is only a name, since the import script finds its id; nothing
    * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
    * up an item the game already has; its credit is kept but cannot be shown.
    *
@@ -23,7 +25,9 @@
     creditProblem,
     INTRO_ROUNDS,
     itemProblem,
+    npcNameProblem,
     pictureItemProblem,
+    questionPreview,
     sourceProblems,
     SUGGESTED_TYPE_LABELS,
     wikiProblem,
@@ -37,10 +41,12 @@
   import { loadVocab, search, type VocabEntry } from '../../lib/vocab'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
+  import QuestionStage from '../QuestionStage.svelte'
 
   let {
     choice,
     initial = undefined,
+    asked = [],
     saveLabel = 'Send to the innkeeper',
     onnpc = undefined,
     onsave,
@@ -49,6 +55,11 @@
     choice: Choice
     /** The suggestion to edit, or none for a new one. */
     initial?: SuggestionBody
+    /**
+     * The names a Who's That NPC? question may not give: the game asks about them already.
+     * Without them only the server refuses one.
+     */
+    asked?: readonly string[]
     saveLabel?: string
     /** Told which NPC asks a random event's question whenever that changes, `''` for none. */
     onnpc?: (npc: string) => void
@@ -69,6 +80,11 @@
   let sourceUrl = $state(start?.source_url ?? '')
   let name = $state(start?.name ?? '')
   let pictureItem = $state(start?.picture_item ?? '')
+  let npcName = $state(
+    start?.type === 'pick_from_list'
+      ? ((start.payload?.subject as { name?: string })?.name ?? '')
+      : '',
+  )
   let attempted = $state(false)
   let roster = $state<readonly VocabEntry[] | 'loading' | 'failed'>('loading')
   let rosterQuery = $state('')
@@ -82,7 +98,9 @@
   })
 
   const customTypes = $derived(
-    choice.types.filter((type): type is CustomType => type !== 'ordering'),
+    choice.types.filter(
+      (type): type is CustomType => type !== 'ordering' && type !== 'pick_from_list',
+    ),
   )
   // The type the form opened on, and the one picked since. A round may both sort and ask, so
   // picking across that line swaps one form for the other, starting it afresh.
@@ -111,7 +129,7 @@
   }
   // svelte-ignore state_referenced_locally
   const question: CustomQuestion | undefined =
-    start?.type === 'ordering'
+    start?.type === 'ordering' || start?.type === 'pick_from_list'
       ? undefined
       : start?.type === undefined
         ? roundPrompt === undefined
@@ -123,7 +141,10 @@
             ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
           }
   const picked = $derived(
-    current === opened || current === undefined || current === 'ordering'
+    current === opened ||
+      current === undefined ||
+      current === 'ordering' ||
+      current === 'pick_from_list'
       ? question
       : { type: current, payload: prompted({}) },
   )
@@ -139,6 +160,12 @@
   const creditError = $derived(creditProblem(credit))
   const wikiError = $derived(wikiProblem(wiki))
   const pictureItemError = $derived(pictureItemProblem(pictureItem))
+  const npcError = $derived(npcNameProblem(npcName, asked))
+  const npcQuestion = $derived<QuestionContent>({
+    type: 'pick_from_list',
+    payload: { prompt: roundPrompt?.text ?? '', subject: { name: npcName.trim() } },
+    mode: choice.id,
+  })
   const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
@@ -166,6 +193,12 @@
       ...given,
       ...(pictured ? { picture_item: pictureItem.trim() } : {}),
     })
+  }
+
+  function saveNpc(): void {
+    attempted = true
+    if (creditError !== null || wikiError !== null || npcError !== null) return
+    send({ ...npcQuestion, wiki: wiki.trim() })
   }
 
   function saveItem(): void {
@@ -277,7 +310,31 @@
   </div>
 {/snippet}
 
-{#if choice.kind === 'question' && sorts}
+{#if choice.named}
+  <div class="editor surface" role="group" aria-labelledby="{id}-title">
+    <div class="layout">
+      <div class="fields">
+        <h3 id="{id}-title">{choice.label}</h3>
+        <div class="field">
+          <label for="{id}-npc">Monster or NPC, as the wiki spells it</label>
+          <input id="{id}-npc" type="text" bind:value={npcName} />
+          {@render problem(npcError, attempted)}
+        </div>
+        {@render wikiField(attempted)}
+        {@render creditFields(attempted)}
+        {@render buttons(saveNpc)}
+      </div>
+      <section class="preview" aria-label="Preview">
+        <p class="note">What players will see</p>
+        <QuestionStage
+          question={questionPreview(npcQuestion)}
+          yourValue={null}
+          onAnswer={() => {}}
+        />
+      </section>
+    </div>
+  </div>
+{:else if choice.kind === 'question' && sorts}
   <OrderingForm
     question={ordering}
     title={choice.label}
@@ -398,8 +455,13 @@
     margin-top: 1rem;
   }
 
-  .roster {
+  .roster,
+  .preview {
     min-width: 0;
+  }
+
+  .preview > .note {
+    margin: 0 0 0.5rem;
   }
 
   .roster h4 {
