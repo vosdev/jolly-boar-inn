@@ -123,6 +123,43 @@ function chooseFile(panel: HTMLElement, text: string): Promise<boolean> {
 }
 
 describe('CustomQuestions', () => {
+  it('writes a matching question in its own form, edits it there and sends it', async () => {
+    const panel = await loaded()
+    await click(panel, 'Write a question')
+    await pick(editor(), 'Match them up')
+    let form = editor()
+    expect(within(form).queryByRole('textbox', { name: 'Picture of field 1' })).toBeNull()
+    await type(form, 'Question', 'Match each boss to its lair.')
+    const bosses = ['Zulrah', 'Vorkath', 'Kraken']
+    const lairs = ['Zul-Andra', 'Ungael', 'Kraken Cove']
+    for (const [i, boss] of bosses.entries()) {
+      await type(form, `Field ${i + 1}`, boss)
+      await type(form, `Answer for field ${i + 1}`, lairs[i]!)
+    }
+    await click(form, 'Add a left-over answer')
+    await type(form, 'Left-over answer 1', 'Lithkren Vault')
+    await click(form, 'Add question')
+    expect(listed(panel)).toEqual(['Match each boss to its lair.'])
+    expect(panel.textContent).toContain('Match them up · Random NPC')
+
+    await click(panel, 'Edit question 1')
+    form = editor()
+    expect((within(form).getByRole('textbox', { name: 'Field 2' }) as HTMLInputElement).value).toBe(
+      'Vorkath',
+    )
+    await click(form, 'Save question')
+    const [sent] = await submitted()
+    expect(sent).toEqual({
+      type: 'matching',
+      payload: {
+        prompt: 'Match each boss to its lair.',
+        fields: bosses.map((text) => ({ text })),
+        options: [...lairs, 'Lithkren Vault'].map((text) => ({ text })),
+        answer: [0, 1, 2],
+      },
+    })
+  })
+
   it('adds, edits, removes and reorders all three types, and sends them in that order', async () => {
     const panel = await loaded()
     await setFrequency('More')

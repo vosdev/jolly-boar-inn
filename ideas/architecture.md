@@ -225,12 +225,15 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   type its mode does not allow, a stray `random_event`, a price type filed as an event, or one
   `pick_from_list` prompt under two answers, unless each has a picture.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
-- Create's editor writes `multiple_choice`, `free_text`, `closest_number` and `pick_all_that_apply`
-  (`picks` only as a "tell players how many" box) with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
+- Create's editor writes `multiple_choice`, `free_text`, `closest_number`, `number_slider` and
+  `pick_all_that_apply` (`picks` only as a "tell players how many" box), and `MatchingForm` a
+  text-only `matching` with limits read from the schema, refuses what the server would 422, the slot cap included, and exports
   `[{type, payload, random_event?}]`, which Import reads back byte for byte.
 - `/suggest` adds an `ordering` form for the rounds that sort, Bestiary's and random events'
   (NPC and intro) beside their other types: entries first to last and a "tied with the one
   above" box, so ranks follow, `picks` optional. Release Order's entries carry their date as `detail`.
+  `MatchingForm` writes field and answer pairs side by side, then decoys, for Bestiary, Drop Table,
+  the NPCs and a question with no round; a suggestion's fields are names only, and `/admin` adds icons.
 - Every round on Create takes suggestions, the price rounds as items and Random Events Only as the
   NPCs' questions; a test fails on a new round that does neither. Not-yet-built image modes are not on Create.
 

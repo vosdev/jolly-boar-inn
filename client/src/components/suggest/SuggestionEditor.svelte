@@ -22,6 +22,7 @@
 
   import type { CustomQuestion, CustomType } from '../../lib/customQuestions'
   import { NAME_MAX } from '../../lib/names'
+  import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
   import { profile } from '../../lib/profile'
   import {
@@ -44,6 +45,7 @@
   } from '../../lib/suggestions'
   import { loadVocab, search, type VocabEntry } from '../../lib/vocab'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
+  import MatchingForm from '../MatchingForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
   import QuestionStage from '../QuestionStage.svelte'
   import SimilarQuestions from './SimilarQuestions.svelte'
@@ -104,17 +106,24 @@
 
   const customTypes = $derived(
     choice.types.filter(
-      (type): type is CustomType => type !== 'ordering' && type !== 'pick_from_list',
+      (type): type is CustomType =>
+        type !== 'ordering' && type !== 'matching' && type !== 'pick_from_list',
     ),
   )
-  // The type the form opened on, and the one picked since. A round may both sort and ask, so
-  // picking across that line swaps one form for the other, starting it afresh.
+  // The type the form opened on, and the one picked since. A round may sort, match and ask,
+  // so picking across those lines swaps one form for another, starting it afresh.
   // svelte-ignore state_referenced_locally
   const opened: SuggestedType | undefined = start?.type ?? choice.types[0]
   let current = $state(opened)
   const sorts = $derived(current === 'ordering')
+  const matches = $derived(current === 'matching')
+  const forms = $derived(
+    Number(customTypes.length > 0) +
+      Number(choice.types.includes('ordering')) +
+      Number(choice.types.includes('matching')),
+  )
   const picker = $derived(
-    choice.types.includes('ordering') && customTypes.length > 0
+    forms > 1
       ? {
           options: choice.types.map((type) => ({
             value: type,
@@ -134,7 +143,7 @@
   }
   // svelte-ignore state_referenced_locally
   const question: CustomQuestion | undefined =
-    start?.type === 'ordering' || start?.type === 'pick_from_list'
+    start?.type === 'ordering' || start?.type === 'matching' || start?.type === 'pick_from_list'
       ? undefined
       : start?.type === undefined
         ? roundPrompt === undefined
@@ -149,6 +158,7 @@
     current === opened ||
       current === undefined ||
       current === 'ordering' ||
+      current === 'matching' ||
       current === 'pick_from_list'
       ? question
       : { type: current, payload: prompted({}) },
@@ -157,6 +167,14 @@
     start?.type === 'ordering'
       ? {
           type: 'ordering',
+          payload: start.payload ?? {},
+          ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
+        }
+      : undefined
+  const matching: MatchingQuestion | undefined =
+    start?.type === 'matching'
+      ? {
+          type: 'matching',
           payload: start.payload ?? {},
           ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
         }
@@ -174,7 +192,7 @@
   const sourceErrors = $derived(sourceProblems(wiki, sourceUrl))
   // svelte-ignore state_referenced_locally
   const checksSimilar = initial === undefined
-  let drafted = $state<CustomQuestion | OrderingQuestion | undefined>(undefined)
+  let drafted = $state<CustomQuestion | OrderingQuestion | MatchingQuestion | undefined>(undefined)
   const similarTo = $derived<QuestionContent | undefined>(
     choice.named
       ? npcError === null
@@ -198,7 +216,7 @@
     return creditError === null && pictureItemError === null && checked
   }
 
-  function saveQuestion(built: CustomQuestion | OrderingQuestion): void {
+  function saveQuestion(built: CustomQuestion | OrderingQuestion | MatchingQuestion): void {
     const links = { wiki: wiki.trim(), source_url: sourceUrl.trim() }
     const given = Object.fromEntries(Object.entries(links).filter(([, url]) => url !== ''))
     const pictured = choice.pictureItem && pictureItem.trim() !== ''
@@ -359,6 +377,23 @@
 {:else if choice.kind === 'question' && sorts}
   <OrderingForm
     question={ordering}
+    title={choice.label}
+    mode={choice.id}
+    asker={choice.id === 'random_event' ? 'required' : 'none'}
+    intro={INTRO_ROUNDS.includes(choice.id)}
+    {picker}
+    {saveLabel}
+    fields={questionFields}
+    onattempt={questionFieldsPass}
+    {onnpc}
+    ondraft={(question) => (drafted = question)}
+    nearSave={similar}
+    onsave={saveQuestion}
+    {oncancel}
+  />
+{:else if choice.kind === 'question' && matches}
+  <MatchingForm
+    question={matching}
     title={choice.label}
     mode={choice.id}
     asker={choice.id === 'random_event' ? 'required' : 'none'}

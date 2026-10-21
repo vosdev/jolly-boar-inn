@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { draftOf, questionOf, type CustomType } from './customQuestions'
+import { draftOf as matchingDraftOf, questionOf as matchingQuestionOf } from './matching'
 import { draftOf as orderingDraftOf, questionOf as orderingQuestionOf } from './ordering'
 import { editOf, envelopeOf, parsePayload, searchQuestions } from './questionEdits'
 import type { PackQuestion } from './reports'
@@ -78,16 +79,18 @@ describe('the forms the editor opens', () => {
     .flatMap(([, file]) => file.questions)
 
   it('give every hand-written question back unchanged when nothing is edited', () => {
-    // A list's answer is an id no form writes, and matching has no form here yet.
-    const forms = questions.filter((q) => q.type !== 'pick_from_list' && q.type !== 'matching')
+    const forms = questions.filter((q) => q.type !== 'pick_from_list')
     expect(forms.length).toBeGreaterThan(100)
     for (const question of forms) {
       const payload =
-        question.type === 'ordering'
-          ? orderingQuestionOf(orderingDraftOf({ type: 'ordering', payload: question.payload }))
+        question.type === 'matching'
+          ? matchingQuestionOf(matchingDraftOf({ type: 'matching', payload: question.payload }))
               .payload
-          : questionOf(draftOf({ type: question.type as CustomType, payload: question.payload }))
-              .payload
+          : question.type === 'ordering'
+            ? orderingQuestionOf(orderingDraftOf({ type: 'ordering', payload: question.payload }))
+                .payload
+            : questionOf(draftOf({ type: question.type as CustomType, payload: question.payload }))
+                .payload
       expect(payload, question.id).toEqual(question.payload)
     }
   })

@@ -5,7 +5,7 @@
    * draws the rest, so the strip shows the host's askers first and a "?" for every
    * surprise left.
    */
-  import type { CustomQuestion } from '../lib/customQuestions'
+  import type { HostQuestion } from '../lib/customQuestions'
   import { EVENT_EVERY, type EventFrequency } from '../lib/protocol'
   import NpcFace from './NpcFace.svelte'
 
@@ -29,7 +29,7 @@
     slots: number
     /** The rounds are a surprise, so `slots` is the fewest there will be. */
     atLeast?: boolean
-    own: CustomQuestion[]
+    own: HostQuestion[]
   } = $props()
 
   const id = $props.id()

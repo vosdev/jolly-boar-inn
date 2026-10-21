@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.125.0',
+    date: '2026-10-21',
+    text: 'Write your own Match them up questions on Create, and suggest them for Bestiary, Drop Table and the NPCs.',
+  },
+  {
     version: '0.124.0',
     date: '2026-10-21',
     text: 'New question type, Match them up: drag the right answer onto each one. Some answers are left over.',

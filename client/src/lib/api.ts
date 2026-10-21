@@ -11,7 +11,7 @@
  * the first websocket frame and nowhere else.
  */
 
-import type { CustomQuestion } from './customQuestions'
+import type { HostQuestion } from './customQuestions'
 import type {
   EventFrequency,
   ModeSettings,
@@ -178,7 +178,7 @@ export function createRoom(
   avatar: string | undefined,
   returning: boolean,
   access: RoomAccess = 'code',
-  customQuestions: readonly CustomQuestion[] = [],
+  customQuestions: readonly HostQuestion[] = [],
   arrival: Omit<Arrival, 'via'> = {},
   code?: string,
 ): Promise<CreatedRoom> {

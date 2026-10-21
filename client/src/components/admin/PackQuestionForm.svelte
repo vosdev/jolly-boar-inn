@@ -4,16 +4,19 @@
    * NPC it has, with the links it was checked against and its credit under it.
    *
    * Choice, typed, number and pick-all questions use Create's form with the intro and picture pack
-   * questions carry; an ordering question uses `/suggest`'s. A type no form writes yet is
+   * questions carry; an ordering question uses `/suggest`'s, and a matching question its own,
+   * with a picture per field. A type no form writes yet is
    * edited as its payload's JSON, which the server checks on Save.
    */
   import { CUSTOM_TYPES, type CustomQuestion, type CustomType } from '../../lib/customQuestions'
   import { nameProblem, NAME_MAX } from '../../lib/names'
+  import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
   import { envelopeOf, parsePayload, showsQuote, type QuestionEdit } from '../../lib/questionEdits'
   import type { PackQuestion } from '../../lib/reports'
   import { sourceProblems } from '../../lib/suggestions'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
+  import MatchingForm from '../MatchingForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
 
   let {
@@ -51,6 +54,14 @@
     : null
   const ordering: OrderingQuestion | null =
     start.type === 'ordering' ? { type: 'ordering', payload } : null
+  const matching: MatchingQuestion | null =
+    start.type === 'matching'
+      ? {
+          type: 'matching',
+          payload,
+          ...(start.random_event === undefined ? {} : { random_event: start.random_event }),
+        }
+      : null
 
   const links = $derived(sourceProblems(wiki, sourceUrl))
   const creditError = $derived(credit.trim() === '' ? null : nameProblem(credit))
@@ -129,6 +140,20 @@
     question={ordering}
     title="Edit question"
     mode={start.mode}
+    saveLabel={SAVE}
+    fields={envelope}
+    onattempt={envelopePasses}
+    onsave={(built) => send(built.payload)}
+    {oncancel}
+  />
+{:else if matching !== null}
+  <MatchingForm
+    question={matching}
+    title="Edit question"
+    mode={start.mode}
+    asker={start.random_event === undefined ? 'none' : 'fixed'}
+    intro={start.random_event !== undefined}
+    icons
     saveLabel={SAVE}
     fields={envelope}
     onattempt={envelopePasses}

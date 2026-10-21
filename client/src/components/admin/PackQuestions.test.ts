@@ -53,6 +53,23 @@ const JAD: PackQuestion = {
   payload: { prompt: 'What level is TzTok-Jad?', answer: 702 },
 }
 
+const DROPS: PackQuestion = {
+  id: 'q_drops',
+  type: 'matching',
+  mode: 'bestiary',
+  payload: {
+    prompt: 'Match each drop to the monster that drops it.',
+    fields: [{ icon: 'item:4151' }, { text: 'Dragon warhammer' }, { text: 'Granite maul' }],
+    options: [
+      { text: 'Abyssal demon', detail: 'Abyssal whip' },
+      { text: 'Lizardman shaman' },
+      { text: 'Gargoyle' },
+      { text: 'Kurask' },
+    ],
+    answer: [0, 1, 2],
+  },
+}
+
 const EVENTS: PackQuestion[] = [
   {
     id: 'q_bread',
@@ -159,6 +176,29 @@ describe('PackQuestions', () => {
       payload: { ...VORKATH.payload, intro: 'Brr.', image: 'npc:8061' },
       wiki: WIKI,
       credit: 'Zezima',
+    })
+  })
+
+  it('shows a matching question as its pairs, and edits its fields, icons included', async () => {
+    vi.mocked(admin.getPackQuestions).mockResolvedValue([DROPS])
+    show()
+    await fireEvent.click(await screen.findByText('Match each drop to the monster that drops it.'))
+    const answer =
+      'item:4151 → Abyssal demon, Dragon warhammer → Lizardman shaman, Granite maul → Gargoyle; left over: Kurask'
+    expect(screen.getByText(answer)).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const icon = screen.getByRole('textbox', { name: 'Picture of field 2' })
+    await fireEvent.input(icon, { target: { value: 'item:13576' } })
+    await fireEvent.click(screen.getByRole('button', { name: 'Queue the edit' }))
+    expect(admin.editPackQuestion).toHaveBeenCalledWith('t', DROPS.id, {
+      payload: {
+        ...DROPS.payload,
+        fields: [
+          { icon: 'item:4151' },
+          { text: 'Dragon warhammer', icon: 'item:13576' },
+          { text: 'Granite maul' },
+        ],
+      },
     })
   })
 

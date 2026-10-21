@@ -9,11 +9,12 @@
  * the schema cannot say. A list only ever holds questions that pass, so the one thing
  * left for submit to refuse is the event cap (`eventSlots`).
  *
- * Five types are offered. `more_less` and `price_is_right` cannot be events yet,
- * `pick_from_list` needs vocabulary ids a host does not have, and `ordering` has its own
- * form (`OrderingForm`).
+ * Five types are offered here, and `matching` in its own form (`MatchingForm`), text
+ * fields only. `more_less` and `price_is_right` cannot be events yet, `pick_from_list`
+ * needs vocabulary ids a host does not have, and `ordering` is not offered to hosts.
  */
 
+import { problems as matchingProblems, type MatchingQuestion } from './matching'
 import type { EventFrequency, OpenQuestion } from './protocol'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 import { check, codePoints, envelopeProperty, field, fields, type Problem } from './questionSchema'
@@ -41,6 +42,14 @@ export interface CustomQuestion {
   payload: Record<string, unknown>
   /** The NPC who asks it; left out, the room draws one. */
   random_event?: string
+}
+
+/** What Create's list holds: a question of this editor's types, or a matching one. */
+export type HostQuestion = CustomQuestion | MatchingQuestion
+
+export const HOST_TYPE_LABELS: Record<HostQuestion['type'], string> = {
+  ...TYPE_LABELS,
+  matching: 'Match them up',
 }
 
 const ENVELOPE_KEYS = ['type', 'payload', 'random_event']
@@ -150,6 +159,18 @@ function track(payload: Record<string, unknown>): Problem[] {
     found.push(at('payload.answer', 'Must lie between the lowest and the highest.'))
   } else if (answer === middle(min, max, scale)) {
     found.push(at('payload.answer', 'The slider starts here: move the answer or the ends.'))
+  }
+  return found
+}
+
+/** Everything the server would refuse about a host's `question`, of any type Create writes. */
+export function hostProblems(question: unknown): Problem[] {
+  const type = (question as { type?: unknown } | null)?.type
+  if (type !== 'matching') return problems(question)
+  const found = matchingProblems(question)
+  const npc = (question as { random_event?: unknown }).random_event
+  if (npc !== undefined && !ROSTER.has(npc as string)) {
+    found.push(at('random_event', `“${String(npc)}” is not an NPC this game knows.`))
   }
   return found
 }
@@ -376,7 +397,7 @@ export function previewOf(question: CustomQuestion, mode = 'custom'): OpenQuesti
 }
 
 /** Who asks it, as the list shows it. */
-export function askedBy(question: CustomQuestion): string {
+export function askedBy(question: HostQuestion): string {
   const npc = question.random_event
   return npc === undefined ? 'Random NPC' : randomEventFor(npc).name
 }
@@ -386,7 +407,7 @@ export function askedBy(question: CustomQuestion): string {
 export const EXPORT_FILENAME = 'jolly-boar-inn-questions.json'
 
 /** The file Export writes; Import reads it back to the same bytes. */
-export function exportText(questions: readonly CustomQuestion[]): string {
+export function exportText(questions: readonly HostQuestion[]): string {
   return `${JSON.stringify(questions, null, 2)}\n`
 }
 
@@ -419,7 +440,7 @@ export function placeName(path: string): string {
   return PLACES[path] ?? path.replace(/^payload\./, '')
 }
 
-export type Imported = { ok: true; questions: CustomQuestion[] } | { ok: false; errors: string[] }
+export type Imported = { ok: true; questions: HostQuestion[] } | { ok: false; errors: string[] }
 
 /** A file Export wrote, or what is wrong with it. Nothing is imported unless all of it is. */
 export function importText(text: string): Imported {
@@ -434,13 +455,13 @@ export function importText(text: string): Imported {
     return { ok: false, errors: [error] }
   }
   const errors = parsed.flatMap((question, index) =>
-    problems(question).map((problem) => {
+    hostProblems(question).map((problem) => {
       const where = problem.path === '' ? '' : `, ${placeName(problem.path)}`
       return `Question ${index + 1}${where}: ${problem.message}`
     }),
   )
   if (errors.length > 0) return { ok: false, errors }
-  return { ok: true, questions: parsed as CustomQuestion[] }
+  return { ok: true, questions: parsed as HostQuestion[] }
 }
 
 // --- The event cap ---------------------------------------------------------------------
