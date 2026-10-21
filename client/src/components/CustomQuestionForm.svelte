@@ -29,8 +29,7 @@
     type CustomType,
   } from '../lib/customQuestions'
   import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
-  import { RANDOM_EVENTS, STRANGER, randomEventFor } from '../lib/randomEvents'
-  import NpcFace from './NpcFace.svelte'
+  import NpcPicker from './NpcPicker.svelte'
   import QuestionStage from './QuestionStage.svelte'
   import { GEMS } from './questions/GemButton.svelte'
   import RandomEvent from './RandomEvent.svelte'
@@ -51,6 +50,9 @@
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
+    onnpc = undefined,
+    ondraft = undefined,
+    nearSave = undefined,
     onsave,
     oncancel,
   }: {
@@ -83,6 +85,12 @@
     fields?: Snippet<[boolean]>
     /** Whether those fields are fine, asked on every Save. */
     onattempt?: () => boolean
+    /** Told who asks it whenever that changes, `''` for nobody yet. */
+    onnpc?: (npc: string) => void
+    /** Told the question whenever it changes: whole, or `undefined` while it has problems. */
+    ondraft?: (question: CustomQuestion | undefined) => void
+    /** Shown just above Save. */
+    nearSave?: Snippet
     onsave: (question: CustomQuestion) => void
     oncancel: () => void
   } = $props()
@@ -106,6 +114,7 @@
   let draft = $state(draftOf(question))
   // svelte-ignore state_referenced_locally
   if (!types.includes(draft.type)) draft.type = types[0] ?? draft.type
+  $effect(() => onnpc?.(draft.npc))
   // svelte-ignore state_referenced_locally
   const [rangeMin, rangeMax] = optionRange ?? [0, Infinity]
   if (draft.type === 'multiple_choice')
@@ -129,9 +138,6 @@
     ...(asker === 'required' && draft.npc === '' ? [unnamed] : []),
   ])
   const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
-  const askerName = $derived(
-    draft.npc !== '' ? randomEventFor(draft.npc).name : asker === 'optional' ? 'A random NPC' : '',
-  )
 
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
@@ -149,6 +155,8 @@
   function errorsAt(path: string): string[] {
     return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
   }
+
+  $effect(() => ondraft?.(found.length === 0 ? built : undefined))
 
   function save(): void {
     attempted = true
@@ -168,12 +176,6 @@
   function enterSaves(node: HTMLElement): () => void {
     node.addEventListener('keydown', enter)
     return () => node.removeEventListener('keydown', enter)
-  }
-
-  // The row scrolls sideways, so a question opened on an NPC near its end would hide them.
-  function showPicked(row: HTMLElement): void {
-    const picked = row.querySelector('input:checked')?.closest<HTMLElement>('.npc')
-    if (picked) row.scrollLeft = picked.offsetLeft - (row.clientWidth - picked.offsetWidth) / 2
   }
 
   function gem(index: number): string {
@@ -222,40 +224,7 @@
         {title ?? (question === undefined ? 'New question' : 'Edit question')}
       </h3>
       {#if asker === 'optional' || asker === 'required'}
-        <div class="field">
-          <p class="asker">
-            <span id="{id}-npc">Who asks it</span>{#if askerName !== ''}<span class="picked"
-                >{` · ${askerName}`}</span
-              >{/if}
-          </p>
-          <div class="npcs" role="radiogroup" aria-labelledby="{id}-npc" {@attach showPicked}>
-            {#if asker === 'optional'}
-              <label class="npc" title="A random NPC">
-                <input
-                  type="radio"
-                  name="{id}-npc"
-                  value=""
-                  aria-label="A random NPC"
-                  bind:group={draft.npc}
-                />
-                <NpcFace npc={STRANGER} />
-              </label>
-            {/if}
-            {#each RANDOM_EVENTS as npc (npc.id)}
-              <label class="npc" title="{npc.name}: {npc.theme}">
-                <input
-                  type="radio"
-                  name="{id}-npc"
-                  value={npc.id}
-                  aria-label={npc.name}
-                  bind:group={draft.npc}
-                />
-                <NpcFace npc={npc.id} />
-              </label>
-            {/each}
-          </div>
-          {@render errors('random_event')}
-        </div>
+        <NpcPicker bind:value={draft.npc} {asker} errors={errorsAt('random_event')} />
       {/if}
 
       {#if offered.length > 1}
@@ -474,6 +443,8 @@
         <p class="error">{problem.path}: {problem.message}</p>
       {/each}
 
+      {@render nearSave?.()}
+
       <div class="row">
         <button type="button" class="primary" onclick={save}>
           {saveLabel ?? (question === undefined ? 'Add question' : 'Save question')}
@@ -551,60 +522,6 @@
     .fields > :global(.segmented label:has(:checked)) {
       border-color: var(--accent);
     }
-  }
-
-  .asker {
-    margin: 0 0 0.3rem;
-    font-size: 0.9rem;
-    color: var(--muted);
-  }
-
-  .picked {
-    color: var(--ink);
-  }
-
-  /* Sixteen faces do not fit a phone, so they scroll sideways rather than fill the sheet. */
-  .npcs {
-    position: relative;
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    padding: 2px 2px 0.4rem;
-  }
-
-  .npc {
-    position: relative;
-    flex: none;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    width: 3.6rem;
-    height: 3.9rem;
-    margin: 0;
-    overflow: hidden;
-    scroll-snap-align: start;
-    background: var(--panel);
-    border: var(--border-width) solid var(--line);
-    border-radius: min(var(--radius), 8px);
-    cursor: pointer;
-  }
-
-  .npc:has(:checked) {
-    background: color-mix(in srgb, var(--accent) 14%, var(--panel));
-    border-color: var(--accent);
-    box-shadow: inset 0 0 0 2px var(--accent);
-  }
-
-  .npc:has(:focus-visible) {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  .npc input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
   }
 
   fieldset {

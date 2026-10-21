@@ -1,10 +1,11 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Seven of them: room creation, free codes for the create page, joins, join failures
-reported, suggestions, reports, and lookups of rooms that turn out not to exist.
-The last is what keeps the room list private. The live codes are a few of a few hundred
-words, and every request that names a room answers whether it exists, so an address
-that keeps asking for rooms that are not there is scanning and is refused for a while.
+Eight of them: room creation, free codes for the create page, joins, join failures
+reported, suggestions, checks for similar questions, reports, and lookups of rooms that
+turn out not to exist. The last is what keeps the room list private. The live codes are a
+few of a few hundred words, and every request that names a room answers whether it exists,
+so an address that keeps asking for rooms that are not there is scanning and is refused for
+a while.
 """
 
 import ipaddress
@@ -29,6 +30,8 @@ JOINS_PER_HOUR = 100
 JOIN_FAILURES_PER_HOUR = 30
 # Plenty for a player with a notebook of ideas; a script filling the queue stops quickly.
 SUGGESTIONS_PER_HOUR = 10
+# A check per pause in typing, debounced: a long evening of writing, not a crawl of the packs.
+SIMILAR_PER_HOUR = 120
 # A player reports what they just met in a game, a question or two; not a review of the packs.
 REPORTS_PER_HOUR = 3
 

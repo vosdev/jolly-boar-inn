@@ -1,4 +1,4 @@
-"""``GET /api/questions``: what the report form searches; ``/api/admin/questions``: whole ones.
+"""``GET /api/questions``: what Report and Suggest list; ``/api/admin/questions``: whole ones.
 
 The player's list names each question without its answer (``reports.label``), or lists
 the roster's items for a price mode. The packs are public in the repository, so the list

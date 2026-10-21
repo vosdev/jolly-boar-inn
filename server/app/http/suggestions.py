@@ -4,7 +4,8 @@ A player sends a suggestion with no account: the client shows the form only afte
 finished game, which is a courtesy, and the backstop is ``SUGGESTIONS_PER_HOUR`` per
 address. ``GET .../allowance`` lets the form say the limit is reached before anything is
 typed. As with creating a room, a suggestion is checked before the limiter counts it, so a
-typo costs no quota.
+typo costs no quota. ``POST .../similar`` names the pack questions one looks like while it
+is written, by label alone, under ``SIMILAR_PER_HOUR``.
 
 The admin routes are the one place the server hands out whole questions, answers
 included: the operator reviews them there. ``main.py`` mounts them only with
@@ -60,6 +61,21 @@ async def suggest(body: Suggestion, request: Request) -> dict[str, Any]:
     return {"id": suggestion}
 
 
+class Draft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    content: dict[str, Any]
+
+
+@router.post("/similar")
+async def similar(body: Draft, request: Request) -> dict[str, Any]:
+    """The pack questions a question being written looks like; nothing about suggestions."""
+    content = suggestions.check_similar(body.content)
+    if not request.app.state.similar.allow(client_key(_host(request))):
+        raise RateLimited("too many checks from this address, try again later")
+    return {"matches": suggestions.similar_in_packs(request.app.state.packs, content)}
+
+
 class Edit(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -83,7 +99,7 @@ class ExportRequest(BaseModel):
 @admin_router.get("")
 async def queue(request: Request, status: suggestions.Status = "pending") -> dict[str, Any]:
     pool = await request.app.state.database()
-    return await suggestions.listing(pool, status)
+    return await suggestions.listing(pool, status, request.app.state.packs)
 
 
 @admin_router.put("/{suggestion}")

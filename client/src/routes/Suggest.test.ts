@@ -4,13 +4,23 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
+import { ApiFailure } from '../lib/api'
 import { savePastGame } from '../lib/history'
+import { npcArt } from '../lib/npcs'
+import { CHOICES } from '../lib/suggestions'
 import { clearVocabCache } from '../lib/vocab'
 import Suggest from './Suggest.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getSuggestionAllowance: vi.fn(), sendSuggestion: vi.fn(), getVocab: vi.fn() }
+  return {
+    ...real,
+    getSuggestionAllowance: vi.fn(),
+    sendSuggestion: vi.fn(),
+    getVocab: vi.fn(),
+    getReportChoices: vi.fn(),
+    findSimilar: vi.fn(),
+  }
 })
 
 const navigate = vi.fn()
@@ -36,7 +46,31 @@ beforeEach(() => {
   vi.mocked(api.getVocab).mockResolvedValue({ vocab: 'items', version: 'v', entries: ROSTER })
   vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 10, retry_at: null })
   vi.mocked(api.sendSuggestion).mockResolvedValue({ id: 'x' })
+  vi.mocked(api.findSimilar).mockResolvedValue([])
+  vi.mocked(api.getReportChoices).mockImplementation(async (mode) => {
+    if (mode === 'release_order') throw new ApiFailure(422, 'bad_mode', 'not here')
+    if (mode === 'random_event') {
+      return {
+        by: 'question',
+        choices: [
+          { id: 'q1', label: 'Which skill?', random_event: 'bob' },
+          { id: 'q2', label: 'Which tome?', random_event: 'reldo' },
+        ],
+      }
+    }
+    return { by: 'question', choices: [{ id: `${mode}-1`, label: `A ${mode} question` }] }
+  })
 })
+
+function existing(): HTMLElement {
+  return screen.getByRole('group', { name: 'Already in the game' })
+}
+
+function existingRows(): string[] {
+  return [...existing().querySelectorAll('li')].map((li) =>
+    (li.textContent ?? '').replace(/\s+/g, ' ').trim(),
+  )
+}
 
 afterEach(cleanup)
 
@@ -89,6 +123,8 @@ describe('Suggest', () => {
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
     const roster = screen.getByRole('region', { name: 'Already in the game' })
+    expect(screen.queryByRole('group', { name: 'Already in the game' })).toBeNull()
+    expect(api.getReportChoices).not.toHaveBeenCalled()
     await waitFor(() => expect(roster.querySelectorAll('li')).toHaveLength(3))
     await fireEvent.input(screen.getByLabelText('Search the items already in the game'), {
       target: { value: 'abys' },
@@ -101,6 +137,42 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(screen.getByText('Already in the game.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
+  })
+
+  it('shows each question card’s pack questions beside the editor, searchable', async () => {
+    played()
+    render(Suggest, { navigate })
+    const cards = CHOICES.filter((choice) => choice.kind === 'question' && choice.id !== 'no_round')
+    for (const card of cards.filter((c) => !['random_event', 'release_order'].includes(c.id))) {
+      await fireEvent.click(await screen.findByRole('button', { name: new RegExp(card.label) }))
+      await waitFor(() => expect(existingRows()).toEqual([`A ${card.id} question`]))
+      expect(screen.getByLabelText('Search the questions already in the game')).toBeTruthy()
+      await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
+    }
+    expect(vi.mocked(api.getReportChoices).mock.calls.map(([mode]) => mode)).toEqual(
+      cards.map((c) => c.id).filter((id) => !['random_event', 'release_order'].includes(id)),
+    )
+  })
+
+  it('says Release Order has no questions yet, in one line and no error', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Release Order/ }))
+    await within(existing()).findByText('The game has no questions here yet.')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('names the NPC on each random event row, the one picked to ask first', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
+    await waitFor(() =>
+      expect(existingRows()).toEqual(['Evil Bob Which skill?', 'Reldo Which tome?']),
+    )
+    await fireEvent.click(screen.getByRole('radio', { name: 'Reldo' }))
+    expect(existingRows()).toEqual(['Reldo Which tome?', 'Evil Bob Which skill?'])
+    await fireEvent.click(screen.getByLabelText('Put in order'))
+    expect(existingRows()).toEqual(['Evil Bob Which skill?', 'Reldo Which tome?'])
   })
 
   it('writes an examine as a multiple-choice question of four to six names', async () => {
@@ -428,6 +500,77 @@ describe('Suggest', () => {
     })
   })
 
+  it('sends a Drop Table question with the item to show, previewed without a picture', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+    await fireEvent.click(screen.getByLabelText('Closest number'))
+    await type('Question', 'A Lizardman shaman drops a Dragon warhammer once in how many kills?')
+    await type('Answer', '3000')
+    await type('Item to show, if any', '  Dragon warhammer ')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Dragon_warhammer')
+    await type('Your name', 'AFKFisher')
+    expect(document.querySelector('.picture')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    const content = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
+    expect(content).toMatchObject({ type: 'closest_number', picture_item: 'Dragon warhammer' })
+    expect(content).not.toHaveProperty('payload.image')
+  })
+
+  it('sends no item to show when none is named, and asks only Drop Table', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+    await type('Question', 'Which monster drops the Abyssal whip?')
+    await type('Answer 1', 'Abyssal demon')
+    await type('Answer 2', 'Greater demon')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).not.toHaveProperty(
+      'picture_item',
+    )
+    cleanup()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Bestiary/ }))
+    expect(screen.queryByLabelText('Item to show, if any')).toBeNull()
+  })
+
+  it('names a Who’s That NPC?, refusing one the game asks about, and needs its wiki page', async () => {
+    played()
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [{ id: 'q9', label: 'Vorkath', npc: 8058 }],
+    })
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
+    await waitFor(() => expect(existingRows()).toEqual(['Vorkath']))
+    await type('Monster or NPC, as the wiki spells it', ' vorkath')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Already in the game.')).toBeTruthy()
+    expect(screen.getByText(/Required: the page you checked it on/)).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await type('Monster or NPC, as the wiki spells it', ' Araxxor ')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Araxxor')
+    const preview = screen.getByRole('region', { name: 'Preview' })
+    expect(within(preview).getByText("Who's that NPC?")).toBeTruthy()
+    expect(preview.querySelector('.picture')).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(api.sendSuggestion).toHaveBeenCalledWith({
+      kind: 'question',
+      content: {
+        type: 'pick_from_list',
+        payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
+        mode: 'whos_that_npc',
+        wiki: 'https://oldschool.runescape.wiki/w/Araxxor',
+      },
+      credit: 'AFKFisher',
+      credit_shown: false,
+    })
+  })
+
   it('swaps Bestiary’s form between asking and sorting from one type picker', async () => {
     played()
     render(Suggest, { navigate })
@@ -439,6 +582,7 @@ describe('Suggest', () => {
     expect(labels()).toEqual([
       'Multiple choice',
       'Type the answer',
+      'Closest number',
       'Pick all that apply',
       'Put in order',
     ])
@@ -466,6 +610,49 @@ describe('Suggest', () => {
     })
   })
 
+  it('lets an NPC ask an order, with its intro, previewed on the NPC’s card', async () => {
+    played()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
+    await fireEvent.click(screen.getByLabelText('Put in order'))
+    expect(screen.getByLabelText('First end')).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.getByText('Pick who asks it.')).toBeTruthy()
+    expect(api.sendSuggestion).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByRole('radio', { name: 'Fairy Queen' }))
+    await type(/^Intro/, 'Turn the dials, mortal.')
+    await type('What are they sorted by?', 'Which letters dial Zanaris, in order?')
+    await type('First end', 'First')
+    await type('Last end', 'Last')
+    await type('Entry 1', 'A')
+    await type('Entry 2', 'I')
+    await type('Entry 3', 'Q')
+    const preview = within(screen.getByRole('region', { name: 'Preview' }))
+    expect(preview.getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
+    expect(preview.getByText('Turn the dials, mortal.', { selector: '.intro' })).toBeTruthy()
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Fairy_ring')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toEqual({
+      type: 'ordering',
+      mode: 'random_event',
+      random_event: 'fairy_queen',
+      wiki: 'https://oldschool.runescape.wiki/w/Fairy_ring',
+      payload: {
+        intro: 'Turn the dials, mortal.',
+        prompt: 'Which letters dial Zanaris, in order?',
+        ends: ['First', 'Last'],
+        entries: [
+          { text: 'A', rank: 1 },
+          { text: 'I', rank: 2 },
+          { text: 'Q', rank: 3 },
+        ],
+        answer: [0, 1, 2],
+      },
+    })
+  })
+
   it('makes an NPC’s question name its NPC', async () => {
     played()
     render(Suggest, { navigate })
@@ -477,6 +664,49 @@ describe('Suggest', () => {
     expect(faces.some((face) => (face as HTMLInputElement).checked)).toBe(false)
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(screen.getByText('Pick who asks it.')).toBeTruthy()
+  })
+
+  it('offers a question with no round last, its five types and no more, and sends it with no mode', async () => {
+    played()
+    render(Suggest, { navigate })
+    const cards = (await screen.findAllByRole('button')).filter((b) => b.closest('.choices'))
+    expect(cards.at(-1)?.textContent).toMatch(
+      /Not sure where it fits\s*Any question\. The innkeeper picks its round\./,
+    )
+    expect(cards.at(-1)?.querySelector('img')?.getAttribute('src')).toBe(npcArt('innkeeper').url)
+    await fireEvent.click(cards.at(-1)!)
+    const labels = within(screen.getByRole('group', { name: 'How players answer' }))
+      .getAllByRole('radio')
+      .map((radio) => radio.parentElement?.textContent?.trim())
+    expect(labels).toEqual([
+      'Multiple choice',
+      'Type the answer',
+      'Closest number',
+      'Pick all that apply',
+      'Put in order',
+    ])
+    expect(screen.queryByText('Who asks it')).toBeNull()
+    expect(screen.queryByLabelText(/^Quote/)).toBeNull()
+    expect(screen.queryByLabelText(/^Intro/)).toBeNull()
+    expect(screen.queryByLabelText(/Item to show/)).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Already in the game' })).toBeNull()
+    expect(screen.getByLabelText<HTMLTextAreaElement>('Question').readOnly).toBe(false)
+    expect(api.getReportChoices).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByLabelText('Type the answer'))
+    await type('Question', 'Which monster drops the Abyssal whip?')
+    await type('Accepted answer 1', 'Abyssal demon')
+    await type('Another source, if the wiki can’t show it', 'https://example.com/clip')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    const sent = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
+    expect(sent).toMatchObject({
+      type: 'free_text',
+      payload: { prompt: 'Which monster drops the Abyssal whip?', accepted: ['Abyssal demon'] },
+      source_url: 'https://example.com/clip',
+    })
+    expect(sent).not.toHaveProperty('mode')
+    expect(sent).not.toHaveProperty('random_event')
   })
 
   it('shows the limit when the server refuses the send for it', async () => {
@@ -491,5 +721,62 @@ describe('Suggest', () => {
     vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 0, retry_at: null })
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     await waitFor(() => expect(screen.getByText(/Try again later/)).toBeTruthy())
+  })
+
+  describe('questions the game already has', () => {
+    const SIMILAR_WAIT = { timeout: 3000 }
+
+    async function writeOddOneOut(first: string): Promise<void> {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
+      await type('Answer 1', first)
+      await type('Answer 2', 'Hazelmere')
+      await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
+    }
+
+    it('shows a match for a copied pack question, and Send still works', async () => {
+      vi.mocked(api.findSimilar).mockResolvedValue([
+        { mode: 'odd_one_out', label: 'Dharok, Hazelmere', score: 100 },
+        { mode: 'bestiary', label: 'Which brother?', score: 64 },
+      ])
+      await writeOddOneOut('Dharok')
+      await screen.findByText('Looks like one we have (100%)', {}, SIMILAR_WAIT)
+      const status = screen.getByRole('status')
+      expect(status.textContent).toContain('Dharok, Hazelmere')
+      expect(status.textContent).toContain('Which brother?')
+      expect(status.textContent).toContain('(64%)')
+      expect(api.findSimilar).toHaveBeenCalledTimes(1)
+      expect(api.findSimilar).toHaveBeenCalledWith({
+        type: 'multiple_choice',
+        payload: {
+          prompt: "Which one doesn't belong?",
+          options: ['Dharok', 'Hazelmere'],
+          answer_index: 1,
+        },
+        mode: 'odd_one_out',
+      })
+
+      await type('Your name', 'AFKFisher')
+      await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
+      const send = screen.getByRole('button', { name: 'Send to the innkeeper' })
+      expect((send as HTMLButtonElement).disabled).toBe(false)
+      await fireEvent.click(send)
+      expect(api.sendSuggestion).toHaveBeenCalledTimes(1)
+      expect(api.findSimilar).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows nothing for a new question', async () => {
+      await writeOddOneOut('Zezima')
+      await waitFor(() => expect(api.findSimilar).toHaveBeenCalled(), SIMILAR_WAIT)
+      expect(screen.queryByText(/Looks like one we have/)).toBeNull()
+    })
+
+    it('shows nothing when the check is refused', async () => {
+      vi.mocked(api.findSimilar).mockRejectedValue(new ApiFailure(429, 'rate_limited', 'slow'))
+      await writeOddOneOut('Dharok')
+      await waitFor(() => expect(api.findSimilar).toHaveBeenCalled(), SIMILAR_WAIT)
+      expect(screen.queryByText(/Looks like one we have/)).toBeNull()
+    })
   })
 })

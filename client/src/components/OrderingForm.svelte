@@ -8,7 +8,8 @@
    * skipped; the number beside each entry is the place it holds, equal across a tie.
    * `fields` adds the suggestion's own fields below the question's, and `onattempt` checks
    * those on every Save. A round that also takes other types passes them in `picker`, and
-   * picking one hands it back.
+   * picking one hands it back. A random event's names its NPC, with `asker`, and offers the
+   * intro, with `intro`, and is previewed on the NPC's card.
    *
    * Like `CustomQuestionForm`, nothing is red until the first Save except a limit that is
    * already broken, and Save hands back only a question `problems` passes.
@@ -31,18 +32,25 @@
     wordingOf,
     type OrderingQuestion,
   } from '../lib/ordering'
-  import { codePoints, field, limit } from '../lib/questionSchema'
+  import { codePoints, field, limit, type Problem } from '../lib/questionSchema'
+  import NpcPicker from './NpcPicker.svelte'
   import QuestionStage from './QuestionStage.svelte'
+  import RandomEvent from './RandomEvent.svelte'
   import Segmented from './Segmented.svelte'
 
   let {
     question = undefined,
     title = undefined,
     mode = 'sort_it_out',
+    asker = 'none',
+    intro = false,
     picker = undefined,
     saveLabel = undefined,
     fields: more = undefined,
     onattempt = () => true,
+    onnpc = undefined,
+    ondraft = undefined,
+    nearSave = undefined,
     onsave,
     oncancel,
   }: {
@@ -51,6 +59,10 @@
     title?: string
     /** The round it is previewed in. */
     mode?: string
+    /** Who asks it: an NPC that must be named, or the round. */
+    asker?: 'required' | 'none'
+    /** Whether the intro shows, an NPC's line before the question. */
+    intro?: boolean
     /** Every type the round offers, in order, and what to do with one another form writes. */
     picker?: { options: { value: string; label: string }[]; onpick: (type: string) => void }
     saveLabel?: string
@@ -58,22 +70,37 @@
     fields?: Snippet<[boolean]>
     /** Whether those fields are fine, asked on every Save. */
     onattempt?: () => boolean
+    /** Told who asks it whenever that changes, `''` for nobody yet. */
+    onnpc?: (npc: string) => void
+    /** Told the question whenever it changes: whole, or `undefined` while it has problems. */
+    ondraft?: (question: OrderingQuestion | undefined) => void
+    /** Shown just above Save. */
+    nearSave?: Snippet
     onsave: (question: OrderingQuestion) => void
     oncancel: () => void
   } = $props()
 
   const PROMPT_MAX = limit(field('ordering', 'prompt'), 'maxLength') ?? 0
   const EXPLANATION_MAX = limit(field('ordering', 'explanation'), 'maxLength') ?? 0
+  const INTRO_MAX = limit(field('ordering', 'intro'), 'maxLength') ?? 0
 
   // The form starts from the question it was opened on and owns the draft from then on.
   // svelte-ignore state_referenced_locally
   let draft = $state(draftOf(question))
+  // svelte-ignore state_referenced_locally
+  let npc = $state(question?.random_event ?? '')
+  $effect(() => onnpc?.(npc))
   let attempted = $state(false)
   const id = $props.id()
 
   const built = $derived(questionOf(draft))
   const wording = $derived(wordingOf(mode))
-  const found = $derived(problems(built, wording.detailRequired))
+  const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
+  const found = $derived([
+    ...problems(built, wording.detailRequired),
+    ...(asker === 'required' && npc === '' ? [unnamed] : []),
+  ])
+  const asked = $derived(asker === 'required' ? { ...built, random_event: npc } : built)
   const shown = $derived(attempted ? found : found.filter((problem) => problem.kind === 'limit'))
   const ranks = $derived(ranksOf(draft.entries))
   const pickChoices = $derived(
@@ -85,23 +112,30 @@
 
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
-    /^payload\.(prompt|ends\[\d\]|entries(\[\d+\](\.(text|detail))?)?|picks|explanation)$/
-  const unplaced = $derived(shown.filter((problem) => !PLACED.test(problem.path)))
+    /^(payload\.(prompt|ends\[\d\]|entries(\[\d+\](\.(text|detail))?)?|picks|explanation)|random_event)$/
+  const unplaced = $derived(
+    shown.filter(
+      (problem) => !PLACED.test(problem.path) && !(intro && problem.path === 'payload.intro'),
+    ),
+  )
 
   function errorsAt(path: string): string[] {
     return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
   }
 
+  $effect(() => ondraft?.(found.length === 0 ? asked : undefined))
+
   function save(): void {
     attempted = true
     const rest = onattempt()
-    if (found.length === 0 && rest) onsave(built)
+    if (found.length === 0 && rest) onsave(asked)
   }
 
   // Enter in a field would submit Create's form, and with it the room. Here it saves the
   // question instead, as it would in a form of its own.
   function enter(event: KeyboardEvent): void {
     if (event.key !== 'Enter' || !(event.target instanceof HTMLInputElement)) return
+    if (event.target.type === 'radio') return
     event.preventDefault()
     save()
   }
@@ -148,12 +182,25 @@
       <h3 id="{id}-title">
         {title ?? (question === undefined ? 'New question' : 'Edit question')}
       </h3>
+      {#if asker === 'required'}
+        <NpcPicker bind:value={npc} {asker} errors={errorsAt('random_event')} />
+      {/if}
+
       {#if picker !== undefined}
         <Segmented
           legend="How players answer"
           options={picker.options}
           bind:value={() => 'ordering', (type) => type !== 'ordering' && picker?.onpick(type)}
         />
+      {/if}
+
+      {#if intro}
+        <div class="field">
+          <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
+          <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>
+          <p class="note counter">{codePoints(draft.intro.trim())}/{INTRO_MAX}</p>
+          {@render errors('payload.intro')}
+        </div>
       {/if}
 
       <div class="field">
@@ -286,6 +333,8 @@
         <p class="error">{problem.path}: {problem.message}</p>
       {/each}
 
+      {@render nearSave?.()}
+
       <div class="row">
         <button type="button" class="primary" onclick={save}>
           {saveLabel ?? (question === undefined ? 'Add question' : 'Save question')}
@@ -296,7 +345,11 @@
 
     <section class="preview" aria-label="Preview">
       <p class="note">What players will see, with the entries shuffled</p>
-      <QuestionStage question={previewOf(built, mode)} yourValue={null} onAnswer={() => {}} />
+      {#if asker === 'none'}
+        <QuestionStage question={previewOf(built, mode)} yourValue={null} onAnswer={() => {}} />
+      {:else}
+        <RandomEvent question={previewOf(asked, mode)} yourValue={null} onAnswer={() => {}} />
+      {/if}
     </section>
   </div>
 </div>

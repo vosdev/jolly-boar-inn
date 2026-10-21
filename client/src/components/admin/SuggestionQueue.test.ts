@@ -4,7 +4,8 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/sve
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as admin from '../../lib/admin'
-import type { QueuedSuggestion } from '../../lib/suggestions'
+import { npcArt } from '../../lib/npcs'
+import type { QuestionContent, QueuedSuggestion } from '../../lib/suggestions'
 import SuggestionQueue from './SuggestionQueue.svelte'
 
 vi.mock('../../lib/admin', async (importOriginal) => {
@@ -153,6 +154,185 @@ describe('SuggestionQueue', () => {
     })
   })
 
+  it('previews an NPC’s order on their card and edits it in the same form', async () => {
+    const event = row({
+      content: {
+        type: 'ordering',
+        mode: 'random_event',
+        random_event: 'fairy_queen',
+        wiki: 'https://oldschool.runescape.wiki/w/Fairy_ring',
+        payload: {
+          intro: 'Turn the dials, mortal.',
+          prompt: 'Which letters dial Zanaris, in order?',
+          ends: ['First', 'Last'],
+          entries: [
+            { text: 'A', rank: 1 },
+            { text: 'I', rank: 2 },
+            { text: 'Q', rank: 3 },
+          ],
+          answer: [0, 1, 2],
+        },
+      },
+      playable: true,
+    })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [event], counts: COUNTS })
+    vi.mocked(admin.editSuggestion).mockResolvedValue(event)
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText(/Which letters dial/)).closest('button')!)
+    const preview = screen.getByLabelText('As players will see it')
+    expect(within(preview).getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByRole('radio', { name: 'Fairy Queen' })).toHaveProperty('checked', true)
+    expect((screen.getByLabelText(/^Intro/) as HTMLTextAreaElement).value).toBe(
+      'Turn the dials, mortal.',
+    )
+    await fireEvent.input(screen.getByLabelText(/^Intro/), { target: { value: 'Dial, mortal.' } })
+    await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    const [, id, body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+    expect(id).toBe('one')
+    expect(body.content).toMatchObject({
+      type: 'ordering',
+      random_event: 'fairy_queen',
+      payload: { intro: 'Dial, mortal.', answer: [0, 1, 2] },
+    })
+  })
+
+  describe('a question with no round', () => {
+    const { mode: _mode, ...content } = row().content as QuestionContent
+    const unplaced = row({
+      content: { ...content, payload: { ...content.payload, prompt: 'Unplaced?' } },
+    })
+
+    function rounds(): string[] {
+      const select = screen.getByLabelText<HTMLSelectElement>('Round')
+      return [...select.options].map((option) => option.textContent ?? '')
+    }
+
+    it('reads "No round yet", from the innkeeper, and cannot be approved', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      const summary = (await screen.findByText('Unplaced?')).closest('button')!
+      expect(within(summary).getByText('No round yet')).toBeTruthy()
+      expect(within(summary).queryByText('Waits for its round')).toBeNull()
+      expect(summary.querySelector('img')?.getAttribute('src')).toBe(npcArt('innkeeper').url)
+      await fireEvent.click(summary)
+      expect(screen.getByRole('button', { name: 'Approve' })).toHaveProperty('disabled', true)
+      expect(screen.getByText(/pick its round before approving it/)).toBeTruthy()
+    })
+
+    it('offers the rounds that take its type, and an NPC is then required', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(unplaced)
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText('Unplaced?')).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect(rounds()).toEqual([
+        'No round yet',
+        'A random event question',
+        'Guess the Examine',
+        'Bestiary',
+        'Drop Table',
+        'Odd One Out',
+        'Who Said That?',
+        'Know Your Content Creator',
+      ])
+      expect(screen.queryByText('Who asks it')).toBeNull()
+      await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'random_event' } })
+      expect(screen.getByText('Who asks it')).toBeTruthy()
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      expect(screen.getByText('Pick who asks it.')).toBeTruthy()
+      expect(admin.editSuggestion).not.toHaveBeenCalled()
+
+      await fireEvent.change(screen.getByRole('combobox', { name: "What's it about?" }), {
+        target: { value: 'bob' },
+      })
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(body.content).toMatchObject({ mode: 'random_event', random_event: 'bob' })
+    })
+
+    it('saves with no mode while it stays without a round', async () => {
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(unplaced)
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText('Unplaced?')).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(body.content).not.toHaveProperty('mode')
+    })
+
+    it('moves a placed question only among the rounds that take its type', async () => {
+      const ordering = row({
+        content: {
+          type: 'ordering',
+          mode: 'sort_it_out',
+          wiki: WIKI,
+          payload: {
+            prompt: 'Sort these.',
+            ends: ['Lowest', 'Highest'],
+            entries: [
+              { text: 'A', rank: 1 },
+              { text: 'B', rank: 2 },
+              { text: 'C', rank: 3 },
+            ],
+            answer: [0, 1, 2],
+          },
+        },
+      })
+      vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [ordering], counts: COUNTS })
+      vi.mocked(admin.editSuggestion).mockResolvedValue(ordering)
+      render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+      await fireEvent.click((await screen.findByText('Sort these.')).closest('button')!)
+      await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+      expect(screen.getByLabelText<HTMLSelectElement>('Round').value).toBe('sort_it_out')
+      expect(rounds()).toEqual([
+        'A random event question',
+        'Bestiary',
+        'Sort It Out',
+        'Release Order',
+      ])
+      await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'bestiary' } })
+      await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+      expect(body.content).toMatchObject({ type: 'ordering', mode: 'bestiary' })
+    })
+  })
+
+  it('names the item a Drop Table question asks to show', async () => {
+    const pictured = row({
+      content: {
+        type: 'closest_number',
+        mode: 'drop_table',
+        wiki: 'https://oldschool.runescape.wiki/w/Dragon_warhammer',
+        picture_item: 'Dragon warhammer',
+        payload: { prompt: 'Once in how many kills?', answer: 3000 },
+      },
+    })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [pictured], counts: COUNTS })
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText('Once in how many kills?')).closest('button')!)
+    const term = screen.getByText('Item to show')
+    expect(term.nextElementSibling?.textContent).toBe('Dragon warhammer')
+  })
+
+  it('shows a Who’s That NPC? by its prompt, with the NPC as its answer', async () => {
+    const npc = row({
+      content: {
+        type: 'pick_from_list',
+        mode: 'whos_that_npc',
+        wiki: 'https://oldschool.runescape.wiki/w/Araxxor',
+        payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
+      },
+    })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [npc], counts: COUNTS })
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText("Who's that NPC?")).closest('button')!)
+    expect(screen.getByText('Araxxor', { selector: 'strong' })).toBeTruthy()
+    expect(screen.getByLabelText('As players will see it').querySelector('.picture')).toBeNull()
+  })
+
   it('links a question’s non-wiki source beside, or instead of, its wiki page', async () => {
     const clip = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
     const only = row({
@@ -217,5 +397,45 @@ describe('SuggestionQueue', () => {
     render(SuggestionQueue, { token: 't', onrefused })
     await vi.waitFor(() => expect(onrefused).toHaveBeenCalled())
     expect(within(document.body).queryByRole('list')).toBeNull()
+  })
+
+  it('lists the pack questions and other suggestions it looks like, answers included', async () => {
+    const matches = [
+      {
+        score: 100,
+        suggestion: null,
+        question: {
+          type: 'multiple_choice',
+          mode: 'bestiary',
+          payload: {
+            prompt: 'Which boss?',
+            options: ['Kalphite Queen', 'Zulrah'],
+            answer_index: 0,
+          },
+        },
+      },
+      {
+        score: 71,
+        suggestion: 'two',
+        question: {
+          type: 'free_text',
+          payload: { prompt: 'Who guards the lair?', accepted: ['KQ'] },
+        },
+      },
+    ] satisfies QueuedSuggestion['matches']
+    vi.mocked(admin.getQueue).mockResolvedValue({
+      suggestions: [row({ matches })],
+      counts: COUNTS,
+    })
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    const summary = await screen.findByText('<b>Which</b> is not a Barrows brother?')
+    await fireEvent.click(summary.closest('button')!)
+    const listed = [...document.querySelectorAll('.matches li')].map((li) =>
+      (li.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    )
+    expect(listed).toEqual([
+      '100% In Bestiary Which boss? Kalphite Queen',
+      '71% Suggested for no round yet Who guards the lair? KQ',
+    ])
   })
 })

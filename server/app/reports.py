@@ -11,9 +11,11 @@ A question's id is a hash of its content, so fixing it changes the id. A report 
 snapshot of what it was filed against: the whole question, or the item ``{id, name}``.
 The id only links to the pack while it still matches.
 
-``choices`` is what the form searches, and never carries an answer. Odd One Out's
-questions all ask the same thing, so their label is the options in pack order, which
-says which question it is but not which option is the odd one.
+``choices`` is what the report form and ``/suggest`` search, named by what players read
+while a question is open. Odd One Out's questions all ask the same thing, so their label
+is the options in pack order, which says which question it is but not which option is
+the odd one. Who's That NPC? asks the same too, and its picture is the question, so its
+label is the NPC's name: the one answer a label ever gives.
 """
 
 from typing import Any, Literal
@@ -31,6 +33,7 @@ Status = Literal["open", "closed"]
 TEXT_MAX = 500
 ITEM_MODES = frozenset({"more_less", "price_is_right"})
 ITEM_VOCAB = "items"
+NPC_MODE = "whos_that_npc"
 # Its prompt is the same for every question; the options are what tell them apart.
 OPTIONS_LABEL_MODES = frozenset({"odd_one_out"})
 
@@ -67,6 +70,11 @@ def label(question: dict[str, Any]) -> str:
     payload = question["payload"]
     if question["mode"] in OPTIONS_LABEL_MODES:
         return ", ".join(payload["options"])
+    if question["mode"] == NPC_MODE:
+        npcs = vocab.get(payload["vocab"])
+        name = npcs.name_of(payload["answer_id"]) if npcs else None
+        if name is not None:
+            return name
     quote = payload.get("quote")
     return payload["prompt"] if quote is None else f"{payload['prompt']} “{quote}”"
 
@@ -77,10 +85,18 @@ def choices(packs: list[Pack], mode: str) -> dict[str, Any]:
         roster = vocab.get(ITEM_VOCAB)
         entries = roster.entries if roster else ()
         return {"by": "item", "choices": [{"id": e.id, "label": e.name} for e in entries]}
-    return {
-        "by": "question",
-        "choices": [{"id": q["id"], "label": label(q)} for q in mode_questions(packs, mode)],
-    }
+    return {"by": "question", "choices": [_choice(q) for q in mode_questions(packs, mode)]}
+
+
+def _choice(question: dict[str, Any]) -> dict[str, Any]:
+    # The NPC's id lets /suggest refuse one the round already has. A random event's
+    # asker is no secret: players see who asks it before the question opens.
+    choice = {"id": question["id"], "label": label(question)}
+    if question["mode"] == NPC_MODE:
+        choice["npc"] = question["payload"]["answer_id"]
+    if question["mode"] == EVENT_MODE:
+        choice["random_event"] = question["random_event"]
+    return choice
 
 
 def _snapshot(

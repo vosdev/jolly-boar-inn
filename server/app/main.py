@@ -43,6 +43,7 @@ from app.http.ratelimit import (
     LOOKUP_MISSES,
     LOOKUP_WINDOW,
     REPORTS_PER_HOUR,
+    SIMILAR_PER_HOUR,
     SUGGESTIONS_PER_HOUR,
     RateLimiter,
 )
@@ -260,6 +261,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.join_failures = RateLimiter(JOIN_FAILURES_PER_HOUR)
     app.state.suggestions = RateLimiter(SUGGESTIONS_PER_HOUR)
     app.state.reports = RateLimiter(REPORTS_PER_HOUR)
+    app.state.similar = RateLimiter(SIMILAR_PER_HOUR)
     app.add_middleware(HeadAsGet)
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)

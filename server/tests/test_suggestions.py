@@ -14,8 +14,16 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.config import Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
+from app.modes import round_modes
 from app.rooms import queries
-from app.suggestions import FIXED_PROMPTS, INTRO_MODES, QUESTION_MODES, QUOTE_MODES, check
+from app.suggestions import (
+    FIXED_PROMPTS,
+    INTRO_MODES,
+    PICTURE_ITEM_MODES,
+    QUESTION_MODES,
+    QUOTE_MODES,
+    check,
+)
 from tests import client_source
 from tests.conftest import BASE
 from tests.packs import PACKS_DIR
@@ -241,6 +249,14 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
     return changed
 
 
+EVENT_ORDERING = _with(
+    SORT_IT_OUT,
+    mode="random_event",
+    random_event="bob",
+    payload={**SORT_IT_OUT["content"]["payload"], "intro": "Gems, adventurer!"},
+)
+
+
 @pytest.mark.parametrize(
     "body",
     [
@@ -269,8 +285,9 @@ def _without(body: dict[str, Any], key: str) -> dict[str, Any]:
         _with(RELEASE_ORDER, type="multiple_choice"),
         _with(RELEASE_ORDER, type="free_text"),
         _with(SORT_IT_OUT, mode="drop_table"),
-        _with(SORT_IT_OUT, mode="random_event", random_event="bob"),
-        _with(EVENT, type="ordering", payload=SORT_IT_OUT["content"]["payload"]),
+        _without(EVENT_ORDERING, "random_event"),
+        _with(EVENT_ORDERING, random_event="nobody_at_all"),
+        _with(EVENT_ORDERING, payload={**EVENT_ORDERING["content"]["payload"], "intro": ""}),
         _ordering(entries=SORT_IT_OUT["content"]["payload"]["entries"][:2], answer=[0, 1]),
         _ordering(ends=["Lowest"]),
         _ordering(prompt=""),
@@ -466,6 +483,120 @@ def test_a_pick_all_is_held_to_its_types_check(client: TestClient) -> None:
     assert "'pick_all_that_apply' is not offered for 'odd_one_out'" in response.text
 
 
+def test_bestiary_takes_a_number(client: TestClient) -> None:
+    number = _with(
+        DROP_RATE,
+        mode="bestiary",
+        wiki="https://oldschool.runescape.wiki/w/General_Graardor",
+        payload={"prompt": "What is General Graardor's combat level?", "answer": 624},
+    )
+    approve(client, suggest(client, number))
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["type"]) == ("bestiary", "closest_number")
+
+
+def test_a_drop_table_question_names_an_item_to_picture(client: TestClient) -> None:
+    approve(client, suggest(client, _with(DROP_RATE, picture_item="  Dragon warhammer ")))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"]["picture_item"] == "Dragon warhammer"
+    (question,) = export(client)["questions"]
+    assert question["picture_item"] == "Dragon warhammer"
+    assert "image" not in question["payload"]
+
+
+@pytest.mark.parametrize(
+    ("body", "problem"),
+    [
+        (_with(DROP_RATE, picture_item="   "), "an item name of 1 to 80"),
+        (_with(DROP_RATE, picture_item="x" * 81), "an item name of 1 to 80"),
+        (_with(DROP_RATE, picture_item=4151), "an item name of 1 to 80"),
+        (_with(DROP_RATE, mode="bestiary", picture_item="Dragon warhammer"), "only drop_table"),
+    ],
+    ids=["blank", "too_long", "an_id", "bestiary"],
+)
+def test_only_drop_table_names_a_picture_item(
+    client: TestClient, body: dict[str, Any], problem: str
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert problem in response.text
+
+
+NPC = {
+    "kind": "question",
+    "content": {
+        "type": "pick_from_list",
+        "mode": "whos_that_npc",
+        "wiki": "https://oldschool.runescape.wiki/w/Araxxor",
+        "payload": {"prompt": "Who's that NPC?", "subject": {"name": "Araxxor"}},
+    },
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+def test_a_whos_that_npc_suggestion_names_an_npc_not_asked_yet(client: TestClient) -> None:
+    approve(
+        client,
+        suggest(
+            client,
+            _with(NPC, payload={**NPC["content"]["payload"], "subject": {"name": " Araxxor "}}),
+        ),
+    )
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == NPC["content"]
+    assert row["playable"] is True
+    (question,) = export(client)["questions"]
+    assert question == {**NPC["content"], "credit": "AFKFisher", "credit_shown": True}
+
+
+def _npc(**payload: Any) -> dict[str, Any]:
+    return _with(NPC, payload={**NPC["content"]["payload"], **payload})
+
+
+@pytest.mark.parametrize(
+    ("body", "problem"),
+    [
+        (_npc(subject={"name": "Vorkath"}), "'Vorkath' is already in the game"),
+        (_npc(subject={"name": "  vORKATH "}), "is already in the game"),
+        (_npc(prompt="Who's this?"), "always asks"),
+        (_npc(answer_id=8058), "only a prompt and subject.name"),
+        (_npc(subject={"name": ""}), "a name of 1 to 80"),
+        (_without(_with(NPC, source_url="https://example.com/a"), "wiki"), "$.wiki: required"),
+        (_with(NPC, type="multiple_choice"), "not offered for 'whos_that_npc'"),
+    ],
+    ids=["asked", "asked_folded", "prompt", "answer_id", "blank", "no_wiki", "type"],
+)
+def test_a_whos_that_npc_suggestion_is_refused(
+    client: TestClient, body: dict[str, Any], problem: str
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert problem in response.text
+
+
+def test_the_form_offers_a_picture_item_only_to_the_rounds_that_take_one() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    rounds = re.search(r"const PICTURE_ITEM_ROUNDS = \[([^\]]*)\]", source)
+    assert rounds is not None
+    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(PICTURE_ITEM_MODES)
+
+
+# Rounds suggested for on another card: the price rounds play the items players suggest,
+# and Random Events Only plays the NPCs' questions.
+COVERED_ELSEWHERE = {
+    "more_less": "item",
+    "price_is_right": "item",
+    "random_events_only": "random_event",
+}
+
+
+def test_every_round_on_create_is_suggestable_or_covered_elsewhere() -> None:
+    rounds = {mode.id for mode in round_modes()}
+    assert sorted(rounds - set(QUESTION_MODES) - set(COVERED_ELSEWHERE)) == []
+    assert set(COVERED_ELSEWHERE.values()) <= {"item", *QUESTION_MODES}
+
+
 def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
     number = _with(
         DROP_RATE,
@@ -484,7 +615,7 @@ def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
 def test_the_form_offers_the_modes_the_server_takes() -> None:
     source = client_source.read("lib/suggestions.ts")
     offered = {"random_event"}
-    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS"):
+    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS", "NAMED_ROUNDS"):
         rounds = re.search(rf"const {name} = \[([^\]]*)\]", source)
         assert rounds is not None
         offered |= set(re.findall(r"'([a-z_]+)'", rounds.group(1)))
@@ -605,6 +736,20 @@ def test_an_intro_and_a_picture_are_stored_and_exported(client: TestClient) -> N
     assert question["payload"] == payload
 
 
+def test_an_npc_may_ask_an_ordering_with_an_intro(client: TestClient) -> None:
+    approve(client, suggest(client, EVENT_ORDERING))
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == EVENT_ORDERING["content"]
+    assert row["playable"] is True
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["type"], question["random_event"]) == (
+        "random_event",
+        "ordering",
+        "bob",
+    )
+    assert question["payload"] == EVENT_ORDERING["content"]["payload"]
+
+
 def test_the_form_offers_an_intro_only_to_the_rounds_that_show_one() -> None:
     source = client_source.read("lib/suggestions.ts")
     rounds = re.search(r"const INTRO_ROUNDS = \[([^\]]*)\]", source)
@@ -684,6 +829,126 @@ def test_reject_and_reopen(client: TestClient) -> None:
     assert client.post(url, headers=BEARER, json={"status": "imported"}).status_code == 422
     assert client.post(url, headers=BEARER, json={"status": "pending"}).status_code == 200
     assert len(queue(client)["suggestions"]) == 1
+
+
+# --- a question with no round ---------------------------------------------------------
+
+
+UNPLACED = _without(EVENT, "mode")
+del UNPLACED["content"]["random_event"]
+FREE_TEXT = _with(
+    UNPLACED,
+    type="free_text",
+    payload={"prompt": "Which brother wields a greataxe?", "accepted": ["Dharok"]},
+)
+
+
+def _status(client: TestClient, suggestion: str, status: str) -> Any:
+    return client.post(
+        f"/api/admin/suggestions/{suggestion}/status", json={"status": status}, headers=BEARER
+    )
+
+
+def _edit(client: TestClient, suggestion: str, body: dict[str, Any]) -> Any:
+    edit = {key: body[key] for key in ("content", "credit", "credit_shown")}
+    return client.put(f"/api/admin/suggestions/{suggestion}", headers=BEARER, json=edit)
+
+
+def test_a_question_with_no_round_takes_the_five_types_and_waits(client: TestClient) -> None:
+    unplaced = (UNPLACED, FREE_TEXT, _without(DROP_RATE, "mode"), _without(PICK_ALL, "mode"))
+    for body in (*unplaced, _without(SORT_IT_OUT, "mode")):
+        suggest(client, body)
+    rows = queue(client)["suggestions"]
+    assert [row["content"]["type"] for row in rows] == [
+        "multiple_choice",
+        "free_text",
+        "closest_number",
+        "pick_all_that_apply",
+        "ordering",
+    ]
+    assert all("mode" not in row["content"] for row in rows)
+    assert not any(row["playable"] for row in rows)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        # What its type's ``check`` refuses: a pick-all needs a wrong option, an ordering a
+        # rank for its answer.
+        _with(
+            _without(PICK_ALL, "mode"),
+            payload={**PICK_ALL["content"]["payload"], "answer_indices": [0, 1, 2]},
+        ),
+        _without(_ordering(answer=[1, 0, 2, 3]), "mode"),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "prompt": ""}),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "answer_index": 9}),
+        _with(UNPLACED, mode=None),
+        _with(UNPLACED, random_event="bob"),
+        _with(UNPLACED, picture_item="Dragon warhammer"),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "quote": "Said by Bob"}),
+        _with(UNPLACED, payload={**UNPLACED["content"]["payload"], "intro": "Ahoy."}),
+        _without(NPC, "mode"),
+        _without(UNPLACED, "wiki"),
+    ],
+)
+def test_a_question_with_no_round_is_held_to_its_type(
+    client: TestClient, body: dict[str, Any]
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert queue(client)["suggestions"] == []
+
+
+def test_a_question_is_approved_and_exported_only_once_it_has_a_round(client: TestClient) -> None:
+    suggestion = suggest(client, UNPLACED)
+    refused = _status(client, suggestion, "approved")
+    assert refused.status_code == 422, refused.text
+    assert refused.json()["code"] == "no_round"
+    assert queue(client)["counts"]["approved"] == 0
+    placed = _with(UNPLACED, mode="random_event", random_event="bob")
+    assert _edit(client, suggestion, placed).status_code == 200
+    approve(client, suggestion)
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["random_event"]) == ("random_event", "bob")
+
+
+def test_an_approved_question_keeps_its_round(client: TestClient) -> None:
+    suggestion = suggest(client, EXAMINE)
+    approve(client, suggestion)
+    response = _edit(client, suggestion, _without(EXAMINE, "mode"))
+    assert response.status_code == 422, response.text
+    assert queue(client, "approved")["suggestions"][0]["content"]["mode"] == "guess_examine"
+
+
+@pytest.mark.parametrize(
+    ("body", "moved"),
+    [
+        # A round whose types leave its type out.
+        (_without(SORT_IT_OUT, "mode"), {"mode": "drop_table"}),
+        (FREE_TEXT, {"mode": "who_said_that"}),
+        # A round whose rules it breaks: an NPC's question names its NPC and only it does,
+        # and Bestiary shows no quote.
+        (UNPLACED, {"mode": "random_event"}),
+        (_with(UNPLACED, mode="random_event", random_event="bob"), {"mode": "guess_examine"}),
+        (QUOTE, {"mode": "bestiary"}),
+    ],
+)
+def test_a_move_to_a_round_it_does_not_fit_is_a_422(
+    client: TestClient, body: dict[str, Any], moved: dict[str, Any]
+) -> None:
+    suggestion = suggest(client, body)
+    response = _edit(client, suggestion, _with(body, **moved))
+    assert response.status_code == 422, response.text
+    assert queue(client)["suggestions"][0]["content"] == body["content"]
+
+
+def test_a_question_moves_to_another_round_that_takes_it(client: TestClient) -> None:
+    suggestion = suggest(client, _without(DROP_RATE, "mode"))
+    for mode in ("drop_table", "bestiary"):
+        moved = _with(DROP_RATE, mode=mode)
+        response = _edit(client, suggestion, moved)
+        assert response.status_code == 200, response.text
+        assert response.json()["content"]["mode"] == mode
 
 
 # --- the credit in a game -------------------------------------------------------------

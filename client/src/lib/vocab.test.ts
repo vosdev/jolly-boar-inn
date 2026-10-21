@@ -6,7 +6,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { clearVocabCache, fold, loadVocab, search, words, type VocabEntry } from './vocab'
+import { clearVocabCache, fold, loadVocab, matches, search, words, type VocabEntry } from './vocab'
 
 const ENTRIES: VocabEntry[] = [
   { id: 4587, name: 'Dragon scimitar' },
@@ -139,5 +139,15 @@ describe('loadVocab', () => {
     await expect(loadVocab('items')).rejects.toMatchObject({ code: 'not_found' })
     await expect(loadVocab('items')).resolves.toEqual(body)
     expect(fetch).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('matches', () => {
+  it('holds a name to the search’s rules, keeping no order of its own', () => {
+    expect(matches(words('Which boss drops the Abyssal whip?'), words('ABYS wh'))).toBe(true)
+    expect(matches(words('Élysian spirit shield'), words('elys'))).toBe(true)
+    expect(matches(words('Abyssal whip'), words('whip abyssal'))).toBe(false)
+    expect(matches(words('Abyssal whip'), words('hip'))).toBe(false)
+    expect(matches(words('Abyssal whip'), [])).toBe(true)
   })
 })

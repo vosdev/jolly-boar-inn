@@ -98,11 +98,16 @@ function indexOf(entries: readonly VocabEntry[]): Indexed[] {
  * Where in `name` the query's words start, as a word index, or -1 if they do not.
  * Each query word must prefix a word of the name, consecutive and in order.
  */
-function matchAt(name: string[], query: string[]): number {
+function matchAt(name: readonly string[], query: readonly string[]): number {
   for (let start = 0; start + query.length <= name.length; start++) {
     if (query.every((word, offset) => name[start + offset]?.startsWith(word) === true)) return start
   }
   return -1
+}
+
+/** Whether a name's `words` hold the query's, by the rules above; an empty query is anything. */
+export function matches(name: readonly string[], query: readonly string[]): boolean {
+  return query.length === 0 || matchAt(name, query) >= 0
 }
 
 /** How many matches the combobox draws: a phone lists thousands of `<li>`s slowly. */

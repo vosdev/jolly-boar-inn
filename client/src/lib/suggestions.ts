@@ -3,7 +3,8 @@
  * (`server/app/suggestions.py`).
  *
  * Two kinds. A `question` is what Create's editor writes, for a mode, with the wiki
- * page that proves it. An `item` is only a name not on the roster yet: the import script finds its
+ * page that proves it. A player who can't place one sends it with no mode, and the
+ * operator picks its round before approving it. An `item` is only a name not on the roster yet: the import script finds its
  * id. Every one carries a credit, a name held to a display name's rules, and whether
  * players may see it, which an item's never may: its rounds name no author.
  *
@@ -15,11 +16,13 @@
 import type { CustomQuestion, CustomType } from './customQuestions'
 import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
-import { MODES, UPCOMING_MODES } from './modes'
+import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
 import type { OpenQuestion } from './protocol'
 import { codePoints, envelopeProperty, limit } from './questionSchema'
+import { RANDOM_EVENTS } from './randomEvents'
+import type { ReportChoice } from './reports'
 import { fold, type VocabEntry } from './vocab'
 
 /** How many finished games this browser needs before it is offered the form. */
@@ -32,12 +35,16 @@ export function maySuggest(): boolean {
 export type SuggestionKind = 'question' | 'item'
 export type SuggestionStatus = 'pending' | 'approved' | 'rejected' | 'imported'
 
-/** The types a suggestion may be: Create's three, and an ordering for the rounds that sort. */
-export type SuggestedType = CustomType | 'ordering'
+/**
+ * The types a suggestion may be: Create's, an ordering for the rounds that sort and the NPCs,
+ * and a pick from the list for Who's That NPC?.
+ */
+export type SuggestedType = CustomType | 'ordering' | 'pick_from_list'
 
 export const SUGGESTED_TYPE_LABELS: Record<SuggestedType, string> = {
   ...TYPE_LABELS,
   ordering: 'Put in order',
+  pick_from_list: 'Pick from the list',
 }
 
 export interface QuestionContent {
@@ -45,19 +52,29 @@ export interface QuestionContent {
   payload: Record<string, unknown>
   /** The NPC who asks it, for a random event's. */
   random_event?: string
-  mode: string
+  /** The round it is for, missing until the operator picks one for a question sent without. */
+  mode?: string
   /** Where it was checked: either of these, or both. */
   wiki?: string
   source_url?: string
+  /** The item a Drop Table question pictures, by name: the import script finds its id. */
+  picture_item?: string
 }
 
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
 export function questionPreview(content: QuestionContent): OpenQuestion {
-  if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, content.mode)
-  return previewOf(
-    content as CustomQuestion,
-    content.mode === 'random_event' ? undefined : content.mode,
-  )
+  const mode = content.mode ?? NO_ROUND
+  if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
+  if (content.type === 'pick_from_list') {
+    // No picture: there is none until the import finds the NPC's id.
+    const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
+    return {
+      ...open,
+      type: 'pick_from_list',
+      view: { prompt: content.payload.prompt, vocab: 'npcs' },
+    }
+  }
+  return previewOf(content as CustomQuestion, mode === 'random_event' ? undefined : mode)
 }
 
 export interface ItemContent {
@@ -79,8 +96,26 @@ export interface QueuedSuggestion extends SuggestionBody {
   status: SuggestionStatus
   created_at: string
   exported_at: string | null
-  /** False for a question whose round is not built yet: no export includes it. */
+  /** False for a question with no round, or one not built yet: no export includes it. */
   playable: boolean
+  /** The questions a question looks most like, best first; none for an item. */
+  matches?: QueueMatch[]
+}
+
+/** A pack question a question being written looks like: named by label, never its answer. */
+export interface SimilarMatch {
+  mode: string
+  label: string
+  /** 0 to 100. */
+  score: number
+}
+
+/** A question in the packs, or another suggestion, that a queued one looks like: whole. */
+export interface QueueMatch {
+  score: number
+  /** The other suggestion's id, or null for a pack question. */
+  suggestion: string | null
+  question: QuestionContent
 }
 
 /** One thing the form offers to write. */
@@ -102,6 +137,10 @@ export interface Choice {
   options?: readonly [number, number]
   /** Whether only a wiki page proves it: `WIKI_MODES` on the server. */
   wikiOnly?: boolean
+  /** Whether it may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
+  pictureItem?: boolean
+  /** Whether its answer is an NPC's name, which the import looks up: `NAMED_MODES` on the server. */
+  named?: boolean
 }
 
 export interface RoundPrompt {
@@ -114,6 +153,7 @@ export interface RoundPrompt {
 const ROUND_PROMPTS: Record<string, RoundPrompt> = {
   who_said_that: { text: 'Who said that?', fixed: false },
   odd_one_out: { text: "Which one doesn't belong?", fixed: true },
+  whos_that_npc: { text: "Who's that NPC?", fixed: true },
 }
 
 /** Rounds that take four-button questions, built or not, with `ROUND_TYPES`: `QUESTION_MODES` on the server. */
@@ -136,7 +176,7 @@ function choiceRound(
 
 /** A round whose editor offers more than four buttons. */
 const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
-  bestiary: ['multiple_choice', 'free_text', 'pick_all_that_apply', 'ordering'],
+  bestiary: ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply', 'ordering'],
   drop_table: ['multiple_choice', 'free_text', 'closest_number', 'pick_all_that_apply'],
   know_your_content_creator: ['multiple_choice', 'closest_number', 'pick_all_that_apply'],
 }
@@ -145,13 +185,19 @@ const ROUND_TYPES: Record<string, readonly SuggestedType[]> = {
 const ROUND_OPTIONS: Record<string, readonly [number, number]> = { guess_examine: [4, 6] }
 
 /** Rounds whose pack holds every question to its wiki page: `WIKI_MODES` on the server. */
-const WIKI_ROUNDS = ['guess_examine']
+const WIKI_ROUNDS = ['guess_examine', 'whos_that_npc']
+
+/** Rounds whose questions may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
+const PICTURE_ITEM_ROUNDS = ['drop_table']
 
 /** Rounds that show a quotation under the prompt. */
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
 /** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
 export const INTRO_ROUNDS = ['random_event']
+
+/** Rounds whose answer is an NPC's name: `NAMED_MODES` on the server. */
+const NAMED_ROUNDS = ['whos_that_npc']
 
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
 const ORDERING_ROUNDS = ['sort_it_out', 'release_order']
@@ -160,6 +206,12 @@ const ORDERING_HINTS: Record<string, string> = {
   sort_it_out: 'Something worth putting in order.',
   release_order: 'Something worth putting in release order.',
 }
+
+/**
+ * The card for a question that fits no round the player can name. It is no mode: it is
+ * stored with none, previewed in no round and presented by the innkeeper.
+ */
+export const NO_ROUND = 'no_round'
 
 export const CHOICES: readonly Choice[] = [
   {
@@ -176,7 +228,7 @@ export const CHOICES: readonly Choice[] = [
     label: 'A random event question',
     hint: 'Asked by an NPC in the middle of a round.',
     host: 'sandwich_lady',
-    types: CUSTOM_TYPES,
+    types: [...CUSTOM_TYPES, 'ordering'],
   },
   ...CHOICE_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -191,6 +243,20 @@ export const CHOICES: readonly Choice[] = [
       prompt: ROUND_PROMPTS[mode.id],
       options: ROUND_OPTIONS[mode.id],
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
+      pictureItem: PICTURE_ITEM_ROUNDS.includes(mode.id),
+    })),
+  ...NAMED_ROUNDS.map(choiceRound)
+    .filter((mode) => mode !== undefined)
+    .map((mode): Choice => ({
+      id: mode.id,
+      kind: 'question',
+      label: mode.label,
+      hint: mode.hint,
+      host: mode.host,
+      types: ['pick_from_list'],
+      prompt: ROUND_PROMPTS[mode.id],
+      wikiOnly: WIKI_ROUNDS.includes(mode.id),
+      named: true,
     })),
   ...ORDERING_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)
@@ -202,12 +268,45 @@ export const CHOICES: readonly Choice[] = [
       host: mode.host,
       types: ['ordering'],
     })),
+  {
+    id: NO_ROUND,
+    kind: 'question',
+    label: 'Not sure where it fits',
+    hint: 'Any question. The innkeeper picks its round.',
+    host: INNKEEPER.id,
+    types: [...CUSTOM_TYPES, 'ordering'],
+  },
 ]
 
 /** The choice a stored suggestion was written under. */
 export function choiceOf(kind: SuggestionKind, content: SuggestionContent): Choice | undefined {
-  const id = kind === 'question' ? (content as QuestionContent).mode : kind
+  const id = kind === 'question' ? ((content as QuestionContent).mode ?? NO_ROUND) : kind
   return CHOICES.find((choice) => choice.id === id)
+}
+
+/** Whether a question has its round, without which it can't be approved. */
+export function hasRound(kind: SuggestionKind, content: SuggestionContent): boolean {
+  return kind !== 'question' || (content as QuestionContent).mode !== undefined
+}
+
+/** The rounds the operator may move a question of `type` to: those whose editor offers it. */
+export function roundsFor(type: SuggestedType): Choice[] {
+  return CHOICES.filter(
+    (choice) => choice.kind === 'question' && choice.id !== NO_ROUND && choice.types.includes(type),
+  )
+}
+
+/**
+ * A question as it opens in `round`'s editor. Only an NPC's question keeps its NPC; the rest
+ * is left as written, so what the round refuses is the server's to say.
+ */
+export function placedIn(content: QuestionContent, round: string): QuestionContent {
+  const { mode: _mode, random_event: npc, ...rest } = content
+  return {
+    ...rest,
+    ...(round === NO_ROUND ? {} : { mode: round }),
+    ...(round === 'random_event' && npc !== undefined ? { random_event: npc } : {}),
+  }
 }
 
 /** The NPC a stored suggestion shows: a random event's own, else its choice's host. */
@@ -219,6 +318,26 @@ export function hostOf(kind: SuggestionKind, content: SuggestionContent): string
 /** A mode's name as players would read it, built or not. */
 export function modeName(mode: string): string {
   return MODES[mode]?.label ?? UPCOMING_MODES.find((m) => m.id === mode)?.label ?? mode
+}
+
+// --- what the game already asks -------------------------------------------------------
+
+/** The mode whose pack questions show beside the editor, or null for a card that has none. */
+export function existingMode(choice: Choice): string | null {
+  return choice.kind === 'question' && choice.id !== NO_ROUND ? choice.id : null
+}
+
+const ROSTER_PLACE = new Map(RANDOM_EVENTS.map((npc, index) => [npc.id, index]))
+
+/** A mode's pack questions as the panel lists them: a random event's by roster, `npc`'s first. */
+export function inGameOrder(choices: readonly ReportChoice[], npc: string): ReportChoice[] {
+  const place = (choice: ReportChoice): number => {
+    const asker = choice.random_event
+    if (asker === undefined) return 0
+    if (asker === npc) return -1
+    return ROSTER_PLACE.get(asker) ?? RANDOM_EVENTS.length
+  }
+  return [...choices].sort((a, b) => place(a) - place(b))
 }
 
 // --- the fields beside a question ------------------------------------------------------
@@ -279,6 +398,21 @@ function textProblem(text: string, most: number, what: string): string | null {
   return null
 }
 
+/** The longest NPC name Who's That NPC? takes: `NPC_NAME_MAX` on the server. */
+export const NPC_NAME_MAX = 80
+
+/** `asked` is the names the game already asks about, so one of them is refused before it is sent. */
+export function npcNameProblem(name: string, asked: readonly string[] = []): string | null {
+  const wanted = fold(name.trim())
+  if (wanted !== '' && asked.some((known) => fold(known) === wanted)) return 'Already in the game.'
+  return textProblem(name, NPC_NAME_MAX, 'the NPC’s name')
+}
+
+/** The item a question pictures, which it need not name. */
+export function pictureItemProblem(name: string): string | null {
+  return codePoints(name.trim()) > ITEM_NAME_MAX ? `At most ${ITEM_NAME_MAX} characters.` : null
+}
+
 /** `roster` is the `items` list, so a name already in the game is refused before it is sent. */
 export function itemProblem(
   content: ItemContent,
@@ -310,6 +444,7 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
   const { type, payload } = suggestion.content as QuestionContent
   if (type === 'ordering') return answerLine(payload)
+  if (type === 'pick_from_list') return (payload.subject as { name: string }).name
   if (type === 'multiple_choice') {
     const options = payload.options as string[]
     return options[payload.answer_index as number] ?? ''
@@ -320,6 +455,29 @@ export function answerOf(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): 
   }
   if (type === 'free_text') return (payload.accepted as string[]).join(' / ')
   return [String(payload.answer), payload.unit].filter((part) => part !== undefined).join(' ')
+}
+
+// --- similar questions ----------------------------------------------------------------
+
+/**
+ * What a similarity check depends on: the prompt, any quote and the answer, and Odd One
+ * Out's options, which are its question. Null until the prompt and the answer are filled.
+ */
+export function similarKey(content: QuestionContent): string | null {
+  const { type, mode, payload } = content
+  const prompt = typeof payload.prompt === 'string' ? payload.prompt.trim() : ''
+  const answer = answerOf({ kind: 'question', content }).trim()
+  if (prompt === '' || answer === '') return null
+  const options = mode === 'odd_one_out' ? payload.options : null
+  return JSON.stringify([type, prompt, payload.quote ?? null, answer, options])
+}
+
+/** One line naming a matched question as the operator reads it, without its answer. */
+export function matchLine(question: QuestionContent): string {
+  const { mode, payload } = question
+  if (mode === 'odd_one_out') return (payload.options as string[]).join(', ')
+  const prompt = typeof payload.prompt === 'string' ? payload.prompt : ''
+  return typeof payload.quote === 'string' ? `${prompt} “${payload.quote}”` : prompt
 }
 
 /** "in 23 minutes", for a limit that frees up at `retryAt`. */

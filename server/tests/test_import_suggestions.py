@@ -5,6 +5,7 @@ import shutil
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
@@ -47,10 +48,24 @@ NEW_EXAMINE = {
 }
 # The wiki's infobox_item rows, as its Bucket API answers them.
 ITEM_ROWS = [
-    {"page_name": "Amulet of glory", "item_name": "Amulet of glory", "item_id": ["1704"]},
+    {
+        "page_name": "Amulet of glory",
+        "item_name": "Amulet of glory",
+        "item_id": ["1704"],
+        "image": ["[[File:Amulet of glory.png]]"],
+    },
     {"page_name": "Abyssal whip", "item_name": "Abyssal whip", "item_id": ["4151"]},
     {"page_name": "Dusty key", "item_name": "Dusty key", "item_id": ["1590"]},
     {"page_name": "Mystery box", "item_name": "Mystery box", "item_id": ["6199", "6200"]},
+]
+
+
+# The wiki's monster and NPC infobox rows, as its Bucket API answers them.
+NPC_ROWS = [
+    {"page_name": "Araxxor", "id": ["13668", "13669"], "image": ["[[File:Araxxor.png|300px]]"]},
+    {"page_name": "Araxxor", "id": ["13670"], "image": ["[[File:Araxxor (enraged).png]]"]},
+    {"page_name": "Vorkath", "id": ["8058", "8059"], "image": "[[File:Vorkath.png]]"},
+    {"page_name": "Bob the Cat", "id": ["2479"]},
 ]
 
 
@@ -61,25 +76,42 @@ def repo(tmp_path: Path) -> dict[str, Path]:
     shutil.copytree(PACKS_DIR, packs)
     roster = tmp_path / "popular-items.json"
     shutil.copy(REPO_ROOT / "data" / "popular-items.json", roster)
+    npcs = tmp_path / "popular-npcs.json"
+    shutil.copy(REPO_ROOT / "data" / "popular-npcs.json", npcs)
+    npc_rows = tmp_path / "npc-rows.json"
+    npc_rows.write_text(json.dumps(NPC_ROWS))
+    assets = tmp_path / "assets.json"
+    shutil.copy(REPO_ROOT / "data" / "assets.json", assets)
     rows = tmp_path / "items.json"
     rows.write_text(json.dumps(ITEM_ROWS))
-    return {"packs": packs, "roster": roster, "items": rows, "dir": tmp_path}
+    return {
+        "packs": packs,
+        "roster": roster,
+        "npcs": npcs,
+        "npc_rows": npc_rows,
+        "assets": assets,
+        "items": rows,
+        "dir": tmp_path,
+    }
 
 
 def run(repo: dict[str, Path], export: dict[str, Any]) -> int:
     file = repo["dir"] / "export.json"
     file.write_text(json.dumps(export))
     args = [str(file), "--packs-dir", str(repo["packs"]), "--roster", str(repo["roster"])]
-    return import_suggestions.main([*args, "--items-file", str(repo["items"])])
+    args += ["--npcs", str(repo["npcs"]), "--assets", str(repo["assets"])]
+    args += ["--items-file", str(repo["items"]), "--npcs-file", str(repo["npc_rows"])]
+    return import_suggestions.main(args)
 
 
 def loads(repo: dict[str, Path]) -> bool:
     """Whether the imported packs load, held to the lists they make themselves."""
-    return import_suggestions.check_packs(repo["packs"], {}, repo["roster"].read_text()) == []
+    lists = repo["roster"].read_text(), repo["npcs"].read_text()
+    return import_suggestions.check_packs(repo["packs"], {}, *lists) == []
 
 
 def snapshot(repo: dict[str, Path]) -> dict[str, str]:
-    files = [*repo["packs"].rglob("*.json"), repo["roster"]]
+    files = [*repo["packs"].rglob("*.json"), repo["roster"], repo["npcs"], repo["assets"]]
     return {str(path): path.read_text() for path in sorted(files)}
 
 
@@ -191,6 +223,23 @@ def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -
     assert len(added) == before + 1
     assert added[-1]["payload"] == payload and added[-1]["mode"] == "sort_it_out"
     assert (added[-1]["credit"], added[-1]["wiki"]) == ("AFKFisher", WIKI)
+    assert loads(repo)
+
+
+def test_an_npc_ordering_lands_in_its_file_as_written(repo: dict[str, Path]) -> None:
+    payload = {
+        "intro": "Mind the dials, mortal.",
+        "prompt": "Which letters dial the fairy ring to Zanaris, in order?",
+        "ends": ["First", "Last"],
+        "entries": [{"text": "A", "rank": 1}, {"text": "I", "rank": 2}, {"text": "Q", "rank": 3}],
+        "answer": [0, 1, 2],
+    }
+    question = {**QUESTION, "type": "ordering", "payload": payload, "random_event": "fairy_queen"}
+    assert run(repo, {"questions": [question]}) == 0
+    queen = json.loads((repo["packs"] / "random_events" / "fairy_queen.json").read_text())
+    added = queen["questions"][-1]
+    assert (added["type"], added["mode"], added["payload"]) == ("ordering", "random_event", payload)
+    assert "random_event" not in added
     assert loads(repo)
 
 
@@ -348,3 +397,177 @@ def test_a_file_that_is_not_an_export_writes_nothing(repo: dict[str, Path]) -> N
 def test_the_roster_is_rewritten_as_it_is_kept() -> None:
     text = (REPO_ROOT / "data" / "popular-items.json").read_text()
     assert import_suggestions.render_roster(text, json.loads(text)["items"]) == text
+
+
+DROP_RATE = {
+    "type": "closest_number",
+    "payload": {
+        "prompt": "A Lizardman shaman drops a Dragon warhammer once in how many kills?",
+        "answer": 3000,
+        "unit": "kills",
+    },
+    "mode": "drop_table",
+    "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer",
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+
+
+def drop_table(repo: dict[str, Path]) -> list[dict[str, Any]]:
+    return json.loads((repo["packs"] / "drop_table.json").read_text())["questions"]
+
+
+def test_a_picture_item_becomes_the_image_and_its_manifest_entries(
+    repo: dict[str, Path],
+) -> None:
+    question = {**DROP_RATE, "picture_item": "amulet of glory"}
+    assert run(repo, {"questions": [question]}) == 0
+    added = drop_table(repo)[-1]
+    assert added["payload"] == {**DROP_RATE["payload"], "image": "item:1704"}
+    assert "picture_item" not in added
+    assets = json.loads(repo["assets"].read_text())
+    assert assets["pictures/item/1704.png"] == "Amulet of glory detail.png"
+    assert assets["items/1704.png"] == "Amulet of glory.png"
+    assert list(assets) == sorted(assets)
+    assert loads(repo)
+
+
+def test_a_picture_item_already_in_the_manifest_adds_no_entry(repo: dict[str, Path]) -> None:
+    before = repo["assets"].read_text()
+    assert run(repo, {"questions": [{**DROP_RATE, "picture_item": "Abyssal whip"}]}) == 0
+    assert drop_table(repo)[-1]["payload"]["image"] == "item:4151"
+    assert repo["assets"].read_text() == before
+
+
+def test_an_unknown_picture_item_writes_nothing(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    before = snapshot(repo)
+    unknown = {**DROP_RATE, "picture_item": "Dragon claws of doom"}
+    assert run(repo, {"questions": [{**DROP_RATE, "picture_item": "Abyssal whip"}, unknown]}) == 1
+    assert snapshot(repo) == before
+    assert (
+        "questions[1]: picture_item 'Dragon claws of doom' is not an item"
+        in capsys.readouterr().err
+    )
+
+
+def test_an_icon_falls_back_to_the_items_name() -> None:
+    rows = [{"page_name": "Dusty key", "item_name": "Dusty key", "item_id": ["1590"]}]
+    assert import_suggestions.find_item("Dusty key", lambda name: rows) == (
+        1590,
+        "Dusty key",
+        "Dusty key.png",
+    )
+
+
+@pytest.mark.parametrize(
+    "image",
+    ["[[File:Coins 10000.png]]", ["File:Coins 10000.png|32px"], "Coins 10000.png"],
+)
+def test_an_icon_is_the_file_the_infobox_names(image: Any) -> None:
+    assert import_suggestions.file_title(image) == "Coins 10000.png"
+
+
+NPC = {
+    "type": "pick_from_list",
+    "payload": {"prompt": "Who's that NPC?", "subject": {"name": "araxxor"}},
+    "mode": "whos_that_npc",
+    "wiki": "https://oldschool.runescape.wiki/w/Araxxor",
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+def test_a_named_npc_joins_the_list_and_the_pack_with_its_shadow(repo: dict[str, Path]) -> None:
+    assert run(repo, {"questions": [NPC]}) == 0
+    listed = json.loads(repo["npcs"].read_text())["npcs"]
+    assert {"id": 13668, "name": "Araxxor"} in listed
+    assert [npc["name"].casefold() for npc in listed] == sorted(
+        n["name"].casefold() for n in listed
+    )
+    pack = json.loads((repo["packs"] / "whos_that_npc.json").read_text())["questions"]
+    added = pack[-1]
+    assert added["payload"] == {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 13668,
+        "image": "npc:13668",
+        "subject": {"name": "Araxxor"},
+    }
+    assert (added["tags"], added["wiki"], added["credit"]) == (["shadow"], NPC["wiki"], "AFKFisher")
+    assert {q["payload"]["answer_id"] for q in pack} == {npc["id"] for npc in listed}
+    assert json.loads(repo["assets"].read_text())["pictures/npc/13668.png"] == "Araxxor.png"
+    assert loads(repo)
+
+
+def test_an_npc_is_found_by_its_name_when_its_link_is_elsewhere(repo: dict[str, Path]) -> None:
+    cat = {
+        **NPC,
+        "payload": {"prompt": "Who's that NPC?", "subject": {"name": "Bob the Cat"}},
+        "wiki": "https://oldschool.runescape.wiki/w/Bob_the_Cat#Appearance",
+    }
+    assert run(repo, {"questions": [cat]}) == 0
+    assert {"id": 2479, "name": "Bob the Cat"} in json.loads(repo["npcs"].read_text())["npcs"]
+    assets = json.loads(repo["assets"].read_text())
+    assert assets["pictures/npc/2479.png"] == "Bob the Cat.png"
+
+
+def test_an_npc_already_in_the_game_is_skipped(repo: dict[str, Path]) -> None:
+    before = snapshot(repo)
+    vorkath = {
+        **NPC,
+        "payload": {"prompt": "Who's that NPC?", "subject": {"name": "Vorkath"}},
+        "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
+    }
+    assert run(repo, {"questions": [vorkath]}) == 0
+    assert snapshot(repo) == before
+
+
+def test_importing_an_npc_twice_changes_nothing_the_second_time(repo: dict[str, Path]) -> None:
+    assert run(repo, {"questions": [NPC]}) == 0
+    after = snapshot(repo)
+    assert run(repo, {"questions": [NPC]}) == 0
+    assert snapshot(repo) == after
+
+
+def test_an_npc_the_wiki_does_not_have_writes_nothing(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    before = snapshot(repo)
+    nobody = {
+        **NPC,
+        "payload": {"prompt": "Who's that NPC?", "subject": {"name": "Zezima"}},
+        "wiki": "https://oldschool.runescape.wiki/w/Zezima",
+    }
+    assert run(repo, {"questions": [NPC, nobody]}) == 1
+    assert snapshot(repo) == before
+    assert "questions[1]: 'Zezima' is not a monster or NPC on the wiki" in capsys.readouterr().err
+
+
+class FakeWiki:
+    """Answers Bucket queries from saved rows, and keeps each query it was sent."""
+
+    def __init__(self, rows: dict[str, list[dict[str, Any]]]) -> None:
+        self.rows = rows
+        self.queries: list[str] = []
+
+    def get_json(self, url: str) -> dict[str, Any]:
+        query = parse_qs(urlsplit(url).query)["query"][0]
+        self.queries.append(query)
+        bucket = query.split("'")[1]
+        return {"bucket": [r for r in self.rows[bucket] if f"'{r['page_name']}'" in query]}
+
+
+def test_the_wiki_is_asked_once_for_every_monster_then_once_for_the_npcs_left() -> None:
+    fake = FakeWiki({"infobox_monster": NPC_ROWS[:3], "infobox_npc": NPC_ROWS[3:]})
+    rows = import_suggestions.wiki_npc_rows(fake)  # type: ignore[arg-type]
+    found = rows([["Araxxor", "araxxor"], ["Vorkath"], ["Bob the Cat"]])
+    assert {row["page_name"] for row in found} == {"Araxxor", "Vorkath", "Bob the Cat"}
+    assert len(fake.queries) == 2
+    assert fake.queries[0].startswith("bucket('infobox_monster')")
+    assert "'Araxxor'" in fake.queries[0] and "'Bob the Cat'" in fake.queries[0]
+    assert "'Bob the Cat'" in fake.queries[1] and "Araxxor" not in fake.queries[1]
+    fake.queries.clear()
+    rows([["Vorkath"]])
+    assert len(fake.queries) == 1

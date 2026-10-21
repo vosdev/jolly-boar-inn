@@ -23,6 +23,10 @@ export type ReportStatus = 'open' | 'closed'
 export interface ReportChoice {
   id: string | number
   label: string
+  /** Who's That NPC?'s: the NPC it shows, an id in the `npcs` list. */
+  npc?: number
+  /** A random event's: the NPC who asks it. */
+  random_event?: string
 }
 
 /** What the form's search has picked: a choice, "Something else", or nothing yet. */
@@ -130,6 +134,7 @@ export function reportSummary(report: QueuedReport): string {
 export function questionLine(question: PackQuestion): string {
   const payload = question.payload
   if (question.mode === 'odd_one_out') return (payload.options as string[]).join(', ')
+  if (question.mode === 'whos_that_npc') return (payload.subject as Subject).name
   if (question.type === 'price_is_right') return (payload.subject as Subject).name
   if (question.type === 'more_less') {
     const options = payload.options as { subject: Subject }[]
