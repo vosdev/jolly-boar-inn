@@ -5,7 +5,9 @@ A player who has finished a game may suggest one of two kinds of content:
 - ``question``: a question for a mode, in the shape Create's editor writes it, plus the
   mode it is for and where it was checked: the wiki page, an https ``source_url`` for what
   the wiki cannot prove, or both. A Drop Table question may name an item to picture, as
-  ``picture_item``; the import script turns the name into the payload's ``image``. A round not built yet takes them too, so its pack is
+  ``picture_item``; the import script turns the name into the payload's ``image``. A Who's
+  That NPC? question is only its fixed prompt and the NPC's name, an NPC not asked about yet:
+  the import script finds the rest. A round not built yet takes them too, so its pack is
   ready when it opens; such a suggestion waits in the queue until it is.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
@@ -56,21 +58,27 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     ),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
+    "whos_that_npc": frozenset({"pick_from_list"}),
 }
 
 # The rounds that show a quotation under the prompt (``multiple_choice.quote``).
 QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
 
 # Rounds whose questions all ask the same thing: the pack's tests hold them to it.
-FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?"}
+FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?", "whos_that_npc": "Who's that NPC?"}
 
 # The intro is an NPC's line before the question, so only an NPC's question takes one.
 INTRO_MODES = frozenset({"random_event"})
 
 # Pack questions' tags, which a suggestion is not asked for.
-MODE_TAGS = {"guess_examine": ["examine"]}
+MODE_TAGS = {"guess_examine": ["examine"], "whos_that_npc": ["shadow"]}
 # Rounds whose pack holds every question to the wiki page its author checked.
-WIKI_MODES = frozenset({"guess_examine"})
+WIKI_MODES = frozenset({"guess_examine", "whos_that_npc"})
+# Rounds whose answer a player names, knowing no id: the payload is the prompt and
+# ``subject.name``, and the import script finds the id, fills in the rest and adds the name
+# to the round's list.
+NAMED_MODES = {"whos_that_npc": "npcs"}
+NPC_NAME_MAX = 80
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
 
@@ -139,6 +147,8 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
     links = [content[key] for key in ("wiki", "source_url") if key in content]
     if not isinstance(content["payload"], dict) or not all(isinstance(url, str) for url in links):
         return ["$.payload: an object, and $.wiki and $.source_url: links"]
+    if mode in NAMED_MODES:
+        return _named_errors(mode, content["payload"])
     if "quote" in content["payload"] and mode not in QUOTE_MODES:
         return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
     if "intro" in content["payload"] and mode not in INTRO_MODES:
@@ -157,6 +167,29 @@ def _question_errors(content: dict[str, Any]) -> list[str]:
     if mode in MODES:
         return schema.consistency_errors(envelope)
     return [f"$.payload.{message}" for message in TYPES[content["type"]].check(content["payload"])]
+
+
+def _named_errors(mode: str, payload: dict[str, Any]) -> list[str]:
+    subject = payload.get("subject")
+    if (
+        payload.keys() != {"prompt", "subject"}
+        or not isinstance(subject, dict)
+        or set(subject) != {"name"}
+    ):
+        return ["$.payload: only a prompt and subject.name; the import script adds the rest"]
+    name = subject["name"]
+    if not isinstance(name, str) or not 1 <= len(name.strip()) <= NPC_NAME_MAX:
+        return [f"$.payload.subject.name: a name of 1 to {NPC_NAME_MAX} characters"]
+    if payload["prompt"] != FIXED_PROMPTS[mode]:
+        return [f"$.payload.prompt: {mode!r} always asks {FIXED_PROMPTS[mode]!r}"]
+    return []
+
+
+def named(content: dict[str, Any]) -> str | None:
+    """The answer a named round's question gives by name, or ``None`` for any other question."""
+    if content.get("mode") not in NAMED_MODES:
+        return None
+    return content["payload"]["subject"]["name"]
 
 
 def _picture_item_errors(mode: str, name: Any) -> list[str]:
@@ -195,12 +228,22 @@ def tidy(kind: str, content: dict[str, Any]) -> dict[str, Any]:
         return {"name": content["name"].strip()}
     if "picture_item" in content:
         return {**content, "picture_item": content["picture_item"].strip()}
+    name = named(content)
+    if name is not None:
+        return {**content, "payload": {**content["payload"], "subject": {"name": name.strip()}}}
     return content
 
 
 def _submission_errors(kind: str, content: dict[str, Any], shown: bool) -> list[str]:
-    # Not part of ``errors``: the import script reads an item already on the roster as one
-    # to skip, not one to refuse.
+    # Not part of ``errors``: the import script reads an item already on the roster, or an
+    # NPC already asked about, as one to skip, not one to refuse.
+    name = named(content) if kind == "question" else None
+    if name is not None:
+        # Every name on a named round's list is asked about, so the list is the pack's answers.
+        listed = vocab.get(NAMED_MODES[content["mode"]])
+        names = {vocab.fold(entry.name) for entry in listed.entries} if listed else set()
+        if vocab.fold(name) in names:
+            return [f"$.payload.subject.name: {name!r} is already in the game"]
     if kind != "item":
         return []
     found = []

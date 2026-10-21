@@ -522,6 +522,59 @@ def test_only_drop_table_names_a_picture_item(
     assert problem in response.text
 
 
+NPC = {
+    "kind": "question",
+    "content": {
+        "type": "pick_from_list",
+        "mode": "whos_that_npc",
+        "wiki": "https://oldschool.runescape.wiki/w/Araxxor",
+        "payload": {"prompt": "Who's that NPC?", "subject": {"name": "Araxxor"}},
+    },
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+def test_a_whos_that_npc_suggestion_names_an_npc_not_asked_yet(client: TestClient) -> None:
+    approve(
+        client,
+        suggest(
+            client,
+            _with(NPC, payload={**NPC["content"]["payload"], "subject": {"name": " Araxxor "}}),
+        ),
+    )
+    (row,) = queue(client, "approved")["suggestions"]
+    assert row["content"] == NPC["content"]
+    assert row["playable"] is True
+    (question,) = export(client)["questions"]
+    assert question == {**NPC["content"], "credit": "AFKFisher", "credit_shown": True}
+
+
+def _npc(**payload: Any) -> dict[str, Any]:
+    return _with(NPC, payload={**NPC["content"]["payload"], **payload})
+
+
+@pytest.mark.parametrize(
+    ("body", "problem"),
+    [
+        (_npc(subject={"name": "Vorkath"}), "'Vorkath' is already in the game"),
+        (_npc(subject={"name": "  vORKATH "}), "is already in the game"),
+        (_npc(prompt="Who's this?"), "always asks"),
+        (_npc(answer_id=8058), "only a prompt and subject.name"),
+        (_npc(subject={"name": ""}), "a name of 1 to 80"),
+        (_without(_with(NPC, source_url="https://example.com/a"), "wiki"), "$.wiki: required"),
+        (_with(NPC, type="multiple_choice"), "not offered for 'whos_that_npc'"),
+    ],
+    ids=["asked", "asked_folded", "prompt", "answer_id", "blank", "no_wiki", "type"],
+)
+def test_a_whos_that_npc_suggestion_is_refused(
+    client: TestClient, body: dict[str, Any], problem: str
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert problem in response.text
+
+
 def test_the_form_offers_a_picture_item_only_to_the_rounds_that_take_one() -> None:
     source = client_source.read("lib/suggestions.ts")
     rounds = re.search(r"const PICTURE_ITEM_ROUNDS = \[([^\]]*)\]", source)
@@ -562,7 +615,7 @@ def test_know_your_content_creator_takes_a_number(client: TestClient) -> None:
 def test_the_form_offers_the_modes_the_server_takes() -> None:
     source = client_source.read("lib/suggestions.ts")
     offered = {"random_event"}
-    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS"):
+    for name in ("CHOICE_ROUNDS", "ORDERING_ROUNDS", "NAMED_ROUNDS"):
         rounds = re.search(rf"const {name} = \[([^\]]*)\]", source)
         assert rounds is not None
         offered |= set(re.findall(r"'([a-z_]+)'", rounds.group(1)))
