@@ -29,6 +29,7 @@ export const THEMES = [
   'gauntlet',
   'corrupted_gauntlet',
   'morytania',
+  'zanaris',
 ] as const
 
 export type Theme = (typeof THEMES)[number]
@@ -44,6 +45,7 @@ export const THEME_LABELS: Record<Theme, { name: string }> = {
   gauntlet: { name: 'Gauntlet' },
   corrupted_gauntlet: { name: 'Corrupted Gauntlet' },
   morytania: { name: 'Morytania' },
+  zanaris: { name: 'Zanaris' },
 }
 
 /** `configured` if it names a theme this build paints, else `jolly`, never an unstyled page. */

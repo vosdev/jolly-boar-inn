@@ -82,6 +82,13 @@
         fill-rule="evenodd"
         d="M9.8 2h4.4v2.2h-.8v4.3a6.4 6.4 0 1 1-2.8 0V4.2h-.8zM8 15a4 4 0 0 0 8 0z"
       />
+    {:else if theme === 'zanaris'}
+      <!-- A spotted mushroom. -->
+      <path
+        class="mark"
+        fill-rule="evenodd"
+        d="M12 3C6.5 3 2.5 7 2 12.5h20C21.5 7 17.5 3 12 3zM7 8.2a1.3 1.3 0 1 0 2.6 0 1.3 1.3 0 1 0-2.6 0zM11.2 5.8a1 1 0 1 0 2 0 1 1 0 1 0-2 0zM15 9a1.4 1.4 0 1 0 2.8 0 1.4 1.4 0 1 0-2.8 0zM9.5 14h5l1 7.5h-7z"
+      />
     {:else}
       <!-- A skull, which is all the Wilderness has to say. -->
       <path

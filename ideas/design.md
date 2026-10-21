@@ -19,6 +19,7 @@ A theme is a palette the player picks, kept in `localStorage["jbi:theme"]`, neve
 | `gauntlet` | Gauntlet | The crystal dungeon under Prifddinas. | Navy tiled floor, rock-grey panels with a cyan top edge | Crystal cyan |
 | `corrupted_gauntlet` | Corrupted Gauntlet | The Gauntlet gone red. | Its floor with a maroon grid, a red top edge | Corrupted red |
 | `morytania` | Morytania | Mort Myre's swamp. | Murky teal water and banks, dark stone panels | Moonlit lilac |
+| `zanaris` | Zanaris | The fairy city. | Teal ground with red and blue mushrooms, ice-blue panels on rainbow strata | Mushroom red |
 
 - `jolly` is the default unless a selfhoster sets `PUBLIC_DEFAULT_THEME` (§14). There is no `auto`
   theme and nothing reads `prefers-color-scheme`: a phone in dark mode should still meet the inn.
@@ -200,7 +201,8 @@ quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wil
 sooty bounty poster under the game's skull, `party_room` hangs a cream card in a checked border
 under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
 `jungle` lashes bark cloth into a bamboo frame, both Gauntlets show its dark board in a glowing
-crystal or red rim, and `morytania` raises a gravestone, which a long sheet makes a pillar.
+crystal or red rim, `morytania` raises a gravestone, which a long sheet makes a pillar, and `zanaris` the Cosmic
+altar's sign.
 The sheet carries the round's introduction on the splash and then every question; the answers
 sit under it.
 Create shows each mode on a card with its host's chathead. The stage was agreed in
@@ -243,7 +245,7 @@ Round 2 of 5 · 5 questions
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
   partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
   `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, both Gauntlets a
-  crystal shard, `morytania` a pointed snelm, and `wilderness` the Bounty Hunter skull for the
+  crystal shard, `morytania` a pointed snelm, `zanaris` a cosmic rune, and `wilderness` the Bounty Hunter skull for the
   points: bronze under 200, then iron, green and blue, red from 800. A game sprite is drawn at
   twice its pixels, centred on the edge. Full credit alone adds a burst of confetti (900 ms) in
   the theme's gem colours. `+0` gets nothing.

@@ -15,6 +15,7 @@ import bountySkull4 from '../assets/sprites/bounty-skull-4.svg'
 import bountySkull5 from '../assets/sprites/bounty-skull-5.svg'
 import crystalShard from '../assets/sprites/crystal-shard.svg'
 import monkey from '../assets/sprites/monkey.svg'
+import cosmicRune from '../assets/sprites/cosmic-rune.svg'
 import snelm from '../assets/sprites/snelm.svg'
 import superKebab from '../assets/sprites/super-kebab.svg'
 import tokkul from '../assets/sprites/tokkul.svg'
@@ -68,6 +69,8 @@ export function pinFor(theme: string, points: number): Pin {
       return sprite(crystalShard)
     case 'morytania':
       return sprite(snelm)
+    case 'zanaris':
+      return sprite(cosmicRune)
     default:
       return RIBBON
   }

@@ -143,6 +143,7 @@ describe('definedThemes', () => {
         'gauntlet',
         'corrupted_gauntlet',
         'morytania',
+        'zanaris',
       ]),
     )
   })

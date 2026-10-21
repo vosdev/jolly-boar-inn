@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.141.0',
+    date: '2026-10-21',
+    text: 'A new theme: Zanaris, the fairy city, with its mushrooms and the Cosmic altar sign.',
+  },
+  {
     version: '0.140.0',
     date: '2026-10-21',
     text: 'Bananas and monkey nuts lie in the Jungle grass; cacti, camels and waterskins on the Pollnivneach sand.',

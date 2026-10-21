@@ -465,6 +465,7 @@ describe('SettingsMenu, the themes', () => {
       'gauntlet',
       'corrupted_gauntlet',
       'morytania',
+      'zanaris',
     ])
     for (const radio of radios().slice(1)) {
       await fireEvent.click(radio)

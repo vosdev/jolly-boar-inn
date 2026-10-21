@@ -14,6 +14,7 @@ section covers it.
 | `monkey.svg` | `Monkey_(Monkey_Madness_I).png` |
 | `crystal-shard.svg` | `Crystal_shard_1.png` |
 | `snelm.svg` | `Pointed_bruise_blue_snelm.png` |
+| `cosmic-rune.svg` | `Cosmic_rune.png` |
 | `skull.svg` | `Skull.png` |
 | `bounty-skull-1.svg` … `bounty-skull-5.svg` | `Skull_(Bounty_Hunter)_icon_(1).png` … `(5).png` |
 | `banana.svg`, `red-banana.svg`, `monkey-nuts.svg`, `pineapple.svg` | `Banana.png`, `Red_banana.png`, `Monkey_nuts.png`, `Pineapple.png` |
