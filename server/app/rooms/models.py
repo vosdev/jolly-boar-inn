@@ -253,11 +253,8 @@ class RoomQuestion:
         return scoring.effective(scoring_of(self.type), self.steps)
 
     def can_answer(self, player_id: UUID) -> bool:
-        """Section 6 exclusions: nobody answers a ``host_only`` question, and the author
-        of a ``source: room`` question cannot answer their own."""
-        if self.host_only:
-            return False
-        return self.source != "room" or self.author_player_id != player_id
+        """Section 6's one exclusion: nobody answers ``host_only``. Authors answer their own."""
+        return not self.host_only
 
     def view(
         self,
@@ -524,10 +521,8 @@ class Room:
 class Broadcast:
     """Rendered messages and the sockets they go to, snapshotted under the room lock.
 
-    One entry per socket, because ``question_open`` is not the same frame for everyone:
-    ``you_can_answer`` is false for the author of a room question and for ``host_only``
-    ones. ``room_updated`` differs too: only admins are sent the key and, with
-    ``hide_rounds``, the rounds still to come.
+    One entry per socket, because not every frame is the same for everyone: only admins are
+    sent ``room_updated``'s key and, with ``hide_rounds``, the rounds still to come.
     """
 
     targets: list[tuple[Outbox, dict[str, Any]]]

@@ -343,8 +343,8 @@ PlayerResult { value, correct, credit, points }
 
 What the server withholds. The admin is a player with a flag; there is no admin channel.
 
-- Open-question frames are identical for every socket, admin included, except `you_can_answer`
-  (false for the author and on `host_only`) and the live counts. They never carry the answer.
+- Open-question frames are identical for every socket, admin included, except the live counts.
+  `you_can_answer` is false only on `host_only`. They never carry the answer.
 - `question_id` is the row uuid, never the content id, which hashes the answer and could be
   brute-forced.
 - Results and correct answers first appear in `question_closed`, to everyone at once.
@@ -484,7 +484,7 @@ without `steps` scores on speed.
 - `points_for(scoring, credit, band, steps)` is the one entry point. It refuses credit outside 0..1
   rather than paying for a type's bug.
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".
-- `host_only` scores nobody. An author scores 0 on their own question and gets `excluded`. A kicked
+- `host_only` scores nobody and gets `excluded`. Authors score on their own questions. A kicked
   player's answers are deleted.
 
 Standings sort by points, then correct answers, then `joined_at`. Rank is dense over points and

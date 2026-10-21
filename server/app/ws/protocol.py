@@ -412,9 +412,7 @@ class QuestionClosed(_Message):
     """The same name ``OpenQuestion.picture`` carried, so a reveal can show it too."""
     results: dict[UUID, PlayerResult]
     unanswered: list[UUID]
-    """Connected players who could have answered and did not, for the reveal's "No answer". Only
-    the server knows who could: the author of a room question is excluded.
-    """
+    """Connected players who could have answered and did not, for the reveal's "No answer"."""
     standings: list[Standing]
     next_at: datetime | None
     reveal_seconds: int

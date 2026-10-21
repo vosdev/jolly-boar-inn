@@ -108,7 +108,7 @@ class AlreadyAnswered(ApiError):
 
 
 class Excluded(ApiError):
-    """``host_only``, or the author of a ``source: room`` question (section 6)."""
+    """A ``host_only`` question (section 6)."""
 
     status, code = 403, "excluded"
 

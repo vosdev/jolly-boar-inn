@@ -685,7 +685,7 @@
           "type": "object"
         },
         "unanswered": {
-          "description": "Connected players who could have answered and did not, for the reveal's \"No answer\". Only\nthe server knows who could: the author of a room question is excluded.",
+          "description": "Connected players who could have answered and did not, for the reveal's \"No answer\".",
           "items": {
             "format": "uuid",
             "type": "string"

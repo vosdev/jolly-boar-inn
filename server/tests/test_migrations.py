@@ -642,7 +642,7 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
     settings that still say so. An app then starts on the database and applies 0007. The
     settings lose ``order``; the rows are not touched, so the custom round is still a round
     -- its own segment, after the pack one, events nowhere -- and it plays that way, with
-    its author kept out of it as before.
+    its author answering and scoring on it like anyone.
     """
     host_session, player_session = "host-from-before-events", "player-from-before-events"
     pack = json.loads((PACKS_DIR / "prices.json").read_text())
@@ -736,20 +736,17 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
                     ("custom", 1, 2) if own else ("more_less", 0, 2)
                 )
                 assert (segment["start"], segment["count"]) == ((2, 2) if own else (0, 2))
-                assert seen["host"]["you_can_answer"] is not own
+                assert seen["host"]["you_can_answer"] is True
                 answer = question["payload"]["answer_index"]
                 for ws in (host, player):
                     ws.send_json(
                         {"t": "answer", "question_id": opened["question_id"], "value": answer}
                     )
-                if own:
-                    assert next_of(host, "error", limit=30)["code"] == "excluded"
-                else:
-                    next_of(host, "answer_ack", limit=30)
+                next_of(host, "answer_ack", limit=30)
                 next_of(player, "answer_ack", limit=30)
                 results = next_of(host, "question_closed", limit=30)["results"]
                 next_of(player, "question_closed", limit=30)
-                assert set(results) == ({player_id} if own else {host_id, player_id})
+                assert set(results) == {host_id, player_id}
                 if index == 1:
                     # Stored before ``standings_seconds`` existed, it reads as the
                     # default, and the first round ends in standings the host can skip.
@@ -762,12 +759,12 @@ def test_0007_a_room_from_before_events_plays_its_custom_round_unchanged(
             finished = next_of(host, "game_finished", limit=30)
 
     points = {s["display_name"]: s["points"] for s in finished["standings"]}
-    assert points["Woox"] > points["Zezima"] > 0
+    assert points["Woox"] > 0 and points["Zezima"] > 0
     rows = db(
         "select q.position, a.player_id from answers a join questions q on q.id = a.question_id"
     )
     assert sorted((row["position"], str(row["player_id"])) for row in rows) == sorted(
-        [(0, host_id), (0, player_id), (1, host_id), (1, player_id), (2, player_id), (3, player_id)]
+        [(position, pid) for position in range(4) for pid in (host_id, player_id)]
     )
 
 

@@ -461,8 +461,7 @@ export interface QuestionClosed {
     [k: string]: PlayerResult
   }
   /**
-   * Connected players who could have answered and did not, for the reveal's "No answer". Only
-   * the server knows who could: the author of a room question is excluded.
+   * Connected players who could have answered and did not, for the reveal's "No answer".
    */
   unanswered: string[]
   standings: Standing[]
