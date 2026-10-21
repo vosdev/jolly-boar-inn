@@ -273,8 +273,8 @@ PRICE_QUESTION: dict[str, Any] = {
     "payload": {
         "subject": {"name": "Armadyl chestplate", "asset": "item:11828"},
         "value": 35000000,
-        "options": [35000000, 41000000, 58000000, 79000000],
-        "answer_index": 0,
+        "min": 20000000,
+        "max": 79000000,
         "as_of": "2026-09-20",
     },
 }

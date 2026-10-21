@@ -77,3 +77,14 @@ describe('parseAmount', () => {
     }
   })
 })
+
+describe('formatGp with three figures', () => {
+  it('keeps the third figure in millions', () => {
+    expect(formatGp(1_650_000, { figures: 3 })).toBe('1.65M')
+    expect(formatGp(1_600_000, { figures: 3 })).toBe('1.6M')
+    expect(formatGp(12_500_000, { figures: 3 })).toBe('12.5M')
+    expect(formatGp(125_000_000, { figures: 3 })).toBe('125M')
+    expect(formatGp(125_000, { figures: 3 })).toBe('125k')
+    expect(formatGp(1_650_000)).toBe('1.6M')
+  })
+})

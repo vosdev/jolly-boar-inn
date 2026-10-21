@@ -26,7 +26,7 @@ export interface HowToRow {
 
 export const HOW_TO_ROWS: HowToRow[] = [
   {
-    types: ['multiple_choice', 'more_less', 'price_is_right'],
+    types: ['multiple_choice', 'more_less'],
     title: 'One answer',
     text: 'Tap one answer.',
     drawing: 'tap',
@@ -53,6 +53,12 @@ export const HOW_TO_ROWS: HowToRow[] = [
     types: ['closest_number'],
     title: 'Closest number',
     text: 'Type a number, then press Submit. 12500, 1600k and 1.8m all work.',
+    drawing: 'number',
+  },
+  {
+    types: ['price_is_right'],
+    title: 'Slide to a price',
+    text: 'Slide to your guess, then press Submit. The closer it is, the more it scores.',
     drawing: 'number',
   },
   {

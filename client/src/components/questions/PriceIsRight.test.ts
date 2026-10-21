@@ -1,6 +1,6 @@
 /**
- * `price_is_right` on screen: the item and the question from `PriceStem`, then four prices
- * written the way the game writes coins, then — after close — which of them it was.
+ * `price_is_right` on screen: the item and the question from `PriceStem`, then a slider
+ * between two prices, then — after close — the price, your guess and everyone's.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
@@ -16,11 +16,12 @@ import PriceIsRight from './types/PriceIsRight.svelte'
 
 const VIEW = {
   subject: { name: 'Abyssal whip', asset: 'item:4151' },
-  options: [1_100_000, 1_600_000, 2_100_000, 29_000_000],
+  min: 110_000,
+  max: 300_000,
   as_of: '2026-09-20',
 }
 
-const REVEAL = { ...VIEW, value: 1_600_000, answer_index: 1 }
+const REVEAL = { ...VIEW, value: 130_000 }
 
 function open(view: Record<string, unknown> = VIEW): OpenQuestion {
   return {
@@ -42,7 +43,8 @@ function open(view: Record<string, unknown> = VIEW): OpenQuestion {
   }
 }
 
-const prices = () => screen.getAllByRole('button').map((button) => button.textContent?.trim())
+const slider = () => screen.getByRole('slider')
+const key = (k: string) => fireEvent.keyDown(slider(), { key: k })
 
 describe('price_is_right', () => {
   it('is drawn by the price stem over its own view', () => {
@@ -52,53 +54,78 @@ describe('price_is_right', () => {
     })
   })
 
-  it('names the item above four prices in game notation, in the order sent', () => {
+  it('starts in the middle and shows the ends and the chosen price in gp', () => {
     render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
     const name = screen.getByText('Abyssal whip')
     expect(name.dataset.asset).toBe('item:4151')
-    expect(prices()).toEqual(['1.1M gp', '1.6M gp', '2.1M gp', '29M gp'])
-    const first = screen.getAllByRole('button')[0]!
-    expect(name.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(screen.queryByText('correct')).toBeNull()
+    expect(slider().getAttribute('aria-valuenow')).toBe('182000')
+    expect(slider().getAttribute('aria-valuetext')).toBe('182k gp')
+    expect(screen.getByText('110k gp')).toBeTruthy()
+    expect(screen.getByText('300k gp')).toBeTruthy()
+    expect(screen.getByText('Your price').parentElement?.textContent).toContain('182k gp')
+    expect(name.compareDocumentPosition(slider()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('answers with the index of the price picked', async () => {
+  it('steps by keyboard: arrows one, pages ten, Home and End the ends', async () => {
+    render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    const now = () => Number(slider().getAttribute('aria-valuenow'))
+    await key('ArrowRight')
+    expect(now()).toBe(183_000)
+    await key('ArrowLeft')
+    await key('ArrowDown')
+    expect(now()).toBe(181_000)
+    await key('PageUp')
+    expect(now()).toBe(191_000)
+    await key('PageDown')
+    await key('PageDown')
+    expect(now()).toBe(171_000)
+    await key('Home')
+    expect(now()).toBe(110_000)
+    await key('End')
+    expect(now()).toBe(300_000)
+  })
+
+  it('sends the chosen price and locks once sent', async () => {
     const onAnswer = vi.fn()
     render(Question, { question: open(), yourValue: null, onAnswer })
-    await fireEvent.click(screen.getByText('2.1M'))
-    expect(onAnswer).toHaveBeenCalledWith(2)
+    await key('ArrowUp')
+    await fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(onAnswer).toHaveBeenCalledWith(183_000)
   })
 
-  it('holds the buttons once answered, and for someone who cannot answer', () => {
-    const answered = render(Question, { question: open(), yourValue: 0, onAnswer: () => {} })
-    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
-    expect(screen.getAllByRole('button')[0]!.getAttribute('aria-pressed')).toBe('true')
+  it('holds a sent guess, and shows only the range to someone who cannot answer', () => {
+    const answered = render(Question, { question: open(), yourValue: 250_000, onAnswer: () => {} })
+    expect(slider().getAttribute('aria-disabled')).toBe('true')
+    expect(slider().getAttribute('aria-valuenow')).toBe('250000')
+    expect(screen.queryByRole('button', { name: 'Submit' })).toBeNull()
     answered.unmount()
     render(Question, {
       question: { ...open(), you_can_answer: false },
       yourValue: null,
       onAnswer: () => {},
     })
-    expect(screen.getAllByRole('button').every((b) => (b as HTMLButtonElement).disabled)).toBe(true)
-    expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
+    expect(screen.queryByRole('slider')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Submit' })).toBeNull()
+    expect(screen.getByText('110k gp')).toBeTruthy()
   })
 
-  it('lights the right price on the reveal and keeps a wrong pick identifiable', () => {
-    render(Question, {
-      question: open(),
-      reveal: REVEAL,
-      yourValue: 3,
-      result: { value: 3, correct: false, credit: 0, points: 0 },
+  it('marks the price, your guess and everyone else’s on the reveal', () => {
+    const { container } = render(PriceIsRight, {
+      data: REVEAL,
+      revealed: true,
+      yourValue: 147_000,
+      canAnswer: true,
       onAnswer: () => {},
+      results: {
+        a: { value: 147_000, correct: false, credit: 0.6, points: 400 },
+        b: { value: 200_000, correct: false, credit: 0, points: 0 },
+      },
     })
-    const buttons = screen.getAllByRole('button')
-    expect(buttons[1]!.classList.contains('correct')).toBe(true)
-    expect(buttons[3]!.classList.contains('wrong')).toBe(true)
-    expect(buttons[3]!.textContent).toContain('you')
-    // Position is identity: the ladder is sapphire, emerald, ruby, red topaz, revealed or not.
-    const gems = ['sapphire', 'emerald', 'ruby', 'red-topaz']
-    buttons.forEach((b, i) => expect(b.classList.contains(gems[i]!)).toBe(true))
-    // The splash and the footer date the prices; the question does not.
+    expect(container.querySelector('.mark.answer')?.getAttribute('data-value')).toBe('130000')
+    expect(container.querySelector('.mark.yours')?.getAttribute('data-value')).toBe('147000')
+    expect(container.querySelectorAll('.mark.tick')).toHaveLength(2)
+    expect(container.textContent).toContain('130k gp')
+    expect(container.textContent).toContain('+13%')
     expect(document.body.textContent).not.toContain('as of')
   })
 

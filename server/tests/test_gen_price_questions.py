@@ -3,18 +3,16 @@ passes on the output, the script is idempotent, and nothing runs it at app start
 CI. The generator is exercised on saved-response fixtures; the network is never touched.
 
 The generator half: it emits ``price_is_right`` from the same fetch, rounded
-and on one of the four shapes per question, without moving a single ``more_less``
+with its answer inside a range drawn for it, without moving a single ``more_less``
 question; it stays idempotent and offline-capable. The type and the shipped pack's
 properties are in ``test_price_is_right.py``.
 """
 
 import json
-import math
 import os
 import subprocess
 import sys
 from collections import Counter
-from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +21,7 @@ import pytest
 from app.config import REPO_ROOT
 from app.questions import schema
 from app.questions.packs import load_packs, pack_errors
+from app.questions.types import slider
 from tests.packs import PACKS_DIR
 
 SERVER_DIR = REPO_ROOT / "server"
@@ -323,7 +322,8 @@ def test_price_is_right_comes_from_the_same_fetch() -> None:
         p = q["payload"]
         item = items[p["subject"]["name"]]
         assert p["subject"]["asset"] == f"item:{item.id}"
-        assert p["value"] == gen.round_price(item.ge_price) == p["options"][p["answer_index"]]
+        assert p["value"] == gen.round_price(item.ge_price)
+        assert p["min"] < p["value"] < p["max"]
         assert p["as_of"] == "2026-09-18"
         assert q["tags"] == gen.PIR_TAGS
         assert q["difficulty"] in ("easy", "medium", "hard")
@@ -360,36 +360,46 @@ def test_round_price_keeps_two_figures(value: int, rounded: int) -> None:
     assert gen.round_price(value) == rounded
 
 
-@pytest.mark.parametrize("below", gen.PIR_SHAPES)
 @pytest.mark.parametrize("price", [100, 990, 1_000, 13_000, 1_700_000, 95_000_000])
-def test_every_shape_puts_the_answer_in_its_own_slot(below: int, price: int) -> None:
-    """The shape is how many wrong prices sit below; ascending, that is the answer's index."""
-    for seed in range(50):
-        fitted = gen.price_options(price, below, gen.random.Random(seed))
+def test_every_range_puts_the_answer_in_a_band(price: int) -> None:
+    """Never in the outer 10% at either end, never in the middle 10% where the slider starts."""
+    for seed in range(200):
+        fitted = gen.price_range(price, gen.random.Random(seed))
         assert fitted is not None
-        options, answer_index = fitted
-        assert answer_index == below
-        assert options[answer_index] == price
-        assert options == sorted(options)
-        for low, high in pairwise(options):
-            assert high >= low * gen.PIR_MIN_GAP, (seed, options)
-        assert all(gen.round_price(option) == option for option in options), options
+        low, high = fitted
+        where = slider.position(price, low, high)
+        assert 0.10 <= where <= 0.45 or 0.55 <= where <= 0.90, (seed, low, high, where)
+        assert gen.round_price(low) == low and gen.round_price(high) == high
+        assert 1.5 <= high / low <= 3.6, (seed, low, high)
 
 
-def test_a_shape_with_no_room_above_does_not_fit() -> None:
-    price = 1_500_000_000
-    assert gen.price_options(price, 0, gen.random.Random(0)) is None
-    options, _ = gen.price_options(price, 3, gen.random.Random(0)) or ([], 0)
-    assert options[-1] == price
+def test_the_ranges_fill_both_bands() -> None:
+    sides = Counter(
+        slider.position(13_000, *(gen.price_range(13_000, gen.random.Random(seed)) or (0, 0))) < 0.5
+        for seed in range(200)
+    )
+    assert min(sides.values()) >= 70, sides
 
 
-def test_an_item_near_max_cash_takes_a_shape_that_fits() -> None:
+def test_an_item_near_max_cash_stays_under_it() -> None:
     bow = gen.Item(20997, "Twisted bow", 1_500_000_000, None)
-    questions, notes = gen.price_is_right_questions([bow], 1, "2026-09-18", gen.random.Random(0))
+    questions, _ = gen.price_is_right_questions([bow], 1, "2026-09-18", gen.random.Random(0))
     (q,) = questions
-    assert q["payload"]["options"][-1] <= gen.MAX_CASH
-    assert q["payload"]["answer_index"] == 3
-    assert any("Twisted bow" in n and "took shape 3" in n for n in notes)
+    assert q["payload"]["max"] <= gen.MAX_CASH
+
+
+def test_an_item_with_no_room_above_is_skipped() -> None:
+    item = gen.Item(1, "Hoard", 2_100_000_000, None)
+    questions, notes = gen.price_is_right_questions([item], 1, "2026-09-18", gen.random.Random(0))
+    assert questions == []
+    assert "price_is_right: no range fits Hoard at 2100000000 gp, skipped" in notes
+
+
+@pytest.mark.parametrize(
+    ("low", "high", "expected"), [(10, 25, "easy"), (10, 19, "medium"), (10, 18, "hard")]
+)
+def test_pir_difficulty_by_span(low: int, high: int, expected: str) -> None:
+    assert gen.pir_difficulty(low, high) == expected
 
 
 def test_price_is_right_skips_items_worth_a_handful_of_coins() -> None:
@@ -398,25 +408,6 @@ def test_price_is_right_skips_items_worth_a_handful_of_coins() -> None:
     assert [q["payload"]["subject"]["name"] for q in questions] == ["Abyssal whip"]
     assert f"price_is_right: 1 item(s) under {gen.PIR_MIN_PRICE} gp skipped" in notes
     assert any(n.startswith("price_is_right: only 1 of 5") for n in notes)
-
-
-def test_shapes_are_dealt_evenly() -> None:
-    """The deck is why the pack's answer slots are uniform on any roster, not by luck."""
-    items = [gen.Item(k, f"Item {k}", 1000 + 37 * k, None) for k in range(203)]
-    questions, _ = gen.price_is_right_questions(items, 203, "2026-09-18", gen.random.Random(0))
-    slots = Counter(q["payload"]["answer_index"] for q in questions)
-    assert set(slots) == set(range(4))
-    assert max(slots.values()) - min(slots.values()) <= 1
-    assert sum(slots.values()) == 203
-    per_slot = math.ceil(203 / 4)
-    assert all(n <= per_slot for n in slots.values())
-
-
-def test_price_is_right_difficulty_is_the_closest_wrong_price() -> None:
-    assert gen.pir_difficulty([100, 150, 230, 340], 0) == "easy"
-    assert gen.pir_difficulty([100, 130, 230, 340], 0) == "medium"
-    assert gen.pir_difficulty([100, 120, 230, 340], 1) == "hard"
-    assert gen.pir_difficulty([100, 120, 230, 340], 3) == "easy"
 
 
 # --- CLI -------------------------------------------------------------------------------

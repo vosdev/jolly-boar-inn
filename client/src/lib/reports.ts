@@ -149,8 +149,9 @@ export function packAnswer(question: PackQuestion): string {
   const payload = question.payload
   switch (question.type) {
     case 'multiple_choice':
-    case 'price_is_right':
       return str((payload.options as unknown[])[payload.answer_index as number])
+    case 'price_is_right':
+      return `${str(payload.value)} gp`
     case 'more_less': {
       const options = payload.options as { subject: Subject; value: number }[]
       const right = options[payload.answer_index as number]

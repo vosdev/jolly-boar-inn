@@ -126,12 +126,18 @@ describe('RevealTally', () => {
     expect(lines(last)[0]).toContain('Woox (you),')
   })
 
-  it('writes a price as coins and a more-or-less item by name, with no gem for the item', () => {
+  it('groups price guesses by closeness, written as coins, and a more-or-less item by name', () => {
     const prices = draw(
-      { a: wrong(2) },
-      { type: 'price_is_right', reveal: { options: [100, 1_500, 1_600_000, 9] } },
+      {
+        a: { value: 1_650_000, correct: false, credit: 0.5, points: 300 },
+        b: { value: 9_000_000, correct: false, credit: 0, points: 0 },
+      },
+      { type: 'price_is_right', reveal: { value: 1_200_000, min: 900_000, max: 2_000_000 } },
     ).container
-    expect(lines(prices)).toEqual(['1.6M gp (1): Zezima (you)'])
+    const [close, further] = lines(prices)
+    expect(close).toMatch(/^Close \(1\): Zezima \(you\)/)
+    expect(close).toContain('1.6M gp')
+    expect(further).toMatch(/^Further off \(1\)/)
     const items = draw(
       { a: wrong(1) },
       {

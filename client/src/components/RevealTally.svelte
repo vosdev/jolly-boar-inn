@@ -151,7 +151,6 @@
 
   function optionLabel(index: number): string {
     const option = options[index]
-    if (type === 'price_is_right' && typeof option === 'number') return `${formatGp(option)} gp`
     if (typeof option === 'string') return option
     const subject = (option as { subject?: { name?: unknown } } | undefined)?.subject
     return typeof subject?.name === 'string' ? subject.name : `Option ${index + 1}`
@@ -206,8 +205,29 @@
 
   const groups = $derived.by((): Group[] => {
     switch (type) {
+      case 'price_is_right': {
+        // Credit falls with distance along the slider, so it orders guesses by closeness.
+        const guesses = (rows: typeof wrong) =>
+          [...rows]
+            .sort((a, b) => b[1].credit - a[1].credit)
+            .map(([id, { value }]) => who(id, `${formatGp(Number(value))} gp`))
+        const lines: Group[] = [
+          {
+            key: 'close',
+            label: 'Close',
+            gem: null,
+            players: guesses(wrong.filter(([, r]) => r.credit > 0)),
+          },
+          {
+            key: 'further',
+            label: 'Further off',
+            gem: null,
+            players: guesses(wrong.filter(([, r]) => r.credit === 0)),
+          },
+        ]
+        return lines.filter((line) => line.players.length > 0)
+      }
       case 'multiple_choice':
-      case 'price_is_right':
       case 'more_less': {
         const gemmed = type !== 'more_less'
         return grouped(

@@ -16,13 +16,19 @@
 const K = 1_000
 const M = 1_000_000
 
-export function formatGp(amount: number): string {
+/**
+ * `figures: 3` keeps one more figure in millions (`1.65M`, `12.5M`), for the price slider,
+ * whose neighbouring positions would otherwise read the same.
+ */
+export function formatGp(amount: number, { figures = 2 }: { figures?: 2 | 3 } = {}): string {
   if (!Number.isFinite(amount)) return '?'
   const n = Math.trunc(amount)
-  if (n < 0) return `-${formatGp(-n)}`
+  if (n < 0) return `-${formatGp(-n, { figures })}`
   if (n < 100 * K) return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   if (n < M) return `${Math.floor(n / K)}k`
-  if (n < 10 * M) return `${Math.floor(n / (M / 10)) / 10}M`
+  const extra = figures === 3 ? 10 : 1
+  if (n < 10 * M) return `${Math.floor(n / (M / 10 / extra)) / 10 / extra}M`
+  if (n < 100 * M && figures === 3) return `${Math.floor(n / (M / 10)) / 10}M`
   return `${Math.floor(n / M)}M`
 }
 

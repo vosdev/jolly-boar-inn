@@ -43,6 +43,7 @@
   {#if quote !== null}<blockquote>{quote}</blockquote>{/if}
   {#if question.type === 'price_is_right'}
     <p class="prompt">{(p.subject as Subject).name}</p>
+    <p class="note">between {p.min} and {p.max} gp, as of {p.as_of}</p>
   {:else if question.type === 'more_less'}
     <p class="note">{p.direction} {p.metric}, as of {p.as_of}</p>
   {/if}

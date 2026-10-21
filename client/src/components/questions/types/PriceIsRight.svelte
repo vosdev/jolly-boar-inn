@@ -1,38 +1,30 @@
 <script lang="ts">
   /**
-   * `price_is_right`: four prices for one item, and which one it goes for.
+   * `price_is_right`: one item, a range of prices, and a slider to say what it goes for.
    *
    * The item and the question line are the stem's to show (`PriceStem`, on the scroll);
-   * this view is the four prices. The options arrive as integers and are written here, with
-   * `lib/gp.ts`, the way the game writes a stack — which is the reason the server keeps
-   * them numbers at all (architecture section 2). The generator rounds every price to two
-   * figures, and two figures is exactly what that notation shows, so no two buttons ever
-   * read the same.
+   * this view is the slider. Prices arrive as integers and are written here with
+   * `lib/gp.ts`, the chosen one with three figures, since the slider's neighbouring
+   * positions differ in the third.
    *
    * `data` arrives in the two shapes `questions/types/price_is_right.py` sends:
    *
-   * - while open, `client_view(payload)`: the subject, the four options and `as_of`,
-   *   which the splash and footer say instead. The options are the question, so they are
-   *   on the wire from the start.
-   * - after close, `reveal(payload)`: the same plus `value` and `answer_index`.
+   * - while open, `client_view(payload)`: the subject, `min`, `max` and `as_of`.
+   * - after close, `reveal(payload)`: the same plus `value`.
    *
-   * The options come in ascending order and are drawn in that order. That is not a hint:
-   * the pack deals the answer into every slot about equally often, and a ladder of prices
-   * is how anyone would lay out a guess at one. The rungs are gems, sapphire at the
-   * cheapest, and the verdict is the points slot's.
+   * Someone who cannot answer sees the range without a control. Once sent, the slider
+   * holds the guess; the reveal marks the price, the guess and everyone's as ticks.
    */
   import { formatGp } from '../../../lib/gp'
-  import { indexSet } from '../GemButton.svelte'
-  import GemChoices from '../GemChoices.svelte'
+  import { middle } from '../../../lib/slider'
   import type { TypeViewProps } from '../props'
-
-  /** An option index: the four buttons are `options[0]` to `options[3]`. */
-  type Index = number
+  import Slider from '../Slider.svelte'
 
   interface Data {
-    options: number[]
+    min: number
+    max: number
     /** Reveal only. */
-    answer_index?: Index
+    value?: number
   }
 
   let {
@@ -42,32 +34,124 @@
     canAnswer,
     onAnswer,
     results = null,
-  }: TypeViewProps<Index> = $props()
+  }: TypeViewProps<number> = $props()
 
+  const uid = $props.id()
   const q = $derived(data as unknown as Data)
-  const answer = $derived(indexSet(revealed ? (q.answer_index ?? null) : null))
-  const picked = $derived(
-    indexSet(typeof yourValue === 'number' && Number.isInteger(yourValue) ? yourValue : null),
+  const sent = $derived(typeof yourValue === 'number' ? yourValue : null)
+  let chosen: number | null = $state(null)
+  const shown = $derived(sent ?? chosen ?? middle(q.min, q.max))
+  const locked = $derived(revealed || sent !== null || !canAnswer)
+
+  const gp = (amount: number) => `${formatGp(amount)} gp`
+  const precise = (amount: number) => `${formatGp(amount, { figures: 3 })} gp`
+
+  const off = $derived(
+    revealed && sent !== null && typeof q.value === 'number'
+      ? Math.round(((sent - q.value) / q.value) * 100)
+      : null,
   )
+
+  const marks = $derived.by(() => {
+    if (!revealed || typeof q.value !== 'number') return []
+    const ticks = Object.values(results ?? {})
+      .map((result) => result.value)
+      .filter((value): value is number => typeof value === 'number')
+      .map((value) => ({ value, kind: 'tick' as const }))
+    const yours = sent === null ? [] : [{ value: sent, kind: 'yours' as const }]
+    return [...ticks, ...yours, { value: q.value, kind: 'answer' as const }]
+  })
 </script>
 
-<GemChoices options={q.options} {picked} {answer} {revealed} {canAnswer} {results} {onAnswer}>
-  {#snippet label(option: number)}
-    <span class="price">{formatGp(option)} <span class="unit">gp</span></span>
-  {/snippet}
-</GemChoices>
+<div class="price-slider">
+  {#if revealed && typeof q.value === 'number'}
+    <p class="chosen" id="{uid}-label">
+      <span class="caption">It goes for</span>
+      {precise(q.value)}
+    </p>
+    {#if sent !== null}
+      <p class="yours">
+        Your guess {precise(sent)}{#if off !== null}, <span class="off"
+            >{off === 0 ? 'spot on' : `${off > 0 ? '+' : '−'}${Math.abs(off)}%`}</span
+          >{/if}
+      </p>
+    {/if}
+  {:else if canAnswer || sent !== null}
+    <p class="chosen" id="{uid}-label">
+      <span class="caption">{sent === null ? 'Your price' : 'Sent'}</span>
+      {precise(shown)}
+    </p>
+  {:else}
+    <p class="caption" id="{uid}-label">Somewhere between</p>
+  {/if}
+
+  {#if canAnswer || sent !== null || revealed}
+    <Slider
+      low={q.min}
+      high={q.max}
+      bind:value={() => (revealed && sent === null ? null : shown), (v) => (chosen = v)}
+      disabled={locked}
+      label="{uid}-label"
+      valueText={precise}
+      {marks}
+    />
+  {/if}
+
+  <div class="ends">
+    <span>{gp(q.min)}</span>
+    <span>{gp(q.max)}</span>
+  </div>
+
+  {#if canAnswer && sent === null && !revealed}
+    <button type="button" class="primary" onclick={() => onAnswer(shown)}>Submit</button>
+  {/if}
+</div>
 
 <style>
-  /* In em, so the price grows with the answer's button on a reveal and shrinks with the
-     rest beneath it. */
-  .price {
-    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 1.35em;
+  .price-slider {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .chosen {
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-numeric);
+    font-size: 2rem;
     font-weight: 600;
   }
 
-  .unit {
-    font-size: 0.6em;
+  .caption {
+    display: block;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
     font-weight: 400;
+    text-align: center;
+  }
+
+  .yours {
+    margin: 0;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .off {
+    font-family: var(--font-numeric);
+    color: var(--ink);
+  }
+
+  .ends {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-numeric);
+    color: var(--muted);
+  }
+
+  .primary {
+    align-self: center;
+    min-height: 56px;
+    min-width: 10rem;
   }
 </style>

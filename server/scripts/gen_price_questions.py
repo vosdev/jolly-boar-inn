@@ -45,6 +45,7 @@ import wiki
 
 from app.questions import schema
 from app.questions.packs import pack_errors
+from app.questions.types import slider
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ROSTER = REPO_ROOT / "data" / "popular-items.json"
@@ -72,26 +73,24 @@ MEDIUM_RATIO = 1.6
 # The Price is Right. One question per item, so the count is bounded by the roster.
 PIR_COUNT = 100
 PIR_TAGS = ["prices", "ge-price"]
-# Below this an item's four prices are a handful of coins apart, and "3 gp or 8 gp?" is a
+# Below this the slider spans a handful of coins, and "3 gp or 8 gp?" is a
 # question about rounding, not about what things cost.
 PIR_MIN_PRICE = 100
-# How many of the three wrong prices sit below the right one. With the options shown in
-# ascending order that count *is* the answer's slot, so dealing the four shapes evenly is
-# what keeps a player from learning that the answer is usually second. ``ideas/games.md``
-# sketched these four; three wrong prices split above and below admit no fifth.
-PIR_SHAPES = (0, 1, 2, 3)
-# Each option is this much dearer than the one below it, drawn per step. The floor keeps
-# neighbours apart after rounding (see ``round_price``); the ceiling keeps the spread of
-# four from reaching the point where the wild guesses give themselves away.
+# The slider's span is three of these steps multiplied, each drawn on its own: a ladder of
+# four prices this far apart was a fair question, so a range this wide is too. The floor
+# keeps a span from being so narrow that rounding the ends moves the answer far.
 PIR_STEP = (1.15, 1.5)
-# Two options closer than this read as the same answer, whichever is right.
-PIR_MIN_GAP = 1.05
+# Where along the log range the answer may sit: never near an end, where the stop would
+# give it away, and never near the middle, where the slider starts.
+PIR_BANDS = ((0.10, 0.45), (0.55, 0.90))
+# Rounding the ends can push the answer out of its band; this many draws before giving up.
+PIR_DRAWS = 50
 # The most coins a stack can hold: a price above it is one nobody could ever have paid.
 MAX_CASH = 2_147_483_647
-# Smallest gap between the answer and a neighbour at or above which it counts as easy /
-# medium; below is hard.
-PIR_EASY_GAP = 1.4
-PIR_MEDIUM_GAP = 1.25
+# Spans at or above which a question counts as easy / medium; below is hard. Credit is a share
+# of the width, so a wider range forgives a guess further off in coins.
+PIR_EASY_SPAN = 2.5
+PIR_MEDIUM_SPAN = 1.9
 
 
 @dataclass(frozen=True, slots=True)
@@ -281,66 +280,58 @@ def round_price(value: int) -> int:
 
     Two figures is the grid the game's own coin notation lands on exactly -- ``1.6M``,
     ``130k``, ``12,000`` -- so no two rounded prices read the same on screen, which a
-    third figure would break (``1.62M`` and ``1.65M`` are both ``1.6M``). It moves a price
-    by at most 5%, which is also why ``PIR_STEP`` starts above ``PIR_MIN_GAP`` by more
-    than that.
+    third figure would break (``1.62M`` and ``1.65M`` are both ``1.6M``).
     """
-    if value < 100:
-        return value
-    step = 10 ** (len(str(value)) - 2)
-    return (value + step // 2) // step * step
+    return slider.round_sig(value, slider.ANSWER_FIGURES)
 
 
-def price_options(price: int, below: int, rng: random.Random) -> tuple[list[int], int] | None:
-    """Four ascending prices, ``below`` of them under ``price``, and the answer's index.
+def in_band(where: float) -> bool:
+    """Whether a position along the slider is one ``PIR_BANDS`` allows."""
+    return any(low <= where <= high for low, high in PIR_BANDS)
 
-    ``price`` must already be on the ``round_price`` grid. Each wrong price is a step off
-    its neighbour rather than off the answer, so the four spread out like a ladder instead
-    of bunching on one side. ``None`` when the shape does not fit the item: a price near
-    the top of a cash stack has no room for three dearer ones.
+
+def price_range(price: int, rng: random.Random) -> tuple[int, int] | None:
+    """The slider's ends for ``price``, both on the ``round_price`` grid, the answer in a band.
+
+    ``None`` when no draw fits: a price near the top of a cash stack rarely has room above.
     """
-    lower, higher = [price], [price]
-    for _ in range(below):
-        lower.append(round_price(round(lower[-1] / rng.uniform(*PIR_STEP))))
-    for _ in range(len(PIR_SHAPES) - 1 - below):
-        higher.append(round_price(round(higher[-1] * rng.uniform(*PIR_STEP))))
-    options = sorted(lower[1:]) + higher
-    if options[-1] > MAX_CASH or options[0] < 1:
-        return None
-    gaps = [b / a for a, b in itertools.pairwise(options)]
-    if min(gaps) < PIR_MIN_GAP:  # PIR_STEP and round_price together rule this out
-        raise AssertionError(f"options {options} for {price} are closer than {PIR_MIN_GAP}")
-    return options, below
+    for _ in range(PIR_DRAWS):
+        span = math.prod(rng.uniform(*PIR_STEP) for _ in range(3))
+        low_band, high_band = rng.choice(PIR_BANDS)
+        where = rng.uniform(low_band, high_band)
+        low = round_price(round(price / span**where))
+        high = round_price(round(price * span ** (1 - where)))
+        if low < 1 or high > MAX_CASH or not low < price < high:
+            continue
+        if in_band(slider.position(price, low, high)):
+            return low, high
+    return None
 
 
-def pir_difficulty(options: list[int], answer_index: int) -> str:
-    """By the closest wrong price to the right one: that is the one a player must rule out."""
-    answer = options[answer_index]
-    neighbours = options[max(0, answer_index - 1) : answer_index + 2]
-    gap = min(max(answer, other) / min(answer, other) for other in neighbours if other != answer)
-    if gap >= PIR_EASY_GAP:
+def pir_difficulty(low: int, high: int) -> str:
+    """By the span: a guess may miss by a share of it, so wider is more forgiving."""
+    span = high / low
+    if span >= PIR_EASY_SPAN:
         return "easy"
-    if gap >= PIR_MEDIUM_GAP:
+    if span >= PIR_MEDIUM_SPAN:
         return "medium"
     return "hard"
 
 
-def make_price_is_right(
-    item: Item, options: list[int], answer_index: int, as_of: str
-) -> dict[str, Any]:
-    """One ``price_is_right`` envelope. ``options[answer_index]`` is the rounded price."""
+def make_price_is_right(item: Item, price: int, low: int, high: int, as_of: str) -> dict[str, Any]:
+    """One ``price_is_right`` envelope; ``price`` is already rounded."""
     question: dict[str, Any] = {
         "id": "",
         "type": "price_is_right",
         "mode": "price_is_right",
         "source": "pack",
         "tags": list(PIR_TAGS),
-        "difficulty": pir_difficulty(options, answer_index),
+        "difficulty": pir_difficulty(low, high),
         "payload": {
             "subject": {"name": item.name, "asset": f"item:{item.id}"},
-            "value": options[answer_index],
-            "options": options,
-            "answer_index": answer_index,
+            "value": price,
+            "min": low,
+            "max": high,
             "as_of": as_of,
         },
     }
@@ -351,13 +342,7 @@ def make_price_is_right(
 def price_is_right_questions(
     items: list[Item], want: int, as_of: str, rng: random.Random
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    """Up to ``want`` questions, one per item, each on a shape dealt from an even deck.
-
-    The deck holds every shape equally often and is shuffled, so each question's slot is
-    a surprise and the pack as a whole still puts the answer in every slot about as often.
-    An item that cannot take the shape it was dealt takes the nearest one with more of its
-    wrong prices below, which only an item worth hundreds of millions ever needs.
-    """
+    """Up to ``want`` questions, one per item, each with a range drawn for it."""
     notes: list[str] = []
     eligible = [item for item in items if (item.ge_price or 0) >= PIR_MIN_PRICE]
     cheap = [
@@ -366,24 +351,15 @@ def price_is_right_questions(
     if cheap:
         notes.append(f"price_is_right: {len(cheap)} item(s) under {PIR_MIN_PRICE} gp skipped")
     chosen = rng.sample(eligible, min(want, len(eligible)))
-    deck = list(PIR_SHAPES) * math.ceil(len(chosen) / len(PIR_SHAPES))
-    rng.shuffle(deck)
     questions: list[dict[str, Any]] = []
-    for item, dealt in zip(chosen, deck, strict=False):
+    for item in chosen:
         assert item.ge_price is not None
         price = round_price(item.ge_price)
-        for below in range(dealt, len(PIR_SHAPES)):
-            fitted = price_options(price, below, rng)
-            if fitted is not None:
-                break
-        else:
-            notes.append(f"price_is_right: no shape fits {item.name} at {price} gp, skipped")
+        fitted = price_range(price, rng)
+        if fitted is None:
+            notes.append(f"price_is_right: no range fits {item.name} at {price} gp, skipped")
             continue
-        if below != dealt:
-            notes.append(
-                f"price_is_right: {item.name} at {price} gp took shape {below}, not {dealt}"
-            )
-        questions.append(make_price_is_right(item, *fitted, as_of))
+        questions.append(make_price_is_right(item, price, *fitted, as_of))
     if len(questions) < want:
         notes.append(
             f"price_is_right: only {len(questions)} of {want} questions possible, one per"
