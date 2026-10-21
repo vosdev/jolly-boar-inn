@@ -66,3 +66,28 @@ export function teamsOf(
     players.flatMap((player) => (player.team === null ? [] : [[player.id, player.team]])),
   )
 }
+
+/**
+ * Each playing team's median points on one question, in `teams`' order; a team without
+ * members is left out.
+ *
+ * A median, not a mean, so one member's lucky guess or missed answer doesn't decide the
+ * row. A member with no result did not answer and counts as 0. An even count takes the
+ * mean of the middle two, halves rounded up as the standings round.
+ */
+export function teamMedians(
+  teams: readonly TeamId[],
+  teamOf: Readonly<Record<string, TeamId>>,
+  results: Readonly<Record<string, { points: number }>>,
+): { team: TeamId; points: number }[] {
+  return teams.flatMap((id) => {
+    const points = Object.keys(teamOf)
+      .filter((player) => teamOf[player] === id)
+      .map((player) => results[player]?.points ?? 0)
+      .sort((a, b) => a - b)
+    if (points.length === 0) return []
+    const high = points[points.length >> 1]!
+    const low = points[(points.length - 1) >> 1]!
+    return [{ team: id, points: Math.floor((low + high + 1) / 2) }]
+  })
+}

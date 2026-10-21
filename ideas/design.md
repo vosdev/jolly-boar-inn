@@ -322,7 +322,9 @@ in display tabular numerals and the scroll's ink:
   `--bad` do not reach 4.5:1 on parchment. A random event's card keeps them, on a plaque (#106).
 - Only what you earned: the total waits for the standings. The slot never explains a number; a
   speed bonus explained mid-reveal is a second thing to read.
-- No standings under a reveal: a board every question makes the game a spreadsheet.
+- No standings under a reveal: a board every question makes the game a spreadsheet. A team game
+  ends the tally with a row per team, logo, name and its members' median points on the question
+  (silent is 0), in god order, not ranked.
 - A suggested question whose player asked to be named ends the tally with "Question by Name",
   muted and off the scroll, so the reveal reads the same without it.
 
