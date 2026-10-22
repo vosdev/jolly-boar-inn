@@ -20,7 +20,8 @@
         "answer_index": 3,
         "explanation": "Nothing at all: his model on the OSRS Wiki shows bare feet below the armour."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor",
+      "difficulty": "hard"
     },
     {
       "id": "q_0550bf09cb598ba2",
@@ -41,7 +42,8 @@
         "answer_index": 1,
         "explanation": "His left, as his model on the OSRS Wiki shows."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
+      "difficulty": "hard"
     },
     {
       "id": "q_8ad17f3eabcfcdcb",
@@ -57,7 +59,8 @@
         "unit": "toes",
         "explanation": "Twelve: three clawed toes on each of his four feet, counted on his model on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon"
+      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon",
+      "difficulty": "easy"
     },
     {
       "id": "q_92504cb0d50a724d",
@@ -75,7 +78,8 @@
         "scale": "log",
         "explanation": "725, per Zulrah's infobox on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah",
+      "difficulty": "medium"
     },
     {
       "id": "q_bcba5bd06fb34d8b",
@@ -90,7 +94,8 @@
         "answer": 2018,
         "explanation": "4 January 2018, together with Dragon Slayer II, per Vorkath's infobox on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
+      "difficulty": "hard"
     },
     {
       "id": "q_11869567e0db0f5a",
@@ -107,7 +112,8 @@
         ],
         "explanation": "Crandor: she lives in the dungeon below it, per her OSRS Wiki page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Elvarg"
+      "wiki": "https://oldschool.runescape.wiki/w/Elvarg",
+      "difficulty": "easy"
     },
     {
       "id": "q_390b7f02ddd4603a",
@@ -128,7 +134,8 @@
         "answer_index": 3,
         "explanation": "In the Mole Hole under Falador Park, per the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
+      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole",
+      "difficulty": "easy"
     },
     {
       "id": "q_697de7d11a474386",
@@ -149,7 +156,8 @@
         "answer_index": 1,
         "explanation": "Spears and halberds, with Osmumten's fang and a few others. Every other melee weapon does half, per the OSRS Wiki's Corpbane weapons page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Corpbane_weapons"
+      "wiki": "https://oldschool.runescape.wiki/w/Corpbane_weapons",
+      "difficulty": "medium"
     },
     {
       "id": "q_bd2cf843cb8b93b3",
@@ -170,7 +178,8 @@
         "answer_index": 2,
         "explanation": "An ourg, and the only known living one, per his OSRS Wiki page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
+      "wiki": "https://oldschool.runescape.wiki/w/General_Graardor",
+      "difficulty": "hard"
     },
     {
       "id": "q_2c4891e1da3bc4c7",
@@ -188,7 +197,8 @@
         "scale": "log",
         "explanation": "276, per his infobox on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon"
+      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon",
+      "difficulty": "medium"
     },
     {
       "id": "q_c9050c2e4d4c2ffe",
@@ -207,7 +217,8 @@
         ],
         "explanation": "The dark energy core, per the OSRS Wiki's Corporeal Beast page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast",
+      "difficulty": "medium"
     },
     {
       "id": "q_823c6edc5a2742ef",
@@ -228,7 +239,8 @@
         "answer_index": 3,
         "explanation": "Zaros: she is one of his most powerful followers, per her OSRS Wiki page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Nex"
+      "wiki": "https://oldschool.runescape.wiki/w/Nex",
+      "difficulty": "easy"
     },
     {
       "id": "q_51f4a87bc6692c73",
@@ -245,7 +257,8 @@
         ],
         "explanation": "Zalcano, a skilling boss, per the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Zalcano"
+      "wiki": "https://oldschool.runescape.wiki/w/Zalcano",
+      "difficulty": "easy"
     },
     {
       "id": "q_7f8869ca1a8888d4",
@@ -260,7 +273,8 @@
         "answer": 2015,
         "explanation": "8 January 2015, per Zulrah's infobox on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah",
+      "difficulty": "hard"
     },
     {
       "id": "q_86e9052465a63977",
@@ -278,7 +292,8 @@
         "scale": "linear",
         "explanation": "95 Slayer, per the Alchemical Hydra's infobox on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra"
+      "wiki": "https://oldschool.runescape.wiki/w/Alchemical_Hydra",
+      "difficulty": "medium"
     },
     {
       "id": "q_98bb0aaa41750d90",
@@ -299,7 +314,8 @@
         "answer_index": 2,
         "explanation": "A Falador shield 3 or better in your inventory, per the OSRS Wiki's Giant Mole page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole"
+      "wiki": "https://oldschool.runescape.wiki/w/Giant_Mole",
+      "difficulty": "medium"
     },
     {
       "id": "q_bafdf3acbc287b6f",
@@ -320,7 +336,8 @@
         "answer_index": 3,
         "explanation": "Dragon Slayer II: Vorkath is fought after it, per the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Vorkath"
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
+      "difficulty": "medium"
     },
     {
       "id": "q_7897b8d5b9a01755",
@@ -341,7 +358,8 @@
         "answer_index": 0,
         "explanation": "Venom. Zulrah switches between its serpentine, magma and tanzanite forms, per the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Zulrah"
+      "wiki": "https://oldschool.runescape.wiki/w/Zulrah",
+      "difficulty": "medium"
     },
     {
       "id": "q_534f317c7519cb77",
@@ -359,7 +377,8 @@
         "scale": "log",
         "explanation": "2,000, per the Corporeal Beast's infobox on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
+      "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast",
+      "difficulty": "medium"
     },
     {
       "id": "q_1b60c6c7ce61a0dc",
@@ -378,7 +397,8 @@
         ],
         "explanation": "TzTok-Jad, per the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/TzTok-Jad"
+      "wiki": "https://oldschool.runescape.wiki/w/TzTok-Jad",
+      "difficulty": "easy"
     },
     {
       "id": "q_0b41362b562c252e",
@@ -436,7 +456,8 @@
         ],
         "explanation": "Each roughly doubles the last: Tz-Kih 22, Tz-Kek 45, Tok-Xil 90, Yt-MejKot 180, Ket-Zek 360 and TzTok-Jad 702, per their infoboxes on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/TzHaar_Fight_Cave"
+      "wiki": "https://oldschool.runescape.wiki/w/TzHaar_Fight_Cave",
+      "difficulty": "medium"
     },
     {
       "id": "q_6f7ed53c236a1858",
@@ -482,7 +503,8 @@
         ],
         "explanation": "Kree'arra is level 580, Commander Zilyana 596, General Graardor 624 and K'ril Tsutsaroth 650, per their infoboxes on the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/God_Wars_Dungeon"
+      "wiki": "https://oldschool.runescape.wiki/w/God_Wars_Dungeon",
+      "difficulty": "hard"
     },
     {
       "id": "q_782549b14e3d3b44",
@@ -540,7 +562,8 @@
         ],
         "explanation": "Blue dragons are level 111, lava 252, mithril 304, brutal black 318, adamant 338 and rune 380, per their infoboxes on the OSRS Wiki. A brutal black outranks a mithril dragon."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Dragon_(monster)"
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_(monster)",
+      "difficulty": "hard"
     },
     {
       "id": "q_7dc45a85ab08a0fa",
@@ -562,7 +585,8 @@
         ],
         "explanation": "There are currently 71 available pets in Old School RuneScape.",
         "answer_index": 3
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_091b9972d587f35d",
@@ -588,7 +612,8 @@
         ],
         "explanation": "Greater demons, hellhounds and abyssal demons, all weak to demonbane; hellhounds were tagged demonic in 2021. Gargoyles are golems and kurasks are leafy."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Demon"
+      "wiki": "https://oldschool.runescape.wiki/w/Demon",
+      "difficulty": "medium"
     },
     {
       "id": "q_3c7f6b47d51bf704",
@@ -614,7 +639,8 @@
         ],
         "explanation": "Cerberus, the Alchemical Hydra and the Abyssal Sire are Slayer bosses: they or their monster must be your task. Zulrah and Vorkath need no task."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss"
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss",
+      "difficulty": "medium"
     },
     {
       "id": "q_89f971a419f9e906",
@@ -637,7 +663,8 @@
         ],
         "explanation": "The rock golem can take on 19 different forms! It is followed by the rift guardian and beaver with 16 each.",
         "answer_index": 4
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_78b10ab5c56db740",
@@ -660,7 +687,8 @@
         ],
         "explanation": "Fun fact - the three-headed Prince Black Dragon even wears three different hats.",
         "answer_index": 4
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_0ea8042515f8ec7b",
@@ -682,7 +710,8 @@
         ],
         "explanation": "Out of these, only the Mad Angel has such a combat achievement. It is earnt by killing her 5 times within 10 minutes of entering her arena.",
         "answer_index": 1
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_e9a443e55e049b82",
@@ -703,7 +732,8 @@
         ],
         "explanation": "Ghosts and shadow warriors don't drop any remains, whereas catablepons drop regular bones.",
         "answer_index": 2
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_d3ad37ad9fc837fe",
@@ -724,7 +754,8 @@
         ],
         "explanation": "Vorkath may drop the Jar of Decay, the Corporeal Beast the Jar of Spirits, and the Nightmare the Jar of Souls.",
         "answer_index": 2
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_71260cfff9108cba",
@@ -782,7 +813,8 @@
         ],
         "explanation": "The Karuulm Slayer Dungeon holds the Alchemical Hydra, and Lithkren's vault its metal dragons."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Bosses"
+      "wiki": "https://oldschool.runescape.wiki/w/Bosses",
+      "difficulty": "medium"
     }
   ]
 }

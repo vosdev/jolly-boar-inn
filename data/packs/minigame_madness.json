@@ -20,7 +20,8 @@
         "answer_index": 0,
         "explanation": "Lanthus, in the lobby since December 2004. Connad runs Barbarian Assault, Nomad Soul Wars and Dominic Onion the Nightmare Zone."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Lanthus"
+      "wiki": "https://oldschool.runescape.wiki/w/Lanthus",
+      "difficulty": "medium"
     },
     {
       "id": "q_a8a9fcf43e8f5045",
@@ -42,7 +43,8 @@
         "answer_index": 1,
         "explanation": "Castle Wars: Lanthus trades it for tickets, with the Zamorak and Guthix halos."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Saradomin_halo"
+      "wiki": "https://oldschool.runescape.wiki/w/Saradomin_halo",
+      "difficulty": "easy"
     },
     {
       "id": "q_7c8d06b9951ad8a4",
@@ -64,7 +66,8 @@
         "answer_index": 2,
         "explanation": "Barbarian Assault: 375 honour points in each of the four roles."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Fighter_torso"
+      "wiki": "https://oldschool.runescape.wiki/w/Fighter_torso",
+      "difficulty": "easy"
     },
     {
       "id": "q_d65550436271fd76",
@@ -86,7 +89,8 @@
         "answer_index": 0,
         "explanation": "Pest Control, for commendation points from the Void Knights."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Void_knight_top"
+      "wiki": "https://oldschool.runescape.wiki/w/Void_knight_top",
+      "difficulty": "easy"
     },
     {
       "id": "q_d97662c241667a4e",
@@ -108,7 +112,8 @@
         "answer_index": 3,
         "explanation": "Wintertodt, from its reward cart. There is no shop: every piece is a roll."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pyromancer_outfit"
+      "wiki": "https://oldschool.runescape.wiki/w/Pyromancer_outfit",
+      "difficulty": "easy"
     },
     {
       "id": "q_4a94668986bb5db6",
@@ -130,7 +135,8 @@
         "answer_index": 1,
         "explanation": "Mage Training Arena, for pizazz points from all four of its rooms. The Mage Arena gives god capes."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Infinity_hat"
+      "wiki": "https://oldschool.runescape.wiki/w/Infinity_hat",
+      "difficulty": "medium"
     },
     {
       "id": "q_0acf0b89e0b484c2",
@@ -152,7 +158,8 @@
         "answer_index": 2,
         "explanation": "Fishing Trawler: a piece may turn up in the net after a game. Aerial fishing sells it too, but that's no minigame."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Angler's_outfit"
+      "wiki": "https://oldschool.runescape.wiki/w/Angler's_outfit",
+      "difficulty": "easy"
     },
     {
       "id": "q_fb236e5f03e35285",
@@ -174,7 +181,8 @@
         "answer_index": 3,
         "explanation": "Hallowed Sepulchre, from the Grand Hallowed Coffin at the end of the fifth floor."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Ring_of_endurance"
+      "wiki": "https://oldschool.runescape.wiki/w/Ring_of_endurance",
+      "difficulty": "medium"
     },
     {
       "id": "q_c6492c022342dfb6",
@@ -196,7 +204,8 @@
         "answer_index": 0,
         "explanation": "Pyramid Plunder, in the pyramid at Sophanem."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pharaoh's_sceptre"
+      "wiki": "https://oldschool.runescape.wiki/w/Pharaoh's_sceptre",
+      "difficulty": "easy"
     },
     {
       "id": "q_79a2a705f38a8ecf",
@@ -218,7 +227,8 @@
         "answer_index": 1,
         "explanation": "Rogues' Den, from the crate in the wall safe at the end of the maze, under the Toad and Chicken in Burthorpe."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Rogue_equipment"
+      "wiki": "https://oldschool.runescape.wiki/w/Rogue_equipment",
+      "difficulty": "easy"
     },
     {
       "id": "q_201a5537b4fe8a64",
@@ -240,7 +250,8 @@
         "answer_index": 3,
         "explanation": "Brimhaven Agility Arena: 800 vouchers from Pirate Jackie the Fruit."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pirate's_hook"
+      "wiki": "https://oldschool.runescape.wiki/w/Pirate's_hook",
+      "difficulty": "medium"
     },
     {
       "id": "q_3f4e25ca6f5bd089",
@@ -262,7 +273,8 @@
         "answer_index": 0,
         "explanation": "Temple Trekking, escorting pilgrims through Morytania. Forestry's Friendly Foresters sell it too, more slowly."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Lumberjack_outfit"
+      "wiki": "https://oldschool.runescape.wiki/w/Lumberjack_outfit",
+      "difficulty": "hard"
     },
     {
       "id": "q_28f654ef3b8a05da",
@@ -284,7 +296,8 @@
         "answer_index": 2,
         "explanation": "Shades of Mort'ton, from the chests in the Shade Catacombs."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Amulet_of_the_Damned"
+      "wiki": "https://oldschool.runescape.wiki/w/Amulet_of_the_Damned",
+      "difficulty": "hard"
     },
     {
       "id": "q_1e37f5cf7d24d700",
@@ -306,7 +319,8 @@
         "answer_index": 1,
         "explanation": "Volcanic Mine: Petrified Pete sells it for 40,000 points. The Tome of Fire's pages come from Wintertodt."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Ash_covered_tome"
+      "wiki": "https://oldschool.runescape.wiki/w/Ash_covered_tome",
+      "difficulty": "medium"
     },
     {
       "id": "q_4873ef00beeafeb8",
@@ -327,7 +341,8 @@
         "answer_index": 2,
         "explanation": "Tempoross: catch harpoonfish, cook them, load them into the cannons, then fish its essence away."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Tempoross"
+      "wiki": "https://oldschool.runescape.wiki/w/Tempoross",
+      "difficulty": "easy"
     },
     {
       "id": "q_c8473df6495d7952",
@@ -348,7 +363,8 @@
         "answer_index": 1,
         "explanation": "Sleeping Giants, after which Kovac takes your giant weapons."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Giants'_Foundry"
+      "wiki": "https://oldschool.runescape.wiki/w/Giants'_Foundry",
+      "difficulty": "medium"
     },
     {
       "id": "q_91966fdcf9e2f65e",
@@ -369,7 +385,8 @@
         "answer_index": 3,
         "explanation": "Burgh de Rott, through the swamps of Morytania to the temple on the River Salve."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Temple_Trekking"
+      "wiki": "https://oldschool.runescape.wiki/w/Temple_Trekking",
+      "difficulty": "hard"
     },
     {
       "id": "q_8c706c21280e513e",
@@ -388,7 +405,8 @@
         ],
         "explanation": "Zeal tokens, spent with Nomad on the Isle of Souls."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Zeal_Tokens"
+      "wiki": "https://oldschool.runescape.wiki/w/Zeal_Tokens",
+      "difficulty": "medium"
     },
     {
       "id": "q_d403d233754a512e",
@@ -407,7 +425,8 @@
         ],
         "explanation": "Pieces of eight, for brewing rum on Mos Le'Harmless."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pieces_of_eight"
+      "wiki": "https://oldschool.runescape.wiki/w/Pieces_of_eight",
+      "difficulty": "medium"
     },
     {
       "id": "q_9165a08a7d512f3e",
@@ -425,7 +444,8 @@
         ],
         "explanation": "Trading sticks, which Gabooty swaps for machetes, villager clothes and gout tubers."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Trading_sticks"
+      "wiki": "https://oldschool.runescape.wiki/w/Trading_sticks",
+      "difficulty": "hard"
     },
     {
       "id": "q_01282c98c7a97746",
@@ -443,7 +463,8 @@
         ],
         "explanation": "Port Khazard, south of Ardougne."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Fishing_Trawler"
+      "wiki": "https://oldschool.runescape.wiki/w/Fishing_Trawler",
+      "difficulty": "medium"
     },
     {
       "id": "q_3e8acdb677112592",
@@ -460,7 +481,8 @@
         ],
         "explanation": "Darkmeyer, open after Sins of the Father with 52 Agility."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Hallowed_Sepulchre"
+      "wiki": "https://oldschool.runescape.wiki/w/Hallowed_Sepulchre",
+      "difficulty": "medium"
     },
     {
       "id": "q_6289d4d832bfda55",
@@ -477,7 +499,8 @@
         ],
         "explanation": "Sophanem, in the Menaphite desert."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pyramid_Plunder"
+      "wiki": "https://oldschool.runescape.wiki/w/Pyramid_Plunder",
+      "difficulty": "medium"
     },
     {
       "id": "q_feb728258f13f376",
@@ -494,7 +517,8 @@
         ],
         "explanation": "Aldarin, in Varlamore. It needs 60 Herblore and Children of the Sun."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Mastering_Mixology"
+      "wiki": "https://oldschool.runescape.wiki/w/Mastering_Mixology",
+      "difficulty": "hard"
     },
     {
       "id": "q_0976f7ea133a03f9",
@@ -511,7 +535,8 @@
         ],
         "explanation": "Yanille, where Dominic Onion sells you your dreams."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Nightmare_Zone"
+      "wiki": "https://oldschool.runescape.wiki/w/Nightmare_Zone",
+      "difficulty": "easy"
     },
     {
       "id": "q_5efdd09c1adc9a48",
@@ -537,7 +562,8 @@
         ],
         "explanation": "The torso, the gloves and the granite body, which costs 95,000 coins too. Void gloves are Pest Control's, the defender the Warriors' Guild's."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Barbarian_Assault_Reward_Shop"
+      "wiki": "https://oldschool.runescape.wiki/w/Barbarian_Assault_Reward_Shop",
+      "difficulty": "hard"
     },
     {
       "id": "q_15cebb23cd83a10a",
@@ -563,7 +589,8 @@
         ],
         "explanation": "The torch, the gloves and the Phoenix pet. The Tome of Water and the tackle box are Tempoross's."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Reward_Cart"
+      "wiki": "https://oldschool.runescape.wiki/w/Reward_Cart",
+      "difficulty": "medium"
     },
     {
       "id": "q_72961acee86edc3d",
@@ -589,7 +616,8 @@
         ],
         "explanation": "The fish barrel, the tackle box and the dragon harpoon. Warm gloves are Wintertodt's, the lantern Guardians of the Rift's."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Reward_pool"
+      "wiki": "https://oldschool.runescape.wiki/w/Reward_pool",
+      "difficulty": "medium"
     },
     {
       "id": "q_824f88b5de16f10c",
@@ -615,7 +643,8 @@
         ],
         "explanation": "The pet, the lantern and the hat. The tome is Volcanic Mine's, the hood Wintertodt's."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Rewards_Guardian"
+      "wiki": "https://oldschool.runescape.wiki/w/Rewards_Guardian",
+      "difficulty": "medium"
     },
     {
       "id": "q_553954fac1c0fd67",
@@ -641,7 +670,8 @@
         ],
         "explanation": "The goggles, the pouch and aldarium, for mox, aga and lye resin. The herb sack and seed box are the Tithe Farm's."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Mixology_Rewards"
+      "wiki": "https://oldschool.runescape.wiki/w/Mixology_Rewards",
+      "difficulty": "hard"
     },
     {
       "id": "q_3071a33e5ea87d4c",
@@ -698,7 +728,8 @@
         ],
         "explanation": "Honour points are Barbarian Assault's, and carpenter points Mahogany Homes'."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames",
+      "difficulty": "medium"
     },
     {
       "id": "q_c181685147b306e0",
@@ -755,7 +786,8 @@
         ],
         "explanation": "Ferox Enclave holds Last Man Standing, and Port Khazard the Fishing Trawler."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames",
+      "difficulty": "medium"
     },
     {
       "id": "q_3251372cd156f206",
@@ -812,7 +844,8 @@
         ],
         "explanation": "Smolcano is Zalcano's and Youngllef the Gauntlet's, neither of them a minigame here."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pets"
+      "wiki": "https://oldschool.runescape.wiki/w/Pets",
+      "difficulty": "easy"
     },
     {
       "id": "q_7d073a174951c999",
@@ -869,7 +902,8 @@
         ],
         "explanation": "The pyromancer outfit is Wintertodt's and the angler's the Fishing Trawler's."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames",
+      "difficulty": "easy"
     },
     {
       "id": "q_928c4a1ba43a7ba8",
@@ -909,7 +943,8 @@
         ],
         "explanation": "Novice needs 40, Intermediate 70 and Veteran 100."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pest_Control"
+      "wiki": "https://oldschool.runescape.wiki/w/Pest_Control",
+      "difficulty": "medium"
     },
     {
       "id": "q_ddd3506d7ef5e0f0",
@@ -961,7 +996,8 @@
         ],
         "explanation": "Per roll of the reward pool, which each reward permit pays for, per the OSRS Wiki."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Tempoross"
+      "wiki": "https://oldschool.runescape.wiki/w/Tempoross",
+      "difficulty": "medium"
     },
     {
       "id": "q_0d1420d76e33dd91",
@@ -1010,7 +1046,8 @@
         ],
         "explanation": "Tithe Farm 34 Farming, Wintertodt 50 Firemaking, the Sepulchre 52 Agility and Mixology 60 Herblore."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames",
+      "difficulty": "medium"
     },
     {
       "id": "q_1a454bee3e657233",
@@ -1059,7 +1096,8 @@
         ],
         "explanation": "A Nightmare Zone dream holds 5, Last Man Standing 24, a Pest Control lander 25 and the Volcanic Mine 50."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames",
+      "difficulty": "hard"
     },
     {
       "id": "q_cc758cac75c200b1",
@@ -1111,7 +1149,8 @@
         ],
         "explanation": "Each guardian opens at its altar's own level: Earth 9, Fire 14, Cosmic 27, Nature 44 and Death 65."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift"
+      "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift",
+      "difficulty": "medium"
     },
     {
       "id": "q_abe61e4251d1f274",
@@ -1130,7 +1169,8 @@
         "unit": "tokens",
         "explanation": "2,500 zeal tokens from Nomad's shop."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Soul_cape"
+      "wiki": "https://oldschool.runescape.wiki/w/Soul_cape",
+      "difficulty": "hard"
     },
     {
       "id": "q_ad5a0d782a3bec46",
@@ -1147,7 +1187,8 @@
         "unit": "points",
         "explanation": "850: top, robe, gloves and one helmet. The elite upgrade adds another 400."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Void_Knight_equipment"
+      "wiki": "https://oldschool.runescape.wiki/w/Void_Knight_equipment",
+      "difficulty": "hard"
     },
     {
       "id": "q_a5df29cc6eefc2de",
@@ -1166,7 +1207,8 @@
         "unit": "points",
         "explanation": "375 in each of the four roles, 1,500 in all."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Fighter_torso"
+      "wiki": "https://oldschool.runescape.wiki/w/Fighter_torso",
+      "difficulty": "hard"
     },
     {
       "id": "q_5143d1eedd1d29f5",
@@ -1183,7 +1225,8 @@
         "unit": "points",
         "explanation": "40,000, from Petrified Pete's shop."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Ash_covered_tome"
+      "wiki": "https://oldschool.runescape.wiki/w/Ash_covered_tome",
+      "difficulty": "hard"
     },
     {
       "id": "q_c77e3465dd9a3c17",
@@ -1201,7 +1244,8 @@
         "scale": "linear",
         "explanation": "50 Firemaking, per its OSRS Wiki page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Wintertodt"
+      "wiki": "https://oldschool.runescape.wiki/w/Wintertodt",
+      "difficulty": "easy"
     },
     {
       "id": "q_d6d480f7fd2c2e9a",
@@ -1219,7 +1263,8 @@
         "scale": "linear",
         "explanation": "35 Fishing, per its OSRS Wiki page."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Tempoross"
+      "wiki": "https://oldschool.runescape.wiki/w/Tempoross",
+      "difficulty": "medium"
     },
     {
       "id": "q_11393592f46affb8",
@@ -1236,7 +1281,8 @@
         "unit": "flakes",
         "explanation": "4,800: 1,200 a piece, plus each piece of the angler's outfit to trade in."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Spirit_angler's_outfit"
+      "wiki": "https://oldschool.runescape.wiki/w/Spirit_angler's_outfit",
+      "difficulty": "hard"
     },
     {
       "id": "q_96106591499ccda4",
@@ -1255,7 +1301,8 @@
         "unit": "points",
         "explanation": "350 carpenter points from the Mahogany Homes shop."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Mahogany_Homes_Reward_Shop"
+      "wiki": "https://oldschool.runescape.wiki/w/Mahogany_Homes_Reward_Shop",
+      "difficulty": "hard"
     },
     {
       "id": "q_b2b51126b7ed2705",
@@ -1273,7 +1320,8 @@
         "scale": "linear",
         "explanation": "27, which Temple of the Eye takes you to. The quest itself needs 10."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift"
+      "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift",
+      "difficulty": "medium"
     }
   ]
 }

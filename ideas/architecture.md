@@ -170,7 +170,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - Assets are `item:<id>` or `npc:<id>`, never a URL. No `client_view` or `reveal` carries `image`:
   for some modes that id is the answer. A pack question's picture goes out as `picture` (section 6),
   a `matching` field's `icon` as the field's `picture`, added by the type's `pictured`.
-- `difficulty` on the envelope is `easy`, `medium` or `hard`; a question without one counts as medium.
+- `difficulty` on the envelope is `easy`, `medium` or `hard`. Every round-pack question has one; an
+  event or host question without one counts as medium.
 - `random_event` on the envelope names the NPC who asks. Only event files and host questions carry it.
 - `wiki` on the envelope is the page an author checked; `source_url` is any https link, for what
   the wiki cannot prove. Players never get either.

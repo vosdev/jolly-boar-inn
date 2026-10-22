@@ -21,7 +21,8 @@
         "answer_index": 2,
         "explanation": "The Lumbridge Cook, who needs an egg, milk and flour for the Duke's birthday cake."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Cook%27s_Assistant"
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Cook%27s_Assistant",
+      "difficulty": "easy"
     },
     {
       "id": "q_ed4653403015eb1a",
@@ -43,7 +44,8 @@
         "answer_index": 3,
         "explanation": "Thurgo, the Imcando dwarf, once you bring him a redberry pie in The Knight's Sword."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Transcript:The_Knight%27s_Sword"
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:The_Knight%27s_Sword",
+      "difficulty": "easy"
     },
     {
       "id": "q_d737aa4658649d16",
@@ -65,7 +67,8 @@
         "answer_index": 2,
         "explanation": "Zeke, of Al Kharid's scimitar shop, when asked about dragon scimitars."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Zeke"
+      "wiki": "https://oldschool.runescape.wiki/w/Zeke",
+      "difficulty": "hard"
     },
     {
       "id": "q_14b26202c32e01b5",
@@ -87,7 +90,8 @@
         "answer_index": 0,
         "explanation": "The Monks of Entrana, on the docks at Port Sarim."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Monk_of_Entrana"
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Monk_of_Entrana",
+      "difficulty": "easy"
     },
     {
       "id": "q_0d0ee835605f1c9b",
@@ -109,7 +113,8 @@
         "answer_index": 2,
         "explanation": "Archmage Sedridor, in the Wizards' Tower basement, during Rune Mysteries."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Rune_Mysteries"
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Rune_Mysteries",
+      "difficulty": "medium"
     },
     {
       "id": "q_f235ec554829e420",
@@ -130,7 +135,8 @@
           "Prince Itzla Arkan"
         ],
         "answer_index": 1
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_bd24afe81ddbaf2c",
@@ -152,7 +158,8 @@
         ],
         "explanation": "Evil Dave is evil!",
         "answer_index": 4
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_5efc8cf302c36d33",
@@ -175,7 +182,8 @@
         ],
         "explanation": "Evil Dave! Ah-ha-ha-ha-ha-haa!",
         "answer_index": 4
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_fa66716a3fbabf8a",
@@ -197,7 +205,8 @@
         ],
         "explanation": "Bravo!",
         "answer_index": 1
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_5a4fa5d6d2da45a1",
@@ -219,7 +228,8 @@
         ],
         "explanation": "Uri may say this at random when you complete an emote clue step.",
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_d0af98bd3b752ef8",
@@ -241,7 +251,8 @@
         ],
         "explanation": "Oziach will say this when spoken to, after completion of Dragon Slayer I.",
         "answer_index": 0
-      }
+      },
+      "difficulty": "medium"
     }
   ]
 }
