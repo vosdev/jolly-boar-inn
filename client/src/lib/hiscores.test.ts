@@ -17,6 +17,7 @@ import {
   previousTeamOrder,
   roundLine,
   shuffleTimes,
+  teamCeremonyPlaces,
   teamWinnersLine,
   TIERS,
   winnersLine,
@@ -73,7 +74,7 @@ describe('ceremonyPlaces', () => {
     expect(second.standings.map((s) => s.player_id)).toEqual(['a', 'b', 'c', 'd'])
     expect(second.shown.map((s) => s.player_id)).toEqual(['a', 'b', 'c'])
     expect(second.more).toBe(1)
-    expect(placeLine(second)).toBe('Tied for second…')
+    expect(placeLine(second.rank, second.standings.length)).toBe('Tied for second…')
   })
 
   it('gives nobody on 0 points a place, so a quiet room has no ceremony', () => {
@@ -81,6 +82,22 @@ describe('ceremonyPlaces', () => {
       [1],
     )
     expect(ceremonyPlaces([standing('a', 0, 1), standing('b', 0, 1)])).toEqual([])
+  })
+})
+
+describe('teamCeremonyPlaces', () => {
+  it('presents the teams fifth first, tied ones together, and none on 0 points', () => {
+    const places = teamCeremonyPlaces([
+      teamRow('zamorak', 900, 1),
+      teamRow('saradomin', 500, 2),
+      teamRow('guthix', 500, 2),
+      teamRow('bandos', 0, 4),
+    ])
+    expect(places.map((p) => [p.rank, p.teams.map((t) => t.team)])).toEqual([
+      [2, ['saradomin', 'guthix']],
+      [1, ['zamorak']],
+    ])
+    expect(teamCeremonyPlaces([teamRow('zamorak', 0, 1)])).toEqual([])
   })
 })
 

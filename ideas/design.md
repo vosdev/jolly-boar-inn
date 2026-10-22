@@ -366,8 +366,8 @@ totals, without moves or gains. Trophies are art, not tokens.
 
 **A team game** ranks its teams instead, with the same moves, gains and timing: rank, logo, name
 and points, the god's colour on the team's edge, and under each its members with their own
-totals, best first, so the weak link shows. The ceremony still presents players; the final line
-names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
+totals, best first, so the weak link shows. The ceremony presents teams, fifth to first, each with
+its logo, name, average points and the god's colour, and no trophy; the final line names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
 on the game's entry.
 
 ## 12. Random events: the interlude (#106)
