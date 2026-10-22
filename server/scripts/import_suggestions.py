@@ -20,9 +20,11 @@ A Drop Table or Minigame Madness question's ``picture_item`` is found the same w
 its payload's ``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and
 inventory icon when it lacks either, for ``make fetch-assets``.
 
-Each keeps its ``credit``, and ``credit_shown`` when it is true. Anything a pack or the
-roster already holds is skipped: a question by content id, an examine line also by its
-line, an item by name or id. So a file imported twice changes nothing the second time.
+Each keeps its ``credit``, and ``credit_shown`` when it is true. A round's question keeps its
+``difficulty``, or is ``medium`` without one, so every round-pack question has a tier.
+Anything a pack or the roster already holds is skipped: a question by content id, an
+examine line also by its line, an item by name or id. So a file imported twice changes
+nothing the second time.
 
 Every entry is checked before anything is written, and the packs as they would be are
 loaded the way the app loads them. One refused entry, or a pack that would not load,
@@ -364,6 +366,8 @@ def plan_questions(
         if content is None:
             continue
         mode = content["mode"]
+        if mode not in suggestions.NO_DIFFICULTY_MODES:
+            content = {"difficulty": "medium"} | content
         envelope = suggestions.question_envelope(content)
         envelope = right_first(envelope) if mode in RIGHT_FIRST else shuffled(envelope)
         if envelope["id"] in ids:

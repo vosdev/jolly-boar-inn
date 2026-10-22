@@ -227,6 +227,41 @@ def test_a_sort_it_out_question_is_appended_to_its_pack(repo: dict[str, Path]) -
     assert loads(repo)
 
 
+SORTED_RINGS = {
+    "type": "ordering",
+    "payload": {
+        "prompt": "Sort these rings by the level that wears them.",
+        "ends": ["Lowest", "Highest"],
+        "entries": [
+            {"text": "Ring of recoil", "rank": 1},
+            {"text": "Ring of suffering", "rank": 2},
+            {"text": "Ring of the gods", "rank": 3},
+        ],
+        "answer": [0, 1, 2],
+    },
+    "mode": "sort_it_out",
+    "wiki": WIKI,
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+
+
+def test_a_round_question_keeps_its_difficulty(repo: dict[str, Path]) -> None:
+    assert run(repo, {"questions": [{**SORTED_RINGS, "difficulty": "hard"}]}) == 0
+    added = json.loads((repo["packs"] / "sort_it_out.json").read_text())["questions"][-1]
+    assert added["difficulty"] == "hard"
+    assert loads(repo)
+
+
+def test_a_round_question_without_a_difficulty_imports_as_medium(repo: dict[str, Path]) -> None:
+    assert run(repo, {"questions": [SORTED_RINGS, QUESTION]}) == 0
+    added = json.loads((repo["packs"] / "sort_it_out.json").read_text())["questions"][-1]
+    assert added["difficulty"] == "medium"
+    bob = json.loads((repo["packs"] / "random_events" / "bob.json").read_text())
+    assert "difficulty" not in bob["questions"][-1]
+    assert loads(repo)
+
+
 def test_an_npc_ordering_lands_in_its_file_as_written(repo: dict[str, Path]) -> None:
     payload = {
         "intro": "Mind the dials, mortal.",

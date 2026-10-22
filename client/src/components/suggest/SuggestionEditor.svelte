@@ -29,6 +29,8 @@
   import {
     creditProblem,
     INTRO_ROUNDS,
+    QUESTION_DIFFICULTIES,
+    takesDifficulty,
     itemProblem,
     NO_ROUND,
     npcNameProblem,
@@ -40,6 +42,7 @@
     type Choice,
     type ItemContent,
     type QuestionContent,
+    type QuestionDifficulty,
     type SuggestedType,
     type SuggestionBody,
     type SuggestionContent,
@@ -48,6 +51,7 @@
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import MatchingForm from '../MatchingForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
+  import Segmented from '../Segmented.svelte'
   import SimilarQuestions from './SimilarQuestions.svelte'
   import TryPreview from './TryPreview.svelte'
 
@@ -88,6 +92,10 @@
   let sourceUrl = $state(start?.source_url ?? '')
   let name = $state(start?.name ?? '')
   let pictureItem = $state(start?.picture_item ?? '')
+  let difficulty = $state<QuestionDifficulty>(start?.difficulty ?? 'medium')
+  // An NPC's question is drawn whatever the room's difficulty, so it is asked for none.
+  // svelte-ignore state_referenced_locally
+  const tiered = choice.kind === 'question' && takesDifficulty(choice.id)
   let npcName = $state(
     start?.type === 'pick_from_list'
       ? ((start.payload?.subject as { name?: string })?.name ?? '')
@@ -226,13 +234,14 @@
       ...(choice.id === NO_ROUND ? {} : { mode: choice.id }),
       ...given,
       ...(pictured ? { picture_item: pictureItem.trim() } : {}),
+      ...(tiered ? { difficulty } : {}),
     })
   }
 
   function saveNpc(): void {
     attempted = true
     if (creditError !== null || wikiError !== null || npcError !== null) return
-    send({ ...npcQuestion, wiki: wiki.trim() })
+    send({ ...npcQuestion, wiki: wiki.trim(), difficulty })
   }
 
   function saveItem(): void {
@@ -288,7 +297,16 @@
   </fieldset>
 {/snippet}
 
+{#snippet difficultyField()}
+  {#if tiered}
+    <div class="field">
+      <Segmented legend="How hard is it?" options={QUESTION_DIFFICULTIES} bind:value={difficulty} />
+    </div>
+  {/if}
+{/snippet}
+
 {#snippet questionFields(show: boolean)}
+  {@render difficultyField()}
   {#if choice.pictureItem}
     <div class="field">
       <label for="{id}-picture">Item to show, if any</label>
@@ -364,6 +382,7 @@
           <input id="{id}-npc" type="text" bind:value={npcName} />
           {@render problem(npcError, attempted)}
         </div>
+        {@render difficultyField()}
         {@render wikiField(attempted)}
         {@render creditFields(attempted)}
         {@render similar()}

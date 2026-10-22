@@ -4,13 +4,13 @@ A player who has finished a game may suggest one of two kinds of content:
 
 - ``question``: a question for a mode, in the shape Create's editor writes it, plus the
   mode it is for and where it was checked: the wiki page, an https ``source_url`` for what
-  the wiki cannot prove, or both. A Drop Table or Minigame Madness question may name an item
-  to picture, as ``picture_item``; the import script turns the name into the payload's
-  ``image``. A Who's That NPC? question is only its fixed prompt and the NPC's name, an NPC
-  not asked about yet: the import script finds the rest. A round not built yet takes them
-  too, so its pack is ready when it opens; such a suggestion waits in the queue until it is.
-  A player who cannot place a question may send it with no mode: the operator picks its
-  round before approving it.
+  the wiki cannot prove, or both, and its ``difficulty`` unless a random event asks it. A
+  Drop Table or Minigame Madness question may name an item to picture, as ``picture_item``;
+  the import script turns the name into the payload's ``image``. A Who's That NPC? question
+  is only its fixed prompt and the NPC's name, an NPC not asked about yet: the import script
+  finds the rest. A round not built yet takes them too, so its pack is ready when it opens;
+  such a suggestion waits in the queue until it is. A player who cannot place a question may
+  send it with no mode: the operator picks its round before approving it.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
 
@@ -142,7 +142,12 @@ UNPLACED_TYPES = frozenset(
 )
 
 _QUESTION_KEYS = {"type", "payload"}
-_QUESTION_OPTIONAL = frozenset({"mode", "random_event", "wiki", "source_url", "picture_item"})
+_QUESTION_OPTIONAL = frozenset(
+    {"mode", "random_event", "wiki", "source_url", "picture_item", "difficulty"}
+)
+DIFFICULTIES = ("easy", "medium", "hard")
+# A random event's question is drawn whatever the room's difficulty, so a tier would mean nothing.
+NO_DIFFICULTY_MODES = frozenset({"random_event"})
 # Players know an item by name, not id: the import script finds the id and sets the picture.
 PICTURE_ITEM_MODES = frozenset({"drop_table", "minigame_madness"})
 _ITEM_KEYS = {"name"}
@@ -178,7 +183,7 @@ def question_envelope(content: dict[str, Any]) -> dict[str, Any]:
         "tags": MODE_TAGS.get(content["mode"], []),
         "payload": content["payload"],
     }
-    for key in ("wiki", "source_url", "random_event"):
+    for key in ("wiki", "source_url", "random_event", "difficulty"):
         if key in content:
             envelope[key] = content[key]
     return {"id": schema.content_id(envelope), **envelope}
@@ -214,6 +219,10 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
         return [f"$.type: {content['type']!r} is not offered for {where}"]
     if (mode == "random_event") != ("random_event" in content):
         return ["$.random_event: an NPC's question names its NPC, and only it does"]
+    if "difficulty" in content:
+        found = difficulty_errors(mode, content["difficulty"])
+        if found:
+            return found
     links = [content[key] for key in ("wiki", "source_url") if key in content]
     if not isinstance(content["payload"], dict) or not all(isinstance(url, str) for url in links):
         return ["$.payload: an object, and $.wiki and $.source_url: links"]
@@ -247,6 +256,15 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     if mode in MODES:
         return schema.consistency_errors(envelope)
     return [f"$.payload.{message}" for message in TYPES[content["type"]].check(content["payload"])]
+
+
+def difficulty_errors(mode: str | None, difficulty: Any) -> list[str]:
+    """What is wrong with ``difficulty`` on a question of ``mode``; empty when it is good."""
+    if mode in NO_DIFFICULTY_MODES:
+        return [f"$.difficulty: {mode!r} questions ignore the room's difficulty, so take none"]
+    if difficulty not in DIFFICULTIES:
+        return [f"$.difficulty: one of {', '.join(DIFFICULTIES)}"]
+    return []
 
 
 def _icon_errors(type_: str, payload: dict[str, Any]) -> list[str]:
@@ -597,7 +615,9 @@ def export_entry(kind: str, content: dict[str, Any], credit: str, shown: bool) -
             entry["random_event"] = content["random_event"]
         entry["mode"] = content["mode"]
         entry |= {
-            key: content[key] for key in ("wiki", "source_url", "picture_item") if key in content
+            key: content[key]
+            for key in ("wiki", "source_url", "picture_item", "difficulty")
+            if key in content
         }
     else:
         entry = dict(content)

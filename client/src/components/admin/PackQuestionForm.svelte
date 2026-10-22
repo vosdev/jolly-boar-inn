@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * One pack question being edited in `/admin`: its type's form, held to the type and the
-   * NPC it has, with the links it was checked against and its credit under it.
+   * NPC it has, with its difficulty, the links it was checked against and its credit under it.
    *
    * Choice, typed, number and pick-all questions use Create's form with the intro and picture pack
    * questions carry; an ordering question uses `/suggest`'s, and a matching question its own,
@@ -20,10 +20,16 @@
     type QuestionEdit,
   } from '../../lib/questionEdits'
   import type { PackQuestion } from '../../lib/reports'
-  import { sourceProblems } from '../../lib/suggestions'
+  import {
+    QUESTION_DIFFICULTIES,
+    sourceProblems,
+    takesDifficulty,
+    type QuestionDifficulty,
+  } from '../../lib/suggestions'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import MatchingForm from '../MatchingForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
+  import Segmented from '../Segmented.svelte'
 
   let {
     question,
@@ -47,6 +53,8 @@
   let sourceUrl = $state(start.source_url ?? '')
   let credit = $state(start.credit ?? '')
   let creditShown = $state(start.credit_shown ?? false)
+  let difficulty = $state<QuestionDifficulty>(start.difficulty ?? 'medium')
+  const tiered = takesDifficulty(start.mode)
   let attempted = $state(false)
 
   let json = $state(JSON.stringify(payload, null, 2))
@@ -79,7 +87,11 @@
   }
 
   function send(next: Record<string, unknown>): void {
-    onsave({ payload: next, ...envelopeOf({ wiki, sourceUrl, credit, creditShown }) })
+    onsave({
+      payload: next,
+      ...(tiered ? { difficulty } : {}),
+      ...envelopeOf({ wiki, sourceUrl, credit, creditShown }),
+    })
   }
 
   function saveJson(): void {
@@ -95,6 +107,11 @@
 {/snippet}
 
 {#snippet envelope(show: boolean)}
+  {#if tiered}
+    <div class="field">
+      <Segmented legend="Difficulty" options={QUESTION_DIFFICULTIES} bind:value={difficulty} />
+    </div>
+  {/if}
   <div class="field">
     <label for="{id}-wiki">Wiki page it was checked on</label>
     <input id="{id}-wiki" type="text" inputmode="url" bind:value={wiki} />

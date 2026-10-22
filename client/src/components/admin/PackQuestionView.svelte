@@ -4,6 +4,7 @@
    * marked, and the page it was checked against. Every string is drawn as text.
    */
   import { packAnswer, type PackQuestion } from '../../lib/reports'
+  import { difficultyName } from '../../lib/suggestions'
 
   let { question }: { question: PackQuestion } = $props()
 
@@ -83,6 +84,10 @@
     {#if explanation !== null}
       <dt>Explanation</dt>
       <dd>{explanation}</dd>
+    {/if}
+    {#if question.difficulty !== undefined}
+      <dt>Difficulty</dt>
+      <dd>{difficultyName(question.difficulty)}</dd>
     {/if}
     {#if image !== null}
       <dt>Picture</dt>

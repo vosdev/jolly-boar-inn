@@ -343,6 +343,34 @@ describe('SuggestionQueue', () => {
     expect(term.nextElementSibling?.textContent).toBe('Dragon warhammer')
   })
 
+  it('shows the difficulty, changes it, and drops it for an NPC’s question', async () => {
+    const hard = row({ content: { ...row().content, difficulty: 'hard' } })
+    vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [hard], counts: COUNTS })
+    vi.mocked(admin.editSuggestion).mockResolvedValue(hard)
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText(/is not a Barrows brother/)).closest('button')!)
+    expect(screen.getByText('Difficulty').nextElementSibling?.textContent).toBe('Hard')
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const tier = within(screen.getByRole('group', { name: 'How hard is it?' }))
+    expect(tier.getByRole<HTMLInputElement>('radio', { name: 'Hard' }).checked).toBe(true)
+    await fireEvent.click(tier.getByRole('radio', { name: 'Easy' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    const [, , body] = vi.mocked(admin.editSuggestion).mock.calls[0]!
+    expect(body.content).toMatchObject({ difficulty: 'easy' })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'random_event' } })
+    expect(screen.queryByRole('group', { name: 'How hard is it?' })).toBeNull()
+  })
+
+  it('says a question sent without a difficulty imports as medium', async () => {
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText(/is not a Barrows brother/)).closest('button')!)
+    expect(screen.getByText('Difficulty').nextElementSibling?.textContent).toBe(
+      'Not set, imports as Medium',
+    )
+  })
+
   it('shows a Who’s That NPC? by its prompt, with the NPC as its answer', async () => {
     const npc = row({
       content: {

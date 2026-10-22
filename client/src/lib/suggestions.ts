@@ -66,6 +66,30 @@ export interface QuestionContent {
   source_url?: string
   /** The item a Drop Table question pictures, by name: the import script finds its id. */
   picture_item?: string
+  /** How hard it is; none for a random event's, which every room difficulty draws alike. */
+  difficulty?: QuestionDifficulty
+}
+
+/** A question's tier, as the schema's envelope allows it. */
+export type QuestionDifficulty = 'easy' | 'medium' | 'hard'
+
+/** The tiers, easiest first, as the forms offer them. */
+export const QUESTION_DIFFICULTIES: { value: QuestionDifficulty; label: string }[] = [
+  { value: 'easy', label: 'Easy' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'hard', label: 'Hard' },
+]
+
+/** Rounds whose questions take no difficulty: `NO_DIFFICULTY_MODES` on the server. */
+const NO_DIFFICULTY_ROUNDS = ['random_event']
+
+/** Whether a question for `round` carries a difficulty: a round that has no tier is drawn alike. */
+export function takesDifficulty(round: string): boolean {
+  return !NO_DIFFICULTY_ROUNDS.includes(round)
+}
+
+export function difficultyName(difficulty: QuestionDifficulty): string {
+  return QUESTION_DIFFICULTIES.find((option) => option.value === difficulty)?.label ?? difficulty
 }
 
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */

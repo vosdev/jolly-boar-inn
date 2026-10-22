@@ -13,6 +13,7 @@
 
 import { answerLine as matchingLine } from './matching'
 import { MODES } from './modes'
+import type { QuestionDifficulty } from './suggestions'
 
 /** `TEXT_MAX` on the server, counted in characters. */
 export const REPORT_TEXT_MAX = 500
@@ -51,6 +52,7 @@ export interface PackQuestion {
   type: string
   mode: string
   payload: Record<string, unknown>
+  difficulty?: QuestionDifficulty
   wiki?: string
   source_url?: string
   random_event?: string

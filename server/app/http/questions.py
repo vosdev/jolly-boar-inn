@@ -55,6 +55,7 @@ class Edit(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     payload: dict[str, Any]
+    difficulty: str | None = None
     wiki: str | None = None
     source_url: str | None = None
     # The schema holds it to a display name; this only bounds what is read.
