@@ -52,3 +52,6 @@ data/packs/prices.json
 server/.import-suggestions.json
 server/.edit-packs.json
 server/.edit-roster.json
+
+# approved-suggestions packs
+suggestions-approved-*.json

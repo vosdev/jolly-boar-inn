@@ -691,6 +691,48 @@
         "explanation": "explanation",
         "answer_index": 2
       }
+    },
+    {
+      "id": "q_25e66a9c429ffe4f",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Pharaoh%27s_sceptre#Charged",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Jalsavrah",
+          "Jaltevas",
+          "Jaldraocht",
+          "Jalnibur",
+          "Jaleustrophos"
+        ],
+        "explanation": "Jalnibur is a made up word, the others are all pyramids in the Kharidian desert.",
+        "answer_index": 3
+      }
+    },
+    {
+      "id": "q_c8f64136356d7791",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Green",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Swamp lizard",
+          "Elvarg",
+          "Lesser demon",
+          "Green dragon",
+          "Goblin"
+        ],
+        "explanation": "A lesser demon is red. The others are green!",
+        "answer_index": 2
+      }
     }
   ]
 }

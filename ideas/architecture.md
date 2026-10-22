@@ -667,8 +667,9 @@ key into them, so cleanup leaves it.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode` (a `quote` only
   for the two quote rounds, an `intro` only for an NPC's, a `picture_item` name only for Drop
-  Table's; Guess the Examine's and Who's That NPC?'s need a `wiki`) or none, held to its type alone
-  (`UNPLACED_TYPES`) until the operator picks its round; or an `item` (a name not on the roster).
+  Table's; Guess the Examine's take no `explanation` and, like Who's That NPC?'s, need a `wiki`)
+  or none, held to its type alone (`UNPLACED_TYPES`) until the operator picks its round;
+  or an `item` (a name not on the roster).
   Who's That NPC?'s payload is its fixed prompt and `subject.name`, an NPC not on its list
   (`NAMED_MODES`). Each has a `credit` held to the name rules and `credit_shown`, never
   true for an item. Pending, approved, rejected or imported. A round not built yet takes

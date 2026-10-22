@@ -106,6 +106,9 @@ QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
 # Rounds whose questions all ask the same thing: the pack's tests hold them to it.
 FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?", "whos_that_npc": "Who's that NPC?"}
 
+# An examine line is its own joke: a line after it only repeats the answer.
+NO_EXPLANATION_MODES = frozenset({"guess_examine"})
+
 # The intro is an NPC's line before the question, so only an NPC's question takes one.
 INTRO_MODES = frozenset({"random_event"})
 
@@ -213,6 +216,8 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
         return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
     if "intro" in content["payload"] and mode not in INTRO_MODES:
         return [f"$.payload.intro: only {', '.join(sorted(INTRO_MODES))} show an intro"]
+    if "explanation" in content["payload"] and mode in NO_EXPLANATION_MODES:
+        return [f"$.payload.explanation: {mode!r} shows no explanation"]
     found = _icon_errors(content["type"], content["payload"])
     if found:
         return found

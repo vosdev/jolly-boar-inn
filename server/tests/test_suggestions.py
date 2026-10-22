@@ -19,6 +19,7 @@ from app.rooms import queries
 from app.suggestions import (
     FIXED_PROMPTS,
     INTRO_MODES,
+    NO_EXPLANATION_MODES,
     PICTURE_ITEM_MODES,
     QUESTION_MODES,
     QUOTE_MODES,
@@ -330,6 +331,7 @@ EVENT_ORDERING = _with(
         ),
         _with(ODD, payload={**ODD["content"]["payload"], "prompt": "Which is not a brother?"}),
         _examine(prompt="x" * 301),
+        _examine(explanation="Cabbages are yucky."),
         _examine(options=["Cabbage", "Onion", "Potato"], answer_index=0),
         _examine(options=["Cabbage", "Onion", "Potato", " cabbage "]),
         _with(_without(EXAMINE, "wiki"), source_url="https://example.com/cabbage"),
@@ -385,6 +387,13 @@ def test_the_form_offers_a_quote_only_to_the_rounds_that_show_one() -> None:
     rounds = re.search(r"const QUOTE_ROUNDS = \[([^\]]*)\]", source)
     assert rounds is not None
     assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(QUOTE_MODES)
+
+
+def test_the_form_offers_no_explanation_to_the_rounds_that_show_none() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    rounds = re.search(r"const NO_EXPLANATION_ROUNDS = \[([^\]]*)\]", source)
+    assert rounds is not None
+    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(NO_EXPLANATION_MODES)
 
 
 def test_an_odd_one_out_question_asks_the_rounds_own_prompt() -> None:

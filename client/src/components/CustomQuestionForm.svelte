@@ -44,6 +44,7 @@
     asker = 'optional',
     mode = 'custom',
     quote = false,
+    explanation = true,
     promptFixed = false,
     optionRange = undefined,
     pack = false,
@@ -72,6 +73,8 @@
     mode?: string
     /** Whether a multiple-choice question may carry a quotation under its prompt. */
     quote?: boolean
+    /** Whether the question may carry an explanation, shown after it. */
+    explanation?: boolean
     /** Whether the prompt is the round's own, shown but not editable. */
     promptFixed?: boolean
     /** How many options a multiple-choice question offers, when the round is stricter than the schema. */
@@ -463,12 +466,14 @@
         </div>
       {/if}
 
-      <div class="field">
-        <label for="{id}-explanation">Explanation shown after the question finished.</label>
-        <textarea id="{id}-explanation" rows="2" bind:value={draft.explanation}></textarea>
-        <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
-        {@render errors('payload.explanation')}
-      </div>
+      {#if explanation || draft.explanation !== ''}
+        <div class="field">
+          <label for="{id}-explanation">Explanation shown after the question finished.</label>
+          <textarea id="{id}-explanation" rows="2" bind:value={draft.explanation}></textarea>
+          <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
+          {@render errors('payload.explanation')}
+        </div>
+      {/if}
 
       {@render more?.(attempted)}
 

@@ -22,6 +22,7 @@ ODD = mode_questions(PACKS, "odd_one_out")[0]
 SECOND_ODD = mode_questions(PACKS, "odd_one_out")[1]
 NPC = mode_questions(PACKS, "random_event")[0]
 PRICE = mode_questions(PACKS, "price_is_right")[0]
+EXAMINE = mode_questions(PACKS, "guess_examine")[0]
 
 ADMIN_ROUTES = (
     ("GET", "/api/admin/questions/modes"),
@@ -103,6 +104,12 @@ def test_the_editor_lists_the_hand_written_modes_only(client: TestClient) -> Non
 )
 def test_an_edit_that_breaks_the_schema_is_a_422(client: TestClient, body: dict[str, Any]) -> None:
     assert put(client, ODD["id"], body).status_code == 422
+    assert changes(client) == []
+
+
+def test_an_examine_takes_no_explanation(client: TestClient) -> None:
+    body = body_of(EXAMINE, explanation="Cabbages are yucky.")
+    assert put(client, EXAMINE["id"], body).status_code == 422
     assert changes(client) == []
 
 
