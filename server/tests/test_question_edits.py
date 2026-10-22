@@ -56,7 +56,9 @@ def client(app: FastAPI) -> Iterator[TestClient]:
 def body_of(question: dict[str, Any], **payload: Any) -> dict[str, Any]:
     """The edit request for ``question``, its payload fields replaced by ``payload``."""
     fields = {
-        k: question[k] for k in ("wiki", "source_url", "credit", "credit_shown") if k in question
+        k: question[k]
+        for k in ("difficulty", "wiki", "source_url", "credit", "credit_shown")
+        if k in question
     }
     return {"payload": {**question["payload"], **payload}, **fields}
 
@@ -103,13 +105,36 @@ def test_the_editor_lists_the_hand_written_modes_only(client: TestClient) -> Non
     ],
 )
 def test_an_edit_that_breaks_the_schema_is_a_422(client: TestClient, body: dict[str, Any]) -> None:
-    assert put(client, ODD["id"], body).status_code == 422
+    assert put(client, ODD["id"], {"difficulty": ODD["difficulty"]} | body).status_code == 422
     assert changes(client) == []
 
 
 def test_an_examine_takes_no_explanation(client: TestClient) -> None:
     body = body_of(EXAMINE, explanation="Cabbages are yucky.")
     assert put(client, EXAMINE["id"], body).status_code == 422
+    assert changes(client) == []
+
+
+def test_a_difficulty_change_queues_under_the_same_id(client: TestClient) -> None:
+    tier = "hard" if ODD["difficulty"] != "hard" else "easy"
+    response = put(client, ODD["id"], {**body_of(ODD), "difficulty": tier})
+    assert response.status_code == 200, response.text
+    [change] = changes(client)
+    assert change["question"] == {**ODD, "difficulty": tier}
+
+
+@pytest.mark.parametrize("tier", ["impossible", "", 2, None])
+def test_an_unknown_or_missing_difficulty_is_a_422(client: TestClient, tier: Any) -> None:
+    body = {**body_of(ODD, explanation="Reworded."), "difficulty": tier}
+    if tier is None:
+        del body["difficulty"]
+    assert put(client, ODD["id"], body).status_code == 422
+    assert changes(client) == []
+
+
+def test_an_npc_question_takes_no_difficulty(client: TestClient) -> None:
+    body = {**body_of(NPC, prompt="A reworded question?"), "difficulty": "hard"}
+    assert put(client, NPC["id"], body).status_code == 422
     assert changes(client) == []
 
 

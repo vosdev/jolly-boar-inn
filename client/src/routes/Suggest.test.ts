@@ -220,6 +220,7 @@ describe('Suggest', () => {
           answer_index: 1,
         },
         mode: 'guess_examine',
+        difficulty: 'medium',
         wiki: 'https://oldschool.runescape.wiki/w/Cabbage',
       },
       credit: 'AFKFisher',
@@ -238,6 +239,9 @@ describe('Suggest', () => {
     })
     expect(question.value).toBe("Which one doesn't belong?")
     expect(question.readOnly).toBe(true)
+    const tier = within(screen.getByRole('group', { name: 'How hard is it?' }))
+    expect(tier.getByRole<HTMLInputElement>('radio', { name: 'Medium' }).checked).toBe(true)
+    await fireEvent.click(tier.getByRole('radio', { name: 'Hard' }))
     await type('Answer 1', 'Dharok')
     await type('Answer 2', 'Hazelmere')
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
@@ -260,6 +264,7 @@ describe('Suggest', () => {
           answer_index: 1,
         },
         mode: 'odd_one_out',
+        difficulty: 'hard',
         wiki: 'https://oldschool.runescape.wiki/w/Barrows_Brothers',
       },
       credit: 'AFKFisher',
@@ -305,6 +310,7 @@ describe('Suggest', () => {
           answer_index: 0,
         },
         mode: 'who_said_that',
+        difficulty: 'medium',
         source_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       },
       credit: 'AFKFisher',
@@ -412,6 +418,7 @@ describe('Suggest', () => {
           picks: 3,
         },
         mode: 'sort_it_out',
+        difficulty: 'medium',
         wiki: 'https://oldschool.runescape.wiki/w/Crafting',
       },
       credit: 'AFKFisher',
@@ -461,6 +468,7 @@ describe('Suggest', () => {
           answer: [0, 1, 2],
         },
         mode: 'release_order',
+        difficulty: 'medium',
         wiki: 'https://oldschool.runescape.wiki/w/Update:Quests',
       },
       credit: 'AFKFisher',
@@ -594,6 +602,7 @@ describe('Suggest', () => {
         type: 'pick_from_list',
         payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
         mode: 'whos_that_npc',
+        difficulty: 'medium',
         wiki: 'https://oldschool.runescape.wiki/w/Araxxor',
       },
       credit: 'AFKFisher',
@@ -684,6 +693,7 @@ describe('Suggest', () => {
     expect(screen.getByText('Pick who asks it.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
+    expect(screen.queryByRole('group', { name: 'How hard is it?' })).toBeNull()
     await fireEvent.click(screen.getByRole('radio', { name: 'Fairy Queen' }))
     await type(/^Intro/, 'Turn the dials, mortal.')
     await type('What are they sorted by?', 'Which letters dial Zanaris, in order?')

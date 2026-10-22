@@ -43,6 +43,7 @@ const VORKATH: PackQuestion = {
     options: ['Vorkath', 'Galvek'],
     answer_index: 0,
   },
+  difficulty: 'hard',
   wiki: WIKI,
 }
 
@@ -68,6 +69,7 @@ const DROPS: PackQuestion = {
     ],
     answer: [0, 1, 2],
   },
+  difficulty: 'easy',
 }
 
 const EVENTS: PackQuestion[] = [
@@ -165,7 +167,13 @@ describe('PackQuestions', () => {
   it('queues an edit with its intro, links and credit, leaving the type and mode out', async () => {
     show()
     await fireEvent.click(await screen.findByText('Which <b>dragon</b> sleeps on Ungael?'))
+    expect(screen.getByText('Difficulty', { selector: 'dt' }).nextElementSibling?.textContent).toBe(
+      'Hard',
+    )
     await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const tier = within(screen.getByRole('group', { name: 'Difficulty' }))
+    expect(tier.getByRole<HTMLInputElement>('radio', { name: 'Hard' }).checked).toBe(true)
+    await fireEvent.click(tier.getByRole('radio', { name: 'Easy' }))
     const intro = screen.getByLabelText(/^Intro/)
     expect((intro as HTMLTextAreaElement).value).toBe('A frozen dragon, they say.')
     await fireEvent.input(intro, { target: { value: 'Brr.' } })
@@ -174,6 +182,7 @@ describe('PackQuestions', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Queue the edit' }))
     expect(admin.editPackQuestion).toHaveBeenCalledWith('t', VORKATH.id, {
       payload: { ...VORKATH.payload, intro: 'Brr.', image: 'npc:8061' },
+      difficulty: 'easy',
       wiki: WIKI,
       credit: 'Zezima',
     })
@@ -191,6 +200,7 @@ describe('PackQuestions', () => {
     await fireEvent.input(icon, { target: { value: 'item:13576' } })
     await fireEvent.click(screen.getByRole('button', { name: 'Queue the edit' }))
     expect(admin.editPackQuestion).toHaveBeenCalledWith('t', DROPS.id, {
+      difficulty: 'easy',
       payload: {
         ...DROPS.payload,
         fields: [
@@ -199,6 +209,19 @@ describe('PackQuestions', () => {
           { text: 'Granite maul' },
         ],
       },
+    })
+  })
+
+  it('edits an NPC’s question with no difficulty, which events ignore', async () => {
+    const list = await openRandomEvents()
+    await fireEvent.click(within(list).getByText('Which bread is it?'))
+    expect(screen.queryByText('Difficulty', { selector: 'dt' })).toBeNull()
+    await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.queryByRole('group', { name: 'Difficulty' })).toBeNull()
+    await fireEvent.input(screen.getByLabelText('Question'), { target: { value: 'Which loaf?' } })
+    await fireEvent.click(screen.getByRole('button', { name: 'Queue the edit' }))
+    expect(admin.editPackQuestion).toHaveBeenCalledWith('t', EVENTS[0]!.id, {
+      payload: { ...EVENTS[0]!.payload, prompt: 'Which loaf?' },
     })
   })
 

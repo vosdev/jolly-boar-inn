@@ -22,6 +22,7 @@ from app.rooms import queries
 from app.suggestions import (
     FIXED_PROMPTS,
     INTRO_MODES,
+    NO_DIFFICULTY_MODES,
     NO_EXPLANATION_MODES,
     PICTURE_ITEM_MODES,
     QUESTION_MODES,
@@ -397,6 +398,13 @@ def test_the_form_offers_no_explanation_to_the_rounds_that_show_none() -> None:
     rounds = re.search(r"const NO_EXPLANATION_ROUNDS = \[([^\]]*)\]", source)
     assert rounds is not None
     assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(NO_EXPLANATION_MODES)
+
+
+def test_the_form_offers_no_difficulty_to_the_rounds_that_ignore_it() -> None:
+    source = client_source.read("lib/suggestions.ts")
+    rounds = re.search(r"const NO_DIFFICULTY_ROUNDS = \[([^\]]*)\]", source)
+    assert rounds is not None
+    assert set(re.findall(r"'([a-z_]+)'", rounds.group(1))) == set(NO_DIFFICULTY_MODES)
 
 
 def test_an_odd_one_out_question_asks_the_rounds_own_prompt() -> None:
@@ -990,6 +998,40 @@ def test_reject_and_reopen(client: TestClient) -> None:
     assert client.post(url, headers=BEARER, json={"status": "imported"}).status_code == 422
     assert client.post(url, headers=BEARER, json={"status": "pending"}).status_code == 200
     assert len(queue(client)["suggestions"]) == 1
+
+
+# --- difficulty -----------------------------------------------------------------------
+
+
+def test_a_difficulty_is_kept_through_review_and_export(client: TestClient) -> None:
+    suggestion = suggest(client, _with(ODD, difficulty="hard"))
+    [row] = queue(client)["suggestions"]
+    assert row["content"]["difficulty"] == "hard"
+    response = _edit(client, suggestion, _with(ODD, difficulty="easy"))
+    assert response.status_code == 200, response.text
+    approve(client, suggestion)
+    [entry] = export(client)["questions"]
+    assert entry["difficulty"] == "easy"
+
+
+@pytest.mark.parametrize("tier", ["impossible", "Hard", "", 2, None])
+def test_an_unknown_difficulty_is_a_422(client: TestClient, tier: Any) -> None:
+    assert client.post("/api/suggestions", json=_with(ODD, difficulty=tier)).status_code == 422
+    suggestion = suggest(client, ODD)
+    assert _edit(client, suggestion, _with(ODD, difficulty=tier)).status_code == 422
+
+
+def test_a_random_event_question_takes_no_difficulty(client: TestClient) -> None:
+    body = _with(EVENT, difficulty="medium")
+    assert client.post("/api/suggestions", json=body).status_code == 422
+    unplaced = _with(UNPLACED, difficulty="hard")
+    assert client.post("/api/suggestions", json=unplaced).status_code == 201
+
+
+def test_a_question_without_a_difficulty_exports_without_one(client: TestClient) -> None:
+    approve(client, suggest(client, ODD))
+    [entry] = export(client)["questions"]
+    assert "difficulty" not in entry
 
 
 # --- a question with no round ---------------------------------------------------------

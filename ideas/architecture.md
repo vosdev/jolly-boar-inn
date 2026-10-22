@@ -673,9 +673,10 @@ key into them, so cleanup leaves it.
   or none, held to its type alone (`UNPLACED_TYPES`) until the operator picks its round;
   or an `item` (a name not on the roster).
   Who's That NPC?'s payload is its fixed prompt and `subject.name`, an NPC not on its list
-  (`NAMED_MODES`). Each has a `credit` held to the name rules and `credit_shown`, never
-  true for an item. Pending, approved, rejected or imported. A round not built yet takes
-  questions; they wait in approved. The client offers the form after a finished game; 10 an hour
+  (`NAMED_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
+  `/suggest` and the queue's editor always send one, Medium picked first. Each has a `credit`
+  held to the name rules and `credit_shown`, never true for an item. Pending, approved,
+  rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
   per address (`SUGGESTIONS_PER_HOUR`) is the backstop.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
@@ -702,8 +703,8 @@ key into them, so cleanup leaves it.
 - `question_edits` holds the operator's pending edits and deletes of hand-written pack questions
   (`app/question_edits.py`), one per question, keyed by its id in the packs as they are; a second
   replaces the first. `PUT` and `DELETE /api/admin/questions/{id}` queue one, checked as the
-  question it will be (422); only the payload, `wiki`, `source_url` and the credit change. The
-  price modes are left out: `gen-price-questions` would overwrite an edit. Nothing plays from it:
+  question it will be (422); only the payload, `difficulty` (required but on an NPC's, refused
+  there; outside the id), `wiki`, `source_url` and the credit change. The price modes are left out: `gen-price-questions` would overwrite an edit. Nothing plays from it:
   `/api/admin/question-changes` lists, discards, exports (stamping `exported_at`) and, once
   applied, deletes the exported rows. An edit clears the stamp.
 - `roster_edits` is the same for the price rounds' roster (`app/roster_edits.py`): a rename or a removal
@@ -728,8 +729,8 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
 - A pack's prices share one `as_of`. `/api/modes` gives a mode its pool's newest, shown by the
   footer and a price round's splash instead of on every question.
 - `make import-suggestions FILE=…` appends an export to the packs and the roster, skipping what
-  they hold, keeping `credit`. A question's options are stored in their seeded order (the form
-  puts the right one first), but an examine's right name goes first and its line is asked once; an item's id
+  they hold, keeping `credit` and `difficulty` (a round's question without one gets `medium`).
+  A question's options are stored in their seeded order (the form puts the right one first), but an examine's right name goes first and its line is asked once; an item's id
   comes from the wiki's `infobox_item` bucket, untradeables included, as does a `picture_item`'s,
   which becomes `image`. A named NPC takes the first infobox row's id on its page (one
   `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`

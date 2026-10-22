@@ -29,6 +29,7 @@
     STATUS_LABELS,
     answerOf,
     choiceOf,
+    difficultyName,
     exportName,
     hasRound,
     hostOf,
@@ -39,6 +40,7 @@
     questionPreview,
     roundsFor,
     summary,
+    takesDifficulty,
     type ItemContent,
     type QueuedSuggestion,
     type QuestionContent,
@@ -155,6 +157,14 @@
     if (row.kind !== 'question') return null
     const explanation = (row.content as QuestionContent).payload.explanation
     return typeof explanation === 'string' ? explanation : null
+  }
+
+  /** Null where the round takes none; one sent without imports as medium. */
+  function difficultyOf(row: QueuedSuggestion): string | null {
+    if (row.kind !== 'question') return null
+    const { mode, difficulty } = row.content as QuestionContent
+    if (!takesDifficulty(mode ?? NO_ROUND)) return null
+    return difficulty === undefined ? 'Not set, imports as Medium' : difficultyName(difficulty)
   }
 
   function pictureItemOf(row: QueuedSuggestion): string | null {
@@ -315,6 +325,10 @@
                     {#if explanationOf(row) !== null}
                       <dt>Explanation</dt>
                       <dd>{explanationOf(row)}</dd>
+                    {/if}
+                    {#if difficultyOf(row) !== null}
+                      <dt>Difficulty</dt>
+                      <dd>{difficultyOf(row)}</dd>
                     {/if}
                     {#if pictureItemOf(row) !== null}
                       <dt>Item to show</dt>

@@ -4,13 +4,18 @@
  *
  * An edit never reaches the running server's packs. It waits as a pending change, keyed
  * by the question's id in the packs as they are, until it is downloaded, applied with
- * `make edit-packs` and committed, then marked as applied. Only the payload and the
- * fields an author checks and credits it by are edited; the type, mode, NPC and tags stay.
+ * `make edit-packs` and committed, then marked as applied. Only the payload, the difficulty
+ * and the fields an author checks and credits it by are edited; the type, mode, NPC and tags
+ * stay. A difficulty change keeps the id, which hashes only the type and payload.
  */
 
 import { randomEventFor } from './randomEvents'
 import { questionLine, reportHost, type PackQuestion } from './reports'
-import { NO_EXPLANATION_ROUNDS, SUGGESTED_TYPE_LABELS } from './suggestions'
+import {
+  NO_EXPLANATION_ROUNDS,
+  SUGGESTED_TYPE_LABELS,
+  type QuestionDifficulty,
+} from './suggestions'
 import { fold } from './vocab'
 
 export type ChangeAction = 'edit' | 'delete'
@@ -33,6 +38,8 @@ export interface QuestionChange {
 /** What an edit sends: the fields a question may change, and only the ones it has. */
 export interface QuestionEdit {
   payload: Record<string, unknown>
+  /** Every round's question keeps one; a random event's has none. */
+  difficulty?: QuestionDifficulty
   wiki?: string
   source_url?: string
   credit?: string
@@ -53,6 +60,7 @@ export function showsExplanation(mode: string): boolean {
 /** The envelope fields an edit may change, as `question` has them. */
 export function editOf(question: PackQuestion): QuestionEdit {
   const edit: QuestionEdit = { payload: question.payload }
+  if (question.difficulty !== undefined) edit.difficulty = question.difficulty
   if (question.wiki !== undefined) edit.wiki = question.wiki
   if (question.source_url !== undefined) edit.source_url = question.source_url
   if (question.credit !== undefined) edit.credit = question.credit

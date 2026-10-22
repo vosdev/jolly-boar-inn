@@ -5,12 +5,12 @@ It queues as a change keyed by the question's id in the packs as they are, leave
 export, and reaches the packs through ``scripts/edit_packs.py`` and a release, the way
 suggestions do. A second change to one question replaces the first.
 
-Only the payload and the fields an author checks it by (``wiki``, ``source_url``) and
-credits it with (``credit``, ``credit_shown``) are edited. The type, the mode, the NPC who
-asks it and its tags stay as the packs have them, so an edit is checked as the question
-it will be: schema, type, mode and NPC, with its id recomputed. The packs' own rules
-across questions (a duplicate id, one examine line under two answers) are checked again
-when the export is applied.
+Only the payload, the ``difficulty`` and the fields an author checks it by (``wiki``,
+``source_url``) and credits it with (``credit``, ``credit_shown``) are edited. The type,
+the mode, the NPC who asks it and its tags stay as the packs have them, so an edit is
+checked as the question it will be: schema, type, mode and NPC, with its id recomputed.
+The packs' own rules across questions (a duplicate id, one examine line under two answers)
+are checked again when the export is applied.
 
 The price modes are left out: their pack is generated from the roster, and the next
 ``make gen-price-questions`` would overwrite an edit to it.
@@ -26,9 +26,9 @@ from app.questions import schema, text
 from app.questions.packs import Pack, mode_questions
 from app.reports import ITEM_MODES, pack_modes
 from app.rooms.models import normalize_name
-from app.suggestions import NO_EXPLANATION_MODES
+from app.suggestions import NO_DIFFICULTY_MODES, NO_EXPLANATION_MODES, difficulty_errors
 
-EDITABLE = ("payload", "wiki", "source_url", "credit", "credit_shown")
+EDITABLE = ("payload", "difficulty", "wiki", "source_url", "credit", "credit_shown")
 
 
 class BadEdit(ApiError):
@@ -69,6 +69,12 @@ def edited(packs: list[Pack], before: dict[str, Any], body: dict[str, Any]) -> d
         raise BadEdit("; ".join(found))
     if after["mode"] in NO_EXPLANATION_MODES and "explanation" in after["payload"]:
         raise BadEdit(f"$.payload.explanation: {after['mode']!r} shows no explanation")
+    if "difficulty" in after:
+        found = difficulty_errors(after["mode"], after["difficulty"])
+        if found:
+            raise BadEdit("; ".join(found))
+    elif after["mode"] not in NO_DIFFICULTY_MODES:
+        raise BadEdit("$.difficulty: required, since every round's question keeps a tier")
     if after == before:
         raise BadEdit("the edit changes nothing")
     if after["id"] != before["id"] and any(
