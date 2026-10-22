@@ -1133,7 +1133,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Soul_cape"
     },
     {
-      "id": "q_9471e4525371ed37",
+      "id": "q_ad5a0d782a3bec46",
       "type": "closest_number",
       "mode": "minigame_madness",
       "source": "pack",
@@ -1143,6 +1143,7 @@
       "payload": {
         "prompt": "How many commendation points does the cheapest Void set with the damage bonus cost?",
         "answer": 850,
+        "within": 85,
         "unit": "points",
         "explanation": "850: top, robe, gloves and one helmet. The elite upgrade adds another 400."
       },
@@ -1168,7 +1169,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Fighter_torso"
     },
     {
-      "id": "q_7c37d7361d37ffa7",
+      "id": "q_5143d1eedd1d29f5",
       "type": "closest_number",
       "mode": "minigame_madness",
       "source": "pack",
@@ -1178,6 +1179,7 @@
       "payload": {
         "prompt": "How many Volcanic Mine points does the Ash covered tome cost?",
         "answer": 40000,
+        "within": 4000,
         "unit": "points",
         "explanation": "40,000, from Petrified Pete's shop."
       },
@@ -1220,7 +1222,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Tempoross"
     },
     {
-      "id": "q_7bb3a228eefe0603",
+      "id": "q_11393592f46affb8",
       "type": "closest_number",
       "mode": "minigame_madness",
       "source": "pack",
@@ -1230,6 +1232,7 @@
       "payload": {
         "prompt": "How many spirit flakes does the whole spirit angler's outfit cost?",
         "answer": 4800,
+        "within": 480,
         "unit": "flakes",
         "explanation": "4,800: 1,200 a piece, plus each piece of the angler's outfit to trade in."
       },

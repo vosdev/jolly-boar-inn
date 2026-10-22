@@ -3,7 +3,7 @@
   "random_event": "genie",
   "questions": [
     {
-      "id": "q_61dee6416feac612",
+      "id": "q_7294219809821a7e",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -15,6 +15,7 @@
         "intro": "Your wish, master? Level 99! A fine wish. But how much experience must I grant?",
         "prompt": "How much experience do you need for level 99?",
         "answer": 13034431,
+        "within": 651722,
         "unit": "xp",
         "explanation": "Level 99 takes 13,034,431 experience in a skill."
       }
