@@ -16,6 +16,7 @@
    * limits show (too long, too many, a repeated answer); what is still empty waits for
    * Save, so a fresh form is not a page of red.
    */
+  import { fieldHints } from '../lib/placeholders'
   import type { Snippet } from 'svelte'
 
   import {
@@ -136,6 +137,7 @@
   const optionsMax = $derived(ranged ? Math.min(schemaMax, rangeMax) : schemaMax)
   const id = $props.id()
 
+  const hints = $derived(fieldHints(mode))
   const promptMax = $derived(limit(field(draft.type, 'prompt'), 'maxLength'))
   const quoteMax = limit(field('multiple_choice', 'quote'), 'maxLength')
   const introMax = $derived(limit(field(draft.type, 'intro'), 'maxLength'))
@@ -261,8 +263,12 @@
 
       <div class="field">
         <label for="{id}-prompt">Question</label>
-        <textarea id="{id}-prompt" rows="3" bind:value={draft.prompt} readonly={promptFixed}
-        ></textarea>
+        <textarea
+          id="{id}-prompt"
+          rows="3"
+          placeholder={promptFixed ? undefined : hints.prompt}
+          bind:value={draft.prompt}
+          readonly={promptFixed}></textarea>
         <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
         {@render errors('payload.prompt')}
       </div>
@@ -469,7 +475,11 @@
       {#if explanation || draft.explanation !== ''}
         <div class="field">
           <label for="{id}-explanation">Explanation shown after the question finished.</label>
-          <textarea id="{id}-explanation" rows="2" bind:value={draft.explanation}></textarea>
+          <textarea
+            id="{id}-explanation"
+            rows="2"
+            placeholder={hints.explanation}
+            bind:value={draft.explanation}></textarea>
           <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
           {@render errors('payload.explanation')}
         </div>

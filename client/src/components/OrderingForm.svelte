@@ -14,6 +14,7 @@
    * Like `CustomQuestionForm`, nothing is red until the first Save except a limit that is
    * already broken, and Save hands back only a question `problems` passes.
    */
+  import { fieldHints } from '../lib/placeholders'
   import type { Snippet } from 'svelte'
 
   import {
@@ -94,6 +95,7 @@
   const id = $props.id()
 
   const built = $derived(questionOf(draft))
+  const hints = $derived(fieldHints(mode))
   const wording = $derived(wordingOf(mode))
   const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
   const found = $derived([
@@ -205,7 +207,8 @@
 
       <div class="field">
         <label for="{id}-prompt">{wording.prompt}</label>
-        <textarea id="{id}-prompt" rows="2" bind:value={draft.prompt}></textarea>
+        <textarea id="{id}-prompt" rows="2" placeholder={hints.prompt} bind:value={draft.prompt}
+        ></textarea>
         <p class="note counter">{codePoints(draft.prompt.trim())}/{PROMPT_MAX}</p>
         {@render errors('payload.prompt')}
       </div>
@@ -322,7 +325,11 @@
 
       <div class="field">
         <label for="{id}-explanation">Explanation shown after the question finished.</label>
-        <textarea id="{id}-explanation" rows="2" bind:value={draft.explanation}></textarea>
+        <textarea
+          id="{id}-explanation"
+          rows="2"
+          placeholder={hints.explanation}
+          bind:value={draft.explanation}></textarea>
         <p class="note counter">{codePoints(draft.explanation.trim())}/{EXPLANATION_MAX}</p>
         {@render errors('payload.explanation')}
       </div>
