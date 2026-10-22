@@ -5,6 +5,7 @@ from collections.abc import Iterator
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 import pytest
 from fastapi import FastAPI
@@ -15,6 +16,8 @@ from app.config import Settings
 from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
 from app.main import create_app
 from app.modes import round_modes
+from app.questions.submission import Submission
+from app.questions.types import matching, multiple_choice
 from app.rooms import queries
 from app.suggestions import (
     FIXED_PROMPTS,
@@ -1142,3 +1145,90 @@ def test_only_a_pack_question_names_its_suggester() -> None:
     assert queries._suggested_by("pack", envelope) == "Zezima"
     assert queries._suggested_by("room", envelope) is None
     assert queries._suggested_by("pack", {"credit": "Zezima"}) is None
+
+
+# --- trying a question ------------------------------------------------------------------
+
+
+def tried(client: TestClient, body: dict[str, Any], value: Any = None) -> dict[str, Any]:
+    response = client.post(
+        "/api/suggestions/try", json={"content": body["content"], "value": value}
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_a_tried_question_shows_the_rooms_shuffle_and_its_reveal(client: TestClient) -> None:
+    payload = ODD["content"]["payload"]
+    shown = multiple_choice.shown_order(payload)
+    trial = tried(client, _without(ODD, "wiki"))
+    assert trial["view"]["options"] == [payload["options"][index] for index in shown]
+    assert trial["reveal"]["answer_index"] == shown.index(payload["answer_index"])
+    assert trial["result"] is None
+
+
+def test_a_right_answer_earns_full_points_and_a_wrong_one_none(client: TestClient) -> None:
+    right = multiple_choice.shown_order(ODD["content"]["payload"]).index(2)
+    assert tried(client, ODD, right)["result"] == {
+        "value": right,
+        "correct": True,
+        "credit": 1.0,
+        "points": 1000,
+    }
+    wrong = tried(client, ODD, (right + 1) % 4)["result"]
+    assert (wrong["correct"], wrong["points"]) == (False, 0)
+
+
+def test_partial_credit_is_paid_without_speed(client: TestClient) -> None:
+    number = _with(
+        DROP_RATE,
+        mode="bestiary",
+        payload={"prompt": "What is General Graardor's combat level?", "answer": 624, "within": 62},
+    )
+    result = tried(client, number, 655)["result"]
+    assert (result["correct"], result["credit"], result["points"]) == (False, 0.5, 500)
+
+
+def test_a_partly_right_matching_pays_its_share_of_1000(client: TestClient) -> None:
+    payload = MATCHING["content"]["payload"]
+    shown = matching.shown_order(payload)
+    pairs = [shown.index(0), shown.index(1), shown.index(3)]
+    result = tried(client, MATCHING, pairs)["result"]
+    expected = matching.grade(payload, [Submission(UUID(int=1), pairs)])[UUID(int=1)]
+    assert 0 < expected < 1
+    assert result["points"] == round(1000 * expected)
+
+
+def test_a_whos_that_npc_reveals_its_name_and_takes_no_answer(client: TestClient) -> None:
+    trial = tried(client, NPC)
+    assert trial["reveal"] == {**trial["view"], "subject": {"name": "Araxxor"}}
+    response = client.post("/api/suggestions/try", json={"content": NPC["content"], "value": 1})
+    assert response.status_code == 422
+    assert response.json()["code"] == "bad_value"
+
+
+def test_a_value_the_type_refuses_is_a_422(client: TestClient) -> None:
+    response = client.post("/api/suggestions/try", json={"content": ODD["content"], "value": 9})
+    assert response.status_code == 422
+    assert response.json()["code"] == "bad_value"
+
+
+def test_a_question_that_fails_its_checks_cannot_be_tried(client: TestClient) -> None:
+    broken = _examine(answer_index=7)
+    response = client.post("/api/suggestions/try", json={"content": broken["content"]})
+    assert response.status_code == 422
+    assert response.json()["code"] == "bad_suggestion"
+
+
+def test_tries_over_the_hourly_limit_are_429s(app: FastAPI, client: TestClient) -> None:
+    app.state.tries = RateLimiter(limit=1)
+    assert client.post("/api/suggestions/try", json={"content": {}}).status_code == 422
+    tried(client, ODD)
+    response = client.post("/api/suggestions/try", json={"content": ODD["content"]})
+    assert response.status_code == 429
+    assert response.json()["code"] == "rate_limited"
+
+
+def test_trying_stores_nothing(client: TestClient) -> None:
+    tried(client, ODD, 0)
+    assert queue(client)["suggestions"] == []

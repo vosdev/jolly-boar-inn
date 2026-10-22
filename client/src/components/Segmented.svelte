@@ -8,17 +8,19 @@
     hideLegend = false,
     options,
     value = $bindable(),
+    disabled = false,
   }: {
     legend: string
     hideLegend?: boolean
     options: { value: T; label: string }[]
     value: T
+    disabled?: boolean
   } = $props()
 
   const name = $props.id()
 </script>
 
-<fieldset class="segmented" class:left={hideLegend}>
+<fieldset class="segmented" class:left={hideLegend} {disabled}>
   <legend class:visually-hidden={hideLegend}>{legend}</legend>
   <span class="segments">
     {#each options as option (option.value)}
@@ -78,6 +80,11 @@
     font-size: 0.95rem;
     white-space: nowrap;
     cursor: pointer;
+  }
+
+  .segmented:disabled label {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 
   label:has(:checked) {

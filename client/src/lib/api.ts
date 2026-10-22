@@ -22,7 +22,7 @@ import type {
 } from './protocol'
 import type { ReportBody, ReportChoices } from './reports'
 import type { Arrival } from './stats'
-import type { QuestionContent, SimilarMatch, SuggestionBody } from './suggestions'
+import type { QuestionContent, SimilarMatch, SuggestionBody, Trial } from './suggestions'
 
 export class ApiFailure extends Error {
   readonly status: number
@@ -327,6 +327,17 @@ export async function findSimilar(content: QuestionContent): Promise<SimilarMatc
     body: JSON.stringify({ content }),
   })
   return found.matches
+}
+
+/**
+ * A question being written as a room shows it, and with `value` what that answer earns.
+ * `bad_suggestion` for a question not whole yet, `bad_value` for an answer it cannot take.
+ */
+export function tryQuestion(content: QuestionContent, value: unknown = null): Promise<Trial> {
+  return request<Trial>('/api/suggestions/try', {
+    method: 'POST',
+    body: JSON.stringify({ content, value }),
+  })
 }
 
 export function getReportAllowance(): Promise<Allowance> {

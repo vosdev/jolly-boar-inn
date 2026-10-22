@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * The operator's queue of player suggestions, in `/admin`: read one as players would see
-   * it, check it against its wiki page, edit, approve or reject it.
+   * it, try it and see its reveal, check it against its wiki page, edit, approve or reject it.
    *
    * The approved ones leave in a file for `make import-suggestions`. Exporting marks what
    * the file held, and once the import is merged "Mark as imported" moves exactly those to
@@ -45,9 +45,8 @@
     type SuggestionBody,
     type SuggestionStatus,
   } from '../../lib/suggestions'
-  import QuestionStage from '../QuestionStage.svelte'
-  import RandomEvent from '../RandomEvent.svelte'
   import SuggestionEditor from '../suggest/SuggestionEditor.svelte'
+  import TryPreview from '../suggest/TryPreview.svelte'
 
   let { token, onrefused }: { token: string; onrefused: () => void } = $props()
 
@@ -300,19 +299,11 @@
                 <div class="preview" aria-label="As players will see it">
                   {#if row.kind === 'question'}
                     {@const content = row.content as QuestionContent}
-                    {#if content.random_event !== undefined}
-                      <RandomEvent
-                        question={questionPreview(content)}
-                        yourValue={null}
-                        onAnswer={() => {}}
-                      />
-                    {:else}
-                      <QuestionStage
-                        question={questionPreview(content)}
-                        yourValue={null}
-                        onAnswer={() => {}}
-                      />
-                    {/if}
+                    <TryPreview
+                      {content}
+                      question={questionPreview(content)}
+                      answerable={!choiceOf(row.kind, content)?.named}
+                    />
                   {:else}
                     <p class="item">{(row.content as ItemContent).name}</p>
                   {/if}

@@ -29,8 +29,11 @@ function played(): void {
   savePastGame({ code: 'ABYSSAL', finishedAt: '2026-10-01T20:05:00Z', standings: [], youId: null })
 }
 
+// The preview's Question/Reveal toggle is labelled too; only fields are typed into.
+const FIELD = 'textarea, input:not([type=radio])'
+
 async function type(label: string | RegExp, value: string): Promise<void> {
-  await fireEvent.input(screen.getByLabelText(label), { target: { value } })
+  await fireEvent.input(screen.getByLabelText(label, { selector: FIELD }), { target: { value } })
 }
 
 const ROSTER = [
@@ -230,7 +233,9 @@ describe('Suggest', () => {
     await fireEvent.click(await screen.findByRole('button', { name: /Odd One Out/ }))
     expect(screen.queryByLabelText('Who asks it')).toBeNull()
     expect(screen.queryByRole('group', { name: 'How players answer' })).toBeNull()
-    const question = screen.getByLabelText<HTMLTextAreaElement>('Question')
+    const question = screen.getByLabelText<HTMLTextAreaElement>('Question', {
+      selector: 'textarea',
+    })
     expect(question.value).toBe("Which one doesn't belong?")
     expect(question.readOnly).toBe(true)
     await type('Answer 1', 'Dharok')
@@ -266,7 +271,9 @@ describe('Suggest', () => {
     played()
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /Who Said That/ }))
-    const question = screen.getByLabelText<HTMLTextAreaElement>('Question')
+    const question = screen.getByLabelText<HTMLTextAreaElement>('Question', {
+      selector: 'textarea',
+    })
     expect(question.value).toBe('Who said that?')
     expect(question.readOnly).toBe(false)
     await type('Question', 'Who said this?')
@@ -749,7 +756,9 @@ describe('Suggest', () => {
     expect(screen.queryByLabelText(/^Intro/)).toBeNull()
     expect(screen.queryByLabelText(/Item to show/)).toBeNull()
     expect(screen.queryByRole('group', { name: 'Already in the game' })).toBeNull()
-    expect(screen.getByLabelText<HTMLTextAreaElement>('Question').readOnly).toBe(false)
+    expect(
+      screen.getByLabelText<HTMLTextAreaElement>('Question', { selector: 'textarea' }).readOnly,
+    ).toBe(false)
     expect(api.getReportChoices).not.toHaveBeenCalled()
 
     await fireEvent.click(screen.getByLabelText('Type the answer'))

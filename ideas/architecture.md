@@ -683,6 +683,11 @@ key into them, so cleanup leaves it.
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
+- `POST /api/suggestions/try {content, value?}` takes the same question and returns `{view,
+  reveal, result}`: the open view in the room's shuffle, the reveal, and with `value` its
+  `PlayerResult`, speed not counting (`round(1000 × credit)`); stores nothing; 600 an hour per
+  address (`TRIES_PER_HOUR`). Who's That NPC? reveals the name and takes no value. The previews
+  on `/suggest` and in the queue toggle Question/Reveal and answer through it.
 - `/api/admin/suggestions` lists, edits and moves them, each question with its top 3 matches at 60
   or more among the packs and the other pending and approved suggestions, whole; a question with no
   round can't be approved (422). Export downloads the playable approved ones and stamps

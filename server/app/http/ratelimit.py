@@ -33,6 +33,8 @@ JOIN_FAILURES_PER_HOUR = 30
 SUGGESTIONS_PER_HOUR = 10
 # A check per pause in typing, debounced: a long evening of writing, not a crawl of the packs.
 SIMILAR_PER_HOUR = 120
+# Each pause in writing fetches the view again and each answer tried is one more.
+TRIES_PER_HOUR = 600
 # A player reports what they just met in a game, a question or two; not a review of the packs.
 REPORTS_PER_HOUR = 3
 

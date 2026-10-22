@@ -25,6 +25,7 @@
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
   import { profile } from '../../lib/profile'
+  import type { OpenQuestion } from '../../lib/protocol'
   import {
     creditProblem,
     INTRO_ROUNDS,
@@ -47,8 +48,8 @@
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
   import MatchingForm from '../MatchingForm.svelte'
   import OrderingForm from '../OrderingForm.svelte'
-  import QuestionStage from '../QuestionStage.svelte'
   import SimilarQuestions from './SimilarQuestions.svelte'
+  import TryPreview from './TryPreview.svelte'
 
   let {
     choice,
@@ -336,6 +337,10 @@
   {@render creditFields(show)}
 {/snippet}
 
+{#snippet tryPreview(open: OpenQuestion)}
+  <TryPreview content={similarTo} question={open} />
+{/snippet}
+
 {#snippet similar()}
   {#if checksSimilar}
     <SimilarQuestions content={similarTo} />
@@ -366,10 +371,10 @@
       </div>
       <section class="preview" aria-label="Preview">
         <p class="note">What players will see</p>
-        <QuestionStage
+        <TryPreview
+          content={similarTo}
           question={questionPreview(npcQuestion)}
-          yourValue={null}
-          onAnswer={() => {}}
+          answerable={false}
         />
       </section>
     </div>
@@ -388,6 +393,7 @@
     {onnpc}
     ondraft={(question) => (drafted = question)}
     nearSave={similar}
+    preview={tryPreview}
     onsave={saveQuestion}
     {oncancel}
   />
@@ -405,6 +411,7 @@
     {onnpc}
     ondraft={(question) => (drafted = question)}
     nearSave={similar}
+    preview={tryPreview}
     onsave={saveQuestion}
     {oncancel}
   />
@@ -427,6 +434,7 @@
     {onnpc}
     ondraft={(question) => (drafted = question)}
     nearSave={similar}
+    preview={tryPreview}
     onsave={saveQuestion}
     {oncancel}
   />
