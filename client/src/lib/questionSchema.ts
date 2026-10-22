@@ -124,6 +124,9 @@ export function check(schema: Schema, value: unknown, path: string): Problem[] {
 
   if (typeof value === 'number') {
     if (typeof rule.minimum === 'number' && value < rule.minimum) add(`At least ${rule.minimum}.`)
+    if (typeof rule.exclusiveMinimum === 'number' && value <= rule.exclusiveMinimum) {
+      add(`More than ${rule.exclusiveMinimum}.`)
+    }
     if (typeof rule.maximum === 'number' && value > rule.maximum) add(`At most ${rule.maximum}.`)
   }
 

@@ -12,11 +12,10 @@
    * the option, with its gem's chip where it has a gem. Typed answers group by the form
    * the server grades them in, so "Jad!" and "jad" share a line, said the way the first
    * of them typed it; a list's picks group by entry. Both keep their three biggest groups
-   * and fold the rest into one. A closest-number guess groups by its rank, which is what
-   * its credit is: the closest guess earns 0.9 however far off it was. Off the podium
-   * it is "further off", furthest first, and every name there carries its guess. Pick all
-   * that apply groups by right picks against the reveal's `answer_indices`, because its
-   * credit punishes misses and extras alike. Ordering groups by entries in place, read
+   * and fold the rest into one. A number's misses, typed or slid, are "close" while they
+   * still scored and "further off" after, every name carrying its guess. Pick all that
+   * apply groups by right picks against the reveal's `answer_indices`, because its credit
+   * punishes misses and extras alike. Ordering groups by entries in place, read
    * off `credit`, and with `picks` also those out of place, read off the value. Grouping
    * by how many, not by which, keeps six entries to six lines. Matching groups the same
    * way, by fields right, read off `credit`.
@@ -80,18 +79,12 @@
   const NAMES_SHOWN = 8
   /** Typed answers and list picks: the groups drawn before the rest fold into one. */
   const GROUPS_SHOWN = 3
-  // Closest number's ladder (`closest_number.LADDER` on the server), one rung per band.
-  const RUNGS = [
-    { least: 0.9, label: 'Closest' },
-    { least: 0.8, label: 'Second closest' },
-    { least: 0.7, label: 'Third closest' },
-  ]
 
   interface Who {
     id: string
     name: string
     you: boolean
-    /** Said after the name: a closest-number guess. */
+    /** Said after the name: a number's guess. */
     guess: string | null
   }
 
@@ -107,7 +100,6 @@
   const rows = $derived(Object.entries(results))
   const right = $derived(rows.filter(([, result]) => result.correct).length)
   const wrong = $derived(rows.filter(([, result]) => !result.correct))
-  const ranked = $derived(type === 'closest_number')
   const options = $derived((reveal.options as unknown[] | undefined) ?? [])
   const count = new Intl.NumberFormat()
 
@@ -193,30 +185,7 @@
   const byCredit = (groups: (Group & { credit: number; hits: number })[]) =>
     groups.sort((a, b) => b.credit - a.credit || b.hits - a.hits)
 
-  function closest(): Group[] {
-    const answer = Number(reveal.answer)
-    const guessed = (id: string, value: unknown) => {
-      const guess = Number(value)
-      return { who: who(id, count.format(guess)), off: Math.abs(guess - answer) }
-    }
-    const lines = RUNGS.map(({ least, label }, index) => ({
-      key: label,
-      label,
-      gem: null,
-      players: wrong
-        .filter(([, { credit }]) => credit >= least && credit < (RUNGS[index - 1]?.least ?? 1))
-        .map(([id, { value }]) => guessed(id, value).who)
-        .sort(youFirst),
-    }))
-    const furthest = wrong
-      .filter(([, { credit }]) => credit < (RUNGS[RUNGS.length - 1]?.least ?? 0))
-      .map(([id, { value }]) => guessed(id, value))
-      .sort((a, b) => b.off - a.off)
-      .map((guess) => guess.who)
-    return [...lines, { key: 'further', label: 'Further off', gem: null, players: furthest }]
-  }
-
-  /** A slider's misses: credit falls with distance along it, so it orders them by closeness. */
+  /** A number's misses: credit falls with distance, so it orders them by closeness. */
   function slid(written: (value: number) => string): Group[] {
     const guesses = (rows: typeof wrong) =>
       [...rows]
@@ -244,6 +213,7 @@
       case 'price_is_right':
         return slid((value) => `${formatGp(value)} gp`)
       case 'number_slider':
+      case 'closest_number':
         return slid((value) => {
           const unit = typeof reveal.unit === 'string' && reveal.unit !== '' ? reveal.unit : null
           return unit === null ? count.format(value) : `${count.format(value)} ${unit}`
@@ -276,8 +246,6 @@
             ({ value }) => ({ label: vocab?.get(Number(value)) ?? '…', gem: null }),
           ),
         )
-      case 'closest_number':
-        return closest()
       case 'pick_all_that_apply': {
         const lines = new Map<string, Group & { credit: number; hits: number }>()
         for (const [id, { credit, value }] of wrong) {
@@ -343,8 +311,7 @@
     [...groups, missed]
       .filter((group) => group.players.length > 0)
       .map((group) => {
-        const players =
-          ranked && group.key === 'further' ? group.players : [...group.players].sort(youFirst)
+        const players = [...group.players].sort(youFirst)
         const you = players.find((player) => player.you)
         let named = players.slice(0, NAMES_SHOWN)
         if (you !== undefined && !named.includes(you)) named = [...named.slice(0, -1), you]
@@ -360,7 +327,11 @@
   {:else}
     <p class="count">
       <strong class="number">{right} of {rows.length}</strong>
-      {ranked ? 'guessed it exactly' : type === 'matching' ? 'got them all' : 'got it right'}
+      {type === 'closest_number'
+        ? 'guessed it exactly'
+        : type === 'matching'
+          ? 'got them all'
+          : 'got it right'}
     </p>
     {#if shown.length > 0}
       <p class="head">Got it wrong</p>

@@ -130,4 +130,24 @@ describe('CustomQuestionForm', () => {
     select.focus()
     expect(document.activeElement).toBe(select)
   })
+
+  it('writes the share of the answer picked under Scores as within, and shows its range', async () => {
+    const onsave = vi.fn()
+    const question = {
+      type: 'closest_number' as const,
+      payload: { prompt: 'How many Zulrah kills?', answer: 850, unit: 'kills' },
+    }
+    render(CustomQuestionForm, { question, onsave, oncancel: () => {} })
+    const scores = screen.getByRole('group', { name: 'Scores' })
+    expect(
+      within(scores).getByRole<HTMLInputElement>('radio', { name: 'Exact only (0%)' }).checked,
+    ).toBe(true)
+    expect(screen.getByText(/Only the exact answer scores/)).toBeTruthy()
+    await fireEvent.click(within(scores).getByRole('radio', { name: 'Within 10%' }))
+    expect(screen.getByText(/765 to 935 scores 750 down to 250/)).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Save question' }))
+    expect(onsave).toHaveBeenCalledWith(
+      expect.objectContaining({ payload: { ...question.payload, within: 85 } }),
+    )
+  })
 })

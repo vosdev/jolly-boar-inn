@@ -48,7 +48,6 @@ from app.questions.types import (
     multiple_choice,
     pick_from_list,
     reveal_seconds,
-    scoring_of,
 )
 from app.questions.types.scoring import Scoring
 from app.random_events import RANDOM_EVENTS
@@ -1943,13 +1942,13 @@ def points_by_name(game: Game, closed: dict[str, Any]) -> dict[str, int]:
     return {by_name[pid]: row["points"] for pid, row in closed["results"].items()}
 
 
-def test_a_type_scored_on_rank_pays_the_same_early_or_late(table, monkeypatch) -> None:
-    """``SCORING = RANK`` reaches the ack and the close, and the clock does not.
+def test_a_type_scored_on_accuracy_pays_the_same_early_or_late(table, monkeypatch) -> None:
+    """``SCORING = ACCURACY`` reaches the ack and the close, and the clock does not.
 
-    Nothing ships a ``RANK`` type until ``closest_number``, so ``more_less`` wears
-    it here. Its all-or-nothing credit is the top and bottom of the rank table.
+    ``more_less`` wears it here, for an all-or-nothing credit on a question every seat can
+    answer right or wrong.
     """
-    monkeypatch.setattr(more_less, "SCORING", Scoring.RANK, raising=False)
+    monkeypatch.setattr(more_less, "SCORING", Scoring.ACCURACY, raising=False)
     game = table("Zezima", "Woox", "Lynx", seconds=20, close_when_all_answered=False)
     zezima, woox, lynx = game.players
     game.start()
@@ -1957,7 +1956,7 @@ def test_a_type_scored_on_rank_pays_the_same_early_or_late(table, monkeypatch) -
     for seat, right, seconds in ((zezima, True, 1), (woox, True, 19), (lynx, False, 1)):
         value = game.right(0) if right else game.wrong(0)
         ack = answer_after(game, seat, 0, value, seconds)
-        assert (ack["scoring"], ack["band"]) == ("rank", None)
+        assert (ack["scoring"], ack["band"]) == ("accuracy", None)
     assert {answer.band for answer in game.question(0).answers.values()} == {None}
     game.skip()
     closed = game.admin.take("question_closed")
@@ -2117,11 +2116,7 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
     zezimas, wooxs = (closed["results"][seat.id] for seat in (zezima, woox))
     assert (zezimas["correct"], zezimas["points"] > 0) == (True, True)
     assert wooxs["correct"] is False
-    # Ranked, second-nearest still earns a share; everywhere else wrong scores nothing.
-    if scoring_of(question.type) is Scoring.RANK:
-        assert wooxs["points"] < zezimas["points"]
-    else:
-        assert wooxs["points"] == 0
+    assert wooxs["points"] == 0
     return closed
 
 
@@ -2385,18 +2380,22 @@ def test_a_host_only_custom_question_scores_nobody_and_still_shows_and_closes(
     assert db("select count(*) as n from answers")[0]["n"] == 0
 
 
-def test_closest_number_ranks_every_guess_against_the_others(table, second_mode, db) -> None:
-    """The exact guess beats the two one off, who tie for closest and share
-    its rung; the guess behind them is second closest; a player who sent nothing scores
-    nothing."""
+def test_closest_number_scores_each_guess_against_the_answer(table, second_mode, db) -> None:
+    """Exact pays 1000; inside ``within`` a guess earns 750 just off, falling to 250 at the
+    edge; past it nothing, however close it is to the others. A silent player scores 0."""
     number = {
         "type": "closest_number",
-        "payload": {"prompt": "How many hours did the cape take?", "answer": 100, "unit": "hours"},
+        "payload": {
+            "prompt": "How many hours did the cape take?",
+            "answer": 100,
+            "within": 10,
+            "unit": "hours",
+        },
     }
     game = table(
         "Exact",
-        "Under",
-        "Over",
+        "Near",
+        "Edge",
         "Far",
         "Silent",
         custom=[number],
@@ -2407,19 +2406,20 @@ def test_closest_number_ranks_every_guess_against_the_others(table, second_mode,
     at = the_event(game).position
     reach(game, at)
     seat = {s.name: s for s in game.seats}
-    for name, guess in (("Exact", 100), ("Under", 99), ("Over", 101.0), ("Far", 150)):
+    for name, guess in (("Exact", 100), ("Near", 95), ("Edge", 110.0), ("Far", 111)):
         game.answer(seat[name], at, guess)
         ack = seat[name].take("answer_ack")
-        assert (ack["scoring"], ack["band"]) == ("rank", None)
+        assert (ack["scoring"], ack["band"]) == ("accuracy", None)
     game.skip()
     closed = game.admin.take("question_closed")
     by_id = {s.id: s.name for s in game.seats}
     assert {by_id[pid]: row["points"] for pid, row in closed["results"].items()} == {
         "Exact": 1000,
-        "Under": 750,
-        "Over": 750,
-        "Far": 500,
+        "Near": 500,
+        "Edge": 250,
+        "Far": 0,
     }
+    assert [by_id[pid] for pid, row in closed["results"].items() if row["correct"]] == ["Exact"]
     points = {s["display_name"]: s["points"] for s in closed["standings"]}
     assert points["Silent"] == 0 and points["Admin"] == 0
     assert_memory_matches_db(game, db)

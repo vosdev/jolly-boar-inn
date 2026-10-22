@@ -1,6 +1,6 @@
 /**
  * `closest_number` on screen: a box that takes a number the way the game writes one, and a
- * reveal that says how far off you were and what the rank paid.
+ * reveal that says how far off you were.
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
@@ -15,7 +15,7 @@ import ClosestNumber from './types/ClosestNumber.svelte'
 const VIEW = { prompt: 'How many hours did the Infernal cape take?', unit: 'hours' }
 const REVEAL = { ...VIEW, answer: 100, explanation: 'Most of them at Zuk.' }
 
-function open(youCanAnswer = true): OpenQuestion {
+function open(youCanAnswer = true, view: Record<string, unknown> = VIEW): OpenQuestion {
   return {
     question_id: 'q1',
     index: 3,
@@ -23,7 +23,7 @@ function open(youCanAnswer = true): OpenQuestion {
     type: 'closest_number',
     mode: 'custom',
     segment: { mode: 'more_less', index: 1, total: 3, start: 2, count: 5 },
-    view: VIEW,
+    view,
     opened_at: '2026-09-21T20:00:00Z',
     ends_at: '2026-09-21T20:00:20Z',
     you_can_answer: youCanAnswer,
@@ -43,10 +43,21 @@ describe('closest_number', () => {
     expect(viewFor('closest_number', 'custom')).toEqual({ stem: TextStem, view: ClosestNumber })
   })
 
-  it('asks for a guess in the unit given, and says a near miss still counts', () => {
+  it('asks for a guess in the unit given, and says only the exact answer scores', () => {
     render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
     expect(screen.getByText(VIEW.prompt)).toBeTruthy()
-    expect(screen.getByLabelText(/Your best guess \(hours\) — the closest one wins/)).toBe(box())
+    expect(screen.getByLabelText('Your guess (hours)')).toBe(box())
+    expect(screen.getByText('Exact answers only.')).toBeTruthy()
+  })
+
+  it('says how far off still scores, in the unit given', () => {
+    render(Question, {
+      question: open(true, { ...VIEW, within: 1500 }),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    expect(screen.getByText('Within 1,500 hours scores.')).toBeTruthy()
+    expect(screen.queryByText('Exact answers only.')).toBeNull()
   })
 
   it('keeps Submit off until the box holds a number', async () => {
@@ -79,12 +90,12 @@ describe('closest_number', () => {
     expect(screen.getByText('This one is not scored for you — sit back and watch.')).toBeTruthy()
   })
 
-  it('reveals the answer, how far off the guess was and what its rank paid', () => {
+  it('reveals the answer and how far off the guess was, not what it paid', () => {
     render(Question, {
       question: open(),
       reveal: REVEAL,
       yourValue: 99,
-      result: { value: 99, correct: false, credit: 0.9, points: 750 },
+      result: { value: 99, correct: false, credit: 0.75, points: 750 },
       onAnswer: () => {},
     })
     expect(screen.getByText('100 hours')).toBeTruthy()

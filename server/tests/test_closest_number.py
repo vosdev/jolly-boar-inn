@@ -1,8 +1,7 @@
-"""``closest_number``: a number for an answer, ranked against everyone else's guess.
+"""``closest_number``: a number for an answer, each guess measured against it alone.
 
-The type half (the game half is in ``test_game.py``): two players the same
-distance away share the better rank; an exact match beats a guess one off; a player who
-did not answer scores 0.
+The type half (the game half is in ``test_game.py``): exact is 1.0; inside ``within`` the
+credit falls from 0.75 to 0.25; past it, or off at all without ``within``, it is 0.
 """
 
 import copy
@@ -32,79 +31,83 @@ EXAMPLE: dict[str, Any] = {
 EXAMPLE["id"] = schema.content_id(EXAMPLE)
 
 
-def ranked(answer: float, **guesses: float) -> dict[str, float]:
+def graded(answer: float, within: float | None = None, **guesses: float) -> dict[str, float]:
     """Credit by name for ``guesses`` at a question whose answer is ``answer``."""
+    payload = {**EXAMPLE["payload"], "answer": answer}
+    if within is not None:
+        payload["within"] = within
     ids = {name: uuid4() for name in guesses}
     credit = closest_number.grade(
-        {**EXAMPLE["payload"], "answer": answer},
-        [Submission(ids[name], guess) for name, guess in guesses.items()],
+        payload, [Submission(ids[name], guess) for name, guess in guesses.items()]
     )
     names: dict[UUID, str] = {pid: name for name, pid in ids.items()}
     return {names[pid]: value for pid, value in credit.items()}
 
 
-def test_it_is_registered_and_scored_on_rank() -> None:
+def test_it_is_registered_and_scored_on_accuracy() -> None:
     assert TYPES["closest_number"] is closest_number
-    assert scoring_of("closest_number") is Scoring.RANK
+    assert scoring_of("closest_number") is Scoring.ACCURACY
 
 
 def test_example_validates() -> None:
     schema.validate(EXAMPLE)
+    within = {**EXAMPLE, "payload": {**EXAMPLE["payload"], "within": 2.5}}
+    within["id"] = schema.content_id(within)
+    schema.validate(within)
 
 
-def test_the_ladder_is_section_6s_table() -> None:
-    """1.0 exact, then 0.9 / 0.8 / 0.7 for the closest three misses, 0.0 for the rest."""
-    assert ranked(100, a=100, b=90, c=80, d=70, e=60, f=50) == {
-        "a": 1.0,
-        "b": 0.9,
-        "c": 0.8,
-        "d": 0.7,
-        "e": 0.0,
-        "f": 0.0,
+def test_without_within_only_the_exact_answer_scores() -> None:
+    """A year: 2017 is not nearly 2013."""
+    assert graded(2013, exact=2013, near=2014, far=2017) == {"exact": 1.0, "near": 0.0, "far": 0.0}
+
+
+def test_inside_within_credit_falls_from_three_quarters_to_a_quarter() -> None:
+    assert graded(850, 85, exact=850, hair=849.15, half=892.5, edge=765, past=936) == {
+        "exact": 1.0,
+        "hair": pytest.approx(0.745),
+        "half": 0.5,
+        "edge": 0.25,
+        "past": 0.0,
     }
-    points = [scoring.points_for(Scoring.RANK, c, None, None) for c in (1.0, 0.9, 0.8, 0.7, 0.0)]
-    assert points == [1000, 750, 500, 250, 0]
+    credits = [1.0, 0.745, 0.5, 0.25, 0.0]
+    points = [scoring.points_for(Scoring.ACCURACY, c, None, None) for c in credits]
+    assert points == [1000, 745, 500, 250, 0]
 
 
-def test_players_the_same_distance_away_share_the_better_rank() -> None:
-    """Either side of the answer, and the guess behind them is second closest: dense."""
-    assert ranked(100, under=99, over=101, behind=105, last=200) == {
-        "under": 0.9,
-        "over": 0.9,
-        "behind": 0.8,
-        "last": 0.7,
-    }
+def test_the_issue_s_guess_scores_nothing() -> None:
+    """850 kills, a guess of 250 that the old ladder paid 750 as the nearest in the room."""
+    assert graded(850, 85, guess=250) == {"guess": 0.0}
 
 
-def test_an_exact_match_beats_a_guess_one_off() -> None:
-    assert ranked(100, exact=100, near=101) == {"exact": 1.0, "near": 0.9}
-    # And an exact match takes no rung from the misses: the nearest one is still closest.
-    assert ranked(100, exact=100, also=100.0, near=150)["near"] == 0.9
+def test_other_guesses_do_not_change_a_guess_s_credit() -> None:
+    alone = graded(100, 10, me=105)
+    crowded = graded(100, 10, me=105, a=100, b=101, c=500)
+    assert alone["me"] == crowded["me"] == 0.5
 
 
-def test_nobody_exact_means_nobody_gets_full_marks() -> None:
-    assert max(ranked(100, a=150, b=40).values()) == 0.9
+def test_either_side_of_the_answer_scores_alike() -> None:
+    assert graded(100, 10, under=96, over=104) == {"under": 0.55, "over": 0.55}
 
 
 def test_a_player_who_did_not_answer_is_not_graded() -> None:
     """``grade`` only ever sees submissions, so a silent player is not in what it returns
     -- and the close pays only the players it returned."""
     silent = uuid4()
-    credit = closest_number.grade(EXAMPLE["payload"], [Submission(uuid4(), 5)])
+    credit = closest_number.grade(EXAMPLE["payload"], [Submission(uuid4(), 100)])
     assert silent not in credit
-    assert list(credit.values()) == [0.9]
+    assert list(credit.values()) == [1.0]
 
 
-def test_decimal_guesses_equally_far_off_tie() -> None:
-    """In float arithmetic 1.1 and 0.9 are not quite as far from 1 as each other."""
-    assert abs(1.1 - 1) != abs(0.9 - 1)
-    assert ranked(1, over=1.1, under=0.9) == {"over": 0.9, "under": 0.9}
+def test_a_decimal_guess_exactly_within_off_is_inside() -> None:
+    """In float arithmetic 1.1 is a little more than 0.1 away from 1."""
+    assert abs(1.1 - 1) > 0.1
+    assert graded(1, 0.1, edge=1.1, under=0.9) == {"edge": 0.25, "under": 0.25}
 
 
 def test_speed_does_not_come_into_it() -> None:
-    """The closest guess wins whether it arrived first or last: ``RANK`` has no band."""
-    assert scoring.band(Scoring.RANK, 0.1, 20, None) is None
-    assert scoring.band(Scoring.RANK, 19.9, 20, None) is None
+    """A guess is worth the same early or late: ``ACCURACY`` has no band."""
+    assert scoring.band(Scoring.ACCURACY, 0.1, 20, None) is None
+    assert scoring.band(Scoring.ACCURACY, 19.9, 20, None) is None
 
 
 @pytest.mark.parametrize(
@@ -131,6 +134,12 @@ def test_client_view_withholds_the_answer() -> None:
     assert view == {"prompt": "How many hours did Zezima's Infernal cape take?", "unit": "hours"}
 
 
+def test_client_view_shows_how_close_scores() -> None:
+    """Players need ``within`` while answering, to know whether to be precise."""
+    view = closest_number.client_view({**EXAMPLE["payload"], "within": 10})
+    assert view["within"] == 10 and "answer" not in view
+
+
 def test_reveal_adds_the_answer_and_why() -> None:
     assert closest_number.reveal(EXAMPLE["payload"]) == {
         "prompt": "How many hours did Zezima's Infernal cape take?",
@@ -147,6 +156,13 @@ def test_check_fails_an_answer_no_guess_can_be_measured_against() -> None:
         assert error.startswith("answer:") and "not a finite number" in error
 
 
+def test_check_fails_a_within_no_guess_can_be_measured_against() -> None:
+    assert closest_number.check({**EXAMPLE["payload"], "within": 10}) == []
+    for within in (float("inf"), 10**400):
+        (error,) = closest_number.check({**EXAMPLE["payload"], "within": within})
+        assert error.startswith("within:") and "not a finite number" in error
+
+
 @pytest.mark.parametrize(
     ("mutate", "path"),
     [
@@ -154,6 +170,9 @@ def test_check_fails_an_answer_no_guess_can_be_measured_against() -> None:
         (lambda p: p.update(unit="u" * 17), "$.payload.unit"),
         (lambda p: p.pop("answer"), "$.payload"),
         (lambda p: p.update(options=[1, 2]), "$.payload"),
+        (lambda p: p.update(within=0), "$.payload.within"),
+        (lambda p: p.update(within=-5), "$.payload.within"),
+        (lambda p: p.update(within="10%"), "$.payload.within"),
     ],
 )
 def test_schema_rejects(mutate: Any, path: str) -> None:

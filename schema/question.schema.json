@@ -262,6 +262,7 @@
         "intro": { "$ref": "#/$defs/intro" },
         "image": { "$ref": "#/$defs/asset" },
         "answer": { "type": "number" },
+        "within": { "type": "number", "exclusiveMinimum": 0 },
         "unit": { "type": "string", "maxLength": 16 },
         "explanation": { "type": "string", "maxLength": 300 }
       }

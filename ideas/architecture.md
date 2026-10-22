@@ -109,7 +109,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 ```
 
 - The room stores, echoes and grades what `parse_value` returns, never the raw value.
-- `grade` takes every submission at once, because `closest_number` ranks them. The close rounds
+- `grade` takes every submission at once, so a type could weigh one against another. The close rounds
   credit to 1e-9 and clamps it to 0..1, logging a bad value rather than failing.
 - `Bounds(default, minimum, maximum)` is the question count Create offers and `NewRoomSettings`
   enforces. It falls back from mode to types to registry. Rounds default to 5 questions.
@@ -184,7 +184,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 | `price_is_right` | gp on the slider's grid, in `[min, max]` | by distance (section 8) |
 | `multiple_choice` | shown position | 1 or 0 |
 | `free_text` | string, at most 80 characters, no NUL or lone surrogate | 1 or 0 |
-| `closest_number` | number | by rank (section 8) |
+| `closest_number` | number | by distance within `within` (section 8) |
 | `number_slider` | an integer on the slider's track, in `[min, max]` | by distance (section 8) |
 | `pick_from_list` | an entry id of the question's vocabulary | 1 or 0 |
 | `pick_all_that_apply` | distinct shown positions, sorted, at least one; exactly `picks` if set | right picks ÷ options right or picked |
@@ -346,7 +346,7 @@ PlayerResult { value, correct, credit, points }
   `surprise_modes` themselves only when set.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
   to its admins (section 10).
-- `band` is the speed bucket for SPEED, the step for STEP, null for RANK. `of` is every connected
+- `band` is the speed bucket for SPEED, the step for STEP, null for ACCURACY. `of` is every connected
   player who can answer, plus anyone who answered and dropped.
 - `credit` lets a reveal say "3 of 5 in place". `correct` is `credit >= 1.0`.
 
@@ -468,7 +468,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 | `SCORING` | Points | Types |
 |---|---|---|
 | `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
-| `RANK` | the rank's share of 1000 | `closest_number` |
+| `ACCURACY` | `round(1000 × credit)` | `closest_number` |
 | `STEP` | `round(step points × credit)` | `pick_from_list` with `steps` |
 
 | Speed bucket | Fraction of the question's seconds | Points |
@@ -484,10 +484,11 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 - An answer from `ends_at` on is `not_open`, even if the close runs late.
 - Partial credit rides the bucket: 0.6 in bucket 2 is 540.
 - A team game (`settings.teams` non-empty) drops speed: `SPEED` pays `round(1000 × credit)` and
-  `answer_ack.band` is null. `RANK` and `STEP` score as ever.
+  `answer_ack.band` is null. `ACCURACY` and `STEP` score as ever.
 
-Rank: answers rank by distance, ties share the better rank, and speed does not count. Exact is 1.0
-credit and 1000 points. The closest three otherwise get 0.9, 0.8 and 0.7, paid 750, 500 and 250.
+Closest number: each guess against the answer alone, speed not counting. Exact is 1.0; within
+`within` (the answer's unit, shown while open) 0.75 falling linearly to 0.25; else 0. No `within`
+is exact only. Editors offer 0/5/10/25% of the answer, whole and at least 1 for a whole answer.
 
 Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figures, then falling
 linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.

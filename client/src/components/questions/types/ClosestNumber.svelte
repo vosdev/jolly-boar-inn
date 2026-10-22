@@ -1,11 +1,11 @@
 <script lang="ts">
   /**
-   * `closest_number`: type a number, and the nearest guess in the room wins.
+   * `closest_number`: type a number, scored against the answer alone.
    *
-   * Nobody is expected to know it — how many kills, how many hours — so the view says
-   * what the scoring does: it is not about speed, and a near miss still scores. Being
-   * first earns nothing here (`SCORING = RANK`), and a player who knows that takes the
-   * whole clock to think rather than rushing a guess in.
+   * Some are facts to know exactly — a year, a quest count — and some are estimates — how
+   * many kills, how many hours — so the view says which: exact answers only, or how far
+   * off still scores (`within`). Being first earns nothing here (`SCORING = ACCURACY`),
+   * and a player who knows that takes the whole clock to think rather than rushing.
    *
    * What a player types is read by `parseAmount` (`lib/gp.ts`), so `1.6m` and `12,500`
    * work the way the game writes numbers. The value sent is a plain number; Submit stays
@@ -13,15 +13,14 @@
    *
    * `data` arrives in the two shapes `questions/types/closest_number.py` sends:
    *
-   * - while open, `client_view(payload)`: the prompt, and the `unit` to answer in if the
-   *   author gave one.
+   * - while open, `client_view(payload)`: the prompt, `within` if a near miss scores, and
+   *   the `unit` to answer in if the author gave one.
    * - after close, `reveal(payload)`: the same plus `answer`, and an optional
    *   `explanation` that `Question` draws.
    *
-   * The reveal's points are the rank table, not a bucket: 1000 for exact, then 750, 500,
-   * 250 for the three closest misses and nothing further off. The points slot in `Room`
-   * shows them; this view says how far off the guess was, which is the answer, not
-   * the reason for the number.
+   * The reveal's points are 1000 for exact, 750 down to 250 inside `within`, and nothing
+   * further off. The points slot in `Room` shows them; this view says how far off the
+   * guess was, which is the answer, not the reason for the number.
    */
   import { parseAmount } from '../../../lib/gp'
   import AnswerForm from '../AnswerForm.svelte'
@@ -30,6 +29,7 @@
 
   interface Data {
     unit?: string
+    within?: number
     /** Reveal only. */
     answer?: number
   }
@@ -40,6 +40,9 @@
   const uid = $props.id()
   const unit = $derived(typeof q.unit === 'string' && q.unit !== '' ? q.unit : null)
   const unitAside = $derived(unit === null ? '' : ` (${unit})`)
+  const scores = $derived(
+    typeof q.within === 'number' ? `Within ${written(q.within)} scores.` : 'Exact answers only.',
+  )
 
   let text = $state('')
   const guess = $derived(parseAmount(text))
@@ -73,7 +76,7 @@
 {:else}
   <AnswerForm
     id="{uid}-guess"
-    label="Your best guess{unitAside} — the closest one wins"
+    label="Your guess{unitAside}"
     ready={guess !== null}
     onsubmit={submit}
   >
@@ -91,6 +94,8 @@
     {#snippet after()}
       {#if text.trim() !== '' && guess === null}
         <p class="note">That is not a number. 12,500 and 1.6m both are.</p>
+      {:else}
+        <p class="note">{scores}</p>
       {/if}
     {/snippet}
   </AnswerForm>
