@@ -77,7 +77,7 @@ describe('WallLights', () => {
     expect(lights(container)).toEqual(['left', 'right'])
     expect(container.querySelectorAll('[data-light] svg[viewBox="0 0 100 160"]')).toHaveLength(2)
     const glow = /\[data-lights='tzhaar'\] \.light \{([^}]*)\}/.exec(source)?.[1] ?? ''
-    const mask = /mask-image: linear-gradient\(to bottom, #000 (\d+)%, transparent (\d+)%\)/.exec(
+    const mask = /mask-image: linear-gradient\(to bottom, black (\d+)%, transparent (\d+)%\)/.exec(
       glow,
     )
     expect(mask).not.toBeNull()

@@ -168,7 +168,7 @@
       var(--light-mid) 45%,
       transparent 100%
     );
-    mask-image: linear-gradient(to bottom, #000 38%, transparent 56%);
+    mask-image: linear-gradient(to bottom, black 38%, transparent 56%);
   }
 
   .light.left {
