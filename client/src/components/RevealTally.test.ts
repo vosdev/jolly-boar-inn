@@ -3,7 +3,7 @@
  * group of answers that were not right, with its count, and its names only when the host
  * asked for them; then who did not answer, muted. What a group is depends on the type:
  * the option for a pick of one, the typed form for free text, the entry for a list, the
- * rank for closest number, right picks for pick all, entries in place for ordering,
+ * closeness for a number, right picks for pick all, entries in place for ordering,
  * fields right for matching.
  */
 
@@ -208,27 +208,22 @@ describe('RevealTally', () => {
     await waitFor(() => expect(lines(container)).toEqual(['Bob (1): Zezima (you)']))
   })
 
-  it('groups a closest-number guess by its rank, with each guess, furthest off first', () => {
+  it('groups closest-number guesses by whether they scored, with each guess', () => {
     const { container } = draw(
       {
         a: right(100, 1000),
-        b: partly(0.9, 98),
-        c: partly(0.8, 104),
-        d: partly(0.7, 90),
-        e: partly(0.7, 111),
-        f: wrong(5000),
-        g: wrong(300),
+        b: partly(0.7, 98),
+        c: partly(0.25, 110),
+        d: wrong(5000),
+        e: wrong(300),
       },
-      { type: 'closest_number', reveal: { answer: 100 } },
+      { type: 'closest_number', reveal: { answer: 100, within: 10, unit: 'kc' } },
     )
-    expect(count(container)).toBe('1 of 7 guessed it exactly')
+    expect(count(container)).toBe('1 of 5 guessed it exactly')
     expect(lines(container)).toEqual([
-      'Closest (1): Woox 98',
-      'Second closest (1): Lynx 104',
-      'Third closest (2): Alkan 111 · Dorn 90',
-      'Further off (2): Tehnoobshow 5,000 · Mod Ash 300',
+      'Close (2): Lynx 110 kc · Woox 98 kc',
+      'Further off (2): Alkan 300 kc · Dorn 5,000 kc',
     ])
-    expect(container.textContent).not.toContain('%')
   })
 
   it('groups a pick-all answer by its right picks, with picks set', () => {

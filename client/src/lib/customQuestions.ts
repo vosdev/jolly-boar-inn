@@ -240,6 +240,12 @@ export interface Draft {
   max: string
   /** A slider's scale, or '' to take the one its ends suggest (`defaultScale`). */
   scale: Scale | ''
+  /**
+   * How far off a closest-number guess still scores, as a share of the answer from
+   * `WITHIN_PERCENTS`, or null to keep `withinKept`, a `within` no share gives.
+   */
+  withinPercent: number | null
+  withinKept: number | null
   explanation: string
   /** An NPC id, or '' for the room to draw one. */
   npc: string
@@ -263,10 +269,24 @@ const EDITED = new Set([
   'min',
   'max',
   'scale',
+  'within',
   'explanation',
 ])
 
 export const MAX_DISTANCE_DEFAULT = field('free_text', 'max_distance').default as number
+
+/** The shares of the answer a closest-number question offers to score within; 0 is exact only. */
+export const WITHIN_PERCENTS = [0, 5, 10, 25] as const
+
+/**
+ * `within` for `percent` of `answer`, or null for exact only. A whole answer gets a whole
+ * `within` of at least 1, so 5% of 13 still lets a guess of 12 score.
+ */
+export function withinFor(answer: number, percent: number): number | null {
+  const share = (Math.abs(answer) * percent) / 100
+  if (share === 0) return null
+  return Number.isInteger(answer) ? Math.max(1, Math.round(share)) : Number(share.toPrecision(3))
+}
 
 /** A blank draft, or `question` opened for editing. */
 export function draftOf(question?: CustomQuestion): Draft {
@@ -291,6 +311,7 @@ export function draftOf(question?: CustomQuestion): Draft {
     min: typeof p.min === 'number' ? String(p.min) : '',
     max: typeof p.max === 'number' ? String(p.max) : '',
     scale: p.scale === 'linear' || p.scale === 'log' ? p.scale : '',
+    ...withinOf(p.answer, p.within),
     explanation: text(p.explanation),
     npc: question?.random_event ?? '',
     extra: Object.fromEntries(Object.entries(p).filter(([key]) => !EDITED.has(key))),
@@ -333,6 +354,16 @@ export function questionOf(draft: Draft): CustomQuestion {
       if (typed !== '') payload[key] = Number.isFinite(number) ? number : typed
     }
     put('answer', draft.answer)
+    if (draft.type === 'closest_number') {
+      const answer = payload.answer
+      const within =
+        draft.withinPercent === null
+          ? draft.withinKept
+          : typeof answer === 'number'
+            ? withinFor(answer, draft.withinPercent)
+            : null
+      if (within !== null) payload.within = within
+    }
     const unit = draft.unit.trim()
     if (unit !== '') payload.unit = unit
     if (draft.type === 'number_slider') {
@@ -348,6 +379,18 @@ export function questionOf(draft: Draft): CustomQuestion {
     : { type: draft.type, payload, random_event: draft.npc }
 }
 
+/** A stored `within` as the form offers it: the share that gives it, or kept as it is. */
+function withinOf(answer: unknown, within: unknown): Pick<Draft, 'withinPercent' | 'withinKept'> {
+  if (typeof within !== 'number') return { withinPercent: 0, withinKept: null }
+  const percent =
+    typeof answer === 'number'
+      ? WITHIN_PERCENTS.find((share) => share > 0 && withinFor(answer, share) === within)
+      : undefined
+  return percent === undefined
+    ? { withinPercent: null, withinKept: within }
+    : { withinPercent: percent, withinKept: null }
+}
+
 /** The scale a slider's ends suggest, before its author picks one. */
 export function scaleFor(draft: Draft): Scale {
   const low = Number(draft.min.trim())
@@ -359,7 +402,7 @@ export function scaleFor(draft: Draft): Scale {
 const OPEN_KEYS: Record<CustomType, string[]> = {
   multiple_choice: ['intro', 'prompt', 'quote', 'options'],
   free_text: ['intro', 'prompt'],
-  closest_number: ['intro', 'prompt', 'unit'],
+  closest_number: ['intro', 'prompt', 'within', 'unit'],
   number_slider: ['intro', 'prompt', 'unit', 'min', 'max', 'scale'],
   pick_all_that_apply: ['intro', 'prompt', 'options', 'picks'],
 }
@@ -427,6 +470,7 @@ const PLACES: Record<string, string> = {
   'payload.min': 'lowest',
   'payload.max': 'highest',
   'payload.scale': 'slider scale',
+  'payload.within': 'scores within',
   'payload.explanation': 'explanation',
   'payload.image': 'picture',
 }

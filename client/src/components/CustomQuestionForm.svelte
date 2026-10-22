@@ -27,6 +27,8 @@
     problems,
     questionOf,
     scaleFor,
+    WITHIN_PERCENTS,
+    withinFor,
     type CustomQuestion,
     type CustomType,
   } from '../lib/customQuestions'
@@ -143,6 +145,25 @@
   const introMax = $derived(limit(field(draft.type, 'intro'), 'maxLength'))
   const explanationMax = $derived(limit(field(draft.type, 'explanation'), 'maxLength'))
   const built = $derived(questionOf(draft))
+  const withins = $derived([
+    ...WITHIN_PERCENTS.map((share) => ({
+      value: String(share),
+      label: share === 0 ? 'Exact only (0%)' : `Within ${share}%`,
+    })),
+    ...(draft.withinKept === null
+      ? []
+      : [{ value: 'kept', label: `Within ${written(draft.withinKept)}` }]),
+  ])
+  const answered = $derived(draft.answer.trim() === '' ? NaN : Number(draft.answer.trim()))
+  const scored = $derived.by((): number | null => {
+    if (!Number.isFinite(answered)) return null
+    if (draft.withinPercent === null) return draft.withinKept
+    return withinFor(answered, draft.withinPercent)
+  })
+
+  function written(n: number): string {
+    return n.toLocaleString('en-GB', { maximumFractionDigits: 6 })
+  }
   const unnamed: Problem = { path: 'random_event', message: 'Pick who asks it.', kind: 'missing' }
   const found = $derived([
     ...problems(built),
@@ -152,7 +173,7 @@
 
   /** Paths the form has a place for; anything else is listed under the form. */
   const PLACED =
-    /^(payload\.(prompt|quote|options|answer_index|answer_indices|picks|accepted|max_distance|answer|unit|min|max|scale|explanation)(\[\d+\])?|random_event)$/
+    /^(payload\.(prompt|quote|options|answer_index|answer_indices|picks|accepted|max_distance|answer|unit|min|max|scale|within|explanation)(\[\d+\])?|random_event)$/
   const showIntro = $derived(pack || intro)
   const unplaced = $derived(
     shown.filter(
@@ -455,7 +476,28 @@
             slider starts. The closer a guess, the more it scores.
           </p>
         {:else}
-          <p class="note closest">The closest guess wins, ties included.</p>
+          <div class="field">
+            <Segmented
+              legend="Scores"
+              options={withins}
+              bind:value={
+                () => (draft.withinPercent === null ? 'kept' : String(draft.withinPercent)),
+                (value) => (draft.withinPercent = value === 'kept' ? null : Number(value))
+              }
+            />
+            {@render errors('payload.within')}
+          </div>
+          <p class="note closest">
+            {#if scored !== null}
+              The exact answer scores 1000; {written(answered - scored)} to {written(
+                answered + scored,
+              )} scores 750 down to 250.
+            {:else if draft.withinPercent === 0}
+              Only the exact answer scores. Pick this for years and counts players should know.
+            {:else}
+              The exact answer scores 1000, a guess in range 750 down to 250.
+            {/if}
+          </p>
         {/if}
       {/if}
 

@@ -170,8 +170,8 @@ class Submitted:
     """One player's answer to one question, in memory.
 
     ``band`` is fixed at receive time from ``received_at - answerable_at`` (section 6); the
-    client never sends a time. It is ``None`` for a question scored on ``RANK``, where
-    nothing is known until everyone has answered, and for ``SPEED`` in a team game.
+    client never sends a time. It is ``None`` for a question scored on ``ACCURACY``, where
+    the clock does not count, and for ``SPEED`` in a team game.
     ``credit``, ``correct`` and ``points`` stay ``None`` until the question closes and
     grading writes them here, and the last two to the ``answers`` row. ``credit`` has no
     column: it goes out once with the reveal, and the table keeps what the standings are

@@ -1,31 +1,25 @@
-"""Closest number: a question with a number for an answer, and whoever gets nearest wins.
+"""Closest number: a question with a number for an answer, typed rather than slid.
 
 Payload shape (schema ``$defs/closest_number``)::
 
-    {"intro"?: str, "prompt": str, "answer": number, "unit"?: str, "image"?: asset,
-     "explanation"?: str}
+    {"intro"?: str, "prompt": str, "answer": number, "within"?: number, "unit"?: str,
+     "image"?: asset, "explanation"?: str}
 
-The host's favourite question -- how many Zulrah kills does the clan's worst pker have, how
-many hours did the Inferno cape take -- and the one type nobody is expected to get right.
-So it is not scored on right and wrong, and not on speed either: the closest guess should
-win whether it arrived first or last (``SCORING = RANK``, section 6). That is also why
-``grade`` takes every submission at once, which is the reason every type's ``grade`` does.
+Each guess is measured against the answer alone, never against the room's other guesses,
+so a room where everybody is far off pays nobody. An exact guess is 1.0. ``within``, in
+the answer's unit, is how far off still scores: 0.75 just off the answer, falling linearly
+to 0.25 at ``within`` itself, and 0.0 past it. Without ``within`` only the exact answer
+scores, which is what a year or a quest count wants: 2017 is not nearly 2013. Players see
+``within`` while the question is open, so they know whether to be precise or to estimate.
 
-The credit ladder is section 6's table. An exact guess is 1.0, whatever anyone else did;
-then the closest guesses that were not exact are 0.9, the next closest 0.8, the next 0.7,
-and every other answer 0.0, which the reveal tally counts as wrong. A player who sent
-nothing is not in ``submissions`` and so not in what this returns.
-
-Ties share the better rank, and the ranks are dense: two players the same distance away
-are both "closest", and the guess behind them is second closest, not third. That is the
-rule the standings already count ranks by, and it reads the way a host would call it out:
-the second-closest *guess*, however many people made the closest one.
+Speed does not count (``SCORING = ACCURACY``, section 8): a number takes thinking, and a
+player who knows that takes the whole clock rather than rushing a guess in.
 
 ``parse_value`` takes an int or a float and nothing else, and only a finite one. JSON
 parsing here will turn ``1e400`` into infinity and accept ``NaN``, and a huge integer
 cannot be subtracted from a float answer at all, so any of the three would reach the close
 and stop the room's timer task with an exception rather than being refused on arrival.
-``check`` holds a stored ``answer`` to the same rule.
+``check`` holds a stored ``answer`` and ``within`` to the same rule.
 """
 
 import math
@@ -37,21 +31,20 @@ from app.questions.submission import Submission
 from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
-SCORING = Scoring.RANK
-# A number to think about and type; the reveal ranks everyone's guesses.
+SCORING = Scoring.ACCURACY
+# A number to think about and type; the reveal lists everyone's guesses.
 ANSWER = Timing(base=20)
 REVEAL = Timing(base=8)
 
 EXACT = 1.0
-# The closest non-exact guess, the next, the next; then everybody else who answered.
-LADDER = (0.9, 0.8, 0.7)
-FURTHER = 0.0
+# Credit just off the answer and at ``within``: a near miss is clearly worth less than exact.
+NEAR, EDGE = Decimal("0.75"), Decimal("0.25")
 
-_OPEN_KEYS = ("intro", "prompt", "unit")
+_OPEN_KEYS = ("intro", "prompt", "within", "unit")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:
-    """What everyone sees while it is open: the question and the unit to answer in."""
+    """What everyone sees while it is open: the question, how close scores, and the unit."""
     return {key: payload[key] for key in _OPEN_KEYS if key in payload}
 
 
@@ -65,11 +58,16 @@ def reveal(payload: dict[str, Any]) -> dict[str, Any]:
 
 def grade(payload: dict[str, Any], submissions: list[Submission]) -> dict[UUID, float]:
     answer = _as_written(payload["answer"])
-    off = {s.player_id: abs(_as_written(s.value) - answer) for s in submissions}
-    # Dense ranks over the distinct misses: equal distances share one rung of the ladder.
-    misses = sorted({distance for distance in off.values() if distance != 0})
-    rung = {miss: LADDER[i] if i < len(LADDER) else FURTHER for i, miss in enumerate(misses)}
-    return {pid: EXACT if distance == 0 else rung[distance] for pid, distance in off.items()}
+    within = _as_written(payload.get("within", 0))
+    return {s.player_id: _credit(abs(_as_written(s.value) - answer), within) for s in submissions}
+
+
+def _credit(off: Decimal, within: Decimal) -> float:
+    if off == 0:
+        return EXACT
+    if off > within:
+        return 0.0
+    return float(NEAR - (NEAR - EDGE) * off / within)
 
 
 def parse_value(payload: dict[str, Any], value: Any) -> int | float | None:
@@ -81,16 +79,19 @@ def parse_value(payload: dict[str, Any], value: Any) -> int | float | None:
 
 
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: the answer is a number a guess can be measured against."""
+    """Consistency: the answer and ``within`` are numbers a guess can be measured against."""
+    problems = []
     answer = payload["answer"]
     if not _finite(answer):
-        return [f"answer: {answer!r} is not a finite number, so no guess can be closest"]
-    return []
+        problems.append(f"answer: {answer!r} is not a finite number, so no guess can be closest")
+    if "within" in payload and not _finite(payload["within"]):
+        problems.append(f"within: {payload['within']!r} is not a finite number")
+    return problems
 
 
 def _as_written(value: int | float) -> Decimal:
     """The number as the decimal it was typed as. In float arithmetic 1.1 and 0.9 are not
-    quite the same distance from 1, and a player who guessed either would call it a tie.
+    quite the same distance from 1, and a guess exactly ``within`` off could fall outside it.
     """
     return Decimal(str(value))
 

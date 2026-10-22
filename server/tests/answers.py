@@ -92,7 +92,7 @@ _WRONG: dict[str, Callable[[dict[str, Any]], Any]] = {
     "price_is_right": _far_end,
     "multiple_choice": _another_shown_option,
     "pick_from_list": _another_entry,
-    "closest_number": lambda payload: payload["answer"] + 1,
+    "closest_number": lambda payload: payload["answer"] + payload.get("within", 0) + 1,
     "number_slider": _far_bound,
     "free_text": _nothing_like_it,
     "pick_all_that_apply": _only_wrong,

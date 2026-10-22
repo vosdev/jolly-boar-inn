@@ -1,5 +1,5 @@
 """A team game scores on accuracy alone: the ack carries no speed band and the close pays
-``1000 x credit``, while ``RANK`` and ``STEP`` questions pay what they always paid."""
+``1000 x credit``, while ``ACCURACY`` and ``STEP`` questions pay what they always paid."""
 
 from typing import Any
 from uuid import UUID
@@ -61,8 +61,8 @@ def test_partial_credit_pays_its_share_of_1000(table, db, monkeypatch) -> None:
     assert {(row["player_id"], row["points"]) for row in rows} == {(UUID(zezima.id), 600)}
 
 
-def test_a_rank_question_pays_its_usual_points(table, monkeypatch) -> None:
-    monkeypatch.setattr(more_less, "SCORING", Scoring.RANK, raising=False)
+def test_an_accuracy_question_pays_its_usual_points(table, monkeypatch) -> None:
+    monkeypatch.setattr(more_less, "SCORING", Scoring.ACCURACY, raising=False)
     game = team_table(table, "Zezima", "Woox")
     zezima, woox = game.players
     game.start()
@@ -70,7 +70,7 @@ def test_a_rank_question_pays_its_usual_points(table, monkeypatch) -> None:
     for seat, right in ((zezima, True), (woox, False)):
         value = game.right(0) if right else game.wrong(0)
         ack = answer_after(game, seat, 0, value, AFTER[3])
-        assert (ack["scoring"], ack["band"]) == ("rank", None)
+        assert (ack["scoring"], ack["band"]) == ("accuracy", None)
     game.skip()
     closed = game.admin.take("question_closed")
     assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 0}

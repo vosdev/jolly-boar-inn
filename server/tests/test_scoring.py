@@ -5,8 +5,8 @@ all of this encodes; the sums those standings are built from are test_game.py's 
 
 A table per scoring. ``SPEED`` pays a bucket's points times the credit, so
 0.6 in bucket 2 is 540; ``STEP`` pays 1000 down to 400 across the steps, 1000 for a
-one-step question, and clamps a step past the last; ``RANK`` pays a share of 1000 for the
-rung the credit reached and never looks at the clock. The bucket edges above them are
+one-step question, and clamps a step past the last; ``ACCURACY`` pays 1000 times the
+credit and never looks at the clock. The bucket edges above them are
 the original ones, untouched.
 
 The bucket edges are inclusive and are fractions of the room's ``question_seconds``, so
@@ -124,7 +124,7 @@ def test_bucket_is_always_a_valid_bucket(elapsed_s: float) -> None:
 
 def test_the_scorings_are_the_wire_strings() -> None:
     """``answer_ack.scoring`` is the member itself, so its value is the protocol."""
-    assert [s.value for s in Scoring] == ["speed", "rank", "step"]
+    assert [s.value for s in Scoring] == ["speed", "accuracy", "step"]
 
 
 def test_a_type_that_says_nothing_is_scored_on_speed() -> None:
@@ -134,9 +134,9 @@ def test_a_type_that_says_nothing_is_scored_on_speed() -> None:
 
 def test_a_type_that_says_something_is_scored_its_way(monkeypatch) -> None:
     stub = ModuleType("closest_number")
-    stub.SCORING = Scoring.RANK  # type: ignore[attr-defined]
+    stub.SCORING = Scoring.ACCURACY  # type: ignore[attr-defined]
     monkeypatch.setitem(TYPES, "closest_number", stub)
-    assert scoring_of("closest_number") is Scoring.RANK
+    assert scoring_of("closest_number") is Scoring.ACCURACY
 
 
 @pytest.mark.parametrize(
@@ -144,8 +144,8 @@ def test_a_type_that_says_something_is_scored_its_way(monkeypatch) -> None:
     [
         (Scoring.SPEED, None, Scoring.SPEED),
         (Scoring.SPEED, 8, Scoring.SPEED),  # steps turn nothing into STEP
-        (Scoring.RANK, None, Scoring.RANK),
-        (Scoring.RANK, 8, Scoring.RANK),
+        (Scoring.ACCURACY, None, Scoring.ACCURACY),
+        (Scoring.ACCURACY, 8, Scoring.ACCURACY),
         (Scoring.STEP, 8, Scoring.STEP),
         (Scoring.STEP, 1, Scoring.STEP),
         (Scoring.STEP, None, Scoring.SPEED),  # a question that never changes
@@ -314,46 +314,35 @@ def test_step_without_steps_is_scored_on_speed() -> None:
     assert points_for(Scoring.STEP, 0.6, 2, None) == 540
 
 
-# --- RANK: the credit is the ranking, and the clock is nobody's business -------------
+# --- ACCURACY: credit times 1000, and the clock is nobody's business -----------------
 
-# Section 6's table: exact, then the closest three, then nothing. A credit between rungs
-# is paid at the rung it reached.
-RANK = [
-    (1.0, 1000),
-    (0.95, 750),
-    (0.9, 750),
-    (0.8, 500),
-    (0.7, 250),
-    (0.69, 0),
-    (0.2, 0),
-    (0.0, 0),
-]
+ACCURACY = [(1.0, 1000), (0.75, 750), (0.5, 500), (0.25, 250), (0.2, 200), (0.0, 0)]
 
 
-@pytest.mark.parametrize(("credit", "points"), RANK)
-def test_rank_points(credit: float, points: int) -> None:
-    assert points_for(Scoring.RANK, credit, None, None) == points
+@pytest.mark.parametrize(("credit", "points"), ACCURACY)
+def test_accuracy_points(credit: float, points: int) -> None:
+    assert points_for(Scoring.ACCURACY, credit, None, None) == points
 
 
-@pytest.mark.parametrize(("credit", "points"), RANK)
-def test_rank_ignores_elapsed_time_entirely(credit: float, points: int) -> None:
+@pytest.mark.parametrize(("credit", "points"), ACCURACY)
+def test_accuracy_ignores_elapsed_time_entirely(credit: float, points: int) -> None:
     """The same answer scored one second in and at twenty-nine is worth the
     same. There is no band to carry the difference, so there is nothing to pay it on."""
-    early = band(Scoring.RANK, 1.0, 30, None)
-    late = band(Scoring.RANK, 29.0, 30, None)
+    early = band(Scoring.ACCURACY, 1.0, 30, None)
+    late = band(Scoring.ACCURACY, 29.0, 30, None)
     assert early is None and late is None
-    assert points_for(Scoring.RANK, credit, early, None) == points
-    assert points_for(Scoring.RANK, credit, late, None) == points
+    assert points_for(Scoring.ACCURACY, credit, early, None) == points
+    assert points_for(Scoring.ACCURACY, credit, late, None) == points
 
 
 @pytest.mark.parametrize("elapsed_s", [-1.0, 0.0, 1.0, 15.0, 29.0, 30.0, 600.0])
-def test_rank_has_no_band(elapsed_s: float) -> None:
-    assert band(Scoring.RANK, elapsed_s, 30, None) is None
-    assert band(Scoring.RANK, elapsed_s, 30, 8) is None
+def test_accuracy_has_no_band(elapsed_s: float) -> None:
+    assert band(Scoring.ACCURACY, elapsed_s, 30, None) is None
+    assert band(Scoring.ACCURACY, elapsed_s, 30, 8) is None
 
 
-def test_rank_pays_no_attention_to_a_band_it_is_handed() -> None:
-    assert {points_for(Scoring.RANK, 0.8, b, None) for b in (None, 1, 5)} == {500}
+def test_accuracy_pays_no_attention_to_a_band_it_is_handed() -> None:
+    assert {points_for(Scoring.ACCURACY, 0.5, b, None) for b in (None, 1, 5)} == {500}
 
 
 # --- credit is 0..1 whatever pays it -------------------------------------------------
@@ -362,7 +351,7 @@ def test_rank_pays_no_attention_to_a_band_it_is_handed() -> None:
 @pytest.mark.parametrize("credit", [-0.1, 1.0001, 2.0, math.nan])
 @pytest.mark.parametrize(
     ("scoring", "band_number", "steps"),
-    [(Scoring.SPEED, 1, None), (Scoring.STEP, 1, 8), (Scoring.RANK, None, None)],
+    [(Scoring.SPEED, 1, None), (Scoring.STEP, 1, 8), (Scoring.ACCURACY, None, None)],
 )
 def test_credit_outside_zero_to_one_is_refused(
     scoring: Scoring, band_number: int | None, steps: int | None, credit: float

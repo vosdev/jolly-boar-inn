@@ -5,10 +5,10 @@ the numbers are argued about.
 
 Grading happens in two halves. A type's ``grade`` returns credit, 0.0 to 1.0, and this
 module turns credit into points one of three ways, picked by the type's ``SCORING``: a
-speed bucket (``SPEED``), a share of 1000 for the rung the credit reached (``RANK``, where
-the credit is already the ranking), or the step of a question that shows more of itself as
-it runs (``STEP``). ``SPEED`` and ``STEP`` are one table and one multiplication, so partial
-credit needs nothing of its own: three of five in the right place in bucket 2 is 900 x 0.6.
+speed bucket (``SPEED``), 1000 whatever the clock says (``ACCURACY``), or the step of a
+question that shows more of itself as it runs (``STEP``). Each is one number times credit,
+so partial credit needs nothing of its own: three of five in the right place in bucket 2
+is 900 x 0.6.
 
 The bucket edges are fractions of the question's own length -- its mode's ``seconds`` --
 rather than absolute seconds, so a slow round and a quick one in the same game are both
@@ -17,13 +17,12 @@ scored on how fast you were for that round: a 30-second question buckets at 3 / 
 evenly, so step ``k`` of ``n`` is on screen for the ``k``-th ``n``-th of it.
 
 The *band* is what an answer earns the moment it arrives, before anything is graded: its
-bucket, its step, or nothing at all for ``RANK``, where a guess's worth depends on guesses
-that have not arrived yet. ``answer_ack`` carries it, and ``points_for`` reads it back at
-the close.
+bucket, its step, or nothing at all for ``ACCURACY``, where the clock does not count.
+``answer_ack`` carries it, and ``points_for`` reads it back at the close.
 
 A team game scores on accuracy alone: ``SPEED`` has no band there and pays its top bucket
-times credit, so a teammate who reads slowly costs the team nothing. ``RANK`` and ``STEP``
-already pay for something other than speed and score as ever.
+times credit, so a teammate who reads slowly costs the team nothing. ``ACCURACY`` and
+``STEP`` already pay for something other than speed and score as ever.
 """
 
 import logging
@@ -42,10 +41,7 @@ BUCKETS: tuple[tuple[float, int], ...] = (
     (1.00, 600),
 )
 SLOWEST = len(BUCKETS)
-RANK_TOP = 1000
-# (least credit, share of RANK_TOP), best first. The rungs pay less than their credit so
-# that being nearly right is clearly worth less than being right; below the last, nothing.
-RANK_SHARES: tuple[tuple[float, float], ...] = ((1.0, 1.0), (0.9, 0.75), (0.8, 0.5), (0.7, 0.25))
+ACCURACY_TOP = 1000
 STEP_TOP, STEP_BOTTOM = 1000, 400
 
 
@@ -100,15 +96,15 @@ def effective(scoring: Scoring, steps: int | None) -> Scoring:
 def band(
     scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None, *, team: bool = False
 ) -> int | None:
-    """What an answer has earned on arrival: its bucket, its step, or ``None`` for ``RANK``
-    and for ``SPEED`` in a team game."""
+    """What an answer has earned on arrival: its bucket, its step, or ``None`` for
+    ``ACCURACY`` and for ``SPEED`` in a team game."""
     match how := effective(scoring, steps):
         case Scoring.SPEED:
             return None if team else bucket(elapsed_s, question_s)
         case Scoring.STEP:
             assert steps is not None  # ``effective`` made it SPEED otherwise
             return step(elapsed_s, question_s, steps)
-        case Scoring.RANK:
+        case Scoring.ACCURACY:
             return None
         case _:
             assert_never(how)
@@ -117,8 +113,8 @@ def band(
 def points_for(
     scoring: Scoring, credit: float, band: int | None, steps: int | None, *, team: bool = False
 ) -> int:
-    """Points for one graded answer: the scoring's table at ``band`` times ``credit``, or for
-    ``RANK`` the share of its top for the rung ``credit`` reached.
+    """Points for one graded answer: the scoring's table at ``band``, or 1000 for
+    ``ACCURACY``, times ``credit``.
 
     ``band`` is one this module's ``band()`` returned for the same scoring, steps and
     ``team``; nothing else produces them. A wrong answer, like no answer at all, is worth 0.
@@ -135,9 +131,8 @@ def points_for(
         case Scoring.STEP:
             assert band is not None and steps is not None
             top = step_points(band, steps)
-        case Scoring.RANK:
-            share = next((share for least, share in RANK_SHARES if credit >= least), 0.0)
-            return round(RANK_TOP * share)
+        case Scoring.ACCURACY:
+            top = ACCURACY_TOP
         case _:
             assert_never(how)
     return round(top * credit)

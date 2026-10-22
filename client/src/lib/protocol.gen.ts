@@ -39,7 +39,7 @@ export type ServerMessage =
 /**
  * The values are what `answer_ack.scoring` carries on the wire.
  */
-export type Scoring = 'speed' | 'rank' | 'step'
+export type Scoring = 'speed' | 'accuracy' | 'step'
 
 export interface Hello {
   t: 'hello'
@@ -479,9 +479,8 @@ export interface QuestionOpen {
  * How the answer will be scored and where it landed, never whether it was right.
  *
  * `band` is the speed bucket (1..5) for `speed`, the step the answer arrived on for
- * `step`, and null for `rank`: a guess ranked against everyone else's is worth
- * nothing anybody can know until they have all answered. A team game scores `speed` on
- * accuracy alone, so its band is null there too.
+ * `step`, and null for `accuracy`, where the clock does not count. A team game scores
+ * `speed` on accuracy alone, so its band is null there too.
  */
 export interface AnswerAck {
   t: 'answer_ack'

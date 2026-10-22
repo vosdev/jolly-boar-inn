@@ -115,6 +115,7 @@ EXAMPLES: dict[str, Example] = {
         payload={
             "prompt": "How many Zulrah kills did it take?",
             "answer": 100,
+            "within": 5,
             "unit": "kc",
             "image": "npc:2042",
             "explanation": "Counted from the collection log.",
@@ -124,7 +125,7 @@ EXAMPLES: dict[str, Example] = {
         right=100,
         wrong=7,
         secret=frozenset({"answer", "explanation"}),
-        scoring=Scoring.RANK,
+        scoring=Scoring.ACCURACY,
         seconds=(20, 8),
     ),
     "number_slider": Example(

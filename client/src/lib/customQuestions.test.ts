@@ -17,6 +17,7 @@ import {
   previewOf,
   problems,
   questionOf,
+  withinFor,
   type CustomQuestion,
 } from './customQuestions'
 import { RANDOM_EVENTS } from './randomEvents'
@@ -202,6 +203,49 @@ describe('a slider', () => {
       min: 1,
       max: 99,
       scale: 'linear',
+    })
+  })
+})
+
+describe('a closest number', () => {
+  const near = (within: number) => ({ ...NUMBER, payload: { ...NUMBER.payload, within } })
+
+  it('turns a share of the answer into within, whole for a whole answer', () => {
+    expect(withinFor(850, 0)).toBeNull()
+    expect(withinFor(850, 10)).toBe(85)
+    expect(withinFor(-850, 10)).toBe(85)
+    expect(withinFor(13, 5)).toBe(1)
+    expect(withinFor(2.5, 5)).toBe(0.125)
+    expect(withinFor(0, 25)).toBeNull()
+  })
+
+  it('writes the share picked as within, and leaves it out for exact only', () => {
+    const draft = draftOf(NUMBER)
+    expect(draft.withinPercent).toBe(0)
+    expect(questionOf(draft).payload).not.toHaveProperty('within')
+    expect(questionOf({ ...draft, withinPercent: 25 }).payload.within).toBe(1000)
+    expect(questionOf({ ...draft, withinPercent: 25, answer: '2013' }).payload.within).toBe(503)
+  })
+
+  it('opens a within as the share that gives it, or keeps one no share gives', () => {
+    expect(draftOf(near(400))).toMatchObject({ withinPercent: 10, withinKept: null })
+    expect(draftOf(near(7))).toMatchObject({ withinPercent: null, withinKept: 7 })
+    expect(questionOf(draftOf(near(7)))).toEqual(near(7))
+    expect(questionOf({ ...draftOf(near(7)), answer: '9000' }).payload.within).toBe(7)
+    expect(questionOf({ ...draftOf(near(7)), withinPercent: 0 }).payload).not.toHaveProperty(
+      'within',
+    )
+  })
+
+  it('refuses a within that is not above 0', () => {
+    expect(paths(near(0))).toEqual([expect.stringMatching(/^payload\.within: /)])
+  })
+
+  it('previews how close scores to players, not the answer', () => {
+    expect(previewOf(near(400)).view).toEqual({
+      prompt: NUMBER.payload.prompt,
+      within: 400,
+      unit: 'kills',
     })
   })
 })
