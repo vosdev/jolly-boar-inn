@@ -159,8 +159,8 @@ function shownNames(selector: string): string[] {
 
 /** Turn the team game on. */
 async function teamGame(): Promise<void> {
-  const choice = screen.getByRole('group', { name: 'Team game' })
-  await fireEvent.click(within(choice).getByRole('radio', { name: 'On' }))
+  const choice = screen.getByRole('group', { name: 'Play as' })
+  await fireEvent.click(within(choice).getByRole('radio', { name: 'Teams' }))
 }
 
 /** The gods ticked, by name. */
@@ -695,8 +695,8 @@ describe('Create', () => {
     await loaded(...BOTH)
     await teamGame()
     await pick('Zamorak')
-    const choice = screen.getByRole('group', { name: 'Team game' })
-    await fireEvent.click(within(choice).getByRole('radio', { name: 'Off' }))
+    const choice = screen.getByRole('group', { name: 'Play as' })
+    await fireEvent.click(within(choice).getByRole('radio', { name: 'Individuals' }))
     expect(createButton().disabled).toBe(false)
     expect((await submitted()).teams).toEqual([])
   })
