@@ -5,7 +5,7 @@
    *
    * Three states, each told by more than a hue so it survives every theme and a player who
    * cannot tell the theme's hues apart: an away player's pet fades to grey, a connected
-   * one is drawn whole, and a ready one is also outlined and named in `--ok`.
+   * one is drawn whole, and a ready one also carries a tick and is named in `--ok`.
    */
   import { petOf } from '../lib/pets'
   import type { PlayerView } from '../lib/protocol'
@@ -24,6 +24,11 @@
 >
   <span class="face">
     <Pet pet={petOf(player)} size={48} label="" />
+    {#if ready && player.connected}
+      <svg class="tick" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M4 8.5l2.5 2.5L12 5.5" />
+      </svg>
+    {/if}
   </span>
   <span class="pet-name">{player.display_name}</span>
   {#if status !== ''}<span class="status">{status}</span>{/if}
@@ -38,15 +43,30 @@
     gap: 0.15rem;
     width: 100%;
     padding: 0.2rem 0;
-    border-radius: min(var(--radius), 8px);
-    outline: 2px solid transparent;
-    outline-offset: -2px;
     color: var(--ink);
-    transition: outline-color 200ms ease-out;
+    transition: color 200ms ease-out;
   }
 
   .face {
+    position: relative;
     display: inline-flex;
+  }
+
+  /* Over the pet's corner, ringed in the panel so it stands off any pet's colours. */
+  .tick {
+    position: absolute;
+    right: -0.35rem;
+    bottom: -0.15rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid var(--panel);
+    border-radius: 50%;
+    background: var(--ok);
+    fill: none;
+    stroke: var(--ok-ink);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   /* Opacity and not colour, so an away pet reads the same in every theme. The name is
@@ -58,13 +78,11 @@
   }
 
   .lit {
-    outline-color: var(--ok);
     color: var(--ok);
   }
 
   /* After .lit: a ready player who has left is away first, since nobody counts them. */
   .away {
-    outline-color: transparent;
     color: var(--muted);
   }
 

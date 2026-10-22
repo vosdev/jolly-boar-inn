@@ -144,6 +144,8 @@
   let failure = $state<string | null>(null)
   /** The code the room will get, or null if the server could not hand one out: it draws then. */
   let code = $state<string | null>(null)
+  let rerollHeld = $state(false)
+  let rerollTimer: ReturnType<typeof setTimeout> | undefined
   /** Whether this browser already hosts as many rooms as it may, or null until known. */
   let full = $state<boolean | null>(null)
 
@@ -267,14 +269,22 @@
         (pacingFailure =
           error instanceof ApiFailure ? error.message : 'could not reach the server'),
     )
-    return () => query.removeEventListener('change', change)
+    return () => {
+      query.removeEventListener('change', change)
+      clearTimeout(rerollTimer)
+    }
   })
 
   async function reroll(): Promise<void> {
     try {
       code = await getFreeCode()
-    } catch {
+    } catch (error) {
       // A rate-limited or failed reroll keeps the code already shown.
+      if (error instanceof ApiFailure && error.retryAfterMs !== undefined) {
+        rerollHeld = true
+        clearTimeout(rerollTimer)
+        rerollTimer = setTimeout(() => (rerollHeld = false), error.retryAfterMs)
+      }
     }
   }
 
@@ -457,7 +467,13 @@
         <span class="note">Room code</span>
         <span class="roomcode">
           <b>{code}</b>
-          <button type="button" class="reroll" aria-label="Reroll" onclick={reroll} disabled={busy}>
+          <button
+            type="button"
+            class="reroll"
+            aria-label="Reroll"
+            onclick={reroll}
+            disabled={busy || rerollHeld}
+          >
             {@render rerollIcon()}
           </button>
         </span>
@@ -631,6 +647,7 @@
     questions={totalCount}
     details="{paceLabel} pace · {eventCount} random event{eventCount === 1 ? '' : 's'} · {duration}"
     {busy}
+    held={rerollHeld}
     {failure}
     onreroll={reroll}
     onconfirm={() => void create()}

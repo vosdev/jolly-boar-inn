@@ -36,17 +36,12 @@ describe('Footer', () => {
     expect(link.querySelector('svg')).not.toBeNull()
   })
 
-  it('opens the credits when it offers them, and closes them again', async () => {
-    render(Footer, { credits: true })
+  it('opens the credits on every screen, and closes them again', async () => {
+    render(Footer)
     await fireEvent.click(screen.getByRole('button', { name: 'Credits' }))
     expect(screen.getByRole('dialog', { name: 'Credits' })).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
     expect(screen.queryByRole('dialog')).toBeNull()
-  })
-
-  it('leaves the credits out unless asked', () => {
-    render(Footer)
-    expect(screen.queryByRole('button', { name: 'Credits' })).toBeNull()
   })
 
   it("opens What's new from the version, and closes it again", async () => {

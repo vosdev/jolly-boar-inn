@@ -5,8 +5,10 @@
  */
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
+import { tick } from 'svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { LOBBY_COOLDOWN_MS } from '../lib/cooldown.svelte'
 import { npcArt } from '../lib/npcs'
 import type { PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, resetRoom } from '../lib/stores'
@@ -120,9 +122,13 @@ function pets(): HTMLElement[] {
 }
 
 /** How a pet in the grid is drawn: ready, away, both or neither. */
-function looks(pet: HTMLElement): { lit: boolean; away: boolean } {
+function looks(pet: HTMLElement): { lit: boolean; away: boolean; ticked: boolean } {
   const drawn = pet.querySelector('.roster-pet') as HTMLElement
-  return { lit: drawn.classList.contains('lit'), away: drawn.classList.contains('away') }
+  return {
+    lit: drawn.classList.contains('lit'),
+    away: drawn.classList.contains('away'),
+    ticked: drawn.querySelector('.tick') !== null,
+  }
 }
 
 beforeEach(() => {
@@ -363,7 +369,23 @@ describe('Lobby', () => {
     ])
   })
 
-  it('outlines a ready pet and fades an away one, ready or not', () => {
+  it('greys ready out after a tap until the server takes another change', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      lobby([HOST, WOOX])
+      const ready = screen.getByRole('button', { name: "✓ I'm ready" }) as HTMLButtonElement
+      await fireEvent.click(ready)
+      expect(sent).toEqual([{ t: 'ready', ready: true }])
+      expect(ready.disabled).toBe(true)
+      vi.advanceTimersByTime(LOBBY_COOLDOWN_MS)
+      await tick()
+      expect(ready.disabled).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('ticks a ready pet and fades an away one, ready or not, without a tick', () => {
     const lynx: PlayerView = {
       id: 'c',
       display_name: 'Lynx',
@@ -381,10 +403,10 @@ describe('Lobby', () => {
       { ...lynx, id: 'd', display_name: 'Cow', ready: true },
     ])
     expect(pets().map(looks)).toEqual([
-      { lit: true, away: false },
-      { lit: false, away: false },
-      { lit: false, away: true },
-      { lit: true, away: true },
+      { lit: true, away: false, ticked: true },
+      { lit: false, away: false, ticked: false },
+      { lit: false, away: true, ticked: false },
+      { lit: true, away: true, ticked: false },
     ])
     expect(tile('Lynx').getAttribute('aria-label')).toBe('Lynx, away, not ready: kick or make host')
   })
@@ -555,6 +577,20 @@ describe('Lobby', () => {
       await fireEvent.click(god('Saradomin'))
       await fireEvent.click(god('Guthix'))
       expect(sent).toEqual([{ t: 'set_team', team: 'saradomin' }])
+    })
+
+    it('greys the gods out after a pick until the server takes another', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      try {
+        lobby([HOST, { ...WOOX, team: 'guthix' }], TEAMS_ROOM, WOOX)
+        await fireEvent.click(god('Saradomin'))
+        expect((god('Zamorak') as HTMLButtonElement).disabled).toBe(true)
+        vi.advanceTimersByTime(LOBBY_COOLDOWN_MS)
+        await tick()
+        expect((god('Zamorak') as HTMLButtonElement).disabled).toBe(false)
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     it('lets nobody tap a god while ready, and says how to change', async () => {

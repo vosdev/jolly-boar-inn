@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app import reports
 from app.http.admin import require_token
-from app.http.ratelimit import RateLimited, client_key
+from app.http.ratelimit import client_key
 
 router = APIRouter(prefix="/api/reports")
 admin_router = APIRouter(prefix="/api/admin/reports", dependencies=[Depends(require_token)])
@@ -57,8 +57,9 @@ async def report(body: Report, request: Request) -> dict[str, Any]:
         body.item,
         body.text,
     )
-    if not request.app.state.reports.allow(client_key(_host(request))):
-        raise RateLimited("too many reports from this address, try again later")
+    request.app.state.reports.check(
+        client_key(_host(request)), "too many reports from this address, try again later"
+    )
     pool = await request.app.state.database()
     return {"id": await reports.add(pool, body.mode, body.question, snapshot, text)}
 

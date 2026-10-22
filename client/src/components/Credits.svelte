@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * The credits, as a sheet from Home's footer: the players whose questions are in the
+   * The credits, as a sheet from the footer: the players whose questions are in the
    * packs, and a thank-you to the OSRS Wiki.
    *
    * Authors are ranked by how many questions carry their name, ties sharing a rank, as a

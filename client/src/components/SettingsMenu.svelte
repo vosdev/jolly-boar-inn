@@ -39,6 +39,7 @@
    */
   import { tick } from 'svelte'
 
+  import { Cooldown } from '../lib/cooldown.svelte'
   import { nameProblem } from '../lib/names'
   import { petOf } from '../lib/pets'
   import { profile, saveProfile } from '../lib/profile'
@@ -77,6 +78,7 @@
   let pending = $state<{ name?: string; pet?: string } | null>(null)
   /** `$requestsSettled` when it was sent: once that moves, the reply is not coming. */
   let sentAt = 0
+  const profileHold = new Cooldown()
   let unanswered = $state(false)
   /** Saved and untouched since: nothing to tell the room about. */
   let resting = $state(false)
@@ -124,6 +126,9 @@
     saved = 'Saved.'
     pending = null
     resting = true
+    // The server's cooldown runs from when the change landed, which is now; a refusal
+    // landed nothing, so it holds nothing.
+    profileHold.start()
   })
 
   $effect(() => {
@@ -197,7 +202,7 @@
 
   function submit(event: SubmitEvent): void {
     event.preventDefault()
-    if (!ok || pending !== null) return
+    if (!ok || pending !== null || profileHold.held) return
     const name = draft.trim()
     if (inRoom) {
       send({
@@ -292,7 +297,11 @@
           >
             <NameField id="profile-name" bind:value={draft} avoid={$room?.code ?? ''} />
             <div class="row">
-              <button class="primary small" type="submit" disabled={!ok || pending !== null}>
+              <button
+                class="primary small"
+                type="submit"
+                disabled={!ok || pending !== null || profileHold.held}
+              >
                 Save
               </button>
               {#if pending !== null}

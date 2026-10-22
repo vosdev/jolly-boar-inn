@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict
 
 from app import stats
-from app.http.ratelimit import RateLimited, client_key
+from app.http.ratelimit import client_key
 from app.http.rooms import client_host
 
 router = APIRouter(prefix="/api/stats")
@@ -24,8 +24,10 @@ class JoinFailureReport(BaseModel):
 @router.post("/join-failure", status_code=204, response_class=Response)
 async def join_failure(body: JoinFailureReport, request: Request) -> Response:
     """Count one join failure the player was shown."""
-    if not request.app.state.join_failures.allow(client_key(client_host(request))):
-        raise RateLimited("too many join failures reported from this address, try again later")
+    request.app.state.join_failures.check(
+        client_key(client_host(request)),
+        "too many join failures reported from this address, try again later",
+    )
     pool = await request.app.state.database()
     async with pool.acquire() as conn, conn.transaction():
         await stats.bump(conn, stats.Metric.JOIN_FAILURES, body.reason)

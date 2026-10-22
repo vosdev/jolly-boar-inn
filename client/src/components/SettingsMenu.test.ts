@@ -14,6 +14,7 @@ import { tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { LOBBY_COOLDOWN_MS } from '../lib/cooldown.svelte'
 import { profile } from '../lib/profile'
 import type { ClientMessage, PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, connection, resetRoom, roomSend } from '../lib/stores'
@@ -160,6 +161,20 @@ describe('SettingsMenu in a room', () => {
     expect(save().disabled).toBe(false)
     await fireEvent.submit(save().form!)
     expect(sent).toHaveLength(2)
+  })
+
+  it('greys Save out after a rename lands until the server takes another', async () => {
+    const chip = render(SettingsMenu, { live: me })
+    await rename('Woox')
+    const landed = { ...me, display_name: 'Woox' }
+    applyServerMessage({ t: 'room_updated', room: LOBBY, players: [landed] })
+    await chip.rerender({ live: landed })
+    await tick()
+    expect(screen.getByText('Saved.')).toBeTruthy()
+    await fireEvent.input(screen.getByRole('textbox'), { target: { value: 'Lynx' } })
+    expect(save().disabled).toBe(true)
+    await vi.advanceTimersByTimeAsync(LOBBY_COOLDOWN_MS)
+    expect(save().disabled).toBe(false)
   })
 
   it('stops waiting on any error that arrives after the send', async () => {

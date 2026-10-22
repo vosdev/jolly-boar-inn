@@ -53,6 +53,7 @@
   import { players, room, you } from '../lib/stores'
   import { watchTheme } from '../lib/theme'
   import { MIN_TEAMS, TEAMS, teamsWith, type TeamId } from '../lib/teams'
+  import { Cooldown } from '../lib/cooldown.svelte'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import type { RoomSocket } from '../lib/ws'
   import ConfirmDialog from './ConfirmDialog.svelte'
@@ -211,8 +212,11 @@
     also?: { label: string; act: () => void }[]
   } | null>(null)
 
+  const readyHold = new Cooldown()
+  const teamHold = new Cooldown()
+
   function toggleReady(): void {
-    socket.send({ t: 'ready', ready: !youReady })
+    if (socket.send({ t: 'ready', ready: !youReady })) readyHold.start()
   }
 
   /** Start, asking first when the room is short of its threshold: the host's override. */
@@ -229,7 +233,7 @@
   }
 
   function joinTeam(team: TeamId): void {
-    if (!youReady && team !== yourTeam) socket.send({ t: 'set_team', team })
+    if (!youReady && team !== yourTeam && socket.send({ t: 'set_team', team })) teamHold.start()
   }
 
   /** Whether an admin's tap on this player opens a menu: kick and promote, or a move. */
@@ -469,7 +473,7 @@
           class:primary={!youReady}
           aria-pressed={youReady}
           aria-describedby={needTeam ? 'pick-first' : undefined}
-          disabled={needTeam}
+          disabled={needTeam || readyHold.held}
           onclick={toggleReady}
         >
           {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
@@ -496,7 +500,7 @@
                     ? 'player'
                     : 'players'}"
                   aria-pressed={yourTeam === god.id}
-                  disabled={youReady}
+                  disabled={youReady || teamHold.held}
                   onclick={() => joinTeam(god.id)}
                 >
                   <span class="logo"><TeamLogo team={god.id} /></span>

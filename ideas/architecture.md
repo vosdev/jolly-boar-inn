@@ -48,7 +48,7 @@ Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
 operator's view, section 10), linked from Home's Suggest panel once this
-browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game. The credits are a sheet from Home's footer.
+browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game. The credits are a sheet from the footer.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
 ## 2. Room state
@@ -603,7 +603,7 @@ questions, answers included: players' suggestions and the packs, never a room's.
 Limits:
 
 - 30 creates an hour (`ROOMS_PER_IP_PER_HOUR`), 100 joins an hour, 30 lookups of missing rooms per
-  10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 (1008 on a socket), so a refusal never reveals
+  10 minutes, 5 free codes per 10 seconds. Past those, every room request is 429 with a `Retry-After` (1008 on a socket), so a refusal never reveals
   which codes are live.
 - Create refuses a sixth room while `jbi:created` holds five the server still has; one that
   answers 404 or 410 drops off the list. Clearing storage bypasses it; the create limit is the

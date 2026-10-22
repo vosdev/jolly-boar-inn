@@ -12,6 +12,7 @@
  */
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
+import { tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -279,6 +280,26 @@ describe('Create', () => {
     expect(await screen.findByText('Cabbage07')).toBeTruthy()
     await submitted()
     expect(vi.mocked(api.createRoom).mock.calls[0]![7]).toBe('Cabbage07')
+  })
+
+  it('holds the reroll while the server refuses more, and frees it after', async () => {
+    await loaded(...BOTH)
+    await screen.findByText('AbyssalWhip')
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      vi.mocked(api.getFreeCode).mockRejectedValueOnce(
+        new api.ApiFailure(429, 'rate_limited', 'slow', 3000),
+      )
+      const reroll = screen.getByRole('button', { name: 'Reroll' }) as HTMLButtonElement
+      await fireEvent.click(reroll)
+      await vi.waitUntil(() => reroll.disabled)
+      vi.advanceTimersByTime(3000)
+      await tick()
+      expect(reroll.disabled).toBe(false)
+      expect(screen.getByText('AbyssalWhip')).toBeTruthy()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('says so when the code was taken, and stays to let the host reroll', async () => {
