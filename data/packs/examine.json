@@ -467,7 +467,7 @@
       }
     },
     {
-      "id": "q_3db95b78d771dbfe",
+      "id": "q_b92a6f6ac7a189d9",
       "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
@@ -485,12 +485,11 @@
           "Toad",
           "Glouphrie"
         ],
-        "explanation": "Goblins are ugly green creatures!",
         "answer_index": 0
       }
     },
     {
-      "id": "q_557fdba47aa00c1e",
+      "id": "q_bdd9dac9ab0fc489",
       "type": "multiple_choice",
       "mode": "guess_examine",
       "source": "pack",
@@ -509,7 +508,6 @@
           "Necrovarus",
           "Brimstail"
         ],
-        "explanation": "It's the Culinaromancer!",
         "answer_index": 0
       }
     }

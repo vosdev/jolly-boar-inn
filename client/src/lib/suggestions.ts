@@ -139,6 +139,8 @@ export interface Choice {
   types: readonly SuggestedType[]
   /** Whether a multiple-choice question may carry a quotation: `QUOTE_MODES` on the server. */
   quote?: boolean
+  /** Whether a question may carry an explanation: false for `NO_EXPLANATION_MODES` on the server. */
+  explanation?: boolean
   /** The question a new one starts with, and whether it may be changed. */
   prompt?: RoundPrompt
   /** How many options a multiple-choice question offers, when the round says: `Mode.options` on the server. */
@@ -231,6 +233,9 @@ const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
 /** Rounds that show a quotation under the prompt. */
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
+/** Rounds whose questions carry no explanation: `NO_EXPLANATION_MODES` on the server. */
+export const NO_EXPLANATION_ROUNDS = ['guess_examine']
+
 /** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
 export const INTRO_ROUNDS = ['random_event']
 
@@ -278,6 +283,7 @@ export const CHOICES: readonly Choice[] = [
       host: mode.host,
       types: ROUND_TYPES[mode.id] ?? ['multiple_choice'],
       quote: QUOTE_ROUNDS.includes(mode.id),
+      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
       prompt: ROUND_PROMPTS[mode.id],
       options: ROUND_OPTIONS[mode.id],
       wikiOnly: WIKI_ROUNDS.includes(mode.id),

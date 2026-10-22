@@ -12,7 +12,13 @@
   import { nameProblem, NAME_MAX } from '../../lib/names'
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
-  import { envelopeOf, parsePayload, showsQuote, type QuestionEdit } from '../../lib/questionEdits'
+  import {
+    envelopeOf,
+    parsePayload,
+    showsExplanation,
+    showsQuote,
+    type QuestionEdit,
+  } from '../../lib/questionEdits'
   import type { PackQuestion } from '../../lib/reports'
   import { sourceProblems } from '../../lib/suggestions'
   import CustomQuestionForm from '../CustomQuestionForm.svelte'
@@ -128,6 +134,7 @@
     asker={start.random_event === undefined ? 'none' : 'fixed'}
     mode={start.mode}
     quote={showsQuote(start.mode)}
+    explanation={showsExplanation(start.mode)}
     pack
     saveLabel={SAVE}
     fields={envelope}

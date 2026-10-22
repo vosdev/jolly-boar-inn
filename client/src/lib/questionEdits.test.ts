@@ -5,7 +5,13 @@ import { describe, expect, it } from 'vitest'
 import { draftOf, questionOf, type CustomType } from './customQuestions'
 import { draftOf as matchingDraftOf, questionOf as matchingQuestionOf } from './matching'
 import { draftOf as orderingDraftOf, questionOf as orderingQuestionOf } from './ordering'
-import { editOf, envelopeOf, parsePayload, searchQuestions } from './questionEdits'
+import {
+  editOf,
+  envelopeOf,
+  parsePayload,
+  searchQuestions,
+  showsExplanation,
+} from './questionEdits'
 import type { PackQuestion } from './reports'
 
 function question(id: string, prompt: string, over: Partial<PackQuestion> = {}): PackQuestion {
@@ -41,6 +47,14 @@ describe('an edit', () => {
       credit: 'Zezima',
       credit_shown: true,
     })
+  })
+})
+
+describe('the explanation field', () => {
+  it('shows for every round but Guess the Examine', () => {
+    expect(showsExplanation('bestiary')).toBe(true)
+    expect(showsExplanation('random_event')).toBe(true)
+    expect(showsExplanation('guess_examine')).toBe(false)
   })
 })
 

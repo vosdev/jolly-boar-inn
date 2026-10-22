@@ -112,6 +112,15 @@ describe('CustomQuestionForm', () => {
     expect(onsave).toHaveBeenCalledWith(expect.objectContaining({ random_event: 'death' }))
   })
 
+  it('offers an explanation unless the round shows none', () => {
+    const label = 'Explanation shown after the question finished.'
+    render(CustomQuestionForm, { onsave: () => {}, oncancel: () => {} })
+    expect(screen.getByLabelText(label)).toBeTruthy()
+    cleanup()
+    render(CustomQuestionForm, { explanation: false, onsave: () => {}, oncancel: () => {} })
+    expect(screen.queryByLabelText(label)).toBeNull()
+  })
+
   it('labels the select and leaves it a native control the keyboard reaches', () => {
     render(CustomQuestionForm, { onsave: () => {}, oncancel: () => {} })
     const select = topics()

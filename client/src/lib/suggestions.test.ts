@@ -158,6 +158,8 @@ describe('the choices', () => {
     ])
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
+    const silent = CHOICES.filter((c) => c.explanation === false).map((c) => c.id)
+    expect(silent).toEqual(['guess_examine'])
     const release = CHOICES.find((c) => c.id === 'release_order')
     expect(release?.types).toEqual(['ordering'])
     expect(release?.host).toBe('aris')

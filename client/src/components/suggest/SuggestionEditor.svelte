@@ -416,6 +416,7 @@
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     mode={choice.id}
     quote={choice.quote ?? false}
+    explanation={choice.explanation ?? true}
     promptFixed={roundPrompt?.fixed ?? false}
     optionRange={choice.options}
     intro={INTRO_ROUNDS.includes(choice.id)}

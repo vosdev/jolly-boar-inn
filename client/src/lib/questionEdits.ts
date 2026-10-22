@@ -10,7 +10,7 @@
 
 import { randomEventFor } from './randomEvents'
 import { questionLine, reportHost, type PackQuestion } from './reports'
-import { SUGGESTED_TYPE_LABELS } from './suggestions'
+import { NO_EXPLANATION_ROUNDS, SUGGESTED_TYPE_LABELS } from './suggestions'
 import { fold } from './vocab'
 
 export type ChangeAction = 'edit' | 'delete'
@@ -44,6 +44,10 @@ const QUOTE_MODES = new Set(['who_said_that', 'know_your_content_creator'])
 
 export function showsQuote(mode: string): boolean {
   return QUOTE_MODES.has(mode)
+}
+
+export function showsExplanation(mode: string): boolean {
+  return !NO_EXPLANATION_ROUNDS.includes(mode)
 }
 
 /** The envelope fields an edit may change, as `question` has them. */

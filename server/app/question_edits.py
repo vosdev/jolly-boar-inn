@@ -26,6 +26,7 @@ from app.questions import schema, text
 from app.questions.packs import Pack, mode_questions
 from app.reports import ITEM_MODES, pack_modes
 from app.rooms.models import normalize_name
+from app.suggestions import NO_EXPLANATION_MODES
 
 EDITABLE = ("payload", "wiki", "source_url", "credit", "credit_shown")
 
@@ -66,6 +67,8 @@ def edited(packs: list[Pack], before: dict[str, Any], body: dict[str, Any]) -> d
     found = schema.errors(after)
     if found:
         raise BadEdit("; ".join(found))
+    if after["mode"] in NO_EXPLANATION_MODES and "explanation" in after["payload"]:
+        raise BadEdit(f"$.payload.explanation: {after['mode']!r} shows no explanation")
     if after == before:
         raise BadEdit("the edit changes nothing")
     if after["id"] != before["id"] and any(
