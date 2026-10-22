@@ -33,6 +33,10 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 * each ``--texture-*`` is ``none`` or a local ``url()``: the CSP would block a remote
   one anyway, and this says so at build time rather than as a blank page background.
 
+Per team (every ``[data-team='...']`` block), the frame a team game paints over any theme:
+``--frame-ink`` reaches 4.5:1 against ``--frame``, the top bar and the timer's tabs, and the
+timer's ``--frame-light`` fill 3:1 against its ``--frame-dark`` track.
+
 Layer 4 is allowed to reuse layer 3's colours: ``--more`` is not "right" and ``--less`` is
 not "wrong", and what keeps them apart on screen is a shape cue rather than a hue. The
 check therefore holds them to the contrast and hue rules without asking them to differ
@@ -105,6 +109,8 @@ _COMMENTS = re.compile(r"/\*.*?\*/", re.DOTALL)
 _RULES = re.compile(r"([^{}]+)\{([^{}]*)\}", re.DOTALL)
 _DECLARATION = re.compile(r"(--[\w-]+)\s*:\s*([^;]+)")
 _THEME_SELECTOR = re.compile(r"\[data-theme=['\"]?([\w-]+)['\"]?\]")
+_TEAM_SELECTOR = re.compile(r"^\[data-team=['\"]?([\w-]+)['\"]?\]$")
+FRAME = ("--frame", "--frame-ink", "--frame-edge", "--frame-dark", "--frame-light")
 _HEX = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 _URL = re.compile(r"^url\(\s*(['\"]?)([^'\")]+)\1\s*\)$")
 
@@ -311,9 +317,50 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
     return problems
 
 
+def parse_teams(css: str) -> dict[str, dict[str, str]]:
+    """Every team's own block: the gods' colours, the same in every theme."""
+    teams: dict[str, dict[str, str]] = {}
+    for selector, body in _RULES.findall(strip_comments(css)):
+        named = _TEAM_SELECTOR.match(selector.strip())
+        if named:
+            declarations = {name: value.strip() for name, value in _DECLARATION.findall(body)}
+            teams.setdefault(named.group(1), {}).update(declarations)
+    return teams
+
+
+def check_team(name: str, tokens: dict[str, str]) -> list[str]:
+    """Every way this team's frame fails to read, one line each."""
+    problems: list[str] = []
+    colours: dict[str, tuple[int, int, int]] = {}
+    for token in FRAME:
+        value = tokens.get(token)
+        rgb = None if value is None else _rgb(value)
+        if value is None:
+            problems.append(f"{name}: {token} is not defined")
+        elif rgb is None:
+            problems.append(f"{name}: {token} is {value!r}, which is not a hex colour")
+        else:
+            colours[token] = rgb
+    for token, against, minimum in (
+        ("--frame-ink", "--frame", TEXT_RATIO),
+        ("--frame-light", "--frame-dark", SHAPE_RATIO),
+    ):
+        if token in colours and against in colours:
+            measured = contrast(colours[token], colours[against])
+            if measured < minimum:
+                problems.append(
+                    f"{name}: {token} reaches only {measured:.2f}:1 against {against}, "
+                    f"needs {minimum}:1"
+                )
+    return problems
+
+
 def check(css: str) -> list[str]:
     themes = parse_themes(css)
-    return [line for name in sorted(themes) for line in check_theme(name, themes[name])]
+    teams = parse_teams(css)
+    return [line for name in sorted(themes) for line in check_theme(name, themes[name])] + [
+        line for name in sorted(teams) for line in check_team(name, teams[name])
+    ]
 
 
 def main(argv: list[str]) -> int:
@@ -328,7 +375,8 @@ def main(argv: list[str]) -> int:
     except CssError as exc:
         print(f"{path}: {exc}", file=sys.stderr)
         return 1
-    problems = [line for name in sorted(themes) for line in check_theme(name, themes[name])]
+    teams = parse_teams(css)
+    problems = check(css)
     if problems:
         for line in problems:
             print(line, file=sys.stderr)
@@ -336,7 +384,7 @@ def main(argv: list[str]) -> int:
         return 1
     for name in sorted(themes):
         print(f"{name}: {len(REQUIRED_TOKENS)} token(s) ok")
-    print(f"OK: {len(themes)} theme(s) in {path}")
+    print(f"OK: {len(themes)} theme(s) and {len(teams)} team frame(s) in {path}")
     return 0
 
 

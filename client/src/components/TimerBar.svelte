@@ -7,21 +7,31 @@
    * row. The seconds still exist, small, in a tab hanging off the bar's right end, and
    * in full for a screen reader.
    *
+   * In a team game the bar and its tabs take the player's god's colours, the frame's
+   * (`app.css`), and the team's badge hangs between the tabs. The fill keeps the god's
+   * colour to the end there, since `--bad` would vanish on Zamorak's track: the seconds
+   * tab goes back to the theme's, in `--bad`.
+   *
    * The clock is `Timer`'s, `lib/clock.ts`, so a phone that was locked for twenty seconds
    * wakes onto the right width, not twenty seconds behind.
    */
   import { msUntil, serverNow } from '../lib/clock'
+  import type { TeamId } from '../lib/teams'
+  import TeamBadge from './TeamBadge.svelte'
 
   let {
     endsAt,
     totalSeconds,
     label,
     progress,
+    team = null,
   }: {
     endsAt: string
     totalSeconds: number
     label: string
     progress?: string
+    /** The player's team in a team game, whose colours the bar takes. */
+    team?: TeamId | null
   } = $props()
 
   /** Where the bar turns urgent, in seconds. */
@@ -36,7 +46,13 @@
   const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
 </script>
 
-<div class="timerbar" class:urgent role="timer" aria-label="{seconds} seconds {label}">
+<div
+  class="timerbar"
+  class:urgent
+  class:framed={team !== null}
+  role="timer"
+  aria-label="{seconds} seconds {label}"
+>
   <div class="track" aria-hidden="true">
     <div class="fill" style:width="{fraction * 100}%"></div>
   </div>
@@ -45,6 +61,9 @@
   <div class="column" class:stage={progress !== undefined} aria-hidden="true">
     {#if progress !== undefined}
       <span class="tab progress">{progress}</span>
+    {/if}
+    {#if team !== null}
+      <span class="team"><TeamBadge {team} /></span>
     {/if}
     <span class="tab seconds">{seconds}s</span>
   </div>
@@ -83,19 +102,32 @@
   }
 
   /* The screens' column, so the tab lines up with the panels rather than the window. */
+  /* Three columns, so the team's badge stays centred however wide the two tabs are. */
   .column {
     width: min(42rem, 100% - 2rem);
     margin-inline: auto;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
   }
 
   .column.stage {
     width: min(30rem, 100% - 2rem);
   }
 
+  .progress {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .team {
+    grid-column: 2;
+    display: flex;
+  }
+
   .seconds {
-    margin-left: auto;
+    grid-column: 3;
+    justify-self: end;
   }
 
   .tab {
@@ -114,6 +146,30 @@
 
   .urgent .seconds {
     color: var(--bad);
+  }
+
+  .framed .track {
+    background: var(--frame-dark);
+    box-shadow: 0 var(--border-width) 0 var(--frame-dark);
+  }
+
+  .framed .fill,
+  .framed.urgent .fill {
+    background: var(--frame-light);
+  }
+
+  .framed .tab {
+    background: var(--frame);
+    color: var(--frame-ink);
+    border-color: var(--frame-dark);
+  }
+
+  /* Back on the theme's own tab, where `--bad` is held to 4.5:1: on Zamorak's red a red
+     tab would not change at all. */
+  .framed.urgent .seconds {
+    background: var(--panel);
+    color: var(--bad);
+    border-color: var(--bad);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -40,6 +40,7 @@
   import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
   import { you } from './lib/stores'
+  import { wearTeam } from './lib/teams'
   import { timerBar } from './lib/timerbar'
 
   type Route =
@@ -85,6 +86,11 @@
       route.name === 'suggest',
   )
 
+  // The frame is the room's: a stale `you` outlives Room until the next one resets it, so
+  // the route decides, and leaving the room takes the frame off.
+  const team = $derived(route.name === 'room' ? ($you?.team ?? null) : null)
+  $effect(() => wearTeam(team))
+
   /** `state` rides along in `history.state`, for the screen at `to` to read. */
   function navigate(to: string, state: unknown = null): void {
     if (to !== location.pathname) history.pushState(state, '', to)
@@ -121,7 +127,7 @@
 <Floor />
 <WallLights />
 
-<TopBar {navigate} {wide}>
+<TopBar {navigate} {wide} {team} badge={$timerBar === null}>
   {#snippet menu()}
     <SettingsMenu live={route.name === 'room' ? $you : null} />
   {/snippet}
@@ -132,7 +138,7 @@
      one from the last question's empty. -->
 {#if $timerBar !== null}
   {#key $timerBar.endsAt}
-    <TimerBar {...$timerBar} />
+    <TimerBar {...$timerBar} {team} />
   {/key}
 {/if}
 

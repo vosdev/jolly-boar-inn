@@ -27,16 +27,68 @@ export interface Team {
   colour: string
   /** The edge drawn around it: the same colour, but Armadyl's gold. */
   trim: string
+  /** What a team game paints over the player's theme, as `--frame*` in `app.css`. */
+  frame: Frame
+}
+
+/** A team game's frame: the top bar, the window's edge and the timer, in the god's colours. */
+export interface Frame {
+  /** The top bar and the timer's tabs. */
+  bar: string
+  /** What reads on `bar`. */
+  ink: string
+  /** The window's edge. */
+  edge: string
+  /** The timer's track. */
+  dark: string
+  /** The timer's fill. */
+  light: string
 }
 
 /** The six gods in order, with their names and colours. */
 export const TEAMS: readonly Team[] = [
-  { id: 'saradomin', name: 'Saradomin', colour: '#2f5fb3', trim: '#2f5fb3' },
-  { id: 'zamorak', name: 'Zamorak', colour: '#b3302a', trim: '#b3302a' },
-  { id: 'guthix', name: 'Guthix', colour: '#3d8a3a', trim: '#3d8a3a' },
-  { id: 'armadyl', name: 'Armadyl', colour: '#9cc9de', trim: '#d4a52a' },
-  { id: 'bandos', name: 'Bandos', colour: '#7a5230', trim: '#7a5230' },
-  { id: 'zaros', name: 'Zaros', colour: '#6b3fa0', trim: '#6b3fa0' },
+  {
+    id: 'saradomin',
+    name: 'Saradomin',
+    colour: '#2f5fb3',
+    trim: '#2f5fb3',
+    frame: { bar: '#2f5fb3', ink: '#fff8e6', edge: '#2f5fb3', dark: '#1f3f78', light: '#8fb3ee' },
+  },
+  {
+    id: 'zamorak',
+    name: 'Zamorak',
+    colour: '#b3302a',
+    trim: '#b3302a',
+    frame: { bar: '#b3302a', ink: '#fff8e6', edge: '#b3302a', dark: '#7d1f1a', light: '#ef8a7c' },
+  },
+  {
+    id: 'guthix',
+    name: 'Guthix',
+    colour: '#3d8a3a',
+    trim: '#3d8a3a',
+    frame: { bar: '#357a32', ink: '#fff8e6', edge: '#357a32', dark: '#285c26', light: '#9fd88c' },
+  },
+  {
+    id: 'armadyl',
+    name: 'Armadyl',
+    colour: '#9cc9de',
+    trim: '#d4a52a',
+    frame: { bar: '#d4a52a', ink: '#241a02', edge: '#d4a52a', dark: '#8f6c12', light: '#ecca6a' },
+  },
+  {
+    id: 'bandos',
+    name: 'Bandos',
+    colour: '#7a5230',
+    trim: '#7a5230',
+    frame: { bar: '#7a5230', ink: '#fff8e6', edge: '#7a5230', dark: '#523620', light: '#d1a275' },
+  },
+  {
+    id: 'zaros',
+    name: 'Zaros',
+    colour: '#6b3fa0',
+    trim: '#6b3fa0',
+    frame: { bar: '#6b3fa0', ink: '#fff8e6', edge: '#6b3fa0', dark: '#472a6b', light: '#b89be0' },
+  },
 ]
 
 /** The fewest gods a team game has; the server refuses fewer. */
@@ -45,6 +97,16 @@ export const MIN_TEAMS = 2
 /** `teams` with `id` added or (`on` false) taken out, in `TEAM_IDS` order, as `set_teams` sends it. */
 export function teamsWith(teams: readonly TeamId[], id: TeamId, on: boolean): TeamId[] {
   return TEAM_IDS.filter((t) => (t === id ? on : teams.includes(t)))
+}
+
+/**
+ * Frame the window in `team`'s god, or take the frame off with null. Like a theme, the
+ * frame is nothing but an attribute on <html>: `data-team` there selects the `--frame*`
+ * tokens, and the top bar, the timer and the window's edge read them.
+ */
+export function wearTeam(team: TeamId | null): void {
+  if (team === null) delete document.documentElement.dataset.team
+  else document.documentElement.dataset.team = team
 }
 
 /** The team called `id`. */

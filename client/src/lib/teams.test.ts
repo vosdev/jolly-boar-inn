@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import css from '../app.css?raw'
-import { logoFile, TEAM_IDS, TEAMS, teamMedians, teamsOf, teamsWith } from './teams'
+import { logoFile, TEAM_IDS, TEAMS, teamMedians, teamsOf, teamsWith, wearTeam } from './teams'
 
 describe('TEAMS', () => {
   it('lists the six gods in order, each named alone', () => {
@@ -27,6 +27,17 @@ describe('TEAMS', () => {
       expect(block, id).toContain(`--team: ${colour};`)
       expect(block, id).toContain(`--team-trim: ${trim};`)
       expect(block, id).toMatch(/--team-ink: #[0-9a-f]{6};/)
+    }
+  })
+
+  it("paints each god's frame in app.css with the colours named here", () => {
+    for (const { id, frame } of TEAMS) {
+      const block = new RegExp(`\\[data-team='${id}'\\] \\{([^}]*)\\}`).exec(css)?.[1] ?? ''
+      expect(block, id).toContain(`--frame: ${frame.bar};`)
+      expect(block, id).toContain(`--frame-ink: ${frame.ink};`)
+      expect(block, id).toContain(`--frame-edge: ${frame.edge};`)
+      expect(block, id).toContain(`--frame-dark: ${frame.dark};`)
+      expect(block, id).toContain(`--frame-light: ${frame.light};`)
     }
   })
 })
@@ -106,5 +117,16 @@ describe('teamMedians', () => {
       { team: 'saradomin', points: 900 },
       { team: 'bandos', points: 100 },
     ])
+  })
+})
+
+describe('wearTeam', () => {
+  it('puts the frame on the page, and takes it off', () => {
+    wearTeam('armadyl')
+    expect(document.documentElement.dataset.team).toBe('armadyl')
+    wearTeam('zaros')
+    expect(document.documentElement.dataset.team).toBe('zaros')
+    wearTeam(null)
+    expect(document.documentElement.dataset.team).toBeUndefined()
   })
 })

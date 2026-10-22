@@ -144,6 +144,46 @@ def test_ok_and_bad_of_the_same_hue_fail(css: str) -> None:
     assert any("degrees apart" in line for line in problems)
 
 
+def _swap_team(css: str, team: str, token: str, value: str) -> str:
+    """Rewrite one token inside one team block."""
+    start = css.index(f"[data-team='{team}']")
+    end = css.index("\n}", start)
+    block = re.sub(rf"({re.escape(token)}:\s*)[^;]+", rf"\g<1>{value}", css[start:end])
+    assert value in block, f"{token} not found in the {team} block"
+    return css[:start] + block + css[end:]
+
+
+def test_every_god_has_a_frame(css: str) -> None:
+    assert set(check.parse_teams(css)) == {
+        "saradomin",
+        "zamorak",
+        "guthix",
+        "armadyl",
+        "bandos",
+        "zaros",
+    }
+
+
+def test_frame_ink_that_cannot_be_read_on_the_bar_fails(css: str) -> None:
+    problems = check.check(_swap_team(css, "guthix", "--frame", "#3d8a3a"))
+    assert problems == [
+        "guthix: --frame-ink reaches only 4.05:1 against --frame, needs 4.5:1",
+    ]
+
+
+def test_a_timer_fill_lost_on_its_track_fails(css: str) -> None:
+    problems = check.check(_swap_team(css, "zaros", "--frame-light", "#5a3488"))
+    assert len(problems) == 1
+    assert problems[0].startswith("zaros: --frame-light reaches only")
+
+
+def test_a_missing_frame_token_fails(css: str) -> None:
+    start = css.index("[data-team='armadyl']")
+    end = css.index("\n}", start)
+    block = css[start:end].replace("\n  --frame-edge: #d4a52a;", "")
+    assert check.check(css[:start] + block + css[end:]) == ["armadyl: --frame-edge is not defined"]
+
+
 def test_a_missing_token_fails(css: str) -> None:
     """Dropping it from the default theme drops it from every theme that inherits it."""
     broken = css.replace("  --gem-zenyte: #f4bc6e;\n", "")
