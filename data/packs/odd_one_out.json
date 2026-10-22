@@ -22,7 +22,8 @@
         "answer_index": 5,
         "explanation": "The others are skill guilds, each tied to a skill. The Heroes' Guild is a questers' guild: you get in by completing Heroes' Quest."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Guilds"
+      "wiki": "https://oldschool.runescape.wiki/w/Guilds",
+      "difficulty": "medium"
     },
     {
       "id": "q_cf6ec422e0cee825",
@@ -45,7 +46,8 @@
         "answer_index": 4,
         "explanation": "Wielding the others needs a quest: Lost City, Heroes' Quest or Monkey Madness I. The warhammer needs no quest, and 60 Strength rather than 60 Attack."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer"
+      "wiki": "https://oldschool.runescape.wiki/w/Dragon_warhammer",
+      "difficulty": "hard"
     },
     {
       "id": "q_e4ae6c231feabeea",
@@ -68,7 +70,8 @@
         "answer_index": 2,
         "explanation": "The others each have a superior variant that can appear on a Slayer task, such as the choke devil or the marble gargoyle. Hellhounds have none."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Superior_slayer_monster"
+      "wiki": "https://oldschool.runescape.wiki/w/Superior_slayer_monster",
+      "difficulty": "medium"
     },
     {
       "id": "q_8ff0318f1b5b0298",
@@ -91,7 +94,8 @@
         "answer_index": 1,
         "explanation": "The others can teleport you somewhere, such as the Crafting Guild, your house or the Feldip Hunter area. The Cooking cape has no teleport."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Skill_cape"
+      "wiki": "https://oldschool.runescape.wiki/w/Skill_cape",
+      "difficulty": "hard"
     },
     {
       "id": "q_61a2b0e28abd6307",
@@ -114,7 +118,8 @@
         "answer_index": 2,
         "explanation": "The others boost the experience you earn in their skill. Rogue equipment gives no experience bonus, only a chance of double loot when pickpocketing."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Experience-boosting_set"
+      "wiki": "https://oldschool.runescape.wiki/w/Experience-boosting_set",
+      "difficulty": "medium"
     },
     {
       "id": "q_330fc9e154c17ec0",
@@ -137,7 +142,8 @@
         "answer_index": 3,
         "explanation": "The others are Grandmaster quests, the hardest rating. A Kingdom Divided is rated Experienced."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/A_Kingdom_Divided"
+      "wiki": "https://oldschool.runescape.wiki/w/A_Kingdom_Divided",
+      "difficulty": "medium"
     },
     {
       "id": "q_07042d014e920f85",
@@ -160,7 +166,8 @@
         "answer_index": 0,
         "explanation": "The others are catalytic runes. Fire is an elemental rune."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Runes"
+      "wiki": "https://oldschool.runescape.wiki/w/Runes",
+      "difficulty": "easy"
     },
     {
       "id": "q_0c12f21cedb72421",
@@ -182,7 +189,8 @@
         "answer_index": 2,
         "explanation": "The others are light sources you can light up a dark cave with while wearing them. The Fire cape is not a light source."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Light_sources"
+      "wiki": "https://oldschool.runescape.wiki/w/Light_sources",
+      "difficulty": "easy"
     },
     {
       "id": "q_fc6a447044fbb506",
@@ -205,7 +213,8 @@
         "answer_index": 0,
         "explanation": "The others have a rift in the Abyss and need a talisman or tiara to enter. The Astral Altar has no Abyss rift and needs no talisman."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Runic_altar"
+      "wiki": "https://oldschool.runescape.wiki/w/Runic_altar",
+      "difficulty": "hard"
     },
     {
       "id": "q_0f408ff6528e2e32",
@@ -228,7 +237,8 @@
         "answer_index": 1,
         "explanation": "The others are minigame currencies that cannot be traded between players. Numulite can."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Numulite"
+      "wiki": "https://oldschool.runescape.wiki/w/Numulite",
+      "difficulty": "hard"
     },
     {
       "id": "q_dbb668660f417abf",
@@ -250,7 +260,8 @@
         "answer_index": 3,
         "explanation": "The others can be entered on a free-to-play world. The Fishing Guild is members-only."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Guilds"
+      "wiki": "https://oldschool.runescape.wiki/w/Guilds",
+      "difficulty": "medium"
     },
     {
       "id": "q_1877e4ab9d2d3559",
@@ -272,7 +283,8 @@
         "answer_index": 3,
         "explanation": "The others are dragonstone jewellery, whose teleports work up to level 30 Wilderness. The ring of dueling is made from an emerald ring and stops at level 20."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Skills_necklace"
+      "wiki": "https://oldschool.runescape.wiki/w/Skills_necklace",
+      "difficulty": "hard"
     },
     {
       "id": "q_06539351c889b1b0",
@@ -294,7 +306,8 @@
         "answer_index": 1,
         "explanation": "The others have no quest requirement. Ardougne Teleport needs Plague City."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Teleport"
+      "wiki": "https://oldschool.runescape.wiki/w/Ardougne_Teleport",
+      "difficulty": "medium"
     },
     {
       "id": "q_4022f490c2a75d35",
@@ -316,7 +329,8 @@
         "answer_index": 4,
         "explanation": "The others can be worn without a quest. The green d'hide body needs Dragon Slayer I."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Green_d%27hide_body"
+      "wiki": "https://oldschool.runescape.wiki/w/Green_d%27hide_body",
+      "difficulty": "medium"
     },
     {
       "id": "q_341256dfe2643076",
@@ -338,7 +352,8 @@
         "answer_index": 0,
         "explanation": "The others are spiders. The Kalphite Queen is a kalphite, an insect."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Spiders"
+      "wiki": "https://oldschool.runescape.wiki/w/Spiders",
+      "difficulty": "easy"
     },
     {
       "id": "q_9cf8d9872a44cfc3",
@@ -361,7 +376,8 @@
         "answer_index": 2,
         "explanation": "The others are Lunar spells. Ice Barrage is from the Ancient Magicks spellbook."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Lunar_spellbook"
+      "wiki": "https://oldschool.runescape.wiki/w/Lunar_spellbook",
+      "difficulty": "easy"
     },
     {
       "id": "q_58a7f3b5e5576509",
@@ -383,7 +399,8 @@
         "answer_index": 0,
         "explanation": "The others fight in melee. Ahrim attacks with magic."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Barrows"
+      "wiki": "https://oldschool.runescape.wiki/w/Barrows",
+      "difficulty": "easy"
     },
     {
       "id": "q_244ac7a639bf2b30",
@@ -406,7 +423,8 @@
         "answer_index": 2,
         "explanation": "The others are skilling pets, found while training a skill. Vorki is a boss pet, from Vorkath."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Pet"
+      "wiki": "https://oldschool.runescape.wiki/w/Pet",
+      "difficulty": "medium"
     },
     {
       "id": "q_7b2dbe8f1c9962ab",
@@ -428,7 +446,8 @@
         "answer_index": 2,
         "explanation": "The others are Mahjarrat. Drakan is a vampyre."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Mahjarrat"
+      "wiki": "https://oldschool.runescape.wiki/w/Mahjarrat",
+      "difficulty": "hard"
     },
     {
       "id": "q_876b18aed837f8e4",
@@ -449,7 +468,8 @@
         "answer_index": 0,
         "explanation": "The others are raids, instanced group encounters. The Inferno is a solo challenge, not a raid."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Raids"
+      "wiki": "https://oldschool.runescape.wiki/w/Raids",
+      "difficulty": "easy"
     },
     {
       "id": "q_3f93cff72359f7fb",
@@ -471,7 +491,8 @@
         "answer_index": 0,
         "explanation": "The others are bosses in the Wilderness. The Giant Mole lives under Falador Park."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Wilderness"
+      "wiki": "https://oldschool.runescape.wiki/w/Wilderness",
+      "difficulty": "easy"
     },
     {
       "id": "q_25a8e032467c4c74",
@@ -493,7 +514,8 @@
         "answer_index": 4,
         "explanation": "The others are free-to-play quests. Plague City is members-only."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Free-to-play_quests"
+      "wiki": "https://oldschool.runescape.wiki/w/Free-to-play_quests",
+      "difficulty": "easy"
     },
     {
       "id": "q_8c47457adc38f9b2",
@@ -515,7 +537,8 @@
         "answer_index": 1,
         "explanation": "The others are ranged weapons. The trident of the swamp is a staff that casts a magic attack."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Ranged_weapons"
+      "wiki": "https://oldschool.runescape.wiki/w/Ranged_weapons",
+      "difficulty": "easy"
     },
     {
       "id": "q_4a99138e66579f20",
@@ -537,7 +560,8 @@
         "answer_index": 1,
         "explanation": "The others are Slayer bosses, which need a Slayer level to fight. Zulrah has no Slayer requirement."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss"
+      "wiki": "https://oldschool.runescape.wiki/w/Slayer_boss",
+      "difficulty": "easy"
     },
     {
       "id": "q_06ddaba9015080be",
@@ -559,7 +583,8 @@
         "answer_index": 2,
         "explanation": "The others show a symbol over your head while active. Protect Item has no overhead symbol."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Prayer"
+      "wiki": "https://oldschool.runescape.wiki/w/Prayer",
+      "difficulty": "easy"
     },
     {
       "id": "q_1345078c5c3338e2",
@@ -581,7 +606,8 @@
         "answer_index": 1,
         "explanation": "The others are in Morytania. Draynor Village is in Misthalin."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Morytania"
+      "wiki": "https://oldschool.runescape.wiki/w/Morytania",
+      "difficulty": "easy"
     },
     {
       "id": "q_1ce3ba72f062afca",
@@ -603,7 +629,8 @@
         "answer_index": 2,
         "explanation": "The others are whips. The abyssal bludgeon is a two-handed crush weapon."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip"
+      "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip",
+      "difficulty": "easy"
     },
     {
       "id": "q_126fa2679db8f9a7",
@@ -625,7 +652,8 @@
         "answer_index": 3,
         "explanation": "The others are metal dragons, named for their scales. The lava dragon is not."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Metal_dragon"
+      "wiki": "https://oldschool.runescape.wiki/w/Metal_dragon",
+      "difficulty": "easy"
     },
     {
       "id": "q_a8f5fb212086c4d6",
@@ -647,7 +675,8 @@
         "answer_index": 1,
         "explanation": "The others are skills in Old School RuneScape. Dungeoneering exists only in RuneScape 3."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Skills"
+      "wiki": "https://oldschool.runescape.wiki/w/Skills",
+      "difficulty": "easy"
     },
     {
       "id": "q_60ee28b3b0cace45",
@@ -668,7 +697,8 @@
         ],
         "explanation": "Every other item is used to metamorph pets.",
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_137059dca28277a8",
@@ -690,7 +720,8 @@
         ],
         "explanation": "explanation",
         "answer_index": 2
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_25e66a9c429ffe4f",
@@ -711,7 +742,8 @@
         ],
         "explanation": "Jalnibur is a made up word, the others are all pyramids in the Kharidian desert.",
         "answer_index": 3
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_c8f64136356d7791",
@@ -732,7 +764,8 @@
         ],
         "explanation": "A lesser demon is red. The others are green!",
         "answer_index": 2
-      }
+      },
+      "difficulty": "easy"
     }
   ]
 }

@@ -56,7 +56,8 @@
           5
         ],
         "explanation": "Cutting a sapphire takes 20 Crafting, an emerald 27, a ruby 34, a diamond 43, a dragonstone 55 and an onyx 67."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_ad8a424e2320f594",
@@ -113,7 +114,8 @@
           5
         ],
         "explanation": "Iron needs no Attack at all and steel needs 5. Black and white both need 10, so either may come first. Mithril needs 20 and adamant 30."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_6a884d6b2ce283ff",
@@ -164,7 +166,8 @@
           4
         ],
         "explanation": "Vorkath is level 732 on Ungael. The one you meet during Dragon Slayer II is only 392."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_567236348aeeeb87",
@@ -215,7 +218,8 @@
           4
         ],
         "explanation": "Monkey Madness II came out on 6 May 2016, Dragon Slayer II on 4 January 2018, Song of the Elves on 25 July 2019, Sins of the Father on 4 June 2020 and Desert Treasure II on 26 July 2023."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_455035bb99374299",
@@ -266,7 +270,8 @@
           4
         ],
         "explanation": "Misthalin Mystery came out on 26 January 2017, The Corsair Curse on 7 December 2017, the moss giant boss Bryophyta on 3 May 2018, X Marks the Spot on 7 February 2019 and Below Ice Mountain on 14 April 2021."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_85c6d42db006c9e7",
@@ -323,7 +328,8 @@
           5
         ],
         "explanation": "Cleaning a grimy guam leaf takes 3 Herblore, tarromin 11, ranarr 25, toadflax 30, snapdragon 59 and torstol 75. Ranarr sits much lower than its price suggests."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_2295b00d6bb99735",
@@ -380,7 +386,8 @@
           5
         ],
         "explanation": "Fire runes need 14 Runecraft, cosmic 27, nature 44, law 54, death 65 and blood 77. Law runes also need Troll Stronghold, death runes Mourning's End Part II."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_d4562dca0b2c4587",
@@ -437,7 +444,8 @@
           5
         ],
         "explanation": "Big bones give 15 xp, babydragon bones 30, dragon and wyvern bones 72 each, so either may come first. Dagannoth bones give 125 and superior dragon bones 150."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_a999a0bdc9c1c211",
@@ -494,7 +502,8 @@
           5
         ],
         "explanation": "Turael gives tasks to anyone. Mazchna wants combat 20, Vannaka 40, Chaeldar 70, Konar 75 and Duradel 100, with 50 Slayer on top."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_414c8e9d7a92f28b",
@@ -551,7 +560,8 @@
           5
         ],
         "explanation": "The rooftops climb ten levels at a time: Draynor Village at 10, Varrock at 30, Canifis at 40, Seers' Village at 60, Rellekka at 80 and Ardougne at 90."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_a406472f642b8db7",
@@ -608,7 +618,8 @@
           5
         ],
         "explanation": "Chambers of Xeric came out on 5 January 2017, the Inferno on 1 June 2017, Theatre of Blood on 7 June 2018, the Gauntlet on 25 July 2019, the Nightmare on 6 February 2020 and Tombs of Amascut on 24 August 2022."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_c73e5b07f343dc07",
@@ -653,7 +664,8 @@
           3
         ],
         "explanation": "Great Kourend opened on 7 January 2016, Fossil Island on 7 September 2017, Prifddinas on 25 July 2019 and Varlamore on 20 March 2024."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_8146db111133bf1b",
@@ -710,7 +722,8 @@
           5
         ],
         "explanation": "Twisted opened on 14 November 2019, Trailblazer on 28 October 2020, Shattered Relics on 19 January 2022, Trailblazer Reloaded on 15 November 2023, Raging Echoes on 27 November 2024 and Demonic Pacts on 15 April 2026."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_7a1252389c05b6a7",
@@ -751,7 +764,8 @@
           3
         ],
         "explanation": "You place the base and the rest assembles itself on top: the stand, then the barrels, then the furnace."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_c52088f705b87c5d",
@@ -803,7 +817,8 @@
         ],
         "picks": 3,
         "explanation": "Aubury and the other wizards shout \"Senventior disthine molenko!\" as they send you off. Valtorim, Sedmolor and Ventarus are made up."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_10168c6510921cd2",
@@ -849,7 +864,8 @@
           4
         ],
         "explanation": "The grinder crushes the bones and its bin fills a pot with bonemeal. Worshipping takes the bonemeal and a bucket of slime, and a ghost disciple then pays out five ecto-tokens."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_dcdfc1deaf4a89bd",
@@ -900,7 +916,8 @@
           5
         ],
         "explanation": "After the Survival Expert comes the Master Chef, then the Quest Guide, the Mining and Combat Instructors underground, the Account Guide in the bank and Brother Brace in the chapel, before the Magic Instructor."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_2e578872351f05d8",
@@ -951,7 +968,8 @@
           5
         ],
         "explanation": "Each one requires the one before: Plague City, Biohazard, Underground Pass, Regicide, then both parts of Mourning's End. Song of the Elves comes after all of them."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_e08d7588ede95f80",
@@ -997,7 +1015,8 @@
           4
         ],
         "explanation": "Each one requires the one before: In Search of the Myreque, In Aid of the Myreque, Darkness of Hallowvale, A Taste of Hope, then Sins of the Father."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_23bf8ad16999ea73",
@@ -1046,7 +1065,8 @@
           4
         ],
         "explanation": "A ranarr seed needs 32 Farming and cleaning the herb 25 Herblore. The clean ranarr in a vial of water makes an unfinished potion, and snape grass finishes it at 38 Herblore."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_afbf460212d9e46a",
@@ -1090,7 +1110,8 @@
           3
         ],
         "explanation": "Molten glass is blown into an unpowered orb at 46 Crafting. Charge Air Orb on the obelisk in the Wilderness needs 66 Magic, and fixing the orb to a battlestaff 66 Crafting."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_310a27c703388df4",
@@ -1143,7 +1164,8 @@
           5
         ],
         "explanation": "The gem and the bar can come in either order. The amulet takes 80 Crafting, then a ball of wool, Lvl-5 Enchant at 68 Magic and a dip in the Fountain of Heroes."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_8b841ee27375c8f1",
@@ -1200,7 +1222,8 @@
           5
         ],
         "explanation": "Willows take 30 Woodcutting, teaks 35, maples 45, mahoganies 50, yews 60 and magic trees 75."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_4cce101be966997c",
@@ -1257,7 +1280,8 @@
           5
         ],
         "explanation": "Silver takes 20 Mining, coal 30, gold 40, mithril 55, adamantite 70 and runite 85."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_6c546727bb5df425",
@@ -1314,7 +1338,8 @@
           5
         ],
         "explanation": "Apple trees take 27 Farming, bananas 33, oranges 39, pineapples 51, papayas 57 and palms 68."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_488aae08e69aee6e",
@@ -1371,7 +1396,8 @@
           5
         ],
         "explanation": "Baby implings take 17 Hunter, earth 36, eclectic 50, magpie 65, ninja 74 and dragon 83."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_b212afb16cddee5d",
@@ -1428,7 +1454,8 @@
           5
         ],
         "explanation": "The baker's stall takes 5 Thieving, silk 20, fur 35, silver 50, spice 65 and gems 75."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_5e06aa16159049ac",
@@ -1485,7 +1512,8 @@
           5
         ],
         "explanation": "Varrock Teleport takes 25 Magic, Lumbridge 31, Falador 37, Camelot 45, Ardougne 51 and Trollheim 61."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_49a309bbf829daa8",
@@ -1530,7 +1558,8 @@
           3
         ],
         "explanation": "Smoke Barrage takes 86 Magic, Shadow 88, Blood 92 and Ice 94."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_dda2df2d8619e540",
@@ -1587,7 +1616,8 @@
           5
         ],
         "explanation": "Protect from Magic unlocks at 37 Prayer, Protect from Melee at 43, Smite at 52, Chivalry at 60, Piety at 70 and Augury at 77."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_d160c19237049fe4",
@@ -1644,7 +1674,8 @@
           5
         ],
         "explanation": "They follow the gems: sapphire takes 7 Magic, emerald 27, ruby 49, diamond 57, dragonstone 68 and onyx 87."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_582812e6a7542d3e",
@@ -1695,7 +1726,8 @@
           4
         ],
         "explanation": "A maple longbow takes 30 Ranged, a yew 40, a magic 50, a dark bow 60 and a twisted bow 75."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_ebbedf34adc73225",
@@ -1746,7 +1778,8 @@
           4
         ],
         "explanation": "Rick takes 20 Construction, the maid 25, the cook 30, the butler 40 and the demon butler 50."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_5e6d56ac241cf941",
@@ -1804,7 +1837,8 @@
         ],
         "picks": 3,
         "explanation": "Elves take 85 Thieving, heroes 80 and paladins 70. Knights of Ardougne take 55, master farmers 38 and farmers 10."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_ba9774eb2a9ec70d",
@@ -1862,7 +1896,8 @@
         ],
         "picks": 3,
         "explanation": "A super combat potion takes 90 Herblore, a Saradomin brew 81 and a stamina potion 77. A ranging potion takes 72, a super restore 63 and a prayer potion 38."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_a443f1c24292cdcf",
@@ -1920,7 +1955,8 @@
         ],
         "picks": 3,
         "explanation": "Smoke devils take 93 Slayer, dark beasts 90 and abyssal demons 85. Nechryael take 80, gargoyles 75 and kurask 70."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_8d6730f5b456f3b3",
@@ -1978,7 +2014,8 @@
         ],
         "picks": 3,
         "explanation": "A manta ray heals 22, a sea turtle 21 and a shark 20. A monkfish heals 16, a swordfish 14 and a lobster 12."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_560a1e1c640f76a1",
@@ -2029,7 +2066,8 @@
           4
         ],
         "explanation": "Dragon Slayer I needs 32 quest points, Heroes' Quest 55, Legends' Quest 107, the final battle of Recipe for Disaster 175 and Dragon Slayer II 200."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_0c5810fb42e6a8b1",
@@ -2086,7 +2124,8 @@
           5
         ],
         "explanation": "Zulrah came out on 8 January 2015, Vorkath on 4 January 2018, Nex on 5 January 2022, Duke Sucellus on 26 July 2023, Araxxor on 28 August 2024 and Yama on 14 May 2025."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_99e822f688041307",
@@ -2137,7 +2176,8 @@
           4
         ],
         "explanation": "Old School launched on 22 February 2013, the Grand Exchange opened on 26 February 2015, mobile came out on 30 October 2018, Steam on 24 February 2021 and Sailing on 19 November 2025."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_713d9768f7f9d565",
@@ -2183,7 +2223,8 @@
           4
         ],
         "explanation": "Trollheim sits above Burthorpe, which is north of Falador. Port Sarim is on the south coast, and Brimhaven across the water on Karamja lies a little further south still."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_1b9d2b273c6c5b38",
@@ -2234,7 +2275,8 @@
           5
         ],
         "explanation": "The Gnome Stronghold is in the far west of Kandarin, then come Ardougne and Catherby. Falador and Varrock lie east of White Wolf Mountain, and Canifis is across the River Salve in Morytania."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_78b7db213d85669c",
@@ -2280,7 +2322,8 @@
           4
         ],
         "explanation": "Al Kharid is above the Shantay Pass, the way into the desert. Pollnivneach is further south, Nardah a little below it, and Sophanem near the southern coast."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_f1ea7437b4230709",
@@ -2331,7 +2374,8 @@
           5
         ],
         "explanation": "The Maiden comes first, then the Bloat, the Nylocas, Sotetseg and Xarpus, and Verzik Vitur waits at the end."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_f81c3c9bfe8ac0fe",
@@ -2382,7 +2426,8 @@
           5
         ],
         "explanation": "Agrith-Na-Na comes first, then Flambeed, Karamel, Dessourt and the Gelatinnoth Mother, and the Culinaromancer himself last."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_1c01940e94e1c31b",
@@ -2428,7 +2473,8 @@
           4
         ],
         "explanation": "Each quest needs the one before it: Death Plateau opens Troll Stronghold, which Eadgar's Ruse needs, and My Arm's Big Adventure comes before Making Friends with My Arm."
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_ebb4c379b68f3dea",
@@ -2469,7 +2515,8 @@
           3
         ],
         "explanation": "Monkey Madness I needs both Tree Gnome Village and The Grand Tree, but neither needs the other, so either may come first. Monkey Madness II comes last."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_bd682b7ad2c85ead",
@@ -2515,7 +2562,8 @@
           4
         ],
         "explanation": "Flour and water make a pizza base. A tomato and then cheese make an uncooked pizza, which you cook before adding the anchovies."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_3a685f5a6baaf1c8",
@@ -2566,7 +2614,8 @@
           5
         ],
         "explanation": "Grain goes into a windmill's hopper and the controls grind it into the flour bin downstairs. Flour and water make bread dough, which you bake."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_2a7e9e49902b1f9a",
@@ -2612,7 +2661,8 @@
           4
         ],
         "explanation": "A silver bar in a holy mould makes an unstrung symbol. A ball of wool strings it, and only then can it be blessed."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_8db8084ebb219557",
@@ -2653,7 +2703,8 @@
           3
         ],
         "explanation": "Flour and water make pastry dough, a pie dish turns it into a pie shell, and redberries fill it before it goes in the oven."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_6033250769b31c04",
@@ -2694,7 +2745,8 @@
           3
         ],
         "explanation": "An egg, a bucket of milk and a pot of flour go into a cake tin. The chocolate bar goes on the cake once it is baked."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_a0a4a58f3f9aa363",
@@ -2735,7 +2787,8 @@
           3
         ],
         "explanation": "Iron ore and coal smelt into a steel bar. With an ammo mould, a furnace turns the bar into cannonballs, ready for your dwarf multicannon."
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_cf786c88b6ed3b6a",
@@ -2776,7 +2829,8 @@
           3
         ],
         "explanation": "A clockwork comes from a steel bar at a crafting table in your house. With logs, a hammer and a chisel it becomes a bird house, which you set up and fill with seeds."
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_01e78b0daf878097",
@@ -2817,7 +2871,8 @@
           3
         ],
         "explanation": "Clay needs water to become soft clay. A lectern in your house turns soft clay and runes into a tablet, which teleports you when you break it."
-      }
+      },
+      "difficulty": "easy"
     }
   ]
 }

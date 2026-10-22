@@ -21,7 +21,8 @@
         "answer_index": 0,
         "explanation": "Settled's Swampletics, an Ultimate Ironman who never left Morytania."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Soggy_journal"
+      "wiki": "https://oldschool.runescape.wiki/w/Soggy_journal",
+      "difficulty": "medium"
     },
     {
       "id": "q_b67f73d5851005de",
@@ -42,7 +43,8 @@
         "answer_index": 1,
         "explanation": "B0aty, known for their Ironman videos. Adam is a nod to them."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Ironman_tutor"
+      "wiki": "https://oldschool.runescape.wiki/w/Ironman_tutor",
+      "difficulty": "medium"
     },
     {
       "id": "q_c72c9a364a8b5350",
@@ -63,7 +65,8 @@
         "answer_index": 0,
         "explanation": "The Woox Walk, named after the player who devised it."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Vorkath/Strategies"
+      "wiki": "https://oldschool.runescape.wiki/w/Vorkath/Strategies",
+      "difficulty": "easy"
     },
     {
       "id": "q_835895e7dadde03a",
@@ -84,7 +87,8 @@
         "answer_index": 2,
         "explanation": "Faux. B0aty captained TeamCBS, and Torvesta and Sick Nerd played under Faux."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Mansions"
+      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Mansions",
+      "difficulty": "hard"
     },
     {
       "id": "q_06e05e70b5dfb4df",
@@ -105,7 +109,8 @@
         "answer_index": 1,
         "explanation": "Solo Mission, in 2025. B0aty followed in episode 8."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/2025"
+      "wiki": "https://oldschool.runescape.wiki/w/2025",
+      "difficulty": "hard"
     },
     {
       "id": "q_ef38bdf9f03c42a8",
@@ -121,7 +126,8 @@
         "unit": "days",
         "explanation": "Two. The Inferno opened on 1 June 2017, and Woox was the first player to get the cape."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Infernal_cape"
+      "wiki": "https://oldschool.runescape.wiki/w/Infernal_cape",
+      "difficulty": "medium"
     },
     {
       "id": "q_d730c08bf28854d9",
@@ -148,7 +154,8 @@
         ],
         "explanation": "Raikesy, Alfie and Torvesta, with Sick Nerd, under Faux. B0aty captained Framed and Soup on TeamCBS, and TeamLUL won by a point."
       },
-      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Mansions"
+      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Mansions",
+      "difficulty": "hard"
     }
   ]
 }

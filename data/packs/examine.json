@@ -21,7 +21,8 @@
           "Toy kite"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_42bc5c42bab9c57a",
@@ -43,7 +44,8 @@
           "Smoke devil"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_9dd8fc1c8f8badf3",
@@ -65,7 +67,8 @@
           "Teleport crystal"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_7fbd5f63a4fcc88e",
@@ -87,7 +90,8 @@
           "Half a fish pie"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_5263ed699525db8b",
@@ -109,7 +113,8 @@
           "Lumbridge Guide"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_13d1ef4bf8648570",
@@ -131,7 +136,8 @@
           "Bartender"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_099b01d62c77900a",
@@ -153,7 +159,8 @@
           "Bucket of sand"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_e699c1f20038400c",
@@ -175,7 +182,8 @@
           "Ring of the gods"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_af6310f5f5217d65",
@@ -197,7 +205,8 @@
           "Hay bales"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_b4eb5373eddf50e7",
@@ -219,7 +228,8 @@
           "Small table"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_693ef4996f5e653a",
@@ -241,7 +251,8 @@
           "Spider on stick"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_08715ea2f329c458",
@@ -263,7 +274,8 @@
           "Tangleroot"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_4eeb3f02c0e377ac",
@@ -285,7 +297,8 @@
           "Raw chicken"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_0adee3729490d025",
@@ -307,7 +320,8 @@
           "Marble amulet"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_ab7c1fad4f5bb5eb",
@@ -329,7 +343,8 @@
           "Strange machine"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "medium"
     },
     {
       "id": "q_b7c5ecd8ee81184e",
@@ -351,7 +366,8 @@
           "Giant lobster"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_84caf4feb5910de8",
@@ -373,7 +389,8 @@
           "Giant rat"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_6c1e1fe9b73b6183",
@@ -395,7 +412,8 @@
           "Jester"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_8863e3c6574866f5",
@@ -418,7 +436,8 @@
           "Scorpia"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_84d37beb9a1338f8",
@@ -441,7 +460,8 @@
           "Woodcutter"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_a2addfe12cc6e24b",
@@ -464,7 +484,8 @@
           "Werewolf"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "hard"
     },
     {
       "id": "q_b92a6f6ac7a189d9",
@@ -486,7 +507,8 @@
           "Glouphrie"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     },
     {
       "id": "q_bdd9dac9ab0fc489",
@@ -509,7 +531,8 @@
           "Brimstail"
         ],
         "answer_index": 0
-      }
+      },
+      "difficulty": "easy"
     }
   ]
 }
