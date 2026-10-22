@@ -460,6 +460,7 @@ describe('SettingsMenu, the themes', () => {
       'pollnivneach',
       'jungle',
       'party_room',
+      'zanaris',
       'tzhaar',
       'wilderness',
       'gauntlet',

@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * A light on the wall either side of the page, behind everything, in the themes that
-   * hang one: the inn's candle lanterns, both Gauntlets' glowing door logos.
+   * hang one: the inn's candle lanterns, both Gauntlets' glowing door logos. Zanaris has no
+   * lights, only a fairy ring on the floor in their place, and keeps the left one on a phone.
    *
    * Drawn only on a window wide enough to leave them room beside the stage: on a phone the
    * sheet and its host stand where they would hang. The right one is the left one mirrored,
@@ -9,11 +10,12 @@
    */
   import { onMount } from 'svelte'
 
+  import fairyRing from '../assets/sprites/fairy-ring.svg'
   import { watchTheme } from '../lib/theme'
   import GauntletDoorLogo from './GauntletDoorLogo.svelte'
   import InnLantern from './InnLantern.svelte'
 
-  const LIT = ['jolly', 'gauntlet', 'corrupted_gauntlet'] as const
+  const LIT = ['jolly', 'gauntlet', 'corrupted_gauntlet', 'zanaris'] as const
   type Lit = (typeof LIT)[number]
 
   let lit = $state<Lit | null>(null)
@@ -34,6 +36,8 @@
       <div class="fitting {side}" data-light={side}>
         {#if lit === 'jolly'}
           <InnLantern {side} />
+        {:else if lit === 'zanaris'}
+          <img class="ring" src={fairyRing} alt="" width="250" height="127" draggable="false" />
         {:else}
           <GauntletDoorLogo gauntlet={lit} />
         {/if}
@@ -144,6 +148,40 @@
 
   .fitting.right {
     transform: translate(50%, -50%) scaleX(-1);
+  }
+
+  /* A fairy ring at its own size, pixel for pixel, whatever room the stage leaves: it lies on
+     the floor, half under the page, and gives off no light. */
+  [data-lights='zanaris'] {
+    --fitting-width: 250px;
+  }
+
+  [data-lights='zanaris'] .light {
+    display: none;
+  }
+
+  .ring {
+    display: block;
+    image-rendering: pixelated;
+  }
+
+  /* On a phone the stage fills the window, so only the left ring shows, in the bottom
+     corner and partly off it, behind the page. */
+  @media (max-width: 49.99rem) {
+    .wall-lights[data-lights='zanaris'] {
+      display: block;
+    }
+
+    [data-lights='zanaris'] .fitting.left {
+      top: auto;
+      bottom: 0;
+      left: -40px;
+      transform: none;
+    }
+
+    [data-lights='zanaris'] .fitting.right {
+      display: none;
+    }
   }
 
   @keyframes flicker {

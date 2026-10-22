@@ -86,6 +86,7 @@ describe('the choices', () => {
       'bestiary',
       'drop_table',
       'odd_one_out',
+      'minigame_madness',
       'who_said_that',
       'know_your_content_creator',
       'whos_that_npc',
@@ -132,6 +133,15 @@ describe('the choices', () => {
       'pick_all_that_apply',
       'matching',
     ])
+    expect(CHOICES.find((c) => c.id === 'minigame_madness')?.types).toEqual([
+      'multiple_choice',
+      'free_text',
+      'closest_number',
+      'number_slider',
+      'pick_all_that_apply',
+      'ordering',
+      'matching',
+    ])
     expect(CHOICES.find((c) => c.id === 'know_your_content_creator')?.types).toEqual([
       'multiple_choice',
       'closest_number',
@@ -142,7 +152,10 @@ describe('the choices', () => {
     expect(sort?.types).toEqual(['ordering'])
     expect(sort?.host).toBe('historian_minas')
     expect(sort?.hint).toBe('Something worth putting in order.')
-    expect(CHOICES.filter((c) => c.pictureItem).map((c) => c.id)).toEqual(['drop_table'])
+    expect(CHOICES.filter((c) => c.pictureItem).map((c) => c.id)).toEqual([
+      'drop_table',
+      'minigame_madness',
+    ])
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
     const release = CHOICES.find((c) => c.id === 'release_order')
@@ -305,10 +318,12 @@ describe('a question’s round', () => {
       'random_event',
       'bestiary',
       'drop_table',
+      'minigame_madness',
     ])
     expect(roundsFor('ordering').map((c) => c.id)).toEqual([
       'random_event',
       'bestiary',
+      'minigame_madness',
       'sort_it_out',
       'release_order',
     ])

@@ -58,8 +58,16 @@ describe('HowToPlay', () => {
       'Match them up',
       'Type the answer',
       'Closest number',
-      'Slide to a number',
+      'Slide to your guess',
     ])
+  })
+
+  it('draws the slider row as a slider, not a typed box', async () => {
+    render(HowToPlay, { onclose: () => {} })
+    const slide = await screen.findByRole('heading', { name: 'Slide to your guess' })
+    const drawing = slide.closest('li')?.querySelector('.drawing')
+    expect(drawing?.querySelector('.rail .thumb')).not.toBeNull()
+    expect(drawing?.querySelector('.box')).toBeNull()
   })
 
   it('still explains what an event may be when the modes fail to load', async () => {

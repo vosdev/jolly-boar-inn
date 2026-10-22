@@ -44,6 +44,21 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.143.0',
+    date: '2026-10-21',
+    text: 'New round: Minigame Madness, hosted by Lanthus. Prizes, points and places from Castle Wars to Tempoross.',
+  },
+  {
+    version: '0.142.0',
+    date: '2026-10-21',
+    text: 'How to play draws the slider questions as a slider, in one row for prices and numbers.',
+  },
+  {
+    version: '0.141.0',
+    date: '2026-10-21',
+    text: 'A new theme: Zanaris, the fairy city, with its mushrooms and the Cosmic altar sign.',
+  },
+  {
     version: '0.140.0',
     date: '2026-10-21',
     text: 'Bananas and monkey nuts lie in the Jungle grass; cacti, camels and waterskins on the Pollnivneach sand.',

@@ -23,6 +23,7 @@
   import type { Snippet } from 'svelte'
 
   import skullUrl from '../../assets/sprites/skull.svg'
+  import mushroomsUrl from '../../assets/textures/zanaris-mushrooms.svg'
   import { NO_AWARD, pinFor, type Award } from '../../lib/award'
   import { ART, PLANK_SEAMS, type Sheet } from '../../lib/sheet'
   import Confetti from './Confetti.svelte'
@@ -135,6 +136,33 @@
         </svg>
       {:else if sheet === 'poster'}
         <img class="skull" src={skullUrl} alt="" width="50" height="50" draggable="false" />
+      {:else if sheet === 'sign'}
+        <svg class="altar" viewBox="0 0 500 300" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="altar-stone" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color={ART.signLight} />
+              <stop offset="0.55" stop-color={ART.sign} />
+              <stop offset="1" stop-color={ART.signDark} />
+            </linearGradient>
+          </defs>
+          <path
+            fill={ART.signEdge}
+            d="M22 38L64 12L150 22L252 8L360 18L452 10L490 44L480 118L494 190L482 262L432 292L300 282L200 294L92 286L30 272L8 204L20 132L6 80Z"
+          />
+          <path
+            fill="url(#altar-stone)"
+            d="M28 42L66 18L150 28L252 14L360 24L450 16L484 46L474 118L488 190L476 258L430 286L300 276L200 288L94 280L34 266L14 202L26 132L12 82Z"
+          />
+          <path
+            fill={ART.signShard}
+            d="M30 46L64 22L110 26L74 34L46 62L40 104L28 92ZM480 48L448 20L392 24L430 32L456 60L462 102L476 90ZM18 200L32 262L92 276L60 262L40 236L36 196ZM484 192L472 254L428 282L452 256L462 228L466 188ZM14 120L26 132L22 160L12 150ZM486 140L476 118L480 104L490 128Z"
+          />
+          <path
+            fill={ART.signShardDark}
+            d="M46 62L74 34L120 30L86 46L58 74ZM456 60L430 32L384 30L414 46L444 74ZM40 236L60 262L110 272L74 254L52 226ZM462 228L452 256L398 272L432 252L450 222Z"
+          />
+        </svg>
+        <img class="mushrooms" src={mushroomsUrl} alt="" draggable="false" />
       {:else if sheet === 'gauntlet'}
         <!-- The rim along each cut corner, which the inset rings cannot follow. -->
         {#each ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as corner (corner)}
@@ -584,6 +612,29 @@
   .rim-inner {
     stroke: color-mix(in srgb, var(--scroll-edge) 50%, var(--scroll-paper));
     stroke-width: 1.5;
+  }
+
+  /* Zanaris's sign at the Cosmic altar: teal stone with pale crystal shards at its corners,
+     stretched to any sheet, and a clump of the city's mushrooms at its foot. */
+  :where(.scroll[data-sheet='sign']) .paper {
+    padding: calc(1.8rem * var(--k)) calc(2.4rem * var(--k)) calc(1.8rem * var(--k));
+    background: none;
+    box-shadow: none;
+    text-align: center;
+  }
+
+  .altar {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .mushrooms {
+    position: absolute;
+    right: calc(-10px * var(--k));
+    bottom: calc(-16px * var(--k));
+    width: calc(64px * var(--k));
   }
 
   /* Morytania's gravestone: an arched slab of grey stone with an engraved rule inside its

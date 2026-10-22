@@ -626,7 +626,7 @@ def test_a_drop_table_question_names_an_item_to_picture(client: TestClient) -> N
     ],
     ids=["blank", "too_long", "an_id", "bestiary"],
 )
-def test_only_drop_table_names_a_picture_item(
+def test_only_the_item_rounds_name_a_picture_item(
     client: TestClient, body: dict[str, Any], problem: str
 ) -> None:
     response = client.post("/api/suggestions", json=body)
@@ -685,6 +685,43 @@ def test_a_whos_that_npc_suggestion_is_refused(
     response = client.post("/api/suggestions", json=body)
     assert response.status_code == 422, response.text
     assert problem in response.text
+
+
+MINIGAME = "minigame_madness"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        _with(ODD, mode=MINIGAME, payload={**ODD["content"]["payload"], "prompt": "Who runs it?"}),
+        _with(TYPED, mode=MINIGAME),
+        _with(PICK_ALL, mode=MINIGAME),
+        _with(SORT_IT_OUT, mode=MINIGAME),
+        _with(MATCHING, mode=MINIGAME),
+        _with(DROP_RATE, mode=MINIGAME),
+        _with(SLIDER, mode=MINIGAME),
+    ],
+    ids=lambda body: body["content"]["type"],
+)
+def test_minigame_madness_takes_each_of_its_types_and_plays_them(
+    client: TestClient, body: dict[str, Any]
+) -> None:
+    approve(client, suggest(client, body))
+    (question,) = export(client)["questions"]
+    assert (question["mode"], question["type"]) == (MINIGAME, body["content"]["type"])
+    assert question["payload"] == body["content"]["payload"]
+
+
+def test_minigame_madness_refuses_a_type_it_does_not_play(client: TestClient) -> None:
+    response = client.post("/api/suggestions", json=_with(NPC, mode=MINIGAME))
+    assert response.status_code == 422, response.text
+    assert f"'pick_from_list' is not offered for '{MINIGAME}'" in response.text
+
+
+def test_a_minigame_madness_question_names_an_item_to_picture(client: TestClient) -> None:
+    approve(client, suggest(client, _with(ODD, mode=MINIGAME, picture_item="Fighter torso")))
+    (question,) = export(client)["questions"]
+    assert question["picture_item"] == "Fighter torso"
 
 
 def test_the_form_offers_a_picture_item_only_to_the_rounds_that_take_one() -> None:

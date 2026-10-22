@@ -187,8 +187,23 @@ THEMES: dict[str, dict[str, str]] = {
         "ghost": "0.5",
         "ghost-tusk": "0.65",
     },
+    # A fairy of Zanaris: violet eyes, and wings on its back, violet above and sky blue below.
+    "zanaris": {
+        "ornament": "wings",
+        "rim": "#10303a",
+        "hide-lo": "#0c1a1f",
+        "hide-hi": "#a8988c",
+        "tusk-lo": "#4a4a5a",
+        "tusk-hi": "#f2f0ff",
+        "eye-lo": "#7a5ad0",
+        "eye-hi": "#efe6ff",
+        "eye-glow": "#b48cff",
+        "wing-hi": "#c79bff",
+        "wing-lo": "#34b9fa",
+        "wing-edge": "#5ff0dc",
+    },
 }
-ORNAMENTS = ("board", "fez", "skull", "partyhat", "leaves", "crystals")
+ORNAMENTS = ("board", "fez", "skull", "partyhat", "leaves", "crystals", "wings")
 DEFAULT = THEMES["jolly"]
 
 # What Broav_detail.png looks like, in its own pixels. A new upload of the file would need
@@ -329,6 +344,9 @@ RULES = "\n".join(
         f".boar-crystal-lo {{ fill: {_var('crystal-lo', '#bff3f3')}; }}",
         f".boar-crystal-hi {{ fill: {_var('crystal-hi', '#e9ffff')}; }}",
         f".boar-crystal-facet {{ fill: {_var('crystal-facet', '#8fe3e6')}; }}",
+        f".boar-wings {{ {_shows('wings')} stroke: {_var('wing-edge', '#5ff0dc')}; }}",
+        f".boar-wing-hi {{ fill: {_var('wing-hi', '#c79bff')}; fill-opacity: 0.6; }}",
+        f".boar-wing-lo {{ fill: {_var('wing-lo', '#34b9fa')}; fill-opacity: 0.45; }}",
     ]
 )
 
@@ -478,6 +496,32 @@ def _crystals(rim: int) -> str:
     )
 
 
+# One wing of each pair, rooted behind the head; the other is its mirror across the head.
+_UPPER_WING = "M880 300 C1000 60 1220 -260 1500 -330 C1560 -160 1420 120 980 380 Z"
+_LOWER_WING = "M940 330 C1120 250 1360 200 1510 260 C1420 380 1150 420 960 420 Z"
+_WING_VEINS = "M890 310 C1060 60 1260 -180 1480 -310 M960 360 C1160 300 1360 260 1490 265"
+_HEAD_MIDDLE = 736
+
+
+def _mirror(path: str) -> str:
+    return re.sub(r"(-?\d+) (-?\d+)", lambda m: f"{2 * _HEAD_MIDDLE - int(m[1])} {m[2]}", path)
+
+
+def _wings(rim: int) -> str:
+    """Two pairs of fairy wings, drawn before the head so they stand behind it."""
+    pairs = "".join(
+        f'<path class="{cls}" d="{shape}"/><path class="{cls}" d="{_mirror(shape)}"/>'
+        for cls, shape in (("boar-wing-lo", _LOWER_WING), ("boar-wing-hi", _UPPER_WING))
+    )
+    veins = (
+        f'<path fill="none" stroke-width="{rim // 3}" d="{_WING_VEINS} {_mirror(_WING_VEINS)}"/>'
+    )
+    return (
+        f'<g class="boar-wings" stroke-width="{rim // 2}" stroke-linejoin="round">'
+        f"{pairs}{veins}</g>"
+    )
+
+
 class Logo:
     """Draws the logo in a 32-unit square, the size the top bar shows it at.
 
@@ -509,7 +553,7 @@ class Logo:
         mirrored = (
             f'<g transform="translate({self.left + self.width * s:.4f} {self.top}) '
             f'scale({-s:.6f} {s:.6f})">'
-            f"{_head(self.geometry[size], uid, rim)}{_fez(hat_rim)}"
+            f"{_wings(hat_rim)}{_head(self.geometry[size], uid, rim)}{_fez(hat_rim)}"
             f"{_partyhat(hat_rim)}{_leaves(hat_rim)}{_crystals(hat_rim)}</g>"
         )
         board = (

@@ -655,6 +655,69 @@
   color-scheme: dark;
 }
 
+/* Zanaris, the fairy city: its teal ground strewn with red and blue spotted mushrooms, pale
+   panels like its walls, and the Cosmic altar's sign as the stage's sheet. The panels rest on
+   the rainbow strata under the starflower island, and the accent is the red mushroom. */
+[data-theme='zanaris'] {
+  /* The teal ground, and the pale ice-blue of the city's walls. */
+  --bg: #2a5f6d;
+  --panel: #f1f9fb;
+  --panel-raised: #ffffff;
+  --line: #4f8ea0;
+  --ink: #0d2a33;
+  --muted: #3d5c66;
+  --bg-ink: #ffffff;
+  --bg-muted: #e3f4f7;
+
+  /* The red mushroom. */
+  --accent: #c42a1a;
+  --accent-ink: #ffffff;
+  --accent-hover: #a82314;
+
+  --ok: #1d7a3e;
+  --ok-ink: #ffffff;
+  --bad: #a3264f;
+  --bad-ink: #ffffff;
+  --warn: #8a5a00;
+  --warn-ink: #ffffff;
+
+  /* The blue mushroom and amber: neither is a verdict, nor the red accent. */
+  --more: #136fa0;
+  --less: #9a5b12;
+
+  --gem-sapphire: #7cc4e8;
+  --gem-emerald: #a6dcbc;
+  --gem-ruby: #f4b0a8;
+  --gem-red-topaz: #efa8cf;
+  --gem-dragonstone: #d2b4f0;
+  --gem-zenyte: #f5cf9a;
+  --gem-ink: #0d2a33;
+
+  /* Soft corners, and under each panel the island's five bands of colour. */
+  --radius: 10px;
+  --border-width: 2px;
+  --shadow:
+    0 2px 0 #9cc47f, 0 4px 0 #8fbfcf, 0 6px 0 #7d86c4, 0 8px 0 #7a5fb6, 0 10px 0 #9b4596,
+    0 12px 16px rgb(10 40 50 / 0.28);
+  --scrim: rgb(5 30 38 / 0.55);
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-numeric: var(--font-display);
+
+  --texture-panel: none;
+  --texture-bg: url('./assets/textures/zanaris-ground.svg');
+
+  /* The altar sign: teal stone, its letters cut dark. */
+  --scroll-paper: #6bacbd;
+  --scroll-edge: #3f8394;
+  --scroll-ink: #04161b;
+  --scroll-muted: #163d48;
+  --scroll-facet-light: 0.06;
+  --silhouette: #04161b;
+
+  color-scheme: light;
+}
+
 /* The gods' colours, which are the teams' (`lib/teams.ts`, kept equal by its test). They
    belong to the god, not the theme, so every theme shows them alike. `--team-ink` is what
    reads on `--team`. */

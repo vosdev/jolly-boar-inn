@@ -78,6 +78,20 @@ MODES: dict[str, Mode] = {
         ),
     ),
     "odd_one_out": Mode(id="odd_one_out", types=frozenset({"multiple_choice"})),
+    "minigame_madness": Mode(
+        id="minigame_madness",
+        types=frozenset(
+            {
+                "multiple_choice",
+                "free_text",
+                "pick_all_that_apply",
+                "ordering",
+                "matching",
+                "closest_number",
+                "number_slider",
+            }
+        ),
+    ),
     "whos_that_npc": Mode(id="whos_that_npc", types=frozenset({"pick_from_list"})),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(

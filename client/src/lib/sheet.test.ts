@@ -15,6 +15,7 @@ describe('sheetFor', () => {
     expect(sheetFor('gauntlet')).toBe('gauntlet')
     expect(sheetFor('corrupted_gauntlet')).toBe('gauntlet')
     expect(sheetFor('morytania')).toBe('gravestone')
+    expect(sheetFor('zanaris')).toBe('sign')
   })
 
   it('puts up the notice board on Home in the inn only', () => {
@@ -27,6 +28,7 @@ describe('sheetFor', () => {
     expect(sheetFor('gauntlet', true)).toBe('gauntlet')
     expect(sheetFor('corrupted_gauntlet', true)).toBe('gauntlet')
     expect(sheetFor('morytania', true)).toBe('gravestone')
+    expect(sheetFor('zanaris', true)).toBe('sign')
   })
 
   it("falls back to the inn's for a theme it does not know", () => {
@@ -46,6 +48,7 @@ describe('hasRolls', () => {
       'bamboo',
       'gauntlet',
       'gravestone',
+      'sign',
     ]
     expect(sheets.filter((sheet) => hasRolls(sheet as never))).toEqual(['scroll'])
   })

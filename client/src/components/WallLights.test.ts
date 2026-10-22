@@ -1,7 +1,7 @@
 /**
  * The wall lights hang while a theme that has them is on, and only then, following
  * `data-theme` on <html> as the menu changes it: the inn's lanterns under Jolly, the door
- * logos under both Gauntlets.
+ * logos under both Gauntlets, a fairy ring in their place under Zanaris.
  */
 
 import { render } from '@testing-library/svelte'
@@ -62,6 +62,26 @@ describe('WallLights', () => {
     expect(glows(await shown('gauntlet'))).toEqual(['#0c1414', '#1ac8d8'])
   })
 
+  it('lays a fairy ring at its own size either side under Zanaris, with no light', async () => {
+    const container = await shown('zanaris')
+    expect(container.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe('zanaris')
+    expect(lights(container)).toEqual(['left', 'right'])
+    const rings = [...container.querySelectorAll<HTMLImageElement>('[data-light] img.ring')]
+    expect(rings.map((ring) => [ring.width, ring.height])).toEqual([
+      [250, 127],
+      [250, 127],
+    ])
+    expect(source).toMatch(/\[data-lights='zanaris'\] \.light \{\s*display: none;/)
+  })
+
+  it('keeps the left fairy ring on a phone, in the bottom corner, and only under Zanaris', () => {
+    const phone = /@media \(max-width: 49\.99rem\) \{([\s\S]*?)\n {2}\}/.exec(source)?.[1] ?? ''
+    expect(phone).toMatch(/\.wall-lights\[data-lights='zanaris'\] \{\s*display: block;/)
+    expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.left \{[^}]*bottom: 0;/)
+    expect(phone).toMatch(/\[data-lights='zanaris'\] \.fitting\.right \{\s*display: none;/)
+    expect(phone).not.toMatch(/data-lights='(jolly|gauntlet|corrupted_gauntlet)'/)
+  })
+
   it('gives each lantern its own glass, so the two drawings never share an id', async () => {
     const container = await shown('jolly')
     const ids = [...container.querySelectorAll('[id]')].map((el) => el.id)
@@ -94,11 +114,13 @@ describe('WallLights', () => {
     expect(container.querySelector('.wall-lights')).toBeNull()
   })
 
-  it('hides the lights below 800px, where the stage fills the window', () => {
+  it('hides the lights below 800px, where the stage fills the window, all but Zanaris', () => {
     const style = source.slice(source.indexOf('<style>')).replace(/\/\*[\s\S]*?\*\//g, '')
     expect(style).toMatch(/\.wall-lights \{[^}]*display: none;/)
-    const shown = [...style.matchAll(/display: block;/g)]
-    expect(shown).toHaveLength(1)
+    const shown = [...style.matchAll(/([^{}]+)\{\s*display: block;/g)].map((rule) =>
+      rule[1]!.trim(),
+    )
+    expect(shown).toEqual(['.wall-lights', '.ring', ".wall-lights[data-lights='zanaris']"])
     expect(style).toMatch(
       /@media \(min-width: 50rem\) \{\s*\.wall-lights \{\s*display: block;\s*\}/,
     )

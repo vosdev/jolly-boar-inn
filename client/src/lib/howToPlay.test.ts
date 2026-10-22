@@ -72,7 +72,7 @@ describe('allTypes', () => {
       'Match them up',
       'Type the answer',
       'Closest number',
-      'Slide to a number',
+      'Slide to your guess',
     ])
   })
 
@@ -101,8 +101,11 @@ describe('rows', () => {
   })
 })
 
-it('gives the price slider its own row', () => {
-  expect(titles(new Set(['price_is_right']))).toEqual(['Slide to a price'])
+it('shares one row, drawn as a slider, for the two slider types', () => {
+  for (const type of ['price_is_right', 'number_slider']) {
+    const rows = rowsFor(new Set([type]))
+    expect(rows.map((row) => [row.title, row.drawing])).toEqual([['Slide to your guess', 'slider']])
+  }
 })
 
 describe('loadModes', () => {

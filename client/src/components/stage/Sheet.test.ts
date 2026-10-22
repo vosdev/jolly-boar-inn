@@ -88,6 +88,14 @@ describe('the sheet', () => {
     expect(sheet.querySelector('.roll')).toBeNull()
   })
 
+  it("is the Cosmic altar's sign in Zanaris, mushrooms at its foot", () => {
+    const { sheet } = stage('zanaris')
+    expect(sheet.dataset.sheet).toBe('sign')
+    expect(sheet.querySelector('.paper svg.altar')).not.toBeNull()
+    expect(sheet.querySelector('.paper img.mushrooms')).not.toBeNull()
+    expect(sheet.querySelector('.roll')).toBeNull()
+  })
+
   it('keeps the words on the sheet whatever it is', () => {
     const themes = [
       'jolly',
@@ -99,6 +107,7 @@ describe('the sheet', () => {
       'gauntlet',
       'corrupted_gauntlet',
       'morytania',
+      'zanaris',
     ]
     for (const theme of themes) {
       const { sheet } = stage(theme)

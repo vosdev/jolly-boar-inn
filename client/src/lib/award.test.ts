@@ -10,6 +10,7 @@ import bountySkull4 from '../assets/sprites/bounty-skull-4.svg'
 import bountySkull5 from '../assets/sprites/bounty-skull-5.svg'
 import crystalShard from '../assets/sprites/crystal-shard.svg'
 import monkey from '../assets/sprites/monkey.svg'
+import cosmicRune from '../assets/sprites/cosmic-rune.svg'
 import snelm from '../assets/sprites/snelm.svg'
 import superKebab from '../assets/sprites/super-kebab.svg'
 import tokkul from '../assets/sprites/tokkul.svg'
@@ -54,12 +55,13 @@ describe('pinFor', () => {
     }
   })
 
-  it('pins a monkey in the jungle, a crystal shard in both Gauntlets and a snelm in Morytania', () => {
+  it('pins a monkey in the jungle, a crystal shard in both Gauntlets, a snelm in Morytania and a cosmic rune in Zanaris', () => {
     for (const points of [1, 600, 1000]) {
       expect(pinFor('jungle', points)).toEqual({ url: monkey, sprite: true })
       expect(pinFor('gauntlet', points)).toEqual({ url: crystalShard, sprite: true })
       expect(pinFor('corrupted_gauntlet', points)).toEqual({ url: crystalShard, sprite: true })
       expect(pinFor('morytania', points)).toEqual({ url: snelm, sprite: true })
+      expect(pinFor('zanaris', points)).toEqual({ url: cosmicRune, sprite: true })
     }
   })
 

@@ -16,9 +16,9 @@ the question gets that id, its shadow ``npc:<id>`` and the picture's ``data/asse
 One query to the ``infobox_monster`` bucket asks for every NPC in the file, and one to
 ``infobox_npc`` for those it did not find. An NPC the list already has is skipped.
 
-A Drop Table question's ``picture_item`` is found the same way and becomes its payload's
-``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and inventory icon
-when it lacks either, for ``make fetch-assets``.
+A Drop Table or Minigame Madness question's ``picture_item`` is found the same way and becomes
+its payload's ``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and
+inventory icon when it lacks either, for ``make fetch-assets``.
 
 Each keeps its ``credit``, and ``credit_shown`` when it is true. Anything a pack or the
 roster already holds is skipped: a question by content id, an examine line also by its

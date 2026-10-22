@@ -47,16 +47,17 @@ def test_it_is_registered_and_scored_on_speed() -> None:
 
 def test_only_hand_written_one_answer_questions_play_it() -> None:
     """It is for the host's own questions, whose answers no shipped list could hold, and
-    for questions written by hand one at a time with their spellings listed: the NPCs' and
-    Bestiary's and Drop Table's. No other round's own pool has one."""
+    for questions written by hand one at a time with their spellings listed: the NPCs',
+    Bestiary's, Drop Table's and Minigame Madness's. No other round's own pool has one."""
     assert {
         mode.id for mode in MODES.values() if mode.pool is None and "free_text" in mode.types
-    } == {"bestiary", "drop_table"}
+    } == {"bestiary", "drop_table", "minigame_madness"}
     shipped = [q for pack in load_packs(PACKS_DIR) for q in pack.questions]
     assert {q["mode"] for q in shipped if q["type"] == "free_text"} == {
         "random_event",
         "bestiary",
         "drop_table",
+        "minigame_madness",
     }
 
 

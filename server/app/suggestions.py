@@ -4,13 +4,13 @@ A player who has finished a game may suggest one of two kinds of content:
 
 - ``question``: a question for a mode, in the shape Create's editor writes it, plus the
   mode it is for and where it was checked: the wiki page, an https ``source_url`` for what
-  the wiki cannot prove, or both. A Drop Table question may name an item to picture, as
-  ``picture_item``; the import script turns the name into the payload's ``image``. A Who's
-  That NPC? question is only its fixed prompt and the NPC's name, an NPC not asked about yet:
-  the import script finds the rest. A round not built yet takes them too, so its pack is
-  ready when it opens; such a suggestion waits in the queue until it is. A player who
-  cannot place a question may send it with no mode: the operator picks its round before
-  approving it.
+  the wiki cannot prove, or both. A Drop Table or Minigame Madness question may name an item
+  to picture, as ``picture_item``; the import script turns the name into the payload's
+  ``image``. A Who's That NPC? question is only its fixed prompt and the NPC's name, an NPC
+  not asked about yet: the import script finds the rest. A round not built yet takes them
+  too, so its pack is ready when it opens; such a suggestion waits in the queue until it is.
+  A player who cannot place a question may send it with no mode: the operator picks its
+  round before approving it.
 - ``item``: an item name for the roster (``data/popular-items.json``) that is not on it yet.
   The import script finds its id, so a player needs to know no more than the name.
 
@@ -84,6 +84,17 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     "know_your_content_creator": frozenset(
         {"multiple_choice", "closest_number", "number_slider", "pick_all_that_apply"}
     ),
+    "minigame_madness": frozenset(
+        {
+            "multiple_choice",
+            "free_text",
+            "closest_number",
+            "number_slider",
+            "pick_all_that_apply",
+            "ordering",
+            "matching",
+        }
+    ),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
     "whos_that_npc": frozenset({"pick_from_list"}),
@@ -127,7 +138,7 @@ UNPLACED_TYPES = frozenset(
 _QUESTION_KEYS = {"type", "payload"}
 _QUESTION_OPTIONAL = frozenset({"mode", "random_event", "wiki", "source_url", "picture_item"})
 # Players know an item by name, not id: the import script finds the id and sets the picture.
-PICTURE_ITEM_MODES = frozenset({"drop_table"})
+PICTURE_ITEM_MODES = frozenset({"drop_table", "minigame_madness"})
 _ITEM_KEYS = {"name"}
 
 

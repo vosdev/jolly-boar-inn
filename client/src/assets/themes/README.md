@@ -16,6 +16,7 @@ placeholder: a flat mark in its own accent colour.
 | `gauntlet.png` | Gauntlet | Crystal of Amlodd | Three crystal shards |
 | `corrupted_gauntlet.png` | Corrupted Gauntlet | Crystal of Hefin | Three crystal shards |
 | `morytania.png` | Morytania | Ectophial | A stoppered flask |
+| `zanaris.png` | Zanaris | Dramen staff | A spotted mushroom |
 
 Any file named `<theme>.<ext>` works, `<ext>` being `avif`, `webp`, `png`, `jpg`, `jpeg` or
 `svg`. The bar's slot is 32px; a sprite is drawn at its own size, pixelated, never blurred up. An

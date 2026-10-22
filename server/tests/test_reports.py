@@ -122,6 +122,7 @@ WHAT_PLAYERS_READ = {
     "know_your_content_creator": _prompt,
     "bestiary": _prompt,
     "drop_table": _prompt,
+    "minigame_madness": _prompt,
     "random_event": _prompt,
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
     "whos_that_npc": lambda q: q["payload"]["subject"]["name"],

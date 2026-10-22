@@ -138,6 +138,7 @@ describe('definedThemes', () => {
         'pollnivneach',
         'wilderness',
         'party_room',
+        'zanaris',
         'tzhaar',
         'jungle',
         'gauntlet',

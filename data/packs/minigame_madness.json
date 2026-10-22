@@ -1,0 +1,1276 @@
+{
+  "pack": "minigame_madness",
+  "questions": [
+    {
+      "id": "q_17e532ab7c28fea2",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "castle-wars"
+      ],
+      "payload": {
+        "prompt": "Who runs Castle Wars?",
+        "options": [
+          "Lanthus",
+          "Commander Connad",
+          "Nomad",
+          "Dominic Onion"
+        ],
+        "answer_index": 0,
+        "explanation": "Lanthus, in the lobby since December 2004. Connad runs Barbarian Assault, Nomad Soul Wars and Dominic Onion the Nightmare Zone."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lanthus"
+    },
+    {
+      "id": "q_a8a9fcf43e8f5045",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "castle-wars"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Saradomin halo?",
+        "image": "item:12637",
+        "options": [
+          "Pest Control",
+          "Castle Wars",
+          "Soul Wars",
+          "Barbarian Assault"
+        ],
+        "answer_index": 1,
+        "explanation": "Castle Wars: Lanthus trades it for tickets, with the Zamorak and Guthix halos."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Saradomin_halo"
+    },
+    {
+      "id": "q_7c8d06b9951ad8a4",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "barbarian-assault"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Fighter torso?",
+        "image": "item:10551",
+        "options": [
+          "Castle Wars",
+          "Pest Control",
+          "Barbarian Assault",
+          "Soul Wars"
+        ],
+        "answer_index": 2,
+        "explanation": "Barbarian Assault: 375 honour points in each of the four roles."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fighter_torso"
+    },
+    {
+      "id": "q_d65550436271fd76",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "pest-control"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Void knight top?",
+        "image": "item:8839",
+        "options": [
+          "Pest Control",
+          "Barbarian Assault",
+          "Castle Wars",
+          "Nightmare Zone"
+        ],
+        "answer_index": 0,
+        "explanation": "Pest Control, for commendation points from the Void Knights."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Void_knight_top"
+    },
+    {
+      "id": "q_d97662c241667a4e",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "wintertodt"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Pyromancer hood?",
+        "image": "item:20708",
+        "options": [
+          "Tempoross",
+          "Volcanic Mine",
+          "Giants' Foundry",
+          "Wintertodt"
+        ],
+        "answer_index": 3,
+        "explanation": "Wintertodt, from its reward cart. There is no shop: every piece is a roll."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pyromancer_outfit"
+    },
+    {
+      "id": "q_4a94668986bb5db6",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "mage-training-arena"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Infinity hat?",
+        "image": "item:6918",
+        "options": [
+          "Mage Arena",
+          "Mage Training Arena",
+          "Guardians of the Rift",
+          "Pest Control"
+        ],
+        "answer_index": 1,
+        "explanation": "Mage Training Arena, for pizazz points from all four of its rooms. The Mage Arena gives god capes."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Infinity_hat"
+    },
+    {
+      "id": "q_0acf0b89e0b484c2",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "fishing-trawler"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Angler hat?",
+        "image": "item:13258",
+        "options": [
+          "Trouble Brewing",
+          "Barbarian Assault",
+          "Fishing Trawler",
+          "Pest Control"
+        ],
+        "answer_index": 2,
+        "explanation": "Fishing Trawler: a piece may turn up in the net after a game. Aerial fishing sells it too, but that's no minigame."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Angler's_outfit"
+    },
+    {
+      "id": "q_fb236e5f03e35285",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "hallowed-sepulchre"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Ring of endurance?",
+        "image": "item:24736",
+        "options": [
+          "Pyramid Plunder",
+          "Rogues' Den",
+          "Brimhaven Agility Arena",
+          "Hallowed Sepulchre"
+        ],
+        "answer_index": 3,
+        "explanation": "Hallowed Sepulchre, from the Grand Hallowed Coffin at the end of the fifth floor."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ring_of_endurance"
+    },
+    {
+      "id": "q_c6492c022342dfb6",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "pyramid-plunder"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Pharaoh's sceptre?",
+        "image": "item:26948",
+        "options": [
+          "Pyramid Plunder",
+          "Hallowed Sepulchre",
+          "Sorceress's Garden",
+          "Rogues' Den"
+        ],
+        "answer_index": 0,
+        "explanation": "Pyramid Plunder, in the pyramid at Sophanem."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pharaoh's_sceptre"
+    },
+    {
+      "id": "q_79a2a705f38a8ecf",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "rogues-den"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Rogue mask?",
+        "image": "item:5554",
+        "options": [
+          "Pyramid Plunder",
+          "Rogues' Den",
+          "Hallowed Sepulchre",
+          "Sorceress's Garden"
+        ],
+        "answer_index": 1,
+        "explanation": "Rogues' Den, from the crate in the wall safe at the end of the maze, under the Toad and Chicken in Burthorpe."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Rogue_equipment"
+    },
+    {
+      "id": "q_201a5537b4fe8a64",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "brimhaven-agility-arena"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Pirate's hook?",
+        "image": "item:2997",
+        "options": [
+          "Rogues' Den",
+          "Pyramid Plunder",
+          "Hallowed Sepulchre",
+          "Brimhaven Agility Arena"
+        ],
+        "answer_index": 3,
+        "explanation": "Brimhaven Agility Arena: 800 vouchers from Pirate Jackie the Fruit."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pirate's_hook"
+    },
+    {
+      "id": "q_3f4e25ca6f5bd089",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "temple-trekking"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Lumberjack hat?",
+        "image": "item:10941",
+        "options": [
+          "Temple Trekking",
+          "Tai Bwo Wannai Cleanup",
+          "Wintertodt",
+          "Tithe Farm"
+        ],
+        "answer_index": 0,
+        "explanation": "Temple Trekking, escorting pilgrims through Morytania. Forestry's Friendly Foresters sell it too, more slowly."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lumberjack_outfit"
+    },
+    {
+      "id": "q_28f654ef3b8a05da",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "shades-of-mortton"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Amulet of the Damned?",
+        "image": "item:12853",
+        "options": [
+          "Temple Trekking",
+          "Hallowed Sepulchre",
+          "Shades of Mort'ton",
+          "Pyramid Plunder"
+        ],
+        "answer_index": 2,
+        "explanation": "Shades of Mort'ton, from the chests in the Shade Catacombs."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Amulet_of_the_Damned"
+    },
+    {
+      "id": "q_1e37f5cf7d24d700",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "volcanic-mine"
+      ],
+      "payload": {
+        "prompt": "Which minigame gives the Ash covered tome?",
+        "image": "item:21697",
+        "options": [
+          "Wintertodt",
+          "Volcanic Mine",
+          "Tempoross",
+          "Guardians of the Rift"
+        ],
+        "answer_index": 1,
+        "explanation": "Volcanic Mine: Petrified Pete sells it for 40,000 points. The Tome of Fire's pages come from Wintertodt."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ash_covered_tome"
+    },
+    {
+      "id": "q_4873ef00beeafeb8",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "tempoross"
+      ],
+      "payload": {
+        "prompt": "Which skilling boss is fought with Fishing?",
+        "options": [
+          "Wintertodt",
+          "Zalcano",
+          "Tempoross",
+          "The Great Guardian"
+        ],
+        "answer_index": 2,
+        "explanation": "Tempoross: catch harpoonfish, cook them, load them into the cannons, then fish its essence away."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tempoross"
+    },
+    {
+      "id": "q_c8473df6495d7952",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "giants-foundry"
+      ],
+      "payload": {
+        "prompt": "Which quest opens the Giants' Foundry?",
+        "options": [
+          "The Giant Dwarf",
+          "Sleeping Giants",
+          "Making Friends with My Arm",
+          "Between a Rock..."
+        ],
+        "answer_index": 1,
+        "explanation": "Sleeping Giants, after which Kovac takes your giant weapons."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Giants'_Foundry"
+    },
+    {
+      "id": "q_91966fdcf9e2f65e",
+      "type": "multiple_choice",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "temple-trekking"
+      ],
+      "payload": {
+        "prompt": "Temple Trekking escorts pilgrims from which town to the Paterdomus temple?",
+        "options": [
+          "Canifis",
+          "Port Phasmatys",
+          "Mort'ton",
+          "Burgh de Rott"
+        ],
+        "answer_index": 3,
+        "explanation": "Burgh de Rott, through the swamps of Morytania to the temple on the River Salve."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Temple_Trekking"
+    },
+    {
+      "id": "q_8c706c21280e513e",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "soul-wars"
+      ],
+      "payload": {
+        "prompt": "What does Soul Wars pay in?",
+        "accepted": [
+          "Zeal tokens",
+          "Zeal token",
+          "Zeal"
+        ],
+        "explanation": "Zeal tokens, spent with Nomad on the Isle of Souls."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Zeal_Tokens"
+    },
+    {
+      "id": "q_d403d233754a512e",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "trouble-brewing"
+      ],
+      "payload": {
+        "prompt": "What does Trouble Brewing pay in?",
+        "accepted": [
+          "Pieces of eight",
+          "Piece of eight",
+          "Pieces of 8"
+        ],
+        "explanation": "Pieces of eight, for brewing rum on Mos Le'Harmless."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pieces_of_eight"
+    },
+    {
+      "id": "q_9165a08a7d512f3e",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "tai-bwo-wannai-cleanup"
+      ],
+      "payload": {
+        "prompt": "What does the Tai Bwo Wannai Cleanup pay in?",
+        "accepted": [
+          "Trading sticks",
+          "Trading stick"
+        ],
+        "explanation": "Trading sticks, which Gabooty swaps for machetes, villager clothes and gout tubers."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Trading_sticks"
+    },
+    {
+      "id": "q_01282c98c7a97746",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "fishing-trawler"
+      ],
+      "payload": {
+        "prompt": "From which port does the Fishing Trawler sail?",
+        "accepted": [
+          "Port Khazard",
+          "Khazard"
+        ],
+        "explanation": "Port Khazard, south of Ardougne."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fishing_Trawler"
+    },
+    {
+      "id": "q_3e8acdb677112592",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "hallowed-sepulchre"
+      ],
+      "payload": {
+        "prompt": "Below which city is the Hallowed Sepulchre?",
+        "accepted": [
+          "Darkmeyer"
+        ],
+        "explanation": "Darkmeyer, open after Sins of the Father with 52 Agility."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Hallowed_Sepulchre"
+    },
+    {
+      "id": "q_6289d4d832bfda55",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "pyramid-plunder"
+      ],
+      "payload": {
+        "prompt": "In which desert city is Pyramid Plunder?",
+        "accepted": [
+          "Sophanem"
+        ],
+        "explanation": "Sophanem, in the Menaphite desert."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pyramid_Plunder"
+    },
+    {
+      "id": "q_feb728258f13f376",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "mastering-mixology"
+      ],
+      "payload": {
+        "prompt": "In which town is Mastering Mixology?",
+        "accepted": [
+          "Aldarin"
+        ],
+        "explanation": "Aldarin, in Varlamore. It needs 60 Herblore and Children of the Sun."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mastering_Mixology"
+    },
+    {
+      "id": "q_0976f7ea133a03f9",
+      "type": "free_text",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "nightmare-zone"
+      ],
+      "payload": {
+        "prompt": "In which town is the Nightmare Zone?",
+        "accepted": [
+          "Yanille"
+        ],
+        "explanation": "Yanille, where Dominic Onion sells you your dreams."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Nightmare_Zone"
+    },
+    {
+      "id": "q_5efdd09c1adc9a48",
+      "type": "pick_all_that_apply",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "barbarian-assault"
+      ],
+      "payload": {
+        "prompt": "Which of these does the Barbarian Assault shop sell?",
+        "options": [
+          "Fighter torso",
+          "Void knight gloves",
+          "Penance gloves",
+          "Dragon defender",
+          "Granite body"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "The torso, the gloves and the granite body, which costs 95,000 coins too. Void gloves are Pest Control's, the defender the Warriors' Guild's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Barbarian_Assault_Reward_Shop"
+    },
+    {
+      "id": "q_15cebb23cd83a10a",
+      "type": "pick_all_that_apply",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "wintertodt"
+      ],
+      "payload": {
+        "prompt": "Which of these can come from Wintertodt's reward cart?",
+        "options": [
+          "Bruma torch",
+          "Tome of Water",
+          "Phoenix",
+          "Warm gloves",
+          "Tackle box"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          3
+        ],
+        "explanation": "The torch, the gloves and the Phoenix pet. The Tome of Water and the tackle box are Tempoross's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Reward_Cart"
+    },
+    {
+      "id": "q_72961acee86edc3d",
+      "type": "pick_all_that_apply",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "tempoross"
+      ],
+      "payload": {
+        "prompt": "Which of these can come from Tempoross's reward pool?",
+        "options": [
+          "Warm gloves",
+          "Fish barrel",
+          "Abyssal lantern",
+          "Tackle box",
+          "Dragon harpoon"
+        ],
+        "answer_indices": [
+          1,
+          3,
+          4
+        ],
+        "explanation": "The fish barrel, the tackle box and the dragon harpoon. Warm gloves are Wintertodt's, the lantern Guardians of the Rift's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Reward_pool"
+    },
+    {
+      "id": "q_824f88b5de16f10c",
+      "type": "pick_all_that_apply",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "guardians-of-the-rift"
+      ],
+      "payload": {
+        "prompt": "Which of these come from Guardians of the Rift?",
+        "options": [
+          "Abyssal protector",
+          "Ash covered tome",
+          "Abyssal lantern",
+          "Pyromancer hood",
+          "Hat of the Eye"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "The pet, the lantern and the hat. The tome is Volcanic Mine's, the hood Wintertodt's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Rewards_Guardian"
+    },
+    {
+      "id": "q_553954fac1c0fd67",
+      "type": "pick_all_that_apply",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "mastering-mixology"
+      ],
+      "payload": {
+        "prompt": "Which of these does Mastering Mixology give?",
+        "options": [
+          "Prescription goggles",
+          "Herb sack",
+          "Reagent pouch",
+          "Seed box",
+          "Aldarium"
+        ],
+        "answer_indices": [
+          0,
+          2,
+          4
+        ],
+        "explanation": "The goggles, the pouch and aldarium, for mox, aga and lye resin. The herb sack and seed box are the Tithe Farm's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mixology_Rewards"
+    },
+    {
+      "id": "q_3071a33e5ea87d4c",
+      "type": "matching",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "soul-wars",
+        "mage-training-arena",
+        "guardians-of-the-rift",
+        "hallowed-sepulchre"
+      ],
+      "payload": {
+        "prompt": "Match each minigame to what it pays in.",
+        "fields": [
+          {
+            "text": "Soul Wars"
+          },
+          {
+            "text": "Mage Training Arena"
+          },
+          {
+            "text": "Guardians of the Rift"
+          },
+          {
+            "text": "Hallowed Sepulchre"
+          }
+        ],
+        "options": [
+          {
+            "text": "Zeal tokens"
+          },
+          {
+            "text": "Pizazz points"
+          },
+          {
+            "text": "Abyssal pearls"
+          },
+          {
+            "text": "Hallowed marks"
+          },
+          {
+            "text": "Honour points"
+          },
+          {
+            "text": "Carpenter points"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Honour points are Barbarian Assault's, and carpenter points Mahogany Homes'."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+    },
+    {
+      "id": "q_c181685147b306e0",
+      "type": "matching",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "barbarian-assault",
+        "pest-control",
+        "tithe-farm",
+        "volcanic-mine"
+      ],
+      "payload": {
+        "prompt": "Match each minigame to where it is.",
+        "fields": [
+          {
+            "text": "Barbarian Assault"
+          },
+          {
+            "text": "Pest Control"
+          },
+          {
+            "text": "Tithe Farm"
+          },
+          {
+            "text": "Volcanic Mine"
+          }
+        ],
+        "options": [
+          {
+            "text": "Barbarian Outpost"
+          },
+          {
+            "text": "Void Knights' Outpost"
+          },
+          {
+            "text": "Hosidius"
+          },
+          {
+            "text": "Fossil Island"
+          },
+          {
+            "text": "Ferox Enclave"
+          },
+          {
+            "text": "Port Khazard"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Ferox Enclave holds Last Man Standing, and Port Khazard the Fishing Trawler."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+    },
+    {
+      "id": "q_3251372cd156f206",
+      "type": "matching",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "wintertodt",
+        "tempoross",
+        "guardians-of-the-rift",
+        "barbarian-assault"
+      ],
+      "payload": {
+        "prompt": "Match each minigame to its pet.",
+        "fields": [
+          {
+            "text": "Wintertodt"
+          },
+          {
+            "text": "Tempoross"
+          },
+          {
+            "text": "Guardians of the Rift"
+          },
+          {
+            "text": "Barbarian Assault"
+          }
+        ],
+        "options": [
+          {
+            "text": "Phoenix"
+          },
+          {
+            "text": "Tiny tempor"
+          },
+          {
+            "text": "Abyssal protector"
+          },
+          {
+            "text": "Pet Penance Queen"
+          },
+          {
+            "text": "Smolcano"
+          },
+          {
+            "text": "Youngllef"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Smolcano is Zalcano's and Youngllef the Gauntlet's, neither of them a minigame here."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pets"
+    },
+    {
+      "id": "q_7d073a174951c999",
+      "type": "matching",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "mahogany-homes",
+        "giants-foundry",
+        "tithe-farm",
+        "mastering-mixology"
+      ],
+      "payload": {
+        "prompt": "Match each minigame to the skilling outfit it gives.",
+        "fields": [
+          {
+            "text": "Mahogany Homes"
+          },
+          {
+            "text": "Giants' Foundry"
+          },
+          {
+            "text": "Tithe Farm"
+          },
+          {
+            "text": "Mastering Mixology"
+          }
+        ],
+        "options": [
+          {
+            "text": "Carpenter's outfit"
+          },
+          {
+            "text": "Smiths' uniform"
+          },
+          {
+            "text": "Farmer's outfit"
+          },
+          {
+            "text": "Alchemist's outfit"
+          },
+          {
+            "text": "Pyromancer outfit"
+          },
+          {
+            "text": "Angler's outfit"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "The pyromancer outfit is Wintertodt's and the angler's the Fishing Trawler's."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+    },
+    {
+      "id": "q_928c4a1ba43a7ba8",
+      "type": "ordering",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "pest-control"
+      ],
+      "payload": {
+        "prompt": "Sort Pest Control's landers by the combat level they need, lowest first.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Novice",
+            "rank": 1,
+            "detail": "Combat 40"
+          },
+          {
+            "text": "Intermediate",
+            "rank": 2,
+            "detail": "Combat 70"
+          },
+          {
+            "text": "Veteran",
+            "rank": 3,
+            "detail": "Combat 100"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2
+        ],
+        "explanation": "Novice needs 40, Intermediate 70 and Veteran 100."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Pest_Control"
+    },
+    {
+      "id": "q_ddd3506d7ef5e0f0",
+      "type": "ordering",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "tempoross"
+      ],
+      "payload": {
+        "prompt": "Sort these Tempoross rewards from commonest to rarest.",
+        "ends": [
+          "Commonest",
+          "Rarest"
+        ],
+        "entries": [
+          {
+            "text": "Spirit flakes",
+            "rank": 1,
+            "detail": "1 in 4"
+          },
+          {
+            "text": "Casket",
+            "rank": 2,
+            "detail": "1 in 20"
+          },
+          {
+            "text": "Fish barrel",
+            "rank": 3,
+            "detail": "1 in 400"
+          },
+          {
+            "text": "Tome of Water",
+            "rank": 4,
+            "detail": "1 in 1,600"
+          },
+          {
+            "text": "Dragon harpoon",
+            "rank": 5,
+            "detail": "1 in 8,000"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Per roll of the reward pool, which each reward permit pays for, per the OSRS Wiki."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tempoross"
+    },
+    {
+      "id": "q_0d1420d76e33dd91",
+      "type": "ordering",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "tithe-farm",
+        "wintertodt",
+        "hallowed-sepulchre",
+        "mastering-mixology"
+      ],
+      "payload": {
+        "prompt": "Sort these minigames by the skill level they need to play, lowest first.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Tithe Farm",
+            "rank": 1,
+            "detail": "34 Farming"
+          },
+          {
+            "text": "Wintertodt",
+            "rank": 2,
+            "detail": "50 Firemaking"
+          },
+          {
+            "text": "Hallowed Sepulchre",
+            "rank": 3,
+            "detail": "52 Agility"
+          },
+          {
+            "text": "Mastering Mixology",
+            "rank": 4,
+            "detail": "60 Herblore"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "Tithe Farm 34 Farming, Wintertodt 50 Firemaking, the Sepulchre 52 Agility and Mixology 60 Herblore."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+    },
+    {
+      "id": "q_1a454bee3e657233",
+      "type": "ordering",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "nightmare-zone",
+        "last-man-standing",
+        "pest-control",
+        "volcanic-mine"
+      ],
+      "payload": {
+        "prompt": "Sort these minigames by the most players one game can hold, fewest first.",
+        "ends": [
+          "Fewest",
+          "Most"
+        ],
+        "entries": [
+          {
+            "text": "Nightmare Zone",
+            "rank": 1,
+            "detail": "5 players"
+          },
+          {
+            "text": "Last Man Standing",
+            "rank": 2,
+            "detail": "24 players"
+          },
+          {
+            "text": "Pest Control",
+            "rank": 3,
+            "detail": "25 players"
+          },
+          {
+            "text": "Volcanic Mine",
+            "rank": 4,
+            "detail": "50 players"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "explanation": "A Nightmare Zone dream holds 5, Last Man Standing 24, a Pest Control lander 25 and the Volcanic Mine 50."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Minigames"
+    },
+    {
+      "id": "q_cc758cac75c200b1",
+      "type": "ordering",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "guardians-of-the-rift"
+      ],
+      "payload": {
+        "prompt": "Sort these Guardians of the Rift guardians by the Runecraft level they open at.",
+        "ends": [
+          "Lowest",
+          "Highest"
+        ],
+        "entries": [
+          {
+            "text": "Earth",
+            "rank": 1,
+            "detail": "Level 9"
+          },
+          {
+            "text": "Fire",
+            "rank": 2,
+            "detail": "Level 14"
+          },
+          {
+            "text": "Cosmic",
+            "rank": 3,
+            "detail": "Level 27"
+          },
+          {
+            "text": "Nature",
+            "rank": 4,
+            "detail": "Level 44"
+          },
+          {
+            "text": "Death",
+            "rank": 5,
+            "detail": "Level 65"
+          }
+        ],
+        "answer": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "explanation": "Each guardian opens at its altar's own level: Earth 9, Fire 14, Cosmic 27, Nature 44 and Death 65."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift"
+    },
+    {
+      "id": "q_abe61e4251d1f274",
+      "type": "number_slider",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "soul-wars"
+      ],
+      "payload": {
+        "prompt": "How many zeal tokens does the Soul cape cost?",
+        "answer": 2500,
+        "min": 100,
+        "max": 10000,
+        "scale": "log",
+        "unit": "tokens",
+        "explanation": "2,500 zeal tokens from Nomad's shop."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Soul_cape"
+    },
+    {
+      "id": "q_9471e4525371ed37",
+      "type": "closest_number",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "pest-control"
+      ],
+      "payload": {
+        "prompt": "How many commendation points does the cheapest Void set with the damage bonus cost?",
+        "answer": 850,
+        "unit": "points",
+        "explanation": "850: top, robe, gloves and one helmet. The elite upgrade adds another 400."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Void_Knight_equipment"
+    },
+    {
+      "id": "q_a5df29cc6eefc2de",
+      "type": "number_slider",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "barbarian-assault"
+      ],
+      "payload": {
+        "prompt": "How many honour points in each role does the Fighter torso cost?",
+        "answer": 375,
+        "min": 100,
+        "max": 1000,
+        "scale": "linear",
+        "unit": "points",
+        "explanation": "375 in each of the four roles, 1,500 in all."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Fighter_torso"
+    },
+    {
+      "id": "q_7c37d7361d37ffa7",
+      "type": "closest_number",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "volcanic-mine"
+      ],
+      "payload": {
+        "prompt": "How many Volcanic Mine points does the Ash covered tome cost?",
+        "answer": 40000,
+        "unit": "points",
+        "explanation": "40,000, from Petrified Pete's shop."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ash_covered_tome"
+    },
+    {
+      "id": "q_c77e3465dd9a3c17",
+      "type": "number_slider",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "wintertodt"
+      ],
+      "payload": {
+        "prompt": "Which Firemaking level does Wintertodt need?",
+        "answer": 50,
+        "min": 10,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "50 Firemaking, per its OSRS Wiki page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Wintertodt"
+    },
+    {
+      "id": "q_d6d480f7fd2c2e9a",
+      "type": "number_slider",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "tempoross"
+      ],
+      "payload": {
+        "prompt": "Which Fishing level does Tempoross need?",
+        "answer": 35,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "35 Fishing, per its OSRS Wiki page."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Tempoross"
+    },
+    {
+      "id": "q_7bb3a228eefe0603",
+      "type": "closest_number",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "tempoross"
+      ],
+      "payload": {
+        "prompt": "How many spirit flakes does the whole spirit angler's outfit cost?",
+        "answer": 4800,
+        "unit": "flakes",
+        "explanation": "4,800: 1,200 a piece, plus each piece of the angler's outfit to trade in."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Spirit_angler's_outfit"
+    },
+    {
+      "id": "q_96106591499ccda4",
+      "type": "number_slider",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "mahogany-homes"
+      ],
+      "payload": {
+        "prompt": "How many carpenter points does the Plank sack cost?",
+        "answer": 350,
+        "min": 50,
+        "max": 2000,
+        "scale": "log",
+        "unit": "points",
+        "explanation": "350 carpenter points from the Mahogany Homes shop."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Mahogany_Homes_Reward_Shop"
+    },
+    {
+      "id": "q_b2b51126b7ed2705",
+      "type": "number_slider",
+      "mode": "minigame_madness",
+      "source": "pack",
+      "tags": [
+        "guardians-of-the-rift"
+      ],
+      "payload": {
+        "prompt": "Which Runecraft level does Guardians of the Rift need?",
+        "answer": 27,
+        "min": 1,
+        "max": 99,
+        "scale": "linear",
+        "explanation": "27, which Temple of the Eye takes you to. The quest itself needs 10."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Guardians_of_the_Rift"
+    }
+  ]
+}
