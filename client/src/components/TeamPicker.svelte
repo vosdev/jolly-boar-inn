@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
-   * Whether the room is a team game, and which gods are its teams. Off sends no gods; on
-   * sends the ticked ones in `TEAMS` order, whatever order they were ticked in, since
+   * Whether the room is a team game, and which gods are its teams. Individuals sends no gods;
+   * Teams sends the ticked ones in `TEAMS` order, whatever order they were ticked in, since
    * every list of teams takes that order. The ticks survive the switch going off and on.
    * Too few ticked is said over Create's buttons, which it blocks.
    */
@@ -9,9 +9,9 @@
   import Segmented from './Segmented.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
-  const OFF_ON = [
-    { value: false, label: 'Off' },
-    { value: true, label: 'On' },
+  const MODES = [
+    { value: false, label: 'Individuals' },
+    { value: true, label: 'Teams' },
   ]
 
   let {
@@ -32,7 +32,7 @@
 
 <section class="panel teams" aria-labelledby="{id}-title">
   <h2 id="{id}-title">Teams</h2>
-  <Segmented legend="Team game" options={OFF_ON} bind:value={on} />
+  <Segmented legend="Play as" options={MODES} bind:value={on} />
   {#if on}
     <p class="note">
       Everyone picks a god. Speed doesn't count: each team scores its members' average.
