@@ -108,6 +108,29 @@
         "answer_index": 1,
         "explanation": "Hallowvale was ruled by the icyene Queen Efaritay until Lowerniel Drakan conquered it in the God Wars and renamed it Morytania."
       }
+    },
+    {
+      "id": "q_8b28c85b030125c6",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Romeo#cite_note-1",
+      "credit": "TwintigApril",
+      "payload": {
+        "intro": "This one should be easy.",
+        "prompt": "What is Romeo's full name?",
+        "options": [
+          "Romeo Montague",
+          "Romeo Gontamue",
+          "Romeo Horacio",
+          "Romeo Oh Romeo",
+          "Romeo of Old",
+          "Romeo Shakespearean"
+        ],
+        "explanation": "His surname Gontamue is an anagram of Montague, the name of Romeo's family in Romeo and Juliet",
+        "answer_index": 1
+      }
     }
   ]
 }

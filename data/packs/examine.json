@@ -465,6 +465,53 @@
         ],
         "answer_index": 0
       }
+    },
+    {
+      "id": "q_3db95b78d771dbfe",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Goblin",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "An ugly green creature.",
+        "options": [
+          "Goblin",
+          "Gnome",
+          "Swamp Lizard",
+          "Toad",
+          "Glouphrie"
+        ],
+        "explanation": "Goblins are ugly green creatures!",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_557fdba47aa00c1e",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Culinaromancer",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "A demented evil wizard who specialises in food spells.",
+        "options": [
+          "Culinaromancer",
+          "Dark Wizard",
+          "Evil Dave",
+          "Iban",
+          "Necrovarus",
+          "Brimstail"
+        ],
+        "explanation": "It's the Culinaromancer!",
+        "answer_index": 0
+      }
     }
   ]
 }
