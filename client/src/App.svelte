@@ -162,4 +162,4 @@
   {/if}
 </main>
 
-<Footer {wide} credits={route.name === 'home'} />
+<Footer {wide} />

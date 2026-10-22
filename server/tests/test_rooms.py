@@ -189,6 +189,7 @@ def test_free_code_past_five_in_ten_seconds_is_429(client: TestClient) -> None:
     response = client.get("/api/rooms/free-code")
     assert response.status_code == 429
     assert response.json()["code"] == "rate_limited"
+    assert 1 <= int(response.headers["retry-after"]) <= 10
 
 
 def test_create_takes_the_preferred_code(client: TestClient, db) -> None:

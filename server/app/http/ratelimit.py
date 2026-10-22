@@ -9,6 +9,7 @@ a while.
 """
 
 import ipaddress
+import math
 from collections import deque
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -39,6 +40,12 @@ REPORTS_PER_HOUR = 3
 class RateLimited(ApiError):
     status, code = 429, "rate_limited"
 
+    def __init__(self, message: str, retry_after: timedelta | None = None) -> None:
+        super().__init__(message)
+        # Whole seconds, rounded up, so a client that waits them out is never refused again.
+        if retry_after is not None:
+            self.headers = {"Retry-After": str(max(1, math.ceil(retry_after.total_seconds())))}
+
 
 class RateLimiter:
     def __init__(self, limit: int, window: timedelta = timedelta(hours=1)) -> None:
@@ -58,6 +65,14 @@ class RateLimiter:
             return False
         hits.append(now)
         return True
+
+    def check(self, key: str, message: str, now: datetime | None = None) -> None:
+        """Record a hit for ``key``, or raise ``RateLimited`` saying when the next frees up."""
+        now = now or datetime.now(UTC)
+        if self.allow(key, now):
+            return
+        _, free_at = self.left(key, now)
+        raise RateLimited(message, None if free_at is None else free_at - now)
 
     def left(self, key: str, now: datetime | None = None) -> tuple[int, datetime | None]:
         """How many hits ``key`` has left, and when the next frees up if none. Records nothing."""
@@ -110,8 +125,7 @@ def room_lookup(misses: RateLimiter, host: str) -> Iterator[None]:
     the misses would answer the question the limit is there to stop answering.
     """
     key, now = client_key(host), datetime.now(UTC)
-    if not misses.allow(key, now):
-        raise RateLimited("too many rooms not found from this address, try again later")
+    misses.check(key, "too many rooms not found from this address, try again later", now)
     missed = False
     try:
         yield

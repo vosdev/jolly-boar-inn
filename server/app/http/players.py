@@ -9,7 +9,7 @@ from typing import Any
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.http.ratelimit import RateLimited, client_key, room_lookup
+from app.http.ratelimit import client_key, room_lookup
 from app.http.rooms import client_host, manager
 from app.stats import Arrival, Device, Route, Theme
 
@@ -65,8 +65,7 @@ def joining(request: Request) -> Iterator[None]:
     host = client_host(request)
     with room_lookup(request.app.state.lookup_misses, host):
         key, now = client_key(host), datetime.now(UTC)
-        if not request.app.state.joins.allow(key, now):
-            raise RateLimited("too many joins from this address, try again later")
+        request.app.state.joins.check(key, "too many joins from this address, try again later", now)
         try:
             yield
         except BaseException:

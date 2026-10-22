@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app import suggestions
 from app.http.admin import require_token
-from app.http.ratelimit import RateLimited, client_key
+from app.http.ratelimit import client_key
 from app.rooms.models import normalize_name
 
 router = APIRouter(prefix="/api/suggestions")
@@ -54,8 +54,9 @@ async def allowance(request: Request) -> dict[str, Any]:
 async def suggest(body: Suggestion, request: Request) -> dict[str, Any]:
     credit = normalize_name(body.credit)
     content = suggestions.check(body.kind, body.content, body.credit_shown)
-    if not request.app.state.suggestions.allow(client_key(_host(request))):
-        raise RateLimited("too many suggestions from this address, try again later")
+    request.app.state.suggestions.check(
+        client_key(_host(request)), "too many suggestions from this address, try again later"
+    )
     pool = await request.app.state.database()
     suggestion = await suggestions.add(pool, body.kind, content, credit, body.credit_shown)
     return {"id": suggestion}
@@ -71,8 +72,9 @@ class Draft(BaseModel):
 async def similar(body: Draft, request: Request) -> dict[str, Any]:
     """The pack questions a question being written looks like; nothing about suggestions."""
     content = suggestions.check_similar(body.content)
-    if not request.app.state.similar.allow(client_key(_host(request))):
-        raise RateLimited("too many checks from this address, try again later")
+    request.app.state.similar.check(
+        client_key(_host(request)), "too many checks from this address, try again later"
+    )
     return {"matches": suggestions.similar_in_packs(request.app.state.packs, content)}
 
 

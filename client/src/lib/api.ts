@@ -27,12 +27,15 @@ import type { QuestionContent, SimilarMatch, SuggestionBody } from './suggestion
 export class ApiFailure extends Error {
   readonly status: number
   readonly code: string
+  /** From a 429's `Retry-After`: how long until the server takes the request again. */
+  readonly retryAfterMs: number | undefined
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, retryAfterMs?: number) {
     super(message)
     this.name = 'ApiFailure'
     this.status = status
     this.code = code
+    this.retryAfterMs = retryAfterMs
   }
 }
 
@@ -52,7 +55,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const code = typeof fault.code === 'string' ? fault.code : 'error'
     const message =
       typeof fault.message === 'string' ? fault.message : `request failed (${response.status})`
-    throw new ApiFailure(response.status, code, message)
+    const retryAfter = Number(response.headers.get('retry-after') ?? NaN)
+    throw new ApiFailure(
+      response.status,
+      code,
+      message,
+      Number.isFinite(retryAfter) ? retryAfter * 1000 : undefined,
+    )
   }
   return body as T
 }

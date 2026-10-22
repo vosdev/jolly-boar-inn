@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.errors import ApiError
-from app.http.ratelimit import RateLimited, client_key, room_lookup
+from app.http.ratelimit import client_key, room_lookup
 from app.modes import offered
 from app.questions import custom
 from app.rooms import codes
@@ -101,8 +101,9 @@ async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     name = normalize_name(body.display_name)
     manager(request).check_avatar(body.avatar)
     manager(request).check_code(body.code)
-    if not request.app.state.ratelimiter.allow(client_key(ip)):
-        raise RateLimited("too many rooms created from this address, try again later")
+    request.app.state.ratelimiter.check(
+        client_key(ip), "too many rooms created from this address, try again later"
+    )
     room, player, session = await manager(request).create(
         name,
         body.settings,
@@ -184,8 +185,10 @@ def public_rooms(rooms: RoomManager) -> list[PublicRoom]:
 @router.get("/free-code")
 async def free_code(request: Request) -> dict[str, str]:
     """A code no room holds right now, for the create page to show and send back."""
-    if not request.app.state.free_codes.allow(client_key(client_host(request))):
-        raise RateLimited("too many room codes asked for, try again in a few seconds")
+    request.app.state.free_codes.check(
+        client_key(client_host(request)),
+        "too many room codes asked for, try again in a few seconds",
+    )
     return {"code": codes.cased(await manager(request).free_code())}
 
 

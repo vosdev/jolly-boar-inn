@@ -18,6 +18,7 @@
     questions,
     details,
     busy,
+    held = false,
     failure,
     onreroll,
     onconfirm,
@@ -33,6 +34,8 @@
     /** Pace and events, already in words. */
     details: string
     busy: boolean
+    /** Rerolled too often: the reroll waits until the server takes one again. */
+    held?: boolean
     failure: string | null
     onreroll: () => void
     onconfirm: () => void
@@ -51,7 +54,7 @@
     <p class="label" id="{id}-code">Room code</p>
     <div class="codebox" aria-labelledby="{id}-code" role="group">
       <b>{code}</b>
-      <button type="button" class="reroll" onclick={onreroll} disabled={busy}>
+      <button type="button" class="reroll" onclick={onreroll} disabled={busy || held}>
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" />
         </svg>

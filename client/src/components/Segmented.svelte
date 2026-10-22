@@ -62,8 +62,10 @@
     clip-path: inset(50%);
   }
 
+  /* Wraps rather than running off a narrow screen when a game offers many choices. */
   .segments {
     display: flex;
+    flex-wrap: wrap;
     border: var(--border-width) solid var(--line);
     border-radius: min(var(--radius), 8px);
     overflow: hidden;

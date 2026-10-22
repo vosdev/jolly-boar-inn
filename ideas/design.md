@@ -271,7 +271,7 @@ Round 2 of 5 · 5 questions
 
 ## 9. The splash and the ready check
 
-Both put the players in a grid of pets, a name under each: faded while away, outlined and named
+Both put the players in a grid of pets, a name under each: faded while away, ticked and named
 in `--ok` once ready. The threshold, countdowns and take-back rule are architecture §7.
 
 - **Lobby: the room on the scroll.** It holds the code, which copies the invite link (an error and
@@ -447,7 +447,7 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
 
 **Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
 never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
-it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA), Credits and the version, linked to its release. `/credits` ranks the named question authors by count, ties sharing a rank, with a way to `/suggest`, and thanks the wiki. The
+it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA), Credits and the version, linked to its release. Its sheet ranks the named question authors by count, ties sharing a rank, with a way to `/suggest`, and thanks the wiki. The
 AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
 the bar (§5). Every link opens a new tab, so a room is never
 left.

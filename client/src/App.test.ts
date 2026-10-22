@@ -300,7 +300,7 @@ describe('App', () => {
     await screen.findByText('This browser kept no result for that game.')
   })
 
-  it("offers the credits in Home's footer only", async () => {
+  it("offers the credits in every screen's footer", async () => {
     vi.mocked(api.getCredits).mockResolvedValue({ authors: [{ name: 'Tayka', questions: 17 }] })
     at('/')
     const footer = within(document.querySelector('footer')!)
@@ -309,8 +309,8 @@ describe('App', () => {
     cleanup()
     at('/create')
     expect(
-      within(document.querySelector('footer')!).queryByRole('button', { name: 'Credits' }),
-    ).toBeNull()
+      within(document.querySelector('footer')!).getByRole('button', { name: 'Credits' }),
+    ).toBeTruthy()
   })
 
   it('no longer draws the credits at /credits', async () => {
