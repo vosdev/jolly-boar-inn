@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * A light on the wall either side of the page, behind everything, in the themes that
-   * hang one: the inn's candle lanterns, both Gauntlets' glowing door logos. Zanaris has no
+   * hang one: the inn's candle lanterns, the Wilderness's torches, TzHaar's sulphur vents,
+   * both Gauntlets' glowing door logos. Zanaris has no
    * lights, only a fairy ring on the floor in their place, and keeps the left one on a phone.
    *
    * Drawn only on a window wide enough to leave them room beside the stage: on a phone the
@@ -14,8 +15,17 @@
   import { watchTheme } from '../lib/theme'
   import GauntletDoorLogo from './GauntletDoorLogo.svelte'
   import InnLantern from './InnLantern.svelte'
+  import SulphurVent from './SulphurVent.svelte'
+  import WildernessTorch from './WildernessTorch.svelte'
 
-  const LIT = ['jolly', 'gauntlet', 'corrupted_gauntlet', 'zanaris'] as const
+  const LIT = [
+    'jolly',
+    'wilderness',
+    'tzhaar',
+    'gauntlet',
+    'corrupted_gauntlet',
+    'zanaris',
+  ] as const
   type Lit = (typeof LIT)[number]
 
   let lit = $state<Lit | null>(null)
@@ -36,6 +46,10 @@
       <div class="fitting {side}" data-light={side}>
         {#if lit === 'jolly'}
           <InnLantern {side} />
+        {:else if lit === 'wilderness'}
+          <WildernessTorch {side} />
+        {:else if lit === 'tzhaar'}
+          <SulphurVent {side} />
         {:else if lit === 'zanaris'}
           <img class="ring" src={fairyRing} alt="" width="250" height="127" draggable="false" />
         {:else}
@@ -83,6 +97,22 @@
     --flicker: flicker;
   }
 
+  /* A torch's orange, flickering. */
+  [data-lights='wilderness'] {
+    --light-near: rgb(240 150 60 / 0.4);
+    --light-mid: rgb(226 110 44 / 0.2);
+    --light-far: rgb(200 70 30 / 0.07);
+    --flicker: flicker;
+  }
+
+  /* The lava's red, and only a little of it. */
+  [data-lights='tzhaar'] {
+    --light-near: rgb(232 54 30 / 0.42);
+    --light-mid: rgb(212 46 28 / 0.16);
+    --light-reach: calc(var(--fitting-width) * 2.6);
+    --flicker: none;
+  }
+
   /* The crystal's cyan, steady: nothing burns in it. */
   [data-lights='gauntlet'] {
     --light-near: rgb(26 200 216 / 0.42);
@@ -127,6 +157,18 @@
       transparent 70%
     );
     animation: var(--flicker) 4.1s infinite;
+  }
+
+  /* The lava lies in an open pool, so its light rises: it fades out round the pool's edge
+     rather than stopping there, and never reaches the floor below the vent. */
+  [data-lights='tzhaar'] .light {
+    background: radial-gradient(
+      ellipse 50% 34%,
+      var(--light-near) 0%,
+      var(--light-mid) 45%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to bottom, #000 38%, transparent 56%);
   }
 
   .light.left {

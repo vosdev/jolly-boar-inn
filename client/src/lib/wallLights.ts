@@ -36,3 +36,37 @@ export const DOOR_LOGO = {
   gauntlet: { glow: '#1ac8d8', core: '#78f8f8', cut: '#0c1414' },
   corrupted_gauntlet: { glow: '#e2483e', core: '#ff9a80', cut: '#0c1414' },
 } as const
+
+/** The Wilderness torch, after the game's wall torch: an iron arm and band, a tarred head
+ * on a wooden handle, and two pale flames with orange hearts. */
+export const TORCH = {
+  plate: '#48444a',
+  ironLit: '#8a8487',
+  arm: '#6e696b',
+  armLit: '#9a9497',
+  band: '#7a7578',
+  bandLit: '#a39ea1',
+  bandShade: '#48444a',
+  wood: '#6b5420',
+  woodShade: '#4e3c14',
+  woodGrain: '#7d6528',
+  head: '#4a3008',
+  headBand: '#5c3e0c',
+  headShade: '#2e1e05',
+  charred: '#2a1404',
+  flame: '#f2eeb0',
+  flameHeart: '#e8a04a',
+  flameRoot: '#ffe08a',
+} as const
+
+/** TzHaar's sulphur vent: an obsidian cone, shaded left to right, round a pool of lava. */
+export const VENT = {
+  rock: '#161211',
+  rockLit: '#211a18',
+  rockShade: '#0e0a09',
+  rim: '#6a160d',
+  rimInner: '#8f1d12',
+  lava: '#d42e1c',
+  lavaHot: '#e8361e',
+  lip: '#4a1a12',
+} as const

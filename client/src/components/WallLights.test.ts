@@ -1,7 +1,8 @@
 /**
  * The wall lights hang while a theme that has them is on, and only then, following
- * `data-theme` on <html> as the menu changes it: the inn's lanterns under Jolly, the door
- * logos under both Gauntlets, a fairy ring in their place under Zanaris.
+ * `data-theme` on <html> as the menu changes it: the inn's lanterns under Jolly, torches
+ * under the Wilderness, sulphur vents under Toktz, the door logos under both Gauntlets, a
+ * fairy ring in their place under Zanaris.
  */
 
 import { render } from '@testing-library/svelte'
@@ -62,6 +63,28 @@ describe('WallLights', () => {
     expect(glows(await shown('gauntlet'))).toEqual(['#0c1414', '#1ac8d8'])
   })
 
+  it('hangs a torch either side under the Wilderness, flickering', async () => {
+    const container = await shown('wilderness')
+    expect(container.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe('wilderness')
+    expect(lights(container)).toEqual(['left', 'right'])
+    expect(container.querySelectorAll('[data-light] svg[viewBox="0 -34 100 194"]')).toHaveLength(2)
+    expect(source).toMatch(/\[data-lights='wilderness'\] \{[^}]*--flicker: flicker;/)
+  })
+
+  it('stands a sulphur vent either side under Toktz, its glow rising only from the lava', async () => {
+    const container = await shown('tzhaar')
+    expect(container.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe('tzhaar')
+    expect(lights(container)).toEqual(['left', 'right'])
+    expect(container.querySelectorAll('[data-light] svg[viewBox="0 0 100 160"]')).toHaveLength(2)
+    const glow = /\[data-lights='tzhaar'\] \.light \{([^}]*)\}/.exec(source)?.[1] ?? ''
+    const mask = /mask-image: linear-gradient\(to bottom, #000 (\d+)%, transparent (\d+)%\)/.exec(
+      glow,
+    )
+    expect(mask).not.toBeNull()
+    expect(Number(mask![1])).toBeLessThan(50)
+    expect(Number(mask![2]) - Number(mask![1])).toBeGreaterThan(10)
+  })
+
   it('lays a fairy ring at its own size either side under Zanaris, with no light', async () => {
     const container = await shown('zanaris')
     expect(container.querySelector('.wall-lights')?.getAttribute('data-lights')).toBe('zanaris')
@@ -88,7 +111,7 @@ describe('WallLights', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it.each(['pollnivneach', 'wilderness', 'party_room', 'tzhaar', 'jungle', 'morytania'])(
+  it.each(['pollnivneach', 'party_room', 'jungle', 'morytania'])(
     'draws nothing under %s',
     async (theme) => {
       const container = await shown(theme)
@@ -97,7 +120,7 @@ describe('WallLights', () => {
   )
 
   it('follows the theme as the player switches to it and away', async () => {
-    const container = await shown('wilderness')
+    const container = await shown('pollnivneach')
     document.documentElement.dataset.theme = 'jolly'
     await new Promise((settle) => setTimeout(settle))
     await tick()
@@ -108,7 +131,7 @@ describe('WallLights', () => {
     expect(container.querySelectorAll('[data-light] svg[viewBox="-66 -66 132 132"]')).toHaveLength(
       2,
     )
-    document.documentElement.dataset.theme = 'tzhaar'
+    document.documentElement.dataset.theme = 'party_room'
     await new Promise((settle) => setTimeout(settle))
     await tick()
     expect(container.querySelector('.wall-lights')).toBeNull()
