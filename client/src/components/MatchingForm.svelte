@@ -15,6 +15,7 @@
    * already broken, and Save hands back only a question `problems` passes.
    */
   import { fieldHints } from '../lib/placeholders'
+  import type { OpenQuestion } from '../lib/protocol'
   import type { Snippet } from 'svelte'
 
   import {
@@ -49,6 +50,7 @@
     onnpc = undefined,
     ondraft = undefined,
     nearSave = undefined,
+    preview = undefined,
     onsave,
     oncancel,
   }: {
@@ -76,6 +78,8 @@
     ondraft?: (question: MatchingQuestion | undefined) => void
     /** Shown just above Save. */
     nearSave?: Snippet
+    /** Draws the preview in place of the stage, from the question as it shows open. */
+    preview?: Snippet<[OpenQuestion]>
     onsave: (question: MatchingQuestion) => void
     oncancel: () => void
   } = $props()
@@ -308,7 +312,9 @@
 
     <section class="preview" aria-label="Preview">
       <p class="note">What players will see, with the answers shuffled</p>
-      {#if asker === 'none'}
+      {#if preview}
+        {@render preview(asker === 'none' ? previewOf(built, mode) : previewOf(asked, mode))}
+      {:else if asker === 'none'}
         <QuestionStage question={previewOf(built, mode)} yourValue={null} onAnswer={() => {}} />
       {:else}
         <RandomEvent question={previewOf(asked, mode)} yourValue={null} onAnswer={() => {}} />

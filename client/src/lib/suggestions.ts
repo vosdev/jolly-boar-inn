@@ -24,7 +24,7 @@ import {
   type MatchingQuestion,
 } from './matching'
 import { answerLine, previewOf as orderingPreview, type OrderingQuestion } from './ordering'
-import type { OpenQuestion } from './protocol'
+import type { OpenQuestion, PlayerResult } from './protocol'
 import { codePoints, envelopeProperty, limit } from './questionSchema'
 import { RANDOM_EVENTS } from './randomEvents'
 import type { ReportChoice } from './reports'
@@ -111,6 +111,13 @@ export interface QueuedSuggestion extends SuggestionBody {
 }
 
 /** A pack question a question being written looks like: named by label, never its answer. */
+/** `POST /api/suggestions/try`: the server's open view and reveal, and an answer's result. */
+export interface Trial {
+  view: Record<string, unknown>
+  reveal: Record<string, unknown>
+  result: PlayerResult | null
+}
+
 export interface SimilarMatch {
   mode: string
   label: string

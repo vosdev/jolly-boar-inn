@@ -36,7 +36,10 @@ from app.errors import ApiError
 from app.modes import MODES
 from app.questions import schema, text, vocab
 from app.questions.packs import Pack, mode_questions
-from app.questions.types import TYPES
+from app.questions.submission import Submission
+from app.questions.types import TYPES, scoring_of, steps_of
+from app.questions.types.scoring import Scoring
+from app.rooms import scoring
 
 Kind = Literal["question", "item"]
 Status = Literal["pending", "approved", "rejected", "imported"]
@@ -151,6 +154,10 @@ class BadSuggestion(ApiError):
 
 class NoRound(ApiError):
     status, code = 422, "no_round"
+
+
+class BadTryValue(ApiError):
+    status, code = 422, "bad_value"
 
 
 class SuggestionNotFound(ApiError):
@@ -356,6 +363,44 @@ def check(kind: str, content: Any, shown: bool) -> dict[str, Any]:
     if found:
         raise BadSuggestion("; ".join(found))
     return content
+
+
+# --- trying a question ------------------------------------------------------------------
+
+# Nobody answers it: grading only needs one submission to hand back.
+_TRIER = UUID(int=0)
+
+
+def trial(content: dict[str, Any], value: Any) -> dict[str, Any]:
+    """A checked question's open view and reveal, and with ``value`` what that answer earns.
+
+    The view is the server's, shuffled as a room shows it, because a value is a position in
+    it. Speed never counts, as in a team game, so the points are ``credit`` of 1000. A named
+    round's NPC is not on its list yet, so nobody can pick it: its reveal is the name alone.
+    """
+    type_ = content["type"]
+    module = TYPES[type_]
+    payload = content["payload"]
+    view = module.client_view(payload)
+    name = named(content)
+    if name is not None:
+        if value is not None:
+            raise BadTryValue("this NPC is not on the list yet, so it cannot be picked")
+        return {"view": view, "reveal": {**view, "subject": {"name": name}}, "result": None}
+    reveal = module.reveal(payload)
+    if value is None:
+        return {"view": view, "reveal": reveal, "result": None}
+    parsed = module.parse_value(payload, value)
+    if parsed is None:
+        raise BadTryValue(f"not a valid answer to a {type_} question")
+    raw = module.grade(payload, [Submission(_TRIER, parsed)]).get(_TRIER, 0.0)
+    credit = scoring.settle_credit(type_, raw)
+    steps = steps_of(type_, payload)
+    how = scoring.effective(scoring_of(type_), steps)
+    band = 1 if how is Scoring.STEP else None
+    points = scoring.points_for(how, credit, band, steps, team=True)
+    result = {"value": parsed, "correct": credit >= 1.0, "credit": credit, "points": points}
+    return {"view": view, "reveal": reveal, "result": result}
 
 
 # --- similar questions ----------------------------------------------------------------

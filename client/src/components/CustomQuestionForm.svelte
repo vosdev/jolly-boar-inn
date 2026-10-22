@@ -17,6 +17,7 @@
    * Save, so a fresh form is not a page of red.
    */
   import { fieldHints } from '../lib/placeholders'
+  import type { OpenQuestion } from '../lib/protocol'
   import type { Snippet } from 'svelte'
 
   import {
@@ -59,6 +60,7 @@
     onnpc = undefined,
     ondraft = undefined,
     nearSave = undefined,
+    preview = undefined,
     onsave,
     oncancel,
   }: {
@@ -99,6 +101,8 @@
     ondraft?: (question: CustomQuestion | undefined) => void
     /** Shown just above Save. */
     nearSave?: Snippet
+    /** Draws the preview in place of the stage, from the question as it shows open. */
+    preview?: Snippet<[OpenQuestion]>
     onsave: (question: CustomQuestion) => void
     oncancel: () => void
   } = $props()
@@ -545,7 +549,9 @@
 
     <section class="preview" aria-label="Preview">
       <p class="note">What players will see</p>
-      {#if asker === 'none'}
+      {#if preview}
+        {@render preview(asker === 'none' ? previewOf(built, mode) : previewOf(built))}
+      {:else if asker === 'none'}
         <QuestionStage question={previewOf(built, mode)} yourValue={null} onAnswer={() => {}} />
       {:else}
         <RandomEvent question={previewOf(built)} yourValue={null} onAnswer={() => {}} />

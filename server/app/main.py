@@ -45,6 +45,7 @@ from app.http.ratelimit import (
     REPORTS_PER_HOUR,
     SIMILAR_PER_HOUR,
     SUGGESTIONS_PER_HOUR,
+    TRIES_PER_HOUR,
     RateLimiter,
 )
 from app.pets import assign_missing_pets, load_pickable_pets
@@ -262,6 +263,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.suggestions = RateLimiter(SUGGESTIONS_PER_HOUR)
     app.state.reports = RateLimiter(REPORTS_PER_HOUR)
     app.state.similar = RateLimiter(SIMILAR_PER_HOUR)
+    app.state.tries = RateLimiter(TRIES_PER_HOUR)
     app.add_middleware(HeadAsGet)
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)

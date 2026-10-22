@@ -5,7 +5,8 @@ finished game, which is a courtesy, and the backstop is ``SUGGESTIONS_PER_HOUR``
 address. ``GET .../allowance`` lets the form say the limit is reached before anything is
 typed. As with creating a room, a suggestion is checked before the limiter counts it, so a
 typo costs no quota. ``POST .../similar`` names the pack questions one looks like while it
-is written, by label alone, under ``SIMILAR_PER_HOUR``.
+is written, by label alone, under ``SIMILAR_PER_HOUR``. ``POST .../try`` shows one as a room
+would, open and revealed, and grades an answer to it, under ``TRIES_PER_HOUR``.
 
 The admin routes are the one place the server hands out whole questions, answers
 included: the operator reviews them there. ``main.py`` mounts them only with
@@ -76,6 +77,23 @@ async def similar(body: Draft, request: Request) -> dict[str, Any]:
         client_key(_host(request)), "too many checks from this address, try again later"
     )
     return {"matches": suggestions.similar_in_packs(request.app.state.packs, content)}
+
+
+class Try(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    content: dict[str, Any]
+    value: Any = None
+
+
+@router.post("/try")
+async def try_question(body: Try, request: Request) -> dict[str, Any]:
+    """A question being written as a room shows it, and what ``value`` would earn on it."""
+    content = suggestions.check_similar(body.content)
+    request.app.state.tries.check(
+        client_key(_host(request)), "too many tries from this address, try again later"
+    )
+    return suggestions.trial(content, body.value)
 
 
 class Edit(BaseModel):

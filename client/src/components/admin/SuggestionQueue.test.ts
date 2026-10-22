@@ -1,9 +1,10 @@
 /** The operator's queue: what a player typed drawn as text, review, and export then import. */
 
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as admin from '../../lib/admin'
+import * as api from '../../lib/api'
 import { npcArt } from '../../lib/npcs'
 import type { QuestionContent, QueuedSuggestion } from '../../lib/suggestions'
 import SuggestionQueue from './SuggestionQueue.svelte'
@@ -18,6 +19,11 @@ vi.mock('../../lib/admin', async (importOriginal) => {
     exportSuggestions: vi.fn(),
     markImported: vi.fn(),
   }
+})
+
+vi.mock('../../lib/api', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../../lib/api')>()
+  return { ...real, tryQuestion: vi.fn() }
 })
 
 const WIKI = 'https://oldschool.runescape.wiki/w/Barrows_Brothers'
@@ -78,6 +84,24 @@ describe('SuggestionQueue', () => {
     expect(link.getAttribute('target')).toBe('_blank')
     await fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
     expect(admin.setSuggestionStatus).toHaveBeenCalledWith('t', 'one', 'approved')
+  })
+
+  it('answers a suggestion and shows its reveal with the points', async () => {
+    const view = { prompt: 'Which?', options: ['Hazelmere', 'Dharok'] }
+    vi.mocked(api.tryQuestion).mockImplementation(async (_content, value = null) => ({
+      view,
+      reveal: { ...view, answer_index: 1 },
+      result: value === null ? null : { value, correct: true, credit: 1, points: 1000 },
+    }))
+    render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
+    await fireEvent.click((await screen.findByText(/is not a Barrows brother/)).closest('button')!)
+    const reveal = screen.getByRole('radio', { name: 'Reveal' }) as HTMLInputElement
+    // The server's view arrives after the preview's pause, and only it takes an answer.
+    await waitFor(() => expect(reveal.matches(':disabled')).toBe(false), { timeout: 2000 })
+    await fireEvent.click(screen.getByRole('button', { name: /Dharok/ }))
+    expect(api.tryQuestion).toHaveBeenLastCalledWith(row().content, 1)
+    expect(await screen.findByText('+1,000')).toBeTruthy()
+    expect(reveal.checked).toBe(true)
   })
 
   describe('a Sort It Out ordering', () => {
