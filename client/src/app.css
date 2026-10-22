@@ -720,41 +720,88 @@
 
 /* The gods' colours, which are the teams' (`lib/teams.ts`, kept equal by its test). They
    belong to the god, not the theme, so every theme shows them alike. `--team-ink` is what
-   reads on `--team`. */
+   reads on `--team`.
+
+   `--frame*` is what a team game paints over the player's theme: the top bar and the
+   timer's tabs in `--frame` under `--frame-ink`, the window's edge in `--frame-edge`, and
+   the timer draining `--frame-light` from a `--frame-dark` track. Usually `--frame` is
+   `--team`; Guthix's is darker so the ink on it passes, and Armadyl's pale blue gives way
+   to its gold. */
 [data-team='saradomin'] {
   --team: #2f5fb3;
   --team-trim: #2f5fb3;
   --team-ink: #fff8e6;
+  --frame: #2f5fb3;
+  --frame-ink: #fff8e6;
+  --frame-edge: #2f5fb3;
+  --frame-dark: #1f3f78;
+  --frame-light: #8fb3ee;
 }
 
 [data-team='zamorak'] {
   --team: #b3302a;
   --team-trim: #b3302a;
   --team-ink: #fff8e6;
+  --frame: #b3302a;
+  --frame-ink: #fff8e6;
+  --frame-edge: #b3302a;
+  --frame-dark: #7d1f1a;
+  --frame-light: #ef8a7c;
 }
 
 [data-team='guthix'] {
   --team: #3d8a3a;
   --team-trim: #3d8a3a;
   --team-ink: #fff8e6;
+  --frame: #357a32;
+  --frame-ink: #fff8e6;
+  --frame-edge: #357a32;
+  --frame-dark: #285c26;
+  --frame-light: #9fd88c;
 }
 
 [data-team='armadyl'] {
   --team: #9cc9de;
   --team-trim: #d4a52a;
   --team-ink: #1d3644;
+  --frame: #d4a52a;
+  --frame-ink: #241a02;
+  --frame-edge: #d4a52a;
+  --frame-dark: #8f6c12;
+  --frame-light: #ecca6a;
 }
 
 [data-team='bandos'] {
   --team: #7a5230;
   --team-trim: #7a5230;
   --team-ink: #fff8e6;
+  --frame: #7a5230;
+  --frame-ink: #fff8e6;
+  --frame-edge: #7a5230;
+  --frame-dark: #523620;
+  --frame-light: #d1a275;
 }
 
 [data-team='zaros'] {
   --team: #6b3fa0;
   --team-trim: #6b3fa0;
   --team-ink: #fff8e6;
+  --frame: #6b3fa0;
+  --frame-ink: #fff8e6;
+  --frame-edge: #6b3fa0;
+  --frame-dark: #472a6b;
+  --frame-light: #b89be0;
+}
+
+/* A team game frames the window in the player's god (`wearTeam` in `lib/teams.ts`). Fixed
+   over everything and never in the way of a tap. */
+html[data-team] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  border: 6px solid var(--frame-edge);
+  pointer-events: none;
 }
 
 :root {

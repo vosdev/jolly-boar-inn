@@ -24,12 +24,19 @@
    * The sign links home. It is the theme's own logo when the selfhoster has one, else their
    * `PUBLIC_SITE_LOGO`, and the bundled sign when there is neither or the file will not
    * load. The version is in the footer, not here.
+   *
+   * **In a team game** the bar is the frame's: the player's god's colour, and the god's
+   * symbol in place of the sign, still the way home. On a screen with no timer under the
+   * bar, the team's badge hangs from it; the timer bar hangs it otherwise.
    */
   import { onMount, type Snippet } from 'svelte'
   import { initial, logo, logos, siteName } from 'virtual:branding'
 
   import { REPO_URL } from '../lib/links'
+  import { team as teamNamed, type TeamId } from '../lib/teams'
   import { watchTheme } from '../lib/theme'
+  import TeamBadge from './TeamBadge.svelte'
+  import TeamLogo from './TeamLogo.svelte'
 
   let theme = $state('')
   const sign = $derived(logos[theme] ?? logo)
@@ -42,11 +49,17 @@
     navigate,
     menu,
     wide = false,
+    team = null,
+    badge = false,
   }: {
     navigate: (to: string) => void
     menu?: Snippet
     /** The screen under the bar uses the wide page, so the bar's ends follow it. */
     wide?: boolean
+    /** The player's team in a team game, whose frame the bar wears. */
+    team?: TeamId | null
+    /** Hang the team's badge from the bar: there is no timer bar to hang it. */
+    badge?: boolean
   } = $props()
 
   function goHome(event: MouseEvent): void {
@@ -72,7 +85,7 @@
   </span>
 {/snippet}
 
-<header class="bar">
+<header class="bar" class:framed={team !== null}>
   <div class="inner" class:wide>
     <a class="skip" href="#content">Skip to the game</a>
 
@@ -81,7 +94,9 @@
            room is not lost by following it: the session stays in this browser, and the
            room's link brings you straight back in. -->
       <a class="home" href="/" aria-label="{siteName}, home" onclick={goHome}>
-        {#if sign !== null && sign !== broken}
+        {#if team !== null}
+          <span class="sign" title={teamNamed(team).name}><TeamLogo {team} /></span>
+        {:else if sign !== null && sign !== broken}
           <img class="sign" src={sign} alt="" onerror={() => (broken = sign)} />
         {:else}
           <!-- Drawn in tokens, so it follows the theme as a file could not. -->
@@ -122,6 +137,9 @@
       <div class="menu-slot">{@render (menu ?? menuPlaceholder)()}</div>
     </div>
   </div>
+  {#if team !== null && badge}
+    <div class="hang"><TeamBadge {team} /></div>
+  {/if}
 </header>
 
 <style>
@@ -135,6 +153,38 @@
        the line without taking height from the controls: they sit at the same y in every
        theme, and a switch mid-question does not nudge them. */
     box-shadow: 0 var(--border-width) 0 var(--line);
+  }
+
+  .framed {
+    background: var(--frame);
+    box-shadow: none;
+    color: var(--frame-ink);
+  }
+
+  /* The menu's panel opens inside the bar but on its own surface, so only the controls
+     themselves take the frame's ink. */
+  .framed .controls :global(.control),
+  .framed .controls .github {
+    color: var(--frame-ink);
+    --muted: var(--frame-ink);
+  }
+
+  /* A god's symbol is drawn in its own colour, so on its own bar it needs an edge. */
+  .framed .sign {
+    display: flex;
+    filter: drop-shadow(0 0 1px var(--frame-dark)) drop-shadow(0 1px 0 var(--frame-dark));
+  }
+
+  /* Hangs into main's top padding, as the timer bar's tabs do, and is never in the way of
+     a tap on what is under it. */
+  .hang {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
   }
 
   /* The same column the screens use, so the bar's ends line up with the panels under it

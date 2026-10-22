@@ -141,6 +141,10 @@ learns the position, which is worth more than variety.
   Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead.
+- **A team game** frames the screen in the player's god from the moment they join a team until
+  they leave the room: the bar in the god's colour with its symbol for the sign, a 6px edge round
+  the window, the timer and its tabs in the god's shades, and a badge (symbol and name) centred
+  under the timer, or under the bar where there is none. The theme stays the player's.
 
 The control opens one panel: **You** (name and pet; the local profile outside a room, the live
 player via `set_profile` inside one), **Sound** (§7) and **Theme**, a grid of emblems four abreast,

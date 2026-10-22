@@ -365,3 +365,108 @@ describe('App', () => {
     expect(linking).toEqual(['./routes/Home.svelte'])
   })
 })
+
+describe('App, in a team game', () => {
+  const TEAMS: RoomView['settings']['teams'] = ['saradomin', 'zamorak']
+  const LOBBY: RoomView = {
+    ...LIVE,
+    status: 'lobby',
+    phase: 'idle',
+    current_index: null,
+    settings: { ...LIVE.settings, teams: TEAMS },
+  } as RoomView
+  const player = (team: 'saradomin' | 'zamorak' | null) => ({
+    id: 'a',
+    display_name: 'Zezima',
+    role: 'player' as const,
+    connected: true,
+    avatar: null,
+    ready: false,
+    editing: false,
+    team,
+  })
+  const frame = () => document.documentElement.dataset.team
+  const hanging = () => bar().querySelector('.hang')?.textContent?.trim() ?? null
+
+  async function joined(room: RoomView, team: 'saradomin' | 'zamorak' | null): Promise<void> {
+    at('/r/ABYSSAL')
+    await screen.findByText('Connecting…')
+    applyServerMessage({
+      t: 'welcome',
+      room,
+      you: player(team),
+      players: [player(team)],
+      question: null,
+      your_answer: null,
+      standings: [],
+      team_standings: null,
+      server_time: new Date().toISOString(),
+      server_version: __APP_VERSION__,
+    })
+  }
+
+  afterEach(() => {
+    cleanup()
+    delete document.documentElement.dataset.team
+  })
+
+  it("frames a player in a team: the god's colours, its symbol for the sign, its badge", async () => {
+    await joined(LOBBY, 'zamorak')
+    await waitFor(() => expect(frame()).toBe('zamorak'))
+    expect(bar().classList.contains('framed')).toBe(true)
+    expect(bar().querySelector('.home img, .home svg[data-team="zamorak"]')).toBeTruthy()
+    expect(within(bar()).getByRole('link', { name: /, home$/ })).toBeTruthy()
+    expect(hanging()).toBe('Zamorak')
+  })
+
+  it('frames nobody teamless', async () => {
+    await joined(LOBBY, null)
+    await waitFor(() => expect(screen.queryByText('Connecting…')).toBeNull())
+    expect(frame()).toBeUndefined()
+    expect(bar().classList.contains('framed')).toBe(false)
+    expect(hanging()).toBeNull()
+  })
+
+  it('repaints on a change of team, and takes the frame off when the team is dropped', async () => {
+    await joined(LOBBY, 'zamorak')
+    await waitFor(() => expect(frame()).toBe('zamorak'))
+    applyServerMessage({ t: 'players_updated', players: [player('saradomin')] })
+    await waitFor(() => expect(frame()).toBe('saradomin'))
+    expect(hanging()).toBe('Saradomin')
+    applyServerMessage({
+      t: 'room_updated',
+      room: { ...LOBBY, settings: { ...LOBBY.settings, teams: ['zamorak', 'guthix'] } },
+      players: [player(null)],
+    })
+    await waitFor(() => expect(frame()).toBeUndefined())
+    expect(hanging()).toBeNull()
+  })
+
+  it('takes the frame off on leaving the room', async () => {
+    await joined(LOBBY, 'zamorak')
+    await waitFor(() => expect(frame()).toBe('zamorak'))
+    await fireEvent.click(within(bar()).getByRole('link', { name: /, home$/ }))
+    expect(location.pathname).toBe('/')
+    expect(frame()).toBeUndefined()
+    expect(bar().classList.contains('framed')).toBe(false)
+  })
+
+  it("paints the timer in the god's colours and hangs the badge from it", async () => {
+    await joined({ ...LIVE, settings: { ...LIVE.settings, teams: TEAMS } }, 'zamorak')
+    applyServerMessage({ t: 'question_open', question: QUESTION })
+    await screen.findByText('Dragon bones')
+    const timer = document.querySelector('.timerbar')!
+    expect(timer.classList.contains('framed')).toBe(true)
+    expect(timer.querySelector('.team')!.textContent!.trim()).toBe('Zamorak')
+    expect(hanging()).toBeNull()
+  })
+
+  it("leaves the timer in the theme's colours outside a team game", async () => {
+    await joined(LIVE, null)
+    applyServerMessage({ t: 'question_open', question: QUESTION })
+    await screen.findByText('Dragon bones')
+    const timer = document.querySelector('.timerbar')!
+    expect(timer.classList.contains('framed')).toBe(false)
+    expect(timer.querySelector('.team')).toBeNull()
+  })
+})
