@@ -490,7 +490,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
     },
     {
-      "id": "q_be575ae8bc5aba3f",
+      "id": "q_538a0bfd9f88909f",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -501,6 +501,7 @@
         "prompt": "A Lizardman shaman drops a Dragon warhammer once in how many kills?",
         "image": "item:13576",
         "answer": 3000,
+        "within": 300,
         "unit": "kills",
         "explanation": "1 in 3,000, per the OSRS Wiki. It was 1 in 5,000 until May 2024."
       },
@@ -1229,7 +1230,7 @@
       "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen"
     },
     {
-      "id": "q_02f77c98705bd85a",
+      "id": "q_daabf58295509d8b",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1240,13 +1241,14 @@
         "prompt": "The Kalphite Queen drops the Dragon pickaxe once in how many kills?",
         "image": "item:11920",
         "answer": 400,
+        "within": 40,
         "unit": "kills",
         "explanation": "1 in 400, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Kalphite_Queen"
     },
     {
-      "id": "q_9dccea56c52a7f20",
+      "id": "q_c67b7a1e8b3674f2",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1257,13 +1259,14 @@
         "prompt": "Cerberus drops the Pegasian crystal once in how many kills?",
         "image": "item:13229",
         "answer": 520,
+        "within": 52,
         "unit": "kills",
         "explanation": "1 in 520, the same as each of her other three crystals and the Smouldering stone, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Cerberus"
     },
     {
-      "id": "q_aaeeeeb905d56660",
+      "id": "q_6051bacc0982f93f",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1274,13 +1277,14 @@
         "prompt": "An Abyssal demon drops the Abyssal whip once in how many kills?",
         "image": "item:4151",
         "answer": 512,
+        "within": 51,
         "unit": "kills",
         "explanation": "1 in 512, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Abyssal_whip"
     },
     {
-      "id": "q_144a49cada2ca3b2",
+      "id": "q_2a71184239840444",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1291,13 +1295,14 @@
         "prompt": "A Spiritual mage drops Dragon boots once in how many kills?",
         "image": "item:11840",
         "answer": 128,
+        "within": 13,
         "unit": "kills",
         "explanation": "1 in 128, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Dragon_boots"
     },
     {
-      "id": "q_e63049cfa3b04607",
+      "id": "q_80af14f27d8dd2ea",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1308,13 +1313,14 @@
         "prompt": "The Corporeal Beast drops the Elysian sigil about once in how many kills?",
         "image": "item:12819",
         "answer": 4095,
+        "within": 410,
         "unit": "kills",
         "explanation": "About 1 in 4,095: 1 in 585 to reach the sigil table, then 1 in 7 for the Elysian, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Corporeal_Beast"
     },
     {
-      "id": "q_84063035c0512a31",
+      "id": "q_36bae57b63e4f7ea",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1325,13 +1331,14 @@
         "prompt": "The King Black Dragon drops the Draconic visage once in how many kills?",
         "image": "item:11286",
         "answer": 5000,
+        "within": 500,
         "unit": "kills",
         "explanation": "1 in 5,000, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Draconic_visage"
     },
     {
-      "id": "q_ea6e2dc95a2fb94c",
+      "id": "q_8128ed639e82dd53",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1342,13 +1349,14 @@
         "prompt": "General Graardor drops the Bandos chestplate once in how many kills?",
         "image": "item:11832",
         "answer": 381,
+        "within": 38,
         "unit": "kills",
         "explanation": "1 in 381, the same as the tassets and boots, per the OSRS Wiki."
       },
       "wiki": "https://oldschool.runescape.wiki/w/General_Graardor"
     },
     {
-      "id": "q_97151f259cd09c3b",
+      "id": "q_068b39145ecac373",
       "type": "closest_number",
       "mode": "drop_table",
       "source": "pack",
@@ -1359,6 +1367,7 @@
         "prompt": "Zulrah rolls for its uniques twice per kill. On each roll, the Tanzanite fang is 1 in how many?",
         "image": "item:12922",
         "answer": 1024,
+        "within": 102,
         "unit": "rolls",
         "explanation": "1 in 1,024 per roll, two rolls a kill, so about 1 in 512 per kill, per the OSRS Wiki."
       },

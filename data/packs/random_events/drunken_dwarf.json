@@ -22,7 +22,7 @@
       }
     },
     {
-      "id": "q_c4b65d3b708de081",
+      "id": "q_0c1e703521fe4906",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -33,6 +33,7 @@
       "payload": {
         "intro": "Ow matey, that wasn't *hic* such a good kebabsh for me stomach.",
         "answer": 16,
+        "within": 2,
         "prompt": "One in how many kebabs will make you feel ill when eaten?",
         "explanation": "Kebabs have a 1/32 chance of making you feel a bit ill, and another 1/32 of making you feel very ill."
       }
@@ -86,7 +87,7 @@
       }
     },
     {
-      "id": "q_f77e9e367b490692",
+      "id": "q_8f829101a26c705e",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -98,6 +99,7 @@
         "unit": "gp",
         "intro": "Oi matey, I lost me gold pouch *hic*! I needsh you *hic* to pay the tab for me, thanksh.",
         "answer": 208,
+        "within": 21,
         "prompt": "How many coins do you need to buy every drink for Alfred Grimhand's Barcrawl?",
         "explanation": "There are ten drinks on the barcrawl card, ranging from 7 to 70 coins each."
       }

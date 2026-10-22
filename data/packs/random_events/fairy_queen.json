@@ -3,7 +3,7 @@
   "random_event": "fairy_queen",
   "questions": [
     {
-      "id": "q_ee9db8d3740e9c75",
+      "id": "q_8d28a0460e7b9356",
       "type": "closest_number",
       "mode": "random_event",
       "source": "pack",
@@ -15,6 +15,7 @@
         "intro": "I wove every one of my rings by hand, mortal. Surely you have counted them?",
         "prompt": "How many teleportation rings make up the fairy ring network?",
         "answer": 55,
+        "within": 5,
         "explanation": "The network has 55 rings spread across Gielinor and the other realms."
       }
     },
