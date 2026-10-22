@@ -49,6 +49,22 @@ export function ceremonyPlaces(standings: readonly Standing[]): Place[] {
     .reverse()
 }
 
+export interface TeamPlace {
+  rank: number
+  /** Every team holding this rank, in the server's order. */
+  teams: TeamStanding[]
+}
+
+/** A team game's places, fifth first: the teams, not the players, that scored on each rank. */
+export function teamCeremonyPlaces(teams: readonly TeamStanding[]): TeamPlace[] {
+  return TIERS.map((_, i) => ({
+    rank: i + 1,
+    teams: teams.filter((row) => row.rank === i + 1 && row.points > 0),
+  }))
+    .filter((place) => place.teams.length > 0)
+    .reverse()
+}
+
 export interface Movement {
   up: boolean
   by: number
@@ -118,15 +134,15 @@ export function roundLine(round: number): string {
 }
 
 /** What the Wise Old Man says before a place is shown. */
-export function placeLine(place: Place): string {
-  if (place.standings.length > 1) return `Tied for ${ORDINALS[place.rank - 1]}…`
+export function placeLine(rank: number, tied: number): string {
+  if (tied > 1) return `Tied for ${ORDINALS[rank - 1]}…`
   return [
     'And top of the hiscores…',
     'So close! In second…',
     'Third place goes to…',
     'Fourth…',
     'In fifth place…',
-  ][place.rank - 1]!
+  ][rank - 1]!
 }
 
 /** "A", "A and B", "A, B and C". */

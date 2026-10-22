@@ -136,6 +136,33 @@ describe('FinalStandings', () => {
       expect(screen.getByText('Zamorak and Saradomin win!')).toBeTruthy()
     })
 
+    it('presents the teams, not the players, with no trophy', async () => {
+      render(FinalStandings, {
+        standings: TWO,
+        teamStandings: TEAMS,
+        teamOf,
+        youId: null,
+        ceremony: true,
+        children,
+      })
+      const times = ceremonyTimes(
+        [FINAL_INTRO, 'So close! In second…', 'And top of the hiscores…'].map(
+          (line) => [...line].length,
+        ),
+      )
+      await vi.advanceTimersByTimeAsync(times.shows[0]!)
+      await tick()
+      expect(placed()).toBe('Saradomin')
+      expect(document.querySelector('.placed .points')?.textContent).toMatch(/400 points/)
+      expect(document.querySelector('.placed .logo')?.getAttribute('data-team')).toBe('saradomin')
+
+      await vi.advanceTimersByTimeAsync(times.shows[1]! - times.shows[0]!)
+      await tick()
+      expect(placed()).toBe('Zamorak')
+      expect(trophy()).toBeNull()
+      expect(document.querySelector('.beside .confetti')).not.toBeNull()
+    })
+
     it('names the winner after the ceremony', async () => {
       render(FinalStandings, {
         standings: TWO,

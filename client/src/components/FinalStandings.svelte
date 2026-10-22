@@ -23,18 +23,21 @@
     ceremonyTimes,
     FINAL_INTRO,
     HISCORES_HOST,
+    listNames,
     placeLine,
+    teamCeremonyPlaces,
     teamWinnersLine,
     unrollMs,
     winnersLine,
     type Place,
+    type TeamPlace,
   } from '../lib/hiscores'
   import { reducedMotion } from '../lib/interlude'
   import { petOf } from '../lib/pets'
   import type { Standing, TeamStanding } from '../lib/protocol'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
-  import type { TeamId } from '../lib/teams'
+  import { team, type TeamId } from '../lib/teams'
   import { tierName, trophyArt } from '../lib/trophies'
   import { lettersOf } from '../lib/typing.svelte'
   import Hiscores from './Hiscores.svelte'
@@ -44,6 +47,7 @@
   import Stage from './stage/Stage.svelte'
   import TypeIn from './stage/TypeIn.svelte'
   import TeamHiscores from './TeamHiscores.svelte'
+  import TeamLogo from './TeamLogo.svelte'
 
   let {
     standings,
@@ -72,8 +76,18 @@
   const instant = reducedMotion()
   // Fixed as the screen opens: a ceremony does not rearrange itself halfway through.
   const places = untrack(() => ceremonyPlaces(standings))
-  const lines = [FINAL_INTRO, ...places.map(placeLine)]
-  const playing = untrack(() => ceremony) && !instant && places.length > 0
+  // A team game presents its teams, so the players' places and their trophies stay out of it.
+  const teamPlaces = untrack(() =>
+    teamStandings === null ? null : teamCeremonyPlaces(teamStandings),
+  )
+  const steps = teamPlaces ?? places
+  const lines = [
+    FINAL_INTRO,
+    ...(teamPlaces ?? places).map((step) =>
+      placeLine(step.rank, 'teams' in step ? step.teams.length : step.standings.length),
+    ),
+  ]
+  const playing = untrack(() => ceremony) && !instant && steps.length > 0
   const open = Math.max(CEREMONY.open, stageArrival({ host: HISCORES_HOST, tall: true }))
 
   let phase = $state<'ceremony' | 'leaving' | 'table'>(playing ? 'ceremony' : 'table')
@@ -98,7 +112,7 @@
     if (!playing) return
     const times = ceremonyTimes(lines.map(lettersOf), open)
     timers = [
-      ...places.flatMap((_, i) => [
+      ...steps.flatMap((_, i) => [
         setTimeout(
           () => {
             line = i + 1
@@ -129,7 +143,12 @@
           standings.filter((standing) => standing.rank === 1 && standing.points > 0).map(nameOf),
         ),
   )
-  const place = $derived<Place | null>(shown === null ? null : (places[shown] ?? null))
+  const place = $derived<Place | null>(
+    shown === null || teamPlaces !== null ? null : (places[shown] ?? null),
+  )
+  const teamPlace = $derived<TeamPlace | null>(
+    shown === null || teamPlaces === null ? null : (teamPlaces[shown] ?? null),
+  )
 
   /** The sheet growing from the place's height to the table's. */
   function unroll(node: HTMLElement, { from, duration }: { from: number; duration: number }) {
@@ -201,6 +220,25 @@
                 </div>
               </div>
             {/key}
+          {:else if teamPlace !== null}
+            {#key teamPlace.rank}
+              <div class="placed">
+                <span class="logos">
+                  {#each teamPlace.teams as row (row.team)}
+                    <span class="logo" data-team={row.team}><TeamLogo team={row.team} /></span>
+                  {/each}
+                </span>
+                <div class="who">
+                  <p class="names">
+                    {listNames(teamPlace.teams.map((row) => team(row.team).name))}
+                  </p>
+                  <p class="points">
+                    {numbers.format(teamPlace.teams[0]?.points ?? 0)} points
+                    <span class="tier">team average</span>
+                  </p>
+                </div>
+              </div>
+            {/key}
           {/if}
         </div>
       {/if}
@@ -208,7 +246,13 @@
   {/snippet}
 
   {#snippet beside()}
-    {#if place !== null && phase !== 'table'}
+    {#if teamPlace !== null && phase !== 'table'}
+      {#if teamPlace.rank === 1}
+        {#key teamPlace.rank}
+          <span class="trophy" class:leaving={phase === 'leaving'}><Confetti /></span>
+        {/key}
+      {/if}
+    {:else if place !== null && phase !== 'table'}
       {#key place.rank}
         <span class="trophy" class:leaving={phase === 'leaving'}>
           <img src={trophyArt(place.tier).url} alt="" draggable="false" />
@@ -260,6 +304,22 @@
 
   .pets > :global(* + *) {
     margin-left: -1.4rem;
+  }
+
+  .logos {
+    display: flex;
+    flex: none;
+    gap: 0.4rem;
+  }
+
+  .logo {
+    display: block;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0.3rem;
+    border: 3px solid var(--team-trim);
+    border-radius: 6px;
+    background: var(--team);
   }
 
   .more {
