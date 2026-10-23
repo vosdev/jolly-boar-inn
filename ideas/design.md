@@ -249,6 +249,8 @@ Round 2 of 5 · 5 questions
 - **Between routes** (Create to the lobby, Home to Join) the old screen fades out (150 ms) and the new
   one in (200 ms); reduced motion cuts. A room's first frame waits behind a "Connecting…" popup that
   only appears after 400 ms.
+  After the first screen loads, the browser fetches the NPCs, emblems, team logos and pet chatheads
+  (`lib/preload.ts`), so those do not pop in mid-fade.
 - **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
   blurb once the scroll is in place, and a question's stem from 400 ms in the server's hold before
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
