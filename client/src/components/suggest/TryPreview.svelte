@@ -22,6 +22,7 @@
     content,
     question,
     answerable = true,
+    hero = null,
   }: {
     /** The question to try, or undefined while it is not whole. */
     content: QuestionContent | undefined
@@ -29,6 +30,8 @@
     question: OpenQuestion
     /** False for an NPC not on the list yet, which nobody can pick. */
     answerable?: boolean
+    /** Stands in for the innkeeper, as on the card the question was picked from. */
+    hero?: string | null
   } = $props()
 
   const DEBOUNCE_MS = 800
@@ -101,11 +104,12 @@
         result={given?.result ?? null}
         results={given === null ? {} : { you: given.result }}
         onAnswer={() => {}}
+        {hero}
       />
     {/key}
   {:else}
     {#key `question ${current === null ? 'local' : key}`}
-      <QuestionStage question={shown} yourValue={null} {onAnswer} />
+      <QuestionStage question={shown} yourValue={null} {onAnswer} {hero} />
     {/key}
   {/if}
 </div>

@@ -30,7 +30,7 @@
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { NO_AWARD, awardFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
-  import { hostOf } from '../lib/modes'
+  import { hostOf, INNKEEPER } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { answerAck, answerCount, serverOffsetMs } from '../lib/stores'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
@@ -50,6 +50,7 @@
     live = false,
     nextAt = null,
     stemOnly = false,
+    hero = null,
     children,
   }: {
     /** The question as it was sent open, which still picks the view once it has closed. */
@@ -66,6 +67,8 @@
     /** The reveal's end, for a random event's return. */
     nextAt?: string | null
     stemOnly?: boolean
+    /** A picture to stand in the innkeeper's place; other hosts keep their own. */
+    hero?: string | null
     children?: Snippet
   } = $props()
 
@@ -126,6 +129,7 @@
   {/snippet}
   <Stage
     host={host.host.id}
+    hero={host.host.id === INNKEEPER.id ? hero : null}
     {scene}
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}

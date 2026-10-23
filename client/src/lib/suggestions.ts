@@ -94,7 +94,7 @@ export function difficultyName(difficulty: QuestionDifficulty): string {
 
 /** The question as players will see it open, drawn by `QuestionStage` or `RandomEvent`. */
 export function questionPreview(content: QuestionContent): OpenQuestion {
-  const mode = content.mode ?? NO_ROUND
+  const mode = stageMode(content.mode ?? NO_ROUND)
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
   if (content.type === 'matching') return matchingPreview(content as MatchingQuestion, mode)
   if (content.type === 'pick_from_list') {
@@ -352,6 +352,14 @@ export const CHOICES: readonly Choice[] = [
     types: [...CUSTOM_TYPES, 'ordering', 'matching'],
   },
 ]
+
+/**
+ * The mode a choice's question is drawn as. A question with no round yet is drawn as the
+ * host's own, so its stem prints and the innkeeper asks it.
+ */
+export function stageMode(choiceId: string): string {
+  return choiceId === NO_ROUND ? 'custom' : choiceId
+}
 
 /** The choice a stored suggestion was written under. */
 export function choiceOf(kind: SuggestionKind, content: SuggestionContent): Choice | undefined {

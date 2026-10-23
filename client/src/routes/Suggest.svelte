@@ -177,6 +177,7 @@
           <SuggestionEditor
             {choice}
             {asked}
+            hero={heroArt}
             saveLabel={view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
             onnpc={(npc) => (asker = npc)}
             onsave={(body) => void send(body)}

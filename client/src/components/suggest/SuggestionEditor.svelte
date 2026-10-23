@@ -37,6 +37,7 @@
     pictureItemProblem,
     questionPreview,
     sourceProblems,
+    stageMode,
     SUGGESTED_TYPE_LABELS,
     wikiProblem,
     type Choice,
@@ -60,6 +61,7 @@
     initial = undefined,
     asked = [],
     saveLabel = 'Send to the innkeeper',
+    hero = null,
     onnpc = undefined,
     onsave,
     oncancel,
@@ -73,6 +75,8 @@
      */
     asked?: readonly string[]
     saveLabel?: string
+    /** The selfhoster's hero, who stands on the preview's stage when the innkeeper asks. */
+    hero?: string | null
     /** Told which NPC asks a random event's question whenever that changes, `''` for none. */
     onnpc?: (npc: string) => void
     onsave: (body: SuggestionBody) => void
@@ -356,7 +360,7 @@
 {/snippet}
 
 {#snippet tryPreview(open: OpenQuestion)}
-  <TryPreview content={similarTo} question={open} />
+  <TryPreview content={similarTo} question={open} {hero} />
 {/snippet}
 
 {#snippet similar()}
@@ -402,7 +406,7 @@
   <OrderingForm
     question={ordering}
     title={choice.label}
-    mode={choice.id}
+    mode={stageMode(choice.id)}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
@@ -420,7 +424,7 @@
   <MatchingForm
     question={matching}
     title={choice.label}
-    mode={choice.id}
+    mode={stageMode(choice.id)}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
@@ -440,7 +444,7 @@
     title={choice.label}
     types={customTypes}
     asker={choice.id === 'random_event' ? 'required' : 'none'}
-    mode={choice.id}
+    mode={stageMode(choice.id)}
     quote={choice.quote ?? false}
     explanation={choice.explanation ?? true}
     promptFixed={roundPrompt?.fixed ?? false}
