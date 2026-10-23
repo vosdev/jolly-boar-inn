@@ -26,6 +26,7 @@
     type Choice,
     type SuggestionBody,
   } from '../lib/suggestions'
+  import { routeIn, routeOut } from '../lib/routeFade'
   import { watchTheme } from '../lib/theme'
 
   let { navigate }: { navigate: (to: string) => void } = $props()
@@ -144,61 +145,72 @@
   {#if failure !== null}
     <div class="banner bad">{failure}</div>
   {/if}
-  {#if choice === null}
-    <section class="panel">
-      <h2>What would you like to suggest?</h2>
-      <ul class="choices">
-        {#each CHOICES as option (option.id)}
-          {@const art =
-            option.host === INNKEEPER.id && heroArt !== null
-              ? { url: heroArt, cut: 'hero' }
-              : npcArt(option.host)}
-          <li>
-            <button type="button" class="choice" onclick={() => pick(option)}>
-              <img src={art.url} alt="" class={art.cut} />
-              <span>
-                <strong>{option.label}</strong>
-                <span class="note">{option.hint}</span>
-              </span>
-            </button>
-          </li>
-        {/each}
-      </ul>
-    </section>
-  {:else}
-    <div class="writing" class:aside={existing !== null}>
-      <section class="panel">
-        <p class="back">
-          <button type="button" class="link" onclick={() => (choice = null)}>
-            ← Everything you can suggest
-          </button>
-        </p>
-        {#key round}
-          <SuggestionEditor
-            {choice}
-            {asked}
-            hero={heroArt}
-            saveLabel={view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
-            onnpc={(npc) => (asker = npc)}
-            onsave={(body) => void send(body)}
-            oncancel={() => (choice = null)}
-          />
-        {/key}
+  <div class="swap">
+    {#if choice === null}
+      <section class="panel" in:routeIn out:routeOut>
+        <h2>What would you like to suggest?</h2>
+        <ul class="choices">
+          {#each CHOICES as option (option.id)}
+            {@const art =
+              option.host === INNKEEPER.id && heroArt !== null
+                ? { url: heroArt, cut: 'hero' }
+                : npcArt(option.host)}
+            <li>
+              <button type="button" class="choice" onclick={() => pick(option)}>
+                <img src={art.url} alt="" class={art.cut} />
+                <span>
+                  <strong>{option.label}</strong>
+                  <span class="note">{option.hint}</span>
+                </span>
+              </button>
+            </li>
+          {/each}
+        </ul>
       </section>
-      {#if existing !== null}
-        <ExistingQuestions
-          mode={existing}
-          npc={asker}
-          open={beside}
-          onloaded={(rows) =>
-            (asked = rows.filter((row) => row.npc !== undefined).map((row) => row.label))}
-        />
-      {/if}
-    </div>
-  {/if}
+    {:else}
+      <div class="writing" class:aside={existing !== null} in:routeIn out:routeOut>
+        <section class="panel">
+          <p class="back">
+            <button type="button" class="link" onclick={() => (choice = null)}>
+              ← Everything you can suggest
+            </button>
+          </p>
+          {#key round}
+            <SuggestionEditor
+              {choice}
+              {asked}
+              hero={heroArt}
+              saveLabel={view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
+              onnpc={(npc) => (asker = npc)}
+              onsave={(body) => void send(body)}
+              oncancel={() => (choice = null)}
+            />
+          {/key}
+        </section>
+        {#if existing !== null}
+          <ExistingQuestions
+            mode={existing}
+            npc={asker}
+            open={beside}
+            onloaded={(rows) =>
+              (asked = rows.filter((row) => row.npc !== undefined).map((row) => row.label))}
+          />
+        {/if}
+      </div>
+    {/if}
+  </div>
 {/if}
 
 <style>
+  .swap {
+    display: grid;
+  }
+
+  .swap > :global(*) {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
   h1 {
     margin-top: 0;
   }

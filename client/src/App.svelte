@@ -36,6 +36,7 @@
   import Room from './routes/Room.svelte'
   import Report from './routes/Report.svelte'
   import Suggest from './routes/Suggest.svelte'
+  import { routeIn, routeOut } from './lib/routeFade'
   import { adminTabOf, type AdminTab } from './lib/admin'
   import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
@@ -79,6 +80,8 @@
   }
 
   let route = $state<Route>(resolve(currentPath()))
+  // Create and its lobby are different screens, so they fade; Admin's tabs are one.
+  const routeKey = $derived(route.name === 'admin' ? 'admin' : JSON.stringify(route))
   const wide = $derived(
     route.name === 'home' ||
       route.name === 'create' ||
@@ -143,29 +146,46 @@
 {/if}
 
 <main id="content" tabindex="-1" class:wide>
-  {#if route.name === 'home'}
-    <Home {navigate} />
-  {:else if route.name === 'create'}
-    <Create {navigate} />
-  {:else if route.name === 'admin'}
-    <Admin tab={route.tab} {navigate} />
-  {:else if route.name === 'suggest'}
-    <Suggest {navigate} />
-  {:else if route.name === 'report'}
-    <Report {navigate} />
-  {:else if route.name === 'history'}
-    {#key `${route.code}/${route.stamp}`}
-      <History code={route.code} stamp={route.stamp} {navigate} />
-    {/key}
-  {:else if route.name === 'join'}
-    {#key route.code}
-      <Join code={route.code} {navigate} />
-    {/key}
-  {:else}
-    {#key route.code}
-      <Room code={route.code} {navigate} />
-    {/key}
-  {/if}
+  <!-- Old and new screens share one grid cell so the outgoing one fades without pushing
+       the incoming one down. A room keeps its screen across its own code's re-renders. -->
+  {#key routeKey}
+    <div class="route" in:routeIn out:routeOut>
+      {#if route.name === 'home'}
+        <Home {navigate} />
+      {:else if route.name === 'create'}
+        <Create {navigate} />
+      {:else if route.name === 'admin'}
+        <Admin tab={route.tab} {navigate} />
+      {:else if route.name === 'suggest'}
+        <Suggest {navigate} />
+      {:else if route.name === 'report'}
+        <Report {navigate} />
+      {:else if route.name === 'history'}
+        {#key `${route.code}/${route.stamp}`}
+          <History code={route.code} stamp={route.stamp} {navigate} />
+        {/key}
+      {:else if route.name === 'join'}
+        {#key route.code}
+          <Join code={route.code} {navigate} />
+        {/key}
+      {:else}
+        {#key route.code}
+          <Room code={route.code} {navigate} />
+        {/key}
+      {/if}
+    </div>
+  {/key}
 </main>
 
 <Footer {wide} />
+
+<style>
+  main {
+    display: grid;
+  }
+
+  .route {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+</style>

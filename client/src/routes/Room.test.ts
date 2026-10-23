@@ -493,7 +493,6 @@ describe('the room’s own headings', () => {
 
   it('never name the room by its code, which the lobby shows and the bar does not', async () => {
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
-    expect(screen.getByText('Connecting…')).toBeTruthy()
     expect(titles()).toEqual([])
     applyServerMessage(
       welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
@@ -505,10 +504,9 @@ describe('the room’s own headings', () => {
     expect(titles()).toEqual(['Disconnected'])
   })
 
-  it('sit on panels or the scroll, as does the line while it connects', async () => {
+  it('sit on panels or the scroll', async () => {
     const onPanel = (element: Element) => element.closest('.panel, .paper') !== null
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
-    expect(onPanel(screen.getByText('Connecting…'))).toBe(true)
     applyServerMessage(
       welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
     )
@@ -1264,5 +1262,38 @@ describe('what the tab and focus do', () => {
     await waitFor(() => expect(document.title).toBe('Standings · Jolly Boar Inn'))
     cleanup()
     expect(document.title).toBe('Jolly Boar Inn')
+  })
+})
+
+describe('the wait for the first frame', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('is a popup that stays away from a quick answer and goes with the lobby', async () => {
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    const popup = document.querySelector('dialog.connecting')!
+    expect(popup.textContent).toBe('')
+    await vi.advanceTimersByTimeAsync(399)
+    expect(popup.textContent).toBe('')
+    await vi.advanceTimersByTimeAsync(1)
+    expect(popup.textContent).toBe('Connecting…')
+    applyServerMessage(
+      welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
+    )
+    await vi.advanceTimersByTimeAsync(0)
+    expect(document.querySelector('dialog.connecting')).toBeNull()
+  })
+
+  it('never shows when the room answers first', async () => {
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(
+      welcome(roomView({ status: 'lobby', phase: 'idle', next_at: null, segment: null })),
+    )
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(screen.queryByText('Connecting…')).toBeNull()
   })
 })

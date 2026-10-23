@@ -9,6 +9,7 @@ import { savePastGame } from '../lib/history'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
 import { CHOICES } from '../lib/suggestions'
 import { clearVocabCache } from '../lib/vocab'
+import { stubAnimations } from '../test-animate'
 import Suggest from './Suggest.svelte'
 
 vi.mock('../lib/api', async (importOriginal) => {
@@ -76,6 +77,26 @@ function existingRows(): string[] {
 }
 
 afterEach(cleanup)
+
+describe('Suggest, choosing a game', () => {
+  it('fades the list out before the editor comes in', async () => {
+    const unstub = stubAnimations()
+    try {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
+      expect(screen.getByRole('heading', { name: 'What would you like to suggest?' })).toBeTruthy()
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('heading', { name: 'What would you like to suggest?' }),
+        ).toBeNull(),
+      )
+      expect(screen.getByRole('button', { name: 'Send to the innkeeper' })).toBeTruthy()
+    } finally {
+      unstub()
+    }
+  })
+})
 
 describe('Suggest', () => {
   it('asks for a game first, and asks the server nothing', () => {
