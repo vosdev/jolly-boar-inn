@@ -1,6 +1,5 @@
 # Self host instructions
 
-
 ## Requirements
 
 - Linux system
@@ -23,7 +22,6 @@ This can take up to 15 minutes. The `fetch-assets` script adheres to the OSRS Wi
 
 Besides assets, some questions are dynamically generated based on Grand Exchange prices. They will have to be refreshed every so often.
 
-
 ## Instructions
 
 1. Make sure you have all the requirements present.
@@ -32,21 +30,23 @@ Besides assets, some questions are dynamically generated based on Grand Exchange
 
 3. `cp .env.example .env`
 
-4. Modify `.env` accordingly to your personal setup.
+4. Modify `.env` accordingly to your personal setup. At minimum:
+    - `PUBLIC_BASE_URL`
+    - `POSTGRES_PASSWORD`
+    - `WIKI_USER_AGENT`
+    - `FORWARDED_ALLOW_IPS` if you use a reverse proxy
 
-5. `make all`: fetches the assets, generates the price questions and builds the image
+5. `make all`: fetches the assets, generates the price questions and builds the images
 
 6. `docker compose up -d`
 
 7. Set up a reverse proxy for port 8000
 
-
 ## Update instructions
 
 1. git pull
 2. `make all`
-3. `docker compose up -d`, once no games are running: it restarts the app
-
+3. `docker compose up -d` once no games are running: it restarts the app
 
 ## Branding
 
