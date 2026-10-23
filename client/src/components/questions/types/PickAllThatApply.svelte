@@ -92,8 +92,6 @@
     drop: (from, shown, at) =>
       q.picks === undefined ? added(from, shown) : swapAt(from, shown, at),
     step: (from, shown, by) => (by === -1 ? added(from, shown) : toTray(from, shown)),
-    name: textOf,
-    where: (shown) => (slots.includes(shown) ? 'in the basket' : 'with the rest'),
     area: () => area,
   })
 
@@ -106,12 +104,10 @@
   function restart(): void {
     slots = emptySlots(slots.length)
     dragging.lifted = null
-    dragging.news = 'Started over'
   }
 
   function back(shown: number): void {
     slots = toTray(slots, shown)
-    dragging.news = `${textOf(shown)}, with the rest`
   }
 
   sendBeforeEnd(
@@ -156,7 +152,6 @@
       {/each}
     </ul>
   </div>
-  <p class="sr" aria-live="polite">{dragging.news}</p>
   <DragActions moved={basket.length > 0} {ready} onrestart={restart} onsubmit={submit} />
 {:else}
   <GemChoices

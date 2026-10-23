@@ -44,7 +44,7 @@
   const top = $derived(shown[0]?.score)
 </script>
 
-<div class="similar" class:shown={top !== undefined} role="status">
+<div class="similar" class:shown={top !== undefined}>
   {#if top !== undefined}
     <p><strong>Looks like one we have ({top}%)</strong></p>
     <ul>

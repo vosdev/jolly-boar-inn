@@ -2,7 +2,8 @@
 
 What the app looks like and why. The architecture under it is `ideas/architecture.md`, which this
 file links to rather than repeats. Sections describe the built app, and name the open issue
-where one will change it.
+where one will change it. No screen-reader-specific work is done, and it is not a review
+criterion.
 
 ## 1. Themes
 
@@ -81,7 +82,7 @@ learns the position, which is worth more than variety.
 - A pick before the reveal works the same way: yours stays lit, the others fade. The reveal also
   moves the answer, so hue is never the only signal. The correct button goes large
   across the top; the others go small beneath it, in position order. In the DOM they stay one to
-  six, so a screen reader reads them in order. While a pick waits, nothing moves.
+  six. While a pick waits, nothing moves.
 - Your own pick carries a small "you", right or wrong. The verdict is the points slot (§10), not
   the button. The reveal adds one more thing: how many picked it, in the corner, with a bar along
   the bottom for its share of who answered. It names nobody, so it shows whatever the setting.
@@ -398,8 +399,7 @@ answerable_at: the answers appear under the line and the timer bar starts
 - The pause is what reading the intro still needs once typed, at 25 letters a second: 0.5–1 s.
   Spare time waits at the end, settled. Text too long for the hold starts sooner, never before
   600 ms, then pauses less, then types faster. Under 800 ms of hold the NPC is simply there.
-- The typing is a mask, not a mutation: the whole text is in the DOM from the first frame. A
-  screen reader reads it once, and a polite live region announces who interrupted.
+- The typing is a mask, not a mutation: the whole text is in the DOM from the first frame.
 - In the reveal the intro goes, its lines left blank so the sheet keeps its height, the NPC says
   its `right` or `wrong` line beside the points, and the `explanation` goes on the scroll, in two
   lines the sheet keeps from the start.

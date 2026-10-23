@@ -273,7 +273,7 @@
       {snapshot.players === 1 ? 'player' : 'players'} in so far.
     </p>
     {#if !naming && !inviteOnly && failure === null}
-      <p class="tagline" role="status">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>
+      <p class="tagline">Joining as {joiningAs ?? $profile?.name ?? '…'}…</p>
     {/if}
   {/if}
 </section>
@@ -291,7 +291,7 @@
 {:else if snapshot !== null}
   {#if waiting !== null}
     <section class="panel">
-      <p role="status">Waiting for the host to let you in as {waiting.asked}…</p>
+      <p>Waiting for the host to let you in as {waiting.asked}…</p>
       <p class="note">Keep this page open.</p>
       <button type="button" onclick={stopWaiting}>Cancel</button>
     </section>

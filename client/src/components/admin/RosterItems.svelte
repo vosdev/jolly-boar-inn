@@ -122,7 +122,7 @@
   <h2 id="roster-changes-heading">Pending changes</h2>
 
   {#if failure !== null}
-    <div class="banner bad" role="alert">{failure}</div>
+    <div class="banner bad">{failure}</div>
   {/if}
 
   {#if changes === null}

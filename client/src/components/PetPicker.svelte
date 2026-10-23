@@ -121,7 +121,7 @@
           if (event.key === 'Enter') event.preventDefault()
         }}
       />
-      <p class="note" role="status">
+      <p class="note">
         {matches.length === 0
           ? 'No pet has that name.'
           : `${matches.length} ${matches.length === 1 ? 'pet' : 'pets'}`}

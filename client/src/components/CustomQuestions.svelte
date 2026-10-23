@@ -218,7 +218,7 @@
   {/if}
 
   {#if over !== null}
-    <p class="error" role="alert">{over}</p>
+    <p class="error">{over}</p>
   {/if}
 
   <div class="row tools">
@@ -247,7 +247,7 @@
   {/if}
 
   {#if importErrors.length > 0}
-    <div class="banner bad" role="alert">
+    <div class="banner bad">
       <p>Nothing was imported:</p>
       <ul>
         {#each importErrors.slice(0, SHOWN_ERRORS) as message (message)}

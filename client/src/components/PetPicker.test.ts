@@ -60,7 +60,7 @@ describe('PetPicker', () => {
     expect(names).toEqual(
       PICKABLE.filter((pet) => pet.name.toLowerCase().includes('rock')).map((pet) => pet.id),
     )
-    expect(screen.getByRole('status').textContent).toBe(
+    expect(document.querySelector('.note')?.textContent).toBe(
       `${names.length} ${names.length === 1 ? 'pet' : 'pets'}`,
     )
   })
@@ -72,7 +72,7 @@ describe('PetPicker', () => {
       target: { value: 'zzzzz' },
     })
     expect(within(grid()).queryAllByRole('radio')).toHaveLength(0)
-    expect(screen.getByRole('status').textContent).toBe('No pet has that name.')
+    expect(document.querySelector('.note')?.textContent).toBe('No pet has that name.')
   })
 
   it('does not submit the form it sits in when Enter is pressed in the search box', async () => {

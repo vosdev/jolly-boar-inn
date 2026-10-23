@@ -30,7 +30,7 @@
   const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
 </script>
 
-<div class="timer surface" class:urgent role="timer" aria-label="{seconds} seconds {label}">
+<div class="timer surface" class:urgent aria-label="{seconds} seconds {label}">
   <div class="count">
     <span class="seconds">{seconds}</span><span class="unit">s {label}</span>
   </div>

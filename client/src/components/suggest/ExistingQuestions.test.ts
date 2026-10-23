@@ -86,7 +86,7 @@ describe('ExistingQuestions', () => {
     )
     render(ExistingQuestions, { mode: 'release_order', open: true })
     await within(panel()).findByText('The game has no questions here yet.')
-    expect(screen.queryByRole('alert')).toBeNull()
+    expect(document.querySelector('.banner')).toBeNull()
     expect(screen.queryByText(/release_order/)).toBeNull()
     expect(screen.queryByRole('searchbox')).toBeNull()
   })

@@ -1,7 +1,7 @@
 /**
  * Dragging options between places and a tray, by pointer or keyboard: what `ordering` and
  * `matching` share. The type keeps its places (`lib/slots.ts`) and says what a drop does;
- * this keeps what is lifted, where a drag is and what the live region last said.
+ * this keeps what is lifted, where a drag is.
  *
  * A mouse drags the whole row, a finger only its handle, so the rest of the row still
  * scrolls the page. A drag near the window's edge scrolls it. The drop lands on the place
@@ -29,9 +29,6 @@ export interface Board {
   drop(slots: Slots, shown: number, at: number): Slots
   /** One keyboard step, up (-1) or down (1). */
   step(slots: Slots, shown: number, by: -1 | 1): Slots
-  /** A row's name and where it is, for the live region. */
-  name(shown: number): string
-  where(shown: number): string
   /** The element holding the places and the tray. */
   area(): HTMLElement | undefined
 }
@@ -53,18 +50,11 @@ export class Dragging {
   } | null>(null)
   /** Where the dragged row would land. */
   over = $state<Target | null>(null)
-  /** What the live region last said. */
-  news = $state('')
 
   #board: Board
 
   constructor(board: Board) {
     this.#board = board
-  }
-
-  #moved(shown: number, next: Slots): void {
-    this.#board.set(next)
-    this.news = `${this.#board.name(shown)}, ${this.#board.where(shown)}`
   }
 
   /** Moving a row between places and the tray redraws its handle, which loses focus. */
@@ -75,28 +65,24 @@ export class Dragging {
 
   key(event: KeyboardEvent, shown: number): void {
     const board = this.#board
-    const name = board.name(shown)
     if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault()
       if (this.lifted?.shown === shown) {
         this.lifted = null
-        this.news = `${name} dropped, ${board.where(shown)}`
       } else {
         this.lifted = { shown, before: [...board.slots()] }
-        this.news = `${name} lifted, ${board.where(shown)}. Up and down move it, space drops it, escape puts it back.`
       }
     } else if (
       this.lifted?.shown === shown &&
       (event.key === 'ArrowUp' || event.key === 'ArrowDown')
     ) {
       event.preventDefault()
-      this.#moved(shown, board.step(board.slots(), shown, event.key === 'ArrowUp' ? -1 : 1))
+      board.set(board.step(board.slots(), shown, event.key === 'ArrowUp' ? -1 : 1))
       void this.refocus(shown)
     } else if (this.lifted?.shown === shown && event.key === 'Escape') {
       event.preventDefault()
       board.set(this.lifted.before)
       this.lifted = null
-      this.news = `${name} put back, ${board.where(shown)}`
       void this.refocus(shown)
     }
   }
@@ -159,9 +145,8 @@ export class Dragging {
     const target = this.targetAt(event.clientX, event.clientY)
     this.letGo()
     const slots = this.#board.slots()
-    if (target === 'tray') this.#moved(shown, toTray(slots, shown))
-    else if (target !== null) this.#moved(shown, this.#board.drop(slots, shown, target))
-    else this.news = `${this.#board.name(shown)}, ${this.#board.where(shown)}`
+    if (target === 'tray') this.#board.set(toTray(slots, shown))
+    else if (target !== null) this.#board.set(this.#board.drop(slots, shown, target))
   }
 
   letGo(): void {

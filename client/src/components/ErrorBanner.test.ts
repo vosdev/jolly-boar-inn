@@ -20,7 +20,9 @@ describe('ErrorBanner', () => {
     render(ErrorBanner)
     lastError.set({ t: 'error', code: 'not_open', message: 'no question is open' })
     await tick()
-    expect(screen.getByRole('alert').textContent).toContain('Too late, that question had closed.')
+    expect(document.querySelector('.banner')?.textContent).toContain(
+      'Too late, that question had closed.',
+    )
     vi.advanceTimersByTime(SHOWN_MS - 1)
     expect(get(lastError)).not.toBeNull()
     vi.advanceTimersByTime(1)
