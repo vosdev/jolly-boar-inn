@@ -46,7 +46,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.151.3',
     date: '2026-10-23',
-    text: 'Suggest a question lists its choices in one column on a phone.',
+    text: 'On a phone, Suggest a question lists one choice per row.',
   },
   {
     version: '0.151.2',
