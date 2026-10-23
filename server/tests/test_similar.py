@@ -193,6 +193,37 @@ def test_whos_that_npc_is_the_npc() -> None:
     assert _score(pack, _with(named, subject={"name": "Goblin"})) == 0
 
 
+def test_a_render_is_the_npc_it_pictures_shadow_or_render() -> None:
+    render = {
+        "type": "multiple_choice",
+        "mode": "whos_that_npc",
+        "payload": {
+            "prompt": "Who's that NPC?",
+            "options": ["Greater demon", "Abyssal demon", "Black demon", "Lesser demon"],
+            "answer_index": 1,
+            "image": "npc:7241",
+        },
+    }
+    shadow = {
+        "type": "pick_from_list",
+        "mode": "whos_that_npc",
+        "payload": {"prompt": "Who's that NPC?", "vocab": "npcs", "answer_id": 7241},
+    }
+    suggested = {
+        "type": "multiple_choice",
+        "mode": "whos_that_npc",
+        "payload": {
+            **render["payload"],
+            "options": ["Abyssal Demon", "Imp", "Jad", "Zulrah"],
+            "answer_index": 0,
+        },
+    }
+    del suggested["payload"]["image"]
+    assert _score(render, shadow) == 100
+    assert _score(render, suggested) == 100
+    assert _score(render, _with(suggested, answer_index=1)) == 0
+
+
 # --- the player's lookup ----------------------------------------------------------------
 
 

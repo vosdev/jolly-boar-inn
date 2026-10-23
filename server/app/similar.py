@@ -103,6 +103,10 @@ def features(question: dict[str, Any]) -> Features:
     npc = None
     if type_ == "pick_from_list":
         npc = (payload.get("answer_id"), vocab.fold(_npc_name(payload)))
+    elif question.get("mode") == NPC_MODE and type_ == "multiple_choice":
+        image = payload.get("image")
+        right = vocab.fold(payload["options"][payload["answer_index"]])
+        npc = (int(image.removeprefix("npc:")) if image else None, right)
     return Features(
         type=type_,
         mode=question.get("mode"),

@@ -1000,6 +1000,78 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Zulrah",
       "difficulty": "easy"
+    },
+    {
+      "id": "q_1227e72290c073fd",
+      "type": "multiple_choice",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "render"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Spotted_kebbit",
+      "difficulty": "medium",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "options": [
+          "Spotted kebbit",
+          "Dashing kebbit",
+          "Wild kebbit",
+          "Barb-tailed kebbit",
+          "Prickly kebbit",
+          "Dark kebbit"
+        ],
+        "answer_index": 0,
+        "image": "npc:5531"
+      }
+    },
+    {
+      "id": "q_6041adfe23d56363",
+      "type": "multiple_choice",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "render"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dark_kebbit",
+      "difficulty": "hard",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "options": [
+          "Sabre-toothed kebbit",
+          "Dark kebbit",
+          "Common kebbit",
+          "Spotted kebbit",
+          "Polar kebbit",
+          "Razor-backed kebbit"
+        ],
+        "answer_index": 1,
+        "image": "npc:5532"
+      }
+    },
+    {
+      "id": "q_cea536fc98191a04",
+      "type": "multiple_choice",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "render"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dashing_kebbit",
+      "difficulty": "hard",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "options": [
+          "Razor-backed kebbit",
+          "Prickly kebbit",
+          "Barb-tailed kebbit",
+          "Dashing kebbit",
+          "Wild kebbit",
+          "Sabre-toothed kebbit"
+        ],
+        "answer_index": 3,
+        "image": "npc:5533"
+      }
     }
   ]
 }

@@ -570,7 +570,8 @@ def test_a_named_npc_joins_the_list_and_the_pack_with_its_shadow(repo: dict[str,
         "subject": {"name": "Araxxor"},
     }
     assert (added["tags"], added["wiki"], added["credit"]) == (["shadow"], NPC["wiki"], "AFKFisher")
-    assert {q["payload"]["answer_id"] for q in pack} == {npc["id"] for npc in listed}
+    shadows = [q for q in pack if q["type"] == "pick_from_list"]
+    assert {q["payload"]["answer_id"] for q in shadows} == {npc["id"] for npc in listed}
     assert json.loads(repo["assets"].read_text())["pictures/npc/13668.png"] == "Araxxor.png"
     assert loads(repo)
 
@@ -645,3 +646,56 @@ def test_the_wiki_is_asked_once_for_every_monster_then_once_for_the_npcs_left() 
     fake.queries.clear()
     rows([["Vorkath"]])
     assert len(fake.queries) == 1
+
+
+def test_an_npc_s_id_is_read_from_the_npc_infobox_s_own_field() -> None:
+    """``infobox_npc`` names its id ``npc_id``; asking it for ``id`` is an error, not a row."""
+    fake = FakeWiki(
+        {"infobox_monster": [], "infobox_npc": [{"page_name": "Bob the Cat", "npc_id": ["2479"]}]}
+    )
+    found = import_suggestions.wiki_npc_rows(fake)([["Bob the Cat"]])  # type: ignore[arg-type]
+    assert "select('page_name','npc_id','image')" in fake.queries[1]
+    assert found == [{"page_name": "Bob the Cat", "id": ["2479"]}]
+
+
+RENDER = {
+    "type": "multiple_choice",
+    "payload": {
+        "prompt": "Who's that NPC?",
+        "options": ["Araxxor", "Araxyte", "Kalphite Queen", "Sarachnis"],
+        "answer_index": 0,
+    },
+    "mode": "whos_that_npc",
+    "wiki": "https://oldschool.runescape.wiki/w/Araxxor",
+    "difficulty": "hard",
+    "credit": "AFKFisher",
+    "credit_shown": True,
+}
+
+
+def test_a_render_question_gets_its_npc_s_render_and_leaves_the_list_alone(
+    repo: dict[str, Path],
+) -> None:
+    npcs = repo["npcs"].read_text()
+    assert run(repo, {"questions": [RENDER]}) == 0
+    assert repo["npcs"].read_text() == npcs
+    pack = json.loads((repo["packs"] / "whos_that_npc.json").read_text())["questions"]
+    added = pack[-1]
+    assert added["type"] == "multiple_choice" and added["tags"] == ["render"]
+    assert added["payload"]["image"] == "npc:13668"
+    payload = added["payload"]
+    assert payload["options"][payload["answer_index"]] == "Araxxor"
+    assert sorted(payload["options"]) == sorted(RENDER["payload"]["options"])
+    assert json.loads(repo["assets"].read_text())["pictures/npc/13668.png"] == "Araxxor.png"
+    assert loads(repo)
+
+
+def test_a_render_of_an_npc_the_shadows_ask_about_is_still_added(repo: dict[str, Path]) -> None:
+    vorkath = {
+        **RENDER,
+        "payload": {**RENDER["payload"], "options": ["Vorkath", "Galvek", "Elvarg", "Vorki"]},
+        "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
+    }
+    assert run(repo, {"questions": [vorkath]}) == 0
+    pack = json.loads((repo["packs"] / "whos_that_npc.json").read_text())["questions"]
+    assert pack[-1]["payload"]["image"] == "npc:8058"

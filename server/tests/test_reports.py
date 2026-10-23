@@ -94,7 +94,7 @@ def test_the_question_list_never_carries_an_answer(offline: TestClient, mode: st
     assert body["choices"], mode
     extra = {"whos_that_npc": {"npc"}, "random_event": {"random_event"}}.get(mode, set())
     for choice in body["choices"]:
-        assert choice.keys() == {"id", "label"} | extra
+        assert choice.keys() in ({"id", "label"} | extra, {"id", "label"}), mode
     if body["by"] == "question":
         ids = [choice["id"] for choice in body["choices"]]
         assert ids == [q["id"] for q in mode_questions(PACKS, mode)]
@@ -125,7 +125,11 @@ WHAT_PLAYERS_READ = {
     "minigame_madness": _prompt,
     "random_event": _prompt,
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
-    "whos_that_npc": lambda q: q["payload"]["subject"]["name"],
+    "whos_that_npc": lambda q: (
+        q["payload"]["subject"]["name"]
+        if q["type"] == "pick_from_list"
+        else q["payload"]["options"][q["payload"]["answer_index"]]
+    ),
 }
 
 
@@ -307,3 +311,14 @@ def test_without_the_bearer_the_admin_routes_are_401s(settings: Settings, dist: 
             assert client.request(method, path, json={}).status_code == 401, path
             wrong = {"Authorization": f"Bearer {TOKEN}x"}
             assert client.request(method, path, json={}, headers=wrong).status_code == 401
+
+
+def test_a_render_is_listed_by_its_npc_with_no_list_id(offline: TestClient) -> None:
+    """A render's NPC is not on the list, so /suggest must not refuse it as a shadow."""
+    renders = [q for q in mode_questions(PACKS, "whos_that_npc") if q["type"] == "multiple_choice"]
+    body = offline.get("/api/questions?mode=whos_that_npc").json()
+    by_id = {choice["id"]: choice for choice in body["choices"]}
+    for question in renders:
+        payload = question["payload"]
+        right = payload["options"][payload["answer_index"]]
+        assert by_id[question["id"]] == {"id": question["id"], "label": right}

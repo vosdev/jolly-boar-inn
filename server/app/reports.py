@@ -70,6 +70,8 @@ def label(question: dict[str, Any]) -> str:
     payload = question["payload"]
     if question["mode"] in OPTIONS_LABEL_MODES:
         return ", ".join(payload["options"])
+    if question["mode"] == NPC_MODE and question["type"] == "multiple_choice":
+        return payload["options"][payload["answer_index"]]
     if question["mode"] == NPC_MODE:
         npcs = vocab.get(payload["vocab"])
         name = npcs.name_of(payload["answer_id"]) if npcs else None
@@ -89,10 +91,10 @@ def choices(packs: list[Pack], mode: str) -> dict[str, Any]:
 
 
 def _choice(question: dict[str, Any]) -> dict[str, Any]:
-    # The NPC's id lets /suggest refuse one the round already has. A random event's
-    # asker is no secret: players see who asks it before the question opens.
+    # A shadow's NPC id lets /suggest refuse one the list already has; a render's NPC is
+    # on no list. A random event's asker is no secret: players see who asks it first.
     choice = {"id": question["id"], "label": label(question)}
-    if question["mode"] == NPC_MODE:
+    if question["mode"] == NPC_MODE and question["type"] == "pick_from_list":
         choice["npc"] = question["payload"]["answer_id"]
     if question["mode"] == EVENT_MODE:
         choice["random_event"] = question["random_event"]

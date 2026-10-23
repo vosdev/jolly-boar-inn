@@ -108,7 +108,7 @@ describe('the choices', () => {
     ])
     const npc = CHOICES.find((c) => c.id === 'whos_that_npc')
     expect([npc?.types, npc?.host, npc?.prompt, npc?.named]).toEqual([
-      ['pick_from_list'],
+      ['pick_from_list', 'multiple_choice'],
       'postie_pete',
       { text: "Who's that NPC?", fixed: true },
       true,
@@ -159,7 +159,7 @@ describe('the choices', () => {
     const quoting = CHOICES.filter((c) => c.quote).map((c) => c.id)
     expect(quoting).toEqual(['who_said_that', 'know_your_content_creator'])
     const silent = CHOICES.filter((c) => c.explanation === false).map((c) => c.id)
-    expect(silent).toEqual(['guess_examine'])
+    expect(silent).toEqual(['guess_examine', 'whos_that_npc'])
     const release = CHOICES.find((c) => c.id === 'release_order')
     expect(release?.types).toEqual(['ordering'])
     expect(release?.host).toBe('aris')

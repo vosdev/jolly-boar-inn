@@ -54,8 +54,9 @@ export interface Mode extends HostLines {
    */
   stem: StemId | null
   /**
-   * How the question's picture shows while it is open: `shadow` fills its outline with the
-   * theme's `--silhouette` and puts the name under it on the reveal. Left out, as it is.
+   * How the question's picture shows: `shadow` draws it large with the name under it on the
+   * reveal, and while a question picked from the list is open fills its outline with the
+   * theme's `--silhouette`. Left out, as it is.
    */
   picture?: 'shadow'
 }
