@@ -137,7 +137,10 @@ export function reportSummary(report: QueuedReport): string {
 export function questionLine(question: PackQuestion): string {
   const payload = question.payload
   if (question.mode === 'odd_one_out') return (payload.options as string[]).join(', ')
-  if (question.mode === 'whos_that_npc') return (payload.subject as Subject).name
+  if (question.mode === 'whos_that_npc') {
+    if (question.type === 'pick_from_list') return (payload.subject as Subject).name
+    return str((payload.options as string[])[payload.answer_index as number])
+  }
   if (question.type === 'price_is_right') return (payload.subject as Subject).name
   if (question.type === 'more_less') {
     const options = payload.options as { subject: Subject }[]

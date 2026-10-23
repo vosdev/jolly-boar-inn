@@ -43,7 +43,7 @@
   let round = $state(0)
   /** Who asks the random event being written, so the list starts with theirs. */
   let asker = $state('')
-  /** The pack questions' labels, which for Who's That NPC? are the NPCs already asked about. */
+  /** The shadows' labels in Who's That NPC?: the NPCs on the list, already asked about. */
   let asked = $state<readonly string[]>([])
   const existing = $derived(choice === null ? null : existingMode(choice))
   /** Whether the list starts open: beside the editor, at the width `.writing` sets it there. */
@@ -190,7 +190,8 @@
           mode={existing}
           npc={asker}
           open={beside}
-          onloaded={(rows) => (asked = rows.map((row) => row.label))}
+          onloaded={(rows) =>
+            (asked = rows.filter((row) => row.npc !== undefined).map((row) => row.label))}
         />
       {/if}
     </div>

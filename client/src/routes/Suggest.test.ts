@@ -610,6 +610,48 @@ describe('Suggest', () => {
     })
   })
 
+  it('writes a Who’s That NPC? render on buttons, even of an NPC only a render asks about', async () => {
+    played()
+    vi.mocked(api.getReportChoices).mockResolvedValue({
+      by: 'question',
+      choices: [{ id: 'q8', label: 'Spotted kebbit' }],
+    })
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
+    await waitFor(() => expect(existingRows()).toEqual(['Spotted kebbit']))
+    await type('Monster or NPC, as the wiki spells it', 'Spotted kebbit')
+    await type('Your name', 'AFKFisher')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(screen.queryByText('Already in the game.')).toBeNull()
+
+    await fireEvent.click(screen.getByLabelText('Render'))
+    expect(screen.queryByLabelText('Monster or NPC, as the wiki spells it')).toBeNull()
+    expect(screen.queryByLabelText(/Explanation/)).toBeNull()
+    expect(screen.getByText(/Players see the right answer's render/)).toBeTruthy()
+    await type('Answer 1', 'Dark kebbit')
+    await type('Answer 2', 'Spotted kebbit')
+    await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Dark_kebbit')
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
+      type: 'multiple_choice',
+      mode: 'whos_that_npc',
+      wiki: 'https://oldschool.runescape.wiki/w/Dark_kebbit',
+      payload: {
+        prompt: "Who's that NPC?",
+        options: ['Dark kebbit', 'Spotted kebbit'],
+        answer_index: 0,
+      },
+    })
+
+    cleanup()
+    render(Suggest, { navigate })
+    await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
+    const labels = within(screen.getByRole('group', { name: 'How players answer' }))
+      .getAllByRole('radio')
+      .map((radio) => radio.parentElement?.textContent?.trim())
+    expect(labels).toEqual(['Shadow', 'Render'])
+  })
+
   it('swaps Bestiary’s form between asking and sorting from one type picker', async () => {
     played()
     render(Suggest, { navigate })

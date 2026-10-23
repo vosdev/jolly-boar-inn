@@ -100,7 +100,7 @@ QUESTION_MODES: dict[str, frozenset[str]] = {
     ),
     "sort_it_out": frozenset({"ordering"}),
     "release_order": frozenset({"ordering"}),
-    "whos_that_npc": frozenset({"pick_from_list"}),
+    "whos_that_npc": frozenset({"pick_from_list", "multiple_choice"}),
 }
 
 # The rounds that show a quotation under the prompt (``multiple_choice.quote``).
@@ -109,20 +109,28 @@ QUOTE_MODES = frozenset({"who_said_that", "know_your_content_creator"})
 # Rounds whose questions all ask the same thing: the pack's tests hold them to it.
 FIXED_PROMPTS = {"odd_one_out": "Which one doesn't belong?", "whos_that_npc": "Who's that NPC?"}
 
-# An examine line is its own joke: a line after it only repeats the answer.
-NO_EXPLANATION_MODES = frozenset({"guess_examine"})
+# An examine line is its own joke, and an NPC's name is its own answer: a line after either
+# only repeats it.
+NO_EXPLANATION_MODES = frozenset({"guess_examine", "whos_that_npc"})
 
 # The intro is an NPC's line before the question, so only an NPC's question takes one.
 INTRO_MODES = frozenset({"random_event"})
 
-# Pack questions' tags, which a suggestion is not asked for.
-MODE_TAGS = {"guess_examine": ["examine"], "whos_that_npc": ["shadow"]}
+# Pack questions' tags by mode and type, which a suggestion is not asked for.
+TAGS = {
+    ("guess_examine", "multiple_choice"): ["examine"],
+    ("whos_that_npc", "pick_from_list"): ["shadow"],
+    ("whos_that_npc", "multiple_choice"): ["render"],
+}
 # Rounds whose pack holds every question to the wiki page its author checked.
 WIKI_MODES = frozenset({"guess_examine", "whos_that_npc"})
-# Rounds whose answer a player names, knowing no id: the payload is the prompt and
-# ``subject.name``, and the import script finds the id, fills in the rest and adds the name
-# to the round's list.
+# Rounds whose answer a player names, knowing no id: a ``pick_from_list`` payload is the
+# prompt and ``subject.name``, and the import script finds the id, fills in the rest and adds
+# the name to the round's list.
 NAMED_MODES = {"whos_that_npc": "npcs"}
+# Rounds whose ``multiple_choice`` right option is an NPC's name: the import script finds its
+# id and makes its render the ``image``. Not on the list, which holds what a shadow may be.
+RENDER_MODES = frozenset({"whos_that_npc"})
 NPC_NAME_MAX = 80
 # The longest item names on the wiki are about 50 characters.
 ITEM_NAME_MAX = 80
@@ -180,7 +188,7 @@ def question_envelope(content: dict[str, Any]) -> dict[str, Any]:
         "type": content["type"],
         "mode": content["mode"],
         "source": "pack",
-        "tags": MODE_TAGS.get(content["mode"], []),
+        "tags": TAGS.get((content["mode"], content["type"]), []),
         "payload": content["payload"],
     }
     for key in ("wiki", "source_url", "random_event", "difficulty"):
@@ -226,8 +234,10 @@ def _question_errors(content: dict[str, Any], sourced: bool) -> list[str]:
     links = [content[key] for key in ("wiki", "source_url") if key in content]
     if not isinstance(content["payload"], dict) or not all(isinstance(url, str) for url in links):
         return ["$.payload: an object, and $.wiki and $.source_url: links"]
-    if mode in NAMED_MODES:
+    if mode in NAMED_MODES and content["type"] == "pick_from_list":
         return _named_errors(mode, content["payload"])
+    if mode in RENDER_MODES and "image" in content["payload"]:
+        return ["$.payload.image: none; the import script adds the NPC's render"]
     if "quote" in content["payload"] and mode not in QUOTE_MODES:
         return [f"$.payload.quote: only {', '.join(sorted(QUOTE_MODES))} show a quotation"]
     if "intro" in content["payload"] and mode not in INTRO_MODES:
@@ -297,9 +307,17 @@ def _named_errors(mode: str, payload: dict[str, Any]) -> list[str]:
 
 def named(content: dict[str, Any]) -> str | None:
     """The answer a named round's question gives by name, or ``None`` for any other question."""
-    if content.get("mode") not in NAMED_MODES:
+    if content.get("mode") not in NAMED_MODES or content["type"] != "pick_from_list":
         return None
     return content["payload"]["subject"]["name"]
+
+
+def rendered(content: dict[str, Any]) -> str | None:
+    """The NPC a render question pictures, its right option, or ``None`` for any other question."""
+    if content.get("mode") not in RENDER_MODES or content["type"] != "multiple_choice":
+        return None
+    payload = content["payload"]
+    return payload["options"][payload["answer_index"]]
 
 
 def _picture_item_errors(mode: str, name: Any) -> list[str]:

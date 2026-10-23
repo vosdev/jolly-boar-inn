@@ -538,6 +538,39 @@ describe('Who’s That NPC?’s shadow', () => {
   })
 })
 
+describe('Who’s That NPC?’s render', () => {
+  const VIEW_RENDER = {
+    prompt: "Who's that NPC?",
+    options: ['Dark kebbit', 'Spotted kebbit', 'Dashing kebbit', 'Wild kebbit'],
+  }
+  const question = {
+    ...open('multiple_choice', 'whos_that_npc', VIEW_RENDER),
+    picture: 'feedc0de.png',
+  }
+  const paper = () => document.querySelector('.paper') as HTMLElement
+
+  it('is the whole render, large, over the buttons while the question is open', () => {
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(paper().querySelector('.picture.large img')!.getAttribute('src')).toBe(
+      '/pictures/feedc0de.png',
+    )
+    expect(paper().querySelector('.shadow, .fill, .caption')).toBeNull()
+    const buttons = [...document.querySelectorAll('button')].map((b) => b.textContent ?? '')
+    expect(buttons.filter((text) => text.includes('kebbit'))).toHaveLength(4)
+  })
+
+  it('names the right option under the render on the reveal', () => {
+    render(QuestionStage, {
+      question,
+      reveal: { ...VIEW_RENDER, answer_index: 1 },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(paper().querySelector('.shadow, .fill')).toBeNull()
+    expect(paper().querySelector('.caption')!.textContent).toBe('Spotted kebbit')
+  })
+})
+
 describe('the pin', () => {
   const question = open('more_less', 'more_less')
   const award = () => document.querySelector('.award') as HTMLElement | null

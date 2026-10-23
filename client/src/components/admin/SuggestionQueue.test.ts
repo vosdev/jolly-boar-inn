@@ -261,6 +261,7 @@ describe('SuggestionQueue', () => {
         'Minigame Madness',
         'Who Said That?',
         'Know Your Content Creator',
+        'Who is That NPC?',
       ])
       expect(screen.queryByText('Who asks it')).toBeNull()
       await fireEvent.change(screen.getByLabelText('Round'), { target: { value: 'random_event' } })

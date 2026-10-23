@@ -140,15 +140,16 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `sort_it_out` | Sort It Out | `ordering` | hand-written | done, the first on `ordering` |
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `number_slider`, `pick_all_that_apply` | hand-written | done |
-| `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow | hand-written | done |
+| `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
 | `pixel_hunt` | Pixel Hunt | `pick_from_list` | renders | Images |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
 
 - Sort It Out and Release Order are two modes over one type: their splash, prompt and pool differ.
-- Who's That NPC? uses a strict list, not buttons or free text: free text needs an alias list and a
-  typo argument per item. Mostly monsters: people look alike in shadow. Guess the Examine dropped its list for buttons: players found it too hard.
+- Who's That NPC?'s shadows use a strict list, not free text: free text needs an alias list and a
+  typo argument per item. Mostly monsters: people look alike in shadow. A render, for lesser-known
+  NPCs, is the whole picture over look-alikes on buttons, its NPC off the list. Guess the Examine dropped its list for buttons: players found it too hard.
 - Examine lines are hand-picked, not taken from `/mapping`. The wiki's were accurate and not funny.
 - The Price is Right is its own type: a log slider from `min` to `max` (`types/slider.py`,
   `lib/slider.ts`) on a three-figure grid; `value`, the price at two figures, lies strictly inside.
@@ -677,11 +678,11 @@ key into them, so cleanup leaves it.
 - `suggestions` holds what players send to `POST /api/suggestions` (`app/suggestions.py`): a
   `question` in Create's shape plus a `wiki` or `source_url`, or both, and a `mode` (a `quote` only
   for the two quote rounds, an `intro` only for an NPC's, a `picture_item` name only for Drop
-  Table's; Guess the Examine's take no `explanation` and, like Who's That NPC?'s, need a `wiki`)
+  Table's; Guess the Examine's and Who's That NPC?'s take no `explanation` and need a `wiki`)
   or none, held to its type alone (`UNPLACED_TYPES`) until the operator picks its round;
   or an `item` (a name not on the roster).
-  Who's That NPC?'s payload is its fixed prompt and `subject.name`, an NPC not on its list
-  (`NAMED_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
+  A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
+  list (`NAMED_MODES`); a render's right option names its NPC, and it has no `image` (`RENDER_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
   `/suggest` and the queue's editor always send one, Medium picked first. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
@@ -689,14 +690,14 @@ key into them, so cleanup leaves it.
 - `app/similar.py` scores a question against another, 0–100: 0.7 × the trigram Dice of the
   normalised prompts (with quote) + 0.3 × the answers' (1 when equal; any accepted free-text
   spelling); prompts alone across types; Odd One Out by option-set overlap; Who's That NPC? 100
-  for the same NPC, else 0. `POST /api/suggestions/similar` takes a question as `POST
+  for the same NPC, shadow or render, else 0. `POST /api/suggestions/similar` takes a question as `POST
   /api/suggestions` does, minus the link, and returns up to 3 pack questions (every pack mode but
   the price ones) at 60 or more as `{mode, label, score}`, never a suggestion; 120 an hour per
   address (`SIMILAR_PER_HOUR`). `/suggest` asks 800 ms after the prompt or answer changes.
 - `POST /api/suggestions/try {content, value?}` takes the same question and returns `{view,
   reveal, result}`: the open view in the room's shuffle, the reveal, and with `value` its
   `PlayerResult`, speed not counting (`round(1000 × credit)`); stores nothing; 600 an hour per
-  address (`TRIES_PER_HOUR`). Who's That NPC? reveals the name and takes no value. The previews
+  address (`TRIES_PER_HOUR`). A shadow reveals the name and takes no value. The previews
   on `/suggest` and in the queue toggle Question/Reveal and answer through it.
 - `/api/admin/suggestions` lists, edits and moves them, each question with its top 3 matches at 60
   or more among the packs and the other pending and approved suggestions, whole; a question with no
@@ -706,7 +707,7 @@ key into them, so cleanup leaves it.
   id or null, a snapshot (the question whole, a price mode's roster item, or null for "something
   else"), up to 500 characters of text, open or closed. Closed ones are kept. It and `/suggest`
   list `GET /api/questions?mode=…`, `{id, label}` (`reports.label`: no answer but Who's That NPC?'s,
-  plus `npc` or `random_event`); 3 an hour per address. `/api/admin/reports` lists and
+  plus a shadow's `npc` or `random_event`); 3 an hour per address. `/api/admin/reports` lists and
   closes them; `/api/admin/questions?mode=…` returns a mode's pack questions whole.
 - `question_edits` holds the operator's pending edits and deletes of hand-written pack questions
   (`app/question_edits.py`), one per question, keyed by its id in the packs as they are; a second
@@ -742,7 +743,7 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
   comes from the wiki's `infobox_item` bucket, untradeables included, as does a `picture_item`'s,
   which becomes `image`. A named NPC takes the first infobox row's id on its page (one
   `infobox_monster` query for the file, one `infobox_npc` for the rest), joins `popular-npcs.json`
-  and gets its question filled in. Missing `assets.json` entries are added: the NPC's picture, the
+  and gets its question filled in; a render's becomes its `image` and joins no list. Missing `assets.json` entries are added: the NPC's picture, the
   item's detail image and icon. One refused entry, or packs that would not load, writes nothing.
 - `make edit-packs FILE=…` applies an export of question changes: an edit replaces its question
   in place, keeping the file's key order, and recomputes its id; a delete removes it. A change to

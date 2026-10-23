@@ -19,6 +19,21 @@ describe('questionLine', () => {
     }
     expect(questionLine(question)).toBe('Abyssal demon')
   })
+
+  it('names a render by the NPC it pictures, its right option', () => {
+    const question = {
+      id: 'q_2',
+      type: 'multiple_choice',
+      mode: 'whos_that_npc',
+      payload: {
+        prompt: 'Who’s that NPC?',
+        options: ['Dark kebbit', 'Spotted kebbit'],
+        answer_index: 1,
+        image: 'npc:5531',
+      },
+    }
+    expect(questionLine(question)).toBe('Spotted kebbit')
+  })
 })
 
 describe('packAnswer', () => {
