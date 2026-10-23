@@ -26,6 +26,7 @@ EXAMINE = mode_questions(PACKS, "guess_examine")[0]
 
 ADMIN_ROUTES = (
     ("GET", "/api/admin/questions/modes"),
+    ("GET", "/api/admin/questions/stats"),
     ("PUT", f"/api/admin/questions/{ODD['id']}"),
     ("DELETE", f"/api/admin/questions/{ODD['id']}"),
     ("GET", "/api/admin/question-changes"),
@@ -92,6 +93,51 @@ def test_the_editor_lists_the_hand_written_modes_only(client: TestClient) -> Non
     assert "more_less" not in modes and "price_is_right" not in modes
 
 
+def stats(client: TestClient, **params: str) -> Any:
+    return client.get("/api/admin/questions/stats", params=params, headers=BEARER)
+
+
+def test_stats_list_a_modes_questions_whole_with_zeros_for_one_never_counted(
+    client: TestClient,
+) -> None:
+    response = stats(client, mode="odd_one_out")
+    assert response.status_code == 200, response.text
+    rows = response.json()["questions"]
+    assert [row["question"] for row in rows] == mode_questions(PACKS, "odd_one_out")
+    assert rows[0] | {"question": None} == {
+        "question": None,
+        "answers": 0,
+        "credit_sum": 0,
+        "correct": 0,
+        "unanswered": 0,
+        "games": 0,
+    }
+
+
+def test_stats_carry_a_questions_totals_and_drop_ids_the_packs_lost(client: TestClient, db) -> None:
+    db(
+        "insert into question_stats values ($1, 'odd_one_out', 20, 12.5, 12, 4, 3),"
+        " ('q_gone', 'odd_one_out', 5, 5, 5, 0, 1)",
+        ODD["id"],
+    )
+    rows = stats(client).json()["questions"]
+    (row,) = [row for row in rows if row["question"]["id"] == ODD["id"]]
+    assert row["answers"] == 20 and row["credit_sum"] == 12.5 and row["unanswered"] == 4
+    assert row["correct"] == 12 and row["games"] == 3
+    assert "q_gone" not in {row["question"]["id"] for row in rows}
+
+
+def test_stats_without_a_mode_list_every_mode_the_editor_lists(client: TestClient) -> None:
+    modes = {row["question"]["mode"] for row in stats(client).json()["questions"]}
+    assert "random_event" in modes and "odd_one_out" in modes
+    assert "price_is_right" not in modes
+
+
+@pytest.mark.parametrize("mode", ["price_is_right", "nope"])
+def test_stats_of_a_mode_the_editor_does_not_list_are_a_422(client: TestClient, mode: str) -> None:
+    assert stats(client, mode=mode).status_code == 422
+
+
 @pytest.mark.parametrize(
     "body",
     [
@@ -115,12 +161,15 @@ def test_an_examine_takes_no_explanation(client: TestClient) -> None:
     assert changes(client) == []
 
 
-def test_a_difficulty_change_queues_under_the_same_id(client: TestClient) -> None:
+def test_a_difficulty_change_queues_under_the_same_id_and_exports(client: TestClient) -> None:
     tier = "hard" if ODD["difficulty"] != "hard" else "easy"
     response = put(client, ODD["id"], {**body_of(ODD), "difficulty": tier})
     assert response.status_code == 200, response.text
     [change] = changes(client)
     assert change["question"] == {**ODD, "difficulty": tier}
+    file = client.post("/api/admin/question-changes/export", json={}, headers=BEARER).json()
+    [edit] = file["edits"]
+    assert edit["id"] == ODD["id"] and edit["question"]["difficulty"] == tier
 
 
 @pytest.mark.parametrize("tier", ["impossible", "", 2, None])
