@@ -33,6 +33,7 @@ export interface Look {
   scene?: string | null
   within?: number
   tv?: boolean
+  wide?: boolean
 }
 
 /** The screen's nodes that go on the stage, each null where the screen has none. */

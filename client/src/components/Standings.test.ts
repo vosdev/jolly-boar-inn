@@ -130,3 +130,11 @@ describe('Standings', () => {
     expect(container.querySelector('.team-hiscores')).toBeNull()
   })
 })
+
+describe('Standings on the TV', () => {
+  it('draws the hiscores on a wide TV stage', () => {
+    const { container } = render(Standings, { standings: NOW, segment: SEGMENT, tv: true })
+    expect(container.querySelector('.stage.tv.wide')).not.toBeNull()
+    expect(names(container)).toHaveLength(2)
+  })
+})

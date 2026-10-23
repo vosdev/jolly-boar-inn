@@ -12,6 +12,9 @@
    *
    * A team game's table ranks its teams, each with its members under it, and he names the
    * winning team instead.
+   *
+   * On the room's TV the sheet takes the whole stage, a long table scrolls (`crawl`), and
+   * nothing is offered: no Skip, and no panel under the table.
    */
   import type { Snippet } from 'svelte'
   import { untrack } from 'svelte'
@@ -39,6 +42,7 @@
   import { players } from '../lib/stores'
   import { team, type TeamId } from '../lib/teams'
   import { tierName, trophyArt } from '../lib/trophies'
+  import { crawl } from '../lib/tv'
   import { lettersOf } from '../lib/typing.svelte'
   import Hiscores from './Hiscores.svelte'
   import HiscoresHead from './HiscoresHead.svelte'
@@ -56,6 +60,7 @@
     youId,
     ceremony = false,
     past = false,
+    tv = false,
     children,
   }: {
     standings: Standing[]
@@ -68,6 +73,8 @@
     ceremony?: boolean
     /** A game from this browser's history: the totals, without the last round's changes. */
     past?: boolean
+    /** Drawn on the room's TV. */
+    tv?: boolean
     /** What the panel under the table offers: a note, the way home. */
     children: Snippet
   } = $props()
@@ -162,7 +169,7 @@
 </script>
 
 <h1 class="sr">Final standings</h1>
-<Stage host={HISCORES_HOST} tall>
+<Stage host={HISCORES_HOST} tall {tv} wide={tv}>
   {#snippet paper()}
     <HiscoresHead title="Final hiscores">
       {#if phase === 'table'}
@@ -174,6 +181,7 @@
     <div class="board" bind:clientHeight={boardHeight}>
       {#if phase === 'table'}
         <div
+          use:crawl={tv}
           in:unroll={{
             from: unrollFrom,
             duration: unrollMs(standings.length + (teamStandings?.length ?? 0) + 1),
@@ -262,7 +270,9 @@
     {/if}
   {/snippet}
 
-  {#if phase === 'table'}
+  {#if tv}
+    <!-- The TV offers nothing. -->
+  {:else if phase === 'table'}
     <div class="panel after" class:arriving={playing}>
       <!-- Rank is dense (section 6), so level scores genuinely share a place; what the
            sort settles is the order they are listed in, not the rank. -->

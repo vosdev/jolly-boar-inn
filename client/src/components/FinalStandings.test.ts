@@ -180,3 +180,20 @@ describe('FinalStandings', () => {
     })
   })
 })
+
+describe('FinalStandings on the TV', () => {
+  it('plays the ceremony with no Skip, then the hiscores with nothing under them', async () => {
+    const { container } = render(FinalStandings, {
+      standings: TWO,
+      youId: null,
+      ceremony: true,
+      tv: true,
+      children,
+    })
+    expect(container.querySelector('.stage.tv.wide')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Skip to the hiscores' })).toBeNull()
+    await vi.runAllTimersAsync()
+    expect(screen.getByRole('table')).toBeTruthy()
+    expect(screen.queryAllByRole('button')).toEqual([])
+  })
+})

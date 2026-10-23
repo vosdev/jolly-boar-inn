@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { PlayerView } from './protocol'
-import { answersOnly, fitScale, tvMinHeight } from './tv'
+import { TV_ROWS, answersOnly, crawlHeight, fitScale, tvMinHeight } from './tv'
 
 function player(id: string, role: PlayerView['role'], connected = true): PlayerView {
   return {
@@ -80,5 +80,17 @@ describe('tvMinHeight', () => {
       expect(width * scale).toBeCloseTo(0.8 * view.width)
       expect(height * scale).toBeCloseTo(0.8 * view.height)
     }
+  })
+})
+
+describe('crawlHeight', () => {
+  const bottoms = (n: number) => Array.from({ length: n }, (_, i) => 100 + (i + 1) * 30)
+
+  it('leaves a table that fits whole', () => {
+    expect(crawlHeight(100, bottoms(TV_ROWS))).toBeNull()
+  })
+
+  it('clips a longer one at the foot of its last shown row', () => {
+    expect(crawlHeight(100, bottoms(TV_ROWS + 3))).toBe(TV_ROWS * 30)
   })
 })

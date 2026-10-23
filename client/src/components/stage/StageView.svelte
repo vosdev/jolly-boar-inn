@@ -41,7 +41,9 @@
    * the scroll instead, a panel of one width whatever is in it, and under it again on a
    * screen taller than it is wide. Its widths are set, not found, because the stage is a
    * size container; its height is at least the room's TV's `--tv-min-height`, so the
-   * stage keeps one shape, and one scale, from question to reveal and back.
+   * stage keeps one shape, and one scale, from question to reveal and back. A `wide` TV
+   * stage has no panel: its sheet takes the stage's whole width, and narrows to make room
+   * for the panel when the next screen brings one.
    */
   import { onMount, type Snippet } from 'svelte'
 
@@ -69,6 +71,7 @@
     slots = false,
     presence = 'here',
     tv = false,
+    wide = false,
     root = $bindable(null),
   }: {
     /** A picture to stand in the host's place instead, larger: Home's, from the branding. */
@@ -98,6 +101,8 @@
     presence?: Presence
     /** The room's TV's stage, with its panel beside the scroll. */
     tv?: boolean
+    /** On the TV, the sheet across the whole stage, with no panel beside it. */
+    wide?: boolean
     root?: HTMLElement | null
   } = $props()
 
@@ -124,7 +129,13 @@
   })
 </script>
 
-<div class="stage" class:with-hero={hero !== null} class:tv bind:this={root}>
+<div
+  class="stage"
+  class:with-hero={hero !== null}
+  class:tv
+  class:wide={tv && wide}
+  bind:this={root}
+>
   <div
     class="stage-row presence-{presence}"
     class:flat={!hasRolls(sheet)}
@@ -479,6 +490,15 @@
     flex: none;
     width: 30rem;
     align-items: stretch;
+    transition: width 400ms ease-in-out;
+  }
+
+  .wide .stage-row {
+    width: 100%;
+  }
+
+  .stage.wide .under {
+    display: none;
   }
 
   /* The TV's sheet has height to spare, so whoever stands there stands on it, over its
@@ -534,10 +554,15 @@
       margin-top: 0;
       min-height: 16rem;
     }
+
+    .wide .stage-row {
+      flex: 1;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .stage.tv {
+    .stage.tv,
+    .tv .stage-row {
       transition: none;
     }
   }

@@ -52,3 +52,80 @@ export function fitScale(
 export function tvMinHeight(width: number, view: { width: number; height: number }): number {
   return view.width > 0 ? (width * view.height) / view.width : 0
 }
+
+/** The most hiscores rows the TV's sheet shows at once; the rest it scrolls to, slowly. */
+export const TV_ROWS = 12
+
+/** How the TV's long hiscores move: px a second on the unscaled stage, and the pauses. */
+export const CRAWL = { speed: 40, hold: 4000 }
+
+/**
+ * The height to clip a table to so it shows `rows` rows from `top`, given each row's
+ * bottom edge, or null when every row fits.
+ */
+export function crawlHeight(top: number, bottoms: number[], rows = TV_ROWS): number | null {
+  const last = bottoms[rows - 1]
+  if (bottoms.length <= rows || last === undefined) return null
+  return Math.ceil(last - top)
+}
+
+/**
+ * Show a long table on the TV a screen at a time: clipped to `TV_ROWS` rows, then scrolled
+ * to its foot, held there and back to its top, over and over. Under reduced motion it is
+ * left whole, and the stage shrinks to fit it.
+ */
+export function crawl(
+  node: HTMLElement,
+  on: boolean,
+): { update(on: boolean): void; destroy(): void } {
+  let frame = 0
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  function stop(): void {
+    cancelAnimationFrame(frame)
+    clearTimeout(timer)
+    node.style.removeProperty('max-height')
+    node.style.removeProperty('overflow')
+    node.scrollTop = 0
+  }
+
+  function start(): void {
+    stop()
+    if (!on || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const top = node.getBoundingClientRect().top
+    const bottoms = [...node.querySelectorAll('tbody tr')].map(
+      (row) => row.getBoundingClientRect().bottom,
+    )
+    // Measured on the scaled stage, so back to its own px.
+    const scale = node.getBoundingClientRect().height / (node.offsetHeight || 1)
+    const height = crawlHeight(top, bottoms)
+    if (height === null) return
+    node.style.maxHeight = `${height / (scale || 1)}px`
+    node.style.overflow = 'hidden'
+    const down = (): void => {
+      const from = performance.now()
+      const step = (now: number): void => {
+        node.scrollTop = ((now - from) / 1000) * CRAWL.speed
+        if (node.scrollTop + node.clientHeight < node.scrollHeight - 1) {
+          frame = requestAnimationFrame(step)
+        } else {
+          timer = setTimeout(() => {
+            node.scrollTop = 0
+            timer = setTimeout(down, CRAWL.hold)
+          }, CRAWL.hold)
+        }
+      }
+      frame = requestAnimationFrame(step)
+    }
+    timer = setTimeout(down, CRAWL.hold)
+  }
+
+  start()
+  return {
+    update(now: boolean) {
+      on = now
+      start()
+    },
+    destroy: stop,
+  }
+}

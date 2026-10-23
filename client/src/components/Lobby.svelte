@@ -168,6 +168,8 @@
   const present = $derived(counted.filter((p) => p.connected))
   const presentReady = $derived(present.filter((p) => p.ready === true).length)
   const enoughReady = $derived(presentReady >= readyThreshold(present.length))
+  /** Taps still wanted before a start needs no "anyway": a count, never a name. */
+  const short = $derived(Math.max(0, readyThreshold(present.length) - presentReady))
   const needTeam = $derived(teamGame && !isTV && yourTeam === null && !youReady)
   /** Who is not ready yet, by name, in join order — the host included, as "you". */
   const waitingOn = $derived(
@@ -410,211 +412,262 @@
 
 <ErrorBanner />
 
-<section class="lobby">
-  <Stage host="wise_old_man" hero={heroArt}>
-    {#snippet paper()}
-      <h1>Lobby</h1>
-      <p class="greeting"><Typed line={GREETING} shown={typist.shown[0]} /></p>
-      <div class="code-row">
-        <button
-          type="button"
-          class="code"
-          style:--chars={code.length}
-          aria-label="{code}, copy the invite link"
-          onclick={copy}
-        >
-          <span>{code}</span>
-          <Icon name="copy" />
-        </button>
-        {#if isAdmin && $room?.key !== undefined}
-          <button type="button" class="glyph" aria-label="New link" onclick={rotateKey}>
-            <Icon name="refresh" />
+{#if isTV}
+  <section class="lobby">
+    <Stage host="wise_old_man" hero={heroArt} tv wide>
+      {#snippet paper()}
+        <div class="tv-lobby">
+          <div class="tv-join">
+            <h1>Join on your phone</h1>
+            <p class="tv-code">{code}</p>
+            <p class="tv-link">{link.replace(/^https?:\/\//, '')}</p>
+            {#if settings !== null}<p class="count">{length}</p>{/if}
+            <p class="foot">
+              {short === 0
+                ? 'Waiting for the host to start…'
+                : `Waiting for ${short} more to be ready.`}
+            </p>
+          </div>
+          <div class="tv-table">
+            <h2>At the table · {counted.length}</h2>
+            {#if teamGame}
+              {#each roomTeams as god (god.id)}
+                {@const members = $players.filter((p) => p.team === god.id)}
+                <section class="team" data-team={god.id}>
+                  <h3 class="team-head">
+                    <span class="logo"><TeamLogo team={god.id} /></span>
+                    <span class="team-name">{god.name}</span>
+                  </h3>
+                  {@render roster(members, god.name)}
+                </section>
+              {/each}
+              {#if teamless.length > 0}
+                <section class="team">
+                  <h3 class="no-team">No team</h3>
+                  {@render roster(teamless, 'No team')}
+                </section>
+              {/if}
+            {:else}
+              {@render roster(counted, `Players, ${readyCount} of ${counted.length} ready`)}
+            {/if}
+          </div>
+        </div>
+      {/snippet}
+    </Stage>
+  </section>
+{:else}
+  <section class="lobby">
+    <Stage host="wise_old_man" hero={heroArt}>
+      {#snippet paper()}
+        <h1>Lobby</h1>
+        <p class="greeting"><Typed line={GREETING} shown={typist.shown[0]} /></p>
+        <div class="code-row">
+          <button
+            type="button"
+            class="code"
+            style:--chars={code.length}
+            aria-label="{code}, copy the invite link"
+            onclick={copy}
+          >
+            <span>{code}</span>
+            <Icon name="copy" />
           </button>
+          {#if isAdmin && $room?.key !== undefined}
+            <button type="button" class="glyph" aria-label="New link" onclick={rotateKey}>
+              <Icon name="refresh" />
+            </button>
+          {/if}
+          <span class="copied">{copied ? 'Link copied' : ''}</span>
+        </div>
+        {#if copyFailed}
+          <p class="copy-failed">Couldn't copy the link. Copy it from here:</p>
+          <input
+            class="link-field"
+            type="text"
+            readonly
+            aria-label="Link for players"
+            value={link}
+            use:selectAll
+          />
         {/if}
-        <span class="copied">{copied ? 'Link copied' : ''}</span>
-      </div>
-      {#if copyFailed}
-        <p class="copy-failed">Couldn't copy the link. Copy it from here:</p>
-        <input
-          class="link-field"
-          type="text"
-          readonly
-          aria-label="Link for players"
-          value={link}
-          use:selectAll
-        />
-      {/if}
-      {#if settings !== null}
-        <p class="count">{length}</p>
-        {#if secret}
-          <p class="aside">Tonight's rounds are a surprise. Each one is revealed when it starts.</p>
-        {:else}
+        {#if settings !== null}
+          <p class="count">{length}</p>
+          {#if secret}
+            <p class="aside">
+              Tonight's rounds are a surprise. Each one is revealed when it starts.
+            </p>
+          {:else}
+            <button
+              type="button"
+              class="toggle"
+              aria-expanded={showRounds}
+              aria-controls="rounds"
+              onclick={() => (showRounds = !showRounds)}
+            >
+              {showRounds ? 'Hide the rounds' : 'Show the rounds'}
+            </button>
+            {#if showRounds}
+              <ul class="modes" id="rounds">
+                {#each listed as round (round.mode)}
+                  <li>
+                    <span>{modeLabel(round.mode)}</span>
+                    <span class="aside">
+                      {round.questions}
+                      {round.questions === 1 ? 'question' : 'questions'}
+                    </span>
+                  </li>
+                {/each}
+              </ul>
+              {#if rounds > 1}
+                <p class="aside">Listed A–Z, not in the order they play.</p>
+              {/if}
+            {/if}
+          {/if}
           <button
             type="button"
             class="toggle"
-            aria-expanded={showRounds}
-            aria-controls="rounds"
-            onclick={() => (showRounds = !showRounds)}
+            aria-haspopup="dialog"
+            onclick={() => (showHowTo = true)}
           >
-            {showRounds ? 'Hide the rounds' : 'Show the rounds'}
+            How to play
           </button>
-          {#if showRounds}
-            <ul class="modes" id="rounds">
-              {#each listed as round (round.mode)}
-                <li>
-                  <span>{modeLabel(round.mode)}</span>
-                  <span class="aside">
-                    {round.questions}
-                    {round.questions === 1 ? 'question' : 'questions'}
-                  </span>
-                </li>
-              {/each}
-            </ul>
-            {#if rounds > 1}
-              <p class="aside">Listed A–Z, not in the order they play.</p>
+        {/if}
+        {#if !isAdmin}
+          <p class="foot">Waiting for the host to start…</p>
+        {/if}
+      {/snippet}
+
+      {#if requests.length > 0}
+        <section class="panel" aria-labelledby="asking">
+          <h2 id="asking">Asking to join ({requests.length})</h2>
+          <ul class="requests">
+            {#each requests as request (request.id)}
+              <li>
+                <span class="face"><Pet pet={petOf(request)} size={40} label="" /></span>
+                <span class="name">{request.display_name}</span>
+                <span class="decide">
+                  <button type="button" class="primary" onclick={() => decide(request, true)}
+                    >Let in</button
+                  >
+                  <button type="button" onclick={() => decide(request, false)}>Turn away</button>
+                </span>
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
+
+      <div class="panel board">
+        <div class="ready">
+          {#if !isTV}
+            <button
+              type="button"
+              class:primary={!youReady}
+              aria-pressed={youReady}
+              aria-describedby={needTeam ? 'pick-first' : undefined}
+              disabled={needTeam || readyHold.held}
+              onclick={toggleReady}
+            >
+              {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
+            </button>
+          {/if}
+          <FullScreenSwitch />
+        </div>
+        {#if needTeam}
+          <p class="hint" id="pick-first">Pick a team first.</p>
+        {/if}
+
+        {#if teamGame}
+          <div
+            class="teams"
+            role="group"
+            aria-label="Teams, {readyCount} of {counted.length} ready"
+          >
+            {#if youReady}
+              <p class="hint">Take your ready back to change team.</p>
             {/if}
-          {/if}
-        {/if}
-        <button
-          type="button"
-          class="toggle"
-          aria-haspopup="dialog"
-          onclick={() => (showHowTo = true)}
-        >
-          How to play
-        </button>
-      {/if}
-      {#if !isAdmin}
-        <p class="foot">Waiting for the host to start…</p>
-      {/if}
-    {/snippet}
-
-    {#if requests.length > 0}
-      <section class="panel" aria-labelledby="asking">
-        <h2 id="asking">Asking to join ({requests.length})</h2>
-        <ul class="requests">
-          {#each requests as request (request.id)}
-            <li>
-              <span class="face"><Pet pet={petOf(request)} size={40} label="" /></span>
-              <span class="name">{request.display_name}</span>
-              <span class="decide">
-                <button type="button" class="primary" onclick={() => decide(request, true)}
-                  >Let in</button
-                >
-                <button type="button" onclick={() => decide(request, false)}>Turn away</button>
-              </span>
-            </li>
-          {/each}
-        </ul>
-      </section>
-    {/if}
-
-    <div class="panel board">
-      <div class="ready">
-        {#if !isTV}
-          <button
-            type="button"
-            class:primary={!youReady}
-            aria-pressed={youReady}
-            aria-describedby={needTeam ? 'pick-first' : undefined}
-            disabled={needTeam || readyHold.held}
-            onclick={toggleReady}
-          >
-            {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
-          </button>
-        {/if}
-        <FullScreenSwitch />
-      </div>
-      {#if needTeam}
-        <p class="hint" id="pick-first">Pick a team first.</p>
-      {/if}
-
-      {#if teamGame}
-        <div class="teams" role="group" aria-label="Teams, {readyCount} of {counted.length} ready">
-          {#if youReady}
-            <p class="hint">Take your ready back to change team.</p>
-          {/if}
-          {#each roomTeams as god (god.id)}
-            {@const members = $players.filter((p) => p.team === god.id)}
-            <section class="team" data-team={god.id}>
-              <div class="team-head">
-                <button
-                  type="button"
-                  class="join"
-                  aria-label="{god.name}, {members.length} {members.length === 1
-                    ? 'player'
-                    : 'players'}"
-                  aria-pressed={yourTeam === god.id}
-                  disabled={youReady || isTV || teamHold.held}
-                  onclick={() => joinTeam(god.id)}
-                >
-                  <span class="logo"><TeamLogo team={god.id} /></span>
-                  <span class="team-name">{god.name}</span>
-                  <span class="aside">{members.length}</span>
-                </button>
-                {#if canRemoveTeam}
+            {#each roomTeams as god (god.id)}
+              {@const members = $players.filter((p) => p.team === god.id)}
+              <section class="team" data-team={god.id}>
+                <div class="team-head">
                   <button
                     type="button"
-                    class="glyph remove"
-                    aria-label="Remove {god.name}"
-                    onclick={() => removeTeam(god.id, god.name, members.length)}
+                    class="join"
+                    aria-label="{god.name}, {members.length} {members.length === 1
+                      ? 'player'
+                      : 'players'}"
+                    aria-pressed={yourTeam === god.id}
+                    disabled={youReady || isTV || teamHold.held}
+                    onclick={() => joinTeam(god.id)}
                   >
-                    <Icon name="trash" />
+                    <span class="logo"><TeamLogo team={god.id} /></span>
+                    <span class="team-name">{god.name}</span>
+                    <span class="aside">{members.length}</span>
                   </button>
+                  {#if canRemoveTeam}
+                    <button
+                      type="button"
+                      class="glyph remove"
+                      aria-label="Remove {god.name}"
+                      onclick={() => removeTeam(god.id, god.name, members.length)}
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  {/if}
+                </div>
+                {#if members.length === 0}
+                  <p class="aside empty">Nobody yet</p>
+                {:else}
+                  {@render roster(members, god.name)}
                 {/if}
-              </div>
-              {#if members.length === 0}
-                <p class="aside empty">Nobody yet</p>
-              {:else}
-                {@render roster(members, god.name)}
-              {/if}
-            </section>
-          {/each}
-          {#if missingTeams.length > 0}
-            <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
-          {/if}
-          {#if teamless.length > 0}
-            <section class="team">
-              <h3 class="no-team">No team</h3>
-              {@render roster(teamless, 'No team')}
-            </section>
-          {/if}
-          {#if tv !== null}
-            <section class="team">
-              <h3 class="no-team">TV</h3>
-              {@render roster([tv], 'TV')}
-            </section>
-          {/if}
-        </div>
-      {:else}
-        {@render roster($players, `Players, ${readyCount} of ${counted.length} ready`)}
-      {/if}
-
-      {#if isAdmin}
-        <p class="waiting">
-          {#if waitingOn.length === 0}
-            Everyone is ready.
-          {:else}
-            Waiting on {listFormat.format(waitingOn)}.
-          {/if}
-        </p>
-        {#if teamsBlockStart !== null}
-          <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+              </section>
+            {/each}
+            {#if missingTeams.length > 0}
+              <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
+            {/if}
+            {#if teamless.length > 0}
+              <section class="team">
+                <h3 class="no-team">No team</h3>
+                {@render roster(teamless, 'No team')}
+              </section>
+            {/if}
+            {#if tv !== null}
+              <section class="team">
+                <h3 class="no-team">TV</h3>
+                {@render roster([tv], 'TV')}
+              </section>
+            {/if}
+          </div>
+        {:else}
+          {@render roster($players, `Players, ${readyCount} of ${counted.length} ready`)}
         {/if}
-        <button
-          class="start"
-          class:primary={enoughReady}
-          type="button"
-          disabled={!canStart}
-          aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
-          onclick={start}
-        >
-          {enoughReady ? 'Start the game' : 'Start anyway'}
-        </button>
-      {/if}
-    </div>
-  </Stage>
-</section>
+
+        {#if isAdmin}
+          <p class="waiting">
+            {#if waitingOn.length === 0}
+              Everyone is ready.
+            {:else}
+              Waiting on {listFormat.format(waitingOn)}.
+            {/if}
+          </p>
+          {#if teamsBlockStart !== null}
+            <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+          {/if}
+          <button
+            class="start"
+            class:primary={enoughReady}
+            type="button"
+            disabled={!canStart}
+            aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
+            onclick={start}
+          >
+            {enoughReady ? 'Start the game' : 'Start anyway'}
+          </button>
+        {/if}
+      </div>
+    </Stage>
+  </section>
+{/if}
 
 {#if showHowTo && settings !== null}
   <HowToPlay room={{ settings, total: $room?.total ?? 0 }} onclose={() => (showHowTo = false)} />
@@ -634,6 +687,78 @@
 {/if}
 
 <style>
+  /* The TV's: how to join on the left, large, and who is at the table on the right. */
+  .tv-lobby {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .tv-join {
+    flex: 0 0 19rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tv-join h1 {
+    font-family: inherit;
+    font-size: 1.2rem;
+    color: var(--muted);
+  }
+
+  .tv-join .foot {
+    margin-top: auto;
+    font-size: 1.1rem;
+  }
+
+  .tv-code {
+    margin: 0.25rem 0 0;
+    font-family: var(--font-display);
+    font-size: 4.5rem;
+    line-height: 1;
+    letter-spacing: 0.06em;
+  }
+
+  .tv-link {
+    margin: 0.5rem 0 1rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    overflow-wrap: anywhere;
+  }
+
+  .tv-table {
+    flex: 1;
+    min-width: 0;
+    padding-left: 2rem;
+    border-left: var(--border-width) solid var(--line);
+  }
+
+  /* Pets the room can tell apart from the sofa. */
+  .tv-table :global(.pets) {
+    zoom: 1.6;
+  }
+
+  .tv-table h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.1rem;
+  }
+
+  @media (orientation: portrait) {
+    .tv-lobby {
+      flex-direction: column;
+    }
+
+    .tv-join {
+      flex: none;
+    }
+
+    .tv-table {
+      padding: 1rem 0 0;
+      border-left: 0;
+      border-top: var(--border-width) solid var(--line);
+    }
+  }
+
   h1 {
     margin: 0 0 0.4rem;
     font-family: var(--font-display);

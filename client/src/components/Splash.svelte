@@ -23,6 +23,9 @@
    * taken back once per splash — below the threshold that stops the countdown again —
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
+   *
+   * On the room's TV (section 16 of ideas/design.md) the stage is wide, with no panel: the
+   * count, the grid and the countdown stand at the sheet's foot, and nothing is offered.
    */
   import { untrack } from 'svelte'
   import { get } from 'svelte/store'
@@ -50,6 +53,7 @@
     onReady,
     onSkip = null,
     onEndRound = null,
+    tv = false,
   }: {
     segment: Segment
     /** When the countdown ends, from `room.next_at`; null while the splash waits. */
@@ -62,6 +66,8 @@
     onSkip?: (() => void) | null
     /** The host's end of the round, which skips it whole; null for everyone else. */
     onEndRound?: (() => void) | null
+    /** Drawn on the room's TV. */
+    tv?: boolean
   } = $props()
 
   // A room can play a mode from a newer server than this client was built against. The
@@ -136,59 +142,80 @@
   )
 </script>
 
+{#snippet count()}
+  <p class="count">{length}</p>
+  {#if asOf !== null}
+    <p class="note asof">{prices} as of {asOfDate(asOf)}.</p>
+  {/if}
+{/snippet}
+
+{#snippet pets()}
+  <ul class="pets" aria-label={summary}>
+    {#each players as player (player.id)}
+      <li><RosterPet {player} status={player.connected ? '' : 'away'} /></li>
+    {/each}
+  </ul>
+{/snippet}
+
+{#snippet countdown()}
+  {#if endsAt !== null}
+    <Timer {endsAt} totalSeconds={span} label="until the round starts" />
+  {:else}
+    <p class="waiting surface">
+      {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
+    </p>
+  {/if}
+{/snippet}
+
 <section class="splash">
-  <Stage host={host.host.id}>
+  <Stage host={host.host.id} {tv} wide={tv}>
     {#snippet paper()}
       <h2>{label}</h2>
       <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>
       {#if mode !== null}
         <p class="blurb"><Typed line={mode.blurb} shown={typist.shown[1]} /></p>
       {/if}
-    {/snippet}
-
-    <div class="panel board">
-      <p class="count">{length}</p>
-      {#if asOf !== null}
-        <p class="note asof">{prices} as of {asOfDate(asOf)}.</p>
-      {/if}
-
-      <div class="ready">
-        <button
-          type="button"
-          class:primary={!youReady}
-          aria-pressed={youReady}
-          disabled={youReady && undone}
-          onclick={press}
-        >
-          {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
-        </button>
-        <FullScreenSwitch />
-        <ul class="pets" aria-label={summary}>
-          {#each players as player (player.id)}
-            <li><RosterPet {player} status={player.connected ? '' : 'away'} /></li>
-          {/each}
-        </ul>
-        <span class="note tally" aria-hidden="true">{summary}</span>
-      </div>
-
-      {#if endsAt !== null}
-        <Timer {endsAt} totalSeconds={span} label="until the round starts" />
-      {:else}
-        <p class="waiting surface">
-          {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
-        </p>
-      {/if}
-      {#if onSkip !== null || onEndRound !== null}
-        <div class="host">
-          {#if onSkip !== null}
-            <button type="button" class="small" onclick={onSkip}>Start the round now</button>
-          {/if}
-          {#if onEndRound !== null}
-            <button type="button" class="small" onclick={onEndRound}>End the round</button>
-          {/if}
+      {#if tv}
+        <div class="tv-foot board">
+          {@render count()}
+          {@render pets()}
+          {@render countdown()}
         </div>
       {/if}
-    </div>
+    {/snippet}
+
+    {#if !tv}
+      <div class="panel board">
+        {@render count()}
+
+        <div class="ready">
+          <button
+            type="button"
+            class:primary={!youReady}
+            aria-pressed={youReady}
+            disabled={youReady && undone}
+            onclick={press}
+          >
+            {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
+          </button>
+          <FullScreenSwitch />
+          {@render pets()}
+          <span class="note tally" aria-hidden="true">{summary}</span>
+        </div>
+
+        {@render countdown()}
+        {#if onSkip !== null || onEndRound !== null}
+          <div class="host">
+            {#if onSkip !== null}
+              <button type="button" class="small" onclick={onSkip}>Start the round now</button>
+            {/if}
+            {#if onEndRound !== null}
+              <button type="button" class="small" onclick={onEndRound}>End the round</button>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/if}
   </Stage>
 </section>
 
@@ -200,6 +227,14 @@
     align-items: flex-start;
     gap: 0.6rem;
     margin-bottom: 0;
+  }
+
+  /* At the sheet's foot, under a rule, below whatever the words leave free, and clear of
+     the host standing there. */
+  .tv-foot {
+    margin-top: auto;
+    padding: 0.75rem 0 0 calc(var(--npc-w) - 1rem);
+    border-top: var(--border-width) solid var(--line);
   }
 
   .board > :global(.timer) {

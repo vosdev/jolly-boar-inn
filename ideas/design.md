@@ -501,7 +501,7 @@ with what waits in them (pending, open), none at zero.
 
 ## 16. The TV
 
-A room's TV (§9) shows the question to the room; the phones hold the answers (§10). It must read
+A room's TV (§9) shows the room every screen; the phones hold the answers (§10). It must read
 from a sofa across the room on a 1080p screen, in every theme.
 
 - **One scale.** The stage is the phone's, scaled as a whole to 80% of the window's width or
@@ -521,6 +521,13 @@ from a sofa across the room on a 1080p screen, in every theme.
   the tally and names, team rows and "Question by" (§10–11). The foot has the host's reveal line
   or the event's explanation; the TV scored nothing, so no points, pin, confetti or NPC reaction.
   It fades off 200 ms before the next screen, or an event's return.
+- **Wide screens.** The lobby, splash and standings have no panel: the sheet takes the stage's
+  width, and narrows (400 ms) for the panel when the question opens. Nothing on them is offered.
+- **Lobby:** "Join on your phone", the code large and the link, the night's count and "Waiting for
+  2 more to be ready." (then the host's wait); "At the table" and the pets on the right, by team.
+- **Splash:** the round's count, the pets and "Waiting for…" or the countdown at the sheet's foot.
+- **Standings:** no row is yours. Past 12 rows the table scrolls slowly to its foot, holds, and
+  starts again. The final's ceremony plays whole, without Skip.
 - **No footer**, and the top bar stays out of sight until the pointer nears the window's top.
 
 ## 17. Open tasks

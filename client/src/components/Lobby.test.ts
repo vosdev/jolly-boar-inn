@@ -277,7 +277,34 @@ describe('Lobby', () => {
       lobby([HOST, WOOX, TV], ROOM, TV)
       expect(screen.queryByRole('button', { name: /ready/i })).toBeNull()
       expect(screen.queryByRole('button', { name: /: / })).toBeNull()
+      expect(screen.getByText('Waiting for 1 more to be ready.')).toBeTruthy()
+    })
+
+    it('shows the TV the code, the link and who is at the table, with no controls', () => {
+      lobby([HOST, WOOX, TV], { ...ROOM, key: 'abc' }, TV)
+      expect(screen.queryAllByRole('button')).toEqual([])
+      expect(screen.getByText('ABYSSAL')).toBeTruthy()
+      expect(screen.getByText(`${location.host}/r/ABYSSAL#k=abc`)).toBeTruthy()
+      const table = within(screen.getByRole('list', { name: /^Players/ }))
+      expect(table.getByText('Zezima')).toBeTruthy()
+      expect(table.getByText('Woox')).toBeTruthy()
+      expect(table.queryByText('Lounge')).toBeNull()
+      expect(document.querySelector('.stage.tv.wide')).not.toBeNull()
+    })
+
+    it('waits on the host once enough are ready', () => {
+      lobby([{ ...HOST, ready: true }, { ...WOOX, ready: true }, TV], ROOM, TV)
       expect(screen.getByText('Waiting for the host to start…')).toBeTruthy()
+    })
+
+    it("groups the TV's table by team, with nothing to join", () => {
+      const room: RoomView = {
+        ...ROOM,
+        settings: { ...ROOM.settings, teams: ['saradomin', 'zamorak'] },
+      }
+      lobby([{ ...HOST, team: 'zamorak' }, { ...WOOX, team: 'saradomin' }, TV], room, TV)
+      expect(screen.queryAllByRole('button')).toEqual([])
+      expect(within(screen.getByRole('list', { name: 'Zamorak' })).getByText('Zezima')).toBeTruthy()
     })
 
     it('puts the TV in its own group in a team game, out of the team-pick wait', () => {
@@ -298,7 +325,7 @@ describe('Lobby', () => {
       }
       lobby([HOST, TV], room, TV)
       expect(screen.queryByText('Pick a team first.')).toBeNull()
-      expect(screen.getByRole('button', { name: /^Saradomin, / })).toHaveProperty('disabled', true)
+      expect(screen.queryByRole('button', { name: /^Saradomin, / })).toBeNull()
     })
   })
 
