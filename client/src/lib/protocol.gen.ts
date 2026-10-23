@@ -430,6 +430,11 @@ export interface OpenQuestion {
    */
   answered: number
   of: number
+  /**
+   * Who is still to answer, as player ids: connected, allowed to, and not yet in. Never
+   * what anyone answered. The TV's waiting panel shows them; `answer_count` keeps it current.
+   */
+  waiting: string[]
 }
 export interface Standing {
   player_id: string
@@ -504,10 +509,11 @@ export interface AnswerAck {
   of: number
 }
 /**
- * Somebody else has answered the open question: how many have, of how many can.
+ * Somebody else has answered the open question: how many have, of how many can, and who
+ * is still to.
  *
- * Only a count, never who, and never what: the waiting state shows "4 of 6
- * answered" and nothing a player could read an answer off. `of` is every connected
+ * Never what: the waiting state shows "4 of 6 answered" and the TV the players still
+ * thinking, nothing a player could read an answer off. `of` is every connected
  * player allowed to answer plus anyone who answered and has since dropped, so the count
  * never reads more than the total. A disconnect does not send a fresh count; the next
  * answer does.
@@ -517,6 +523,7 @@ export interface AnswerCount {
   question_id: string
   answered: number
   of: number
+  waiting: string[]
 }
 export interface QuestionClosed {
   t: 'question_closed'

@@ -185,6 +185,16 @@ def test_of_and_unanswered_leave_out_the_tv(game) -> None:
     assert game.admin.take("question_closed")["unanswered"] == [woox.id]
 
 
+def test_waiting_names_who_is_still_to_answer_and_never_the_tv(game) -> None:
+    tv, woox = game.players
+    mark(game, tv)
+    game.start()
+    assert [m["question"]["waiting"] for m in game.opened(0)] == [[game.admin.id, woox.id]] * 3
+    game.answer(game.admin, 0, game.right(0))
+    game.admin.take("answer_ack")
+    assert tv.take("answer_count")["waiting"] == [woox.id]
+
+
 def test_everyone_but_the_tv_answering_closes_the_question(game) -> None:
     mark(game, game.players[0])
     game.start()

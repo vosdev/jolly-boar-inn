@@ -90,6 +90,15 @@ def _answer_count(room: Room, question: RoomQuestion) -> tuple[int, int]:
     return len(question.answers), len(answering)
 
 
+def _waiting(room: Room, question: RoomQuestion) -> list[str]:
+    """Who is still to answer ``question``: connected, allowed to, not yet in. Lock held."""
+    return [
+        str(pid)
+        for pid in room.sockets
+        if room.can_answer(question, pid) and pid not in question.answers
+    ]
+
+
 def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
     """Start, shorten or stop a splash's countdown to match who is ready. Lock held.
 
@@ -536,6 +545,7 @@ class Loop:
             room.next_at = room.next_mono = None
             room.advance.clear()
             count = _answer_count(room, question)
+            waiting = _waiting(room, question)
             opened = Broadcast.per_player(
                 room,
                 lambda pid: QuestionOpen(
@@ -546,6 +556,7 @@ class Loop:
                         count,
                         self._picture(question),
                         self._pictures(question),
+                        waiting,
                     )
                 ).model_dump(mode="json"),
             )

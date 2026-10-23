@@ -281,9 +281,11 @@ class RoomQuestion:
         count: tuple[int, int] = (0, 0),
         picture: str | None = None,
         pictures: Mapping[str, str] | None = None,
+        waiting: Iterable[str] = (),
     ) -> OpenQuestion:
-        """The open question as a player sees it. ``count`` is ``_answer_count``'s, and
-        ``pictures`` names the pictures the view shows inside it."""
+        """The open question as a player sees it. ``count`` is ``_answer_count``'s,
+        ``pictures`` names the pictures the view shows inside it, and ``waiting`` is who is
+        still to answer."""
         assert self.shown_at is not None and self.ends_at is not None
         assert self.answerable_at is not None
         return OpenQuestion(
@@ -304,6 +306,7 @@ class RoomQuestion:
             you_can_answer=you_can_answer,
             answered=count[0],
             of=count[1],
+            waiting=list(waiting),
         )
 
 

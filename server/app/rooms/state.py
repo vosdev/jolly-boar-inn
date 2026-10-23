@@ -67,6 +67,7 @@ from app.rooms.loop import (
     _recount_splash,
     _round_under_way,
     _stop_timer,
+    _waiting,
 )
 from app.rooms.models import (
     Broadcast,
@@ -595,6 +596,7 @@ class RoomManager(Joins, Lobby, Loop):
                     _answer_count(room, question),
                     self._picture(question),
                     self._pictures(question),
+                    _waiting(room, question),
                 )
                 if question is not None and segment is not None
                 else None
@@ -765,7 +767,12 @@ class RoomManager(Joins, Lobby, Loop):
             question.answers[player.id] = Submitted(value=value, received_at=received_at, band=band)
             _close_if_everyone_answered(room)
             count = _answer_count(room, question)
-            counted = AnswerCount(question_id=question_id, answered=count[0], of=count[1])
+            counted = AnswerCount(
+                question_id=question_id,
+                answered=count[0],
+                of=count[1],
+                waiting=_waiting(room, question),
+            )
             others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
         self._broadcast(others)
         return how, band, count

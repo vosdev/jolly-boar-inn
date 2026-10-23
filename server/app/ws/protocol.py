@@ -209,6 +209,10 @@ class OpenQuestion(_Message):
     by ``answer_count`` and the answerer's own ``answer_ack``.
     """
     of: int = 0
+    waiting: list[str] = Field(default_factory=list)
+    """Who is still to answer, as player ids: connected, allowed to, and not yet in. Never
+    what anyone answered. The TV's waiting panel shows them; ``answer_count`` keeps it current.
+    """
 
 
 # --- Client → server --------------------------------------------------------------
@@ -432,10 +436,11 @@ class AnswerAck(_Message):
 
 
 class AnswerCount(_Message):
-    """Somebody else has answered the open question: how many have, of how many can.
+    """Somebody else has answered the open question: how many have, of how many can, and who
+    is still to.
 
-    Only a count, never who, and never what: the waiting state shows "4 of 6
-    answered" and nothing a player could read an answer off. ``of`` is every connected
+    Never what: the waiting state shows "4 of 6 answered" and the TV the players still
+    thinking, nothing a player could read an answer off. ``of`` is every connected
     player allowed to answer plus anyone who answered and has since dropped, so the count
     never reads more than the total. A disconnect does not send a fresh count; the next
     answer does.
@@ -445,6 +450,7 @@ class AnswerCount(_Message):
     question_id: str
     answered: int
     of: int
+    waiting: list[str]
 
 
 class PlayerResult(_Message):
