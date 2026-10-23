@@ -650,6 +650,11 @@ key into them, so cleanup leaves it.
   length bucket, from its first question opening; a close, by the question's mode, whether
   everyone answered, time ran out or it was skipped. No IP, name, room code or player id ever
   goes in it, and every key comes from a fixed set.
+- `question_stats` (`app/question_stats.py`), also outside the cascade, sums per content id how
+  players do on hand-written round-pack questions (not events, host, price modes or voided), in
+  the close's transaction: `answers`, `credit_sum` (credit, not points), `correct`,
+  `unanswered` and `games`. Admins' answers are left out; a close with fewer than two other
+  players adds nothing. A payload edit changes the id, so its numbers restart.
 - Only the browser knows which join failures its player saw (it retries a taken name, and a
   missing room may be a Past games link), so it reports each to `POST /api/stats/join-failure
   {reason}`, 30 an hour per address, and the server counts no failure itself.
