@@ -3,11 +3,11 @@ import { fade } from 'svelte/transition'
 
 import { reducedMotion } from './interlude'
 
-const OUT_MS = 150
-const IN_MS = 200
+export const OUT_MS = 150
+export const IN_MS = 200
 
 /** Reduced motion and jsdom, which has no Web Animations, cut instead. */
-function cuts(): boolean {
+export function cuts(): boolean {
   return reducedMotion() || typeof Element.prototype.animate !== 'function'
 }
 

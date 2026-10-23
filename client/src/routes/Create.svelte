@@ -70,6 +70,7 @@
   import { minutes, plannedSeconds } from '../lib/duration'
   import { MODES, UPCOMING_MODES, hostOf, modeLabel } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
+  import { tabFade } from '../lib/tabFade'
   import { PACES } from '../lib/pace'
   import { profile, returningVisitor, saveProfile } from '../lib/profile'
   import {
@@ -490,7 +491,7 @@
 
   <div class="columns">
     <div class="main">
-      <section class="panel hosts" hidden={shown !== 'rounds'} aria-labelledby="hosts-title">
+      <section class="panel hosts" use:tabFade={shown !== 'rounds'} aria-labelledby="hosts-title">
         <div class="spread head">
           <div>
             <h2 id="hosts-title">Who's hosting tonight?</h2>
@@ -545,7 +546,7 @@
         {/if}
       </section>
 
-      <div class="events" hidden={shown !== 'events'}>
+      <div class="events" use:tabFade={shown !== 'events'}>
         <RandomEvents bind:frequency slots={eventCount} atLeast={surprise} own={customQuestions} />
         <CustomQuestions
           bind:questions={customQuestions}
@@ -559,7 +560,7 @@
     </div>
 
     <aside class="side">
-      <div class="setup" hidden={narrow ? stage !== 'rules' : shown !== 'rounds'}>
+      <div class="setup" use:tabFade={narrow ? stage !== 'rules' : shown !== 'rounds'}>
         <RoundList
           bind:rounds
           bind:order={modeOrder}
@@ -581,7 +582,11 @@
       </div>
 
       {#if !narrow}
-        <section class="panel tonight" hidden={shown !== 'events'} aria-labelledby="tonight-title">
+        <section
+          class="panel tonight"
+          use:tabFade={shown !== 'events'}
+          aria-labelledby="tonight-title"
+        >
           <div class="spread">
             <h2 id="tonight-title">Tonight</h2>
             <button type="button" class="link" onclick={() => go('rounds')}>Change</button>
@@ -750,7 +755,7 @@
     position: static;
   }
 
-  [hidden] {
+  .columns :global([hidden]) {
     display: none !important;
   }
 

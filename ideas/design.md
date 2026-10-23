@@ -246,7 +246,7 @@ Round 2 of 5 · 5 questions
   event NPC still standing), the host leaves with the words (200 ms) and the next walks on before
   them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
   event clears the words before its own entrance and return (§12).
-- **Between routes** (Create to the lobby, Home to Join) the old screen fades out (150 ms) and the new
+- **Between routes** (Create to the lobby, Home to Join), Create's tabs and Suggest's list and editor the old screen fades out (150 ms) and the new
   one in (200 ms); reduced motion cuts. A room's first frame waits behind a "Connecting…" popup that
   only appears after 400 ms.
   After the first screen loads, the browser fetches the NPCs, emblems, team logos and pet chatheads
