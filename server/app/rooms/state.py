@@ -803,9 +803,55 @@ class RoomManager(Joins, Lobby, Loop):
                 raise BadState("there is no such player in this room")
             if target.role == "admin":
                 return
+            if target.role == "tv":
+                raise BadState("the TV cannot be an admin")
             async with pool.acquire() as conn:
                 await conn.execute("update players set role = 'admin' where id = $1", player_id)
             target.role = "admin"
+            update = self._room_updated(room)
+        self._broadcast(update)
+
+    async def set_tv(self, code: str, by: Player, player_id: UUID, on: bool) -> None:
+        """Admin, lobby: make a player the room's one TV, or turn the TV back into a player.
+
+        A new TV turns the old one back into a player. The TV is un-ready and teamless,
+        because it plays no part. The last admin cannot be the TV, or nobody could run
+        the game; admins who are disconnected still count, since they can come back.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            if room.status != "lobby":
+                raise BadState("the TV is picked in the lobby")
+            target = room.players.get(player_id)
+            if target is None:
+                raise BadState("there is no such player in this room")
+            if on == (target.role == "tv"):
+                return
+            if on and target.role == "admin":
+                if sum(p.role == "admin" for p in room.players.values()) == 1:
+                    raise BadState("the last admin cannot be the TV")
+            old = [p for p in room.players.values() if on and p.role == "tv"]
+            async with pool.acquire() as conn, conn.transaction():
+                await conn.execute(
+                    "update players set role = 'player' where id = any($1::uuid[])",
+                    [p.id for p in old] + ([] if on else [target.id]),
+                )
+                if on:
+                    await conn.execute(
+                        "update players set role = 'tv', team = null where id = $1", target.id
+                    )
+            for player in old:
+                player.role = "player"
+            if on:
+                target.role = "tv"
+                target.team = None
+                target.ready = False
+                target.stop_editing()
+            else:
+                target.role = "player"
             update = self._room_updated(room)
         self._broadcast(update)
 

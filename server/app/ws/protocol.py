@@ -25,7 +25,7 @@ RoomStatus = Literal["lobby", "playing", "finished"]
 Phase = Literal["idle", "splash", "open", "reveal", "standings"]
 # Every timed phase: each one is a wait the host can cut short.
 SkippablePhase = Literal["splash", "open", "reveal", "standings"]
-Role = Literal["player", "admin"]
+Role = Literal["player", "admin", "tv"]
 ErrorCode = Literal[
     "bad_hello",
     "bad_message",  # unparseable or unknown frame after ``hello``; the socket closes with 4008
@@ -247,6 +247,14 @@ class Promote(_Message):
     player_id: UUID
 
 
+class SetTv(_Message):
+    """Admin: make ``player_id`` the room's one TV (``on``), or a player again. Lobby only."""
+
+    t: Literal["set_tv"]
+    player_id: UUID
+    on: bool = Field(strict=True)
+
+
 class Kick(_Message):
     t: Literal["kick"]
     player_id: UUID
@@ -335,6 +343,7 @@ ClientMessage = Annotated[
     | StartGame
     | Skip
     | Promote
+    | SetTv
     | Kick
     | EndGame
     | EndRound

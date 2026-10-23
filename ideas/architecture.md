@@ -287,15 +287,16 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `hello` | `session` | all | Must be first. Replies `welcome`. |
 | `ping` | | all | Replies `pong`. |
 | `answer` | `question_id`, `value` | all | Stored if open, unanswered and allowed. `answer_ack` or `error`. |
-| `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. Teamless in a team game: `bad_state`. |
+| `ready` | `ready: bool` | all | Lobby or splash only. One take-back per splash, one lobby change a second. Teamless in a team game, or the TV: `bad_state`. |
 | `set_profile` | `display_name?`, `avatar?` | all | Lobby only. Validated exactly like a join. One change a second. Clears `editing`. |
-| `set_team` | `team` | all | Lobby of a team game, not while ready; a god not in the room is `bad_value`. One change a second. |
-| `move_team` | `player_id`, `team` | admin | Lobby of a team game: anyone, ready or not, connected or not. Their ready stays. |
+| `set_team` | `team` | all | Lobby of a team game, not while ready or the TV; a god not in the room is `bad_value`. One change a second. |
+| `move_team` | `player_id`, `team` | admin | Lobby of a team game: anyone but the TV, ready or not, connected or not. Their ready stays. |
 | `set_teams` | `teams` | admin | Lobby of a team game: the whole list, 2 to 6 gods in order, else `bad_value`. A dropped team's players go teamless and un-ready. |
 | `editing` | `on: bool` | all | Name field focused. Lobby only, else ignored. An `on` within 1 s of a change is ignored; 60 s unsent, a disconnect or `start_game` clears it. |
 | `start_game` | | admin | `lobby → playing`. |
 | `skip` | `phase`, `index` | admin | Ends that phase if the room is still in it, so a double tap ends one. |
-| `promote` | `player_id` | admin | Makes them admin. There is no demote. |
+| `promote` | `player_id` | admin | Makes them admin; the TV is `bad_state`. There is no demote. |
+| `set_tv` | `player_id`, `on: bool` | admin | Lobby only. `on` makes them the room's one TV, un-ready and teamless, and the old TV a `player`; the last admin is `bad_state`. `off` makes the TV a `player`. |
 | `kick` | `player_id` | admin | Deletes the player and their answers; closes 4003. Not on admins. |
 | `end_round` | `index` | admin | Splash, open or reveal of `index`: voids an open question, standings, next round. Last round: `end_game`. |
 | `end_game` | | admin | Voids an open question, `playing → finished`. |
@@ -305,7 +306,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | Server `t` | Fields | When |
 |---|---|---|
 | `welcome` | `room`, `you`, `players`, `question`, `your_answer`, `standings`, `team_standings`, `server_time`, `server_version` | Reply to `hello`. The full state. |
-| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, kick, rename, `set_teams`, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
+| `room_updated` | `room`, `players`, `standings`?, `team_standings`? | Join, leave, promote, `set_tv`, kick, rename, `set_teams`, status change, a splash or standings starting (with both standings), a ready change that moves `next_at`. |
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
@@ -319,7 +320,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
                reveal_seconds, estimated_seconds, segment, finished_at, rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
-PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }
+PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }   role: player, admin, tv
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
 TeamStanding { team, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
@@ -601,6 +602,7 @@ questions, answers included: players' suggestions and the packs, never a room's.
   ambient authenticates a request.
 - A second admin is a join plus `promote`. A room whose last admin lost their session runs on
   without one until it expires; remaking it is the fix.
+- The TV (`set_tv`) is a player's role, not an admin's: its admin messages are `not_admin`.
 - Sessions are stored as sha256, so a database dump yields none.
 
 Limits:
@@ -672,6 +674,7 @@ key into them, so cleanup leaves it.
   nobody in the room wears, and startup gives one to any row still null. The server checks it against
   the pets with both pictures in `assets.json`, because that list grows without a migration.
 - `players.team` is a god in `GODS`, checked by the server, or null; everyone joins teamless.
+- `players.role` is `player`, `admin` or `tv`; a partial unique index keeps one TV a room.
 - Cleanup deletes expired rooms, and finished ones past their grace, 200 at a time, at startup
   and every `ROOM_CLEANUP_INTERVAL_SECONDS`, then drops them from memory. A failed pass is logged
   and the next runs. There is no external cron.

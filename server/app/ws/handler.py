@@ -263,6 +263,8 @@ async def _dispatch(
             await manager.skip(code, player, message.phase, message.index)
         case protocol.Promote():
             await manager.promote(code, player, message.player_id)
+        case protocol.SetTv():
+            await manager.set_tv(code, player, message.player_id, message.on)
         case protocol.Kick():
             await manager.kick(code, player, message.player_id)
         case protocol.EndGame():

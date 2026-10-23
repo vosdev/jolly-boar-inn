@@ -64,6 +64,7 @@ def test_both_unions_name_every_message() -> None:
         "StartGame",
         "Skip",
         "Promote",
+        "SetTv",
         "Kick",
         "EndGame",
         "EndRound",

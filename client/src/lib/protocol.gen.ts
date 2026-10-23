@@ -14,6 +14,7 @@ export type ClientMessage =
   | StartGame
   | Skip
   | Promote
+  | SetTv
   | Kick
   | EndGame
   | EndRound
@@ -68,6 +69,14 @@ export interface Skip {
 export interface Promote {
   t: 'promote'
   player_id: string
+}
+/**
+ * Admin: make `player_id` the room's one TV (`on`), or a player again. Lobby only.
+ */
+export interface SetTv {
+  t: 'set_tv'
+  player_id: string
+  on: boolean
 }
 export interface Kick {
   t: 'kick'
@@ -349,7 +358,7 @@ export interface PlayerView {
    * A pet's id in `data/pets.json`; the server stores one for every player.
    */
   avatar: string | null
-  role: 'player' | 'admin'
+  role: 'player' | 'admin' | 'tv'
   /**
    * The god they play for in a team game; null outside one, and for everyone who just joined.
    */

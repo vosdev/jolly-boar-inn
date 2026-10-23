@@ -34,10 +34,12 @@ def _check_team(room: Room, team: God) -> None:
 
 
 def _check_teams_ready(room: Room) -> None:
-    """Refuse to start a team game with anyone teamless, disconnected or not, or one team."""
-    if any(player.team is None for player in room.players.values()):
+    """Refuse to start a team game with anyone but the TV teamless, disconnected or not, or
+    one team."""
+    players = [player for player in room.players.values() if player.role != "tv"]
+    if any(player.team is None for player in players):
         raise BadState("everyone needs a team before the game starts")
-    if len({player.team for player in room.players.values()}) < 2:
+    if len({player.team for player in players}) < 2:
         raise BadState("a team game needs players on at least two teams")
 
 
@@ -121,6 +123,8 @@ class Lobby:
             if target is None:
                 raise BadState("you are no longer in this room")
             _check_team(room, team)
+            if target.role == "tv":
+                raise BadState("the TV plays for no team")
             if target.ready:
                 raise BadState("take your ready back before changing team")
             if target.team == team:
@@ -146,6 +150,8 @@ class Lobby:
             if target is None:
                 raise BadState("there is no such player in this room")
             _check_team(room, team)
+            if target.role == "tv":
+                raise BadState("the TV plays for no team")
             if target.team == team:
                 return
             await self._store_team(target, team)
@@ -221,6 +227,8 @@ class Lobby:
             in_splash = room.status == "playing" and room.phase == "splash"
             if room.status != "lobby" and not in_splash:
                 raise BadState("there is nothing to be ready for")
+            if target.role == "tv":
+                raise BadState("the TV plays no part")
             if target.ready == is_ready:
                 return
             if is_ready and room.settings.teams and target.team is None:
