@@ -1,15 +1,19 @@
 """The room's TV (section 6): ``set_tv`` marks one player in the lobby as the screen that
 shows the question to the room. The TV is no admin, keeps no ready or team, and its role
-is a column, so it survives a restart.
+is a column, so it survives a restart. In the game it only watches: it answers nothing and
+counts for nothing.
 """
 
+import time
 from uuid import UUID
 
 import asyncpg
 import pytest
 
-from tests.game_api import Game, Seat, tap
-from tests.rooms_api import hello
+from app.rooms.errors import BadState
+from app.rooms.ready import EVERYONE_READY_SECONDS, THRESHOLD_SECONDS
+from tests.game_api import Game, Seat, seconds_left, tap
+from tests.rooms_api import call, create_fast, hello, join
 
 
 @pytest.fixture
@@ -153,3 +157,78 @@ def test_the_database_holds_one_tv_a_room(game, db) -> None:
     mark(game, game.players[0])
     with pytest.raises(asyncpg.UniqueViolationError):
         db("update players set role = 'tv' where id = $1", UUID(game.players[1].id))
+
+
+# --- the TV sits out the game --------------------------------------------------------
+
+
+def test_the_tv_cannot_answer_and_its_answer_is_excluded(game, db) -> None:
+    tv = game.players[0]
+    mark(game, tv)
+    game.start()
+    frames = zip(game.seats, game.opened(0), strict=True)
+    opened = {seat.name: m["question"]["you_can_answer"] for seat, m in frames}
+    assert opened == {game.admin.name: True, "Zezima": False, "Woox": True}
+    game.answer(tv, 0, game.right(0))
+    assert tv.take("error")["code"] == "excluded"
+    assert db("select count(*) as n from answers")[0]["n"] == 0
+
+
+def test_of_and_unanswered_leave_out_the_tv(game) -> None:
+    tv, woox = game.players
+    mark(game, tv)
+    game.start()
+    assert {m["question"]["of"] for m in game.opened(0)} == {2}
+    game.answer(game.admin, 0, game.right(0))
+    assert game.admin.take("answer_ack")["of"] == 2
+    game.skip()
+    assert game.admin.take("question_closed")["unanswered"] == [woox.id]
+
+
+def test_everyone_but_the_tv_answering_closes_the_question(game) -> None:
+    mark(game, game.players[0])
+    game.start()
+    game.opened(0)
+    started = time.monotonic()
+    for seat in (game.admin, game.players[1]):
+        game.answer(seat, 0, game.right(0))
+        seat.take("answer_ack")
+    game.admin.take("question_closed")
+    assert time.monotonic() - started < 5  # not the ten seconds the question had
+
+
+def test_a_splash_counts_neither_the_tv_nor_its_threshold(table) -> None:
+    """Two players and a TV: one tap of two starts the count, two bring it to three seconds."""
+    game = table("Zezima", "Woox", seconds=10, splash=True)
+    tv, woox = game.players
+    mark(game, tv)
+    game.start()
+    game.splash()
+    one = tap(game, game.admin)
+    assert EVERYONE_READY_SECONDS < seconds_left(one) <= THRESHOLD_SECONDS
+    both = tap(game, woox)
+    assert 0 < seconds_left(both) <= EVERYONE_READY_SECONDS
+
+
+def test_standings_and_game_finished_leave_out_the_tv(table) -> None:
+    game = table("Zezima", "Woox", seconds=1, reveal_seconds=1)
+    tv = game.players[0]
+    mark(game, tv)
+    game.start()
+    closed = game.admin.take("question_closed")
+    assert tv.id not in {s["player_id"] for s in closed["standings"]}
+    finished = tv.take("game_finished")
+    assert [s["player_id"] for s in finished["standings"]] == [game.admin.id, game.players[1].id]
+
+
+def test_start_game_with_only_the_tv_connected_is_refused(app, client) -> None:
+    room, admin, _ = create_fast(app, client)
+    body = join(client, room.code, "Zezima").json()
+    manager = app.state.rooms
+    with client.websocket_connect(f"/ws/{room.code}") as ws:
+        hello(ws, body["session"])
+        call(client, manager.set_tv, room.code, admin, UUID(body["player"]["id"]), True)
+        with pytest.raises(BadState) as info:
+            call(client, manager.start_game, room.code, admin)
+    assert info.value.message == "nobody but the TV is connected to play"
+    assert call(client, manager.get, room.code).status == "lobby"

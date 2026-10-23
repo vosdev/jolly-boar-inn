@@ -35,7 +35,7 @@ async def record(
     """Add a graded close's answers, with ``credit`` per player who answered, to its row."""
     if not counts(question):
         return
-    present = {pid for pid in room.sockets if question.can_answer(pid)} | set(credit)
+    present = {pid for pid in room.sockets if room.can_answer(question, pid)} | set(credit)
     players = {pid for pid in present if not room.is_admin(pid)}
     if len(players) < MIN_PLAYERS:
         return

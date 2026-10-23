@@ -108,7 +108,7 @@ class AlreadyAnswered(ApiError):
 
 
 class Excluded(ApiError):
-    """A ``host_only`` question (section 6)."""
+    """A ``host_only`` question, or an answer from the TV (section 6)."""
 
     status, code = 403, "excluded"
 

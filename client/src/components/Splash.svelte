@@ -32,7 +32,7 @@
   import { MODES, hostOf } from '../lib/modes'
   import type { PlayerView, Segment } from '../lib/protocol'
   import { loadPricesAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
-  import { readyThreshold } from '../lib/ready'
+  import { playing, readyThreshold } from '../lib/ready'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
   import { Typist, lettersOf } from '../lib/typing.svelte'
@@ -84,10 +84,11 @@
   )
 
   /**
-   * Who counts: whoever is connected, which is who the server counts. A player whose phone
-   * has locked is not holding anyone up, so they stay in the row, faded, out of the count.
+   * Who counts: whoever is connected but the TV, which is who the server counts. A player
+   * whose phone has locked is not holding anyone up, so they stay in the row, faded, out of
+   * the count.
    */
-  const present = $derived(players.filter((player) => player.connected))
+  const present = $derived(playing(players).filter((player) => player.connected))
   const readyCount = $derived(present.filter((player) => player.ready === true).length)
   const youReady = $derived(players.some((player) => player.id === youId && player.ready === true))
   const summary = $derived(`${readyCount} of ${present.length} ready`)

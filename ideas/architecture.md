@@ -394,12 +394,13 @@ finished ─▶ deleted: FINISHED_ROOM_GRACE_MINUTES (60) after finished_at (cle
 ```
 
 - Each browser saves the final standings in `jbi:history` (newest 20) on `game_finished`, or on a
-  `welcome` into a finished room: the grace is for the phone that slept through the end. Home
+  `welcome` into a finished room: the grace is for the phone that slept through the end. The TV's
+  browser saves one too, though standings never list the TV. Home
   lists them under Past games, five to a page, where each can be removed. `/r/:code` for a gone room (4004, 404, 410) opens the newest entry
   for that code, if any.
 
 - A room is born with its host; there is no state before `lobby`. Only `lobby` is joinable.
-- `start_game` needs an admin, a question and a connected player. It resets `expires_at`. A team
+- `start_game` needs an admin, a question and a connected player who is not the TV. It resets `expires_at`. A team
   game also needs every player, connected or not, in a team and players in two teams or more.
   Teams are fixed from then on; `players.team` and `settings.teams` are written before memory.
 - A deleted room closes its sockets with 4004, and its code is free again.
@@ -419,6 +420,8 @@ splash / open / reveal ─end_round─▶ standings ─▶ next round's splash (
 - A splash runs before each segment's first question, never before an event.
 - Open stamps `shown_at` and sets `answerable_at` and `ends_at`. Close grades, then writes
   `closed_at`, `correct` and `points` in one transaction.
+- The TV only watches: `Room.can_answer` is false for it, so it is never in `of`, `unanswered`,
+  all-answered or a splash's count, and standings, `game_finished` and question stats leave it out.
 - `close_when_all_answered` closes 1 s after every connected eligible player has answered (never
   past the question's end), also when a disconnect or kick makes that true. A skip doesn't wait.
 - `skip` and all-answered set `Room.advance`; they never cancel the task.
@@ -506,7 +509,7 @@ without `steps` scores on speed.
 - `points_for(scoring, credit, band, steps, team=)` is the one entry point. It refuses credit outside 0..1
   rather than paying for a type's bug.
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".
-- `host_only` scores nobody and gets `excluded`. Authors score on their own questions. A kicked
+- `host_only` and the TV score nobody and get `excluded`. Authors score on their own questions. A kicked
   player's answers are deleted.
 
 Standings sort by points, then correct answers, then `joined_at`. Rank is dense over points and

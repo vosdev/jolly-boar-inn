@@ -49,7 +49,7 @@
   import { paceLabel } from '../lib/pace'
   import { petOf } from '../lib/pets'
   import type { JoinRequestView, PlayerView } from '../lib/protocol'
-  import { readyThreshold } from '../lib/ready'
+  import { playing, readyThreshold } from '../lib/ready'
   import { players, room, you } from '../lib/stores'
   import { watchTheme } from '../lib/theme'
   import { MIN_TEAMS, TEAMS, teamsWith, type TeamId } from '../lib/teams'
@@ -154,18 +154,19 @@
   let showHowTo = $state(false)
 
   const youReady = $derived($players.some((p) => p.id === $you?.id && p.ready === true))
-  const readyCount = $derived($players.filter((p) => p.ready === true).length)
+  const counted = $derived(playing($players))
+  const readyCount = $derived(counted.filter((p) => p.ready === true).length)
   /**
    * Who counts: the players connected right now, which is who the splash will count too.
    * A player whose phone has locked is not someone the host can start without asking.
    */
-  const present = $derived($players.filter((p) => p.connected))
+  const present = $derived(counted.filter((p) => p.connected))
   const presentReady = $derived(present.filter((p) => p.ready === true).length)
   const enoughReady = $derived(presentReady >= readyThreshold(present.length))
   const needTeam = $derived(teamGame && yourTeam === null && !youReady)
   /** Who is not ready yet, by name, in join order — the host included, as "you". */
   const waitingOn = $derived(
-    $players
+    counted
       .filter((p) => p.ready !== true)
       .map((p) => (p.id === $you?.id ? 'you' : p.display_name)),
   )
@@ -485,7 +486,7 @@
       {/if}
 
       {#if teamGame}
-        <div class="teams" role="group" aria-label="Teams, {readyCount} of {$players.length} ready">
+        <div class="teams" role="group" aria-label="Teams, {readyCount} of {counted.length} ready">
           {#if youReady}
             <p class="hint">Take your ready back to change team.</p>
           {/if}
@@ -536,7 +537,7 @@
           {/if}
         </div>
       {:else}
-        {@render roster($players, `Players, ${readyCount} of ${$players.length} ready`)}
+        {@render roster($players, `Players, ${readyCount} of ${counted.length} ready`)}
       {/if}
 
       {#if isAdmin}

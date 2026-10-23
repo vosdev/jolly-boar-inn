@@ -590,7 +590,7 @@ class RoomManager(Joins, Lobby, Loop):
             open_view = (
                 question.view(
                     room.total,
-                    player.id,
+                    room.can_answer(question, player.id),
                     segment,
                     _answer_count(room, question),
                     self._picture(question),
@@ -664,8 +664,8 @@ class RoomManager(Joins, Lobby, Loop):
                 raise BadState(f"room {code} is {room.status}, not in the lobby")
             if not room.questions:
                 raise BadState(f"room {code} has no questions")
-            if not room.sockets:
-                raise BadState("nobody is connected to play")
+            if not any(room.players[pid].role != "tv" for pid in room.sockets):
+                raise BadState("nobody but the TV is connected to play")
             if room.settings.teams:
                 _check_teams_ready(room)
             # A room made near its expiry must not expire mid-game, so it gets a full
@@ -735,7 +735,7 @@ class RoomManager(Joins, Lobby, Loop):
                 raise NotOpen("this question's time is up")
             if player.id in question.answers:
                 raise AlreadyAnswered("you have already answered this question")
-            if not question.can_answer(player.id):
+            if not room.can_answer(question, player.id):
                 raise Excluded("you cannot answer this question")
             # From here on the answer is its canonical form: stored, echoed and graded as that.
             value = TYPES[question.type].parse_value(question.payload, value)

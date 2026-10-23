@@ -232,7 +232,7 @@ def test_start_game_needs_somebody_connected(app, client) -> None:
     manager = app.state.rooms
     with pytest.raises(BadState) as info:
         call(client, manager.start_game, room.code, admin)
-    assert info.value.message == "nobody is connected to play"
+    assert info.value.message == "nobody but the TV is connected to play"
     assert call(client, manager.get, room.code).status == "lobby"
 
 

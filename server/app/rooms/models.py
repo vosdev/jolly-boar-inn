@@ -267,19 +267,22 @@ class RoomQuestion:
         return scoring.effective(scoring_of(self.type), self.steps)
 
     def can_answer(self, player_id: UUID) -> bool:
-        """Section 6's one exclusion: nobody answers ``host_only``. Authors answer their own."""
+        """The question's own exclusion: nobody answers ``host_only``. Authors answer their own.
+
+        ``Room.can_answer`` adds the player's: the TV answers nothing.
+        """
         return not self.host_only
 
     def view(
         self,
         total: int,
-        player_id: UUID,
+        you_can_answer: bool,
         segment: Segment,
         count: tuple[int, int] = (0, 0),
         picture: str | None = None,
         pictures: Mapping[str, str] | None = None,
     ) -> OpenQuestion:
-        """The open question as ``player_id`` sees it. ``count`` is ``_answer_count``'s, and
+        """The open question as a player sees it. ``count`` is ``_answer_count``'s, and
         ``pictures`` names the pictures the view shows inside it."""
         assert self.shown_at is not None and self.ends_at is not None
         assert self.answerable_at is not None
@@ -298,7 +301,7 @@ class RoomQuestion:
             opened_at=self.shown_at,
             answerable_at=self.answerable_at,
             ends_at=self.ends_at,
-            you_can_answer=self.can_answer(player_id),
+            you_can_answer=you_can_answer,
             answered=count[0],
             of=count[1],
         )
@@ -413,6 +416,11 @@ class Room:
         assert self.settings.max_players is not None  # resolved by ``RoomManager.create``
         return self.settings.max_players
 
+    def can_answer(self, question: RoomQuestion, player_id: UUID) -> bool:
+        """May ``player_id`` answer ``question``? Never the TV, which only watches."""
+        player = self.players.get(player_id)
+        return player is not None and player.role != "tv" and question.can_answer(player_id)
+
     def is_admin(self, player_id: UUID) -> bool:
         player = self.players.get(player_id)
         return player is not None and player.role == "admin"
@@ -496,11 +504,12 @@ class Room:
             score = self.score(player.id)
             return score.points - score.round_points, score.correct - score.round_correct
 
-        ranked = _dense_ranks(self.players.values(), now)
+        playing = [player for player in self.players.values() if player.role != "tv"]
+        ranked = _dense_ranks(playing, now)
         previous = (
             None
             if self.totals_round == 0
-            else {player.id: rank for player, rank in _dense_ranks(self.players.values(), before)}
+            else {player.id: rank for player, rank in _dense_ranks(playing, before)}
         )
         return [
             Standing(

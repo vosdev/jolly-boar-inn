@@ -74,7 +74,7 @@ def _everyone_answered(room: Room, question: RoomQuestion) -> bool:
     A question nobody may answer (``host_only``) is never "all answered": it runs its
     full time, as section 4 says it should.
     """
-    eligible = [pid for pid in room.sockets if question.can_answer(pid)]
+    eligible = [pid for pid in room.sockets if room.can_answer(question, pid)]
     return bool(eligible) and all(pid in question.answers for pid in eligible)
 
 
@@ -85,7 +85,7 @@ def _answer_count(room: Room, question: RoomQuestion) -> tuple[int, int]:
     answered and has since dropped: an answer does not stop counting because its phone
     went to sleep, and the first number never exceeds the second.
     """
-    answering = {pid for pid in room.sockets if question.can_answer(pid)}
+    answering = {pid for pid in room.sockets if room.can_answer(question, pid)}
     answering.update(question.answers)
     return len(question.answers), len(answering)
 
@@ -108,7 +108,7 @@ def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
     question = room.current
     if question is None:
         return
-    eligible = [pid for pid in room.sockets if question.can_answer(pid)]
+    eligible = [pid for pid in room.sockets if room.can_answer(question, pid)]
     tapped = sum(1 for pid in eligible if room.players[pid].ready)
     target = ready.countdown(room.next_mono, now, len(eligible), tapped)
     if target is None and not unready:
@@ -541,7 +541,7 @@ class Loop:
                 lambda pid: QuestionOpen(
                     question=question.view(
                         room.total,
-                        pid,
+                        room.can_answer(question, pid),
                         segment,
                         count,
                         self._picture(question),
@@ -641,7 +641,7 @@ class Loop:
                 unanswered=[
                     pid
                     for pid in room.sockets
-                    if question.can_answer(pid) and pid not in question.answers
+                    if room.can_answer(question, pid) and pid not in question.answers
                 ],
                 standings=room.standings(),
                 team_standings=room.team_standings(),
