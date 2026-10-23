@@ -1,6 +1,6 @@
 /** `/suggest` under the owner's branding: the hero is the face of the "Not sure" card. */
 
-import { cleanup, render, screen, waitFor } from '@testing-library/svelte'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '../lib/api'
@@ -20,13 +20,14 @@ vi.mock('virtual:branding', () => ({
 
 vi.mock('../lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/api')>()
-  return { ...real, getSuggestionAllowance: vi.fn() }
+  return { ...real, getSuggestionAllowance: vi.fn(), findSimilar: vi.fn() }
 })
 
 beforeEach(() => {
   localStorage.clear()
   savePastGame({ code: 'ABYSSAL', finishedAt: '2026-10-01T20:05:00Z', standings: [], youId: null })
   vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 10, retry_at: null })
+  vi.mocked(api.findSimilar).mockResolvedValue([])
   document.documentElement.dataset.theme = 'jolly'
 })
 
@@ -43,5 +44,20 @@ describe('Suggest, with a hero', () => {
     expect(await lastCardArt()).toBe('/assets/hero-abc123.svg')
     document.documentElement.dataset.theme = 'tzhaar'
     await waitFor(async () => expect(await lastCardArt()).toBe('/assets/hero-tzhaar-def456.svg'))
+  })
+
+  it('stands the hero on the preview of a question with no round, its question on the scroll', async () => {
+    render(Suggest, { navigate: vi.fn() })
+    const cards = (await screen.findAllByRole('button')).filter((b) => b.closest('.choices'))
+    await fireEvent.click(cards.at(-1)!)
+    const prompt = screen.getByLabelText('Question', { selector: 'textarea' })
+    await fireEvent.input(prompt, { target: { value: 'Which god is Saradomin’s rival?' } })
+    const preview = screen.getByRole('region', { name: 'Preview' })
+    expect(preview.querySelector('.npc.host img')?.getAttribute('src')).toBe(
+      '/assets/hero-abc123.svg',
+    )
+    expect(preview.querySelector('.stage-row')?.textContent).toContain(
+      'Which god is Saradomin’s rival?',
+    )
   })
 })

@@ -205,7 +205,7 @@ describe('the choices', () => {
     const { mode: _mode, ...unplaced } = QUESTION
     expect(choiceOf('question', unplaced)?.id).toBe(NO_ROUND)
     expect(hostOf('question', unplaced)).toBe('innkeeper')
-    expect(questionPreview(unplaced).mode).toBe(NO_ROUND)
+    expect(questionPreview(unplaced).mode).toBe('custom')
     expect(choiceOf('item', { name: 'Abyssal whip' })?.id).toBe('item')
   })
 
