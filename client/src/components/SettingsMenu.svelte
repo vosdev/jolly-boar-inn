@@ -31,7 +31,8 @@
    * disabled. In the lobby, the others see "picking a name…" while the name field has
    * focus: the menu sends `editing` on focus, again every `EDITING_REFRESH_MS` and after a
    * reconnect, since the server lets it lapse, and off on blur. A save the room accepts
-   * clears it on the server, and it stays off until the name is typed in again.
+   * clears it on the server, and it stays off until the name is typed in again. The room's
+   * TV has no You section: nobody plays as it, so it has no name or pet to pick.
    *
    * The menu is a non-modal dialog. Escape, a tap outside, or tabbing out of it closes
    * it; Escape hands focus back to the control, and so does a tap outside that landed on
@@ -88,6 +89,7 @@
 
   const inRoom = $derived(live !== null)
   const canRename = $derived(!inRoom || $room?.status === 'lobby')
+  const isTV = $derived(live?.role === 'tv')
   const editing = $derived(
     open &&
       nameFocused &&
@@ -275,51 +277,53 @@
 
   {#if open}
     <div class="panel-menu" role="dialog" aria-label="Settings" tabindex="-1" bind:this={panel}>
-      <section aria-labelledby="menu-you">
-        <h2 class="section-title" id="menu-you">You</h2>
-        <fieldset class="you" disabled={!canRename}>
-          {#if draftPet !== null}
-            <PetPicker
-              bind:value={draftPet}
-              {taken}
-              disabled={pending !== null}
-              onchange={() => {
-                saved = null
-                resting = false
-              }}
-            />
-          {/if}
-          <form
-            onsubmit={submit}
-            oninput={() => (resting = false)}
-            onfocusin={(event) => (nameFocused = isNameField(event.target))}
-            onfocusout={() => (nameFocused = false)}
-          >
-            <NameField id="profile-name" bind:value={draft} avoid={$room?.code ?? ''} />
-            <div class="row">
-              <button
-                class="primary small"
-                type="submit"
-                disabled={!ok || pending !== null || profileHold.held}
-              >
-                Save
-              </button>
-              {#if pending !== null}
-                <span class="note">Asking the room…</span>
-              {:else if refusal !== null}
-                <span class="error">{refusal}</span>
-              {:else if unanswered}
-                <span class="error">The room didn't answer. Try again.</span>
-              {:else if saved !== null}
-                <span class="note">{saved}</span>
-              {/if}
-            </div>
-          </form>
-          {#if !canRename}
-            <p class="note">Names are fixed once the game has started.</p>
-          {/if}
-        </fieldset>
-      </section>
+      {#if !isTV}
+        <section aria-labelledby="menu-you">
+          <h2 class="section-title" id="menu-you">You</h2>
+          <fieldset class="you" disabled={!canRename}>
+            {#if draftPet !== null}
+              <PetPicker
+                bind:value={draftPet}
+                {taken}
+                disabled={pending !== null}
+                onchange={() => {
+                  saved = null
+                  resting = false
+                }}
+              />
+            {/if}
+            <form
+              onsubmit={submit}
+              oninput={() => (resting = false)}
+              onfocusin={(event) => (nameFocused = isNameField(event.target))}
+              onfocusout={() => (nameFocused = false)}
+            >
+              <NameField id="profile-name" bind:value={draft} avoid={$room?.code ?? ''} />
+              <div class="row">
+                <button
+                  class="primary small"
+                  type="submit"
+                  disabled={!ok || pending !== null || profileHold.held}
+                >
+                  Save
+                </button>
+                {#if pending !== null}
+                  <span class="note">Asking the room…</span>
+                {:else if refusal !== null}
+                  <span class="error">{refusal}</span>
+                {:else if unanswered}
+                  <span class="error">The room didn't answer. Try again.</span>
+                {:else if saved !== null}
+                  <span class="note">{saved}</span>
+                {/if}
+              </div>
+            </form>
+            {#if !canRename}
+              <p class="note">Names are fixed once the game has started.</p>
+            {/if}
+          </fieldset>
+        </section>
+      {/if}
       <SoundSettings />
       <ThemeChoices current={theme} onpick={pickTheme} />
     </div>

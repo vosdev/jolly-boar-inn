@@ -290,6 +290,10 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   A–Z behind "Show the rounds". The host also sees who is missing by name, since the answer is
   usually "Dave, at the bar", and taps a pet to kick or promote. Start is plain at the threshold,
   and "Start anyway" below it, which asks first.
+- **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
+  last admin) and back ("Not the TV"), at once. A screen sits where its tick goes, "TV" under
+  its name; a team game lists it in a TV group after the teams. The TV gets no ready, and its
+  settings no name or pet.
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash:** "Waiting for 2 more" says the rest, never by name.

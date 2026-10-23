@@ -19,7 +19,9 @@
    *
    * An admin taps a pet to kick its player or make them a host. Choosing Kick there is its
    * confirmation, since a kicked player can join again; Make host asks once more, because
-   * there is no demote and an admin cannot be kicked.
+   * there is no demote and an admin cannot be kicked. The same menu makes a player or another
+   * admin the room's TV, or the TV a player again, at once, since either can be undone. The TV
+   * watches: its pet wears a screen where the tick goes, and its own lobby has no ready.
    *
    * A team game groups the pets under the room's gods, every god even with nobody on it yet,
    * since an empty team is one to join, and the teamless under "No team". Tapping a god
@@ -84,13 +86,16 @@
   )
 
   const isAdmin = $derived($you?.role === 'admin')
+  const isTV = $derived($you?.role === 'tv')
+  const admins = $derived($players.filter((p) => p.role === 'admin').length)
+  const tv = $derived($players.find((p) => p.role === 'tv') ?? null)
   const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
   const settings = $derived($room?.settings ?? null)
   const teamIds = $derived(settings?.teams ?? [])
   const teamGame = $derived(teamIds.length > 0)
   const roomTeams = $derived(TEAMS.filter((t) => teamIds.includes(t.id)))
   const yourTeam = $derived($players.find((p) => p.id === $you?.id)?.team ?? null)
-  const teamless = $derived(teamGame ? $players.filter((p) => p.team === null) : [])
+  const teamless = $derived(teamGame ? playing($players).filter((p) => p.team === null) : [])
   const teamsWithPlayers = $derived(new Set($players.map((p) => p.team).filter((t) => t !== null)))
   /** Why the server would refuse Start in a team game, or null when it would not. */
   const teamsBlockStart = $derived(
@@ -163,7 +168,7 @@
   const present = $derived(counted.filter((p) => p.connected))
   const presentReady = $derived(present.filter((p) => p.ready === true).length)
   const enoughReady = $derived(presentReady >= readyThreshold(present.length))
-  const needTeam = $derived(teamGame && yourTeam === null && !youReady)
+  const needTeam = $derived(teamGame && !isTV && yourTeam === null && !youReady)
   /** Who is not ready yet, by name, in join order — the host included, as "you". */
   const waitingOn = $derived(
     counted
@@ -177,6 +182,7 @@
     return [
       player.connected ? null : 'away',
       player.role === 'admin' ? 'host' : null,
+      player.role === 'tv' ? 'TV' : null,
       player.id === $you?.id ? 'you' : null,
     ]
       .filter((word) => word !== null)
@@ -237,19 +243,52 @@
     if (!youReady && team !== yourTeam && socket.send({ t: 'set_team', team })) teamHold.start()
   }
 
-  /** Whether an admin's tap on this player opens a menu: kick and promote, or a move. */
+  /** Whether an admin's tap on this player opens a menu: kick, promote, the TV or a move. */
   function manageable(player: PlayerView): boolean {
-    return isAdmin && player.id !== $you?.id && (player.role !== 'admin' || teamGame)
+    return (
+      isAdmin && player.id !== $you?.id && (player.role !== 'admin' || canBeTV(player) || teamGame)
+    )
+  }
+
+  /** Whether the server would let this player become the TV: never the last admin. */
+  function canBeTV(player: PlayerView): boolean {
+    return player.role === 'player' || (player.role === 'admin' && admins > 1)
   }
 
   function menuOf(player: PlayerView): string {
-    if (player.role === 'admin') return 'move team'
+    if (player.role === 'tv') return 'kick or not the TV'
+    if (player.role === 'admin') return teamGame ? 'make TV or move team' : 'make TV'
     return teamGame ? 'kick, make host or move team' : 'kick or make host'
   }
 
+  function setTV(player: PlayerView, on: boolean): void {
+    socket.send({ t: 'set_tv', player_id: player.id, on })
+    asking = null
+  }
+
   function manage(player: PlayerView): void {
+    if (player.role === 'tv') {
+      asking = {
+        message: `Kick ${player.display_name}, or stop it being the TV?`,
+        label: 'Kick',
+        act: () => socket.send({ t: 'kick', player_id: player.id }),
+        also: [{ label: 'Not the TV', act: () => setTV(player, false) }],
+      }
+      return
+    }
     if (player.role === 'admin') {
-      move(player)
+      if (!canBeTV(player)) {
+        move(player)
+        return
+      }
+      asking = {
+        message: teamGame
+          ? `Make ${player.display_name} the TV, or move them to another team?`
+          : `Make ${player.display_name} the TV?`,
+        label: 'Make TV',
+        act: () => socket.send({ t: 'set_tv', player_id: player.id, on: true }),
+        also: teamGame ? [{ label: 'Move team…', act: () => move(player) }] : [],
+      }
       return
     }
     asking = {
@@ -260,6 +299,7 @@
       act: () => socket.send({ t: 'kick', player_id: player.id }),
       also: [
         { label: 'Make host…', act: () => promote(player) },
+        { label: 'Make TV', act: () => setTV(player, true) },
         ...(teamGame ? [{ label: 'Move team…', act: () => move(player) }] : []),
       ],
     }
@@ -349,10 +389,12 @@
           <button
             type="button"
             class="tile"
-            aria-label="{player.display_name}, {player.connected ? '' : 'away, '}{player.ready ===
-            true
-              ? 'ready'
-              : 'not ready'}: {menuOf(player)}"
+            aria-label="{player.display_name}, {player.connected ? '' : 'away, '}{player.role ===
+            'tv'
+              ? 'TV'
+              : player.ready === true
+                ? 'ready'
+                : 'not ready'}: {menuOf(player)}"
             onclick={() => manage(player)}
           >
             <RosterPet {player} {status} />
@@ -469,16 +511,18 @@
 
     <div class="panel board">
       <div class="ready">
-        <button
-          type="button"
-          class:primary={!youReady}
-          aria-pressed={youReady}
-          aria-describedby={needTeam ? 'pick-first' : undefined}
-          disabled={needTeam || readyHold.held}
-          onclick={toggleReady}
-        >
-          {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
-        </button>
+        {#if !isTV}
+          <button
+            type="button"
+            class:primary={!youReady}
+            aria-pressed={youReady}
+            aria-describedby={needTeam ? 'pick-first' : undefined}
+            disabled={needTeam || readyHold.held}
+            onclick={toggleReady}
+          >
+            {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
+          </button>
+        {/if}
         <FullScreenSwitch />
       </div>
       {#if needTeam}
@@ -501,7 +545,7 @@
                     ? 'player'
                     : 'players'}"
                   aria-pressed={yourTeam === god.id}
-                  disabled={youReady || teamHold.held}
+                  disabled={youReady || isTV || teamHold.held}
                   onclick={() => joinTeam(god.id)}
                 >
                   <span class="logo"><TeamLogo team={god.id} /></span>
@@ -533,6 +577,12 @@
             <section class="team">
               <h3 class="no-team">No team</h3>
               {@render roster(teamless, 'No team')}
+            </section>
+          {/if}
+          {#if tv !== null}
+            <section class="team">
+              <h3 class="no-team">TV</h3>
+              {@render roster([tv], 'TV')}
             </section>
           {/if}
         </div>

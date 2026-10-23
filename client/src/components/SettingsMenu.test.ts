@@ -145,6 +145,17 @@ describe('SettingsMenu', () => {
 describe('SettingsMenu in a room', () => {
   beforeEach(() => welcome(me))
 
+  it('gives the TV no name field or pet picker, only sound and theme', async () => {
+    const tv = { ...me, role: 'tv' as const }
+    welcome(tv)
+    render(SettingsMenu, { live: tv })
+    await fireEvent.click(screen.getByRole('button', { name: /Open settings$/ }))
+    const menu = screen.getByRole('dialog', { name: 'Settings' })
+    expect(within(menu).queryByRole('heading', { name: 'You' })).toBeNull()
+    expect(within(menu).queryByRole('textbox')).toBeNull()
+    expect(within(menu).queryByRole('button', { name: 'Save' })).toBeNull()
+  })
+
   it('stops waiting on a rename nobody answers, says so, and lets it be tried again', async () => {
     render(SettingsMenu, { live: me })
     await rename('Woox')

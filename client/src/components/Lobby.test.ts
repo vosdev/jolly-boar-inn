@@ -223,6 +223,85 @@ describe('Lobby', () => {
     expect(screen.getAllByRole('button', { name: /kick or make host/ })).toHaveLength(1)
   })
 
+  describe('with a TV', () => {
+    const TV: PlayerView = { ...WOOX, id: 't', display_name: 'Lounge', role: 'tv' }
+
+    it('lets an admin make a player the TV from their menu, at once', async () => {
+      lobby()
+      await fireEvent.click(tile('Woox'))
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Make TV' }))
+      expect(sent).toEqual([{ t: 'set_tv', player_id: 'b', on: true }])
+      expect(screen.queryByRole('dialog')).toBeNull()
+    })
+
+    it('lets an admin make the TV a player again, or kick it', async () => {
+      lobby([HOST, WOOX, TV])
+      await fireEvent.click(tile('Lounge', 'kick or not the TV'))
+      expect(within(dialog()).queryByRole('button', { name: 'Make TV' })).toBeNull()
+      expect(within(dialog()).queryByRole('button', { name: 'Make host…' })).toBeNull()
+      expect(within(dialog()).getByRole('button', { name: 'Kick' })).toBeTruthy()
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Not the TV' }))
+      expect(sent).toEqual([{ t: 'set_tv', player_id: 't', on: false }])
+    })
+
+    it('offers another admin as the TV, but never the last admin', async () => {
+      lobby([HOST, WOOX])
+      expect(screen.queryByRole('button', { name: /^Zezima, / })).toBeNull()
+      cleanup()
+      const lynx: PlayerView = { ...WOOX, id: 'c', display_name: 'Lynx', role: 'admin' }
+      lobby([HOST, WOOX, lynx])
+      await fireEvent.click(tile('Lynx', 'make TV'))
+      expect(dialog().textContent).toContain('Make Lynx the TV?')
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Make TV' }))
+      expect(sent).toEqual([{ t: 'set_tv', player_id: 'c', on: true }])
+    })
+
+    it('gives a player neither entry', () => {
+      lobby([HOST, WOOX, TV], ROOM, WOOX)
+      expect(screen.queryByRole('button', { name: /: / })).toBeNull()
+      expect(screen.queryByRole('button', { name: /TV/ })).toBeNull()
+    })
+
+    it('badges the TV where the tick goes, and says TV under it', () => {
+      lobby([{ ...HOST, ready: true }, WOOX, TV])
+      const rows = pets()
+      expect(rows.map((pet) => pet.querySelector('.screen') !== null)).toEqual([false, false, true])
+      expect(looks(rows[2]!)).toEqual({ lit: false, away: false, ticked: false })
+      expect(rows[2]?.querySelector('.status')?.textContent).toBe('TV')
+      expect(tile('Lounge', 'kick or not the TV').getAttribute('aria-label')).toBe(
+        'Lounge, TV: kick or not the TV',
+      )
+    })
+
+    it('gives the TV no ready button, and no menu on anyone', () => {
+      lobby([HOST, WOOX, TV], ROOM, TV)
+      expect(screen.queryByRole('button', { name: /ready/i })).toBeNull()
+      expect(screen.queryByRole('button', { name: /: / })).toBeNull()
+      expect(screen.getByText('Waiting for the host to start…')).toBeTruthy()
+    })
+
+    it('puts the TV in its own group in a team game, out of the team-pick wait', () => {
+      const room: RoomView = {
+        ...ROOM,
+        settings: { ...ROOM.settings, teams: ['saradomin', 'zamorak'] },
+      }
+      lobby([{ ...HOST, team: 'zamorak' }, { ...WOOX, team: 'saradomin' }, TV], room)
+      expect(screen.queryByRole('list', { name: 'No team' })).toBeNull()
+      expect(within(screen.getByRole('list', { name: 'TV' })).getByText('Lounge')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Start anyway' })).toHaveProperty('disabled', false)
+    })
+
+    it('gives the TV no team to pick in a team game', () => {
+      const room: RoomView = {
+        ...ROOM,
+        settings: { ...ROOM.settings, teams: ['saradomin', 'zamorak'] },
+      }
+      lobby([HOST, TV], room, TV)
+      expect(screen.queryByText('Pick a team first.')).toBeNull()
+      expect(screen.getByRole('button', { name: /^Saradomin, / })).toHaveProperty('disabled', true)
+    })
+  })
+
   it('stands the Wise Old Man, without a hero in the branding, beside a scroll that holds the heading, the code and the night', () => {
     lobby()
     expect(
@@ -639,8 +718,9 @@ describe('Lobby', () => {
     it('lets an admin move another admin, who cannot be kicked', async () => {
       const lynx = { ...LYNX, role: 'admin' as const }
       lobby([HOST, WOOX, lynx], TEAMS_ROOM)
-      await fireEvent.click(tile('Lynx', 'move team'))
+      await fireEvent.click(tile('Lynx', 'make TV or move team'))
       expect(within(dialog()).queryByRole('button', { name: 'Kick' })).toBeNull()
+      await fireEvent.click(within(dialog()).getByRole('button', { name: 'Move team…' }))
       await fireEvent.click(within(dialog()).getByRole('button', { name: 'Zamorak' }))
       expect(sent).toEqual([{ t: 'move_team', player_id: 'c', team: 'zamorak' }])
     })
