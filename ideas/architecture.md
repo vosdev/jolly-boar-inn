@@ -14,7 +14,7 @@ final. The licence is AGPL-3.0.
 | Validation | Pydantic v2 for HTTP and websocket, `jsonschema` for questions | The question schema is shared with CI and the client. |
 | Client | Svelte 5 with runes, Vite SPA, TypeScript | No SSR is needed, so no SvelteKit. |
 | Tooling | `uv`, `ruff`, `pytest` with `pytest-xdist`; `pnpm`, ESLint, Prettier, `svelte-check`, `vitest` in jsdom | Vitest compiles components exactly as the build does. |
-| Serving | FastAPI serves `client/dist`, SPA fallback to `index.html` | One container, one origin, no CORS. |
+| Serving | FastAPI serves `client/dist`, SPA fallback to `index.html`; `robots.txt`, `sitemap.xml` and `/.well-known/security.txt` built from `PUBLIC_BASE_URL` | One container, one origin, no CORS. |
 | Time | `datetime.now(UTC)` on the server, `timestamptz`, ISO 8601 on the wire | The client never sends a time. |
 | IDs | uuid rows, word room codes, content-hash question ids | Codes are for people; uuids go on the wire. |
 
