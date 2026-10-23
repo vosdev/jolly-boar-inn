@@ -23,14 +23,13 @@ function spyOnImages(): void {
 }
 
 describe('importantPictures', () => {
-  it('lists the NPCs and the pets’ chatheads, each once, and no pet icons', () => {
+  // The art is not committed, so the list is whatever this checkout holds.
+  it('lists each picture once, and no pet icons', () => {
     const list = importantPictures()
-    expect(list.length).toBeGreaterThan(0)
     expect(new Set(list).size).toBe(list.length)
-    expect(list.some((url) => url.includes('chathead'))).toBe(true)
     expect(
-      list.every((url) => !/\/pets\/[^/]*\d\.png$/.test(url) || url.includes('chathead')),
-    ).toBe(true)
+      list.filter((url) => /pets\/[^/]*\.(png|svg)/.test(url) && !url.includes('chathead')),
+    ).toEqual([])
   })
 })
 
