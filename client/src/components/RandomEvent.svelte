@@ -34,6 +34,9 @@
    *
    * The same card draws the reveal, so the NPC stays on screen until the round takes the
    * floor back. `reveal` being non-null is what says which of the two this is.
+   *
+   * On the room's TV (`tv`) the panel beside the sheet is who is still to answer, then the
+   * reveal, as for a round's question, and the NPC has no points to react to.
    */
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
@@ -44,12 +47,15 @@
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { randomEventFor } from '../lib/randomEvents'
   import { serverOffsetMs } from '../lib/stores'
+  import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf, type Line } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
   import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
   import Stage from './stage/Stage.svelte'
   import Typed from './stage/Typed.svelte'
+  import TvReveal from './TvReveal.svelte'
+  import TvWaiting from './TvWaiting.svelte'
 
   let {
     question,
@@ -60,6 +66,7 @@
     onAnswer,
     live = false,
     nextAt = null,
+    tv = false,
     children,
     below,
   }: {
@@ -76,6 +83,8 @@
     live?: boolean
     /** The reveal's end, `room.next_at`. */
     nextAt?: string | null
+    /** This browser is the room's TV. */
+    tv?: boolean
     /** In the panel under the answers: the reveal's tally. */
     children?: Snippet
     /** Under that panel: the waiting line. */
@@ -125,6 +134,8 @@
   const returnMs = $derived(nextAt === null ? NaN : Date.parse(nextAt) - RETURN_MS)
   const leaving = new Until(() => returnMs)
   const returning = $derived(reveal !== null && leaving.passed)
+  /** The TV's reveal closes before the NPC hands the stage back, so only the stage moves then. */
+  const closing = new Until(() => returnMs - TV_CLOSE_MS)
 </script>
 
 {#snippet typed(i: number, kind: string)}
@@ -152,7 +163,7 @@
         {#if reaction !== null}
           <p class="reaction">{reaction}</p>
         {/if}
-        {#if reveal !== null}
+        {#if reveal !== null && !tv}
           <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
         {/if}
       </div>
@@ -165,9 +176,17 @@
     {returning}
     scene={question.question_id}
     paper={sheet}
-    award={reveal === null ? NO_AWARD : awardFor(result)}
+    award={reveal === null || tv ? NO_AWARD : awardFor(result)}
+    tv={tv ? (reveal === null || closing.passed ? 'waiting' : 'reveal') : null}
   >
-    {#if answers !== null || children}
+    {#if tv && reveal === null}
+      <TvWaiting />
+    {:else if tv}
+      <TvReveal closing={closing.passed}>
+        {@render answers?.()}
+        {@render children?.()}
+      </TvReveal>
+    {:else if answers !== null || children}
       <section class="panel answers">
         {@render answers?.()}
         {@render children?.()}

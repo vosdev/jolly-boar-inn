@@ -310,7 +310,7 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 | `players_updated` | `players` | A ready, team, editing, connect or disconnect that changed players only. |
 | `question_open` | `question` | A question opens. |
 | `answer_ack` | `question_id`, `scoring`, `band`, `answered`, `of` | Answer committed. Never correctness. |
-| `answer_count` | `question_id`, `answered`, `of` | Someone else answered. A count only. |
+| `answer_count` | `question_id`, `answered`, `of`, `waiting` | Someone else answered. Who is still to, never what. |
 | `question_closed` | `question_id`, `reveal`, `picture`, `results`, `unanswered`, `standings`, `team_standings`, `next_at`, `reveal_seconds`, `suggested_by`? | Closed. `unanswered`: connected players who could answer and did not. `next_at` ends the reveal, the last one's too. `reveal_seconds` is its length. `suggested_by` is a shown `credit`. |
 | `game_finished` | `standings`, `team_standings` | Final. `team_standings` is null outside a team game. |
 | `pong` | `server_time` | Reply to `ping`. |
@@ -325,7 +325,7 @@ Standing     { player_id, display_name, avatar, points, rank, points_gained, pre
 TeamStanding { team, points, rank, points_gained, previous_rank }
 Segment      { mode, index, total, start, count }
 OpenQuestion { question_id, index, total, type, mode, segment, view, picture, random_event,
-               opened_at, answerable_at, ends_at, you_can_answer, answered, of }
+               opened_at, answerable_at, ends_at, you_can_answer, answered, of, waiting }
 PlayerResult { value, correct, credit, points }
 ```
 
@@ -350,7 +350,8 @@ PlayerResult { value, correct, credit, points }
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
   to its admins (section 10).
 - `band` is the speed bucket for SPEED, the step for STEP, null for ACCURACY. `of` is every connected
-  player who can answer, plus anyone who answered and dropped.
+  player who can answer, plus anyone who answered and dropped. `waiting` is the ids of the connected
+  ones who can and have not, for the TV's panel (design §16).
 - `credit` lets a reveal say "3 of 5 in place". `correct` is `credit >= 1.0`.
 
 What the server withholds. The admin is a player with a flag; there is no admin channel.
@@ -420,7 +421,7 @@ splash / open / reveal ─end_round─▶ standings ─▶ next round's splash (
 - A splash runs before each segment's first question, never before an event.
 - Open stamps `shown_at` and sets `answerable_at` and `ends_at`. Close grades, then writes
   `closed_at`, `correct` and `points` in one transaction.
-- The TV only watches: `Room.can_answer` is false for it, so it is never in `of`, `unanswered`,
+- The TV only watches: `Room.can_answer` is false for it, so it is never in `of`, `waiting`, `unanswered`,
   all-answered or a splash's count, and standings, `game_finished` and question stats leave it out.
 - `close_when_all_answered` closes 1 s after every connected eligible player has answered (never
   past the question's end), also when a disconnect or kick makes that true. A skip doesn't wait.

@@ -499,7 +499,26 @@ with what waits in them (pending, open), none at zero.
   every form. A List/Stats toggle swaps the list for a table of each question's answers, scored
   share against its tier's band, no-answer share and suggested tier, whose Set queues a tier edit.
 
-## 16. Open tasks
+## 16. The TV
+
+A room's TV (§9) shows the question to the room; the phones hold the answers (§10). It must read
+from a sofa across the room on a 1080p screen, in every theme.
+
+- **One scale.** The stage is the phone's, scaled as a whole, until it reaches 80% of the window's
+  width or height, whichever comes first, and centred; the floor shows around it. The timer bar's
+  tabs hang at the scaled stage's edges, at its scale. No wall lights: the stage is in their place.
+- **The waiting panel** stands beside the scroll, under it on a screen taller than wide: "3 of 5
+  answered" at its top, then the pet and name of everyone still to answer, each leaving as they
+  answer, or drop. No answers and no admin controls. The host says its waiting line at the foot.
+- **The reveal** widens the panel and rescales the stage (250 ms each), then fades in (200 ms) the
+  answers with their counts, the explanation, the tally and names, team rows and "Question by"
+  (§10–11). The foot has the host's reveal line or the event's explanation; the TV scored nothing,
+  so no points, pin, confetti or NPC reaction. Before the next screen, an event's return too, it
+  fades off, the panel narrows and the stage rescales, so a hand-over starts from rest.
+- **Scroll and panel** are always one height, the taller one's.
+- **No footer**, and the top bar stays out of sight until the pointer nears the window's top.
+
+## 17. Open tasks
 
 The open design tasks are GitHub issues labelled
 [`design`](https://github.com/vosdev/jolly-boar-inn/issues?q=is%3Aopen+label%3Adesign), with their

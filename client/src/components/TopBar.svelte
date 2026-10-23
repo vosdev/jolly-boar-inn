@@ -51,6 +51,7 @@
     wide = false,
     team = null,
     badge = false,
+    autohide = false,
   }: {
     navigate: (to: string) => void
     menu?: Snippet
@@ -60,6 +61,11 @@
     team?: TeamId | null
     /** Hang the team's badge from the bar: there is no timer bar to hang it. */
     badge?: boolean
+    /**
+     * Out of sight until the pointer comes near the window's top, for the room's TV: a
+     * screen across the room has no use for a bar, and its menu is there when needed.
+     */
+    autohide?: boolean
   } = $props()
 
   function goHome(event: MouseEvent): void {
@@ -85,7 +91,8 @@
   </span>
 {/snippet}
 
-<header class="bar" class:framed={team !== null}>
+{#if autohide}<div class="peek" aria-hidden="true"></div>{/if}
+<header class="bar" class:framed={team !== null} class:autohide>
   <div class="inner" class:wide>
     <a class="skip" href="#content">Skip to the game</a>
 
@@ -153,6 +160,34 @@
        the line without taking height from the controls: they sit at the same y in every
        theme, and a switch mid-question does not nudge them. */
     box-shadow: 0 var(--border-width) 0 var(--line);
+  }
+
+  /* Fixed rather than sticky, so the page takes no room for it while it is away. */
+  .autohide {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 21;
+    transform: translateY(calc(-100% - var(--border-width)));
+    transition: transform 200ms ease-out;
+  }
+
+  .peek {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 20;
+    height: 2rem;
+  }
+
+  .peek:hover + .autohide,
+  .autohide:hover,
+  .autohide:focus-within {
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .autohide {
+      transition: none;
+    }
   }
 
   .framed {

@@ -32,6 +32,7 @@ function open(patch: Partial<OpenQuestion> = {}): OpenQuestion {
     random_event: null,
     answered: 0,
     of: 0,
+    waiting: [],
     answerable_at: '2026-09-21T20:00:00Z',
     ...patch,
   }

@@ -233,6 +233,7 @@ export function previewOf(question: MatchingQuestion, mode: string): OpenQuestio
     you_can_answer: true,
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 

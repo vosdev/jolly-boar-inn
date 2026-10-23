@@ -36,6 +36,7 @@ function open(patch: Partial<OpenQuestion> = {}, hold = HOLD): OpenQuestion {
     random_event: null,
     answered: 0,
     of: 0,
+    waiting: [],
     ...patch,
   }
 }

@@ -17,6 +17,7 @@ import bountySkull5 from '../../assets/sprites/bounty-skull-5.svg'
 import { serverNow } from '../../lib/clock'
 import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
 import { MODES } from '../../lib/modes'
+import { answerCount, players } from '../../lib/stores'
 import { clearVocabCache } from '../../lib/vocab'
 import QuestionStage from '../QuestionStage.svelte'
 import { STEMS, TYPE_VIEWS, viewFor } from './index'
@@ -70,6 +71,7 @@ function open(type: string, mode: string, view: Record<string, unknown> = VIEW):
     answerable_at: '2026-09-21T20:00:00Z',
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 
@@ -731,5 +733,85 @@ describe('a phone while the TV shows the question', () => {
       answersOnly: true,
     })
     expect(document.querySelector('.slot')?.textContent).toContain('+850')
+  })
+})
+
+describe("the room's TV", () => {
+  const VIEW_TV = { prompt: 'Which boss drops the tanzanite fang?', options: ['Zulrah', 'Vorkath'] }
+  const NAMES = '3 of 4 got it right · Got it wrong: Dave'
+  const tally = createRawSnippet(() => ({ render: () => `<p>${NAMES}</p>` }))
+  const watching = { ...open('multiple_choice', 'custom', VIEW_TV), you_can_answer: false }
+  const person = (id: string, connected = true) => ({
+    id,
+    display_name: id,
+    avatar: null,
+    role: 'player' as const,
+    team: null,
+    connected,
+    ready: false,
+    editing: false,
+  })
+
+  beforeEach(() => {
+    players.set([person('Ann'), person('Dave'), person('Bob', false)])
+    answerCount.set({ answered: 1, of: 3, waiting: ['Dave', 'Bob'] })
+  })
+
+  afterEach(() => {
+    players.set([])
+    answerCount.set(null)
+  })
+
+  it('shows an open question with no answer controls, and the answered count', () => {
+    render(QuestionStage, { question: watching, yourValue: null, onAnswer, tv: true })
+    expect(document.querySelector('.paper')?.textContent).toContain(VIEW_TV.prompt)
+    expect(screen.queryAllByRole('button')).toEqual([])
+    expect(document.querySelector('input')).toBeNull()
+    const panel = document.querySelector('.tv-panel')!
+    expect(panel.textContent).toContain('1 of 3')
+    expect(panel.textContent).toContain('answered')
+    expect(document.querySelector('.stage.tv:not(.tv-reveal)')).toBeTruthy()
+  })
+
+  it('names who is still to answer, leaving out whoever has dropped', () => {
+    render(QuestionStage, { question: watching, yourValue: null, onAnswer, tv: true })
+    const names = [...document.querySelectorAll('.tv-panel li')].map((li) => li.textContent?.trim())
+    expect(names).toEqual(['Dave'])
+  })
+
+  it("shows a random event's open question with no answer controls", () => {
+    const question = { ...watching, random_event: 'death' }
+    render(QuestionStage, { question, yourValue: null, onAnswer, tv: true })
+    expect(document.querySelector('.paper')?.textContent).toContain(VIEW_TV.prompt)
+    expect(screen.queryAllByRole('button')).toEqual([])
+    expect(document.querySelector('.tv-panel')?.textContent).toContain('1 of 3')
+  })
+
+  it('reveals the answers with the tally and names, and no points', () => {
+    render(QuestionStage, {
+      question: watching,
+      reveal: { ...VIEW_TV, answer_index: 0 },
+      yourValue: null,
+      onAnswer,
+      tv: true,
+      children: tally,
+    })
+    const panel = document.querySelector('.stage.tv-reveal .tv-panel')!
+    expect(panel.textContent).toContain('Zulrah')
+    expect(panel.textContent).toContain(NAMES)
+    expect(document.querySelector('.slot')).toBeNull()
+  })
+
+  it("reveals a random event's tally and names the same way", () => {
+    render(QuestionStage, {
+      question: { ...watching, random_event: 'death' },
+      reveal: { ...VIEW_TV, answer_index: 0 },
+      yourValue: null,
+      onAnswer,
+      tv: true,
+      children: tally,
+    })
+    expect(document.querySelector('.stage.tv-reveal .tv-panel')?.textContent).toContain(NAMES)
+    expect(document.querySelector('.slot')).toBeNull()
   })
 })

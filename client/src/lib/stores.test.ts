@@ -70,6 +70,7 @@ function open(id: string): OpenQuestion {
     you_can_answer: true,
     answered: 0,
     of: 2,
+    waiting: [],
     picture: null,
     random_event: null,
     answerable_at: new Date(0).toISOString(),
@@ -137,7 +138,7 @@ describe('applyServerMessage', () => {
       of: 2,
     })
     expect(get(answerAck)).toBeNull()
-    expect(get(answerCount)).toEqual({ answered: 0, of: 2 })
+    expect(get(answerCount)).toEqual({ answered: 0, of: 2, waiting: [] })
     applyServerMessage({
       t: 'answer_ack',
       question_id: 'q2',
@@ -148,6 +149,28 @@ describe('applyServerMessage', () => {
     })
     expect(get(answerAck)).toEqual({ scoring: 'speed', band: 3 })
     expect(get(question)?.question_id).toBe('q2')
+  })
+
+  it('keeps who is still to answer from answer_count through our own ack', () => {
+    applyServerMessage(welcome({ question: { ...open('q1'), waiting: ['a', 'b', 'c'] } }))
+    expect(get(answerCount)?.waiting).toEqual(['a', 'b', 'c'])
+    applyServerMessage({
+      t: 'answer_count',
+      question_id: 'q1',
+      answered: 1,
+      of: 3,
+      waiting: ['b', 'c'],
+    })
+    expect(get(answerCount)).toEqual({ answered: 1, of: 3, waiting: ['b', 'c'] })
+    applyServerMessage({
+      t: 'answer_ack',
+      question_id: 'q1',
+      scoring: 'speed',
+      band: 2,
+      answered: 2,
+      of: 3,
+    })
+    expect(get(answerCount)).toEqual({ answered: 2, of: 3, waiting: ['b', 'c'] })
   })
 
   it('counts every welcome and error as settling whatever was waiting', () => {

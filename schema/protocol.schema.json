@@ -80,7 +80,7 @@
     },
     "AnswerCount": {
       "additionalProperties": false,
-      "description": "Somebody else has answered the open question: how many have, of how many can.\n\nOnly a count, never who, and never what: the waiting state shows \"4 of 6\nanswered\" and nothing a player could read an answer off. ``of`` is every connected\nplayer allowed to answer plus anyone who answered and has since dropped, so the count\nnever reads more than the total. A disconnect does not send a fresh count; the next\nanswer does.",
+      "description": "Somebody else has answered the open question: how many have, of how many can, and who\nis still to.\n\nNever what: the waiting state shows \"4 of 6 answered\" and the TV the players still\nthinking, nothing a player could read an answer off. ``of`` is every connected\nplayer allowed to answer plus anyone who answered and has since dropped, so the count\nnever reads more than the total. A disconnect does not send a fresh count; the next\nanswer does.",
       "properties": {
         "t": {
           "const": "answer_count",
@@ -95,13 +95,20 @@
         },
         "of": {
           "type": "integer"
+        },
+        "waiting": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "required": [
         "t",
         "question_id",
         "answered",
-        "of"
+        "of",
+        "waiting"
       ],
       "title": "AnswerCount",
       "type": "object"
@@ -534,6 +541,13 @@
         "of": {
           "default": 0,
           "type": "integer"
+        },
+        "waiting": {
+          "description": "Who is still to answer, as player ids: connected, allowed to, and not yet in. Never\nwhat anyone answered. The TV's waiting panel shows them; ``answer_count`` keeps it current.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -551,7 +565,8 @@
         "ends_at",
         "you_can_answer",
         "answered",
-        "of"
+        "of",
+        "waiting"
       ],
       "title": "OpenQuestion",
       "type": "object"

@@ -73,11 +73,14 @@ export const lastClosed = writable<ClosedQuestion | null>(null)
  */
 export const answerAck = writable<Pick<AnswerAck, 'scoring' | 'band'> | null>(null)
 /**
- * How many of the room have answered the open question, of how many can. Seeded by
- * the question's own frame and moved on by `answer_count` and our `answer_ack`; null with
- * no question open, or from a server that does not count.
+ * How many of the room have answered the open question, of how many can, and the ids of
+ * who is still to. Seeded by the question's own frame and moved on by `answer_count` and
+ * our `answer_ack`, which keeps the ids it does not carry; null with no question open, or
+ * from a server that does not count.
  */
-export const answerCount = writable<{ answered: number; of: number } | null>(null)
+export const answerCount = writable<{ answered: number; of: number; waiting: string[] } | null>(
+  null,
+)
 export const connection = writable<ConnectionState>('connecting')
 /** The last rejected message, until dismissed or the next question opens. */
 export const lastError = writable<Refusal | null>(null)
@@ -139,9 +142,10 @@ function forgetQuestion(): void {
 }
 
 /** The count a frame carries, if it carries one. */
-function countFrom(frame: { answered?: number; of?: number } | null): void {
+function countFrom(frame: { answered?: number; of?: number; waiting?: string[] } | null): void {
   if (frame !== null && typeof frame.answered === 'number' && typeof frame.of === 'number') {
-    answerCount.set({ answered: frame.answered, of: frame.of })
+    const waiting = frame.waiting ?? get(answerCount)?.waiting ?? []
+    answerCount.set({ answered: frame.answered, of: frame.of, waiting })
   }
 }
 

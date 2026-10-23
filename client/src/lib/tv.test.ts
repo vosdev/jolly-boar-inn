@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { PlayerView } from './protocol'
-import { answersOnly } from './tv'
+import { answersOnly, fitScale } from './tv'
 
 function player(id: string, role: PlayerView['role'], connected = true): PlayerView {
   return {
@@ -36,5 +36,34 @@ describe('answersOnly', () => {
   it('is off for the TV itself', () => {
     const tv = player('tv', 'tv')
     expect(answersOnly([you, tv], tv)).toBe(false)
+  })
+})
+
+describe('fitScale', () => {
+  const box = (natural: { width: number; height: number }, view: typeof natural) => {
+    const scale = fitScale(natural, view)
+    return { width: natural.width * scale, height: natural.height * scale }
+  }
+
+  it('fills 80% of a landscape window along the side it reaches first', () => {
+    const tall = box({ width: 740, height: 560 }, { width: 1920, height: 1080 })
+    expect(tall.height).toBeCloseTo(864)
+    expect(tall.width).toBeLessThanOrEqual(1536)
+    const wide = box({ width: 1000, height: 300 }, { width: 1920, height: 1080 })
+    expect(wide.width).toBeCloseTo(1536)
+    expect(wide.height).toBeLessThanOrEqual(864)
+  })
+
+  it('fills 80% of a portrait window the same way', () => {
+    const stage = box({ width: 480, height: 700 }, { width: 1080, height: 1920 })
+    expect(stage.width).toBeCloseTo(864)
+    expect(stage.height).toBeLessThanOrEqual(1536)
+    const long = box({ width: 480, height: 1200 }, { width: 1080, height: 1920 })
+    expect(long.height).toBeCloseTo(1536)
+    expect(long.width).toBeLessThanOrEqual(864)
+  })
+
+  it('leaves a stage with no size yet as it is', () => {
+    expect(fitScale({ width: 0, height: 0 }, { width: 1920, height: 1080 })).toBe(1)
   })
 })

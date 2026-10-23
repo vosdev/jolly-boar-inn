@@ -16,6 +16,7 @@
 
   import type { Award } from '../../lib/award'
   import { sharedStage, type Look } from '../../lib/sharedStage.svelte'
+  import type { TvPanel } from '../../lib/tv'
   import StageView from './StageView.svelte'
 
   let {
@@ -37,6 +38,7 @@
     children?: Snippet
     scene?: string | null
     within?: number
+    tv?: TvPanel | null
   } = $props()
 
   const shared = sharedStage()

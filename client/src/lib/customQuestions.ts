@@ -436,6 +436,7 @@ export function previewOf(question: CustomQuestion, mode = 'custom'): OpenQuesti
     you_can_answer: true,
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 

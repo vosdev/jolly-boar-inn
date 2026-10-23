@@ -72,6 +72,7 @@ function open(view: Record<string, unknown> = VIEW, youCanAnswer = true): OpenQu
     answerable_at: '2026-10-04T20:00:00Z',
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 

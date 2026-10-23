@@ -19,6 +19,7 @@
 import { getContext, setContext, tick } from 'svelte'
 
 import type { Award } from './award'
+import type { TvPanel } from './tv'
 import { CUT, WORDS_IN_MS, castOf, handoffFor, type Cast, type Handoff } from './stageMoves'
 
 /** What the stage draws for a screen, apart from the words. */
@@ -32,6 +33,7 @@ export interface Look {
   tall?: boolean
   scene?: string | null
   within?: number
+  tv?: TvPanel | null
 }
 
 /** The screen's nodes that go on the stage, each null where the screen has none. */
@@ -155,7 +157,7 @@ export class SharedStage {
     }
 
     // Wherever the scroll is now, mid-move or not, is where this hand-over starts from.
-    const start = scroll.getBoundingClientRect()
+    const start = unscaled(root, scroll.getBoundingClientRect())
     const startAt = offsetIn(root, start)
     this.#settle()
     const run = this.#run
@@ -173,7 +175,7 @@ export class SharedStage {
     if (run !== this.#run) return
 
     unlock(scroll)
-    const end = scroll.getBoundingClientRect()
+    const end = unscaled(root, scroll.getBoundingClientRect())
     const endAt = offsetIn(root, end)
     lock(scroll, end)
     const before: Keyframe = { width: `${start.width}px`, height: `${start.height}px` }
@@ -290,8 +292,19 @@ function removeParts(scene: Scene): void {
  * narrows when the lobby's hero leaves.
  */
 function offsetIn(root: HTMLElement, rect: DOMRect): { x: number; y: number } {
-  const at = root.getBoundingClientRect()
+  const at = unscaled(root, root.getBoundingClientRect())
   return { x: rect.left - (at.left + at.width / 2), y: rect.top - at.top }
+}
+
+/**
+ * `rect` in the stage's own pixels rather than the window's. They differ on a TV, which
+ * scales the whole stage, and what is set from a measure, a width or a move, is set in
+ * the stage's.
+ */
+function unscaled(root: HTMLElement, rect: DOMRect): DOMRect {
+  const scale = root.offsetWidth > 0 ? root.getBoundingClientRect().width / root.offsetWidth : 1
+  if (scale === 1 || !Number.isFinite(scale) || scale <= 0) return rect
+  return new DOMRect(rect.x / scale, rect.y / scale, rect.width / scale, rect.height / scale)
 }
 
 /** Holds the scroll at `rect` while what is on it changes. */
@@ -319,8 +332,8 @@ function ghostsOf(root: HTMLElement, parts: Parts, ms: number): HTMLElement[] {
     const slot = root.querySelector<HTMLElement>(selector)
     const parent = slot?.parentElement ?? null
     if (node === null || slot === null || parent === null || !slot.contains(node)) continue
-    const at = slot.getBoundingClientRect()
-    const within = parent.getBoundingClientRect()
+    const at = unscaled(root, slot.getBoundingClientRect())
+    const within = unscaled(root, parent.getBoundingClientRect())
     const style = getComputedStyle(slot)
     const ghost = document.createElement('div')
     ghost.className = 'stage-ghost'

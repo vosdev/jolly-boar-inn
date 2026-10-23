@@ -7,12 +7,14 @@
    *
    * Drawn only on a window wide enough to leave them room beside the stage: on a phone the
    * sheet and its host stand where they would hang. The right one is the left one mirrored,
-   * so both turn the same face toward the page.
+   * so both turn the same face toward the page. Nor behind a TV's stage, which is scaled
+   * over the room they would hang in (`tvFit`).
    */
   import { onMount } from 'svelte'
 
   import fairyRing from '../assets/sprites/fairy-ring.svg'
   import { watchTheme } from '../lib/theme'
+  import { tvFit } from '../lib/tv'
   import GauntletDoorLogo from './GauntletDoorLogo.svelte'
   import InnLantern from './InnLantern.svelte'
   import SulphurVent from './SulphurVent.svelte'
@@ -39,7 +41,7 @@
   const SIDES = ['left', 'right'] as const
 </script>
 
-{#if lit}
+{#if lit && $tvFit === null}
   <div class="wall-lights" data-lights={lit} aria-hidden="true">
     {#each SIDES as side (side)}
       <div class="light {side}"></div>

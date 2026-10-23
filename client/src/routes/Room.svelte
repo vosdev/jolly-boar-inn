@@ -436,6 +436,7 @@
           onAnswer={answer}
           live={$questionLive}
           answersOnly={phone}
+          tv={$you?.role === 'tv'}
         />
       {:else if $lastClosed !== null && $lastClosed.was !== null}
         <QuestionStage
@@ -447,6 +448,7 @@
           onAnswer={() => {}}
           nextAt={$room.next_at}
           answersOnly={phone}
+          tv={$you?.role === 'tv'}
         >
           <RevealTally
             type={$lastClosed.was.type}

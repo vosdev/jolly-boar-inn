@@ -38,6 +38,7 @@ function open(view: Record<string, unknown> = LINEAR): OpenQuestion {
     answerable_at: '2026-10-21T20:00:00Z',
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 
