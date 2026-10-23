@@ -143,7 +143,7 @@
 {/snippet}
 
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
-  {#snippet sheet()}
+  {#snippet words()}
     <p class="kicker">Random event</p>
     <h2 class="who">{npc.name}</h2>
     {#if answers === null || prompt === ''}
@@ -156,6 +156,13 @@
       {@render typed(1, 'ask')}
     {:else}
       {@render typed(0, 'ask')}
+    {/if}
+  {/snippet}
+  {#snippet sheet()}
+    {#if tv}
+      <div class="tv-words">{@render words()}</div>
+    {:else}
+      {@render words()}
     {/if}
     <div class="foot">
       <p class="explanation">{explanation}</p>
@@ -248,6 +255,17 @@
     font-weight: 600;
     line-height: 1.3;
     overflow-wrap: anywhere;
+  }
+
+  /* On the TV's tall sheet the NPC's words stand in the middle above the foot (`QuestionStage`). */
+  .tv-words {
+    display: flex;
+    flex-direction: column;
+    margin-block: auto;
+  }
+
+  .tv-words + .foot {
+    margin-top: 0;
   }
 
   .foot {

@@ -136,7 +136,11 @@
 
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
   {#snippet sheet()}
-    {@render stem()}
+    {#if tv}
+      <div class="tv-stem">{@render stem()}</div>
+    {:else}
+      {@render stem()}
+    {/if}
     <div class="said">
       {#if reveal !== null}
         <p class="line">{host.reveal}</p>
@@ -271,6 +275,18 @@
   .said > :global(.slot) {
     flex: none;
     white-space: nowrap;
+  }
+
+  /* The TV's sheet is the window's shape, taller than its words: the question stands in
+     the middle of the room above the foot, rather than at the top of an empty sheet. */
+  .tv-stem {
+    display: flex;
+    flex-direction: column;
+    margin-block: auto;
+  }
+
+  .tv-stem + .said {
+    margin-top: 0;
   }
 
   .line {

@@ -470,7 +470,12 @@
   }
 
   /* The sheet and the panel are always one height, the taller one's. */
+  /* Read from the sofa: the sheet's words at about 56px on a 1080p screen, and whoever
+     stands beside it near twice a phone's size, to go with them. */
   .tv .stage-row {
+    --scroll-text: 1.6;
+    --npc-w: 140px;
+    --npc-lap: 48px;
     flex: none;
     width: 30rem;
     align-items: stretch;

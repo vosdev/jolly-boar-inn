@@ -5,14 +5,16 @@
    */
   import type { Snippet } from 'svelte'
 
+  import TvPanel from './TvPanel.svelte'
+
   let { closing = false, children }: { closing?: boolean; children: Snippet } = $props()
 </script>
 
-<section class="panel answers tv-panel">
+<TvPanel reveal>
   <div class="in" class:closing>
     {@render children()}
   </div>
-</section>
+</TvPanel>
 
 <style>
   /* The way off is a transition, not an animation: the next screen's hand-over moves this

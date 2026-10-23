@@ -11,6 +11,7 @@
   import type { PlayerView } from '../lib/protocol'
   import { answerCount, players } from '../lib/stores'
   import Pet from './Pet.svelte'
+  import TvPanel from './TvPanel.svelte'
 
   const waiting = $derived(
     ($answerCount?.waiting ?? [])
@@ -19,7 +20,7 @@
   )
 </script>
 
-<section class="panel tv-panel">
+<TvPanel>
   {#if $answerCount !== null && $answerCount.of > 0}
     <p class="count">
       <strong class="number">{$answerCount.answered} of {$answerCount.of}</strong>
@@ -37,7 +38,7 @@
       {/each}
     </ul>
   {/if}
-</section>
+</TvPanel>
 
 <style>
   .count {
