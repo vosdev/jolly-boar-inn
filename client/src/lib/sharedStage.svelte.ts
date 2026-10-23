@@ -19,7 +19,6 @@
 import { getContext, setContext, tick } from 'svelte'
 
 import type { Award } from './award'
-import type { TvPanel } from './tv'
 import { CUT, WORDS_IN_MS, castOf, handoffFor, type Cast, type Handoff } from './stageMoves'
 
 /** What the stage draws for a screen, apart from the words. */
@@ -33,7 +32,7 @@ export interface Look {
   tall?: boolean
   scene?: string | null
   within?: number
-  tv?: TvPanel | null
+  tv?: boolean
 }
 
 /** The screen's nodes that go on the stage, each null where the screen has none. */

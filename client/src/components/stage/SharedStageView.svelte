@@ -5,29 +5,34 @@
    *
    * A TV's screen has it scaled as a whole, from its own size to `TV_SHARE` of the window
    * along whichever side it reaches first, and centred there, so the room reads it from
-   * the sofa. The scale eases as the stage changes size, the reveal's panel widening, and
-   * the timer bar hangs its tabs at the scaled stage's edges from `tvFit`.
+   * the sofa. The stage is made at least the window's shape (`tvMinHeight`), so a screen
+   * whose words are short keeps the scale of one whose words are long, and the timer bar
+   * hangs its tabs at the scaled stage's edges from `tvFit`.
    */
   import { onMount } from 'svelte'
 
   import type { SharedStage } from '../../lib/sharedStage.svelte'
-  import { fitScale, tvFit } from '../../lib/tv'
+  import { fitScale, tvFit, tvMinHeight } from '../../lib/tv'
   import StageView from './StageView.svelte'
 
   let { stage }: { stage: SharedStage } = $props()
 
   let root = $state<HTMLElement | null>(null)
-  const tv = $derived(stage.shown?.look.tv ?? null)
+  const tv = $derived(stage.shown?.look.tv === true)
   let scale = $state(1)
+  let minHeight = $state(0)
 
   $effect(() => stage.attach(root))
 
   $effect(() => {
     const at = root
-    if (tv === null || at === null) return
+    if (!tv || at === null) return
     const fit = (): void => {
-      const natural = { width: at.offsetWidth, height: at.offsetHeight }
-      const fitted = fitScale(natural, { width: innerWidth, height: innerHeight })
+      const view = { width: innerWidth, height: innerHeight }
+      const least = tvMinHeight(at.offsetWidth, view)
+      const natural = { width: at.offsetWidth, height: Math.max(at.offsetHeight, least) }
+      const fitted = fitScale(natural, view)
+      minHeight = least
       scale = fitted
       tvFit.set({ scale: fitted, width: natural.width * fitted })
     }
@@ -40,14 +45,19 @@
       removeEventListener('resize', fit)
       tvFit.set(null)
       scale = 1
+      minHeight = 0
     }
   })
 
   onMount(() => () => tvFit.set(null))
 </script>
 
-<div class="shared" class:empty={stage.shown === null} class:tv={tv !== null}>
-  <div class="fit" style:--tv-scale={tv === null ? null : scale}>
+<div class="shared" class:empty={stage.shown === null} class:tv>
+  <div
+    class="fit"
+    style:--tv-scale={tv ? scale : null}
+    style:--tv-min-height={tv ? `${minHeight}px` : null}
+  >
     <StageView {...stage.shown?.look} slots presence={stage.presence} bind:root />
   </div>
 </div>

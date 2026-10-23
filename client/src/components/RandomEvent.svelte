@@ -177,7 +177,7 @@
     scene={question.question_id}
     paper={sheet}
     award={reveal === null || tv ? NO_AWARD : awardFor(result)}
-    tv={tv ? (reveal === null || closing.passed ? 'waiting' : 'reveal') : null}
+    {tv}
   >
     {#if tv && reveal === null}
       <TvWaiting />

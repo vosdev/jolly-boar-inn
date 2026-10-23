@@ -770,7 +770,7 @@ describe("the room's TV", () => {
     const panel = document.querySelector('.tv-panel')!
     expect(panel.textContent).toContain('1 of 3')
     expect(panel.textContent).toContain('answered')
-    expect(document.querySelector('.stage.tv:not(.tv-reveal)')).toBeTruthy()
+    expect(document.querySelector('.stage.tv')).toBeTruthy()
   })
 
   it('names who is still to answer, leaving out whoever has dropped', () => {
@@ -796,7 +796,7 @@ describe("the room's TV", () => {
       tv: true,
       children: tally,
     })
-    const panel = document.querySelector('.stage.tv-reveal .tv-panel')!
+    const panel = document.querySelector('.stage.tv .tv-panel')!
     expect(panel.textContent).toContain('Zulrah')
     expect(panel.textContent).toContain(NAMES)
     expect(document.querySelector('.slot')).toBeNull()
@@ -811,7 +811,7 @@ describe("the room's TV", () => {
       tv: true,
       children: tally,
     })
-    expect(document.querySelector('.stage.tv-reveal .tv-panel')?.textContent).toContain(NAMES)
+    expect(document.querySelector('.stage.tv .tv-panel')?.textContent).toContain(NAMES)
     expect(document.querySelector('.slot')).toBeNull()
   })
 })

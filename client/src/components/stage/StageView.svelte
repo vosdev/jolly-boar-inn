@@ -38,9 +38,10 @@
    * sheet without rolls takes their room away, so the host laps over the sheet's own edge.
    *
    * A `tv` stage is the room's TV's (section 16): what goes under the line stands beside
-   * the scroll instead, a narrow panel that widens for the reveal, and under it again on a
+   * the scroll instead, a panel of one width whatever is in it, and under it again on a
    * screen taller than it is wide. Its widths are set, not found, because the stage is a
-   * size container, and the room's TV scales the whole of it to the window.
+   * size container; its height is at least the room's TV's `--tv-min-height`, so the
+   * stage keeps one shape, and one scale, from question to reveal and back.
    */
   import { onMount, type Snippet } from 'svelte'
 
@@ -48,7 +49,6 @@
   import { FALLBACK_NPC, npcArt } from '../../lib/npcs'
   import { STRANGER } from '../../lib/randomEvents'
   import type { Presence } from '../../lib/sharedStage.svelte'
-  import type { TvPanel } from '../../lib/tv'
   import { keepSeated } from '../../lib/seat'
   import { hasRolls, sheetFor } from '../../lib/sheet'
   import { watchTheme } from '../../lib/theme'
@@ -68,7 +68,7 @@
     children,
     slots = false,
     presence = 'here',
-    tv = null,
+    tv = false,
     root = $bindable(null),
   }: {
     /** A picture to stand in the host's place instead, larger: Home's, from the branding. */
@@ -97,7 +97,7 @@
     /** A hand-over: whoever stands beside the scroll leaving, gone or walking on. */
     presence?: Presence
     /** The room's TV's stage, with its panel beside the scroll. */
-    tv?: TvPanel | null
+    tv?: boolean
     root?: HTMLElement | null
   } = $props()
 
@@ -124,13 +124,7 @@
   })
 </script>
 
-<div
-  class="stage"
-  class:with-hero={hero !== null}
-  class:tv={tv !== null}
-  class:tv-reveal={tv === 'reveal'}
-  bind:this={root}
->
+<div class="stage" class:with-hero={hero !== null} class:tv bind:this={root}>
   <div
     class="stage-row presence-{presence}"
     class:flat={!hasRolls(sheet)}
@@ -463,23 +457,16 @@
     display: none;
   }
 
-  /* The TV's panel beside the scroll, stretched to its height, and widened for the reveal
-     (`--tv-panel`) while the scroll keeps its size. */
+  /* The TV's panel beside the scroll, stretched to its height, the reveal's width while it
+     waits as well, so nothing on the stage changes size between the two. */
   .stage.tv {
     --tv-gap: 1.5rem;
-    --tv-panel: 14rem;
     display: flex;
     align-items: stretch;
     gap: var(--tv-gap);
-    width: calc(30rem + var(--tv-gap) + var(--tv-panel));
+    width: calc(30rem + var(--tv-gap) + 22rem);
     max-width: none;
-    /* Narrowing waits for the reveal to fade off it; widening goes at once. */
-    transition: width 250ms ease-in-out 200ms;
-  }
-
-  .stage.tv-reveal {
-    --tv-panel: 22rem;
-    transition-delay: 0ms;
+    min-height: var(--tv-min-height, 0);
   }
 
   /* The sheet and the panel are always one height, the taller one's. */

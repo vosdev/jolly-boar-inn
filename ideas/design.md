@@ -504,18 +504,19 @@ with what waits in them (pending, open), none at zero.
 A room's TV (§9) shows the question to the room; the phones hold the answers (§10). It must read
 from a sofa across the room on a 1080p screen, in every theme.
 
-- **One scale.** The stage is the phone's, scaled as a whole, until it reaches 80% of the window's
-  width or height, whichever comes first, and centred; the floor shows around it. The timer bar's
-  tabs hang at the scaled stage's edges, at its scale. No wall lights: the stage is in their place.
-- **The waiting panel** stands beside the scroll, under it on a screen taller than wide: "3 of 5
-  answered" at its top, then the pet and name of everyone still to answer, each leaving as they
-  answer, or drop. No answers and no admin controls. The host says its waiting line at the foot.
-- **The reveal** widens the panel and rescales the stage (250 ms each), then fades in (200 ms) the
-  answers with their counts, the explanation, the tally and names, team rows and "Question by"
-  (§10–11). The foot has the host's reveal line or the event's explanation; the TV scored nothing,
-  so no points, pin, confetti or NPC reaction. Before the next screen, an event's return too, it
-  fades off, the panel narrows and the stage rescales, so a hand-over starts from rest.
-- **Scroll and panel** are always one height, the taller one's.
+- **One scale.** The stage is the phone's, scaled as a whole to 80% of the window's width or
+  height, whichever it reaches first, and centred; the floor shows around it. It is at least the
+  window's shape, so it fills that 80% both ways and keeps one size from question to reveal; only
+  words too long for it make it taller, and smaller. The timer bar's tabs hang at its edges, at
+  its scale. No wall lights: the stage is in their place.
+- **The panel** stands beside the scroll, one height with it, under it on a screen taller than
+  wide, and one size throughout. Open, it says "3 of 5 answered", then shows the pet and name of
+  everyone still to answer, each leaving as they answer, or drop. No answers and no admin
+  controls. The host says its waiting line at the foot.
+- **The reveal** fades into the panel (200 ms): the answers with their counts, the explanation,
+  the tally and names, team rows and "Question by" (§10–11). The foot has the host's reveal line
+  or the event's explanation; the TV scored nothing, so no points, pin, confetti or NPC reaction.
+  It fades off 200 ms before the next screen, or an event's return.
 - **No footer**, and the top bar stays out of sight until the pointer nears the window's top.
 
 ## 17. Open tasks

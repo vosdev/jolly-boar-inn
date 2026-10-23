@@ -42,7 +42,7 @@
   import { hostOf, INNKEEPER } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { answerAck, answerCount, serverOffsetMs } from '../lib/stores'
-  import { TV_CLOSE_MS, type TvPanel } from '../lib/tv'
+  import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
@@ -110,9 +110,8 @@
   const typist = new Typist(() => letters, plan, startedAt)
   const answerable = new Until(() => answerableMs)
   const held = $derived(reveal === null && !answerable.passed)
-  /** The TV's reveal closing, so the next question finds the waiting panel's width. */
+  /** The TV's reveal fading off its panel, so the next question starts from an empty one. */
   const closing = new Until(() => (nextAt === null ? NaN : Date.parse(nextAt) - TV_CLOSE_MS))
-  const panel: TvPanel = $derived(reveal === null || closing.passed ? 'waiting' : 'reveal')
 
   /**
    * Where the answer landed, from `answer_ack`. A ranked question has no band, since a
@@ -154,7 +153,7 @@
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}
     award={reveal === null || tv ? NO_AWARD : awardFor(result)}
-    tv={tv ? panel : null}
+    {tv}
   >
     {#if tv}
       {@render tvPanel(answers)}

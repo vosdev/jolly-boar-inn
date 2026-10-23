@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { PlayerView } from './protocol'
-import { answersOnly, fitScale } from './tv'
+import { answersOnly, fitScale, tvMinHeight } from './tv'
 
 function player(id: string, role: PlayerView['role'], connected = true): PlayerView {
   return {
@@ -65,5 +65,20 @@ describe('fitScale', () => {
 
   it('leaves a stage with no size yet as it is', () => {
     expect(fitScale({ width: 0, height: 0 }, { width: 1920, height: 1080 })).toBe(1)
+  })
+})
+
+describe('tvMinHeight', () => {
+  it("gives the stage the window's shape, so it fills both ways at one scale", () => {
+    for (const view of [
+      { width: 1920, height: 1080 },
+      { width: 1080, height: 1920 },
+    ]) {
+      const width = 856
+      const height = tvMinHeight(width, view)
+      const scale = fitScale({ width, height }, view)
+      expect(width * scale).toBeCloseTo(0.8 * view.width)
+      expect(height * scale).toBeCloseTo(0.8 * view.height)
+    }
   })
 })
