@@ -48,6 +48,7 @@
    */
   import { onMount, tick, untrack } from 'svelte'
 
+  import Connecting from '../components/Connecting.svelte'
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import ErrorBanner from '../components/ErrorBanner.svelte'
   import FinalStandings from '../components/FinalStandings.svelte'
@@ -368,7 +369,7 @@
   {/if}
 
   {#if $room === null}
-    <section class="panel"><p class="note">Connecting…</p></section>
+    <Connecting />
   {:else if $room.status === 'lobby'}
     {#if socket !== null}
       <Lobby {socket} />

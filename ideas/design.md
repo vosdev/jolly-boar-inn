@@ -246,6 +246,9 @@ Round 2 of 5 · 5 questions
   event NPC still standing), the host leaves with the words (200 ms) and the next walks on before
   them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
   event clears the words before its own entrance and return (§12).
+- **Between routes** (Create to the lobby, Home to Join) the old screen fades out (150 ms) and the new
+  one in (200 ms); reduced motion cuts. A room's first frame waits behind a "Connecting…" popup that
+  only appears after 400 ms.
 - **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
   blurb once the scroll is in place, and a question's stem from 400 ms in the server's hold before
   `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.

@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.155.2',
+    date: '2026-10-23',
+    text: 'Screens now fade into each other instead of flashing.',
+  },
+  {
     version: '0.155.1',
     date: '2026-10-23',
     text: 'Dropped the screen-reader announcements.',

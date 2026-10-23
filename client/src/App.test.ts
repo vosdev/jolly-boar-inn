@@ -14,6 +14,7 @@ import { LICENSE_URL, REPO_URL, VERSION_LABEL } from './lib/links'
 import { profile } from './lib/profile'
 import type { OpenQuestion, RoomView } from './lib/protocol'
 import { applyServerMessage } from './lib/stores'
+import { stubAnimations } from './test-animate'
 
 vi.mock('./lib/api', async (importOriginal) => {
   const real = await importOriginal<typeof import('./lib/api')>()
@@ -468,5 +469,41 @@ describe('App, in a team game', () => {
     const timer = document.querySelector('.timerbar')!
     expect(timer.classList.contains('framed')).toBe(false)
     expect(timer.querySelector('.team')).toBeNull()
+  })
+})
+
+describe('App, between screens', () => {
+  let unstub: () => void
+  beforeEach(() => {
+    unstub = stubAnimations()
+  })
+  afterEach(() => {
+    unstub()
+  })
+
+  it('fades the old screen out before the new one is shown in', async () => {
+    at('/suggest')
+    const old = document.querySelector('main .route')!
+    history.pushState(null, '', '/report')
+    dispatchEvent(new PopStateEvent('popstate'))
+    await waitFor(() => expect(document.querySelectorAll('main .route')).toHaveLength(2))
+    expect(old.isConnected).toBe(true)
+    await waitFor(() => expect(document.querySelectorAll('main .route')).toHaveLength(1))
+    expect(old.isConnected).toBe(false)
+  })
+
+  it('cuts under reduced motion', async () => {
+    const real = window.matchMedia
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+    })) as typeof window.matchMedia
+    try {
+      at('/suggest')
+      history.pushState(null, '', '/report')
+      dispatchEvent(new PopStateEvent('popstate'))
+      await waitFor(() => expect(document.querySelectorAll('main .route')).toHaveLength(1))
+    } finally {
+      window.matchMedia = real
+    }
   })
 })
