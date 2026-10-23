@@ -207,7 +207,8 @@
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* As many columns as keep a card's hint readable: one on a phone, three on a computer. */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
     gap: 0.75rem;
   }
 
