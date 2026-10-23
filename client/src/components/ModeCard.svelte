@@ -100,16 +100,21 @@
     height: 3rem;
   }
 
+  /* A box of its own rather than percentage maximums: iOS WebKit sometimes laid a chathead
+     out at its natural size, past the card. */
   .face img {
     display: block;
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom;
     filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.25));
   }
 
   /* A wiki render is the whole NPC, facing left: only its head, cut square and turned
      the way chatheads face. */
   .face .render {
+    height: auto;
     aspect-ratio: 1;
     object-fit: cover;
     object-position: top;
