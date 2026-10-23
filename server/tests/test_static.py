@@ -1,4 +1,6 @@
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from xml.etree import ElementTree
 
 from fastapi.testclient import TestClient
 
@@ -89,3 +91,51 @@ def test_index_gets_the_base_url_the_share_card_needs(settings: Settings, dist: 
                 assert BASE_URL_SLOT not in response.text
                 assert response.headers["cache-control"] == "no-cache"
                 assert response.headers["content-type"].startswith("text/html")
+
+
+def test_robots_hides_private_pages_and_names_the_sitemap(settings: Settings, dist: Path) -> None:
+    configured = settings.model_copy(update={"public_base_url": "https://quiz.example/"})
+    with TestClient(create_app(configured, dist)) as client:
+        response = client.get("/robots.txt")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/plain")
+    lines = response.text.splitlines()
+    assert lines[0] == "User-agent: *"
+    for path in ("/api/", "/ws/", "/r/", "/history/", "/admin"):
+        assert f"Disallow: {path}" in lines
+    assert "Disallow: /" not in lines
+    assert "Sitemap: https://quiz.example/sitemap.xml" in lines
+
+
+def test_sitemap_lists_home_and_create_at_the_base_url(settings: Settings, dist: Path) -> None:
+    configured = settings.model_copy(update={"public_base_url": "https://quiz.example/inn&co"})
+    with TestClient(create_app(configured, dist)) as client:
+        response = client.get("/sitemap.xml")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/xml")
+    tree = ElementTree.fromstring(response.content)
+    namespace = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+    assert [loc.text for loc in tree.iter(f"{namespace}loc")] == [
+        "https://quiz.example/inn&co/",
+        "https://quiz.example/inn&co/create",
+    ]
+
+
+def test_security_txt_follows_rfc_9116(settings: Settings, dist: Path) -> None:
+    configured = settings.model_copy(update={"public_base_url": "https://quiz.example"})
+    with TestClient(create_app(configured, dist)) as client:
+        response = client.get("/.well-known/security.txt")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/plain")
+    fields = dict(line.split(": ", 1) for line in response.text.splitlines())
+    assert fields["Contact"].startswith("https://github.com/vosdev/jolly-boar-inn/security/")
+    assert fields["Policy"].endswith("/SECURITY.md")
+    assert fields["Canonical"] == "https://quiz.example/.well-known/security.txt"
+    expires = datetime.strptime(fields["Expires"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    assert datetime.now(UTC) < expires < datetime.now(UTC) + timedelta(days=365)
+
+
+def test_seo_files_answer_head(settings: Settings, dist: Path) -> None:
+    with TestClient(create_app(settings, dist)) as client:
+        for path in ("/robots.txt", "/sitemap.xml", "/.well-known/security.txt"):
+            assert client.head(path).status_code == 200, path
