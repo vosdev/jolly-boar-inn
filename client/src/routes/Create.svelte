@@ -446,7 +446,7 @@
     {#if failure !== null && !confirming}
       <!-- A banner rather than a bare .error: a theme's page may be a floor --bad
            does not read against. -->
-      <p class="banner bad" role="alert">{failure}</p>
+      <p class="banner bad">{failure}</p>
     {/if}
   </div>
 {/snippet}

@@ -388,10 +388,10 @@
             <Icon name="refresh" />
           </button>
         {/if}
-        <span class="copied" role="status">{copied ? 'Link copied' : ''}</span>
+        <span class="copied">{copied ? 'Link copied' : ''}</span>
       </div>
       {#if copyFailed}
-        <p class="copy-failed" role="alert">Couldn't copy the link. Copy it from here:</p>
+        <p class="copy-failed">Couldn't copy the link. Copy it from here:</p>
         <input
           class="link-field"
           type="text"
@@ -540,7 +540,7 @@
       {/if}
 
       {#if isAdmin}
-        <p class="waiting" aria-live="polite">
+        <p class="waiting">
           {#if waitingOn.length === 0}
             Everyone is ready.
           {:else}

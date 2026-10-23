@@ -49,7 +49,6 @@ const texts = (selector: string) =>
   [...document.querySelectorAll(`${selector} .content`)].map((node) => node.textContent)
 const basket = () => texts('.basket')
 const tray = () => texts('.tray')
-const news = () => document.querySelector('[aria-live]')?.textContent
 
 /** Lifts `name` and puts it in the basket from the keyboard. */
 async function choose(name: string): Promise<void> {
@@ -153,14 +152,11 @@ describe('pick_all_that_apply', () => {
   it('fills the basket from the keyboard: up puts one in, down takes it out', async () => {
     render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
     await press('Scorpia', ' ')
-    expect(news()).toContain('Scorpia lifted, with the rest')
     await press('Scorpia', 'ArrowUp')
-    expect(news()).toBe('Scorpia, in the basket')
     await press('Scorpia', 'ArrowDown')
     expect(basket()).toEqual([])
     await press('Scorpia', 'ArrowUp')
     await press('Scorpia', ' ')
-    expect(news()).toBe('Scorpia dropped, in the basket')
     expect(basket()).toEqual(['Scorpia'])
     expect(submit().disabled).toBe(false)
   })

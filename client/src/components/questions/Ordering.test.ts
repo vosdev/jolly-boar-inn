@@ -86,7 +86,6 @@ const placed = () =>
     (li) => li.querySelector('.content')?.textContent ?? null,
   )
 const tray = () => [...document.querySelectorAll('.tray .content')].map((text) => text.textContent)
-const news = () => document.querySelector('[aria-live]')?.textContent
 const press = (name: string, key: string) => fireEvent.keyDown(handle(name), { key })
 
 /** Places 60px apart from the top of the window, and the tray from 400px. */
@@ -173,14 +172,11 @@ describe('ordering', () => {
     await press('Bronze', 'ArrowUp')
     expect(placed()).toEqual(SHOWN)
     await press('Bronze', ' ')
-    expect(news()).toContain('Bronze lifted, place 2 of 5')
     await press('Bronze', 'ArrowUp')
-    expect(news()).toBe('Bronze, place 1 of 5')
     await press('Bronze', 'ArrowUp')
     expect(placed()).toEqual(['Bronze', 'Mithril', 'Adamant', 'Iron', 'Steel'])
     expect(document.activeElement).toBe(handle('Bronze'))
     await press('Bronze', ' ')
-    expect(news()).toBe('Bronze dropped, place 1 of 5')
     await press('Bronze', 'ArrowDown')
     expect(placed()).toEqual(['Bronze', 'Mithril', 'Adamant', 'Iron', 'Steel'])
     await press('Steel', 'Enter')
@@ -197,7 +193,6 @@ describe('ordering', () => {
     await press('Iron', 'ArrowUp')
     await press('Iron', 'Escape')
     expect(placed()).toEqual(SHOWN)
-    expect(news()).toBe('Iron put back, place 4 of 5')
     await press('Iron', 'ArrowUp')
     expect(placed()).toEqual(SHOWN)
   })
@@ -386,7 +381,6 @@ describe('ordering', () => {
       await press('Lobster', ' ')
       await press('Lobster', 'ArrowUp')
       expect(placed()).toEqual([null, null, 'Lobster'])
-      expect(news()).toBe('Lobster, place 3 of 3')
       expect(document.activeElement).toBe(handle('Lobster'))
       await press('Lobster', 'ArrowUp')
       expect(placed()).toEqual([null, 'Lobster', null])
@@ -394,7 +388,6 @@ describe('ordering', () => {
       await press('Lobster', 'ArrowDown')
       expect(placed()).toEqual([null, null, null])
       expect(tray()).toContain('Lobster')
-      expect(news()).toBe('Lobster, with the rest')
     })
 
     it('pushes the rows under a filled place down, the last of them back to the tray', async () => {

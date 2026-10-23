@@ -59,7 +59,6 @@ const placed = () =>
     (li) => li.querySelector('.slot .content')?.textContent ?? null,
   )
 const tray = () => [...document.querySelectorAll('.tray .content')].map((text) => text.textContent)
-const news = () => document.querySelector('[aria-live]')?.textContent
 const press = (name: string, key: string) => fireEvent.keyDown(handle(name), { key })
 
 /** Lifts `name`, steps it up `times`, and drops it. */
@@ -149,7 +148,6 @@ describe('matching', () => {
     await dragTo('Ungael', 130)
     expect(placed()).toEqual(['Zul-Andra', 'Kraken Cove', 'Ungael', 'Forthos Dungeon'])
     await dragTo('Ungael', 70)
-    expect(news()).toBe('Ungael, on Vorkath')
     await fireEvent.click(submit())
     expect(onAnswer).toHaveBeenCalledExactlyOnceWith([1, 2, 3, 0])
   })
@@ -158,15 +156,12 @@ describe('matching', () => {
     const onAnswer = vi.fn()
     render(Question, { question: open(), yourValue: null, onAnswer })
     await press('Zul-Andra', ' ')
-    expect(news()).toContain('Zul-Andra lifted, with the rest')
     await press('Zul-Andra', 'ArrowUp')
-    expect(news()).toBe('Zul-Andra, on Sarachnis')
     await press('Zul-Andra', 'ArrowUp')
     await press('Zul-Andra', 'ArrowUp')
     await press('Zul-Andra', 'ArrowUp')
     expect(document.activeElement).toBe(handle('Zul-Andra'))
     await press('Zul-Andra', ' ')
-    expect(news()).toBe('Zul-Andra dropped, on Zulrah')
     await raise('Ungael', 3)
     await raise('Kraken Cove', 2)
     await raise('Forthos Dungeon', 1)

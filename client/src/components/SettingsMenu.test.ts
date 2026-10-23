@@ -134,7 +134,7 @@ describe('SettingsMenu', () => {
     await rename('Woox')
     applyServerMessage({ t: 'error', code: 'name_taken', message: 'that name is taken' })
     await tick()
-    expect(screen.getByRole('alert').textContent).toBe(
+    expect(document.querySelector('.error')?.textContent).toBe(
       'Somebody in this room already has that name.',
     )
     expect(screen.getByRole('button', { name: /^You are Zezima/ })).toBeTruthy()
@@ -157,7 +157,7 @@ describe('SettingsMenu in a room', () => {
     await vi.advanceTimersByTimeAsync(1)
     await tick()
     expect(waiting()).toBeNull()
-    expect(screen.getByRole('alert').textContent).toBe("The room didn't answer. Try again.")
+    expect(document.querySelector('.error')?.textContent).toBe("The room didn't answer. Try again.")
     expect(save().disabled).toBe(false)
     await fireEvent.submit(save().form!)
     expect(sent).toHaveLength(2)

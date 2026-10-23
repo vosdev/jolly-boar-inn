@@ -240,7 +240,7 @@ describe('Lobby', () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     clipboard(writeText)
     lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
-    expect(screen.getByRole('status').textContent).toBe('')
+    expect(document.querySelector('.copied')?.textContent).toBe('')
     await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
     expect(writeText).toHaveBeenCalledWith(`${location.origin}/r/ABYSSAL#k=abc_DEF-123`)
     expect(await screen.findByText('Link copied')).toBeTruthy()
@@ -262,9 +262,9 @@ describe('Lobby', () => {
     clipboard(writeText)
     lobby([HOST, WOOX], { ...ROOM, key: 'abc' })
     await fireEvent.click(screen.getByRole('button', { name: 'ABYSSAL, copy the invite link' }))
-    expect((await screen.findByRole('alert')).textContent).toBe(
-      "Couldn't copy the link. Copy it from here:",
-    )
+    expect(
+      (await screen.findByText("Couldn't copy the link. Copy it from here:")).textContent,
+    ).toBe("Couldn't copy the link. Copy it from here:")
     const field = screen.getByRole('textbox', { name: 'Link for players' }) as HTMLInputElement
     expect(field.value).toBe(`${location.origin}/r/ABYSSAL#k=abc`)
     expect(screen.queryByText('Link copied')).toBeNull()

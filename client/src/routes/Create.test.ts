@@ -259,7 +259,7 @@ describe('Create', () => {
     await fireEvent.click(
       within(field.closest('dialog')!).getByRole('button', { name: 'Create room' }),
     )
-    expect(await screen.findByRole('alert')).toBeTruthy()
+    expect(await screen.findByText(/./, { selector: '.banner.bad' })).toBeTruthy()
     expect(get(profile)).not.toBeNull()
     expect(document.querySelector('dialog')).toBeNull()
   })
@@ -311,7 +311,7 @@ describe('Create', () => {
     await screen.findByRole('checkbox', { name: /^More or Less/ })
     await pick(...BOTH)
     await submitted()
-    expect((await screen.findByRole('alert')).textContent).toBe(
+    expect((await screen.findByText(/just taken/)).textContent).toBe(
       'That code was just taken — roll a new one.',
     )
     expect(navigate).not.toHaveBeenCalled()
@@ -930,7 +930,7 @@ describe('Create on a phone', () => {
     await fireEvent.click(createButton())
     const sheet = screen.getByRole('dialog', { name: 'Open the doors?' })
     await press(sheet, 'Create room')
-    expect((await within(sheet).findByRole('alert')).textContent).toBe(
+    expect((await within(sheet).findByText(/just taken/)).textContent).toBe(
       'That code was just taken — roll a new one.',
     )
     expect(within(sheet).getByRole('button', { name: 'Reroll' })).toBeTruthy()
@@ -968,7 +968,7 @@ describe('Create, picking for the host', () => {
     vi.mocked(api.getModes).mockResolvedValue([...structuredClone(PACING), ...more])
     await loaded()
     await fireEvent.click(screen.getByRole('button', { name: 'Pick for me' }))
-    expect(within(screen.getByRole('dialog')).getByRole('status').textContent).toBe('4')
+    expect(within(screen.getByRole('dialog')).getByText('4')).toBeTruthy()
   })
 
   it('ticks as many modes as asked at random, in place of the ones ticked', async () => {

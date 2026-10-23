@@ -98,11 +98,6 @@
     movable: () => movable,
     drop: swapAt,
     step: (from, shown, by) => stepped(from, shown, by, true, swapAt),
-    name: textOf,
-    where: (shown) => {
-      const at = slots.indexOf(shown)
-      return at === -1 ? 'with the rest' : `on ${fieldName(at)}`
-    },
     area: () => area,
   })
 
@@ -114,12 +109,10 @@
   function restart(): void {
     slots = emptySlots(q.fields.length)
     dragging.lifted = null
-    dragging.news = 'Started over'
   }
 
   function back(shown: number): void {
     slots = toTray(slots, shown)
-    dragging.news = `${textOf(shown)}, with the rest`
   }
 
   sendBeforeEnd(
@@ -187,7 +180,6 @@
         {/each}
       </ul>
     </div>
-    <p class="sr" aria-live="polite">{dragging.news}</p>
   {:else}
     <ol class="fields">
       {#each q.fields as field, index (index)}

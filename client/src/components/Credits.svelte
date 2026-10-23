@@ -39,7 +39,7 @@
   <h2 id="{id}-title">Credits</h2>
   <h3>Question authors</h3>
   {#if failure !== null}
-    <div class="banner bad" role="alert">{failure}</div>
+    <div class="banner bad">{failure}</div>
   {:else if authors === null}
     <p class="note">Loading the authors…</p>
   {:else if authors.length === 0}

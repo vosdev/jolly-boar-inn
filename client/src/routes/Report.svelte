@@ -171,7 +171,7 @@
     <p class="note">A wrong answer, a typo, an outdated fact: tell the innkeeper which question.</p>
   </section>
   {#if failure !== null}
-    <div class="banner bad" role="alert">{failure}</div>
+    <div class="banner bad">{failure}</div>
   {/if}
   {#if mode === null}
     <section class="panel">

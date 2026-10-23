@@ -166,11 +166,6 @@
     movable: () => movable,
     drop: dropAt,
     step: (from, shown, by) => stepped(from, shown, by, q.picks !== undefined),
-    name: textOf,
-    where: (shown) => {
-      const at = slots.indexOf(shown)
-      return at === -1 ? 'with the rest' : `place ${at + 1} of ${places}`
-    },
     area: () => area,
   })
 
@@ -182,7 +177,6 @@
   function restart(): void {
     slots = [...start]
     dragging.lifted = null
-    dragging.news = 'Started over'
   }
 
   sendBeforeEnd(
@@ -270,7 +264,6 @@
         </ul>
       {/if}
     </div>
-    <p class="sr" aria-live="polite">{dragging.news}</p>
   {:else}
     <ol class="entries">
       {#each q.entries as entry, shown (shown)}

@@ -93,7 +93,7 @@
     disabled={current === null}
   />
   {#if limited}
-    <p class="note" role="status">Too many tries for now; the preview stays as it is.</p>
+    <p class="note">Too many tries for now; the preview stays as it is.</p>
   {/if}
   {#if side === 'reveal' && current !== null}
     {#key `reveal ${key} ${given === null}`}

@@ -22,7 +22,7 @@
 </script>
 
 {#if $lastError !== null}
-  <div class="banner bad popup" role="alert" style:--shown="{SHOWN_MS}ms">
+  <div class="banner bad popup" style:--shown="{SHOWN_MS}ms">
     {errorText($lastError)}
     <button type="button" class="link" onclick={() => lastError.set(null)}>dismiss</button>
   </div>

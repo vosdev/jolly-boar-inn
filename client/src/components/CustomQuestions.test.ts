@@ -448,7 +448,7 @@ describe('CustomQuestions', () => {
     await setFrequency('Less')
     const message =
       'Your rounds make room for 1 random event at Less frequency, and you have 2 questions of your own. More frequency would make room for 4.'
-    expect(within(panel).getByRole('alert').textContent).toBe(message)
+    expect(panel.querySelector('.error')?.textContent).toBe(message)
     expect(screen.getAllByText(message)).toHaveLength(2)
     expect(
       (screen.getByRole('button', { name: 'Create room' }) as HTMLButtonElement).disabled,
@@ -504,7 +504,8 @@ describe('CustomQuestions', () => {
       },
     ]
     await chooseFile(panel, JSON.stringify(bad))
-    const alert = await within(panel).findByRole('alert')
+    await within(panel).findByText(/Nothing was imported/)
+    const alert = panel.querySelector('.banner')!
     expect(alert.textContent).toContain('Nothing was imported')
     expect(alert.textContent).toContain('Question 1, NPC: “zezima” is not an NPC this game knows.')
     expect(listed(panel)).toEqual(['Kept'])
@@ -517,7 +518,8 @@ describe('CustomQuestions', () => {
       payload: { prompt, options: ['x', 'y'], answer_index: 0 },
     }))
     await chooseFile(panel, JSON.stringify(three))
-    const alert = await within(panel).findByRole('alert')
+    await within(panel).findByText(/This file has 3 questions/)
+    const alert = panel.querySelector('.banner')!
     expect(alert.textContent).toContain('This file has 3 questions.')
     expect(listed(panel)).toEqual([])
   })

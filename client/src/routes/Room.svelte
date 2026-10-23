@@ -52,7 +52,6 @@
   import ErrorBanner from '../components/ErrorBanner.svelte'
   import FinalStandings from '../components/FinalStandings.svelte'
   import Lobby from '../components/Lobby.svelte'
-  import { verdictSentence } from '../components/PointsSlot.svelte'
   import QuestionStage from '../components/QuestionStage.svelte'
   import RevealTally from '../components/RevealTally.svelte'
   import Standings from '../components/Standings.svelte'
@@ -60,7 +59,6 @@
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { historyPath, latestPastGame } from '../lib/history'
   import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
-  import { randomEventFor } from '../lib/randomEvents'
   import { clearSession, getSession, normalizeCode } from '../lib/session'
   import {
     applyServerMessage,
@@ -219,16 +217,6 @@
       timerBar.set(null)
     }
   })
-  /**
-   * Our points after the question just closed, for the announcer. From `standings`,
-   * which `question_closed` carries and the standings screen draws, so the two cannot
-   * disagree.
-   */
-  const yourTotal = $derived(
-    $you === null
-      ? null
-      : ($standings.find((standing) => standing.player_id === $you.id)?.points ?? null),
-  )
   /** A name for the reveal's tally: whoever is in the room, or was in the standings. */
   function nameOf(id: string): string | null {
     return (
@@ -241,24 +229,10 @@
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
-  /** The question's own heading, for the heading line, the announcer and the title. */
+  /** The question's own heading, for the heading line and the title. */
   const questionTitle = $derived(`Question ${number} of ${total}`)
-  /** What the announcer says as a question opens: the heading, round and all. */
-  const questionSpoken = $derived(
-    segment !== null && segment.total > 1
-      ? `Round ${segment.index + 1} of ${segment.total}, question ${number} of ${total}`
-      : questionTitle,
-  )
 
-  let announcement = $state('')
   let heading = $state<HTMLElement | null>(null)
-
-  async function announce(text: string): Promise<void> {
-    // Emptied first, so a sentence the same as the last one is still new text to read.
-    announcement = ''
-    await tick()
-    announcement = text
-  }
 
   /** Someone typing, into the name editor say, keeps their focus when a question opens. */
   function typing(): boolean {
@@ -275,28 +249,10 @@
     if (open === null || open.question_id === spokenQuestion) return
     spokenQuestion = open.question_id
     untrack(() => {
-      void announce(
-        open.random_event && $questionLive
-          ? `Random event: ${randomEventFor(open.random_event).name} interrupts the round.`
-          : questionSpoken,
-      )
       void tick().then(() => {
         if (!typing()) heading?.focus()
       })
     })
-  })
-
-  let spokenVerdict: object | null = null
-  $effect(() => {
-    const closed = $lastClosed
-    if (closed === null || closed.was === null || closed === spokenVerdict) return
-    spokenVerdict = closed
-    const canAnswer = closed.was.you_can_answer
-    untrack(() => void announce(verdictSentence(yourResult, canAnswer, yourTotal)))
-  })
-
-  $effect(() => {
-    if ($connection === 'reconnecting') untrack(() => void announce('Connection lost'))
   })
 
   const siteTitle = document.title
@@ -393,8 +349,6 @@
   }
 </script>
 
-<p class="sr" aria-live="polite">{announcement}</p>
-
 {#if departure !== null}
   <!-- The room's code is in the top bar (section 4). These headings say which screen
        you are on, which is what the code used to be crowding out. -->
@@ -410,7 +364,7 @@
   </section>
 {:else}
   {#if $connection === 'reconnecting'}
-    <div class="banner" role="status">Connection lost — reconnecting…</div>
+    <div class="banner">Connection lost — reconnecting…</div>
   {/if}
 
   {#if $room === null}

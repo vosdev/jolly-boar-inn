@@ -305,13 +305,13 @@
                 Save
               </button>
               {#if pending !== null}
-                <span class="note" role="status">Asking the room…</span>
+                <span class="note">Asking the room…</span>
               {:else if refusal !== null}
-                <span class="error" role="alert">{refusal}</span>
+                <span class="error">{refusal}</span>
               {:else if unanswered}
-                <span class="error" role="alert">The room didn't answer. Try again.</span>
+                <span class="error">The room didn't answer. Try again.</span>
               {:else if saved !== null}
-                <span class="note" role="status">{saved}</span>
+                <span class="note">{saved}</span>
               {/if}
             </div>
           </form>

@@ -82,7 +82,7 @@
   </div>
 
   {#if failure !== null}
-    <p class="banner bad" role="alert">{failure}</p>
+    <p class="banner bad">{failure}</p>
   {/if}
 
   <div class="row buttons">

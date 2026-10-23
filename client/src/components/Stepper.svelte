@@ -34,7 +34,7 @@
       disabled={value <= min}
       onclick={() => onchange(Math.max(min, value - step))}>−</button
     >
-    <output class="value" aria-live="polite">{value}</output>
+    <output class="value">{value}</output>
     <button
       type="button"
       class="square"

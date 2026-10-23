@@ -1170,7 +1170,7 @@ describe('the host’s End the round', () => {
   })
 })
 
-describe('what a screen reader and the tab hear', () => {
+describe('what the tab and focus do', () => {
   const WHIP: OpenQuestion = {
     question_id: 'q1',
     index: 0,
@@ -1194,59 +1194,28 @@ describe('what a screen reader and the tab hear', () => {
     of: 0,
   }
 
-  let container: HTMLElement
-
   beforeEach(() => {
     resetRoom()
     document.title = 'Jolly Boar Inn'
-    container = render(Room, { code: 'ABYSSAL', navigate: () => {} }).container
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
   })
 
-  /** The one live region Room keeps mounted, as opposed to a component's own. */
-  const live = () => container.querySelector(':scope > [aria-live="polite"]')
-
-  it('announces a question as it opens, and puts focus on its heading', async () => {
+  it('puts focus on the question heading as it opens', async () => {
     applyServerMessage(welcome(roomView({ phase: 'reveal', next_at: null })))
-    const region = live()
-    expect(region).not.toBeNull()
     applyServerMessage({ t: 'question_open', question: WHIP })
-    await waitFor(() => expect(live()?.textContent).toBe('Round 1 of 2, question 1 of 2'))
-    const heading = screen.getByRole('heading', { level: 1 })
+    const heading = await screen.findByRole('heading', { level: 1 })
     expect(heading.textContent).toMatch(/Question 1 of 2/)
-    expect(document.activeElement).toBe(heading)
-    expect(live()).toBe(region)
+    await waitFor(() => expect(document.activeElement).toBe(heading))
   })
 
-  it('says who interrupts as a random event opens, and not again on a reconnect', async () => {
-    applyServerMessage(welcome(roomView({ phase: 'reveal', next_at: null })))
-    const bob: OpenQuestion = {
-      ...WHIP,
-      question_id: 'q_bob',
-      type: 'multiple_choice',
-      mode: 'random_event',
-      view: { prompt: 'What amulet lets you talk to cats?', options: ['Catspeak', 'Camulet'] },
-      random_event: 'bob',
-    }
-    applyServerMessage({ t: 'question_open', question: bob })
-    await waitFor(() =>
-      expect(live()?.textContent).toBe('Random event: Evil Bob interrupts the round.'),
-    )
-    applyServerMessage({
-      ...welcome(roomView({ phase: 'open', next_at: null })),
-      question: { ...bob, question_id: 'q_bob_again' },
-    })
-    await waitFor(() => expect(live()?.textContent).toBe('Round 1 of 2, question 1 of 2'))
-  })
-
-  it('says a round of its own without the round', async () => {
+  it('titles a round of its own without the round', async () => {
     applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
     const alone = { ...SEGMENT, total: 1, count: 10 }
     applyServerMessage({
       t: 'question_open',
       question: { ...WHIP, index: 2, total: 10, segment: alone },
     })
-    await waitFor(() => expect(live()?.textContent).toBe('Question 3 of 10'))
-    expect(document.title).toBe('Question 3 of 10 · Jolly Boar Inn')
+    await waitFor(() => expect(document.title).toBe('Question 3 of 10 · Jolly Boar Inn'))
   })
 
   it('leaves focus where someone is typing', async () => {
@@ -1256,7 +1225,9 @@ describe('what a screen reader and the tab hear', () => {
       field.focus()
       applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
       applyServerMessage({ t: 'question_open', question: WHIP })
-      await waitFor(() => expect(live()?.textContent).not.toBe(''))
+      await waitFor(() =>
+        expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Question/),
+      )
       await tick()
       expect(document.activeElement).toBe(field)
     } finally {
@@ -1264,34 +1235,10 @@ describe('what a screen reader and the tab hear', () => {
     }
   })
 
-  it('announces the verdict in the same region, with the running total', async () => {
-    applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
-    applyServerMessage({ t: 'question_open', question: WHIP })
-    await waitFor(() => expect(live()?.textContent).not.toBe(''))
-    const region = live()
-    applyServerMessage({
-      t: 'question_closed',
-      unanswered: [],
-      question_id: 'q1',
-      reveal: { ...WHIP.view, answer_index: 0 },
-      results: { a: { value: 0, correct: true, credit: 1, points: 850 } },
-      standings: [{ ...STANDINGS[0]!, points: 1850 }, STANDINGS[1]!],
-      team_standings: null,
-      next_at: new Date(Date.now() + 8_000).toISOString(),
-      reveal_seconds: 8,
-      picture: null,
-    })
-    await waitFor(() => expect(live()?.textContent).toBe('Right, +850 points. 1,850 in total.'))
-    expect(live()).toBe(region)
-    // The slot itself is no live region: one inserted already filled often goes unread.
-    expect(document.querySelector('.slot')?.getAttribute('role')).toBeNull()
-  })
-
-  it('announces a lost connection, and the banner is a status', async () => {
+  it('shows a banner while reconnecting', async () => {
     applyServerMessage(welcome(roomView({ phase: 'open', next_at: null })))
     connection.set('reconnecting')
-    await waitFor(() => expect(live()?.textContent).toBe('Connection lost'))
-    expect(screen.getByRole('status').textContent).toBe('Connection lost — reconnecting…')
+    expect(await screen.findByText('Connection lost — reconnecting…')).toBeTruthy()
   })
 
   it.each([

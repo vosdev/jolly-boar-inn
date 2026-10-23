@@ -50,7 +50,6 @@
   class="timerbar"
   class:urgent
   class:framed={team !== null}
-  role="timer"
   aria-label="{seconds} seconds {label}"
 >
   <div class="track" aria-hidden="true">

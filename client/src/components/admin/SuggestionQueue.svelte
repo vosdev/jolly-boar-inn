@@ -198,7 +198,7 @@
   </div>
 
   {#if failure !== null}
-    <div class="banner bad" role="alert">{failure}</div>
+    <div class="banner bad">{failure}</div>
   {/if}
 
   {#if status === 'approved' && queue !== null}

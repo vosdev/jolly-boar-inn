@@ -142,7 +142,7 @@
     </p>
   </section>
   {#if failure !== null}
-    <div class="banner bad" role="alert">{failure}</div>
+    <div class="banner bad">{failure}</div>
   {/if}
   {#if choice === null}
     <section class="panel">

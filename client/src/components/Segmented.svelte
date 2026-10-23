@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends string | boolean">
   /**
    * One choice of a few, as joined buttons: radios underneath, so arrow keys move
-   * between them and a screen reader hears a group with its legend.
+   * between them.
    */
   let {
     legend,
@@ -20,8 +20,15 @@
   const name = $props.id()
 </script>
 
-<fieldset class="segmented" class:left={hideLegend} {disabled}>
-  <legend class:visually-hidden={hideLegend}>{legend}</legend>
+<fieldset
+  class="segmented"
+  class:left={hideLegend}
+  {disabled}
+  aria-label={hideLegend ? legend : undefined}
+>
+  {#if !hideLegend}
+    <legend>{legend}</legend>
+  {/if}
   <span class="segments">
     {#each options as option (option.value)}
       <label>
@@ -54,14 +61,6 @@
 
   .left {
     justify-content: flex-start;
-  }
-
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
   }
 
   /* Wraps rather than running off a narrow screen when a game offers many choices. */

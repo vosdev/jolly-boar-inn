@@ -173,7 +173,7 @@
       {#if endsAt !== null}
         <Timer {endsAt} totalSeconds={span} label="until the round starts" />
       {:else}
-        <p class="waiting surface" aria-live="polite">
+        <p class="waiting surface">
           {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
         </p>
       {/if}

@@ -162,7 +162,7 @@ describe('Suggest', () => {
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /Release Order/ }))
     await within(existing()).findByText('The game has no questions here yet.')
-    expect(screen.queryByRole('alert')).toBeNull()
+    expect(document.querySelector('.banner')).toBeNull()
   })
 
   it('names the NPC on each random event row, the one picked to ask first', async () => {
@@ -862,7 +862,7 @@ describe('Suggest', () => {
       ])
       await writeOddOneOut('Dharok')
       await screen.findByText('Looks like one we have (100%)', {}, SIMILAR_WAIT)
-      const status = screen.getByRole('status')
+      const status = document.querySelector('.similar')!
       expect(status.textContent).toContain('Dharok, Hazelmere')
       expect(status.textContent).toContain('Which brother?')
       expect(status.textContent).toContain('(64%)')

@@ -147,7 +147,7 @@
 
 {#snippet waiting()}
   {#if reveal === null && yourValue !== null}
-    <div class="panel waiting" role="status">
+    <div class="panel waiting">
       <p class="held">
         Answer in{#if landed !== null}<span
             class="band"

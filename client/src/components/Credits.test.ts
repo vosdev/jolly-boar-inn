@@ -62,7 +62,9 @@ describe('Credits', () => {
       new api.ApiFailure(0, 'unreachable', 'cannot reach the server'),
     )
     render(Credits, { onclose })
-    expect((await screen.findByRole('alert')).textContent).toContain('cannot reach the server')
+    expect((await screen.findByText(/cannot reach the server/)).textContent).toContain(
+      'cannot reach the server',
+    )
   })
 
   it('leads to /suggest from the authors, in a new tab', async () => {
