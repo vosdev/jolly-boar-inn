@@ -120,7 +120,7 @@
     const content = root?.querySelector<HTMLElement>('.content') ?? null
     const npc = event ? guestNpc : hostNpc
     if (tall || content === null || npc === null) return
-    return keepSeated(content, npc, event ? 'right' : 'left')
+    return keepSeated(content, npc, event ? 'right' : 'left', () => tv)
   })
 </script>
 
@@ -470,19 +470,34 @@
   }
 
   /* The sheet and the panel are always one height, the taller one's. */
-  /* Read from the sofa: the sheet's words at about 56px on a 1080p screen, and whoever
-     stands beside it near twice a phone's size, to go with them. */
+  /* Read from the sofa: the sheet's words at about 56px on a 1080p screen, less where they
+     would not fit (`--tv-text`, `SharedStageView`), and whoever stands on it near twice a
+     phone's size, to go with them. */
   .tv .stage-row {
-    --scroll-text: 1.6;
+    --scroll-text: var(--tv-text, 1.6);
     --npc-w: 140px;
-    --npc-lap: 48px;
     flex: none;
     width: 30rem;
     align-items: stretch;
   }
 
+  /* The TV's sheet has height to spare, so whoever stands there stands on it, over its
+     foot as on a phone, and gives the sheet the stage's whole width; the words wrap round
+     them (`lib/seat.ts`). The host keeps the left, an event's NPC the right. */
   .tv .npc {
-    align-self: flex-end;
+    position: absolute;
+    left: calc(var(--roll-w) / 2 + 6px);
+    bottom: calc(var(--finial) * 0.75);
+    margin: 0;
+  }
+
+  .tv :is(.event, .returning) .guest {
+    left: auto;
+    right: calc(var(--roll-w) / 2 + 6px);
+  }
+
+  .tv :is(.entering, .returning) > :global(.scroll) {
+    animation: none;
   }
 
   .tv .stage-row > :global(.scroll),
@@ -514,8 +529,10 @@
       width: 30rem;
     }
 
+    /* Its words are shrunk to fit it, so it would give all its height to a long question. */
     .tv .under {
       margin-top: 0;
+      min-height: 16rem;
     }
   }
 

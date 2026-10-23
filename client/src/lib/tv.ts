@@ -18,6 +18,13 @@ export function answersOnly(players: PlayerView[], you: PlayerView | null): bool
  */
 export const TV_CLOSE_MS = 200
 
+/**
+ * The TV sheet's text, as `--scroll-text`: about 56px on a 1080p screen, and at the least
+ * about 44px, below which a sheet too full for the window grows taller and smaller instead.
+ */
+export const TV_TEXT = 1.6
+export const TV_TEXT_LEAST = 1.25
+
 /** The share of the window the TV's stage fills, along whichever side it reaches first. */
 export const TV_SHARE = 0.8
 

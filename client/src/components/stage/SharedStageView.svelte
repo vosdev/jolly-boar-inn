@@ -6,18 +6,21 @@
    * A TV's screen has it scaled as a whole, from its own size to `TV_SHARE` of the window
    * along whichever side it reaches first, and centred there, so the room reads it from
    * the sofa. The stage is made at least the window's shape (`tvMinHeight`), so a screen
-   * whose words are short keeps the scale of one whose words are long, and the timer bar
-   * hangs its tabs at the scaled stage's edges from `tvFit`.
+   * whose words are short keeps the scale of one whose words are long. Words too long for
+   * that shape are set smaller first (`--tv-text`, down to `TV_TEXT_LEAST`), and only past
+   * that make the stage taller. The timer bar hangs its tabs at the scaled stage's edges
+   * from `tvFit`.
    */
   import { onMount } from 'svelte'
 
   import type { SharedStage } from '../../lib/sharedStage.svelte'
-  import { fitScale, tvFit, tvMinHeight } from '../../lib/tv'
+  import { TV_TEXT, TV_TEXT_LEAST, fitScale, tvFit, tvMinHeight } from '../../lib/tv'
   import StageView from './StageView.svelte'
 
   let { stage }: { stage: SharedStage } = $props()
 
   let root = $state<HTMLElement | null>(null)
+  let box = $state<HTMLElement | null>(null)
   const tv = $derived(stage.shown?.look.tv === true)
   let scale = $state(1)
   let minHeight = $state(0)
@@ -26,10 +29,19 @@
 
   $effect(() => {
     const at = root
-    if (!tv || at === null) return
+    const fitting = box
+    if (!tv || at === null || fitting === null) return
     const fit = (): void => {
       const view = { width: innerWidth, height: innerHeight }
       const least = tvMinHeight(at.offsetWidth, view)
+      // Set straight on the element and read back at once, a step at a time: each read
+      // lays the stage out at that size, and the effect's state is written only once.
+      let text = TV_TEXT
+      fitting.style.setProperty('--tv-text', String(text))
+      while (at.offsetHeight > Math.ceil(least) && text > TV_TEXT_LEAST) {
+        text = Math.max(TV_TEXT_LEAST, Math.round((text - 0.05) * 100) / 100)
+        fitting.style.setProperty('--tv-text', String(text))
+      }
       const natural = { width: at.offsetWidth, height: Math.max(at.offsetHeight, least) }
       const fitted = fitScale(natural, view)
       minHeight = least
@@ -44,6 +56,7 @@
       watch.disconnect()
       removeEventListener('resize', fit)
       tvFit.set(null)
+      fitting.style.removeProperty('--tv-text')
       scale = 1
       minHeight = 0
     }
@@ -55,6 +68,7 @@
 <div class="shared" class:empty={stage.shown === null} class:tv>
   <div
     class="fit"
+    bind:this={box}
     style:--tv-scale={tv ? scale : null}
     style:--tv-min-height={tv ? `${minHeight}px` : null}
   >

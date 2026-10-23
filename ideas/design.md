@@ -508,10 +508,13 @@ from a sofa across the room on a 1080p screen, in every theme.
   height, whichever it reaches first, and centred; the floor shows around it. It is at least the
   window's shape, so it fills that 80% both ways and keeps one size from question to reveal. The
   timer bar's tabs hang at its edges, at its scale. No wall lights: the stage is in their place.
-- **The sheet** has its words at about 56px on a 1080p screen, the question centred in the
-  height above the foot, and its host or event NPC at 140px, near twice a phone's.
+- **The sheet** has its words at about 56px on a 1080p screen, set smaller down to 44px where
+  they would not fit (past that the stage grows taller, and smaller), the question centred in
+  the height above the foot. Its host or event NPC, 140px, stands on the sheet's foot as on a
+  phone (§8), and the words wrap around it.
 - **The panel** stands beside the scroll, one height with it, under it on a screen taller than
-  wide, and one size throughout: what does not fit in it shrinks, never the stage. Open, it says
+  wide (at least 16rem tall there), and one size throughout: what does not fit in it shrinks,
+  never the stage. Open, it says
   "3 of 5 answered", then shows the pet and name of everyone still to answer, each leaving as
   they answer, or drop. No answers and no admin controls. The host says its waiting line.
 - **The reveal** fades into the panel (200 ms): the answers with their counts, the explanation,
