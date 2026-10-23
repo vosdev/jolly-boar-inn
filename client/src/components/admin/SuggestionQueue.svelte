@@ -312,7 +312,9 @@
                     <TryPreview
                       {content}
                       question={questionPreview(content)}
-                      answerable={!choiceOf(row.kind, content)?.named}
+                      answerable={!(
+                        choiceOf(row.kind, content)?.named && content.type === 'pick_from_list'
+                      )}
                     />
                   {:else}
                     <p class="item">{(row.content as ItemContent).name}</p>

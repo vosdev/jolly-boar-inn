@@ -13,8 +13,10 @@ The file is ``{"questions": [...], "items": [...]}``, as
 A Who's That NPC? question names its NPC: the NPC joins ``data/popular-npcs.json`` under the id
 of the first infobox row on its wiki page (the page it links, or the one its name spells), and
 the question gets that id, its shadow ``npc:<id>`` and the picture's ``data/assets.json`` entry.
-One query to the ``infobox_monster`` bucket asks for every NPC in the file, and one to
-``infobox_npc`` for those it did not find. An NPC the list already has is skipped.
+A render question's right option names its NPC the same way: the question gets ``npc:<id>``
+as its ``image`` and the picture's entry, and the list stays as it is. One query to the
+``infobox_monster`` bucket asks for every NPC in the file, and one to ``infobox_npc`` for those
+it did not find. A shadow's NPC the list already has is skipped.
 
 A Drop Table or Minigame Madness question's ``picture_item`` is found the same way and becomes
 its payload's ``image``, ``item:<id>``. ``data/assets.json`` gains the item's detail image and
@@ -77,8 +79,8 @@ SECTIONS = ("questions", "items")
 # The rounds whose pack lists the right option first, and asks each line once.
 RIGHT_FIRST = frozenset({"guess_examine"})
 CREDIT_KEYS = {"credit", "credit_shown"}
-# Asked in this order: Who's That NPC? is mostly monsters.
-NPC_BUCKETS = ("infobox_monster", "infobox_npc")
+# Asked in this order: Who's That NPC? is mostly monsters. Each bucket's name for the id.
+NPC_BUCKETS = {"infobox_monster": "id", "infobox_npc": "npc_id"}
 
 
 @dataclass
@@ -241,9 +243,14 @@ def wiki_page(url: str) -> str:
     return urllib.parse.unquote(path).replace("_", " ")
 
 
+def npc_named(content: dict[str, Any]) -> str | None:
+    """The NPC a Who's That NPC? question shows, as a shadow or a render; ``None`` for others."""
+    return suggestions.named(content) or suggestions.rendered(content)
+
+
 def npc_pages(content: dict[str, Any]) -> list[str]:
     """The pages a named NPC may be on: the one its question links, then the one its name spells."""
-    name = str(suggestions.named(content)).strip()
+    name = str(npc_named(content)).strip()
     pages = [wiki_page(content["wiki"]), name, name[:1].upper() + name[1:]]
     return list(dict.fromkeys(pages))
 
@@ -255,7 +262,7 @@ def wanted_npcs(entries: list[Any]) -> list[list[str]]:
         if not isinstance(entry, dict):
             continue
         content = {k: v for k, v in entry.items() if k not in CREDIT_KEYS}
-        if suggestions.errors("question", content) or suggestions.named(content) is None:
+        if suggestions.errors("question", content) or npc_named(content) is None:
             continue
         pages.append(npc_pages(content))
     return pages
@@ -264,7 +271,8 @@ def wanted_npcs(entries: list[Any]) -> list[list[str]]:
 def npc_query(bucket: str, pages: list[str]) -> str:
     """The Bucket query for the infobox rows on any of ``pages``."""
     where = ",".join(f"{{'page_name',{lua_string(page)}}}" for page in pages)
-    return f"bucket('{bucket}').select('page_name','id','image').where(bucket.Or({where})).run()"
+    fields = f"'page_name','{NPC_BUCKETS[bucket]}','image'"
+    return f"bucket('{bucket}').select({fields}).where(bucket.Or({where})).run()"
 
 
 def wiki_npc_rows(source: wiki.Wiki) -> Callable[[list[list[str]]], list[dict[str, Any]]]:
@@ -281,7 +289,11 @@ def wiki_npc_rows(source: wiki.Wiki) -> Callable[[list[list[str]]], list[dict[st
             query = urlencode(
                 {"action": "bucket", "format": "json", "query": npc_query(bucket, left)}
             )
-            found += source.get_json(f"{WIKI_API}?{query}").get("bucket", [])
+            id_field = NPC_BUCKETS[bucket]
+            found += [
+                {("id" if key == id_field else key): value for key, value in row.items()}
+                for row in source.get_json(f"{WIKI_API}?{query}").get("bucket", [])
+            ]
         return found
 
     return rows
@@ -292,7 +304,7 @@ def npc_id(content: dict[str, Any], rows: list[dict[str, Any]]) -> tuple[int, st
 
     The first infobox row on its page gives the id, as for every NPC on the list.
     """
-    name = str(suggestions.named(content)).strip()
+    name = str(npc_named(content)).strip()
     for page in npc_pages(content):
         on_page = [row for row in rows if fold(str(row.get("page_name", ""))) == fold(page)]
         ids = [int(i) for row in on_page[:1] for i in row.get("id", []) if str(i).isdigit()]
@@ -334,6 +346,23 @@ def named_npc(
     return {**content, "payload": payload}
 
 
+def rendered_npc(
+    content: dict[str, Any], where: str, rows: list[dict[str, Any]], plan: Plan
+) -> dict[str, Any] | None:
+    """A render question with its NPC's render as its ``image``; ``None`` if refused.
+
+    Adds the NPC's picture to the manifest when it lacks one.
+    """
+    known = npc_id(content, rows)
+    if isinstance(known, str):
+        plan.refused.append(f"{where}: {suggestions.rendered(content)!r} {known}")
+        return None
+    number, _, picture = known
+    if not has_target(plan.assets, f"pictures/npc/{number}"):
+        plan.assets[f"pictures/npc/{number}.png"] = picture
+    return {**content, "payload": {**content["payload"], "image": f"npc:{number}"}}
+
+
 def plan_questions(
     entries: list[Any],
     packs_dir: Path,
@@ -363,6 +392,8 @@ def plan_questions(
         content = pictured(content, where, lookup, plan)
         if content is not None and suggestions.named(content) is not None:
             content = named_npc(content, where, npc_rows, plan)
+        elif content is not None and suggestions.rendered(content) is not None:
+            content = rendered_npc(content, where, npc_rows, plan)
         if content is None:
             continue
         mode = content["mode"]

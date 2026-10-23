@@ -180,8 +180,13 @@ export interface Choice {
   wikiOnly?: boolean
   /** Whether it may name an item to picture: `PICTURE_ITEM_MODES` on the server. */
   pictureItem?: boolean
-  /** Whether its answer is an NPC's name, which the import looks up: `NAMED_MODES` on the server. */
+  /**
+   * Whether its answer is an NPC's name, which the import looks up: a shadow's
+   * (`NAMED_MODES` on the server) or a render's right option (`RENDER_MODES`).
+   */
   named?: boolean
+  /** What the type picker calls a type, where the round's word says more than the type's. */
+  typeLabels?: Partial<Record<SuggestedType, string>>
 }
 
 export interface RoundPrompt {
@@ -265,12 +270,12 @@ const PICTURE_ITEM_ROUNDS = ['drop_table', 'minigame_madness']
 const QUOTE_ROUNDS = ['who_said_that', 'know_your_content_creator']
 
 /** Rounds whose questions carry no explanation: `NO_EXPLANATION_MODES` on the server. */
-export const NO_EXPLANATION_ROUNDS = ['guess_examine']
+export const NO_EXPLANATION_ROUNDS = ['guess_examine', 'whos_that_npc']
 
 /** Rounds whose questions may carry an intro, an NPC's line before the prompt: `INTRO_MODES` on the server. */
 export const INTRO_ROUNDS = ['random_event']
 
-/** Rounds whose answer is an NPC's name: `NAMED_MODES` on the server. */
+/** Rounds whose answer is an NPC's name: `NAMED_MODES` and `RENDER_MODES` on the server. */
 const NAMED_ROUNDS = ['whos_that_npc']
 
 /** Rounds that sort: `ordering` questions, the form with its tie boxes. */
@@ -328,10 +333,12 @@ export const CHOICES: readonly Choice[] = [
       label: mode.label,
       hint: mode.hint,
       host: mode.host,
-      types: ['pick_from_list'],
+      types: ['pick_from_list', 'multiple_choice'],
       prompt: ROUND_PROMPTS[mode.id],
+      explanation: !NO_EXPLANATION_ROUNDS.includes(mode.id),
       wikiOnly: WIKI_ROUNDS.includes(mode.id),
       named: true,
+      typeLabels: { pick_from_list: 'Shadow', multiple_choice: 'Render' },
     })),
   ...ORDERING_ROUNDS.map(choiceRound)
     .filter((mode) => mode !== undefined)

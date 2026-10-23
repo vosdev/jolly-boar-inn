@@ -92,7 +92,10 @@ MODES: dict[str, Mode] = {
             }
         ),
     ),
-    "whos_that_npc": Mode(id="whos_that_npc", types=frozenset({"pick_from_list"})),
+    # A shadow picked from the list, or a render among look-alikes on the buttons.
+    "whos_that_npc": Mode(
+        id="whos_that_npc", types=frozenset({"pick_from_list", "multiple_choice"})
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",

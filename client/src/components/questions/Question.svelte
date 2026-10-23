@@ -8,8 +8,9 @@
    * being null is what says which of the two this is.
    *
    * It adds no markup of its own around the pair, only what every mode shows the same way:
-   * a pack question's `picture` under the stem (its shadow until the reveal, in a mode whose
-   * `picture` says so), and after the view the note for somebody who
+   * a pack question's `picture` under the stem (large, in a mode whose `picture` says so, and
+   * its shadow until the reveal when the question is picked from the list; on the buttons it
+   * is the render among look-alikes), and after the view the note for somebody who
    * cannot answer and the reveal's `explanation` where the author gave one. A mode with no stem, which is `more_less`, renders exactly
    * the view it rendered before stems existed, with nothing in between to shift a pixel.
    *
@@ -86,10 +87,14 @@
       ? data.explanation
       : null,
   )
-  const shadowed = $derived(MODES[question.mode]?.picture === 'shadow')
+  const pictured = $derived(MODES[question.mode]?.picture === 'shadow')
+  const shadowed = $derived(pictured && question.type === 'pick_from_list')
   const subjectName = $derived.by(() => {
     const subject = data.subject as { name?: unknown } | undefined
-    return typeof subject?.name === 'string' ? subject.name : null
+    if (typeof subject?.name === 'string') return subject.name
+    const options = data.options as unknown[] | undefined
+    const right = options?.[data.answer_index as number]
+    return typeof right === 'string' ? right : null
   })
   const timing: StemTiming = $derived({
     answerableAt: question.answerable_at ?? question.opened_at,
@@ -115,10 +120,10 @@
     {/if}
     <QuestionPicture
       name={question.picture}
-      large={shadowed}
+      large={pictured}
       shadow={shadowed}
       lifted={revealed}
-      caption={shadowed && revealed ? subjectName : null}
+      caption={pictured && revealed ? subjectName : null}
     />
   {/if}
 {/snippet}

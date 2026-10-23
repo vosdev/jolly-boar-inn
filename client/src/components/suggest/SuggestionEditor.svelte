@@ -7,9 +7,10 @@
    * names its NPC, a round's names none and is previewed in its round, and one sent with no
    * round is saved with no mode and previewed in none. A round may hold
    * its options to a range, or its proof to a wiki page. A Drop Table question may name an
-   * item to picture, and a Who's That NPC? question is only the NPC's name: the preview shows
-   * no picture for either, since it exists only once imported. An NPC the game already asks
-   * about is refused before it is sent, given the list beside the editor. An item is only a name, since the import script finds its id; nothing
+   * item to picture, and a Who's That NPC? shadow is only the NPC's name, its render four
+   * buttons whose right one names the NPC: the preview shows no picture for any of them,
+   * since it exists only once imported. A shadow of an NPC the game already asks about is
+   * refused before it is sent, given the list beside the editor. An item is only a name, since the import script finds its id; nothing
    * on the wiki is needed to check one. Beside it the roster, searchable, so nobody writes
    * up an item the game already has; its credit is kept but cannot be shown.
    *
@@ -133,14 +134,15 @@
   const forms = $derived(
     Number(customTypes.length > 0) +
       Number(choice.types.includes('ordering')) +
-      Number(choice.types.includes('matching')),
+      Number(choice.types.includes('matching')) +
+      Number(choice.types.includes('pick_from_list')),
   )
   const picker = $derived(
     forms > 1
       ? {
           options: choice.types.map((type) => ({
             value: type,
-            label: SUGGESTED_TYPE_LABELS[type],
+            label: choice.typeLabels?.[type] ?? SUGGESTED_TYPE_LABELS[type],
           })),
           onpick: (type: string) => (current = type as SuggestedType),
         }
@@ -206,8 +208,9 @@
   // svelte-ignore state_referenced_locally
   const checksSimilar = initial === undefined
   let drafted = $state<CustomQuestion | OrderingQuestion | MatchingQuestion | undefined>(undefined)
+  const naming = $derived(choice.named === true && current === 'pick_from_list')
   const similarTo = $derived<QuestionContent | undefined>(
-    choice.named
+    naming
       ? npcError === null
         ? npcQuestion
         : undefined
@@ -310,6 +313,9 @@
 {/snippet}
 
 {#snippet questionFields(show: boolean)}
+  {#if choice.named}
+    <p class="note hint">Players see the right answer's render. Name it as the wiki does.</p>
+  {/if}
   {@render difficultyField()}
   {#if choice.pictureItem}
     <div class="field">
@@ -376,11 +382,20 @@
   </div>
 {/snippet}
 
-{#if choice.named}
+{#if naming}
   <div class="editor surface" role="group" aria-labelledby="{id}-title">
     <div class="layout">
       <div class="fields">
         <h3 id="{id}-title">{choice.label}</h3>
+        {#if picker}
+          <div class="field">
+            <Segmented
+              legend="How players answer"
+              options={picker.options}
+              bind:value={() => current ?? '', picker.onpick}
+            />
+          </div>
+        {/if}
         <div class="field">
           <label for="{id}-npc">Monster or NPC, as the wiki spells it</label>
           <input id="{id}-npc" type="text" bind:value={npcName} />

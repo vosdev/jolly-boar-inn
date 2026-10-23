@@ -695,7 +695,7 @@ def _npc(**payload: Any) -> dict[str, Any]:
         (_npc(answer_id=8058), "only a prompt and subject.name"),
         (_npc(subject={"name": ""}), "a name of 1 to 80"),
         (_without(_with(NPC, source_url="https://example.com/a"), "wiki"), "$.wiki: required"),
-        (_with(NPC, type="multiple_choice"), "not offered for 'whos_that_npc'"),
+        (_with(NPC, type="free_text"), "not offered for 'whos_that_npc'"),
     ],
     ids=["asked", "asked_folded", "prompt", "answer_id", "blank", "no_wiki", "type"],
 )
@@ -705,6 +705,64 @@ def test_a_whos_that_npc_suggestion_is_refused(
     response = client.post("/api/suggestions", json=body)
     assert response.status_code == 422, response.text
     assert problem in response.text
+
+
+RENDER = {
+    "kind": "question",
+    "content": {
+        "type": "multiple_choice",
+        "mode": "whos_that_npc",
+        "wiki": "https://oldschool.runescape.wiki/w/Vorkath",
+        "difficulty": "hard",
+        "payload": {
+            "prompt": "Who's that NPC?",
+            "options": ["Vorkath", "Galvek", "Elvarg", "Vorki"],
+            "answer_index": 0,
+        },
+    },
+    "credit": "AFKFisher",
+    "credit_shown": False,
+}
+
+
+def test_a_render_suggestion_may_picture_an_npc_the_shadows_ask_about(
+    client: TestClient,
+) -> None:
+    approve(client, suggest(client, RENDER))
+    (question,) = export(client)["questions"]
+    assert question == {**RENDER["content"], "credit": "AFKFisher", "credit_shown": False}
+
+
+def _render(**payload: Any) -> dict[str, Any]:
+    return _with(RENDER, payload={**RENDER["content"]["payload"], **payload})
+
+
+@pytest.mark.parametrize(
+    ("body", "problem"),
+    [
+        (_render(image="npc:8058"), "the import script adds the NPC's render"),
+        (_render(explanation="It is Vorkath."), "'whos_that_npc' shows no explanation"),
+        (_render(prompt="Which dragon?"), "always asks"),
+        (_without(_with(RENDER, source_url="https://example.com/a"), "wiki"), "$.wiki: required"),
+    ],
+    ids=["image", "explanation", "prompt", "no_wiki"],
+)
+def test_a_render_suggestion_is_refused(
+    client: TestClient, body: dict[str, Any], problem: str
+) -> None:
+    response = client.post("/api/suggestions", json=body)
+    assert response.status_code == 422, response.text
+    assert problem in response.text
+
+
+def test_a_render_can_be_tried_and_answered(client: TestClient) -> None:
+    trial = tried(client, RENDER)
+    right = trial["reveal"]["answer_index"]
+    assert trial["view"]["options"][right] == "Vorkath"
+    response = client.post(
+        "/api/suggestions/try", json={"content": RENDER["content"], "value": right}
+    )
+    assert response.json()["result"]["correct"] is True
 
 
 MINIGAME = "minigame_madness"
