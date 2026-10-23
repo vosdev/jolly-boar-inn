@@ -23,6 +23,10 @@
    *
    * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
    * leaves the answers out, for a preview whose answers a player cannot try yet.
+   * `answersOnly` is its counterpart, for a phone while the room's TV shows the question:
+   * no stage, stem, picture or event card, only the answers and the waiting line, and on
+   * the reveal your points on their plaque. Everything about the room as a whole, the
+   * tally, each option's count, the others' guesses and the explanation, is the TV's.
    */
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
@@ -50,6 +54,7 @@
     live = false,
     nextAt = null,
     stemOnly = false,
+    answersOnly = false,
     hero = null,
     children,
   }: {
@@ -67,6 +72,7 @@
     /** The reveal's end, for a random event's return. */
     nextAt?: string | null
     stemOnly?: boolean
+    answersOnly?: boolean
     /** A picture to stand in the innkeeper's place; other hosts keep their own. */
     hero?: string | null
     children?: Snippet
@@ -145,6 +151,16 @@
   </Stage>
 {/snippet}
 
+{#snippet bare(stem: Snippet, answers: Snippet | null)}
+  {#if reveal !== null}
+    <PointsSlot {result} canAnswer={question.you_can_answer} />
+  {/if}
+  <section class="panel answers">
+    {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
+  </section>
+  {@render waiting()}
+{/snippet}
+
 {#snippet waiting()}
   {#if reveal === null && yourValue !== null}
     <div class="panel waiting">
@@ -167,7 +183,20 @@
   {/if}
 {/snippet}
 
-{#if question.random_event}
+{#if answersOnly}
+  <div class="bare">
+    <Question
+      {question}
+      {reveal}
+      {yourValue}
+      {result}
+      {onAnswer}
+      held={hasHold ? held : undefined}
+      explain={false}
+      frame={bare}
+    />
+  </div>
+{:else if question.random_event}
   <RandomEvent
     {question}
     {reveal}
@@ -229,6 +258,19 @@
     .answers {
       padding: calc(0.5rem - var(--border-give));
     }
+  }
+
+  /* The stage's width without the stage, so the answers sit where they would under it. */
+  .bare {
+    display: grid;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+
+  .bare > :global(.slot) {
+    justify-self: center;
   }
 
   .waiting {

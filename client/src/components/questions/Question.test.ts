@@ -8,7 +8,7 @@
  */
 
 import { cleanup, render, screen, waitFor } from '@testing-library/svelte'
-import type { Component } from 'svelte'
+import { createRawSnippet, type Component } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ribbon from '../../assets/stage/ribbon.svg'
@@ -619,5 +619,117 @@ describe('the pin', () => {
     cleanup()
     render(QuestionStage, { question, yourValue: 0, onAnswer })
     expect(award()).toBeNull()
+  })
+})
+
+describe('a phone while the TV shows the question', () => {
+  beforeEach(() => {
+    clearVocabCache()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ vocab: 'items', version: 'v1', entries }))),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const TALLY = '3 of 4 got it right'
+  const tally = createRawSnippet(() => ({ render: () => `<p>${TALLY}</p>` }))
+  const nothingStaged = () => {
+    expect(document.querySelector('.stage, .scroll, .paper, .npc')).toBeNull()
+    expect(document.querySelector('img')).toBeNull()
+  }
+
+  for (const { type, mode, view } of EVERY_TYPE) {
+    it(`draws ${type}'s answers without stem, picture or host`, async () => {
+      const question = {
+        ...open(type, mode, { ...view, explanation: WHY }),
+        picture: '0123abcd.png',
+      }
+      render(QuestionStage, { question, yourValue: null, onAnswer, answersOnly: true })
+      await waitFor(() =>
+        expect(document.querySelector('.answers button, .answers input')).toBeTruthy(),
+      )
+      nothingStaged()
+      const prompt = (view as { prompt?: string }).prompt
+      if (prompt !== undefined) expect(screen.queryByText(prompt)).toBeNull()
+    })
+  }
+
+  it("draws a random event's answers without its NPC or card", () => {
+    const question = {
+      ...open('multiple_choice', 'random_event', {
+        prompt: 'Which prayer level unlocks Augury?',
+        options: ['70', '77', '74'],
+      }),
+      random_event: 'death',
+    }
+    render(QuestionStage, { question, yourValue: null, onAnswer, answersOnly: true })
+    nothingStaged()
+    expect(screen.queryByText('Which prayer level unlocks Augury?')).toBeNull()
+    expect(screen.getByRole('button', { name: /77/ })).toBeTruthy()
+  })
+
+  it('keeps the waiting line once you have answered', () => {
+    const question = open('more_less', 'more_less')
+    render(QuestionStage, { question, yourValue: 0, onAnswer, answersOnly: true })
+    expect(document.querySelector('.panel.waiting')?.textContent).toContain('Waiting for the room')
+  })
+
+  it('gets the whole question back when the TV goes', async () => {
+    const view = { prompt: 'Which?', options: ['Zulrah', 'Vorkath'] }
+    const question = { ...open('multiple_choice', 'custom', view), picture: 'a.png' }
+    const { rerender } = render(QuestionStage, {
+      question,
+      yourValue: null,
+      onAnswer,
+      answersOnly: true,
+    })
+    expect(screen.queryByText('Which?')).toBeNull()
+    await rerender({ answersOnly: false })
+    expect(document.querySelector('.paper')?.textContent).toContain('Which?')
+    expect(document.querySelector('.paper img')).toBeTruthy()
+  })
+
+  it('reveals your own answer and points, without the tally, counts or explanation', () => {
+    const view = { prompt: 'Which?', options: ['Zulrah', 'Vorkath', 'Kraken'] }
+    const question = open('multiple_choice', 'custom', view)
+    const results: Record<string, PlayerResult> = {
+      you: { value: 1, correct: false, credit: 0, points: 0 },
+      ann: { value: 0, correct: true, credit: 1, points: 700 },
+      bob: { value: 0, correct: true, credit: 1, points: 650 },
+    }
+    render(QuestionStage, {
+      question,
+      reveal: { ...view, answer_index: 0, explanation: WHY },
+      yourValue: 1,
+      result: results.you,
+      results,
+      onAnswer,
+      answersOnly: true,
+      children: tally,
+    })
+    nothingStaged()
+    expect(document.querySelector('.slot')?.textContent).toContain('+0')
+    expect(screen.getByRole('button', { name: /Vorkath/ }).textContent).toContain('you')
+    expect(document.querySelector('.votes, .bar')).toBeNull()
+    expect(screen.queryByText(TALLY)).toBeNull()
+    expect(screen.queryByText(WHY)).toBeNull()
+  })
+
+  it('reveals the points you scored', () => {
+    const question = open('more_less', 'more_less')
+    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    render(QuestionStage, {
+      question,
+      reveal: REVEAL,
+      yourValue: 0,
+      result,
+      onAnswer,
+      answersOnly: true,
+    })
+    expect(document.querySelector('.slot')?.textContent).toContain('+850')
   })
 })

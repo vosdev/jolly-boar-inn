@@ -59,6 +59,7 @@
   import Splash from '../components/Splash.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { historyPath, latestPastGame } from '../lib/history'
+  import { answersOnly } from '../lib/tv'
   import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
   import { clearSession, getSession, normalizeCode } from '../lib/session'
   import {
@@ -230,6 +231,7 @@
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
+  const phone = $derived(answersOnly($players, $you))
   /** The question's own heading, for the heading line and the title. */
   const questionTitle = $derived(`Question ${number} of ${total}`)
 
@@ -433,6 +435,7 @@
           yourValue={$yourAnswer}
           onAnswer={answer}
           live={$questionLive}
+          answersOnly={phone}
         />
       {:else if $lastClosed !== null && $lastClosed.was !== null}
         <QuestionStage
@@ -443,6 +446,7 @@
           results={$lastClosed.results}
           onAnswer={() => {}}
           nextAt={$room.next_at}
+          answersOnly={phone}
         >
           <RevealTally
             type={$lastClosed.was.type}

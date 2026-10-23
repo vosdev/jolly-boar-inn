@@ -323,6 +323,10 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   *above* it, clear of the keyboard. Typed text reads as a search; only a selection lights Submit.
 - Answered and waiting shows your answer held and dimmed, "waiting for the room" and the answered
   count.
+- **With a TV connected** a phone draws no stage: no host, scroll, stem, picture or event NPC.
+  The answers and the waiting line take the screen, and the reveal puts your points on their
+  plaque above your marked answers, with no tally, counts, others' guesses or explanation. A
+  TV that drops gives phones the whole question back.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
 picked or numeric answer fades beside the correct value. The host says your points at the foot of
