@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.153.0',
+    date: '2026-10-23',
+    text: 'Questions players find easier or harder than marked can now move tier, random events’ included.',
+  },
+  {
     version: '0.152.0',
     date: '2026-10-23',
     text: 'The inn now keeps how well players do on each question, so we can tune how hard it is.',

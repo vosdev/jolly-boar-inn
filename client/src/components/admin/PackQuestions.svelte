@@ -10,7 +10,8 @@
    * made after a download waits for the next one.
    *
    * A question with an edit waiting is edited from that edit, so a second pass refines
-   * the first rather than starting over from the pack.
+   * the first rather than starting over from the pack. Stats shows how players score on
+   * each question instead, and its Set queues a tier edit the same way.
    */
   import { onMount, untrack } from 'svelte'
 
@@ -36,12 +37,16 @@
     saveGrouping,
     searchQuestions,
     type Grouping,
+    editOf,
     type QuestionChange,
     type QuestionEdit,
   } from '../../lib/questionEdits'
+  import { loadView, saveView, type QuestionsView } from '../../lib/questionStats'
   import { questionLine, reportModeName, type PackQuestion } from '../../lib/reports'
   import PackQuestionForm from './PackQuestionForm.svelte'
   import PackQuestionView from './PackQuestionView.svelte'
+  import QuestionStats from './QuestionStats.svelte'
+  import type { QuestionDifficulty } from '../../lib/suggestions'
 
   let { token, onrefused }: { token: string; onrefused: () => void } = $props()
 
@@ -56,6 +61,7 @@
   let failure = $state<string | null>(null)
   let busy = $state(false)
   let grouping = $state<Grouping>(loadGrouping())
+  let view = $state<QuestionsView>(loadView())
 
   const GROUPING_LABELS: Record<Grouping, string> = { all: 'All', host: 'Host', type: 'Type' }
 
@@ -126,6 +132,17 @@
       await editPackQuestion(token, question.id, edit)
       editing = null
     })
+  }
+
+  function setTier(question: PackQuestion, tier: QuestionDifficulty): void {
+    void run(() =>
+      editPackQuestion(token, question.id, { ...editOf(current(question)), difficulty: tier }),
+    )
+  }
+
+  function show(next: QuestionsView): void {
+    view = next
+    saveView(next)
   }
 
   function remove(question: PackQuestion): void {
@@ -284,65 +301,117 @@
 </section>
 
 <section class="panel" aria-labelledby="packs-heading">
-  <h2 id="packs-heading">Pack questions</h2>
-  <div class="filters">
-    <div class="field">
-      <label for="pack-mode">Round</label>
-      <select id="pack-mode" bind:value={mode}>
-        {#each modes as each (each)}
-          <option value={each}>{reportModeName(each)}</option>
-        {/each}
-      </select>
+  <div class="head">
+    <h2 id="packs-heading">Pack questions</h2>
+    <div class="views" role="group" aria-label="View">
+      <button type="button" aria-pressed={view === 'list'} onclick={() => show('list')}>List</button
+      >
+      <button type="button" aria-pressed={view === 'stats'} onclick={() => show('stats')}
+        >Stats</button
+      >
     </div>
-    <div class="field grow">
-      <label for="pack-search">Search</label>
-      <input id="pack-search" type="text" bind:value={query} />
-    </div>
-    {#if groupings.length > 1}
+  </div>
+  {#if view === 'stats'}
+    <QuestionStats
+      {token}
+      {modes}
+      changes={byId}
+      {busy}
+      onset={setTier}
+      ondiscard={discard}
+      onfail={fail}
+    />
+  {:else}
+    <div class="filters">
       <div class="field">
-        <label for="pack-grouping">Group by</label>
-        <select
-          id="pack-grouping"
-          value={groupings.includes(grouping) ? grouping : 'all'}
-          onchange={(event) => {
-            grouping = event.currentTarget.value as Grouping
-            saveGrouping(grouping)
-          }}
-        >
-          {#each groupings as each (each)}
-            <option value={each}>{GROUPING_LABELS[each]}</option>
+        <label for="pack-mode">Round</label>
+        <select id="pack-mode" bind:value={mode}>
+          {#each modes as each (each)}
+            <option value={each}>{reportModeName(each)}</option>
           {/each}
         </select>
       </div>
-    {/if}
-  </div>
-
-  {#if questions === null}
-    <p class="note">Loading…</p>
-  {:else if found.length === 0}
-    <p class="note">No question matches.</p>
-  {:else}
-    <p class="note">{found.length} of {questions.length}</p>
-    {#each groups as group (group.key)}
-      {#if group.key === ''}
-        {@render rows(group.questions)}
-      {:else}
-        <div class="group" role="group" aria-labelledby="group-{group.key}">
-          <h3 id="group-{group.key}">
-            {#if group.host !== null}<img src={npcArt(group.host).url} alt="" />{/if}
-            <span>{group.label}</span>
-            <span class="chip">{group.questions.length}</span>
-          </h3>
-          {@render rows(group.questions)}
+      <div class="field grow">
+        <label for="pack-search">Search</label>
+        <input id="pack-search" type="text" bind:value={query} />
+      </div>
+      {#if groupings.length > 1}
+        <div class="field">
+          <label for="pack-grouping">Group by</label>
+          <select
+            id="pack-grouping"
+            value={groupings.includes(grouping) ? grouping : 'all'}
+            onchange={(event) => {
+              grouping = event.currentTarget.value as Grouping
+              saveGrouping(grouping)
+            }}
+          >
+            {#each groupings as each (each)}
+              <option value={each}>{GROUPING_LABELS[each]}</option>
+            {/each}
+          </select>
         </div>
       {/if}
-    {/each}
+    </div>
+
+    {#if questions === null}
+      <p class="note">Loading…</p>
+    {:else if found.length === 0}
+      <p class="note">No question matches.</p>
+    {:else}
+      <p class="note">{found.length} of {questions.length}</p>
+      {#each groups as group (group.key)}
+        {#if group.key === ''}
+          {@render rows(group.questions)}
+        {:else}
+          <div class="group" role="group" aria-labelledby="group-{group.key}">
+            <h3 id="group-{group.key}">
+              {#if group.host !== null}<img src={npcArt(group.host).url} alt="" />{/if}
+              <span>{group.label}</span>
+              <span class="chip">{group.questions.length}</span>
+            </h3>
+            {@render rows(group.questions)}
+          </div>
+        {/if}
+      {/each}
+    {/if}
   {/if}
 </section>
 
 <style>
   h2 {
     margin: 0 0 1rem;
+  }
+
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .head h2 {
+    margin: 0;
+  }
+
+  .views {
+    display: flex;
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .views button {
+    border: none;
+    border-radius: 0;
+    font-weight: 500;
+  }
+
+  .views button[aria-pressed='true'] {
+    background: var(--accent);
+    color: var(--accent-ink);
   }
 
   h3 {

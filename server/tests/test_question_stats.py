@@ -134,11 +134,23 @@ def test_a_voided_question_adds_nothing(table, choice_round: str, db) -> None:
     assert stats(db) == {}
 
 
-@pytest.mark.parametrize("custom", [[], [TANZANITE]], ids=["event", "host"])
-def test_event_and_host_questions_add_nothing(table, second_mode: str, db, custom) -> None:
-    game = table("Zezima", "Woox", custom=custom, reveal_seconds=30, **event_rooms(second_mode))
+def test_an_npcs_question_is_counted_like_a_rounds(table, second_mode: str, db) -> None:
+    game = table("Zezima", "Woox", reveal_seconds=30, **event_rooms(second_mode))
     event = the_event(game)
-    assert (event.source == "room") == bool(custom)
+    assert event.source == "pack"
+    game.start()
+    play_through(game, len(game.room.questions))
+    counted = {q.content_id for q in game.room.questions if q.mode != "more_less"}
+    assert event.content_id in counted
+    assert set(stats(db)) == counted
+
+
+def test_a_host_question_adds_nothing(table, second_mode: str, db) -> None:
+    game = table(
+        "Zezima", "Woox", custom=[TANZANITE], reveal_seconds=30, **event_rooms(second_mode)
+    )
+    event = the_event(game)
+    assert event.source == "room"
     game.start()
     play_through(game, len(game.room.questions))
     round_questions = {q.content_id for q in game.room.questions if q.mode == second_mode}

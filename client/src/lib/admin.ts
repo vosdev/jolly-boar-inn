@@ -11,6 +11,7 @@
 import { ApiFailure } from './api'
 import { dropStored, readStored, writeStored } from './session'
 import type { QuestionChange, QuestionEdit } from './questionEdits'
+import type { QuestionStats } from './questionStats'
 import type { PackQuestion, QueuedReport, ReportStatus } from './reports'
 import type { RosterChange, RosterItem } from './rosterEdits'
 import type { QueuedSuggestion, SuggestionBody, SuggestionStatus } from './suggestions'
@@ -202,6 +203,12 @@ export function setReportStatus(
 export async function getPackQuestions(token: string, mode: string): Promise<PackQuestion[]> {
   const path = `/api/admin/questions?mode=${encodeURIComponent(mode)}`
   return (await adminGet<{ questions: PackQuestion[] }>(path, token)).questions
+}
+
+/** Every editable pack question, with how players score on it. */
+export async function getQuestionStats(token: string): Promise<QuestionStats[]> {
+  const path = '/api/admin/questions/stats'
+  return (await adminGet<{ questions: QuestionStats[] }>(path, token)).questions
 }
 
 /** The modes whose pack questions the editor lists. */

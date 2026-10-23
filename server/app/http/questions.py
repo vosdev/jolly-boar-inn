@@ -3,8 +3,9 @@
 The player's list names each question without its answer (``reports.label``), or lists
 the roster's items for a price mode. The packs are public in the repository, so the list
 gives nothing away that a reveal would not. The admin routes return pack questions whole,
-answers included, and queue the operator's edits of them (``app/question_edits.py``),
-behind ``ADMIN_TOKEN`` like the rest of ``/api/admin``.
+answers included, with how players score on each (``app/question_stats.py``), and queue
+the operator's edits of them (``app/question_edits.py``), behind ``ADMIN_TOKEN`` like the
+rest of ``/api/admin``.
 """
 
 from datetime import UTC, datetime
@@ -14,7 +15,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from app import question_edits, reports
+from app import question_edits, question_stats, reports
 from app.http.admin import require_token
 from app.questions.packs import mode_questions
 
@@ -49,6 +50,18 @@ def questions(mode: str, request: Request) -> dict[str, Any]:
 def editable_modes() -> list[str]:
     """The modes the editor lists, in registry order."""
     return question_edits.edit_modes()
+
+
+@admin_router.get("/stats")
+async def stats(request: Request, mode: str | None = None) -> dict[str, Any]:
+    """The editor's questions of ``mode``, or of every mode, each with how players score on it."""
+    modes = question_edits.edit_modes()
+    if mode is not None:
+        if mode not in modes:
+            raise reports.BadMode(f"{mode!r} is not a mode the editor lists")
+        modes = [mode]
+    pool = await request.app.state.database()
+    return {"questions": await question_stats.listing(pool, request.app.state.packs, modes)}
 
 
 class Edit(BaseModel):

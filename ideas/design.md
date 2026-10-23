@@ -483,7 +483,8 @@ with what waits in them (pending, open), none at zero.
   To delete. Edit opens its type's form in place: Create's with an intro and a picture for choice,
   typed, number and pick-all questions, `/suggest`'s for ordering, a line and a name from the list for an
   examine, and the payload as JSON for a type no form writes yet. Links and credit sit under
-  every form.
+  every form. A List/Stats toggle swaps the list for a table of each question's answers, scored
+  share against its tier's band, no-answer share and suggested tier, whose Set queues a tier edit.
 
 ## 16. Open tasks
 
