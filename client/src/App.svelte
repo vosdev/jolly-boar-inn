@@ -141,7 +141,7 @@
   {navigate}
   {wide}
   full={inRoom}
-  where={inRoom ? $barWhere : null}
+  where={$roomShown === null ? null : $barWhere}
   {team}
   badge={$timerBar === null}
   autohide={tv}

@@ -131,7 +131,10 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  delete (document.documentElement as { clientWidth?: number }).clientWidth
+})
 
 describe('App', () => {
   it.each([['/'], ['/create']])('draws %s under the one bar', async (path) => {
@@ -193,8 +196,12 @@ describe('App', () => {
     overOneFooter()
   })
 
-  /** Into the room as Zezima, the room as `room` says. */
-  async function inRoom(room: RoomView): Promise<void> {
+  /** Into the room as Zezima, the room as `room` says, in a window `width` px wide. */
+  async function inRoom(room: RoomView, width = 1440): Promise<void> {
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      configurable: true,
+      value: width,
+    })
     at('/r/ABYSSAL')
     await screen.findByText('Connecting…')
     const you = {
@@ -227,6 +234,13 @@ describe('App', () => {
     await screen.findByText('Dragon bones')
     expect(document.querySelector('footer')).toBeNull()
     expect(bar().querySelector('.where')?.textContent?.trim()).toBe('Round 1 of 1: More or Less')
+  })
+
+  it('says nothing in the bar of a room stacked for a phone', async () => {
+    await inRoom(LIVE, 800)
+    applyServerMessage({ t: 'question_open', question: QUESTION })
+    await screen.findByText('Dragon bones')
+    expect(bar().querySelector('.where')).toBeNull()
   })
 
   it('puts the footer under the lobby, and says Lobby in the bar', async () => {

@@ -26,7 +26,8 @@
    * load. The version is in the footer, not here.
    *
    * **In a room** the bar runs the window's width (`full`), and its middle says where the
-   * night is (`where`): "Round 1 of 3: More or Less", "Lobby". A phone has no room for it.
+   * night is (`where`): "Round 1 of 3: More or Less", "Lobby". A stacked room, a phone's,
+   * passes none.
    *
    * **In a team game** the bar is the frame's: the player's god's colour, and the god's
    * symbol in place of the sign, still the way home. On a screen with no timer under the
@@ -268,16 +269,6 @@
   .framed .where,
   .framed .where strong {
     color: var(--frame-ink);
-  }
-
-  @media (max-width: 1023.98px) {
-    .inner.placed {
-      display: flex;
-    }
-
-    .where {
-      display: none;
-    }
   }
 
   .inner {
