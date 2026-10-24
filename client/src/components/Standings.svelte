@@ -10,6 +10,8 @@
    * motion starts at the end.
    *
    * A team game ranks its teams the same way, each with its members under it.
+   *
+   * On the room's TV the sheet takes the whole stage, and a long table scrolls (`crawl`).
    */
   import { untrack } from 'svelte'
 
@@ -26,6 +28,7 @@
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
   import { teamsOf } from '../lib/teams'
+  import { crawl } from '../lib/tv'
   import { lettersOf } from '../lib/typing.svelte'
   import Hiscores from './Hiscores.svelte'
   import HiscoresHead from './HiscoresHead.svelte'
@@ -38,6 +41,7 @@
     teamStandings = null,
     segment,
     youId = null,
+    tv = false,
   }: {
     standings: Standing[]
     /** A team game's teams; null outside one. */
@@ -45,6 +49,8 @@
     /** The round just played. */
     segment: Segment | null
     youId?: string | null
+    /** Drawn on the room's TV. */
+    tv?: boolean
   } = $props()
 
   const line = $derived(roundLine((segment?.index ?? 0) + 1))
@@ -91,13 +97,15 @@
   })
 </script>
 
-<Stage host={HISCORES_HOST} tall>
+<Stage host={HISCORES_HOST} tall {tv} wide={tv}>
   {#snippet paper()}
     <HiscoresHead title="Hiscores"><TypeIn {line} from={open} /></HiscoresHead>
-    {#if teamRows !== null}
-      <TeamHiscores teams={teamRows} {standings} {teamOf} {youId} {settled} {instant} />
-    {:else}
-      <Hiscores {rows} {youId} {settled} {pinned} {instant} />
-    {/if}
+    <div use:crawl={tv}>
+      {#if teamRows !== null}
+        <TeamHiscores teams={teamRows} {standings} {teamOf} {youId} {settled} {instant} />
+      {:else}
+        <Hiscores {rows} {youId} {settled} {pinned} {instant} />
+      {/if}
+    </div>
   {/snippet}
 </Stage>

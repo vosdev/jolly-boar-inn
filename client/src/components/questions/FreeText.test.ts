@@ -31,6 +31,7 @@ function open(youCanAnswer = true): OpenQuestion {
     answerable_at: '2026-09-21T20:00:00Z',
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 

@@ -14,6 +14,7 @@ export type ClientMessage =
   | StartGame
   | Skip
   | Promote
+  | SetTv
   | Kick
   | EndGame
   | EndRound
@@ -68,6 +69,14 @@ export interface Skip {
 export interface Promote {
   t: 'promote'
   player_id: string
+}
+/**
+ * Admin: make `player_id` the room's one TV (`on`), or a player again. Lobby only.
+ */
+export interface SetTv {
+  t: 'set_tv'
+  player_id: string
+  on: boolean
 }
 export interface Kick {
   t: 'kick'
@@ -349,7 +358,7 @@ export interface PlayerView {
    * A pet's id in `data/pets.json`; the server stores one for every player.
    */
   avatar: string | null
-  role: 'player' | 'admin'
+  role: 'player' | 'admin' | 'tv'
   /**
    * The god they play for in a team game; null outside one, and for everyone who just joined.
    */
@@ -421,6 +430,11 @@ export interface OpenQuestion {
    */
   answered: number
   of: number
+  /**
+   * Who is still to answer, as player ids: connected, allowed to, and not yet in. Never
+   * what anyone answered. The TV's waiting panel shows them; `answer_count` keeps it current.
+   */
+  waiting: string[]
 }
 export interface Standing {
   player_id: string
@@ -495,10 +509,11 @@ export interface AnswerAck {
   of: number
 }
 /**
- * Somebody else has answered the open question: how many have, of how many can.
+ * Somebody else has answered the open question: how many have, of how many can, and who
+ * is still to.
  *
- * Only a count, never who, and never what: the waiting state shows "4 of 6
- * answered" and nothing a player could read an answer off. `of` is every connected
+ * Never what: the waiting state shows "4 of 6 answered" and the TV the players still
+ * thinking, nothing a player could read an answer off. `of` is every connected
  * player allowed to answer plus anyone who answered and has since dropped, so the count
  * never reads more than the total. A disconnect does not send a fresh count; the next
  * answer does.
@@ -508,6 +523,7 @@ export interface AnswerCount {
   question_id: string
   answered: number
   of: number
+  waiting: string[]
 }
 export interface QuestionClosed {
   t: 'question_closed'

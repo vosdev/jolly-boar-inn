@@ -290,6 +290,10 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   A–Z behind "Show the rounds". The host also sees who is missing by name, since the answer is
   usually "Dave, at the bar", and taps a pet to kick or promote. Start is plain at the threshold,
   and "Start anyway" below it, which asks first.
+- **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
+  last admin) and back ("Not the TV"), at once. A screen sits where its tick goes, "TV" under
+  its name; a team game lists it in a TV group after the teams. The TV gets no ready, and its
+  settings no name or pet.
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash:** "Waiting for 2 more" says the rest, never by name.
@@ -319,6 +323,10 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   *above* it, clear of the keyboard. Typed text reads as a search; only a selection lights Submit.
 - Answered and waiting shows your answer held and dimmed, "waiting for the room" and the answered
   count.
+- **With a TV connected** a phone draws no stage: no host, scroll, stem, picture or event NPC.
+  The answers and the waiting line take the screen, and the reveal puts your points on their
+  plaque above your marked answers, with no tally, counts, others' guesses or explanation. A
+  TV that drops gives phones the whole question back.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
 picked or numeric answer fades beside the correct value. The host says your points at the foot of
@@ -491,7 +499,38 @@ with what waits in them (pending, open), none at zero.
   every form. A List/Stats toggle swaps the list for a table of each question's answers, scored
   share against its tier's band, no-answer share and suggested tier, whose Set queues a tier edit.
 
-## 16. Open tasks
+## 16. The TV
+
+A room's TV (§9) shows the room every screen; the phones hold the answers (§10). It must read
+from a sofa across the room on a 1080p screen, in every theme.
+
+- **One scale.** The stage is the phone's, scaled as a whole to 80% of the window's width or
+  height, whichever it reaches first, and centred; the floor shows around it. It is at least the
+  window's shape, so it fills that 80% both ways and keeps one size from question to reveal. The
+  timer bar's tabs hang at its edges, at its scale. No wall lights: the stage is in their place.
+- **The sheet** has its words at about 56px on a 1080p screen, set smaller down to 44px where
+  they would not fit (past that the stage grows taller, and smaller), the question centred in
+  the height above the foot. Its host or event NPC, 140px, stands on the sheet's foot as on a
+  phone (§8), and the words wrap around it.
+- **The panel** stands beside the scroll, one height with it, under it on a screen taller than
+  wide (at least 16rem tall there), and one size throughout: what does not fit in it shrinks,
+  never the stage. Open, it says
+  "3 of 5 answered", then shows the pet and name of everyone still to answer, each leaving as
+  they answer, or drop. No answers and no admin controls. The host says its waiting line.
+- **The reveal** fades into the panel (200 ms): the answers with their counts, the explanation,
+  the tally and names, team rows and "Question by" (§10–11). The foot has the host's reveal line
+  or the event's explanation; the TV scored nothing, so no points, pin, confetti or NPC reaction.
+  It fades off 200 ms before the next screen, or an event's return.
+- **Wide screens.** The lobby, splash and standings have no panel: the sheet takes the stage's
+  width, and narrows (400 ms) for the panel when the question opens. Nothing on them is offered.
+- **Lobby:** "Join on your phone", the code large and the link, the night's count and "Waiting for
+  2 more to be ready." (then the host's wait); "At the table" and the pets on the right, by team.
+- **Splash:** the round's count, the pets and "Waiting for…" or the countdown at the sheet's foot.
+- **Standings:** no row is yours. Past 12 rows the table scrolls slowly to its foot, holds, and
+  starts again. The final's ceremony plays whole, without Skip.
+- **No footer**, and the top bar stays out of sight until the pointer nears the window's top.
+
+## 17. Open tasks
 
 The open design tasks are GitHub issues labelled
 [`design`](https://github.com/vosdev/jolly-boar-inn/issues?q=is%3Aopen+label%3Adesign), with their

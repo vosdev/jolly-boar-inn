@@ -1,3 +1,5 @@
+import type { PlayerView } from './protocol'
+
 /**
  * The ready check's threshold, the same rule as `server/app/rooms/ready.py`.
  *
@@ -11,4 +13,9 @@
 export function readyThreshold(eligible: number): number {
   if (eligible <= 1) return 1
   return Math.min(Math.ceil(0.8 * eligible), eligible - 1)
+}
+
+/** Who the ready check counts and waits on: everyone but the TV, which plays no part. */
+export function playing(players: PlayerView[]): PlayerView[] {
+  return players.filter((player) => player.role !== 'tv')
 }

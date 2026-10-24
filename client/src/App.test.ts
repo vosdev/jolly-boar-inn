@@ -107,6 +107,7 @@ const QUESTION: OpenQuestion = {
   answerable_at: new Date().toISOString(),
   answered: 0,
   of: 0,
+  waiting: [],
 }
 
 beforeEach(() => {

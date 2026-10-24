@@ -67,6 +67,7 @@ from app.rooms.loop import (
     _recount_splash,
     _round_under_way,
     _stop_timer,
+    _waiting,
 )
 from app.rooms.models import (
     Broadcast,
@@ -590,11 +591,12 @@ class RoomManager(Joins, Lobby, Loop):
             open_view = (
                 question.view(
                     room.total,
-                    player.id,
+                    room.can_answer(question, player.id),
                     segment,
                     _answer_count(room, question),
                     self._picture(question),
                     self._pictures(question),
+                    _waiting(room, question),
                 )
                 if question is not None and segment is not None
                 else None
@@ -664,8 +666,8 @@ class RoomManager(Joins, Lobby, Loop):
                 raise BadState(f"room {code} is {room.status}, not in the lobby")
             if not room.questions:
                 raise BadState(f"room {code} has no questions")
-            if not room.sockets:
-                raise BadState("nobody is connected to play")
+            if not any(room.players[pid].role != "tv" for pid in room.sockets):
+                raise BadState("nobody but the TV is connected to play")
             if room.settings.teams:
                 _check_teams_ready(room)
             # A room made near its expiry must not expire mid-game, so it gets a full
@@ -735,7 +737,7 @@ class RoomManager(Joins, Lobby, Loop):
                 raise NotOpen("this question's time is up")
             if player.id in question.answers:
                 raise AlreadyAnswered("you have already answered this question")
-            if not question.can_answer(player.id):
+            if not room.can_answer(question, player.id):
                 raise Excluded("you cannot answer this question")
             # From here on the answer is its canonical form: stored, echoed and graded as that.
             value = TYPES[question.type].parse_value(question.payload, value)
@@ -765,7 +767,12 @@ class RoomManager(Joins, Lobby, Loop):
             question.answers[player.id] = Submitted(value=value, received_at=received_at, band=band)
             _close_if_everyone_answered(room)
             count = _answer_count(room, question)
-            counted = AnswerCount(question_id=question_id, answered=count[0], of=count[1])
+            counted = AnswerCount(
+                question_id=question_id,
+                answered=count[0],
+                of=count[1],
+                waiting=_waiting(room, question),
+            )
             others = Broadcast.to_all(room, counted.model_dump(mode="json"), exclude=player.id)
         self._broadcast(others)
         return how, band, count
@@ -803,9 +810,55 @@ class RoomManager(Joins, Lobby, Loop):
                 raise BadState("there is no such player in this room")
             if target.role == "admin":
                 return
+            if target.role == "tv":
+                raise BadState("the TV cannot be an admin")
             async with pool.acquire() as conn:
                 await conn.execute("update players set role = 'admin' where id = $1", player_id)
             target.role = "admin"
+            update = self._room_updated(room)
+        self._broadcast(update)
+
+    async def set_tv(self, code: str, by: Player, player_id: UUID, on: bool) -> None:
+        """Admin, lobby: make a player the room's one TV, or turn the TV back into a player.
+
+        A new TV turns the old one back into a player. The TV is un-ready and teamless,
+        because it plays no part. The last admin cannot be the TV, or nobody could run
+        the game; admins who are disconnected still count, since they can come back.
+        """
+        code = code.upper()
+        pool = await self._pool()
+        async with self._locked(code):
+            room = await self._room(code)
+            _require_admin(by)
+            if room.status != "lobby":
+                raise BadState("the TV is picked in the lobby")
+            target = room.players.get(player_id)
+            if target is None:
+                raise BadState("there is no such player in this room")
+            if on == (target.role == "tv"):
+                return
+            if on and target.role == "admin":
+                if sum(p.role == "admin" for p in room.players.values()) == 1:
+                    raise BadState("the last admin cannot be the TV")
+            old = [p for p in room.players.values() if on and p.role == "tv"]
+            async with pool.acquire() as conn, conn.transaction():
+                await conn.execute(
+                    "update players set role = 'player' where id = any($1::uuid[])",
+                    [p.id for p in old] + ([] if on else [target.id]),
+                )
+                if on:
+                    await conn.execute(
+                        "update players set role = 'tv', team = null where id = $1", target.id
+                    )
+            for player in old:
+                player.role = "player"
+            if on:
+                target.role = "tv"
+                target.team = None
+                target.ready = False
+                target.stop_editing()
+            else:
+                target.role = "player"
             update = self._room_updated(room)
         self._broadcast(update)
 

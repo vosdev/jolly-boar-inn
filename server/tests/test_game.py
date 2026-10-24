@@ -232,7 +232,7 @@ def test_start_game_needs_somebody_connected(app, client) -> None:
     manager = app.state.rooms
     with pytest.raises(BadState) as info:
         call(client, manager.start_game, room.code, admin)
-    assert info.value.message == "nobody is connected to play"
+    assert info.value.message == "nobody but the TV is connected to play"
     assert call(client, manager.get, room.code).status == "lobby"
 
 
@@ -278,10 +278,9 @@ def test_the_answer_row_is_committed_before_the_ack(game, db) -> None:
 
 
 def test_everyone_else_hears_the_answer_count(game) -> None:
-    """The waiting state's "2 of 3 answered", as a count and nothing else.
+    """The waiting state's "2 of 3 answered", with who is still to answer and never what.
 
-    The answerer hears it on their ack, so the broadcast leaves them out; nobody hears who
-    answered or what.
+    The answerer hears the count on their ack, so the broadcast leaves them out.
     """
     game.start()
     for opened in game.opened(0):
@@ -296,11 +295,12 @@ def test_everyone_else_hears_the_answer_count(game) -> None:
             "question_id": str(game.question(0).id),
             "answered": 1,
             "of": 3,
+            "waiting": [second.id, third.id],
         }
     game.answer(second, 0, game.wrong(0))
     ack = second.take("answer_ack")
     assert (ack["answered"], ack["of"]) == (2, 3)
-    assert third.take("answer_count")["answered"] == 2
+    assert third.take("answer_count")["waiting"] == [third.id]
     # Each heard only the other's answer counted, never their own.
     assert "answer_count" not in first.kinds
     assert second.kinds.count("answer_count") == 1
@@ -670,7 +670,8 @@ def test_welcome_mid_question_carries_the_question_and_your_answer(game, client)
         welcome = again.receive_json()
         assert welcome["t"] == "welcome"
         # The same question, with the count as it stands now rather than at open.
-        assert welcome["question"] == opened["question"] | {"answered": 1}
+        waiting = [seat.id for seat in game.seats if seat is not player]
+        assert welcome["question"] == opened["question"] | {"answered": 1, "waiting": waiting}
         assert welcome["your_answer"] == game.right(0)
         assert welcome["room"]["phase"] == "open"
         assert welcome["room"]["current_index"] == 0

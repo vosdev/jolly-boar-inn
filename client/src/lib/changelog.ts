@@ -44,6 +44,36 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.161.0',
+    date: '2026-10-23',
+    text: 'The TV shows the room code and who is at the table, then every splash and the standings, large.',
+  },
+  {
+    version: '0.160.0',
+    date: '2026-10-23',
+    text: 'The TV shows the question large, with who is still to answer beside it, then the whole reveal.',
+  },
+  {
+    version: '0.159.0',
+    date: '2026-10-23',
+    text: 'With a TV in the room, phones show only the answers and your points; the question is on the TV.',
+  },
+  {
+    version: '0.158.0',
+    date: '2026-10-23',
+    text: "Hosts can make a screen the room's TV from its pet in the lobby, and turn it back.",
+  },
+  {
+    version: '0.157.0',
+    date: '2026-10-23',
+    text: 'The TV now only watches: it never answers, holds up a round or shows in the standings.',
+  },
+  {
+    version: '0.156.0',
+    date: '2026-10-23',
+    text: 'A room can now have a TV: one screen that shows the questions to everyone and plays no part.',
+  },
+  {
     version: '0.155.2',
     date: '2026-10-23',
     text: 'Screens now fade into each other instead of flashing.',

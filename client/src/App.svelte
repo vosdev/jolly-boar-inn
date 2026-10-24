@@ -92,6 +92,8 @@
   // The frame is the room's: a stale `you` outlives Room until the next one resets it, so
   // the route decides, and leaving the room takes the frame off.
   const team = $derived(route.name === 'room' ? ($you?.team ?? null) : null)
+  /** The room's TV, which is watched from across the room: no footer, and a bar that hides. */
+  const tv = $derived(route.name === 'room' && $you?.role === 'tv')
   $effect(() => wearTeam(team))
 
   /** `state` rides along in `history.state`, for the screen at `to` to read. */
@@ -130,7 +132,7 @@
 <Floor />
 <WallLights />
 
-<TopBar {navigate} {wide} {team} badge={$timerBar === null}>
+<TopBar {navigate} {wide} {team} badge={$timerBar === null} autohide={tv}>
   {#snippet menu()}
     <SettingsMenu live={route.name === 'room' ? $you : null} />
   {/snippet}
@@ -141,7 +143,7 @@
      one from the last question's empty. -->
 {#if $timerBar !== null}
   {#key $timerBar.endsAt}
-    <TimerBar {...$timerBar} {team} />
+    <TimerBar {...$timerBar} {team} flush={tv} />
   {/key}
 {/if}
 
@@ -177,7 +179,7 @@
   {/key}
 </main>
 
-<Footer {wide} />
+{#if !tv}<Footer {wide} />{/if}
 
 <style>
   main {

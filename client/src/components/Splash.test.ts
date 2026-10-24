@@ -327,3 +327,22 @@ describe('Splash typing', () => {
     }
   })
 })
+
+describe('Splash on the TV', () => {
+  it('offers no ready button and keeps the ready check on the sheet, with no panel', () => {
+    render(Splash, {
+      segment: SEGMENT,
+      endsAt: null,
+      players: players(false),
+      youId: null,
+      onReady: () => {},
+      onSkip: () => {},
+      tv: true,
+    })
+    expect(screen.queryAllByRole('button')).toEqual([])
+    expect(within(paper()).getByRole('list', { name: '0 of 2 ready' })).toBeTruthy()
+    expect(within(paper()).getByText('Waiting for 1 more to be ready')).toBeTruthy()
+    expect(under()?.textContent?.trim() ?? '').toBe('')
+    expect(document.querySelector('.stage.tv.wide')).not.toBeNull()
+  })
+})

@@ -38,6 +38,7 @@ function event(patch: Partial<OpenQuestion> = {}): OpenQuestion {
     picture: null,
     answered: 0,
     of: 0,
+    waiting: [],
     ...patch,
   }
 }

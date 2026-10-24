@@ -41,6 +41,19 @@ describe('seatWords', () => {
     expect(prompt.style.getPropertyValue('--seat-from')).toBe('60px')
   })
 
+  it("writes the float in the sheet's own pixels on the TV, which scales the whole sheet", () => {
+    const prompt = at(el('p'), 120, 320, 40, 640)
+    const content = at(document.createElement('div'), 0, 400, 0, 600)
+    Object.defineProperty(content, 'offsetWidth', { value: 300 })
+    content.append(prompt)
+    document.body.append(content)
+    seatWords(content, { top: 240, bottom: 400, left: 0, right: 180 }, 'left')
+    expect(prompt.dataset.seat).toBe('wrap-left')
+    expect(prompt.style.getPropertyValue('--seat-w')).toBe('70px')
+    expect(prompt.style.getPropertyValue('--seat-h')).toBe('100px')
+    expect(prompt.style.getPropertyValue('--seat-from')).toBe('60px')
+  })
+
   it("measures a padded line's float inside its padding, so the line cannot grow it", () => {
     const quote = at(el('blockquote'), 60, 160)
     quote.style.padding = '6px 4px'

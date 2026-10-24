@@ -74,7 +74,7 @@ def _everyone_answered(room: Room, question: RoomQuestion) -> bool:
     A question nobody may answer (``host_only``) is never "all answered": it runs its
     full time, as section 4 says it should.
     """
-    eligible = [pid for pid in room.sockets if question.can_answer(pid)]
+    eligible = [pid for pid in room.sockets if room.can_answer(question, pid)]
     return bool(eligible) and all(pid in question.answers for pid in eligible)
 
 
@@ -85,9 +85,18 @@ def _answer_count(room: Room, question: RoomQuestion) -> tuple[int, int]:
     answered and has since dropped: an answer does not stop counting because its phone
     went to sleep, and the first number never exceeds the second.
     """
-    answering = {pid for pid in room.sockets if question.can_answer(pid)}
+    answering = {pid for pid in room.sockets if room.can_answer(question, pid)}
     answering.update(question.answers)
     return len(question.answers), len(answering)
+
+
+def _waiting(room: Room, question: RoomQuestion) -> list[str]:
+    """Who is still to answer ``question``: connected, allowed to, not yet in. Lock held."""
+    return [
+        str(pid)
+        for pid in room.sockets
+        if room.can_answer(question, pid) and pid not in question.answers
+    ]
 
 
 def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
@@ -108,7 +117,7 @@ def _recount_splash(room: Room, now: float, unready: bool = False) -> None:
     question = room.current
     if question is None:
         return
-    eligible = [pid for pid in room.sockets if question.can_answer(pid)]
+    eligible = [pid for pid in room.sockets if room.can_answer(question, pid)]
     tapped = sum(1 for pid in eligible if room.players[pid].ready)
     target = ready.countdown(room.next_mono, now, len(eligible), tapped)
     if target is None and not unready:
@@ -536,16 +545,18 @@ class Loop:
             room.next_at = room.next_mono = None
             room.advance.clear()
             count = _answer_count(room, question)
+            waiting = _waiting(room, question)
             opened = Broadcast.per_player(
                 room,
                 lambda pid: QuestionOpen(
                     question=question.view(
                         room.total,
-                        pid,
+                        room.can_answer(question, pid),
                         segment,
                         count,
                         self._picture(question),
                         self._pictures(question),
+                        waiting,
                     )
                 ).model_dump(mode="json"),
             )
@@ -641,7 +652,7 @@ class Loop:
                 unanswered=[
                     pid
                     for pid in room.sockets
-                    if question.can_answer(pid) and pid not in question.answers
+                    if room.can_answer(question, pid) and pid not in question.answers
                 ],
                 standings=room.standings(),
                 team_standings=room.team_standings(),

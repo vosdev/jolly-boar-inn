@@ -8,7 +8,7 @@
  */
 
 import { cleanup, render, screen, waitFor } from '@testing-library/svelte'
-import type { Component } from 'svelte'
+import { createRawSnippet, type Component } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ribbon from '../../assets/stage/ribbon.svg'
@@ -17,6 +17,7 @@ import bountySkull5 from '../../assets/sprites/bounty-skull-5.svg'
 import { serverNow } from '../../lib/clock'
 import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
 import { MODES } from '../../lib/modes'
+import { answerCount, players } from '../../lib/stores'
 import { clearVocabCache } from '../../lib/vocab'
 import QuestionStage from '../QuestionStage.svelte'
 import { STEMS, TYPE_VIEWS, viewFor } from './index'
@@ -70,6 +71,7 @@ function open(type: string, mode: string, view: Record<string, unknown> = VIEW):
     answerable_at: '2026-09-21T20:00:00Z',
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 
@@ -619,5 +621,197 @@ describe('the pin', () => {
     cleanup()
     render(QuestionStage, { question, yourValue: 0, onAnswer })
     expect(award()).toBeNull()
+  })
+})
+
+describe('a phone while the TV shows the question', () => {
+  beforeEach(() => {
+    clearVocabCache()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ vocab: 'items', version: 'v1', entries }))),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const TALLY = '3 of 4 got it right'
+  const tally = createRawSnippet(() => ({ render: () => `<p>${TALLY}</p>` }))
+  const nothingStaged = () => {
+    expect(document.querySelector('.stage, .scroll, .paper, .npc')).toBeNull()
+    expect(document.querySelector('img')).toBeNull()
+  }
+
+  for (const { type, mode, view } of EVERY_TYPE) {
+    it(`draws ${type}'s answers without stem, picture or host`, async () => {
+      const question = {
+        ...open(type, mode, { ...view, explanation: WHY }),
+        picture: '0123abcd.png',
+      }
+      render(QuestionStage, { question, yourValue: null, onAnswer, answersOnly: true })
+      await waitFor(() =>
+        expect(document.querySelector('.answers button, .answers input')).toBeTruthy(),
+      )
+      nothingStaged()
+      const prompt = (view as { prompt?: string }).prompt
+      if (prompt !== undefined) expect(screen.queryByText(prompt)).toBeNull()
+    })
+  }
+
+  it("draws a random event's answers without its NPC or card", () => {
+    const question = {
+      ...open('multiple_choice', 'random_event', {
+        prompt: 'Which prayer level unlocks Augury?',
+        options: ['70', '77', '74'],
+      }),
+      random_event: 'death',
+    }
+    render(QuestionStage, { question, yourValue: null, onAnswer, answersOnly: true })
+    nothingStaged()
+    expect(screen.queryByText('Which prayer level unlocks Augury?')).toBeNull()
+    expect(screen.getByRole('button', { name: /77/ })).toBeTruthy()
+  })
+
+  it('keeps the waiting line once you have answered', () => {
+    const question = open('more_less', 'more_less')
+    render(QuestionStage, { question, yourValue: 0, onAnswer, answersOnly: true })
+    expect(document.querySelector('.panel.waiting')?.textContent).toContain('Waiting for the room')
+  })
+
+  it('gets the whole question back when the TV goes', async () => {
+    const view = { prompt: 'Which?', options: ['Zulrah', 'Vorkath'] }
+    const question = { ...open('multiple_choice', 'custom', view), picture: 'a.png' }
+    const { rerender } = render(QuestionStage, {
+      question,
+      yourValue: null,
+      onAnswer,
+      answersOnly: true,
+    })
+    expect(screen.queryByText('Which?')).toBeNull()
+    await rerender({ answersOnly: false })
+    expect(document.querySelector('.paper')?.textContent).toContain('Which?')
+    expect(document.querySelector('.paper img')).toBeTruthy()
+  })
+
+  it('reveals your own answer and points, without the tally, counts or explanation', () => {
+    const view = { prompt: 'Which?', options: ['Zulrah', 'Vorkath', 'Kraken'] }
+    const question = open('multiple_choice', 'custom', view)
+    const results: Record<string, PlayerResult> = {
+      you: { value: 1, correct: false, credit: 0, points: 0 },
+      ann: { value: 0, correct: true, credit: 1, points: 700 },
+      bob: { value: 0, correct: true, credit: 1, points: 650 },
+    }
+    render(QuestionStage, {
+      question,
+      reveal: { ...view, answer_index: 0, explanation: WHY },
+      yourValue: 1,
+      result: results.you,
+      results,
+      onAnswer,
+      answersOnly: true,
+      children: tally,
+    })
+    nothingStaged()
+    expect(document.querySelector('.slot')?.textContent).toContain('+0')
+    expect(screen.getByRole('button', { name: /Vorkath/ }).textContent).toContain('you')
+    expect(document.querySelector('.votes, .bar')).toBeNull()
+    expect(screen.queryByText(TALLY)).toBeNull()
+    expect(screen.queryByText(WHY)).toBeNull()
+  })
+
+  it('reveals the points you scored', () => {
+    const question = open('more_less', 'more_less')
+    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    render(QuestionStage, {
+      question,
+      reveal: REVEAL,
+      yourValue: 0,
+      result,
+      onAnswer,
+      answersOnly: true,
+    })
+    expect(document.querySelector('.slot')?.textContent).toContain('+850')
+  })
+})
+
+describe("the room's TV", () => {
+  const VIEW_TV = { prompt: 'Which boss drops the tanzanite fang?', options: ['Zulrah', 'Vorkath'] }
+  const NAMES = '3 of 4 got it right · Got it wrong: Dave'
+  const tally = createRawSnippet(() => ({ render: () => `<p>${NAMES}</p>` }))
+  const watching = { ...open('multiple_choice', 'custom', VIEW_TV), you_can_answer: false }
+  const person = (id: string, connected = true) => ({
+    id,
+    display_name: id,
+    avatar: null,
+    role: 'player' as const,
+    team: null,
+    connected,
+    ready: false,
+    editing: false,
+  })
+
+  beforeEach(() => {
+    players.set([person('Ann'), person('Dave'), person('Bob', false)])
+    answerCount.set({ answered: 1, of: 3, waiting: ['Dave', 'Bob'] })
+  })
+
+  afterEach(() => {
+    players.set([])
+    answerCount.set(null)
+  })
+
+  it('shows an open question with no answer controls, and the answered count', () => {
+    render(QuestionStage, { question: watching, yourValue: null, onAnswer, tv: true })
+    expect(document.querySelector('.paper')?.textContent).toContain(VIEW_TV.prompt)
+    expect(screen.queryAllByRole('button')).toEqual([])
+    expect(document.querySelector('input')).toBeNull()
+    const panel = document.querySelector('.tv-panel')!
+    expect(panel.textContent).toContain('1 of 3')
+    expect(panel.textContent).toContain('answered')
+    expect(document.querySelector('.stage.tv')).toBeTruthy()
+  })
+
+  it('names who is still to answer, leaving out whoever has dropped', () => {
+    render(QuestionStage, { question: watching, yourValue: null, onAnswer, tv: true })
+    const names = [...document.querySelectorAll('.tv-panel li')].map((li) => li.textContent?.trim())
+    expect(names).toEqual(['Dave'])
+  })
+
+  it("shows a random event's open question with no answer controls", () => {
+    const question = { ...watching, random_event: 'death' }
+    render(QuestionStage, { question, yourValue: null, onAnswer, tv: true })
+    expect(document.querySelector('.paper')?.textContent).toContain(VIEW_TV.prompt)
+    expect(screen.queryAllByRole('button')).toEqual([])
+    expect(document.querySelector('.tv-panel')?.textContent).toContain('1 of 3')
+  })
+
+  it('reveals the answers with the tally and names, and no points', () => {
+    render(QuestionStage, {
+      question: watching,
+      reveal: { ...VIEW_TV, answer_index: 0 },
+      yourValue: null,
+      onAnswer,
+      tv: true,
+      children: tally,
+    })
+    const panel = document.querySelector('.stage.tv .tv-panel')!
+    expect(panel.textContent).toContain('Zulrah')
+    expect(panel.textContent).toContain(NAMES)
+    expect(document.querySelector('.slot')).toBeNull()
+  })
+
+  it("reveals a random event's tally and names the same way", () => {
+    render(QuestionStage, {
+      question: { ...watching, random_event: 'death' },
+      reveal: { ...VIEW_TV, answer_index: 0 },
+      yourValue: null,
+      onAnswer,
+      tv: true,
+      children: tally,
+    })
+    expect(document.querySelector('.stage.tv .tv-panel')?.textContent).toContain(NAMES)
+    expect(document.querySelector('.slot')).toBeNull()
   })
 })

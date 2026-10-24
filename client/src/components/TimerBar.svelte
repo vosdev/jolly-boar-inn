@@ -12,11 +12,15 @@
    * colour to the end there, since `--bad` would vanish on Zamorak's track: the seconds
    * tab goes back to the theme's, in `--bad`.
    *
+   * On the room's TV the stage is scaled to the window (`tvFit`), and the tabs with it: at
+   * the scaled stage's edges, at its scale, readable across the room.
+   *
    * The clock is `Timer`'s, `lib/clock.ts`, so a phone that was locked for twenty seconds
    * wakes onto the right width, not twenty seconds behind.
    */
   import { msUntil, serverNow } from '../lib/clock'
   import type { TeamId } from '../lib/teams'
+  import { tvFit } from '../lib/tv'
   import TeamBadge from './TeamBadge.svelte'
 
   let {
@@ -25,6 +29,7 @@
     label,
     progress,
     team = null,
+    flush = false,
   }: {
     endsAt: string
     totalSeconds: number
@@ -32,6 +37,8 @@
     progress?: string
     /** The player's team in a team game, whose colours the bar takes. */
     team?: TeamId | null
+    /** At the window's top, with no top bar above it: the room's TV. */
+    flush?: boolean
   } = $props()
 
   /** Where the bar turns urgent, in seconds. */
@@ -50,6 +57,7 @@
   class="timerbar"
   class:urgent
   class:framed={team !== null}
+  class:flush
   aria-label="{seconds} seconds {label}"
 >
   <div class="track" aria-hidden="true">
@@ -57,7 +65,14 @@
   </div>
   <!-- A question's screen is the stage's 30rem column, so its tabs hang at the stage's
        edges. The question's number is the heading's to say to a screen reader. -->
-  <div class="column" class:stage={progress !== undefined} aria-hidden="true">
+  <div
+    class="column"
+    class:stage={progress !== undefined}
+    class:tv={$tvFit !== null}
+    style:--tv-width={$tvFit === null ? null : `${$tvFit.width}px`}
+    style:--tv-scale={$tvFit?.scale ?? null}
+    aria-hidden="true"
+  >
     {#if progress !== undefined}
       <span class="tab progress">{progress}</span>
     {/if}
@@ -78,6 +93,10 @@
     z-index: 19;
     height: 6px;
     margin-bottom: -6px;
+  }
+
+  .flush {
+    top: 0;
   }
 
   .track {
@@ -112,6 +131,14 @@
 
   .column.stage {
     width: min(30rem, 100% - 2rem);
+  }
+
+  .column.tv {
+    width: min(var(--tv-width), 100% - 2rem);
+  }
+
+  .tv .tab {
+    font-size: calc(0.8rem * var(--tv-scale));
   }
 
   .progress {

@@ -287,6 +287,7 @@ export function previewOf(question: OrderingQuestion, mode: string): OpenQuestio
     you_can_answer: true,
     answered: 0,
     of: 0,
+    waiting: [],
   }
 }
 

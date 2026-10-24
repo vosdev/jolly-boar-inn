@@ -207,6 +207,7 @@ describe('Room', () => {
       answerable_at: new Date().toISOString(),
       answered: 0,
       of: 0,
+      waiting: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -245,6 +246,7 @@ describe('Room', () => {
       you_can_answer: true,
       answered: 0,
       of: 2,
+      waiting: [],
       picture: null,
       random_event: null,
       answerable_at: new Date().toISOString(),
@@ -268,7 +270,7 @@ describe('Room', () => {
     })
     await screen.findByText(/answered — waiting for the room/)
     expect(document.querySelector('.waiting .count')?.textContent).toBe('1 of 2')
-    applyServerMessage({ t: 'answer_count', question_id: 'q1', answered: 2, of: 2 })
+    applyServerMessage({ t: 'answer_count', question_id: 'q1', answered: 2, of: 2, waiting: [] })
     await screen.findByText('2 of 2')
 
     applyServerMessage({
@@ -315,6 +317,7 @@ describe('Room', () => {
       answerable_at: new Date().toISOString(),
       answered: 0,
       of: 0,
+      waiting: [],
     }
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
     applyServerMessage({ t: 'question_open', question: open })
@@ -372,6 +375,7 @@ describe('Room', () => {
         picture: null,
         answered: 0,
         of: 0,
+        waiting: [],
       }
       render(Room, { code: 'ABYSSAL', navigate: () => {} })
       applyServerMessage({
@@ -422,6 +426,7 @@ describe('Room', () => {
         answerable_at: new Date().toISOString(),
         answered: 0,
         of: 0,
+        waiting: [],
       }
       await arrive(welcome(roomView({ phase: 'open', next_at: null })))
       applyServerMessage({ t: 'question_open', question: open })
@@ -452,7 +457,7 @@ describe('Room', () => {
 
   it('drops a count for a question that is no longer open', async () => {
     await arrive(welcome(roomView({ phase: 'reveal', next_at: null })))
-    applyServerMessage({ t: 'answer_count', question_id: 'gone', answered: 3, of: 4 })
+    applyServerMessage({ t: 'answer_count', question_id: 'gone', answered: 3, of: 4, waiting: [] })
     expect(document.querySelector('.waiting')).toBeNull()
   })
 
@@ -596,6 +601,7 @@ describe('the list a question is answered from', () => {
       random_event: null,
       answered: 0,
       of: 0,
+      waiting: [],
       answerable_at: new Date().toISOString(),
       ...patch,
     }
@@ -677,6 +683,7 @@ describe('a random event’s way out', () => {
       picture: null,
       answered: 0,
       of: 0,
+      waiting: [],
       ...patch,
     }
   }
@@ -717,6 +724,7 @@ describe('a random event’s way out', () => {
     answerable_at: new Date().toISOString(),
     answered: 0,
     of: 0,
+    waiting: [],
   } satisfies OpenQuestion
 
   beforeEach(() => {
@@ -826,6 +834,7 @@ describe('the shared stage', () => {
     answerable_at: new Date().toISOString(),
     answered: 0,
     of: 0,
+    waiting: [],
   }
 
   let restore = () => {}
@@ -1190,6 +1199,7 @@ describe('what the tab and focus do', () => {
     answerable_at: new Date().toISOString(),
     answered: 0,
     of: 0,
+    waiting: [],
   }
 
   beforeEach(() => {

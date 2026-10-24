@@ -23,6 +23,15 @@
    *
    * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
    * leaves the answers out, for a preview whose answers a player cannot try yet.
+   * `answersOnly` is its counterpart, for a phone while the room's TV shows the question:
+   * no stage, stem, picture or event card, only the answers and the waiting line, and on
+   * the reveal your points on their plaque. Everything about the room as a whole, the
+   * tally, each option's count, the others' guesses and the explanation, is the TV's.
+   *
+   * `tv` is the TV's own: the stage with no answers while the question is open, and
+   * beside the scroll the panel of who is still to answer, which widens into the whole
+   * reveal. The host says its lines at the sheet's foot, but there
+   * are no points, pin or confetti, since the TV answers nothing.
    */
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
@@ -33,12 +42,15 @@
   import { hostOf, INNKEEPER } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { answerAck, answerCount, serverOffsetMs } from '../lib/stores'
+  import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
   import Stage from './stage/Stage.svelte'
+  import TvReveal from './TvReveal.svelte'
+  import TvWaiting from './TvWaiting.svelte'
 
   let {
     question,
@@ -50,6 +62,8 @@
     live = false,
     nextAt = null,
     stemOnly = false,
+    answersOnly = false,
+    tv = false,
     hero = null,
     children,
   }: {
@@ -67,6 +81,9 @@
     /** The reveal's end, for a random event's return. */
     nextAt?: string | null
     stemOnly?: boolean
+    answersOnly?: boolean
+    /** This browser is the room's TV. */
+    tv?: boolean
     /** A picture to stand in the innkeeper's place; other hosts keep their own. */
     hero?: string | null
     children?: Snippet
@@ -93,6 +110,8 @@
   const typist = new Typist(() => letters, plan, startedAt)
   const answerable = new Until(() => answerableMs)
   const held = $derived(reveal === null && !answerable.passed)
+  /** The TV's reveal fading off its panel, so the next question starts from an empty one. */
+  const closing = new Until(() => (nextAt === null ? NaN : Date.parse(nextAt) - TV_CLOSE_MS))
 
   /**
    * Where the answer landed, from `answer_ack`. A ranked question has no band, since a
@@ -117,12 +136,16 @@
 
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
   {#snippet sheet()}
-    {@render stem()}
+    {#if tv}
+      <div class="tv-stem">{@render stem()}</div>
+    {:else}
+      {@render stem()}
+    {/if}
     <div class="said">
       {#if reveal !== null}
         <p class="line">{host.reveal}</p>
-        <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
-      {:else if yourValue !== null}
+        {#if !tv}<PointsSlot {result} canAnswer={question.you_can_answer} onScroll />{/if}
+      {:else if yourValue !== null || tv}
         <p class="line">{host.waiting}</p>
       {/if}
     </div>
@@ -133,9 +156,12 @@
     {scene}
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}
-    award={reveal === null ? NO_AWARD : awardFor(result)}
+    award={reveal === null || tv ? NO_AWARD : awardFor(result)}
+    {tv}
   >
-    {#if (answers !== null && !stemOnly) || children}
+    {#if tv}
+      {@render tvPanel(answers)}
+    {:else if (answers !== null && !stemOnly) || children}
       <section class="panel answers">
         {#if !stemOnly}{@render answers?.()}{/if}
         {@render children?.()}
@@ -143,6 +169,27 @@
     {/if}
     {@render waiting()}
   </Stage>
+{/snippet}
+
+{#snippet tvPanel(answers: Snippet | null)}
+  {#if reveal === null}
+    <TvWaiting />
+  {:else}
+    <TvReveal closing={closing.passed}>
+      {@render answers?.()}
+      {@render children?.()}
+    </TvReveal>
+  {/if}
+{/snippet}
+
+{#snippet bare(stem: Snippet, answers: Snippet | null)}
+  {#if reveal !== null}
+    <PointsSlot {result} canAnswer={question.you_can_answer} />
+  {/if}
+  <section class="panel answers">
+    {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
+  </section>
+  {@render waiting()}
 {/snippet}
 
 {#snippet waiting()}
@@ -167,7 +214,20 @@
   {/if}
 {/snippet}
 
-{#if question.random_event}
+{#if answersOnly}
+  <div class="bare">
+    <Question
+      {question}
+      {reveal}
+      {yourValue}
+      {result}
+      {onAnswer}
+      held={hasHold ? held : undefined}
+      explain={false}
+      frame={bare}
+    />
+  </div>
+{:else if question.random_event}
   <RandomEvent
     {question}
     {reveal}
@@ -177,6 +237,7 @@
     {onAnswer}
     {live}
     {nextAt}
+    {tv}
     below={waiting}
   >
     {@render children?.()}
@@ -216,6 +277,18 @@
     white-space: nowrap;
   }
 
+  /* The TV's sheet is the window's shape, taller than its words: the question stands in
+     the middle of the room above the foot, rather than at the top of an empty sheet. */
+  .tv-stem {
+    display: flex;
+    flex-direction: column;
+    margin-block: auto;
+  }
+
+  .tv-stem + .said {
+    margin-top: 0;
+  }
+
   .line {
     margin: 0;
     font-size: var(--line-size);
@@ -229,6 +302,19 @@
     .answers {
       padding: calc(0.5rem - var(--border-give));
     }
+  }
+
+  /* The stage's width without the stage, so the answers sit where they would under it. */
+  .bare {
+    display: grid;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+
+  .bare > :global(.slot) {
+    justify-self: center;
   }
 
   .waiting {

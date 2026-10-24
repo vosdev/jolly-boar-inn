@@ -59,6 +59,7 @@
   import Splash from '../components/Splash.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { historyPath, latestPastGame } from '../lib/history'
+  import { answersOnly } from '../lib/tv'
   import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
   import { clearSession, getSession, normalizeCode } from '../lib/session'
   import {
@@ -230,6 +231,7 @@
   const yourResult = $derived(
     $you === null || $lastClosed === null ? null : ($lastClosed.results[$you.id] ?? null),
   )
+  const phone = $derived(answersOnly($players, $you))
   /** The question's own heading, for the heading line and the title. */
   const questionTitle = $derived(`Question ${number} of ${total}`)
 
@@ -381,6 +383,7 @@
       teamOf={teamsOf($players)}
       youId={$you?.id ?? null}
       ceremony={$endedLive}
+      tv={$you?.role === 'tv'}
     >
       <button type="button" onclick={leave}>Home</button>
     </FinalStandings>
@@ -396,6 +399,7 @@
       onReady={(ready) => socket?.send({ t: 'ready', ready })}
       onSkip={isAdmin ? skip : null}
       onEndRound={isAdmin ? askEndRound : null}
+      tv={$you?.role === 'tv'}
     />
   {:else}
     <!-- playing. A question's screen is the stage and nothing to read past it. -->
@@ -426,6 +430,7 @@
           teamStandings={$teamStandings}
           {segment}
           youId={$you?.id ?? null}
+          tv={$you?.role === 'tv'}
         />
       {:else if $room.phase === 'open' && $question !== null}
         <QuestionStage
@@ -433,6 +438,8 @@
           yourValue={$yourAnswer}
           onAnswer={answer}
           live={$questionLive}
+          answersOnly={phone}
+          tv={$you?.role === 'tv'}
         />
       {:else if $lastClosed !== null && $lastClosed.was !== null}
         <QuestionStage
@@ -443,6 +450,8 @@
           results={$lastClosed.results}
           onAnswer={() => {}}
           nextAt={$room.next_at}
+          answersOnly={phone}
+          tv={$you?.role === 'tv'}
         >
           <RevealTally
             type={$lastClosed.was.type}

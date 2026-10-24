@@ -37,6 +37,8 @@
     children?: Snippet
     scene?: string | null
     within?: number
+    tv?: boolean
+    wide?: boolean
   } = $props()
 
   const shared = sharedStage()

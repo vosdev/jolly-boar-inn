@@ -36,6 +36,14 @@
    *
    * The sheet is the theme's (`lib/sheet.ts`), and `board` asks for Home's notice board. A
    * sheet without rolls takes their room away, so the host laps over the sheet's own edge.
+   *
+   * A `tv` stage is the room's TV's (section 16): what goes under the line stands beside
+   * the scroll instead, a panel of one width whatever is in it, and under it again on a
+   * screen taller than it is wide. Its widths are set, not found, because the stage is a
+   * size container; its height is at least the room's TV's `--tv-min-height`, so the
+   * stage keeps one shape, and one scale, from question to reveal and back. A `wide` TV
+   * stage has no panel: its sheet takes the stage's whole width, and narrows to make room
+   * for the panel when the next screen brings one.
    */
   import { onMount, type Snippet } from 'svelte'
 
@@ -62,6 +70,8 @@
     children,
     slots = false,
     presence = 'here',
+    tv = false,
+    wide = false,
     root = $bindable(null),
   }: {
     /** A picture to stand in the host's place instead, larger: Home's, from the branding. */
@@ -89,6 +99,10 @@
     slots?: boolean
     /** A hand-over: whoever stands beside the scroll leaving, gone or walking on. */
     presence?: Presence
+    /** The room's TV's stage, with its panel beside the scroll. */
+    tv?: boolean
+    /** On the TV, the sheet across the whole stage, with no panel beside it. */
+    wide?: boolean
     root?: HTMLElement | null
   } = $props()
 
@@ -111,11 +125,17 @@
     const content = root?.querySelector<HTMLElement>('.content') ?? null
     const npc = event ? guestNpc : hostNpc
     if (tall || content === null || npc === null) return
-    return keepSeated(content, npc, event ? 'right' : 'left')
+    return keepSeated(content, npc, event ? 'right' : 'left', () => tv)
   })
 </script>
 
-<div class="stage" class:with-hero={hero !== null} bind:this={root}>
+<div
+  class="stage"
+  class:with-hero={hero !== null}
+  class:tv
+  class:wide={tv && wide}
+  bind:this={root}
+>
   <div
     class="stage-row presence-{presence}"
     class:flat={!hasRolls(sheet)}
@@ -446,6 +466,105 @@
 
   .under:empty {
     display: none;
+  }
+
+  /* The TV's panel beside the scroll, stretched to its height, the reveal's width while it
+     waits as well, so nothing on the stage changes size between the two. */
+  .stage.tv {
+    --tv-gap: 1.5rem;
+    display: flex;
+    align-items: stretch;
+    gap: var(--tv-gap);
+    width: calc(30rem + var(--tv-gap) + 22rem);
+    max-width: none;
+    min-height: var(--tv-min-height, 0);
+  }
+
+  /* The sheet and the panel are always one height, the taller one's. */
+  /* Read from the sofa: the sheet's words at about 56px on a 1080p screen, less where they
+     would not fit (`--tv-text`, `SharedStageView`), and whoever stands on it near twice a
+     phone's size, to go with them. */
+  .tv .stage-row {
+    --scroll-text: var(--tv-text, 1.6);
+    --npc-w: 140px;
+    flex: none;
+    width: 30rem;
+    align-items: stretch;
+    transition: width 400ms ease-in-out;
+  }
+
+  .wide .stage-row {
+    width: 100%;
+  }
+
+  .stage.wide .under {
+    display: none;
+  }
+
+  /* The TV's sheet has height to spare, so whoever stands there stands on it, over its
+     foot as on a phone, and gives the sheet the stage's whole width; the words wrap round
+     them (`lib/seat.ts`). The host keeps the left, an event's NPC the right. */
+  .tv .npc {
+    position: absolute;
+    left: calc(var(--roll-w) / 2 + 6px);
+    bottom: calc(var(--finial) * 0.75);
+    margin: 0;
+  }
+
+  .tv :is(.event, .returning) .guest {
+    left: auto;
+    right: calc(var(--roll-w) / 2 + 6px);
+  }
+
+  .tv :is(.entering, .returning) > :global(.scroll) {
+    animation: none;
+  }
+
+  .tv .stage-row > :global(.scroll),
+  .tv .stage-row > :global(.scroll > .reveal) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tv .stage-row > :global(.scroll > .reveal),
+  .tv .stage-row > :global(.scroll > .reveal > .paper) {
+    flex: 1;
+  }
+
+  .tv .under {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+  }
+
+  .tv .under :global(.tv-panel) {
+    flex: 1;
+  }
+
+  @media (orientation: portrait) {
+    .stage.tv {
+      flex-direction: column;
+      width: 30rem;
+    }
+
+    /* Its words are shrunk to fit it, so it would give all its height to a long question. */
+    .tv .under {
+      margin-top: 0;
+      min-height: 16rem;
+    }
+
+    .wide .stage-row {
+      flex: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage.tv,
+    .tv .stage-row {
+      transition: none;
+    }
   }
 
   /* On a phone the hero stands bigger than a host would, so part of it goes past the
