@@ -363,7 +363,12 @@
         players: rows.filter(([, result]) => result.correct).map(([id]) => who(id)),
         right: true,
       },
-      ...groups.map((group) => ({ ...group, right: false })),
+      // With no heading over them, matching's "2 of 4" says what it counts.
+      ...groups.map((group) => ({
+        ...group,
+        label: type === 'matching' ? `${group.label} matched` : group.label,
+        right: false,
+      })),
       { ...missed, right: false },
     ]
       .filter((group) => group.players.length > 0)

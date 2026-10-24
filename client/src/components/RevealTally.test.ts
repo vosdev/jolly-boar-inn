@@ -75,9 +75,10 @@ function draw(
     type = 'multiple_choice',
     reveal = OPTIONS as Record<string, unknown>,
     unanswered = [] as string[],
+    panel = false,
   } = {},
 ) {
-  return render(RevealTally, { type, reveal, results, unanswered, nameOf, youId, showNames })
+  return render(RevealTally, { type, reveal, results, unanswered, nameOf, youId, showNames, panel })
 }
 
 /** A pick-all answer graded as the server does: right picks over right or picked. */
@@ -300,6 +301,18 @@ describe('RevealTally', () => {
       'None (1): Alkan',
       'No answer (1): Mod Ash',
     ])
+  })
+
+  it('says what a matching row counts in the results panel, where no heading does', () => {
+    const fields = ['a', 'b', 'c', 'd'].map((text) => ({ text }))
+    const options = ['w', 'x', 'y', 'z', 'q'].map((text) => ({ text }))
+    const { container } = draw(
+      { a: partly(0.5), b: right(), e: wrong() },
+      { type: 'matching', reveal: { fields, options, answer: [0, 1, 2, 3] }, panel: true },
+    )
+    expect(
+      [...container.querySelectorAll('.row .label')].map((label) => label.textContent),
+    ).toEqual(['All matched', '2 of 4 matched', 'None matched'])
   })
 
   it('with picks, groups an ordering answer by its value, in place and out of place', () => {
