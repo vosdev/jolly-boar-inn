@@ -192,7 +192,17 @@ describe('Room', () => {
       'Zezima (you)',
       'Woox',
     ])
-    expect(screen.getByRole('heading', { level: 2, name: 'Hiscores' })).toBeTruthy()
+    expect(document.querySelector('.bubble .speech')?.textContent).toContain('Wise Old Man')
+  })
+
+  it('names the next round between rounds, the bar under its round', async () => {
+    const next = { ...SEGMENT, mode: 'more_less', index: 1, start: SEGMENT.count, count: 4 }
+    await arrive(welcome(roomView({ next_segment: next })))
+    // No desktop frame here, so it is the phone's strip.
+    expect(screen.getByRole('region', { name: 'Next up' }).textContent).toMatch(
+      /Next up:\s*More or Less\s*10/,
+    )
+    expect(get(timerBar)).toMatchObject({ quiet: true, progress: '1/2' })
   })
 
   it('lets the host start the next round early', async () => {
@@ -1213,7 +1223,8 @@ describe('the shared stage', () => {
       players: [],
     })
     await tick()
-    const host = () => document.querySelector<HTMLImageElement>('.stage-row .npc.host img')!
+    // He speaks in his bubble, so he stands above the sheet, not beside it.
+    const host = () => document.querySelector<HTMLImageElement>('.speaker .npc.host img')!
     expect(row().classList.contains('presence-leaving')).toBe(true)
     expect(words().style.opacity).toBe('0')
     await vi.advanceTimersByTimeAsync(HOST_OUT_MS)
