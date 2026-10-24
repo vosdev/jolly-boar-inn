@@ -52,8 +52,6 @@
     players,
     youId,
     onReady,
-    onSkip = null,
-    onEndRound = null,
     tv = false,
   }: {
     segment: Segment
@@ -63,10 +61,6 @@
     youId: string | null
     /** Tap ready, or take it back. */
     onReady: (ready: boolean) => void
-    /** The host's skip; null for everyone else. */
-    onSkip?: (() => void) | null
-    /** The host's end of the round, which skips it whole; null for everyone else. */
-    onEndRound?: (() => void) | null
     /** Drawn on the room's TV. */
     tv?: boolean
   } = $props()
@@ -206,16 +200,6 @@
           </div>
 
           {@render countdown()}
-          {#if onSkip !== null || onEndRound !== null}
-            <div class="host">
-              {#if onSkip !== null}
-                <button type="button" class="small" onclick={onSkip}>Start the round now</button>
-              {/if}
-              {#if onEndRound !== null}
-                <button type="button" class="small" onclick={onEndRound}>End the round</button>
-              {/if}
-            </div>
-          {/if}
         </div>
       </AtTable>
     {/if}
@@ -309,12 +293,5 @@
     background: var(--panel);
     color: var(--muted);
     text-align: right;
-  }
-
-  .host {
-    align-self: flex-end;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
 </style>

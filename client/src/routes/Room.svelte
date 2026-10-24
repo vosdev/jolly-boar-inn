@@ -35,13 +35,13 @@
    * too, which is how a build from before `standings` existed rides one out.
    *
    * Every screen with a stage shares one (`lib/sharedStage.svelte.ts`), drawn after the
-   * screens and before the host's controls, so it moves from screen to screen rather than
-   * each screen putting up its own.
+   * screens, so it moves from screen to screen rather than each screen putting up its own.
    *
    * The room is a frame (`lib/roomFit.ts`): the stage on the left and the table column on
    * the right, laid out at one size and scaled to the window, or stacked on a phone. What a
    * screen puts at the table it hands over with `AtTable`. The top bar says where the night
-   * is (`lib/barWhere.ts`). The TV keeps its own view and has no frame.
+   * is (`lib/barWhere.ts`), and an admin's Host menu there holds what the phase lets
+   * them do (`lib/hostMenu.ts`). The TV keeps its own view and has no frame.
    *
    * A screen reader hears the changes through one polite live region that stays mounted
    * for the whole visit, because a region inserted already filled is often never read: a
@@ -64,6 +64,7 @@
   import Splash from '../components/Splash.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
   import { barWhere, whereOf } from '../lib/barWhere'
+  import { hostMenu, type HostAction } from '../lib/hostMenu'
   import { historyPath, latestPastGame } from '../lib/history'
   import { answersOnly } from '../lib/tv'
   import { roomFit, roomShown, type RoomFit } from '../lib/roomFit'
@@ -303,6 +304,7 @@
    */
   const skipLabel = $derived.by(() => {
     const current = $room
+    if (current?.phase === 'splash') return 'Start the round now'
     if (current?.phase === 'open') return 'Close this question now'
     if (current?.phase === 'standings') return 'Start the next round now'
     if (current?.phase !== 'reveal' || current.current_index === null) {
@@ -368,6 +370,7 @@
       removeEventListener('resize', refit)
       roomShown.set(null)
       barWhere.set(null)
+      hostMenu.set(null)
     }
   })
 
@@ -384,13 +387,22 @@
     )
   })
 
-  /** The playing screens after the splash, which have the host's controls under the stage. */
-  const hostControls = $derived(
-    $room !== null &&
-      $room.status !== 'lobby' &&
-      $room.status !== 'finished' &&
-      !($room.phase === 'splash' && $room.segment !== null),
-  )
+  /** What the host can do in this phase; the lobby and the final screen have their own. */
+  const hostActions = $derived.by((): HostAction[] | null => {
+    const current = $room
+    if (!isAdmin || socket === null || departure !== null || current?.status !== 'playing') {
+      return null
+    }
+    return [
+      { label: skipLabel, run: skip },
+      ...(askEndRound === null ? [] : [{ label: 'End the round', run: askEndRound }]),
+      { label: 'End the game', run: () => (endingGame = true) },
+    ]
+  })
+
+  $effect(() => {
+    hostMenu.set(hostActions)
+  })
 
   function answer(value: unknown): void {
     const open = $question
@@ -461,8 +473,6 @@
               players={$players}
               youId={$you?.id ?? null}
               onReady={(ready) => socket?.send({ t: 'ready', ready })}
-              onSkip={isAdmin ? skip : null}
-              onEndRound={isAdmin ? askEndRound : null}
               tv={$you?.role === 'tv'}
             />
           {:else}
@@ -552,34 +562,16 @@
 
           <SharedStageView {stage} />
 
-          {#if $room !== null && hostControls && isAdmin && socket !== null}
-            <div class:column={$room.phase !== 'standings'}>
-              <section class="panel">
-                <h2>Host</h2>
-                <div class="row">
-                  <button type="button" onclick={skip}>{skipLabel}</button>
-                  {#if askEndRound !== null}
-                    <button type="button" onclick={askEndRound}>End the round</button>
-                  {/if}
-                  <button type="button" onclick={() => (endingGame = true)}>End the game</button>
-                </div>
-                <p class="note">
-                  {$players.length}
-                  {$players.length === 1 ? 'player' : 'players'} in the room.
-                </p>
-              </section>
-              {#if endingGame}
-                <ConfirmDialog
-                  message="End the game now and show the final standings?"
-                  confirmLabel="End the game"
-                  onConfirm={() => {
-                    socket?.send({ t: 'end_game' })
-                    endingGame = false
-                  }}
-                  onCancel={() => (endingGame = false)}
-                />
-              {/if}
-            </div>
+          {#if endingGame && isAdmin}
+            <ConfirmDialog
+              message="End the game now and show the final standings?"
+              confirmLabel="End the game"
+              onConfirm={() => {
+                socket?.send({ t: 'end_game' })
+                endingGame = false
+              }}
+              onCancel={() => (endingGame = false)}
+            />
           {/if}
           {#if endingRound !== null && isAdmin}
             <ConfirmDialog

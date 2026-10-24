@@ -23,6 +23,7 @@ import { npcArt } from '../lib/npcs'
 import { ENTER_MOVE_MS, HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
 import { barWhere } from '../lib/barWhere'
+import { hostMenu } from '../lib/hostMenu'
 import { roomShown } from '../lib/roomFit'
 import { timerBar } from '../lib/timerbar'
 import { stubAnimations } from '../test-animate'
@@ -159,6 +160,19 @@ async function arrive(message: Welcome): Promise<void> {
   await screen.findByRole('heading', { level: 1 })
 }
 
+/** The labels in the top bar's Host menu, which App draws from this store. */
+function hostLabels(): string[] | null {
+  return get(hostMenu)?.map((action) => action.label) ?? null
+}
+
+/** Pick `label` from the Host menu. */
+async function host(label: string): Promise<void> {
+  const action = get(hostMenu)?.find((one) => one.label === label)
+  expect(action, label).toBeDefined()
+  action!.run()
+  await tick()
+}
+
 describe('Room', () => {
   it('spells the code in the address bar as the server does', async () => {
     history.replaceState(null, '', '/r/ABYSSAL')
@@ -183,7 +197,7 @@ describe('Room', () => {
 
   it('lets the host start the next round early', async () => {
     await arrive(welcome(roomView({}), 'admin'))
-    screen.getByRole('button', { name: 'Start the next round now' }).click()
+    await host('Start the next round now')
     expect(sent).toContainEqual({ t: 'skip', phase: 'standings', index: 0 })
   })
 
@@ -1166,13 +1180,13 @@ describe('the host’s skip', () => {
     ['after the game’s last question', reveal(3), 'Show the final standings'],
   ])('says where a reveal %s goes, and names it when pressed', async (_, view, label) => {
     await arrive(welcome(view, 'admin'))
-    screen.getByRole('button', { name: label }).click()
+    await host(label)
     expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: view.current_index }])
   })
 
   it('names the question it closes', async () => {
     await arrive(welcome(roomView({ phase: 'open', current_index: 1, next_at: null }), 'admin'))
-    screen.getByRole('button', { name: 'Close this question now' }).click()
+    await host('Close this question now')
     expect(sent).toEqual([{ t: 'skip', phase: 'open', index: 1 }])
   })
 
@@ -1180,7 +1194,8 @@ describe('the host’s skip', () => {
     // The splash is the whole screen, with no heading for `arrive` to wait on.
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
     applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
-    ;(await screen.findByRole('button', { name: 'Start the round now' })).click()
+    await waitFor(() => expect(hostLabels()).not.toBeNull())
+    await host('Start the round now')
     expect(sent).toEqual([{ t: 'skip', phase: 'splash', index: 0 }])
   })
 })
@@ -1188,7 +1203,7 @@ describe('the host’s skip', () => {
 describe('the host’s End the game', () => {
   async function ask(): Promise<HTMLElement> {
     await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
-    await fireEvent.click(screen.getByRole('button', { name: 'End the game' }))
+    await host('End the game')
     const dialog = screen.getByRole('dialog')
     expect(dialog.textContent).toContain('End the game now and show the final standings?')
     return dialog
@@ -1212,16 +1227,13 @@ describe('the host’s End the game', () => {
 describe('the host’s End the round', () => {
   async function ask(view: RoomView): Promise<HTMLElement> {
     await arrive(welcome(view, 'admin'))
-    await fireEvent.click(screen.getByRole('button', { name: 'End the round' }))
+    await host('End the round')
     return screen.getByRole('dialog')
   }
 
   it('sits between the skip and End the game', async () => {
     await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
-    const names = screen.getAllByRole('button').map((button) => button.textContent?.trim())
-    const at = names.indexOf('End the round')
-    expect(names[at - 1]).toBe('Show the standings now')
-    expect(names[at + 1]).toBe('End the game')
+    expect(hostLabels()).toEqual(['Show the standings now', 'End the round', 'End the game'])
   })
 
   it('ends the round on screen only once the host confirms', async () => {
@@ -1251,17 +1263,66 @@ describe('the host’s End the round', () => {
 
   it('is not offered during the standings', async () => {
     await arrive(welcome(roomView({ phase: 'standings' }), 'admin'))
-    expect(screen.queryByRole('button', { name: 'End the round' })).toBeNull()
+    expect(hostLabels()).toEqual(['Start the next round now', 'End the game'])
   })
 
   it('is on the splash, beside its skip', async () => {
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
     applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
-    await fireEvent.click(await screen.findByRole('button', { name: 'End the round' }))
+    await waitFor(() =>
+      expect(hostLabels()).toEqual(['Start the round now', 'End the round', 'End the game']),
+    )
+    await host('End the round')
     await fireEvent.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'End the round' }),
     )
     expect(sent).toEqual([{ t: 'end_round', index: 0 }])
+  })
+})
+
+describe('the Host menu', () => {
+  it('is an admin’s, and not a player’s', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' })))
+    expect(hostLabels()).toBeNull()
+    cleanup()
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    expect(hostLabels()).not.toBeNull()
+  })
+
+  it('lists the question’s own actions while it is open', async () => {
+    await arrive(welcome(roomView({ phase: 'open', next_at: null }), 'admin'))
+    expect(hostLabels()).toEqual(['Close this question now', 'End the round', 'End the game'])
+  })
+
+  it('is not there in the lobby or after the game', async () => {
+    for (const status of ['lobby', 'finished'] as const) {
+      render(Room, { code: 'ABYSSAL', navigate: () => {} })
+      applyServerMessage(
+        welcome(roomView({ status, phase: 'idle', next_at: null, segment: null }), 'admin'),
+      )
+      await tick()
+      expect(hostLabels(), status).toBeNull()
+      cleanup()
+    }
+  })
+
+  it('goes with the room', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    cleanup()
+    expect(hostLabels()).toBeNull()
+  })
+
+  it('leaves no host panel under the answers or on the splash', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    expect(screen.queryByRole('heading', { name: 'Host' })).toBeNull()
+    expect(screen.queryByText(/in the room\./)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'End the game' })).toBeNull()
+    cleanup()
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
+    await waitFor(() => expect(hostLabels()).not.toBeNull())
+    expect(screen.queryByRole('button', { name: 'Start the round now' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'End the round' })).toBeNull()
   })
 })
 

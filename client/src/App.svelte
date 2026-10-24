@@ -41,6 +41,7 @@
   import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
   import { barWhere } from './lib/barWhere'
+  import { hostMenu } from './lib/hostMenu'
   import { roomShown } from './lib/roomFit'
   import { room, you } from './lib/stores'
   import { wearTeam } from './lib/teams'
@@ -142,6 +143,7 @@
   {wide}
   full={inRoom}
   where={$roomShown === null ? null : $barWhere}
+  host={inRoom ? $hostMenu : null}
   {team}
   badge={$timerBar === null}
   autohide={tv}

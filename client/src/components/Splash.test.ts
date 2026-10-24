@@ -336,7 +336,6 @@ describe('Splash on the TV', () => {
       players: players(false),
       youId: null,
       onReady: () => {},
-      onSkip: () => {},
       tv: true,
     })
     expect(screen.queryAllByRole('button')).toEqual([])

@@ -129,12 +129,17 @@ learns the position, which is worth more than variety.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [sign] The Jolly Boar Inn            [⌥]  [pet Name emblem]  │  56px, sticky
+│ [sign] The Jolly Boar Inn      [Host ⌄]  [⌥]  [pet Name emblem]  │  56px, sticky
 └──────────────────────────────────────────────────────────────┘
 ```
 
 - **Left:** the sign, a plain `href="/"` link home, then the wordmark. Both are configurable (§14).
   The version is in the footer.
+- **Host ⌄**, outlined, comes first for an admin while a room plays (not in the lobby or the final
+  hiscores), on a phone too. Its menu holds the phase's actions: "Start the round now", "Close this
+  question now", the reveal's skip (next question, standings, next round or final standings), "Start
+  the next round now", "End the round", "End the game"; the last two ask first. Kick, promote and
+  Make TV stay on the pets.
 - **Right:** GitHub (`--muted`, the one control not about the game), then one control: the pet,
   the name and the current theme's **emblem**. One thumb target, not three. The name is the bar's
   priority: it shows at every width and is the one item that shrinks, ellipsising.

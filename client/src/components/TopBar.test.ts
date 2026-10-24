@@ -71,4 +71,16 @@ describe('TopBar', () => {
     expect(controls()).toEqual(['Source code on GitHub', 'menu'])
     expect(screen.queryByText('Guest')).toBeNull()
   })
+
+  it('puts the Host menu first among the controls when the room gives one', () => {
+    const { unmount } = render(TopBar, {
+      navigate,
+      menu: slot('You'),
+      host: [{ label: 'End the game', run: () => {} }],
+    })
+    expect(controls().map((name) => name.trim())).toEqual(['Host', 'Source code on GitHub', 'You'])
+    unmount()
+    render(TopBar, { navigate, menu: slot('You') })
+    expect(controls()).toEqual(['Source code on GitHub', 'You'])
+  })
 })

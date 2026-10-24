@@ -27,7 +27,8 @@
    *
    * **In a room** the bar runs the window's width (`full`), and its middle says where the
    * night is (`where`): "Round 1 of 3: More or Less", "Lobby". A stacked room, a phone's,
-   * passes none.
+   * passes none. An admin's Host menu (`HostMenu`) comes first among the controls while the
+   * room is playing.
    *
    * **In a team game** the bar is the frame's: the player's god's colour, and the god's
    * symbol in place of the sign, still the way home. On a screen with no timer under the
@@ -37,9 +38,11 @@
   import { initial, logo, logos, siteName } from 'virtual:branding'
 
   import type { BarWhere } from '../lib/barWhere'
+  import type { HostAction } from '../lib/hostMenu'
   import { REPO_URL } from '../lib/links'
   import { team as teamNamed, type TeamId } from '../lib/teams'
   import { watchTheme } from '../lib/theme'
+  import HostMenu from './HostMenu.svelte'
   import TeamBadge from './TeamBadge.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
@@ -56,6 +59,7 @@
     wide = false,
     full = false,
     where = null,
+    host = null,
     team = null,
     badge = false,
     autohide = false,
@@ -68,6 +72,8 @@
     full?: boolean
     /** Where the room's night is, for the bar's middle. */
     where?: BarWhere | null
+    /** The admin's controls for the room's phase; null draws no Host menu. */
+    host?: HostAction[] | null
     /** The player's team in a team game, whose frame the bar wears. */
     team?: TeamId | null
     /** Hang the team's badge from the bar: there is no timer bar to hang it. */
@@ -144,6 +150,9 @@
     {/if}
 
     <div class="controls">
+      {#if host !== null}
+        <HostMenu actions={host} />
+      {/if}
       <a
         class="control github"
         href={REPO_URL}
