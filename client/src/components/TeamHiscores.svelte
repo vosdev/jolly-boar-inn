@@ -3,6 +3,8 @@
    * A team game's hiscores on the Wise Old Man's scroll: the teams ranked by logo, name and
    * points, with the round's gain and the places moved as `Hiscores` draws them, and each
    * team's members under it with their own totals, best first, so the weak link shows.
+   * With `columns`, as `Hiscores` has them, each team's line puts its move and gain in
+   * columns of their own.
    *
    * `teams` is the order to draw, and a new order moves the teams rather than jumping them.
    * Until `settled` a team shows its rank and total before the round, as do its members.
@@ -10,7 +12,14 @@
   import { cubicOut } from 'svelte/easing'
   import { flip } from 'svelte/animate'
 
-  import { arrivalDelay, membersOf, movement, pointsBefore, SHUFFLE } from '../lib/hiscores'
+  import {
+    arrivalDelay,
+    membersOf,
+    movement,
+    pointsBefore,
+    SHUFFLE,
+    type Movement,
+  } from '../lib/hiscores'
   import { petOf } from '../lib/pets'
   import type { Standing, TeamStanding } from '../lib/protocol'
   import { players } from '../lib/stores'
@@ -28,6 +37,7 @@
     arriving = false,
     instant = false,
     changes = true,
+    columns = false,
   }: {
     teams: TeamStanding[]
     standings: Standing[]
@@ -42,6 +52,8 @@
     instant?: boolean
     /** The round's gains and moves; a past game has the totals alone. */
     changes?: boolean
+    /** One line a team, the move and the gain in columns of their own. */
+    columns?: boolean
   } = $props()
 
   const numbers = new Intl.NumberFormat()
@@ -56,7 +68,21 @@
   }
 </script>
 
-<ol class="team-hiscores" class:arriving aria-label="Team hiscores">
+{#snippet moved(move: Movement | null)}
+  {#if move !== null}
+    <span class="move" class:up={move.up} class:down={!move.up}
+      ><span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}</span
+    >
+  {/if}
+{/snippet}
+
+{#snippet gained(row: TeamStanding)}
+  <span class="gain" class:shown={settled}
+    >+{numbers.format(row.points_gained)}<span class="sr">{' this round'}</span></span
+  >
+{/snippet}
+
+<ol class="team-hiscores" class:arriving class:columns aria-label="Team hiscores">
   {#each teams as row, i (row.team)}
     {@const god = team(row.team)}
     {@const members = membersOf(row.team, standings, teamOf)}
@@ -72,14 +98,14 @@
           <span class="sr">Rank </span><span class="number"
             >{settled ? row.rank : (row.previous_rank ?? '–')}</span
           >
-          {#if move !== null}
-            <span class="move" class:up={move.up} class:down={!move.up}
-              ><span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}</span
-            >
-          {/if}
+          {#if !columns}{@render moved(move)}{/if}
         </span>
+        {#if columns}<span class="moved">{@render moved(move)}</span>{/if}
         <span class="logo"><TeamLogo team={row.team} /></span>
         <span class="name">{god.name}</span>
+        {#if columns}<span class="round"
+            >{#if changes}{@render gained(row)}{/if}</span
+          >{/if}
         <span class="points">
           <span class="total"
             ><CountUp
@@ -87,11 +113,7 @@
               duration={instant ? 0 : SHUFFLE.count}
             /><span class="sr">{' points'}</span></span
           >
-          {#if changes}
-            <span class="gain" class:shown={settled}
-              >+{numbers.format(row.points_gained)}<span class="sr">{' this round'}</span></span
-            >
-          {/if}
+          {#if changes && !columns}{@render gained(row)}{/if}
         </span>
       </div>
       {#if members.length > 0}
@@ -153,6 +175,22 @@
 
   .rank {
     align-self: start;
+  }
+
+  .columns .head {
+    grid-template-columns: 3.5rem 3rem 1.9rem 1fr 7.5rem 7.5rem;
+  }
+
+  .columns .rank {
+    align-self: center;
+  }
+
+  .round {
+    text-align: right;
+  }
+
+  .columns .members {
+    padding-left: 7.4rem;
   }
 
   .logo {

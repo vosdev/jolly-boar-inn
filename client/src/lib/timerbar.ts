@@ -21,6 +21,8 @@ export interface TimerBarState {
   progress?: string
   /** Counting down to what follows, not for answering: "Next in 6s", in a quiet fill. */
   next?: boolean
+  /** The quiet fill alone, the tab plain seconds: the standings, whose panel says what is next. */
+  quiet?: boolean
 }
 
 export const timerBar = writable<TimerBarState | null>(null)

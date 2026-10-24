@@ -250,7 +250,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   speaker, in Quill, the speaker's name then the line. An event's NPC stands at the right, its
   bubble pointing right (§12). A hidden bubble keeps its room, so the sheet never moves when the
   host speaks, and a bubble is from the first frame as tall as the most its screen will say.
-- **Elsewhere the host stands beside the sheet**: the standings and hiscores
+- **Elsewhere the host stands beside the sheet**: a past game's hiscores
   (§11, at a long sheet's top-left), Home and the TV. There it stands at the scroll's bottom-left,
   over its left roll, 78px wide overlapping 30px (68px and 32px on a phone); under 448px of screen,
   and on the TV, it stands on the sheet and the words wrap around it.
@@ -401,18 +401,24 @@ in display tabular numerals and the scroll's ink:
 
 Standings appear between rounds and at the end, never between questions, in the `standings` phase
 (architecture §7). A single-round game shows only the final ones. Both are the Wise Old Man's
-hiscores on the stage (§8), for wiseoldman.net, where OSRS players track their gains. The sheet
-runs long, so he stands at its top-left beside his line, and the table takes the sheet's width
-below him. Agreed in `client/prototypes/standings.html`.
+hiscores on the stage (§8), for wiseoldman.net, where OSRS players track their gains. He speaks in
+his bubble and the table is the whole sheet; a past game and the TV put him at the sheet's
+top-left beside his line, the title "Hiscores" or "Final hiscores" over it.
 
-The table is the OSRS hiscores: `#`, pet, name, right-aligned tabular points. Each row is two
-lines, the places moved (▲2, ▼1) under the rank and the round's gain (+1,240) under the total, so
-a 24-letter name keeps the middle at 350px. "(you)" never splits from itself. The first round has
-no moves. Your row is highlighted, and between rounds pinned to the screen's foot when below it.
+The table is the OSRS hiscores. On a desktop each row is one line: Rank, the places moved (▲2,
+▼1), pet and name, "This round" (+1,240, muted) and bold points. On a phone, the TV and a past
+game it is `#`, name and points, two lines a row, the move under the rank and the gain under the
+total. "(you)" never splits from itself. The first round has no moves. Your row is highlighted,
+and between rounds pinned to the sheet's foot when below it.
 
 **Between rounds** he says "Round 2 done. Let's see who truly knows Gielinor best." The rows start
 where they stood before the round, with the totals then; once his line has typed the gains count
 up, a second later the rows move to their places, and then your row pins. About three seconds.
+The table panel says "Next up": the next round's host, its name, "Round 3 of 3, 5 questions"
+(`room.next_segment`, so hidden and shuffled rounds too) and "Starts in 8", large, at its foot.
+On a phone it is a strip at the foot, "Next up: Bestiary" and the count, that opens nothing. The
+timer bar counts to the next round in the quiet fill, its tabs `2/3` (rounds played) and `8s`.
+The TV shows none of it.
 
 **The final** opens on "The final scores are in!", then presents fifth place to first: his line
 ("In fifth place…", "Tied for second…", "And top of the hiscores…"), then the place's pets (three,
@@ -422,7 +428,8 @@ dense, so tied players share a place; nobody on 0 points gets one, and a room wh
 has no ceremony. The place then fades, the sheet unrolls to the full table with the rows arriving
 top to bottom, and he says "Gz, Name! Here are the full hiscores." A Skip button jumps there.
 
-The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
+The final standings have no table panel: the stage stands in the middle of the room, the trophy
+right of the sheet. The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
 past game from history show the table at once, as does reduced motion; a past game shows only the
 totals, without moves or gains. Trophies are art, not tokens.
 

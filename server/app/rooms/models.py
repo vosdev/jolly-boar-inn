@@ -384,6 +384,14 @@ class Room:
     def current_segment(self) -> Segment | None:
         return None if self.current_index is None else self.segment_at(self.current_index)
 
+    @property
+    def next_segment(self) -> Segment | None:
+        """The round after the current one, or ``None`` past the last."""
+        current = self.current_segment
+        if current is None or current.index + 1 >= len(self.segments):
+            return None
+        return self.segments[current.index + 1]
+
     def question_seconds(self, question: RoomQuestion) -> int:
         """How long ``question`` stays open: its type's time at the room's pace."""
         return answer_seconds(question.type, question.payload, self.settings.pace)
@@ -462,6 +470,7 @@ class Room:
             reveal_seconds=self.reveal_seconds if self.phase == "reveal" else None,
             estimated_seconds=self.estimated_seconds(),
             segment=self.current_segment,
+            next_segment=self.next_segment if self.phase == "standings" else None,
             finished_at=self.finished_at,
             rounds=rounds,
             key=self.invite_key if admin else None,

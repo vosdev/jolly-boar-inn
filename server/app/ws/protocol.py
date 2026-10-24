@@ -103,6 +103,11 @@ class RoomView(_Message):
     """How long the game takes at most, for the lobby's minutes: ``rooms/duration.py``."""
     segment: Segment | None
     """The round in progress, null before the first question and once the game is over."""
+    next_segment: Segment | None = Field(default=None, exclude_if=lambda segment: segment is None)
+    """The round the standings hand over to, sent only in the standings phase: hidden or
+    shuffled rounds are its splash's news, which the standings' "Next up" tells a few
+    seconds early.
+    """
     finished_at: datetime | None
     """When the game ended, null until it has. Every browser files the result under it, so it
     comes from the server's clock and not each one's own.

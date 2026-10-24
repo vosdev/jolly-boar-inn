@@ -50,6 +50,12 @@ def test_left_out_fields_are_optional_and_never_null(model: str, field: str, typ
     assert "anyOf" not in shape["properties"][field]
 
 
+def test_the_next_round_is_left_out_rather_than_null() -> None:
+    room = DEFS["RoomView"]
+    assert "next_segment" not in room["required"]
+    assert room["properties"]["next_segment"]["$ref"] == "#/$defs/Segment"
+
+
 def test_client_defaults_are_optional() -> None:
     assert DEFS["SetProfile"]["required"] == ["t"]
 

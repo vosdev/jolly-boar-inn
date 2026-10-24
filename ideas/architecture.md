@@ -318,7 +318,8 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 
 ```
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
-               reveal_seconds, estimated_seconds, segment, finished_at, rounds?, key?, requests? }
+               reveal_seconds, estimated_seconds, segment, next_segment?, finished_at, rounds?,
+               key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }   role: player, admin, tv
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
@@ -345,6 +346,7 @@ PlayerResult { value, correct, credit, points }
   `reveal_seconds` is the reveal's whole length, for the countdown bar; null outside a reveal.
 - `estimated_seconds` is the lobby's minutes for the stored questions (section 3).
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
+- `next_segment` is the round the standings hand over to, sent only in the standings phase.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` and
   `surprise_modes` themselves only when set.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
@@ -364,7 +366,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 - The question list is never sent. `GET /api/rooms/{code}` returns only `{status, players}`, a count;
   `GET /api/rooms/public` is in section 10.
 - With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
-  rounds `current_index` has reached. The lobby names none, admins' included: screens get shared.
+  rounds `current_index` has reached, and the standings `next_segment`. The lobby names none, admins' included: screens get shared.
   With `surprise_modes`, admins get the same withheld list: the host did not pick them either.
 - An admin can read the room's custom questions before the game. They cannot score on them.
 - An invite-only room's key and join requests reach admins only. The key is a column, not a setting.

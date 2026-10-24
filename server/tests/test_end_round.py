@@ -94,6 +94,37 @@ def test_ending_a_round_goes_to_its_standings_then_the_next_splash(
     assert game.admin.take("question_open")["question"]["index"] == 2
 
 
+def test_the_standings_name_the_next_round_and_only_they_do(table, client, second_mode) -> None:
+    game = table(
+        "Zezima",
+        reveal_seconds=30,
+        standings_seconds=30,
+        splash=True,
+        seconds=10,
+        mode_order="listed",
+        modes=[{"mode": "more_less", "questions": 2}, {"mode": second_mode, "questions": 3}],
+    )
+    game.start()
+    assert "next_segment" not in game.splash()["room"]
+    game.skip()
+    game.opened(0)
+    end_round(game)
+
+    room = to_standings(game)["room"]
+    assert room["next_segment"] == {
+        "mode": second_mode,
+        "index": 1,
+        "total": 2,
+        "start": 2,
+        "count": 3,
+    }
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        welcome = reseat(game.players[0], ws).take("welcome")
+    assert welcome["room"]["next_segment"] == room["next_segment"]
+    game.skip()
+    assert "next_segment" not in game.splash()["room"]
+
+
 def test_with_standings_off_a_round_ends_straight_into_the_next_splash(table, second_mode) -> None:
     game = table("Zezima", reveal_seconds=30, splash=True, **rounds("more_less", second_mode))
     game.start()

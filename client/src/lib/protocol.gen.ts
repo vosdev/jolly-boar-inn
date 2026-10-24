@@ -214,6 +214,12 @@ export interface RoomView {
    */
   segment: Segment | null
   /**
+   * The round the standings hand over to, sent only in the standings phase: hidden or
+   * shuffled rounds are its splash's news, which the standings' "Next up" tells a few
+   * seconds early.
+   */
+  next_segment?: Segment
+  /**
    * When the game ended, null until it has. Every browser files the result under it, so it
    * comes from the server's clock and not each one's own.
    */

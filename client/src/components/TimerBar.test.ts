@@ -35,6 +35,20 @@ describe('TimerBar', () => {
     expect(bar.classList.contains('urgent')).toBe(false)
   })
 
+  it('counts the standings down in the quiet fill under the round and plain seconds', () => {
+    render(TimerBar, {
+      endsAt: new Date(Date.now() + 4_000).toISOString(),
+      totalSeconds: 10,
+      label: 'to the next round',
+      progress: '2/3',
+      quiet: true,
+    })
+    expect(tabs()).toEqual(['2/3', '4s'])
+    const bar = document.querySelector('.timerbar')!
+    expect(bar.classList.contains('next')).toBe(true)
+    expect(bar.classList.contains('urgent')).toBe(false)
+  })
+
   describe('in a room laid out for a desktop', () => {
     afterEach(() => roomShown.set(null))
 

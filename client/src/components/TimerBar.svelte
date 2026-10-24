@@ -33,6 +33,7 @@
     label,
     progress,
     next = false,
+    quiet = false,
     team = null,
     flush = false,
   }: {
@@ -42,6 +43,8 @@
     progress?: string
     /** Counting down to what follows a reveal: the tab says "Next in", the fill is quiet. */
     next?: boolean
+    /** The quiet fill with a plain tab: the standings, whose panel says what comes next. */
+    quiet?: boolean
     /** The player's team in a team game, whose colours the bar takes. */
     team?: TeamId | null
     /** At the window's top, with no top bar above it: the room's TV. */
@@ -57,7 +60,7 @@
   // then the bar sits full on the question's own length rather than counting the hold.
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
-  const urgent = $derived(!next && remainingMs > 0 && seconds <= URGENT_S)
+  const urgent = $derived(!next && !quiet && remainingMs > 0 && seconds <= URGENT_S)
   const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit, $roomShown.reveal))
   const scale = $derived($tvFit?.scale ?? $roomShown?.fit.scale ?? null)
 </script>
@@ -65,7 +68,7 @@
 <div
   class="timerbar"
   class:urgent
-  class:next
+  class:next={next || quiet}
   class:framed={team !== null}
   class:flush
   aria-label="{seconds} seconds {label}"

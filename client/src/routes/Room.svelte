@@ -225,7 +225,13 @@
         endsAt: current.next_at,
         totalSeconds: standing ? current.settings.standings_seconds : (current.reveal_seconds ?? 0),
         label: standing ? 'to the next round' : 'to the next question',
-        ...(standing ? {} : { progress: `${number}/${total}`, next: !isTv }),
+        ...(standing
+          ? {
+              quiet: !isTv,
+              ...(!isTv &&
+                segment !== null && { progress: `${segment.index + 1}/${segment.total}` }),
+            }
+          : { progress: `${number}/${total}`, next: !isTv }),
       })
     } else {
       timerBar.set(null)
@@ -455,7 +461,7 @@
   style:--room-width={framed === null ? null : `${framed.width}px`}
   style:--room-height={framed === null ? null : `${framed.height}px`}
 >
-  <div class="play" class:revealing>
+  <div class="play" class:revealing class:final={$room?.status === 'finished'}>
     <div class="stage-side">
       <div class="stage-in">
         {#if departure !== null}
@@ -491,6 +497,7 @@
               teamOf={teamsOf($players)}
               youId={$you?.id ?? null}
               ceremony={$endedLive}
+              stacked={framed === null}
               tv={$you?.role === 'tv'}
             >
               <button type="button" onclick={leave}>Home</button>
@@ -555,7 +562,10 @@
                   standings={$standings}
                   teamStandings={$teamStandings}
                   {segment}
+                  next={$room.next_segment ?? null}
+                  endsAt={$room.next_at}
                   youId={$you?.id ?? null}
+                  stacked={framed === null}
                   tv={$you?.role === 'tv'}
                 />
               {:else if $room.phase === 'open' && $question !== null}
@@ -664,6 +674,27 @@
 
   .fitted .play.revealing {
     grid-template-columns: minmax(0, 1fr) 380px;
+  }
+
+  /* The final standings have no panel: the stage stands in the middle of the room. */
+  .fitted .play.final {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fitted .play.final .stage-in {
+    width: 100%;
+    max-width: var(--stage-wide);
+    margin-inline: auto;
+  }
+
+  .fitted .play.final .table {
+    display: none;
+  }
+
+  /* The ceremony's trophy stands right of the sheet, where the panel would be. */
+  .fitted .play.final :global(.stage-row .beside) {
+    right: -152px;
+    width: 128px;
   }
 
   /* A small question stands in the middle of the stage's height; one taller than the
