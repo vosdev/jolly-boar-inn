@@ -19,6 +19,8 @@ export interface TimerBarState {
   label: string
   /** Which question of the round this is, as `2/3`, for the tab on the bar's left end. */
   progress?: string
+  /** Counting down to what follows, not for answering: "Next in 6s", in a quiet fill. */
+  next?: boolean
 }
 
 export const timerBar = writable<TimerBarState | null>(null)

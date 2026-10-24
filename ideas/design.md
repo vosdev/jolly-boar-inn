@@ -86,13 +86,14 @@ learns the position, which is worth more than variety.
 - Your own pick carries a small "you", right or wrong. The verdict is the points slot (§10), not
   the button. The reveal adds one more thing: how many picked it, in the corner, with a bar along
   the bottom for its share of who answered. It names nobody, so it shows whatever the setting.
-- Under every reveal: "22 of 41 got it right", then under "Got it wrong" a line per group,
-  `label (count): names`. A group is the option (with its gem's chip), the typed answer (three,
-  then "Something else"), the list entry, the closest-number rank ("Further off" last, every name
-  with its guess, furthest first), right picks, entries in place, or fields right ("N of M got
-  them all" for `matching`). Eight names a line, you
-  first, then "and N more". "No answer" comes last, muted: it is not wrong. With
-  `name_wrong_answers` off the lines keep their counts and drop the names.
+- Every reveal's results take the table panel (§9): "22 of 41 got it right", then a row per
+  group, the right one first, labelled with the answer, then the wrong ones: the option (with its
+  gem's chip), the typed answer (three, then "Something else"), the list entry, the closest-number
+  rank ("Further off" last, every name with its guess), right picks, entries in place, or fields
+  right. Each row has its count, a bar for its share of everyone who could answer, and its names:
+  eight, you first, then "and N more". "No answer" comes last, muted: it is not wrong. The right
+  row always names its players; with `name_wrong_answers` off the others keep only their counts.
+  The TV keeps its tally under its answers, as a line per wrong group.
 - Six gems means no question offers more than six options.
 - `pick_all_that_apply` drags the right gems from a tray into a basket, as `ordering` does, nothing
   fading until Submit. Without `picks` the basket grows, unnumbered; with it, that many empty places.
@@ -303,14 +304,16 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 
 The table panel (`TablePanel`) is who is at the table, on the theme's panel beside the stage. It
 has two halves, each with its count: the lobby's and splash's "Ready" over "Not ready yet", a
-question's "Answered" over "Still thinking", then "No answer" once it closes. A pet moves up as
+question's "Answered" over "Still thinking". A pet moves up as
 its player readies or answers. Pets sit four abreast, the name under each, yours first in your
 half and in bold, the rest below in join order and above in the order they arrived. An away pet
 fades to grey, says "away" and stays below, since the server only knows who is still to answer
 among the connected. A team game splits each half by team in god order, the teamless last. The
 TV sits apart under "TV" at the foot. A question nobody answers lists everyone under "At the table".
 On a phone a question's panel is a strip at the foot, "2 of 9 answered" and the first four faces,
-answered first. It opens the panel as a sheet, and a new question closes it. The lobby and splash
+answered first; in a reveal "5 of 9 got it right" and the faces of who did. It opens the panel
+as a sheet, the reveal's as "Results", and a new question closes it. A reveal's panel is its
+results (§3), 380px wide. The lobby and splash
 keep the whole panel under the stage, since it holds their buttons. The threshold, countdowns and
 take-back rule are architecture §7.
 
@@ -335,7 +338,8 @@ take-back rule are architecture §7.
 ## 10. The question screen and the reveal
 
 - The timer is a thin bar under the top bar, with the seconds in a tab at the stage's right edge
-  and the question's number (`2/3`) in one at its left.
+  and the question's number (`2/3`) in one at its left. In a reveal it counts to what follows,
+  the tab saying "Next in 6s" and the fill in `--muted`, never turning urgent.
 - **The answers take the size the question needs**, laid out by the stage's width, so a preview
   matches the room. Choices are two abreast and 56px tall on a phone, an odd last one across the
   row: thumb targets at a pub table. On a wide stage they are at least 84px tall, three abreast,
@@ -344,7 +348,7 @@ take-back rule are architecture §7.
   on the left and the instruction, Start over and Submit in a 230px column on its right; a phone
   stacks them. The combobox, number and slider keep their controls at the board's width.
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
-  `--scroll-ink`, the answers, combobox and tally under it, who has answered at the table. The
+  `--scroll-ink`, the answers and combobox under it, who has answered at the table. The
   question's heading is for a screen reader only.
 - A pack question's picture, the wiki's detail render, is centred under the prompt in a box 5rem
   tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.

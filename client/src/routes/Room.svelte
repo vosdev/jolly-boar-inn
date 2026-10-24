@@ -225,7 +225,7 @@
         endsAt: current.next_at,
         totalSeconds: standing ? current.settings.standings_seconds : (current.reveal_seconds ?? 0),
         label: standing ? 'to the next round' : 'to the next question',
-        ...(standing ? {} : { progress: `${number}/${total}` }),
+        ...(standing ? {} : { progress: `${number}/${total}`, next: !isTv }),
       })
     } else {
       timerBar.set(null)
@@ -426,6 +426,28 @@
   }
 </script>
 
+{#snippet tally(panel: boolean)}
+  {#if $lastClosed !== null && $lastClosed.was !== null}
+    <RevealTally
+      type={$lastClosed.was.type}
+      reveal={$lastClosed.reveal}
+      results={$lastClosed.results}
+      unanswered={$lastClosed.unanswered}
+      {nameOf}
+      youId={$you?.id ?? null}
+      showNames={$room?.settings.name_wrong_answers === true}
+      suggestedBy={$lastClosed.suggested_by ?? null}
+      teams={$room?.settings.teams ?? []}
+      teamOf={teamsOf($players)}
+      {panel}
+    />
+  {/if}
+{/snippet}
+
+{#snippet results()}
+  {@render tally(true)}
+{/snippet}
+
 <div
   class="frame"
   class:fitted={framed !== null}
@@ -519,6 +541,10 @@
                     hostOnly={!tableFor.you_can_answer}
                     teams={$room.settings.teams}
                     stacked={framed === null}
+                    unanswered={$lastClosed?.unanswered ?? []}
+                    outcome={$room.phase !== 'open' && $lastClosed?.was != null
+                      ? results
+                      : undefined}
                   />
                 </AtTable>
               {/if}
@@ -553,18 +579,9 @@
                   answersOnly={phone}
                   tv={$you?.role === 'tv'}
                 >
-                  <RevealTally
-                    type={$lastClosed.was.type}
-                    reveal={$lastClosed.reveal}
-                    results={$lastClosed.results}
-                    unanswered={$lastClosed.unanswered}
-                    {nameOf}
-                    youId={$you?.id ?? null}
-                    showNames={$room.settings.name_wrong_answers === true}
-                    suggestedBy={$lastClosed.suggested_by ?? null}
-                    teams={$room.settings.teams}
-                    teamOf={teamsOf($players)}
-                  />
+                  {#if $you?.role === 'tv'}
+                    {@render tally(false)}
+                  {/if}
                 </QuestionStage>
               {:else if $lastClosed !== null}
                 <section class="panel">

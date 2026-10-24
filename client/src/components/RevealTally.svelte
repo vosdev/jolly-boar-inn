@@ -35,6 +35,12 @@
    *
    * Last, the player who suggested the question, when they asked to be named. It sits off
    * the scroll and under everything else, so the reveal reads the same with or without it.
+   *
+   * As the room's results `panel` (section 10 of ideas/design.md) it is a row per answer
+   * instead: the right one first, labelled with the answer, then the wrong ones and "No
+   * answer", each with its count, a bar for its share of everyone who could answer, and
+   * its names under it. The right row always names its players; the others only with
+   * `showNames`. The TV keeps the tally as it was.
    */
   import { normalize } from '../lib/customQuestions'
   import { formatGp } from '../lib/gp'
@@ -56,6 +62,7 @@
     suggestedBy = null,
     teams = [],
     teamOf = {},
+    panel = false,
   }: {
     /** The question's type, which decides what an answer's group is. */
     type: string
@@ -74,6 +81,8 @@
     teams?: readonly TeamId[]
     /** Each player's team by id. */
     teamOf?: Readonly<Record<string, TeamId>>
+    /** Drawn as the room's results panel, a row per answer, rather than under the answers. */
+    panel?: boolean
   } = $props()
 
   const NAMES_SHOWN = 8
@@ -307,6 +316,74 @@
 
   const teamRows = $derived(teamMedians(teams, teamOf, results))
 
+  /** A number as the question wrote it, with its unit. */
+  function written(value: number): string {
+    const unit = typeof reveal.unit === 'string' && reveal.unit !== '' ? reveal.unit : null
+    return unit === null ? count.format(value) : `${count.format(value)} ${unit}`
+  }
+
+  /** What the right row is called: the answer itself where there is one to say. */
+  const rightLabel = $derived.by((): { label: string; gem: Gem | null } => {
+    const index = Number(reveal.answer_index)
+    switch (type) {
+      case 'multiple_choice':
+        return { label: optionLabel(index), gem: GEMS[Math.min(index, GEMS.length - 1)] ?? null }
+      case 'more_less':
+        return { label: optionLabel(index), gem: null }
+      case 'free_text': {
+        const accepted = reveal.accepted as unknown[] | undefined
+        return { label: `“${String(accepted?.[0] ?? '')}”`, gem: null }
+      }
+      case 'pick_from_list':
+        return { label: vocab?.get(Number(reveal.answer_id)) ?? '…', gem: null }
+      case 'price_is_right':
+        return { label: `${formatGp(Number(reveal.value))} gp`, gem: null }
+      case 'number_slider':
+      case 'closest_number':
+        return { label: written(Number(reveal.answer)), gem: null }
+      case 'pick_all_that_apply':
+        return { label: 'All right', gem: null }
+      case 'ordering':
+        return { label: 'All in place', gem: null }
+      case 'matching':
+        return { label: 'All matched', gem: null }
+      default:
+        return { label: 'Right answer', gem: null }
+    }
+  })
+
+  /** Everyone who could have answered, for each row's share. */
+  const everyone = $derived(rows.length + unanswered.length)
+
+  const panelRows = $derived(
+    [
+      {
+        key: 'right',
+        ...rightLabel,
+        players: rows.filter(([, result]) => result.correct).map(([id]) => who(id)),
+        right: true,
+      },
+      ...groups.map((group) => ({ ...group, right: false })),
+      { ...missed, right: false },
+    ]
+      .filter((group) => group.players.length > 0)
+      .map((group) => {
+        const players = [...group.players].sort(youFirst)
+        const named = group.right || showNames ? players.slice(0, NAMES_SHOWN) : []
+        const you = players.find((player) => player.you)
+        const withYou =
+          you !== undefined && named.length > 0 && !named.includes(you)
+            ? [...named.slice(0, -1), you]
+            : named
+        return {
+          ...group,
+          named: withYou,
+          more: withYou.length === 0 ? 0 : players.length - withYou.length,
+          share: everyone === 0 ? 0 : group.players.length / everyone,
+        }
+      }),
+  )
+
   const shown = $derived(
     [...groups, missed]
       .filter((group) => group.players.length > 0)
@@ -321,53 +398,104 @@
   )
 </script>
 
-<div class="tally">
-  {#if rows.length === 0}
-    <p class="count">Nobody answered this one.</p>
-  {:else}
-    <p class="count">
-      <strong class="number">{right} of {rows.length}</strong>
-      {type === 'closest_number'
-        ? 'guessed it exactly'
-        : type === 'matching'
-          ? 'got them all'
-          : 'got it right'}
-    </p>
-    {#if shown.length > 0}
-      <p class="head">Got it wrong</p>
-      <ul class="groups">
-        {#each shown as group (group.key)}
-          <li class="group" class:quiet={group.quiet}>
-            {#if group.gem !== null}<span class="chip {group.gem}" aria-hidden="true"></span>{/if}
-            <span class="label">{group.label}</span>
-            <span class="number">({group.players.length})</span
-            >{#if showNames}:{' '}{#each group.named as player, index (player.id)}{index > 0
-                  ? group.sep
-                  : ''}<span class="who" class:you={player.you}
-                  >{player.name}{player.you ? ' (you)' : ''}</span
+{#if panel}
+  <div class="panel results" role="group" aria-label="Results">
+    {#if rows.length === 0}
+      <p class="got">Nobody answered this one.</p>
+    {:else}
+      <p class="got">
+        <strong class="number">{right} of {everyone}</strong>
+        {type === 'closest_number'
+          ? 'guessed it exactly'
+          : type === 'matching'
+            ? 'got them all'
+            : 'got it right'}
+      </p>
+    {/if}
+    <ul class="rows">
+      {#each panelRows as row (row.key)}
+        <li class="row" class:quiet={row.quiet} class:right={row.right}>
+          <span class="chip {row.gem ?? 'none'}" aria-hidden="true"></span>
+          <span class="label">{row.label}</span>
+          <span class="number">{row.players.length}</span>
+          <span class="bar" aria-hidden="true"><i style:width="{row.share * 100}%"></i></span>
+          {#if row.named.length > 0}
+            <span class="names"
+              >{#each row.named as player, index (player.id)}{index > 0 ? ', ' : ''}<span
+                  class="who"
+                  class:you={player.you}>{player.you ? 'You' : player.name}</span
                 >{#if player.guess !== null}{' '}<span class="guess">{player.guess}</span
-                  >{/if}{/each}{#if group.more > 0}{` and ${group.more} more`}{/if}{/if}
+                  >{/if}{/each}{#if row.more > 0}{` and ${row.more} more`}{/if}</span
+            >
+          {/if}
+        </li>
+      {/each}
+    </ul>
+    {#if teamRows.length > 0}
+      <p class="head">Teams</p>
+      <ul class="teams">
+        {#each teamRows as row (row.team)}
+          <li class="team" data-team={row.team}>
+            <span class="logo"><TeamLogo team={row.team} /></span>
+            <span class="label">{god(row.team).name}</span>
+            <span class="number points">+{count.format(row.points)}</span>
           </li>
         {/each}
       </ul>
     {/if}
-  {/if}
-  {#if teamRows.length > 0}
-    <p class="head">Teams</p>
-    <ul class="teams">
-      {#each teamRows as row (row.team)}
-        <li class="team" data-team={row.team}>
-          <span class="logo"><TeamLogo team={row.team} /></span>
-          <span class="label">{god(row.team).name}</span>
-          <span class="number points">+{count.format(row.points)}</span>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-  {#if suggestedBy !== null}
-    <p class="credit">Question by {suggestedBy}</p>
-  {/if}
-</div>
+    {#if suggestedBy !== null}
+      <p class="credit">Question by {suggestedBy}</p>
+    {/if}
+  </div>
+{:else}
+  <div class="tally">
+    {#if rows.length === 0}
+      <p class="count">Nobody answered this one.</p>
+    {:else}
+      <p class="count">
+        <strong class="number">{right} of {rows.length}</strong>
+        {type === 'closest_number'
+          ? 'guessed it exactly'
+          : type === 'matching'
+            ? 'got them all'
+            : 'got it right'}
+      </p>
+      {#if shown.length > 0}
+        <p class="head">Got it wrong</p>
+        <ul class="groups">
+          {#each shown as group (group.key)}
+            <li class="group" class:quiet={group.quiet}>
+              {#if group.gem !== null}<span class="chip {group.gem}" aria-hidden="true"></span>{/if}
+              <span class="label">{group.label}</span>
+              <span class="number">({group.players.length})</span
+              >{#if showNames}:{' '}{#each group.named as player, index (player.id)}{index > 0
+                    ? group.sep
+                    : ''}<span class="who" class:you={player.you}
+                    >{player.name}{player.you ? ' (you)' : ''}</span
+                  >{#if player.guess !== null}{' '}<span class="guess">{player.guess}</span
+                    >{/if}{/each}{#if group.more > 0}{` and ${group.more} more`}{/if}{/if}
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    {/if}
+    {#if teamRows.length > 0}
+      <p class="head">Teams</p>
+      <ul class="teams">
+        {#each teamRows as row (row.team)}
+          <li class="team" data-team={row.team}>
+            <span class="logo"><TeamLogo team={row.team} /></span>
+            <span class="label">{god(row.team).name}</span>
+            <span class="number points">+{count.format(row.points)}</span>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+    {#if suggestedBy !== null}
+      <p class="credit">Question by {suggestedBy}</p>
+    {/if}
+  </div>
+{/if}
 
 <style>
   .tally {
@@ -498,6 +626,88 @@
 
   .points {
     font-weight: 600;
+  }
+
+  /* The room's results panel: a row per answer, its share as a bar, its names under it. */
+  .results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0;
+    padding: calc(1rem - var(--border-give));
+    font-size: 0.95rem;
+  }
+
+  .got {
+    color: var(--muted);
+  }
+
+  .got .number {
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .rows {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 0.8rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+    overflow-wrap: anywhere;
+  }
+
+  .row .chip {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .row .chip.none {
+    visibility: hidden;
+  }
+
+  .row .number {
+    font-weight: 700;
+  }
+
+  .row .bar {
+    grid-column: 2 / 4;
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+    overflow: hidden;
+  }
+
+  .row .bar i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 3px;
+    background: var(--ink);
+  }
+
+  .quiet .bar i {
+    background: var(--muted);
+  }
+
+  .names {
+    grid-column: 2 / 4;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .names .you {
+    color: var(--ink);
+  }
+
+  .results .credit {
+    margin-top: 0.25rem;
   }
 
   .credit {

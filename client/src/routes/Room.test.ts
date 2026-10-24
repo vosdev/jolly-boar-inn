@@ -13,7 +13,7 @@ import { type Component, tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
+import type { OpenQuestion, PlayerResult, RoomView, Standing, Welcome } from '../lib/protocol'
 import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
 import { HISCORES_HOST } from '../lib/hiscores'
@@ -460,7 +460,7 @@ describe('Room', () => {
         reveal_seconds: 8,
         picture: null,
       })
-      await screen.findByText('1 of 1')
+      await screen.findByText(/1 of 1 got it right/)
       expect(screen.getByText(fallback)).toBeTruthy()
       expect(screen.getByText(/Question 1 of 2/)).toBeTruthy()
     } finally {
@@ -638,25 +638,89 @@ describe('the room’s frame', () => {
     expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 2')
   })
 
-  it('retitles the lower half No answer for the reveal', async () => {
-    windowOf(1440, 900)
-    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
-    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+  function closeWith(results: Record<string, PlayerResult>, unanswered: string[]): void {
     applyServerMessage({
       t: 'question_closed',
-      unanswered: ['a'],
+      unanswered,
       question_id: 'q1',
-      reveal: { answer_index: 0 },
-      results: { b: { value: 1, correct: false, credit: 0, points: 0 } },
+      reveal: {
+        answer_index: 0,
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+      },
+      results,
       standings: STANDINGS,
       team_standings: null,
       next_at: inSeconds(10),
       reveal_seconds: 10,
       picture: null,
     })
-    const table = await screen.findByRole('group', { name: 'At the table' })
-    expect(within(table).getByRole('list', { name: 'Answered' }).textContent).toContain('Woox')
-    expect(within(table).getByRole('list', { name: 'No answer' }).textContent).toContain('Zezima')
+  }
+
+  it('turns the table into the results for the reveal: every answer, its count and names', async () => {
+    windowOf(1440, 900)
+    await arrive(
+      welcome(
+        roomView({
+          phase: 'open',
+          next_at: null,
+          settings: { ...roomView({}).settings, name_wrong_answers: true },
+        }),
+      ),
+    )
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+    closeWith({ b: { value: 1, correct: false, credit: 0, points: 0 } }, ['a'])
+    const panel = await screen.findByRole('group', { name: 'Results' })
+    expect(screen.queryByRole('group', { name: 'At the table' })).toBeNull()
+    expect(panel.textContent).toContain('0 of 2 got it right')
+    const rows = [...panel.querySelectorAll('.row')].map((row) => [
+      row.querySelector('.label')?.textContent,
+      row.querySelector('.number')?.textContent,
+      row.querySelector('.names')?.textContent ?? '',
+    ])
+    expect(rows).toEqual([
+      ['Dragon bones', '1', 'Woox'],
+      ['No answer', '1', 'You'],
+    ])
+  })
+
+  it('names the right answer’s players always, and the others only when the room asks', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
+    closeWith(
+      {
+        a: { value: 0, correct: true, credit: 1, points: 900 },
+        b: { value: 1, correct: false, credit: 0, points: 0 },
+      },
+      [],
+    )
+    const panel = await screen.findByRole('group', { name: 'Results' })
+    const rows = [...panel.querySelectorAll('.row')]
+    expect(rows.map((row) => row.querySelector('.label')?.textContent)).toEqual([
+      'Abyssal whip',
+      'Dragon bones',
+    ])
+    expect(rows[0]!.querySelector('.names')?.textContent).toBe('You')
+    expect(rows[1]!.querySelector('.names')).toBeNull()
+    expect(rows[1]!.querySelector('.number')?.textContent).toBe('1')
+  })
+
+  it('opens the results from a phone’s strip, which says who got it right', async () => {
+    windowOf(375, 812)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
+    closeWith(
+      {
+        a: { value: 0, correct: true, credit: 1, points: 900 },
+        b: { value: 1, correct: false, credit: 0, points: 0 },
+      },
+      [],
+    )
+    const strip = await screen.findByRole('button', { name: /1 of 2 got it right/ })
+    expect(screen.queryByRole('group', { name: 'Results' })).toBeNull()
+    await fireEvent.click(strip)
+    const sheet = screen.getByRole('dialog', { name: 'Results' })
+    expect(within(sheet).getByRole('group', { name: 'Results' })).toBeTruthy()
   })
 
   it('puts the table in a strip at a phone’s foot, and a new question closes its sheet', async () => {

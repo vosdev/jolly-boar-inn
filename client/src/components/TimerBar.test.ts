@@ -21,6 +21,20 @@ describe('TimerBar', () => {
     expect(tabs()).toEqual(['10s'])
   })
 
+  it('counts a reveal down to what follows as "Next in", never turning urgent', () => {
+    render(TimerBar, {
+      endsAt: new Date(Date.now() + 4_000).toISOString(),
+      totalSeconds: 8,
+      label: 'to the next question',
+      progress: '2/3',
+      next: true,
+    })
+    expect(tabs()).toEqual(['2/3', 'Next in 4s'])
+    const bar = document.querySelector('.timerbar')!
+    expect(bar.classList.contains('next')).toBe(true)
+    expect(bar.classList.contains('urgent')).toBe(false)
+  })
+
   describe('in a room laid out for a desktop', () => {
     afterEach(() => roomShown.set(null))
 

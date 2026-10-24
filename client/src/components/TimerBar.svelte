@@ -32,6 +32,7 @@
     totalSeconds,
     label,
     progress,
+    next = false,
     team = null,
     flush = false,
   }: {
@@ -39,6 +40,8 @@
     totalSeconds: number
     label: string
     progress?: string
+    /** Counting down to what follows a reveal: the tab says "Next in", the fill is quiet. */
+    next?: boolean
     /** The player's team in a team game, whose colours the bar takes. */
     team?: TeamId | null
     /** At the window's top, with no top bar above it: the room's TV. */
@@ -54,7 +57,7 @@
   // then the bar sits full on the question's own length rather than counting the hold.
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
-  const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
+  const urgent = $derived(!next && remainingMs > 0 && seconds <= URGENT_S)
   const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit, $roomShown.reveal))
   const scale = $derived($tvFit?.scale ?? $roomShown?.fit.scale ?? null)
 </script>
@@ -62,6 +65,7 @@
 <div
   class="timerbar"
   class:urgent
+  class:next
   class:framed={team !== null}
   class:flush
   aria-label="{seconds} seconds {label}"
@@ -88,7 +92,7 @@
     {#if team !== null}
       <span class="team"><TeamBadge {team} /></span>
     {/if}
-    <span class="tab seconds">{seconds}s</span>
+    <span class="tab seconds">{next ? `Next in ${seconds}s` : `${seconds}s`}</span>
   </div>
 </div>
 
@@ -126,6 +130,10 @@
 
   .urgent .fill {
     background: var(--bad);
+  }
+
+  .next .fill {
+    background: var(--muted);
   }
 
   /* The screens' column, so the tab lines up with the panels rather than the window. */

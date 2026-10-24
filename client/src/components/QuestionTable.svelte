@@ -4,7 +4,12 @@
    * Answered over Still thinking, then over No answer once it closes. Stacked on a phone
    * it is a strip at the foot, "2 of 9 answered" and the first faces, which opens the
    * panel as a sheet; a new question closes it.
+   *
+   * In a reveal with its results the panel is the `outcome` instead (section 10), and the
+   * strip says "5 of 9 got it right" with the faces of who did.
    */
+  import type { Snippet } from 'svelte'
+
   import { petOf } from '../lib/pets'
   import type { PlayerResult, PlayerView } from '../lib/protocol'
   import { Seating } from '../lib/tableGroups'
@@ -23,6 +28,8 @@
     hostOnly = false,
     teams = [],
     stacked = false,
+    unanswered = [],
+    outcome,
   }: {
     players: PlayerView[]
     youId: string | null
@@ -35,6 +42,10 @@
     hostOnly?: boolean
     teams?: readonly TeamId[]
     stacked?: boolean
+    /** `question_closed.unanswered`, who could have answered and did not. */
+    unanswered?: string[]
+    /** The reveal's results, which take the panel's place. */
+    outcome?: Snippet
   } = $props()
 
   const FACES = 4
@@ -59,9 +70,26 @@
       ...groups.lower.map((player) => ({ player, dim: true })),
     ].slice(0, FACES),
   )
-  const summary = $derived(
-    hostOnly ? `${seated} at the table` : `${groups.upper.length} of ${seated} answered`,
+  const revealing = $derived(outcome !== undefined && results !== null)
+  const rightIds = $derived(
+    results === null ? [] : Object.keys(results).filter((id) => results[id]?.correct === true),
   )
+  const everyone = $derived(results === null ? 0 : Object.keys(results).length + unanswered.length)
+  const rightFaces = $derived(
+    rightIds
+      .map((id) => players.find((player) => player.id === id))
+      .filter((player) => player !== undefined)
+      .slice(0, FACES)
+      .map((player) => ({ player, dim: false })),
+  )
+  const summary = $derived(
+    revealing
+      ? `${rightIds.length} of ${everyone} got it right`
+      : hostOnly
+        ? `${seated} at the table`
+        : `${groups.upper.length} of ${seated} answered`,
+  )
+  const title = $derived(revealing ? 'Results' : 'At the table')
 
   /** The question the sheet was opened on: a new one closes it. */
   let openedOn = $state<string | null>(null)
@@ -69,7 +97,11 @@
 </script>
 
 {#snippet panel()}
-  <TablePanel {groups} {youId} {labels} {single} />
+  {#if revealing}
+    {@render outcome?.()}
+  {:else}
+    <TablePanel {groups} {youId} {labels} {single} />
+  {/if}
 {/snippet}
 
 {#if !stacked}
@@ -83,7 +115,7 @@
     onclick={() => (openedOn = questionId)}
   >
     <span class="faces" aria-hidden="true">
-      {#each faces as { player, dim } (player.id)}
+      {#each revealing ? rightFaces : faces as { player, dim } (player.id)}
         <span class="face" class:dim><Pet pet={petOf(player)} size={30} label="" /></span>
       {/each}
     </span>
@@ -91,9 +123,9 @@
     <span class="up"><Icon name="chevron-up" /></span>
   </button>
   {#if open}
-    <Sheet label="At the table" outside onclose={() => (openedOn = null)}>
+    <Sheet label={title} outside onclose={() => (openedOn = null)}>
       <div class="sheet-head">
-        <h2>At the table</h2>
+        <h2>{title}</h2>
         <button type="button" class="glyph" aria-label="Close" onclick={() => (openedOn = null)}>
           <Icon name="close" />
         </button>
