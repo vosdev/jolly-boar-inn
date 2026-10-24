@@ -625,6 +625,10 @@
     overflow: hidden;
   }
 
+  .fitted {
+    --stage-wide: 960px;
+  }
+
   .fitted .play {
     position: absolute;
     top: 0;
@@ -684,6 +688,21 @@
   .column {
     max-width: 30rem;
     margin-inline: auto;
+  }
+
+  /* On the desktop frame a stage whose host speaks above it takes the column, up to the
+     width a question and its answers can use, and its sheet's words grow to suit. */
+  .fitted .column {
+    max-width: var(--stage-wide);
+  }
+
+  .fitted :global(.stage.speaks) {
+    max-width: var(--stage-wide);
+  }
+
+  .fitted :global(.stage.speaks .stage-row) {
+    --scroll-text: 1.5;
+    --scroll-scale: 1.25;
   }
 
   .round {

@@ -27,6 +27,7 @@
   import { emptySlots, swapAt, toTray, trayOf, type Slots } from '../../../lib/slots'
   import { Dragging, sendBeforeEnd } from '../drag.svelte'
   import DragActions from '../DragActions.svelte'
+  import DragLayout from '../DragLayout.svelte'
   import DragRow from '../DragRow.svelte'
   import { GEMS } from '../GemButton.svelte'
   import GemChoices from '../GemChoices.svelte'
@@ -118,42 +119,51 @@
   )
 </script>
 
-{#if !revealed}
-  <p class="ask">{q.picks === undefined ? 'Pick all that apply' : `Pick ${q.picks}`}</p>
-{/if}
 {#if movable}
-  <div bind:this={area}>
-    {#if q.picks === undefined}
-      <ul class="basket" data-place="0" class:over={dragging.over === 0}>
-        {#each basket as shown (shown)}
-          <li>{@render option(shown, true)}</li>
-        {/each}
-        {#if !full}
-          <li class="empty">Drag the right ones here</li>
-        {/if}
-      </ul>
-    {:else}
-      <ul class="basket">
-        {#each slots as shown, index (shown ?? `empty ${index}`)}
-          <li data-place={index} class:over={dragging.over === index}>
-            {#if shown === null}
-              <div class="empty">Drop one here</div>
-            {:else}
-              {@render option(shown, true)}
+  <DragLayout>
+    {#snippet ask()}
+      <p class="ask">{q.picks === undefined ? 'Pick all that apply' : `Pick ${q.picks}`}</p>
+    {/snippet}
+    {#snippet list()}
+      <div bind:this={area}>
+        {#if q.picks === undefined}
+          <ul class="basket" data-place="0" class:over={dragging.over === 0}>
+            {#each basket as shown (shown)}
+              <li>{@render option(shown, true)}</li>
+            {/each}
+            {#if !full}
+              <li class="empty">Drag the right ones here</li>
             {/if}
-          </li>
-        {/each}
-      </ul>
-    {/if}
-    <p class="rest">the rest</p>
-    <ul class="tray" data-tray class:over={dragging.over === 'tray'}>
-      {#each tray as shown (shown)}
-        <li>{@render option(shown, false)}</li>
-      {/each}
-    </ul>
-  </div>
-  <DragActions moved={basket.length > 0} {ready} onrestart={restart} onsubmit={submit} />
+          </ul>
+        {:else}
+          <ul class="basket">
+            {#each slots as shown, index (shown ?? `empty ${index}`)}
+              <li data-place={index} class:over={dragging.over === index}>
+                {#if shown === null}
+                  <div class="empty">Drop one here</div>
+                {:else}
+                  {@render option(shown, true)}
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        {/if}
+        <p class="rest">the rest</p>
+        <ul class="tray" data-tray class:over={dragging.over === 'tray'}>
+          {#each tray as shown (shown)}
+            <li>{@render option(shown, false)}</li>
+          {/each}
+        </ul>
+      </div>
+    {/snippet}
+    {#snippet actions()}
+      <DragActions moved={basket.length > 0} {ready} onrestart={restart} onsubmit={submit} />
+    {/snippet}
+  </DragLayout>
 {:else}
+  {#if !revealed}
+    <p class="ask">{q.picks === undefined ? 'Pick all that apply' : `Pick ${q.picks}`}</p>
+  {/if}
   <GemChoices
     options={q.options}
     {picked}

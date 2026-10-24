@@ -107,6 +107,7 @@
   import { trayOf } from '../../../lib/slots'
   import { Dragging, sendBeforeEnd } from '../drag.svelte'
   import DragActions from '../DragActions.svelte'
+  import DragLayout from '../DragLayout.svelte'
   import DragRow from '../DragRow.svelte'
   import GemButton, { GEMS } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
@@ -237,45 +238,53 @@
   </ol>
   {#if q.picks === undefined}<p class="end">{q.ends[1]}</p>{/if}
 {:else}
-  <p class="ask">
-    Drag {q.picks === undefined ? '' : `${q.picks} `}into order: {q.ends[0]} → {q.ends[1]}
-  </p>
-  {#if canAnswer}
-    <div bind:this={area}>
-      <ol class="entries">
-        {#each board as shown, index (shown ?? `empty ${index}`)}
-          <li data-place={index} class:over={dragging.over === index}>
-            {#if shown === null}
-              <div class="empty">
-                <span class="sr">Place </span>{index + 1}<span class="sr">, empty</span>
-              </div>
-            {:else}
-              {@render row(shown, index + 1)}
-            {/if}
-          </li>
-        {/each}
-      </ol>
-      {#if q.picks !== undefined}
-        <p class="rest">the rest</p>
-        <ul class="entries tray" data-tray class:over={dragging.over === 'tray'}>
-          {#each tray as shown (shown)}
-            <li>{@render row(shown, undefined)}</li>
+  <DragLayout>
+    {#snippet ask()}
+      <p class="ask">
+        Drag {q.picks === undefined ? '' : `${q.picks} `}into order: {q.ends[0]} → {q.ends[1]}
+      </p>
+    {/snippet}
+    {#snippet list()}
+      {#if canAnswer}
+        <div bind:this={area}>
+          <ol class="entries">
+            {#each board as shown, index (shown ?? `empty ${index}`)}
+              <li data-place={index} class:over={dragging.over === index}>
+                {#if shown === null}
+                  <div class="empty">
+                    <span class="sr">Place </span>{index + 1}<span class="sr">, empty</span>
+                  </div>
+                {:else}
+                  {@render row(shown, index + 1)}
+                {/if}
+              </li>
+            {/each}
+          </ol>
+          {#if q.picks !== undefined}
+            <p class="rest">the rest</p>
+            <ul class="entries tray" data-tray class:over={dragging.over === 'tray'}>
+              {#each tray as shown (shown)}
+                <li>{@render row(shown, undefined)}</li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      {:else}
+        <ol class="entries">
+          {#each q.entries as entry, shown (shown)}
+            <li>
+              <GemButton tag="div" gem={gemAt(shown)} status="idle">{entry.text}</GemButton>
+            </li>
           {/each}
-        </ul>
+        </ol>
       {/if}
-    </div>
-  {:else}
-    <ol class="entries">
-      {#each q.entries as entry, shown (shown)}
-        <li>
-          <GemButton tag="div" gem={gemAt(shown)} status="idle">{entry.text}</GemButton>
-        </li>
-      {/each}
-    </ol>
-  {/if}
-  {#if movable}
-    <DragActions {moved} {ready} onrestart={restart} onsubmit={submit} />
-  {/if}
+    {/snippet}
+    {#snippet actions()}
+      {#if movable}
+        <DragActions {moved} {ready} onrestart={restart} onsubmit={submit} />
+      {/if}
+    {/snippet}
+  </DragLayout>
 {/if}
 
 {#snippet row(shown: number, place: number | undefined)}

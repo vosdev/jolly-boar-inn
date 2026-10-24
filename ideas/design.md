@@ -240,9 +240,10 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   where it fills the window; from 1280×640 it fills the window at its
   own size; smaller, it lays out at 1280×640 and scales down. The stage's parts stand centred in
   its height. Under 1024px wide the stage and table stack. The TV has no frame.
-- **One size.** The sheet is at most 30rem wide at every width, and the answers under it take the
-  same width. `--scroll-scale` sizes the rolls, margins and pin, `--scroll-text` the words; a
-  stage under 26rem, a phone, sets 0.8 and 0.9.
+- **Two sizes.** On the desktop frame a stage whose host speaks above it takes the stage column, up
+  to 960px, its sheet's words at 1.5 (`--scroll-text`) and rolls and pin at 1.25 (`--scroll-scale`);
+  every other stage, and every stage on a phone, is at most 30rem. The answers take the stage's
+  width. A stage under 26rem, a phone, sets 0.8 and 0.9.
 - **The host** stands above the sheet at its left, its chathead 92px (56px on a phone), and speaks
   in a **bubble** beside it: the theme's `--panel-raised` with its `--line` edge and a tail at the
   speaker, in Quill, the speaker's name then the line. An event's NPC stands at the right, its
@@ -334,8 +335,14 @@ take-back rule are architecture §7.
 ## 10. The question screen and the reveal
 
 - The timer is a thin bar under the top bar, with the seconds in a tab at the stage's right edge
-  and the question's number (`2/3`) in one at its left. Answer buttons are 56px tall and full
-  width on a phone: thumb targets at a pub table.
+  and the question's number (`2/3`) in one at its left.
+- **The answers take the size the question needs**, laid out by the stage's width, so a preview
+  matches the room. Choices are two abreast and 56px tall on a phone, an odd last one across the
+  row: thumb targets at a pub table. On a wide stage they are at least 84px tall, three abreast,
+  two and four two abreast, five's last two centred. More or Less's two items are cards of the
+  item's size, at most 16rem wide, with "or" between. Ordering, matching and pick-all put the list
+  on the left and the instruction, Start over and Submit in a 230px column on its right; a phone
+  stacks them. The combobox, number and slider keep their controls at the board's width.
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
   `--scroll-ink`, the answers, combobox and tally under it, who has answered at the table. The
   question's heading is for a screen reader only.

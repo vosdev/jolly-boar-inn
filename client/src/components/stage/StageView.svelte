@@ -9,8 +9,8 @@
    * what is pressed or scored — the ready check, gems, the combobox, the points slot —
    * goes under the line, so no gem is ever measured against parchment.
    *
-   * It is one size at every width: at most 30rem, and a stage under 26rem, a phone, sets
-   * the smaller numbers the prototype settled on. Under 448px of screen the row runs out
+   * It is at most 30rem wide, unless the room widens a speaking stage (`Room`), and a
+   * stage under 26rem, a phone, sets the smaller numbers the prototype settled on. Under 448px of screen the row runs out
    * to the screen's edges, which cut the rolls in half, and the host steps onto the sheet,
    * the words wrapping around it.
    *
@@ -221,16 +221,32 @@
     margin-bottom: 0.75rem;
   }
 
-  .speaker .npc {
+  /* Above the sheet, never on it: the beside-the-sheet layout's phone and TV placement
+     does not reach here. */
+  .stage .speaker .npc {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
     width: var(--head);
     margin: 0;
+  }
+
+  .speaker .host {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .speaker .bubble:not(.shell) {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .speaker.event {
     grid-template-columns: minmax(0, 1fr) var(--head);
   }
 
-  .speaker.event .host {
+  .stage .speaker.event .host {
     position: absolute;
     left: 0;
     bottom: 0;
@@ -322,7 +338,7 @@
   }
 
   /* The way back: the NPC, its bubble and the words out, then the host and its bubble in. */
-  .speaker.returning .guest {
+  .stage .speaker.returning .guest {
     position: absolute;
     right: 0;
     bottom: 0;

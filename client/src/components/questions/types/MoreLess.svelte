@@ -82,6 +82,7 @@
   <!-- Keyed by position: nothing stops a pair naming one item twice, and a duplicate key
        throws. -->
   {#each q.options as option, index (index)}
+    {#if index === 1}<span class="or" aria-hidden="true">or</span>{/if}
     <GemButton
       gem={null}
       status={gemState(index, indexSet(picked), indexSet(answer), revealed)}
@@ -125,9 +126,39 @@
     font-weight: 400;
   }
 
+  .or {
+    display: none;
+  }
+
   @media (max-width: 30rem) {
     .choices {
       grid-template-columns: 1fr;
+    }
+  }
+
+  /* On a wide stage the two are cards of the item's size, with "or" between, rather than
+     halves of the board. */
+  @container (min-width: 40rem) {
+    .choices {
+      grid-template-columns: minmax(0, 16rem) auto minmax(0, 16rem);
+      justify-content: center;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .or {
+      display: block;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .choices > :global(.gem) {
+      max-height: 260px;
+    }
+
+    .choice {
+      font-size: 1.25rem;
     }
   }
 </style>

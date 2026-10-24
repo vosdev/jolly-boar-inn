@@ -2,8 +2,11 @@
   /**
    * The options of a "pick one of these" question, one gem each, in position order.
    *
-   * One column on a phone and as many as fit beside each other above that, so six
-   * 56px buttons stack to about 380px on a 375px screen, which leaves the prompt on it.
+   * Two abreast on a phone, 56px tall, an odd last one across the row, so six take three
+   * rows and leave the prompt on a 375px screen. On a stage wide enough (the desktop
+   * frame's) they are at least 84px tall, three abreast, except two and four, which go two
+   * abreast; five centre their last two. The width is the stage's, not the window's, so a
+   * preview lays out as the room would at its size.
    *
    * The reveal changes the layout, not a colour: the answer is drawn large across the
    * top, and the rest go small beneath it, in one row for up to three and two rows for
@@ -66,7 +69,14 @@
   const held = $derived(revealed || !canAnswer || picked.size > 0)
 </script>
 
-<div class="gems" class:settled style:--columns={columns}>
+<div
+  class="gems"
+  class:settled
+  class:pairs={options.length === 2 || options.length === 4}
+  class:five={options.length === 5}
+  class:odd={options.length % 2 === 1}
+  style:--columns={columns}
+>
   {#each options as option, index (index)}
     <GemButton
       gem={gemAt(index)}
@@ -83,10 +93,47 @@
 </div>
 
 <style>
+  /* Six tracks, so a gem can take half the row or a third of it. */
   .gems {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 0.5rem;
+  }
+
+  .gems:not(.settled) > :global(*) {
+    grid-column: span 3;
+  }
+
+  .odd:not(.settled) > :global(:last-child) {
+    grid-column: 1 / -1;
+  }
+
+  @container (min-width: 40rem) {
+    .gems:not(.settled) {
+      gap: 0.75rem;
+    }
+
+    .gems:not(.settled) > :global(*) {
+      grid-column: span 2;
+      min-height: 84px;
+      font-size: 1.15rem;
+    }
+
+    .pairs:not(.settled) > :global(*) {
+      grid-column: span 3;
+    }
+
+    .odd:not(.settled) > :global(:last-child) {
+      grid-column: span 2;
+    }
+
+    .five:not(.settled) > :global(:nth-child(4)) {
+      grid-column: 2 / span 2;
+    }
+
+    .five:not(.settled) > :global(:last-child) {
+      grid-column: 4 / span 2;
+    }
   }
 
   .settled {
