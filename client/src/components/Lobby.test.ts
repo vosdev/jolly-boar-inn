@@ -346,17 +346,31 @@ describe('Lobby', () => {
     })
   })
 
-  it('stands the Wise Old Man, without a hero in the branding, beside a scroll that holds the heading, the code and the night', () => {
+  it('has the Wise Old Man, without a hero in the branding, speak above a scroll that holds the code and the invite link', () => {
     lobby()
     expect(
-      [...document.querySelectorAll('.stage .npc img')].map((img) => img.getAttribute('src')),
+      [...document.querySelectorAll('.speaker .npc img')].map((img) => img.getAttribute('src')),
     ).toEqual([npcArt('wise_old_man').url])
+    const bubble = document.querySelector('.bubble') as HTMLElement
+    expect(bubble.textContent).toContain('Wise Old Man')
+    expect(bubble.textContent).toContain('Pull up a stool and share the code.')
     const paper = document.querySelector('.paper') as HTMLElement
     expect(within(paper).getByRole('heading', { level: 1, name: 'Lobby' })).toBeTruthy()
+    expect(within(paper).getByText('Your friends join with this code')).toBeTruthy()
     expect(
       within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' }),
     ).toBeTruthy()
-    expect(within(paper).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
+    expect(within(paper).getByText(`${location.host}/r/ABYSSAL`)).toBeTruthy()
+    expect(within(paper).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
+    const board = document.querySelector('.board') as HTMLElement
+    expect(within(board).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
+  })
+
+  it('says an invite-only room is one, instead of printing its link', () => {
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
+    const paper = document.querySelector('.paper') as HTMLElement
+    expect(within(paper).getByText('Invite-only: the link lets people straight in')).toBeTruthy()
+    expect(within(paper).getByRole('button', { name: 'New link' })).toBeTruthy()
   })
 
   it('copies an invite-only room’s whole link from the code, and never draws its key', async () => {
@@ -419,6 +433,7 @@ describe('Lobby', () => {
     ]
     lobby([HOST, WOOX], { ...ROOM, key: 'abc', requests })
     const panel = screen.getByRole('region', { name: 'Asking to join (2)' })
+    expect(panel.closest('[aria-label="At the table"]')).not.toBeNull()
     const rows = within(panel).getAllByRole('listitem')
     expect(rows.map((row) => row.textContent)).toEqual([
       expect.stringContaining('Lynx Titan'),
@@ -583,10 +598,10 @@ describe('Lobby', () => {
     expect(heading('Not ready yet')).toBe('Not ready yet 1')
   })
 
-  it('tells a player the host starts, on the scroll, and gives them no Start', () => {
+  it('tells a player the host starts, at the table, and gives them no Start', () => {
     lobby([HOST, WOOX], ROOM, WOOX)
-    const paper = document.querySelector('.paper') as HTMLElement
-    expect(within(paper).getByText('Waiting for the host to start…')).toBeTruthy()
+    const table = screen.getByRole('group', { name: 'At the table' })
+    expect(within(table).getByText('Waiting for the host to start…')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Start/ })).toBeNull()
   })
 
@@ -608,26 +623,21 @@ describe('Lobby', () => {
     expect(screen.getByText(line)).toBeTruthy()
   })
 
-  it('keeps the rounds behind a button, listed A–Z once it is pressed', async () => {
+  it('shows a card per round, A–Z, with its host and its question count', () => {
     const modes = [
       { mode: 'more_less', questions: 5 },
       { mode: 'drop_table', questions: 1 },
     ]
     lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 6 })
     expect(screen.getByText('2 rounds · 6 questions · Run pace · ~5 min')).toBeTruthy()
-    const toggle = screen.getByRole('button', { name: 'Show the rounds' })
-    expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    expect(screen.queryByText('More or Less')).toBeNull()
-    await fireEvent.click(toggle)
-    expect(toggle.getAttribute('aria-expanded')).toBe('true')
-    const rows = within(document.getElementById('rounds')!).getAllByRole('listitem')
-    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+    const cards = [...document.querySelectorAll('.board .round')]
+    expect(cards.map((card) => card.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
       'Drop Table 1 question',
       'More or Less 5 questions',
     ])
+    expect(cards.every((card) => card.querySelector('.face img') !== null)).toBe(true)
     expect(screen.getByText('Listed A–Z, not in the order they play.')).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Hide the rounds' }))
-    expect(screen.queryByText('More or Less')).toBeNull()
+    expect(screen.getByText('Quicker and correct answers score more.')).toBeTruthy()
   })
 
   it('gives the server’s estimate of the game in whole minutes', () => {
@@ -652,7 +662,9 @@ describe('Lobby', () => {
     expect(
       screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
     ).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Show the rounds' })).toBeNull()
+    const cards = [...document.querySelectorAll('.board .round')]
+    expect(cards).toHaveLength(5)
+    expect(cards.every((card) => card.textContent?.trim() === 'A surprise')).toBe(true)
     expect(screen.queryByText('More or Less')).toBeNull()
   })
 

@@ -250,7 +250,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   speaker, in Quill, the speaker's name then the line. An event's NPC stands at the right, its
   bubble pointing right (§12). A hidden bubble keeps its room, so the sheet never moves when the
   host speaks, and a bubble is from the first frame as tall as the most its screen will say.
-- **Elsewhere the host stands beside the sheet**: the lobby, the standings and hiscores
+- **Elsewhere the host stands beside the sheet**: the standings and hiscores
   (§11, at a long sheet's top-left), Home and the TV. There it stands at the scroll's bottom-left,
   over its left roll, 78px wide overlapping 30px (68px and 32px on a phone); under 448px of screen,
   and on the TV, it stands on the sheet and the words wrap around it.
@@ -317,19 +317,22 @@ results (§3), 380px wide. The lobby and splash
 keep the whole panel under the stage, since it holds their buttons. The threshold, countdowns and
 take-back rule are architecture §7.
 
-- **Lobby: the room on the scroll.** It holds the code, which copies the invite link (an error and
-  the link to copy by hand where the clipboard refuses), the rounds and questions, and the rounds
-  A–Z behind "Show the rounds". The host also sees who is missing by name, since the answer is
-  usually "Dave, at the bar", and taps a pet to kick or promote. A team game's gods are buttons
-  above the halves: tap one to join it. Start is plain at the threshold,
-  and "Start anyway" below it, which asks first.
+- **Lobby.** The hero, else the Wise Old Man, says the lobby line in the bubble. The scroll holds
+  "Your friends join with this code", the code, which copies the invite link, and the link with
+  "Copy invite link"; an invite-only room says so instead of printing a link that carries its key
+  (an error and the link to copy by hand where the clipboard refuses). Under it, a panel: the
+  night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
+  round is "A surprise" with the boar), "How to play" and "Quicker and correct answers score
+  more." At the table: join requests first, for the host, then a team game's gods, the halves,
+  I'm ready, and Start (plain at the threshold, "Start anyway" below it, which asks first) or
+  "Waiting for the host to start…". The host taps a pet to kick or promote.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
   last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,
   and its settings no name or pet.
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash:** "Waiting for 2 more" says the rest, never by name.
-- **How to play:** a link on the Lobby's scroll and on Home's opens a sheet, a row per way of
+- **How to play:** a link on the Lobby's rounds and on Home's opens a sheet, a row per way of
   answering: a small drawing of the control and one plain sentence, with every Submit named in
   bold, since players overlooked it. The Lobby shows its rounds' types, or all of them when
   random events, host's questions or hidden rounds could bring any. It ends "Quicker and correct
