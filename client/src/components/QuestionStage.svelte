@@ -10,10 +10,12 @@
    *
    * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
    * scroll, and under the line the answers in a panel, with your answer's band below them.
-   * Once we have answered the host says its waiting line at the foot of the sheet, and on
-   * the reveal its reveal line and what we earned, and anything we scored pins the ribbon. The line the points go on is held from the start, so the
-   * answers under the sheet do not move when they arrive. Who is in goes to the room's table. A random event draws its own
-   * stage, with its NPC in the host's place.
+   * The host stands above the sheet and says nothing while the question types. Once we
+   * have answered it says its waiting line in its bubble, dimmed, and on the reveal its
+   * reveal line, the explanation and the countdown to what follows, while what we earned
+   * goes on the sheet's foot and anything we scored pins the ribbon. The foot is held from
+   * the start, so the answers under the sheet do not move when the points arrive. Who is
+   * in goes to the room's table. A random event draws its own stage, with its NPC speaking.
    *
    * A question that arrived as it opened types its stem onto the scroll in the hold the
    * server gives it before `answerable_at` (`lib/interlude.ts`), once the stage has come
@@ -29,8 +31,8 @@
    *
    * `tv` is the TV's own: the stage with no answers while the question is open, and
    * beside the scroll the panel of who is still to answer, which widens into the whole
-   * reveal. The host says its lines at the sheet's foot, but there
-   * are no points, pin or confetti, since the TV answers nothing.
+   * reveal. The TV keeps the stage without a bubble: the host says its lines at the
+   * sheet's foot, but there are no points, pin or confetti, since the TV answers nothing.
    */
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
@@ -43,10 +45,13 @@
   import { answerAck, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
+  import { nextUp } from '../lib/nextUp'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
+  import NextIn from './stage/NextIn.svelte'
+  import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
   import TvReveal from './TvReveal.svelte'
   import TvWaiting from './TvWaiting.svelte'
@@ -60,6 +65,7 @@
     onAnswer,
     live = false,
     nextAt = null,
+    standings = true,
     stemOnly = false,
     answersOnly = false,
     tv = false,
@@ -79,6 +85,8 @@
     live?: boolean
     /** The reveal's end, for a random event's return. */
     nextAt?: string | null
+    /** The room shows standings between rounds, for what the reveal counts down to. */
+    standings?: boolean
     stemOnly?: boolean
     answersOnly?: boolean
     /** This browser is the room's TV. */
@@ -89,6 +97,9 @@
   } = $props()
 
   const host = $derived(hostOf(question.mode))
+  const explanation = $derived(
+    reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
+  )
 
   const answerableMs = $derived(Date.parse(question.answerable_at ?? question.opened_at))
   /** A server from before every question held sends none, and then there is none. */
@@ -137,17 +148,28 @@
   {#snippet sheet()}
     {#if tv}
       <div class="tv-stem">{@render stem()}</div>
+      <div class="said">
+        {#if reveal !== null}
+          <p class="line">{host.reveal}</p>
+        {:else}
+          <p class="line">{host.waiting}</p>
+        {/if}
+      </div>
     {:else}
       {@render stem()}
+      <div class="foot">
+        {#if reveal !== null}
+          <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
+        {/if}
+      </div>
     {/if}
-    <div class="said">
-      {#if reveal !== null}
-        <p class="line">{host.reveal}</p>
-        {#if !tv}<PointsSlot {result} canAnswer={question.you_can_answer} onScroll />{/if}
-      {:else if yourValue !== null || tv}
-        <p class="line">{host.waiting}</p>
-      {/if}
-    </div>
+  {/snippet}
+  {#snippet said()}
+    <Said
+      name={host.host.name}
+      line={reveal === null ? waitingLine : revealLine}
+      later={reveal === null ? revealLine : waitingLine}
+    />
   {/snippet}
   <Stage
     host={host.host.id}
@@ -155,6 +177,8 @@
     {scene}
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}
+    said={tv ? undefined : said}
+    bubble={tv ? null : reveal !== null ? 'on' : yourValue !== null ? 'dim' : 'off'}
     award={reveal === null || tv ? NO_AWARD : awardFor(result)}
     {tv}
   >
@@ -168,6 +192,16 @@
     {/if}
     {@render waiting()}
   </Stage>
+{/snippet}
+
+{#snippet waitingLine()}
+  <p>{host.waiting}</p>
+{/snippet}
+
+{#snippet revealLine()}
+  <p>{host.reveal}</p>
+  {#if explanation !== ''}<p>{explanation}</p>{/if}
+  <NextIn at={reveal === null ? null : nextAt} what={nextUp(question, standings)} />
 {/snippet}
 
 {#snippet tvPanel(answers: Snippet | null)}
@@ -226,6 +260,7 @@
     {onAnswer}
     {live}
     {nextAt}
+    {standings}
     {tv}
     below={waiting}
   >
@@ -241,12 +276,28 @@
     {onAnswer}
     held={hasHold ? held : undefined}
     shown={typist.shown}
+    explain={tv}
     frame={staged}
   />
 {/if}
 
 <style>
-  /* The foot of the sheet, two host lines tall whatever is on it yet: a waiting line that
+  /* The foot of the sheet, one line of points tall whether or not they are in yet, so the
+     answers under the sheet do not move when they arrive. */
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: auto;
+    padding-top: 0.2rem;
+    min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+  }
+
+  .foot > :global(.slot) {
+    white-space: nowrap;
+  }
+
+  /* The TV's foot of the sheet, two host lines tall whatever is on it yet: a waiting line that
      wraps would otherwise grow the sheet, and the shorter reveal line shrink it again. */
   .said {
     --line-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));

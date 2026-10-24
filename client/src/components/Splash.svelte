@@ -11,9 +11,10 @@
    * the countdown once one runs, so everybody sees the same number. The host's skip is
    * the override, and ends it for everyone at once.
    *
-   * The scroll holds only the mode's name, its host's greeting and the blurb. The name is
-   * there whole; the greeting and the blurb type in once the stage has come over from the
-   * screen before, at the questions' pace (`lib/interlude.ts`). The splash has no hold to
+   * The scroll holds only the mode's name, and the host says its greeting and the blurb in
+   * its bubble above it (the TV's scroll holds all three). The name is there whole; the
+   * greeting and the blurb type in once the stage has come over from the screen before,
+   * at the questions' pace (`lib/interlude.ts`). The splash has no hold to
    * fit, so nothing waits on the typing. The round's count and pace, a price round's date,
    * the ready check and the countdown go in a panel at the room's table, beside the stage
    * (section 8 of ideas/design.md). The date is said here once, so the questions need not.
@@ -45,6 +46,7 @@
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import RosterPet from './RosterPet.svelte'
   import TablePanel from './TablePanel.svelte'
+  import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
   import Typed from './stage/Typed.svelte'
   import Timer from './Timer.svelte'
@@ -74,7 +76,8 @@
   const label = $derived(mode?.label ?? segment.mode)
   const host = $derived(hostOf(segment.mode))
 
-  const greeting = $derived(`“${host.greeting}”`)
+  // The bubble says who speaks; the TV's sheet has no bubble, so it quotes the host.
+  const greeting = $derived(tv ? `“${host.greeting}”` : host.greeting)
   const letters = $derived([greeting, mode?.blurb ?? ''].map(lettersOf))
   const typeFrom = untrack(() =>
     Math.max(SPLASH_TYPE_FROM_MS, stageArrival({ host: host.host.id })),
@@ -146,6 +149,13 @@
   )
 </script>
 
+{#snippet words()}
+  <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>
+  {#if mode !== null}
+    <p class="blurb"><Typed line={mode.blurb} shown={typist.shown[1]} /></p>
+  {/if}
+{/snippet}
+
 {#snippet count()}
   <p class="count">{length}</p>
   {#if asOf !== null}
@@ -172,20 +182,21 @@
 {/snippet}
 
 <section class="splash">
-  <Stage host={host.host.id} {tv} wide={tv}>
+  <Stage host={host.host.id} {tv} wide={tv} bubble={tv ? null : 'on'}>
     {#snippet paper()}
       <h2>{label}</h2>
-      <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>
-      {#if mode !== null}
-        <p class="blurb"><Typed line={mode.blurb} shown={typist.shown[1]} /></p>
-      {/if}
       {#if tv}
+        {@render words()}
         <div class="tv-foot board">
           {@render count()}
           {@render pets()}
           {@render countdown()}
         </div>
       {/if}
+    {/snippet}
+
+    {#snippet said()}
+      <Said name={host.host.name} line={words} />
     {/snippet}
 
     {#if !tv}
@@ -247,6 +258,10 @@
   .greeting {
     margin: 0 0 0.4rem;
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+  }
+
+  /* On the TV's sheet, where the quotes and the slant say it is the host's. */
+  :global(.content) .greeting {
     font-style: italic;
   }
 

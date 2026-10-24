@@ -943,7 +943,7 @@ describe('a random event’s way out', () => {
       await tick()
       close(Date.now() + 8000)
       await tick()
-      const row = document.querySelector('.stage-row')!
+      const row = document.querySelector('.speaker')!
       expect(row.classList.contains('returning')).toBe(false)
       await vi.advanceTimersByTimeAsync(8000 - RETURN_MS - 10)
       await tick()
@@ -959,7 +959,7 @@ describe('a random event’s way out', () => {
       })
       await tick()
       expect(document.querySelector('.hiscores')).not.toBeNull()
-      expect(document.querySelector('.stage-row:is(.event, .returning)')).toBeNull()
+      expect(document.querySelector(':is(.speaker, .stage-row):is(.event, .returning)')).toBeNull()
     } finally {
       vi.useRealTimers()
     }
@@ -1080,7 +1080,9 @@ describe('the shared stage', () => {
     await tick()
     expect(document.querySelectorAll('.scroll')).toHaveLength(1)
     expect(document.querySelector('.scroll')).toBe(scroll)
-    expect(document.querySelector('.stage-ghost')?.textContent).toContain(MODES.more_less!.label)
+    expect(document.querySelector('.stage-row .stage-ghost')?.textContent).toContain(
+      MODES.more_less!.label,
+    )
     expect(words().style.opacity).toBe('0')
     expect(words().textContent).toContain('Which costs more')
     expect(under().textContent).toContain('Abyssal whip')
@@ -1094,7 +1096,7 @@ describe('the shared stage', () => {
     expect(row().classList.contains('presence-here')).toBe(true)
   })
 
-  it('clears the sheet before a random event slides the scroll over, then shows its words', async () => {
+  it('clears the sheet and the bubble before a random event walks on, then shows its words', async () => {
     await onSplash()
     applyServerMessage({
       t: 'question_open',
@@ -1109,16 +1111,19 @@ describe('the shared stage', () => {
       },
     })
     await tick()
-    expect(document.querySelector('.stage-ghost')?.textContent).toContain(MODES.more_less!.label)
+    expect(document.querySelector('.stage-row .stage-ghost')?.textContent).toContain(
+      MODES.more_less!.label,
+    )
     expect(words().style.opacity).toBe('0')
-    expect(row().classList.contains('entering')).toBe(false)
+    expect(document.querySelector('.speaker')!.classList.contains('entering')).toBe(false)
     await vi.advanceTimersByTimeAsync(WORDS_OUT_MS)
     expect(document.querySelector('.stage-ghost')).toBeNull()
-    expect(row().classList.contains('entering')).toBe(true)
+    expect(document.querySelector('.speaker')!.classList.contains('entering')).toBe(true)
     expect(words().style.opacity).toBe('0')
     await vi.advanceTimersByTimeAsync(ENTER_MOVE_MS)
     expect(words().style.opacity).toBe('')
-    expect(words().textContent).toContain('Evil Bob')
+    expect(words().textContent).toContain('Random event')
+    expect(document.querySelector('.bubble .speech')!.textContent).toContain('Evil Bob')
   })
 
   it('swaps the host for the Wise Old Man at the standings, before his words', async () => {

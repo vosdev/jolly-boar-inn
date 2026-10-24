@@ -549,6 +549,7 @@
                   results={$lastClosed.results}
                   onAnswer={() => {}}
                   nextAt={$room.next_at}
+                  standings={$room.settings.standings_seconds > 0}
                   answersOnly={phone}
                   tv={$you?.role === 'tv'}
                 >

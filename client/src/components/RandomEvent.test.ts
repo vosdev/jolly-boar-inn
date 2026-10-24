@@ -148,17 +148,22 @@ describe('RandomEvent', () => {
     expect(error).not.toHaveBeenCalled()
   })
 
-  it('stands the NPC on the right of the round host’s scroll, the host gone', () => {
+  it('stands the NPC on the right above the sheet, the host gone, its question on the sheet', () => {
     const { container } = render(RandomEvent, {
       question: event(),
       yourValue: null,
       onAnswer: () => {},
     })
-    const row = container.querySelector('.stage-row')!
-    expect(row.classList.contains('event')).toBe(true)
-    const npcs = [...row.querySelectorAll('.npc')].map((npc) => npc.classList[1])
+    const speaker = container.querySelector('.speaker')!
+    expect(speaker.classList.contains('event')).toBe(true)
+    const npcs = [...speaker.querySelectorAll('.npc')].map((npc) => npc.classList[1])
     expect(npcs).toEqual(['host', 'guest'])
-    expect(row.querySelector('.paper')?.textContent).toContain('Which prayer level unlocks Augury?')
+    expect(container.querySelector('.stage-row .npc')).toBeNull()
+    const paper = container.querySelector('.paper')!.textContent
+    expect(paper).toContain('Random event')
+    expect(paper).toContain('Which prayer level unlocks Augury?')
+    expect(paper).not.toContain('Death')
+    expect(container.querySelector('.bubble')?.textContent).toContain('Death')
   })
 
   it('plays the entrance only for a question that just opened, with the hold still ahead', () => {
@@ -174,7 +179,7 @@ describe('RandomEvent', () => {
         onAnswer: () => {},
         live,
       })
-      const played = container.querySelector('.stage-row')!.classList.contains('entering')
+      const played = container.querySelector('.speaker')!.classList.contains('entering')
       unmount()
       return played
     }
@@ -226,7 +231,7 @@ describe('the interlude', () => {
       .map((node) => node.textContent)
       .join('')
   }
-  const row = () => document.querySelector('.stage-row')!
+  const row = () => document.querySelector('.speaker')!
 
   it('shows the NPC’s name from the first frame, and types the prompt from 900 ms', async () => {
     live()
@@ -334,7 +339,7 @@ describe('the interlude', () => {
     expect(row().classList.contains('returning')).toBe(false)
   })
 
-  it('puts the explanation on the scroll in the reveal, not under it', () => {
+  it('puts the explanation in the NPC’s bubble in the reveal, not on the sheet or under it', () => {
     const why = 'Augury needs 77 Prayer and Sins of the Father.'
     render(RandomEvent, {
       question: event(),
@@ -343,7 +348,8 @@ describe('the interlude', () => {
       onAnswer: () => {},
     })
     expect(screen.getAllByText(why)).toHaveLength(1)
-    expect(document.querySelector('.paper')?.textContent).toContain(why)
+    expect(document.querySelector('.bubble')?.textContent).toContain(why)
+    expect(document.querySelector('.paper')?.textContent).not.toContain(why)
     expect(document.querySelector('.answers')?.textContent).not.toContain(why)
   })
 })
@@ -358,7 +364,7 @@ describe('the NPC’s own words', () => {
       view: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'] },
       ...patch,
     })
-  const intro = () => document.querySelector('.paper .intro')!
+  const intro = () => document.querySelector('.bubble .line:not(.later) .lore')!
   const ask = () => document.querySelector('.paper .ask')!
   function seen(line: Element): string {
     const mask = line.querySelector('[aria-hidden="true"]')
@@ -405,18 +411,84 @@ describe('the NPC’s own words', () => {
     expect(spoken(ask())).toBe(PROMPT)
   })
 
-  it('hides the intro in the reveal but keeps its room under the question', () => {
+  it('has its intro in the bubble and its question on the sheet', () => {
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
+    expect(spoken(intro())).toBe(INTRO)
+    expect(document.querySelector('.paper')?.textContent).not.toContain(INTRO)
+    expect(spoken(ask())).toBe(PROMPT)
+  })
+
+  it('swaps the intro for its verdict in the reveal, keeping the intro’s room unseen', () => {
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: 1,
+      result: { value: 1, correct: true, credit: 1, points: 900 },
+      onAnswer: () => {},
+    })
+    expect(ask().textContent).toBe(PROMPT)
+    expect(document.querySelector('.bubble .line:not(.later)')?.textContent).not.toContain(INTRO)
+    const kept = document.querySelector('.bubble .later')!
+    expect(kept.textContent).toContain(INTRO)
+    expect(kept.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('keeps the bubble the height of its reveal from the first frame', () => {
+    render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
+    const kept = document.querySelector('.bubble .later')!
+    expect(kept.getAttribute('aria-hidden')).toBe('true')
+    // The longer verdict, two lines for an explanation and the countdown's line.
+    expect(kept.querySelector('.reaction')?.textContent).toBe(
+      death.right.length >= death.wrong.length ? death.right : death.wrong,
+    )
+    expect(kept.querySelector('.explained')).not.toBeNull()
+    expect(kept.querySelector('.next')).not.toBeNull()
+  })
+
+  it('dims the bubble once the question has typed, and brings it back in the reveal', async () => {
+    const bubble = () => document.querySelector('.bubble:not(.shell)')!
+    const [, asked] = interludeFor(6000, [[...INTRO].length, [...PROMPT].length]).lines
+    const typed = Math.ceil(asked!.from + asked!.for)
+    const { unmount } = render(RandomEvent, {
+      question: introduced(),
+      yourValue: null,
+      onAnswer: () => {},
+      live: true,
+    })
+    expect(bubble().classList.contains('on')).toBe(true)
+    await after(typed - 50)
+    expect(bubble().classList.contains('dim')).toBe(false)
+    await after(60)
+    expect(bubble().classList.contains('dim')).toBe(true)
+    unmount()
     render(RandomEvent, {
       question: introduced(),
       reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
       yourValue: 1,
       onAnswer: () => {},
     })
-    expect(ask().textContent).toBe(PROMPT)
-    const kept = intro()
-    expect(kept.classList.contains('kept')).toBe(true)
-    expect(kept.getAttribute('aria-hidden')).toBe('true')
-    expect(ask().compareDocumentPosition(kept) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(bubble().classList.contains('on')).toBe(true)
+  })
+
+  it('ends the reveal’s bubble with the explanation and the countdown to the next question', async () => {
+    const why = 'Augury needs 77 Prayer and Sins of the Father.'
+    // The countdown runs on the server clock's tick.
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+    })
+    vi.setSystemTime(NOW)
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1, explanation: why },
+      yourValue: 1,
+      onAnswer: () => {},
+      nextAt: new Date(NOW + 6000).toISOString(),
+    })
+    const said = () => document.querySelector('.bubble .line:not(.later)')!.textContent
+    expect(said()).toContain(why)
+    expect(said()).toContain('Next question in 6 seconds')
+    await after(1000)
+    expect(said()).toContain('Next question in 5 seconds')
   })
 
   it.each([
@@ -431,7 +503,7 @@ describe('the NPC’s own words', () => {
       result,
       onAnswer: () => {},
     })
-    expect(document.querySelector('.said .reaction')?.textContent).toBe(words)
+    expect(document.querySelector('.bubble .line:not(.later) .reaction')?.textContent).toBe(words)
   })
 
   it('says nothing to somebody the question was not theirs to answer, nor while it is open', () => {
@@ -444,7 +516,7 @@ describe('the NPC’s own words', () => {
     expect(document.querySelector('.reaction')).toBeNull()
     unmount()
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
-    expect(document.querySelector('.reaction')).toBeNull()
+    expect(document.querySelector('.line:not(.later) .reaction')).toBeNull()
   })
 })
 

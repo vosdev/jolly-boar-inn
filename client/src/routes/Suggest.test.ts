@@ -360,7 +360,7 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
     await type('Your name', 'AFKFisher')
-    expect(screen.getByText('Pssst, adventurer.', { selector: '.intro' })).toBeTruthy()
+    expect(screen.getByText('Pssst, adventurer.', { selector: '.lore' })).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     const sent = vi.mocked(api.sendSuggestion).mock.calls[0]?.[0] as {
       content: { payload: object }
@@ -766,8 +766,8 @@ describe('Suggest', () => {
     await type('Entry 2', 'I')
     await type('Entry 3', 'Q')
     const preview = within(screen.getByRole('region', { name: 'Preview' }))
-    expect(preview.getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
-    expect(preview.getByText('Turn the dials, mortal.', { selector: '.intro' })).toBeTruthy()
+    expect(preview.getByText('Fairy Queen', { selector: '.name' })).toBeTruthy()
+    expect(preview.getByText('Turn the dials, mortal.', { selector: '.lore' })).toBeTruthy()
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Fairy_ring')
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))

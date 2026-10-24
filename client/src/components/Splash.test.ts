@@ -73,13 +73,15 @@ function splash(segment: Segment = SEGMENT, youReady = false) {
 
 const paper = () => document.querySelector('.paper') as HTMLElement
 const under = () => document.querySelector('.under') as HTMLElement
+const bubble = () => document.querySelector('.bubble') as HTMLElement
 
 describe('Splash stage', () => {
-  it("writes the mode's name and blurb on the scroll, and its count under the line", () => {
+  it("writes the mode's name on the scroll, its blurb in the host's bubble, and its count under the line", () => {
     splash()
     const heading = screen.getByRole('heading', { name: 'More or Less' })
     expect(paper().contains(heading)).toBe(true)
-    expect(paper().textContent).toContain(MODES.more_less!.blurb)
+    expect(paper().textContent).not.toContain(MODES.more_less!.blurb)
+    expect(bubble().textContent).toContain(MODES.more_less!.blurb)
     expect(under().textContent).toContain('Round 1 of 2 · 5 questions')
     // A round's questions each take their own type's time, so no one length is true.
     expect(under().textContent).not.toContain('seconds')
@@ -107,30 +109,28 @@ describe('Splash stage', () => {
   it('heads a mode this build lacks with its id, and makes up no blurb', () => {
     splash({ ...SEGMENT, mode: 'zoom_quiz' })
     expect(screen.getByRole('heading', { name: 'zoom_quiz' })).toBeTruthy()
-    expect(paper().querySelector('.blurb')).toBeNull()
+    expect(document.querySelector('.blurb')).toBeNull()
   })
 
-  it("has the mode's host greet the room on the scroll, between the name and the blurb", () => {
+  it("has the mode's host greet the room in its bubble, by name, before the blurb", () => {
     splash()
-    const lines = [...paper().querySelectorAll('h2, p')].map(spoken)
-    expect(lines).toEqual([
-      'More or Less',
-      `“${MODES.more_less!.greeting}”`,
-      MODES.more_less!.blurb,
-    ])
+    const lines = [...bubble().querySelectorAll('p')].map(spoken)
+    expect(lines).toEqual(['Ali Morrisane', MODES.more_less!.greeting, MODES.more_less!.blurb])
+    expect(bubble().classList.contains('on')).toBe(true)
   })
 
   it('has the innkeeper present a mode this build lacks, in the generic greeting', () => {
     splash({ ...SEGMENT, mode: 'zoom_quiz' })
-    expect(paper().textContent).toContain(GENERIC_HOST.greeting)
+    expect(bubble().textContent).toContain(GENERIC_HOST.greeting)
     for (const img of document.querySelectorAll<HTMLImageElement>('.npc.host img')) {
       expect(img.getAttribute('src')).toBe(npcArt(FALLBACK_NPC).url)
     }
   })
 
-  it('has the host beside the scroll', () => {
+  it('has the host above the scroll, beside its bubble', () => {
     splash()
-    expect(document.querySelector('.stage-row .npc.host img')).toBeTruthy()
+    expect(document.querySelector('.speaker .npc.host img')).toBeTruthy()
+    expect(document.querySelector('.stage-row .npc')).toBeNull()
   })
 
   it('keeps the ready check off the parchment', () => {
@@ -272,10 +272,10 @@ describe('Splash countdown bar', () => {
 })
 
 describe('Splash typing', () => {
-  const GREETING = `“${MODES.more_less!.greeting}”`
+  const GREETING = MODES.more_less!.greeting
   const BLURB = MODES.more_less!.blurb
-  const greeting = () => paper().querySelector('.greeting')!
-  const blurb = () => paper().querySelector('.blurb')!
+  const greeting = () => bubble().querySelector('.greeting')!
+  const blurb = () => bubble().querySelector('.blurb')!
 
   async function after(ms: number): Promise<void> {
     await vi.advanceTimersByTimeAsync(ms)

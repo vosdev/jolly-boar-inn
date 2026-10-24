@@ -209,30 +209,28 @@ who sends none is given one by the server, so every client draws the same pet fo
 
 ## 8. The stage: a host and a sheet
 
-Every round is presented by an NPC, the **host**, standing beside the theme's **sheet**
-(`lib/sheet.ts`). In `jolly` and `pollnivneach` it is a **clue scroll** drawn after the game's
+Every round is presented by an NPC, the **host**, who stands above the theme's **sheet**
+(`lib/sheet.ts`) and speaks in a bubble beside its chathead. In `jolly` and `pollnivneach` it is a **clue scroll** drawn after the game's
 quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wilderness` nails up a
 sooty bounty poster under the game's skull, `party_room` hangs a cream card in a checked border
 under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
 `jungle` lashes bark cloth into a bamboo frame, both Gauntlets show its dark board in a glowing
 crystal or red rim, `morytania` raises a gravestone, which a long sheet makes a pillar, and `zanaris` the Cosmic
 altar's sign.
-The sheet carries the round's introduction on the splash and then every question; the answers
-sit under it.
+The sheet carries the mode's name on the splash and then every question, and nothing else; the
+answers sit under it.
 Create shows each mode on a card with its host's chathead. The stage was agreed in
 `client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it is at
 `/prototypes/clue-scroll.html`.
 
 ```
+   ▄▄    ╭──────────────────────────────╮
+  (••)   │ Ali Morrisane                │   the speaker's name, then its line
+ ▟████▙ <│ Patience, my friend.         │   in Quill, on --panel-raised
+         ╰──────────────────────────────╯
         ╥────────────────────────────────╥
-        ║ Know Your Content Creator      ║   display face
-   ▄▄   ║ "Psst. Seen this one before?"  ║   the host's line, body face
-  (••)  ║ Are you sure you are a fan?    ║   the blurb, in the host's voice
- ▟████▙ ║                                ║
-        ╨──────────────────────✿─────────╨   the pin, for any points
-──────────────────────────────────────────────
-Round 2 of 5 · 5 questions
-[ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
+        ║ Which costs more on the GE?    ║   the question, and nothing else
+        ╨──────────────────────✿──+850───╨   the pin and the points
 ```
 
 - **The room's frame** (`lib/roomFit.ts`): the stage on the left, the table column on the right,
@@ -245,29 +243,35 @@ Round 2 of 5 · 5 questions
 - **One size.** The sheet is at most 30rem wide at every width, and the answers under it take the
   same width. `--scroll-scale` sizes the rolls, margins and pin, `--scroll-text` the words; a
   stage under 26rem, a phone, sets 0.8 and 0.9.
-- **The host** stands at the scroll's bottom-left, over its left roll: 78px wide overlapping 30px,
-  and 68px overlapping 32px on a phone. A sheet without rolls it overlaps only as far as it
-  would reach past a roll. Its chathead at both. A sheet longer than the host, the hiscores
-  (§11), has it at the top-left instead.
+- **The host** stands above the sheet at its left, its chathead 92px (56px on a phone), and speaks
+  in a **bubble** beside it: the theme's `--panel-raised` with its `--line` edge and a tail at the
+  speaker, in Quill, the speaker's name then the line. An event's NPC stands at the right, its
+  bubble pointing right (§12). A hidden bubble keeps its room, so the sheet never moves when the
+  host speaks, and a bubble is from the first frame as tall as the most its screen will say.
+- **Elsewhere the host stands beside the sheet**: the lobby, the standings and hiscores
+  (§11, at a long sheet's top-left), Home and the TV. There it stands at the scroll's bottom-left,
+  over its left roll, 78px wide overlapping 30px (68px and 32px on a phone); under 448px of screen,
+  and on the TV, it stands on the sheet and the words wrap around it.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
-  edges. The host, an event's NPC or Home's hero then stands on the sheet, and the words wrap
-  around it: the lines above its head run the sheet's full width.
+  edges.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
   and faint facets crease it. An examine line sits centred in the height the prompt leaves.
 - **One scroll, always open**, from the lobby to the final hiscores. Between screens the words
   fade off (150 ms), the scroll moves to the next screen's size and place (250 ms), and the new
-  words fade up. When somebody else is to stand there (the lobby's hero, the Wise Old Man, an
-  event NPC still standing), the host leaves with the words (200 ms) and the next walks on before
-  them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
+  words fade up, in the bubble as on the sheet, the bubble holding its size while they fade.
+  When somebody else is to stand there (the lobby's hero, the Wise Old Man, an event NPC still
+  standing, or the host stepping up above the sheet), the host and its bubble leave with the words
+  (200 ms) and the next walks on before them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
   event clears the words before its own entrance and return (§12).
 - **Between routes** (Create to the lobby, Home to Join), Create's tabs and Suggest's list and editor the old screen fades out (150 ms) and the new
   one in (200 ms); reduced motion cuts. A room's first frame waits behind a "Connecting…" popup that
   only appears after 400 ms.
   After the first screen loads, the browser fetches the NPCs, emblems, team logos and pet chatheads
   (`lib/preload.ts`), so those do not pop in mid-fade.
-- **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
-  blurb once the scroll is in place, and a question's stem from 400 ms in the server's hold before
-  `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
+- **Every line types in** at 50 letters a second: on the splash the bubble's greeting and blurb
+  once the stage is in place, and a question's stem on the sheet from 400 ms in the server's hold
+  before `answerable_at`, the answers waiting under the line. The host says nothing then; once you
+  answer, its waiting line shows in the bubble, dimmed to 60%. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
   partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
   `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, both Gauntlets a
@@ -282,9 +286,9 @@ Round 2 of 5 · 5 questions
   check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
   the lobby's buttons and the splash's count, pace and countdown at its foot.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
-  `lib/modes.ts`. The splash scroll holds the mode's name, greeting and blurb; the waiting and
-  reveal lines go at the sheet's foot, the reveal's beside the points. The foot holds two lines
-  either way, and each line fits in two at 350px, the narrowest screen supported. Question
+  `lib/modes.ts`, all in the bubble. The reveal's bubble adds the question's explanation and
+  "Next question in 6 seconds" (the standings, the next round or the final standings after a
+  round's or the game's last). The sheet's foot keeps one line for the points. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
@@ -352,8 +356,8 @@ take-back rule are architecture §7.
   TV that drops gives phones the whole question back.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
-picked or numeric answer fades beside the correct value. The host says your points at the foot of
-the scroll, in a foot held from the start so nothing under the sheet moves, the same in every mode,
+picked or numeric answer fades beside the correct value. Your points go at the foot of the
+scroll, in a foot held from the start so nothing under the sheet moves, the same in every mode,
 in display tabular numerals and the scroll's ink:
 
 | Outcome | Slot shows |
@@ -413,41 +417,42 @@ on the game's entry.
 A random event is a question from an NPC who has nothing to do with the round. How often and who
 asks what are architecture §5 and `ideas/random-events.md`. This is how it looks.
 
-**The event NPC stands on the right.** The host always stands left, so position says "this is not
-the round's question" before a word is read.
+**The event NPC stands on the right**, above the sheet, its bubble pointing right, and a "Random
+event" tag heads the sheet. The host always stands left, so position says "this is not the round's
+question" before a word is read.
 
 Everything happens inside the server's hold before `answerable_at`, timed to the text (§8), so the
 wait costs nobody points and the server times nothing:
 
 ```
-  0 ms   the round's words fade off the sheet                                  ≤ 150 ms
-150 ms   the host fades out; the empty scroll slides left to the text's height ≤ 375 ms
-375 ms   the event NPC fades in on the right                                   ≤ 375 ms
-525 ms   the NPC's name fades up on the scroll                                 ≤ 150 ms
-900 ms   the NPC's `intro` "types" in at 50 letters a second
-then     a pause of 0.5–1 s, and the plain question types in under it, in bold
+  0 ms   the round's words fade off the sheet and out of the bubble          ≤ 150 ms
+150 ms   the host and its empty bubble fade out                              ≤ 300 ms
+375 ms   the NPC fades in on the right, its bubble holding only its name     ≤ 375 ms
+900 ms   the NPC's `intro` "types" in, in the bubble, at 50 letters a second
+then     a pause of 0.5–1 s, and the plain question types in on the sheet
+then     once it has typed, the bubble dims to 60%
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
-answerable_at: the answers appear under the line and the timer bar starts
+answerable_at: the answers fade in under the line (200 ms) and the timer bar starts
 ```
 
-- The intro is the character; the bold question is all a hurried player needs. A question with no
-  intro types its prompt alone.
+- The intro is the character; the question on the sheet is all a hurried player needs. A question
+  with no intro types its prompt alone, the bubble saying only the NPC's name.
 - The pause is what reading the intro still needs once typed, at 25 letters a second: 0.5–1 s.
   Spare time waits at the end, settled. Text too long for the hold starts sooner, never before
   600 ms, then pauses less, then types faster. Under 800 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame.
-- In the reveal the intro goes, its lines left blank so the sheet keeps its height, the NPC says
-  its `right` or `wrong` line beside the points, and the `explanation` goes on the scroll, in two
-  lines the sheet keeps from the start.
-- The return takes the reveal's last 900 ms, off `next_at`, one step at a time: the NPC and the
-  words fade out (225 ms), the scroll slides back (375 ms), the host fades in (300 ms). A skipped
-  reveal hands the stage back as §8.
-- A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
+- In the reveal the bubble comes back undimmed with the NPC's `right` or `wrong` line, the
+  `explanation` and the countdown (§8), and your points go on the sheet's foot. The bubble keeps
+  room for all of it, two lines of explanation among it, from the first frame.
+- The return takes the reveal's last 900 ms, off `next_at`: the NPC, its bubble and the words fade
+  out (225 ms), then the host and its bubble fade in (300 ms) once the sheet's 375 ms move would
+  have played. A skipped reveal hands the stage back as §8.
+- A reconnect lands on the settled stage, the bubble dimmed. The TV keeps its stage without a
+  bubble: the NPC stands on the sheet's right, its words all on the sheet, the scroll sliding over.
 - With reduced motion the NPC replaces the host in one frame and the text shows whole. The
   answers still wait, because that is a rule of the game, not an animation.
 - An NPC this build does not know is drawn as the Mysterious Old Man.
 - The panel holding the answers exists, with the buttons faded out.
-- When the answers appear, they fade in (200ms)
 
 ## 13. What the build constrains
 
