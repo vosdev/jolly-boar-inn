@@ -1,8 +1,9 @@
 /** The timer bar's tabs: the seconds on the right, and a question's number on the left. */
 
 import { render } from '@testing-library/svelte'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
+import { roomShown } from '../lib/roomFit'
 import TimerBar from './TimerBar.svelte'
 
 const endsAt = () => new Date(Date.now() + 10_000).toISOString()
@@ -18,5 +19,19 @@ describe('TimerBar', () => {
   it('has the seconds alone when there is no question to number', () => {
     render(TimerBar, { endsAt: endsAt(), totalSeconds: 10, label: 'to the next round' })
     expect(tabs()).toEqual(['10s'])
+  })
+
+  describe('in a room laid out for a desktop', () => {
+    afterEach(() => roomShown.set(null))
+
+    it('hangs its tabs at the stage’s edges, at the room’s scale', () => {
+      roomShown.set({ fit: { scale: 2, width: 1600, height: 920, left: 100 }, reveal: false })
+      render(TimerBar, { endsAt: endsAt(), totalSeconds: 10, label: 'to answer', progress: '2/3' })
+      const column = document.querySelector<HTMLElement>('.column')!
+      expect(column.classList.contains('room')).toBe(true)
+      expect(column.style.getPropertyValue('--stage-left')).toBe('180px')
+      expect(column.style.getPropertyValue('--stage-width')).toBe(`${(1600 - 80 - 28 - 300) * 2}px`)
+      expect(column.style.getPropertyValue('--tab-scale')).toBe('2')
+    })
   })
 })

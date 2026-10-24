@@ -140,7 +140,9 @@ learns the position, which is worth more than variety.
   priority: it shows at every width and is the one item that shrinks, ellipsising.
 - **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 155px.
 - **Width:** the bar and the footer are as wide as the screen under them: 42rem, or 64rem on Home,
-  Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
+  Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. In a
+  room the bar runs the window's width, and from 1024px its middle says where the night is:
+  "Round 1 of 3: **More or Less**", "Lobby", "Hiscores after round 2 of 3", "Final hiscores". On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead.
 - **A team game** frames the screen in the player's god from the moment they join a team until
@@ -228,7 +230,14 @@ Round 2 of 5 · 5 questions
 [ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
 ```
 
-- **One size.** The stage is at most 30rem wide at every width, and the answers under it take the
+- **The room's frame** (`lib/roomFit.ts`): the stage on the left, the table column on the right,
+  300px (380px in a reveal), 28px apart, padded 30/40/28px. It is laid out at 1600×920 under the
+  bar: larger windows scale it up as a whole, as the TV (§16), never wider than 16:9 of the
+  window's height, the floor beside it with the wall lights (§1) measured from its edge, none
+  where it fills the window; from 1280×640 it fills the window at its
+  own size; smaller, it lays out at 1280×640 and scales down. The stage's parts stand centred in
+  its height. Under 1024px wide the stage and table stack. The TV has no frame.
+- **One size.** The sheet is at most 30rem wide at every width, and the answers under it take the
   same width. `--scroll-scale` sizes the rolls, margins and pin, `--scroll-text` the words; a
   stage under 26rem, a phone, sets 0.8 and 0.9.
 - **The host** stands at the scroll's bottom-left, over its left roll: 78px wide overlapping 30px,
@@ -264,9 +273,9 @@ Round 2 of 5 · 5 questions
 - **The sheet** is an original inline SVG and CSS component in layer 8's tokens. An `<img>` could
   not read the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only
   along its length. Every theme has its own paper.
-- **Below the scroll** is a panel: on the splash the round's count and pace and the ready check;
-  on a question the answers, and once answered a slim panel saying who is in. Gems never sit on parchment, so every gem check
-  still measures against `--panel`. The round is said on the splash only.
+- **Below the scroll** are the answers on a panel; gems never sit on parchment, so every gem
+  check still measures against `--panel`. **At the table** (`AtTable`): the lobby's and splash's
+  ready check, the splash's count and pace, and once answered a slim panel saying who is in.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
   `lib/modes.ts`. The splash scroll holds the mode's name, greeting and blurb; the waiting and
   reveal lines go at the sheet's foot, the reveal's beside the points. The foot holds two lines
@@ -309,7 +318,7 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   and the question's number (`2/3`) in one at its left. Answer buttons are 56px tall and full
   width on a phone: thumb targets at a pub table.
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
-  `--scroll-ink`, and the answers, combobox, waiting state and tally are under the scroll. The
+  `--scroll-ink`, the answers, combobox and tally under it, the waiting state at the table. The
   question's heading is for a screen reader only.
 - A pack question's picture, the wiki's detail render, is centred under the prompt in a box 5rem
   tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.
@@ -463,8 +472,8 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
   emblems (`client/src/assets/themes/<theme>.<ext>`), the team logos (`assets/teams/<god>.<ext>`).
   The display face and the logo are the owner's, and no D task waits on them.
 
-**Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
-never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
+**Footer.** A full-width `--panel` band under every screen but a room's, which has it under the
+lobby only, edged like the bar, in the flow and never fixed: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
 it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA), Credits and the version, linked to its release. Its sheet ranks the named question authors by count, ties sharing a rank, with a way to `/suggest`, and thanks the wiki. The
 AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
 the bar (§5). Every link opens a new tab, so a room is never

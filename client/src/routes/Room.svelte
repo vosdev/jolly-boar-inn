@@ -38,6 +38,11 @@
    * screens and before the host's controls, so it moves from screen to screen rather than
    * each screen putting up its own.
    *
+   * The room is a frame (`lib/roomFit.ts`): the stage on the left and the table column on
+   * the right, laid out at one size and scaled to the window, or stacked on a phone. What a
+   * screen puts at the table it hands over with `AtTable`. The top bar says where the night
+   * is (`lib/barWhere.ts`). The TV keeps its own view and has no frame.
+   *
    * A screen reader hears the changes through one polite live region that stays mounted
    * for the whole visit, because a region inserted already filled is often never read: a
    * question opening, or who interrupts with a random event, the verdict on it, and a
@@ -58,8 +63,11 @@
   import Standings from '../components/Standings.svelte'
   import Splash from '../components/Splash.svelte'
   import SharedStageView from '../components/stage/SharedStageView.svelte'
+  import { barWhere, whereOf } from '../lib/barWhere'
   import { historyPath, latestPastGame } from '../lib/history'
   import { answersOnly } from '../lib/tv'
+  import { roomFit, roomShown, type RoomFit } from '../lib/roomFit'
+  import { RoomTable, shareTable } from '../lib/roomTable.svelte'
   import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
   import { clearSession, getSession, normalizeCode } from '../lib/session'
   import {
@@ -331,6 +339,50 @@
 
   const stage = new SharedStage()
   shareStage(stage)
+  const table = new RoomTable()
+  shareTable(table)
+
+  const isTv = $derived($you?.role === 'tv')
+
+  /** The frame for the window as it is now; the bar's height is the shell's, from app.css. */
+  function measure(): RoomFit | null {
+    const root = document.documentElement
+    const bar = parseFloat(getComputedStyle(root).getPropertyValue('--topbar-height')) || 56
+    return roomFit({ width: root.clientWidth, height: innerHeight }, bar)
+  }
+
+  let fit = $state(measure())
+  const framed = $derived(isTv ? null : fit)
+  const revealing = $derived($room?.status === 'playing' && $room.phase === 'reveal')
+
+  onMount(() => {
+    const refit = (): void => {
+      fit = measure()
+    }
+    // A scrollbar coming or going changes the width without resizing the window.
+    const watch = new ResizeObserver(refit)
+    watch.observe(document.documentElement)
+    addEventListener('resize', refit)
+    return () => {
+      watch.disconnect()
+      removeEventListener('resize', refit)
+      roomShown.set(null)
+      barWhere.set(null)
+    }
+  })
+
+  $effect(() => {
+    roomShown.set(framed === null ? null : { fit: framed, reveal: revealing })
+  })
+
+  $effect(() => {
+    const current = $room
+    barWhere.set(
+      isTv || departure !== null || current === null
+        ? null
+        : whereOf(current.status, current.phase, segment),
+    )
+  })
 
   /** The playing screens after the splash, which have the host's controls under the stage. */
   const hostControls = $derived(
@@ -352,185 +404,260 @@
   }
 </script>
 
-{#if departure !== null}
-  <!-- The room's code is in the top bar (section 4). These headings say which screen
-       you are on, which is what the code used to be crowding out. -->
-  <section class="panel">
-    <h1>Disconnected</h1>
-    <p>{FAREWELL[departure.reason]}</p>
-    <div class="row">
-      {#if RETRY !== null}
-        <button type="button" class="primary" onclick={() => location.reload()}>{RETRY}</button>
-      {/if}
-      <button type="button" onclick={leave}>Home</button>
-    </div>
-  </section>
-{:else}
-  {#if $connection === 'reconnecting'}
-    <div class="banner">Connection lost — reconnecting…</div>
-  {/if}
-
-  {#if $room === null}
-    <Connecting />
-  {:else if $room.status === 'lobby'}
-    {#if socket !== null}
-      <Lobby {socket} />
-    {/if}
-  {:else if $room.status === 'finished'}
-    <FinalStandings
-      standings={$standings}
-      teamStandings={$teamStandings}
-      teamOf={teamsOf($players)}
-      youId={$you?.id ?? null}
-      ceremony={$endedLive}
-      tv={$you?.role === 'tv'}
-    >
-      <button type="button" onclick={leave}>Home</button>
-    </FinalStandings>
-  {:else if $room.phase === 'splash' && $room.segment !== null}
-    <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past.
-         The host's skip is on the card, small, for the same reason. -->
-    <ErrorBanner />
-    <Splash
-      segment={$room.segment}
-      endsAt={$room.next_at}
-      players={$players}
-      youId={$you?.id ?? null}
-      onReady={(ready) => socket?.send({ t: 'ready', ready })}
-      onSkip={isAdmin ? skip : null}
-      onEndRound={isAdmin ? askEndRound : null}
-      tv={$you?.role === 'tv'}
-    />
-  {:else}
-    <!-- playing. A question's screen is the stage and nothing to read past it. -->
-    <div class:column={$room.phase !== 'standings'}>
-      {#if $room.phase === 'standings'}
-        <h1 class="sr">
-          {#if segment !== null}
-            <span class="round">After round {segment.index + 1} of {segment.total}</span>
+<div
+  class="frame"
+  class:fitted={framed !== null}
+  style:--room-scale={framed?.scale ?? null}
+  style:--room-width={framed === null ? null : `${framed.width}px`}
+  style:--room-height={framed === null ? null : `${framed.height}px`}
+>
+  <div class="play" class:revealing>
+    <div class="stage-side">
+      <div class="stage-in">
+        {#if departure !== null}
+          <!-- The room's code is in the top bar (section 4). These headings say which screen
+             you are on, which is what the code used to be crowding out. -->
+          <section class="panel">
+            <h1>Disconnected</h1>
+            <p>{FAREWELL[departure.reason]}</p>
+            <div class="row">
+              {#if RETRY !== null}
+                <button type="button" class="primary" onclick={() => location.reload()}
+                  >{RETRY}</button
+                >
+              {/if}
+              <button type="button" onclick={leave}>Home</button>
+            </div>
+          </section>
+        {:else}
+          {#if $connection === 'reconnecting'}
+            <div class="banner">Connection lost — reconnecting…</div>
           {/if}
-          Standings
-        </h1>
-      {:else}
-        <!-- The splash said which round this is, and the timer bar's tab says which
-           question: the heading is only for a screen reader and for focus. -->
-        <h1 class="sr" bind:this={heading} tabindex="-1">
-          {#if segment !== null && segment.total > 1}
-            <span class="round">Round {segment.index + 1} of {segment.total}</span>
+
+          {#if $room === null}
+            <Connecting />
+          {:else if $room.status === 'lobby'}
+            {#if socket !== null}
+              <Lobby {socket} />
+            {/if}
+          {:else if $room.status === 'finished'}
+            <FinalStandings
+              standings={$standings}
+              teamStandings={$teamStandings}
+              teamOf={teamsOf($players)}
+              youId={$you?.id ?? null}
+              ceremony={$endedLive}
+              tv={$you?.role === 'tv'}
+            >
+              <button type="button" onclick={leave}>Home</button>
+            </FinalStandings>
+          {:else if $room.phase === 'splash' && $room.segment !== null}
+            <!-- The splash is the whole screen: no header, no scoreboard, nothing to read past.
+               The host's skip is on the card, small, for the same reason. -->
+            <ErrorBanner />
+            <Splash
+              segment={$room.segment}
+              endsAt={$room.next_at}
+              players={$players}
+              youId={$you?.id ?? null}
+              onReady={(ready) => socket?.send({ t: 'ready', ready })}
+              onSkip={isAdmin ? skip : null}
+              onEndRound={isAdmin ? askEndRound : null}
+              tv={$you?.role === 'tv'}
+            />
+          {:else}
+            <!-- playing. A question's screen is the stage and nothing to read past it. -->
+            <div class:column={$room.phase !== 'standings'}>
+              {#if $room.phase === 'standings'}
+                <h1 class="sr">
+                  {#if segment !== null}
+                    <span class="round">After round {segment.index + 1} of {segment.total}</span>
+                  {/if}
+                  Standings
+                </h1>
+              {:else}
+                <!-- The splash said which round this is, and the timer bar's tab says which
+                 question: the heading is only for a screen reader and for focus. -->
+                <h1 class="sr" bind:this={heading} tabindex="-1">
+                  {#if segment !== null && segment.total > 1}
+                    <span class="round">Round {segment.index + 1} of {segment.total}</span>
+                  {/if}
+                  {questionTitle}
+                </h1>
+              {/if}
+
+              <ErrorBanner />
+
+              {#if $room.phase === 'standings'}
+                <Standings
+                  standings={$standings}
+                  teamStandings={$teamStandings}
+                  {segment}
+                  youId={$you?.id ?? null}
+                  tv={$you?.role === 'tv'}
+                />
+              {:else if $room.phase === 'open' && $question !== null}
+                <QuestionStage
+                  question={$question}
+                  yourValue={$yourAnswer}
+                  onAnswer={answer}
+                  live={$questionLive}
+                  answersOnly={phone}
+                  tv={$you?.role === 'tv'}
+                />
+              {:else if $lastClosed !== null && $lastClosed.was !== null}
+                <QuestionStage
+                  question={$lastClosed.was}
+                  reveal={$lastClosed.reveal}
+                  yourValue={$yourAnswer}
+                  result={yourResult}
+                  results={$lastClosed.results}
+                  onAnswer={() => {}}
+                  nextAt={$room.next_at}
+                  answersOnly={phone}
+                  tv={$you?.role === 'tv'}
+                >
+                  <RevealTally
+                    type={$lastClosed.was.type}
+                    reveal={$lastClosed.reveal}
+                    results={$lastClosed.results}
+                    unanswered={$lastClosed.unanswered}
+                    {nameOf}
+                    youId={$you?.id ?? null}
+                    showNames={$room.settings.name_wrong_answers === true}
+                    suggestedBy={$lastClosed.suggested_by ?? null}
+                    teams={$room.settings.teams}
+                    teamOf={teamsOf($players)}
+                  />
+                </QuestionStage>
+              {:else if $lastClosed !== null}
+                <section class="panel">
+                  <p class="note">That question is closed.</p>
+                </section>
+              {:else}
+                <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
+                 back from a restart. No `question_closed` reached this client, so there is
+                 nothing to reveal. There is no board here either: inside a round, where
+                 everyone stands waits for the round's end. -->
+                <section class="panel">
+                  <p class="note">
+                    {$room.phase === 'reveal'
+                      ? 'Between questions — the next one opens shortly.'
+                      : 'Waiting for the next question…'}
+                  </p>
+                </section>
+              {/if}
+            </div>
           {/if}
-          {questionTitle}
-        </h1>
-      {/if}
 
-      <ErrorBanner />
+          <SharedStageView {stage} />
 
-      {#if $room.phase === 'standings'}
-        <Standings
-          standings={$standings}
-          teamStandings={$teamStandings}
-          {segment}
-          youId={$you?.id ?? null}
-          tv={$you?.role === 'tv'}
-        />
-      {:else if $room.phase === 'open' && $question !== null}
-        <QuestionStage
-          question={$question}
-          yourValue={$yourAnswer}
-          onAnswer={answer}
-          live={$questionLive}
-          answersOnly={phone}
-          tv={$you?.role === 'tv'}
-        />
-      {:else if $lastClosed !== null && $lastClosed.was !== null}
-        <QuestionStage
-          question={$lastClosed.was}
-          reveal={$lastClosed.reveal}
-          yourValue={$yourAnswer}
-          result={yourResult}
-          results={$lastClosed.results}
-          onAnswer={() => {}}
-          nextAt={$room.next_at}
-          answersOnly={phone}
-          tv={$you?.role === 'tv'}
-        >
-          <RevealTally
-            type={$lastClosed.was.type}
-            reveal={$lastClosed.reveal}
-            results={$lastClosed.results}
-            unanswered={$lastClosed.unanswered}
-            {nameOf}
-            youId={$you?.id ?? null}
-            showNames={$room.settings.name_wrong_answers === true}
-            suggestedBy={$lastClosed.suggested_by ?? null}
-            teams={$room.settings.teams}
-            teamOf={teamsOf($players)}
-          />
-        </QuestionStage>
-      {:else if $lastClosed !== null}
-        <section class="panel">
-          <p class="note">That question is closed.</p>
-        </section>
-      {:else}
-        <!-- A reveal we arrived into: reconnected mid-reveal, or a room that just came
-           back from a restart. No `question_closed` reached this client, so there is
-           nothing to reveal. There is no board here either: inside a round, where
-           everyone stands waits for the round's end. -->
-        <section class="panel">
-          <p class="note">
-            {$room.phase === 'reveal'
-              ? 'Between questions — the next one opens shortly.'
-              : 'Waiting for the next question…'}
-          </p>
-        </section>
-      {/if}
-    </div>
-  {/if}
-
-  <SharedStageView {stage} />
-
-  {#if $room !== null && hostControls && isAdmin && socket !== null}
-    <div class:column={$room.phase !== 'standings'}>
-      <section class="panel">
-        <h2>Host</h2>
-        <div class="row">
-          <button type="button" onclick={skip}>{skipLabel}</button>
-          {#if askEndRound !== null}
-            <button type="button" onclick={askEndRound}>End the round</button>
+          {#if $room !== null && hostControls && isAdmin && socket !== null}
+            <div class:column={$room.phase !== 'standings'}>
+              <section class="panel">
+                <h2>Host</h2>
+                <div class="row">
+                  <button type="button" onclick={skip}>{skipLabel}</button>
+                  {#if askEndRound !== null}
+                    <button type="button" onclick={askEndRound}>End the round</button>
+                  {/if}
+                  <button type="button" onclick={() => (endingGame = true)}>End the game</button>
+                </div>
+                <p class="note">
+                  {$players.length}
+                  {$players.length === 1 ? 'player' : 'players'} in the room.
+                </p>
+              </section>
+              {#if endingGame}
+                <ConfirmDialog
+                  message="End the game now and show the final standings?"
+                  confirmLabel="End the game"
+                  onConfirm={() => {
+                    socket?.send({ t: 'end_game' })
+                    endingGame = false
+                  }}
+                  onCancel={() => (endingGame = false)}
+                />
+              {/if}
+            </div>
           {/if}
-          <button type="button" onclick={() => (endingGame = true)}>End the game</button>
-        </div>
-        <p class="note">
-          {$players.length}
-          {$players.length === 1 ? 'player' : 'players'} in the room.
-        </p>
-      </section>
-      {#if endingGame}
-        <ConfirmDialog
-          message="End the game now and show the final standings?"
-          confirmLabel="End the game"
-          onConfirm={() => {
-            socket?.send({ t: 'end_game' })
-            endingGame = false
-          }}
-          onCancel={() => (endingGame = false)}
-        />
-      {/if}
+          {#if endingRound !== null && isAdmin}
+            <ConfirmDialog
+              message={endRoundMessage}
+              confirmLabel="End the round"
+              onConfirm={() => {
+                if (endingRound !== null) socket?.send({ t: 'end_round', index: endingRound })
+                endingRound = null
+              }}
+              onCancel={() => (endingRound = null)}
+            />
+          {/if}
+        {/if}
+      </div>
     </div>
-  {/if}
-  {#if endingRound !== null && isAdmin}
-    <ConfirmDialog
-      message={endRoundMessage}
-      confirmLabel="End the round"
-      onConfirm={() => {
-        if (endingRound !== null) socket?.send({ t: 'end_round', index: endingRound })
-        endingRound = null
-      }}
-      onCancel={() => (endingRound = null)}
-    />
-  {/if}
-{/if}
+    <div class="table" bind:this={table.target}></div>
+  </div>
+</div>
 
 <style>
+  /* The window under the bar, holding the room at its own size and scale, centred. */
+  .fitted {
+    position: relative;
+    height: calc(var(--room-height) * var(--room-scale));
+    overflow: hidden;
+  }
+
+  .fitted .play {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--room-width);
+    height: var(--room-height);
+    margin-left: calc(var(--room-width) / -2);
+    transform: scale(var(--room-scale));
+    transform-origin: top center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 28px;
+    padding: 30px 40px 28px;
+  }
+
+  .fitted .play.revealing {
+    grid-template-columns: minmax(0, 1fr) 380px;
+  }
+
+  /* A small question stands in the middle of the stage's height; one taller than the
+     stage starts at its top and scrolls rather than being cut off above. */
+  .fitted .stage-side,
+  .fitted .table {
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fitted .stage-in {
+    margin-block: auto;
+  }
+
+  .table {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+  }
+
+  /* Stacked, the table follows the stage in the reading column. */
+  .frame:not(.fitted) .table {
+    max-width: 30rem;
+    margin: 0.75rem auto 0;
+  }
+
+  /* The room's transform makes it the containing block of the error popup, which is
+     fixed: it is measured from the room's top, just under the bar. */
+  .fitted :global(.popup) {
+    top: 0.75rem;
+  }
+
   .column {
     max-width: 30rem;
     margin-inline: auto;

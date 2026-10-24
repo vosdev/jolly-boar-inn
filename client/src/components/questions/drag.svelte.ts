@@ -45,6 +45,8 @@ export class Dragging {
     pointer: number
     startX: number
     startY: number
+    /** The row's own px per screen px: a room scaled to the window scales its rows. */
+    scale: number
     dx: number
     dy: number
   } | null>(null)
@@ -117,13 +119,16 @@ export class Dragging {
     if (target.closest('button:not(.handle)') !== null) return
     if (event.pointerType !== 'mouse' && target.closest('.handle') === null) return
     event.preventDefault()
-    ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
+    const row = event.currentTarget as HTMLElement
+    row.setPointerCapture?.(event.pointerId)
+    const drawn = row.getBoundingClientRect().width
     this.lifted = null
     this.drag = {
       shown,
       pointer: event.pointerId,
       startX: event.clientX + window.scrollX,
       startY: event.clientY + window.scrollY,
+      scale: row.offsetWidth > 0 && drawn > 0 ? drawn / row.offsetWidth : 1,
       dx: 0,
       dy: 0,
     }
@@ -134,8 +139,8 @@ export class Dragging {
     if (drag === null || event.pointerId !== drag.pointer) return
     if (event.clientY < EDGE_PX) window.scrollBy(0, -EDGE_PX / 4)
     else if (event.clientY > window.innerHeight - EDGE_PX) window.scrollBy(0, EDGE_PX / 4)
-    drag.dx = event.clientX + window.scrollX - drag.startX
-    drag.dy = event.clientY + window.scrollY - drag.startY
+    drag.dx = (event.clientX + window.scrollX - drag.startX) / drag.scale
+    drag.dy = (event.clientY + window.scrollY - drag.startY) / drag.scale
     this.over = this.targetAt(event.clientX, event.clientY)
   }
 

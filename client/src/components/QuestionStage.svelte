@@ -13,7 +13,7 @@
    * scroll, and under the line the answers in a panel, with the waiting line below them.
    * Once we have answered the host says its waiting line at the foot of the sheet, and on
    * the reveal its reveal line and what we earned, and anything we scored pins the ribbon. The line the points go on is held from the start, so the
-   * answers under the sheet do not move when they arrive. A random event draws its own
+   * answers under the sheet do not move when they arrive. Who is in goes to the room's table. A random event draws its own
    * stage, with its NPC in the host's place.
    *
    * A question that arrived as it opened types its stem onto the scroll in the hold the
@@ -44,6 +44,7 @@
   import { answerAck, answerCount, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
+  import AtTable from './AtTable.svelte'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import { stemLines } from './questions/index'
@@ -194,24 +195,28 @@
 
 {#snippet waiting()}
   {#if reveal === null && yourValue !== null}
-    <div class="panel waiting">
-      <p class="held">
-        Answer in{#if landed !== null}<span
-            class="band"
-            title={landed.sentence}
-            aria-label={landed.sentence}>{landed.badge}</span
-          >{/if}
-      </p>
-      <p class="room">
-        {#if $answerCount !== null && $answerCount.of > 0}
-          <span class="count">{$answerCount.answered} of {$answerCount.of}</span>
-          answered — waiting for the room
-        {:else}
-          Waiting for the room
-        {/if}
-      </p>
-    </div>
+    <AtTable>{@render waitingPanel()}</AtTable>
   {/if}
+{/snippet}
+
+{#snippet waitingPanel()}
+  <div class="panel waiting">
+    <p class="held">
+      Answer in{#if landed !== null}<span
+          class="band"
+          title={landed.sentence}
+          aria-label={landed.sentence}>{landed.badge}</span
+        >{/if}
+    </p>
+    <p class="room">
+      {#if $answerCount !== null && $answerCount.of > 0}
+        <span class="count">{$answerCount.answered} of {$answerCount.of}</span>
+        answered — waiting for the room
+      {:else}
+        Waiting for the room
+      {/if}
+    </p>
+  </div>
 {/snippet}
 
 {#if answersOnly}

@@ -12,6 +12,9 @@
    * colour to the end there, since `--bad` would vanish on Zamorak's track: the seconds
    * tab goes back to the theme's, in `--bad`.
    *
+   * In a room laid out for a desktop (`roomShown`) the tabs hang at the stage's edges,
+   * beside the table, at the room's scale.
+   *
    * On the room's TV the stage is scaled to the window (`tvFit`), and the tabs with it: at
    * the scaled stage's edges, at its scale, readable across the room.
    *
@@ -20,6 +23,7 @@
    */
   import { msUntil, serverNow } from '../lib/clock'
   import type { TeamId } from '../lib/teams'
+  import { roomShown, stageEdges } from '../lib/roomFit'
   import { tvFit } from '../lib/tv'
   import TeamBadge from './TeamBadge.svelte'
 
@@ -51,6 +55,8 @@
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
   const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
+  const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit, $roomShown.reveal))
+  const scale = $derived($tvFit?.scale ?? $roomShown?.fit.scale ?? null)
 </script>
 
 <div
@@ -69,8 +75,11 @@
     class="column"
     class:stage={progress !== undefined}
     class:tv={$tvFit !== null}
+    class:room={$tvFit === null && edges !== null}
     style:--tv-width={$tvFit === null ? null : `${$tvFit.width}px`}
-    style:--tv-scale={$tvFit?.scale ?? null}
+    style:--stage-left={edges === null ? null : `${edges.left}px`}
+    style:--stage-width={edges === null ? null : `${edges.width}px`}
+    style:--tab-scale={scale}
     aria-hidden="true"
   >
     {#if progress !== undefined}
@@ -137,8 +146,14 @@
     width: min(var(--tv-width), 100% - 2rem);
   }
 
-  .tv .tab {
-    font-size: calc(0.8rem * var(--tv-scale));
+  .column.room {
+    width: var(--stage-width);
+    margin-inline: var(--stage-left) 0;
+  }
+
+  .tv .tab,
+  .room .tab {
+    font-size: calc(0.8rem * var(--tab-scale));
   }
 
   .progress {

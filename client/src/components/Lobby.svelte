@@ -5,7 +5,7 @@
    * It is a stage like the splash's, kept short enough for a phone: Home's hero, the
    * selfhoster's picture for the theme (Broav, the inn's boar, here) or else the Wise Old
    * Man, stands beside a scroll that holds the room code and what the night
-   * holds; the players sit under it as a grid of pets, as the splash will show them.
+   * holds; the players sit at the room's table as a grid of pets, as the splash will show them.
    *
    * Admin controls are shown from `you.role`, which comes from the server's snapshot.
    * That is a convenience, not a check: the server decides per message (section 7
@@ -58,6 +58,7 @@
   import { Cooldown } from '../lib/cooldown.svelte'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import type { RoomSocket } from '../lib/ws'
+  import AtTable from './AtTable.svelte'
   import ConfirmDialog from './ConfirmDialog.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
@@ -557,114 +558,116 @@
         </section>
       {/if}
 
-      <div class="panel board">
-        <div class="ready">
-          {#if !isTV}
-            <button
-              type="button"
-              class:primary={!youReady}
-              aria-pressed={youReady}
-              aria-describedby={needTeam ? 'pick-first' : undefined}
-              disabled={needTeam || readyHold.held}
-              onclick={toggleReady}
-            >
-              {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
-            </button>
-          {/if}
-          <FullScreenSwitch />
-        </div>
-        {#if needTeam}
-          <p class="hint" id="pick-first">Pick a team first.</p>
-        {/if}
-
-        {#if teamGame}
-          <div
-            class="teams"
-            role="group"
-            aria-label="Teams, {readyCount} of {counted.length} ready"
-          >
-            {#if youReady}
-              <p class="hint">Take your ready back to change team.</p>
+      <AtTable>
+        <div class="panel board">
+          <div class="ready">
+            {#if !isTV}
+              <button
+                type="button"
+                class:primary={!youReady}
+                aria-pressed={youReady}
+                aria-describedby={needTeam ? 'pick-first' : undefined}
+                disabled={needTeam || readyHold.held}
+                onclick={toggleReady}
+              >
+                {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
+              </button>
             {/if}
-            {#each roomTeams as god (god.id)}
-              {@const members = $players.filter((p) => p.team === god.id)}
-              <section class="team" data-team={god.id}>
-                <div class="team-head">
-                  <button
-                    type="button"
-                    class="join"
-                    aria-label="{god.name}, {members.length} {members.length === 1
-                      ? 'player'
-                      : 'players'}"
-                    aria-pressed={yourTeam === god.id}
-                    disabled={youReady || isTV || teamHold.held}
-                    onclick={() => joinTeam(god.id)}
-                  >
-                    <span class="logo"><TeamLogo team={god.id} /></span>
-                    <span class="team-name">{god.name}</span>
-                    <span class="aside">{members.length}</span>
-                  </button>
-                  {#if canRemoveTeam}
+            <FullScreenSwitch />
+          </div>
+          {#if needTeam}
+            <p class="hint" id="pick-first">Pick a team first.</p>
+          {/if}
+
+          {#if teamGame}
+            <div
+              class="teams"
+              role="group"
+              aria-label="Teams, {readyCount} of {counted.length} ready"
+            >
+              {#if youReady}
+                <p class="hint">Take your ready back to change team.</p>
+              {/if}
+              {#each roomTeams as god (god.id)}
+                {@const members = $players.filter((p) => p.team === god.id)}
+                <section class="team" data-team={god.id}>
+                  <div class="team-head">
                     <button
                       type="button"
-                      class="glyph remove"
-                      aria-label="Remove {god.name}"
-                      onclick={() => removeTeam(god.id, god.name, members.length)}
+                      class="join"
+                      aria-label="{god.name}, {members.length} {members.length === 1
+                        ? 'player'
+                        : 'players'}"
+                      aria-pressed={yourTeam === god.id}
+                      disabled={youReady || isTV || teamHold.held}
+                      onclick={() => joinTeam(god.id)}
                     >
-                      <Icon name="trash" />
+                      <span class="logo"><TeamLogo team={god.id} /></span>
+                      <span class="team-name">{god.name}</span>
+                      <span class="aside">{members.length}</span>
                     </button>
+                    {#if canRemoveTeam}
+                      <button
+                        type="button"
+                        class="glyph remove"
+                        aria-label="Remove {god.name}"
+                        onclick={() => removeTeam(god.id, god.name, members.length)}
+                      >
+                        <Icon name="trash" />
+                      </button>
+                    {/if}
+                  </div>
+                  {#if members.length === 0}
+                    <p class="aside empty">Nobody yet</p>
+                  {:else}
+                    {@render roster(members, god.name)}
                   {/if}
-                </div>
-                {#if members.length === 0}
-                  <p class="aside empty">Nobody yet</p>
-                {:else}
-                  {@render roster(members, god.name)}
-                {/if}
-              </section>
-            {/each}
-            {#if missingTeams.length > 0}
-              <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
-            {/if}
-            {#if teamless.length > 0}
-              <section class="team">
-                <h3 class="no-team">No team</h3>
-                {@render roster(teamless, 'No team')}
-              </section>
-            {/if}
-            {#if tv !== null}
-              <section class="team">
-                <h3 class="no-team">TV</h3>
-                {@render roster([tv], 'TV')}
-              </section>
-            {/if}
-          </div>
-        {:else}
-          {@render roster($players, `Players, ${readyCount} of ${counted.length} ready`)}
-        {/if}
-
-        {#if isAdmin}
-          <p class="waiting">
-            {#if waitingOn.length === 0}
-              Everyone is ready.
-            {:else}
-              Waiting on {listFormat.format(waitingOn)}.
-            {/if}
-          </p>
-          {#if teamsBlockStart !== null}
-            <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+                </section>
+              {/each}
+              {#if missingTeams.length > 0}
+                <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
+              {/if}
+              {#if teamless.length > 0}
+                <section class="team">
+                  <h3 class="no-team">No team</h3>
+                  {@render roster(teamless, 'No team')}
+                </section>
+              {/if}
+              {#if tv !== null}
+                <section class="team">
+                  <h3 class="no-team">TV</h3>
+                  {@render roster([tv], 'TV')}
+                </section>
+              {/if}
+            </div>
+          {:else}
+            {@render roster($players, `Players, ${readyCount} of ${counted.length} ready`)}
           {/if}
-          <button
-            class="start"
-            class:primary={enoughReady}
-            type="button"
-            disabled={!canStart}
-            aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
-            onclick={start}
-          >
-            {enoughReady ? 'Start the game' : 'Start anyway'}
-          </button>
-        {/if}
-      </div>
+
+          {#if isAdmin}
+            <p class="waiting">
+              {#if waitingOn.length === 0}
+                Everyone is ready.
+              {:else}
+                Waiting on {listFormat.format(waitingOn)}.
+              {/if}
+            </p>
+            {#if teamsBlockStart !== null}
+              <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+            {/if}
+            <button
+              class="start"
+              class:primary={enoughReady}
+              type="button"
+              disabled={!canStart}
+              aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
+              onclick={start}
+            >
+              {enoughReady ? 'Start the game' : 'Start anyway'}
+            </button>
+          {/if}
+        </div>
+      </AtTable>
     </Stage>
   </section>
 {/if}

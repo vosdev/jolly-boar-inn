@@ -15,8 +15,8 @@
    * there whole; the greeting and the blurb type in once the stage has come over from the
    * screen before, at the questions' pace (`lib/interlude.ts`). The splash has no hold to
    * fit, so nothing waits on the typing. The round's count and pace, a price round's date,
-   * the ready check and the countdown go under the line (section 8 of ideas/design.md). The
-   * date is said here once, so the questions need not.
+   * the ready check and the countdown go in a panel at the room's table, beside the stage
+   * (section 8 of ideas/design.md). The date is said here once, so the questions need not.
    *
    * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
    * name underneath (`RosterPet`): faded while away, checked once they tap ready. A tap can be
@@ -39,6 +39,7 @@
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
   import { Typist, lettersOf } from '../lib/typing.svelte'
+  import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import RosterPet from './RosterPet.svelte'
   import Stage from './stage/Stage.svelte'
@@ -185,36 +186,38 @@
     {/snippet}
 
     {#if !tv}
-      <div class="panel board">
-        {@render count()}
+      <AtTable>
+        <div class="panel board">
+          {@render count()}
 
-        <div class="ready">
-          <button
-            type="button"
-            class:primary={!youReady}
-            aria-pressed={youReady}
-            disabled={youReady && undone}
-            onclick={press}
-          >
-            {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
-          </button>
-          <FullScreenSwitch />
-          {@render pets()}
-          <span class="note tally" aria-hidden="true">{summary}</span>
-        </div>
-
-        {@render countdown()}
-        {#if onSkip !== null || onEndRound !== null}
-          <div class="host">
-            {#if onSkip !== null}
-              <button type="button" class="small" onclick={onSkip}>Start the round now</button>
-            {/if}
-            {#if onEndRound !== null}
-              <button type="button" class="small" onclick={onEndRound}>End the round</button>
-            {/if}
+          <div class="ready">
+            <button
+              type="button"
+              class:primary={!youReady}
+              aria-pressed={youReady}
+              disabled={youReady && undone}
+              onclick={press}
+            >
+              {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
+            </button>
+            <FullScreenSwitch />
+            {@render pets()}
+            <span class="note tally" aria-hidden="true">{summary}</span>
           </div>
-        {/if}
-      </div>
+
+          {@render countdown()}
+          {#if onSkip !== null || onEndRound !== null}
+            <div class="host">
+              {#if onSkip !== null}
+                <button type="button" class="small" onclick={onSkip}>Start the round now</button>
+              {/if}
+              {#if onEndRound !== null}
+                <button type="button" class="small" onclick={onEndRound}>End the round</button>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      </AtTable>
     {/if}
   </Stage>
 </section>

@@ -22,6 +22,8 @@ import { MODES } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
 import { ENTER_MOVE_MS, HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
+import { barWhere } from '../lib/barWhere'
+import { roomShown } from '../lib/roomFit'
 import { timerBar } from '../lib/timerbar'
 import { stubAnimations } from '../test-animate'
 import { clearVocabCache } from '../lib/vocab'
@@ -489,6 +491,92 @@ describe('Room', () => {
     applyServerMessage({ t: 'game_finished', standings: STANDINGS, team_standings: null })
     await screen.findByRole('button', { name: 'Skip to the hiscores' })
     expect(document.querySelector('.hiscores')).toBeNull()
+  })
+})
+
+describe('the room’s frame', () => {
+  const root = document.documentElement
+  const height = innerHeight
+
+  function windowOf(width: number, tall: number): void {
+    Object.defineProperty(root, 'clientWidth', { configurable: true, value: width })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: tall })
+  }
+
+  afterEach(() => {
+    cleanup()
+    delete (root as { clientWidth?: number }).clientWidth
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
+  })
+
+  it('puts the stage beside the table at 1440×900, and stacks them under 1024px', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(document.querySelector('.frame.fitted')).toBeTruthy()
+    expect(get(roomShown)?.fit.scale).toBe(1)
+
+    windowOf(1000, 900)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(document.querySelector('.frame.fitted')).toBeNull()
+    expect(get(roomShown)).toBeNull()
+  })
+
+  it('puts who is in at the table, out of the stage', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({
+      t: 'question_open',
+      question: {
+        question_id: 'q1',
+        index: 0,
+        total: 2,
+        type: 'more_less',
+        mode: 'more_less',
+        segment: SEGMENT,
+        view: {
+          metric: 'ge_price',
+          direction: 'more',
+          options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+          as_of: '2026-09-01',
+        },
+        opened_at: new Date().toISOString(),
+        ends_at: inSeconds(10),
+        you_can_answer: true,
+        answered: 0,
+        of: 2,
+        waiting: [],
+        picture: null,
+        random_event: null,
+        answerable_at: new Date().toISOString(),
+      },
+    })
+    ;(await screen.findByText('Abyssal whip')).click()
+    const waiting = (await screen.findByText(/waiting for the room/)).closest('.waiting')
+    expect(waiting?.closest('.table')).toBeTruthy()
+    expect(waiting?.closest('.stage-side')).toBeNull()
+  })
+
+  it('widens the table for a reveal', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'reveal', next_at: inSeconds(10) })))
+    expect(document.querySelector('.play.revealing')).toBeTruthy()
+    expect(get(roomShown)?.reveal).toBe(true)
+  })
+
+  it('tells the bar where the night is', async () => {
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(get(barWhere)).toEqual({ lead: 'Hiscores after round 1 of 2', mode: null })
+    cleanup()
+    expect(get(barWhere)).toBeNull()
+  })
+
+  it('keeps the TV out of the frame and the bar', async () => {
+    windowOf(1440, 900)
+    const tv = welcome(roomView({ phase: 'standings' }))
+    await arrive({ ...tv, you: { ...tv.you, role: 'tv' } })
+    expect(document.querySelector('.frame.fitted')).toBeNull()
+    expect(get(barWhere)).toBeNull()
   })
 })
 

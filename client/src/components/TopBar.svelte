@@ -25,6 +25,9 @@
    * `PUBLIC_SITE_LOGO`, and the bundled sign when there is neither or the file will not
    * load. The version is in the footer, not here.
    *
+   * **In a room** the bar runs the window's width (`full`), and its middle says where the
+   * night is (`where`): "Round 1 of 3: More or Less", "Lobby". A phone has no room for it.
+   *
    * **In a team game** the bar is the frame's: the player's god's colour, and the god's
    * symbol in place of the sign, still the way home. On a screen with no timer under the
    * bar, the team's badge hangs from it; the timer bar hangs it otherwise.
@@ -32,6 +35,7 @@
   import { onMount, type Snippet } from 'svelte'
   import { initial, logo, logos, siteName } from 'virtual:branding'
 
+  import type { BarWhere } from '../lib/barWhere'
   import { REPO_URL } from '../lib/links'
   import { team as teamNamed, type TeamId } from '../lib/teams'
   import { watchTheme } from '../lib/theme'
@@ -49,6 +53,8 @@
     navigate,
     menu,
     wide = false,
+    full = false,
+    where = null,
     team = null,
     badge = false,
     autohide = false,
@@ -57,6 +63,10 @@
     menu?: Snippet
     /** The screen under the bar uses the wide page, so the bar's ends follow it. */
     wide?: boolean
+    /** The screen under the bar is a room, which takes the window's whole width. */
+    full?: boolean
+    /** Where the room's night is, for the bar's middle. */
+    where?: BarWhere | null
     /** The player's team in a team game, whose frame the bar wears. */
     team?: TeamId | null
     /** Hang the team's badge from the bar: there is no timer bar to hang it. */
@@ -93,7 +103,7 @@
 
 {#if autohide}<div class="peek" aria-hidden="true"></div>{/if}
 <header class="bar" class:framed={team !== null} class:autohide>
-  <div class="inner" class:wide>
+  <div class="inner" class:wide class:full class:placed={where !== null}>
     <a class="skip" href="#content">Skip to the game</a>
 
     <div class="mark">
@@ -125,6 +135,12 @@
       <!-- Not a heading: the screen below owns the page title. -->
       <p class="wordmark" aria-hidden="true">{siteName}</p>
     </div>
+
+    {#if where !== null}
+      <p class="where">
+        {where.lead}{#if where.mode !== null}{' '}<strong>{where.mode}</strong>{/if}
+      </p>
+    {/if}
 
     <div class="controls">
       <a
@@ -226,6 +242,42 @@
      rather than with the window. */
   .inner.wide {
     width: min(var(--page-wide), 100% - 2rem);
+  }
+
+  .inner.full {
+    width: calc(100% - 3rem);
+  }
+
+  /* Three columns, so where the night is stands in the bar's middle whatever its ends hold. */
+  .inner.placed {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .where {
+    margin: 0;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+
+  .where strong {
+    color: var(--ink);
+    font-weight: 650;
+  }
+
+  .framed .where,
+  .framed .where strong {
+    color: var(--frame-ink);
+  }
+
+  @media (max-width: 1023.98px) {
+    .inner.placed {
+      display: flex;
+    }
+
+    .where {
+      display: none;
+    }
   }
 
   .inner {
