@@ -20,10 +20,12 @@
    * An answer of several options reveals with all of them lit across the top at their usual
    * size, since several large ones would push the rest off a phone.
    *
-   * Given `results` on the reveal, every option says how many picked it.
+   * Given `results` on the reveal, every option says how many picked it, and with `named`
+   * in the desktop room who (`lib/pickers.svelte.ts`).
    */
   import type { Snippet } from 'svelte'
 
+  import { pickersAt, revealPickers } from '../../lib/pickers.svelte'
   import type { PlayerResult } from '../../lib/protocol'
   import GemButton, { GEMS, gemState, pickCounts } from './GemButton.svelte'
 
@@ -36,6 +38,7 @@
     onAnswer,
     label,
     results = null,
+    named = false,
   }: {
     options: Option[]
     /** What we answered: empty until it is sent. */
@@ -48,7 +51,11 @@
     label: Snippet<[Option, number]>
     /** `question_closed.results`, for each option's count; null while open. */
     results?: Record<string, PlayerResult> | null
+    /** Name each option's pickers on it: a pick of one, never pick-all's several. */
+    named?: boolean
   } = $props()
+
+  const room = revealPickers()
 
   // Six is the cap (section 2), and a pack that broke it must still draw something: a
   // seventh option reuses the last gem rather than vanishing.
@@ -84,6 +91,7 @@
       mine={picked.has(index)}
       size={sizeAt(index)}
       votes={counts === null ? null : { count: counts[index] ?? 0, of: answered }}
+      pickers={named && revealed ? pickersAt(room, results, index, answer.has(index)) : null}
       disabled={held}
       onclick={() => onAnswer(index)}
     >

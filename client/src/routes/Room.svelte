@@ -70,6 +70,8 @@
   import { historyPath, latestPastGame } from '../lib/history'
   import { answersOnly } from '../lib/tv'
   import { roomFit, roomShown, type RoomFit } from '../lib/roomFit'
+  import { petOf } from '../lib/pets'
+  import { RevealPickers, sharePickers } from '../lib/pickers.svelte'
   import { RoomTable, shareTable } from '../lib/roomTable.svelte'
   import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
   import { clearSession, getSession, normalizeCode } from '../lib/session'
@@ -364,6 +366,22 @@
 
   let fit = $state(measure())
   const framed = $derived(isTv ? null : fit)
+
+  const pickers = new RevealPickers()
+  sharePickers(pickers)
+  pickers.who = (id) => {
+    const player = $players.find((one) => one.id === id)
+    const standing = $standings.find((one) => one.player_id === id)
+    const name = player?.display_name ?? standing?.display_name ?? null
+    if (name === null) return null
+    return { name, pet: petOf(player ?? { id, avatar: standing?.avatar ?? null }) }
+  }
+  $effect(() => {
+    // A phone has the results sheet, the TV its own panel: only the desktop room names them.
+    pickers.on = framed !== null
+    pickers.youId = $you?.id ?? null
+    pickers.showNames = $room?.settings.name_wrong_answers === true
+  })
   const revealing = $derived($room?.status === 'playing' && $room.phase === 'reveal')
   /** The question the table panel is about: the open one, or the one being revealed. */
   const tableFor = $derived.by(() => {

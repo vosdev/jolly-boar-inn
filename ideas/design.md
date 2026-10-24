@@ -85,7 +85,12 @@ learns the position, which is worth more than variety.
   six. While a pick waits, nothing moves.
 - Your own pick carries a small "you", right or wrong. The verdict is the points slot (§10), not
   the button. The reveal adds one more thing: how many picked it, in the corner, with a bar along
-  the bottom for its share of who answered. It names nobody, so it shows whatever the setting.
+  the bottom for its share of who answered, whatever the setting.
+- **Who picked what**, in the desktop room only: a `multiple_choice` gem and a `more_less` card
+  list their pickers under the label, pet and name, you first as "you", then A–Z: five on the
+  answer, four on a wrong one, then "and N more". With `name_wrong_answers` off a wrong option
+  keeps only its count. A phone (the results sheet names them) and the TV show none, nor do the
+  other types.
 - Every reveal's results take the table panel (§9): "22 of 41 got it right", then a row per
   group, the right one first, labelled with the answer, then the wrong ones: the option (with its
   gem's chip), the typed answer (three, then "Something else"), the list entry, the closest-number

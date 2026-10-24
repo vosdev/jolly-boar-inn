@@ -25,6 +25,7 @@
    * and nothing that looks like a press, and a question left unanswered shows neither
    * button pressed — which it used to, by drawing the answer in the pressed style.
    */
+  import { pickersAt, revealPickers } from '../../../lib/pickers.svelte'
   import GemButton, { gemState, indexSet, pickCounts } from '../GemButton.svelte'
   import ItemIcon from '../ItemIcon.svelte'
   import type { TypeViewProps } from '../props'
@@ -70,6 +71,7 @@
 
   const counts = $derived(revealed && results !== null ? pickCounts(results, 2) : null)
   const answered = $derived(results === null ? 0 : Object.keys(results).length)
+  const room = revealPickers()
 
   const gp = new Intl.NumberFormat()
 
@@ -88,6 +90,7 @@
       status={gemState(index, indexSet(picked), indexSet(answer), revealed)}
       mine={picked === index}
       votes={counts === null ? null : { count: counts[index] ?? 0, of: answered }}
+      pickers={revealed ? pickersAt(room, results, index, answer === index) : null}
       disabled={revealed || !canAnswer || picked !== null}
       onclick={() => onAnswer(index as Index)}
     >
