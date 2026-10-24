@@ -5,13 +5,13 @@
    * It is a stage like the splash's, kept short enough for a phone: Home's hero, the
    * selfhoster's picture for the theme (Broav, the inn's boar, here) or else the Wise Old
    * Man, stands beside a scroll that holds the room code and what the night
-   * holds; the players sit at the room's table as a grid of pets, as the splash will show them.
+   * holds; the players sit in the table panel, Ready over Not ready yet, as on the splash.
    *
    * Admin controls are shown from `you.role`, which comes from the server's snapshot.
    * That is a convenience, not a check: the server decides per message (section 7
    * step 7), so a player who forges the flag gets `not_admin` back and nothing else.
    *
-   * The ready check is the splash's grid, with names (section 9 of ideas/design.md): the
+   * The ready check is the splash's panel, with names (section 9 of ideas/design.md): the
    * host needs to know *who* is missing before pressing Start, because the answer is
    * usually somebody at the bar, and a name is something you can shout. Start is the plain
    * button once the room reaches the same threshold a splash uses; short of it, it is
@@ -21,11 +21,11 @@
    * confirmation, since a kicked player can join again; Make host asks once more, because
    * there is no demote and an admin cannot be kicked. The same menu makes a player or another
    * admin the room's TV, or the TV a player again, at once, since either can be undone. The TV
-   * watches: its pet wears a screen where the tick goes, and its own lobby has no ready.
+   * watches: its pet wears a screen and sits apart under "TV", and its own lobby has no ready.
    *
-   * A team game groups the pets under the room's gods, every god even with nobody on it yet,
-   * since an empty team is one to join, and the teamless under "No team". Tapping a god
-   * joins it; the server refuses that while ready, so the gods are not tappable then. Ready
+   * A team game puts a button per god above the panel's halves, every god even with nobody
+   * on it yet, since an empty team is one to join; each half lists its players by god, the
+   * teamless under "No team". Tapping a god joins it; the server refuses that while ready, so the gods are not tappable then. Ready
    * waits for a team, and Start for everyone to have one, in two teams or more (section 7 of
    * ideas/architecture.md); each says why. The host moves a player from the same menu as
    * kick, an admin too, since admins cannot be kicked but can play for the wrong god.
@@ -54,6 +54,7 @@
   import { playing, readyThreshold } from '../lib/ready'
   import { players, room, you } from '../lib/stores'
   import { watchTheme } from '../lib/theme'
+  import { Seating } from '../lib/tableGroups'
   import { MIN_TEAMS, TEAMS, teamsWith, type TeamId } from '../lib/teams'
   import { Cooldown } from '../lib/cooldown.svelte'
   import { Typist, lettersOf } from '../lib/typing.svelte'
@@ -67,6 +68,7 @@
   import Pet from './Pet.svelte'
   import RosterPet from './RosterPet.svelte'
   import Stage from './stage/Stage.svelte'
+  import TablePanel from './TablePanel.svelte'
   import TeamLogo from './TeamLogo.svelte'
   import Typed from './stage/Typed.svelte'
 
@@ -89,7 +91,6 @@
   const isAdmin = $derived($you?.role === 'admin')
   const isTV = $derived($you?.role === 'tv')
   const admins = $derived($players.filter((p) => p.role === 'admin').length)
-  const tv = $derived($players.find((p) => p.role === 'tv') ?? null)
   const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
   const settings = $derived($room?.settings ?? null)
   const teamIds = $derived(settings?.teams ?? [])
@@ -178,6 +179,19 @@
       .filter((p) => p.ready !== true)
       .map((p) => (p.id === $you?.id ? 'you' : p.display_name)),
   )
+
+  const seating = new Seating()
+  const seated = $derived(
+    seating.seat($players, $you?.id ?? null, (p) => p.ready === true, 'lobby', teamIds),
+  )
+
+  /** Under a pet at the table, where the bold name says which is you and a heading the TV. */
+  function tableStatus(player: PlayerView): string {
+    if (player.editing === true) return 'picking a name…'
+    return [player.connected ? null : 'away', player.role === 'admin' ? 'host' : null]
+      .filter((word) => word !== null)
+      .join(' · ')
+  }
 
   /** What the line under a pet's name says, if anything. */
   function statusOf(player: PlayerView): string {
@@ -559,39 +573,19 @@
       {/if}
 
       <AtTable>
-        <div class="panel board">
-          <div class="ready">
-            {#if !isTV}
-              <button
-                type="button"
-                class:primary={!youReady}
-                aria-pressed={youReady}
-                aria-describedby={needTeam ? 'pick-first' : undefined}
-                disabled={needTeam || readyHold.held}
-                onclick={toggleReady}
-              >
-                {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
-              </button>
-            {/if}
-            <FullScreenSwitch />
-          </div>
-          {#if needTeam}
-            <p class="hint" id="pick-first">Pick a team first.</p>
-          {/if}
-
-          {#if teamGame}
-            <div
-              class="teams"
-              role="group"
-              aria-label="Teams, {readyCount} of {counted.length} ready"
-            >
-              {#if youReady}
-                <p class="hint">Take your ready back to change team.</p>
-              {/if}
-              {#each roomTeams as god (god.id)}
-                {@const members = $players.filter((p) => p.team === god.id)}
-                <section class="team" data-team={god.id}>
-                  <div class="team-head">
+        <TablePanel
+          groups={seated}
+          youId={$you?.id ?? null}
+          labels={['Ready', 'Not ready yet']}
+          statusOf={tableStatus}
+          manage={isAdmin ? { can: manageable, label: menuOf, open: manage } : null}
+        >
+          {#snippet head()}
+            {#if teamGame}
+              <div class="teams" role="group" aria-label="Teams">
+                {#each roomTeams as god (god.id)}
+                  {@const members = $players.filter((p) => p.team === god.id)}
+                  <div class="team-head" data-team={god.id}>
                     <button
                       type="button"
                       class="join"
@@ -617,41 +611,35 @@
                       </button>
                     {/if}
                   </div>
-                  {#if members.length === 0}
-                    <p class="aside empty">Nobody yet</p>
-                  {:else}
-                    {@render roster(members, god.name)}
-                  {/if}
-                </section>
-              {/each}
-              {#if missingTeams.length > 0}
-                <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
-              {/if}
-              {#if teamless.length > 0}
-                <section class="team">
-                  <h3 class="no-team">No team</h3>
-                  {@render roster(teamless, 'No team')}
-                </section>
-              {/if}
-              {#if tv !== null}
-                <section class="team">
-                  <h3 class="no-team">TV</h3>
-                  {@render roster([tv], 'TV')}
-                </section>
-              {/if}
-            </div>
-          {:else}
-            {@render roster($players, `Players, ${readyCount} of ${counted.length} ready`)}
+                {/each}
+                {#if missingTeams.length > 0}
+                  <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
+                {/if}
+                {#if youReady}
+                  <p class="hint">Take your ready back to change team.</p>
+                {/if}
+              </div>
+            {/if}
+          {/snippet}
+          <div class="ready">
+            {#if !isTV}
+              <button
+                type="button"
+                class:primary={!youReady}
+                aria-pressed={youReady}
+                aria-describedby={needTeam ? 'pick-first' : undefined}
+                disabled={needTeam || readyHold.held}
+                onclick={toggleReady}
+              >
+                {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
+              </button>
+            {/if}
+            <FullScreenSwitch />
+          </div>
+          {#if needTeam}
+            <p class="hint" id="pick-first">Pick a team first.</p>
           {/if}
-
           {#if isAdmin}
-            <p class="waiting">
-              {#if waitingOn.length === 0}
-                Everyone is ready.
-              {:else}
-                Waiting on {listFormat.format(waitingOn)}.
-              {/if}
-            </p>
             {#if teamsBlockStart !== null}
               <p class="hint" id="start-blocked">{teamsBlockStart}</p>
             {/if}
@@ -666,7 +654,7 @@
               {enoughReady ? 'Start the game' : 'Start anyway'}
             </button>
           {/if}
-        </div>
+        </TablePanel>
       </AtTable>
     </Stage>
   </section>
@@ -884,13 +872,6 @@
     font-style: italic;
   }
 
-  .board {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 0;
-  }
-
   .ready {
     display: flex;
     flex-wrap: wrap;
@@ -1011,15 +992,6 @@
   .no-team {
     margin: 0;
     font-size: 1rem;
-  }
-
-  .empty {
-    padding-left: 0.6rem;
-  }
-
-  .waiting {
-    margin: 0;
-    overflow-wrap: anywhere;
   }
 
   .requests {

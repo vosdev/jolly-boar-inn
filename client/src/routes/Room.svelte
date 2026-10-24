@@ -57,8 +57,10 @@
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import ErrorBanner from '../components/ErrorBanner.svelte'
   import FinalStandings from '../components/FinalStandings.svelte'
+  import AtTable from '../components/AtTable.svelte'
   import Lobby from '../components/Lobby.svelte'
   import QuestionStage from '../components/QuestionStage.svelte'
+  import QuestionTable from '../components/QuestionTable.svelte'
   import RevealTally from '../components/RevealTally.svelte'
   import Standings from '../components/Standings.svelte'
   import Splash from '../components/Splash.svelte'
@@ -72,6 +74,7 @@
   import { SharedStage, shareStage } from '../lib/sharedStage.svelte'
   import { clearSession, getSession, normalizeCode } from '../lib/session'
   import {
+    answerCount,
     applyServerMessage,
     connection,
     endedLive,
@@ -356,6 +359,13 @@
   let fit = $state(measure())
   const framed = $derived(isTv ? null : fit)
   const revealing = $derived($room?.status === 'playing' && $room.phase === 'reveal')
+  /** The question the table panel is about: the open one, or the one being revealed. */
+  const tableFor = $derived.by(() => {
+    if (isTv || $room?.status !== 'playing') return null
+    if ($room.phase === 'open') return $question
+    if ($room.phase === 'reveal') return $lastClosed?.was ?? null
+    return null
+  })
 
   onMount(() => {
     const refit = (): void => {
@@ -498,6 +508,21 @@
 
               <ErrorBanner />
 
+              {#if tableFor !== null}
+                <AtTable>
+                  <QuestionTable
+                    players={$players}
+                    youId={$you?.id ?? null}
+                    questionId={tableFor.question_id}
+                    waiting={$answerCount?.waiting ?? null}
+                    results={$room.phase === 'open' ? null : ($lastClosed?.results ?? null)}
+                    hostOnly={!tableFor.you_can_answer}
+                    teams={$room.settings.teams}
+                    stacked={framed === null}
+                  />
+                </AtTable>
+              {/if}
+
               {#if $room.phase === 'standings'}
                 <Standings
                   standings={$standings}
@@ -636,6 +661,11 @@
     display: grid;
     align-content: start;
     gap: 0.75rem;
+  }
+
+  /* Room for the table's strip, fixed at the foot, under the last of the stage. */
+  .frame:not(.fitted):has(:global(.strip)) {
+    padding-bottom: 4.5rem;
   }
 
   /* Stacked, the table follows the stage in the reading column. */

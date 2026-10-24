@@ -149,25 +149,41 @@ describe('Splash stage', () => {
 })
 
 describe('Splash ready check', () => {
-  it('shows each connected player as their pet with their name under it, and who is ready', () => {
+  function names(list: string): string[] {
+    return within(screen.getByRole('list', { name: list }))
+      .getAllByRole('listitem')
+      .map((row) => row.querySelector('.pet-name')?.textContent ?? '')
+  }
+
+  it('splits the table into Ready and Not ready yet, each pet with its name under it', () => {
     splash(SEGMENT, true)
-    const list = screen.getByRole('list', { name: '1 of 2 ready' })
-    const rows = within(list).getAllByRole('listitem')
-    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
-      'Zezima ready',
-      'Woox not ready',
-    ])
-    expect(petsDrawn(list)).toEqual([
+    expect(names('Ready')).toEqual(['Zezima'])
+    expect(names('Not ready yet')).toEqual(['Woox'])
+    const table = screen.getByRole('group', { name: 'At the table' })
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Ready 1')
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Not ready yet 1')
+    expect(petsDrawn(table)).toEqual([
       { pet: '', size: 48 },
       { pet: '', size: 48 },
-    ])
-    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('lit'))).toEqual([
-      true,
-      false,
     ])
   })
 
-  it('keeps an away player in the row, faded and marked away, out of the count', () => {
+  it('moves a pet up to Ready as its player readies', async () => {
+    const { rerender } = render(Splash, {
+      segment: SEGMENT,
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+    })
+    expect(screen.queryByRole('list', { name: 'Ready' })).toBeNull()
+    expect(names('Not ready yet')).toEqual(['Zezima', 'Woox'])
+    await rerender({ players: players(true) })
+    expect(names('Ready')).toEqual(['Zezima'])
+    expect(names('Not ready yet')).toEqual(['Woox'])
+  })
+
+  it('keeps an away player under Not ready yet, faded and marked away, ready or not', () => {
     const away: PlayerView = {
       id: 'c',
       display_name: 'Lynx',
@@ -185,15 +201,18 @@ describe('Splash ready check', () => {
       youId: 'a',
       onReady: () => {},
     })
-    const rows = within(screen.getByRole('list', { name: '1 of 2 ready' })).getAllByRole('listitem')
-    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
-      'Zezima ready',
-      'Woox not ready',
-      'Lynx away ready',
-    ])
-    expect(rows.map((row) => row.querySelector('.roster-pet')?.classList.contains('away'))).toEqual(
-      [false, false, true],
+    expect(names('Ready')).toEqual(['Zezima'])
+    const rows = within(screen.getByRole('list', { name: 'Not ready yet' })).getAllByRole(
+      'listitem',
     )
+    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+      'Woox',
+      'Lynx away',
+    ])
+    expect(rows.map((row) => row.querySelector('.table-pet')?.classList.contains('away'))).toEqual([
+      false,
+      true,
+    ])
   })
 })
 

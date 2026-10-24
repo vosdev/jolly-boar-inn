@@ -279,8 +279,8 @@ Round 2 of 5 · 5 questions
   not read the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only
   along its length. Every theme has its own paper.
 - **Below the scroll** are the answers on a panel; gems never sit on parchment, so every gem
-  check still measures against `--panel`. **At the table** (`AtTable`): the lobby's and splash's
-  ready check, the splash's count and pace, and once answered a slim panel saying who is in.
+  check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
+  the lobby's buttons and the splash's count, pace and countdown at its foot.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
   `lib/modes.ts`. The splash scroll holds the mode's name, greeting and blurb; the waiting and
   reveal lines go at the sheet's foot, the reveal's beside the points. The foot holds two lines
@@ -294,20 +294,30 @@ Round 2 of 5 · 5 questions
   board, so the inn's front door differs from its games. Their host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
   stage, else 120px in the host's place, partly off a phone's edge. Without one, the Wise Old Man.
 
-## 9. The splash and the ready check
+## 9. The table panel, the splash and the ready check
 
-Both put the players in a grid of pets, a name under each: faded while away, ticked and named
-in `--ok` once ready. The threshold, countdowns and take-back rule are architecture §7.
+The table panel (`TablePanel`) is who is at the table, on the theme's panel beside the stage. It
+has two halves, each with its count: the lobby's and splash's "Ready" over "Not ready yet", a
+question's "Answered" over "Still thinking", then "No answer" once it closes. A pet moves up as
+its player readies or answers. Pets sit four abreast, the name under each, yours first in your
+half and in bold, the rest below in join order and above in the order they arrived. An away pet
+fades to grey, says "away" and stays below, since the server only knows who is still to answer
+among the connected. A team game splits each half by team in god order, the teamless last. The
+TV sits apart under "TV" at the foot. A question nobody answers lists everyone under "At the table".
+On a phone a question's panel is a strip at the foot, "2 of 9 answered" and the first four faces,
+answered first. It opens the panel as a sheet, and a new question closes it. The lobby and splash
+keep the whole panel under the stage, since it holds their buttons. The threshold, countdowns and
+take-back rule are architecture §7.
 
 - **Lobby: the room on the scroll.** It holds the code, which copies the invite link (an error and
   the link to copy by hand where the clipboard refuses), the rounds and questions, and the rounds
   A–Z behind "Show the rounds". The host also sees who is missing by name, since the answer is
-  usually "Dave, at the bar", and taps a pet to kick or promote. Start is plain at the threshold,
+  usually "Dave, at the bar", and taps a pet to kick or promote. A team game's gods are buttons
+  above the halves: tap one to join it. Start is plain at the threshold,
   and "Start anyway" below it, which asks first.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
-  last admin) and back ("Not the TV"), at once. A screen sits where its tick goes, "TV" under
-  its name; a team game lists it in a TV group after the teams. The TV gets no ready, and its
-  settings no name or pet.
+  last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,
+  and its settings no name or pet.
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash:** "Waiting for 2 more" says the rest, never by name.
@@ -323,7 +333,7 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
   and the question's number (`2/3`) in one at its left. Answer buttons are 56px tall and full
   width on a phone: thumb targets at a pub table.
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
-  `--scroll-ink`, the answers, combobox and tally under it, the waiting state at the table. The
+  `--scroll-ink`, the answers, combobox and tally under it, who has answered at the table. The
   question's heading is for a screen reader only.
 - A pack question's picture, the wiki's detail render, is centred under the prompt in a box 5rem
   tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.
@@ -335,10 +345,9 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
   face, with a 56px Submit under it. Its list floats over the page, so opening it never scrolls: below the field, and on a phone
   *above* it, clear of the keyboard. Typed text reads as a search; only a selection lights Submit.
-- Answered and waiting shows your answer held and dimmed, "waiting for the room" and the answered
-  count.
+- Answered and waiting shows your answer held and dimmed, with "Answer in" and its band under it.
 - **With a TV connected** a phone draws no stage: no host, scroll, stem, picture or event NPC.
-  The answers and the waiting line take the screen, and the reveal puts your points on their
+  The answers, the band line and the table's strip take the screen, and the reveal puts your points on their
   plaque above your marked answers, with no tally, counts, others' guesses or explanation. A
   TV that drops gives phones the whole question back.
 

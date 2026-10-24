@@ -4,13 +4,12 @@
    *
    * It picks the random event's card or the plain question once, for both halves of the
    * question's life, so a change to either half cannot miss the other. While the question
-   * is open and you have answered, the waiting line goes under it: up to fifteen
-   * seconds in which people look up at each other, so it says how the room is doing
-   * rather than one flat line. The band is all `answer_ack` carries, how fast or how
-   * early, never whether it was right. Correctness is nobody's until `question_closed`.
+   * is open and you have answered, a line under it says where your answer landed. The
+   * band is all `answer_ack` carries, how fast or how early, never whether it was right;
+   * how the room is doing is the table panel's. Correctness is nobody's until `question_closed`.
    *
    * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
-   * scroll, and under the line the answers in a panel, with the waiting line below them.
+   * scroll, and under the line the answers in a panel, with your answer's band below them.
    * Once we have answered the host says its waiting line at the foot of the sheet, and on
    * the reveal its reveal line and what we earned, and anything we scored pins the ribbon. The line the points go on is held from the start, so the
    * answers under the sheet do not move when they arrive. Who is in goes to the room's table. A random event draws its own
@@ -24,7 +23,7 @@
    * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
    * leaves the answers out, for a preview whose answers a player cannot try yet.
    * `answersOnly` is its counterpart, for a phone while the room's TV shows the question:
-   * no stage, stem, picture or event card, only the answers and the waiting line, and on
+   * no stage, stem, picture or event card, only the answers and your band, and on
    * the reveal your points on their plaque. Everything about the room as a whole, the
    * tally, each option's count, the others' guesses and the explanation, is the TV's.
    *
@@ -41,10 +40,9 @@
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
   import { hostOf, INNKEEPER } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
-  import { answerAck, answerCount, serverOffsetMs } from '../lib/stores'
+  import { answerAck, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
-  import AtTable from './AtTable.svelte'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import { stemLines } from './questions/index'
@@ -195,12 +193,6 @@
 
 {#snippet waiting()}
   {#if reveal === null && yourValue !== null}
-    <AtTable>{@render waitingPanel()}</AtTable>
-  {/if}
-{/snippet}
-
-{#snippet waitingPanel()}
-  <div class="panel waiting">
     <p class="held">
       Answer in{#if landed !== null}<span
           class="band"
@@ -208,15 +200,7 @@
           aria-label={landed.sentence}>{landed.badge}</span
         >{/if}
     </p>
-    <p class="room">
-      {#if $answerCount !== null && $answerCount.of > 0}
-        <span class="count">{$answerCount.answered} of {$answerCount.of}</span>
-        answered — waiting for the room
-      {:else}
-        Waiting for the room
-      {/if}
-    </p>
-  </div>
+  {/if}
 {/snippet}
 
 {#if answersOnly}
@@ -322,36 +306,15 @@
     justify-self: center;
   }
 
-  .waiting {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    padding: calc(0.6rem - var(--border-give)) calc(1rem - var(--border-give));
-    font-size: 0.9rem;
-  }
-
-  .waiting p {
-    margin: 0;
-  }
-
   .held {
     display: flex;
     align-items: baseline;
+    justify-content: center;
     gap: 0.4rem;
+    margin: 0;
+    font-size: 0.9rem;
     font-weight: 600;
-  }
-
-  .room {
     color: var(--muted);
-  }
-
-  .count {
-    color: var(--ink);
-    font-family: var(--font-numeric);
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
   }
 
   .band {

@@ -674,10 +674,10 @@ describe('a phone while the TV shows the question', () => {
     expect(screen.getByRole('button', { name: /77/ })).toBeTruthy()
   })
 
-  it('keeps the waiting line once you have answered', () => {
+  it('keeps the line saying your answer is in once you have answered', () => {
     const question = open('more_less', 'more_less')
     render(QuestionStage, { question, yourValue: 0, onAnswer, answersOnly: true })
-    expect(document.querySelector('.panel.waiting')?.textContent).toContain('Waiting for the room')
+    expect(document.querySelector('.held')?.textContent).toContain('Answer in')
   })
 
   it('gets the whole question back when the TV goes', async () => {

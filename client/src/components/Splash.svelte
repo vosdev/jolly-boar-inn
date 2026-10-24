@@ -18,8 +18,8 @@
    * the ready check and the countdown go in a panel at the room's table, beside the stage
    * (section 8 of ideas/design.md). The date is said here once, so the questions need not.
    *
-   * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
-   * name underneath (`RosterPet`): faded while away, checked once they tap ready. A tap can be
+   * The ready check (section 9 of ideas/design.md) is the table panel, Ready over Not ready
+   * yet; on the TV a grid of pets (`RosterPet`), checked once they tap ready. A tap can be
    * taken back once per splash — below the threshold that stops the countdown again —
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
@@ -38,10 +38,13 @@
   import { playing, readyThreshold } from '../lib/ready'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
+  import { Seating } from '../lib/tableGroups'
+  import { TEAM_IDS } from '../lib/teams'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import RosterPet from './RosterPet.svelte'
+  import TablePanel from './TablePanel.svelte'
   import Stage from './stage/Stage.svelte'
   import Typed from './stage/Typed.svelte'
   import Timer from './Timer.svelte'
@@ -93,6 +96,12 @@
   const readyCount = $derived(present.filter((player) => player.ready === true).length)
   const youReady = $derived(players.some((player) => player.id === youId && player.ready === true))
   const summary = $derived(`${readyCount} of ${present.length} ready`)
+  const seating = new Seating()
+  /** The teams the players play for: a splash has no settings, and the teams are the same. */
+  const teams = $derived(TEAM_IDS.filter((team) => players.some((p) => p.team === team)))
+  const seated = $derived(
+    seating.seat(players, youId, (p) => p.ready === true, segment.index, teams),
+  )
   /** Taps still wanted before the countdown starts: a count, never a name. */
   const short = $derived(Math.max(0, readyThreshold(present.length) - readyCount))
 
@@ -181,26 +190,24 @@
 
     {#if !tv}
       <AtTable>
-        <div class="panel board">
-          {@render count()}
-
-          <div class="ready">
-            <button
-              type="button"
-              class:primary={!youReady}
-              aria-pressed={youReady}
-              disabled={youReady && undone}
-              onclick={press}
-            >
-              {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
-            </button>
-            <FullScreenSwitch />
-            {@render pets()}
-            <span class="note tally" aria-hidden="true">{summary}</span>
+        <TablePanel groups={seated} {youId} labels={['Ready', 'Not ready yet']}>
+          <div class="board">
+            {@render count()}
+            <div class="ready">
+              <button
+                type="button"
+                class:primary={!youReady}
+                aria-pressed={youReady}
+                disabled={youReady && undone}
+                onclick={press}
+              >
+                {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
+              </button>
+              <FullScreenSwitch />
+            </div>
+            {@render countdown()}
           </div>
-
-          {@render countdown()}
-        </div>
+        </TablePanel>
       </AtTable>
     {/if}
   </Stage>
@@ -277,10 +284,6 @@
 
   .pets li {
     width: 4.25rem;
-  }
-
-  .tally {
-    font-variant-numeric: tabular-nums;
   }
 
   /* Where the timer will be once one runs, the same plaque, so nothing below moves. */

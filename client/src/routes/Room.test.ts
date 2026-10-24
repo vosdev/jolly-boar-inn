@@ -273,7 +273,7 @@ describe('Room', () => {
     expect(get(timerBar)?.label).toBe('to answer')
     expect(document.querySelector('.slot')).toBeNull()
 
-    // Answered and waiting: our answer held, and how the room is doing.
+    // Answered and waiting: our answer held, and where it landed.
     screen.getByText('Abyssal whip').click()
     expect(sent).toContainEqual({ t: 'answer', question_id: 'q1', value: 0 })
     applyServerMessage({
@@ -284,10 +284,8 @@ describe('Room', () => {
       answered: 1,
       of: 2,
     })
-    await screen.findByText(/answered — waiting for the room/)
-    expect(document.querySelector('.waiting .count')?.textContent).toBe('1 of 2')
-    applyServerMessage({ t: 'answer_count', question_id: 'q1', answered: 2, of: 2, waiting: [] })
-    await screen.findByText('2 of 2')
+    await screen.findByText(/Answer in/)
+    expect(document.querySelector('.held .band')?.textContent).toBe('2/5')
 
     applyServerMessage({
       t: 'question_closed',
@@ -508,6 +506,46 @@ describe('Room', () => {
   })
 })
 
+/** A More or Less question for the table panel's tests, `waiting` still to answer. */
+function tableQuestion(id: string, waiting: string[]): OpenQuestion {
+  return {
+    question_id: id,
+    index: id === 'q1' ? 0 : 1,
+    total: 2,
+    type: 'more_less',
+    mode: 'more_less',
+    segment: SEGMENT,
+    view: {
+      metric: 'ge_price',
+      direction: 'more',
+      options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+      as_of: '2026-09-01',
+    },
+    opened_at: new Date().toISOString(),
+    ends_at: inSeconds(10),
+    you_can_answer: true,
+    answered: 2 - waiting.length,
+    of: 2,
+    waiting,
+    picture: null,
+    random_event: null,
+    answerable_at: new Date().toISOString(),
+  }
+}
+
+/** The names in the panel's two halves while a question is open. */
+function halves(table: HTMLElement): { answered: string[]; thinking: string[] } {
+  const names = (label: string): string[] => {
+    const list = within(table).queryByRole('list', { name: label })
+    return list === null
+      ? []
+      : within(list)
+          .getAllByRole('listitem')
+          .map((item) => item.querySelector('.pet-name')?.textContent ?? '')
+  }
+  return { answered: names('Answered'), thinking: names('Still thinking') }
+}
+
 describe('the room’s frame', () => {
   const root = document.documentElement
   const height = innerHeight
@@ -565,10 +603,74 @@ describe('the room’s frame', () => {
         answerable_at: new Date().toISOString(),
       },
     })
+    const table = await screen.findByRole('group', { name: 'At the table' })
+    expect(table.closest('.table')).toBeTruthy()
+    expect(table.closest('.stage-side')).toBeNull()
+  })
+
+  it('moves a player from Still thinking to Answered as they answer, and the counts follow', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+    const table = await screen.findByRole('group', { name: 'At the table' })
+    expect(halves(table)).toEqual({ answered: [], thinking: ['Zezima', 'Woox'] })
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 0')
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Still thinking 2')
+
+    applyServerMessage({ t: 'answer_count', question_id: 'q1', answered: 1, of: 2, waiting: ['a'] })
+    await tick()
+    expect(halves(table)).toEqual({ answered: ['Woox'], thinking: ['Zezima'] })
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 1')
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Still thinking 1')
+
+    // Our own ack carries no list: it still moves us up.
     ;(await screen.findByText('Abyssal whip')).click()
-    const waiting = (await screen.findByText(/waiting for the room/)).closest('.waiting')
-    expect(waiting?.closest('.table')).toBeTruthy()
-    expect(waiting?.closest('.stage-side')).toBeNull()
+    applyServerMessage({
+      t: 'answer_ack',
+      question_id: 'q1',
+      scoring: 'speed',
+      band: 1,
+      answered: 2,
+      of: 2,
+    })
+    await tick()
+    expect(halves(table)).toEqual({ answered: ['Zezima', 'Woox'], thinking: [] })
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 2')
+  })
+
+  it('retitles the lower half No answer for the reveal', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+    applyServerMessage({
+      t: 'question_closed',
+      unanswered: ['a'],
+      question_id: 'q1',
+      reveal: { answer_index: 0 },
+      results: { b: { value: 1, correct: false, credit: 0, points: 0 } },
+      standings: STANDINGS,
+      team_standings: null,
+      next_at: inSeconds(10),
+      reveal_seconds: 10,
+      picture: null,
+    })
+    const table = await screen.findByRole('group', { name: 'At the table' })
+    expect(within(table).getByRole('list', { name: 'Answered' }).textContent).toContain('Woox')
+    expect(within(table).getByRole('list', { name: 'No answer' }).textContent).toContain('Zezima')
+  })
+
+  it('puts the table in a strip at a phone’s foot, and a new question closes its sheet', async () => {
+    windowOf(375, 812)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a']) })
+    const strip = await screen.findByRole('button', { name: /1 of 2 answered/ })
+    expect(screen.queryByRole('group', { name: 'At the table' })).toBeNull()
+    await fireEvent.click(strip)
+    const sheet = screen.getByRole('dialog', { name: 'At the table' })
+    expect(within(sheet).getByRole('list', { name: 'Answered' }).textContent).toContain('Woox')
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q2', ['a', 'b']) })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByRole('button', { name: /0 of 2 answered/ })).toBeTruthy()
   })
 
   it('widens the table for a reveal', async () => {
