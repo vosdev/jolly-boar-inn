@@ -13,13 +13,29 @@ import { LETTERS_PER_SECOND, interludeFor } from '../lib/interlude'
 import { GENERIC_HOST, MODES } from '../lib/modes'
 import { FALLBACK_NPC, npcArt } from '../lib/npcs'
 import { pricesAsOf } from '../lib/pricesAsOf.svelte'
-import type { PlayerView, Segment } from '../lib/protocol'
+import type { PlayerView, RoomSettings, Segment } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import { petsDrawn } from '../test-pets'
 import { seen, spoken, typing } from '../test-typing'
 import Splash from './Splash.svelte'
 
 const SEGMENT: Segment = { mode: 'more_less', index: 0, total: 2, start: 0, count: 5 }
+const SETTINGS: RoomSettings = {
+  modes: [
+    { mode: 'more_less', questions: 5 },
+    { mode: 'bestiary', questions: 5 },
+    { mode: 'drop_table', questions: 5 },
+  ],
+  mode_order: 'listed',
+  random_event_frequency: 'default',
+  pace: 'run',
+  difficulty: 'mixed',
+  standings_seconds: 10,
+  close_when_all_answered: true,
+  max_players: 50,
+  name_wrong_answers: false,
+  teams: [],
+}
 
 function players(youReady: boolean): PlayerView[] {
   return [
@@ -45,8 +61,6 @@ function players(youReady: boolean): PlayerView[] {
     },
   ]
 }
-
-const fill = () => (document.querySelector('.fill') as HTMLElement).style.width
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -76,26 +90,23 @@ const under = () => document.querySelector('.under') as HTMLElement
 const bubble = () => document.querySelector('.bubble') as HTMLElement
 
 describe('Splash stage', () => {
-  it("writes the mode's name on the scroll, its blurb in the host's bubble, and its count under the line", () => {
+  it("writes the round, the mode's name and what it asks on the scroll, its blurb in the host's bubble", () => {
     splash()
     const heading = screen.getByRole('heading', { name: 'More or Less' })
     expect(paper().contains(heading)).toBe(true)
+    expect(paper().textContent).toContain('Round 1 of 2')
+    expect(paper().textContent).toContain(`5 questions · ${MODES.more_less!.hint}`)
     expect(paper().textContent).not.toContain(MODES.more_less!.blurb)
     expect(bubble().textContent).toContain(MODES.more_less!.blurb)
-    expect(under().textContent).toContain('Round 1 of 2 · 5 questions')
-    // A round's questions each take their own type's time, so no one length is true.
-    expect(under().textContent).not.toContain('seconds')
-    expect(paper().textContent).not.toContain('Round 1 of 2')
   })
 
   it('dates a price round under the line, rounded for The Price is Right', () => {
     pricesAsOf.byMode = { more_less: '2026-09-01', price_is_right: '2026-10-08' }
     splash()
-    expect(under().textContent).toContain(`Prices as of ${asOfDate('2026-09-01')}.`)
-    expect(paper().textContent).not.toContain('as of')
+    expect(paper().textContent).toContain(`Prices as of ${asOfDate('2026-09-01')}.`)
     cleanup()
     splash({ ...SEGMENT, mode: 'price_is_right' })
-    expect(under().textContent).toContain(
+    expect(paper().textContent).toContain(
       `Grand Exchange prices, rounded, as of ${asOfDate('2026-10-08')}.`,
     )
   })
@@ -140,11 +151,68 @@ describe('Splash stage', () => {
     expect(paper().querySelector('button, ul')).toBeNull()
   })
 
-  it('puts the count and the ready check on a panel, never on the bare page', () => {
+  it('puts tonight and the ready check on panels, never on the bare page', () => {
     splash()
-    const panel = under().querySelector('.panel')!
-    expect(panel.textContent).toContain('Round 1 of 2 · 5 questions')
-    expect(panel.contains(screen.getByRole('button', { name: "✓ I'm ready" }))).toBe(true)
+    expect(screen.getByRole('heading', { name: 'Tonight' }).closest('.panel')).not.toBeNull()
+    expect(
+      screen.getByRole('button', { name: "✓ I'm ready" }).closest('[aria-label="At the table"]'),
+    ).not.toBeNull()
+  })
+
+  const stopsOf = (which: string) =>
+    [...document.querySelectorAll(`.stops.${which} .stop`)].map((stop) => ({
+      state: [...stop.classList].find((name) => ['done', 'now', 'next'].includes(name)),
+      face: stop.querySelector('.face img') !== null,
+      label: stop.querySelector('.label')?.textContent?.trim(),
+    }))
+
+  it('shows every round’s host on tonight’s row, the current one marked, when the order is known', () => {
+    const modes = ['bestiary', 'more_less', 'drop_table'].map((mode) => ({ mode, questions: 5 }))
+    render(Splash, {
+      segment: { mode: 'more_less', index: 1, total: 3, start: 5, count: 5 },
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+      settings: { ...SETTINGS, modes, mode_order: 'listed' },
+    })
+    expect(stopsOf('wide')).toEqual([
+      { state: 'done', face: true, label: '1' },
+      { state: 'now', face: true, label: 'More or Less' },
+      { state: 'next', face: true, label: '3' },
+    ])
+    expect(document.querySelector('[aria-current="step"]')?.textContent).toContain('More or Less')
+  })
+
+  it('keeps shuffled rounds a surprise, showing only the current host', () => {
+    render(Splash, {
+      segment: { mode: 'more_less', index: 1, total: 3, start: 5, count: 5 },
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+      settings: { ...SETTINGS, mode_order: 'random' },
+    })
+    expect(stopsOf('wide').map((stop) => stop.face)).toEqual([false, true, false])
+  })
+
+  it('fits ten rounds in one row, and the nearest five on a phone', () => {
+    render(Splash, {
+      segment: { mode: 'more_less', index: 3, total: 10, start: 15, count: 5 },
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+    })
+    expect(stopsOf('wide')).toHaveLength(10)
+    expect(document.querySelector('.stops.wide .more')).toBeNull()
+    expect(stopsOf('narrow').map((stop) => stop.label)).toEqual([
+      '2',
+      '3',
+      'More or Less',
+      '5',
+      '6',
+    ])
   })
 })
 
@@ -244,7 +312,7 @@ describe('Splash ready button', () => {
   })
 })
 
-describe('Splash countdown bar', () => {
+describe('Splash countdown', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
     vi.setSystemTime(Date.parse('2026-09-25T20:00:00Z'))
@@ -254,20 +322,22 @@ describe('Splash countdown bar', () => {
     vi.useRealTimers()
   })
 
-  it('starts full and drains, and a pong moving the offset does not fill it again', async () => {
-    render(Splash, {
+  it('waits for the room, then counts down large once enough are ready', async () => {
+    const { rerender } = render(Splash, {
       segment: SEGMENT,
-      endsAt: new Date(Date.now() + 10_000).toISOString(),
-      players: players(true),
+      endsAt: null,
+      players: players(false),
       youId: 'a',
       onReady: () => {},
     })
-    expect(fill()).toBe('100%')
+    expect(document.querySelector('.starting')).toBeNull()
+    expect(document.querySelector('.waiting-big')?.textContent).toContain('more to be ready')
+    await rerender({ endsAt: new Date(Date.now() + 10_000).toISOString() })
+    const starting = () => document.querySelector('.starting')?.textContent?.replace(/\s+/g, ' ')
+    expect(starting()).toContain('Starting in 10')
     await vi.advanceTimersByTimeAsync(4_000)
-    expect(parseFloat(fill())).toBeCloseTo(60, 0)
-    serverOffsetMs.set(5)
-    await vi.advanceTimersByTimeAsync(100)
-    expect(parseFloat(fill())).toBeCloseTo(59, 0)
+    expect(starting()).toContain('Starting in 6')
+    expect(document.querySelector('.waiting-big')).toBeNull()
   })
 })
 

@@ -11,13 +11,14 @@
    * the countdown once one runs, so everybody sees the same number. The host's skip is
    * the override, and ends it for everyone at once.
    *
-   * The scroll holds only the mode's name, and the host says its greeting and the blurb in
-   * its bubble above it (the TV's scroll holds all three). The name is there whole; the
+   * The host says its greeting and the blurb in its bubble above the scroll (the TV's scroll
+   * holds them). The name is there whole; the
    * greeting and the blurb type in once the stage has come over from the screen before,
    * at the questions' pace (`lib/interlude.ts`). The splash has no hold to
-   * fit, so nothing waits on the typing. The round's count and pace, a price round's date,
-   * the ready check and the countdown go in a panel at the room's table, beside the stage
-   * (section 8 of ideas/design.md). The date is said here once, so the questions need not.
+   * fit, so nothing waits on the typing. The scroll also says which round this is, how many
+   * questions it holds and what it asks, and a price round's date, said here once so the
+   * questions need not. Under it, tonight's row of hosts (`lib/tonight.ts`) and, once the
+   * room is ready, the countdown, large (section 9 of ideas/design.md).
    *
    * The ready check (section 9 of ideas/design.md) is the table panel, Ready over Not ready
    * yet; on the TV a grid of pets (`RosterPet`), checked once they tap ready. A tap can be
@@ -34,7 +35,9 @@
   import { asOfDate } from '../lib/dates'
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { MODES, hostOf } from '../lib/modes'
-  import type { PlayerView, Segment } from '../lib/protocol'
+  import { msUntil, serverNow } from '../lib/clock'
+  import type { PlayerView, RoomSettings, Segment } from '../lib/protocol'
+  import { tonight, type Tonight } from '../lib/tonight'
   import { loadPricesAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
   import { playing, readyThreshold } from '../lib/ready'
   import { stageArrival } from '../lib/sharedStage.svelte'
@@ -45,6 +48,7 @@
   import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import RosterPet from './RosterPet.svelte'
+  import NpcFace from './NpcFace.svelte'
   import TablePanel from './TablePanel.svelte'
   import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
@@ -58,6 +62,7 @@
     youId,
     onReady,
     tv = false,
+    settings = null,
   }: {
     segment: Segment
     /** When the countdown ends, from `room.next_at`; null while the splash waits. */
@@ -68,6 +73,8 @@
     onReady: (ready: boolean) => void
     /** Drawn on the room's TV. */
     tv?: boolean
+    /** The room's settings, for which rounds' hosts tonight's row may show. */
+    settings?: RoomSettings | null
   } = $props()
 
   // A room can play a mode from a newer server than this client was built against. The
@@ -142,6 +149,25 @@
     void loadPricesAsOf()
   })
 
+  const night = $derived({
+    index: segment.index,
+    total: segment.total,
+    mode: segment.mode,
+    modes: settings?.modes,
+    modeOrder: settings?.mode_order,
+    hidden: settings?.hide_rounds === true,
+  })
+  /** Ten rounds in a row on a desktop, the nearest twelve past that, five on a phone. */
+  const wide = $derived(tonight(night, 12))
+  const narrow = $derived(tonight(night, 5))
+  const startsIn = $derived(
+    endsAt === null ? null : Math.max(0, Math.ceil(msUntil(endsAt, $serverNow) / 1000)),
+  )
+  const asks = $derived(
+    `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}` +
+      (mode === null ? '' : ` · ${mode.hint}`),
+  )
+
   // Built here rather than in the markup, where Svelte would trim the space before the dot.
   const length = $derived(
     `Round ${segment.index + 1} of ${segment.total} · ` +
@@ -181,9 +207,33 @@
   {/if}
 {/snippet}
 
+{#snippet row(night: Tonight, which: string)}
+  <ol class="stops {which}" aria-label="Tonight's rounds">
+    {#if night.before > 0}<li class="more" aria-hidden="true">+{night.before}</li>{/if}
+    {#each night.stops as stop (stop.index)}
+      <li class="stop {stop.state}" aria-current={stop.state === 'now' ? 'step' : undefined}>
+        <span class="face">
+          {#if stop.mode !== null}
+            <NpcFace npc={hostOf(stop.mode).host.id} />
+          {:else}
+            <span class="blank" aria-hidden="true"></span>
+          {/if}
+        </span>
+        <span class="label">
+          {stop.state === 'now' ? label : stop.index + 1}
+        </span>
+      </li>
+    {/each}
+    {#if night.after > 0}<li class="more" aria-hidden="true">+{night.after}</li>{/if}
+  </ol>
+{/snippet}
+
 <section class="splash">
   <Stage host={host.host.id} {tv} wide={tv} bubble={tv ? null : 'on'}>
     {#snippet paper()}
+      {#if !tv && segment.total > 1}
+        <p class="lead">Round {segment.index + 1} of {segment.total}</p>
+      {/if}
       <h2>{label}</h2>
       {#if tv}
         {@render words()}
@@ -192,6 +242,11 @@
           {@render pets()}
           {@render countdown()}
         </div>
+      {:else}
+        <p class="asks">{asks}</p>
+        {#if asOf !== null}
+          <p class="asof">{prices} as of {asOfDate(asOf)}.</p>
+        {/if}
       {/if}
     {/snippet}
 
@@ -200,23 +255,40 @@
     {/snippet}
 
     {#if !tv}
+      <section class="panel night" aria-labelledby="tonight">
+        <div class="tonight">
+          <h3 id="tonight">Tonight</h3>
+          {@render row(wide, 'wide')}
+          {@render row(narrow, 'narrow')}
+        </div>
+        <div class="starts">
+          {#if startsIn !== null}
+            <p class="starting" aria-live="polite">
+              <span>Starting in</span>
+              <strong>{startsIn}</strong>
+            </p>
+          {:else}
+            <p class="waiting-big">
+              {short === 1
+                ? 'Waiting for 1 more to be ready'
+                : `Waiting for ${short} more to be ready`}
+            </p>
+          {/if}
+        </div>
+      </section>
       <AtTable>
         <TablePanel groups={seated} {youId} labels={['Ready', 'Not ready yet']}>
-          <div class="board">
-            {@render count()}
-            <div class="ready">
-              <button
-                type="button"
-                class:primary={!youReady}
-                aria-pressed={youReady}
-                disabled={youReady && undone}
-                onclick={press}
-              >
-                {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
-              </button>
-              <FullScreenSwitch />
-            </div>
-            {@render countdown()}
+          <div class="ready">
+            <button
+              type="button"
+              class:primary={!youReady}
+              aria-pressed={youReady}
+              disabled={youReady && undone}
+              onclick={press}
+            >
+              {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
+            </button>
+            <FullScreenSwitch />
           </div>
         </TablePanel>
       </AtTable>
@@ -275,6 +347,171 @@
     margin: 0 0 0.4rem;
     font-size: 0.9rem;
     color: var(--muted);
+  }
+
+  .lead {
+    margin: 0;
+    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+    color: var(--scroll-muted);
+  }
+
+  .asks {
+    margin: 0.3rem 0 0;
+    font-size: max(0.95rem, 1.05rem * var(--scroll-text, 1));
+  }
+
+  .asks + .asof {
+    margin: 0.2rem 0 0;
+    color: var(--scroll-muted);
+  }
+
+  /* Tonight's row beside the countdown, under the sheet. */
+  .night {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    margin-bottom: 0;
+  }
+
+  .night h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+  }
+
+  .stops {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stop {
+    --face: 2.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    width: 3.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .stop .face {
+    display: grid;
+    place-items: center;
+    width: var(--face);
+    height: var(--face);
+  }
+
+  /* Sized outright: a percentage of a grid cell's height is no height at all. */
+  .stop .face :global(img) {
+    width: var(--face);
+    max-width: none;
+    height: var(--face);
+    max-height: none;
+    object-fit: contain;
+    opacity: 0.55;
+  }
+
+  .stop.done .face :global(img) {
+    opacity: 0.3;
+    filter: grayscale(0.7);
+  }
+
+  .blank {
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 2px dashed var(--line);
+    border-radius: 50%;
+  }
+
+  .stop.now {
+    --face: 4.75rem;
+    width: 6.5rem;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .stop.now .face :global(img) {
+    opacity: 1;
+  }
+
+  .label {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .more {
+    align-self: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .stops.narrow {
+    display: none;
+  }
+
+  .starts {
+    min-width: 9rem;
+    text-align: center;
+  }
+
+  .starting {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .starting strong {
+    font-family: var(--font-numeric);
+    font-size: 4.5rem;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .waiting-big {
+    margin: 0;
+    max-width: 11rem;
+    color: var(--muted);
+  }
+
+  /* A phone's stage: the nearest five, and the countdown under them. */
+  @container (max-width: 40rem) {
+    .night {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .stops.wide {
+      display: none;
+    }
+
+    .stops.narrow {
+      display: flex;
+      justify-content: center;
+    }
+
+    .night h3 {
+      text-align: center;
+    }
+
+    .starts {
+      min-width: 0;
+    }
+
+    .waiting-big {
+      max-width: none;
+    }
+
+    .starting strong {
+      font-size: 3rem;
+    }
   }
 
   .ready {

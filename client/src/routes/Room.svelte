@@ -506,6 +506,7 @@
               youId={$you?.id ?? null}
               onReady={(ready) => socket?.send({ t: 'ready', ready })}
               tv={$you?.role === 'tv'}
+              settings={$room.settings}
             />
           {:else}
             <!-- playing. A question's screen is the stage and nothing to read past it. -->

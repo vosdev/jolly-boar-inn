@@ -218,7 +218,7 @@ under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper
 `jungle` lashes bark cloth into a bamboo frame, both Gauntlets show its dark board in a glowing
 crystal or red rim, `morytania` raises a gravestone, which a long sheet makes a pillar, and `zanaris` the Cosmic
 altar's sign.
-The sheet carries the mode's name on the splash and then every question, and nothing else; the
+The sheet carries the round on the splash and then every question, and nothing else; the
 answers sit under it.
 Create shows each mode on a card with its host's chathead. The stage was agreed in
 `client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it is at
@@ -286,7 +286,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   along its length. Every theme has its own paper.
 - **Below the scroll** are the answers on a panel; gems never sit on parchment, so every gem
   check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
-  the lobby's buttons and the splash's count, pace and countdown at its foot.
+  the lobby's and splash's buttons at its foot.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
   `lib/modes.ts`, all in the bubble. The reveal's bubble adds the question's explanation and
   "Next question in 6 seconds" (the standings, the next round or the final standings after a
@@ -331,7 +331,13 @@ take-back rule are architecture §7.
   and its settings no name or pet.
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
-- **Splash:** "Waiting for 2 more" says the rest, never by name.
+- **Splash.** The host's greeting and blurb in the bubble. The scroll: "Round 4 of 10", the mode's
+  name, "5 questions · " and its Create hint, and a price round's date. Under it, "Tonight": a
+  host per round, past ones faded, the current one large and named, the rest numbered; a host
+  shows only where the client knows it, so shuffled or hidden rounds are numbered blanks but for
+  the current one. Ten fit a row; past 12 it shows the nearest 12, on a phone the nearest 5, with
+  "+N" for the rest. Beside it "Starting in 4", large, once the countdown runs, and before that
+  "Waiting for 2 more to be ready", never by name. The panel keeps the ready check.
 - **How to play:** a link on the Lobby's rounds and on Home's opens a sheet, a row per way of
   answering: a small drawing of the control and one plain sentence, with every Submit named in
   bold, since players overlooked it. The Lobby shows its rounds' types, or all of them when
