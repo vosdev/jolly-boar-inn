@@ -176,8 +176,8 @@
   }
 
   function restart(): void {
-    slots = [...start]
     dragging.lifted = null
+    void dragging.keepScroll(() => (slots = [...start]))
   }
 
   sendBeforeEnd(
