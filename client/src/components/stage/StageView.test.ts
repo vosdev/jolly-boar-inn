@@ -46,9 +46,15 @@ describe('the entrance', () => {
 })
 
 describe('the speaker above the sheet', () => {
-  it('keeps its chathead in its row on a phone, where the sheet-side host stands on the sheet', () => {
+  it('keeps its chathead in its panel on a phone, where the sheet-side host stands on the sheet', () => {
     const rule = source.match(/\n {2}\.stage \.speaker \.npc \{([^}]*)\}/)?.[1] ?? ''
     expect(rule).toContain('position: relative')
-    expect(source).toMatch(/\.speaker \.bubble:not\(\.shell\) \{\s*grid-column: 2;/)
+    expect(rule).toContain('animation: none')
+  })
+
+  it('hides or dims only the line under the name, never the name itself', () => {
+    expect(source).toMatch(/\.bubble\.off \.speech > :global\(:not\(\.name\)\) \{/)
+    expect(source).toMatch(/\.bubble\.dim \.speech > :global\(:not\(\.name\)\) \{/)
+    expect(source).not.toMatch(/\.bubble\.(off|dim) \{/)
   })
 })

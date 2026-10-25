@@ -1,9 +1,9 @@
 /**
  * The splash's row of tonight's rounds (section 9 of ideas/design.md): one stop per round,
  * the current one named. A round's host shows only where this client can know it: the
- * current round always; every round when the host listed them in order and did not hide
- * them, since then `settings.modes` is the running order. Shuffled or hidden rounds keep
- * their order the game's to reveal, so the others are numbered blanks.
+ * current round and the ones played (`room.played`) always; every round when the host listed
+ * them in order and did not hide them, since then `settings.modes` is the running order.
+ * Shuffled or hidden rounds still to come are the game's to reveal, so they stay blanks.
  */
 
 import type { ModeSettings } from './protocol'
@@ -29,6 +29,8 @@ export interface Night {
   total: number
   /** The current round's mode. */
   mode: string
+  /** The modes of the rounds before it, in order: `room.played`. */
+  played?: string[]
   modes?: ModeSettings[]
   modeOrder?: 'listed' | 'random'
   hidden?: boolean
@@ -45,9 +47,15 @@ export function tonight(night: Night, size: number): Tonight {
   for (let at = start; at < end; at++) {
     stops.push({
       index: at,
-      mode: at === index ? night.mode : known ? (night.modes?.[at]?.mode ?? null) : null,
+      mode: modeAt(night, at, known),
       state: at < index ? 'done' : at === index ? 'now' : 'next',
     })
   }
   return { stops, before: start, after: total - end }
+}
+
+function modeAt(night: Night, at: number, known: boolean): string | null {
+  if (at === night.index) return night.mode
+  if (at < night.index && night.played?.[at] !== undefined) return night.played[at]
+  return known ? (night.modes?.[at]?.mode ?? null) : null
 }

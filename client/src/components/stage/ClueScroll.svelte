@@ -318,6 +318,8 @@
     --font-numeric: var(--font-display);
     font-family: var(--font-display);
     font-synthesis: none;
+    /* Every sheet centres its words; only the host's bubble reads from the left. */
+    text-align: center;
   }
 
   /* Each sheet's own rules sit in :where(), so the stage's phone padding still wins. */
@@ -571,7 +573,6 @@
       0 12px
     );
     padding-inline: calc(1.9rem * var(--k));
-    text-align: center;
   }
 
   .cut {
@@ -620,7 +621,6 @@
     padding: calc(1.8rem * var(--k)) calc(2.4rem * var(--k)) calc(1.8rem * var(--k));
     background: none;
     box-shadow: none;
-    text-align: center;
   }
 
   .altar {
@@ -655,7 +655,6 @@
       inset 0 0 0 2px var(--scroll-edge),
       inset 0 0 0 9px var(--scroll-paper),
       inset 0 0 0 10.5px color-mix(in srgb, var(--scroll-edge) 45%, transparent);
-    text-align: center;
     overflow: hidden;
   }
 

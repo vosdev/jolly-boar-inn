@@ -220,6 +220,12 @@ export interface RoomView {
    */
   next_segment?: Segment
   /**
+   * The modes of the rounds before `segment`, in the order they were played, so a splash
+   * can name past rounds' hosts after a shuffle or with `settings.hide_rounds`. Rounds still
+   * to come are never in it.
+   */
+  played: string[]
+  /**
    * When the game ended, null until it has. Every browser files the result under it, so it
    * comes from the server's clock and not each one's own.
    */

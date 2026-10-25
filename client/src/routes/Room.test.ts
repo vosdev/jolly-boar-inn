@@ -31,6 +31,7 @@ import { clearVocabCache } from '../lib/vocab'
 import { savePastGame } from '../lib/history'
 import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
+import roomSource from './Room.svelte?raw'
 
 vi.mock('../lib/session', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/session')>()
@@ -82,6 +83,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
     next_at: new Date(Date.now() + 10_000).toISOString(),
     reveal_seconds: null,
     estimated_seconds: 0,
+    played: [],
     segment: SEGMENT,
     finished_at: null,
     ...patch,
@@ -205,6 +207,23 @@ describe('Room', () => {
     expect(get(timerBar)).toMatchObject({ quiet: true, progress: '1/2' })
   })
 
+  it('shows the hosts of the rounds played on a splash a reload arrives into', async () => {
+    const room = roomView({
+      phase: 'splash',
+      next_at: null,
+      settings: { ...roomView({}).settings, mode_order: 'random' },
+      segment: { ...SEGMENT, mode: 'more_less', index: 2, total: 4, start: 2 },
+      played: ['price_is_right', 'bestiary'],
+    })
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(room))
+    await screen.findByRole('heading', { level: 2, name: MODES.more_less!.label })
+    const faces = [...document.querySelectorAll('.stops.wide .stop')].map(
+      (stop) => stop.querySelector('.face img') !== null,
+    )
+    expect(faces).toEqual([true, true, true, false])
+  })
+
   it('lets the host start the next round early', async () => {
     await arrive(welcome(roomView({}), 'admin'))
     await host('Start the next round now')
@@ -315,6 +334,7 @@ describe('Room', () => {
     expect(document.querySelector('.slot .total')).toBeNull()
     expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)
     expect(get(timerBar)?.label).toBe('to the next question')
+    expect(get(timerBar)?.next).toBe('Next')
     // The bar is full on this question's own reveal, which the frame says.
     expect(get(timerBar)?.totalSeconds).toBe(16)
   })
@@ -747,11 +767,17 @@ describe('the room’s frame', () => {
     expect(screen.getByRole('button', { name: /0 of 2 answered/ })).toBeTruthy()
   })
 
-  it('widens the table for a reveal', async () => {
+  it('keeps the stage where it is from a question to its reveal', async () => {
     windowOf(1440, 900)
     await arrive(welcome(roomView({ phase: 'reveal', next_at: inSeconds(10) })))
     expect(document.querySelector('.play.revealing')).toBeTruthy()
-    expect(get(roomShown)?.reveal).toBe(true)
+    // jsdom has no layout, so the rules themselves are checked: the column is as wide as
+    // the reveal needs from the first frame, and the stage is not centred in its height, so
+    // taller answers grow downward only.
+    const css = roomSource
+    expect(css).toMatch(/\.fitted \.play \{[^}]*grid-template-columns: minmax\(0, 1fr\) 380px/)
+    expect(css).not.toMatch(/\.fitted \.play\.revealing \{[^}]*grid-template-columns/)
+    expect(css).toMatch(/\.fitted \.stage-in \{\s*margin-block: 0 auto/)
   })
 
   it('tells the bar where the night is', async () => {

@@ -14,7 +14,7 @@ export const ROOM = { width: 1600, height: 920 }
 export const ROOM_LEAST = { width: 1280, height: 640 }
 export const STACK_BELOW = 1024
 
-/** The play area's padding round the stage and table, its gap, and the table's widths. */
+/** The play area's padding round the stage and table, its gap, and the table's width (the column is `tableReveal` wide always, so the stage never changes width). */
 export const PLAY = { top: 30, side: 40, bottom: 28, gap: 28, table: 300, tableReveal: 380 }
 
 const WIDEST = 16 / 9
@@ -45,13 +45,12 @@ export function roomFit(view: { width: number; height: number }, bar: number): R
 }
 
 /** The stage's edges in the window, in px, for what hangs at them from outside the room. */
-export function stageEdges(fit: RoomFit, reveal: boolean): { left: number; width: number } {
-  const table = reveal ? PLAY.tableReveal : PLAY.table
+export function stageEdges(fit: RoomFit): { left: number; width: number } {
   return {
     left: fit.left + PLAY.side * fit.scale,
-    width: (fit.width - 2 * PLAY.side - PLAY.gap - table) * fit.scale,
+    width: (fit.width - 2 * PLAY.side - PLAY.gap - PLAY.tableReveal) * fit.scale,
   }
 }
 
-/** The room as it is drawn now, with the table's width; null outside a room or stacked. */
-export const roomShown = writable<{ fit: RoomFit; reveal: boolean } | null>(null)
+/** The room as it is drawn now; null outside a room or stacked. */
+export const roomShown = writable<{ fit: RoomFit } | null>(null)

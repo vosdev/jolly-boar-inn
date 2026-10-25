@@ -90,14 +90,19 @@ const under = () => document.querySelector('.under') as HTMLElement
 const bubble = () => document.querySelector('.bubble') as HTMLElement
 
 describe('Splash stage', () => {
-  it("writes the round, the mode's name and what it asks on the scroll, its blurb in the host's bubble", () => {
+  it("writes the mode's name, its hint alone, then the round and its questions on the scroll", () => {
     splash()
     const heading = screen.getByRole('heading', { name: 'More or Less' })
     expect(paper().contains(heading)).toBe(true)
-    expect(paper().textContent).toContain('Round 1 of 2')
-    expect(paper().textContent).toContain(`5 questions · ${MODES.more_less!.hint}`)
+    const lines = [...paper().querySelectorAll('h2, p')].map((line) => line.textContent?.trim())
+    expect(lines).toEqual(['More or Less', MODES.more_less!.hint, 'Round 1 of 2, 5 questions'])
     expect(paper().textContent).not.toContain(MODES.more_less!.blurb)
     expect(bubble().textContent).toContain(MODES.more_less!.blurb)
+  })
+
+  it('says only the questions for a game of one round', () => {
+    splash({ ...SEGMENT, total: 1 })
+    expect(paper().querySelector('.shape')?.textContent).toBe('5 questions')
   })
 
   it('dates a price round under the line, rounded for The Price is Right', () => {
@@ -146,7 +151,7 @@ describe('Splash stage', () => {
 
   it('keeps the ready check off the parchment', () => {
     splash()
-    const button = screen.getByRole('button', { name: "✓ I'm ready" })
+    const button = screen.getByRole('switch', { name: 'Ready' })
     expect(under().contains(button)).toBe(true)
     expect(paper().querySelector('button, ul')).toBeNull()
   })
@@ -155,7 +160,7 @@ describe('Splash stage', () => {
     splash()
     expect(screen.getByRole('heading', { name: 'Tonight' }).closest('.panel')).not.toBeNull()
     expect(
-      screen.getByRole('button', { name: "✓ I'm ready" }).closest('[aria-label="At the table"]'),
+      screen.getByRole('switch', { name: 'Ready' }).closest('[aria-label="At the table"]'),
     ).not.toBeNull()
   })
 
@@ -164,6 +169,7 @@ describe('Splash stage', () => {
       state: [...stop.classList].find((name) => ['done', 'now', 'next'].includes(name)),
       face: stop.querySelector('.face img') !== null,
       label: stop.querySelector('.label')?.textContent?.trim(),
+      mystery: stop.querySelector('.face .mystery')?.textContent ?? null,
     }))
 
   it('shows every round’s host on tonight’s row, the current one marked, when the order is known', () => {
@@ -177,9 +183,9 @@ describe('Splash stage', () => {
       settings: { ...SETTINGS, modes, mode_order: 'listed' },
     })
     expect(stopsOf('wide')).toEqual([
-      { state: 'done', face: true, label: '1' },
-      { state: 'now', face: true, label: 'More or Less' },
-      { state: 'next', face: true, label: '3' },
+      { state: 'done', face: true, label: '1', mystery: null },
+      { state: 'now', face: true, label: 'More or Less', mystery: null },
+      { state: 'next', face: true, label: '3', mystery: null },
     ])
     expect(document.querySelector('[aria-current="step"]')?.textContent).toContain('More or Less')
   })
@@ -194,6 +200,42 @@ describe('Splash stage', () => {
       settings: { ...SETTINGS, mode_order: 'random' },
     })
     expect(stopsOf('wide').map((stop) => stop.face)).toEqual([false, true, false])
+  })
+
+  it('shows the host of a round already played on a shuffled night', () => {
+    render(Splash, {
+      segment: { mode: 'more_less', index: 1, total: 3, start: 5, count: 5 },
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+      settings: { ...SETTINGS, mode_order: 'random' },
+      played: ['drop_table'],
+    })
+    expect(stopsOf('wide')).toEqual([
+      { state: 'done', face: true, label: '1', mystery: null },
+      { state: 'now', face: true, label: 'More or Less', mystery: null },
+      { state: 'next', face: false, label: '3', mystery: '?' },
+    ])
+  })
+
+  it('shows the random-event "?" square for a round whose host is unknown', () => {
+    render(Splash, {
+      segment: { mode: 'more_less', index: 1, total: 3, start: 5, count: 5 },
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+      settings: { ...SETTINGS, mode_order: 'random' },
+    })
+    expect(stopsOf('wide').map((stop) => stop.mystery)).toEqual(['?', null, '?'])
+  })
+
+  it('holds only the row of rounds on the Tonight panel', () => {
+    splash()
+    const night = screen.getByRole('heading', { name: 'Tonight' }).closest('.panel') as HTMLElement
+    expect(night.querySelector('.starts, .waiting-big, .starting')).toBeNull()
+    expect(night.textContent).not.toContain('to be ready')
   })
 
   it('fits ten rounds in one row, and the nearest five on a phone', () => {
@@ -284,7 +326,7 @@ describe('Splash ready check', () => {
   })
 })
 
-describe('Splash ready button', () => {
+describe('Splash ready switch', () => {
   it('can be taken back once, and after that stays ready', async () => {
     const onReady = vi.fn()
     const { rerender } = render(Splash, {
@@ -294,20 +336,23 @@ describe('Splash ready button', () => {
       youId: 'a',
       onReady,
     })
-    await fireEvent.click(screen.getByRole('button', { name: "✓ I'm ready" }))
+    await fireEvent.click(screen.getByRole('switch', { name: 'Ready' }))
     expect(onReady).toHaveBeenLastCalledWith(true)
     await rerender({ players: players(true) })
 
-    await fireEvent.click(screen.getByRole('button', { name: '✓ Ready — tap to undo' }))
+    const sw = () => screen.getByRole('switch', { name: 'Ready' }) as HTMLButtonElement
+    expect(sw().getAttribute('aria-checked')).toBe('true')
+    await fireEvent.click(sw())
     expect(onReady).toHaveBeenLastCalledWith(false)
     await rerender({ players: players(false) })
+    expect(sw().getAttribute('aria-checked')).toBe('false')
 
-    await fireEvent.click(screen.getByRole('button', { name: "✓ I'm ready" }))
+    await fireEvent.click(sw())
     expect(onReady).toHaveBeenLastCalledWith(true)
     await rerender({ players: players(true) })
 
-    const settled = screen.getByRole('button', { name: '✓ Ready' }) as HTMLButtonElement
-    expect(settled.disabled).toBe(true)
+    expect(sw().getAttribute('aria-checked')).toBe('true')
+    expect(sw().disabled).toBe(true)
     expect(onReady).toHaveBeenCalledTimes(3)
   })
 })
@@ -322,7 +367,7 @@ describe('Splash countdown', () => {
     vi.useRealTimers()
   })
 
-  it('waits for the room, then counts down large once enough are ready', async () => {
+  it('waits for the room, then counts down large once enough are ready, both over the ready switch', async () => {
     const { rerender } = render(Splash, {
       segment: SEGMENT,
       endsAt: null,
@@ -330,9 +375,20 @@ describe('Splash countdown', () => {
       youId: 'a',
       onReady: () => {},
     })
+    const table = () => document.querySelector('[aria-label="At the table"]') as HTMLElement
+    const night = () => screen.getByRole('heading', { name: 'Tonight' }).closest('.panel')
+    const aboveSwitch = (line: Element | null) =>
+      line !== null &&
+      table().contains(line) &&
+      !night()!.contains(line) &&
+      (line.compareDocumentPosition(screen.getByRole('switch', { name: 'Ready' })) &
+        Node.DOCUMENT_POSITION_FOLLOWING) !==
+        0
     expect(document.querySelector('.starting')).toBeNull()
     expect(document.querySelector('.waiting-big')?.textContent).toContain('more to be ready')
+    expect(aboveSwitch(document.querySelector('.waiting-big'))).toBe(true)
     await rerender({ endsAt: new Date(Date.now() + 10_000).toISOString() })
+    expect(aboveSwitch(document.querySelector('.starting'))).toBe(true)
     const starting = () => document.querySelector('.starting')?.textContent?.replace(/\s+/g, ' ')
     expect(starting()).toContain('Starting in 10')
     await vi.advanceTimersByTimeAsync(4_000)
@@ -398,7 +454,7 @@ describe('Splash typing', () => {
   it('takes a ready tap while it is still typing', async () => {
     const onReady = vi.fn()
     render(Splash, { segment: SEGMENT, endsAt: null, players: players(false), youId: 'a', onReady })
-    await fireEvent.click(screen.getByRole('button', { name: /I'm ready/ }))
+    await fireEvent.click(screen.getByRole('switch', { name: 'Ready' }))
     expect(onReady).toHaveBeenCalledWith(true)
   })
 

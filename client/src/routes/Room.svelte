@@ -95,6 +95,7 @@
   } from '../lib/stores'
   import { teamsOf } from '../lib/teams'
   import { timerBar } from '../lib/timerbar'
+  import { nextTab, nextUp } from '../lib/nextUp'
   import { reloadIfStale } from '../lib/version'
   import { listFor, prefetchVocab } from '../lib/vocab'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
@@ -223,17 +224,22 @@
       current.next_at !== null
     ) {
       const standing = current.phase === 'standings'
+      const revealed = $lastClosed?.was ?? open
+      const what =
+        revealed === null
+          ? 'Next question'
+          : nextUp(revealed, current.settings.standings_seconds > 0)
       timerBar.set({
         endsAt: current.next_at,
         totalSeconds: standing ? current.settings.standings_seconds : (current.reveal_seconds ?? 0),
-        label: standing ? 'to the next round' : 'to the next question',
+        label: standing ? 'to the next round' : `to the ${what.toLowerCase()}`,
         ...(standing
           ? {
               quiet: !isTv,
               ...(!isTv &&
                 segment !== null && { progress: `${segment.index + 1}/${segment.total}` }),
             }
-          : { progress: `${number}/${total}`, next: !isTv }),
+          : { progress: `${number}/${total}`, ...(!isTv && { next: nextTab(what) }) }),
       })
     } else {
       timerBar.set(null)
@@ -409,7 +415,7 @@
   })
 
   $effect(() => {
-    roomShown.set(framed === null ? null : { fit: framed, reveal: revealing })
+    roomShown.set(framed === null ? null : { fit: framed })
   })
 
   $effect(() => {
@@ -532,6 +538,7 @@
               onReady={(ready) => socket?.send({ t: 'ready', ready })}
               tv={$you?.role === 'tv'}
               settings={$room.settings}
+              played={$room.played}
             />
           {:else}
             <!-- playing. A question's screen is the stage and nothing to read past it. -->
@@ -604,7 +611,6 @@
                   results={$lastClosed.results}
                   onAnswer={() => {}}
                   nextAt={$room.next_at}
-                  standings={$room.settings.standings_seconds > 0}
                   answersOnly={phone}
                   tv={$you?.role === 'tv'}
                 >
@@ -685,13 +691,16 @@
     transform: scale(var(--room-scale));
     transform-origin: top center;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) 380px;
     gap: 28px;
     padding: 30px 40px 28px;
   }
 
-  .fitted .play.revealing {
-    grid-template-columns: minmax(0, 1fr) 380px;
+  /* The column is always as wide as a reveal needs, so the stage keeps its width; the table
+     is 300px wide until the reveal and fills the column then. */
+  .fitted .play:not(.revealing) .table {
+    width: 300px;
+    justify-self: end;
   }
 
   /* The final standings have no panel: the stage stands in the middle of the room. */
@@ -715,8 +724,8 @@
     width: 128px;
   }
 
-  /* A small question stands in the middle of the stage's height; one taller than the
-     stage starts at its top and scrolls rather than being cut off above. */
+  /* The stage starts at the top of its height and keeps its place from the question to its
+     reveal: the answers grow downward, and one taller than the stage scrolls. */
   .fitted .stage-side,
   .fitted .table {
     min-height: 0;
@@ -726,7 +735,7 @@
   }
 
   .fitted .stage-in {
-    margin-block: auto;
+    margin-block: 0 auto;
   }
 
   .table {

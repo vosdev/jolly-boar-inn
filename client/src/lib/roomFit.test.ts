@@ -63,11 +63,10 @@ describe('roomFit', () => {
 })
 
 describe('stageEdges', () => {
-  it('leaves the table and the gap on the right, wider in a reveal', () => {
+  it('leaves the gap and a column as wide as the reveal needs on the right', () => {
     const fit = { scale: 2, width: 1600, height: 920, left: 100 }
-    const open = stageEdges(fit, false)
-    expect(open.left).toBe(100 + PLAY.side * 2)
-    expect(open.width).toBe((1600 - 2 * PLAY.side - PLAY.gap - PLAY.table) * 2)
-    expect(stageEdges(fit, true).width).toBe(open.width - (PLAY.tableReveal - PLAY.table) * 2)
+    const edges = stageEdges(fit)
+    expect(edges.left).toBe(100 + PLAY.side * 2)
+    expect(edges.width).toBe((1600 - 2 * PLAY.side - PLAY.gap - PLAY.tableReveal) * 2)
   })
 })

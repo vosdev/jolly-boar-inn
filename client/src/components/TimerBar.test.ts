@@ -21,15 +21,15 @@ describe('TimerBar', () => {
     expect(tabs()).toEqual(['10s'])
   })
 
-  it('counts a reveal down to what follows as "Next in", never turning urgent', () => {
+  it('names what follows a reveal in its countdown, never turning urgent', () => {
     render(TimerBar, {
       endsAt: new Date(Date.now() + 4_000).toISOString(),
       totalSeconds: 8,
-      label: 'to the next question',
+      label: 'to the standings',
       progress: '2/3',
-      next: true,
+      next: 'Standings',
     })
-    expect(tabs()).toEqual(['2/3', 'Next in 4s'])
+    expect(tabs()).toEqual(['2/3', 'Standings in 4s'])
     const bar = document.querySelector('.timerbar')!
     expect(bar.classList.contains('next')).toBe(true)
     expect(bar.classList.contains('urgent')).toBe(false)
@@ -53,12 +53,12 @@ describe('TimerBar', () => {
     afterEach(() => roomShown.set(null))
 
     it('hangs its tabs at the stage’s edges, at the room’s scale', () => {
-      roomShown.set({ fit: { scale: 2, width: 1600, height: 920, left: 100 }, reveal: false })
+      roomShown.set({ fit: { scale: 2, width: 1600, height: 920, left: 100 } })
       render(TimerBar, { endsAt: endsAt(), totalSeconds: 10, label: 'to answer', progress: '2/3' })
       const column = document.querySelector<HTMLElement>('.column')!
       expect(column.classList.contains('room')).toBe(true)
       expect(column.style.getPropertyValue('--stage-left')).toBe('180px')
-      expect(column.style.getPropertyValue('--stage-width')).toBe(`${(1600 - 80 - 28 - 300) * 2}px`)
+      expect(column.style.getPropertyValue('--stage-width')).toBe(`${(1600 - 80 - 28 - 380) * 2}px`)
       expect(column.style.getPropertyValue('--tab-scale')).toBe('2')
     })
   })

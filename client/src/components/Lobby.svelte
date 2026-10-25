@@ -66,6 +66,7 @@
   import ConfirmDialog from './ConfirmDialog.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
+  import Switch from './Switch.svelte'
   import HowToPlay from './HowToPlay.svelte'
   import Icon from './Icon.svelte'
   import NpcFace from './NpcFace.svelte'
@@ -644,16 +645,15 @@
           {/snippet}
           <div class="ready">
             {#if !isTV}
-              <button
-                type="button"
-                class:primary={!youReady}
-                aria-pressed={youReady}
-                aria-describedby={needTeam ? 'pick-first' : undefined}
+              <Switch
+                label="Ready"
+                large
+                tone="ok"
+                checked={youReady}
+                describedby={needTeam ? 'pick-first' : undefined}
                 disabled={needTeam || readyHold.held}
                 onclick={toggleReady}
-              >
-                {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
-              </button>
+              />
             {/if}
             <FullScreenSwitch />
           </div>
@@ -789,6 +789,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0 0.25rem;
   }
 
@@ -862,6 +863,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0.25rem 0.75rem;
     margin-top: 0.25rem;
     color: var(--scroll-muted);
@@ -876,6 +878,7 @@
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0.25rem 0.5rem;
   }
 
@@ -1003,7 +1006,6 @@
     gap: 0.5rem;
   }
 
-  .ready button,
   .start {
     min-height: 44px;
   }

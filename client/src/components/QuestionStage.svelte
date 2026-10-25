@@ -10,14 +10,17 @@
    *
    * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
    * scroll, and under the line the answers in a panel, with your answer's band below them.
-   * The host stands above the sheet and says nothing while the question types. Once we
-   * have answered it says its waiting line in its bubble, dimmed, and on the reveal its
-   * reveal line, the explanation and the countdown to what follows, while what we earned
-   * goes on the sheet's foot and anything we scored pins the ribbon. The foot is held from
-   * the start, so the answers under the sheet do not move when the points arrive. Who is
-   * in goes to the room's table. A random event draws its own stage, with its NPC speaking.
+   * The host stands above the sheet and speaks throughout: its ask line types in its bubble
+   * before the stem types on the sheet, once we have answered its waiting line shows, dimmed,
+   * and on the reveal its reveal line and the explanation, while what we earned goes on the sheet's foot and
+   * anything we scored pins the ribbon. The foot is held from the start, so the answers
+   * under the sheet do not move when the points arrive. Who is in goes to the room's
+   * table. A random event draws its own stage, with its NPC speaking.
    *
-   * A question that arrived as it opened types its stem onto the scroll in the hold the
+   * Which of a host's lines it says is `pickLines`'s, from the question's place in its round,
+   * so every screen in the room says the same one.
+   *
+   * A question that arrived as it opened types its ask line and stem in the hold the
    * server gives it before `answerable_at` (`lib/interlude.ts`), once the stage has come
    * over from the screen before, and the answers wait under the line until then. A reconnect, a reveal and reduced motion get the stem whole; the
    * answers still wait, because that is a rule of the game, not an animation.
@@ -31,8 +34,9 @@
    *
    * `tv` is the TV's own: the stage with no answers while the question is open, and
    * beside the scroll the panel of who is still to answer, which widens into the whole
-   * reveal. The TV keeps the stage without a bubble: the host says its lines at the
-   * sheet's foot, but there are no points, pin or confetti, since the TV answers nothing.
+   * reveal. The TV keeps the stage without a bubble: the host says its ask line, then its
+   * reveal line, at the sheet's foot, but there are no points, pin or confetti, since the
+   * TV answers nothing.
    */
   import { untrack, type Snippet } from 'svelte'
   import { get } from 'svelte/store'
@@ -40,19 +44,18 @@
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { NO_AWARD, awardFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
-  import { hostOf, INNKEEPER } from '../lib/modes'
+  import { hostOf, INNKEEPER, pickLines } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { answerAck, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
-  import { nextUp } from '../lib/nextUp'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
-  import NextIn from './stage/NextIn.svelte'
   import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
+  import Typed from './stage/Typed.svelte'
   import TvReveal from './TvReveal.svelte'
   import TvWaiting from './TvWaiting.svelte'
 
@@ -65,7 +68,6 @@
     onAnswer,
     live = false,
     nextAt = null,
-    standings = true,
     stemOnly = false,
     answersOnly = false,
     tv = false,
@@ -85,8 +87,6 @@
     live?: boolean
     /** The reveal's end, for a random event's return. */
     nextAt?: string | null
-    /** The room shows standings between rounds, for what the reveal counts down to. */
-    standings?: boolean
     stemOnly?: boolean
     answersOnly?: boolean
     /** This browser is the room's TV. */
@@ -97,6 +97,7 @@
   } = $props()
 
   const host = $derived(hostOf(question.mode))
+  const lines = $derived(pickLines(host, question))
   const explanation = $derived(
     reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
   )
@@ -104,7 +105,9 @@
   const answerableMs = $derived(Date.parse(question.answerable_at ?? question.opened_at))
   /** A server from before every question held sends none, and then there is none. */
   const hasHold = $derived(answerableMs > Date.parse(question.opened_at))
-  const letters = $derived(stemLines(question.mode, question.view).map(lettersOf))
+  const stem = $derived(stemLines(question.mode, question.view))
+  /** The ask line first, in the bubble, then the stem's; no stem, nothing types. */
+  const letters = $derived(stem.length === 0 ? [] : [lines.ask, ...stem].map(lettersOf))
   /** Decided once, when the question takes the stage, so a tick cannot cut it short. */
   const startedAt = Date.now()
   const holdMs = untrack(() => answerableMs - (startedAt + get(serverOffsetMs)))
@@ -118,6 +121,8 @@
       : SETTLED,
   )
   const typist = new Typist(() => letters, plan, startedAt)
+  /** What the bubble says now; the others keep their room in it unseen. */
+  const spoken = $derived(reveal !== null ? revealLine : yourValue !== null ? waitingLine : askLine)
   const answerable = new Until(() => answerableMs)
   const held = $derived(reveal === null && !answerable.passed)
   /** The TV's reveal fading off its panel, so the next question starts from an empty one. */
@@ -150,9 +155,9 @@
       <div class="tv-stem">{@render stem()}</div>
       <div class="said">
         {#if reveal !== null}
-          <p class="line">{host.reveal}</p>
+          <p class="line">{lines.reveal}</p>
         {:else}
-          <p class="line">{host.waiting}</p>
+          <p class="line"><Typed line={lines.ask} shown={typist.shown[0]} /></p>
         {/if}
       </div>
     {:else}
@@ -167,8 +172,8 @@
   {#snippet said()}
     <Said
       name={host.host.name}
-      line={reveal === null ? waitingLine : revealLine}
-      later={reveal === null ? revealLine : waitingLine}
+      line={spoken}
+      later={[askLine, waitingLine, revealLine].filter((other) => other !== spoken)}
     />
   {/snippet}
   <Stage
@@ -178,7 +183,7 @@
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}
     said={tv ? undefined : said}
-    bubble={tv ? null : reveal !== null ? 'on' : yourValue !== null ? 'dim' : 'off'}
+    bubble={tv ? null : reveal === null && yourValue !== null ? 'dim' : 'on'}
     award={reveal === null || tv ? NO_AWARD : awardFor(result)}
     {tv}
   >
@@ -194,14 +199,17 @@
   </Stage>
 {/snippet}
 
+{#snippet askLine()}
+  <p><Typed line={lines.ask} shown={typist.shown[0]} /></p>
+{/snippet}
+
 {#snippet waitingLine()}
-  <p>{host.waiting}</p>
+  <p>{lines.waiting}</p>
 {/snippet}
 
 {#snippet revealLine()}
-  <p>{host.reveal}</p>
+  <p>{lines.reveal}</p>
   {#if explanation !== ''}<p>{explanation}</p>{/if}
-  <NextIn at={reveal === null ? null : nextAt} what={nextUp(question, standings)} />
 {/snippet}
 
 {#snippet tvPanel(answers: Snippet | null)}
@@ -260,7 +268,6 @@
     {onAnswer}
     {live}
     {nextAt}
-    {standings}
     {tv}
     below={waiting}
   >
@@ -275,7 +282,7 @@
     {results}
     {onAnswer}
     held={hasHold ? held : undefined}
-    shown={typist.shown}
+    shown={typist.shown.slice(1)}
     explain={tv}
     frame={staged}
   />

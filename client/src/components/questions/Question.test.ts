@@ -16,7 +16,7 @@ import bountySkull2 from '../../assets/sprites/bounty-skull-2.svg'
 import bountySkull5 from '../../assets/sprites/bounty-skull-5.svg'
 import { serverNow } from '../../lib/clock'
 import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
-import { MODES } from '../../lib/modes'
+import { MODES, pickLines } from '../../lib/modes'
 import { answerCount, players } from '../../lib/stores'
 import { clearVocabCache } from '../../lib/vocab'
 import QuestionStage from '../QuestionStage.svelte'
@@ -428,17 +428,44 @@ describe('every type on the stage', () => {
   const bubble = () => document.querySelector('.bubble') as HTMLElement
   const said = () => bubble().querySelector('.line:not(.later)')!.textContent?.trim()
 
-  it('keeps the host quiet while the question is up, its bubble keeping its room', () => {
+  it('has the host say its ask line in its bubble before anyone answers', () => {
+    const question = open('more_less', 'more_less')
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(bubble().querySelector('.npc.host')).toBeTruthy()
+    expect(bubble().classList.contains('on')).toBe(true)
+    expect(said()).toBe(pickLines(MODES.more_less!, question).ask)
+    expect(MODES.more_less!.ask).toContain(said())
+  })
+
+  it('gives two screens the same line for the same question', () => {
+    const question = open('bestiary', 'bestiary', { ...VIEW, prompt: 'Who?' })
+    const first = render(QuestionStage, { question, yourValue: null, onAnswer })
+    const mine = said()
+    first.unmount()
+    render(QuestionStage, { question: { ...question }, yourValue: null, onAnswer })
+    expect(said()).toBe(mine)
+  })
+
+  it('moves the examine’s instruction to the bubble, leaving the examine alone on the sheet', () => {
+    const question = open('free_text', 'guess_examine', { prompt: 'Future web developers.' })
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(paper().querySelector('.examine')?.textContent?.trim()).toBe('Future web developers.')
+    expect(paper().textContent).not.toMatch(/examine of/)
+    expect(said()).toMatch(/examine/)
+  })
+
+  it('names the host in its dialogue box while the question is open', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
-    expect(document.querySelector('.speaker .npc.host')).toBeTruthy()
-    expect(bubble().classList.contains('off')).toBe(true)
+    const name = bubble().querySelector('.speech > .name')
+    expect(name?.textContent).toBe(MODES.more_less!.host.name)
   })
 
   it('has the host say its waiting line in its bubble, dimmed, once you have answered', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: 0, onAnswer })
     expect(bubble().classList.contains('dim')).toBe(true)
-    expect(said()).toBe(MODES.more_less!.waiting)
-    expect(paper().textContent).not.toContain(MODES.more_less!.waiting)
+    const waiting = pickLines(MODES.more_less!, open('more_less', 'more_less')).waiting
+    expect(said()).toBe(waiting)
+    expect(paper().textContent).not.toContain(waiting)
   })
 
   it('has the host say its reveal line in its bubble, undimmed, and your points on the sheet', () => {
@@ -446,11 +473,11 @@ describe('every type on the stage', () => {
     const result = { value: 0, correct: true, credit: 1, points: 850 }
     render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
     expect(bubble().classList.contains('on')).toBe(true)
-    expect(said()).toContain(MODES.more_less!.reveal)
+    expect(said()).toContain(pickLines(MODES.more_less!, question).reveal)
     expect(paper().querySelector('.foot .slot')?.textContent).toContain('+850')
   })
 
-  it('puts the explanation and the countdown in the reveal’s bubble, off the sheet', () => {
+  it('puts the explanation in the reveal’s bubble, off the sheet, and no countdown', () => {
     const question = open('more_less', 'more_less')
     const why = 'Rune prices crashed when the mines were reopened.'
     const nextAt = new Date(Date.now() + 6000).toISOString()
@@ -462,7 +489,8 @@ describe('every type on the stage', () => {
       nextAt,
     })
     expect(said()).toContain(why)
-    expect(said()).toMatch(/Next question in [56] seconds/)
+    expect(said()).not.toMatch(/\bin \d+ seconds?\b/)
+    expect(document.querySelector('.bubble .next')).toBeNull()
     expect(screen.getAllByText(why)).toHaveLength(1)
     expect(paper().textContent).not.toContain(why)
   })

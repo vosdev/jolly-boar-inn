@@ -44,6 +44,41 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.178.0',
+    date: '2026-10-25',
+    text: 'On a shuffled or surprise night, the splash shows who hosted the rounds already played.',
+  },
+  {
+    version: '0.177.0',
+    date: '2026-10-25',
+    text: 'The round scroll reads more cleanly, unknown rounds show a "?", and the countdown sits by Ready.',
+  },
+  {
+    version: '0.176.0',
+    date: '2026-10-25',
+    text: 'Ready is now a switch that shows clearly whether you are ready.',
+  },
+  {
+    version: '0.175.0',
+    date: '2026-10-25',
+    text: 'Hosts now ask each question themselves, in lines that change every time. Random events hand back without a flicker.',
+  },
+  {
+    version: '0.174.0',
+    date: '2026-10-25',
+    text: 'Hosts and random event NPCs now talk in a dialogue box like the game’s. The timer says what comes next.',
+  },
+  {
+    version: '0.173.0',
+    date: '2026-10-25',
+    text: 'In the room, every theme now centres the words on its sheet, the lobby code included.',
+  },
+  {
+    version: '0.172.0',
+    date: '2026-10-25',
+    text: 'In the room, the host and the sheet no longer jump when the answers are revealed.',
+  },
+  {
     version: '0.171.0',
     date: '2026-10-24',
     text: 'On a computer, the reveal shows who picked each answer, right on the answer.',

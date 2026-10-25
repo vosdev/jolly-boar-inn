@@ -1138,6 +1138,13 @@
           "$ref": "#/$defs/Segment",
           "description": "The round the standings hand over to, sent only in the standings phase: hidden or\nshuffled rounds are its splash's news, which the standings' \"Next up\" tells a few\nseconds early."
         },
+        "played": {
+          "description": "The modes of the rounds before ``segment``, in the order they were played, so a splash\ncan name past rounds' hosts after a shuffle or with ``settings.hide_rounds``. Rounds still\nto come are never in it.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "finished_at": {
           "anyOf": [
             {
@@ -1178,6 +1185,7 @@
         "reveal_seconds",
         "estimated_seconds",
         "segment",
+        "played",
         "finished_at"
       ],
       "title": "RoomView",

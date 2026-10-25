@@ -59,6 +59,7 @@ const ROOM: RoomView = {
   next_at: null,
   reveal_seconds: null,
   estimated_seconds: 300,
+  played: [],
   segment: null,
   finished_at: null,
 }
@@ -292,7 +293,7 @@ describe('Lobby', () => {
 
     it('gives the TV no ready button, and no menu on anyone', () => {
       lobby([HOST, WOOX, TV], ROOM, TV)
-      expect(screen.queryByRole('button', { name: /ready/i })).toBeNull()
+      expect(screen.queryByRole('switch', { name: 'Ready' })).toBeNull()
       expect(screen.queryByRole('button', { name: /: / })).toBeNull()
       expect(screen.getByText('Waiting for 1 more to be ready.')).toBeTruthy()
     })
@@ -513,11 +514,19 @@ describe('Lobby', () => {
     expect(heading('Ready')).toBe('Ready 2')
   })
 
+  it('shows the ready switch on when you are ready and off when not', () => {
+    lobby([HOST, WOOX])
+    expect(screen.getByRole('switch', { name: 'Ready' }).getAttribute('aria-checked')).toBe('false')
+    cleanup()
+    lobby([{ ...HOST, ready: true }, WOOX])
+    expect(screen.getByRole('switch', { name: 'Ready' }).getAttribute('aria-checked')).toBe('true')
+  })
+
   it('greys ready out after a tap until the server takes another change', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       lobby([HOST, WOOX])
-      const ready = screen.getByRole('button', { name: "✓ I'm ready" }) as HTMLButtonElement
+      const ready = screen.getByRole('switch', { name: 'Ready' }) as HTMLButtonElement
       await fireEvent.click(ready)
       expect(sent).toEqual([{ t: 'ready', ready: true }])
       expect(ready.disabled).toBe(true)
@@ -761,15 +770,15 @@ describe('Lobby', () => {
 
     it('disables ready while you are teamless, saying to pick a team first', async () => {
       lobby([HOST, WOOX], TEAMS_ROOM, WOOX)
-      const ready = screen.getByRole('button', { name: "✓ I'm ready" }) as HTMLButtonElement
+      const ready = screen.getByRole('switch', { name: 'Ready' }) as HTMLButtonElement
       expect(ready.disabled).toBe(true)
       expect(ready.getAttribute('aria-describedby')).toBe('pick-first')
       expect(screen.getByText('Pick a team first.')).toBeTruthy()
       cleanup()
       lobby([HOST, { ...WOOX, team: 'zamorak' }], TEAMS_ROOM, { ...WOOX, team: 'zamorak' })
-      expect(
-        (screen.getByRole('button', { name: "✓ I'm ready" }) as HTMLButtonElement).disabled,
-      ).toBe(false)
+      expect((screen.getByRole('switch', { name: 'Ready' }) as HTMLButtonElement).disabled).toBe(
+        false,
+      )
       expect(screen.queryByText('Pick a team first.')).toBeNull()
     })
 

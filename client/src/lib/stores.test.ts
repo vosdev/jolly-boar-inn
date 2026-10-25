@@ -52,6 +52,7 @@ const lobby: RoomView = {
   next_at: null,
   reveal_seconds: null,
   estimated_seconds: 0,
+  played: [],
   segment: null,
   finished_at: null,
 }

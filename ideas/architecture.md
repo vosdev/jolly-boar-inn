@@ -318,8 +318,8 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 
 ```
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
-               reveal_seconds, estimated_seconds, segment, next_segment?, finished_at, rounds?,
-               key?, requests? }
+               reveal_seconds, estimated_seconds, segment, next_segment?, played, finished_at,
+               rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }   role: player, admin, tv
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
@@ -338,15 +338,16 @@ PlayerResult { value, correct, credit, points }
   (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
   or `client/public` under `make dev`. Served immutable, and drawn under the stem in every mode,
   open and revealed. Devtools still show the whole picture before it zooms out or loses its shadow.
-- `answerable_at` is `opened_at` plus the hold the scroll types the question in (`rooms/hold.py`):
-  0.4 s (0.9 s for an event), each line at 50 letters a second with a 0.5–1 s pause after it, then
-  0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
+- `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
+  for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
+  with a 0.5–1 s pause after it, then 0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
   costs nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
   `reveal_seconds` is the reveal's whole length, for the countdown bar; null outside a reveal.
 - `estimated_seconds` is the lobby's minutes for the stored questions (section 3).
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
 - `next_segment` is the round the standings hand over to, sent only in the standings phase.
+  `played` is the modes of the rounds before `segment`, in play order, for the splash's hosts.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` and
   `surprise_modes` themselves only when set.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only

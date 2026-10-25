@@ -108,6 +108,11 @@ class RoomView(_Message):
     shuffled rounds are its splash's news, which the standings' "Next up" tells a few
     seconds early.
     """
+    played: list[str] = Field(default_factory=list)
+    """The modes of the rounds before ``segment``, in the order they were played, so a splash
+    can name past rounds' hosts after a shuffle or with ``settings.hide_rounds``. Rounds still
+    to come are never in it.
+    """
     finished_at: datetime | None
     """When the game ended, null until it has. Every browser files the result under it, so it
     comes from the server's clock and not each one's own.

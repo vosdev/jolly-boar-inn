@@ -37,12 +37,13 @@
    * The sheet is the theme's (`lib/sheet.ts`), and `board` asks for Home's notice board. A
    * sheet without rolls takes their room away, so the host laps over the sheet's own edge.
    *
-   * A stage with a `bubble` is a room's, desktop first (section 8): whoever speaks stands
-   * above the sheet, its chathead at the left and its words, `said`, in a speech bubble
-   * beside it, and the sheet holds only the question. A random event's NPC stands at the
-   * right, its bubble pointing right; the scroll does not move for it, since nobody stands
-   * beside it. `bubble` says whether the bubble shows, dimmed or not at all; hidden, it keeps
-   * its room, so nothing under it moves when it speaks.
+   * A stage with a `bubble` is a room's, desktop first (section 8): above the sheet is the
+   * game's dialogue box, one panel holding whoever speaks, its chathead at the left and its
+   * words, `said`, beside it, and the sheet holds only the question. A random event's NPC
+   * sits at the panel's right; the scroll does not move for it, since nobody stands beside
+   * it. `bubble` says whether the line under the speaker's name shows, dimmed or not at
+   * all; hidden, it keeps its room, so nothing under the panel moves when it speaks. The
+   * name always shows, pinned to the panel's top.
    *
    * A `tv` stage is the room's TV's (section 16): what goes under the line stands beside
    * the scroll instead, a panel of one width whatever is in it, and under it again on a
@@ -143,10 +144,12 @@
   })
 </script>
 
+{#snippet hostFace()}
+  <img class={hero === null ? art.cut : 'hero'} src={hero ?? art.url} alt="" draggable="false" />
+{/snippet}
+
 {#snippet hostHead()}
-  <div class="npc host" aria-hidden="true" bind:this={hostNpc}>
-    <img class={hero === null ? art.cut : 'hero'} src={hero ?? art.url} alt="" draggable="false" />
-  </div>
+  <div class="npc host" aria-hidden="true" bind:this={hostNpc}>{@render hostFace()}</div>
 {/snippet}
 
 {#snippet guestHead()}
@@ -172,13 +175,17 @@
       class:entering={guestArt !== null && entering && !returning}
       class:returning={guestArt !== null && returning}
     >
-      {@render hostHead()}
-      <div class="bubble surface {bubble}">
+      <div class="bubble surface {bubble}" class:right={guestArt !== null}>
+        {#if guestArt !== null}{@render guestHead()}{:else}{@render hostHead()}{/if}
         <div class="speech">{@render said?.()}</div>
       </div>
-      <!-- The host's bubble, empty, fading out as the guest comes on and back as it leaves. -->
-      {#if guestArt !== null}<div class="bubble surface shell" aria-hidden="true"></div>{/if}
-      {@render guestHead()}
+      <!-- The host's panel, without words, fading out as the guest comes on and back as it
+           leaves. -->
+      {#if guestArt !== null}
+        <div class="bubble surface shell" aria-hidden="true">
+          <div class="npc host">{@render hostFace()}</div>
+        </div>
+      {/if}
     </div>
   {/if}
   <div
@@ -209,66 +216,35 @@
 </div>
 
 <style>
-  /* Above the sheet: the speaker's chathead and its bubble, as tall as the taller. */
+  /* Above the sheet: the game's dialogue box, the speaker's chathead inside it. */
   .speaker {
     --head: 92px;
-    --tail: 9px;
     position: relative;
-    display: grid;
-    grid-template-columns: var(--head) minmax(0, 1fr);
-    align-items: end;
-    column-gap: calc(var(--tail) + 6px);
     margin-bottom: 0.75rem;
   }
 
-  /* Above the sheet, never on it: the beside-the-sheet layout's phone and TV placement
+  /* In its panel, never on the sheet: the beside-the-sheet layout's phone and TV placement
      does not reach here. */
   .stage .speaker .npc {
     position: relative;
     left: auto;
     right: auto;
     bottom: auto;
+    grid-row: 1;
     width: var(--head);
     margin: 0;
+    opacity: 1;
+    animation: none;
   }
 
-  .speaker .host {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .speaker .bubble:not(.shell) {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .speaker.event {
-    grid-template-columns: minmax(0, 1fr) var(--head);
-  }
-
-  .stage .speaker.event .host {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    opacity: 0;
-  }
-
-  .speaker.event .bubble:not(.shell) {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .speaker .guest {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  /* On the theme's raised panel and its edge, in the game's dialogue face, with a tail
-     pointing at whoever speaks. */
+  /* On the theme's raised panel and its edge, in the game's dialogue face: the chathead at
+     the speaker's side, its words beside it. */
   .bubble {
-    position: relative;
-    margin-bottom: 0.4rem;
-    padding: 0.5rem 0.9rem 0.6rem;
+    display: grid;
+    grid-template-columns: var(--head) minmax(0, 1fr);
+    align-items: center;
+    column-gap: 1rem;
+    padding: 0.6rem 1.1rem 0.7rem 0.7rem;
     background: var(--panel-raised);
     color: var(--ink);
     border: 2px solid var(--line);
@@ -278,83 +254,72 @@
     font-size: 1rem;
     line-height: 1.3;
     overflow-wrap: anywhere;
+  }
+
+  .bubble.right {
+    grid-template-columns: minmax(0, 1fr) var(--head);
+    padding: 0.6rem 0.7rem 0.7rem 1.1rem;
+  }
+
+  .stage .bubble.right .npc {
+    grid-column: 2;
+  }
+
+  /* The name stays pinned at the top whatever the line below it does. */
+  .speech {
+    grid-row: 1;
+    align-self: start;
+    text-align: start;
+  }
+
+  .speech > :global(:not(.name)) {
     transition:
       opacity 300ms ease-out,
       visibility 300ms;
   }
 
-  .bubble::before {
-    content: '';
-    position: absolute;
-    bottom: 14px;
-    left: calc(-1 * var(--tail) - 1px);
-    width: 14px;
-    height: 14px;
-    background: var(--panel-raised);
-    border-left: 2px solid var(--line);
-    border-bottom: 2px solid var(--line);
-    transform: rotate(45deg);
-  }
-
-  .event .bubble:not(.shell)::before {
-    left: auto;
-    right: calc(-1 * var(--tail) - 1px);
-    transform: rotate(-135deg);
-  }
-
-  /* Hidden, the bubble keeps its room, so the sheet does not move when it speaks. */
-  .bubble.off {
+  /* Hidden, the line keeps its room, so the sheet does not move when the panel speaks; the
+     speaker's name stays. */
+  .bubble.off .speech > :global(:not(.name)) {
     visibility: hidden;
     opacity: 0;
   }
 
-  .bubble.dim {
+  .bubble.dim .speech > :global(:not(.name)) {
     opacity: 0.6;
   }
 
   .bubble:not(.shell) {
+    position: relative;
     z-index: 1;
   }
 
   .shell {
     position: absolute;
-    left: calc(var(--head) + var(--tail) + 6px);
-    right: 0;
-    top: 0;
-    bottom: 0;
+    inset: 0;
     opacity: 0;
     pointer-events: none;
   }
 
-  /* An event's entrance, as `.entering` below: the host and its bubble out, then the NPC
-     and its bubble in. */
-  .speaker.entering .host,
+  /* An event's entrance, as `.entering` below: the host's panel out, then the NPC's in. */
   .speaker.entering .shell {
     animation: fade-out 300ms ease-in both;
   }
 
-  .speaker.entering :is(.guest, .bubble:not(.shell)) {
+  .speaker.entering .bubble:not(.shell) {
     animation: guest-in 375ms ease-out 225ms both;
   }
 
-  /* The way back: the NPC, its bubble and the words out, then the host and its bubble in. */
-  .stage .speaker.returning .guest {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    opacity: 0;
-    animation: fade-out 225ms ease-in both;
-  }
-
+  /* The way back, one crossfade: the host's panel is under the NPC's from the start, so as
+     the NPC and its words fade the panel never empties, and the host's bubble that follows
+     stands exactly where this one did. */
   .speaker.returning .bubble:not(.shell) {
     opacity: 0;
-    animation: fade-out 225ms ease-in both;
+    animation: fade-out 300ms ease-in-out both;
   }
 
-  .speaker.returning .host,
   .speaker.returning .shell {
     opacity: 1;
-    animation: fade-in 300ms ease-out 600ms both;
   }
 
   .fading > :global(.scroll .content) {
@@ -362,25 +327,25 @@
     animation: fade-out 225ms ease-in both;
   }
 
-  .speaker.presence-leaving :is(.npc, .bubble) {
+  .speaker.presence-leaving .bubble:not(.shell) {
     animation: leave 200ms ease-in both;
   }
 
-  .speaker.presence-away :is(.npc, .bubble) {
+  .speaker.presence-away .bubble:not(.shell) {
     opacity: 0;
   }
 
-  .speaker.presence-arriving :is(.npc, .bubble) {
+  .speaker.presence-arriving .bubble:not(.shell) {
     animation: fade-in 200ms ease-out both;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .speaker :is(.npc, .bubble),
+    .speaker .bubble,
     .fading > :global(.scroll .content) {
       animation: none !important;
     }
 
-    .bubble {
+    .speech > :global(:not(.name)) {
       transition: none;
     }
   }
@@ -392,7 +357,12 @@
     }
 
     .bubble {
-      padding: 0.4rem 0.7rem 0.5rem;
+      column-gap: 0.6rem;
+      padding: 0.45rem 0.8rem 0.5rem 0.5rem;
+    }
+
+    .bubble.right {
+      padding: 0.45rem 0.5rem 0.5rem 0.8rem;
     }
   }
 
