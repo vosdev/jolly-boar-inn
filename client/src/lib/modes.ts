@@ -130,6 +130,61 @@ function shuffled(n: number, seed: string): number[] {
   return order
 }
 
+/**
+ * The Wise Old Man handing out the final's trophies, first place to fifth (section 11 of
+ * ideas/design.md). He presents every final whoever hosted its rounds, so these are his
+ * alone. Each line names the place and the tier and ends on "…": the scroll answers with
+ * the names.
+ */
+export const TROPHY_LINES: readonly (readonly string[])[] = [
+  [
+    'For 1st place, the diamond trophy goes to…',
+    'Top of the hiscores! 1st place and the diamond trophy go to…',
+    'The diamond trophy. 1st place. Gz to…',
+    'In all my years… 1st place, and the diamond trophy, goes to…',
+  ],
+  [
+    'For 2nd place, the platinum trophy goes to…',
+    'So close! 2nd place, and the platinum trophy, goes to…',
+    'The platinum trophy, for a hard-fought 2nd place, goes to…',
+  ],
+  [
+    'For 3rd place, the gold trophy goes to…',
+    '3rd place, and a gold trophy. Not bad at all. For…',
+    'The gold trophy, and 3rd place, goes to…',
+  ],
+  [
+    'For 4th place, the silver trophy goes to…',
+    '4th place! In my day that earned a nod. Today, silver, for…',
+    'The silver trophy, for 4th place, goes to…',
+  ],
+  [
+    'For 5th place, the bronze trophy goes to…',
+    '5th place, and a bronze trophy, for steady gains. To…',
+    'Every hiscore starts somewhere. 5th place, and bronze, for…',
+  ],
+]
+
+/** For a place several players share: `{place}` is "2nd", `{tier}` "platinum". */
+export const SHARED_TROPHY_LINES: readonly string[] = [
+  'Tied for {place} place, a {tier} trophy each for…',
+  '{place} place is shared! A {tier} trophy each for…',
+  'Level on points! Tied for {place}, a {tier} trophy for each of…',
+]
+
+const PLACE_SUFFIXES = ['st', 'nd', 'rd', 'th', 'th']
+
+/**
+ * The Wise Old Man presenting rank `rank` (1 to 5) and its `tier`, `tied` when several hold
+ * it. `seed` picks among the lines, so one game's final says the same on every screen.
+ */
+export function trophyLine(rank: number, tier: string, tied: boolean, seed: string): string {
+  const list = tied ? SHARED_TROPHY_LINES : (TROPHY_LINES[rank - 1] ?? [])
+  const line = list[shuffled(list.length, `trophy:${rank}:${tied}:${seed}`)[0] ?? 0] ?? ''
+  const place = `${rank}${PLACE_SUFFIXES[rank - 1] ?? 'th'}`
+  return line.replaceAll('{place}', place).replaceAll('{tier}', tier)
+}
+
 export interface Mode extends HostLines {
   id: string
   /** Two or three words. The splash headline and the checkbox label. */
