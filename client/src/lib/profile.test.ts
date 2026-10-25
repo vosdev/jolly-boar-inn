@@ -47,6 +47,20 @@ describe('profile', () => {
     },
   )
 
+  it('takes a stored name over 12 as no profile, leaving its first 12 to offer back', async () => {
+    localStorage.setItem(
+      'jbi:profile',
+      JSON.stringify({ name: 'Cow31337Killer42Fore', pet: 'aggy' }),
+    )
+    const page = await visit()
+    expect(get(page.profile)).toBeNull()
+    expect(page.leftover).toEqual({ name: 'Cow31337Kill', pet: 'aggy' })
+    page.saveProfile(page.leftover!.name, page.leftover!.pet!)
+    const next = await visit()
+    expect(get(next.profile)).toEqual({ name: 'Cow31337Kill', pet: 'aggy' })
+    expect(next.leftover).toBeNull()
+  })
+
   it('with storage throwing, starts empty on every visit and keeps a name for the page', async () => {
     storageThrows()
     const first = await visit()

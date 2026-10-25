@@ -19,6 +19,7 @@ import cosmicRune from '../assets/sprites/cosmic-rune.svg'
 import snelm from '../assets/sprites/snelm.svg'
 import superKebab from '../assets/sprites/super-kebab.svg'
 import tokkul from '../assets/sprites/tokkul.svg'
+import type { Verdict } from './modes'
 import type { PlayerResult } from './protocol'
 
 export interface Award {
@@ -32,6 +33,17 @@ export const NO_AWARD: Award = { kind: 'none', points: 0 }
 export function awardFor(result: PlayerResult | null): Award {
   if (result === null || result.points <= 0) return NO_AWARD
   return { kind: result.correct ? 'confetti' : 'pin', points: result.points }
+}
+
+/**
+ * How our row of `question_closed.results` did, for the host to react to; null when the
+ * question was never ours to answer. Partial credit is any points short of right.
+ */
+export function verdictFor(result: PlayerResult | null, canAnswer: boolean): Verdict | null {
+  if (!canAnswer) return null
+  if (result === null) return 'missed'
+  if (result.correct) return 'right'
+  return result.points > 0 ? 'partial' : 'wrong'
 }
 
 /** The picture pinned to the sheet; a `sprite` is a game sprite, drawn at twice its pixels. */

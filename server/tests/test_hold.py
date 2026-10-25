@@ -38,9 +38,15 @@ def test_a_text_prompt_is_one_line() -> None:
     assert stem_lines("multiple_choice", "bestiary", {"prompt": "Who?", "options": []}) == [4]
 
 
-def test_a_quote_types_its_caption_then_the_quote() -> None:
+def test_a_quote_types_only_the_quote() -> None:
     view = {"prompt": "Who said it?", "quote": "Hello there"}
-    assert stem_lines("multiple_choice", "who_said_that", view) == [12, 11]
+    assert stem_lines("multiple_choice", "who_said_that", view) == [11]
+
+
+def test_whos_that_npc_types_only_the_hosts_ask() -> None:
+    view = {"prompt": "Who's that NPC?", "vocab": "npcs"}
+    assert stem_lines("pick_from_list", "whos_that_npc", view) == []
+    assert typed_lines("pick_from_list", "whos_that_npc", view, event=False) == [HOST_ASK]
 
 
 def test_an_examine_types_only_the_examine() -> None:

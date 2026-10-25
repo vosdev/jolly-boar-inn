@@ -163,10 +163,15 @@ describe('RandomEvent', () => {
     expect(speaker.querySelector('.bubble.shell .npc.host')).not.toBeNull()
     expect(container.querySelector('.stage-row .npc')).toBeNull()
     const paper = container.querySelector('.paper')!.textContent
-    expect(paper).toContain('Random event')
+    expect(paper).not.toContain('Random event')
     expect(paper).toContain('Which prayer level unlocks Augury?')
     expect(paper).not.toContain('Death')
     expect(container.querySelector('.bubble')?.textContent).toContain('Death')
+    // The tag stands beside the NPC's name in its bubble, and nowhere else on the stage.
+    const title = container.querySelector('.bubble .title')!
+    expect(title.querySelector('h2')!.textContent).toBe('Death')
+    expect(title.querySelector('.tag')!.textContent).toBe('Random event')
+    expect(container.querySelectorAll('.tag')).toHaveLength(1)
   })
 
   it('plays the entrance only for a question that just opened, with the hold still ahead', () => {
@@ -434,6 +439,24 @@ describe('the NPC’s own words', () => {
     const kept = document.querySelector('.bubble .later')!
     expect(kept.textContent).toContain(INTRO)
     expect(kept.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('puts your points on a chip on its name row in the reveal, and keeps its own verdict', () => {
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: 1,
+      result: { value: 1, correct: true, credit: 1, points: 900 },
+      onAnswer: () => {},
+    })
+    expect(document.querySelector('.bubble .title .chip .slot')?.textContent).toContain('+900')
+    expect(document.querySelector('.paper .slot')).toBeNull()
+    expect(document.querySelector('.bubble .line:not(.later)')?.textContent).toContain(death.right)
+  })
+
+  it('shows no chip while its question is open', () => {
+    render(RandomEvent, { question: introduced(), yourValue: 1, onAnswer: () => {} })
+    expect(document.querySelector('.slot')).toBeNull()
   })
 
   it('keeps the bubble the height of its reveal from the first frame', () => {

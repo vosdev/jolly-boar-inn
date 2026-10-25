@@ -6,7 +6,7 @@
  *
  * Between rounds the hiscores start in the order they stood in before the round, the
  * gains count up, and the rows move to their places. The final first presents ranks five
- * to one, a trophy each, then the whole table. Ranks are dense (section 6), so a place is a
+ * to one, a trophy each (its lines are `lib/modes.ts`'s), then the whole table. Ranks are dense (section 6), so a place is a
  * rank and everyone holding it is presented together; nobody on 0 points gets a trophy.
  */
 
@@ -134,7 +134,7 @@ export function roundLine(round: number): string {
   return `Round ${round} done. Let’s see who truly knows Gielinor best.`
 }
 
-/** What the Wise Old Man says before a place is shown. */
+/** What the Wise Old Man says before a team game's place is shown; a player's is `trophyLine`. */
 export function placeLine(rank: number, tied: number): string {
   if (tied > 1) return `Tied for ${ORDINALS[rank - 1]}…`
   return [
