@@ -1,4 +1,4 @@
-/** A large question picture takes the stage's leftover height, clamped to 160px and its render's own. */
+/** A large question picture takes the stage's leftover height, clamped to 160px, 12rem and its render's own. */
 
 import { describe, expect, it } from 'vitest'
 
@@ -27,6 +27,11 @@ describe('pictureHeight', () => {
     expect(pictureHeight(200, 420, 1.5)).toBe(200)
   })
 
+  it('stops at its most however much room and render there is', () => {
+    expect(pictureHeight(900, 1400, 1, 240)).toBe(240)
+    expect(pictureHeight(200, 1400, 1, 240)).toBe(200)
+  })
+
   it('never exceeds a render smaller than the floor, scaled or not', () => {
     expect(pictureHeight(700, 96, 1.2)).toBe(80)
   })
@@ -35,6 +40,6 @@ describe('pictureHeight', () => {
 describe('suggestionsHeight', () => {
   it('holds five rows of 2.5rem and the list’s own chrome', () => {
     expect(SUGGESTIONS).toBe(5)
-    expect(suggestionsHeight(16)).toBe(Math.ceil(16 * 13.35 + 8))
+    expect(suggestionsHeight(16)).toBe(Math.ceil(16 * 13.35 + 20))
   })
 })
