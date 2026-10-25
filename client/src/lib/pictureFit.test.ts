@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { PICTURE_LEAST, pictureHeight } from './pictureFit'
+import { PICTURE_LEAST, SUGGESTIONS, pictureHeight, suggestionsHeight } from './pictureFit'
 
 describe('pictureHeight', () => {
   it('is the room left when that lies between the least and the render', () => {
@@ -20,5 +20,21 @@ describe('pictureHeight', () => {
 
   it('is the render itself when that is smaller than 160px', () => {
     expect(pictureHeight(700, 96)).toBe(96)
+  })
+
+  it('stops at one image pixel per screen pixel when the room is scaled up', () => {
+    expect(pictureHeight(900, 420, 1.5)).toBe(280)
+    expect(pictureHeight(200, 420, 1.5)).toBe(200)
+  })
+
+  it('never exceeds a render smaller than the floor, scaled or not', () => {
+    expect(pictureHeight(700, 96, 1.2)).toBe(80)
+  })
+})
+
+describe('suggestionsHeight', () => {
+  it('holds five rows of 2.5rem and the list’s own chrome', () => {
+    expect(SUGGESTIONS).toBe(5)
+    expect(suggestionsHeight(16)).toBe(Math.ceil(16 * 13.35 + 8))
   })
 })

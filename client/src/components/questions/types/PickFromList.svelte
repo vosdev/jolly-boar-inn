@@ -177,9 +177,11 @@
       return
     }
     const box = input.getBoundingClientRect()
+    // The room may be scaled to the window; the list's max-height is in its own px.
+    const scale = input.offsetHeight > 0 ? box.height / input.offsetHeight : 1
     const room = {
-      above: box.top - viewport.offsetTop,
-      below: viewport.offsetTop + viewport.height - box.bottom,
+      above: (box.top - viewport.offsetTop) / scale,
+      below: (viewport.offsetTop + viewport.height - box.bottom) / scale,
     }
     const preferred = preferAbove ? 'above' : 'below'
     const other = preferAbove ? 'below' : 'above'
@@ -342,6 +344,11 @@
   }
 
   [role='option'] {
+    display: flex;
+    align-items: center;
+    /* The stage keeps room for five of these under the input (lib/pictureFit.ts). */
+    min-height: 2.5rem;
+    box-sizing: border-box;
     padding: 0.55rem 0.6rem;
     border-radius: calc(var(--radius) - 2px);
     cursor: pointer;

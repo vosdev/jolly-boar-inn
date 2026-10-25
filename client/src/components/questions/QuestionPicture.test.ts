@@ -58,6 +58,37 @@ describe('a large picture on a stage', () => {
     expect(box.style.getPropertyValue('--picture-height')).toBe('160px')
   })
 
+  it('stops at the render as the player sees it when the room is scaled up', async () => {
+    const { box, stage } = onStage(1100, 700)
+    Object.defineProperty(stage, 'offsetHeight', { value: 1100 })
+    stage.getBoundingClientRect = () => ({ height: 1650 }) as DOMRect
+    await loadRender(box)
+    // 420 image px drawn at 1.5 times are 630 screen px; 280 room px are 420.
+    expect(box.style.getPropertyValue('--picture-height')).toBe('280px')
+  })
+
+  it('leaves room under the answer input for five suggestions', async () => {
+    const { box, stage } = onStage(700, 700)
+    const input = document.createElement('input')
+    input.setAttribute('role', 'combobox')
+    stage.firstElementChild!.append(input)
+    await loadRender(box)
+    // 240 of 700 left, less 5 rows of 2.5rem, the list's padding, gap and border: 222 at 16px.
+    expect(box.style.getPropertyValue('--picture-height')).toBe('160px')
+  })
+
+  it('counts what already lies under the input as room for the list', async () => {
+    const { box, stage } = onStage(900, 700)
+    const input = document.createElement('input')
+    input.setAttribute('role', 'combobox')
+    stage.firstElementChild!.append(input)
+    input.getBoundingClientRect = () => ({ bottom: 100 }) as DOMRect
+    stage.firstElementChild!.getBoundingClientRect = () => ({ bottom: 200 }) as DOMRect
+    await loadRender(box)
+    // 440 left, less the list's 222 and the 100 it already has under the input.
+    expect(box.style.getPropertyValue('--picture-height')).toBe('318px')
+  })
+
   it('keeps one box from the silhouette to the reveal', async () => {
     const { box, rerender } = onStage(1100, 700)
     await loadRender(box)

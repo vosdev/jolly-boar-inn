@@ -14,12 +14,14 @@
    * under it.
    *
    * A `large` picture on a room's stage (the nearest `[data-fit-stage]`) takes the height the
-   * stage has left once everything else is in, between `PICTURE_LEAST` and the render's own
-   * height, and the caption's room is kept from the start so the reveal does not move it.
+   * stage has left once everything else is in, and the room under the answer input for its
+   * suggestions, between `PICTURE_LEAST` and the render's own height as drawn: the room is
+   * laid out at one size and scaled up to the window, so its px are not the screen's. The
+   * caption's room is kept from the start so the reveal does not move it.
    * The height is measured while the question is open and held from the reveal on, so the
    * silhouette and the render share one box and a taller reveal scrolls rather than shrinks it.
    */
-  import { pictureHeight } from '../../lib/pictureFit'
+  import { pictureHeight, suggestionsHeight } from '../../lib/pictureFit'
   import { pictureUrl } from '../../lib/pictures'
 
   let {
@@ -61,7 +63,17 @@
     }
     const measure = (): void => {
       const rest = content.offsetHeight - mine.offsetHeight
-      fitted = pictureHeight(stage.clientHeight - rest, natural)
+      const scale =
+        stage.offsetHeight > 0 ? stage.getBoundingClientRect().height / stage.offsetHeight : 1
+      const input = content.querySelector('[role="combobox"]')
+      // The list floats over what is under the input, which is room it already has.
+      const below =
+        input === null
+          ? Infinity
+          : (content.getBoundingClientRect().bottom - input.getBoundingClientRect().bottom) / scale
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+      const list = input === null ? 0 : Math.max(0, suggestionsHeight(rem) - below)
+      fitted = pictureHeight(stage.clientHeight - rest - list, natural, scale || 1)
     }
     measure()
     const watch = new ResizeObserver(measure)

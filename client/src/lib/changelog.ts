@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.191.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? never draws its picture larger than it really is, and the answer list always has room for five names.",
+  },
+  {
     version: '0.190.0',
     date: '2026-10-25',
     text: 'The answers on a reveal no longer show "you" twice: your chathead already says it.',
