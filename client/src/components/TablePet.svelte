@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
-   * One player in the table panel: their pet's icon with their whole name under it, on one
-   * line, yours in bold.
+   * One player in the table panel: their pet with their whole name under it, wrapped when
+   * it is too wide for its column, yours in bold.
    *
    * An away player's pet fades to grey and says "away"; the TV carries a screen on its
    * corner. Which half a pet sits in says the rest, so there is no tick here.
@@ -19,7 +19,7 @@
 
 <span class="table-pet" class:you class:away={!player.connected}>
   <span class="face">
-    <Pet pet={petOf(player)} size={32} cut="icon" label="" />
+    <Pet pet={petOf(player)} size={48} label="" />
     {#if player.role === 'tv'}
       <svg class="screen" viewBox="0 0 16 16" aria-hidden="true">
         <rect x="3.5" y="4.5" width="9" height="6" rx="0.8" />
@@ -75,12 +75,13 @@
     stroke-linejoin: round;
   }
 
-  /* Small enough that twelve of the widest letters, in bold, fit half the 300px panel:
-     names are never cut. */
+  /* Never cut: a name too wide for a third of the panel breaks onto a second line, even
+     mid-word, since twelve W's have no gap to break at. */
   .pet-name {
     max-width: 100%;
-    white-space: nowrap;
-    font-size: 0.66rem;
+    overflow-wrap: anywhere;
+    text-align: center;
+    font-size: 0.72rem;
     line-height: 1.25;
     color: var(--muted);
   }

@@ -327,8 +327,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 The table panel (`TablePanel`) is who is at the table, on the theme's panel beside the stage. It
 has two halves, each with its count: the lobby's and splash's "Ready" over "Not ready yet", a
 question's "Answered" over "Still thinking". A pet moves up as
-its player readies or answers. Pets sit two abreast, a 32px icon over the whole name on one
-line (twelve W's fit the 300px), yours first in your half and in bold, the rest below in join order and above in the order they arrived. An away pet
+its player readies or answers. Pets sit three abreast, a 48px chathead over the whole name, which wraps
+rather than being cut, yours first in your half and in bold, the rest below in join order and above in the order they arrived. An away pet
 fades to grey, says "away" and stays below, since the server only knows who is still to answer
 among the connected. A team game splits each half by team in god order, the teamless last. The
 TV sits apart under "TV" at the foot. A question nobody answers lists everyone under "At the table".
