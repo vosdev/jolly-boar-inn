@@ -3,10 +3,10 @@
  * beside it, kept for the whole visit while the screens take turns on it.
  *
  * A screen's `Stage` does not draw a scroll of its own under a shared stage. It renders
- * its words, what goes under the line, what stands beside it and what its speaker says
- * where it always does, and the shared stage moves those nodes onto its stage. Their effects stay the
- * screen's, so they end with it exactly as they would on a stage of its own; what the
- * shared stage keeps afterwards is plain DOM, which it fades off the sheet.
+ * its words, what goes under the line and what its speaker says where it always does, and
+ * the shared stage moves those nodes onto its stage. Their effects stay the screen's, so
+ * they end with it exactly as they would on a stage of its own; what the shared stage keeps
+ * afterwards is plain DOM, which it fades off the sheet.
  *
  * Each hand-over is `lib/stageMoves.ts`'s. The screen asks for it at its start, before
  * the stage changes hands, so its own clock can wait for its words to arrive; the stage
@@ -45,7 +45,6 @@ export interface Look {
 export interface Parts {
   paper: HTMLElement
   under: HTMLElement | null
-  beside: HTMLElement | null
   said: HTMLElement | null
 }
 
@@ -79,7 +78,6 @@ const KEY = Symbol('shared stage')
 const SLOTS = {
   paper: '.content',
   under: '.under',
-  beside: '.beside',
   said: '.speech',
 } as const
 
@@ -317,7 +315,6 @@ function reveal(root: HTMLElement): void {
 function removeParts(scene: Scene): void {
   scene.parts?.paper.remove()
   scene.parts?.under?.remove()
-  scene.parts?.beside?.remove()
   scene.parts?.said?.remove()
 }
 

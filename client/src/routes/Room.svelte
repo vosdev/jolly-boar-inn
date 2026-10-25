@@ -735,12 +735,6 @@
     display: none;
   }
 
-  /* The ceremony's trophy stands right of the sheet, where the panel would be. */
-  .fitted .play.final :global(.stage-row .beside) {
-    right: -152px;
-    width: 128px;
-  }
-
   /* The stage starts at the top of its height and keeps its place from the question to its
      reveal: the answers grow downward, and one taller than the stage scrolls. */
   .fitted .stage-side,

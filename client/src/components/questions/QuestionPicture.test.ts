@@ -1,4 +1,4 @@
-/** A large picture follows the room the stage has left, and the silhouette and the reveal share its box. */
+/** A large picture follows the room the stage has left, up to 12rem, and the silhouette and the reveal share its box. */
 
 import { cleanup, render } from '@testing-library/svelte'
 import { tick } from 'svelte'
@@ -40,22 +40,54 @@ describe('a large picture on a stage', () => {
   Object.defineProperty(HTMLImageElement.prototype, 'naturalHeight', { value: NATURAL })
 
   it('is the height left once the rest of the stage is in', async () => {
-    const { box } = onStage(700, 700)
+    const { box } = onStage(650, 700)
     await loadRender(box)
-    // 460px of dialogue box, padding and answers leave 240 of 700.
-    expect(box.style.getPropertyValue('--picture-height')).toBe('240px')
+    // 460px of dialogue box, padding and answers leave 190 of 650.
+    expect(box.style.getPropertyValue('--picture-height')).toBe('190px')
   })
 
-  it('grows to its render and no further on a tall stage', async () => {
+  it('grows to 12rem and no further on a tall stage, though the render is larger', async () => {
     const { box } = onStage(1100, 700)
     await loadRender(box)
-    expect(box.style.getPropertyValue('--picture-height')).toBe(`${NATURAL}px`)
+    expect(NATURAL).toBeGreaterThan(192)
+    expect(box.style.getPropertyValue('--picture-height')).toBe('192px')
   })
 
   it('stops at 160px when the stage has no room', async () => {
     const { box } = onStage(560, 700)
     await loadRender(box)
     expect(box.style.getPropertyValue('--picture-height')).toBe('160px')
+  })
+
+  it('stops at the render as the player sees it when the room is scaled up', async () => {
+    const { box, stage } = onStage(1100, 700)
+    Object.defineProperty(stage, 'offsetHeight', { value: 1100 })
+    stage.getBoundingClientRect = () => ({ height: 2750 }) as DOMRect
+    await loadRender(box)
+    // The room drawn at 2.5 times: 168 room px are the render's 420 screen px.
+    expect(box.style.getPropertyValue('--picture-height')).toBe('168px')
+  })
+
+  it('leaves room under the answer input for five suggestions', async () => {
+    const { box, stage } = onStage(700, 700)
+    const input = document.createElement('input')
+    input.setAttribute('role', 'combobox')
+    stage.firstElementChild!.append(input)
+    await loadRender(box)
+    // 240 of 700 left, less 5 rows of 2.5rem, the list's padding, gap, border and margin: 234 at 16px.
+    expect(box.style.getPropertyValue('--picture-height')).toBe('160px')
+  })
+
+  it('counts what already lies under the input as room for the list', async () => {
+    const { box, stage } = onStage(760, 700)
+    const input = document.createElement('input')
+    input.setAttribute('role', 'combobox')
+    stage.firstElementChild!.append(input)
+    input.getBoundingClientRect = () => ({ bottom: 100 }) as DOMRect
+    stage.firstElementChild!.getBoundingClientRect = () => ({ bottom: 200 }) as DOMRect
+    await loadRender(box)
+    // 300 left, less the list's 234 and the 100 it already has under the input.
+    expect(box.style.getPropertyValue('--picture-height')).toBe('166px')
   })
 
   it('keeps one box from the silhouette to the reveal', async () => {
@@ -65,6 +97,22 @@ describe('a large picture on a stage', () => {
     await rerender({ name: 'feedc0de.png', large: true, shadow: true, lifted: true })
     expect(box.style.getPropertyValue('--picture-height')).toBe(open)
     expect(box.querySelector('.frame')!.className).toContain('lifted')
+  })
+
+  it('gives a reveal drawn as a new picture the open question’s box', async () => {
+    const first = onStage(650, 700)
+    await loadRender(first.box)
+    cleanup()
+    const reveal = onStage(1100, 700, { lifted: true })
+    await loadRender(reveal.box)
+    expect(reveal.box.style.getPropertyValue('--picture-height')).toBe('190px')
+  })
+
+  it('grows with the sheet’s scale, as its 12rem off a stage does', async () => {
+    const { box } = onStage(1100, 700)
+    box.style.setProperty('--scroll-scale', '1.25')
+    await loadRender(box)
+    expect(box.style.getPropertyValue('--picture-height')).toBe('240px')
   })
 
   it('keeps the caption’s room while the shadow is up, so the reveal adds nothing', () => {
