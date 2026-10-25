@@ -283,7 +283,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 - **Every line types in** at 50 letters a second: on the splash the bubble's greeting and blurb
   once the stage is in place, and a question's ask line in the bubble from 400 ms in the server's
   hold before `answerable_at`, then its stem on the sheet, the answers waiting under the line. Once
-  you answer, the waiting line shows in the bubble, dimmed to 60%. Names show whole. Otherwise as §12.
+  you answer, the waiting line shows in the bubble, dimmed to 60%; on a phone while the TV
+  has the stage, alone under the answers. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
   partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
   `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, both Gauntlets a
@@ -298,14 +299,16 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
   the lobby's and splash's buttons at its foot.
 - **The host's voice** is the mode's copy in `lib/modes.ts`, all in the dialogue box: splash line,
-  blurb, and several ask, waiting and reveal lines, and three or more reveal lines for each of
-  right, partial credit, wrong and no answer. The host always speaks: ask while a question is
-  open, waiting once you answer, on the reveal the line for how you did (the plain reveal line
+  blurb, several ask, waiting and reveal lines, three or more waiting lines for each speed (bands
+  1–2 quick, 3 middling, 4–5 "Just in time!") and step (first early, then later), and three or
+  more reveal lines for each of right, partial credit, wrong and no answer. The host always speaks: ask while a question is
+  open, waiting once you answer (by `answer_ack`'s band once it comes; the plain lines before it
+  and on a ranked question), on the reveal the line for how you did (the plain reveal line
   if you could not answer) with the question's explanation; what follows and when is
   the timer's tab (§10). The line is seeded by the question's place in its round, so the room and
   the TV agree and neighbours never repeat. A mode's standing instruction is an ask line ("What is
   this the examine of?"), so the sheet holds only the question: the examine, the quote, or the
-  item and its picture; the fixed prompts of Who's That NPC? and Who Said That? are not drawn. The TV says the ask and the plain reveal line at the sheet's foot; a player's sheet has no foot. Question prompts stay plain: a prompt is parsed against the clock, and a joke around it
+  item and its picture; the fixed prompts of Who's That NPC? and Who Said That? are not drawn. The TV says the ask and the plain reveal line at the sheet's foot, never a waiting line; a player's sheet has no foot. Question prompts stay plain: a prompt is parsed against the clock, and a joke around it
   is a second thing to read. Random events are the exception, in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic boar.

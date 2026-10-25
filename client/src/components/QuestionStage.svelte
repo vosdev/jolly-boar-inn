@@ -11,7 +11,7 @@
    * scroll, and under the line the answers in a panel.
    * The host stands above the sheet and speaks throughout: its ask line types in its bubble
    * before the stem types on the sheet, once we have answered its waiting line shows, dimmed,
-   * and on the reveal a line reacting to how we did and the explanation, while what we earned
+   * picked by how fast `answer_ack` says we were once it arrives, and on the reveal a line reacting to how we did and the explanation, while what we earned
    * goes on a chip on the box's name row and anything we scored pins the ribbon. Somebody the
    * question was never theirs to answer gets the room's reveal line and no chip. Who is in
    * goes to the room's table. A random event draws its own stage, with its NPC speaking.
@@ -27,8 +27,8 @@
    * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
    * leaves the answers out, for a preview whose answers a player cannot try yet.
    * `answersOnly` is its counterpart, for a phone while the room's TV shows the question:
-   * no stage, stem, picture or event card, only the answers and your band, and on
-   * the reveal your points on their plaque. Everything about the room as a whole, the
+   * no stage, stem, picture or event card, only the answers and, once you answer, the host's
+   * waiting line under them, and on the reveal your points on their plaque. Everything about the room as a whole, the
    * tally, each option's count, the others' guesses and the explanation, is the TV's.
    *
    * `tv` is the TV's own: the stage with no answers while the question is open, and
@@ -43,9 +43,9 @@
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { NO_AWARD, awardFor, verdictFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
-  import { hostOf, INNKEEPER, MODES, VERDICTS, pickLines } from '../lib/modes'
+  import { hostOf, INNKEEPER, MODES, PACES, VERDICTS, paceOf, pickLines } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
-  import { serverOffsetMs } from '../lib/stores'
+  import { answerAck, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
@@ -98,11 +98,19 @@
   const host = $derived(hostOf(question.mode))
   const yours = $derived(!tv && question.you_can_answer)
   const lines = $derived(
-    pickLines(host, question, yours && reveal !== null ? verdictFor(result, true) : null),
+    pickLines(host, question, {
+      verdict: yours && reveal !== null ? verdictFor(result, true) : null,
+      pace: yours ? paceOf($answerAck) : null,
+    }),
   )
-  /** Every reveal line we might hear, held unseen so the box does not grow for the longest. */
-  const verdicts = $derived(
-    yours ? VERDICTS.map((verdict) => pickLines(host, question, verdict).reveal) : [],
+  /** Every line we might hear, held unseen so the box does not grow for the longest. */
+  const unheardLines = $derived(
+    yours
+      ? [
+          ...PACES.map((pace) => pickLines(host, question, { pace }).waiting),
+          ...VERDICTS.map((verdict) => pickLines(host, question, { verdict }).reveal),
+        ]
+      : [],
   )
   const explanation = $derived(
     reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
@@ -198,7 +206,7 @@
 
 {#snippet unheard()}
   <div class="overlap">
-    {#each verdicts as verdict, i (i)}<p>{verdict}</p>{/each}
+    {#each unheardLines as line, i (i)}<p>{line}</p>{/each}
   </div>
 {/snippet}
 
@@ -225,6 +233,9 @@
   <section class="panel answers">
     {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
   </section>
+  {#if reveal === null && yourValue !== null}
+    <p class="host-line">{lines.waiting}</p>
+  {/if}
 {/snippet}
 
 {#if answersOnly}
@@ -260,7 +271,7 @@
 {/if}
 
 <style>
-  /* The reveal lines a player might hear, one over another, for the tallest's height. */
+  /* The lines a player might hear, one over another, for the tallest's height. */
   .overlap {
     display: grid;
   }
@@ -321,5 +332,13 @@
 
   .bare > :global(.slot) {
     justify-self: center;
+  }
+
+  /* The host is the TV's, so on the phone its waiting line stands alone, quieter than the answers. */
+  .host-line {
+    margin: 0;
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
   }
 </style>

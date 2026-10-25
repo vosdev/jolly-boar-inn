@@ -6,7 +6,17 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { ASK_MAX, GENERIC_HOST, INNKEEPER, MODES, VERDICTS, hostOf, pickLines } from './modes'
+import {
+  ASK_MAX,
+  GENERIC_HOST,
+  INNKEEPER,
+  MODES,
+  PACES,
+  VERDICTS,
+  hostOf,
+  paceOf,
+  pickLines,
+} from './modes'
 
 // The longest waiting and reveal lines measured to fit two lines at the scroll's foot on a
 // 350px screen, the narrowest supported; the reveal line shares its row with the points.
@@ -52,6 +62,23 @@ describe('hosts', () => {
         heard.push(...list)
       }
       expect(new Set(heard).size, lines.host.id).toBe(heard.length)
+    }
+  })
+
+  it('gives every host at least three waiting lines for each speed and step group', () => {
+    for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
+      const heard = [...lines.waiting]
+      for (const pace of PACES) {
+        const list = lines.pace[pace]
+        expect(list.length, `${lines.host.id} ${pace}`).toBeGreaterThanOrEqual(3)
+        for (const line of list) {
+          expect(line.trim(), lines.host.id).not.toBe('')
+          expect(line.length, line).toBeLessThanOrEqual(WAITING_MAX)
+        }
+        heard.push(...list)
+      }
+      expect(new Set(heard).size, lines.host.id).toBe(heard.length)
+      for (const line of lines.pace.late) expect(line, lines.host.id).toMatch(/just in time/i)
     }
   })
 
@@ -142,13 +169,27 @@ describe('pickLines', () => {
     for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
       for (const verdict of VERDICTS) {
         for (let index = 0; index < 12; index++) {
-          const now = pickLines(lines, at(index), verdict).reveal
+          const now = pickLines(lines, at(index), { verdict }).reveal
           expect(lines.verdict[verdict]).toContain(now)
-          expect(pickLines(lines, at(index + 1), verdict).reveal, lines.host.id).not.toBe(now)
-          expect(pickLines(lines, at(index + 2), verdict).reveal, lines.host.id).not.toBe(now)
+          expect(pickLines(lines, at(index + 1), { verdict }).reveal, lines.host.id).not.toBe(now)
+          expect(pickLines(lines, at(index + 2), { verdict }).reveal, lines.host.id).not.toBe(now)
         }
       }
       expect(lines.reveal).toContain(pickLines(lines, at(0)).reveal)
+    }
+  })
+
+  it('picks a pace’s waiting line from its own group, never repeating it on neighbours', () => {
+    for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
+      for (const pace of PACES) {
+        for (let index = 0; index < 12; index++) {
+          const now = pickLines(lines, at(index), { pace }).waiting
+          expect(lines.pace[pace]).toContain(now)
+          expect(pickLines(lines, at(index + 1), { pace }).waiting, lines.host.id).not.toBe(now)
+          expect(pickLines(lines, at(index + 2), { pace }).waiting, lines.host.id).not.toBe(now)
+        }
+      }
+      expect(lines.waiting).toContain(pickLines(lines, at(0)).waiting)
     }
   })
 
@@ -158,5 +199,23 @@ describe('pickLines', () => {
       Array.from({ length: lines.ask.length }, (_, i) => pickLines(lines, at(i)).ask),
     )
     expect(asked.size).toBe(lines.ask.length)
+  })
+})
+
+describe('paceOf', () => {
+  it('groups speed bands 1–2 as quick, 3 as middling and 4–5 as late', () => {
+    const of = (band: number) => paceOf({ scoring: 'speed', band })
+    expect([1, 2, 3, 4, 5].map(of)).toEqual(['quick', 'quick', 'middling', 'late', 'late'])
+  })
+
+  it('groups the first step as early and every step after it as later', () => {
+    const of = (band: number) => paceOf({ scoring: 'step', band })
+    expect([1, 2, 3, 8].map(of)).toEqual(['early', 'later', 'later', 'later'])
+  })
+
+  it('has no pace for a ranked question, a band-less answer or no ack yet', () => {
+    expect(paceOf({ scoring: 'accuracy', band: null })).toBeNull()
+    expect(paceOf({ scoring: 'speed', band: null })).toBeNull()
+    expect(paceOf(null)).toBeNull()
   })
 })
