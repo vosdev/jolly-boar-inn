@@ -9,7 +9,7 @@
    * edited as its payload's JSON, which the server checks on Save.
    */
   import { CUSTOM_TYPES, type CustomQuestion, type CustomType } from '../../lib/customQuestions'
-  import { nameProblem, NAME_MAX } from '../../lib/names'
+  import { NAME_MAX, nameProblem } from '../../lib/names'
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
   import {
