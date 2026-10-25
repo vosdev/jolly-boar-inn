@@ -33,6 +33,15 @@
    * The host also adds a god the room lacks and removes one, never below two; removing a
    * team with players asks first, since they go back to no team and lose their ready.
    *
+   * The sheet's code row is the link's prefix, small, and the code in the large face, on one
+   * line with "Copy invite link". An invite-only room has no prefix, since the link without
+   * its key lets nobody in.
+   *
+   * Up to 8 rounds show as cards; from 9 the eighth tile is "+N more", a button that opens
+   * every round as the same cards in a popover (Escape, a click outside or the button closes
+   * it), so the panel does not outgrow the stage. Below scale 1 the full-screen switch is
+   * offered with a line saying why.
+   *
    * The code and "Copy invite link" copy the invite link. An invite-only room's link carries
    * its key, which only admins are sent, and the key is never drawn, because lobbies get
    * streamed, so the scroll says the room is invite-only instead of printing it; only a
@@ -42,11 +51,12 @@
    * turns them away here, with no confirm, since either can be put right by Kick or by
    * asking again.
    */
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import { hero, heroes, siteName } from 'virtual:branding'
 
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { inviteLink } from '../lib/invite'
+  import { roomShown } from '../lib/roomFit'
   import { hostOf, modeLabel } from '../lib/modes'
   import { FALLBACK_NPC } from '../lib/npcs'
   import { minutes } from '../lib/duration'
@@ -165,6 +175,52 @@
   const listed = $derived(
     [...(settings?.modes ?? [])].sort((a, b) => modeLabel(a.mode).localeCompare(modeLabel(b.mode))),
   )
+  /** Every round as a card, in the order shown: a secret room's are all "A surprise". */
+  const cards = $derived(
+    secret
+      ? Array.from({ length: rounds }, (_, index) => ({
+          key: String(index),
+          npc: FALLBACK_NPC as string | undefined,
+          name: 'A surprise',
+          questions: null as number | null,
+        }))
+      : listed.map((round) => ({
+          key: round.mode,
+          npc: hostOf(round.mode).host.id as string | undefined,
+          name: modeLabel(round.mode),
+          questions: round.questions as number | null,
+        })),
+  )
+  /** The most cards the panel shows; past it the last tile folds the rest away. */
+  const CARDS_MAX = 8
+  const folded = $derived(cards.length > CARDS_MAX)
+  const shown = $derived(folded ? cards.slice(0, CARDS_MAX - 1) : cards)
+  let showAll = $state(false)
+  let foldButton = $state<HTMLButtonElement | null>(null)
+  let foldPopover = $state<HTMLElement | null>(null)
+  $effect(() => {
+    if (!folded) showAll = false
+  })
+  $effect(() => {
+    if (!showAll) return
+    const outside = (event: PointerEvent): void => {
+      const target = event.target as Node
+      if (!foldPopover?.contains(target) && !foldButton?.contains(target)) showAll = false
+    }
+    const escape = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return
+      showAll = false
+      void tick().then(() => foldButton?.focus())
+    }
+    document.addEventListener('pointerdown', outside)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', outside)
+      document.removeEventListener('keydown', escape)
+    }
+  })
+  /** The room is drawn smaller than it is laid out: a short window. */
+  const squeezed = $derived($roomShown !== null && $roomShown.fit.scale < 1)
   let showHowTo = $state(false)
 
   const youReady = $derived($players.some((p) => p.id === $you?.id && p.ready === true))
@@ -487,6 +543,9 @@
         <h1 class="sr">Lobby</h1>
         <p class="lead">Your friends join with this code</p>
         <div class="code-row">
+          {#if !inviteOnly}
+            <span class="prefix">{location.host}/r/</span>
+          {/if}
           <button
             type="button"
             class="code"
@@ -497,13 +556,6 @@
             <span>{code}</span>
             <Icon name="copy" />
           </button>
-        </div>
-        <div class="invite">
-          <span class="address">
-            {inviteOnly
-              ? 'Invite-only: the link lets people straight in'
-              : link.replace(/^https?:\/\//, '')}
-          </span>
           <span class="invite-actions">
             <button type="button" class="copy-link" onclick={copy}>Copy invite link</button>
             {#if isAdmin && inviteOnly}
@@ -511,9 +563,14 @@
                 <Icon name="refresh" />
               </button>
             {/if}
-            <span class="copied">{copied ? 'Link copied' : ''}</span>
+            <span class="copied" aria-live="polite">{copied ? 'Link copied' : ''}</span>
           </span>
         </div>
+        {#if inviteOnly}
+          <p class="invite">
+            <span class="address">Invite-only: the link lets people straight in</span>
+          </p>
+        {/if}
         {#if copyFailed}
           <p class="copy-failed">Couldn't copy the link. Copy it from here:</p>
           <input
@@ -533,26 +590,32 @@
             <p class="aside">{length}</p>
           </div>
           <ul class="rounds">
-            {#if secret}
-              {#each Array.from({ length: rounds }, (_, index) => index) as index (index)}
-                <li class="round">
-                  <span class="face"><NpcFace npc={FALLBACK_NPC} /></span>
-                  <span class="name">A surprise</span>
-                </li>
-              {/each}
-            {:else}
-              {#each listed as round (round.mode)}
-                <li class="round">
-                  <span class="face"><NpcFace npc={hostOf(round.mode).host.id} /></span>
-                  <span class="name">{modeLabel(round.mode)}</span>
-                  <span class="aside">
-                    {round.questions}
-                    {round.questions === 1 ? 'question' : 'questions'}
-                  </span>
-                </li>
-              {/each}
+            {#each shown as card (card.key)}
+              {@render round(card)}
+            {/each}
+            {#if folded}
+              <li class="fold">
+                <button
+                  bind:this={foldButton}
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded={showAll}
+                  onclick={() => (showAll = !showAll)}
+                >
+                  +{cards.length - shown.length} more
+                </button>
+              </li>
             {/if}
           </ul>
+          {#if showAll}
+            <div class="all" role="dialog" aria-label="All rounds" bind:this={foldPopover}>
+              <ul class="rounds">
+                {#each cards as card (card.key)}
+                  {@render round(card)}
+                {/each}
+              </ul>
+            </div>
+          {/if}
           {#if secret}
             <p class="aside">
               Tonight's rounds are a surprise. Each one is revealed when it starts.
@@ -655,7 +718,7 @@
                 onclick={toggleReady}
               />
             {/if}
-            <FullScreenSwitch />
+            <FullScreenSwitch short={squeezed} />
           </div>
           {#if needTeam}
             <p class="hint" id="pick-first">Pick a team first.</p>
@@ -682,6 +745,19 @@
     </Stage>
   </section>
 {/if}
+
+{#snippet round(card: { npc: string | undefined; name: string; questions: number | null })}
+  <li class="round">
+    <span class="face"><NpcFace npc={card.npc} /></span>
+    <span class="name">{card.name}</span>
+    {#if card.questions !== null}
+      <span class="aside">
+        {card.questions}
+        {card.questions === 1 ? 'question' : 'questions'}
+      </span>
+    {/if}
+  </li>
+{/snippet}
 
 {#snippet greeting()}
   <p><Typed line={GREETING} shown={typist.shown[0]} /></p>
@@ -784,19 +860,27 @@
     line-height: 1.15;
   }
 
+  /* The prefix, the code and the copy button on one line, wrapping only where a phone
+     leaves no room. */
   .code-row {
     container-type: inline-size;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 0 0.25rem;
+    gap: 0 0.5rem;
+  }
+
+  .prefix {
+    color: var(--scroll-muted);
+    font-size: max(0.8rem, 0.85rem * var(--scroll-text, 1));
+    overflow-wrap: anywhere;
   }
 
   /* The code is the sheet's ink, not a gem or a panel's button: it is something to read
      aloud across the room first and to tap second. A button takes the surface's ink back
      (app.css), which on a dark theme is light, so the sheet's is named here. */
-  .code-row button {
+  .code-row .code {
     --ink: var(--scroll-ink);
     display: inline-flex;
     align-items: center;
@@ -816,7 +900,7 @@
     font-family: var(--font-display);
     font-size: clamp(
       0.95rem,
-      (100cqi - 2.5rem) / var(--chars, 12),
+      (100cqi - 17rem) / var(--chars, 12),
       max(1.4rem, 1.8rem * var(--scroll-text, 1))
     );
     letter-spacing: 0.06em;
@@ -831,9 +915,16 @@
     justify-content: center;
   }
 
+  /* Under the buttons without making a line of its own, so the sheet does not grow when it appears. */
   .copied {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    pointer-events: none;
     font-size: 0.85rem;
-    color: var(--muted);
+    color: var(--scroll-muted);
   }
 
   .copy-failed {
@@ -865,7 +956,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.25rem 0.75rem;
-    margin-top: 0.25rem;
+    margin: 0;
     color: var(--scroll-muted);
     font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
   }
@@ -875,6 +966,7 @@
   }
 
   .invite-actions {
+    position: relative;
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
@@ -884,7 +976,7 @@
 
   /* On the sheet, so in its inks rather than a panel's. */
   .copy-link,
-  .invite .glyph {
+  .invite-actions .glyph {
     --ink: var(--scroll-ink);
     min-height: 44px;
     border-color: var(--scroll-muted);
@@ -893,10 +985,36 @@
   }
 
   .board {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     margin-bottom: 0;
+  }
+
+  /* The folded round's tile: a card that is one button. */
+  .fold {
+    display: grid;
+  }
+
+  .fold button {
+    min-height: 44px;
+    border-radius: var(--radius);
+    font-weight: 700;
+  }
+
+  /* Every round over the list, on the panel's own surface; long, it scrolls. */
+  .all {
+    position: absolute;
+    z-index: 5;
+    inset: 2.5rem 0 auto;
+    max-height: 24rem;
+    overflow-y: auto;
+    padding: 0.6rem;
+    background: var(--panel);
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
   }
 
   .board-line {

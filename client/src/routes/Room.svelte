@@ -170,9 +170,14 @@
   const position = $derived($question?.index ?? $room?.current_index ?? 0)
   /**
    * The round in progress. `question_open` carries its own, which is the one to trust
-   * while a question is up: a round can change with no splash to announce it.
+   * while a question is up: a round can change with no splash to announce it. The splash
+   * is the exception, since the question still held is the previous round's.
    */
-  const segment = $derived($question?.segment ?? $room?.segment ?? null)
+  const segment = $derived(
+    $room?.phase === 'splash'
+      ? ($room.segment ?? null)
+      : ($question?.segment ?? $room?.segment ?? null),
+  )
   /** 1-based within the round, for people, with the whole game as the fallback. */
   const number = $derived(segment === null ? position + 1 : position - segment.start + 1)
   const total = $derived(segment?.count ?? $question?.total ?? $room?.total ?? 0)
@@ -481,12 +486,13 @@
 <div
   class="frame"
   class:fitted={framed !== null}
+  class:compact={framed?.compact === true}
   style:--room-scale={framed?.scale ?? null}
   style:--room-width={framed === null ? null : `${framed.width}px`}
   style:--room-height={framed === null ? null : `${framed.height}px`}
 >
   <div class="play" class:revealing class:final={$room?.status === 'finished'}>
-    <div class="stage-side">
+    <div class="stage-side" data-fit-stage>
       <div class="stage-in">
         {#if departure !== null}
           <!-- The room's code is in the top bar (section 4). These headings say which screen
@@ -696,6 +702,17 @@
     padding: 30px 40px 28px;
   }
 
+  /* A short window's room: less padding, and a smaller chathead in the dialogue box. */
+  .fitted.compact .play {
+    --head-size: 72px;
+    padding: 16px 32px 16px;
+  }
+
+  /* The name's row and two lines, whatever the smaller chathead leaves. */
+  .fitted.compact :global(.speaker .speech) {
+    min-height: calc(3 * 1.3em + 0.45rem);
+  }
+
   /* The column is always as wide as a reveal needs, so the stage keeps its width; the table
      is 300px wide until the reveal and fills the column then. */
   .fitted .play:not(.revealing) .table {
@@ -716,12 +733,6 @@
 
   .fitted .play.final .table {
     display: none;
-  }
-
-  /* The ceremony's trophy stands right of the sheet, where the panel would be. */
-  .fitted .play.final :global(.stage-row .beside) {
-    right: -152px;
-    width: 128px;
   }
 
   /* The stage starts at the top of its height and keeps its place from the question to its

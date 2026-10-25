@@ -4,18 +4,17 @@
    *
    * It picks the random event's card or the plain question once, for both halves of the
    * question's life, so a change to either half cannot miss the other. While the question
-   * is open and you have answered, a line under it says where your answer landed. The
-   * band is all `answer_ack` carries, how fast or how early, never whether it was right;
-   * how the room is doing is the table panel's. Correctness is nobody's until `question_closed`.
+   * is open, how the room is doing is the table panel's. Correctness is nobody's until
+   * `question_closed`.
    *
    * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
-   * scroll, and under the line the answers in a panel, with your answer's band below them.
+   * scroll, and under the line the answers in a panel.
    * The host stands above the sheet and speaks throughout: its ask line types in its bubble
    * before the stem types on the sheet, once we have answered its waiting line shows, dimmed,
-   * and on the reveal its reveal line and the explanation, while what we earned goes on the sheet's foot and
-   * anything we scored pins the ribbon. The foot is held from the start, so the answers
-   * under the sheet do not move when the points arrive. Who is in goes to the room's
-   * table. A random event draws its own stage, with its NPC speaking.
+   * picked by how fast `answer_ack` says we were once it arrives, and on the reveal a line reacting to how we did and the explanation, while what we earned
+   * goes on a chip on the box's name row and anything we scored pins the ribbon. Somebody the
+   * question was never theirs to answer gets the room's reveal line and no chip. Who is in
+   * goes to the room's table. A random event draws its own stage, with its NPC speaking.
    *
    * Which of a host's lines it says is `pickLines`'s, from the question's place in its round,
    * so every screen in the room says the same one.
@@ -28,8 +27,8 @@
    * `children` goes inside the panel under the answers: the reveal's tally. `stemOnly`
    * leaves the answers out, for a preview whose answers a player cannot try yet.
    * `answersOnly` is its counterpart, for a phone while the room's TV shows the question:
-   * no stage, stem, picture or event card, only the answers and your band, and on
-   * the reveal your points on their plaque. Everything about the room as a whole, the
+   * no stage, stem, picture or event card, only the answers and, once you answer, the host's
+   * waiting line under them, and on the reveal your points on their plaque. Everything about the room as a whole, the
    * tally, each option's count, the others' guesses and the explanation, is the TV's.
    *
    * `tv` is the TV's own: the stage with no answers while the question is open, and
@@ -42,9 +41,9 @@
   import { get } from 'svelte/store'
 
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
-  import { NO_AWARD, awardFor } from '../lib/award'
+  import { NO_AWARD, awardFor, verdictFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
-  import { hostOf, INNKEEPER, pickLines } from '../lib/modes'
+  import { hostOf, INNKEEPER, MODES, PACES, VERDICTS, paceOf, pickLines } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { answerAck, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
@@ -97,7 +96,22 @@
   } = $props()
 
   const host = $derived(hostOf(question.mode))
-  const lines = $derived(pickLines(host, question))
+  const yours = $derived(!tv && question.you_can_answer)
+  const lines = $derived(
+    pickLines(host, question, {
+      verdict: yours && reveal !== null ? verdictFor(result, true) : null,
+      pace: yours ? paceOf($answerAck) : null,
+    }),
+  )
+  /** Every line we might hear, held unseen so the box does not grow for the longest. */
+  const unheardLines = $derived(
+    yours
+      ? [
+          ...PACES.map((pace) => pickLines(host, question, { pace }).waiting),
+          ...VERDICTS.map((verdict) => pickLines(host, question, { verdict }).reveal),
+        ]
+      : [],
+  )
   const explanation = $derived(
     reveal !== null && typeof reveal.explanation === 'string' ? reveal.explanation : '',
   )
@@ -106,8 +120,12 @@
   /** A server from before every question held sends none, and then there is none. */
   const hasHold = $derived(answerableMs > Date.parse(question.opened_at))
   const stem = $derived(stemLines(question.mode, question.view))
-  /** The ask line first, in the bubble, then the stem's; no stem, nothing types. */
-  const letters = $derived(stem.length === 0 ? [] : [lines.ask, ...stem].map(lettersOf))
+  /** The ask line first, in the bubble, then the stem's; a mode this build does not know types nothing. */
+  const letters = $derived(
+    stem.length === 0 && MODES[question.mode] === undefined
+      ? []
+      : [lines.ask, ...stem].map(lettersOf),
+  )
   /** Decided once, when the question takes the stage, so a tick cannot cut it short. */
   const startedAt = Date.now()
   const holdMs = untrack(() => answerableMs - (startedAt + get(serverOffsetMs)))
@@ -127,26 +145,6 @@
   const held = $derived(reveal === null && !answerable.passed)
   /** The TV's reveal fading off its panel, so the next question starts from an empty one. */
   const closing = new Until(() => (nextAt === null ? NaN : Date.parse(nextAt) - TV_CLOSE_MS))
-
-  /**
-   * Where the answer landed, from `answer_ack`. A ranked question has no band, since a
-   * guess is only worth something against the others, so it gets no badge. Built here
-   * rather than in the markup because Svelte trims the leading space off an `{#if}`
-   * block's first text node, and this clause needs one.
-   */
-  const landed = $derived.by(() => {
-    const ack = $answerAck
-    if (ack === null || ack.band === null) return null
-    return ack.scoring === 'step'
-      ? {
-          badge: `step ${ack.band}`,
-          sentence: `answered on step ${ack.band}, 1 being the earliest`,
-        }
-      : {
-          badge: `${ack.band}/5`,
-          sentence: `speed bucket ${ack.band} of 5, 1 being the fastest`,
-        }
-  })
 </script>
 
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
@@ -162,18 +160,14 @@
       </div>
     {:else}
       {@render stem()}
-      <div class="foot">
-        {#if reveal !== null}
-          <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
-        {/if}
-      </div>
     {/if}
   {/snippet}
   {#snippet said()}
     <Said
       name={host.host.name}
       line={spoken}
-      later={[askLine, waitingLine, revealLine].filter((other) => other !== spoken)}
+      later={[askLine, waitingLine, revealLine, unheard].filter((other) => other !== spoken)}
+      chip={yours && reveal !== null ? points : undefined}
     />
   {/snippet}
   <Stage
@@ -195,7 +189,6 @@
         {@render children?.()}
       </section>
     {/if}
-    {@render waiting()}
   </Stage>
 {/snippet}
 
@@ -205,6 +198,16 @@
 
 {#snippet waitingLine()}
   <p>{lines.waiting}</p>
+{/snippet}
+
+{#snippet points()}
+  <PointsSlot {result} canAnswer chip />
+{/snippet}
+
+{#snippet unheard()}
+  <div class="overlap">
+    {#each unheardLines as line, i (i)}<p>{line}</p>{/each}
+  </div>
 {/snippet}
 
 {#snippet revealLine()}
@@ -230,18 +233,8 @@
   <section class="panel answers">
     {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
   </section>
-  {@render waiting()}
-{/snippet}
-
-{#snippet waiting()}
   {#if reveal === null && yourValue !== null}
-    <p class="held">
-      Answer in{#if landed !== null}<span
-          class="band"
-          title={landed.sentence}
-          aria-label={landed.sentence}>{landed.badge}</span
-        >{/if}
-    </p>
+    <p class="host-line">{lines.waiting}</p>
   {/if}
 {/snippet}
 
@@ -259,18 +252,7 @@
     />
   </div>
 {:else if question.random_event}
-  <RandomEvent
-    {question}
-    {reveal}
-    {yourValue}
-    {result}
-    {results}
-    {onAnswer}
-    {live}
-    {nextAt}
-    {tv}
-    below={waiting}
-  >
+  <RandomEvent {question} {reveal} {yourValue} {result} {results} {onAnswer} {live} {nextAt} {tv}>
     {@render children?.()}
   </RandomEvent>
 {:else}
@@ -289,19 +271,14 @@
 {/if}
 
 <style>
-  /* The foot of the sheet, one line of points tall whether or not they are in yet, so the
-     answers under the sheet do not move when they arrive. */
-  .foot {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    margin-top: auto;
-    padding-top: 0.2rem;
-    min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
+  /* The lines a player might hear, one over another, for the tallest's height. */
+  .overlap {
+    display: grid;
   }
 
-  .foot > :global(.slot) {
-    white-space: nowrap;
+  .overlap > p {
+    grid-area: 1 / 1;
+    margin: 0;
   }
 
   /* The TV's foot of the sheet, two host lines tall whatever is on it yet: a waiting line that
@@ -315,13 +292,6 @@
     margin-top: auto;
     padding-top: 0.2rem;
     min-height: calc(0.2rem + 2 * 1.5 * var(--line-size));
-  }
-
-  /* The points keep their width, so the host's line is what wraps; a squeezed
-     "No answer · +0" would break onto a second line and grow the foot. */
-  .said > :global(.slot) {
-    flex: none;
-    white-space: nowrap;
   }
 
   /* The TV's sheet is the window's shape, taller than its words: the question stands in
@@ -364,22 +334,11 @@
     justify-self: center;
   }
 
-  .held {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 0.4rem;
+  /* The host is the TV's, so on the phone its waiting line stands alone, quieter than the answers. */
+  .host-line {
     margin: 0;
-    font-size: 0.9rem;
-    font-weight: 600;
     color: var(--muted);
-  }
-
-  .band {
-    padding: 0.05rem 0.35rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    font-variant-numeric: tabular-nums;
-    cursor: help;
+    font-style: italic;
+    text-align: center;
   }
 </style>

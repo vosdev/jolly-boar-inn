@@ -13,6 +13,7 @@ import type { PlayerView, Segment, Standing, TeamStanding } from '../lib/protoco
 import { players } from '../lib/stores'
 import { stubAnimations } from '../test-animate'
 import Standings from './Standings.svelte'
+import nextUpSource from './NextUp.svelte?raw'
 
 function standing(
   name: string,
@@ -144,7 +145,18 @@ describe('Next up', () => {
     const panel = screen.getByRole('region', { name: 'Next up' })
     expect(panel.textContent).toContain('More or Less')
     expect(panel.textContent).toContain('Round 3 of 3, 5 questions')
-    expect(panel.querySelector('.starts')?.textContent).toMatch(/Starts in\s*8/)
+    expect(panel.querySelector('.starts')?.textContent).toMatch(/Moving on in\s*8/)
+    expect(panel.textContent).not.toContain('Starts in')
+  })
+
+  it('is as tall as its content, the count under the mode, not stretched to the column', () => {
+    const rule = (selector: string) => {
+      const start = nextUpSource.indexOf(`\n  ${selector} {`)
+      expect(start).toBeGreaterThan(-1)
+      return nextUpSource.slice(start, nextUpSource.indexOf('}', start))
+    }
+    expect(rule('.next-up')).not.toMatch(/flex: 1|flex-grow|height/)
+    expect(rule('.starts')).not.toContain('margin: auto')
   })
 
   it('is a strip at the foot on a phone', () => {

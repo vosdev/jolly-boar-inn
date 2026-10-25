@@ -35,8 +35,8 @@
    * Your points for the question just revealed (section 10).
    *
    * One slot, in the same place in every mode, so the player learns where to look once:
-   * on the clue scroll, where the host says it at the foot of the sheet, and on a plaque
-   * above a random event's card. Never inside a type's view. It is where the verdict
+   * a chip at the right end of the dialogue box's name row, where the host reacts to it, and
+   * on a plaque where there is no box. Never inside a type's view. It is where the verdict
    * lives now that no button turns green or red:
    *
    * | Outcome                | Shows                                  |
@@ -46,9 +46,9 @@
    * | No answer              | `No answer · +0`, muted                |
    * | Graded (closest guess) | `+340`, and the number is the verdict  |
    *
-   * A timeout is not a wrong answer, and says so. On the scroll the verdict is in the
-   * scroll's ink, since `--ok` and `--bad` are measured against the panel and not the
-   * parchment; the number carries it. A running total, where one is given, goes under the
+   * A timeout is not a wrong answer, and says so. On the chip the verdict is in the box's
+   * ink, since `--ok` and `--bad` are measured against `--panel` and not `--panel-raised`;
+   * the number and the host's line carry it. A running total, where one is given, goes under the
    * points. What the slot never carries is the reason for the number: a speed bonus
    * explained mid-reveal is a second thing to read in a beat that is already short.
    *
@@ -60,7 +60,7 @@
     result,
     canAnswer,
     total = null,
-    onScroll = false,
+    chip = false,
   }: {
     /** Our row of `question_closed.results`; null if we did not answer. */
     result: PlayerResult | null
@@ -68,8 +68,8 @@
     canAnswer: boolean
     /** Our points after this question, from the standings; null to leave it off. */
     total?: number | null
-    /** Written on the clue scroll rather than on a plaque of its own. */
-    onScroll?: boolean
+    /** A chip on the dialogue box's name row rather than a plaque of its own. */
+    chip?: boolean
   } = $props()
 
   const outcome = $derived(outcomeOf(result, canAnswer))
@@ -77,7 +77,7 @@
   const spoken = $derived(verdictSentence(result, canAnswer, total))
 </script>
 
-<div class="slot {outcome}" class:surface={!onScroll} class:plaque={!onScroll}>
+<div class="slot {outcome}" class:surface={!chip} class:plaque={!chip} class:chip>
   <span class="sr">{spoken}</span>
   <p class="earned" aria-hidden="true">
     {#if outcome === 'none'}
@@ -142,9 +142,21 @@
     font-weight: 600;
   }
 
-  /* On the scroll it is one line of the sheet, sized with the words on it. */
-  .slot:not(.plaque, .none, .unscored) .earned {
-    font-size: max(1.2rem, 1.4rem * var(--scroll-text, 1));
+  /* No taller than the name beside it, so the box does not grow when the points arrive. */
+  .chip {
+    margin-block: -0.2rem;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+
+  .chip .earned {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .chip.none .earned {
+    font-size: 0.9rem;
   }
 
   .total {

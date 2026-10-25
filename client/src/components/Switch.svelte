@@ -37,8 +37,13 @@
 </button>
 
 <style>
+  /* Just the track and its label: the global button's border, fill and padding would draw a
+     pill around them. */
   .switch {
     display: inline-flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
     align-items: center;
     gap: 0.6rem;
     min-height: 44px;

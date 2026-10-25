@@ -44,6 +44,86 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.192.0',
+    date: '2026-10-25',
+    text: 'At the final, the Wise Old Man holds up each trophy in his dialogue box as he names the place.',
+  },
+  {
+    version: '0.191.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? never draws its picture larger than it really is, and the answer list always has room for five names.",
+  },
+  {
+    version: '0.190.0',
+    date: '2026-10-25',
+    text: 'The answers on a reveal no longer show "you" twice: your chathead already says it.',
+  },
+  {
+    version: '0.189.0',
+    date: '2026-10-25',
+    text: 'The Ready and Full screen switches no longer sit inside a big circle.',
+  },
+  {
+    version: '0.188.0',
+    date: '2026-10-25',
+    text: 'Between rounds, the Next up panel is only as tall as what it says, with the countdown under the round.',
+  },
+  {
+    version: '0.187.0',
+    date: '2026-10-25',
+    text: 'The table shows chatheads again, three to a row, and a long name wraps instead of being cut.',
+  },
+  {
+    version: '0.186.0',
+    date: '2026-10-25',
+    text: 'Names are now up to 12 characters, as in OSRS, and the table shows them whole, two to a row.',
+  },
+  {
+    version: '0.185.0',
+    date: '2026-10-25',
+    text: 'The lobby shows the code on one line and folds long round lists into +N more, and offers full screen in a short window.',
+  },
+  {
+    version: '0.184.1',
+    date: '2026-10-25',
+    text: 'Moving a row in Sort It Out no longer jumps back to the top.',
+  },
+  {
+    version: '0.184.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? pictures now use the room the screen has left, so they fit a laptop and fill a big screen.",
+  },
+  {
+    version: '0.183.0',
+    date: '2026-10-25',
+    text: 'On a laptop the room steps down a size instead of scrolling, so the question fits.',
+  },
+  {
+    version: '0.182.0',
+    date: '2026-10-25',
+    text: 'Once you answer, the host notices how quick you were, and says so. Just in time!',
+  },
+  {
+    version: '0.181.0',
+    date: '2026-10-25',
+    text: "Your points now show in the host's dialogue box, and the host reacts to how you did. The question sheet is shorter.",
+  },
+  {
+    version: '0.180.0',
+    date: '2026-10-25',
+    text: 'The question sheet drops what the host already says: the mode heading, the Answer in line and the search label.',
+  },
+  {
+    version: '0.179.0',
+    date: '2026-10-25',
+    text: 'Between rounds, the standings say "Moving on in" instead of "Starts in", as the next round begins on its splash.',
+  },
+  {
+    version: '0.178.1',
+    date: '2026-10-25',
+    text: 'The top bar names the coming round on its splash.',
+  },
+  {
     version: '0.178.0',
     date: '2026-10-25',
     text: 'On a shuffled or surprise night, the splash shows who hosted the rounds already played.',

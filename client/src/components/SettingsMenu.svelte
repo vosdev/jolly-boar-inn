@@ -346,7 +346,7 @@
     min-width: 0;
   }
 
-  /* As wide as a 24-character name wants on a desktop; on a phone, as wide as the bar
+  /* As wide as a 12-character name wants on a desktop; on a phone, as wide as the bar
      leaves once the sign has its share. The head is 32px, which a 36px control holds with
      the padding it already has. */
   .chip {

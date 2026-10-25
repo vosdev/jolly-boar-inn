@@ -18,7 +18,7 @@ import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
 import { HISCORES_HOST } from '../lib/hiscores'
 import { RETURN_MS } from '../lib/interlude'
-import { MODES } from '../lib/modes'
+import { MODES, modeLabel } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
 import { ENTER_MOVE_MS, HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
@@ -272,7 +272,7 @@ describe('Room', () => {
     expect(document.querySelector('.hiscores')).toBeNull()
   })
 
-  it('writes what we earned on the scroll for the reveal, without the total', async () => {
+  it('puts what we earned on the dialogue box’s name row for the reveal, without the total', async () => {
     const open: OpenQuestion = {
       question_id: 'q1',
       index: 0,
@@ -302,7 +302,7 @@ describe('Room', () => {
     expect(get(timerBar)?.label).toBe('to answer')
     expect(document.querySelector('.slot')).toBeNull()
 
-    // Answered and waiting: our answer held, and where it landed.
+    // Answered and waiting: our answer held, and no line about where it landed.
     screen.getByText('Abyssal whip').click()
     expect(sent).toContainEqual({ t: 'answer', question_id: 'q1', value: 0 })
     applyServerMessage({
@@ -313,8 +313,8 @@ describe('Room', () => {
       answered: 1,
       of: 2,
     })
-    await screen.findByText(/Answer in/)
-    expect(document.querySelector('.held .band')?.textContent).toBe('2/5')
+    await tick()
+    expect(document.body.textContent).not.toContain('Answer in')
 
     applyServerMessage({
       t: 'question_closed',
@@ -332,7 +332,8 @@ describe('Room', () => {
     expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('+850')
     // What we earned, and only that: the total waits for the standings.
     expect(document.querySelector('.slot .total')).toBeNull()
-    expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)
+    expect(document.querySelector('.bubble .title .chip .slot')).toBeTruthy()
+    expect(document.querySelector('.paper .slot')).toBeNull()
     expect(get(timerBar)?.label).toBe('to the next question')
     expect(get(timerBar)?.next).toBe('Next')
     // The bar is full on this question's own reveal, which the frame says.
@@ -381,7 +382,7 @@ describe('Room', () => {
       reveal_seconds: 8,
       picture: null,
     })
-    await waitFor(() => expect(document.querySelector('.paper .slot')).toBeTruthy())
+    await waitFor(() => expect(document.querySelector('.bubble .slot')).toBeTruthy())
     expect(get(timerBar)?.progress).toBe('1/2')
     expect(screen.getByRole('heading', { level: 1 }).classList.contains('sr')).toBe(true)
     const drawnRound = [...document.body.querySelectorAll('*')].filter(
@@ -604,6 +605,22 @@ describe('the room’s frame', () => {
     expect(get(roomShown)).toBeNull()
   })
 
+  it('shrinks the padding and the chathead under 920px of layout height, and not at 920', async () => {
+    windowOf(1512, 920 + 56)
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(document.querySelector('.frame.fitted.compact')).toBeNull()
+
+    windowOf(1512, 919 + 56)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(document.querySelector('.frame.fitted.compact')).toBeTruthy()
+    // jsdom has no layout, so the compact rules themselves are checked.
+    const rule = roomSource.match(/\.fitted\.compact \.play \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toMatch(/--head-size: 72px;/)
+    expect(rule).toMatch(/padding: 16px 32px 16px;/)
+    expect(roomSource).toMatch(/\.fitted \.play \{[^}]*gap: 28px;\s*padding: 30px 40px 28px;/)
+  })
+
   it('puts who is in at the table, out of the stage', async () => {
     windowOf(1440, 900)
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))
@@ -785,6 +802,49 @@ describe('the room’s frame', () => {
     expect(get(barWhere)).toEqual({ lead: 'Hiscores after round 1 of 2', mode: null })
     cleanup()
     expect(get(barWhere)).toBeNull()
+  })
+
+  it('names the round the splash presents, not the one just played', async () => {
+    const open: OpenQuestion = {
+      question_id: 'q1',
+      index: 0,
+      total: 2,
+      type: 'more_less',
+      mode: 'more_less',
+      segment: { ...SEGMENT, total: 4, count: 1 },
+      view: {
+        metric: 'ge_price',
+        direction: 'more',
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+        as_of: '2026-09-01',
+      },
+      opened_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 10_000).toISOString(),
+      you_can_answer: true,
+      picture: null,
+      random_event: null,
+      answerable_at: new Date().toISOString(),
+      answered: 0,
+      of: 0,
+      waiting: [],
+    }
+    await arrive(welcome(roomView({ phase: 'open', next_at: null, total: 4 })))
+    applyServerMessage({ t: 'question_open', question: open })
+    await waitFor(() => expect(get(barWhere)?.lead).toBe('Round 1 of 4:'))
+    applyServerMessage({
+      t: 'room_updated',
+      room: roomView({
+        phase: 'splash',
+        next_at: null,
+        current_index: 1,
+        total: 4,
+        segment: { ...SEGMENT, mode: 'price_is_right', index: 1, total: 4, start: 1 },
+      }),
+      players: [],
+    })
+    await waitFor(() =>
+      expect(get(barWhere)).toEqual({ lead: 'Round 2 of 4:', mode: modeLabel('price_is_right') }),
+    )
   })
 
   it('keeps the TV out of the frame and the bar', async () => {
@@ -1222,7 +1282,8 @@ describe('the shared stage', () => {
     expect(words().style.opacity).toBe('0')
     await vi.advanceTimersByTimeAsync(ENTER_MOVE_MS)
     expect(words().style.opacity).toBe('')
-    expect(words().textContent).toContain('Random event')
+    expect(words().textContent).not.toContain('Random event')
+    expect(document.querySelector('.bubble .tag')!.textContent).toBe('Random event')
     expect(document.querySelector('.bubble .speech')!.textContent).toContain('Evil Bob')
   })
 

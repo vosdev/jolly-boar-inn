@@ -47,7 +47,7 @@
     </div>
     {#if startsIn !== null}
       <p class="starts" aria-live="polite">
-        <span>Starts in</span>
+        <span>Moving on in</span>
         <strong class="count">{startsIn}</strong>
       </p>
     {/if}
@@ -56,7 +56,6 @@
 
 <style>
   .next-up {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -107,7 +106,7 @@
   .starts {
     display: flex;
     flex-direction: column;
-    margin: auto 0 0;
+    margin: 0;
     text-align: center;
     color: var(--muted);
   }
