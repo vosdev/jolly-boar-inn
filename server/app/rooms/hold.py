@@ -34,7 +34,11 @@ def _text(view: dict[str, Any], key: str) -> str:
 
 
 def stem_lines(type_id: str, mode: str, view: dict[str, Any]) -> list[int]:
-    """The letters of each line a question's stem types, in order."""
+    """The letters of each line a question's stem types, in order.
+
+    A quote's prompt and Who's That NPC?'s are the mode's standing question, which the host's
+    ask line says, so the sheet does not type them.
+    """
     prompt = _text(view, "prompt")
     if type_id == "more_less":
         return [MORE_LESS_ASK]
@@ -44,7 +48,9 @@ def stem_lines(type_id: str, mode: str, view: dict[str, Any]) -> list[int]:
         return [len(name)] if isinstance(name, str) and name else []
     quote = _text(view, "quote")
     if quote:
-        return [len(prompt), len(quote)]
+        return [len(quote)]
+    if mode == "whos_that_npc":
+        return []
     return [len(prompt)] if prompt else []
 
 
@@ -55,7 +61,9 @@ def typed_lines(type_id: str, mode: str, view: dict[str, Any], event: bool) -> l
         intro = _text(view, "intro")
         return [len(intro), len(prompt)] if intro else [len(prompt)]
     stem = stem_lines(type_id, mode, view)
-    return [HOST_ASK, *stem] if stem and not event else stem
+    if event:
+        return stem
+    return [HOST_ASK, *stem] if stem or mode == "whos_that_npc" else stem
 
 
 def hold_seconds(lines: list[int], event: bool) -> float:

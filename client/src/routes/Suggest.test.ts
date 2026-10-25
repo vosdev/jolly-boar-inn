@@ -614,7 +614,7 @@ describe('Suggest', () => {
     await type('Monster or NPC, as the wiki spells it', ' Araxxor ')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Araxxor')
     const preview = screen.getByRole('region', { name: 'Preview' })
-    expect(within(preview).getByText("Who's that NPC?")).toBeTruthy()
+    expect(within(preview).queryByText("Who's that NPC?")).toBeNull()
     expect(preview.querySelector('.picture')).toBeNull()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({

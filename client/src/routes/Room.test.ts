@@ -302,7 +302,7 @@ describe('Room', () => {
     expect(get(timerBar)?.label).toBe('to answer')
     expect(document.querySelector('.slot')).toBeNull()
 
-    // Answered and waiting: our answer held, and where it landed.
+    // Answered and waiting: our answer held, and no line about where it landed.
     screen.getByText('Abyssal whip').click()
     expect(sent).toContainEqual({ t: 'answer', question_id: 'q1', value: 0 })
     applyServerMessage({
@@ -313,8 +313,8 @@ describe('Room', () => {
       answered: 1,
       of: 2,
     })
-    await screen.findByText(/Answer in/)
-    expect(document.querySelector('.held .band')?.textContent).toBe('2/5')
+    await tick()
+    expect(document.body.textContent).not.toContain('Answer in')
 
     applyServerMessage({
       t: 'question_closed',
@@ -1265,7 +1265,8 @@ describe('the shared stage', () => {
     expect(words().style.opacity).toBe('0')
     await vi.advanceTimersByTimeAsync(ENTER_MOVE_MS)
     expect(words().style.opacity).toBe('')
-    expect(words().textContent).toContain('Random event')
+    expect(words().textContent).not.toContain('Random event')
+    expect(document.querySelector('.bubble .tag')!.textContent).toBe('Random event')
     expect(document.querySelector('.bubble .speech')!.textContent).toContain('Evil Bob')
   })
 

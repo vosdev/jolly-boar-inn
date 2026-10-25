@@ -730,10 +730,10 @@ describe('a phone while the TV shows the question', () => {
     expect(screen.getByRole('button', { name: /77/ })).toBeTruthy()
   })
 
-  it('keeps the line saying your answer is in once you have answered', () => {
+  it('says nothing under the answers once you have answered', () => {
     const question = open('more_less', 'more_less')
     render(QuestionStage, { question, yourValue: 0, onAnswer, answersOnly: true })
-    expect(document.querySelector('.held')?.textContent).toContain('Answer in')
+    expect(document.body.textContent).not.toContain('Answer in')
   })
 
   it('gets the whole question back when the TV goes', async () => {
@@ -869,5 +869,62 @@ describe("the room's TV", () => {
     })
     expect(document.querySelector('.stage.tv .tv-panel')?.textContent).toContain(NAMES)
     expect(document.querySelector('.slot')).toBeNull()
+  })
+})
+
+describe('the sheet holds only the question', () => {
+  const sheet = () => document.querySelector('.paper')!.textContent
+
+  it("drops Who's That NPC?'s heading, open and revealed", () => {
+    const view = { prompt: "Who's that NPC?", vocab: 'npcs' }
+    const question = { ...open('pick_from_list', 'whos_that_npc', view), picture: 'feedc0de.png' }
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(sheet()).not.toContain("Who's that NPC?")
+    unmount()
+    render(QuestionStage, {
+      question,
+      reveal: { ...view, answer_id: 8058, subject: { name: 'Vorkath' } },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(sheet()).not.toContain("Who's that NPC?")
+    expect(sheet()).toContain('Vorkath')
+  })
+
+  it('drops Who Said That?’s heading and keeps the quote, open and revealed', () => {
+    const view = { prompt: 'Who said this?', quote: 'Buying gf', options: ['A', 'B', 'C', 'D'] }
+    const question = open('multiple_choice', 'who_said_that', view)
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(sheet()).not.toContain('Who said this?')
+    expect(sheet()).toContain('Buying gf')
+    unmount()
+    render(QuestionStage, {
+      question,
+      reveal: { ...view, answer_index: 1 },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(sheet()).not.toContain('Who said this?')
+    expect(sheet()).toContain('Buying gf')
+  })
+
+  it('still has the host ask for a mode whose sheet has no words', () => {
+    const view = { prompt: "Who's that NPC?", vocab: 'npcs' }
+    const question = { ...open('pick_from_list', 'whos_that_npc', view), picture: 'feedc0de.png' }
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(document.querySelector('.bubble')!.textContent).toMatch(/\S{3}/)
+  })
+
+  it('shows no "Answer in" line after answering, in a round or a random event', () => {
+    const round = open('more_less', 'more_less')
+    const { unmount } = render(QuestionStage, { question: round, yourValue: 0, onAnswer })
+    expect(document.body.textContent).not.toContain('Answer in')
+    unmount()
+    const event = {
+      ...open('multiple_choice', 'random_event', { prompt: 'Which?', options: ['70', '77'] }),
+      random_event: 'death',
+    }
+    render(QuestionStage, { question: event, yourValue: 0, onAnswer })
+    expect(document.body.textContent).not.toContain('Answer in')
   })
 })

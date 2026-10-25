@@ -143,16 +143,15 @@ describe('a round’s question typing in', () => {
     expect(buttons()).toHaveLength(4)
   })
 
-  it('types a quote’s question, pauses, then the quote', async () => {
+  it('types the quote after the ask line, with no heading of its own', async () => {
     const view = { prompt: 'Who said it?', quote: 'Buying gf', options: ['A', 'B', 'C', 'D'] }
     const question = open({ mode: 'who_said_that', view }, HOLD)
     const line = pickLines(MODES.who_said_that!, question).ask
-    const [, , quoted] = interludeFor(HOLD, [letters(line), 12, 9], 400, 0).lines
+    const [, quoted] = interludeFor(HOLD, [letters(line), 9], 400, 0).lines
     stage(question)
-    const caption = document.querySelector('.paper figcaption')!
+    expect(document.querySelector('.paper figcaption')).toBeNull()
     const quote = document.querySelector('.paper blockquote')!
     await after(Math.floor(quoted!.from))
-    expect(seen(caption)).toBe('Who said it?')
     expect(seen(quote)).toBe('')
     await after(Math.ceil(quoted!.from + quoted!.for) - Math.floor(quoted!.from))
     expect(seen(quote)).toBe('Buying gf')

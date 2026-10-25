@@ -12,18 +12,32 @@
     line,
     later,
     heading = false,
+    tag,
   }: {
     name: string
     line?: Snippet
     later?: Snippet | Snippet[]
     /** The name as a heading: a random event's NPC, who is the screen's subject. */
     heading?: boolean
+    /** A label beside the name: a random event's, so the box says this is not the round's. */
+    tag?: string
   } = $props()
 
   const unseen = $derived(later === undefined ? [] : Array.isArray(later) ? later : [later])
 </script>
 
-{#if heading}<h2 class="name">{name}</h2>{:else}<p class="name">{name}</p>{/if}
+{#snippet label()}
+  {#if heading}<h2 class="name">{name}</h2>{:else}<p class="name">{name}</p>{/if}
+{/snippet}
+
+{#if tag === undefined}
+  {@render label()}
+{:else}
+  <div class="title">
+    {@render label()}
+    <span class="tag">{tag}</span>
+  </div>
+{/if}
 <div class="stack">
   <div class="line">{@render line?.()}</div>
   {#each unseen as other, i (i)}
@@ -32,6 +46,28 @@
 </div>
 
 <style>
+  .title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.2rem 0.6rem;
+    margin: 0 0 0.45rem;
+  }
+
+  .title .name {
+    margin: 0;
+  }
+
+  .tag {
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+    font-size: 0.8em;
+    font-weight: 650;
+  }
+
   .name {
     margin: 0 0 0.45rem;
     font: inherit;

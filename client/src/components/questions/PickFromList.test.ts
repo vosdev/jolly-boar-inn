@@ -91,6 +91,18 @@ describe('pick_from_list', () => {
     expect(listbox().hidden).toBe(true)
   })
 
+  it('names the box for a screen reader, with no visible label', async () => {
+    const { container } = render(Question, {
+      question: open(),
+      yourValue: null,
+      onAnswer: () => {},
+    })
+    const input = await screen.findByRole('combobox', { name: 'Search the list' })
+    expect(input.getAttribute('placeholder')).toBe('Start typing a name…')
+    expect(container.querySelector('label')).toBeNull()
+    expect(container.textContent).not.toContain('Search the list')
+  })
+
   it('is the WAI-ARIA combobox pattern', async () => {
     const { box } = await mount()
     expect(box.getAttribute('aria-autocomplete')).toBe('list')

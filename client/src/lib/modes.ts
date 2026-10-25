@@ -454,8 +454,9 @@ export const MODES: Record<string, Mode> = {
       "Here's the name on the label.",
       'Got the address now.',
     ],
-    // The prompt is the same line every time; the shadow under it is the question.
-    stem: 'text',
+    // The prompt is the same line every time, which the host's ask line says; the picture
+    // alone is the question.
+    stem: null,
     picture: 'shadow',
   },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.

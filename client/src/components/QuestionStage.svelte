@@ -4,12 +4,11 @@
    *
    * It picks the random event's card or the plain question once, for both halves of the
    * question's life, so a change to either half cannot miss the other. While the question
-   * is open and you have answered, a line under it says where your answer landed. The
-   * band is all `answer_ack` carries, how fast or how early, never whether it was right;
-   * how the room is doing is the table panel's. Correctness is nobody's until `question_closed`.
+   * is open, how the room is doing is the table panel's. Correctness is nobody's until
+   * `question_closed`.
    *
    * A round's question is on the stage (section 8 of ideas/design.md): its stem on the
-   * scroll, and under the line the answers in a panel, with your answer's band below them.
+   * scroll, and under the line the answers in a panel.
    * The host stands above the sheet and speaks throughout: its ask line types in its bubble
    * before the stem types on the sheet, once we have answered its waiting line shows, dimmed,
    * and on the reveal its reveal line and the explanation, while what we earned goes on the sheet's foot and
@@ -44,9 +43,9 @@
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { NO_AWARD, awardFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
-  import { hostOf, INNKEEPER, pickLines } from '../lib/modes'
+  import { hostOf, INNKEEPER, MODES, pickLines } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
-  import { answerAck, serverOffsetMs } from '../lib/stores'
+  import { serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
   import PointsSlot from './PointsSlot.svelte'
@@ -106,8 +105,12 @@
   /** A server from before every question held sends none, and then there is none. */
   const hasHold = $derived(answerableMs > Date.parse(question.opened_at))
   const stem = $derived(stemLines(question.mode, question.view))
-  /** The ask line first, in the bubble, then the stem's; no stem, nothing types. */
-  const letters = $derived(stem.length === 0 ? [] : [lines.ask, ...stem].map(lettersOf))
+  /** The ask line first, in the bubble, then the stem's; a mode this build does not know types nothing. */
+  const letters = $derived(
+    stem.length === 0 && MODES[question.mode] === undefined
+      ? []
+      : [lines.ask, ...stem].map(lettersOf),
+  )
   /** Decided once, when the question takes the stage, so a tick cannot cut it short. */
   const startedAt = Date.now()
   const holdMs = untrack(() => answerableMs - (startedAt + get(serverOffsetMs)))
@@ -127,26 +130,6 @@
   const held = $derived(reveal === null && !answerable.passed)
   /** The TV's reveal fading off its panel, so the next question starts from an empty one. */
   const closing = new Until(() => (nextAt === null ? NaN : Date.parse(nextAt) - TV_CLOSE_MS))
-
-  /**
-   * Where the answer landed, from `answer_ack`. A ranked question has no band, since a
-   * guess is only worth something against the others, so it gets no badge. Built here
-   * rather than in the markup because Svelte trims the leading space off an `{#if}`
-   * block's first text node, and this clause needs one.
-   */
-  const landed = $derived.by(() => {
-    const ack = $answerAck
-    if (ack === null || ack.band === null) return null
-    return ack.scoring === 'step'
-      ? {
-          badge: `step ${ack.band}`,
-          sentence: `answered on step ${ack.band}, 1 being the earliest`,
-        }
-      : {
-          badge: `${ack.band}/5`,
-          sentence: `speed bucket ${ack.band} of 5, 1 being the fastest`,
-        }
-  })
 </script>
 
 {#snippet staged(stem: Snippet, answers: Snippet | null)}
@@ -195,7 +178,6 @@
         {@render children?.()}
       </section>
     {/if}
-    {@render waiting()}
   </Stage>
 {/snippet}
 
@@ -230,19 +212,6 @@
   <section class="panel answers">
     {#if answers === null}{@render stem()}{:else}{@render answers()}{/if}
   </section>
-  {@render waiting()}
-{/snippet}
-
-{#snippet waiting()}
-  {#if reveal === null && yourValue !== null}
-    <p class="held">
-      Answer in{#if landed !== null}<span
-          class="band"
-          title={landed.sentence}
-          aria-label={landed.sentence}>{landed.badge}</span
-        >{/if}
-    </p>
-  {/if}
 {/snippet}
 
 {#if answersOnly}
@@ -259,18 +228,7 @@
     />
   </div>
 {:else if question.random_event}
-  <RandomEvent
-    {question}
-    {reveal}
-    {yourValue}
-    {result}
-    {results}
-    {onAnswer}
-    {live}
-    {nextAt}
-    {tv}
-    below={waiting}
-  >
+  <RandomEvent {question} {reveal} {yourValue} {result} {results} {onAnswer} {live} {nextAt} {tv}>
     {@render children?.()}
   </RandomEvent>
 {:else}
@@ -362,24 +320,5 @@
 
   .bare > :global(.slot) {
     justify-self: center;
-  }
-
-  .held {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 0.4rem;
-    margin: 0;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--muted);
-  }
-
-  .band {
-    padding: 0.05rem 0.35rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    font-variant-numeric: tabular-nums;
-    cursor: help;
   }
 </style>

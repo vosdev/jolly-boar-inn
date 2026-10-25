@@ -301,8 +301,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   open, waiting once you answer, reveal with the question's explanation; what follows and when is
   the timer's tab (§10). The line is seeded by the question's place in its round, so the room and
   the TV agree and neighbours never repeat. A mode's standing instruction is an ask line ("What is
-  this the examine of?"), so the sheet holds only the question: the examine, or the item and its
-  picture. The TV says the ask and reveal lines at the sheet's foot; a player's keeps one line for
+  this the examine of?"), so the sheet holds only the question: the examine, the quote, or the
+  item and its picture; the fixed prompts of Who's That NPC? and Who Said That? are not drawn. The TV says the ask and reveal lines at the sheet's foot; a player's keeps one line for
   the points. Question prompts stay plain: a prompt is parsed against the clock, and a joke around it
   is a second thing to read. Random events are the exception, in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
@@ -385,9 +385,10 @@ take-back rule are architecture §7.
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
   face, with a 56px Submit under it. Its list floats over the page, so opening it never scrolls: below the field, and on a phone
   *above* it, clear of the keyboard. Typed text reads as a search; only a selection lights Submit.
-- Answered and waiting shows your answer held and dimmed, with "Answer in" and its band under it.
+  No visible label, "Search the list" for a screen reader.
+- Answered and waiting shows your answer held and dimmed.
 - **With a TV connected** a phone draws no stage: no host, scroll, stem, picture or event NPC.
-  The answers, the band line and the table's strip take the screen, and the reveal puts your points on their
+  The answers and the table's strip take the screen, and the reveal puts your points on their
   plaque above your marked answers, with no tally, counts, others' guesses or explanation. A
   TV that drops gives phones the whole question back.
 
@@ -460,9 +461,9 @@ on the game's entry.
 A random event is a question from an NPC who has nothing to do with the round. How often and who
 asks what are architecture §5 and `ideas/random-events.md`. This is how it looks.
 
-**The event NPC sits on the right** of the dialogue box above the sheet, and a "Random
-event" tag heads the sheet. The host always stands left, so position says "this is not the round's
-question" before a word is read.
+**The event NPC sits on the right** of the dialogue box above the sheet, and a "Random event"
+tag stands beside its name in the box. The host always stands left, so position says "this is not
+the round's question" before a word is read.
 
 Everything happens inside the server's hold before `answerable_at`, timed to the text (§8), so the
 wait costs nobody points and the server times nothing:

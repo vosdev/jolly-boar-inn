@@ -232,7 +232,6 @@
       submit()
     }}
   >
-    <label class="label" for="{uid}-input">Search the list</label>
     <div class="field">
       <input
         bind:this={input}
@@ -245,6 +244,7 @@
         spellcheck="false"
         enterkeyhint="done"
         placeholder="Start typing a name…"
+        aria-label="Search the list"
         aria-autocomplete="list"
         aria-expanded={expanded}
         aria-controls={listId}
@@ -299,10 +299,6 @@
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-  }
-
-  .label {
-    color: var(--muted);
   }
 
   .field {

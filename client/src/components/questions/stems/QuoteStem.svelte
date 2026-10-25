@@ -7,18 +7,21 @@
     return typeof data.quote === 'string' ? data.quote : ''
   }
 
-  /** What the stem types, line by line: the question, then the quote; or as `TextStem`. */
+  /**
+   * What the stem types: the quote, or as `TextStem`. Its prompt is the mode's standing
+   * "Who said this?", which the host's ask line already says.
+   */
   export function lines(data: Record<string, unknown>): Line[] {
     const quote = quoteOf(data)
-    if (quote === '') return textLines(data)
-    return [typeof data.prompt === 'string' ? data.prompt : '', quote]
+    return quote === '' ? textLines(data) : [quote]
   }
 </script>
 
 <script lang="ts">
   /**
-   * A question about words someone said: the `prompt` asks, and the `quote` is set apart
-   * the way Guess the Examine sets its line, as the speaker's voice rather than ours.
+   * A question about words someone said: the `quote` is set apart the way Guess the
+   * Examine sets its line, as the speaker's voice rather than ours. The `prompt` is not
+   * drawn; the host's ask line asks.
    *
    * Know Your Content Creator mixes quotes with plain trivia in one round, and a stem is
    * chosen per mode, so a question without a `quote` is drawn as `TextStem` draws it.
@@ -30,13 +33,11 @@
   let props: StemProps = $props()
 
   const quote = $derived(quoteOf(props.data))
-  const typed = $derived(lines(props.data))
 </script>
 
 {#if quote !== ''}
   <figure class="quote">
-    <figcaption><Typed line={typed[0] ?? ''} shown={props.shown?.[0]} /></figcaption>
-    <blockquote><Typed line={quote} shown={props.shown?.[1]} /></blockquote>
+    <blockquote><Typed line={quote} shown={props.shown?.[0]} /></blockquote>
   </figure>
 {:else}
   <TextStem {...props} />
@@ -48,12 +49,6 @@
     display: flex;
     flex-direction: column;
     margin: 0;
-  }
-
-  figcaption {
-    margin: 0;
-    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
-    color: var(--muted);
   }
 
   blockquote {
