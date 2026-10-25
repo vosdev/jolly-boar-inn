@@ -456,22 +456,24 @@ timer bar counts to the next round in the quiet fill, its tabs `2/3` (rounds pla
 The TV shows none of it.
 
 **The final** opens on "The final scores are in!", then presents fifth place to first: his line
-("In fifth place…", "Tied for second…", "And top of the hiscores…"), then the place's pets (three,
-then `+N`), names, points and tier, its Quest Speedrunning trophy (Bronze to Diamond) standing
-beside the scroll on the right, opposite him. First holds longest, with confetti. Ranks are
+names the place and its Quest Speedrunning trophy (Bronze to Diamond), "For 2nd place, the
+platinum trophy goes to…" (at least three per place, and for a shared place, in `lib/modes.ts`),
+with the trophy in his dialogue box beside it; then the scroll shows the place's pets (three, then
+`+N`), names and points. First holds longest, with confetti from its trophy. Ranks are
 dense, so tied players share a place; nobody on 0 points gets one, and a room where nobody scored
 has no ceremony. The place then fades, the sheet unrolls to the full table with the rows arriving
 top to bottom, and he says "Gz, Name! Here are the full hiscores." A Skip button jumps there.
 
-The final standings have no table panel: the stage stands in the middle of the room, the trophy
-right of the sheet. The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
+The final standings have no table panel: the stage stands in the middle of the room. The TV,
+which has no dialogue box, holds the trophy beside his line at the sheet's head. The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
 past game from history show the table at once, as does reduced motion; a past game shows only the
 totals, without moves or gains. Trophies are art, not tokens.
 
 **A team game** ranks its teams instead, with the same moves, gains and timing: rank, logo, name
 and points, the god's colour on the team's edge, and under each its members with their own
 totals, best first, so the weak link shows. The ceremony presents teams, fifth to first, each with
-its logo, name, average points and the god's colour, and no trophy; the final line names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
+its logo, name, average points and the god's colour, in plain lines ("In fifth place…", "Tied
+for second…"), no trophy, and confetti from first's logo; the final line names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
 on the game's entry.
 
 ## 12. Random events: the interlude (#106)
