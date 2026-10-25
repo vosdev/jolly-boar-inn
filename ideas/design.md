@@ -224,7 +224,8 @@ under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper
 crystal or red rim, `morytania` raises a gravestone, which a long sheet makes a pillar, and `zanaris` the Cosmic
 altar's sign.
 The sheet carries the round on the splash and then every question, and nothing else; the
-answers sit under it.
+answers sit under it. Every sheet centres its text, in every theme; only the host's bubble reads
+from the left.
 Create shows each mode on a card with its host's chathead. The stage was agreed in
 `client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it is at
 `/prototypes/clue-scroll.html`.

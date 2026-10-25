@@ -789,6 +789,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0 0.25rem;
   }
 
@@ -862,6 +863,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0.25rem 0.75rem;
     margin-top: 0.25rem;
     color: var(--scroll-muted);
@@ -876,6 +878,7 @@
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0.25rem 0.5rem;
   }
 
