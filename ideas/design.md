@@ -338,11 +338,13 @@ keep the whole panel under the stage, since it holds their buttons. The threshol
 take-back rule are architecture §7.
 
 - **Lobby.** The hero, else the Wise Old Man, says the lobby line in the bubble. The scroll holds
-  "Your friends join with this code", the code, which copies the invite link, and the link with
-  "Copy invite link"; an invite-only room says so instead of printing a link that carries its key
+  "Your friends join with this code", then on one line the link's prefix ("jollyboar.com/r/"), small,
+  the code in the large face, which copies the invite link, and "Copy invite link"; an invite-only
+  room has no prefix and says so instead of printing a link that carries its key
   (an error and the link to copy by hand where the clipboard refuses). Under it, a panel: the
   night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
-  round is "A surprise" with the boar), "How to play" and "Quicker and correct answers score
+  round is "A surprise" with the boar; from 9 rounds the 8th tile is "+N more", a popover of every
+  round that Esc, a click outside or the button closes), "How to play" and "Quicker and correct answers score
   more." At the table: join requests first, for the host, then a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first) or
   "Waiting for the host to start…". The host taps a pet to kick or promote.
@@ -351,8 +353,9 @@ take-back rule are architecture §7.
   and its settings no name or pet.
 - **Switches:** "Ready" is a large switch (`Switch.svelte`), on in `--ok`, in lobby and splash;
   where it cannot be taken back (the splash allows one take-back) it sits disabled, on. On touch
-  devices a smaller "Full screen" switch of the same look sits beside it and follows the
-  browser's state. It is absent where the browser lacks the API (iPhone, #319).
+  devices, and in a room drawn below scale 1 (§8), a smaller "Full screen" switch of the same look
+  sits beside it and follows the browser's state; below scale 1 a line adds "Short on room? Full
+  screen shows the whole question." It is absent where the browser lacks the API (iPhone, #319).
 - **Splash.** The host's greeting and blurb in the bubble. The scroll, centred: the mode's name,
   its Create hint alone, then small "Round 4 of 10, 5 questions" and a price round's date. Under it,
   "Tonight", only the row, centred: a host per round, past ones faded, the current one large and
