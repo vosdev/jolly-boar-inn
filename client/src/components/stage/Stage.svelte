@@ -20,7 +20,6 @@
 
   let {
     paper,
-    beside,
     said,
     children,
     ...look
@@ -34,7 +33,6 @@
     entering?: boolean
     returning?: boolean
     tall?: boolean
-    beside?: Snippet
     said?: Snippet
     children?: Snippet
     scene?: string | null
@@ -50,7 +48,6 @@
 
   let paperPart = $state<HTMLElement | null>(null)
   let underPart = $state<HTMLElement | null>(null)
-  let besidePart = $state<HTMLElement | null>(null)
   let saidPart = $state<HTMLElement | null>(null)
 
   $effect(() => {
@@ -62,7 +59,6 @@
     shared.enter(scene, {
       paper: paperPart,
       under: children ? underPart : null,
-      beside: beside ? besidePart : null,
       said: said ? saidPart : null,
     })
     return () => shared.leave(scene)
@@ -70,14 +66,13 @@
 </script>
 
 {#if shared === null}
-  <StageView {...look} {paper} {beside} {said} {children} />
+  <StageView {...look} {paper} {said} {children} />
 {:else}
   <!-- Each part is moved onto the shared stage whole, and lays out as if it were the slot
        it lands in. -->
   <div hidden>
     <div class="part" bind:this={paperPart}>{@render paper()}</div>
     <div class="part" bind:this={underPart}>{@render children?.()}</div>
-    <div class="part" bind:this={besidePart}>{@render beside?.()}</div>
     <div class="part" bind:this={saidPart}>{@render said?.()}</div>
   </div>
 {/if}

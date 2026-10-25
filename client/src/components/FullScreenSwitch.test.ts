@@ -71,4 +71,17 @@ describe('FullScreenSwitch', () => {
     render(FullScreenSwitch)
     expect(screen.queryByRole('switch')).toBeNull()
   })
+
+  it('is offered with a mouse too in a short room, with a line saying why', async () => {
+    device({ touch: false, api: true })
+    render(FullScreenSwitch, { short: true })
+    expect(await toggle()).toBeTruthy()
+    expect(screen.getByText('Short on room? Full screen shows the whole question.')).toBeTruthy()
+  })
+
+  it('says nothing in a short room where the browser has no Fullscreen API', () => {
+    device({ touch: true, api: false })
+    render(FullScreenSwitch, { short: true })
+    expect(screen.queryByText(/Short on room/)).toBeNull()
+  })
 })

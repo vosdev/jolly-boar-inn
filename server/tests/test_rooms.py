@@ -103,7 +103,7 @@ def test_create_registers_the_room_in_memory_with_its_admin(
 
 def test_a_bad_display_name_creates_no_room(client: TestClient, db) -> None:
     """The name is validated before anything is written, so nothing is left behind."""
-    for name in ("", "   ", "x" * 25, "<b>bold</b>", "two\nlines", "tab\there"):
+    for name in ("", "   ", "x" * 13, "<b>bold</b>", "two\nlines", "tab\there"):
         response = client.post(
             "/api/rooms", json={"returning": False, "display_name": name, "settings": {}}
         )
@@ -657,12 +657,12 @@ def test_over_max_players_is_409(client: TestClient) -> None:
 
 def test_join_name_rules(client: TestClient) -> None:
     code, _ = create(client)
-    for name in ("", "x" * 25, "a<script>", "tab\there"):
+    for name in ("", "x" * 13, "a<script>", "tab\there"):
         response = join(client, code, name)
         assert response.status_code == 422, name
         assert response.json()["code"] == "bad_name"
-    assert join(client, code, "x" * 24).status_code == 200
-    assert join(client, code, "Tom-and_Jerry 2").status_code == 200
+    assert join(client, code, "x" * 12).status_code == 200
+    assert join(client, code, "Tom-and_Jo 2").status_code == 200
 
 
 def test_two_spellings_of_one_name_are_one_name_in_a_room(client: TestClient) -> None:

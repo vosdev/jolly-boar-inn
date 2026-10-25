@@ -44,6 +44,56 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.192.0',
+    date: '2026-10-25',
+    text: 'At the final, the Wise Old Man holds up each trophy in his dialogue box as he names the place.',
+  },
+  {
+    version: '0.191.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? never draws its picture larger than it really is, and the answer list always has room for five names.",
+  },
+  {
+    version: '0.190.0',
+    date: '2026-10-25',
+    text: 'The answers on a reveal no longer show "you" twice: your chathead already says it.',
+  },
+  {
+    version: '0.189.0',
+    date: '2026-10-25',
+    text: 'The Ready and Full screen switches no longer sit inside a big circle.',
+  },
+  {
+    version: '0.188.0',
+    date: '2026-10-25',
+    text: 'Between rounds, the Next up panel is only as tall as what it says, with the countdown under the round.',
+  },
+  {
+    version: '0.187.0',
+    date: '2026-10-25',
+    text: 'The table shows chatheads again, three to a row, and a long name wraps instead of being cut.',
+  },
+  {
+    version: '0.186.0',
+    date: '2026-10-25',
+    text: 'Names are now up to 12 characters, as in OSRS, and the table shows them whole, two to a row.',
+  },
+  {
+    version: '0.185.0',
+    date: '2026-10-25',
+    text: 'The lobby shows the code on one line and folds long round lists into +N more, and offers full screen in a short window.',
+  },
+  {
+    version: '0.184.1',
+    date: '2026-10-25',
+    text: 'Moving a row in Sort It Out no longer jumps back to the top.',
+  },
+  {
+    version: '0.184.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? pictures now use the room the screen has left, so they fit a laptop and fill a big screen.",
+  },
+  {
     version: '0.183.0',
     date: '2026-10-25',
     text: 'On a laptop the room steps down a size instead of scrolling, so the question fits.',

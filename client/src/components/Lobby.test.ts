@@ -6,8 +6,9 @@
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte'
 import { tick } from 'svelte'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { roomShown, type RoomFit } from '../lib/roomFit'
 import { LOBBY_COOLDOWN_MS } from '../lib/cooldown.svelte'
 import { npcArt } from '../lib/npcs'
 import type { PlayerView, RoomView } from '../lib/protocol'
@@ -15,6 +16,7 @@ import { applyServerMessage, resetRoom } from '../lib/stores'
 import type { RoomSocket } from '../lib/ws'
 import { petsDrawn } from '../test-pets'
 import Lobby from './Lobby.svelte'
+import lobbySource from './Lobby.svelte?raw'
 
 const HOST: PlayerView = {
   id: 'a',
@@ -361,7 +363,6 @@ describe('Lobby', () => {
     expect(
       within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' }),
     ).toBeTruthy()
-    expect(within(paper).getByText(`${location.host}/r/ABYSSAL`)).toBeTruthy()
     expect(within(paper).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
     const board = document.querySelector('.board') as HTMLElement
     expect(within(board).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
@@ -675,6 +676,135 @@ describe('Lobby', () => {
     expect(cards).toHaveLength(5)
     expect(cards.every((card) => card.textContent?.trim() === 'A surprise')).toBe(true)
     expect(screen.queryByText('More or Less')).toBeNull()
+  })
+
+  describe('the code row', () => {
+    it('is the link’s prefix and the code as separate parts, on one line with Copy invite link', () => {
+      lobby()
+      const row = document.querySelector('.paper .code-row') as HTMLElement
+      expect(row.querySelector('.prefix')!.textContent).toBe(`${location.host}/r/`)
+      const code = row.querySelector('.code') as HTMLElement
+      expect(code.querySelector('span')!.textContent).toBe('ABYSSAL')
+      expect(code.textContent).not.toContain('/r/')
+      expect(within(row).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
+    })
+
+    it('has the prefix small and the code in the large face', () => {
+      const rule = (selector: string) =>
+        lobbySource.match(new RegExp(`\\n  ${selector} \\{([^}]*)\\}`))?.[1] ?? ''
+      expect(rule('\\.prefix')).toMatch(/font-size: max\(0\.8rem/)
+      expect(rule('\\.code')).toMatch(/font-family: var\(--font-display\)/)
+    })
+
+    it('has no prefix in an invite-only room, whose link without its key lets nobody in', () => {
+      lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
+      expect(document.querySelector('.paper .prefix')).toBeNull()
+    })
+  })
+
+  describe('the rounds', () => {
+    const MODES = [
+      'more_less',
+      'drop_table',
+      'whos_that_npc',
+      'ordering',
+      'matching',
+      'price_is_right',
+      'who_said_that',
+      'pixel_hunt',
+      'ge_flip',
+      'sort_it_out',
+    ]
+    const rounds = (count: number): RoomView => ({
+      ...ROOM,
+      settings: {
+        ...ROOM.settings,
+        modes: MODES.slice(0, count).map((mode) => ({ mode, questions: 3 })),
+      },
+      total: count * 3,
+    })
+    const tiles = () => [...document.querySelectorAll('.board > .rounds > li')]
+    const fold = () => screen.queryByRole('button', { name: /more$/ })
+
+    it('shows 8 rounds as 8 tiles', () => {
+      lobby([HOST, WOOX], rounds(8))
+      expect(tiles()).toHaveLength(8)
+      expect(fold()).toBeNull()
+    })
+
+    it('shows 9 rounds as 7 tiles and "+2 more"', () => {
+      lobby([HOST, WOOX], rounds(9))
+      expect(tiles()).toHaveLength(8)
+      expect(document.querySelectorAll('.board > .rounds .round')).toHaveLength(7)
+      expect(fold()!.textContent!.trim()).toBe('+2 more')
+    })
+
+    it('opens every round as the same cards, and closes on Escape', async () => {
+      lobby([HOST, WOOX], rounds(10))
+      expect(screen.queryByRole('dialog', { name: 'All rounds' })).toBeNull()
+      await fireEvent.click(fold()!)
+      const all = screen.getByRole('dialog', { name: 'All rounds' })
+      expect(all.querySelectorAll('.round')).toHaveLength(10)
+      expect(all.querySelector('.round .face img')).not.toBeNull()
+      expect(all.querySelector('.round .aside')!.textContent).toMatch(/3\s+questions/)
+      await fireEvent.keyDown(document, { key: 'Escape' })
+      expect(screen.queryByRole('dialog', { name: 'All rounds' })).toBeNull()
+    })
+
+    it('closes on a click outside it and on the button, and stays for a click inside', async () => {
+      lobby([HOST, WOOX], rounds(9))
+      await fireEvent.click(fold()!)
+      const all = screen.getByRole('dialog', { name: 'All rounds' })
+      await fireEvent.pointerDown(all.querySelector('.round')!)
+      expect(screen.getByRole('dialog', { name: 'All rounds' })).toBeTruthy()
+      await fireEvent.pointerDown(document.body)
+      expect(screen.queryByRole('dialog', { name: 'All rounds' })).toBeNull()
+      await fireEvent.click(fold()!)
+      expect(screen.getByRole('dialog', { name: 'All rounds' })).toBeTruthy()
+      await fireEvent.click(fold()!)
+      expect(screen.queryByRole('dialog', { name: 'All rounds' })).toBeNull()
+    })
+
+    it('folds a surprise room’s rounds the same way', () => {
+      lobby([HOST, WOOX], { ...SECRET, rounds: 11 }, WOOX)
+      expect(document.querySelectorAll('.board > .rounds .round')).toHaveLength(7)
+      expect(fold()!.textContent!.trim()).toBe('+4 more')
+    })
+  })
+
+  describe('the full-screen hint', () => {
+    const fit = (scale: number): RoomFit => ({
+      scale,
+      width: 1280,
+      height: 760,
+      left: 0,
+      compact: true,
+    })
+    const HINT = 'Short on room? Full screen shows the whole question.'
+
+    beforeEach(() => {
+      document.documentElement.requestFullscreen = () => Promise.resolve()
+      roomShown.set(null)
+    })
+
+    afterEach(() => roomShown.set(null))
+
+    it('shows when the room is drawn below scale 1', async () => {
+      roomShown.set({ fit: fit(0.875) })
+      lobby()
+      expect(await screen.findByText(HINT)).toBeTruthy()
+      expect(screen.getByRole('switch', { name: 'Full screen' })).toBeTruthy()
+    })
+
+    it('is left out at scale 1 and in a room that is not fitted', () => {
+      roomShown.set({ fit: fit(1) })
+      lobby()
+      expect(screen.queryByText(HINT)).toBeNull()
+      cleanup()
+      roomShown.set(null)
+      lobby()
+      expect(screen.queryByText(HINT)).toBeNull()
+    })
   })
 
   it('says a refusal in its own words', async () => {

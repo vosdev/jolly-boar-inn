@@ -59,10 +59,30 @@ export class Dragging {
     this.#board = board
   }
 
-  /** Moving a row between places and the tray redraws its handle, which loses focus. */
-  async refocus(shown: number): Promise<void> {
+  /**
+   * Runs `change`, which redraws the rows, and leaves every scrolled ancestor of the area
+   * where it was: Safari has no scroll anchoring, so the stage jumped to its top.
+   */
+  async keepScroll(change: () => void): Promise<void> {
+    const held: [Element, number][] = []
+    for (let up = this.#board.area()?.parentElement; up; up = up.parentElement) {
+      if (up.scrollTop > 0) held.push([up, up.scrollTop])
+    }
+    change()
     await tick()
-    this.#board.area()?.querySelector<HTMLElement>(`[data-handle="${shown}"]`)?.focus()
+    for (const [element, top] of held) if (element.scrollTop !== top) element.scrollTop = top
+  }
+
+  /**
+   * Runs `change`, a move of row `shown`, keeping the scroll and the row in view. Moving a
+   * row between places and the tray redraws its handle, which loses focus; `focus` takes it
+   * back without scrolling to it, which `scrollIntoView` then does only as far as it must.
+   */
+  async moved(shown: number, change: () => void, focus = false): Promise<void> {
+    await this.keepScroll(change)
+    const handle = this.#board.area()?.querySelector<HTMLElement>(`[data-handle="${shown}"]`)
+    if (focus) handle?.focus({ preventScroll: true })
+    handle?.scrollIntoView?.({ block: 'nearest' })
   }
 
   key(event: KeyboardEvent, shown: number): void {
@@ -79,13 +99,13 @@ export class Dragging {
       (event.key === 'ArrowUp' || event.key === 'ArrowDown')
     ) {
       event.preventDefault()
-      board.set(board.step(board.slots(), shown, event.key === 'ArrowUp' ? -1 : 1))
-      void this.refocus(shown)
+      const by = event.key === 'ArrowUp' ? -1 : 1
+      void this.moved(shown, () => board.set(board.step(board.slots(), shown, by)), true)
     } else if (this.lifted?.shown === shown && event.key === 'Escape') {
       event.preventDefault()
-      board.set(this.lifted.before)
+      const before = this.lifted.before
       this.lifted = null
-      void this.refocus(shown)
+      void this.moved(shown, () => board.set(before), true)
     }
   }
 
@@ -150,8 +170,10 @@ export class Dragging {
     const target = this.targetAt(event.clientX, event.clientY)
     this.letGo()
     const slots = this.#board.slots()
-    if (target === 'tray') this.#board.set(toTray(slots, shown))
-    else if (target !== null) this.#board.set(this.#board.drop(slots, shown, target))
+    if (target === 'tray') void this.moved(shown, () => this.#board.set(toTray(slots, shown)))
+    else if (target !== null) {
+      void this.moved(shown, () => this.#board.set(this.#board.drop(slots, shown, target)))
+    }
   }
 
   letGo(): void {

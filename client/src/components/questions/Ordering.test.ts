@@ -5,6 +5,7 @@
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
+import { tick } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
@@ -130,6 +131,71 @@ function closingSoon(): void {
 afterEach(() => {
   vi.restoreAllMocks()
   vi.useRealTimers()
+})
+
+describe('a stage that scrolls', () => {
+  /** A scrolled stage that Safari throws back to the top whenever its rows are redrawn. */
+  function scrolledStage() {
+    const stage = document.createElement('div')
+    document.body.append(stage)
+    let at = 0
+    Object.defineProperty(stage, 'scrollTop', {
+      get: () => at,
+      set: (value: number) => (at = value),
+    })
+    new MutationObserver(() => (at = 0)).observe(stage, { childList: true, subtree: true })
+    return { stage, top: () => at, scrollTo: (top: number) => (at = top) }
+  }
+
+  async function inStage(top: number) {
+    const scrolled = scrolledStage()
+    render(Question, {
+      target: scrolled.stage,
+      props: { question: open(), yourValue: null, onAnswer: () => {} },
+    })
+    await tick()
+    scrolled.scrollTo(top)
+    return scrolled
+  }
+
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('takes focus back after a keyboard move without letting the browser scroll to it', async () => {
+    await inStage(0)
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus')
+    await press('Bronze', ' ')
+    await press('Bronze', 'ArrowUp')
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+    expect(document.activeElement).toBe(handle('Bronze'))
+  })
+
+  it('leaves the scroll where it was after a keyboard move, and keeps the row in view', async () => {
+    const stage = await inStage(240)
+    const into = vi.fn()
+    HTMLElement.prototype.scrollIntoView = into
+    await press('Iron', ' ')
+    await press('Iron', 'ArrowUp')
+    await tick()
+    expect(placed()).toEqual(['Mithril', 'Bronze', 'Iron', 'Adamant', 'Steel'])
+    expect(stage.top()).toBe(240)
+    expect(into).toHaveBeenCalledWith({ block: 'nearest' })
+    expect(into.mock.contexts.at(-1)).toBe(handle('Iron'))
+  })
+
+  it('leaves the scroll where it was after a drag, and after Start over', async () => {
+    layout()
+    const stage = await inStage(240)
+    await dragTo('Steel', 0)
+    await tick()
+    expect(placed()[0]).toBe('Steel')
+    expect(stage.top()).toBe(240)
+    await fireEvent.click(rewind())
+    await tick()
+    expect(placed()).toEqual(SHOWN)
+    expect(stage.top()).toBe(240)
+  })
 })
 
 describe('ordering', () => {
