@@ -345,13 +345,14 @@ take-back rule are architecture §7.
   where it cannot be taken back (the splash allows one take-back) it sits disabled, on. On touch
   devices a smaller "Full screen" switch of the same look sits beside it and follows the
   browser's state. It is absent where the browser lacks the API (iPhone, #319).
-- **Splash.** The host's greeting and blurb in the bubble. The scroll: "Round 4 of 10", the mode's
-  name, "5 questions · " and its Create hint, and a price round's date. Under it, "Tonight": a
-  host per round, past ones faded, the current one large and named, the rest numbered; a host
-  shows only where the client knows it, so shuffled or hidden rounds are numbered blanks but for
-  the current one. Ten fit a row; past 12 it shows the nearest 12, on a phone the nearest 5, with
-  "+N" for the rest. Beside it "Starting in 4", large, once the countdown runs, and before that
-  "Waiting for 2 more to be ready", never by name. The panel keeps the ready check.
+- **Splash.** The host's greeting and blurb in the bubble. The scroll, centred: the mode's name,
+  the blurb alone, then small "Round 4 of 10, 5 questions" and a price round's date. Under it,
+  "Tonight", only the row, centred: a host per round, past ones faded, the current one large and
+  named, the rest numbered; a host shows only where the client knows it, so shuffled or hidden
+  rounds show Create's random-event "?" square but for the current one. Ten fit a row; past 12 it
+  shows the nearest 12, on a phone the nearest 5, with "+N" for the rest. The table panel holds,
+  over the Ready switch, "Waiting for 2 more to be ready", never by name, then "Starting in 4",
+  large, once the countdown runs.
 - **How to play:** a link on the Lobby's rounds and on Home's opens a sheet, a row per way of
   answering: a small drawing of the control and one plain sentence, with every Submit named in
   bold, since players overlooked it. The Lobby shows its rounds' types, or all of them when

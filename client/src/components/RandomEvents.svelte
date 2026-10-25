@@ -7,6 +7,7 @@
    */
   import type { HostQuestion } from '../lib/customQuestions'
   import { EVENT_EVERY, type EventFrequency } from '../lib/protocol'
+  import Mystery from './Mystery.svelte'
   import NpcFace from './NpcFace.svelte'
 
   /** Slots drawn one by one; past this the strip counts the rest. */
@@ -60,7 +61,7 @@
           {#if index < mine}
             <li class="mine"><NpcFace npc={own[index]?.random_event} /></li>
           {:else}
-            <li>?</li>
+            <li><Mystery /></li>
           {/if}
         {/each}
         {#if slots > shown}<li class="more">+{slots - shown}</li>{/if}
@@ -173,21 +174,17 @@
     display: grid;
     place-items: center;
     overflow: hidden;
-    border: var(--border-width) dashed var(--line);
-    border-radius: min(var(--radius), 6px);
-    color: var(--muted);
-    font-weight: 800;
-    font-size: 1.2rem;
   }
 
   .pips li.mine {
     place-items: end center;
-    border-style: solid;
-    border-color: var(--accent);
+    border: var(--border-width) solid var(--accent);
+    border-radius: min(var(--radius), 6px);
   }
 
   .pips li.more {
-    border: none;
+    color: var(--muted);
+    font-weight: 800;
     font-size: 0.9rem;
   }
 </style>

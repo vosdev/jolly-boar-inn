@@ -15,13 +15,13 @@
    * holds them). The name is there whole; the
    * greeting and the blurb type in once the stage has come over from the screen before,
    * at the questions' pace (`lib/interlude.ts`). The splash has no hold to
-   * fit, so nothing waits on the typing. The scroll also says which round this is, how many
-   * questions it holds and what it asks, and a price round's date, said here once so the
-   * questions need not. Under it, tonight's row of hosts (`lib/tonight.ts`) and, once the
-   * room is ready, the countdown, large (section 9 of ideas/design.md).
+   * fit, so nothing waits on the typing. The scroll repeats the blurb, plain, under the name,
+   * then which round this is and how many questions it holds, and a price round's date, said
+   * here once so the questions need not. Under it, tonight's row of hosts (`lib/tonight.ts`), section 9 of ideas/design.md.
    *
    * The ready check (section 9 of ideas/design.md) is the table panel, Ready over Not ready
-   * yet; on the TV a grid of pets (`RosterPet`), checked once they tap ready. A tap can be
+   * yet, with the wait or the countdown, large, over the switch; on the TV a grid of pets
+   * (`RosterPet`), checked once they tap ready. A tap can be
    * taken back once per splash — below the threshold that stops the countdown again —
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
@@ -48,6 +48,7 @@
   import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import Switch from './Switch.svelte'
+  import Mystery from './Mystery.svelte'
   import RosterPet from './RosterPet.svelte'
   import NpcFace from './NpcFace.svelte'
   import TablePanel from './TablePanel.svelte'
@@ -164,15 +165,15 @@
   const startsIn = $derived(
     endsAt === null ? null : Math.max(0, Math.ceil(msUntil(endsAt, $serverNow) / 1000)),
   )
-  const asks = $derived(
-    `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}` +
-      (mode === null ? '' : ` · ${mode.hint}`),
-  )
-
+  const questions = $derived(`${segment.count} ${segment.count === 1 ? 'question' : 'questions'}`)
   // Built here rather than in the markup, where Svelte would trim the space before the dot.
-  const length = $derived(
-    `Round ${segment.index + 1} of ${segment.total} · ` +
-      `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}`,
+  const length = $derived(`Round ${segment.index + 1} of ${segment.total} · ${questions}`)
+  /** The scroll's small line: a lone round has no "of 1" worth saying. */
+  const shape = $derived(
+    segment.total > 1 ? `Round ${segment.index + 1} of ${segment.total}, ${questions}` : questions,
+  )
+  const waiting = $derived(
+    short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`,
   )
 </script>
 
@@ -202,9 +203,7 @@
   {#if endsAt !== null}
     <Timer {endsAt} totalSeconds={span} label="until the round starts" />
   {:else}
-    <p class="waiting surface">
-      {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
-    </p>
+    <p class="waiting surface">{waiting}</p>
   {/if}
 {/snippet}
 
@@ -217,7 +216,7 @@
           {#if stop.mode !== null}
             <NpcFace npc={hostOf(stop.mode).host.id} />
           {:else}
-            <span class="blank" aria-hidden="true"></span>
+            <span class="unknown"><Mystery /></span>
           {/if}
         </span>
         <span class="label">
@@ -232,9 +231,6 @@
 <section class="splash">
   <Stage host={host.host.id} {tv} wide={tv} bubble={tv ? null : 'on'}>
     {#snippet paper()}
-      {#if !tv && segment.total > 1}
-        <p class="lead">Round {segment.index + 1} of {segment.total}</p>
-      {/if}
       <h2>{label}</h2>
       {#if tv}
         {@render words()}
@@ -244,7 +240,10 @@
           {@render countdown()}
         </div>
       {:else}
-        <p class="asks">{asks}</p>
+        {#if mode !== null}
+          <p class="blurb">{mode.blurb}</p>
+        {/if}
+        <p class="asof shape">{shape}</p>
         {#if asOf !== null}
           <p class="asof">{prices} as of {asOfDate(asOf)}.</p>
         {/if}
@@ -257,28 +256,22 @@
 
     {#if !tv}
       <section class="panel night" aria-labelledby="tonight">
-        <div class="tonight">
-          <h3 id="tonight">Tonight</h3>
-          {@render row(wide, 'wide')}
-          {@render row(narrow, 'narrow')}
-        </div>
-        <div class="starts">
-          {#if startsIn !== null}
-            <p class="starting" aria-live="polite">
-              <span>Starting in</span>
-              <strong>{startsIn}</strong>
-            </p>
-          {:else}
-            <p class="waiting-big">
-              {short === 1
-                ? 'Waiting for 1 more to be ready'
-                : `Waiting for ${short} more to be ready`}
-            </p>
-          {/if}
-        </div>
+        <h3 id="tonight">Tonight</h3>
+        {@render row(wide, 'wide')}
+        {@render row(narrow, 'narrow')}
       </section>
       <AtTable>
         <TablePanel groups={seated} {youId} labels={['Ready', 'Not ready yet']}>
+          <div class="starts">
+            {#if startsIn !== null}
+              <p class="starting" aria-live="polite">
+                <span>Starting in</span>
+                <strong>{startsIn}</strong>
+              </p>
+            {:else}
+              <p class="waiting-big">{waiting}</p>
+            {/if}
+          </div>
           <div class="ready">
             <Switch
               label="Ready"
@@ -349,29 +342,24 @@
     color: var(--muted);
   }
 
-  .lead {
-    margin: 0;
-    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
-    color: var(--scroll-muted);
+  .blurb + .shape {
+    margin-top: 0.5rem;
   }
 
-  .asks {
-    margin: 0.3rem 0 0;
-    font-size: max(0.95rem, 1.05rem * var(--scroll-text, 1));
-  }
-
-  .asks + .asof {
-    margin: 0.2rem 0 0;
-    color: var(--scroll-muted);
-  }
-
-  /* Tonight's row beside the countdown, under the sheet. */
-  .night {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1rem 1.5rem;
+  .shape,
+  .shape + .asof {
     margin-bottom: 0;
+    color: var(--scroll-muted);
+  }
+
+  .shape + .asof {
+    margin-top: 0.2rem;
+  }
+
+  /* Tonight's row, alone and centred under the sheet. */
+  .night {
+    margin-bottom: 0;
+    text-align: center;
   }
 
   .night h3 {
@@ -381,6 +369,7 @@
 
   .stops {
     display: flex;
+    justify-content: center;
     align-items: flex-end;
     gap: 0.5rem;
     margin: 0;
@@ -422,11 +411,9 @@
     filter: grayscale(0.7);
   }
 
-  .blank {
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 2px dashed var(--line);
-    border-radius: 50%;
+  .unknown {
+    width: 2.3rem;
+    height: 2.5rem;
   }
 
   .stop.now {
@@ -456,8 +443,9 @@
     display: none;
   }
 
+  /* Over the ready switch in the table panel, the countdown large. */
   .starts {
-    min-width: 9rem;
+    margin: 0 0 0.6rem;
     text-align: center;
   }
 
@@ -478,35 +466,17 @@
 
   .waiting-big {
     margin: 0;
-    max-width: 11rem;
     color: var(--muted);
   }
 
-  /* A phone's stage: the nearest five, and the countdown under them. */
+  /* A phone's stage: the nearest five. */
   @container (max-width: 40rem) {
-    .night {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
     .stops.wide {
       display: none;
     }
 
     .stops.narrow {
       display: flex;
-      justify-content: center;
-    }
-
-    .night h3 {
-      text-align: center;
-    }
-
-    .starts {
-      min-width: 0;
-    }
-
-    .waiting-big {
-      max-width: none;
     }
 
     .starting strong {
