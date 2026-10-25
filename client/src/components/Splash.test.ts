@@ -202,6 +202,23 @@ describe('Splash stage', () => {
     expect(stopsOf('wide').map((stop) => stop.face)).toEqual([false, true, false])
   })
 
+  it('shows the host of a round already played on a shuffled night', () => {
+    render(Splash, {
+      segment: { mode: 'more_less', index: 1, total: 3, start: 5, count: 5 },
+      endsAt: null,
+      players: players(false),
+      youId: 'a',
+      onReady: () => {},
+      settings: { ...SETTINGS, mode_order: 'random' },
+      played: ['drop_table'],
+    })
+    expect(stopsOf('wide')).toEqual([
+      { state: 'done', face: true, label: '1', mystery: null },
+      { state: 'now', face: true, label: 'More or Less', mystery: null },
+      { state: 'next', face: false, label: '3', mystery: '?' },
+    ])
+  })
+
   it('shows the random-event "?" square for a round whose host is unknown', () => {
     render(Splash, {
       segment: { mode: 'more_less', index: 1, total: 3, start: 5, count: 5 },

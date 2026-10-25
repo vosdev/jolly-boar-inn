@@ -59,6 +59,7 @@ const ROOM: RoomView = {
   next_at: null,
   reveal_seconds: null,
   estimated_seconds: 300,
+  played: [],
   segment: null,
   finished_at: null,
 }

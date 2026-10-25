@@ -318,8 +318,8 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 
 ```
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
-               reveal_seconds, estimated_seconds, segment, next_segment?, finished_at, rounds?,
-               key?, requests? }
+               reveal_seconds, estimated_seconds, segment, next_segment?, played, finished_at,
+               rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }   role: player, admin, tv
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
@@ -347,6 +347,7 @@ PlayerResult { value, correct, credit, points }
 - `estimated_seconds` is the lobby's minutes for the stored questions (section 3).
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
 - `next_segment` is the round the standings hand over to, sent only in the standings phase.
+  `played` is the modes of the rounds before `segment`, in play order, for the splash's hosts.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` and
   `surprise_modes` themselves only when set.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only

@@ -538,6 +538,7 @@
               onReady={(ready) => socket?.send({ t: 'ready', ready })}
               tv={$you?.role === 'tv'}
               settings={$room.settings}
+              played={$room.played}
             />
           {:else}
             <!-- playing. A question's screen is the stage and nothing to read past it. -->

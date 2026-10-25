@@ -8,6 +8,8 @@ import json
 from typing import Any
 from uuid import UUID
 
+import pytest
+
 from app.modes import offered, questions_bounds
 from app.rooms.settings import RoomSettings
 from tests.game_api import Game, Seat, reseat
@@ -28,6 +30,7 @@ ROOM_KEYS = {
     "reveal_seconds",
     "estimated_seconds",
     "segment",
+    "played",
     "finished_at",
 }
 SETTINGS_KEYS = {
@@ -44,8 +47,9 @@ SETTINGS_KEYS = {
 }
 
 
-def surprise(table: Any, hide_rounds: bool = True) -> Game:
-    """Three rounds of five, listed, with events in them and nothing moving unless skipped.
+def surprise(table: Any, hide_rounds: bool = True, mode_order: str = "listed") -> Game:
+    """Three rounds of five, listed unless shuffled, with events in them and nothing moving
+    unless skipped.
 
     Zezima's socket stays up for the whole game; Woox is the one a test reconnects.
     """
@@ -53,7 +57,7 @@ def surprise(table: Any, hide_rounds: bool = True) -> Game:
         "Zezima",
         "Woox",
         hide_rounds=hide_rounds,
-        mode_order="listed",
+        mode_order=mode_order,
         random_event_frequency="more",
         reveal_seconds=30,
         splash=True,
@@ -192,7 +196,39 @@ def test_a_reconnect_reveals_the_rounds_played_and_the_current_one(table, client
         again = reseat(game.players[1], ws)
         welcome = again.take("welcome")
     assert played_modes(welcome["room"]) == PLAYED[:2]
+    assert welcome["room"]["played"] == PLAYED[:1]
     assert "guess_examine" not in json.dumps(welcome)
+
+
+def splash_of(index: int) -> Any:
+    def done(message: dict[str, Any]) -> bool:
+        room = message.get("room") or {}
+        return room.get("phase") == "splash" and (room.get("segment") or {}).get("index") == index
+
+    return done
+
+
+@pytest.mark.parametrize("hide_rounds", [False, True])
+def test_a_shuffled_splash_names_the_rounds_played_and_no_later_one(table, hide_rounds) -> None:
+    game = surprise(table, hide_rounds=hide_rounds, mode_order="random")
+    play_until(game, finished)
+    order = [segment.mode for segment in game.room.segments]
+    frames = frames_until_finished(game.players[0])
+    rooms = [m["room"] for m in frames if m["t"] == "room_updated" and m["room"]["segment"]]
+    splashes = [room for room in rooms if room["phase"] == "splash"]
+    assert [room["played"] for room in splashes] == [[], order[:1], order[:2]]
+    for room in rooms:
+        assert room["played"] == order[: room["segment"]["index"]]
+
+
+def test_a_reconnect_on_the_third_round_names_the_first_two_hosts(table, client) -> None:
+    game = surprise(table, mode_order="random")
+    play_until(game, splash_of(2))
+    order = [segment.mode for segment in game.room.segments]
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        welcome = reseat(game.players[1], ws).take("welcome")
+    assert welcome["room"]["segment"]["index"] == 2
+    assert welcome["room"]["played"] == order[:2]
 
 
 def test_a_game_ended_early_keeps_its_unplayed_rounds_hidden(table, client) -> None:

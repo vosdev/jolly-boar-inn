@@ -83,6 +83,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
     next_at: new Date(Date.now() + 10_000).toISOString(),
     reveal_seconds: null,
     estimated_seconds: 0,
+    played: [],
     segment: SEGMENT,
     finished_at: null,
     ...patch,
@@ -204,6 +205,23 @@ describe('Room', () => {
       /Next up:\s*More or Less\s*10/,
     )
     expect(get(timerBar)).toMatchObject({ quiet: true, progress: '1/2' })
+  })
+
+  it('shows the hosts of the rounds played on a splash a reload arrives into', async () => {
+    const room = roomView({
+      phase: 'splash',
+      next_at: null,
+      settings: { ...roomView({}).settings, mode_order: 'random' },
+      segment: { ...SEGMENT, mode: 'more_less', index: 2, total: 4, start: 2 },
+      played: ['price_is_right', 'bestiary'],
+    })
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(room))
+    await screen.findByRole('heading', { level: 2, name: MODES.more_less!.label })
+    const faces = [...document.querySelectorAll('.stops.wide .stop')].map(
+      (stop) => stop.querySelector('.face img') !== null,
+    )
+    expect(faces).toEqual([true, true, true, false])
   })
 
   it('lets the host start the next round early', async () => {

@@ -392,6 +392,12 @@ class Room:
             return None
         return self.segments[current.index + 1]
 
+    @property
+    def played(self) -> list[str]:
+        """The modes of the rounds before the current one, in the order they were played."""
+        current = self.current_segment
+        return [] if current is None else [s.mode for s in self.segments[: current.index]]
+
     def question_seconds(self, question: RoomQuestion) -> int:
         """How long ``question`` stays open: its type's time at the room's pace."""
         return answer_seconds(question.type, question.payload, self.settings.pace)
@@ -471,6 +477,7 @@ class Room:
             estimated_seconds=self.estimated_seconds(),
             segment=self.current_segment,
             next_segment=self.next_segment if self.phase == "standings" else None,
+            played=self.played,
             finished_at=self.finished_at,
             rounds=rounds,
             key=self.invite_key if admin else None,

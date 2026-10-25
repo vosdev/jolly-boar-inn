@@ -41,6 +41,24 @@ describe('tonight', () => {
     ])
   })
 
+  it.each([
+    ['shuffled', { modeOrder: 'random' as const }],
+    ['hidden', { hidden: true }],
+  ])('names the hosts of the rounds played when the rounds are %s', (_, patch) => {
+    const third = night({
+      ...patch,
+      index: 2,
+      mode: 'drop_table',
+      played: ['sort_it_out', 'bestiary'],
+    })
+    expect(tonight(third, 12).stops.map((stop) => stop.mode)).toEqual([
+      'sort_it_out',
+      'bestiary',
+      'drop_table',
+      null,
+    ])
+  })
+
   it('keeps ten rounds in one window, and slides twenty to keep the current one in view', () => {
     expect(tonight(night({ index: 9, total: 10, modes: undefined }), 12).stops).toHaveLength(10)
     const far = tonight(night({ index: 15, total: 20, modes: undefined }), 12)

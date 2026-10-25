@@ -66,6 +66,7 @@
     onReady,
     tv = false,
     settings = null,
+    played = [],
   }: {
     segment: Segment
     /** When the countdown ends, from `room.next_at`; null while the splash waits. */
@@ -78,6 +79,8 @@
     tv?: boolean
     /** The room's settings, for which rounds' hosts tonight's row may show. */
     settings?: RoomSettings | null
+    /** The modes of the rounds already played, in order, for their hosts on tonight's row. */
+    played?: string[]
   } = $props()
 
   // A room can play a mode from a newer server than this client was built against. The
@@ -156,6 +159,7 @@
     index: segment.index,
     total: segment.total,
     mode: segment.mode,
+    played,
     modes: settings?.modes,
     modeOrder: settings?.mode_order,
     hidden: settings?.hide_rounds === true,
