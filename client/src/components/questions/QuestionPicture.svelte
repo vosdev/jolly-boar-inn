@@ -15,13 +15,13 @@
    *
    * A `large` picture on a room's stage (the nearest `[data-fit-stage]`) takes the height the
    * stage has left once everything else is in, and the room under the answer input for its
-   * suggestions, between `PICTURE_LEAST` and the render's own height as drawn: the room is
-   * laid out at one size and scaled up to the window, so its px are not the screen's. The
-   * caption's room is kept from the start so the reveal does not move it.
+   * suggestions, between `PICTURE_LEAST` and the smaller of 12rem and the render's own height
+   * as drawn: the room is laid out at one size and scaled up to the window, so its px are not
+   * the screen's. The caption's room is kept from the start so the reveal does not move it.
    * The height is measured while the question is open and held from the reveal on, so the
    * silhouette and the render share one box and a taller reveal scrolls rather than shrinks it.
    */
-  import { pictureHeight, suggestionsHeight } from '../../lib/pictureFit'
+  import { PICTURE_MOST_REM, pictureHeight, suggestionsHeight } from '../../lib/pictureFit'
   import { pictureUrl } from '../../lib/pictures'
 
   let {
@@ -73,7 +73,12 @@
           : (content.getBoundingClientRect().bottom - input.getBoundingClientRect().bottom) / scale
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
       const list = input === null ? 0 : Math.max(0, suggestionsHeight(rem) - below)
-      fitted = pictureHeight(stage.clientHeight - rest - list, natural, scale || 1)
+      fitted = pictureHeight(
+        stage.clientHeight - rest - list,
+        natural,
+        scale || 1,
+        PICTURE_MOST_REM * rem,
+      )
     }
     measure()
     const watch = new ResizeObserver(measure)
