@@ -4,21 +4,27 @@
    * screen a good part of its height. It is not there when the browser cannot (iPhones:
    * WebKit offers the API on video only). The switch follows the browser's own state, so
    * leaving by the system gesture flips it back.
+   *
+   * A room drawn below scale 1 (`short`) is one a laptop's window is too short for: the
+   * switch is offered there with a mouse too, with a line saying why.
    */
   import { onMount } from 'svelte'
   import Switch from './Switch.svelte'
 
-  let available = $state(false)
+  let { short = false }: { short?: boolean } = $props()
+
+  let capable = $state(false)
+  let touch = $state(false)
   let on = $state(false)
+  const available = $derived(capable && (touch || short))
 
   function sync(): void {
     on = Boolean(document.fullscreenElement)
   }
 
   onMount(() => {
-    available =
-      typeof document.documentElement.requestFullscreen === 'function' &&
-      window.matchMedia('(pointer: coarse)').matches
+    capable = typeof document.documentElement.requestFullscreen === 'function'
+    touch = window.matchMedia('(pointer: coarse)').matches
     sync()
     document.addEventListener('fullscreenchange', sync)
     return () => document.removeEventListener('fullscreenchange', sync)
@@ -33,4 +39,16 @@
 
 {#if available}
   <Switch label="Full screen" checked={on} onclick={toggle} />
+  {#if short}
+    <p class="short">Short on room? Full screen shows the whole question.</p>
+  {/if}
 {/if}
+
+<style>
+  .short {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>

@@ -154,7 +154,7 @@ describe('WallLights', () => {
     afterEach(() => roomShown.set(null))
 
     it('stands on the floor the room leaves, measured from the room’s edge', async () => {
-      roomShown.set({ fit: { scale: 1.5, width: 1700, height: 920, left: 440 } })
+      roomShown.set({ fit: { scale: 1.5, width: 1700, height: 920, left: 440, compact: false } })
       const wall = (await shown('jolly')).querySelector<HTMLElement>('.wall-lights')!
       expect(wall.classList.contains('beside-room')).toBe(true)
       expect(wall.classList.contains('no-floor')).toBe(false)
@@ -162,7 +162,7 @@ describe('WallLights', () => {
     })
 
     it('has no floor to stand on where the room fills the window', async () => {
-      roomShown.set({ fit: { scale: 1, width: 1440, height: 844, left: 0 } })
+      roomShown.set({ fit: { scale: 1, width: 1440, height: 844, left: 0, compact: true } })
       const wall = (await shown('jolly')).querySelector('.wall-lights')!
       expect(wall.classList.contains('no-floor')).toBe(true)
     })
