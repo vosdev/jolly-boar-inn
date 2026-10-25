@@ -108,12 +108,12 @@
   }
 
   function restart(): void {
-    slots = emptySlots(q.fields.length)
     dragging.lifted = null
+    void dragging.keepScroll(() => (slots = emptySlots(q.fields.length)))
   }
 
   function back(shown: number): void {
-    slots = toTray(slots, shown)
+    void dragging.moved(shown, () => (slots = toTray(slots, shown)))
   }
 
   sendBeforeEnd(

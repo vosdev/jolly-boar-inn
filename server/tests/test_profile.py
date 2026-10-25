@@ -265,7 +265,7 @@ def test_renaming_to_your_own_name_in_another_case_is_allowed(client: TestClient
     ("frame", "code"),
     [
         ({"display_name": "   "}, "bad_name"),
-        ({"display_name": "x" * 25}, "bad_name"),
+        ({"display_name": "x" * 13}, "bad_name"),
         ({"display_name": "<b>bold</b>"}, "bad_name"),
         ({"avatar": "not_a_pet"}, "bad_avatar"),
     ],
