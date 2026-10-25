@@ -12,11 +12,15 @@ import {
   INNKEEPER,
   MODES,
   PACES,
+  SHARED_TROPHY_LINES,
+  TROPHY_LINES,
   VERDICTS,
   hostOf,
   paceOf,
   pickLines,
+  trophyLine,
 } from './modes'
+import { TIERS } from './hiscores'
 
 // The longest waiting and reveal lines measured to fit two lines at the scroll's foot on a
 // 350px screen, the narrowest supported; the reveal line shares its row with the points.
@@ -217,5 +221,38 @@ describe('paceOf', () => {
     expect(paceOf({ scoring: 'accuracy', band: null })).toBeNull()
     expect(paceOf({ scoring: 'speed', band: null })).toBeNull()
     expect(paceOf(null)).toBeNull()
+  })
+})
+
+describe('trophyLine', () => {
+  const PLACES = ['1st', '2nd', '3rd', '4th', '5th']
+
+  it('has at least three lines for each place, alone or shared', () => {
+    expect(TROPHY_LINES).toHaveLength(TIERS.length)
+    for (const list of TROPHY_LINES) expect(list.length).toBeGreaterThanOrEqual(3)
+    expect(SHARED_TROPHY_LINES.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('names the place and the trophy tier in every line', () => {
+    TIERS.forEach((tier, i) => {
+      for (const tied of [false, true]) {
+        const said = new Set(
+          Array.from({ length: 40 }, (_, seed) => trophyLine(i + 1, tier, tied, `${seed}`)),
+        )
+        expect(said.size, `${tier} ${tied}`).toBe(
+          tied ? SHARED_TROPHY_LINES.length : TROPHY_LINES[i]!.length,
+        )
+        for (const line of said) {
+          expect(line).toContain(PLACES[i])
+          expect(line).toContain(tier)
+          expect(line).not.toMatch(/[{}]/)
+          expect(line.endsWith('…'), line).toBe(true)
+        }
+      }
+    })
+  })
+
+  it('says the same line for the same seed', () => {
+    expect(trophyLine(2, 'platinum', false, 'a')).toBe(trophyLine(2, 'platinum', false, 'a'))
   })
 })

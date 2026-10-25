@@ -4,19 +4,19 @@
    * past game opened from this browser's history.
    *
    * With `ceremony`, the game having ended while this client watched, the Wise Old Man
-   * first presents fifth place to first, each with its trophy beside the scroll and first
-   * with confetti. Then the place fades, the sheet unrolls to the full hiscores with the
-   * rows arriving top to bottom, and he congratulates the winners. Skip goes straight to
-   * that last step. Without `ceremony`, a reload or a past game, and under reduced motion,
+   * first presents fifth place to first, holding up each place's trophy beside his line
+   * while the scroll shows who won it, and first with confetti. Then the place fades, the
+   * sheet unrolls to the full hiscores with the rows arriving top to bottom, and he
+   * congratulates the winners. Skip goes straight to that last step. Without `ceremony`, a reload or a past game, and under reduced motion,
    * the hiscores are simply there.
    *
    * A team game's table ranks its teams, each with its members under it, and he names the
    * winning team instead.
    *
-   * In the room his lines are in his bubble, and the room has no table panel beside it. A
-   * past game, and the room's TV, keep them on the sheet. On the TV the sheet takes the
-   * whole stage, a long table scrolls (`crawl`), and nothing is offered: no Skip, and no
-   * panel under the table.
+   * In the room his lines, and the trophy, are in his bubble, and the room has no table
+   * panel beside it. A past game, and the room's TV, keep them on the sheet. On the TV the
+   * sheet takes the whole stage, a long table scrolls (`crawl`), and nothing is offered: no
+   * Skip, and no panel under the table.
    */
   import type { Snippet } from 'svelte'
   import { untrack } from 'svelte'
@@ -44,8 +44,9 @@
   import { stageArrival, type Bubble } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
   import { team, type TeamId } from '../lib/teams'
-  import { tierName, trophyArt } from '../lib/trophies'
+  import { trophyArt } from '../lib/trophies'
   import { crawl } from '../lib/tv'
+  import { trophyLine } from '../lib/modes'
   import { lettersOf } from '../lib/typing.svelte'
   import Hiscores from './Hiscores.svelte'
   import HiscoresHead from './HiscoresHead.svelte'
@@ -95,11 +96,12 @@
     teamStandings === null ? null : teamCeremonyPlaces(teamStandings),
   )
   const steps = teamPlaces ?? places
+  // Every screen has the same standings, so every screen picks the same lines.
+  const seed = untrack(() => standings.map((s) => `${s.player_id}:${s.points}`).join(','))
   const lines = [
     FINAL_INTRO,
-    ...(teamPlaces ?? places).map((step) =>
-      placeLine(step.rank, 'teams' in step ? step.teams.length : step.standings.length),
-    ),
+    ...(teamPlaces?.map((step) => placeLine(step.rank, step.teams.length)) ??
+      places.map((step) => trophyLine(step.rank, step.tier, step.standings.length > 1, seed))),
   ]
   const playing = untrack(() => ceremony) && !instant && steps.length > 0
   const bubble = $derived<Bubble | null>(tv || past ? null : 'on')
@@ -167,6 +169,10 @@
   const place = $derived<Place | null>(
     shown === null || teamPlaces !== null ? null : (places[shown] ?? null),
   )
+  /** The place he is presenting, whose trophy he holds from his line until the next. */
+  const presenting = $derived<Place | null>(
+    phase === 'table' || line === 0 || teamPlaces !== null ? null : (places[line - 1] ?? null),
+  )
   const teamPlace = $derived<TeamPlace | null>(
     shown === null || teamPlaces === null ? null : (teamPlaces[shown] ?? null),
   )
@@ -191,8 +197,26 @@
   {/if}
 {/snippet}
 
+{#snippet prize()}
+  {#if playing && teamPlaces === null && phase !== 'table'}
+    <span class="prize">
+      {#if presenting !== null}
+        {#key presenting.rank}
+          <span class="trophy" class:leaving={phase === 'leaving'} data-tier={presenting.tier}>
+            <img src={trophyArt(presenting.tier).url} alt="" draggable="false" />
+            {#if place?.rank === 1}<Confetti />{/if}
+          </span>
+        {/key}
+      {/if}
+    </span>
+  {/if}
+{/snippet}
+
 {#snippet words()}
-  <p>{@render says()}</p>
+  <div class="presents">
+    <p>{@render says()}</p>
+    {@render prize()}
+  </div>
 {/snippet}
 
 <Stage host={HISCORES_HOST} tall={bubble === null} {tv} wide={tv} {bubble}>
@@ -202,7 +226,7 @@
 
   {#snippet paper()}
     {#if bubble === null}
-      <HiscoresHead title="Final hiscores">{@render says()}</HiscoresHead>
+      <HiscoresHead title="Final hiscores">{@render says()}{@render prize()}</HiscoresHead>
     {/if}
     <div class="board" bind:clientHeight={boardHeight}>
       {#if phase === 'table'}
@@ -257,7 +281,6 @@
                   </p>
                   <p class="points">
                     {numbers.format(place.standings[0]?.points ?? 0)} points
-                    <span class="tier">{tierName(place.tier)} trophy</span>
                   </p>
                 </div>
               </div>
@@ -269,6 +292,7 @@
                   {#each teamPlace.teams as row (row.team)}
                     <span class="logo" data-team={row.team}><TeamLogo team={row.team} /></span>
                   {/each}
+                  {#if teamPlace.rank === 1}<Confetti />{/if}
                 </span>
                 <div class="who">
                   <p class="names">
@@ -276,7 +300,7 @@
                   </p>
                   <p class="points">
                     {numbers.format(teamPlace.teams[0]?.points ?? 0)} points
-                    <span class="tier">team average</span>
+                    <span class="average">team average</span>
                   </p>
                 </div>
               </div>
@@ -285,23 +309,6 @@
         </div>
       {/if}
     </div>
-  {/snippet}
-
-  {#snippet beside()}
-    {#if teamPlace !== null && phase !== 'table'}
-      {#if teamPlace.rank === 1}
-        {#key teamPlace.rank}
-          <span class="trophy" class:leaving={phase === 'leaving'}><Confetti /></span>
-        {/key}
-      {/if}
-    {:else if place !== null && phase !== 'table'}
-      {#key place.rank}
-        <span class="trophy" class:leaving={phase === 'leaving'}>
-          <img src={trophyArt(place.tier).url} alt="" draggable="false" />
-          {#if place.rank === 1}<Confetti />{/if}
-        </span>
-      {/key}
-    {/if}
   {/snippet}
 
   {#if tv}
@@ -324,13 +331,35 @@
 </Stage>
 
 <style>
-  /* One place at a time, kept clear of the trophy beside the scroll. */
+  /* The trophy keeps its room for the whole ceremony, so his words do not rewrap as it
+     comes and goes between places. */
+  .presents {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .presents p {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .prize {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    vertical-align: middle;
+  }
+
   .place {
     min-height: 7.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-right: calc(var(--beside-w) - var(--roll-w));
   }
 
   .placed {
@@ -351,6 +380,7 @@
   }
 
   .logos {
+    position: relative;
     display: flex;
     flex: none;
     gap: 0.4rem;
@@ -395,7 +425,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .tier {
+  .average {
     display: block;
     font-size: 0.85rem;
   }
@@ -407,8 +437,8 @@
 
   .trophy img {
     display: block;
-    width: 100%;
-    height: auto;
+    max-width: 4.5rem;
+    max-height: 4.5rem;
     filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.3));
     transform-origin: 50% 80%;
     animation: pop 350ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
