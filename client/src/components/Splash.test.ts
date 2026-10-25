@@ -90,13 +90,13 @@ const under = () => document.querySelector('.under') as HTMLElement
 const bubble = () => document.querySelector('.bubble') as HTMLElement
 
 describe('Splash stage', () => {
-  it("writes the mode's name, its blurb alone, then the round and its questions on the scroll", () => {
+  it("writes the mode's name, its hint alone, then the round and its questions on the scroll", () => {
     splash()
     const heading = screen.getByRole('heading', { name: 'More or Less' })
     expect(paper().contains(heading)).toBe(true)
     const lines = [...paper().querySelectorAll('h2, p')].map((line) => line.textContent?.trim())
-    expect(lines).toEqual(['More or Less', MODES.more_less!.blurb, 'Round 1 of 2, 5 questions'])
-    expect(paper().textContent).not.toContain(MODES.more_less!.hint)
+    expect(lines).toEqual(['More or Less', MODES.more_less!.hint, 'Round 1 of 2, 5 questions'])
+    expect(paper().textContent).not.toContain(MODES.more_less!.blurb)
     expect(bubble().textContent).toContain(MODES.more_less!.blurb)
   })
 

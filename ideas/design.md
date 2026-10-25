@@ -346,7 +346,7 @@ take-back rule are architecture §7.
   devices a smaller "Full screen" switch of the same look sits beside it and follows the
   browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash.** The host's greeting and blurb in the bubble. The scroll, centred: the mode's name,
-  the blurb alone, then small "Round 4 of 10, 5 questions" and a price round's date. Under it,
+  its Create hint alone, then small "Round 4 of 10, 5 questions" and a price round's date. Under it,
   "Tonight", only the row, centred: a host per round, past ones faded, the current one large and
   named, the rest numbered; a host shows only where the client knows it, so shuffled or hidden
   rounds show Create's random-event "?" square but for the current one. Ten fit a row; past 12 it

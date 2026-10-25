@@ -15,9 +15,10 @@
    * holds them). The name is there whole; the
    * greeting and the blurb type in once the stage has come over from the screen before,
    * at the questions' pace (`lib/interlude.ts`). The splash has no hold to
-   * fit, so nothing waits on the typing. The scroll repeats the blurb, plain, under the name,
-   * then which round this is and how many questions it holds, and a price round's date, said
-   * here once so the questions need not. Under it, tonight's row of hosts (`lib/tonight.ts`), section 9 of ideas/design.md.
+   * fit, so nothing waits on the typing. The scroll holds, under the name, its Create hint, then
+   * which round this is and how many questions it holds, and a price round's date, said
+   * here once so the questions need not. Under it, tonight's row of hosts (`lib/tonight.ts`),
+   * section 9 of ideas/design.md.
    *
    * The ready check (section 9 of ideas/design.md) is the table panel, Ready over Not ready
    * yet, with the wait or the countdown, large, over the switch; on the TV a grid of pets
@@ -241,7 +242,7 @@
         </div>
       {:else}
         {#if mode !== null}
-          <p class="blurb">{mode.blurb}</p>
+          <p class="hint">{mode.hint}</p>
         {/if}
         <p class="asof shape">{shape}</p>
         {#if asOf !== null}
@@ -342,7 +343,12 @@
     color: var(--muted);
   }
 
-  .blurb + .shape {
+  .hint {
+    margin: 0;
+    font-size: max(0.95rem, 1.05rem * var(--scroll-text, 1));
+  }
+
+  .hint + .shape {
     margin-top: 0.5rem;
   }
 
