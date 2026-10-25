@@ -67,7 +67,7 @@ from app.questions import schema, vocab
 from app.questions.packs import EVENT_MODE, EVENTS_DIR, PackError, load_packs
 from app.questions.types.shuffle import seeded_order
 from app.questions.vocab import fold
-from app.rooms.models import CREDIT_MAX, normalize_name
+from app.rooms.models import normalize_name
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PACKS = REPO_ROOT / "data" / "packs"
@@ -118,7 +118,7 @@ def credited(entry: dict[str, Any], where: str, plan: Plan) -> dict[str, Any] | 
         plan.refused.append(f"{where}: needs a credit and a true or false credit_shown")
         return None
     try:
-        name = normalize_name(credit, CREDIT_MAX)
+        name = normalize_name(credit)
     except ApiError as exc:
         plan.refused.append(f"{where}: credit {credit!r}: {exc.message}")
         return None

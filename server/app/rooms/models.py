@@ -39,8 +39,6 @@ from app.ws.protocol import (
 )
 
 NAME_MAX = 12
-# A question's credit is a name too, but credits from before names were cut to 12 stand.
-CREDIT_MAX = 24
 # Letters only, from the Latin blocks whose accented letters a player could type:
 # names are read aloud and compared by eye, and every other script has letters that look
 # like these. ``names.ts`` holds the same ranges.

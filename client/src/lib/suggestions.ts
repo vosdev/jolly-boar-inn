@@ -17,7 +17,7 @@ import type { CustomQuestion, CustomType } from './customQuestions'
 import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
 import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
-import { CREDIT_MAX, nameProblem } from './names'
+import { nameProblem } from './names'
 import {
   answerLine as matchingLine,
   previewOf as matchingPreview,
@@ -478,7 +478,7 @@ export function sourceProblems(
 }
 
 export function creditProblem(name: string): string | null {
-  return name.trim() === '' ? 'Required: a name to credit.' : nameProblem(name, CREDIT_MAX)
+  return name.trim() === '' ? 'Required: a name to credit.' : nameProblem(name)
 }
 
 function textProblem(text: string, most: number, what: string): string | null {

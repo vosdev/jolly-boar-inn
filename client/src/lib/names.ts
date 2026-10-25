@@ -18,9 +18,6 @@ import BASES from '../../../data/player-names.json'
 /** `normalize_name` in `server/app/rooms/models.py`. `test_player_names.py` holds the corpus to it. */
 export const NAME_MAX = 12
 
-/** `CREDIT_MAX` on the server: credits from before names were cut to 12 stand. */
-export const CREDIT_MAX = 24
-
 /** Code points, the way the server counts: `len()` in Python, not `.length` in UTF-16. */
 function length(text: string): number {
   return [...text].length

@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 
 import CASES from '../../../server/tests/name_cases.json'
 import BASES from '../../../data/player-names.json'
-import { CREDIT_MAX, generateName, NAME_MAX, nameProblem, normalizeName, resuffix } from './names'
+import { generateName, NAME_MAX, nameProblem, normalizeName, resuffix } from './names'
 
 describe('names the server takes', () => {
   it.each(CASES.accepted)('%j is stored as %j', (raw, stored) => {
@@ -27,12 +27,10 @@ describe('names the server refuses', () => {
 })
 
 describe('the length', () => {
-  it('stops a name at 12 characters, and a credit at 24', () => {
+  it('stops a name, and so a credit, at 12 characters', () => {
     expect(NAME_MAX).toBe(12)
     expect(nameProblem('x'.repeat(12))).toBeNull()
     expect(nameProblem('x'.repeat(13))).toBe('At most 12 characters.')
-    expect(nameProblem('x'.repeat(24), CREDIT_MAX)).toBeNull()
-    expect(nameProblem('x'.repeat(25), CREDIT_MAX)).toBe('At most 24 characters.')
   })
 })
 

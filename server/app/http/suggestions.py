@@ -24,7 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app import suggestions
 from app.http.admin import require_token
 from app.http.ratelimit import client_key
-from app.rooms.models import CREDIT_MAX, normalize_name
+from app.rooms.models import normalize_name
 
 router = APIRouter(prefix="/api/suggestions")
 admin_router = APIRouter(prefix="/api/admin/suggestions", dependencies=[Depends(require_token)])
@@ -35,7 +35,7 @@ class Suggestion(BaseModel):
 
     kind: suggestions.Kind
     content: dict[str, Any]
-    # ``normalize_name`` holds it to 1-``CREDIT_MAX``; this only bounds what is read.
+    # ``normalize_name`` holds it to 1-``NAME_MAX``; this only bounds what is read.
     credit: str = Field(max_length=200)
     credit_shown: bool = Field(strict=True)
 
@@ -53,7 +53,7 @@ async def allowance(request: Request) -> dict[str, Any]:
 
 @router.post("", status_code=201)
 async def suggest(body: Suggestion, request: Request) -> dict[str, Any]:
-    credit = normalize_name(body.credit, CREDIT_MAX)
+    credit = normalize_name(body.credit)
     content = suggestions.check(body.kind, body.content, body.credit_shown)
     request.app.state.suggestions.check(
         client_key(_host(request)), "too many suggestions from this address, try again later"
@@ -124,7 +124,7 @@ async def queue(request: Request, status: suggestions.Status = "pending") -> dic
 
 @admin_router.put("/{suggestion}")
 async def edit(suggestion: UUID, body: Edit, request: Request) -> dict[str, Any]:
-    credit = normalize_name(body.credit, CREDIT_MAX)
+    credit = normalize_name(body.credit)
     pool = await request.app.state.database()
     return await suggestions.edit(pool, suggestion, body.content, credit, body.credit_shown)
 

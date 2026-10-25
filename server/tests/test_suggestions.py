@@ -427,7 +427,7 @@ def test_a_release_order_suggestion_waits_as_not_playable(client: TestClient) ->
     assert export(client)["questions"] == []
 
 
-@pytest.mark.parametrize("credit", ["", "   ", "x" * 25, "Zezima<b>", "名前"])
+@pytest.mark.parametrize("credit", ["", "   ", "x" * 13, "Zezima<b>", "名前"])
 def test_a_credit_that_fails_the_name_rules_is_a_422(client: TestClient, credit: str) -> None:
     response = client.post("/api/suggestions", json={**EVENT, "credit": credit})
     assert response.status_code == 422, response.text
@@ -435,8 +435,8 @@ def test_a_credit_that_fails_the_name_rules_is_a_422(client: TestClient, credit:
 
 
 def test_a_credit_is_held_like_a_display_name(client: TestClient) -> None:
-    suggest(client, {**ITEM, "credit": "  Woox   the  Great "})
-    assert queue(client)["suggestions"][0]["credit"] == "Woox the Great"
+    suggest(client, {**ITEM, "credit": "  Woox   the  Pro "})
+    assert queue(client)["suggestions"][0]["credit"] == "Woox the Pro"
 
 
 def test_html_is_kept_as_typed(client: TestClient) -> None:

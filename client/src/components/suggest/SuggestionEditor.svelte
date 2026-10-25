@@ -22,7 +22,7 @@
   import { get } from 'svelte/store'
 
   import type { CustomQuestion, CustomType } from '../../lib/customQuestions'
-  import { CREDIT_MAX } from '../../lib/names'
+  import { NAME_MAX } from '../../lib/names'
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
   import { profile } from '../../lib/profile'
@@ -287,8 +287,8 @@
     <legend>Credit</legend>
     <div class="field">
       <label for="{id}-credit">Your name</label>
-      <input id="{id}-credit" type="text" maxlength={CREDIT_MAX} bind:value={credit} />
-      <p class="note hint">Letters, digits, spaces, _ and -, up to {CREDIT_MAX}.</p>
+      <input id="{id}-credit" type="text" maxlength={NAME_MAX} bind:value={credit} />
+      <p class="note hint">Letters, digits, spaces, _ and -, up to {NAME_MAX}.</p>
       {@render problem(creditError, show)}
     </div>
     <label class="check">

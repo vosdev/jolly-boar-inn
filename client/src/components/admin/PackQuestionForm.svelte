@@ -9,7 +9,7 @@
    * edited as its payload's JSON, which the server checks on Save.
    */
   import { CUSTOM_TYPES, type CustomQuestion, type CustomType } from '../../lib/customQuestions'
-  import { CREDIT_MAX, nameProblem } from '../../lib/names'
+  import { NAME_MAX, nameProblem } from '../../lib/names'
   import type { MatchingQuestion } from '../../lib/matching'
   import type { OrderingQuestion } from '../../lib/ordering'
   import {
@@ -78,7 +78,7 @@
       : null
 
   const links = $derived(sourceProblems(wiki, sourceUrl))
-  const creditError = $derived(credit.trim() === '' ? null : nameProblem(credit, CREDIT_MAX))
+  const creditError = $derived(credit.trim() === '' ? null : nameProblem(credit))
   const parsed = $derived(parsePayload(json))
 
   function envelopePasses(): boolean {
@@ -126,7 +126,7 @@
     <legend>Credit</legend>
     <div class="field">
       <label for="{id}-credit">Suggested by</label>
-      <input id="{id}-credit" type="text" maxlength={CREDIT_MAX} bind:value={credit} />
+      <input id="{id}-credit" type="text" maxlength={NAME_MAX} bind:value={credit} />
       {@render problem(creditError, show)}
     </div>
     <label class="check">
