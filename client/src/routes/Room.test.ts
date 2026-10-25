@@ -18,7 +18,7 @@ import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
 import { HISCORES_HOST } from '../lib/hiscores'
 import { RETURN_MS } from '../lib/interlude'
-import { MODES } from '../lib/modes'
+import { MODES, modeLabel } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
 import { ENTER_MOVE_MS, HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
@@ -785,6 +785,49 @@ describe('the room’s frame', () => {
     expect(get(barWhere)).toEqual({ lead: 'Hiscores after round 1 of 2', mode: null })
     cleanup()
     expect(get(barWhere)).toBeNull()
+  })
+
+  it('names the round the splash presents, not the one just played', async () => {
+    const open: OpenQuestion = {
+      question_id: 'q1',
+      index: 0,
+      total: 2,
+      type: 'more_less',
+      mode: 'more_less',
+      segment: { ...SEGMENT, total: 4, count: 1 },
+      view: {
+        metric: 'ge_price',
+        direction: 'more',
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+        as_of: '2026-09-01',
+      },
+      opened_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 10_000).toISOString(),
+      you_can_answer: true,
+      picture: null,
+      random_event: null,
+      answerable_at: new Date().toISOString(),
+      answered: 0,
+      of: 0,
+      waiting: [],
+    }
+    await arrive(welcome(roomView({ phase: 'open', next_at: null, total: 4 })))
+    applyServerMessage({ t: 'question_open', question: open })
+    await waitFor(() => expect(get(barWhere)?.lead).toBe('Round 1 of 4:'))
+    applyServerMessage({
+      t: 'room_updated',
+      room: roomView({
+        phase: 'splash',
+        next_at: null,
+        current_index: 1,
+        total: 4,
+        segment: { ...SEGMENT, mode: 'price_is_right', index: 1, total: 4, start: 1 },
+      }),
+      players: [],
+    })
+    await waitFor(() =>
+      expect(get(barWhere)).toEqual({ lead: 'Round 2 of 4:', mode: modeLabel('price_is_right') }),
+    )
   })
 
   it('keeps the TV out of the frame and the bar', async () => {
