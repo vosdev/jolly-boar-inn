@@ -431,7 +431,7 @@ and between rounds pinned to the sheet's foot when below it.
 where they stood before the round, with the totals then; once his line has typed the gains count
 up, a second later the rows move to their places, and then your row pins. About three seconds.
 The table panel says "Next up": the next round's host, its name, "Round 3 of 3, 5 questions"
-(`room.next_segment`, so hidden and shuffled rounds too) and "Starts in 8", large, at its foot.
+(`room.next_segment`, so hidden and shuffled rounds too) and "Moving on in 8", large, at its foot.
 On a phone it is a strip at the foot, "Next up: Bestiary" and the count, that opens nothing. The
 timer bar counts to the next round in the quiet fill, its tabs `2/3` (rounds played) and `8s`.
 The TV shows none of it.

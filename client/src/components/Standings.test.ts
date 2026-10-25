@@ -144,7 +144,8 @@ describe('Next up', () => {
     const panel = screen.getByRole('region', { name: 'Next up' })
     expect(panel.textContent).toContain('More or Less')
     expect(panel.textContent).toContain('Round 3 of 3, 5 questions')
-    expect(panel.querySelector('.starts')?.textContent).toMatch(/Starts in\s*8/)
+    expect(panel.querySelector('.starts')?.textContent).toMatch(/Moving on in\s*8/)
+    expect(panel.textContent).not.toContain('Starts in')
   })
 
   it('is a strip at the foot on a phone', () => {

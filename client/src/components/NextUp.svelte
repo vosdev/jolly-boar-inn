@@ -47,7 +47,7 @@
     </div>
     {#if startsIn !== null}
       <p class="starts" aria-live="polite">
-        <span>Starts in</span>
+        <span>Moving on in</span>
         <strong class="count">{startsIn}</strong>
       </p>
     {/if}
