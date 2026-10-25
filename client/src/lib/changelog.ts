@@ -44,6 +44,26 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.192.0',
+    date: '2026-10-25',
+    text: 'At the final, the Wise Old Man holds up each trophy in his dialogue box as he names the place.',
+  },
+  {
+    version: '0.191.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? never draws its picture larger than it really is, and the answer list always has room for five names.",
+  },
+  {
+    version: '0.190.0',
+    date: '2026-10-25',
+    text: 'The answers on a reveal no longer show "you" twice: your chathead already says it.',
+  },
+  {
+    version: '0.189.0',
+    date: '2026-10-25',
+    text: 'The Ready and Full screen switches no longer sit inside a big circle.',
+  },
+  {
     version: '0.188.0',
     date: '2026-10-25',
     text: 'Between rounds, the Next up panel is only as tall as what it says, with the countdown under the round.',
