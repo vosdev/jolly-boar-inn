@@ -61,7 +61,7 @@
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
   const urgent = $derived(!next && !quiet && remainingMs > 0 && seconds <= URGENT_S)
-  const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit, $roomShown.reveal))
+  const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit))
   const scale = $derived($tvFit?.scale ?? $roomShown?.fit.scale ?? null)
 </script>
 

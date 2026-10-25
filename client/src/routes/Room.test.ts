@@ -31,6 +31,7 @@ import { clearVocabCache } from '../lib/vocab'
 import { savePastGame } from '../lib/history'
 import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
+import roomSource from './Room.svelte?raw'
 
 vi.mock('../lib/session', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/session')>()
@@ -747,11 +748,17 @@ describe('the room’s frame', () => {
     expect(screen.getByRole('button', { name: /0 of 2 answered/ })).toBeTruthy()
   })
 
-  it('widens the table for a reveal', async () => {
+  it('keeps the stage where it is from a question to its reveal', async () => {
     windowOf(1440, 900)
     await arrive(welcome(roomView({ phase: 'reveal', next_at: inSeconds(10) })))
     expect(document.querySelector('.play.revealing')).toBeTruthy()
-    expect(get(roomShown)?.reveal).toBe(true)
+    // jsdom has no layout, so the rules themselves are checked: the column is as wide as
+    // the reveal needs from the first frame, and the stage is not centred in its height, so
+    // taller answers grow downward only.
+    const css = roomSource
+    expect(css).toMatch(/\.fitted \.play \{[^}]*grid-template-columns: minmax\(0, 1fr\) 380px/)
+    expect(css).not.toMatch(/\.fitted \.play\.revealing \{[^}]*grid-template-columns/)
+    expect(css).toMatch(/\.fitted \.stage-in \{\s*margin-block: 0 auto/)
   })
 
   it('tells the bar where the night is', async () => {

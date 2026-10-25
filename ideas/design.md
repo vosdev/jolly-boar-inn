@@ -240,12 +240,12 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 ```
 
 - **The room's frame** (`lib/roomFit.ts`): the stage on the left, the table column on the right,
-  300px (380px in a reveal), 28px apart, padded 30/40/28px. It is laid out at 1600×920 under the
+  380px wide always (the table is 300px until a reveal, so the stage never changes width), 28px apart, padded 30/40/28px. It is laid out at 1600×920 under the
   bar: larger windows scale it up as a whole, as the TV (§16), never wider than 16:9 of the
   window's height, the floor beside it with the wall lights (§1) measured from its edge, none
   where it fills the window; from 1280×640 it fills the window at its
-  own size; smaller, it lays out at 1280×640 and scales down. The stage's parts stand centred in
-  its height. Under 1024px wide the stage and table stack. The TV has no frame.
+  own size; smaller, it lays out at 1280×640 and scales down. The stage starts at the top of its
+  height and keeps its place from question to reveal; only the answers grow, downward. Under 1024px wide the stage and table stack. The TV has no frame.
 - **Two sizes.** On the desktop frame a stage whose host speaks above it takes the stage column, up
   to 960px, its sheet's words at 1.5 (`--scroll-text`) and rolls and pin at 1.25 (`--scroll-scale`);
   every other stage, and every stage on a phone, is at most 30rem. The answers take the stage's
