@@ -353,7 +353,8 @@ take-back rule are architecture §7.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
   last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,
   and its settings no name or pet.
-- **Switches:** "Ready" is a large switch (`Switch.svelte`), on in `--ok`, in lobby and splash;
+- **Switches:** "Ready" is a large switch (`Switch.svelte`: the track and its label, no button
+chrome or circle around them), on in `--ok`, in lobby and splash;
   where it cannot be taken back (the splash allows one take-back) it sits disabled, on. On touch
   devices, and in a room drawn below scale 1 (§8), a smaller "Full screen" switch of the same look
   sits beside it and follows the browser's state; below scale 1 a line adds "Short on room? Full
