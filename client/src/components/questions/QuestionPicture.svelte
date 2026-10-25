@@ -12,7 +12,14 @@
    * into the render, as the reveal does. It is an animation, not a transition, because the
    * reveal draws a new picture that is lifted from its first frame. `caption` is the name
    * under it.
+   *
+   * A `large` picture on a room's stage (the nearest `[data-fit-stage]`) takes the height the
+   * stage has left once everything else is in, between `PICTURE_LEAST` and the render's own
+   * height, and the caption's room is kept from the start so the reveal does not move it.
+   * The height is measured while the question is open and held from the reveal on, so the
+   * silhouette and the render share one box and a taller reveal scrolls rather than shrinks it.
    */
+  import { pictureHeight } from '../../lib/pictureFit'
   import { pictureUrl } from '../../lib/pictures'
 
   let {
@@ -31,12 +38,48 @@
   } = $props()
 
   const src = $derived(pictureUrl(name))
+
+  let box = $state<HTMLElement | null>(null)
+  let img = $state<HTMLImageElement | null>(null)
+  let natural = $state(0)
+  let fitted = $state<number | null>(null)
+
+  function loaded(): void {
+    natural = img?.naturalHeight ?? 0
+  }
+
+  $effect(() => {
+    if (img?.complete) natural = img.naturalHeight
+  })
+
+  $effect(() => {
+    const mine = box
+    const stage = mine?.closest<HTMLElement>('[data-fit-stage]') ?? null
+    const content = stage?.firstElementChild
+    if (!large || lifted || !mine || !stage || !(content instanceof HTMLElement) || natural <= 0) {
+      return
+    }
+    const measure = (): void => {
+      const rest = content.offsetHeight - mine.offsetHeight
+      fitted = pictureHeight(stage.clientHeight - rest, natural)
+    }
+    measure()
+    const watch = new ResizeObserver(measure)
+    watch.observe(stage)
+    watch.observe(content)
+    return () => watch.disconnect()
+  })
 </script>
 
 {#if src !== null}
-  <div class="picture" class:large>
+  <div
+    class="picture"
+    class:large
+    bind:this={box}
+    style:--picture-height={fitted === null ? null : `${fitted}px`}
+  >
     <div class="frame" class:shadow class:lifted={shadow && lifted}>
-      <img {src} alt="" />
+      <img {src} alt="" bind:this={img} onload={loaded} />
       {#if shadow}
         <span class="fill" style:--outline="url('{src}')"></span>
       {/if}
@@ -44,6 +87,8 @@
   </div>
   {#if caption}
     <p class="caption">{caption}</p>
+  {:else if large}
+    <p class="reserve" aria-hidden="true">&nbsp;</p>
   {/if}
 {/if}
 
@@ -113,12 +158,17 @@
     }
   }
 
-  .caption {
+  .caption,
+  .reserve {
     margin: 0.25rem 0 0;
     text-align: center;
     font-family: var(--font-display);
     font-size: 1.25em;
     font-weight: 700;
     color: var(--scroll-ink);
+  }
+
+  .reserve {
+    visibility: hidden;
   }
 </style>

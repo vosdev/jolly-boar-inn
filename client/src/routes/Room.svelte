@@ -492,7 +492,7 @@
   style:--room-height={framed === null ? null : `${framed.height}px`}
 >
   <div class="play" class:revealing class:final={$room?.status === 'finished'}>
-    <div class="stage-side">
+    <div class="stage-side" data-fit-stage>
       <div class="stage-in">
         {#if departure !== null}
           <!-- The room's code is in the top bar (section 4). These headings say which screen
