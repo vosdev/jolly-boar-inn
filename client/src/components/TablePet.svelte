@@ -1,6 +1,7 @@
 <script lang="ts">
   /**
-   * One player in the table panel: their pet with their name under it, yours in bold.
+   * One player in the table panel: their pet with their whole name under it, wrapped when
+   * it is too wide for its column, yours in bold.
    *
    * An away player's pet fades to grey and says "away"; the TV carries a screen on its
    * corner. Which half a pet sits in says the rest, so there is no tick here.
@@ -74,11 +75,12 @@
     stroke-linejoin: round;
   }
 
+  /* Never cut: a name too wide for a third of the panel breaks onto a second line, even
+     mid-word, since twelve W's have no gap to break at. */
   .pet-name {
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    text-align: center;
     font-size: 0.72rem;
     line-height: 1.25;
     color: var(--muted);

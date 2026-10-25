@@ -31,8 +31,7 @@
    *
    * A `tall` sheet, the hiscores, runs longer than a screen, so the host stands at its
    * top-left beside the line it speaks, and the sheet keeps its full width below. What is
-   * written beside the host clears it by `--host-clear`. `beside` stands on the right,
-   * over the right roll at the sheet's foot: the final's trophy.
+   * written beside the host clears it by `--host-clear`.
    *
    * The sheet is the theme's (`lib/sheet.ts`), and `board` asks for Home's notice board. A
    * sheet without rolls takes their room away, so the host laps over the sheet's own edge.
@@ -74,7 +73,6 @@
     returning = false,
     hero = null,
     tall = false,
-    beside,
     children,
     bubble = null,
     said,
@@ -101,15 +99,13 @@
     returning?: boolean
     /** The host at the sheet's top, for a sheet longer than the host is tall. */
     tall?: boolean
-    /** What stands on the right, opposite the host. */
-    beside?: Snippet
     /** What sits under the line. */
     children?: Snippet
     /** Whoever speaks stands above the sheet, in a bubble shown so; null, beside the sheet. */
     bubble?: Bubble | null
     /** The speaker's words in the bubble. */
     said?: Snippet
-    /** Keep the sheet, the line and the right side empty for parts moved in. */
+    /** Keep the sheet and the line empty for parts moved in. */
     slots?: boolean
     /** A hand-over: whoever stands beside the scroll leaving, gone or walking on. */
     presence?: Presence
@@ -202,11 +198,6 @@
       {@render paper?.()}
     </ClueScroll>
     {#if !speaks}{@render guestHead()}{/if}
-    {#if beside || slots}
-      <div class="beside" aria-hidden="true">
-        {@render beside?.()}
-      </div>
-    {/if}
   </div>
   {#if children || slots}
     <div class="under">
@@ -218,7 +209,7 @@
 <style>
   /* Above the sheet: the game's dialogue box, the speaker's chathead inside it. */
   .speaker {
-    --head: 92px;
+    --head: var(--head-size, 92px);
     position: relative;
     margin-bottom: 0.75rem;
   }
@@ -418,7 +409,6 @@
 
   /* The text beside the host starts this far in from the sheet's left edge. */
   .tall {
-    --beside-w: 92px;
     --host-clear: calc(var(--npc-w) - var(--roll-w) - 0.9rem * var(--k) + 0.5rem);
   }
 
@@ -427,15 +417,6 @@
     left: 0;
     top: calc(var(--finial) * 0.75 + 4px);
     margin: 0;
-  }
-
-  .beside {
-    position: absolute;
-    z-index: 4;
-    right: 0;
-    bottom: calc(var(--finial) * 0.75 + 4px);
-    width: var(--beside-w, 92px);
-    pointer-events: none;
   }
 
   .npc img {
@@ -596,10 +577,6 @@
       --scroll-scale: 0.8;
       --scroll-text: 0.9;
     }
-
-    .tall {
-      --beside-w: 72px;
-    }
   }
 
   /* Out to the screen's edges, past main's 1rem gutter, with the rolls' outer halves cut
@@ -645,10 +622,6 @@
     .tall .npc {
       top: calc(var(--finial) * 0.75 + 4px);
       bottom: auto;
-    }
-
-    .beside {
-      right: calc(var(--roll-w) / 2 + 4px);
     }
   }
 

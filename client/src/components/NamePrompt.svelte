@@ -4,7 +4,7 @@
    * ideas/design.md): a name and a pet, pre-filled so that one tap on the button is a
    * valid answer, and nothing to dismiss it with. Escape is swallowed and there is no
    * cancel, because a player who got past this screen without a name is how the lobby
-   * filled with `Cow31337Killer42`.
+   * filled with `Cow1337Kill`.
    *
    * A native modal `<dialog>`, like `ConfirmDialog`, so the page and the top bar behind
    * it are inert and dimmed without a focus trap of our own. Shown for as long as it is
@@ -19,6 +19,7 @@
 
   import { generateName, nameProblem } from '../lib/names'
   import { randomPet } from '../lib/pets'
+  import { leftover } from '../lib/profile'
   import NameField from './NameField.svelte'
   import PetPicker from './PetPicker.svelte'
 
@@ -37,8 +38,9 @@
   const id = $props.id()
   let dialog = $state<HTMLDialogElement | null>(null)
   // Rolled once: a later change of `avoid` must not swap the name under somebody typing.
-  let name = $state(untrack(() => generateName(avoid)))
-  let pet = $state(randomPet())
+  // A stored name the rules have since cut is offered back, cut, rather than a new one.
+  let name = $state(untrack(() => leftover?.name ?? generateName(avoid)))
+  let pet = $state(leftover?.pet ?? randomPet())
 
   const ok = $derived(nameProblem(name) === null)
 

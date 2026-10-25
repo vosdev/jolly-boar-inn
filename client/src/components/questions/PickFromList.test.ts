@@ -67,8 +67,11 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-async function mount(onAnswer: (value: unknown) => void = () => {}) {
-  render(Question, { question: open(), yourValue: null, onAnswer })
+async function mount(onAnswer: (value: unknown) => void = () => {}, target?: HTMLElement) {
+  render(Question, {
+    props: { question: open(), yourValue: null, onAnswer },
+    ...(target === undefined ? {} : { target }),
+  })
   const box = (await screen.findByRole('combobox')) as HTMLInputElement
   const submit = screen.getByRole('button', { name: 'Submit' }) as HTMLButtonElement
   return { box, submit }
@@ -176,6 +179,19 @@ describe('pick_from_list', () => {
       const { box } = await mount()
       await fireEvent.focus(box)
       expect(listbox().classList.contains('above')).toBe(true)
+    })
+
+    it('keeps the list inside a scrolling stage, so the stage never scrolls for it', async () => {
+      screenOf(false, 200, 800)
+      const stage = document.createElement('div')
+      stage.style.overflowY = 'auto'
+      vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue({ top: 0, bottom: 456 } as DOMRect)
+      document.body.append(stage)
+      const { box } = await mount(undefined, stage)
+      await fireEvent.focus(box)
+      expect(listbox().classList.contains('above')).toBe(false)
+      expect(listbox().style.maxHeight).toBe('188px')
+      stage.remove()
     })
 
     it('scrolls the page for a box the keyboard hides, never to the top', async () => {

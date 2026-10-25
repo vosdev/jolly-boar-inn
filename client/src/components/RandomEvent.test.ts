@@ -441,6 +441,24 @@ describe('the NPC’s own words', () => {
     expect(kept.getAttribute('aria-hidden')).toBe('true')
   })
 
+  it('puts your points on a chip on its name row in the reveal, and keeps its own verdict', () => {
+    render(RandomEvent, {
+      question: introduced(),
+      reveal: { intro: INTRO, prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1 },
+      yourValue: 1,
+      result: { value: 1, correct: true, credit: 1, points: 900 },
+      onAnswer: () => {},
+    })
+    expect(document.querySelector('.bubble .title .chip .slot')?.textContent).toContain('+900')
+    expect(document.querySelector('.paper .slot')).toBeNull()
+    expect(document.querySelector('.bubble .line:not(.later)')?.textContent).toContain(death.right)
+  })
+
+  it('shows no chip while its question is open', () => {
+    render(RandomEvent, { question: introduced(), yourValue: 1, onAnswer: () => {} })
+    expect(document.querySelector('.slot')).toBeNull()
+  })
+
   it('keeps the bubble the height of its reveal from the first frame', () => {
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
     const kept = document.querySelector('.bubble .later')!

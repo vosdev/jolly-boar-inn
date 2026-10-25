@@ -272,7 +272,7 @@ describe('Room', () => {
     expect(document.querySelector('.hiscores')).toBeNull()
   })
 
-  it('writes what we earned on the scroll for the reveal, without the total', async () => {
+  it('puts what we earned on the dialogue box’s name row for the reveal, without the total', async () => {
     const open: OpenQuestion = {
       question_id: 'q1',
       index: 0,
@@ -332,7 +332,8 @@ describe('Room', () => {
     expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('+850')
     // What we earned, and only that: the total waits for the standings.
     expect(document.querySelector('.slot .total')).toBeNull()
-    expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)
+    expect(document.querySelector('.bubble .title .chip .slot')).toBeTruthy()
+    expect(document.querySelector('.paper .slot')).toBeNull()
     expect(get(timerBar)?.label).toBe('to the next question')
     expect(get(timerBar)?.next).toBe('Next')
     // The bar is full on this question's own reveal, which the frame says.
@@ -381,7 +382,7 @@ describe('Room', () => {
       reveal_seconds: 8,
       picture: null,
     })
-    await waitFor(() => expect(document.querySelector('.paper .slot')).toBeTruthy())
+    await waitFor(() => expect(document.querySelector('.bubble .slot')).toBeTruthy())
     expect(get(timerBar)?.progress).toBe('1/2')
     expect(screen.getByRole('heading', { level: 1 }).classList.contains('sr')).toBe(true)
     const drawnRound = [...document.body.querySelectorAll('*')].filter(
@@ -602,6 +603,22 @@ describe('the room’s frame', () => {
     await tick()
     expect(document.querySelector('.frame.fitted')).toBeNull()
     expect(get(roomShown)).toBeNull()
+  })
+
+  it('shrinks the padding and the chathead under 920px of layout height, and not at 920', async () => {
+    windowOf(1512, 920 + 56)
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(document.querySelector('.frame.fitted.compact')).toBeNull()
+
+    windowOf(1512, 919 + 56)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(document.querySelector('.frame.fitted.compact')).toBeTruthy()
+    // jsdom has no layout, so the compact rules themselves are checked.
+    const rule = roomSource.match(/\.fitted\.compact \.play \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toMatch(/--head-size: 72px;/)
+    expect(rule).toMatch(/padding: 16px 32px 16px;/)
+    expect(roomSource).toMatch(/\.fitted \.play \{[^}]*gap: 28px;\s*padding: 30px 40px 28px;/)
   })
 
   it('puts who is in at the table, out of the stage', async () => {
