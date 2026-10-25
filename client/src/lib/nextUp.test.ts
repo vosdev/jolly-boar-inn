@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { nextInLine, nextRoundLine, nextUp } from './nextUp'
+import { nextRoundLine, nextTab, nextUp } from './nextUp'
 
 const round = { start: 3, count: 3 }
 
@@ -22,10 +22,12 @@ describe('nextUp', () => {
   })
 })
 
-describe('nextInLine', () => {
-  it('counts in whole seconds, one of them singular', () => {
-    expect(nextInLine('Next question', 6)).toBe('Next question in 6 seconds')
-    expect(nextInLine('Standings', 1)).toBe('Standings in 1 second')
+describe('nextTab', () => {
+  it('cuts what follows to one word for the timer bar', () => {
+    expect(nextTab('Next question')).toBe('Next')
+    expect(nextTab('Next round')).toBe('Next')
+    expect(nextTab('Standings')).toBe('Standings')
+    expect(nextTab('Final standings')).toBe('Final')
   })
 })
 

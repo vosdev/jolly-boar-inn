@@ -95,6 +95,7 @@
   } from '../lib/stores'
   import { teamsOf } from '../lib/teams'
   import { timerBar } from '../lib/timerbar'
+  import { nextTab, nextUp } from '../lib/nextUp'
   import { reloadIfStale } from '../lib/version'
   import { listFor, prefetchVocab } from '../lib/vocab'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
@@ -223,17 +224,22 @@
       current.next_at !== null
     ) {
       const standing = current.phase === 'standings'
+      const revealed = $lastClosed?.was ?? open
+      const what =
+        revealed === null
+          ? 'Next question'
+          : nextUp(revealed, current.settings.standings_seconds > 0)
       timerBar.set({
         endsAt: current.next_at,
         totalSeconds: standing ? current.settings.standings_seconds : (current.reveal_seconds ?? 0),
-        label: standing ? 'to the next round' : 'to the next question',
+        label: standing ? 'to the next round' : `to the ${what.toLowerCase()}`,
         ...(standing
           ? {
               quiet: !isTv,
               ...(!isTv &&
                 segment !== null && { progress: `${segment.index + 1}/${segment.total}` }),
             }
-          : { progress: `${number}/${total}`, next: !isTv }),
+          : { progress: `${number}/${total}`, ...(!isTv && { next: nextTab(what) }) }),
       })
     } else {
       timerBar.set(null)
@@ -604,7 +610,6 @@
                   results={$lastClosed.results}
                   onAnswer={() => {}}
                   nextAt={$room.next_at}
-                  standings={$room.settings.standings_seconds > 0}
                   answersOnly={phone}
                   tv={$you?.role === 'tv'}
                 >

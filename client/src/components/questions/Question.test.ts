@@ -430,8 +430,15 @@ describe('every type on the stage', () => {
 
   it('keeps the host quiet while the question is up, its bubble keeping its room', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
-    expect(document.querySelector('.speaker .npc.host')).toBeTruthy()
+    // The chathead sits in the dialogue box, which stays while its words are hidden.
+    expect(bubble().querySelector('.npc.host')).toBeTruthy()
     expect(bubble().classList.contains('off')).toBe(true)
+  })
+
+  it('names the host in its dialogue box while the question is open', () => {
+    render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
+    const name = bubble().querySelector('.speech > .name')
+    expect(name?.textContent).toBe(MODES.more_less!.host.name)
   })
 
   it('has the host say its waiting line in its bubble, dimmed, once you have answered', () => {
@@ -450,7 +457,7 @@ describe('every type on the stage', () => {
     expect(paper().querySelector('.foot .slot')?.textContent).toContain('+850')
   })
 
-  it('puts the explanation and the countdown in the reveal’s bubble, off the sheet', () => {
+  it('puts the explanation in the reveal’s bubble, off the sheet, and no countdown', () => {
     const question = open('more_less', 'more_less')
     const why = 'Rune prices crashed when the mines were reopened.'
     const nextAt = new Date(Date.now() + 6000).toISOString()
@@ -462,7 +469,8 @@ describe('every type on the stage', () => {
       nextAt,
     })
     expect(said()).toContain(why)
-    expect(said()).toMatch(/Next question in [56] seconds/)
+    expect(said()).not.toMatch(/\bin \d+ seconds?\b/)
+    expect(document.querySelector('.bubble .next')).toBeNull()
     expect(screen.getAllByText(why)).toHaveLength(1)
     expect(paper().textContent).not.toContain(why)
   })

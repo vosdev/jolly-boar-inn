@@ -316,6 +316,7 @@ describe('Room', () => {
     expect(document.querySelector('.slot .total')).toBeNull()
     expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)
     expect(get(timerBar)?.label).toBe('to the next question')
+    expect(get(timerBar)?.next).toBe('Next')
     // The bar is full on this question's own reveal, which the frame says.
     expect(get(timerBar)?.totalSeconds).toBe(16)
   })

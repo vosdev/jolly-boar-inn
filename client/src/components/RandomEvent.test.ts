@@ -157,7 +157,10 @@ describe('RandomEvent', () => {
     const speaker = container.querySelector('.speaker')!
     expect(speaker.classList.contains('event')).toBe(true)
     const npcs = [...speaker.querySelectorAll('.npc')].map((npc) => npc.classList[1])
-    expect(npcs).toEqual(['host', 'guest'])
+    expect(npcs.sort()).toEqual(['guest', 'host'])
+    // The NPC sits in its own dialogue box, at the right; the host's is the faded shell.
+    expect(speaker.querySelector('.bubble.right:not(.shell) .npc.guest')).not.toBeNull()
+    expect(speaker.querySelector('.bubble.shell .npc.host')).not.toBeNull()
     expect(container.querySelector('.stage-row .npc')).toBeNull()
     const paper = container.querySelector('.paper')!.textContent
     expect(paper).toContain('Random event')
@@ -437,12 +440,11 @@ describe('the NPC’s own words', () => {
     render(RandomEvent, { question: introduced(), yourValue: null, onAnswer: () => {} })
     const kept = document.querySelector('.bubble .later')!
     expect(kept.getAttribute('aria-hidden')).toBe('true')
-    // The longer verdict, two lines for an explanation and the countdown's line.
+    // The longer verdict and two lines for an explanation.
     expect(kept.querySelector('.reaction')?.textContent).toBe(
       death.right.length >= death.wrong.length ? death.right : death.wrong,
     )
     expect(kept.querySelector('.explained')).not.toBeNull()
-    expect(kept.querySelector('.next')).not.toBeNull()
   })
 
   it('dims the bubble once the question has typed, and brings it back in the reveal', async () => {
@@ -470,25 +472,19 @@ describe('the NPC’s own words', () => {
     expect(bubble().classList.contains('on')).toBe(true)
   })
 
-  it('ends the reveal’s bubble with the explanation and the countdown to the next question', async () => {
+  it('ends the reveal’s bubble with the explanation, leaving the countdown to the timer bar', () => {
     const why = 'Augury needs 77 Prayer and Sins of the Father.'
-    // The countdown runs on the server clock's tick.
-    vi.useFakeTimers({
-      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
-    })
-    vi.setSystemTime(NOW)
     render(RandomEvent, {
       question: introduced(),
       reveal: { prompt: PROMPT, options: ['70', '77', '74'], answer_index: 1, explanation: why },
       yourValue: 1,
       onAnswer: () => {},
-      nextAt: new Date(NOW + 6000).toISOString(),
+      nextAt: new Date(Date.now() + 6000).toISOString(),
     })
-    const said = () => document.querySelector('.bubble .line:not(.later)')!.textContent
-    expect(said()).toContain(why)
-    expect(said()).toContain('Next question in 6 seconds')
-    await after(1000)
-    expect(said()).toContain('Next question in 5 seconds')
+    const said = document.querySelector('.bubble .line:not(.later)')!.textContent
+    expect(said).toContain(why)
+    expect(said).not.toMatch(/\bin \d+ seconds?\b/)
+    expect(document.querySelector('.bubble .next')).toBeNull()
   })
 
   it.each([

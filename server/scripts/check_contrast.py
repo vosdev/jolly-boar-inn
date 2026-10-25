@@ -13,6 +13,7 @@ with the theme's declarations resolved on top of the ones ``:root`` shares:
 * ``--ink`` reaches 7:1 against ``--panel`` and ``--panel-raised``, and ``--bg-ink`` 7:1
   against ``--bg`` — two inks, because a theme may put light panels on a dark page;
 * ``--muted`` reaches 4.5:1 against ``--panel``, and ``--bg-muted`` 4.5:1 against ``--bg``;
+* ``--speaker``, the name over the dialogue box, reaches 4.5:1 against ``--panel-raised``;
 * ``--more`` and ``--less`` reach 4.5:1 against ``--panel``;
 * ``--ok`` and ``--bad`` are at least 60 degrees apart in hue, and so are ``--more`` and
   ``--less``, so neither pair collapses for a player who does not see red and green;
@@ -64,6 +65,7 @@ SURFACE = (
     "--muted",
     "--bg-ink",
     "--bg-muted",
+    "--speaker",
 )
 BRAND = ("--accent", "--accent-ink", "--accent-hover")
 VERDICT = ("--ok", "--ok-ink", "--bad", "--bad-ink", "--warn", "--warn-ink")
@@ -281,6 +283,7 @@ def check_theme(name: str, tokens: dict[str, str]) -> list[str]:
     ratio("--bg-ink", "--bg", BODY_TEXT_RATIO)
     ratio("--muted", "--panel", TEXT_RATIO)
     ratio("--bg-muted", "--bg", TEXT_RATIO)
+    ratio("--speaker", "--panel-raised", TEXT_RATIO)
     ratio("--more", "--panel", TEXT_RATIO)
     ratio("--less", "--panel", TEXT_RATIO)
     ratio("--scroll-ink", "--scroll-paper", BODY_TEXT_RATIO)

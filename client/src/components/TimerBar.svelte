@@ -32,7 +32,7 @@
     totalSeconds,
     label,
     progress,
-    next = false,
+    next,
     quiet = false,
     team = null,
     flush = false,
@@ -41,8 +41,8 @@
     totalSeconds: number
     label: string
     progress?: string
-    /** Counting down to what follows a reveal: the tab says "Next in", the fill is quiet. */
-    next?: boolean
+    /** What follows a reveal, counted down to: the tab says "Next in 6s", the fill is quiet. */
+    next?: string
     /** The quiet fill with a plain tab: the standings, whose panel says what comes next. */
     quiet?: boolean
     /** The player's team in a team game, whose colours the bar takes. */
@@ -60,7 +60,7 @@
   // then the bar sits full on the question's own length rather than counting the hold.
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
-  const urgent = $derived(!next && !quiet && remainingMs > 0 && seconds <= URGENT_S)
+  const urgent = $derived(next === undefined && !quiet && remainingMs > 0 && seconds <= URGENT_S)
   const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit))
   const scale = $derived($tvFit?.scale ?? $roomShown?.fit.scale ?? null)
 </script>
@@ -68,7 +68,7 @@
 <div
   class="timerbar"
   class:urgent
-  class:next={next || quiet}
+  class:next={next !== undefined || quiet}
   class:framed={team !== null}
   class:flush
   aria-label="{seconds} seconds {label}"
@@ -95,7 +95,7 @@
     {#if team !== null}
       <span class="team"><TeamBadge {team} /></span>
     {/if}
-    <span class="tab seconds">{next ? `Next in ${seconds}s` : `${seconds}s`}</span>
+    <span class="tab seconds">{next === undefined ? `${seconds}s` : `${next} in ${seconds}s`}</span>
   </div>
 </div>
 

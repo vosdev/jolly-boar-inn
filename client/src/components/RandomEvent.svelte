@@ -23,9 +23,9 @@
    * event takes the stage, and only for a question that arrived `live`: a reconnect, a
    * reveal and reduced motion get the settled stage. The typing is a mask over text that
    * is whole in the DOM, and whole for a screen reader, from the first frame. In the
-   * reveal the bubble comes back with the NPC's `right` or `wrong` to your answer, the
-   * `explanation` and the countdown to what follows, your points go on the sheet's foot,
-   * and the NPC hands the stage back in its last `RETURN_MS`, counted to `nextAt`.
+   * reveal the bubble comes back with the NPC's `right` or `wrong` to your answer and the
+   * `explanation`, your points go on the sheet's foot, and the NPC hands the stage back
+   * in its last `RETURN_MS`, counted to `nextAt`.
    *
    * The bubble keeps room for the reveal's words, two lines of explanation among them, and
    * the sheet for the points, from the start, so nothing under them moves when they arrive.
@@ -46,7 +46,6 @@
   import { NO_AWARD, awardFor } from '../lib/award'
   import { RETURN_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
   import { hostOf } from '../lib/modes'
-  import { nextUp } from '../lib/nextUp'
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { randomEventFor } from '../lib/randomEvents'
   import { serverOffsetMs } from '../lib/stores'
@@ -55,7 +54,6 @@
   import PointsSlot from './PointsSlot.svelte'
   import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
-  import NextIn from './stage/NextIn.svelte'
   import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
   import Typed from './stage/Typed.svelte'
@@ -71,7 +69,6 @@
     onAnswer,
     live = false,
     nextAt = null,
-    standings = true,
     tv = false,
     children,
     below,
@@ -89,8 +86,6 @@
     live?: boolean
     /** The reveal's end, `room.next_at`. */
     nextAt?: string | null
-    /** The room shows standings between rounds, for what the reveal counts down to. */
-    standings?: boolean
     /** This browser is the room's TV. */
     tv?: boolean
     /** In the panel under the answers: the reveal's tally. */
@@ -240,7 +235,6 @@
   {/if}
   <!-- Two lines kept from the start, so a reveal that explains grows nothing. -->
   <p class="explained">{explanation}</p>
-  <NextIn at={reveal === null ? null : nextAt} what={nextUp(question, standings)} />
 {/snippet}
 
 <Question

@@ -1,8 +1,8 @@
 <script lang="ts">
   /**
-   * What goes in the stage's speech bubble: the speaker's name, then the line. `later` is
-   * what the bubble says at another moment of the same screen, laid out unseen in the
-   * same place, so the bubble is the taller one's height from the first frame and nothing
+   * What goes in the stage's dialogue box: the speaker's name, centred, then the line.
+   * `later` is what the box says at another moment of the same screen, laid out unseen in
+   * the same place, so the box is the taller one's height from the first frame and nothing
    * under it moves when the words change.
    */
   import type { Snippet } from 'svelte'
@@ -29,9 +29,10 @@
 
 <style>
   .name {
-    margin: 0 0 0.1rem;
+    margin: 0 0 0.45rem;
     font: inherit;
-    color: var(--muted);
+    color: var(--speaker);
+    text-align: center;
   }
 
   .stack {

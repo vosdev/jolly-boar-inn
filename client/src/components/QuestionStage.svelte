@@ -12,10 +12,10 @@
    * scroll, and under the line the answers in a panel, with your answer's band below them.
    * The host stands above the sheet and says nothing while the question types. Once we
    * have answered it says its waiting line in its bubble, dimmed, and on the reveal its
-   * reveal line, the explanation and the countdown to what follows, while what we earned
-   * goes on the sheet's foot and anything we scored pins the ribbon. The foot is held from
-   * the start, so the answers under the sheet do not move when the points arrive. Who is
-   * in goes to the room's table. A random event draws its own stage, with its NPC speaking.
+   * reveal line and the explanation, while what we earned goes on the sheet's foot and
+   * anything we scored pins the ribbon. The foot is held from the start, so the answers
+   * under the sheet do not move when the points arrive. Who is in goes to the room's
+   * table. A random event draws its own stage, with its NPC speaking.
    *
    * A question that arrived as it opened types its stem onto the scroll in the hold the
    * server gives it before `answerable_at` (`lib/interlude.ts`), once the stage has come
@@ -45,12 +45,10 @@
   import { answerAck, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
   import { Typist, Until, lettersOf } from '../lib/typing.svelte'
-  import { nextUp } from '../lib/nextUp'
   import PointsSlot from './PointsSlot.svelte'
   import RandomEvent from './RandomEvent.svelte'
   import { stemLines } from './questions/index'
   import Question from './questions/Question.svelte'
-  import NextIn from './stage/NextIn.svelte'
   import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
   import TvReveal from './TvReveal.svelte'
@@ -65,7 +63,6 @@
     onAnswer,
     live = false,
     nextAt = null,
-    standings = true,
     stemOnly = false,
     answersOnly = false,
     tv = false,
@@ -85,8 +82,6 @@
     live?: boolean
     /** The reveal's end, for a random event's return. */
     nextAt?: string | null
-    /** The room shows standings between rounds, for what the reveal counts down to. */
-    standings?: boolean
     stemOnly?: boolean
     answersOnly?: boolean
     /** This browser is the room's TV. */
@@ -201,7 +196,6 @@
 {#snippet revealLine()}
   <p>{host.reveal}</p>
   {#if explanation !== ''}<p>{explanation}</p>{/if}
-  <NextIn at={reveal === null ? null : nextAt} what={nextUp(question, standings)} />
 {/snippet}
 
 {#snippet tvPanel(answers: Snippet | null)}
@@ -260,7 +254,6 @@
     {onAnswer}
     {live}
     {nextAt}
-    {standings}
     {tv}
     below={waiting}
   >
