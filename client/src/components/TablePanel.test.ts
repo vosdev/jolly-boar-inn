@@ -1,4 +1,4 @@
-/** The table panel's pets: two abreast, each a small icon over a whole name. */
+/** The table panel's pets: three abreast, each a chathead over a name that wraps rather than being cut. */
 
 import { render, screen, within } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
@@ -31,7 +31,7 @@ function rule(source: string, selector: string): string {
 const NAMES = ['TwintigApril', 'WWWWWWWWWWWW', 'Zezima', 'MMMMMMMMMMMM']
 
 describe('TablePanel', () => {
-  it('seats pets two abreast, each a 32px icon over the whole name on one line', () => {
+  it('seats pets three abreast, each a 48px chathead over the whole name', () => {
     render(TablePanel, {
       groups: {
         upper: [],
@@ -49,13 +49,14 @@ describe('TablePanel', () => {
     expect(items.map((item) => item.querySelector('.pet-name')?.textContent)).toEqual(NAMES)
     for (const item of items) {
       const pet = item.querySelector<HTMLElement>('.pet')!
-      expect([pet.style.width, pet.style.height]).toEqual(['32px', '32px'])
+      expect([pet.style.width, pet.style.height]).toEqual(['48px', '48px'])
     }
     expect(rule(panelSource, '.pets')).toContain(
-      'grid-template-columns: repeat(2, minmax(0, 1fr));',
+      'grid-template-columns: repeat(3, minmax(0, 1fr));',
     )
     const name = rule(petSource, '.pet-name')
-    expect(name).toContain('white-space: nowrap;')
-    expect(name).not.toMatch(/ellipsis|overflow: hidden|line-clamp/)
+    expect(name).toContain('overflow-wrap: anywhere;')
+    expect(name).toContain('font-size: 0.72rem;')
+    expect(name).not.toMatch(/ellipsis|overflow: hidden|line-clamp|nowrap/)
   })
 })

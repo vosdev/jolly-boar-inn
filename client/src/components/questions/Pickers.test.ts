@@ -117,9 +117,17 @@ describe('pickers on a multiple choice reveal', () => {
     expect(names('Zulrah')[0]).toBe('you')
   })
 
+  it('drops the button’s own "you" tag where the pickers already say it, not for a screen reader', () => {
+    reveal(room())
+    expect(names('Zulrah')[0]).toBe('you')
+    expect(document.querySelector('.you')).toBeNull()
+    expect(gem('Zulrah').querySelector('.sr')?.textContent).toContain('yours')
+  })
+
   it('names nobody off the desktop room: a phone, the TV, a preview', () => {
     reveal(room({ on: false }))
     expect(document.querySelector('.pickers')).toBeNull()
+    expect(gem('Zulrah').querySelector('.you')).not.toBeNull()
   })
 })
 
