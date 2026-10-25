@@ -6,7 +6,21 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { ASK_MAX, GENERIC_HOST, INNKEEPER, MODES, VERDICTS, hostOf, pickLines } from './modes'
+import {
+  ASK_MAX,
+  GENERIC_HOST,
+  INNKEEPER,
+  MODES,
+  PACES,
+  SHARED_TROPHY_LINES,
+  TROPHY_LINES,
+  VERDICTS,
+  hostOf,
+  paceOf,
+  pickLines,
+  trophyLine,
+} from './modes'
+import { TIERS } from './hiscores'
 
 // The longest waiting and reveal lines measured to fit two lines at the scroll's foot on a
 // 350px screen, the narrowest supported; the reveal line shares its row with the points.
@@ -52,6 +66,23 @@ describe('hosts', () => {
         heard.push(...list)
       }
       expect(new Set(heard).size, lines.host.id).toBe(heard.length)
+    }
+  })
+
+  it('gives every host at least three waiting lines for each speed and step group', () => {
+    for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
+      const heard = [...lines.waiting]
+      for (const pace of PACES) {
+        const list = lines.pace[pace]
+        expect(list.length, `${lines.host.id} ${pace}`).toBeGreaterThanOrEqual(3)
+        for (const line of list) {
+          expect(line.trim(), lines.host.id).not.toBe('')
+          expect(line.length, line).toBeLessThanOrEqual(WAITING_MAX)
+        }
+        heard.push(...list)
+      }
+      expect(new Set(heard).size, lines.host.id).toBe(heard.length)
+      for (const line of lines.pace.late) expect(line, lines.host.id).toMatch(/just in time/i)
     }
   })
 
@@ -142,13 +173,27 @@ describe('pickLines', () => {
     for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
       for (const verdict of VERDICTS) {
         for (let index = 0; index < 12; index++) {
-          const now = pickLines(lines, at(index), verdict).reveal
+          const now = pickLines(lines, at(index), { verdict }).reveal
           expect(lines.verdict[verdict]).toContain(now)
-          expect(pickLines(lines, at(index + 1), verdict).reveal, lines.host.id).not.toBe(now)
-          expect(pickLines(lines, at(index + 2), verdict).reveal, lines.host.id).not.toBe(now)
+          expect(pickLines(lines, at(index + 1), { verdict }).reveal, lines.host.id).not.toBe(now)
+          expect(pickLines(lines, at(index + 2), { verdict }).reveal, lines.host.id).not.toBe(now)
         }
       }
       expect(lines.reveal).toContain(pickLines(lines, at(0)).reveal)
+    }
+  })
+
+  it('picks a pace’s waiting line from its own group, never repeating it on neighbours', () => {
+    for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
+      for (const pace of PACES) {
+        for (let index = 0; index < 12; index++) {
+          const now = pickLines(lines, at(index), { pace }).waiting
+          expect(lines.pace[pace]).toContain(now)
+          expect(pickLines(lines, at(index + 1), { pace }).waiting, lines.host.id).not.toBe(now)
+          expect(pickLines(lines, at(index + 2), { pace }).waiting, lines.host.id).not.toBe(now)
+        }
+      }
+      expect(lines.waiting).toContain(pickLines(lines, at(0)).waiting)
     }
   })
 
@@ -158,5 +203,56 @@ describe('pickLines', () => {
       Array.from({ length: lines.ask.length }, (_, i) => pickLines(lines, at(i)).ask),
     )
     expect(asked.size).toBe(lines.ask.length)
+  })
+})
+
+describe('paceOf', () => {
+  it('groups speed bands 1–2 as quick, 3 as middling and 4–5 as late', () => {
+    const of = (band: number) => paceOf({ scoring: 'speed', band })
+    expect([1, 2, 3, 4, 5].map(of)).toEqual(['quick', 'quick', 'middling', 'late', 'late'])
+  })
+
+  it('groups the first step as early and every step after it as later', () => {
+    const of = (band: number) => paceOf({ scoring: 'step', band })
+    expect([1, 2, 3, 8].map(of)).toEqual(['early', 'later', 'later', 'later'])
+  })
+
+  it('has no pace for a ranked question, a band-less answer or no ack yet', () => {
+    expect(paceOf({ scoring: 'accuracy', band: null })).toBeNull()
+    expect(paceOf({ scoring: 'speed', band: null })).toBeNull()
+    expect(paceOf(null)).toBeNull()
+  })
+})
+
+describe('trophyLine', () => {
+  const PLACES = ['1st', '2nd', '3rd', '4th', '5th']
+
+  it('has at least three lines for each place, alone or shared', () => {
+    expect(TROPHY_LINES).toHaveLength(TIERS.length)
+    for (const list of TROPHY_LINES) expect(list.length).toBeGreaterThanOrEqual(3)
+    expect(SHARED_TROPHY_LINES.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('names the place and the trophy tier in every line', () => {
+    TIERS.forEach((tier, i) => {
+      for (const tied of [false, true]) {
+        const said = new Set(
+          Array.from({ length: 40 }, (_, seed) => trophyLine(i + 1, tier, tied, `${seed}`)),
+        )
+        expect(said.size, `${tier} ${tied}`).toBe(
+          tied ? SHARED_TROPHY_LINES.length : TROPHY_LINES[i]!.length,
+        )
+        for (const line of said) {
+          expect(line).toContain(PLACES[i])
+          expect(line).toContain(tier)
+          expect(line).not.toMatch(/[{}]/)
+          expect(line.endsWith('…'), line).toBe(true)
+        }
+      }
+    })
+  })
+
+  it('says the same line for the same seed', () => {
+    expect(trophyLine(2, 'platinum', false, 'a')).toBe(trophyLine(2, 'platinum', false, 'a'))
   })
 })

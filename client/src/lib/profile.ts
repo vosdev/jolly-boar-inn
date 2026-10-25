@@ -15,9 +15,9 @@
  * store anything gets a fresh random profile per visit instead of being unable to play.
  */
 
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 
-import { nameProblem, normalizeName } from './names'
+import { NAME_MAX, nameProblem, normalizeName } from './names'
 import { isPet, randomPet } from './pets'
 
 export interface Profile {
@@ -35,8 +35,8 @@ function store(profile: Profile): void {
   }
 }
 
-/** What is stored, if it is a profile the server would accept a name from. */
-function load(): Profile | null {
+/** The stored profile's name and pet, if it is a name worth offering back. */
+function read(): { name: string; pet: unknown } | null {
   let raw: string | null
   try {
     raw = localStorage.getItem(PROFILE_KEY)
@@ -47,18 +47,26 @@ function load(): Profile | null {
   try {
     const parsed = JSON.parse(raw) as { name?: unknown; pet?: unknown } | null
     const name = parsed?.name
-    // A name the rules have since tightened against is no name: better to ask again than
-    // to walk somebody into a join the server refuses.
-    if (typeof name !== 'string' || nameProblem(name) !== null) return null
-    if (isPet(parsed?.pet)) return { name: normalizeName(name), pet: parsed.pet }
-    // A profile with no pet to wear: give it one now and keep it, so it is the same pet
-    // on every visit rather than a new one each time the page loads.
-    const upgraded = { name: normalizeName(name), pet: randomPet() }
-    store(upgraded)
-    return upgraded
+    return typeof name === 'string' ? { name, pet: parsed?.pet } : null
   } catch {
     return null
   }
+}
+
+/** What is stored, if it is a profile the server would accept a name from. */
+function load(): Profile | null {
+  const stored = read()
+  if (stored === null) return null
+  const { name, pet } = stored
+  // A name the rules have since tightened against is no name: better to ask again, with
+  // `leftover`, than to walk somebody into a join the server refuses.
+  if (nameProblem(name) !== null) return null
+  if (isPet(pet)) return { name: normalizeName(name), pet }
+  // A profile with no pet to wear: give it one now and keep it, so it is the same pet
+  // on every visit rather than a new one each time the page loads.
+  const upgraded = { name: normalizeName(name), pet: randomPet() }
+  store(upgraded)
+  return upgraded
 }
 
 /**
@@ -76,6 +84,18 @@ export const returningVisitor: boolean = (() => {
 
 /** Null until this browser has a name. The top bar reads "Set your name" until then. */
 export const profile = writable<Profile | null>(load())
+
+/**
+ * What the name prompt starts from when the stored name is one the rules have since cut,
+ * a name of more than 12 from before: its first 12 characters and its pet, to confirm once.
+ */
+export const leftover: { name: string; pet: string | null } | null = (() => {
+  const stored = read()
+  if (stored === null || get(profile) !== null) return null
+  const name = [...normalizeName(stored.name)].slice(0, NAME_MAX).join('').trimEnd()
+  if (nameProblem(name) !== null) return null
+  return { name, pet: isPet(stored.pet) ? stored.pet : null }
+})()
 
 /**
  * Remember a name and a pet, for this page at once and for every visit after it if

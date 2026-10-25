@@ -84,7 +84,8 @@ learns the position, which is worth more than variety.
   moves the answer, so hue is never the only signal. The correct button goes large
   across the top; the others go small beneath it, in position order. In the DOM they stay one to
   six. While a pick waits, nothing moves.
-- Your own pick carries a small "you", right or wrong. The verdict is the points slot (§10), not
+- Your own pick carries a small "you", right or wrong, unless the button names its pickers
+  (below), where you are already listed as "you". The verdict is the points slot (§10), not
   the button. The reveal adds one more thing: how many picked it, in the corner, with a bar along
   the bottom for its share of who answered, whatever the setting.
 - **Who picked what**, in the desktop room only: a `multiple_choice` gem and a `more_less` card
@@ -181,11 +182,13 @@ player is per room and temporary. There are no accounts.
 - **Renaming** is `set_profile`. Most players take the pre-filled name, so every generated name
   must be one you are happy to see win.
 
-Generated names come from `data/player-names.json`: invented usernames in the register of a 2007
-friends list (`ScapeRune77`, `AFKFisher`). Never NPC names, or somebody is called Hans while
-wearing a goblin's face, and never real players. Base names are at most 21 characters so the suffix
-fits. A duplicate is a 409, and the client re-rolls the suffix up to three times. A name matching
-the room code is skipped: not a bug, but it reads like one.
+A name is 1–12 characters, as in OSRS. A stored profile name over 12, from before, opens the
+prompt once with its first 12. Generated names come from `data/player-names.json`: invented
+usernames in the register of a 2007 friends list (`ScapeRune77`, `AFKFisher`), at most 12 and
+handed out bare. Never NPC names, or somebody is called Hans while wearing a goblin's face, and
+never real players. A duplicate is a 409: the client adds a 1–3 digit suffix, cutting the base's
+end to fit 12, and re-rolls up to three times. A name matching the room code is skipped: not a
+bug, but it reads like one.
 
 Pets must reach other players, so the server stores them. `players.avatar` is a pet id, and a player
 who sends none is given one by the server, so every client draws the same pet for good.
@@ -243,18 +246,21 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 ```
 
 - **The room's frame** (`lib/roomFit.ts`): the stage on the left, the table column on the right,
-  380px wide always (the table is 300px until a reveal, so the stage never changes width), 28px apart, padded 30/40/28px. It is laid out at 1600×920 under the
-  bar: larger windows scale it up as a whole, as the TV (§16), never wider than 16:9 of the
-  window's height, the floor beside it with the wall lights (§1) measured from its edge, none
-  where it fills the window; from 1280×640 it fills the window at its
-  own size; smaller, it lays out at 1280×640 and scales down. The stage starts at the top of its
+  380px wide always (the table is 300px until a reveal, so the stage never changes width), 28px apart,
+  centred together, padded 30/40/28px; the extra width is floor, with the wall lights (§1) measured
+  from the room's edge. Laid out at 1600×920 under the bar, larger windows scale it up as a whole, as
+  the TV (§16). Under 920px of layout height it is compact: padding 16/32/16px, the chathead 72px
+  with room for two lines. From 1280 wide and `FIT_HEIGHT` (760px) high it lays out at the window's
+  size; a smaller window draws it at the largest of 1, ⅞, ¾ and ⅝ that leaves both, then scales smoothly.
+  760 is measured: Who Said That?'s three-line quote needs 744, a pick-all event 756; Sort It Out's six
+  rows need 812 open and 901 revealed, and still scroll. The stage starts at the top of its
   height and keeps its place from question to reveal; only the answers grow, downward. Under 1024px wide the stage and table stack. The TV has no frame.
 - **Two sizes.** On the desktop frame a stage whose host speaks above it takes the stage column, up
   to 960px, its sheet's words at 1.5 (`--scroll-text`) and rolls and pin at 1.25 (`--scroll-scale`);
   every other stage, and every stage on a phone, is at most 30rem. The answers take the stage's
   width. A stage under 26rem, a phone, sets 0.8 and 0.9.
 - **The dialogue box** (the code's `bubble`) stands above the sheet: one panel in the theme's
-  `--panel-raised` and `--line` edge, the host's chathead inside it at the left, 92px (56px on a
+  `--panel-raised` and `--line` edge, the host's chathead inside it at the left, 92px (72px compact, 56px on a
   phone), an event NPC's at the right (§12). The name is pinned centred to its top in
   `--speaker`, with room under it, and always shows; on the reveal your points sit at the
   row's right end as a chip, in the box's ink ("+850", "No answer · +0"), none for a player who
@@ -283,7 +289,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 - **Every line types in** at 50 letters a second: on the splash the bubble's greeting and blurb
   once the stage is in place, and a question's ask line in the bubble from 400 ms in the server's
   hold before `answerable_at`, then its stem on the sheet, the answers waiting under the line. Once
-  you answer, the waiting line shows in the bubble, dimmed to 60%. Names show whole. Otherwise as §12.
+  you answer, the waiting line shows in the bubble, dimmed to 60%; on a phone while the TV
+  has the stage, alone under the answers. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
   partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
   `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, both Gauntlets a
@@ -298,14 +305,16 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
   the lobby's and splash's buttons at its foot.
 - **The host's voice** is the mode's copy in `lib/modes.ts`, all in the dialogue box: splash line,
-  blurb, and several ask, waiting and reveal lines, and three or more reveal lines for each of
-  right, partial credit, wrong and no answer. The host always speaks: ask while a question is
-  open, waiting once you answer, on the reveal the line for how you did (the plain reveal line
+  blurb, several ask, waiting and reveal lines, three or more waiting lines for each speed (bands
+  1–2 quick, 3 middling, 4–5 "Just in time!") and step (first early, then later), and three or
+  more reveal lines for each of right, partial credit, wrong and no answer. The host always speaks: ask while a question is
+  open, waiting once you answer (by `answer_ack`'s band once it comes; the plain lines before it
+  and on a ranked question), on the reveal the line for how you did (the plain reveal line
   if you could not answer) with the question's explanation; what follows and when is
   the timer's tab (§10). The line is seeded by the question's place in its round, so the room and
   the TV agree and neighbours never repeat. A mode's standing instruction is an ask line ("What is
   this the examine of?"), so the sheet holds only the question: the examine, the quote, or the
-  item and its picture; the fixed prompts of Who's That NPC? and Who Said That? are not drawn. The TV says the ask and the plain reveal line at the sheet's foot; a player's sheet has no foot. Question prompts stay plain: a prompt is parsed against the clock, and a joke around it
+  item and its picture; the fixed prompts of Who's That NPC? and Who Said That? are not drawn. The TV says the ask and the plain reveal line at the sheet's foot, never a waiting line; a player's sheet has no foot. Question prompts stay plain: a prompt is parsed against the clock, and a joke around it
   is a second thing to read. Random events are the exception, in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic boar.
@@ -319,8 +328,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 The table panel (`TablePanel`) is who is at the table, on the theme's panel beside the stage. It
 has two halves, each with its count: the lobby's and splash's "Ready" over "Not ready yet", a
 question's "Answered" over "Still thinking". A pet moves up as
-its player readies or answers. Pets sit four abreast, the name under each, yours first in your
-half and in bold, the rest below in join order and above in the order they arrived. An away pet
+its player readies or answers. Pets sit three abreast, a 48px chathead over the whole name, which wraps
+rather than being cut, yours first in your half and in bold, the rest below in join order and above in the order they arrived. An away pet
 fades to grey, says "away" and stays below, since the server only knows who is still to answer
 among the connected. A team game splits each half by team in god order, the teamless last. The
 TV sits apart under "TV" at the foot. A question nobody answers lists everyone under "At the table".
@@ -332,21 +341,25 @@ keep the whole panel under the stage, since it holds their buttons. The threshol
 take-back rule are architecture §7.
 
 - **Lobby.** The hero, else the Wise Old Man, says the lobby line in the bubble. The scroll holds
-  "Your friends join with this code", the code, which copies the invite link, and the link with
-  "Copy invite link"; an invite-only room says so instead of printing a link that carries its key
+  "Your friends join with this code", then on one line the link's prefix ("jollyboar.com/r/"), small,
+  the code in the large face, which copies the invite link, and "Copy invite link"; an invite-only
+  room has no prefix and says so instead of printing a link that carries its key
   (an error and the link to copy by hand where the clipboard refuses). Under it, a panel: the
   night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
-  round is "A surprise" with the boar), "How to play" and "Quicker and correct answers score
+  round is "A surprise" with the boar; from 9 rounds the 8th tile is "+N more", a popover of every
+  round that Esc, a click outside or the button closes), "How to play" and "Quicker and correct answers score
   more." At the table: join requests first, for the host, then a team game's gods, the halves,
   the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first) or
   "Waiting for the host to start…". The host taps a pet to kick or promote.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
   last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,
   and its settings no name or pet.
-- **Switches:** "Ready" is a large switch (`Switch.svelte`), on in `--ok`, in lobby and splash;
+- **Switches:** "Ready" is a large switch (`Switch.svelte`: the track and its label, no button
+chrome or circle around them), on in `--ok`, in lobby and splash;
   where it cannot be taken back (the splash allows one take-back) it sits disabled, on. On touch
-  devices a smaller "Full screen" switch of the same look sits beside it and follows the
-  browser's state. It is absent where the browser lacks the API (iPhone, #319).
+  devices, and in a room drawn below scale 1 (§8), a smaller "Full screen" switch of the same look
+  sits beside it and follows the browser's state; below scale 1 a line adds "Short on room? Full
+  screen shows the whole question." It is absent where the browser lacks the API (iPhone, #319).
 - **Splash.** The host's greeting and blurb in the bubble. The scroll, centred: the mode's name,
   its Create hint alone, then small "Round 4 of 10, 5 questions" and a price round's date. Under it,
   "Tonight", only the row, centred: a host per round, past ones faded, the current one large and
@@ -379,8 +392,10 @@ take-back rule are architecture §7.
   question's heading is for a screen reader only.
 - A pack question's picture, the wiki's detail render, is centred under the prompt in a box 5rem
   tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.
-  Who's That NPC? gives it 12rem and its shadow, which fades into the render (700 ms) with the name
-  under it on the reveal. One flat colour, no glow or gradient, so a see-through part shows lighter
+  Who's That NPC? gives it the stage height left over, less five 2.5rem suggestion rows under the
+  answer input (160px to 12rem, never above one image pixel per screen pixel; 12rem off a room's
+  stage); the list stays inside the stage. One box open and revealed, and its shadow, which fades into the render (700 ms)
+  with the name under it on the reveal. One flat colour, no glow or gradient, so a see-through part shows lighter
   in every theme: the scroll ink, Toktz's lava orange and the Gauntlet's crystal cyan.
   An item's inventory icon, in a 72px box at whole pixels, sits under The Price is Right's question
   and above each More or Less name. Without a file, the name stands alone.
@@ -434,28 +449,31 @@ and between rounds pinned to the sheet's foot when below it.
 where they stood before the round, with the totals then; once his line has typed the gains count
 up, a second later the rows move to their places, and then your row pins. About three seconds.
 The table panel says "Next up": the next round's host, its name, "Round 3 of 3, 5 questions"
-(`room.next_segment`, so hidden and shuffled rounds too) and "Moving on in 8", large, at its foot.
+(`room.next_segment`, so hidden and shuffled rounds too) and "Moving on in 8", large, under them; the
+panel is as tall as that, not its column.
 On a phone it is a strip at the foot, "Next up: Bestiary" and the count, that opens nothing. The
 timer bar counts to the next round in the quiet fill, its tabs `2/3` (rounds played) and `8s`.
 The TV shows none of it.
 
 **The final** opens on "The final scores are in!", then presents fifth place to first: his line
-("In fifth place…", "Tied for second…", "And top of the hiscores…"), then the place's pets (three,
-then `+N`), names, points and tier, its Quest Speedrunning trophy (Bronze to Diamond) standing
-beside the scroll on the right, opposite him. First holds longest, with confetti. Ranks are
+names the place and its Quest Speedrunning trophy (Bronze to Diamond), "For 2nd place, the
+platinum trophy goes to…" (at least three per place, and for a shared place, in `lib/modes.ts`),
+with the trophy in his dialogue box beside it; then the scroll shows the place's pets (three, then
+`+N`), names and points. First holds longest, with confetti from its trophy. Ranks are
 dense, so tied players share a place; nobody on 0 points gets one, and a room where nobody scored
 has no ceremony. The place then fades, the sheet unrolls to the full table with the rows arriving
 top to bottom, and he says "Gz, Name! Here are the full hiscores." A Skip button jumps there.
 
-The final standings have no table panel: the stage stands in the middle of the room, the trophy
-right of the sheet. The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
+The final standings have no table panel: the stage stands in the middle of the room. The TV,
+which has no dialogue box, holds the trophy beside his line at the sheet's head. The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
 past game from history show the table at once, as does reduced motion; a past game shows only the
 totals, without moves or gains. Trophies are art, not tokens.
 
 **A team game** ranks its teams instead, with the same moves, gains and timing: rank, logo, name
 and points, the god's colour on the team's edge, and under each its members with their own
 totals, best first, so the weak link shows. The ceremony presents teams, fifth to first, each with
-its logo, name, average points and the god's colour, and no trophy; the final line names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
+its logo, name, average points and the god's colour, in plain lines ("In fifth place…", "Tied
+for second…"), no trophy, and confetti from first's logo; the final line names the winning team ("Saradomin wins!", "Saradomin and Zamorak win!"), and Past games names it
 on the game's entry.
 
 ## 12. Random events: the interlude (#106)

@@ -15,9 +15,9 @@ import ribbon from '../../assets/stage/ribbon.svg'
 import bountySkull2 from '../../assets/sprites/bounty-skull-2.svg'
 import bountySkull5 from '../../assets/sprites/bounty-skull-5.svg'
 import { serverNow } from '../../lib/clock'
-import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
+import type { OpenQuestion, PlayerResult, Scoring } from '../../lib/protocol'
 import { MODES, pickLines } from '../../lib/modes'
-import { answerCount, players } from '../../lib/stores'
+import { answerAck, answerCount, players } from '../../lib/stores'
 import { clearVocabCache } from '../../lib/vocab'
 import QuestionStage from '../QuestionStage.svelte'
 import { STEMS, TYPE_VIEWS, viewFor } from './index'
@@ -464,6 +464,54 @@ describe('every type on the stage', () => {
     expect(name?.textContent).toBe(MODES.more_less!.host.name)
   })
 
+  describe('waiting by how fast you were', () => {
+    afterEach(() => answerAck.set(null))
+
+    const waitingFor = (ack: { scoring: Scoring; band: number | null } | null) => {
+      answerAck.set(ack)
+      const { unmount } = render(QuestionStage, {
+        question: open('more_less', 'more_less'),
+        yourValue: 0,
+        onAnswer,
+      })
+      const line = said()
+      unmount()
+      return line
+    }
+
+    it('picks bands 1–2, 3 and 4–5 from their own groups', () => {
+      const pace = MODES.more_less!.pace
+      for (const band of [1, 2])
+        expect(pace.quick).toContain(waitingFor({ scoring: 'speed', band }))
+      expect(pace.middling).toContain(waitingFor({ scoring: 'speed', band: 3 }))
+      for (const band of [4, 5]) expect(pace.late).toContain(waitingFor({ scoring: 'speed', band }))
+    })
+
+    it('picks the first step as early and a later one as later', () => {
+      const pace = MODES.more_less!.pace
+      expect(pace.early).toContain(waitingFor({ scoring: 'step', band: 1 }))
+      expect(pace.later).toContain(waitingFor({ scoring: 'step', band: 3 }))
+    })
+
+    it('waits with the plain lines on a ranked question, and before the ack', () => {
+      const plain = MODES.more_less!.waiting
+      expect(plain).toContain(waitingFor({ scoring: 'accuracy', band: null }))
+      expect(plain).toContain(waitingFor(null))
+    })
+
+    it('says it under the answers on a phone while the TV has the stage', () => {
+      answerAck.set({ scoring: 'speed', band: 5 })
+      render(QuestionStage, {
+        question: open('more_less', 'more_less'),
+        yourValue: 0,
+        onAnswer,
+        answersOnly: true,
+      })
+      const line = document.querySelector('.bare > .host-line')?.textContent
+      expect(MODES.more_less!.pace.late).toContain(line)
+    })
+  })
+
   it('has the host say its waiting line in its bubble, dimmed, once you have answered', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: 0, onAnswer })
     expect(bubble().classList.contains('dim')).toBe(true)
@@ -479,7 +527,7 @@ describe('every type on the stage', () => {
     const result = { value: 0, correct: true, credit: 1, points: 850 }
     render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
     expect(bubble().classList.contains('on')).toBe(true)
-    expect(said()).toContain(pickLines(MODES.more_less!, question, 'right').reveal)
+    expect(said()).toContain(pickLines(MODES.more_less!, question, { verdict: 'right' }).reveal)
     expect(chip()?.textContent).toContain('+850')
   })
 
@@ -918,6 +966,18 @@ describe("the room's TV", () => {
     const line = document.querySelector('.paper .said .line')?.textContent
     expect(line).toBe(pickLines(MODES.custom!, question).reveal)
     expect(document.querySelector('.slot')).toBeNull()
+  })
+
+  it('says no waiting line, only the ask line, while the question is open', () => {
+    answerAck.set({ scoring: 'speed', band: 1 })
+    render(QuestionStage, { question: watching, yourValue: 0, onAnswer, tv: true })
+    answerAck.set(null)
+    const lines = MODES.custom!
+    const text = document.body.textContent ?? ''
+    for (const line of [...lines.waiting, ...Object.values(lines.pace).flat()]) {
+      expect(text).not.toContain(line)
+    }
+    expect(document.querySelector('.bubble')).toBeNull()
   })
 
   it("reveals a random event's tally and names the same way", () => {

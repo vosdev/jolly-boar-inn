@@ -53,7 +53,7 @@ describe('TimerBar', () => {
     afterEach(() => roomShown.set(null))
 
     it('hangs its tabs at the stage’s edges, at the room’s scale', () => {
-      roomShown.set({ fit: { scale: 2, width: 1600, height: 920, left: 100 } })
+      roomShown.set({ fit: { scale: 2, width: 1600, height: 920, left: 100, compact: false } })
       render(TimerBar, { endsAt: endsAt(), totalSeconds: 10, label: 'to answer', progress: '2/3' })
       const column = document.querySelector<HTMLElement>('.column')!
       expect(column.classList.contains('room')).toBe(true)

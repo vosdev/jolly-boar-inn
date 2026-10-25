@@ -100,7 +100,9 @@
    * gem nobody picked shows no number, which its empty bar already says.
    *
    * `pickers` names who picked it under the label, on the desktop room's reveal
-   * (`lib/pickers.svelte.ts`): their pets and names, then "and N more".
+   * (`lib/pickers.svelte.ts`): their pets and names, then "and N more". Ours is among
+   * them as "you", so the button's own "you" tag is dropped; the screen reader still hears
+   * ", your answer".
    *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
@@ -182,7 +184,7 @@
   {:else if place !== undefined}
     <span class="tick" class:checked={place !== null} aria-hidden="true">{place ?? ''}</span>
   {/if}
-  {#if yours}
+  {#if yours && pickers === null}
     <span class="you" aria-hidden="true">you</span>
   {/if}
   {#if votes !== null}
