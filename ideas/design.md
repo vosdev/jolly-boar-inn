@@ -84,7 +84,8 @@ learns the position, which is worth more than variety.
   moves the answer, so hue is never the only signal. The correct button goes large
   across the top; the others go small beneath it, in position order. In the DOM they stay one to
   six. While a pick waits, nothing moves.
-- Your own pick carries a small "you", right or wrong. The verdict is the points slot (§10), not
+- Your own pick carries a small "you", right or wrong, unless the button names its pickers
+  (below), where you are already listed as "you". The verdict is the points slot (§10), not
   the button. The reveal adds one more thing: how many picked it, in the corner, with a bar along
   the bottom for its share of who answered, whatever the setting.
 - **Who picked what**, in the desktop room only: a `multiple_choice` gem and a `more_less` card

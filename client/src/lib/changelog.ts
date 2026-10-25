@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.190.0',
+    date: '2026-10-25',
+    text: 'The answers on a reveal no longer show "you" twice: your chathead already says it.',
+  },
+  {
     version: '0.189.0',
     date: '2026-10-25',
     text: 'The Ready and Full screen switches no longer sit inside a big circle.',
