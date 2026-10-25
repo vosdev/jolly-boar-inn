@@ -605,6 +605,22 @@ describe('the room’s frame', () => {
     expect(get(roomShown)).toBeNull()
   })
 
+  it('shrinks the padding and the chathead under 920px of layout height, and not at 920', async () => {
+    windowOf(1512, 920 + 56)
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(document.querySelector('.frame.fitted.compact')).toBeNull()
+
+    windowOf(1512, 919 + 56)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(document.querySelector('.frame.fitted.compact')).toBeTruthy()
+    // jsdom has no layout, so the compact rules themselves are checked.
+    const rule = roomSource.match(/\.fitted\.compact \.play \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toMatch(/--head-size: 72px;/)
+    expect(rule).toMatch(/padding: 16px 32px 16px;/)
+    expect(roomSource).toMatch(/\.fitted \.play \{[^}]*gap: 28px;\s*padding: 30px 40px 28px;/)
+  })
+
   it('puts who is in at the table, out of the stage', async () => {
     windowOf(1440, 900)
     await arrive(welcome(roomView({ phase: 'open', next_at: null })))

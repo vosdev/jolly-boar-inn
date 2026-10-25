@@ -486,6 +486,7 @@
 <div
   class="frame"
   class:fitted={framed !== null}
+  class:compact={framed?.compact === true}
   style:--room-scale={framed?.scale ?? null}
   style:--room-width={framed === null ? null : `${framed.width}px`}
   style:--room-height={framed === null ? null : `${framed.height}px`}
@@ -699,6 +700,17 @@
     grid-template-columns: minmax(0, 1fr) 380px;
     gap: 28px;
     padding: 30px 40px 28px;
+  }
+
+  /* A short window's room: less padding, and a smaller chathead in the dialogue box. */
+  .fitted.compact .play {
+    --head-size: 72px;
+    padding: 16px 32px 16px;
+  }
+
+  /* The name's row and two lines, whatever the smaller chathead leaves. */
+  .fitted.compact :global(.speaker .speech) {
+    min-height: calc(3 * 1.3em + 0.45rem);
   }
 
   /* The column is always as wide as a reveal needs, so the stage keeps its width; the table

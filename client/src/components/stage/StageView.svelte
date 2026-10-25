@@ -218,7 +218,7 @@
 <style>
   /* Above the sheet: the game's dialogue box, the speaker's chathead inside it. */
   .speaker {
-    --head: 92px;
+    --head: var(--head-size, 92px);
     position: relative;
     margin-bottom: 0.75rem;
   }
