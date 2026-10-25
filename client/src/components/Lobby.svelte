@@ -976,7 +976,7 @@
 
   /* On the sheet, so in its inks rather than a panel's. */
   .copy-link,
-  .invite .glyph {
+  .invite-actions .glyph {
     --ink: var(--scroll-ink);
     min-height: 44px;
     border-color: var(--scroll-muted);
