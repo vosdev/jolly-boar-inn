@@ -12,6 +12,9 @@
    * colour to the end there, since `--bad` would vanish on Zamorak's track: the seconds
    * tab goes back to the theme's, in `--bad`.
    *
+   * In a room laid out for a desktop (`roomShown`) the tabs hang at the stage's edges,
+   * beside the table, at the room's scale.
+   *
    * On the room's TV the stage is scaled to the window (`tvFit`), and the tabs with it: at
    * the scaled stage's edges, at its scale, readable across the room.
    *
@@ -20,6 +23,7 @@
    */
   import { msUntil, serverNow } from '../lib/clock'
   import type { TeamId } from '../lib/teams'
+  import { roomShown, stageEdges } from '../lib/roomFit'
   import { tvFit } from '../lib/tv'
   import TeamBadge from './TeamBadge.svelte'
 
@@ -28,6 +32,8 @@
     totalSeconds,
     label,
     progress,
+    next = false,
+    quiet = false,
     team = null,
     flush = false,
   }: {
@@ -35,6 +41,10 @@
     totalSeconds: number
     label: string
     progress?: string
+    /** Counting down to what follows a reveal: the tab says "Next in", the fill is quiet. */
+    next?: boolean
+    /** The quiet fill with a plain tab: the standings, whose panel says what comes next. */
+    quiet?: boolean
     /** The player's team in a team game, whose colours the bar takes. */
     team?: TeamId | null
     /** At the window's top, with no top bar above it: the room's TV. */
@@ -50,12 +60,15 @@
   // then the bar sits full on the question's own length rather than counting the hold.
   const seconds = $derived(Math.ceil(Math.min(remainingMs, totalSeconds * 1000) / 1000))
   const fraction = $derived(totalSeconds > 0 ? Math.min(1, remainingMs / (totalSeconds * 1000)) : 0)
-  const urgent = $derived(remainingMs > 0 && seconds <= URGENT_S)
+  const urgent = $derived(!next && !quiet && remainingMs > 0 && seconds <= URGENT_S)
+  const edges = $derived($roomShown === null ? null : stageEdges($roomShown.fit, $roomShown.reveal))
+  const scale = $derived($tvFit?.scale ?? $roomShown?.fit.scale ?? null)
 </script>
 
 <div
   class="timerbar"
   class:urgent
+  class:next={next || quiet}
   class:framed={team !== null}
   class:flush
   aria-label="{seconds} seconds {label}"
@@ -69,8 +82,11 @@
     class="column"
     class:stage={progress !== undefined}
     class:tv={$tvFit !== null}
+    class:room={$tvFit === null && edges !== null}
     style:--tv-width={$tvFit === null ? null : `${$tvFit.width}px`}
-    style:--tv-scale={$tvFit?.scale ?? null}
+    style:--stage-left={edges === null ? null : `${edges.left}px`}
+    style:--stage-width={edges === null ? null : `${edges.width}px`}
+    style:--tab-scale={scale}
     aria-hidden="true"
   >
     {#if progress !== undefined}
@@ -79,7 +95,7 @@
     {#if team !== null}
       <span class="team"><TeamBadge {team} /></span>
     {/if}
-    <span class="tab seconds">{seconds}s</span>
+    <span class="tab seconds">{next ? `Next in ${seconds}s` : `${seconds}s`}</span>
   </div>
 </div>
 
@@ -119,6 +135,10 @@
     background: var(--bad);
   }
 
+  .next .fill {
+    background: var(--muted);
+  }
+
   /* The screens' column, so the tab lines up with the panels rather than the window. */
   /* Three columns, so the team's badge stays centred however wide the two tabs are. */
   .column {
@@ -137,8 +157,14 @@
     width: min(var(--tv-width), 100% - 2rem);
   }
 
-  .tv .tab {
-    font-size: calc(0.8rem * var(--tv-scale));
+  .column.room {
+    width: var(--stage-width);
+    margin-inline: var(--stage-left) 0;
+  }
+
+  .tv .tab,
+  .room .tab {
+    font-size: calc(0.8rem * var(--tab-scale));
   }
 
   .progress {

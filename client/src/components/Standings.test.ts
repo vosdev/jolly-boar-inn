@@ -1,9 +1,10 @@
 /**
  * Between rounds: the rows start in the order before the round with the totals then, the
- * gains count up once the Wise Old Man's line has typed, the rows move, and your row pins.
+ * gains count up once the Wise Old Man's line has typed in his bubble, the rows move, and
+ * your row pins. The table panel names the next round and counts down to it.
  */
 
-import { render } from '@testing-library/svelte'
+import { render, screen } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -53,7 +54,7 @@ describe('Standings', () => {
   it('opens on the round just played, then moves the rows to their new places', async () => {
     const { container } = render(Standings, { standings: NOW, segment: SEGMENT, youId: 'Zezima' })
     const line = roundLine(2)
-    expect(container.querySelector('.says')?.textContent).toContain(line)
+    expect(container.querySelector('.bubble .speech')?.textContent).toContain(line)
     expect(names(container)).toEqual(['Zezima (you)', 'Woox'])
     expect(container.querySelector('tr.you')?.classList.contains('pinned')).toBe(false)
 
@@ -119,7 +120,10 @@ describe('Standings', () => {
     await vi.advanceTimersByTimeAsync(times.move)
     await tick()
     expect(teamNames()).toEqual(['Zamorak', 'Saradomin'])
-    expect(container.querySelector(".team[data-team='zamorak'] .move.up")?.textContent).toBe('up 1')
+    expect(container.querySelector(".team[data-team='zamorak'] .moved")?.textContent).toBe('up 1')
+    expect(container.querySelector(".team[data-team='zamorak'] .round")?.textContent).toBe(
+      '+1,000 this round',
+    )
     expect(members('zamorak')).toEqual(['Woox', 'Lynx (you)'])
     expect(members('saradomin')).toEqual(['Zezima', 'Mod Ash'])
   })
@@ -128,6 +132,53 @@ describe('Standings', () => {
     const { container } = render(Standings, { standings: NOW, segment: SEGMENT })
     expect(container.querySelector('.hiscores')).not.toBeNull()
     expect(container.querySelector('.team-hiscores')).toBeNull()
+  })
+})
+
+describe('Next up', () => {
+  const NEXT: Segment = { mode: 'more_less', index: 2, total: 3, start: 6, count: 5 }
+
+  it('names the next round and counts down to it between rounds', () => {
+    const endsAt = new Date(Date.now() + 8_000).toISOString()
+    render(Standings, { standings: NOW, segment: SEGMENT, next: NEXT, endsAt })
+    const panel = screen.getByRole('region', { name: 'Next up' })
+    expect(panel.textContent).toContain('More or Less')
+    expect(panel.textContent).toContain('Round 3 of 3, 5 questions')
+    expect(panel.querySelector('.starts')?.textContent).toMatch(/Starts in\s*8/)
+  })
+
+  it('is a strip at the foot on a phone', () => {
+    const endsAt = new Date(Date.now() + 8_000).toISOString()
+    render(Standings, { standings: NOW, segment: SEGMENT, next: NEXT, endsAt, stacked: true })
+    const strip = screen.getByRole('region', { name: 'Next up' })
+    expect(strip.classList.contains('strip')).toBe(true)
+    expect(strip.textContent).toMatch(/Next up:\s*More or Less\s*8/)
+  })
+
+  it('is not shown without a next round, nor on the TV', () => {
+    render(Standings, { standings: NOW, segment: SEGMENT })
+    expect(screen.queryByRole('region', { name: 'Next up' })).toBeNull()
+    render(Standings, { standings: NOW, segment: SEGMENT, next: NEXT, tv: true })
+    expect(screen.queryByRole('region', { name: 'Next up' })).toBeNull()
+  })
+})
+
+describe('Standings rows', () => {
+  it('are one line on a desktop, the move and the gain in columns of their own', async () => {
+    const { container } = render(Standings, { standings: NOW, segment: SEGMENT })
+    const heads = [...container.querySelectorAll('thead th')].map((th) => th.textContent?.trim())
+    expect(heads).toEqual(['Rank', 'Moved', 'Name', 'This round', 'Points'])
+    await vi.advanceTimersByTimeAsync(shuffleTimes([...roundLine(2)].length).move)
+    await tick()
+    const first = container.querySelector('tbody tr')!
+    expect(first.querySelector('td.moved')?.textContent).toBe('up 1')
+    expect(first.querySelector('td.round')?.textContent).toBe('+1,900 this round')
+  })
+
+  it('keep two lines a row on a phone', () => {
+    const { container } = render(Standings, { standings: NOW, segment: SEGMENT, stacked: true })
+    expect(container.querySelector('td.round')).toBeNull()
+    expect(container.querySelector('td.points .gain')).not.toBeNull()
   })
 })
 

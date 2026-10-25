@@ -25,6 +25,7 @@
    * and nothing that looks like a press, and a question left unanswered shows neither
    * button pressed — which it used to, by drawing the answer in the pressed style.
    */
+  import { pickersAt, revealPickers } from '../../../lib/pickers.svelte'
   import GemButton, { gemState, indexSet, pickCounts } from '../GemButton.svelte'
   import ItemIcon from '../ItemIcon.svelte'
   import type { TypeViewProps } from '../props'
@@ -70,6 +71,7 @@
 
   const counts = $derived(revealed && results !== null ? pickCounts(results, 2) : null)
   const answered = $derived(results === null ? 0 : Object.keys(results).length)
+  const room = revealPickers()
 
   const gp = new Intl.NumberFormat()
 
@@ -82,11 +84,13 @@
   <!-- Keyed by position: nothing stops a pair naming one item twice, and a duplicate key
        throws. -->
   {#each q.options as option, index (index)}
+    {#if index === 1}<span class="or" aria-hidden="true">or</span>{/if}
     <GemButton
       gem={null}
       status={gemState(index, indexSet(picked), indexSet(answer), revealed)}
       mine={picked === index}
       votes={counts === null ? null : { count: counts[index] ?? 0, of: answered }}
+      pickers={revealed ? pickersAt(room, results, index, answer === index) : null}
       disabled={revealed || !canAnswer || picked !== null}
       onclick={() => onAnswer(index as Index)}
     >
@@ -125,9 +129,39 @@
     font-weight: 400;
   }
 
+  .or {
+    display: none;
+  }
+
   @media (max-width: 30rem) {
     .choices {
       grid-template-columns: 1fr;
+    }
+  }
+
+  /* On a wide stage the two are cards of the item's size, with "or" between, rather than
+     halves of the board. */
+  @container (min-width: 40rem) {
+    .choices {
+      grid-template-columns: minmax(0, 16rem) auto minmax(0, 16rem);
+      justify-content: center;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .or {
+      display: block;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .choices > :global(.gem) {
+      max-height: 260px;
+    }
+
+    .choice {
+      font-size: 1.25rem;
     }
   }
 </style>

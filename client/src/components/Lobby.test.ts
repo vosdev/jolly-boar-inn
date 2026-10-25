@@ -1,5 +1,5 @@
 /**
- * The lobby: a stage with the room code, and a grid of pets under it. The host's controls
+ * The lobby: a stage with the room code, and the table panel beside it. The host's controls
  * ask in the page first, not through `window.confirm`, which some in-app browsers answer
  * no to unasked.
  */
@@ -117,18 +117,34 @@ function clipboard(writeText: ReturnType<typeof vi.fn> | undefined): void {
   })
 }
 
-function pets(): HTMLElement[] {
-  return within(screen.getByRole('list', { name: /^Players/ })).getAllByRole('listitem')
+function panel(): HTMLElement {
+  return screen.getByRole('group', { name: 'At the table' })
 }
 
-/** How a pet in the grid is drawn: ready, away, both or neither. */
-function looks(pet: HTMLElement): { lit: boolean; away: boolean; ticked: boolean } {
-  const drawn = pet.querySelector('.roster-pet') as HTMLElement
-  return {
-    lit: drawn.classList.contains('lit'),
-    away: drawn.classList.contains('away'),
-    ticked: drawn.querySelector('.tick') !== null,
-  }
+/** Every pet at the table, half by half. */
+function pets(): HTMLElement[] {
+  return within(panel()).getAllByRole('listitem')
+}
+
+/** The names in one of the panel's lists: a half, a team in a half, or the TV. */
+function names(list: string): string[] {
+  return within(within(panel()).getByRole('list', { name: list }))
+    .getAllByRole('listitem')
+    .map((item) => item.querySelector('.pet-name')?.textContent ?? '')
+}
+
+/** A half's heading, its label and count. */
+function heading(label: string): string {
+  return (
+    within(panel())
+      .getAllByRole('heading', { level: 3 })
+      .find((h) => h.textContent?.startsWith(label))
+      ?.textContent?.replace(/\s+/g, ' ') ?? ''
+  )
+}
+
+function away(pet: HTMLElement): boolean {
+  return pet.querySelector('.table-pet')?.classList.contains('away') === true
 }
 
 beforeEach(() => {
@@ -262,12 +278,13 @@ describe('Lobby', () => {
       expect(screen.queryByRole('button', { name: /TV/ })).toBeNull()
     })
 
-    it('badges the TV where the tick goes, and says TV under it', () => {
+    it('lists the TV apart, under TV with a screen on it, in neither half', () => {
       lobby([{ ...HOST, ready: true }, WOOX, TV])
       const rows = pets()
       expect(rows.map((pet) => pet.querySelector('.screen') !== null)).toEqual([false, false, true])
-      expect(looks(rows[2]!)).toEqual({ lit: false, away: false, ticked: false })
-      expect(rows[2]?.querySelector('.status')?.textContent).toBe('TV')
+      expect(names('TV')).toEqual(['Lounge'])
+      expect(names('Ready')).toEqual(['Zezima'])
+      expect(names('Not ready yet')).toEqual(['Woox'])
       expect(tile('Lounge', 'kick or not the TV').getAttribute('aria-label')).toBe(
         'Lounge, TV: kick or not the TV',
       )
@@ -313,7 +330,7 @@ describe('Lobby', () => {
         settings: { ...ROOM.settings, teams: ['saradomin', 'zamorak'] },
       }
       lobby([{ ...HOST, team: 'zamorak' }, { ...WOOX, team: 'saradomin' }, TV], room)
-      expect(screen.queryByRole('list', { name: 'No team' })).toBeNull()
+      expect(screen.queryByRole('list', { name: /No team/ })).toBeNull()
       expect(within(screen.getByRole('list', { name: 'TV' })).getByText('Lounge')).toBeTruthy()
       expect(screen.getByRole('button', { name: 'Start anyway' })).toHaveProperty('disabled', false)
     })
@@ -329,17 +346,31 @@ describe('Lobby', () => {
     })
   })
 
-  it('stands the Wise Old Man, without a hero in the branding, beside a scroll that holds the heading, the code and the night', () => {
+  it('has the Wise Old Man, without a hero in the branding, speak above a scroll that holds the code and the invite link', () => {
     lobby()
     expect(
-      [...document.querySelectorAll('.stage .npc img')].map((img) => img.getAttribute('src')),
+      [...document.querySelectorAll('.speaker .npc img')].map((img) => img.getAttribute('src')),
     ).toEqual([npcArt('wise_old_man').url])
+    const bubble = document.querySelector('.bubble') as HTMLElement
+    expect(bubble.textContent).toContain('Wise Old Man')
+    expect(bubble.textContent).toContain('Pull up a stool and share the code.')
     const paper = document.querySelector('.paper') as HTMLElement
     expect(within(paper).getByRole('heading', { level: 1, name: 'Lobby' })).toBeTruthy()
+    expect(within(paper).getByText('Your friends join with this code')).toBeTruthy()
     expect(
       within(paper).getByRole('button', { name: 'ABYSSAL, copy the invite link' }),
     ).toBeTruthy()
-    expect(within(paper).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
+    expect(within(paper).getByText(`${location.host}/r/ABYSSAL`)).toBeTruthy()
+    expect(within(paper).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
+    const board = document.querySelector('.board') as HTMLElement
+    expect(within(board).getByText('1 round · 5 questions · Run pace · ~5 min')).toBeTruthy()
+  })
+
+  it('says an invite-only room is one, instead of printing its link', () => {
+    lobby([HOST, WOOX], { ...ROOM, key: 'abc_DEF-123' })
+    const paper = document.querySelector('.paper') as HTMLElement
+    expect(within(paper).getByText('Invite-only: the link lets people straight in')).toBeTruthy()
+    expect(within(paper).getByRole('button', { name: 'New link' })).toBeTruthy()
   })
 
   it('copies an invite-only room’s whole link from the code, and never draws its key', async () => {
@@ -402,6 +433,7 @@ describe('Lobby', () => {
     ]
     lobby([HOST, WOOX], { ...ROOM, key: 'abc', requests })
     const panel = screen.getByRole('region', { name: 'Asking to join (2)' })
+    expect(panel.closest('[aria-label="At the table"]')).not.toBeNull()
     const rows = within(panel).getAllByRole('listitem')
     expect(rows.map((row) => row.textContent)).toEqual([
       expect.stringContaining('Lynx Titan'),
@@ -449,13 +481,13 @@ describe('Lobby', () => {
       { ...HOST, avatar: 'baby_mole' },
       { ...WOOX, avatar: null },
     ])
-    expect(petsDrawn(screen.getByRole('list', { name: /^Players/ }))).toEqual([
+    expect(petsDrawn(panel())).toEqual([
       { pet: 'baby_mole', size: 48 },
       { pet: '', size: 48 },
     ])
   })
 
-  it('names who is not ready to the host, and lights who is', () => {
+  it('splits the table into Ready and Not ready yet, each with its count', async () => {
     const lynx: PlayerView = {
       id: 'c',
       display_name: 'Lynx',
@@ -467,12 +499,18 @@ describe('Lobby', () => {
       team: null,
     }
     lobby([{ ...HOST, ready: true }, WOOX, lynx])
-    expect(screen.getByText('Waiting on Woox and Lynx.')).toBeTruthy()
-    expect(pets().map((pet) => [looks(pet).lit, pet.textContent])).toEqual([
-      [true, expect.stringContaining('Zezima')],
-      [false, expect.stringContaining('Woox')],
-      [false, expect.stringContaining('Lynx')],
-    ])
+    expect(heading('Ready')).toBe('Ready 1')
+    expect(heading('Not ready yet')).toBe('Not ready yet 2')
+    expect(names('Ready')).toEqual(['Zezima'])
+    expect(names('Not ready yet')).toEqual(['Woox', 'Lynx'])
+    applyServerMessage({
+      t: 'players_updated',
+      players: [{ ...HOST, ready: true }, WOOX, { ...lynx, ready: true }],
+    })
+    await tick()
+    expect(names('Ready')).toEqual(['Zezima', 'Lynx'])
+    expect(names('Not ready yet')).toEqual(['Woox'])
+    expect(heading('Ready')).toBe('Ready 2')
   })
 
   it('greys ready out after a tap until the server takes another change', async () => {
@@ -491,7 +529,7 @@ describe('Lobby', () => {
     }
   })
 
-  it('ticks a ready pet and fades an away one, ready or not, without a tick', () => {
+  it('fades an away player and keeps them under Not ready yet, ready or not', () => {
     const lynx: PlayerView = {
       id: 'c',
       display_name: 'Lynx',
@@ -508,13 +546,12 @@ describe('Lobby', () => {
       lynx,
       { ...lynx, id: 'd', display_name: 'Cow', ready: true },
     ])
-    expect(pets().map(looks)).toEqual([
-      { lit: true, away: false, ticked: true },
-      { lit: false, away: false, ticked: false },
-      { lit: false, away: true, ticked: false },
-      { lit: true, away: true, ticked: false },
-    ])
-    expect(tile('Lynx').getAttribute('aria-label')).toBe('Lynx, away, not ready: kick or make host')
+    expect(names('Ready')).toEqual(['Zezima'])
+    expect(names('Not ready yet')).toEqual(['Woox', 'Lynx', 'Cow'])
+    expect(pets().map(away)).toEqual([false, false, true, true])
+    expect(tile('Lynx').getAttribute('aria-label')).toBe(
+      'Lynx, away, not ready yet: kick or make host',
+    )
   })
 
   it('shows the code as the server spells it', () => {
@@ -524,7 +561,7 @@ describe('Lobby', () => {
     ).toContain('AbyssalWhip07')
   })
 
-  it('says under each pet who hosts, who is away and which is you', () => {
+  it('says under each pet who hosts and who is away, and bolds yours', () => {
     const lynx: PlayerView = {
       id: 'c',
       display_name: 'Lynx',
@@ -537,9 +574,14 @@ describe('Lobby', () => {
     }
     lobby([HOST, WOOX, lynx])
     expect(pets().map((pet) => pet.querySelector('.status')?.textContent ?? '')).toEqual([
-      'host · you',
+      'host',
       '',
       'away',
+    ])
+    expect(pets().map((pet) => pet.querySelector('.table-pet.you') !== null)).toEqual([
+      true,
+      false,
+      false,
     ])
   })
 
@@ -550,16 +592,16 @@ describe('Lobby', () => {
     ])
     const [host, woox] = pets()
     expect(woox?.textContent).toContain('picking a name…')
-    expect(woox?.classList.contains('editing')).toBe(true)
+    expect(woox?.querySelector('.status.editing')).not.toBeNull()
     expect(host?.textContent).not.toContain('picking a name…')
-    expect(screen.getByRole('list', { name: 'Players, 1 of 2 ready' })).toBeTruthy()
-    expect(screen.getByText('Waiting on Woox.')).toBeTruthy()
+    expect(heading('Ready')).toBe('Ready 1')
+    expect(heading('Not ready yet')).toBe('Not ready yet 1')
   })
 
-  it('tells a player the host starts, on the scroll, and gives them no Start', () => {
+  it('tells a player the host starts, at the table, and gives them no Start', () => {
     lobby([HOST, WOOX], ROOM, WOOX)
-    const paper = document.querySelector('.paper') as HTMLElement
-    expect(within(paper).getByText('Waiting for the host to start…')).toBeTruthy()
+    const table = screen.getByRole('group', { name: 'At the table' })
+    expect(within(table).getByText('Waiting for the host to start…')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Start/ })).toBeNull()
   })
 
@@ -581,26 +623,21 @@ describe('Lobby', () => {
     expect(screen.getByText(line)).toBeTruthy()
   })
 
-  it('keeps the rounds behind a button, listed A–Z once it is pressed', async () => {
+  it('shows a card per round, A–Z, with its host and its question count', () => {
     const modes = [
       { mode: 'more_less', questions: 5 },
       { mode: 'drop_table', questions: 1 },
     ]
     lobby([HOST, WOOX], { ...ROOM, settings: { ...ROOM.settings, modes }, total: 6 })
     expect(screen.getByText('2 rounds · 6 questions · Run pace · ~5 min')).toBeTruthy()
-    const toggle = screen.getByRole('button', { name: 'Show the rounds' })
-    expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    expect(screen.queryByText('More or Less')).toBeNull()
-    await fireEvent.click(toggle)
-    expect(toggle.getAttribute('aria-expanded')).toBe('true')
-    const rows = within(document.getElementById('rounds')!).getAllByRole('listitem')
-    expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+    const cards = [...document.querySelectorAll('.board .round')]
+    expect(cards.map((card) => card.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
       'Drop Table 1 question',
       'More or Less 5 questions',
     ])
+    expect(cards.every((card) => card.querySelector('.face img') !== null)).toBe(true)
     expect(screen.getByText('Listed A–Z, not in the order they play.')).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Hide the rounds' }))
-    expect(screen.queryByText('More or Less')).toBeNull()
+    expect(screen.getByText('Quicker and correct answers score more.')).toBeTruthy()
   })
 
   it('gives the server’s estimate of the game in whole minutes', () => {
@@ -625,7 +662,9 @@ describe('Lobby', () => {
     expect(
       screen.getByText("Tonight's rounds are a surprise. Each one is revealed when it starts."),
     ).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Show the rounds' })).toBeNull()
+    const cards = [...document.querySelectorAll('.board .round')]
+    expect(cards).toHaveLength(5)
+    expect(cards.every((card) => card.textContent?.trim() === 'A surprise')).toBe(true)
     expect(screen.queryByText('More or Less')).toBeNull()
   })
 
@@ -641,28 +680,38 @@ describe('Lobby', () => {
     }
     const LYNX: PlayerView = { ...WOOX, id: 'c', display_name: 'Lynx' }
 
-    function group(name: string): HTMLElement {
-      return screen.getByRole('list', { name })
-    }
-
-    function names(list: HTMLElement): string[] {
-      return within(list)
-        .getAllByRole('listitem')
-        .map((item) => item.querySelector('.pet-name')?.textContent ?? '')
-    }
-
     function god(name: string): HTMLElement {
       return screen.getByRole('button', { name: new RegExp(`^${name}, \\d+ players?$`) })
     }
 
-    it('shows players under their team, every team even an empty one, and the teamless under No team', () => {
-      lobby([{ ...HOST, team: 'zamorak' }, WOOX, { ...LYNX, team: 'zamorak' }], TEAMS_ROOM)
-      expect(names(group('Zamorak'))).toEqual(['Zezima', 'Lynx'])
-      expect(names(group('No team'))).toEqual(['Woox'])
-      expect(god('Saradomin').getAttribute('aria-label')).toBe('Saradomin, 0 players')
-      expect(god('Guthix')).toBeTruthy()
+    it('groups each half by team in god order, the teamless last, with a button per god', () => {
+      lobby(
+        [
+          { ...HOST, team: 'zamorak' },
+          WOOX,
+          { ...LYNX, team: 'zamorak', ready: true },
+          { ...WOOX, id: 'd', display_name: 'Cow', team: 'saradomin', ready: true },
+        ],
+        TEAMS_ROOM,
+      )
+      expect(names('Ready, Saradomin')).toEqual(['Cow'])
+      expect(names('Ready, Zamorak')).toEqual(['Lynx'])
+      expect(names('Not ready yet, Zamorak')).toEqual(['Zezima'])
+      expect(names('Not ready yet, No team')).toEqual(['Woox'])
+      expect(screen.queryByRole('list', { name: /Guthix/ })).toBeNull()
+      expect(
+        within(panel())
+          .getAllByRole('list')
+          .map((list) => list.getAttribute('aria-label')),
+      ).toEqual([
+        'Ready, Saradomin',
+        'Ready, Zamorak',
+        'Not ready yet, Zamorak',
+        'Not ready yet, No team',
+      ])
+      expect(god('Saradomin').getAttribute('aria-label')).toBe('Saradomin, 1 player')
+      expect(god('Guthix').getAttribute('aria-label')).toBe('Guthix, 0 players')
       expect(screen.queryByRole('button', { name: /^Bandos/ })).toBeNull()
-      expect(screen.getAllByText('Nobody yet')).toHaveLength(2)
     })
 
     it('drops No team once everyone has one', () => {
@@ -673,7 +722,7 @@ describe('Lobby', () => {
         ],
         TEAMS_ROOM,
       )
-      expect(screen.queryByRole('list', { name: 'No team' })).toBeNull()
+      expect(screen.queryByRole('list', { name: /No team/ })).toBeNull()
     })
 
     it('sends set_team for the god tapped, and marks yours', async () => {

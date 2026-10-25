@@ -310,6 +310,12 @@ export function applyServerMessage(message: ServerMessage): void {
       if (get(question)?.question_id !== message.question_id) break
       answerAck.set({ scoring: message.scoring, band: message.band })
       countFrom(message)
+      // The ack carries no list, and the broadcast that does leaves the answerer out.
+      answerCount.update((count) =>
+        count === null
+          ? null
+          : { ...count, waiting: count.waiting.filter((id) => id !== get(you)?.id) },
+      )
       break
 
     case 'answer_count':

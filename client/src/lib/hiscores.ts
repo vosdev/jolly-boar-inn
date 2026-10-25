@@ -15,6 +15,7 @@ import { team, TEAM_IDS, type TeamId } from './teams'
 
 /** Who presents every standings screen: wiseoldman.net is where OSRS players track gains. */
 export const HISCORES_HOST = 'wise_old_man'
+export const HISCORES_HOST_NAME = 'Wise Old Man'
 
 /** The Quest Speedrunning trophies, first to fifth. The art is `lib/trophies.ts`'s. */
 export const TIERS = ['diamond', 'platinum', 'gold', 'silver', 'bronze'] as const

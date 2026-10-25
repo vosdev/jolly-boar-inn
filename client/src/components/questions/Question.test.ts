@@ -420,23 +420,51 @@ describe('every type on the stage', () => {
 
   it('holds the line the points go on, so the answers do not move for them', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
-    const said = paper().querySelector('.said')
-    expect(said).toBeTruthy()
-    expect(said!.textContent?.trim()).toBe('')
+    const foot = paper().querySelector('.foot')
+    expect(foot).toBeTruthy()
+    expect(foot!.textContent?.trim()).toBe('')
   })
 
-  it('has the host say its waiting line at the foot of the sheet once you have answered', () => {
+  const bubble = () => document.querySelector('.bubble') as HTMLElement
+  const said = () => bubble().querySelector('.line:not(.later)')!.textContent?.trim()
+
+  it('keeps the host quiet while the question is up, its bubble keeping its room', () => {
+    render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
+    expect(document.querySelector('.speaker .npc.host')).toBeTruthy()
+    expect(bubble().classList.contains('off')).toBe(true)
+  })
+
+  it('has the host say its waiting line in its bubble, dimmed, once you have answered', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: 0, onAnswer })
-    expect(paper().querySelector('.said')!.textContent?.trim()).toBe(MODES.more_less!.waiting)
+    expect(bubble().classList.contains('dim')).toBe(true)
+    expect(said()).toBe(MODES.more_less!.waiting)
+    expect(paper().textContent).not.toContain(MODES.more_less!.waiting)
   })
 
-  it('has the host say its reveal line beside your points', () => {
+  it('has the host say its reveal line in its bubble, undimmed, and your points on the sheet', () => {
     const question = open('more_less', 'more_less')
     const result = { value: 0, correct: true, credit: 1, points: 850 }
     render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
-    const said = paper().querySelector('.said')!
-    expect(said.querySelector('.line')?.textContent).toBe(MODES.more_less!.reveal)
-    expect(said.querySelector('.slot')?.textContent).toContain('+850')
+    expect(bubble().classList.contains('on')).toBe(true)
+    expect(said()).toContain(MODES.more_less!.reveal)
+    expect(paper().querySelector('.foot .slot')?.textContent).toContain('+850')
+  })
+
+  it('puts the explanation and the countdown in the reveal’s bubble, off the sheet', () => {
+    const question = open('more_less', 'more_less')
+    const why = 'Rune prices crashed when the mines were reopened.'
+    const nextAt = new Date(Date.now() + 6000).toISOString()
+    render(QuestionStage, {
+      question,
+      reveal: { ...REVEAL, explanation: why },
+      yourValue: 0,
+      onAnswer,
+      nextAt,
+    })
+    expect(said()).toContain(why)
+    expect(said()).toMatch(/Next question in [56] seconds/)
+    expect(screen.getAllByText(why)).toHaveLength(1)
+    expect(paper().textContent).not.toContain(why)
   })
 
   it('draws the scroll open, as it always is', () => {
@@ -674,10 +702,10 @@ describe('a phone while the TV shows the question', () => {
     expect(screen.getByRole('button', { name: /77/ })).toBeTruthy()
   })
 
-  it('keeps the waiting line once you have answered', () => {
+  it('keeps the line saying your answer is in once you have answered', () => {
     const question = open('more_less', 'more_less')
     render(QuestionStage, { question, yourValue: 0, onAnswer, answersOnly: true })
-    expect(document.querySelector('.panel.waiting')?.textContent).toContain('Waiting for the room')
+    expect(document.querySelector('.held')?.textContent).toContain('Answer in')
   })
 
   it('gets the whole question back when the TV goes', async () => {

@@ -198,6 +198,16 @@ describe('ordering', () => {
     expect(placed()).toEqual(SHOWN)
   })
 
+  it('follows the pointer at the room’s scale: a row drawn at twice its size moves half as far', async () => {
+    layout()
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(150)
+    render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    const grip = handle('Steel')
+    await fireEvent.pointerDown(grip, { pointerId: 1, button: 0, clientY: 268 })
+    await fireEvent.pointerMove(grip, { pointerId: 1, button: 0, clientY: 70 })
+    expect(document.querySelector<HTMLElement>('.row.dragged')?.style.translate).toBe('0px -99px')
+  })
+
   it('moves a row dragged by its handle, and the rows between make room', async () => {
     layout()
     render(Question, { question: open(), yourValue: null, onAnswer: () => {} })

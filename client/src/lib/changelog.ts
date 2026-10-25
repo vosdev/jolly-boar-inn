@@ -44,6 +44,56 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.171.0',
+    date: '2026-10-24',
+    text: 'On a computer, the reveal shows who picked each answer, right on the answer.',
+  },
+  {
+    version: '0.170.0',
+    date: '2026-10-24',
+    text: 'Between rounds the hiscores say who hosts the next round and count down to it.',
+  },
+  {
+    version: '0.169.0',
+    date: '2026-10-24',
+    text: 'Before each round, a row of tonight’s hosts shows how far the night has come, and a large countdown.',
+  },
+  {
+    version: '0.168.0',
+    date: '2026-10-24',
+    text: 'The lobby shows the code and invite link large, and a card for each of tonight’s rounds.',
+  },
+  {
+    version: '0.167.0',
+    date: '2026-10-24',
+    text: 'After each question the table beside the stage shows who picked what, with a count and a bar per answer.',
+  },
+  {
+    version: '0.166.0',
+    date: '2026-10-24',
+    text: 'On a laptop the question and its answers use the width of the screen, each answer sized to fit.',
+  },
+  {
+    version: '0.165.0',
+    date: '2026-10-24',
+    text: 'The host now speaks in a bubble above the question, and a random event’s NPC in one on the right.',
+  },
+  {
+    version: '0.164.0',
+    date: '2026-10-24',
+    text: 'The table beside the stage shows who has answered and who is still thinking, by team in a team game.',
+  },
+  {
+    version: '0.163.0',
+    date: '2026-10-24',
+    text: "The host's buttons moved from under the question to a Host menu in the top bar.",
+  },
+  {
+    version: '0.162.0',
+    date: '2026-10-24',
+    text: 'Rooms fill a laptop or desktop screen: the stage on the left, who is at the table on the right.',
+  },
+  {
     version: '0.161.1',
     date: '2026-10-24',
     text: 'A behind-the-scenes security update.',

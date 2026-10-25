@@ -98,14 +98,17 @@ def frames_until_finished(seat: Seat) -> list[dict[str, Any]]:
     return frames
 
 
-def round_starts(frame: dict[str, Any], index: int) -> bool:
-    """Whether ``frame`` is the first to name round ``index``: its splash."""
-    return frame["t"] == "room_updated" and (frame["room"]["segment"] or {}).get("index") == index
+def round_named(frame: dict[str, Any], index: int) -> bool:
+    """Whether ``frame`` is the first to name round ``index``: the standings before it."""
+    if frame["t"] != "room_updated":
+        return False
+    room = frame["room"]
+    return (room.get("next_segment") or room["segment"] or {}).get("index") == index
 
 
 def before_round(frames: list[dict[str, Any]], index: int) -> str:
-    """Every frame before round ``index`` started, serialised."""
-    start = next(at for at, frame in enumerate(frames) if round_starts(frame, index))
+    """Every frame before round ``index`` was named, serialised."""
+    start = next(at for at, frame in enumerate(frames) if round_named(frame, index))
     return json.dumps(frames[:start])
 
 
@@ -113,7 +116,7 @@ def played_modes(room: dict[str, Any]) -> list[str]:
     return [entry["mode"] for entry in room["settings"]["modes"]]
 
 
-def test_a_player_hears_of_no_round_before_it_starts(table) -> None:
+def test_a_player_hears_of_no_round_before_the_standings_name_it(table) -> None:
     game = surprise(table)
     play_until(game, finished)
     frames = frames_until_finished(game.players[0])
@@ -121,6 +124,10 @@ def test_a_player_hears_of_no_round_before_it_starts(table) -> None:
     assert "price_is_right" not in first
     assert "guess_examine" not in first
     assert "guess_examine" not in before_round(frames, 2)
+    standings = [
+        m["room"] for m in frames if m["t"] == "room_updated" and m["room"]["phase"] == "standings"
+    ]
+    assert [room["next_segment"]["mode"] for room in standings] == PLAYED[1:]
     # Then the splash reveals it, and every round has been played by the end.
     last = [m["room"] for m in frames if m["t"] == "room_updated"][-1]
     assert played_modes(last) == PLAYED
@@ -219,7 +226,8 @@ def test_a_room_without_surprise_rounds_sends_what_it_always_sent(table, client)
     frames = frames_until_finished(game.players[0])
     rooms = [welcome["room"]] + [m["room"] for m in frames if m["t"] == "room_updated"]
     for room in rooms:
-        assert set(room) == ROOM_KEYS
+        standings = room["phase"] == "standings"
+        assert set(room) == ROOM_KEYS | ({"next_segment"} if standings else set())
         assert set(room["settings"]) == SETTINGS_KEYS
         assert played_modes(room) == PLAYED
     assert [m for m in frames if m["t"] == "room_updated"] == [

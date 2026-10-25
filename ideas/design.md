@@ -85,14 +85,20 @@ learns the position, which is worth more than variety.
   six. While a pick waits, nothing moves.
 - Your own pick carries a small "you", right or wrong. The verdict is the points slot (§10), not
   the button. The reveal adds one more thing: how many picked it, in the corner, with a bar along
-  the bottom for its share of who answered. It names nobody, so it shows whatever the setting.
-- Under every reveal: "22 of 41 got it right", then under "Got it wrong" a line per group,
-  `label (count): names`. A group is the option (with its gem's chip), the typed answer (three,
-  then "Something else"), the list entry, the closest-number rank ("Further off" last, every name
-  with its guess, furthest first), right picks, entries in place, or fields right ("N of M got
-  them all" for `matching`). Eight names a line, you
-  first, then "and N more". "No answer" comes last, muted: it is not wrong. With
-  `name_wrong_answers` off the lines keep their counts and drop the names.
+  the bottom for its share of who answered, whatever the setting.
+- **Who picked what**, in the desktop room only: a `multiple_choice` gem and a `more_less` card
+  list their pickers under the label, pet and name, you first as "you", then A–Z: five on the
+  answer, four on a wrong one, then "and N more". With `name_wrong_answers` off a wrong option
+  keeps only its count. A phone (the results sheet names them) and the TV show none, nor do the
+  other types.
+- Every reveal's results take the table panel (§9): "22 of 41 got it right", then a row per
+  group, the right one first, labelled with the answer, then the wrong ones: the option (with its
+  gem's chip), the typed answer (three, then "Something else"), the list entry, the closest-number
+  rank ("Further off" last, every name with its guess), right picks, entries in place, or fields
+  right. Each row has its count, a bar for its share of everyone who could answer, and its names:
+  eight, you first, then "and N more". "No answer" comes last, muted: it is not wrong. The right
+  row always names its players; with `name_wrong_answers` off the others keep only their counts.
+  The TV keeps its tally under its answers, as a line per wrong group.
 - Six gems means no question offers more than six options.
 - `pick_all_that_apply` drags the right gems from a tray into a basket, as `ordering` does, nothing
   fading until Submit. Without `picks` the basket grows, unnumbered; with it, that many empty places.
@@ -129,18 +135,25 @@ learns the position, which is worth more than variety.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [sign] The Jolly Boar Inn            [⌥]  [pet Name emblem]  │  56px, sticky
+│ [sign] The Jolly Boar Inn      [Host ⌄]  [⌥]  [pet Name emblem]  │  56px, sticky
 └──────────────────────────────────────────────────────────────┘
 ```
 
 - **Left:** the sign, a plain `href="/"` link home, then the wordmark. Both are configurable (§14).
   The version is in the footer.
+- **Host ⌄**, outlined, comes first for an admin while a room plays (not in the lobby or the final
+  hiscores), on a phone too. Its menu holds the phase's actions: "Start the round now", "Close this
+  question now", the reveal's skip (next question, standings, next round or final standings), "Start
+  the next round now", "End the round", "End the game"; the last two ask first. Kick, promote and
+  Make TV stay on the pets.
 - **Right:** GitHub (`--muted`, the one control not about the game), then one control: the pet,
   the name and the current theme's **emblem**. One thumb target, not three. The name is the bar's
   priority: it shows at every width and is the one item that shrinks, ellipsising.
 - **Under 26rem** the wordmark and GitHub hide. At 320px the name keeps about 155px.
 - **Width:** the bar and the footer are as wide as the screen under them: 42rem, or 64rem on Home,
-  Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
+  Create and Admin, where Home puts Join, Host and Suggest beside the room lists from 50rem. In a
+  room the bar runs the window's width, and from 1024px its middle says where the night is:
+  "Round 1 of 3: **More or Less**", "Lobby", "Hiscores after round 2 of 3", "Final hiscores". On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
   or push the controls off a phone. The lobby and Join show the code instead.
 - **A team game** frames the screen in the player's god from the moment they join a team until
@@ -202,58 +215,70 @@ who sends none is given one by the server, so every client draws the same pet fo
 
 ## 8. The stage: a host and a sheet
 
-Every round is presented by an NPC, the **host**, standing beside the theme's **sheet**
-(`lib/sheet.ts`). In `jolly` and `pollnivneach` it is a **clue scroll** drawn after the game's
+Every round is presented by an NPC, the **host**, who stands above the theme's **sheet**
+(`lib/sheet.ts`) and speaks in a bubble beside its chathead. In `jolly` and `pollnivneach` it is a **clue scroll** drawn after the game's
 quest reward scroll: upright rolls with knobs, a sheet torn top and bottom. `wilderness` nails up a
 sooty bounty poster under the game's skull, `party_room` hangs a cream card in a checked border
 under bunting, `tzhaar` carves an obsidian slab glowing at its edge, since paper would burn,
 `jungle` lashes bark cloth into a bamboo frame, both Gauntlets show its dark board in a glowing
 crystal or red rim, `morytania` raises a gravestone, which a long sheet makes a pillar, and `zanaris` the Cosmic
 altar's sign.
-The sheet carries the round's introduction on the splash and then every question; the answers
-sit under it.
+The sheet carries the round on the splash and then every question, and nothing else; the
+answers sit under it.
 Create shows each mode on a card with its host's chathead. The stage was agreed in
 `client/prototypes/clue-scroll.html`, on the real tokens; under `make dev` it is at
 `/prototypes/clue-scroll.html`.
 
 ```
+   ▄▄    ╭──────────────────────────────╮
+  (••)   │ Ali Morrisane                │   the speaker's name, then its line
+ ▟████▙ <│ Patience, my friend.         │   in Quill, on --panel-raised
+         ╰──────────────────────────────╯
         ╥────────────────────────────────╥
-        ║ Know Your Content Creator      ║   display face
-   ▄▄   ║ "Psst. Seen this one before?"  ║   the host's line, body face
-  (••)  ║ Are you sure you are a fan?    ║   the blurb, in the host's voice
- ▟████▙ ║                                ║
-        ╨──────────────────────✿─────────╨   the pin, for any points
-──────────────────────────────────────────────
-Round 2 of 5 · 5 questions
-[ ✓ I'm ready ]   ●●●○●●○   Waiting for 2 more
+        ║ Which costs more on the GE?    ║   the question, and nothing else
+        ╨──────────────────────✿──+850───╨   the pin and the points
 ```
 
-- **One size.** The stage is at most 30rem wide at every width, and the answers under it take the
-  same width. `--scroll-scale` sizes the rolls, margins and pin, `--scroll-text` the words; a
-  stage under 26rem, a phone, sets 0.8 and 0.9.
-- **The host** stands at the scroll's bottom-left, over its left roll: 78px wide overlapping 30px,
-  and 68px overlapping 32px on a phone. A sheet without rolls it overlaps only as far as it
-  would reach past a roll. Its chathead at both. A sheet longer than the host, the hiscores
-  (§11), has it at the top-left instead.
+- **The room's frame** (`lib/roomFit.ts`): the stage on the left, the table column on the right,
+  300px (380px in a reveal), 28px apart, padded 30/40/28px. It is laid out at 1600×920 under the
+  bar: larger windows scale it up as a whole, as the TV (§16), never wider than 16:9 of the
+  window's height, the floor beside it with the wall lights (§1) measured from its edge, none
+  where it fills the window; from 1280×640 it fills the window at its
+  own size; smaller, it lays out at 1280×640 and scales down. The stage's parts stand centred in
+  its height. Under 1024px wide the stage and table stack. The TV has no frame.
+- **Two sizes.** On the desktop frame a stage whose host speaks above it takes the stage column, up
+  to 960px, its sheet's words at 1.5 (`--scroll-text`) and rolls and pin at 1.25 (`--scroll-scale`);
+  every other stage, and every stage on a phone, is at most 30rem. The answers take the stage's
+  width. A stage under 26rem, a phone, sets 0.8 and 0.9.
+- **The host** stands above the sheet at its left, its chathead 92px (56px on a phone), and speaks
+  in a **bubble** beside it: the theme's `--panel-raised` with its `--line` edge and a tail at the
+  speaker, in Quill, the speaker's name then the line. An event's NPC stands at the right, its
+  bubble pointing right (§12). A hidden bubble keeps its room, so the sheet never moves when the
+  host speaks, and a bubble is from the first frame as tall as the most its screen will say.
+- **Elsewhere the host stands beside the sheet**: a past game's hiscores
+  (§11, at a long sheet's top-left), Home and the TV. There it stands at the scroll's bottom-left,
+  over its left roll, 78px wide overlapping 30px (68px and 32px on a phone); under 448px of screen,
+  and on the TV, it stands on the sheet and the words wrap around it.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
-  edges. The host, an event's NPC or Home's hero then stands on the sheet, and the words wrap
-  around it: the lines above its head run the sheet's full width.
+  edges.
 - **The sheet** is at least four prompt lines tall, so a one-line question still makes a scroll,
   and faint facets crease it. An examine line sits centred in the height the prompt leaves.
 - **One scroll, always open**, from the lobby to the final hiscores. Between screens the words
   fade off (150 ms), the scroll moves to the next screen's size and place (250 ms), and the new
-  words fade up. When somebody else is to stand there (the lobby's hero, the Wise Old Man, an
-  event NPC still standing), the host leaves with the words (200 ms) and the next walks on before
-  them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
+  words fade up, in the bubble as on the sheet, the bubble holding its size while they fade.
+  When somebody else is to stand there (the lobby's hero, the Wise Old Man, an event NPC still
+  standing, or the host stepping up above the sheet), the host and its bubble leave with the words
+  (200 ms) and the next walks on before them (200 ms). An open question's reveal, a hidden page and reduced motion cut instead. An
   event clears the words before its own entrance and return (§12).
 - **Between routes** (Create to the lobby, Home to Join), Create's tabs and Suggest's list and editor the old screen fades out (150 ms) and the new
   one in (200 ms); reduced motion cuts. A room's first frame waits behind a "Connecting…" popup that
   only appears after 400 ms.
   After the first screen loads, the browser fetches the NPCs, emblems, team logos and pet chatheads
   (`lib/preload.ts`), so those do not pop in mid-fade.
-- **Every line on the scroll types in** at 50 letters a second: on the splash the greeting and
-  blurb once the scroll is in place, and a question's stem from 400 ms in the server's hold before
-  `answerable_at`, the answers waiting under the line. Names show whole. Otherwise as §12.
+- **Every line types in** at 50 letters a second: on the splash the bubble's greeting and blurb
+  once the stage is in place, and a question's stem on the sheet from 400 ms in the server's hold
+  before `answerable_at`, the answers waiting under the line. The host says nothing then; once you
+  answer, its waiting line shows in the bubble, dimmed to 60%. Names show whole. Otherwise as §12.
 - **Any answer that scores** pins the theme's pin on the sheet's bottom edge, 65% across: right,
   partial credit or a graded guess alike. `jolly` and `party_room` pin a red rosette ribbon,
   `pollnivneach` a super kebab, `tzhaar` Tokkul, `jungle` a Monkey Madness monkey, both Gauntlets a
@@ -264,13 +289,13 @@ Round 2 of 5 · 5 questions
 - **The sheet** is an original inline SVG and CSS component in layer 8's tokens. An `<img>` could
   not read the theme's custom properties (§13). The knobs are fixed pieces; a roll stretches only
   along its length. Every theme has its own paper.
-- **Below the scroll** is a panel: on the splash the round's count and pace and the ready check;
-  on a question the answers, and once answered a slim panel saying who is in. Gems never sit on parchment, so every gem check
-  still measures against `--panel`. The round is said on the splash only.
+- **Below the scroll** are the answers on a panel; gems never sit on parchment, so every gem
+  check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
+  the lobby's and splash's buttons at its foot.
 - **The host's voice** is the mode's copy: splash line, blurb, waiting line, reveal line, in
-  `lib/modes.ts`. The splash scroll holds the mode's name, greeting and blurb; the waiting and
-  reveal lines go at the sheet's foot, the reveal's beside the points. The foot holds two lines
-  either way, and each line fits in two at 350px, the narrowest screen supported. Question
+  `lib/modes.ts`, all in the bubble. The reveal's bubble adds the question's explanation and
+  "Next question in 6 seconds" (the standings, the next round or the final standings after a
+  round's or the game's last). The sheet's foot keeps one line for the points. Question
   prompts stay plain: a prompt is parsed against the clock, and a joke around it is a second thing
   to read. Random events are the exception, already written in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
@@ -280,24 +305,45 @@ Round 2 of 5 · 5 questions
   board, so the inn's front door differs from its games. Their host is the selfhoster's hero for the theme (§14): 240px beside the scroll with 600px of
   stage, else 120px in the host's place, partly off a phone's edge. Without one, the Wise Old Man.
 
-## 9. The splash and the ready check
+## 9. The table panel, the splash and the ready check
 
-Both put the players in a grid of pets, a name under each: faded while away, ticked and named
-in `--ok` once ready. The threshold, countdowns and take-back rule are architecture §7.
+The table panel (`TablePanel`) is who is at the table, on the theme's panel beside the stage. It
+has two halves, each with its count: the lobby's and splash's "Ready" over "Not ready yet", a
+question's "Answered" over "Still thinking". A pet moves up as
+its player readies or answers. Pets sit four abreast, the name under each, yours first in your
+half and in bold, the rest below in join order and above in the order they arrived. An away pet
+fades to grey, says "away" and stays below, since the server only knows who is still to answer
+among the connected. A team game splits each half by team in god order, the teamless last. The
+TV sits apart under "TV" at the foot. A question nobody answers lists everyone under "At the table".
+On a phone a question's panel is a strip at the foot, "2 of 9 answered" and the first four faces,
+answered first; in a reveal "5 of 9 got it right" and the faces of who did. It opens the panel
+as a sheet, the reveal's as "Results", and a new question closes it. A reveal's panel is its
+results (§3), 380px wide. The lobby and splash
+keep the whole panel under the stage, since it holds their buttons. The threshold, countdowns and
+take-back rule are architecture §7.
 
-- **Lobby: the room on the scroll.** It holds the code, which copies the invite link (an error and
-  the link to copy by hand where the clipboard refuses), the rounds and questions, and the rounds
-  A–Z behind "Show the rounds". The host also sees who is missing by name, since the answer is
-  usually "Dave, at the bar", and taps a pet to kick or promote. Start is plain at the threshold,
-  and "Start anyway" below it, which asks first.
+- **Lobby.** The hero, else the Wise Old Man, says the lobby line in the bubble. The scroll holds
+  "Your friends join with this code", the code, which copies the invite link, and the link with
+  "Copy invite link"; an invite-only room says so instead of printing a link that carries its key
+  (an error and the link to copy by hand where the clipboard refuses). Under it, a panel: the
+  night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
+  round is "A surprise" with the boar), "How to play" and "Quicker and correct answers score
+  more." At the table: join requests first, for the host, then a team game's gods, the halves,
+  I'm ready, and Start (plain at the threshold, "Start anyway" below it, which asks first) or
+  "Waiting for the host to start…". The host taps a pet to kick or promote.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
-  last admin) and back ("Not the TV"), at once. A screen sits where its tick goes, "TV" under
-  its name; a team game lists it in a TV group after the teams. The TV gets no ready, and its
-  settings no name or pet.
+  last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,
+  and its settings no name or pet.
 - **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
   follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
-- **Splash:** "Waiting for 2 more" says the rest, never by name.
-- **How to play:** a link on the Lobby's scroll and on Home's opens a sheet, a row per way of
+- **Splash.** The host's greeting and blurb in the bubble. The scroll: "Round 4 of 10", the mode's
+  name, "5 questions · " and its Create hint, and a price round's date. Under it, "Tonight": a
+  host per round, past ones faded, the current one large and named, the rest numbered; a host
+  shows only where the client knows it, so shuffled or hidden rounds are numbered blanks but for
+  the current one. Ten fit a row; past 12 it shows the nearest 12, on a phone the nearest 5, with
+  "+N" for the rest. Beside it "Starting in 4", large, once the countdown runs, and before that
+  "Waiting for 2 more to be ready", never by name. The panel keeps the ready check.
+- **How to play:** a link on the Lobby's rounds and on Home's opens a sheet, a row per way of
   answering: a small drawing of the control and one plain sentence, with every Submit named in
   bold, since players overlooked it. The Lobby shows its rounds' types, or all of them when
   random events, host's questions or hidden rounds could bring any. It ends "Quicker and correct
@@ -306,10 +352,17 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
 ## 10. The question screen and the reveal
 
 - The timer is a thin bar under the top bar, with the seconds in a tab at the stage's right edge
-  and the question's number (`2/3`) in one at its left. Answer buttons are 56px tall and full
-  width on a phone: thumb targets at a pub table.
+  and the question's number (`2/3`) in one at its left. In a reveal it counts to what follows,
+  the tab saying "Next in 6s" and the fill in `--muted`, never turning urgent.
+- **The answers take the size the question needs**, laid out by the stage's width, so a preview
+  matches the room. Choices are two abreast and 56px tall on a phone, an odd last one across the
+  row: thumb targets at a pub table. On a wide stage they are at least 84px tall, three abreast,
+  two and four two abreast, five's last two centred. More or Less's two items are cards of the
+  item's size, at most 16rem wide, with "or" between. Ordering, matching and pick-all put the list
+  on the left and the instruction, Start over and Submit in a 230px column on its right; a phone
+  stacks them. The combobox, number and slider keep their controls at the board's width.
 - The stem (prompt, item picture, examine line, More or Less's question) is on the scroll in
-  `--scroll-ink`, and the answers, combobox, waiting state and tally are under the scroll. The
+  `--scroll-ink`, the answers and combobox under it, who has answered at the table. The
   question's heading is for a screen reader only.
 - A pack question's picture, the wiki's detail render, is centred under the prompt in a box 5rem
   tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.
@@ -321,16 +374,15 @@ in `--ok` once ready. The threshold, countdowns and take-back rule are architect
 - The `pick_from_list` combobox (behaviour in architecture §4) is full width, 56px tall, in the body
   face, with a 56px Submit under it. Its list floats over the page, so opening it never scrolls: below the field, and on a phone
   *above* it, clear of the keyboard. Typed text reads as a search; only a selection lights Submit.
-- Answered and waiting shows your answer held and dimmed, "waiting for the room" and the answered
-  count.
+- Answered and waiting shows your answer held and dimmed, with "Answer in" and its band under it.
 - **With a TV connected** a phone draws no stage: no host, scroll, stem, picture or event NPC.
-  The answers and the waiting line take the screen, and the reveal puts your points on their
+  The answers, the band line and the table's strip take the screen, and the reveal puts your points on their
   plaque above your marked answers, with no tally, counts, others' guesses or explanation. A
   TV that drops gives phones the whole question back.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
-picked or numeric answer fades beside the correct value. The host says your points at the foot of
-the scroll, in a foot held from the start so nothing under the sheet moves, the same in every mode,
+picked or numeric answer fades beside the correct value. Your points go at the foot of the
+scroll, in a foot held from the start so nothing under the sheet moves, the same in every mode,
 in display tabular numerals and the scroll's ink:
 
 | Outcome | Slot shows |
@@ -354,18 +406,24 @@ in display tabular numerals and the scroll's ink:
 
 Standings appear between rounds and at the end, never between questions, in the `standings` phase
 (architecture §7). A single-round game shows only the final ones. Both are the Wise Old Man's
-hiscores on the stage (§8), for wiseoldman.net, where OSRS players track their gains. The sheet
-runs long, so he stands at its top-left beside his line, and the table takes the sheet's width
-below him. Agreed in `client/prototypes/standings.html`.
+hiscores on the stage (§8), for wiseoldman.net, where OSRS players track their gains. He speaks in
+his bubble and the table is the whole sheet; a past game and the TV put him at the sheet's
+top-left beside his line, the title "Hiscores" or "Final hiscores" over it.
 
-The table is the OSRS hiscores: `#`, pet, name, right-aligned tabular points. Each row is two
-lines, the places moved (▲2, ▼1) under the rank and the round's gain (+1,240) under the total, so
-a 24-letter name keeps the middle at 350px. "(you)" never splits from itself. The first round has
-no moves. Your row is highlighted, and between rounds pinned to the screen's foot when below it.
+The table is the OSRS hiscores. On a desktop each row is one line: Rank, the places moved (▲2,
+▼1), pet and name, "This round" (+1,240, muted) and bold points. On a phone, the TV and a past
+game it is `#`, name and points, two lines a row, the move under the rank and the gain under the
+total. "(you)" never splits from itself. The first round has no moves. Your row is highlighted,
+and between rounds pinned to the sheet's foot when below it.
 
 **Between rounds** he says "Round 2 done. Let's see who truly knows Gielinor best." The rows start
 where they stood before the round, with the totals then; once his line has typed the gains count
 up, a second later the rows move to their places, and then your row pins. About three seconds.
+The table panel says "Next up": the next round's host, its name, "Round 3 of 3, 5 questions"
+(`room.next_segment`, so hidden and shuffled rounds too) and "Starts in 8", large, at its foot.
+On a phone it is a strip at the foot, "Next up: Bestiary" and the count, that opens nothing. The
+timer bar counts to the next round in the quiet fill, its tabs `2/3` (rounds played) and `8s`.
+The TV shows none of it.
 
 **The final** opens on "The final scores are in!", then presents fifth place to first: his line
 ("In fifth place…", "Tied for second…", "And top of the hiscores…"), then the place's pets (three,
@@ -375,7 +433,8 @@ dense, so tied players share a place; nobody on 0 points gets one, and a room wh
 has no ceremony. The place then fades, the sheet unrolls to the full table with the rows arriving
 top to bottom, and he says "Gz, Name! Here are the full hiscores." A Skip button jumps there.
 
-The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
+The final standings have no table panel: the stage stands in the middle of the room, the trophy
+right of the sheet. The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
 past game from history show the table at once, as does reduced motion; a past game shows only the
 totals, without moves or gains. Trophies are art, not tokens.
 
@@ -390,41 +449,42 @@ on the game's entry.
 A random event is a question from an NPC who has nothing to do with the round. How often and who
 asks what are architecture §5 and `ideas/random-events.md`. This is how it looks.
 
-**The event NPC stands on the right.** The host always stands left, so position says "this is not
-the round's question" before a word is read.
+**The event NPC stands on the right**, above the sheet, its bubble pointing right, and a "Random
+event" tag heads the sheet. The host always stands left, so position says "this is not the round's
+question" before a word is read.
 
 Everything happens inside the server's hold before `answerable_at`, timed to the text (§8), so the
 wait costs nobody points and the server times nothing:
 
 ```
-  0 ms   the round's words fade off the sheet                                  ≤ 150 ms
-150 ms   the host fades out; the empty scroll slides left to the text's height ≤ 375 ms
-375 ms   the event NPC fades in on the right                                   ≤ 375 ms
-525 ms   the NPC's name fades up on the scroll                                 ≤ 150 ms
-900 ms   the NPC's `intro` "types" in at 50 letters a second
-then     a pause of 0.5–1 s, and the plain question types in under it, in bold
+  0 ms   the round's words fade off the sheet and out of the bubble          ≤ 150 ms
+150 ms   the host and its empty bubble fade out                              ≤ 300 ms
+375 ms   the NPC fades in on the right, its bubble holding only its name     ≤ 375 ms
+900 ms   the NPC's `intro` "types" in, in the bubble, at 50 letters a second
+then     a pause of 0.5–1 s, and the plain question types in on the sheet
+then     once it has typed, the bubble dims to 60%
 −200 ms  settled, 200 ms before answerable_at: nothing moves until the answers appear
-answerable_at: the answers appear under the line and the timer bar starts
+answerable_at: the answers fade in under the line (200 ms) and the timer bar starts
 ```
 
-- The intro is the character; the bold question is all a hurried player needs. A question with no
-  intro types its prompt alone.
+- The intro is the character; the question on the sheet is all a hurried player needs. A question
+  with no intro types its prompt alone, the bubble saying only the NPC's name.
 - The pause is what reading the intro still needs once typed, at 25 letters a second: 0.5–1 s.
   Spare time waits at the end, settled. Text too long for the hold starts sooner, never before
   600 ms, then pauses less, then types faster. Under 800 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame.
-- In the reveal the intro goes, its lines left blank so the sheet keeps its height, the NPC says
-  its `right` or `wrong` line beside the points, and the `explanation` goes on the scroll, in two
-  lines the sheet keeps from the start.
-- The return takes the reveal's last 900 ms, off `next_at`, one step at a time: the NPC and the
-  words fade out (225 ms), the scroll slides back (375 ms), the host fades in (300 ms). A skipped
-  reveal hands the stage back as §8.
-- A reconnect lands on the settled stage. On a phone the NPCs swap sides and the scroll stays put.
+- In the reveal the bubble comes back undimmed with the NPC's `right` or `wrong` line, the
+  `explanation` and the countdown (§8), and your points go on the sheet's foot. The bubble keeps
+  room for all of it, two lines of explanation among it, from the first frame.
+- The return takes the reveal's last 900 ms, off `next_at`: the NPC, its bubble and the words fade
+  out (225 ms), then the host and its bubble fade in (300 ms) once the sheet's 375 ms move would
+  have played. A skipped reveal hands the stage back as §8.
+- A reconnect lands on the settled stage, the bubble dimmed. The TV keeps its stage without a
+  bubble: the NPC stands on the sheet's right, its words all on the sheet, the scroll sliding over.
 - With reduced motion the NPC replaces the host in one frame and the text shows whole. The
   answers still wait, because that is a rule of the game, not an animation.
 - An NPC this build does not know is drawn as the Mysterious Old Man.
 - The panel holding the answers exists, with the buttons faded out.
-- When the answers appear, they fade in (200ms)
 
 ## 13. What the build constrains
 
@@ -463,8 +523,8 @@ The theme must be set before first paint, and `script-src 'self'` forbids an inl
   emblems (`client/src/assets/themes/<theme>.<ext>`), the team logos (`assets/teams/<god>.<ext>`).
   The display face and the logo are the owner's, and no D task waits on them.
 
-**Footer.** A full-width `--panel` band under every screen, edged like the bar, in the flow and
-never fixed, so it cannot cover an answer: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
+**Footer.** A full-width `--panel` band under every screen but a room's, which has it under the
+lobby only, edged like the bar, in the flow and never fixed: *RuneScape and RuneScape Old School are the trademarks of Jagex Limited.* Under
 it, *We count games and rounds per day. No cookies, no personal data.* Beside it: GitHub, the licence, the OSRS Wiki (CC BY-NC-SA), Credits and the version, linked to its release. Its sheet ranks the named question authors by count, ties sharing a rank, with a way to `/suggest`, and thanks the wiki. The
 AGPL wants a source link reachable from the service, and this is it. GitHub is also a muted icon in
 the bar (§5). Every link opens a new tab, so a room is never

@@ -88,6 +88,13 @@ describe('FinalStandings', () => {
     expect(screen.queryByRole('button', { name: 'Skip to the hiscores' })).toBeNull()
   })
 
+  it('says his lines in his bubble and shows no Next up', () => {
+    render(FinalStandings, { standings: TWO, youId: 'Woox', children })
+    expect(document.querySelector('.bubble .speech')?.textContent).toContain('Gz, Zezima!')
+    expect(screen.queryByRole('region', { name: 'Next up' })).toBeNull()
+    expect(screen.queryByText('Next up')).toBeNull()
+  })
+
   it('has no ceremony for a room where nobody scored', () => {
     const quiet = [standing('Zezima', 0, 1), standing('Woox', 0, 1)]
     render(FinalStandings, { standings: quiet, youId: null, ceremony: true, children })
@@ -176,7 +183,7 @@ describe('FinalStandings', () => {
       await vi.advanceTimersByTimeAsync(CEREMONY.leave)
       await tick()
       expect(document.querySelectorAll('.team')).toHaveLength(2)
-      expect(document.querySelector('.says')?.textContent).toContain('Zamorak wins!')
+      expect(document.querySelector('.bubble .speech')?.textContent).toContain('Zamorak wins!')
     })
   })
 })

@@ -40,7 +40,10 @@
   import { adminTabOf, type AdminTab } from './lib/admin'
   import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
-  import { you } from './lib/stores'
+  import { barWhere } from './lib/barWhere'
+  import { hostMenu } from './lib/hostMenu'
+  import { roomShown } from './lib/roomFit'
+  import { room, you } from './lib/stores'
   import { wearTeam } from './lib/teams'
   import { timerBar } from './lib/timerbar'
 
@@ -94,6 +97,9 @@
   const team = $derived(route.name === 'room' ? ($you?.team ?? null) : null)
   /** The room's TV, which is watched from across the room: no footer, and a bar that hides. */
   const tv = $derived(route.name === 'room' && $you?.role === 'tv')
+  /** A room runs the bar across the window; its lobby alone has the footer under it. */
+  const inRoom = $derived(route.name === 'room' && !tv)
+  const footer = $derived(route.name !== 'room' || (!tv && $room?.status === 'lobby'))
   $effect(() => wearTeam(team))
 
   /** `state` rides along in `history.state`, for the screen at `to` to read. */
@@ -132,7 +138,16 @@
 <Floor />
 <WallLights />
 
-<TopBar {navigate} {wide} {team} badge={$timerBar === null} autohide={tv}>
+<TopBar
+  {navigate}
+  {wide}
+  full={inRoom}
+  where={$roomShown === null ? null : $barWhere}
+  host={inRoom ? $hostMenu : null}
+  {team}
+  badge={$timerBar === null}
+  autohide={tv}
+>
   {#snippet menu()}
     <SettingsMenu live={route.name === 'room' ? $you : null} />
   {/snippet}
@@ -147,7 +162,7 @@
   {/key}
 {/if}
 
-<main id="content" tabindex="-1" class:wide>
+<main id="content" tabindex="-1" class:wide class:room={$roomShown !== null}>
   <!-- Old and new screens share one grid cell so the outgoing one fades without pushing
        the incoming one down. A room keeps its screen across its own code's re-renders. -->
   {#key routeKey}
@@ -179,11 +194,17 @@
   {/key}
 </main>
 
-{#if !tv}<Footer {wide} />{/if}
+{#if footer}<Footer wide={wide || inRoom} />{/if}
 
 <style>
   main {
     display: grid;
+  }
+
+  /* The room's frame takes the whole width under the bar, and its own padding. */
+  main.room {
+    width: 100%;
+    padding: 0;
   }
 
   .route {

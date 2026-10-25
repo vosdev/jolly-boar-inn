@@ -2,16 +2,17 @@
   /**
    * The waiting room: who is here, and — for an admin — the controls that change that.
    *
-   * It is a stage like the splash's, kept short enough for a phone: Home's hero, the
-   * selfhoster's picture for the theme (Broav, the inn's boar, here) or else the Wise Old
-   * Man, stands beside a scroll that holds the room code and what the night
-   * holds; the players sit under it as a grid of pets, as the splash will show them.
+   * It is a stage like the splash's: Home's hero, the selfhoster's picture for the theme
+   * (Broav, the inn's boar, here), or else the Wise Old Man, says the lobby line in the
+   * bubble above a scroll that holds the code and the invite link. Under it a card per
+   * round, A–Z, and How to play; the players sit in the table panel, Ready over Not ready
+   * yet, as on the splash, with join requests, the teams, I'm ready and Start.
    *
    * Admin controls are shown from `you.role`, which comes from the server's snapshot.
    * That is a convenience, not a check: the server decides per message (section 7
    * step 7), so a player who forges the flag gets `not_admin` back and nothing else.
    *
-   * The ready check is the splash's grid, with names (section 9 of ideas/design.md): the
+   * The ready check is the splash's panel, with names (section 9 of ideas/design.md): the
    * host needs to know *who* is missing before pressing Start, because the answer is
    * usually somebody at the bar, and a name is something you can shout. Start is the plain
    * button once the room reaches the same threshold a splash uses; short of it, it is
@@ -21,19 +22,20 @@
    * confirmation, since a kicked player can join again; Make host asks once more, because
    * there is no demote and an admin cannot be kicked. The same menu makes a player or another
    * admin the room's TV, or the TV a player again, at once, since either can be undone. The TV
-   * watches: its pet wears a screen where the tick goes, and its own lobby has no ready.
+   * watches: its pet wears a screen and sits apart under "TV", and its own lobby has no ready.
    *
-   * A team game groups the pets under the room's gods, every god even with nobody on it yet,
-   * since an empty team is one to join, and the teamless under "No team". Tapping a god
-   * joins it; the server refuses that while ready, so the gods are not tappable then. Ready
+   * A team game puts a button per god above the panel's halves, every god even with nobody
+   * on it yet, since an empty team is one to join; each half lists its players by god, the
+   * teamless under "No team". Tapping a god joins it; the server refuses that while ready, so the gods are not tappable then. Ready
    * waits for a team, and Start for everyone to have one, in two teams or more (section 7 of
    * ideas/architecture.md); each says why. The host moves a player from the same menu as
    * kick, an admin too, since admins cannot be kicked but can play for the wrong god.
    * The host also adds a god the room lacks and removes one, never below two; removing a
    * team with players asks first, since they go back to no team and lose their ready.
    *
-   * The code copies the invite link. An invite-only room's link carries its key, which
-   * only admins are sent, and the key is never drawn, because lobbies get streamed; only a
+   * The code and "Copy invite link" copy the invite link. An invite-only room's link carries
+   * its key, which only admins are sent, and the key is never drawn, because lobbies get
+   * streamed, so the scroll says the room is invite-only instead of printing it; only a
    * refused clipboard shows the link, so it can be copied by hand. The refresh button makes
    * a new key, which is also the room lock: a key nobody else has yet lets nobody in.
    * Somebody without the link can still ask; they wait on Join until a host lets them in or
@@ -41,11 +43,12 @@
    * asking again.
    */
   import { onMount } from 'svelte'
-  import { hero, heroes } from 'virtual:branding'
+  import { hero, heroes, siteName } from 'virtual:branding'
 
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { inviteLink } from '../lib/invite'
-  import { modeLabel } from '../lib/modes'
+  import { hostOf, modeLabel } from '../lib/modes'
+  import { FALLBACK_NPC } from '../lib/npcs'
   import { minutes } from '../lib/duration'
   import { difficultyLabel } from '../lib/difficulty'
   import { paceLabel } from '../lib/pace'
@@ -54,18 +57,23 @@
   import { playing, readyThreshold } from '../lib/ready'
   import { players, room, you } from '../lib/stores'
   import { watchTheme } from '../lib/theme'
+  import { Seating } from '../lib/tableGroups'
   import { MIN_TEAMS, TEAMS, teamsWith, type TeamId } from '../lib/teams'
   import { Cooldown } from '../lib/cooldown.svelte'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import type { RoomSocket } from '../lib/ws'
+  import AtTable from './AtTable.svelte'
   import ConfirmDialog from './ConfirmDialog.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
   import HowToPlay from './HowToPlay.svelte'
   import Icon from './Icon.svelte'
+  import NpcFace from './NpcFace.svelte'
   import Pet from './Pet.svelte'
   import RosterPet from './RosterPet.svelte'
+  import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
+  import TablePanel from './TablePanel.svelte'
   import TeamLogo from './TeamLogo.svelte'
   import Typed from './stage/Typed.svelte'
 
@@ -75,7 +83,7 @@
   const heroArt = $derived(heroes[theme] ?? hero)
   onMount(() => watchTheme((current) => (theme = current)))
 
-  const GREETING = '“Pull up a stool and share the code. We start once the table is ready.”'
+  const GREETING = 'Pull up a stool and share the code. We start once the table is ready.'
 
   const typist = new Typist(
     () => [lettersOf(GREETING)],
@@ -88,7 +96,6 @@
   const isAdmin = $derived($you?.role === 'admin')
   const isTV = $derived($you?.role === 'tv')
   const admins = $derived($players.filter((p) => p.role === 'admin').length)
-  const tv = $derived($players.find((p) => p.role === 'tv') ?? null)
   const listFormat = new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' })
   const settings = $derived($room?.settings ?? null)
   const teamIds = $derived(settings?.teams ?? [])
@@ -112,6 +119,8 @@
   )
   const code = $derived($room?.code ?? '')
   const link = $derived(inviteLink(location.origin, code, $room?.key))
+  /** Only a host is sent the key, so only a host's lobby knows the room is invite-only. */
+  const inviteOnly = $derived($room?.key !== undefined)
   /**
    * Surprise rounds, hidden from the host as well: a lobby on a shared screen or a stream
    * would give them away.
@@ -155,7 +164,6 @@
   const listed = $derived(
     [...(settings?.modes ?? [])].sort((a, b) => modeLabel(a.mode).localeCompare(modeLabel(b.mode))),
   )
-  let showRounds = $state(false)
   let showHowTo = $state(false)
 
   const youReady = $derived($players.some((p) => p.id === $you?.id && p.ready === true))
@@ -177,6 +185,19 @@
       .filter((p) => p.ready !== true)
       .map((p) => (p.id === $you?.id ? 'you' : p.display_name)),
   )
+
+  const seating = new Seating()
+  const seated = $derived(
+    seating.seat($players, $you?.id ?? null, (p) => p.ready === true, 'lobby', teamIds),
+  )
+
+  /** Under a pet at the table, where the bold name says which is you and a heading the TV. */
+  function tableStatus(player: PlayerView): string {
+    if (player.editing === true) return 'picking a name…'
+    return [player.connected ? null : 'away', player.role === 'admin' ? 'host' : null]
+      .filter((word) => word !== null)
+      .join(' · ')
+  }
 
   /** What the line under a pet's name says, if anything. */
   function statusOf(player: PlayerView): string {
@@ -457,10 +478,13 @@
   </section>
 {:else}
   <section class="lobby">
-    <Stage host="wise_old_man" hero={heroArt}>
+    <Stage host="wise_old_man" hero={heroArt} bubble="on">
+      {#snippet said()}
+        <Said name={heroArt === null ? 'Wise Old Man' : siteName} line={greeting} />
+      {/snippet}
       {#snippet paper()}
-        <h1>Lobby</h1>
-        <p class="greeting"><Typed line={GREETING} shown={typist.shown[0]} /></p>
+        <h1 class="sr">Lobby</h1>
+        <p class="lead">Your friends join with this code</p>
         <div class="code-row">
           <button
             type="button"
@@ -472,12 +496,22 @@
             <span>{code}</span>
             <Icon name="copy" />
           </button>
-          {#if isAdmin && $room?.key !== undefined}
-            <button type="button" class="glyph" aria-label="New link" onclick={rotateKey}>
-              <Icon name="refresh" />
-            </button>
-          {/if}
-          <span class="copied">{copied ? 'Link copied' : ''}</span>
+        </div>
+        <div class="invite">
+          <span class="address">
+            {inviteOnly
+              ? 'Invite-only: the link lets people straight in'
+              : link.replace(/^https?:\/\//, '')}
+          </span>
+          <span class="invite-actions">
+            <button type="button" class="copy-link" onclick={copy}>Copy invite link</button>
+            {#if isAdmin && inviteOnly}
+              <button type="button" class="glyph" aria-label="New link" onclick={rotateKey}>
+                <Icon name="refresh" />
+              </button>
+            {/if}
+            <span class="copied">{copied ? 'Link copied' : ''}</span>
+          </span>
         </div>
         {#if copyFailed}
           <p class="copy-failed">Couldn't copy the link. Copy it from here:</p>
@@ -490,184 +524,168 @@
             use:selectAll
           />
         {/if}
-        {#if settings !== null}
-          <p class="count">{length}</p>
+      {/snippet}
+      {#if settings !== null}
+        <section class="panel board" aria-labelledby="tonight">
+          <div class="board-line">
+            <h2 id="tonight">Tonight's rounds</h2>
+            <p class="aside">{length}</p>
+          </div>
+          <ul class="rounds">
+            {#if secret}
+              {#each Array.from({ length: rounds }, (_, index) => index) as index (index)}
+                <li class="round">
+                  <span class="face"><NpcFace npc={FALLBACK_NPC} /></span>
+                  <span class="name">A surprise</span>
+                </li>
+              {/each}
+            {:else}
+              {#each listed as round (round.mode)}
+                <li class="round">
+                  <span class="face"><NpcFace npc={hostOf(round.mode).host.id} /></span>
+                  <span class="name">{modeLabel(round.mode)}</span>
+                  <span class="aside">
+                    {round.questions}
+                    {round.questions === 1 ? 'question' : 'questions'}
+                  </span>
+                </li>
+              {/each}
+            {/if}
+          </ul>
           {#if secret}
             <p class="aside">
               Tonight's rounds are a surprise. Each one is revealed when it starts.
             </p>
-          {:else}
+          {:else if rounds > 1}
+            <p class="aside">Listed A–Z, not in the order they play.</p>
+          {/if}
+          <div class="board-line">
             <button
               type="button"
               class="toggle"
-              aria-expanded={showRounds}
-              aria-controls="rounds"
-              onclick={() => (showRounds = !showRounds)}
+              aria-haspopup="dialog"
+              onclick={() => (showHowTo = true)}
             >
-              {showRounds ? 'Hide the rounds' : 'Show the rounds'}
+              How to play
             </button>
-            {#if showRounds}
-              <ul class="modes" id="rounds">
-                {#each listed as round (round.mode)}
-                  <li>
-                    <span>{modeLabel(round.mode)}</span>
-                    <span class="aside">
-                      {round.questions}
-                      {round.questions === 1 ? 'question' : 'questions'}
-                    </span>
-                  </li>
-                {/each}
-              </ul>
-              {#if rounds > 1}
-                <p class="aside">Listed A–Z, not in the order they play.</p>
-              {/if}
-            {/if}
-          {/if}
-          <button
-            type="button"
-            class="toggle"
-            aria-haspopup="dialog"
-            onclick={() => (showHowTo = true)}
-          >
-            How to play
-          </button>
-        {/if}
-        {#if !isAdmin}
-          <p class="foot">Waiting for the host to start…</p>
-        {/if}
-      {/snippet}
-
-      {#if requests.length > 0}
-        <section class="panel" aria-labelledby="asking">
-          <h2 id="asking">Asking to join ({requests.length})</h2>
-          <ul class="requests">
-            {#each requests as request (request.id)}
-              <li>
-                <span class="face"><Pet pet={petOf(request)} size={40} label="" /></span>
-                <span class="name">{request.display_name}</span>
-                <span class="decide">
-                  <button type="button" class="primary" onclick={() => decide(request, true)}
-                    >Let in</button
-                  >
-                  <button type="button" onclick={() => decide(request, false)}>Turn away</button>
-                </span>
-              </li>
-            {/each}
-          </ul>
+            <p class="aside">Quicker and correct answers score more.</p>
+          </div>
         </section>
       {/if}
-
-      <div class="panel board">
-        <div class="ready">
-          {#if !isTV}
-            <button
-              type="button"
-              class:primary={!youReady}
-              aria-pressed={youReady}
-              aria-describedby={needTeam ? 'pick-first' : undefined}
-              disabled={needTeam || readyHold.held}
-              onclick={toggleReady}
-            >
-              {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
-            </button>
-          {/if}
-          <FullScreenSwitch />
-        </div>
-        {#if needTeam}
-          <p class="hint" id="pick-first">Pick a team first.</p>
-        {/if}
-
-        {#if teamGame}
-          <div
-            class="teams"
-            role="group"
-            aria-label="Teams, {readyCount} of {counted.length} ready"
-          >
-            {#if youReady}
-              <p class="hint">Take your ready back to change team.</p>
+      <AtTable>
+        <TablePanel
+          groups={seated}
+          youId={$you?.id ?? null}
+          labels={['Ready', 'Not ready yet']}
+          statusOf={tableStatus}
+          manage={isAdmin ? { can: manageable, label: menuOf, open: manage } : null}
+        >
+          {#snippet head()}
+            {#if requests.length > 0}
+              <section class="asking" aria-labelledby="asking">
+                <h2 id="asking">Asking to join ({requests.length})</h2>
+                <ul class="requests">
+                  {#each requests as request (request.id)}
+                    <li>
+                      <span class="face"><Pet pet={petOf(request)} size={40} label="" /></span>
+                      <span class="name">{request.display_name}</span>
+                      <span class="decide">
+                        <button type="button" class="primary" onclick={() => decide(request, true)}
+                          >Let in</button
+                        >
+                        <button type="button" onclick={() => decide(request, false)}
+                          >Turn away</button
+                        >
+                      </span>
+                    </li>
+                  {/each}
+                </ul>
+              </section>
             {/if}
-            {#each roomTeams as god (god.id)}
-              {@const members = $players.filter((p) => p.team === god.id)}
-              <section class="team" data-team={god.id}>
-                <div class="team-head">
-                  <button
-                    type="button"
-                    class="join"
-                    aria-label="{god.name}, {members.length} {members.length === 1
-                      ? 'player'
-                      : 'players'}"
-                    aria-pressed={yourTeam === god.id}
-                    disabled={youReady || isTV || teamHold.held}
-                    onclick={() => joinTeam(god.id)}
-                  >
-                    <span class="logo"><TeamLogo team={god.id} /></span>
-                    <span class="team-name">{god.name}</span>
-                    <span class="aside">{members.length}</span>
-                  </button>
-                  {#if canRemoveTeam}
+            {#if teamGame}
+              <div class="teams" role="group" aria-label="Teams">
+                {#each roomTeams as god (god.id)}
+                  {@const members = $players.filter((p) => p.team === god.id)}
+                  <div class="team-head" data-team={god.id}>
                     <button
                       type="button"
-                      class="glyph remove"
-                      aria-label="Remove {god.name}"
-                      onclick={() => removeTeam(god.id, god.name, members.length)}
+                      class="join"
+                      aria-label="{god.name}, {members.length} {members.length === 1
+                        ? 'player'
+                        : 'players'}"
+                      aria-pressed={yourTeam === god.id}
+                      disabled={youReady || isTV || teamHold.held}
+                      onclick={() => joinTeam(god.id)}
                     >
-                      <Icon name="trash" />
+                      <span class="logo"><TeamLogo team={god.id} /></span>
+                      <span class="team-name">{god.name}</span>
+                      <span class="aside">{members.length}</span>
                     </button>
-                  {/if}
-                </div>
-                {#if members.length === 0}
-                  <p class="aside empty">Nobody yet</p>
-                {:else}
-                  {@render roster(members, god.name)}
+                    {#if canRemoveTeam}
+                      <button
+                        type="button"
+                        class="glyph remove"
+                        aria-label="Remove {god.name}"
+                        onclick={() => removeTeam(god.id, god.name, members.length)}
+                      >
+                        <Icon name="trash" />
+                      </button>
+                    {/if}
+                  </div>
+                {/each}
+                {#if missingTeams.length > 0}
+                  <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
                 {/if}
-              </section>
-            {/each}
-            {#if missingTeams.length > 0}
-              <button type="button" class="add-team" onclick={addTeam}>Add a team…</button>
+                {#if youReady}
+                  <p class="hint">Take your ready back to change team.</p>
+                {/if}
+              </div>
             {/if}
-            {#if teamless.length > 0}
-              <section class="team">
-                <h3 class="no-team">No team</h3>
-                {@render roster(teamless, 'No team')}
-              </section>
+          {/snippet}
+          <div class="ready">
+            {#if !isTV}
+              <button
+                type="button"
+                class:primary={!youReady}
+                aria-pressed={youReady}
+                aria-describedby={needTeam ? 'pick-first' : undefined}
+                disabled={needTeam || readyHold.held}
+                onclick={toggleReady}
+              >
+                {youReady ? '✓ Ready — tap to take it back' : "✓ I'm ready"}
+              </button>
             {/if}
-            {#if tv !== null}
-              <section class="team">
-                <h3 class="no-team">TV</h3>
-                {@render roster([tv], 'TV')}
-              </section>
-            {/if}
+            <FullScreenSwitch />
           </div>
-        {:else}
-          {@render roster($players, `Players, ${readyCount} of ${counted.length} ready`)}
-        {/if}
-
-        {#if isAdmin}
-          <p class="waiting">
-            {#if waitingOn.length === 0}
-              Everyone is ready.
-            {:else}
-              Waiting on {listFormat.format(waitingOn)}.
-            {/if}
-          </p>
-          {#if teamsBlockStart !== null}
-            <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+          {#if needTeam}
+            <p class="hint" id="pick-first">Pick a team first.</p>
           {/if}
-          <button
-            class="start"
-            class:primary={enoughReady}
-            type="button"
-            disabled={!canStart}
-            aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
-            onclick={start}
-          >
-            {enoughReady ? 'Start the game' : 'Start anyway'}
-          </button>
-        {/if}
-      </div>
+          {#if isAdmin}
+            {#if teamsBlockStart !== null}
+              <p class="hint" id="start-blocked">{teamsBlockStart}</p>
+            {/if}
+            <button
+              class="start"
+              class:primary={enoughReady}
+              type="button"
+              disabled={!canStart}
+              aria-describedby={teamsBlockStart !== null ? 'start-blocked' : undefined}
+              onclick={start}
+            >
+              {enoughReady ? 'Start the game' : 'Start anyway'}
+            </button>
+          {:else}
+            <p class="foot">Waiting for the host to start…</p>
+          {/if}
+        </TablePanel>
+      </AtTable>
     </Stage>
   </section>
 {/if}
+
+{#snippet greeting()}
+  <p><Typed line={GREETING} shown={typist.shown[0]} /></p>
+{/snippet}
 
 {#if showHowTo && settings !== null}
   <HowToPlay room={{ settings, total: $room?.total ?? 0 }} onclose={() => (showHowTo = false)} />
@@ -766,12 +784,6 @@
     line-height: 1.15;
   }
 
-  .greeting {
-    margin: 0 0 0.5rem;
-    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
-    font-style: italic;
-  }
-
   .code-row {
     container-type: inline-size;
     display: flex;
@@ -840,6 +852,127 @@
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
   }
 
+  .lead {
+    margin: 0;
+    font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+    color: var(--scroll-muted);
+  }
+
+  .invite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    margin-top: 0.25rem;
+    color: var(--scroll-muted);
+    font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
+  }
+
+  .address {
+    overflow-wrap: anywhere;
+  }
+
+  .invite-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+  }
+
+  /* On the sheet, so in its inks rather than a panel's. */
+  .copy-link,
+  .invite .glyph {
+    --ink: var(--scroll-ink);
+    min-height: 44px;
+    border-color: var(--scroll-muted);
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .board {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0;
+  }
+
+  .board-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+  }
+
+  .board h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  /* A card per round: its host, its name and its length, three abreast when there is room. */
+  .rounds {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .round {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--panel-raised);
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .round .face {
+    grid-row: 1 / 3;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+
+  .round .face :global(img) {
+    width: 3.25rem;
+    max-width: none;
+    height: 3.25rem;
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .round .name {
+    align-self: end;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .round .face + .name:last-child {
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  .round .aside {
+    align-self: start;
+  }
+
+  .board .toggle {
+    --ink: var(--surface-ink);
+    padding: 0;
+    font-weight: 650;
+  }
+
+  .asking h2 {
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+  }
+
   .aside {
     margin: 0;
     color: var(--muted);
@@ -857,35 +990,11 @@
     text-underline-offset: 0.2em;
   }
 
-  .modes {
-    margin: 0 0 0.3rem;
-    padding: 0;
-    list-style: none;
-  }
-
-  .modes li {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.15rem 0;
-  }
-
-  .modes .aside {
-    flex: none;
-  }
-
   .foot {
     margin: 0.5rem 0 0;
     color: var(--muted);
     font-size: 0.9rem;
     font-style: italic;
-  }
-
-  .board {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 0;
   }
 
   .ready {
@@ -1008,15 +1117,6 @@
   .no-team {
     margin: 0;
     font-size: 1rem;
-  }
-
-  .empty {
-    padding-left: 0.6rem;
-  }
-
-  .waiting {
-    margin: 0;
-    overflow-wrap: anywhere;
   }
 
   .requests {

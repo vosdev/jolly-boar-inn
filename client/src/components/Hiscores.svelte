@@ -2,7 +2,8 @@
   /**
    * The hiscores on the Wise Old Man's scroll (section 11 of ideas/design.md): rank, pet,
    * name and points, with the round's gain under each total and the places moved under
-   * each rank, two lines a row so a name keeps the middle at 350px.
+   * each rank, two lines a row so a name keeps the middle at 350px. With `columns`, on a
+   * desktop's wide sheet, each row is one line: rank, move, name, the round's gain, points.
    *
    * A past game shows neither: it is the result, not the last round.
    *
@@ -17,7 +18,7 @@
   import { cubicOut } from 'svelte/easing'
   import { flip } from 'svelte/animate'
 
-  import { arrivalDelay, movement, pointsBefore, SHUFFLE } from '../lib/hiscores'
+  import { arrivalDelay, movement, pointsBefore, SHUFFLE, type Movement } from '../lib/hiscores'
   import { petOf } from '../lib/pets'
   import type { Standing } from '../lib/protocol'
   import { players } from '../lib/stores'
@@ -32,6 +33,7 @@
     arriving = false,
     instant = false,
     changes = true,
+    columns = false,
   }: {
     rows: Standing[]
     youId?: string | null
@@ -45,6 +47,8 @@
     instant?: boolean
     /** The round's gains and moves; a past game has the totals alone. */
     changes?: boolean
+    /** One line a row, the move and the gain in columns of their own. */
+    columns?: boolean
   } = $props()
 
   const numbers = new Intl.NumberFormat()
@@ -59,12 +63,34 @@
   }
 </script>
 
-<table class="hiscores" class:arriving>
+{#snippet moved(move: Movement | null)}
+  {#if move !== null}
+    <span class="move" class:up={move.up} class:down={!move.up}
+      ><span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}</span
+    >
+  {/if}
+{/snippet}
+
+{#snippet gained(standing: Standing)}
+  <span class="gain" class:shown={settled}
+    >+{numbers.format(standing.points_gained)}<span class="sr">{' this round'}</span></span
+  >
+{/snippet}
+
+<table class="hiscores" class:arriving class:columns>
   <thead>
     <tr>
-      <th scope="col" class="rank"><span aria-hidden="true">#</span><span class="sr">Rank</span></th
-      >
-      <th scope="col" class="name">Name</th>
+      {#if columns}
+        <th scope="col" class="rank">Rank</th>
+        {#if changes}<th scope="col" class="moved"><span class="sr">Moved</span></th>{/if}
+        <th scope="col" class="name">Name</th>
+        {#if changes}<th scope="col" class="round">This round</th>{/if}
+      {:else}
+        <th scope="col" class="rank"
+          ><span aria-hidden="true">#</span><span class="sr">Rank</span></th
+        >
+        <th scope="col" class="name">Name</th>
+      {/if}
       <th scope="col" class="points">Points</th>
     </tr>
   </thead>
@@ -80,12 +106,9 @@
       >
         <td class="rank">
           <span class="number">{settled ? standing.rank : (standing.previous_rank ?? '–')}</span>
-          {#if move !== null}
-            <span class="move" class:up={move.up} class:down={!move.up}
-              ><span class="sr">{move.up ? 'up ' : 'down '}</span>{move.by}</span
-            >
-          {/if}
+          {#if !columns}{@render moved(move)}{/if}
         </td>
+        {#if columns && changes}<td class="moved">{@render moved(move)}</td>{/if}
         <td class="name">
           <span class="who">
             <Pet pet={petFor(standing)} size={28} label="" />
@@ -94,6 +117,7 @@
             >
           </span>
         </td>
+        {#if columns && changes}<td class="round">{@render gained(standing)}</td>{/if}
         <td class="points">
           <span class="total"
             ><CountUp
@@ -101,12 +125,7 @@
               duration={instant ? 0 : SHUFFLE.count}
             /></span
           >
-          {#if changes}
-            <span class="gain" class:shown={settled}
-              >+{numbers.format(standing.points_gained)}<span class="sr">{' this round'}</span
-              ></span
-            >
-          {/if}
+          {#if changes && !columns}{@render gained(standing)}{/if}
         </td>
       </tr>
     {/each}
@@ -160,6 +179,34 @@
   .number,
   .total {
     display: block;
+  }
+
+  .columns .rank {
+    width: 3.5rem;
+  }
+
+  .moved {
+    width: 3rem;
+    text-align: left;
+  }
+
+  .round,
+  .columns .points {
+    width: 7.5rem;
+    text-align: right;
+  }
+
+  .columns th {
+    white-space: nowrap;
+  }
+
+  .columns .total {
+    font-weight: 700;
+  }
+
+  .columns .move,
+  .columns .gain {
+    font-size: 0.85em;
   }
 
   .move,

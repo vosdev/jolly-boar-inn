@@ -1,7 +1,11 @@
 <!-- Small glyphs for buttons that say it with a picture. Drawn in the button's own colour.
      The caller names the button with aria-label, so the glyph itself stays hidden. -->
 <script lang="ts">
-  let { name }: { name: 'trash' | 'trophy' | 'github' | 'copy' | 'refresh' | 'more' } = $props()
+  let {
+    name,
+  }: {
+    name: 'trash' | 'trophy' | 'github' | 'copy' | 'refresh' | 'more' | 'chevron-up' | 'close'
+  } = $props()
 </script>
 
 {#if name === 'github'}
@@ -19,6 +23,10 @@
       <path d="M9 9h11v11H9zM5 15H4V4h11v1" />
     {:else if name === 'refresh'}
       <path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" />
+    {:else if name === 'chevron-up'}
+      <path d="M6 15l6-6 6 6" />
+    {:else if name === 'close'}
+      <path d="M6 6l12 12M18 6L6 18" />
     {:else if name === 'more'}
       <path d="M5 12h.01M12 12h.01M19 12h.01" class="dots" />
     {:else}

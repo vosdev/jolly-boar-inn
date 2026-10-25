@@ -13,8 +13,10 @@
    * A team game's table ranks its teams, each with its members under it, and he names the
    * winning team instead.
    *
-   * On the room's TV the sheet takes the whole stage, a long table scrolls (`crawl`), and
-   * nothing is offered: no Skip, and no panel under the table.
+   * In the room his lines are in his bubble, and the room has no table panel beside it. A
+   * past game, and the room's TV, keep them on the sheet. On the TV the sheet takes the
+   * whole stage, a long table scrolls (`crawl`), and nothing is offered: no Skip, and no
+   * panel under the table.
    */
   import type { Snippet } from 'svelte'
   import { untrack } from 'svelte'
@@ -26,6 +28,7 @@
     ceremonyTimes,
     FINAL_INTRO,
     HISCORES_HOST,
+    HISCORES_HOST_NAME,
     listNames,
     placeLine,
     teamCeremonyPlaces,
@@ -38,7 +41,7 @@
   import { reducedMotion } from '../lib/interlude'
   import { petOf } from '../lib/pets'
   import type { Standing, TeamStanding } from '../lib/protocol'
-  import { stageArrival } from '../lib/sharedStage.svelte'
+  import { stageArrival, type Bubble } from '../lib/sharedStage.svelte'
   import { players } from '../lib/stores'
   import { team, type TeamId } from '../lib/teams'
   import { tierName, trophyArt } from '../lib/trophies'
@@ -48,6 +51,7 @@
   import HiscoresHead from './HiscoresHead.svelte'
   import Pet from './Pet.svelte'
   import Confetti from './stage/Confetti.svelte'
+  import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
   import TypeIn from './stage/TypeIn.svelte'
   import TeamHiscores from './TeamHiscores.svelte'
@@ -60,6 +64,7 @@
     youId,
     ceremony = false,
     past = false,
+    stacked = false,
     tv = false,
     children,
   }: {
@@ -73,6 +78,8 @@
     ceremony?: boolean
     /** A game from this browser's history: the totals, without the last round's changes. */
     past?: boolean
+    /** Laid out for a phone: two lines a row. */
+    stacked?: boolean
     /** Drawn on the room's TV. */
     tv?: boolean
     /** What the panel under the table offers: a note, the way home. */
@@ -95,7 +102,14 @@
     ),
   ]
   const playing = untrack(() => ceremony) && !instant && steps.length > 0
-  const open = Math.max(CEREMONY.open, stageArrival({ host: HISCORES_HOST, tall: true }))
+  const bubble = $derived<Bubble | null>(tv || past ? null : 'on')
+  const columns = $derived(bubble !== null && !stacked)
+  const open = untrack(() =>
+    Math.max(
+      CEREMONY.open,
+      stageArrival({ host: HISCORES_HOST, tall: bubble === null, tv, wide: tv, bubble }),
+    ),
+  )
 
   let phase = $state<'ceremony' | 'leaving' | 'table'>(playing ? 'ceremony' : 'table')
   let line = $state(0)
@@ -169,15 +183,27 @@
 </script>
 
 <h1 class="sr">Final standings</h1>
-<Stage host={HISCORES_HOST} tall {tv} wide={tv}>
+{#snippet says()}
+  {#if phase === 'table'}
+    {#if playing}<TypeIn line={winners} />{:else}{winners}{/if}
+  {:else}
+    {#key line}<TypeIn line={lines[line] ?? ''} from={line === 0 ? open : 0} />{/key}
+  {/if}
+{/snippet}
+
+{#snippet words()}
+  <p>{@render says()}</p>
+{/snippet}
+
+<Stage host={HISCORES_HOST} tall={bubble === null} {tv} wide={tv} {bubble}>
+  {#snippet said()}
+    <Said name={HISCORES_HOST_NAME} line={words} />
+  {/snippet}
+
   {#snippet paper()}
-    <HiscoresHead title="Final hiscores">
-      {#if phase === 'table'}
-        {#if playing}<TypeIn line={winners} />{:else}{winners}{/if}
-      {:else}
-        {#key line}<TypeIn line={lines[line] ?? ''} from={line === 0 ? open : 0} />{/key}
-      {/if}
-    </HiscoresHead>
+    {#if bubble === null}
+      <HiscoresHead title="Final hiscores">{@render says()}</HiscoresHead>
+    {/if}
     <div class="board" bind:clientHeight={boardHeight}>
       {#if phase === 'table'}
         <div
@@ -196,9 +222,17 @@
               arriving={playing}
               {instant}
               changes={!past}
+              {columns}
             />
           {:else}
-            <Hiscores rows={standings} {youId} arriving={playing} {instant} changes={!past} />
+            <Hiscores
+              rows={standings}
+              {youId}
+              arriving={playing}
+              {instant}
+              changes={!past}
+              {columns}
+            />
           {/if}
         </div>
       {:else}

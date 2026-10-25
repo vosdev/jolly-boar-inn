@@ -44,3 +44,11 @@ describe('the entrance', () => {
     expect(scroll).toEqual({ duration: ENTER_MOVE_MS, delay: 0 })
   })
 })
+
+describe('the speaker above the sheet', () => {
+  it('keeps its chathead in its row on a phone, where the sheet-side host stands on the sheet', () => {
+    const rule = source.match(/\n {2}\.stage \.speaker \.npc \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain('position: relative')
+    expect(source).toMatch(/\.speaker \.bubble:not\(\.shell\) \{\s*grid-column: 2;/)
+  })
+})

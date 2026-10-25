@@ -3,8 +3,8 @@
  * beside it, kept for the whole visit while the screens take turns on it.
  *
  * A screen's `Stage` does not draw a scroll of its own under a shared stage. It renders
- * its words, what goes under the line and what stands beside it where it always does,
- * and the shared stage moves those three nodes onto its sheet. Their effects stay the
+ * its words, what goes under the line, what stands beside it and what its speaker says
+ * where it always does, and the shared stage moves those nodes onto its stage. Their effects stay the
  * screen's, so they end with it exactly as they would on a stage of its own; what the
  * shared stage keeps afterwards is plain DOM, which it fades off the sheet.
  *
@@ -21,6 +21,9 @@ import { getContext, setContext, tick } from 'svelte'
 import type { Award } from './award'
 import { CUT, WORDS_IN_MS, castOf, handoffFor, type Cast, type Handoff } from './stageMoves'
 
+/** A speech bubble shown, dimmed, or keeping its room unseen. */
+export type Bubble = 'on' | 'dim' | 'off'
+
 /** What the stage draws for a screen, apart from the words. */
 export interface Look {
   host?: string
@@ -34,6 +37,8 @@ export interface Look {
   within?: number
   tv?: boolean
   wide?: boolean
+  /** Whoever speaks stands above the sheet with a bubble; null or none, beside it. */
+  bubble?: Bubble | null
 }
 
 /** The screen's nodes that go on the stage, each null where the screen has none. */
@@ -41,6 +46,7 @@ export interface Parts {
   paper: HTMLElement
   under: HTMLElement | null
   beside: HTMLElement | null
+  said: HTMLElement | null
 }
 
 /** Whether the host or guest is standing, leaving, gone or walking on. */
@@ -61,6 +67,7 @@ export class Scene {
       hero: this.look.hero ?? null,
       guest: this.look.returning ? null : (this.look.guest ?? null),
       tall: this.look.tall ?? false,
+      speaks: speaks(this.look),
       scene: this.look.scene ?? null,
       entering: this.look.entering ?? false,
     })
@@ -69,7 +76,12 @@ export class Scene {
 
 const KEY = Symbol('shared stage')
 
-const SLOTS = { paper: '.content', under: '.under', beside: '.beside' } as const
+const SLOTS = {
+  paper: '.content',
+  under: '.under',
+  beside: '.beside',
+  said: '.speech',
+} as const
 
 export class SharedStage {
   /** The screen whose look the stage draws; null leaves the stage empty. */
@@ -95,8 +107,7 @@ export class SharedStage {
       const latest = this.#latest
       if (latest === null || this.shown === latest) return
       if (this.shown !== null) removeParts(this.shown)
-      this.shown = latest
-      this.#place(latest, false)
+      this.#show(latest)
     }
     document.addEventListener('visibilitychange', finish)
     return () => document.removeEventListener('visibilitychange', finish)
@@ -104,7 +115,7 @@ export class SharedStage {
 
   /** How a screen with `look` would take the stage over now. */
   handoffFor(look: Look): Handoff {
-    const to = castOf({ host: look.host ?? '', ...withoutUndefined(look) })
+    const to = castOf({ host: look.host ?? '', ...withoutUndefined(look), speaks: speaks(look) })
     if (this.#root === null || typeof this.#root.animate !== 'function') return CUT
     if (document.visibilityState === 'hidden') return CUT
     return handoffFor(this.#latest?.cast ?? null, to)
@@ -151,8 +162,7 @@ export class SharedStage {
     if (root === null || scroll === null || from === null || handoff.kind === 'cut') {
       this.#settle()
       if (from !== null) removeParts(from)
-      this.shown = to
-      this.#place(to, false)
+      this.#show(to)
       return
     }
 
@@ -162,6 +172,9 @@ export class SharedStage {
     this.#settle()
     const run = this.#run
     lock(scroll, start)
+    // The bubble keeps its size while its words fade, rather than closing around them.
+    const bubble = root.querySelector<HTMLElement>('.bubble:not(.shell)')
+    if (bubble !== null) lock(bubble, unscaled(root, bubble.getBoundingClientRect()))
     this.#ghosts = from.parts === null ? [] : ghostsOf(root, from.parts, handoff.out)
     this.#place(to, true)
     if (handoff.kind === 'swap') this.presence = 'leaving'
@@ -169,10 +182,13 @@ export class SharedStage {
     await wait(handoff.out)
     if (run !== this.#run) return
     this.#clearGhosts()
+    if (bubble !== null) unlock(bubble)
     this.shown = to
     if (handoff.kind === 'swap') this.presence = 'away'
     await tick()
     if (run !== this.#run) return
+    // The new screen's look may draw a slot the old one had not: its bubble.
+    this.#place(to, true)
 
     unlock(scroll)
     const end = unscaled(root, scroll.getBoundingClientRect())
@@ -207,6 +223,18 @@ export class SharedStage {
     reveal(root)
   }
 
+  /**
+   * Shows a screen's look with its parts in place, at once and again once the look has
+   * drawn: a slot the old look had not, the bubble, only exists then.
+   */
+  #show(scene: Scene): void {
+    this.shown = scene
+    this.#place(scene, false)
+    void tick().then(() => {
+      if (this.shown === scene) this.#place(scene, false)
+    })
+  }
+
   /** Puts a screen's parts in the stage's slots, held invisible while `hidden`. */
   #place(scene: Scene, hidden: boolean): void {
     const root = this.#root
@@ -235,6 +263,8 @@ export class SharedStage {
     const root = this.#root
     const scroll = root?.querySelector<HTMLElement>('.scroll') ?? null
     if (scroll !== null) unlock(scroll)
+    const bubble = root?.querySelector<HTMLElement>('.bubble:not(.shell)') ?? null
+    if (bubble !== null) unlock(bubble)
     if (root !== null) reveal(root)
     this.presence = 'here'
   }
@@ -260,6 +290,11 @@ export function stageArrival(look: Look & { host: string }): number {
   return sharedStage()?.handoffFor(look).arrival ?? 0
 }
 
+/** Whether a screen's speaker stands above its sheet: a bubble, except on the TV. */
+function speaks(look: Look): boolean {
+  return (look.bubble ?? null) !== null && look.tv !== true
+}
+
 function withoutUndefined(look: Look): Partial<Cast> {
   return Object.fromEntries(
     Object.entries(look).filter(([, value]) => value !== undefined),
@@ -283,6 +318,7 @@ function removeParts(scene: Scene): void {
   scene.parts?.paper.remove()
   scene.parts?.under?.remove()
   scene.parts?.beside?.remove()
+  scene.parts?.said?.remove()
 }
 
 /**
@@ -307,17 +343,17 @@ function unscaled(root: HTMLElement, rect: DOMRect): DOMRect {
   return new DOMRect(rect.x / scale, rect.y / scale, rect.width / scale, rect.height / scale)
 }
 
-/** Holds the scroll at `rect` while what is on it changes. */
-function lock(scroll: HTMLElement, rect: DOMRect): void {
-  scroll.classList.add('morphing')
-  scroll.style.width = `${rect.width}px`
-  scroll.style.height = `${rect.height}px`
+/** Holds the scroll, or the bubble, at `rect` while what is on it changes. */
+function lock(box: HTMLElement, rect: DOMRect): void {
+  box.classList.add('morphing')
+  box.style.width = `${rect.width}px`
+  box.style.height = `${rect.height}px`
 }
 
-function unlock(scroll: HTMLElement): void {
-  scroll.classList.remove('morphing')
-  scroll.style.width = ''
-  scroll.style.height = ''
+function unlock(box: HTMLElement): void {
+  box.classList.remove('morphing')
+  box.style.width = ''
+  box.style.height = ''
 }
 
 /**

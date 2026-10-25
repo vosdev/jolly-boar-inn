@@ -131,7 +131,10 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  delete (document.documentElement as { clientWidth?: number }).clientWidth
+})
 
 describe('App', () => {
   it.each([['/'], ['/create']])('draws %s under the one bar', async (path) => {
@@ -193,7 +196,12 @@ describe('App', () => {
     overOneFooter()
   })
 
-  it('keeps the footer under a live question, below its answers', async () => {
+  /** Into the room as Zezima, the room as `room` says, in a window `width` px wide. */
+  async function inRoom(room: RoomView, width = 1440): Promise<void> {
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      configurable: true,
+      value: width,
+    })
     at('/r/ABYSSAL')
     await screen.findByText('Connecting…')
     const you = {
@@ -208,7 +216,7 @@ describe('App', () => {
     }
     applyServerMessage({
       t: 'welcome',
-      room: LIVE,
+      room,
       you,
       players: [you],
       question: null,
@@ -218,11 +226,28 @@ describe('App', () => {
       server_time: new Date().toISOString(),
       server_version: __APP_VERSION__,
     })
+  }
+
+  it('has no footer under a live question, and names the round in the bar', async () => {
+    await inRoom(LIVE)
     applyServerMessage({ t: 'question_open', question: QUESTION })
-    const answer = await screen.findByText('Dragon bones')
+    await screen.findByText('Dragon bones')
+    expect(document.querySelector('footer')).toBeNull()
+    expect(bar().querySelector('.where')?.textContent?.trim()).toBe('Round 1 of 1: More or Less')
+  })
+
+  it('says nothing in the bar of a room stacked for a phone', async () => {
+    await inRoom(LIVE, 800)
+    applyServerMessage({ t: 'question_open', question: QUESTION })
+    await screen.findByText('Dragon bones')
+    expect(bar().querySelector('.where')).toBeNull()
+  })
+
+  it('puts the footer under the lobby, and says Lobby in the bar', async () => {
+    await inRoom({ ...LIVE, status: 'lobby', phase: 'idle', current_index: null, segment: null })
+    await screen.findByRole('heading', { level: 1, name: 'Lobby' })
     overOneFooter()
-    const footer = document.querySelector('footer')!
-    expect(answer.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(bar().querySelector('.where')?.textContent?.trim()).toBe('Lobby')
   })
 
   it('links to the source from the bar and the footer, and to the licence and the release', () => {

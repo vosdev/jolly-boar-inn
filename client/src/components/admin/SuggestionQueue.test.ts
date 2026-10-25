@@ -204,7 +204,7 @@ describe('SuggestionQueue', () => {
     render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
     await fireEvent.click((await screen.findByText(/Which letters dial/)).closest('button')!)
     const preview = screen.getByLabelText('As players will see it')
-    expect(within(preview).getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
+    expect(within(preview).getByText('Fairy Queen', { selector: '.name' })).toBeTruthy()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     expect(screen.getByRole('radio', { name: 'Fairy Queen' })).toHaveProperty('checked', true)

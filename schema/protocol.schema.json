@@ -1134,6 +1134,10 @@
           ],
           "description": "The round in progress, null before the first question and once the game is over."
         },
+        "next_segment": {
+          "$ref": "#/$defs/Segment",
+          "description": "The round the standings hand over to, sent only in the standings phase: hidden or\nshuffled rounds are its splash's news, which the standings' \"Next up\" tells a few\nseconds early."
+        },
         "finished_at": {
           "anyOf": [
             {

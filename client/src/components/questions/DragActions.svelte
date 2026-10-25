@@ -1,5 +1,8 @@
 <script lang="ts">
-  /** Under a drag answer: start over, and Submit once every place is filled. */
+  /**
+   * Under a drag answer: start over, and Submit once every place is filled. On a phone
+   * Start over is its arrow beside Submit; on a wide stage the two stack, in words.
+   */
   let {
     moved,
     ready,
@@ -21,7 +24,8 @@
     aria-label="Start over"
     title="Start over"
     disabled={!moved}
-    onclick={onrestart}>↺</button
+    onclick={onrestart}
+    ><span class="arrow" aria-hidden="true">↺</span><span class="word">Start over</span></button
   >
   <button type="button" class="primary submit" disabled={!ready} onclick={onsubmit}>
     Submit
@@ -45,5 +49,29 @@
   .submit {
     flex: 1;
     min-height: 56px;
+  }
+
+  .word {
+    display: none;
+  }
+
+  @container (min-width: 40rem) {
+    .actions {
+      flex-direction: column;
+      margin-top: 0;
+    }
+
+    .rewind {
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    .arrow {
+      display: none;
+    }
+
+    .word {
+      display: inline;
+    }
   }
 </style>
