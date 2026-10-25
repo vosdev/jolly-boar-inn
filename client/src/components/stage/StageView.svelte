@@ -310,15 +310,16 @@
     animation: guest-in 375ms ease-out 225ms both;
   }
 
-  /* The way back: the NPC's panel and its words out, then the host's in. */
+  /* The way back, one crossfade: the host's panel is under the NPC's from the start, so as
+     the NPC and its words fade the panel never empties, and the host's bubble that follows
+     stands exactly where this one did. */
   .speaker.returning .bubble:not(.shell) {
     opacity: 0;
-    animation: fade-out 225ms ease-in both;
+    animation: fade-out 300ms ease-in-out both;
   }
 
   .speaker.returning .shell {
     opacity: 1;
-    animation: fade-in 300ms ease-out 600ms both;
   }
 
   .fading > :global(.scroll .content) {

@@ -338,9 +338,9 @@ PlayerResult { value, correct, credit, points }
   (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
   or `client/public` under `make dev`. Served immutable, and drawn under the stem in every mode,
   open and revealed. Devtools still show the whole picture before it zooms out or loses its shadow.
-- `answerable_at` is `opened_at` plus the hold the scroll types the question in (`rooms/hold.py`):
-  0.4 s (0.9 s for an event), each line at 50 letters a second with a 0.5–1 s pause after it, then
-  0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
+- `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
+  for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
+  with a 0.5–1 s pause after it, then 0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
   costs nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
   `reveal_seconds` is the reveal's whole length, for the countdown bar; null outside a reveal.

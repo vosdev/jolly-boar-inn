@@ -1,8 +1,8 @@
 <script lang="ts">
   /**
    * What goes in the stage's dialogue box: the speaker's name, centred, then the line.
-   * `later` is what the box says at another moment of the same screen, laid out unseen in
-   * the same place, so the box is the taller one's height from the first frame and nothing
+   * `later` is what the box says at other moments of the same screen, laid out unseen in
+   * the same place, so the box is the tallest one's height from the first frame and nothing
    * under it moves when the words change.
    */
   import type { Snippet } from 'svelte'
@@ -15,16 +15,20 @@
   }: {
     name: string
     line?: Snippet
-    later?: Snippet
+    later?: Snippet | Snippet[]
     /** The name as a heading: a random event's NPC, who is the screen's subject. */
     heading?: boolean
   } = $props()
+
+  const unseen = $derived(later === undefined ? [] : Array.isArray(later) ? later : [later])
 </script>
 
 {#if heading}<h2 class="name">{name}</h2>{:else}<p class="name">{name}</p>{/if}
 <div class="stack">
   <div class="line">{@render line?.()}</div>
-  {#if later}<div class="line later" aria-hidden="true">{@render later()}</div>{/if}
+  {#each unseen as other, i (i)}
+    <div class="line later" aria-hidden="true">{@render other()}</div>
+  {/each}
 </div>
 
 <style>

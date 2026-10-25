@@ -3,9 +3,8 @@
 import pytest
 
 from app.rooms.hold import (
-    EXAMINE_ASK,
+    HOST_ASK,
     MORE_LESS_ASK,
-    PRICE_ASK,
     hold_seconds,
     stem_lines,
     typed_lines,
@@ -44,14 +43,14 @@ def test_a_quote_types_its_caption_then_the_quote() -> None:
     assert stem_lines("multiple_choice", "who_said_that", view) == [12, 11]
 
 
-def test_an_examine_types_its_caption_then_the_examine() -> None:
-    assert stem_lines("free_text", "guess_examine", {"prompt": "A sword."}) == [EXAMINE_ASK, 8]
+def test_an_examine_types_only_the_examine() -> None:
+    assert stem_lines("free_text", "guess_examine", {"prompt": "A sword."}) == [8]
 
 
 def test_more_less_and_price_count_the_stems_own_wording() -> None:
     assert stem_lines("more_less", "more_less", {"metric": "ge_price"}) == [MORE_LESS_ASK]
     view = {"subject": {"name": "Abyssal whip"}, "options": [1, 2, 3, 4]}
-    assert stem_lines("price_is_right", "price_is_right", view) == [12, PRICE_ASK]
+    assert stem_lines("price_is_right", "price_is_right", view) == [12]
 
 
 def test_letters_are_code_points() -> None:
@@ -61,9 +60,19 @@ def test_letters_are_code_points() -> None:
 def test_an_event_types_its_intro_then_its_prompt() -> None:
     view = {"intro": "Psst!", "prompt": "Which way?"}
     assert typed_lines("multiple_choice", "random_event", view, event=True) == [5, 10]
-    assert typed_lines("multiple_choice", "random_event", view, event=False) == [10]
+    assert typed_lines("multiple_choice", "random_event", view, event=False) == [HOST_ASK, 10]
 
 
 def test_an_event_with_no_prompt_types_its_stem() -> None:
     view = {"intro": "Hm.", "subject": {"name": "Coal"}}
-    assert typed_lines("price_is_right", "random_event", view, event=True) == [4, PRICE_ASK]
+    assert typed_lines("price_is_right", "random_event", view, event=True) == [4]
+
+
+def test_a_rounds_question_types_the_hosts_ask_line_before_its_stem() -> None:
+    view = {"prompt": "Who?", "options": []}
+    assert typed_lines("multiple_choice", "bestiary", view, event=False) == [HOST_ASK, 4]
+    assert typed_lines("free_text", "guess_examine", {"prompt": "A sword."}, False) == [HOST_ASK, 8]
+
+
+def test_a_question_with_nothing_on_its_sheet_types_nothing() -> None:
+    assert typed_lines("multiple_choice", "bestiary", {"options": []}, event=False) == []

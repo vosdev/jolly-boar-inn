@@ -388,8 +388,9 @@ function ghostsOf(root: HTMLElement, parts: Parts, ms: number): HTMLElement[] {
     })
     ghost.append(node)
     parent.append(ghost)
-    // From where the slot stood: a returned event's words have already faded off.
-    ghost.animate([{ opacity: style.opacity }, { opacity: 0 }], {
+    // From where the slot stood: a returned event's words have already faded off, with
+    // their bubble rather than the slot itself.
+    ghost.animate([{ opacity: String(seenOpacity(slot, root)) }, { opacity: 0 }], {
       duration: ms,
       easing: 'ease-in',
       fill: 'forwards',
@@ -397,6 +398,16 @@ function ghostsOf(root: HTMLElement, parts: Parts, ms: number): HTMLElement[] {
     ghosts.push(ghost)
   }
   return ghosts
+}
+
+/** How opaque `node` is drawn: its own opacity times every ancestor's up to `root`. */
+function seenOpacity(node: HTMLElement, root: HTMLElement): number {
+  let opacity = 1
+  for (let at: HTMLElement | null = node; at !== null && at !== root; at = at.parentElement) {
+    const own = Number.parseFloat(getComputedStyle(at).opacity)
+    if (!Number.isNaN(own)) opacity *= own
+  }
+  return opacity
 }
 
 function wait(ms: number): Promise<void> {
