@@ -146,7 +146,7 @@ describe('Splash stage', () => {
 
   it('keeps the ready check off the parchment', () => {
     splash()
-    const button = screen.getByRole('button', { name: "✓ I'm ready" })
+    const button = screen.getByRole('switch', { name: 'Ready' })
     expect(under().contains(button)).toBe(true)
     expect(paper().querySelector('button, ul')).toBeNull()
   })
@@ -155,7 +155,7 @@ describe('Splash stage', () => {
     splash()
     expect(screen.getByRole('heading', { name: 'Tonight' }).closest('.panel')).not.toBeNull()
     expect(
-      screen.getByRole('button', { name: "✓ I'm ready" }).closest('[aria-label="At the table"]'),
+      screen.getByRole('switch', { name: 'Ready' }).closest('[aria-label="At the table"]'),
     ).not.toBeNull()
   })
 
@@ -284,7 +284,7 @@ describe('Splash ready check', () => {
   })
 })
 
-describe('Splash ready button', () => {
+describe('Splash ready switch', () => {
   it('can be taken back once, and after that stays ready', async () => {
     const onReady = vi.fn()
     const { rerender } = render(Splash, {
@@ -294,20 +294,23 @@ describe('Splash ready button', () => {
       youId: 'a',
       onReady,
     })
-    await fireEvent.click(screen.getByRole('button', { name: "✓ I'm ready" }))
+    await fireEvent.click(screen.getByRole('switch', { name: 'Ready' }))
     expect(onReady).toHaveBeenLastCalledWith(true)
     await rerender({ players: players(true) })
 
-    await fireEvent.click(screen.getByRole('button', { name: '✓ Ready — tap to undo' }))
+    const sw = () => screen.getByRole('switch', { name: 'Ready' }) as HTMLButtonElement
+    expect(sw().getAttribute('aria-checked')).toBe('true')
+    await fireEvent.click(sw())
     expect(onReady).toHaveBeenLastCalledWith(false)
     await rerender({ players: players(false) })
+    expect(sw().getAttribute('aria-checked')).toBe('false')
 
-    await fireEvent.click(screen.getByRole('button', { name: "✓ I'm ready" }))
+    await fireEvent.click(sw())
     expect(onReady).toHaveBeenLastCalledWith(true)
     await rerender({ players: players(true) })
 
-    const settled = screen.getByRole('button', { name: '✓ Ready' }) as HTMLButtonElement
-    expect(settled.disabled).toBe(true)
+    expect(sw().getAttribute('aria-checked')).toBe('true')
+    expect(sw().disabled).toBe(true)
     expect(onReady).toHaveBeenCalledTimes(3)
   })
 })
@@ -398,7 +401,7 @@ describe('Splash typing', () => {
   it('takes a ready tap while it is still typing', async () => {
     const onReady = vi.fn()
     render(Splash, { segment: SEGMENT, endsAt: null, players: players(false), youId: 'a', onReady })
-    await fireEvent.click(screen.getByRole('button', { name: /I'm ready/ }))
+    await fireEvent.click(screen.getByRole('switch', { name: 'Ready' }))
     expect(onReady).toHaveBeenCalledWith(true)
   })
 

@@ -336,13 +336,15 @@ take-back rule are architecture §7.
   night's line, a card per round A–Z (its host's chathead, name and question count; a hidden
   round is "A surprise" with the boar), "How to play" and "Quicker and correct answers score
   more." At the table: join requests first, for the host, then a team game's gods, the halves,
-  I'm ready, and Start (plain at the threshold, "Start anyway" below it, which asks first) or
+  the Ready switch, and Start (plain at the threshold, "Start anyway" below it, which asks first) or
   "Waiting for the host to start…". The host taps a pet to kick or promote.
 - **TV row:** the host's pet menu makes another player or admin the TV ("Make TV", never the
   last admin) and back ("Not the TV"), at once. Its pet wears a screen. The TV gets no ready,
   and its settings no name or pet.
-- **Full screen:** on touch devices a "Full screen" switch sits beside "I'm ready" in both, and
-  follows the browser's state. It is absent where the browser lacks the API (iPhone, #319).
+- **Switches:** "Ready" is a large switch (`Switch.svelte`), on in `--ok`, in lobby and splash;
+  where it cannot be taken back (the splash allows one take-back) it sits disabled, on. On touch
+  devices a smaller "Full screen" switch of the same look sits beside it and follows the
+  browser's state. It is absent where the browser lacks the API (iPhone, #319).
 - **Splash.** The host's greeting and blurb in the bubble. The scroll: "Round 4 of 10", the mode's
   name, "5 questions · " and its Create hint, and a price round's date. Under it, "Tonight": a
   host per round, past ones faded, the current one large and named, the rest numbered; a host

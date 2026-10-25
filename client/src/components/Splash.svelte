@@ -47,6 +47,7 @@
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
+  import Switch from './Switch.svelte'
   import RosterPet from './RosterPet.svelte'
   import NpcFace from './NpcFace.svelte'
   import TablePanel from './TablePanel.svelte'
@@ -279,15 +280,14 @@
       <AtTable>
         <TablePanel groups={seated} {youId} labels={['Ready', 'Not ready yet']}>
           <div class="ready">
-            <button
-              type="button"
-              class:primary={!youReady}
-              aria-pressed={youReady}
+            <Switch
+              label="Ready"
+              large
+              tone="ok"
+              checked={youReady}
               disabled={youReady && undone}
               onclick={press}
-            >
-              {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
-            </button>
+            />
             <FullScreenSwitch />
           </div>
         </TablePanel>
@@ -519,10 +519,6 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem 0.9rem;
-  }
-
-  .ready button {
-    min-height: 44px;
   }
 
   .pets {
