@@ -1,3 +1,9 @@
+<script module lang="ts">
+  // The reveal draws a new picture, which takes the open question's box rather than measuring
+  // a stage that now holds the explanation too.
+  let held: number | null = null
+</script>
+
 <script lang="ts">
   /**
    * A pack question's picture, under its stem on the scroll, open and on the reveal alike.
@@ -14,12 +20,14 @@
    * under it.
    *
    * A `large` picture on a room's stage (the nearest `[data-fit-stage]`) takes the height the
-   * stage has left once everything else is in, between `PICTURE_LEAST` and the render's own
-   * height, and the caption's room is kept from the start so the reveal does not move it.
+   * stage has left once everything else is in, and the room under the answer input for its
+   * suggestions, between `PICTURE_LEAST` and the smaller of its 12rem off a stage and the render's height
+   * as drawn: the room is laid out at one size and scaled up to the window, so its px are not
+   * the screen's. The caption's room is kept from the start so the reveal does not move it.
    * The height is measured while the question is open and held from the reveal on, so the
    * silhouette and the render share one box and a taller reveal scrolls rather than shrinks it.
    */
-  import { pictureHeight } from '../../lib/pictureFit'
+  import { PICTURE_MOST_REM, pictureHeight, suggestionsHeight } from '../../lib/pictureFit'
   import { pictureUrl } from '../../lib/pictures'
 
   let {
@@ -56,12 +64,32 @@
     const mine = box
     const stage = mine?.closest<HTMLElement>('[data-fit-stage]') ?? null
     const content = stage?.firstElementChild
-    if (!large || lifted || !mine || !stage || !(content instanceof HTMLElement) || natural <= 0) {
+    if (!large || !mine || !stage || !(content instanceof HTMLElement)) return
+    if (lifted) {
+      if (fitted === null) fitted = held
       return
     }
+    if (natural <= 0) return
     const measure = (): void => {
       const rest = content.offsetHeight - mine.offsetHeight
-      fitted = pictureHeight(stage.clientHeight - rest, natural)
+      const scale =
+        stage.offsetHeight > 0 ? stage.getBoundingClientRect().height / stage.offsetHeight : 1
+      const input = content.querySelector('[role="combobox"]')
+      // The list floats over what is under the input, which is room it already has.
+      const below =
+        input === null
+          ? Infinity
+          : (content.getBoundingClientRect().bottom - input.getBoundingClientRect().bottom) / scale
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+      const sheet = parseFloat(getComputedStyle(mine).getPropertyValue('--scroll-scale')) || 1
+      const list = input === null ? 0 : Math.max(0, suggestionsHeight(rem) - below)
+      fitted = pictureHeight(
+        stage.clientHeight - rest - list,
+        natural,
+        scale || 1,
+        PICTURE_MOST_REM * rem * sheet,
+      )
+      held = fitted
     }
     measure()
     const watch = new ResizeObserver(measure)

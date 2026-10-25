@@ -105,7 +105,7 @@
     filter: grayscale(1);
   }
 
-  /* Up to 24 characters, so two lines before it is cut off. */
+  /* Up to 12 characters, wrapped in a narrow tile, so two lines before it is cut off. */
   .pet-name {
     display: -webkit-box;
     max-width: 100%;

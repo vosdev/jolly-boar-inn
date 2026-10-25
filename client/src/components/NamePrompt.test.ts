@@ -12,7 +12,19 @@ import NamePrompt from './NamePrompt.svelte'
 
 const onConfirm = vi.fn()
 
-beforeEach(() => vi.clearAllMocks())
+// `profile.test.ts` shows a stored name over 12 becoming this; here it is only the input.
+const stored = vi.hoisted(() => ({ leftover: null as { name: string; pet: string | null } | null }))
+vi.mock('../lib/profile', async (original) => ({
+  ...(await original<typeof import('../lib/profile')>()),
+  get leftover() {
+    return stored.leftover
+  },
+}))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  stored.leftover = null
+})
 
 function field(): HTMLInputElement {
   return screen.getByRole('textbox') as HTMLInputElement
@@ -44,6 +56,14 @@ describe('NamePrompt', () => {
     expect(screen.getByRole('button', { name: 'Join' })).toHaveProperty('disabled', true)
     await fireEvent.submit(field().closest('form')!)
     expect(onConfirm).not.toHaveBeenCalled()
+  })
+
+  it('opens on the first 12 characters of a stored name the rules have since cut', async () => {
+    stored.leftover = { name: 'Cow31337Kill', pet: 'aggy' }
+    render(NamePrompt, { action: 'Join', onConfirm })
+    expect(field().value).toBe('Cow31337Kill')
+    await fireEvent.click(screen.getByRole('button', { name: 'Join' }))
+    expect(onConfirm).toHaveBeenCalledWith('Cow31337Kill', 'aggy')
   })
 
   it('rolls a new name and a new pet on request', async () => {

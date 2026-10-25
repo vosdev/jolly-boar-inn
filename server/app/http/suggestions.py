@@ -35,7 +35,7 @@ class Suggestion(BaseModel):
 
     kind: suggestions.Kind
     content: dict[str, Any]
-    # ``normalize_name`` holds it to a display name's 1-24; this only bounds what is read.
+    # ``normalize_name`` holds it to 1-``NAME_MAX``; this only bounds what is read.
     credit: str = Field(max_length=200)
     credit_shown: bool = Field(strict=True)
 

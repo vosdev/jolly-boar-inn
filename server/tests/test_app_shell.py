@@ -7,7 +7,7 @@ that hides the wordmark and GitHub and nothing else.
 What a browser confirmed, and a test cannot: at 320px the bar is exactly 56px and
 leaves ``scrollWidth == clientWidth`` on Home, Create, Join, the lobby, a question, a
 reveal and the final standings; an input sitting under the bar scrolls clear of it; a
-24-character name ellipsises beside sound and theme without running over the sign.
+12-character name ellipsises beside sound and theme without running over the sign.
 """
 
 import re
