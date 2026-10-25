@@ -1168,7 +1168,7 @@ def test_a_rename_mid_game_is_refused_and_changes_nothing(game, db) -> None:
     player = game.players[0]
     kept = game.room.players[UUID(player.id)].avatar
     assert kept is not None
-    player.send(t="set_profile", display_name="RenamedMidGame", avatar="aggy")
+    player.send(t="set_profile", display_name="RenamedMid", avatar="aggy")
     assert player.take("error")["code"] == "bad_state"
     renamed = game.room.players[UUID(player.id)]
     assert (renamed.display_name, renamed.avatar) == ("Zezima", kept)

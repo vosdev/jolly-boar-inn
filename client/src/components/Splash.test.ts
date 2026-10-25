@@ -273,8 +273,8 @@ describe('Splash ready check', () => {
     expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Ready 1')
     expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Not ready yet 1')
     expect(petsDrawn(table)).toEqual([
-      { pet: '', size: 48 },
-      { pet: '', size: 48 },
+      { pet: '', size: 32 },
+      { pet: '', size: 32 },
     ])
   })
 

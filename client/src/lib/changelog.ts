@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.186.0',
+    date: '2026-10-25',
+    text: 'Names are now up to 12 characters, as in OSRS, and the table shows them whole, two to a row.',
+  },
+  {
     version: '0.185.0',
     date: '2026-10-25',
     text: 'The lobby shows the code on one line and folds long round lists into +N more, and offers full screen in a short window.',

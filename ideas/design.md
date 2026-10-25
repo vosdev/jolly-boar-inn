@@ -181,11 +181,13 @@ player is per room and temporary. There are no accounts.
 - **Renaming** is `set_profile`. Most players take the pre-filled name, so every generated name
   must be one you are happy to see win.
 
-Generated names come from `data/player-names.json`: invented usernames in the register of a 2007
-friends list (`ScapeRune77`, `AFKFisher`). Never NPC names, or somebody is called Hans while
-wearing a goblin's face, and never real players. Base names are at most 21 characters so the suffix
-fits. A duplicate is a 409, and the client re-rolls the suffix up to three times. A name matching
-the room code is skipped: not a bug, but it reads like one.
+A name is 1–12 characters, as in OSRS. A stored profile name over 12, from before, opens the
+prompt once with its first 12. Generated names come from `data/player-names.json`: invented
+usernames in the register of a 2007 friends list (`ScapeRune77`, `AFKFisher`), at most 12 and
+handed out bare. Never NPC names, or somebody is called Hans while wearing a goblin's face, and
+never real players. A duplicate is a 409: the client adds a 1–3 digit suffix, cutting the base's
+end to fit 12, and re-rolls up to three times. A name matching the room code is skipped: not a
+bug, but it reads like one.
 
 Pets must reach other players, so the server stores them. `players.avatar` is a pet id, and a player
 who sends none is given one by the server, so every client draws the same pet for good.
@@ -325,8 +327,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 The table panel (`TablePanel`) is who is at the table, on the theme's panel beside the stage. It
 has two halves, each with its count: the lobby's and splash's "Ready" over "Not ready yet", a
 question's "Answered" over "Still thinking". A pet moves up as
-its player readies or answers. Pets sit four abreast, the name under each, yours first in your
-half and in bold, the rest below in join order and above in the order they arrived. An away pet
+its player readies or answers. Pets sit two abreast, a 32px icon over the whole name on one
+line (twelve W's fit the 300px), yours first in your half and in bold, the rest below in join order and above in the order they arrived. An away pet
 fades to grey, says "away" and stays below, since the server only knows who is still to answer
 among the connected. A team game splits each half by team in god order, the teamless last. The
 TV sits apart under "TV" at the foot. A question nobody answers lists everyone under "At the table".

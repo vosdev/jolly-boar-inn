@@ -21,10 +21,6 @@ NAMES_JSON = REPO_ROOT / "data" / "player-names.json"
 ROOM_WORDS_JSON = REPO_ROOT / "data" / "room-words.json"
 NAMES_TS = CLIENT_SRC / "lib" / "names.ts"
 
-# Section 5.1.2: the numeric suffix is up to three digits, and it always fits.
-BASE_MAX = 21
-SUFFIX_DIGITS = 3
-
 
 def names() -> list[str]:
     return json.loads(NAMES_JSON.read_text(encoding="utf-8"))
@@ -69,16 +65,21 @@ def test_the_corpus_is_a_list_of_strings_and_big_enough_to_be_random() -> None:
     assert len(corpus) >= 150
 
 
-def test_every_base_leaves_room_for_the_suffix() -> None:
-    assert BASE_MAX + SUFFIX_DIGITS == NAME_MAX
-    too_long = [name for name in names() if len(name) > BASE_MAX]
+def test_every_base_is_a_whole_name() -> None:
+    assert NAME_MAX == 12
+    too_long = [name for name in names() if len(name) > NAME_MAX]
     assert too_long == []
 
 
+def test_the_owner_s_names_are_not_bases() -> None:
+    """They are the owner's, so a stranger rolling one would read as the owner."""
+    owner = {"twintigapril", "kingroald", "runecraftruth45", "runecraftruth"}
+    assert [name for name in names() if name.lower() in owner] == []
+
+
 def test_the_server_takes_every_name_the_generator_can_make() -> None:
-    """The longest suffix on every base, through the server's own rules."""
-    for base in names():
-        name = base + "9" * SUFFIX_DIGITS
+    """Every base as it is generated, through the server's own rules."""
+    for name in names():
         try:
             assert normalize_name(name) == name
         except BadName as error:  # pragma: no cover - the assertion message is the point
@@ -114,7 +115,6 @@ def test_no_player_name_is_a_room_word() -> None:
 def test_the_generator_is_held_to_the_server_s_numbers() -> None:
     source = NAMES_TS.read_text(encoding="utf-8")
     assert f"export const NAME_MAX = {NAME_MAX}" in source
-    assert f"export const BASE_MAX = {BASE_MAX}" in source
     assert "data/player-names.json" in source
 
 

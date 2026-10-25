@@ -25,7 +25,7 @@ from app.errors import ApiError
 from app.questions import schema, text
 from app.questions.packs import Pack, mode_questions
 from app.reports import ITEM_MODES, pack_modes
-from app.rooms.models import normalize_name
+from app.rooms.models import CREDIT_MAX, normalize_name
 from app.suggestions import NO_DIFFICULTY_MODES, NO_EXPLANATION_MODES, difficulty_errors
 
 EDITABLE = ("payload", "difficulty", "wiki", "source_url", "credit", "credit_shown")
@@ -61,7 +61,7 @@ def edited(packs: list[Pack], before: dict[str, Any], body: dict[str, Any]) -> d
     after = {key: value for key, value in before.items() if key not in EDITABLE}
     after |= {key: body[key] for key in EDITABLE if key in body}
     if isinstance(after.get("credit"), str):
-        after["credit"] = normalize_name(after["credit"])
+        after["credit"] = normalize_name(after["credit"], CREDIT_MAX)
     if isinstance(after.get("payload"), dict):
         after["id"] = schema.content_id(after)
     found = schema.errors(after)

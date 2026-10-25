@@ -121,7 +121,8 @@
 </div>
 
 <style>
-  /* Narrower than a panel's own padding, so four names fit abreast in the 300px column. */
+  /* Narrower than a panel's own padding, so two 12-character names fit abreast in the
+     300px column. */
   .table-panel {
     display: flex;
     flex-direction: column;
@@ -180,8 +181,8 @@
 
   .pets {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.5rem 0.2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 0.2rem;
     margin: 0;
     padding: 0;
     list-style: none;
