@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { ASK_MAX, GENERIC_HOST, INNKEEPER, MODES, hostOf, pickLines } from './modes'
+import { ASK_MAX, GENERIC_HOST, INNKEEPER, MODES, VERDICTS, hostOf, pickLines } from './modes'
 
 // The longest waiting and reveal lines measured to fit two lines at the scroll's foot on a
 // 350px screen, the narrowest supported; the reveal line shares its row with the points.
@@ -35,6 +35,23 @@ describe('hosts', () => {
         expect(line.length, line).toBeLessThanOrEqual(WAITING_MAX)
       }
       for (const line of lines.reveal) expect(line.length, line).toBeLessThanOrEqual(REVEAL_MAX)
+    }
+  })
+
+  it('gives every host at least three reveal lines for each way a player can do', () => {
+    for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
+      const heard = [...lines.reveal]
+      for (const verdict of VERDICTS) {
+        const list = lines.verdict[verdict]
+        expect(list.length, `${lines.host.id} ${verdict}`).toBeGreaterThanOrEqual(3)
+        for (const line of list) {
+          expect(line.trim(), lines.host.id).not.toBe('')
+          // In the box, as long as a waiting line at most, so the box stays two lines tall.
+          expect(line.length, line).toBeLessThanOrEqual(WAITING_MAX)
+        }
+        heard.push(...list)
+      }
+      expect(new Set(heard).size, lines.host.id).toBe(heard.length)
     }
   })
 
@@ -118,6 +135,20 @@ describe('pickLines', () => {
           }
         }
       }
+    }
+  })
+
+  it('picks a verdict’s reveal line from its own set, never repeating it on neighbours', () => {
+    for (const lines of [GENERIC_HOST, ...Object.values(MODES)]) {
+      for (const verdict of VERDICTS) {
+        for (let index = 0; index < 12; index++) {
+          const now = pickLines(lines, at(index), verdict).reveal
+          expect(lines.verdict[verdict]).toContain(now)
+          expect(pickLines(lines, at(index + 1), verdict).reveal, lines.host.id).not.toBe(now)
+          expect(pickLines(lines, at(index + 2), verdict).reveal, lines.host.id).not.toBe(now)
+        }
+      }
+      expect(lines.reveal).toContain(pickLines(lines, at(0)).reveal)
     }
   })
 

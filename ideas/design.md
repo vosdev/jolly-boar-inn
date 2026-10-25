@@ -233,13 +233,13 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 
 ```
 ╭────────────────────────────────────────╮
-│  ▄▄            Ali Morrisane           │   the name centred in --speaker,
-│ (••)   Patience, my friend.            │   the line from the left, in Quill,
-│▟████▙                                  │   on --panel-raised
+│  ▄▄            Ali Morrisane      +850 │   the name centred in --speaker, your points
+│ (••)   A shrewd eye, my friend!        │   at its right on the reveal; the line from
+│▟████▙                                  │   the left, in Quill, on --panel-raised
 ╰────────────────────────────────────────╯
         ╥────────────────────────────────╥
         ║ Which costs more on the GE?    ║   the question, and nothing else
-        ╨──────────────────────✿──+850───╨   the pin and the points
+        ╨──────────────────────✿─────────╨   the pin
 ```
 
 - **The room's frame** (`lib/roomFit.ts`): the stage on the left, the table column on the right,
@@ -256,8 +256,9 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 - **The dialogue box** (the code's `bubble`) stands above the sheet: one panel in the theme's
   `--panel-raised` and `--line` edge, the host's chathead inside it at the left, 92px (56px on a
   phone), an event NPC's at the right (§12). The name is pinned centred to its top in
-  `--speaker`, with room under it, and always shows; the line below reads from the left, in
-  Quill. A hidden line keeps its room, so the sheet never moves when the host speaks, and the box
+  `--speaker`, with room under it, and always shows; on the reveal your points sit at the
+  row's right end as a chip, in the box's ink ("+850", "No answer · +0"), none for a player who
+  could not answer. The line below reads from the left, in Quill. A hidden line keeps its room, so the sheet never moves when the host speaks, and the box
   is from the first frame as tall as the most its screen will say.
 - **Elsewhere the host stands beside the sheet**: a past game's hiscores
   (§11, at a long sheet's top-left), Home and the TV. There it stands at the scroll's bottom-left,
@@ -297,13 +298,14 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   check still measures against `--panel`. **At the table** (`AtTable`): the table panel (§9), with
   the lobby's and splash's buttons at its foot.
 - **The host's voice** is the mode's copy in `lib/modes.ts`, all in the dialogue box: splash line,
-  blurb, and several ask, waiting and reveal lines. The host always speaks: ask while a question is
-  open, waiting once you answer, reveal with the question's explanation; what follows and when is
+  blurb, and several ask, waiting and reveal lines, and three or more reveal lines for each of
+  right, partial credit, wrong and no answer. The host always speaks: ask while a question is
+  open, waiting once you answer, on the reveal the line for how you did (the plain reveal line
+  if you could not answer) with the question's explanation; what follows and when is
   the timer's tab (§10). The line is seeded by the question's place in its round, so the room and
   the TV agree and neighbours never repeat. A mode's standing instruction is an ask line ("What is
   this the examine of?"), so the sheet holds only the question: the examine, the quote, or the
-  item and its picture; the fixed prompts of Who's That NPC? and Who Said That? are not drawn. The TV says the ask and reveal lines at the sheet's foot; a player's keeps one line for
-  the points. Question prompts stay plain: a prompt is parsed against the clock, and a joke around it
+  item and its picture; the fixed prompts of Who's That NPC? and Who Said That? are not drawn. The TV says the ask and the plain reveal line at the sheet's foot; a player's sheet has no foot. Question prompts stay plain: a prompt is parsed against the clock, and a joke around it
   is a second thing to read. Random events are the exception, in their NPC's voice.
 - **The art** is the wiki's chathead, or the head of its render, mirrored to face the
   sheet. A mode with no host, or a host with no art, gets the generic boar.
@@ -393,9 +395,9 @@ take-back rule are architecture §7.
   TV that drops gives phones the whole question back.
 
 On reveal everything recedes except the correct answer and your points. Buttons fade (§3); a typed,
-picked or numeric answer fades beside the correct value. Your points go at the foot of the
-scroll, in a foot held from the start so nothing under the sheet moves, the same in every mode,
-in display tabular numerals and the scroll's ink:
+picked or numeric answer fades beside the correct value. Your points go on a chip on the
+dialogue box's name row (§8), no taller than the name so nothing moves, the same in every mode,
+in display tabular numerals and the box's ink:
 
 | Outcome | Slot shows |
 |---|---|
@@ -486,7 +488,7 @@ answerable_at: the answers fade in under the line (200 ms) and the timer bar sta
   600 ms, then pauses less, then types faster. Under 800 ms of hold the NPC is simply there.
 - The typing is a mask, not a mutation: the whole text is in the DOM from the first frame.
 - In the reveal the bubble comes back undimmed with the NPC's `right` or `wrong` line and the
-  `explanation` (§8), and your points go on the sheet's foot. The bubble keeps
+  `explanation` (§8), and your points on its name row's chip. The bubble keeps
   room for all of it, two lines of explanation among it, from the first frame.
 - The return takes the reveal's last 900 ms, off `next_at`: the NPC's bubble crossfades to the
   host's, empty, in one 300 ms fade, the sheet's words going with it; the next question's words

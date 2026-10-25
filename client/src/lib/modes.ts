@@ -40,9 +40,16 @@ export interface HostLines {
   ask: string[]
   /** Once you have answered, while the room catches up. */
   waiting: string[]
-  /** On the reveal, before the explanation. */
+  /** On the reveal, before the explanation: the room's line, for the TV and whoever could not answer. */
   reveal: string[]
+  /** On the reveal, in `reveal`'s place, to a player who could answer: by how they did. */
+  verdict: Record<Verdict, string[]>
 }
+
+/** How a player did on a question, which picks the host's reveal line for them. */
+export type Verdict = 'right' | 'partial' | 'wrong' | 'missed'
+
+export const VERDICTS: readonly Verdict[] = ['right', 'partial', 'wrong', 'missed']
 
 /** The longest ask line: the server's hold counts this many letters for it (`rooms/hold.py`). */
 export const ASK_MAX = 50
@@ -61,20 +68,24 @@ export interface Placed {
 }
 
 /**
- * The lines `lines` says around question `at`, the same on every screen in the room.
+ * The lines `lines` says around question `at`, the same on every screen in the room; the
+ * reveal line is `verdict`'s, for a player who could answer, or the room's.
  *
- * Each kind of line is shuffled once per round, seeded by the round's start, and the round's
+ * Each list of lines is shuffled once per round, seeded by the round's start, and the round's
  * questions walk through the shuffle in order. Any two questions fewer than a list's length
  * apart get different lines, so neighbours never repeat, a random event between them or not.
  */
-export function pickLines(lines: HostLines, at: Placed): Spoken {
+export function pickLines(lines: HostLines, at: Placed, verdict: Verdict | null = null): Spoken {
   const step = Math.max(0, at.index - at.segment.start)
-  const pick = (kind: keyof Spoken): string => {
-    const list = lines[kind]
+  const pick = (list: string[], kind: string): string => {
     const order = shuffled(list.length, `${lines.host.id}:${kind}:${at.segment.start}`)
     return list[order[step % list.length] ?? 0] ?? ''
   }
-  return { ask: pick('ask'), waiting: pick('waiting'), reveal: pick('reveal') }
+  return {
+    ask: pick(lines.ask, 'ask'),
+    waiting: pick(lines.waiting, 'waiting'),
+    reveal: verdict === null ? pick(lines.reveal, 'reveal') : pick(lines.verdict[verdict], verdict),
+  }
 }
 
 /** 0..n-1 in an order fixed by `seed`: a Fisher-Yates shuffle on a string hash. */
@@ -141,6 +152,28 @@ export const GENERIC_HOST: HostLines = {
     'Another drink while they finish?',
   ],
   reveal: ["Let's see how you did.", "Here's the answer.", 'Right, the answer.'],
+  verdict: {
+    right: [
+      "Spot on. That one's on the house.",
+      'Right you are! Pour this one a pint.',
+      'Correct! The whole inn salutes you.',
+    ],
+    partial: [
+      'Close enough for a half pint.',
+      'Not bad. Most of the way there.',
+      "Near enough. I'll pour you a half.",
+    ],
+    wrong: [
+      'Not this time, friend.',
+      'Ah, no. Drown your sorrows at the bar.',
+      "Wrong, I'm afraid. Next round's coming.",
+    ],
+    missed: [
+      'Too slow! Your drink went flat.',
+      'No answer? The table waited for you.',
+      'Nothing from you that time, friend.',
+    ],
+  },
 }
 
 export const MODES: Record<string, Mode> = {
@@ -169,6 +202,28 @@ export const MODES: Record<string, Mode> = {
       'The scales do not lie.',
       'A fair price, my friend!',
     ],
+    verdict: {
+      right: [
+        'A shrewd eye, my friend! Ali is impressed.',
+        'Correct! You would make a fine merchant.',
+        'Right! Ali could use a partner like you.',
+      ],
+      partial: [
+        'Almost, my friend. Almost a bargain.',
+        'Half right is still half a profit!',
+        'Not bad! Ali gives you a small discount.',
+      ],
+      wrong: [
+        'Ah, my friend, you have been swindled.',
+        'Wrong! But Ali will still sell you a carpet.',
+        'No, no. Ali weeps for your coin purse.',
+      ],
+      missed: [
+        'No offer? Ali cannot haggle with silence.',
+        'You said nothing! The deal walked away.',
+        'Silence, my friend? That is no way to trade.',
+      ],
+    },
     // Which of the two costs more, on the scroll; the names are the buttons below it.
     stem: 'more_less',
   },
@@ -197,6 +252,28 @@ export const MODES: Record<string, Mode> = {
       'Please collect your coins.',
       'Thank you for trading.',
     ],
+    verdict: {
+      right: [
+        'Your offer was spot on. Congratulations.',
+        'An excellent estimate. Thank you for trading.',
+        'Your offer matched the market exactly.',
+      ],
+      partial: [
+        'Your offer has partially completed.',
+        'Close to market price. Well estimated.',
+        'Your offer was near the mark.',
+      ],
+      wrong: [
+        "I'm afraid your offer did not complete.",
+        'That offer was far from market price.',
+        'Your offer has been returned unfilled.',
+      ],
+      missed: [
+        'No offer was placed. Please try again.',
+        "Your offer slot is empty, I'm afraid.",
+        'We received no offer from you.',
+      ],
+    },
     // The item and its picture, above a slider; what to do with them is the host's to say.
     stem: 'price',
   },
@@ -225,6 +302,28 @@ export const MODES: Record<string, Mode> = {
       'Let us see the answer key.',
       'The marking is done.',
     ],
+    verdict: {
+      right: [
+        'Full marks. Well done.',
+        'Correct. A credit to the class.',
+        'Top marks. You may look smug.',
+      ],
+      partial: [
+        'Partial marks. Show more working next time.',
+        'Some credit, for some of it.',
+        'Half marks. Not a pass, not a fail.',
+      ],
+      wrong: [
+        'Incorrect. See me after class.',
+        'Wrong. I shall note that in red ink.',
+        "No marks for that, I'm afraid.",
+      ],
+      missed: [
+        'A blank paper. How disappointing.',
+        'You left it blank. No marks.',
+        'Nothing written? Pens up sooner next time.',
+      ],
+    },
     // The examine line alone; the host asks what it belongs to.
     stem: 'examine',
   },
@@ -254,6 +353,28 @@ export const MODES: Record<string, Mode> = {
       'The archives agree.',
       'Now for the right order.',
     ],
+    verdict: {
+      right: [
+        'Perfect! The curator will never know.',
+        'Every exhibit in its place. Splendid!',
+        'Exactly right! You have an eye for history.',
+      ],
+      partial: [
+        'Mostly right. I shall fix the rest myself.',
+        'Close! Only a few out of place.',
+        'Nearly there. Good enough for a quiet day.',
+      ],
+      wrong: [
+        'Oh dear. The curator will have my head.',
+        "That order is entirely wrong, I'm afraid.",
+        "Hmm. Even I don't muddle them that badly.",
+      ],
+      missed: [
+        "You didn't touch a thing! Still muddled.",
+        'Nothing moved? The display stays a mess.',
+        'No answer? The exhibits gather dust.',
+      ],
+    },
     // Each question says what it sorts by; the entries below it are only what gets sorted.
     stem: 'text',
   },
@@ -282,6 +403,28 @@ export const MODES: Record<string, Mode> = {
       'Who said it? This one!',
       'Pieces of eight! Squawk!',
     ],
+    verdict: {
+      right: [
+        'Squawk! Right! Polly gives you a cracker!',
+        'Clever! Clever! Squawk!',
+        'Squawk! You knew it! You knew it!',
+      ],
+      partial: [
+        'Squawk! Nearly! Nearly!',
+        'Half a cracker! Squawk!',
+        'Close! Close! Polly almost proud!',
+      ],
+      wrong: [
+        'Squawk! Wrong! Wrong!',
+        'Polly knows better! Squawk!',
+        'No cracker for you! Squawk!',
+      ],
+      missed: [
+        'Squawk! Cat got your tongue?',
+        'Nothing? Polly heard nothing!',
+        'Squawk! Say something! Say something!',
+      ],
+    },
     stem: 'quote',
   },
   know_your_content_creator: {
@@ -309,6 +452,28 @@ export const MODES: Record<string, Mode> = {
       'Was it ever really a question?',
       'Knowledge is a stream.',
     ],
+    verdict: {
+      right: [
+        'You knew. Perhaps you always knew.',
+        'Correct. But what is correct, really?',
+        'Right. The stream flows through you.',
+      ],
+      partial: [
+        'Partly right. Like most things.',
+        'Some of it was true. Some of it always is.',
+        'Half known is still half known.',
+      ],
+      wrong: [
+        "Wrong. But aren't we all, sometimes?",
+        'That was not it. Nothing ever is.',
+        "Wrong. It's fine. It's all content.",
+      ],
+      missed: [
+        'You said nothing. That says a lot.',
+        'Silence is also an answer. Not this one.',
+        'No answer. Were you even watching?',
+      ],
+    },
     // Quotes and plain trivia share the round; the stem tells them apart by `quote`.
     stem: 'quote',
   },
@@ -337,6 +502,28 @@ export const MODES: Record<string, Mode> = {
       "That's the one on the sign.",
       'Back in its pen, that one.',
     ],
+    verdict: {
+      right: [
+        "Spot on! You'd make a fine keeper.",
+        'Right! Have a fish for the penguins.',
+        "Correct! That one's on the plaque.",
+      ],
+      partial: [
+        "Close! You've got half the plaque right.",
+        'Nearly. Mind the bars next time.',
+        "Not bad. Some of that's in my book.",
+      ],
+      wrong: [
+        "No, no. That one would've bitten you.",
+        'Wrong! Back to the gift shop with you.',
+        'Not even close. The monkeys knew that one.',
+      ],
+      missed: [
+        'No answer? Too busy feeding the ducks?',
+        "You missed it! Feeding time's over.",
+        'Nothing from you. Lost in the reptile house?',
+      ],
+    },
     // Every question names its monster in the sentence, whatever answers it below.
     stem: 'text',
   },
@@ -365,6 +552,28 @@ export const MODES: Record<string, Mode> = {
       'Did you get the drop?',
       'Task complete.',
     ],
+    verdict: {
+      right: [
+        'Task complete. Nice work.',
+        "Right. You'd make a decent slayer.",
+        "Correct. That's a clean kill.",
+      ],
+      partial: [
+        'Partly right. Count it as an assist.',
+        'Close. Finish the job next time.',
+        'Some of it. Not a bad trip.',
+      ],
+      wrong: [
+        "Wrong. That's a death in the Wilderness.",
+        'No. Back to Turael for you.',
+        'Missed. Check your slayer helmet.',
+      ],
+      missed: [
+        'No answer? You let the task run off.',
+        'You froze. That gets slayers killed.',
+        'Nothing? Your task timed out.',
+      ],
+    },
     // The prompt still names the item or the monster: a question whose picture is
     // missing has to read without it.
     stem: 'text',
@@ -395,6 +604,28 @@ export const MODES: Record<string, Mode> = {
       "Even I'd have got that.",
       'The odd one, out!',
     ],
+    verdict: {
+      right: [
+        'You got it! Can I sit next to you?',
+        "Right! You'll never end up in my corner.",
+        'Correct. I wish I was clever like you.',
+      ],
+      partial: [
+        "Half right. That's more than I ever get.",
+        'Almost! Only half a corner for you.',
+        "Some of it! Don't tell the teacher.",
+      ],
+      wrong: [
+        'Wrong! Come join me in the corner.',
+        "That's the kind of answer I give.",
+        "Oops. There's room in my corner.",
+      ],
+      missed: [
+        "No answer? Smart. Can't be wrong that way.",
+        'You said nothing. I should try that.',
+        "Nothing? They'll put you in the corner anyway.",
+      ],
+    },
     // The question is the same line each time; the names below it are all there is to read.
     stem: 'text',
   },
@@ -425,6 +656,28 @@ export const MODES: Record<string, Mode> = {
       "Time's up! Flags down!",
       "Let's see the scoreboard.",
     ],
+    verdict: {
+      right: [
+        'Victory! Collect your tickets.',
+        'Your team wins! Well played.',
+        "Right! That's a win for your side.",
+      ],
+      partial: [
+        'A draw! Some tickets for your trouble.',
+        'Close game! Have a few tickets.',
+        'Not a win, not a loss. A few tickets.',
+      ],
+      wrong: [
+        'Defeat! Better luck next game.',
+        'Your team loses this one.',
+        'Wrong! The other team takes the flag.',
+      ],
+      missed: [
+        'You never left the waiting room!',
+        'AFK? No tickets for idlers.',
+        "You didn't join the game. No reward.",
+      ],
+    },
     // A pictured item's question still names it: the prompt has to read without the picture.
     stem: 'text',
   },
@@ -454,6 +707,28 @@ export const MODES: Record<string, Mode> = {
       "Here's the name on the label.",
       'Got the address now.',
     ],
+    verdict: {
+      right: [
+        'Right address! Delivered first time.',
+        'Spot on! You know everyone in Gielinor.',
+        "That's the one! Signed for.",
+      ],
+      partial: [
+        'Close! Right street, wrong door.',
+        'Nearly! Almost the right address.',
+        "Half right. I'll find the rest.",
+      ],
+      wrong: [
+        'Wrong address! Return to sender.',
+        "No, that's somebody else's post.",
+        "Not them! This one's going back.",
+      ],
+      missed: [
+        "Nobody home? I'll leave a card.",
+        'No answer at the door. Typical.',
+        "Couldn't get a signature from you.",
+      ],
+    },
     // The prompt is the same line every time, which the host's ask line says; the picture
     // alone is the question.
     stem: null,
@@ -478,6 +753,28 @@ export const MODES: Record<string, Mode> = {
       'The door will open again in a moment.',
     ],
     reveal: ['And off they go.', 'Back on the road with them.', 'Next visitor, please.'],
+    verdict: {
+      right: [
+        'Well answered. The visitor is pleased.',
+        "Right! They'll speak well of you on the road.",
+        'Correct. A royal nod for you.',
+      ],
+      partial: [
+        "Half an answer. They'll take it.",
+        'Close. The visitor shrugs and moves on.',
+        'Partly right. Good enough for the road.',
+      ],
+      wrong: [
+        "Wrong. They'll tell the whole road.",
+        'Not quite. The visitor frowns.',
+        "Wrong! Lucky I don't turn you into a frog.",
+      ],
+      missed: [
+        'You ignored our guest. How rude.',
+        'No answer? The visitor wandered off.',
+        'Silence. The road remembers that.',
+      ],
+    },
     stem: 'text',
   },
   // Never offered as a round: the host's questions are random events inside other rounds.
@@ -501,6 +798,28 @@ export const MODES: Record<string, Mode> = {
       "The table's still thinking. More ale?",
     ],
     reveal: ["Who's buying the next round?", 'Drinks on the winner!', 'The house has the answer.'],
+    verdict: {
+      right: [
+        'Right! Your host will be pleased.',
+        "Correct. That's one for the house.",
+        "Spot on. The next pint's yours.",
+      ],
+      partial: [
+        'Close enough for the house.',
+        'Half right. Half a pint, then.',
+        'Nearly there. Your host will allow it.',
+      ],
+      wrong: [
+        "Not what your host wrote, I'm afraid.",
+        'Wrong! Better buy your host a drink.',
+        "No, friend. Check your host's notes.",
+      ],
+      missed: [
+        "No answer? Your drink's gone warm.",
+        'Nothing? Your host asked nicely.',
+        'You let that one pass you by.',
+      ],
+    },
     // Every type a host can write asks in a sentence; the view below it is the answer.
     stem: 'text',
   },
@@ -524,6 +843,28 @@ export const MODES: Record<string, Mode> = {
       'Nearly done with our visitor.',
     ],
     reveal: ['And off they go.', 'Back on the road with them.', 'Mind the door on your way out.'],
+    verdict: {
+      right: [
+        'Our guest liked that answer.',
+        "Right! They'll leave happy.",
+        'Correct. Off they go, satisfied.',
+      ],
+      partial: [
+        "Half an answer. They'll take it.",
+        'Close enough for our visitor.',
+        'Nearly. Our guest nods.',
+      ],
+      wrong: [
+        'Our guest is not impressed.',
+        "Wrong. They'll grumble on the road.",
+        'Not quite what they wanted.',
+      ],
+      missed: [
+        'You left our guest waiting.',
+        'No answer for our visitor.',
+        'Our guest heard nothing from you.',
+      ],
+    },
     // In character, and still a sentence.
     stem: 'text',
   },

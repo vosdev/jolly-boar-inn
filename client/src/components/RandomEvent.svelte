@@ -24,11 +24,11 @@
    * reveal and reduced motion get the settled stage. The typing is a mask over text that
    * is whole in the DOM, and whole for a screen reader, from the first frame. In the
    * reveal the bubble comes back with the NPC's `right` or `wrong` to your answer and the
-   * `explanation`, your points go on the sheet's foot, and the NPC hands the stage back
+   * `explanation`, your points go on a chip on the bubble's name row, and the NPC hands the stage back
    * in its last `RETURN_MS`, counted to `nextAt`.
    *
-   * The bubble keeps room for the reveal's words, two lines of explanation among them, and
-   * the sheet for the points, from the start, so nothing under them moves when they arrive.
+   * The bubble keeps room for the reveal's words, two lines of explanation among them, from
+   * the start, so nothing under them moves when they arrive.
    * The TV keeps the old stage: the NPC's words all on the sheet, beside it.
    *
    * An NPC this build has no copy for is the Mysterious Old Man (`randomEventFor`), the
@@ -173,11 +173,6 @@
       {:else}
         {@render typed(asked, 'ask')}
       {/if}
-      <div class="said">
-        {#if reveal !== null}
-          <PointsSlot {result} canAnswer={question.you_can_answer} onScroll />
-        {/if}
-      </div>
     {/if}
   {/snippet}
   {#snippet said()}
@@ -187,6 +182,7 @@
       name={npc.name}
       line={reveal === null ? introLine : reactionLine}
       later={reveal === null ? reactionLine : introLine}
+      chip={reveal !== null && question.you_can_answer ? points : undefined}
     />
   {/snippet}
   <Stage
@@ -215,6 +211,10 @@
       </section>
     {/if}
   </Stage>
+{/snippet}
+
+{#snippet points()}
+  <PointsSlot {result} canAnswer chip />
 {/snippet}
 
 {#snippet introLine()}
@@ -307,16 +307,6 @@
     font-size: max(0.85rem, 0.95rem * var(--scroll-text, 1));
     line-height: 1.3;
     overflow-wrap: anywhere;
-  }
-
-  /* The foot of the sheet, one line of points tall whether or not they are in yet. */
-  .said {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    padding-top: 0.2rem;
-    min-height: calc(1.2 * max(1.2rem, 1.4rem * var(--scroll-text, 1)));
   }
 
   @container (max-width: 26rem) {

@@ -414,15 +414,19 @@ describe('every type on the stage', () => {
       })
       expect(paper().textContent?.trim()).not.toBe('')
       expect(paper().querySelector(pressable)).toBeNull()
-      expect(paper().querySelector('.slot')?.textContent).toContain('No answer · +0')
+      expect(paper().querySelector('.slot')).toBeNull()
+      expect(document.querySelector('.bubble .slot')?.textContent).toContain('No answer · +0')
     })
   }
 
-  it('holds the line the points go on, so the answers do not move for them', () => {
-    render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
-    const foot = paper().querySelector('.foot')
-    expect(foot).toBeTruthy()
-    expect(foot!.textContent?.trim()).toBe('')
+  it('keeps no points foot on the sheet, open or revealed', () => {
+    const question = open('more_less', 'more_less')
+    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(paper().querySelector('.foot, .said, .slot')).toBeNull()
+    unmount()
+    render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
+    expect(paper().querySelector('.foot, .said, .slot')).toBeNull()
   })
 
   const bubble = () => document.querySelector('.bubble') as HTMLElement
@@ -468,13 +472,55 @@ describe('every type on the stage', () => {
     expect(paper().textContent).not.toContain(waiting)
   })
 
-  it('has the host say its reveal line in its bubble, undimmed, and your points on the sheet', () => {
+  const chip = () => bubble().querySelector('.title .chip .slot')
+
+  it('has the host react in its bubble, undimmed, and your points on a chip on its name row', () => {
     const question = open('more_less', 'more_less')
     const result = { value: 0, correct: true, credit: 1, points: 850 }
     render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
     expect(bubble().classList.contains('on')).toBe(true)
+    expect(said()).toContain(pickLines(MODES.more_less!, question, 'right').reveal)
+    expect(chip()?.textContent).toContain('+850')
+  })
+
+  it('shows no chip while the question is open, answered or not', () => {
+    const question = open('more_less', 'more_less')
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(bubble().querySelector('.slot')).toBeNull()
+    unmount()
+    render(QuestionStage, { question, yourValue: 0, onAnswer })
+    expect(bubble().querySelector('.slot')).toBeNull()
+  })
+
+  it('reacts to a right, a partial, a wrong and a missed answer from their own sets', () => {
+    const question = open('more_less', 'more_less')
+    const cases = [
+      ['right', { value: 0, correct: true, credit: 1, points: 850 }, '+850'],
+      ['partial', { value: 0, correct: false, credit: 0.5, points: 340 }, '+340'],
+      ['wrong', { value: 1, correct: false, credit: 0, points: 0 }, '+0'],
+      ['missed', null, 'No answer · +0'],
+    ] as const
+    for (const [verdict, result, shown] of cases) {
+      const { unmount } = render(QuestionStage, {
+        question,
+        reveal: REVEAL,
+        yourValue: result === null ? null : result.value,
+        result,
+        onAnswer,
+      })
+      expect(MODES.more_less!.verdict[verdict], verdict).toContain(
+        bubble().querySelector('.line:not(.later) p')?.textContent,
+      )
+      expect(chip()?.textContent, verdict).toContain(shown)
+      unmount()
+    }
+  })
+
+  it('gives somebody who could not answer the room’s reveal line and no chip', () => {
+    const question = { ...open('more_less', 'more_less'), you_can_answer: false }
+    render(QuestionStage, { question, reveal: REVEAL, yourValue: null, onAnswer })
     expect(said()).toContain(pickLines(MODES.more_less!, question).reveal)
-    expect(paper().querySelector('.foot .slot')?.textContent).toContain('+850')
+    expect(bubble().querySelector('.slot')).toBeNull()
   })
 
   it('puts the explanation in the reveal’s bubble, off the sheet, and no countdown', () => {
@@ -855,6 +901,22 @@ describe("the room's TV", () => {
     const panel = document.querySelector('.stage.tv .tv-panel')!
     expect(panel.textContent).toContain('Zulrah')
     expect(panel.textContent).toContain(NAMES)
+    expect(document.querySelector('.slot')).toBeNull()
+  })
+
+  it('says the room’s reveal line and shows no chip, though its player could answer', () => {
+    const question = { ...watching, you_can_answer: true }
+    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    render(QuestionStage, {
+      question,
+      reveal: { ...VIEW_TV, answer_index: 0 },
+      yourValue: 0,
+      result,
+      onAnswer,
+      tv: true,
+    })
+    const line = document.querySelector('.paper .said .line')?.textContent
+    expect(line).toBe(pickLines(MODES.custom!, question).reveal)
     expect(document.querySelector('.slot')).toBeNull()
   })
 

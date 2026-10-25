@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.181.0',
+    date: '2026-10-25',
+    text: "Your points now show in the host's dialogue box, and the host reacts to how you did. The question sheet is shorter.",
+  },
+  {
     version: '0.180.0',
     date: '2026-10-25',
     text: 'The question sheet drops what the host already says: the mode heading, the Answer in line and the search label.',
