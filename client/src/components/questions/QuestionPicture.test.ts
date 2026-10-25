@@ -99,6 +99,22 @@ describe('a large picture on a stage', () => {
     expect(box.querySelector('.frame')!.className).toContain('lifted')
   })
 
+  it('gives a reveal drawn as a new picture the open question’s box', async () => {
+    const first = onStage(650, 700)
+    await loadRender(first.box)
+    cleanup()
+    const reveal = onStage(1100, 700, { lifted: true })
+    await loadRender(reveal.box)
+    expect(reveal.box.style.getPropertyValue('--picture-height')).toBe('190px')
+  })
+
+  it('grows with the sheet’s scale, as its 12rem off a stage does', async () => {
+    const { box } = onStage(1100, 700)
+    box.style.setProperty('--scroll-scale', '1.25')
+    await loadRender(box)
+    expect(box.style.getPropertyValue('--picture-height')).toBe('240px')
+  })
+
   it('keeps the caption’s room while the shadow is up, so the reveal adds nothing', () => {
     const { container, rerender } = onStage(700, 700)
     const room = container.querySelector('.reserve')
