@@ -12,7 +12,7 @@ import { players } from '../lib/stores'
 import { petsDrawn } from '../test-pets'
 import Hiscores from './Hiscores.svelte'
 
-const LONG = 'Cow31337Killer42Forever1' // 24 characters, the longest a name may be
+const LONG = 'Cow31337Kill' // 12 characters, the longest a name may be
 
 function standing(
   name: string,

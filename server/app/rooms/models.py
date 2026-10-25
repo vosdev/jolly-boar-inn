@@ -38,7 +38,7 @@ from app.ws.protocol import (
     TeamStanding,
 )
 
-NAME_MAX = 24
+NAME_MAX = 12
 # Letters only, from the Latin blocks whose accented letters a player could type:
 # names are read aloud and compared by eye, and every other script has letters that look
 # like these. ``names.ts`` holds the same ranges.
@@ -67,11 +67,11 @@ def new_invite_key() -> str:
     return secrets.token_urlsafe(9)
 
 
-def normalize_name(raw: str) -> str:
-    """NFKC, trimmed, spaces collapsed, then 1-24 of Latin letters, digits, space, _ and -."""
+def normalize_name(raw: str, limit: int = NAME_MAX) -> str:
+    """NFKC, trimmed, spaces collapsed, then 1-``limit`` Latin letters, digits, spaces, _ and -."""
     name = _SPACES.sub(" ", unicodedata.normalize("NFKC", raw).strip())
-    if not 1 <= len(name) <= NAME_MAX:
-        raise BadName(f"display name must be 1 to {NAME_MAX} characters")
+    if not 1 <= len(name) <= limit:
+        raise BadName(f"display name must be 1 to {limit} characters")
     if not all(ch in _NAME_MARKS or _is_latin_letter(ch) for ch in name):
         raise BadName("Only letters, digits, spaces, _ and - in a name.")
     return name

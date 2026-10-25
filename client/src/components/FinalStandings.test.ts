@@ -1,6 +1,6 @@
 /**
  * The final screen: the Wise Old Man presents fifth place to first, each with its trophy
- * beside the scroll, then the full hiscores; Skip goes straight there, and a past game or
+ * held up in his dialogue box, then the full hiscores; Skip goes straight there, and a past game or
  * a reload never plays the ceremony.
  */
 
@@ -9,6 +9,7 @@ import { createRawSnippet, tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CEREMONY, ceremonyTimes, FINAL_INTRO } from '../lib/hiscores'
+import { trophyLine } from '../lib/modes'
 import type { Standing, TeamStanding } from '../lib/protocol'
 import { players } from '../lib/stores'
 import type { TeamId } from '../lib/teams'
@@ -29,7 +30,12 @@ function standing(name: string, points: number, rank: number): Standing {
 }
 
 const TWO = [standing('Zezima', 900, 1), standing('Woox', 400, 2), standing('Lynx', 0, 3)]
-const LINES = [FINAL_INTRO, 'So close! In second…', 'And top of the hiscores…']
+const SEED = 'Zezima:900,Woox:400,Lynx:0'
+const LINES = [
+  FINAL_INTRO,
+  trophyLine(2, 'platinum', false, SEED),
+  trophyLine(1, 'diamond', false, SEED),
+]
 const children = createRawSnippet(() => ({ render: () => '<button type="button">Home</button>' }))
 
 let restore = () => {}
@@ -45,7 +51,8 @@ afterEach(() => {
 })
 
 const placed = () => document.querySelector('.placed .names')?.textContent
-const trophy = () => document.querySelector('.beside img')?.getAttribute('src') ?? null
+const trophy = () => document.querySelector('.bubble .trophy img')?.getAttribute('src') ?? null
+const speech = () => document.querySelector('.bubble .speech')?.textContent ?? ''
 
 describe('FinalStandings', () => {
   it('presents second then first, each with its trophy, and then the full hiscores', async () => {
@@ -56,20 +63,39 @@ describe('FinalStandings', () => {
 
     await vi.advanceTimersByTimeAsync(times.shows[0]!)
     await tick()
+    expect(speech()).toContain(LINES[1])
     expect(placed()).toBe('Woox (you)')
     expect(trophy()).toBe(trophyArt('platinum').url)
 
     await vi.advanceTimersByTimeAsync(times.shows[1]! - times.shows[0]!)
     await tick()
+    expect(speech()).toContain(LINES[2])
     expect(placed()).toBe('Zezima')
     expect(trophy()).toBe(trophyArt('diamond').url)
-    expect(document.querySelector('.beside .confetti')).not.toBeNull()
+    expect(document.querySelector('.bubble .trophy .confetti')).not.toBeNull()
 
     await vi.advanceTimersByTimeAsync(times.end - times.shows[1]! + CEREMONY.leave)
     await tick()
     expect(document.querySelectorAll('.hiscores tbody tr')).toHaveLength(3)
     expect(trophy()).toBeNull()
     expect(screen.getByRole('button', { name: 'Home' })).toBeTruthy()
+  })
+
+  it('holds the trophy up in his dialogue box from his line on, and never beside the scroll', async () => {
+    const { container } = render(FinalStandings, {
+      standings: TWO,
+      youId: null,
+      ceremony: true,
+      children,
+    })
+    const times = ceremonyTimes(LINES.map((line) => [...line].length))
+    await vi.advanceTimersByTimeAsync(times.lines[1]!)
+    await tick()
+    expect(placed()).toBeUndefined()
+    expect(trophy()).toBe(trophyArt('platinum').url)
+    expect(container.querySelectorAll('.trophy')).toHaveLength(1)
+    expect(container.querySelector('.stage-row .trophy')).toBeNull()
+    expect(container.querySelector('.beside')).toBeNull()
   })
 
   it('skips to the hiscores', async () => {
@@ -157,6 +183,7 @@ describe('FinalStandings', () => {
           (line) => [...line].length,
         ),
       )
+      expect(document.querySelector('.prize')).toBeNull()
       await vi.advanceTimersByTimeAsync(times.shows[0]!)
       await tick()
       expect(placed()).toBe('Saradomin')
@@ -166,8 +193,8 @@ describe('FinalStandings', () => {
       await vi.advanceTimersByTimeAsync(times.shows[1]! - times.shows[0]!)
       await tick()
       expect(placed()).toBe('Zamorak')
-      expect(trophy()).toBeNull()
-      expect(document.querySelector('.beside .confetti')).not.toBeNull()
+      expect(document.querySelector('.trophy')).toBeNull()
+      expect(document.querySelector('.placed .logos .confetti')).not.toBeNull()
     })
 
     it('names the winner after the ceremony', async () => {
@@ -202,5 +229,16 @@ describe('FinalStandings on the TV', () => {
     await vi.runAllTimersAsync()
     expect(screen.getByRole('table')).toBeTruthy()
     expect(screen.queryAllByRole('button')).toEqual([])
+  })
+
+  it('holds the trophy up beside his line at the sheet’s head', async () => {
+    render(FinalStandings, { standings: TWO, youId: null, ceremony: true, tv: true, children })
+    const times = ceremonyTimes(LINES.map((line) => [...line].length))
+    await vi.advanceTimersByTimeAsync(times.shows[0]!)
+    await tick()
+    expect(document.querySelector('.head .says')?.textContent).toContain(LINES[1])
+    expect(document.querySelector('.head .trophy img')?.getAttribute('src')).toBe(
+      trophyArt('platinum').url,
+    )
   })
 })

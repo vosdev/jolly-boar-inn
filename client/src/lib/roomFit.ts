@@ -4,20 +4,27 @@ import { writable } from 'svelte/store'
  * How a room sits in the window (section 8 of ideas/design.md): laid out at one size and
  * scaled as a whole, as the TV is, with the floor round it.
  *
- * At `ROOM` or larger it scales up as a whole. From `ROOM_LEAST` up to `ROOM` it fills the
- * window at its own size, the stage taking what the table leaves. Smaller, it lays out at
- * `ROOM_LEAST` and scales down. It is never wider than 16:9 of the window's height, unless
- * that is narrower than the layout itself; the floor takes the rest. Under `STACK_BELOW`
- * it is not fitted at all: the parts stack, as on a phone.
+ * At `ROOM` or larger it scales up as a whole. From `ROOM_LEAST_WIDTH` by `FIT_HEIGHT` up to
+ * `ROOM` it lays out at the window's own size, compact under `ROOM.height`. A window short
+ * of that draws the room at the largest of `STEPS` that leaves it both, and under the last
+ * step scales smoothly. The room is never wider than its stage and table need; the floor
+ * takes the rest. Under `STACK_BELOW` it is not fitted at all: the parts stack, as on a phone.
  */
 export const ROOM = { width: 1600, height: 920 }
-export const ROOM_LEAST = { width: 1280, height: 640 }
+export const ROOM_LEAST_WIDTH = 1280
+/** The layout height every mode's tallest screen fits on the compact stage. */
+export const FIT_HEIGHT = 760
+export const STEPS = [1, 7 / 8, 3 / 4, 5 / 8]
 export const STACK_BELOW = 1024
 
-/** The play area's padding round the stage and table, its gap, and the table's width (the column is `tableReveal` wide always, so the stage never changes width). */
-export const PLAY = { top: 30, side: 40, bottom: 28, gap: 28, table: 300, tableReveal: 380 }
+/** The gap between stage and table, the table's width (the column is `tableReveal` wide always, so the stage never changes width), and the widest a stage grows. */
+export const PLAY = { gap: 28, table: 300, tableReveal: 380, stageWide: 960 }
 
-const WIDEST = 16 / 9
+/** The play area's padding round the stage and table, at full size and compact. */
+export const PADDING = {
+  full: { top: 30, side: 40, bottom: 28 },
+  compact: { top: 16, side: 32, bottom: 16 },
+}
 
 export interface RoomFit {
   /** The scale the room is drawn at. */
@@ -27,6 +34,17 @@ export interface RoomFit {
   height: number
   /** Where the scaled room's left edge is in the window, in px. */
   left: number
+  /** Laid out under `ROOM.height`: the smaller chathead and padding. */
+  compact: boolean
+}
+
+/** The scale for a window `width` px wide with `area` px under the bar. */
+function scaleFor(width: number, area: number): number {
+  if (width >= ROOM.width && area >= ROOM.height) {
+    return Math.min(width / ROOM.width, area / ROOM.height)
+  }
+  const step = STEPS.find((s) => width / s >= ROOM_LEAST_WIDTH && area / s >= FIT_HEIGHT)
+  return step ?? Math.min(width / ROOM_LEAST_WIDTH, area / FIT_HEIGHT)
 }
 
 /**
@@ -36,19 +54,21 @@ export interface RoomFit {
 export function roomFit(view: { width: number; height: number }, bar: number): RoomFit | null {
   if (view.width < STACK_BELOW) return null
   const area = Math.max(1, view.height - bar)
-  const scale =
-    view.width >= ROOM.width && area >= ROOM.height
-      ? Math.min(view.width / ROOM.width, area / ROOM.height)
-      : Math.min(1, view.width / ROOM_LEAST.width, area / ROOM_LEAST.height)
-  const drawn = Math.min(view.width, Math.max(ROOM.width * scale, WIDEST * view.height))
-  return { scale, width: drawn / scale, height: area / scale, left: (view.width - drawn) / 2 }
+  const scale = scaleFor(view.width, area)
+  const height = area / scale
+  const compact = height < ROOM.height
+  const side = (compact ? PADDING.compact : PADDING.full).side
+  const widest = 2 * side + PLAY.stageWide + PLAY.gap + PLAY.tableReveal
+  const width = Math.min(view.width / scale, widest)
+  return { scale, width, height, left: (view.width - width * scale) / 2, compact }
 }
 
 /** The stage's edges in the window, in px, for what hangs at them from outside the room. */
 export function stageEdges(fit: RoomFit): { left: number; width: number } {
+  const side = (fit.compact ? PADDING.compact : PADDING.full).side
   return {
-    left: fit.left + PLAY.side * fit.scale,
-    width: (fit.width - 2 * PLAY.side - PLAY.gap - PLAY.tableReveal) * fit.scale,
+    left: fit.left + side * fit.scale,
+    width: (fit.width - 2 * side - PLAY.gap - PLAY.tableReveal) * fit.scale,
   }
 }
 
