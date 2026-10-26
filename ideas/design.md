@@ -484,9 +484,9 @@ on the game's entry.
 A random event is a question from an NPC who has nothing to do with the round. How often and who
 asks what are architecture §5 and `ideas/random-events.md`. This is how it looks.
 
-**The event NPC sits on the right** of the dialogue box above the sheet, and a "Random event"
-tag stands beside its name in the box. The host always stands left, so position says "this is not
-the round's question" before a word is read.
+**The event NPC sits on the right** of the dialogue box above the sheet; no box carries a tag,
+only the speaker's name. The host always stands left, so position says "this is not the round's
+question" before a word is read.
 
 Everything happens inside the server's hold before `answerable_at`, timed to the text (§8), so the
 wait costs nobody points and the server times nothing:

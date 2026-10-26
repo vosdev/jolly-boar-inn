@@ -16,8 +16,7 @@
    * It is drawn on the stage as the interlude of section 12 of ideas/design.md: the NPC
    * stands on the right above the sheet in the round's host's place, their name in their
    * bubble from the first frame, their `intro` typed in there, a pause, then the plain
-   * question typed on the sheet, and the answers under the line. A "Random event" tag
-   * stands beside the NPC's name in the bubble. Once the question is up the bubble dims. A question with no intro types its
+   * question typed on the sheet, and the answers under the line. Once the question is up the bubble dims. A question with no intro types its
    * prompt alone. The
    * timing is `lib/interlude.ts`'s, planned once from what is left of the hold when the
    * event takes the stage, and only for a question that arrived `live`: a reconnect, a
@@ -178,7 +177,6 @@
   {#snippet said()}
     <Said
       heading
-      tag="Random event"
       name={npc.name}
       line={reveal === null ? introLine : reactionLine}
       later={reveal === null ? reactionLine : introLine}

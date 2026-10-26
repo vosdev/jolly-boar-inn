@@ -13,7 +13,6 @@
     line,
     later,
     heading = false,
-    tag,
     chip,
   }: {
     name: string
@@ -21,8 +20,6 @@
     later?: Snippet | Snippet[]
     /** The name as a heading: a random event's NPC, who is the screen's subject. */
     heading?: boolean
-    /** A label beside the name: a random event's, so the box says this is not the round's. */
-    tag?: string
     chip?: Snippet
   } = $props()
 
@@ -33,15 +30,12 @@
   {#if heading}<h2 class="name">{name}</h2>{:else}<p class="name">{name}</p>{/if}
 {/snippet}
 
-{#if tag === undefined && chip === undefined}
+{#if chip === undefined}
   {@render label()}
 {:else}
   <div class="title">
-    <div class="who">
-      {@render label()}
-      {#if tag !== undefined}<span class="tag">{tag}</span>{/if}
-    </div>
-    {#if chip !== undefined}<div class="chip">{@render chip()}</div>{/if}
+    <div class="who">{@render label()}</div>
+    <div class="chip">{@render chip()}</div>
   </div>
 {/if}
 <div class="stack">
@@ -79,15 +73,6 @@
 
   .title .name {
     margin: 0;
-  }
-
-  .tag {
-    padding: 0.05rem 0.45rem;
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    color: var(--muted);
-    font-size: 0.8em;
-    font-weight: 650;
   }
 
   .name {

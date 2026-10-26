@@ -167,11 +167,10 @@ describe('RandomEvent', () => {
     expect(paper).toContain('Which prayer level unlocks Augury?')
     expect(paper).not.toContain('Death')
     expect(container.querySelector('.bubble')?.textContent).toContain('Death')
-    // The tag stands beside the NPC's name in its bubble, and nowhere else on the stage.
-    const title = container.querySelector('.bubble .title')!
-    expect(title.querySelector('h2')!.textContent).toBe('Death')
-    expect(title.querySelector('.tag')!.textContent).toBe('Random event')
-    expect(container.querySelectorAll('.tag')).toHaveLength(1)
+    // The NPC's name stands alone in its bubble: no tag, in the question or the reveal.
+    expect(container.querySelector('.bubble h2')!.textContent).toBe('Death')
+    expect(container.querySelector('.tag')).toBeNull()
+    expect(container.textContent).not.toContain('Random event')
   })
 
   it('plays the entrance only for a question that just opened, with the hold still ahead', () => {
