@@ -13,6 +13,8 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from app import metrics
+
 log = logging.getLogger("app.ws")
 
 # Seconds a single send or close may take before that socket counts as dead.
@@ -88,12 +90,13 @@ class Outbox:
         self._queue.put_nowait(message)
         return True
 
-    def close(self, code: int, reason: str) -> None:
+    def close(self, code: int, reason: str) -> bool:
         """Close the socket once everything already queued has gone. The first close wins."""
         if self._closing:
-            return
+            return False
         self._closing = True
         self._queue.put_nowait(_Close(code, reason))
+        return True
 
     async def finished(self) -> None:
         """Wait until the writer has stopped, after a close or a failure."""
@@ -127,6 +130,7 @@ class Outbox:
         self._task = asyncio.create_task(self._fail(reason), name="outbox-failed")
 
     async def _fail(self, reason: str) -> None:
+        metrics.WS_DISCONNECTS.labels(reason="send_failed").inc()
         # Together: a close to a client that has stopped reading can take ``SEND_TIMEOUT``,
         # and the room should hear it has gone now, not then.
         await asyncio.gather(close(self.ws, CLOSE_SEND_FAILED, reason), self._detach())

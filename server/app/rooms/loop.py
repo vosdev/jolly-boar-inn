@@ -27,7 +27,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from app import question_stats
+from app import metrics, question_stats
 from app.questions.submission import Submission
 from app.questions.types import TYPES, pictured
 from app.rooms import ready, scoring
@@ -242,6 +242,7 @@ class Loop:
             await bump(conn, Metric.GAMES_ENDED_EARLY)
             if cut_short is not None:
                 await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
+        metrics.GAMES.labels(outcome="ended_early").inc()
         _stop_timer(room)
         if voiding is not None:
             voiding.closed_at, voiding.voided = closed_at, True
@@ -696,6 +697,7 @@ class Loop:
                     await bump(
                         conn, Metric.GAME_DURATIONS, duration_bucket(finished_at - started_at)
                     )
+            metrics.GAMES.labels(outcome="finished").inc()
             broadcasts = self._finish(room, finished_at)
         for broadcast in broadcasts:
             self._broadcast(broadcast)

@@ -41,6 +41,7 @@ from uuid import UUID
 import asyncpg
 from starlette.websockets import WebSocket
 
+from app import metrics
 from app.config import APP_VERSION, Settings
 from app.questions.packs import Pack
 from app.questions.types import TYPES
@@ -363,7 +364,8 @@ class RoomManager(Joins, Lobby, Loop):
                 return False
             sockets = self._forget(room)
         for outbox in sockets:
-            outbox.close(CLOSE_RESTART, "room restarted, reconnect")
+            if outbox.close(CLOSE_RESTART, "room restarted, reconnect"):
+                metrics.WS_DISCONNECTS.labels(reason="room_restarted").inc()
         return True
 
     async def _restart(self, room: Room) -> None:
@@ -378,7 +380,8 @@ class RoomManager(Joins, Lobby, Loop):
                 return
             sockets = self._forget(room)
         for outbox in sockets:
-            outbox.close(CLOSE_RESTART, "room restarted, reconnect")
+            if outbox.close(CLOSE_RESTART, "room restarted, reconnect"):
+                metrics.WS_DISCONNECTS.labels(reason="room_restarted").inc()
 
     # --- Removal --------------------------------------------------------------------
 
@@ -425,6 +428,8 @@ class RoomManager(Joins, Lobby, Loop):
                         await bump(conn, Metric.GAMES_ABANDONED, by=abandoned)
                     for row in rounds:
                         await bump(conn, Metric.ROUNDS_ABANDONED, row["mode"], row["n"])
+                if abandoned:
+                    metrics.GAMES.labels(outcome="abandoned").inc(abandoned)
                 batch = len(ids)
                 deleted += batch
                 if batch < PURGE_BATCH:
@@ -449,7 +454,8 @@ class RoomManager(Joins, Lobby, Loop):
                 sockets = self._forget(room)
                 log.info("room %s expired and left memory", code)
             for outbox in sockets:
-                outbox.close(CLOSE_GONE, "this room has expired")
+                if outbox.close(CLOSE_GONE, "this room has expired"):
+                    metrics.WS_DISCONNECTS.labels(reason="room_gone").inc()
 
     async def delete(self, code: str, session: str) -> None:
         """An admin removes their room: the row goes now, cascade and all.
@@ -480,10 +486,13 @@ class RoomManager(Joins, Lobby, Loop):
                     await bump(conn, Metric.GAMES_ABANDONED)
                     if (cut_short := _round_under_way(room)) is not None:
                         await bump(conn, Metric.ROUNDS_ABANDONED, cut_short.mode)
+            if room.status == "playing":
+                metrics.GAMES.labels(outcome="abandoned").inc()
             sockets = self._forget(room)
             log.info("room %s deleted by %s", code, player.display_name)
         for outbox in sockets:
-            outbox.close(CLOSE_GONE, "the host removed this room")
+            if outbox.close(CLOSE_GONE, "the host removed this room"):
+                metrics.WS_DISCONNECTS.labels(reason="room_gone").inc()
 
     # --- Broadcasting ---------------------------------------------------------------
 
@@ -616,7 +625,8 @@ class RoomManager(Joins, Lobby, Loop):
             outbox.put(welcome)
             if previous is not None:
                 # Behind whatever it still had queued, so nothing it was owed is cut off.
-                previous.close(CLOSE_REPLACED, "connected from another device")
+                if previous.close(CLOSE_REPLACED, "connected from another device"):
+                    metrics.WS_DISCONNECTS.labels(reason="replaced").inc()
             update = self._players_updated(room, before, exclude=player.id)
         self._broadcast(update)
         return player, outbox
@@ -889,7 +899,8 @@ class RoomManager(Joins, Lobby, Loop):
             _close_if_everyone_answered(room)
             update = self._room_updated(room)
         if socket is not None:
-            socket.close(CLOSE_KICKED, "removed from the room")
+            if socket.close(CLOSE_KICKED, "removed from the room"):
+                metrics.WS_DISCONNECTS.labels(reason="kicked").inc()
         self._broadcast(update)
 
     async def shutdown(self) -> None:

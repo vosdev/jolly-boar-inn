@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.196.0',
+    date: '2026-10-26',
+    text: 'Server health metrics for keeping the inn up and running smoothly.',
+  },
+  {
     version: '0.195.0',
     date: '2026-10-26',
     text: 'Random events no longer carry a tag beside the NPC’s name.',

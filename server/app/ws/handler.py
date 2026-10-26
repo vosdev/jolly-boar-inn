@@ -30,6 +30,7 @@ from typing import Any, get_args
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
+from app import metrics
 from app.errors import ApiError
 from app.http.ratelimit import RateLimited, room_lookup
 from app.rooms.errors import BadSession, RoomExpired, RoomNotFound
@@ -157,21 +158,26 @@ async def room_socket(ws: WebSocket, code: str) -> None:
             with room_lookup(ws.app.state.lookup_misses, host):
                 player, outbox = await manager.connect(code, hello.session, ws)
         except RateLimited as exc:
+            metrics.WS_DISCONNECTS.labels(reason="rate_limited").inc()
             await _close(ws, CLOSE_POLICY, exc.message)
             return
         except BadSession as exc:
+            metrics.WS_DISCONNECTS.labels(reason="bad_hello").inc()
             await _reject(ws, "bad_hello", exc.message, CLOSE_BAD_HELLO)
             return
         except (RoomNotFound, RoomExpired) as exc:
+            metrics.WS_DISCONNECTS.labels(reason="unknown_room").inc()
             await _close(ws, CLOSE_UNKNOWN_ROOM, exc.message)
             return
         except ApiError as exc:  # the database is unavailable, or similar
+            metrics.WS_DISCONNECTS.labels(reason="internal_error").inc()
             log.warning("connect to room %s failed: %s", code, exc.message)
             await _close(ws, CLOSE_INTERNAL, exc.code)
             return
         await _serve(ws, outbox, manager, code, player)
     except WebSocketDisconnect:
-        pass
+        if outbox is None or not outbox.closing:
+            metrics.WS_DISCONNECTS.labels(reason="client").inc()
     finally:
         if player is not None:
             await manager.disconnect(code, player.id, ws)
@@ -188,26 +194,33 @@ async def _handshake(ws: WebSocket) -> protocol.Hello | None:
             frame = await _next_frame(ws)
         message = protocol.parse_client_message(frame)
     except TimeoutError:
+        metrics.WS_DISCONNECTS.labels(reason="no_hello").inc()
         await _close(ws, CLOSE_POLICY, "no hello")
         return None
     except FrameTooBig:
+        metrics.WS_DISCONNECTS.labels(reason="frame_too_big").inc()
         await _close(ws, CLOSE_TOO_BIG, "frame too big")
         return None
     except BadFrame as exc:
+        metrics.WS_DISCONNECTS.labels(reason="bad_hello").inc()
         await _reject(ws, "bad_hello", str(exc), CLOSE_BAD_HELLO)
         return None
     except ValidationError as exc:
+        metrics.WS_DISCONNECTS.labels(reason="bad_hello").inc()
         await _reject(ws, "bad_hello", _describe(exc), CLOSE_BAD_HELLO)
         return None
     if not isinstance(message, protocol.Hello):
+        metrics.WS_DISCONNECTS.labels(reason="bad_hello").inc()
         await _reject(ws, "bad_hello", "the first message must be hello", CLOSE_BAD_HELLO)
         return None
+    metrics.WS_MESSAGES.labels(type="hello").inc()
     return message
 
 
 def _refuse(outbox: Outbox, code: ErrorCode, message: str, close_code: int) -> None:
     outbox.put(protocol.Error(code=code, message=message).model_dump(mode="json"))
-    outbox.close(close_code, message)
+    if outbox.close(close_code, message):
+        metrics.WS_DISCONNECTS.labels(reason="bad_message").inc()
 
 
 async def _serve(
@@ -220,7 +233,8 @@ async def _serve(
             frame = await _next_frame(ws)
             message = protocol.parse_client_message(frame)
         except FrameTooBig:
-            outbox.close(CLOSE_TOO_BIG, "frame too big")
+            if outbox.close(CLOSE_TOO_BIG, "frame too big"):
+                metrics.WS_DISCONNECTS.labels(reason="frame_too_big").inc()
             return
         except BadFrame as exc:
             _refuse(outbox, "bad_message", str(exc), CLOSE_PROTOCOL_ERROR)
@@ -233,8 +247,11 @@ async def _serve(
             _refuse(outbox, "bad_hello", reason, CLOSE_PROTOCOL_ERROR)
             return
         if not bucket.take():
-            outbox.close(CLOSE_POLICY, "too many messages")
+            metrics.RATE_LIMITED.labels(limiter="ws_messages").inc()
+            if outbox.close(CLOSE_POLICY, "too many messages"):
+                metrics.WS_DISCONNECTS.labels(reason="rate_limited").inc()
             return
+        metrics.WS_MESSAGES.labels(type=message.t).inc()
         try:
             reply = await _dispatch(manager, code, player, message)
         except ApiError as exc:

@@ -20,7 +20,7 @@ NO_CACHE = "no-cache"
 BASE_URL_SLOT = "__PUBLIC_BASE_URL__"
 
 # Rooms and finished games belong to their players, and a room's page is Join for anyone else.
-PRIVATE_PATHS = ("/api/", "/ws/", "/r/", "/history/", "/admin")
+PRIVATE_PATHS = ("/api/", "/ws/", "/metrics", "/r/", "/history/", "/admin")
 # What a newcomer can use without a code or a finished game.
 SITEMAP_PATHS = ("/", "/create")
 # Every instance runs this code, so its flaws are reported upstream, wherever it is hosted.
@@ -31,14 +31,14 @@ SECURITY_TXT_LIFETIME = timedelta(days=180)
 
 
 class ClientPath(PathConvertor):
-    """Any path outside ``/api`` and ``/ws``.
+    """Any path outside ``/api``, ``/ws`` and ``/metrics``.
 
     Those belong to the router. Were this route to match them, it would outrank a route
     that has the path but not the method, and a ``GET`` on a ``POST``-only route would be a
     404 instead of the router's 405.
     """
 
-    regex = r"(?!(?:api|ws)(?:/|$)).*"
+    regex = r"(?!(?:api|ws|metrics)(?:/|$)).*"
 
 
 register_url_convertor("client", ClientPath())

@@ -8,7 +8,7 @@ counts none of them on its own, and takes the browser's word, as it does for the
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict
 
-from app import stats
+from app import metrics, stats
 from app.http.ratelimit import client_key
 from app.http.rooms import client_host
 
@@ -31,4 +31,5 @@ async def join_failure(body: JoinFailureReport, request: Request) -> Response:
     pool = await request.app.state.database()
     async with pool.acquire() as conn, conn.transaction():
         await stats.bump(conn, stats.Metric.JOIN_FAILURES, body.reason)
+    metrics.JOIN_FAILURES.labels(reason=body.reason).inc()
     return Response(status_code=204)

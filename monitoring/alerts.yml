@@ -1,0 +1,66 @@
+# Example Prometheus alerting rules for Jolly Boar Inn.
+# Scrape GET /metrics with authorization.credentials set to METRICS_TOKEN.
+
+groups:
+  - name: jolly_boar_inn
+    rules:
+      - alert: JollyBoarDown
+        expr: |
+          up{job="jolly-boar-inn"} == 0
+          or rate(jbi_http_requests_total{route="/api/health",status!="200"}[2m]) > 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "Jolly Boar Inn is down or failing /api/health"
+
+      - alert: JollyBoarDatabaseUnhealthy
+        expr: |
+          rate(jbi_http_requests_total{route="/api/health",status="503"}[5m]) > 0
+          or (jbi_db_pool_size > 0 and jbi_db_pool_idle == 0)
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "Database health check failing or asyncpg pool has no idle connections"
+
+      - alert: JollyBoarNearCapacity
+        expr: |
+          jbi_room_players_max >= jbi_max_players_per_room - 5
+          or jbi_websocket_connections >= 800
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "A room is within 5 players of MAX_PLAYERS_PER_ROOM or connections are near the ceiling"
+
+      - alert: JollyBoarHighErrorRate
+        expr: |
+          (
+            sum(rate(jbi_http_requests_total{status=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(jbi_http_requests_total[5m])), 1e-9)
+          ) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "5xx responses exceed 2% of HTTP traffic over 5m"
+
+      - alert: JollyBoarCleanupStalled
+        expr: |
+          time() - jbi_cleanup_last_success_timestamp_seconds > 3 * jbi_cleanup_interval_seconds
+          or rate(jbi_cleanup_runs_total{result!="ok"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Expired-room cleanup has not succeeded within 3 intervals"
+
+      - alert: JollyBoarRestartLoop
+        expr: changes(jbi_process_start_time_seconds[10m]) > 2
+        for: 0m
+        labels:
+          severity: page
+        annotations:
+          summary: "Jolly Boar Inn restarted more than twice in the last 10 minutes"
