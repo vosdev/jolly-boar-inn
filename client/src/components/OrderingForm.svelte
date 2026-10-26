@@ -48,10 +48,16 @@
     intro = false,
     picker = undefined,
     saveLabel = undefined,
+    head = undefined,
+    inQuestion = undefined,
+    inExtras = undefined,
+    stepQuestion = undefined,
+    stepExtras = undefined,
     fields: more = undefined,
     onattempt = () => true,
     onnpc = undefined,
     ondraft = undefined,
+    onprogress = undefined,
     nearSave = undefined,
     preview = undefined,
     onsave,
@@ -69,6 +75,16 @@
     /** Every type the round offers, in order, and what to do with one another form writes. */
     picker?: { options: { value: string; label: string }[]; onpick: (type: string) => void }
     saveLabel?: string
+    /** Shown above the editor's columns, such as `/suggest`'s progress line. */
+    head?: Snippet
+    /** Extra fields inside the core question step. */
+    inQuestion?: Snippet
+    /** Extra fields inside the optional extras step. */
+    inExtras?: Snippet<[boolean]>
+    /** Wraps the core question fields in a step card when given. */
+    stepQuestion?: Snippet<[Snippet]>
+    /** Wraps the optional extras fields in a step card when given. */
+    stepExtras?: Snippet<[Snippet]>
     /** More fields, under the question's own. */
     fields?: Snippet<[boolean]>
     /** Whether those fields are fine, asked on every Save. */
@@ -77,6 +93,12 @@
     onnpc?: (npc: string) => void
     /** Told the question whenever it changes: whole, or `undefined` while it has problems. */
     ondraft?: (question: OrderingQuestion | undefined) => void
+    /** Told whether the core question and optional extras pass, as the player types. */
+    onprogress?: (state: {
+      questionDone: boolean
+      extrasFilled: boolean
+      extrasValid: boolean
+    }) => void
     /** Shown just above Save. */
     nearSave?: Snippet
     /** Draws the preview in place of the stage, from the question as it shows open. */
@@ -129,7 +151,15 @@
     return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
   }
 
+  const EXTRAS_PATHS = new Set(['payload.intro', 'payload.explanation'])
+  const questionDone = $derived(found.every((problem) => EXTRAS_PATHS.has(problem.path)))
+  const extrasFilled = $derived(
+    (intro && draft.intro.trim() !== '') || draft.explanation.trim() !== '',
+  )
+  const extrasValid = $derived(found.every((problem) => !EXTRAS_PATHS.has(problem.path)))
+
   $effect(() => ondraft?.(found.length === 0 ? asked : undefined))
+  $effect(() => onprogress?.({ questionDone, extrasFilled, extrasValid }))
 
   function save(): void {
     attempted = true
@@ -180,163 +210,181 @@
   {/each}
 {/snippet}
 
+{#snippet introField()}
+  {#if intro}
+    <div class="field">
+      <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
+      <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>
+      <p class="note counter">{codePoints(draft.intro.trim())}/{INTRO_MAX}</p>
+      {@render errors('payload.intro')}
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet questionBody()}
+  {#if asker === 'required'}
+    <NpcPicker bind:value={npc} {asker} errors={errorsAt('random_event')} />
+  {/if}
+
+  {#if picker !== undefined}
+    <Segmented
+      legend="How players answer"
+      options={picker.options}
+      bind:value={() => 'ordering', (type) => type !== 'ordering' && picker?.onpick(type)}
+    />
+  {/if}
+
+  {#if !stepExtras}
+    {@render introField()}
+  {/if}
+
+  <div class="field">
+    <label for="{id}-prompt">{wording.prompt}</label>
+    <textarea id="{id}-prompt" rows="2" placeholder={hints.prompt} bind:value={draft.prompt}
+    ></textarea>
+    <p class="note counter">{codePoints(draft.prompt.trim())}/{PROMPT_MAX}</p>
+    {@render errors('payload.prompt')}
+  </div>
+
+  <div class="pair">
+    <div class="field">
+      <label for="{id}-first">First end</label>
+      <input id="{id}-first" type="text" placeholder={wording.ends[0]} bind:value={draft.ends[0]} />
+      <p class="note counter">{codePoints(draft.ends[0].trim())}/{ENDS_MAX}</p>
+      {@render errors('payload.ends[0]')}
+    </div>
+    <div class="field">
+      <label for="{id}-last">Last end</label>
+      <input id="{id}-last" type="text" placeholder={wording.ends[1]} bind:value={draft.ends[1]} />
+      <p class="note counter">{codePoints(draft.ends[1].trim())}/{ENDS_MAX}</p>
+      {@render errors('payload.ends[1]')}
+    </div>
+  </div>
+
+  <fieldset class="field">
+    <legend>Entries, first to last</legend>
+    {#each draft.entries as entry, index (index)}
+      <div class="entry">
+        <span class="place" aria-hidden="true">{ranks[index]}</span>
+        <div class="inputs">
+          <input type="text" aria-label="Entry {index + 1}" bind:value={entry.text} />
+          <input
+            type="text"
+            aria-label="Detail of entry {index + 1}"
+            placeholder={wording.detail}
+            bind:value={entry.detail}
+          />
+          {#if index > 0}
+            <label class="check">
+              <input type="checkbox" bind:checked={entry.tied} />
+              Tied with the one above
+            </label>
+          {/if}
+        </div>
+        <span class="moves">
+          <button
+            type="button"
+            class="small"
+            aria-label="Move entry {index + 1} up"
+            disabled={index === 0}
+            onclick={() => move(index, -1)}>↑</button
+          >
+          <button
+            type="button"
+            class="small"
+            aria-label="Move entry {index + 1} down"
+            disabled={index === draft.entries.length - 1}
+            onclick={() => move(index, 1)}>↓</button
+          >
+          <button
+            type="button"
+            class="small"
+            aria-label="Remove entry {index + 1}"
+            disabled={draft.entries.length <= ENTRIES_MIN}
+            onclick={() => removeEntry(index)}>✕</button
+          >
+        </span>
+      </div>
+      {@render errors(`payload.entries[${index}]`)}
+      {@render errors(`payload.entries[${index}].text`)}
+      {@render errors(`payload.entries[${index}].detail`)}
+    {/each}
+    <button
+      type="button"
+      class="small"
+      disabled={draft.entries.length >= ENTRIES_MAX}
+      onclick={() => draft.entries.push({ text: '', detail: '', tied: false })}>Add an entry</button
+    >
+    <p class="note">
+      {ENTRIES_MIN} to {ENTRIES_MAX} entries, up to {TEXT_MAX} characters each and {DETAIL_MAX}
+      for a detail. Tied entries take the same place, and players may put them either way round.
+      {#if wording.detailRequired}Entries that came out on one day are tied.{/if}
+    </p>
+    {@render errors('payload.entries')}
+  </fieldset>
+
+  {#if pickChoices.length > 0}
+    <div class="field">
+      <label for="{id}-picks">Players order</label>
+      <select
+        id="{id}-picks"
+        bind:value={
+          () => (draft.picks === null ? '' : String(draft.picks)),
+          (value) => (draft.picks = value === '' ? null : Number(value))
+        }
+      >
+        <option value="">Every entry</option>
+        {#each pickChoices as count (count)}
+          <option value={String(count)}>Only the first {count}</option>
+        {/each}
+      </select>
+      <p class="note">
+        With fewer, the rest are decoys: players must pick the right ones as well as order them.
+      </p>
+      {@render errors('payload.picks')}
+    </div>
+  {/if}
+
+  {@render inQuestion?.()}
+{/snippet}
+
+{#snippet extrasBody()}
+  {#if stepExtras}
+    {@render introField()}
+  {/if}
+  {@render inExtras?.(attempted)}
+  <div class="field">
+    <label for="{id}-explanation">Explanation shown after the question finished.</label>
+    <textarea
+      id="{id}-explanation"
+      rows="2"
+      placeholder={hints.explanation}
+      bind:value={draft.explanation}></textarea>
+    <p class="note counter">{codePoints(draft.explanation.trim())}/{EXPLANATION_MAX}</p>
+    {@render errors('payload.explanation')}
+  </div>
+{/snippet}
+
 <!-- A form of its own would nest inside another form, which HTML does not allow, so this is
      a group whose Save button does the submitting. -->
 <div class="editor surface" role="group" aria-labelledby="{id}-title" {@attach enterSaves}>
+  {@render head?.()}
   <div class="layout">
     <div class="fields">
       <h3 id="{id}-title">
         {title ?? (question === undefined ? 'New question' : 'Edit question')}
       </h3>
-      {#if asker === 'required'}
-        <NpcPicker bind:value={npc} {asker} errors={errorsAt('random_event')} />
+      {#if stepQuestion}
+        {@render stepQuestion(questionBody)}
+      {:else}
+        {@render questionBody()}
       {/if}
 
-      {#if picker !== undefined}
-        <Segmented
-          legend="How players answer"
-          options={picker.options}
-          bind:value={() => 'ordering', (type) => type !== 'ordering' && picker?.onpick(type)}
-        />
+      {#if stepExtras}
+        {@render stepExtras(extrasBody)}
+      {:else}
+        {@render extrasBody()}
       {/if}
-
-      {#if intro}
-        <div class="field">
-          <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
-          <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>
-          <p class="note counter">{codePoints(draft.intro.trim())}/{INTRO_MAX}</p>
-          {@render errors('payload.intro')}
-        </div>
-      {/if}
-
-      <div class="field">
-        <label for="{id}-prompt">{wording.prompt}</label>
-        <textarea id="{id}-prompt" rows="2" placeholder={hints.prompt} bind:value={draft.prompt}
-        ></textarea>
-        <p class="note counter">{codePoints(draft.prompt.trim())}/{PROMPT_MAX}</p>
-        {@render errors('payload.prompt')}
-      </div>
-
-      <div class="pair">
-        <div class="field">
-          <label for="{id}-first">First end</label>
-          <input
-            id="{id}-first"
-            type="text"
-            placeholder={wording.ends[0]}
-            bind:value={draft.ends[0]}
-          />
-          <p class="note counter">{codePoints(draft.ends[0].trim())}/{ENDS_MAX}</p>
-          {@render errors('payload.ends[0]')}
-        </div>
-        <div class="field">
-          <label for="{id}-last">Last end</label>
-          <input
-            id="{id}-last"
-            type="text"
-            placeholder={wording.ends[1]}
-            bind:value={draft.ends[1]}
-          />
-          <p class="note counter">{codePoints(draft.ends[1].trim())}/{ENDS_MAX}</p>
-          {@render errors('payload.ends[1]')}
-        </div>
-      </div>
-
-      <fieldset class="field">
-        <legend>Entries, first to last</legend>
-        {#each draft.entries as entry, index (index)}
-          <div class="entry">
-            <span class="place" aria-hidden="true">{ranks[index]}</span>
-            <div class="inputs">
-              <input type="text" aria-label="Entry {index + 1}" bind:value={entry.text} />
-              <input
-                type="text"
-                aria-label="Detail of entry {index + 1}"
-                placeholder={wording.detail}
-                bind:value={entry.detail}
-              />
-              {#if index > 0}
-                <label class="check">
-                  <input type="checkbox" bind:checked={entry.tied} />
-                  Tied with the one above
-                </label>
-              {/if}
-            </div>
-            <span class="moves">
-              <button
-                type="button"
-                class="small"
-                aria-label="Move entry {index + 1} up"
-                disabled={index === 0}
-                onclick={() => move(index, -1)}>↑</button
-              >
-              <button
-                type="button"
-                class="small"
-                aria-label="Move entry {index + 1} down"
-                disabled={index === draft.entries.length - 1}
-                onclick={() => move(index, 1)}>↓</button
-              >
-              <button
-                type="button"
-                class="small"
-                aria-label="Remove entry {index + 1}"
-                disabled={draft.entries.length <= ENTRIES_MIN}
-                onclick={() => removeEntry(index)}>✕</button
-              >
-            </span>
-          </div>
-          {@render errors(`payload.entries[${index}]`)}
-          {@render errors(`payload.entries[${index}].text`)}
-          {@render errors(`payload.entries[${index}].detail`)}
-        {/each}
-        <button
-          type="button"
-          class="small"
-          disabled={draft.entries.length >= ENTRIES_MAX}
-          onclick={() => draft.entries.push({ text: '', detail: '', tied: false })}
-          >Add an entry</button
-        >
-        <p class="note">
-          {ENTRIES_MIN} to {ENTRIES_MAX} entries, up to {TEXT_MAX} characters each and {DETAIL_MAX}
-          for a detail. Tied entries take the same place, and players may put them either way round.
-          {#if wording.detailRequired}Entries that came out on one day are tied.{/if}
-        </p>
-        {@render errors('payload.entries')}
-      </fieldset>
-
-      {#if pickChoices.length > 0}
-        <div class="field">
-          <label for="{id}-picks">Players order</label>
-          <select
-            id="{id}-picks"
-            bind:value={
-              () => (draft.picks === null ? '' : String(draft.picks)),
-              (value) => (draft.picks = value === '' ? null : Number(value))
-            }
-          >
-            <option value="">Every entry</option>
-            {#each pickChoices as count (count)}
-              <option value={String(count)}>Only the first {count}</option>
-            {/each}
-          </select>
-          <p class="note">
-            With fewer, the rest are decoys: players must pick the right ones as well as order them.
-          </p>
-          {@render errors('payload.picks')}
-        </div>
-      {/if}
-
-      <div class="field">
-        <label for="{id}-explanation">Explanation shown after the question finished.</label>
-        <textarea
-          id="{id}-explanation"
-          rows="2"
-          placeholder={hints.explanation}
-          bind:value={draft.explanation}></textarea>
-        <p class="note counter">{codePoints(draft.explanation.trim())}/{EXPLANATION_MAX}</p>
-        {@render errors('payload.explanation')}
-      </div>
 
       {@render more?.(attempted)}
 

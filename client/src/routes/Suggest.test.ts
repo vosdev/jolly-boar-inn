@@ -920,4 +920,68 @@ describe('Suggest', () => {
       expect(screen.queryByText(/Looks like one we have/)).toBeNull()
     })
   })
+
+  describe('steps and progress line', () => {
+    function stepDots(): string[] {
+      const list = screen.getByRole('list', { name: 'Steps' })
+      return [...list.querySelectorAll('.node')].map((node) =>
+        (node.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      )
+    }
+
+    it('tracks steps with checkmarks, one Optional badge on Extras, and marks missing steps on send', async () => {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+
+      expect(stepDots()).toEqual(['1 Question', '2 Extras (optional)', '3 Source', '4 Credit'])
+      expect(screen.getAllByText('Optional')).toHaveLength(1)
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+      expect(stepDots()).toEqual(['! Question', '2 Extras (optional)', '! Source', '! Credit'])
+      expect(screen.getByRole('group', { name: 'Question' }).classList.contains('missing')).toBe(
+        true,
+      )
+      expect(screen.getByRole('group', { name: 'Extras' }).classList.contains('missing')).toBe(
+        false,
+      )
+      expect(screen.getByRole('group', { name: 'Source' }).classList.contains('missing')).toBe(true)
+      expect(screen.getByRole('group', { name: 'Credit' }).classList.contains('missing')).toBe(true)
+
+      await type('Question', 'Which monster drops the Abyssal whip?')
+      await type('Answer 1', 'Abyssal demon')
+      await type('Answer 2', 'Greater demon')
+      expect(stepDots()).toEqual(['✓ Question', '2 Extras (optional)', '! Source', '! Credit'])
+      expect(screen.getByRole('group', { name: 'Question' }).classList.contains('done')).toBe(true)
+      expect(screen.getByRole('group', { name: 'Question' }).classList.contains('missing')).toBe(
+        false,
+      )
+
+      await type('Item to show, if any', 'Abyssal whip')
+      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '! Source', '! Credit'])
+      expect(screen.getByRole('group', { name: 'Extras' }).classList.contains('done')).toBe(true)
+
+      await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
+      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '✓ Source', '! Credit'])
+
+      await type('Your name', 'AFKFisher')
+      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '✓ Source', '✓ Credit'])
+    })
+
+    it('omits Extras for rounds without optional fields, and shows two steps for an item', async () => {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Guess the Examine/ }))
+      expect(stepDots()).toEqual(['1 Question', '2 Wiki page', '3 Credit'])
+      expect(screen.queryByRole('group', { name: 'Extras' })).toBeNull()
+
+      await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
+      await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
+      expect(stepDots()).toEqual(['1 Item', '2 Credit'])
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+      expect(stepDots()).toEqual(['! Item', '! Credit'])
+      await type(/Item name/, 'Ancient mace')
+      expect(stepDots()).toEqual(['✓ Item', '! Credit'])
+    })
+  })
 })

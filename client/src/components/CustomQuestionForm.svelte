@@ -55,10 +55,16 @@
     intro = false,
     picker = undefined,
     saveLabel = undefined,
+    head = undefined,
+    inQuestion = undefined,
+    inExtras = undefined,
+    stepQuestion = undefined,
+    stepExtras = undefined,
     fields: more = undefined,
     onattempt = () => true,
     onnpc = undefined,
     ondraft = undefined,
+    onprogress = undefined,
     nearSave = undefined,
     preview = undefined,
     onsave,
@@ -91,6 +97,16 @@
     /** Every type the round offers, in order, and what to do with one this form does not write. */
     picker?: { options: { value: string; label: string }[]; onpick: (type: string) => void }
     saveLabel?: string
+    /** Shown above the editor's columns, such as `/suggest`'s progress line. */
+    head?: Snippet
+    /** Extra fields inside the core question step. */
+    inQuestion?: Snippet
+    /** Extra fields inside the optional extras step. */
+    inExtras?: Snippet<[boolean]>
+    /** Wraps the core question fields in a step card when given. */
+    stepQuestion?: Snippet<[Snippet]>
+    /** Wraps the optional extras fields in a step card when given. */
+    stepExtras?: Snippet<[Snippet]>
     /** More fields, under the question's own. */
     fields?: Snippet<[boolean]>
     /** Whether those fields are fine, asked on every Save. */
@@ -99,6 +115,12 @@
     onnpc?: (npc: string) => void
     /** Told the question whenever it changes: whole, or `undefined` while it has problems. */
     ondraft?: (question: CustomQuestion | undefined) => void
+    /** Told whether the core question and optional extras pass, as the player types. */
+    onprogress?: (state: {
+      questionDone: boolean
+      extrasFilled: boolean
+      extrasValid: boolean
+    }) => void
     /** Shown just above Save. */
     nearSave?: Snippet
     /** Draws the preview in place of the stage, from the question as it shows open. */
@@ -192,7 +214,16 @@
     return shown.filter((problem) => problem.path === path).map((problem) => problem.message)
   }
 
+  const EXTRAS_PATHS = new Set(['payload.intro', 'payload.explanation', 'payload.image'])
+  const questionDone = $derived(found.every((problem) => EXTRAS_PATHS.has(problem.path)))
+  const extrasFilled = $derived(
+    (showIntro && draft.intro.trim() !== '') ||
+      ((explanation || draft.explanation !== '') && draft.explanation.trim() !== ''),
+  )
+  const extrasValid = $derived(found.every((problem) => !EXTRAS_PATHS.has(problem.path)))
+
   $effect(() => ondraft?.(found.length === 0 ? built : undefined))
+  $effect(() => onprogress?.({ questionDone, extrasFilled, extrasValid }))
 
   function save(): void {
     attempted = true
@@ -251,284 +282,300 @@
   {/each}
 {/snippet}
 
+{#snippet introField()}
+  {#if showIntro}
+    <div class="field">
+      <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
+      <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>
+      <p class="note counter">{codePoints(draft.intro.trim())}/{introMax}</p>
+      {@render errors('payload.intro')}
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet questionBody()}
+  {#if asker === 'optional' || asker === 'required'}
+    <NpcPicker bind:value={draft.npc} {asker} errors={errorsAt('random_event')} />
+  {/if}
+
+  {#if offered.length > 1}
+    <div class="type-picker">
+      <Segmented
+        legend="How players answer"
+        options={offered}
+        bind:value={
+          () => draft.type,
+          (type) =>
+            types.includes(type as CustomType) ? setType(type as CustomType) : picker?.onpick(type)
+        }
+      />
+    </div>
+  {/if}
+
+  {#if !stepExtras}
+    {@render introField()}
+  {/if}
+
+  <div class="field">
+    <label for="{id}-prompt">Question</label>
+    <textarea
+      id="{id}-prompt"
+      rows="3"
+      placeholder={promptFixed ? undefined : hints.prompt}
+      bind:value={draft.prompt}
+      readonly={promptFixed}></textarea>
+    <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
+    {@render errors('payload.prompt')}
+  </div>
+
+  {#if draft.type === 'multiple_choice' && (quote || draft.quote !== '')}
+    <div class="field">
+      <label for="{id}-quote">The quotation, if the question asks about words someone said</label>
+      <textarea id="{id}-quote" rows="2" bind:value={draft.quote}></textarea>
+      <p class="note counter">{codePoints(draft.quote.trim())}/{quoteMax}</p>
+      {@render errors('payload.quote')}
+    </div>
+  {/if}
+
+  {#if draft.type === 'multiple_choice'}
+    <fieldset class="field">
+      <legend>Answers · tick the right one</legend>
+      {#each draft.options as _, index (index)}
+        {@const right = draft.answerIndex === index}
+        <div class="option answer" class:right style={gem(index)}>
+          <input
+            type="radio"
+            name="{id}-correct"
+            aria-label="Answer {index + 1} is right"
+            checked={right}
+            onchange={() => (draft.answerIndex = index)}
+          />
+          <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
+          {#if right}
+            <span class="mark">Right</span>
+          {:else}
+            <button
+              type="button"
+              class="remove"
+              aria-label="Remove answer {index + 1}"
+              disabled={draft.options.length <= optionsMin}
+              onclick={() => removeOption(index)}>✕</button
+            >
+          {/if}
+        </div>
+        {@render errors(`payload.options[${index}]`)}
+      {/each}
+      <button
+        type="button"
+        class="small"
+        disabled={draft.options.length >= optionsMax}
+        onclick={addOption}>Add an answer</button
+      >
+      <p class="note">{optionsMin} to {optionsMax} answers.</p>
+      {@render errors('payload.options')}
+      {@render errors('payload.answer_index')}
+    </fieldset>
+  {:else if draft.type === PICK_ALL}
+    <fieldset class="field">
+      <legend>Answers · tick every right one</legend>
+      {#each draft.options as _, index (index)}
+        {@const right = draft.answerIndices.includes(index)}
+        <div class="option answer" class:right style={gem(index)}>
+          <input
+            type="checkbox"
+            aria-label="Answer {index + 1} is right"
+            checked={right}
+            onchange={(event) => tick(index, event.currentTarget.checked)}
+          />
+          <input type="text" aria-label="Answer {index + 1}" bind:value={draft.options[index]} />
+          {#if right}
+            <span class="mark">Right</span>
+          {:else}
+            <button
+              type="button"
+              class="remove"
+              aria-label="Remove answer {index + 1}"
+              disabled={draft.options.length <= optionsMin}
+              onclick={() => removeOption(index)}>✕</button
+            >
+          {/if}
+        </div>
+        {@render errors(`payload.options[${index}]`)}
+      {/each}
+      <button
+        type="button"
+        class="small"
+        disabled={draft.options.length >= optionsMax}
+        onclick={addOption}>Add an answer</button
+      >
+      <p class="note">
+        {optionsMin} to {optionsMax} answers: at least one right, and one wrong.
+      </p>
+      {@render errors('payload.options')}
+      {@render errors('payload.answer_indices')}
+    </fieldset>
+    <div class="field">
+      <label class="check">
+        <input type="checkbox" bind:checked={draft.picksShown} />
+        Tell players how many are right
+      </label>
+      {@render errors('payload.picks')}
+    </div>
+  {:else if draft.type === 'free_text'}
+    <fieldset class="field">
+      <legend>Answers that count</legend>
+      {#each draft.accepted as _, index (index)}
+        <div class="option">
+          <input
+            type="text"
+            aria-label="Accepted answer {index + 1}"
+            bind:value={draft.accepted[index]}
+          />
+          <button
+            type="button"
+            class="small"
+            aria-label="Remove accepted answer {index + 1}"
+            disabled={draft.accepted.length <= ACCEPTED_MIN}
+            onclick={() => draft.accepted.splice(index, 1)}>✕</button
+          >
+        </div>
+        {@render errors(`payload.accepted[${index}]`)}
+      {/each}
+      <button
+        type="button"
+        class="small"
+        disabled={draft.accepted.length >= ACCEPTED_MAX}
+        onclick={() => draft.accepted.push('')}>Add another spelling</button
+      >
+      <p class="note">Case, accents, punctuation and spacing never count against a player.</p>
+      {@render errors('payload.accepted')}
+    </fieldset>
+    <div class="field">
+      <Segmented
+        legend="Typos allowed"
+        options={DISTANCES}
+        bind:value={() => String(draft.maxDistance), (value) => (draft.maxDistance = Number(value))}
+      />
+      <p class="note">Answers under four letters must always match exactly.</p>
+      {@render errors('payload.max_distance')}
+    </div>
+  {:else}
+    <div class="pair">
+      <div class="field">
+        <label for="{id}-answer">Answer</label>
+        <input id="{id}-answer" type="text" inputmode="decimal" bind:value={draft.answer} />
+        {@render errors('payload.answer')}
+      </div>
+      <div class="field">
+        <label for="{id}-unit">Unit, if any</label>
+        <input id="{id}-unit" type="text" placeholder="gp" bind:value={draft.unit} />
+        {@render errors('payload.unit')}
+      </div>
+    </div>
+    {#if draft.type === 'number_slider'}
+      <div class="pair even">
+        <div class="field">
+          <label for="{id}-min">Lowest</label>
+          <input id="{id}-min" type="text" inputmode="numeric" bind:value={draft.min} />
+          {@render errors('payload.min')}
+        </div>
+        <div class="field">
+          <label for="{id}-max">Highest</label>
+          <input id="{id}-max" type="text" inputmode="numeric" bind:value={draft.max} />
+          {@render errors('payload.max')}
+        </div>
+      </div>
+      <div class="field">
+        <Segmented
+          legend="Slider steps"
+          options={SCALES}
+          bind:value={() => draft.scale || scaleFor(draft), (value) => (draft.scale = value)}
+        />
+        {@render errors('payload.scale')}
+      </div>
+      <p class="note closest">
+        Players slide between the two. Keep the answer off the ends and the middle, where the slider
+        starts. The closer a guess, the more it scores.
+      </p>
+    {:else}
+      <div class="field">
+        <Segmented
+          legend="Scores"
+          options={withins}
+          bind:value={
+            () => (draft.withinPercent === null ? 'kept' : String(draft.withinPercent)),
+            (value) => (draft.withinPercent = value === 'kept' ? null : Number(value))
+          }
+        />
+        {@render errors('payload.within')}
+      </div>
+      <p class="note closest">
+        {#if scored !== null}
+          The exact answer scores 1000; {written(answered - scored)} to {written(answered + scored)} scores
+          750 down to 250.
+        {:else if draft.withinPercent === 0}
+          Only the exact answer scores. Pick this for years and counts players should know.
+        {:else}
+          The exact answer scores 1000, a guess in range 750 down to 250.
+        {/if}
+      </p>
+    {/if}
+  {/if}
+
+  {#if pack}
+    <div class="field">
+      <label for="{id}-image">Picture, if any</label>
+      <input
+        id="{id}-image"
+        type="text"
+        placeholder="item:4151 or npc:2042"
+        bind:value={draft.image}
+      />
+      {@render errors('payload.image')}
+    </div>
+  {/if}
+
+  {@render inQuestion?.()}
+{/snippet}
+
+{#snippet extrasBody()}
+  {#if stepExtras}
+    {@render introField()}
+  {/if}
+  {@render inExtras?.(attempted)}
+  {#if explanation || draft.explanation !== ''}
+    <div class="field">
+      <label for="{id}-explanation">Explanation shown after the question finished.</label>
+      <textarea
+        id="{id}-explanation"
+        rows="2"
+        placeholder={hints.explanation}
+        bind:value={draft.explanation}></textarea>
+      <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
+      {@render errors('payload.explanation')}
+    </div>
+  {/if}
+{/snippet}
+
 <!-- A form of its own would nest inside Create's, which HTML does not allow, so this is a
      group whose Save button does the submitting. -->
 <div class="editor surface" role="group" aria-labelledby="{id}-title" {@attach enterSaves}>
+  {@render head?.()}
   <div class="layout">
     <div class="fields">
       <h3 id="{id}-title">
         {title ?? (question === undefined ? 'New question' : 'Edit question')}
       </h3>
-      {#if asker === 'optional' || asker === 'required'}
-        <NpcPicker bind:value={draft.npc} {asker} errors={errorsAt('random_event')} />
-      {/if}
-
-      {#if offered.length > 1}
-        <Segmented
-          legend="How players answer"
-          options={offered}
-          bind:value={
-            () => draft.type,
-            (type) =>
-              types.includes(type as CustomType)
-                ? setType(type as CustomType)
-                : picker?.onpick(type)
-          }
-        />
-      {/if}
-
-      {#if showIntro}
-        <div class="field">
-          <label for="{id}-intro">Intro, a line in the asker's voice before the question</label>
-          <textarea id="{id}-intro" rows="2" bind:value={draft.intro}></textarea>
-          <p class="note counter">{codePoints(draft.intro.trim())}/{introMax}</p>
-          {@render errors('payload.intro')}
-        </div>
-      {/if}
-
-      <div class="field">
-        <label for="{id}-prompt">Question</label>
-        <textarea
-          id="{id}-prompt"
-          rows="3"
-          placeholder={promptFixed ? undefined : hints.prompt}
-          bind:value={draft.prompt}
-          readonly={promptFixed}></textarea>
-        <p class="note counter">{codePoints(draft.prompt.trim())}/{promptMax}</p>
-        {@render errors('payload.prompt')}
-      </div>
-
-      {#if draft.type === 'multiple_choice' && (quote || draft.quote !== '')}
-        <div class="field">
-          <label for="{id}-quote"
-            >The quotation, if the question asks about words someone said</label
-          >
-          <textarea id="{id}-quote" rows="2" bind:value={draft.quote}></textarea>
-          <p class="note counter">{codePoints(draft.quote.trim())}/{quoteMax}</p>
-          {@render errors('payload.quote')}
-        </div>
-      {/if}
-
-      {#if draft.type === 'multiple_choice'}
-        <fieldset class="field">
-          <legend>Answers · tick the right one</legend>
-          {#each draft.options as _, index (index)}
-            {@const right = draft.answerIndex === index}
-            <div class="option answer" class:right style={gem(index)}>
-              <input
-                type="radio"
-                name="{id}-correct"
-                aria-label="Answer {index + 1} is right"
-                checked={right}
-                onchange={() => (draft.answerIndex = index)}
-              />
-              <input
-                type="text"
-                aria-label="Answer {index + 1}"
-                bind:value={draft.options[index]}
-              />
-              {#if right}
-                <span class="mark">Right</span>
-              {:else}
-                <button
-                  type="button"
-                  class="remove"
-                  aria-label="Remove answer {index + 1}"
-                  disabled={draft.options.length <= optionsMin}
-                  onclick={() => removeOption(index)}>✕</button
-                >
-              {/if}
-            </div>
-            {@render errors(`payload.options[${index}]`)}
-          {/each}
-          <button
-            type="button"
-            class="small"
-            disabled={draft.options.length >= optionsMax}
-            onclick={addOption}>Add an answer</button
-          >
-          <p class="note">{optionsMin} to {optionsMax} answers.</p>
-          {@render errors('payload.options')}
-          {@render errors('payload.answer_index')}
-        </fieldset>
-      {:else if draft.type === PICK_ALL}
-        <fieldset class="field">
-          <legend>Answers · tick every right one</legend>
-          {#each draft.options as _, index (index)}
-            {@const right = draft.answerIndices.includes(index)}
-            <div class="option answer" class:right style={gem(index)}>
-              <input
-                type="checkbox"
-                aria-label="Answer {index + 1} is right"
-                checked={right}
-                onchange={(event) => tick(index, event.currentTarget.checked)}
-              />
-              <input
-                type="text"
-                aria-label="Answer {index + 1}"
-                bind:value={draft.options[index]}
-              />
-              {#if right}
-                <span class="mark">Right</span>
-              {:else}
-                <button
-                  type="button"
-                  class="remove"
-                  aria-label="Remove answer {index + 1}"
-                  disabled={draft.options.length <= optionsMin}
-                  onclick={() => removeOption(index)}>✕</button
-                >
-              {/if}
-            </div>
-            {@render errors(`payload.options[${index}]`)}
-          {/each}
-          <button
-            type="button"
-            class="small"
-            disabled={draft.options.length >= optionsMax}
-            onclick={addOption}>Add an answer</button
-          >
-          <p class="note">
-            {optionsMin} to {optionsMax} answers: at least one right, and one wrong.
-          </p>
-          {@render errors('payload.options')}
-          {@render errors('payload.answer_indices')}
-        </fieldset>
-        <div class="field">
-          <label class="check">
-            <input type="checkbox" bind:checked={draft.picksShown} />
-            Tell players how many are right
-          </label>
-          {@render errors('payload.picks')}
-        </div>
-      {:else if draft.type === 'free_text'}
-        <fieldset class="field">
-          <legend>Answers that count</legend>
-          {#each draft.accepted as _, index (index)}
-            <div class="option">
-              <input
-                type="text"
-                aria-label="Accepted answer {index + 1}"
-                bind:value={draft.accepted[index]}
-              />
-              <button
-                type="button"
-                class="small"
-                aria-label="Remove accepted answer {index + 1}"
-                disabled={draft.accepted.length <= ACCEPTED_MIN}
-                onclick={() => draft.accepted.splice(index, 1)}>✕</button
-              >
-            </div>
-            {@render errors(`payload.accepted[${index}]`)}
-          {/each}
-          <button
-            type="button"
-            class="small"
-            disabled={draft.accepted.length >= ACCEPTED_MAX}
-            onclick={() => draft.accepted.push('')}>Add another spelling</button
-          >
-          <p class="note">Case, accents, punctuation and spacing never count against a player.</p>
-          {@render errors('payload.accepted')}
-        </fieldset>
-        <div class="field">
-          <Segmented
-            legend="Typos allowed"
-            options={DISTANCES}
-            bind:value={
-              () => String(draft.maxDistance), (value) => (draft.maxDistance = Number(value))
-            }
-          />
-          <p class="note">Answers under four letters must always match exactly.</p>
-          {@render errors('payload.max_distance')}
-        </div>
+      {#if stepQuestion}
+        {@render stepQuestion(questionBody)}
       {:else}
-        <div class="pair">
-          <div class="field">
-            <label for="{id}-answer">Answer</label>
-            <input id="{id}-answer" type="text" inputmode="decimal" bind:value={draft.answer} />
-            {@render errors('payload.answer')}
-          </div>
-          <div class="field">
-            <label for="{id}-unit">Unit, if any</label>
-            <input id="{id}-unit" type="text" placeholder="gp" bind:value={draft.unit} />
-            {@render errors('payload.unit')}
-          </div>
-        </div>
-        {#if draft.type === 'number_slider'}
-          <div class="pair even">
-            <div class="field">
-              <label for="{id}-min">Lowest</label>
-              <input id="{id}-min" type="text" inputmode="numeric" bind:value={draft.min} />
-              {@render errors('payload.min')}
-            </div>
-            <div class="field">
-              <label for="{id}-max">Highest</label>
-              <input id="{id}-max" type="text" inputmode="numeric" bind:value={draft.max} />
-              {@render errors('payload.max')}
-            </div>
-          </div>
-          <div class="field">
-            <Segmented
-              legend="Slider steps"
-              options={SCALES}
-              bind:value={() => draft.scale || scaleFor(draft), (value) => (draft.scale = value)}
-            />
-            {@render errors('payload.scale')}
-          </div>
-          <p class="note closest">
-            Players slide between the two. Keep the answer off the ends and the middle, where the
-            slider starts. The closer a guess, the more it scores.
-          </p>
-        {:else}
-          <div class="field">
-            <Segmented
-              legend="Scores"
-              options={withins}
-              bind:value={
-                () => (draft.withinPercent === null ? 'kept' : String(draft.withinPercent)),
-                (value) => (draft.withinPercent = value === 'kept' ? null : Number(value))
-              }
-            />
-            {@render errors('payload.within')}
-          </div>
-          <p class="note closest">
-            {#if scored !== null}
-              The exact answer scores 1000; {written(answered - scored)} to {written(
-                answered + scored,
-              )} scores 750 down to 250.
-            {:else if draft.withinPercent === 0}
-              Only the exact answer scores. Pick this for years and counts players should know.
-            {:else}
-              The exact answer scores 1000, a guess in range 750 down to 250.
-            {/if}
-          </p>
-        {/if}
+        {@render questionBody()}
       {/if}
 
-      {#if pack}
-        <div class="field">
-          <label for="{id}-image">Picture, if any</label>
-          <input
-            id="{id}-image"
-            type="text"
-            placeholder="item:4151 or npc:2042"
-            bind:value={draft.image}
-          />
-          {@render errors('payload.image')}
-        </div>
-      {/if}
-
-      {#if explanation || draft.explanation !== ''}
-        <div class="field">
-          <label for="{id}-explanation">Explanation shown after the question finished.</label>
-          <textarea
-            id="{id}-explanation"
-            rows="2"
-            placeholder={hints.explanation}
-            bind:value={draft.explanation}></textarea>
-          <p class="note counter">{codePoints(draft.explanation.trim())}/{explanationMax}</p>
-          {@render errors('payload.explanation')}
-        </div>
+      {#if stepExtras}
+        {@render stepExtras(extrasBody)}
+      {:else}
+        {@render extrasBody()}
       {/if}
 
       {@render more?.(attempted)}
@@ -590,13 +637,13 @@
     margin: 0 0 0.75rem;
   }
 
-  .fields > :global(.segmented) {
+  .type-picker > :global(.segmented) {
     margin-bottom: 1rem;
   }
 
   /* Four ways to answer do not fit a phone in one row; two by two they keep their names whole. */
   @container (max-width: 26rem) {
-    .fields > :global(.segmented .segments) {
+    .type-picker > :global(.segmented .segments) {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.4rem;
@@ -605,7 +652,7 @@
       overflow: visible;
     }
 
-    .fields > :global(.segmented label) {
+    .type-picker > :global(.segmented label) {
       display: grid;
       place-items: center;
       min-height: 2.75rem;
@@ -615,7 +662,7 @@
       border-radius: min(var(--radius), 8px);
     }
 
-    .fields > :global(.segmented label:has(:checked)) {
+    .type-picker > :global(.segmented label:has(:checked)) {
       border-color: var(--accent);
     }
   }

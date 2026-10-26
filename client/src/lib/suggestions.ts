@@ -513,6 +513,64 @@ export function itemProblem(
   return textProblem(content.name, ITEM_NAME_MAX, 'the item’s name')
 }
 
+// --- steps in the suggestion form ------------------------------------------------------
+
+/** One step in the editor's progress line and step cards. */
+export interface SuggestStep {
+  title: string
+  optional?: boolean
+  done: boolean
+  missing?: boolean
+}
+
+/** Whether a question choice offers the optional extras card (intro, picture item, or explanation). */
+export function hasExtras(choice: Choice): boolean {
+  if (choice.kind !== 'question') return false
+  return (
+    (choice.explanation ?? true) || Boolean(choice.pictureItem) || INTRO_ROUNDS.includes(choice.id)
+  )
+}
+
+/** The steps a suggestion editor walks through, with their completion and missing state. */
+export function stepsFor(state: {
+  choice: Choice
+  attempted: boolean
+  questionDone: boolean
+  extrasFilled: boolean
+  extrasValid: boolean
+  sourceDone: boolean
+  creditDone: boolean
+}): SuggestStep[] {
+  const { choice, attempted, questionDone, extrasFilled, extrasValid, sourceDone, creditDone } =
+    state
+  if (choice.kind === 'item') {
+    return [
+      { title: 'Item', done: questionDone, missing: attempted && !questionDone },
+      { title: 'Credit', done: creditDone, missing: attempted && !creditDone },
+    ]
+  }
+  const steps: SuggestStep[] = [
+    { title: 'Question', done: questionDone, missing: attempted && !questionDone },
+  ]
+  if (hasExtras(choice)) {
+    steps.push({
+      title: 'Extras',
+      optional: true,
+      done: extrasFilled && extrasValid,
+      missing: attempted && !extrasValid,
+    })
+  }
+  steps.push(
+    {
+      title: choice.wikiOnly ? 'Wiki page' : 'Source',
+      done: sourceDone,
+      missing: attempted && !sourceDone,
+    },
+    { title: 'Credit', done: creditDone, missing: attempted && !creditDone },
+  )
+  return steps
+}
+
 // --- the queue -------------------------------------------------------------------------
 
 export const STATUS_LABELS: Record<SuggestionStatus, string> = {
