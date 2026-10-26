@@ -1295,7 +1295,8 @@ describe('the shared stage', () => {
     await vi.advanceTimersByTimeAsync(ENTER_MOVE_MS)
     expect(words().style.opacity).toBe('')
     expect(words().textContent).not.toContain('Random event')
-    expect(document.querySelector('.bubble .tag')!.textContent).toBe('Random event')
+    expect(document.querySelector('.bubble .tag')).toBeNull()
+    expect(document.querySelector('.bubble')!.textContent).not.toContain('Random event')
     expect(document.querySelector('.bubble .speech')!.textContent).toContain('Evil Bob')
   })
 
