@@ -1,11 +1,11 @@
 """In-memory per-address limiters: at most ``limit`` hits per window.
 
-Eight of them: room creation, free codes for the create page, joins, join failures
-reported, suggestions, checks for similar questions, reports, and lookups of rooms that
-turn out not to exist. The last is what keeps the room list private. The live codes are a
-few of a few hundred words, and every request that names a room answers whether it exists,
-so an address that keeps asking for rooms that are not there is scanning and is refused for
-a while.
+Nine of them: room creation, free codes for the create page, joins, join failures
+reported, suggestions, checks for similar questions, suggestion tries, reports, and lookups
+of rooms that turn out not to exist. The last is what keeps the room list private. The live
+codes are a few of a few hundred words, and every request that names a room answers whether
+it exists, so an address that keeps asking for rooms that are not there is scanning and is
+refused for a while.
 """
 
 import ipaddress
@@ -15,7 +15,9 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 
+from app import metrics
 from app.errors import ApiError
+from app.metrics import LimiterName
 from app.rooms.errors import RoomExpired, RoomNotFound
 
 # A host rerolling the code for one they like; a script listing taken codes slowly.
@@ -50,9 +52,15 @@ class RateLimited(ApiError):
 
 
 class RateLimiter:
-    def __init__(self, limit: int, window: timedelta = timedelta(hours=1)) -> None:
+    def __init__(
+        self,
+        limit: int,
+        window: timedelta = timedelta(hours=1),
+        name: LimiterName = "rooms",
+    ) -> None:
         self.limit = limit
         self.window = window
+        self.name: LimiterName = name
         self._hits: dict[str, deque[datetime]] = {}
 
     def allow(self, key: str, now: datetime | None = None) -> bool:
@@ -73,6 +81,7 @@ class RateLimiter:
         now = now or datetime.now(UTC)
         if self.allow(key, now):
             return
+        metrics.RATE_LIMITED.labels(limiter=self.name).inc()
         _, free_at = self.left(key, now)
         raise RateLimited(message, None if free_at is None else free_at - now)
 

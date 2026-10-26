@@ -38,7 +38,7 @@ class SecurityHeaders:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        is_api = scope["path"] == "/api" or scope["path"].startswith("/api/")
+        is_api = scope["path"] in ("/api", "/metrics") or scope["path"].startswith("/api/")
 
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":

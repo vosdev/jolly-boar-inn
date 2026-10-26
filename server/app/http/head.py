@@ -19,7 +19,7 @@ class HeadAsGet:
         if not (
             scope["type"] == "http"
             and scope["method"] == "HEAD"
-            and (path == "/api" or path.startswith("/api/"))
+            and (path in ("/api", "/metrics") or path.startswith("/api/"))
         ):
             await self.app(scope, receive, send)
             return

@@ -1,0 +1,200 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Rooms in Memory",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "jbi_rooms",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        },
+        {
+          "expr": "jbi_rooms_waiting",
+          "legendFormat": "waiting",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "title": "Connections & Players",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "jbi_websocket_connections",
+          "legendFormat": "websockets",
+          "refId": "A"
+        },
+        {
+          "expr": "jbi_players_connected",
+          "legendFormat": "players connected",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "title": "Fullest Room vs Cap",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "jbi_room_players_max",
+          "legendFormat": "fullest room",
+          "refId": "A"
+        },
+        {
+          "expr": "jbi_max_players_per_room",
+          "legendFormat": "cap",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 4,
+      "title": "HTTP Requests by Route & Status",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (route, status) (rate(jbi_http_requests_total[5m]))",
+          "legendFormat": "{{route}} ({{status}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "s" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 5,
+      "title": "HTTP p95 Latency by Route",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, route) (rate(jbi_http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{route}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "id": 6,
+      "title": "Websocket Messages & Disconnects",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (type) (rate(jbi_ws_messages_total[5m]))",
+          "legendFormat": "msg: {{type}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (reason) (rate(jbi_ws_disconnects_total[5m]))",
+          "legendFormat": "disconnect: {{reason}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+      "id": 7,
+      "title": "Rate Limited Requests",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (limiter) (rate(jbi_rate_limited_total[5m]))",
+          "legendFormat": "{{limiter}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "id": 8,
+      "title": "Database Pool & Games (1h increase)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "jbi_db_pool_size",
+          "legendFormat": "pool size",
+          "refId": "A"
+        },
+        {
+          "expr": "jbi_db_pool_idle",
+          "legendFormat": "pool idle",
+          "refId": "B"
+        },
+        {
+          "expr": "increase(jbi_games_total[1h])",
+          "legendFormat": "games {{outcome}} (1h)",
+          "refId": "C"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["jolly-boar-inn"],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_PROMETHEUS",
+        "query": "prometheus",
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Jolly Boar Inn",
+  "uid": "jolly-boar-inn",
+  "version": 1
+}

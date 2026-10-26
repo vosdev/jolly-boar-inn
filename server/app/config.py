@@ -55,23 +55,34 @@ class Settings(BaseSettings):
     log_level: Literal["debug", "info", "warning", "error"] = "info"
     # The operator's key to ``/admin``. Empty, the admin routes do not exist.
     admin_token: str = ""
+    # The scraper's key to ``/metrics``. Empty, ``/metrics`` does not exist.
+    metrics_token: str = ""
 
     @field_validator("admin_token")
     @classmethod
     def _admin_token_strong_enough(cls, token: str) -> str:
-        if not token:
-            return token
-        if len(token) < ADMIN_TOKEN_MIN:
-            raise ValueError(
-                f"ADMIN_TOKEN is {len(token)} characters; it needs at least {ADMIN_TOKEN_MIN}."
-                " Make one with `openssl rand -hex 32`, or unset it to turn /admin off"
-            )
-        if not set(token) <= _TOKEN_CHARS:
-            raise ValueError(
-                "ADMIN_TOKEN may only hold letters, digits and - . _ ~,"
-                " so it survives a URL fragment as typed"
-            )
+        return _check_token(token, "ADMIN_TOKEN", "/admin")
+
+    @field_validator("metrics_token")
+    @classmethod
+    def _metrics_token_strong_enough(cls, token: str) -> str:
+        return _check_token(token, "METRICS_TOKEN", "/metrics")
+
+
+def _check_token(token: str, env_var: str, route: str) -> str:
+    if not token:
         return token
+    if len(token) < ADMIN_TOKEN_MIN:
+        raise ValueError(
+            f"{env_var} is {len(token)} characters; it needs at least {ADMIN_TOKEN_MIN}."
+            f" Make one with `openssl rand -hex 32`, or unset it to turn {route} off"
+        )
+    if not set(token) <= _TOKEN_CHARS:
+        raise ValueError(
+            f"{env_var} may only hold letters, digits and - . _ ~,"
+            " so it survives a URL fragment as typed"
+        )
+    return token
 
 
 @lru_cache

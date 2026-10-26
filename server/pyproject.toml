@@ -1,6 +1,6 @@
 [project]
 name = "jolly-boar-inn"
-version = "0.195.0"
+version = "0.196.0"
 description = "Jolly Boar Inn Quiz Night server"
 requires-python = ">=3.14"
 license = "AGPL-3.0-only"
@@ -11,6 +11,7 @@ dependencies = [
     "pydantic-settings>=2",
     "asyncpg>=0.30",
     "jsonschema>=4.23",
+    "prometheus-client>=0.21",
 ]
 
 [dependency-groups]

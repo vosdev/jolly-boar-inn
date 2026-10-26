@@ -28,8 +28,9 @@ schema/                            question.schema.json (section 4), protocol.sc
 data/packs/                        prices (generated, ignored), examine, sample, random_events/
 data/                              assets, pets, popular-items/-npcs, player-names, room-words
 branding/                          a selfhoster's logo, gitignored
-server/app/                        main, config, db, static, accesslog, errors, pets, random_events,
-                                   suggestions, reports, question_edits, roster_edits
+monitoring/                        Prometheus alert rules and a starter Grafana dashboard
+server/app/                        main, config, db, static, accesslog, errors, metrics, pets,
+                                   random_events, suggestions, reports, question_edits, roster_edits
 server/app/rooms/                  state (RoomManager), joins, lobby, loop (its parts), models,
                                    errors, queries, settings, selection, segments, scoring, ready, codes
 server/app/modes/, questions/      Mode and MODES; schema, packs, vocab, normalize, custom,
@@ -564,7 +565,8 @@ compared with `hmac.compare_digest`. It arrives once as `/admin#token=…`, a fr
 log or `Referer` sees it; the page moves it to `localStorage["jbi:admin"]` and `replaceState`s it
 away. Both return chosen fields only, never a name, an answer or a question. Only the
 suggestion and report queues, `/api/admin/questions` and its pending changes (section 11) return
-questions, answers included: players' suggestions and the packs, never a room's.
+questions, answers included: players' suggestions and the packs, never a room's. `METRICS_TOKEN`
+gates `GET /metrics` (OpenMetrics text, fixed-set labels only) by the same rules.
 
 `POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, code?, settings, custom_questions}`, in one transaction:
 

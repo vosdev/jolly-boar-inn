@@ -13,7 +13,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app import accesslog
+from app import accesslog, metrics
 from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
@@ -30,11 +30,13 @@ from app.http import (
     suggestions,
     vocab,
 )
+from app.http import metrics as http_metrics
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
 from app.http.head import HeadAsGet
 from app.http.headers import SecurityHeaders
 from app.http.jsonbody import JsonBody
+from app.http.metrics import HttpMetrics
 from app.http.ratelimit import (
     FREE_CODES,
     FREE_CODES_WINDOW,
@@ -160,9 +162,14 @@ async def cleanup_expired_rooms(app: FastAPI) -> None:
         try:
             await app.state.rooms.purge_expired()
         except DatabaseUnavailable:
+            metrics.CLEANUP_RUNS.labels(result="db_unavailable").inc()
             log.warning("room cleanup skipped: the database is unavailable")
         except Exception:
+            metrics.CLEANUP_RUNS.labels(result="error").inc()
             log.exception("room cleanup failed; trying again in %d seconds", interval)
+        else:
+            metrics.CLEANUP_RUNS.labels(result="ok").inc()
+            metrics.CLEANUP_LAST_SUCCESS.set_to_current_time()
         await asyncio.sleep(interval)
 
 
@@ -255,18 +262,19 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.state.packs = []
     app.state.rooms = None
     app.state.cleanup = None
-    app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour)
-    app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW)
-    app.state.free_codes = RateLimiter(FREE_CODES, FREE_CODES_WINDOW)
-    app.state.joins = RateLimiter(JOINS_PER_HOUR)
-    app.state.join_failures = RateLimiter(JOIN_FAILURES_PER_HOUR)
-    app.state.suggestions = RateLimiter(SUGGESTIONS_PER_HOUR)
-    app.state.reports = RateLimiter(REPORTS_PER_HOUR)
-    app.state.similar = RateLimiter(SIMILAR_PER_HOUR)
-    app.state.tries = RateLimiter(TRIES_PER_HOUR)
-    app.add_middleware(HeadAsGet)
+    app.state.ratelimiter = RateLimiter(app.state.settings.rooms_per_ip_per_hour, name="rooms")
+    app.state.lookup_misses = RateLimiter(LOOKUP_MISSES, LOOKUP_WINDOW, name="lookup_misses")
+    app.state.free_codes = RateLimiter(FREE_CODES, FREE_CODES_WINDOW, name="free_codes")
+    app.state.joins = RateLimiter(JOINS_PER_HOUR, name="joins")
+    app.state.join_failures = RateLimiter(JOIN_FAILURES_PER_HOUR, name="join_failures")
+    app.state.suggestions = RateLimiter(SUGGESTIONS_PER_HOUR, name="suggestions")
+    app.state.reports = RateLimiter(REPORTS_PER_HOUR, name="reports")
+    app.state.similar = RateLimiter(SIMILAR_PER_HOUR, name="similar")
+    app.state.tries = RateLimiter(TRIES_PER_HOUR, name="tries")
     app.add_middleware(JsonBody)  # inside BodyLimit, so an oversized body is a 413 first
     app.add_middleware(BodyLimit)
+    app.add_middleware(HttpMetrics)
+    app.add_middleware(HeadAsGet)
     app.add_middleware(UntrustedForwardWarning)
     app.add_middleware(SecurityHeaders)  # last, so it wraps the others' responses too
     app.add_exception_handler(ApiError, _api_error)  # type: ignore[arg-type]
@@ -295,6 +303,8 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
         app.include_router(questions.changes_router)
         app.include_router(roster.admin_router)
         app.include_router(roster.changes_router)
+    if app.state.settings.metrics_token:
+        app.include_router(http_metrics.router)
     app.include_router(ws_handler.router)
     mount_client(app, client_dist, app.state.settings.public_base_url)
     return app
