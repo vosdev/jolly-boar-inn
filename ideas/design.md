@@ -253,7 +253,8 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   with room for two lines. From 1280 wide and `FIT_HEIGHT` (760px) high it lays out at the window's
   size; a smaller window draws it at the largest of 1, ⅞, ¾ and ⅝ that leaves both, then scales smoothly.
   760 is measured: Who Said That?'s three-line quote needs 744, a pick-all event 756; Sort It Out's six
-  rows need 812 open and 901 revealed, and still scroll. The stage starts at the top of its
+  rows, 36px tall with 3px between instead of 56 and 8, need 657 open and 754 revealed, and the fairy rings'
+  nine (the tray two abreast) 707 open. The stage starts at the top of its
   height and keeps its place from question to reveal; only the answers grow, downward. Under 1024px wide the stage and table stack. The TV has no frame.
 - **Two sizes.** On the desktop frame a stage whose host speaks above it takes the stage column, up
   to 960px, its sheet's words at 1.5 (`--scroll-text`) and rolls and pin at 1.25 (`--scroll-scale`);

@@ -14,6 +14,7 @@ import { GEMS } from './GemButton.svelte'
 import { viewFor } from './index'
 import Question from './Question.svelte'
 import TextStem from './stems/TextStem.svelte'
+import source from './types/Ordering.svelte?raw'
 import Ordering, { dropAt, filled, placeNumbers, placement, stepped } from './types/Ordering.svelte'
 
 // As the server shuffles them: Bronze is first by rank, Adamant last.
@@ -558,5 +559,24 @@ describe('ordering', () => {
   it('numbers ties by the first place they share', () => {
     expect(placeNumbers([1, 1, 2, 3])).toEqual([1, 1, 3, 4])
     expect(placeNumbers([1, 2, 2, 2, 5])).toEqual([1, 2, 2, 2, 5])
+  })
+})
+
+describe('ordering rows in the compact room', () => {
+  // jsdom lays nothing out, so the 36px rows are measured in the browser (design.md section 8);
+  // this keeps the rules scoped to the compact room, so 920px and up keeps its 56px rows.
+  const rule = (selector: string) =>
+    source.match(new RegExp(`\\n {2}${selector} \\{([^}]*)\\}`))?.[1] ?? ''
+
+  it('shrinks the rows only under .fitted.compact, to no less than 36px', () => {
+    expect(rule(String.raw`:global\(\.fitted\.compact\) \.entries :global\(\.gem\)`)).toContain(
+      'min-height: 36px',
+    )
+    expect(rule(String.raw`:global\(\.fitted\.compact\) \.empty`)).toContain('min-height: 36px')
+    expect(source).not.toMatch(/\n {2}\.entries :global\(\.gem\) \{/)
+  })
+
+  it('sets the tray two abreast there', () => {
+    expect(rule(String.raw`:global\(\.fitted\.compact\) \.tray`)).toContain('repeat(2,')
   })
 })
