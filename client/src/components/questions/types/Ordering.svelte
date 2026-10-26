@@ -354,6 +354,40 @@
     border-top: 1px dashed var(--line);
   }
 
+  /* A short window's room (`lib/roomFit.ts`): the rows come down to 36px, still a target for
+     a thumb or a pointer, so a six-row order and the fairy rings fit the compact stage
+     open and revealed. */
+  :global(.fitted.compact) .entries {
+    gap: 3px;
+  }
+
+  :global(.fitted.compact) .entries :global(.gem) {
+    min-height: 36px;
+    padding-block: 0.15rem;
+  }
+
+  /* The tray's rows are unordered, so two abreast costs nothing: a drop lands on the tray as
+     a whole, and the places above stay in one column. */
+  :global(.fitted.compact) .tray {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :global(.fitted.compact) .empty {
+    min-height: 36px;
+  }
+
+  :global(.fitted.compact) .ask {
+    margin-bottom: 0.3rem;
+  }
+
+  :global(.fitted.compact) .end {
+    margin-block: 0.1rem;
+  }
+
+  :global(.fitted.compact) .rest {
+    margin-block: 0.3rem;
+  }
+
   .detail,
   .had {
     margin-left: 0.4rem;
