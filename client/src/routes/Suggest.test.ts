@@ -360,7 +360,7 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
     await type('Your name', 'AFKFisher')
-    expect(screen.getByText('Pssst, adventurer.', { selector: '.intro' })).toBeTruthy()
+    expect(screen.getByText('Pssst, adventurer.', { selector: '.lore' })).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     const sent = vi.mocked(api.sendSuggestion).mock.calls[0]?.[0] as {
       content: { payload: object }
@@ -614,8 +614,15 @@ describe('Suggest', () => {
     await type('Monster or NPC, as the wiki spells it', ' Araxxor ')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Araxxor')
     const preview = screen.getByRole('region', { name: 'Preview' })
-    expect(within(preview).getByText("Who's that NPC?")).toBeTruthy()
-    expect(preview.querySelector('.picture')).toBeNull()
+    expect(within(preview).queryByText("Who's that NPC?")).toBeNull()
+    expect(preview.querySelector('.picture img')).toBeNull()
+    expect(preview.querySelector('.picture .placeholder')?.textContent).toBe(
+      'The picture is added once the innkeeper imports it.',
+    )
+    expect(within(preview).getByRole<HTMLInputElement>('combobox').disabled).toBe(true)
+    expect(
+      within(preview).getByText('The NPC joins the list once the innkeeper imports it.'),
+    ).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
@@ -766,8 +773,8 @@ describe('Suggest', () => {
     await type('Entry 2', 'I')
     await type('Entry 3', 'Q')
     const preview = within(screen.getByRole('region', { name: 'Preview' }))
-    expect(preview.getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
-    expect(preview.getByText('Turn the dials, mortal.', { selector: '.intro' })).toBeTruthy()
+    expect(preview.getByText('Fairy Queen', { selector: '.name' })).toBeTruthy()
+    expect(preview.getByText('Turn the dials, mortal.', { selector: '.lore' })).toBeTruthy()
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Fairy_ring')
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
@@ -918,6 +925,70 @@ describe('Suggest', () => {
       await writeOddOneOut('Dharok')
       await waitFor(() => expect(api.findSimilar).toHaveBeenCalled(), SIMILAR_WAIT)
       expect(screen.queryByText(/Looks like one we have/)).toBeNull()
+    })
+  })
+
+  describe('steps and progress line', () => {
+    function stepDots(): string[] {
+      const list = screen.getByRole('list', { name: 'Steps' })
+      return [...list.querySelectorAll('.node')].map((node) =>
+        (node.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      )
+    }
+
+    it('tracks steps with checkmarks, one Optional badge on Extras, and marks missing steps on send', async () => {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
+
+      expect(stepDots()).toEqual(['1 Question', '2 Extras (optional)', '3 Source', '4 Credit'])
+      expect(screen.getAllByText('Optional')).toHaveLength(1)
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+      expect(stepDots()).toEqual(['! Question', '2 Extras (optional)', '! Source', '! Credit'])
+      expect(screen.getByRole('group', { name: 'Question' }).classList.contains('missing')).toBe(
+        true,
+      )
+      expect(screen.getByRole('group', { name: 'Extras' }).classList.contains('missing')).toBe(
+        false,
+      )
+      expect(screen.getByRole('group', { name: 'Source' }).classList.contains('missing')).toBe(true)
+      expect(screen.getByRole('group', { name: 'Credit' }).classList.contains('missing')).toBe(true)
+
+      await type('Question', 'Which monster drops the Abyssal whip?')
+      await type('Answer 1', 'Abyssal demon')
+      await type('Answer 2', 'Greater demon')
+      expect(stepDots()).toEqual(['✓ Question', '2 Extras (optional)', '! Source', '! Credit'])
+      expect(screen.getByRole('group', { name: 'Question' }).classList.contains('done')).toBe(true)
+      expect(screen.getByRole('group', { name: 'Question' }).classList.contains('missing')).toBe(
+        false,
+      )
+
+      await type('Item to show, if any', 'Abyssal whip')
+      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '! Source', '! Credit'])
+      expect(screen.getByRole('group', { name: 'Extras' }).classList.contains('done')).toBe(true)
+
+      await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
+      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '✓ Source', '! Credit'])
+
+      await type('Your name', 'AFKFisher')
+      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '✓ Source', '✓ Credit'])
+    })
+
+    it('omits Extras for rounds without optional fields, and shows two steps for an item', async () => {
+      played()
+      render(Suggest, { navigate })
+      await fireEvent.click(await screen.findByRole('button', { name: /Guess the Examine/ }))
+      expect(stepDots()).toEqual(['1 Question', '2 Wiki page', '3 Credit'])
+      expect(screen.queryByRole('group', { name: 'Extras' })).toBeNull()
+
+      await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
+      await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
+      expect(stepDots()).toEqual(['1 Item', '2 Credit'])
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+      expect(stepDots()).toEqual(['! Item', '! Credit'])
+      await type(/Item name/, 'Ancient mace')
+      expect(stepDots()).toEqual(['✓ Item', '! Credit'])
     })
   })
 })

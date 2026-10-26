@@ -318,7 +318,8 @@ what the schema inlines (`Phase`, `ErrorCode`) and renames `Error` to `ProtocolE
 
 ```
 RoomView     { code, status, settings, current_index, total, events, phase, next_at,
-               reveal_seconds, estimated_seconds, segment, finished_at, rounds?, key?, requests? }
+               reveal_seconds, estimated_seconds, segment, next_segment?, played, finished_at,
+               rounds?, key?, requests? }
 JoinRequest  { id, display_name, avatar }
 PlayerView   { id, display_name, avatar, role, team, connected, ready, editing }   role: player, admin, tv
 Standing     { player_id, display_name, avatar, points, rank, points_gained, previous_rank }
@@ -337,14 +338,16 @@ PlayerResult { value, correct, credit, points }
   (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
   or `client/public` under `make dev`. Served immutable, and drawn under the stem in every mode,
   open and revealed. Devtools still show the whole picture before it zooms out or loses its shadow.
-- `answerable_at` is `opened_at` plus the hold the scroll types the question in (`rooms/hold.py`):
-  0.4 s (0.9 s for an event), each line at 50 letters a second with a 0.5–1 s pause after it, then
-  0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
+- `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
+  for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
+  with a 0.5–1 s pause after it, then 0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
   costs nobody points.
 - `next_at` ends the timed phase. It is null while a question is open or a splash waits for the room.
   `reveal_seconds` is the reveal's whole length, for the countdown bar; null outside a reveal.
 - `estimated_seconds` is the lobby's minutes for the stored questions (section 3).
 - `finished_at` is the server's end of the game, so every browser files it under the same link.
+- `next_segment` is the round the standings hand over to, sent only in the standings phase.
+  `played` is the modes of the rounds before `segment`, in play order, for the splash's hosts.
 - `rounds` counts the stored rounds, sent only with `hide_rounds`; `hide_rounds` and
   `surprise_modes` themselves only when set.
 - `key` and `requests` (waiting join requests, oldest first) are an invite-only room's, sent only
@@ -364,7 +367,7 @@ What the server withholds. The admin is a player with a flag; there is no admin 
 - The question list is never sent. `GET /api/rooms/{code}` returns only `{status, players}`, a count;
   `GET /api/rooms/public` is in section 10.
 - With `hide_rounds`, a non-admin's `welcome` and `room_updated` list in `settings.modes` only the
-  rounds `current_index` has reached. The lobby names none, admins' included: screens get shared.
+  rounds `current_index` has reached, and the standings `next_segment`. The lobby names none, admins' included: screens get shared.
   With `surprise_modes`, admins get the same withheld list: the host did not pick them either.
 - An admin can read the room's custom questions before the game. They cannot score on them.
 - An invite-only room's key and join requests reach admins only. The key is a column, not a setting.
@@ -566,7 +569,7 @@ questions, answers included: players' suggestions and the packs, never a room's.
 `POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, code?, settings, custom_questions}`, in one transaction:
 
 1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
-   spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
+   spaces, 1–12 Latin letters (accents allowed), digits, spaces, `_` and `-`.
 2. Rate limit per IPv4 address or IPv6 /64.
 3. Take `code` if sent: one a draw could give (422 `bad_code`, checked before the limiter), else 409
    `code_taken`. Without it, draw from `room-words.json` with `secrets.SystemRandom`: five plain

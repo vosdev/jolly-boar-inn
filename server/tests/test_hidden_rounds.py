@@ -8,6 +8,8 @@ import json
 from typing import Any
 from uuid import UUID
 
+import pytest
+
 from app.modes import offered, questions_bounds
 from app.rooms.settings import RoomSettings
 from tests.game_api import Game, Seat, reseat
@@ -28,6 +30,7 @@ ROOM_KEYS = {
     "reveal_seconds",
     "estimated_seconds",
     "segment",
+    "played",
     "finished_at",
 }
 SETTINGS_KEYS = {
@@ -44,8 +47,9 @@ SETTINGS_KEYS = {
 }
 
 
-def surprise(table: Any, hide_rounds: bool = True) -> Game:
-    """Three rounds of five, listed, with events in them and nothing moving unless skipped.
+def surprise(table: Any, hide_rounds: bool = True, mode_order: str = "listed") -> Game:
+    """Three rounds of five, listed unless shuffled, with events in them and nothing moving
+    unless skipped.
 
     Zezima's socket stays up for the whole game; Woox is the one a test reconnects.
     """
@@ -53,7 +57,7 @@ def surprise(table: Any, hide_rounds: bool = True) -> Game:
         "Zezima",
         "Woox",
         hide_rounds=hide_rounds,
-        mode_order="listed",
+        mode_order=mode_order,
         random_event_frequency="more",
         reveal_seconds=30,
         splash=True,
@@ -98,14 +102,17 @@ def frames_until_finished(seat: Seat) -> list[dict[str, Any]]:
     return frames
 
 
-def round_starts(frame: dict[str, Any], index: int) -> bool:
-    """Whether ``frame`` is the first to name round ``index``: its splash."""
-    return frame["t"] == "room_updated" and (frame["room"]["segment"] or {}).get("index") == index
+def round_named(frame: dict[str, Any], index: int) -> bool:
+    """Whether ``frame`` is the first to name round ``index``: the standings before it."""
+    if frame["t"] != "room_updated":
+        return False
+    room = frame["room"]
+    return (room.get("next_segment") or room["segment"] or {}).get("index") == index
 
 
 def before_round(frames: list[dict[str, Any]], index: int) -> str:
-    """Every frame before round ``index`` started, serialised."""
-    start = next(at for at, frame in enumerate(frames) if round_starts(frame, index))
+    """Every frame before round ``index`` was named, serialised."""
+    start = next(at for at, frame in enumerate(frames) if round_named(frame, index))
     return json.dumps(frames[:start])
 
 
@@ -113,7 +120,7 @@ def played_modes(room: dict[str, Any]) -> list[str]:
     return [entry["mode"] for entry in room["settings"]["modes"]]
 
 
-def test_a_player_hears_of_no_round_before_it_starts(table) -> None:
+def test_a_player_hears_of_no_round_before_the_standings_name_it(table) -> None:
     game = surprise(table)
     play_until(game, finished)
     frames = frames_until_finished(game.players[0])
@@ -121,6 +128,10 @@ def test_a_player_hears_of_no_round_before_it_starts(table) -> None:
     assert "price_is_right" not in first
     assert "guess_examine" not in first
     assert "guess_examine" not in before_round(frames, 2)
+    standings = [
+        m["room"] for m in frames if m["t"] == "room_updated" and m["room"]["phase"] == "standings"
+    ]
+    assert [room["next_segment"]["mode"] for room in standings] == PLAYED[1:]
     # Then the splash reveals it, and every round has been played by the end.
     last = [m["room"] for m in frames if m["t"] == "room_updated"][-1]
     assert played_modes(last) == PLAYED
@@ -185,7 +196,39 @@ def test_a_reconnect_reveals_the_rounds_played_and_the_current_one(table, client
         again = reseat(game.players[1], ws)
         welcome = again.take("welcome")
     assert played_modes(welcome["room"]) == PLAYED[:2]
+    assert welcome["room"]["played"] == PLAYED[:1]
     assert "guess_examine" not in json.dumps(welcome)
+
+
+def splash_of(index: int) -> Any:
+    def done(message: dict[str, Any]) -> bool:
+        room = message.get("room") or {}
+        return room.get("phase") == "splash" and (room.get("segment") or {}).get("index") == index
+
+    return done
+
+
+@pytest.mark.parametrize("hide_rounds", [False, True])
+def test_a_shuffled_splash_names_the_rounds_played_and_no_later_one(table, hide_rounds) -> None:
+    game = surprise(table, hide_rounds=hide_rounds, mode_order="random")
+    play_until(game, finished)
+    order = [segment.mode for segment in game.room.segments]
+    frames = frames_until_finished(game.players[0])
+    rooms = [m["room"] for m in frames if m["t"] == "room_updated" and m["room"]["segment"]]
+    splashes = [room for room in rooms if room["phase"] == "splash"]
+    assert [room["played"] for room in splashes] == [[], order[:1], order[:2]]
+    for room in rooms:
+        assert room["played"] == order[: room["segment"]["index"]]
+
+
+def test_a_reconnect_on_the_third_round_names_the_first_two_hosts(table, client) -> None:
+    game = surprise(table, mode_order="random")
+    play_until(game, splash_of(2))
+    order = [segment.mode for segment in game.room.segments]
+    with client.websocket_connect(f"/ws/{game.code}") as ws:
+        welcome = reseat(game.players[1], ws).take("welcome")
+    assert welcome["room"]["segment"]["index"] == 2
+    assert welcome["room"]["played"] == order[:2]
 
 
 def test_a_game_ended_early_keeps_its_unplayed_rounds_hidden(table, client) -> None:
@@ -219,7 +262,8 @@ def test_a_room_without_surprise_rounds_sends_what_it_always_sent(table, client)
     frames = frames_until_finished(game.players[0])
     rooms = [welcome["room"]] + [m["room"] for m in frames if m["t"] == "room_updated"]
     for room in rooms:
-        assert set(room) == ROOM_KEYS
+        standings = room["phase"] == "standings"
+        assert set(room) == ROOM_KEYS | ({"next_segment"} if standings else set())
         assert set(room["settings"]) == SETTINGS_KEYS
         assert played_modes(room) == PLAYED
     assert [m for m in frames if m["t"] == "room_updated"] == [

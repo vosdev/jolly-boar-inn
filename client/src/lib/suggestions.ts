@@ -98,12 +98,12 @@ export function questionPreview(content: QuestionContent): OpenQuestion {
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
   if (content.type === 'matching') return matchingPreview(content as MatchingQuestion, mode)
   if (content.type === 'pick_from_list') {
-    // No picture: there is none until the import finds the NPC's id.
+    // No picture or list: neither exists until the import finds the NPC's id.
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
     return {
       ...open,
       type: 'pick_from_list',
-      view: { prompt: content.payload.prompt, vocab: 'npcs' },
+      view: { prompt: content.payload.prompt },
     }
   }
   return previewOf(content as CustomQuestion, mode === 'random_event' ? undefined : mode)
@@ -511,6 +511,64 @@ export function itemProblem(
   const wanted = fold(content.name.trim())
   if (roster.some((entry) => fold(entry.name) === wanted)) return 'Already in the game.'
   return textProblem(content.name, ITEM_NAME_MAX, 'the item’s name')
+}
+
+// --- steps in the suggestion form ------------------------------------------------------
+
+/** One step in the editor's progress line and step cards. */
+export interface SuggestStep {
+  title: string
+  optional?: boolean
+  done: boolean
+  missing?: boolean
+}
+
+/** Whether a question choice offers the optional extras card (intro, picture item, or explanation). */
+export function hasExtras(choice: Choice): boolean {
+  if (choice.kind !== 'question') return false
+  return (
+    (choice.explanation ?? true) || Boolean(choice.pictureItem) || INTRO_ROUNDS.includes(choice.id)
+  )
+}
+
+/** The steps a suggestion editor walks through, with their completion and missing state. */
+export function stepsFor(state: {
+  choice: Choice
+  attempted: boolean
+  questionDone: boolean
+  extrasFilled: boolean
+  extrasValid: boolean
+  sourceDone: boolean
+  creditDone: boolean
+}): SuggestStep[] {
+  const { choice, attempted, questionDone, extrasFilled, extrasValid, sourceDone, creditDone } =
+    state
+  if (choice.kind === 'item') {
+    return [
+      { title: 'Item', done: questionDone, missing: attempted && !questionDone },
+      { title: 'Credit', done: creditDone, missing: attempted && !creditDone },
+    ]
+  }
+  const steps: SuggestStep[] = [
+    { title: 'Question', done: questionDone, missing: attempted && !questionDone },
+  ]
+  if (hasExtras(choice)) {
+    steps.push({
+      title: 'Extras',
+      optional: true,
+      done: extrasFilled && extrasValid,
+      missing: attempted && !extrasValid,
+    })
+  }
+  steps.push(
+    {
+      title: choice.wikiOnly ? 'Wiki page' : 'Source',
+      done: sourceDone,
+      missing: attempted && !sourceDone,
+    },
+    { title: 'Credit', done: creditDone, missing: attempted && !creditDone },
+  )
+  return steps
 }
 
 // --- the queue -------------------------------------------------------------------------

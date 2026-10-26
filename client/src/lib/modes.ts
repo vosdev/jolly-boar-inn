@@ -21,6 +21,8 @@
  * that *draw* a question live in `components/questions/index.ts` instead.
  */
 
+import type { Scoring } from './protocol'
+
 /** An NPC who presents a round: its art is `lib/npcs.ts`, found by `id`. */
 export interface Host {
   id: string
@@ -33,10 +35,154 @@ export interface HostLines {
   host: Host
   /** On the splash's scroll, between the mode's name and the blurb. */
   greeting: string
-  /** At the foot of the scroll once you have answered, while the room catches up. */
+  /**
+   * While a question is open, before you answer: typed before the stem, and the only place
+   * a mode's standing instruction is said. At most `ASK_MAX` letters, the hold's budget.
+   */
+  ask: string[]
+  /** Once you have answered, while the room catches up, until `answer_ack` says how fast. */
+  waiting: string[]
+  /** In `waiting`'s place once `answer_ack` gives a band: how fast, or how early, you were. */
+  pace: Record<Pace, string[]>
+  /** On the reveal, before the explanation: the room's line, for the TV and whoever could not answer. */
+  reveal: string[]
+  /** On the reveal, in `reveal`'s place, to a player who could answer: by how they did. */
+  verdict: Record<Verdict, string[]>
+}
+
+/** How a player did on a question, which picks the host's reveal line for them. */
+export type Verdict = 'right' | 'partial' | 'wrong' | 'missed'
+
+export const VERDICTS: readonly Verdict[] = ['right', 'partial', 'wrong', 'missed']
+
+/**
+ * How soon an answer landed: a `speed` band of 1–2 is quick, 3 middling and 4–5 late; a
+ * `step` answer on the first step is early, any after it later.
+ */
+export type Pace = 'quick' | 'middling' | 'late' | 'early' | 'later'
+
+export const PACES: readonly Pace[] = ['quick', 'middling', 'late', 'early', 'later']
+
+/** The pace of an acked answer, or null for one with no band, scored on accuracy alone. */
+export function paceOf(ack: { scoring: Scoring; band: number | null } | null): Pace | null {
+  if (ack === null || ack.band === null || ack.scoring === 'accuracy') return null
+  if (ack.scoring === 'step') return ack.band <= 1 ? 'early' : 'later'
+  return ack.band <= 2 ? 'quick' : ack.band === 3 ? 'middling' : 'late'
+}
+
+/** What a player has heard of their own answer, which picks the host's lines for them. */
+export interface Heard {
+  verdict?: Verdict | null
+  pace?: Pace | null
+}
+
+/** The longest ask line: the server's hold counts this many letters for it (`rooms/hold.py`). */
+export const ASK_MAX = 50
+
+/** The three lines a host says around one question. */
+export interface Spoken {
+  ask: string
   waiting: string
-  /** At the foot of the scroll on the reveal, before your points. */
   reveal: string
+}
+
+/** What `pickLines` needs of a question: its place in the room's list and its round's start. */
+export interface Placed {
+  index: number
+  segment: { start: number }
+}
+
+/**
+ * The lines `lines` says around question `at`, the same on every screen in the room; the
+ * waiting line is `heard.pace`'s and the reveal line `heard.verdict`'s, when given.
+ *
+ * Each list of lines is shuffled once per round, seeded by the round's start, and the round's
+ * questions walk through the shuffle in order. Any two questions fewer than a list's length
+ * apart get different lines, so neighbours never repeat, a random event between them or not.
+ */
+export function pickLines(lines: HostLines, at: Placed, heard: Heard = {}): Spoken {
+  const { verdict = null, pace = null } = heard
+  const step = Math.max(0, at.index - at.segment.start)
+  const pick = (list: string[], kind: string): string => {
+    const order = shuffled(list.length, `${lines.host.id}:${kind}:${at.segment.start}`)
+    return list[order[step % list.length] ?? 0] ?? ''
+  }
+  return {
+    ask: pick(lines.ask, 'ask'),
+    waiting: pace === null ? pick(lines.waiting, 'waiting') : pick(lines.pace[pace], pace),
+    reveal: verdict === null ? pick(lines.reveal, 'reveal') : pick(lines.verdict[verdict], verdict),
+  }
+}
+
+/** 0..n-1 in an order fixed by `seed`: a Fisher-Yates shuffle on a string hash. */
+function shuffled(n: number, seed: string): number[] {
+  let state = 2166136261
+  for (const char of seed) state = Math.imul(state ^ char.charCodeAt(0), 16777619) >>> 0
+  const next = (): number => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0
+    return state / 2 ** 32
+  }
+  const order = Array.from({ length: n }, (_, i) => i)
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1))
+    ;[order[i], order[j]] = [order[j]!, order[i]!]
+  }
+  return order
+}
+
+/**
+ * The Wise Old Man handing out the final's trophies, first place to fifth (section 11 of
+ * ideas/design.md). He presents every final whoever hosted its rounds, so these are his
+ * alone. Each line names the place and the tier and ends on "…": the scroll answers with
+ * the names.
+ */
+export const TROPHY_LINES: readonly (readonly string[])[] = [
+  [
+    'For 1st place, the diamond trophy goes to…',
+    'Top of the hiscores! 1st place and the diamond trophy go to…',
+    'The diamond trophy. 1st place. Gz to…',
+    'In all my years… 1st place, and the diamond trophy, goes to…',
+  ],
+  [
+    'For 2nd place, the platinum trophy goes to…',
+    'So close! 2nd place, and the platinum trophy, goes to…',
+    'The platinum trophy, for a hard-fought 2nd place, goes to…',
+  ],
+  [
+    'For 3rd place, the gold trophy goes to…',
+    '3rd place, and a gold trophy. Not bad at all. For…',
+    'The gold trophy, and 3rd place, goes to…',
+  ],
+  [
+    'For 4th place, the silver trophy goes to…',
+    '4th place! In my day that earned a nod. Today, silver, for…',
+    'The silver trophy, for 4th place, goes to…',
+  ],
+  [
+    'For 5th place, the bronze trophy goes to…',
+    '5th place, and a bronze trophy, for steady gains. To…',
+    'Every hiscore starts somewhere. 5th place, and bronze, for…',
+  ],
+]
+
+/** For a place several players share: `{place}` is "2nd", `{tier}` "platinum". */
+export const SHARED_TROPHY_LINES: readonly string[] = [
+  'Tied for {place} place, a {tier} trophy each for…',
+  '{place} place is shared! A {tier} trophy each for…',
+  'Level on points! Tied for {place}, a {tier} trophy for each of…',
+]
+
+const PLACE_SUFFIXES = ['st', 'nd', 'rd', 'th', 'th']
+
+/**
+ * The Wise Old Man presenting rank `rank` (1 to 5) and its `tier`, `tied` when several hold
+ * it. `seed` picks among the lines, so one game's final says the same on every screen.
+ */
+export function trophyLine(rank: number, tier: string, tied: boolean, seed: string): string {
+  const list = tied ? SHARED_TROPHY_LINES : (TROPHY_LINES[rank - 1] ?? [])
+  const line = list[shuffled(list.length, `trophy:${rank}:${tied}:${seed}`)[0] ?? 0] ?? ''
+  const place = `${rank}${PLACE_SUFFIXES[rank - 1] ?? 'th'}`
+  return line.replaceAll('{place}', place).replaceAll('{tier}', tier)
 }
 
 export interface Mode extends HostLines {
@@ -76,8 +222,66 @@ export const INNKEEPER: Host = { id: 'innkeeper', name: 'The Innkeeper' }
 export const GENERIC_HOST: HostLines = {
   host: INNKEEPER,
   greeting: 'Welcome to the Jolly Boar Inn. This round is on the house.',
-  waiting: 'Waiting on the rest of the table.',
-  reveal: "Let's see how you did.",
+  ask: [
+    "Here's one for the table.",
+    'Next question, on the house.',
+    'Have a think about this one.',
+  ],
+  waiting: [
+    'Waiting on the rest of the table.',
+    'The others are still thinking.',
+    'Another drink while they finish?',
+  ],
+  pace: {
+    quick: [
+      'Quick as a barmaid on a busy night!',
+      "Fast! Your answer's in before the ale settled.",
+      'That was quick. Now we wait on the slow drinkers.',
+    ],
+    middling: [
+      'In at a steady pace. Now we wait.',
+      'Not the first, not the last. Have a sip.',
+      'A fair speed. The others are still thinking.',
+    ],
+    late: [
+      'Just in time! Nearly called last orders on you.',
+      'Cutting it fine, friend. Just in time!',
+      'Just in time! The bell was about to ring.',
+    ],
+    early: [
+      "Barely a glimpse and you've answered!",
+      "Brave, answering that early. Let's see.",
+      'Early bird gets the first pint.',
+    ],
+    later: [
+      'You took a good long look. Fair enough.',
+      'Waited for a clearer view, did you? Wise.',
+      'Better late and sure, I always say.',
+    ],
+  },
+  reveal: ["Let's see how you did.", "Here's the answer.", 'Right, the answer.'],
+  verdict: {
+    right: [
+      "Spot on. That one's on the house.",
+      'Right you are! Pour this one a pint.',
+      'Correct! The whole inn salutes you.',
+    ],
+    partial: [
+      'Close enough for a half pint.',
+      'Not bad. Most of the way there.',
+      "Near enough. I'll pour you a half.",
+    ],
+    wrong: [
+      'Not this time, friend.',
+      'Ah, no. Drown your sorrows at the bar.',
+      "Wrong, I'm afraid. Next round's coming.",
+    ],
+    missed: [
+      'Too slow! Your drink went flat.',
+      'No answer? The table waited for you.',
+      'Nothing from you that time, friend.',
+    ],
+  },
 }
 
 export const MODES: Record<string, Mode> = {
@@ -88,8 +292,73 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'ali_morrisane', name: 'Ali Morrisane' },
     greeting: 'Ah, my friend! Come, come, see what Ali has on his stall today.',
     blurb: 'Two items, one question: which is worth more, or less? Ali is always honest. Mostly.',
-    waiting: 'Patience, my friend. A good trade is never rushed.',
-    reveal: 'Who knows the value of things?',
+    ask: [
+      "Look closely, my friend. Ali's prices never lie.",
+      'Two fine wares, one honest question.',
+      'Come, compare! Ali hides nothing. Almost nothing.',
+      'A bargain hunter like you knows this one.',
+    ],
+    waiting: [
+      'Patience, my friend. A good trade is never rushed.',
+      'Ali will wait. Ali is very good at waiting.',
+      'While we wait, may I interest you in a magic carpet?',
+      'No rush, no rush. The stall is not going anywhere.',
+    ],
+    pace: {
+      quick: [
+        'So fast! Ali has never seen such a quick trader.',
+        'Quick as a desert wind, my friend!',
+        'You decide fast. Ali likes a decisive customer.',
+      ],
+      middling: [
+        'A considered choice. Ali respects that.',
+        'Not too fast, not too slow. A wise trader.',
+        'You weighed it well, my friend. Now we wait.',
+      ],
+      late: [
+        'Just in time, my friend! The stall nearly closed.',
+        'Ah, just in time! Ali was packing up.',
+        'Just in time! Another moment and no deal.',
+      ],
+      early: [
+        'You barely looked! Ali admires your nerve.',
+        'So early! You trust your eye, my friend.',
+        'An early bid! Bold, very bold.',
+      ],
+      later: [
+        'You looked long and hard. Ali understands.',
+        'A careful buyer waits for the full picture.',
+        'You took your time. A wise merchant does.',
+      ],
+    },
+    reveal: [
+      'Who knows the value of things?',
+      'Ali was right, of course.',
+      'The scales do not lie.',
+      'A fair price, my friend!',
+    ],
+    verdict: {
+      right: [
+        'A shrewd eye, my friend! Ali is impressed.',
+        'Correct! You would make a fine merchant.',
+        'Right! Ali could use a partner like you.',
+      ],
+      partial: [
+        'Almost, my friend. Almost a bargain.',
+        'Half right is still half a profit!',
+        'Not bad! Ali gives you a small discount.',
+      ],
+      wrong: [
+        'Ah, my friend, you have been swindled.',
+        'Wrong! But Ali will still sell you a carpet.',
+        'No, no. Ali weeps for your coin purse.',
+      ],
+      missed: [
+        'No offer? Ali cannot haggle with silence.',
+        'You said nothing! The deal walked away.',
+        'Silence, my friend? That is no way to trade.',
+      ],
+    },
     // Which of the two costs more, on the scroll; the names are the buttons below it.
     stem: 'more_less',
   },
@@ -100,9 +369,74 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'grand_exchange_clerk', name: 'Grand Exchange Clerk' },
     greeting: 'Welcome to the Grand Exchange. How may I help you today?',
     blurb: 'One item, a range of prices. Slide to what it really trades for on the Exchange.',
-    waiting: 'Your offer has been placed. Please wait while the market catches up.',
-    reveal: 'Your offer has completed.',
-    // The item and the question, above a slider whose prices would not say what they price.
+    ask: [
+      'What does this item go for on the Grand Exchange?',
+      'What would this item fetch on the Grand Exchange?',
+      "Please estimate this item's Grand Exchange price.",
+      'What does this trade for on the Grand Exchange?',
+    ],
+    waiting: [
+      'Your offer has been placed. Please wait while the market catches up.',
+      'Your offer is being processed. Thank you for your patience.',
+      'Please hold. The market is busy this evening.',
+      'Offers are matched in the order received. Please wait.',
+    ],
+    pace: {
+      quick: [
+        'Your offer was placed promptly. Thank you.',
+        'A swift offer. The market appreciates speed.',
+        'Offer received in record time.',
+      ],
+      middling: [
+        'Your offer has been placed. Please wait.',
+        'Offer received at a standard pace.',
+        'Your offer is in the queue. Thank you.',
+      ],
+      late: [
+        'Your offer arrived just in time.',
+        'Just in time. Your offer has been accepted.',
+        'Offer received just in time, before closing.',
+      ],
+      early: [
+        'An early offer. Please wait for the market.',
+        'Your offer was placed early. Noted.',
+        'Early offers are processed first. Thank you.',
+      ],
+      later: [
+        'Your offer was placed after some deliberation.',
+        'A late offer, but a valid one.',
+        'Your offer has been received. Please wait.',
+      ],
+    },
+    reveal: [
+      'Your offer has completed.',
+      'The market has spoken.',
+      'Please collect your coins.',
+      'Thank you for trading.',
+    ],
+    verdict: {
+      right: [
+        'Your offer was spot on. Congratulations.',
+        'An excellent estimate. Thank you for trading.',
+        'Your offer matched the market exactly.',
+      ],
+      partial: [
+        'Your offer has partially completed.',
+        'Close to market price. Well estimated.',
+        'Your offer was near the mark.',
+      ],
+      wrong: [
+        "I'm afraid your offer did not complete.",
+        'That offer was far from market price.',
+        'Your offer has been returned unfilled.',
+      ],
+      missed: [
+        'No offer was placed. Please try again.',
+        "Your offer slot is empty, I'm afraid.",
+        'We received no offer from you.',
+      ],
+    },
+    // The item and its picture, above a slider; what to do with them is the host's to say.
     stem: 'price',
   },
   guess_examine: {
@@ -112,9 +446,74 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'examiner', name: 'The Examiner' },
     greeting: 'Pens down, eyes up. Your examination begins now.',
     blurb: 'I shall read you an examine line. Pick what it belongs to.',
-    waiting: 'No talking while the others finish, please.',
-    reveal: 'Let us mark your paper.',
-    // The examine line is the question; the buttons below it are only how you answer.
+    ask: [
+      'What is this the examine of?',
+      'Next question: what is this the examine of?',
+      'Read it carefully. What is this the examine of?',
+      'Name the thing this examine belongs to.',
+    ],
+    waiting: [
+      'No talking while the others finish, please.',
+      'Eyes on your own paper, please.',
+      'Pens down when you are done. Others are still writing.',
+      'I shall collect the papers shortly.',
+    ],
+    pace: {
+      quick: [
+        'Finished already? Check your work.',
+        'Remarkably quick. Sit quietly, please.',
+        'First paper in. Do not gloat.',
+      ],
+      middling: [
+        'Handed in on time. Please wait in silence.',
+        'A steady pace. Others are still writing.',
+        'Paper received. Eyes front, please.',
+      ],
+      late: [
+        'Just in time. I nearly called pens down.',
+        'Just in time, by the skin of your teeth.',
+        'Just in time. Do not make a habit of it.',
+      ],
+      early: [
+        'An early answer. Confident, or reckless?',
+        'Answered early. I shall mark it closely.',
+        'You barely read the question. We shall see.',
+      ],
+      later: [
+        'You took your time. Thoroughness is good.',
+        'Answered late, but answered.',
+        'A careful candidate. I shall note it.',
+      ],
+    },
+    reveal: [
+      'Let us mark your paper.',
+      'Time is up. Papers, please.',
+      'Let us see the answer key.',
+      'The marking is done.',
+    ],
+    verdict: {
+      right: [
+        'Full marks. Well done.',
+        'Correct. A credit to the class.',
+        'Top marks. You may look smug.',
+      ],
+      partial: [
+        'Partial marks. Show more working next time.',
+        'Some credit, for some of it.',
+        'Half marks. Not a pass, not a fail.',
+      ],
+      wrong: [
+        'Incorrect. See me after class.',
+        'Wrong. I shall note that in red ink.',
+        "No marks for that, I'm afraid.",
+      ],
+      missed: [
+        'A blank paper. How disappointing.',
+        'You left it blank. No marks.',
+        'Nothing written? Pens up sooner next time.',
+      ],
+    },
+    // The examine line alone; the host asks what it belongs to.
     stem: 'examine',
   },
   sort_it_out: {
@@ -125,8 +524,73 @@ export const MODES: Record<string, Mode> = {
     greeting: 'Welcome to the Varrock Museum. Mind the display cases.',
     blurb:
       'I have muddled up my exhibits again. Put them back in order before the curator notices.',
-    waiting: 'Take your time. History is not going anywhere.',
-    reveal: 'Let us check the records.',
+    ask: [
+      'Quickly, before the curator walks by!',
+      'These exhibits are all out of order again.',
+      'Help me put this display right, would you?',
+      'Mind how you handle them. Some are very old.',
+    ],
+    waiting: [
+      'Take your time. History is not going anywhere.',
+      'I shall dust the cases while we wait.',
+      'The curator is still in the other wing. For now.',
+      'Some of these exhibits have waited centuries. A moment more is fine.',
+    ],
+    pace: {
+      quick: [
+        'My word, that was quick! Careful with them.',
+        "Done already? You'd make a fine curator.",
+        'Quick hands! I hope nothing got chipped.',
+      ],
+      middling: [
+        'A steady hand. History rewards patience.',
+        'Done at a museum pace. Very proper.',
+        'Neatly done. Let us wait for the others.',
+      ],
+      late: [
+        'Just in time! I heard the curator coming.',
+        'Just in time! The doors were about to close.',
+        'Phew, just in time! Not a moment to spare.',
+      ],
+      early: [
+        'Sorted before the dust settled! Remarkable.',
+        'So early! You must know your history.',
+        "An early answer! I hope you're right.",
+      ],
+      later: [
+        'You studied them closely. Very scholarly.',
+        'A thorough look before deciding. Good.',
+        'Late, but a historian is never rushed.',
+      ],
+    },
+    reveal: [
+      'Let us check the records.',
+      'Back in their proper places.',
+      'The archives agree.',
+      'Now for the right order.',
+    ],
+    verdict: {
+      right: [
+        'Perfect! The curator will never know.',
+        'Every exhibit in its place. Splendid!',
+        'Exactly right! You have an eye for history.',
+      ],
+      partial: [
+        'Mostly right. I shall fix the rest myself.',
+        'Close! Only a few out of place.',
+        'Nearly there. Good enough for a quiet day.',
+      ],
+      wrong: [
+        'Oh dear. The curator will have my head.',
+        "That order is entirely wrong, I'm afraid.",
+        "Hmm. Even I don't muddle them that badly.",
+      ],
+      missed: [
+        "You didn't touch a thing! Still muddled.",
+        'Nothing moved? The display stays a mess.',
+        'No answer? The exhibits gather dust.',
+      ],
+    },
     // Each question says what it sorts by; the entries below it are only what gets sorted.
     stem: 'text',
   },
@@ -137,8 +601,73 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'cracked_jennys_tea_cup', name: "Cracked Jenny's Tea Cup" },
     greeting: 'Squawk! Who said that? Who said that?',
     blurb: 'I repeat everything I hear. Tell me who said it first.',
-    waiting: 'Pretty Polly waits. Pretty Polly waits.',
-    reveal: 'Squawk! The answer!',
+    ask: [
+      'Squawk! Who said it? Who said it?',
+      'Polly heard this! Who said it first?',
+      'Squawk! Somebody said this! Who?',
+      'Polly repeats! Polly repeats! Who said it?',
+    ],
+    waiting: [
+      'Pretty Polly waits. Pretty Polly waits.',
+      'Squawk! Waiting! Waiting!',
+      'Polly wants a cracker. Polly wants an answer.',
+      'Squawk! Hurry up, hurry up!',
+    ],
+    pace: {
+      quick: [
+        'Squawk! Fast! Fast!',
+        'Quick! Quick! Polly impressed!',
+        'Squawk! Speedy bird! Speedy bird!',
+      ],
+      middling: [
+        'Squawk! Answer in! Answer in!',
+        'Polly heard you. Polly waits.',
+        'Not fast, not slow! Squawk!',
+      ],
+      late: [
+        'Squawk! Just in time! Just in time!',
+        'Phew! Just in time! Squawk!',
+        'Just in time! Polly almost napped!',
+      ],
+      early: [
+        'Squawk! So early! So early!',
+        'Early bird! Early bird!',
+        'Polly barely spoke! Squawk!',
+      ],
+      later: [
+        'Squawk! Took your time! Took your time!',
+        'Slow bird! Slow bird!',
+        'Squawk! Finally! Finally!',
+      ],
+    },
+    reveal: [
+      'Squawk! The answer!',
+      'Squawk! Polly knew it!',
+      'Who said it? This one!',
+      'Pieces of eight! Squawk!',
+    ],
+    verdict: {
+      right: [
+        'Squawk! Right! Polly gives you a cracker!',
+        'Clever! Clever! Squawk!',
+        'Squawk! You knew it! You knew it!',
+      ],
+      partial: [
+        'Squawk! Nearly! Nearly!',
+        'Half a cracker! Squawk!',
+        'Close! Close! Polly almost proud!',
+      ],
+      wrong: [
+        'Squawk! Wrong! Wrong!',
+        'Polly knows better! Squawk!',
+        'No cracker for you! Squawk!',
+      ],
+      missed: [
+        'Squawk! Cat got your tongue?',
+        'Nothing? Polly heard nothing!',
+        'Squawk! Say something! Say something!',
+      ],
+    },
     stem: 'quote',
   },
   know_your_content_creator: {
@@ -148,8 +677,73 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'gnome_child', name: 'Gnome child' },
     greeting: 'Do you ever think about what it means to watch someone else play?',
     blurb: 'Streamers say things, and things are said about streamers. Show me what you know.',
-    waiting: 'Time is a construct. So is waiting.',
-    reveal: 'Now you know. Or always knew.',
+    ask: [
+      'But do you really know them?',
+      'Is a streamer real if nobody watches?',
+      'Think about it. Then think about it again.',
+      'We are all content. Some of us create it.',
+    ],
+    waiting: [
+      'Time is a construct. So is waiting.',
+      'Do the others think, or do they only answer?',
+      'I have been here forever. A little longer is fine.',
+      'Waiting is just watching with nothing to watch.',
+    ],
+    pace: {
+      quick: [
+        'So fast. Did you even think about it?',
+        'Quick. Some people just know things.',
+        'You answered before the thought finished.',
+      ],
+      middling: [
+        'Not fast, not slow. Just there.',
+        'An answer at the speed of thought.',
+        'You took exactly as long as you took.',
+      ],
+      late: [
+        'Just in time. Or was time just in you?',
+        'Just in time. Time was always on your side.',
+        'Just in time. Does time even exist?',
+      ],
+      early: [
+        'You answered before you saw. Interesting.',
+        'Early. Do you see the future?',
+        'So soon. Perhaps you always knew.',
+      ],
+      later: [
+        'You waited to see more. So do we all.',
+        'Later is just now, but further away.',
+        'You took your time. Time took you too.',
+      ],
+    },
+    reveal: [
+      'Now you know. Or always knew.',
+      'The truth was always there.',
+      'Was it ever really a question?',
+      'Knowledge is a stream.',
+    ],
+    verdict: {
+      right: [
+        'You knew. Perhaps you always knew.',
+        'Correct. But what is correct, really?',
+        'Right. The stream flows through you.',
+      ],
+      partial: [
+        'Partly right. Like most things.',
+        'Some of it was true. Some of it always is.',
+        'Half known is still half known.',
+      ],
+      wrong: [
+        "Wrong. But aren't we all, sometimes?",
+        'That was not it. Nothing ever is.',
+        "Wrong. It's fine. It's all content.",
+      ],
+      missed: [
+        'You said nothing. That says a lot.',
+        'Silence is also an answer. Not this one.',
+        'No answer. Were you even watching?',
+      ],
+    },
     // Quotes and plain trivia share the round; the stem tells them apart by `quote`.
     stem: 'quote',
   },
@@ -160,8 +754,73 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'zoo_keeper', name: 'Zoo keeper' },
     greeting: 'Welcome to the zoo! Mind the bars, some of these bite.',
     blurb: 'Every beast in Gielinor has a page in my book. Tell me what you know about them.',
-    waiting: 'Feeding time. Back in a moment.',
-    reveal: "Let's check the plaque.",
+    ask: [
+      "Here's one from my book. Do you know it?",
+      'Careful, this one bites. What do you know?',
+      "Every beast has a page. Let's read this one.",
+      'Step up to the enclosure and have a look.',
+    ],
+    waiting: [
+      'Feeding time. Back in a moment.',
+      'Hold on, one of the penguins has got out again.',
+      'Keep your hands outside the bars while we wait.',
+      "The monkeys are restless. Won't be long.",
+    ],
+    pace: {
+      quick: [
+        'Quick! Faster than a startled chinchompa.',
+        'That was fast! You know your beasts.',
+        "Speedy! You'd catch the penguins in no time.",
+      ],
+      middling: [
+        'A steady pace. Like a tortoise, but quicker.',
+        'In at a fair trot. Now we wait.',
+        'Not bad. The cows take longer.',
+      ],
+      late: [
+        'Just in time! The gates were closing.',
+        'Just in time! Feeding time nearly started.',
+        'Just in time, before the monkeys got it.',
+      ],
+      early: [
+        'Early! You barely saw the beast.',
+        'Answered early! Brave keeper.',
+        'So early! You know your book well.',
+      ],
+      later: [
+        'You had a long look at that one. Fair.',
+        'Waited for a better view. Smart.',
+        'Took your time. That one does bite.',
+      ],
+    },
+    reveal: [
+      "Let's check the plaque.",
+      'Says so right here in my book.',
+      "That's the one on the sign.",
+      'Back in its pen, that one.',
+    ],
+    verdict: {
+      right: [
+        "Spot on! You'd make a fine keeper.",
+        'Right! Have a fish for the penguins.',
+        "Correct! That one's on the plaque.",
+      ],
+      partial: [
+        "Close! You've got half the plaque right.",
+        'Nearly. Mind the bars next time.',
+        "Not bad. Some of that's in my book.",
+      ],
+      wrong: [
+        "No, no. That one would've bitten you.",
+        'Wrong! Back to the gift shop with you.',
+        'Not even close. The monkeys knew that one.',
+      ],
+      missed: [
+        'No answer? Too busy feeding the ducks?',
+        "You missed it! Feeding time's over.",
+        'Nothing from you. Lost in the reptile house?',
+      ],
+    },
     // Every question names its monster in the sentence, whatever answers it below.
     stem: 'text',
   },
@@ -172,8 +831,73 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'nieve', name: 'Nieve' },
     greeting: 'Got a task for you. Not a kill, a question.',
     blurb: 'Your task: know the loot. Who drops it, what they drop, and how rarely.',
-    waiting: 'Patience. Good drops take time.',
-    reveal: 'The loot is on the floor.',
+    ask: [
+      'Your next task. Know your loot.',
+      "Here's an easy one. Or is it?",
+      'Every slayer should know this one.',
+      'Think before you answer. Like before you attack.',
+    ],
+    waiting: [
+      'Patience. Good drops take time.',
+      'Still hunting? I can wait.',
+      'Took me a hundred kills to see that one. Take your time.',
+      'Rare drops come to those who wait.',
+    ],
+    pace: {
+      quick: [
+        "Fast. That's a quick kill.",
+        'Quick answer. Good reflexes.',
+        "Speedy. You'd be great at bossing.",
+      ],
+      middling: [
+        'Steady pace. Like a good slayer trip.',
+        "Answer's in. Now we wait for the loot.",
+        'A fair speed. Nothing wrong with that.',
+      ],
+      late: [
+        'Just in time. That was nearly a wipe.',
+        'Just in time. Cutting it close.',
+        'Just in time. Eat food sooner next time.',
+      ],
+      early: [
+        "Early. You didn't need to see more.",
+        'Answered early. Confident.',
+        "Barely saw it and you've called it.",
+      ],
+      later: [
+        'Waited to see more. Safe play.',
+        'Took a while. Better safe than dead.',
+        'A slow kill, but a kill.',
+      ],
+    },
+    reveal: [
+      'The loot is on the floor.',
+      'Check your loot.',
+      'Did you get the drop?',
+      'Task complete.',
+    ],
+    verdict: {
+      right: [
+        'Task complete. Nice work.',
+        "Right. You'd make a decent slayer.",
+        "Correct. That's a clean kill.",
+      ],
+      partial: [
+        'Partly right. Count it as an assist.',
+        'Close. Finish the job next time.',
+        'Some of it. Not a bad trip.',
+      ],
+      wrong: [
+        "Wrong. That's a death in the Wilderness.",
+        'No. Back to Turael for you.',
+        'Missed. Check your slayer helmet.',
+      ],
+      missed: [
+        'No answer? You let the task run off.',
+        'You froze. That gets slayers killed.',
+        'Nothing? Your task timed out.',
+      ],
+    },
     // The prompt still names the item or the monster: a question whose picture is
     // missing has to read without it.
     stem: 'text',
@@ -186,8 +910,73 @@ export const MODES: Record<string, Mode> = {
     greeting: "I'm in the corner for getting it wrong. Let's see if you do better.",
     blurb:
       "Most of these belong together. One does not. Find it before I'm sent back to the corner.",
-    waiting: "Take your time. Nobody's making me stand here for it.",
-    reveal: "Told you it didn't fit.",
+    ask: [
+      "One of these is like me. It doesn't fit.",
+      "Find the one that doesn't belong.",
+      'I picked the wrong one last time. Your turn.',
+      'Something here should be in the corner with me.',
+    ],
+    waiting: [
+      "Take your time. Nobody's making me stand here for it.",
+      "I'll just stand here. In my corner.",
+      "Don't look at me, I always get these wrong.",
+      "I'm counting the bricks. There are a lot of bricks.",
+    ],
+    pace: {
+      quick: [
+        "Wow, so quick! I'm still reading them.",
+        "Fast! I'd still be counting on my fingers.",
+        'That was quick. Show-off.',
+      ],
+      middling: [
+        'Not bad. Quicker than me, anyway.',
+        'In at a normal speed. Normal people speed.',
+        'A fair pace. Better than my usual.',
+      ],
+      late: [
+        "Just in time! That's what I usually do.",
+        'Phew, just in time! I nearly panicked for you.',
+        'Just in time! I know that feeling well.',
+      ],
+      early: [
+        "So early! I hadn't even looked yet.",
+        'Early! Are you sure? I never am.',
+        'You answered early. Very brave.',
+      ],
+      later: [
+        'You took a long look. Me too, always.',
+        "Took your time. Can't rush these.",
+        'Late, like me in the mornings.',
+      ],
+    },
+    reveal: [
+      "Told you it didn't fit.",
+      'That one goes in the corner.',
+      "Even I'd have got that.",
+      'The odd one, out!',
+    ],
+    verdict: {
+      right: [
+        'You got it! Can I sit next to you?',
+        "Right! You'll never end up in my corner.",
+        'Correct. I wish I was clever like you.',
+      ],
+      partial: [
+        "Half right. That's more than I ever get.",
+        'Almost! Only half a corner for you.',
+        "Some of it! Don't tell the teacher.",
+      ],
+      wrong: [
+        'Wrong! Come join me in the corner.',
+        "That's the kind of answer I give.",
+        "Oops. There's room in my corner.",
+      ],
+      missed: [
+        "No answer? Smart. Can't be wrong that way.",
+        'You said nothing. I should try that.',
+        "Nothing? They'll put you in the corner anyway.",
+      ],
+    },
     // The question is the same line each time; the names below it are all there is to read.
     stem: 'text',
   },
@@ -200,8 +989,73 @@ export const MODES: Record<string, Mode> = {
       "Are you team Castle Wars, Barbarian Assault or Pest Control? It doesn't matter tonight. Everyone's on the quiz team!",
     blurb:
       "I've watched every lobby in Gielinor fill up. Prizes, points, places: tell me what you know.",
-    waiting: 'Waiting for enough players. As always.',
-    reveal: 'The game has ended! Who won?',
+    ask: [
+      "Next round's starting! Ready?",
+      'The portal is open. Answer this!',
+      "Saradomin or Zamorak, you'll want to know this.",
+      'Grab your tickets and have a go.',
+    ],
+    waiting: [
+      'Waiting for enough players. As always.',
+      "The next game starts when everyone's in.",
+      'Still waiting on the other team.',
+      'Grab a bandage while you wait.',
+    ],
+    pace: {
+      quick: [
+        'Quick off the mark! First through the portal!',
+        "Fast! You'd win any race at Agility Arena.",
+        'Speedy! First in the lobby!',
+      ],
+      middling: [
+        'In with the main pack. Steady play.',
+        "Answer's in at a fair pace.",
+        'Middle of the pack. Respectable.',
+      ],
+      late: [
+        'Just in time! The portal was closing.',
+        'Just in time! You nearly missed the round.',
+        'Just in time! Right before the whistle.',
+      ],
+      early: [
+        'Early start! Bold strategy.',
+        "First move! Let's see if it pays off.",
+        'Answered early! Confident play.',
+      ],
+      later: [
+        'Waited for the right moment. Tactical.',
+        'Took your time. Patience wins games.',
+        'A late play, but still in the game.',
+      ],
+    },
+    reveal: [
+      'The game has ended! Who won?',
+      'Tickets are on the way.',
+      "Time's up! Flags down!",
+      "Let's see the scoreboard.",
+    ],
+    verdict: {
+      right: [
+        'Victory! Collect your tickets.',
+        'Your team wins! Well played.',
+        "Right! That's a win for your side.",
+      ],
+      partial: [
+        'A draw! Some tickets for your trouble.',
+        'Close game! Have a few tickets.',
+        'Not a win, not a loss. A few tickets.',
+      ],
+      wrong: [
+        'Defeat! Better luck next game.',
+        'Your team loses this one.',
+        'Wrong! The other team takes the flag.',
+      ],
+      missed: [
+        'You never left the waiting room!',
+        'AFK? No tickets for idlers.',
+        "You didn't join the game. No reward.",
+      ],
+    },
     // A pictured item's question still names it: the prompt has to read without the picture.
     stem: 'text',
   },
@@ -213,10 +1067,76 @@ export const MODES: Record<string, Mode> = {
     greeting: 'Parcel for you! No name on it, mind. Only a shadow.',
     blurb:
       "Everyone in Gielinor gets post from me. I'll show you a shadow; you tell me who it's for.",
-    waiting: 'Hold on, still sorting the post.',
-    reveal: 'Signed, sealed, delivered.',
-    // The prompt is the same line every time; the shadow under it is the question.
-    stem: 'text',
+    ask: [
+      "Parcel for you! Who's this one for?",
+      'No name on this one. Only a shadow.',
+      "Here's a shadow. Who's it addressed to?",
+      'Special delivery! Whose shadow is this?',
+    ],
+    waiting: [
+      'Hold on, still sorting the post.',
+      "One more sack to go through, won't be long.",
+      'Keep your eyes peeled for the postman.',
+      'Lost a letter down the well. Back in a tick.',
+    ],
+    pace: {
+      quick: [
+        'Quick! Faster than a teleport tab.',
+        "That was fast! You'd make a fine postie.",
+        'Speedy delivery! I like it.',
+      ],
+      middling: [
+        'Steady pace. Like my rounds.',
+        'In at a fair speed. Now we wait.',
+        'Got it at a nice walking pace.',
+      ],
+      late: [
+        'Just in time! The mail coach was leaving.',
+        'Just in time! Last post of the day.',
+        'Just in time! I was about to give up.',
+      ],
+      early: [
+        "Barely a shadow and you've got it!",
+        'So early! You know your neighbours.',
+        'Answered early! Sharp eyes.',
+      ],
+      later: [
+        'Needed a closer look? Fair enough.',
+        'Waited for more of the shadow. Wise.',
+        'Took your time. Better than lost post.',
+      ],
+    },
+    reveal: [
+      'Signed, sealed, delivered.',
+      'Delivered! Right on time.',
+      "Here's the name on the label.",
+      'Got the address now.',
+    ],
+    verdict: {
+      right: [
+        'Right address! Delivered first time.',
+        'Spot on! You know everyone in Gielinor.',
+        "That's the one! Signed for.",
+      ],
+      partial: [
+        'Close! Right street, wrong door.',
+        'Nearly! Almost the right address.',
+        "Half right. I'll find the rest.",
+      ],
+      wrong: [
+        'Wrong address! Return to sender.',
+        "No, that's somebody else's post.",
+        "Not them! This one's going back.",
+      ],
+      missed: [
+        "Nobody home? I'll leave a card.",
+        'No answer at the door. Typical.',
+        "Couldn't get a signature from you.",
+      ],
+    },
+    // The prompt is the same line every time, which the host's ask line says; the picture
+    // alone is the question.
+    stem: null,
     picture: 'shadow',
   },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
@@ -227,8 +1147,66 @@ export const MODES: Record<string, Mode> = {
     host: { id: 'crowned_frog', name: 'The Frog' },
     greeting: 'The whole road has come in tonight, and every one of them wants a word.',
     blurb: 'One visitor after another, each with a question. Answer them all.',
-    waiting: 'Another visitor will be along shortly.',
-    reveal: 'And off they go.',
+    ask: [
+      'Another visitor, another question.',
+      "Who's at the door this time?",
+      'One more from the road. Listen well.',
+    ],
+    waiting: [
+      'Another visitor will be along shortly.',
+      'Hold still. Someone else is coming up the road.',
+      'The door will open again in a moment.',
+    ],
+    pace: {
+      quick: [
+        'Quick! Our guest is impressed.',
+        "Fast as a frog's tongue!",
+        'So speedy. The visitor barely blinked.',
+      ],
+      middling: [
+        'A fair pace. Our guest nods politely.',
+        'Answered in good time.',
+        'Not too quick, not too slow. Royal.',
+      ],
+      late: [
+        'Just in time! The visitor was leaving.',
+        'Just in time! The door nearly shut.',
+        'Just in time! Our guest was getting cross.',
+      ],
+      early: [
+        'So early! Our guest had barely spoken.',
+        'Answered early! Bold.',
+        'Early! You know this visitor well.',
+      ],
+      later: [
+        'You let them finish. Good manners.',
+        'Took your time. Our guest waited.',
+        'A patient answer. The visitor likes that.',
+      ],
+    },
+    reveal: ['And off they go.', 'Back on the road with them.', 'Next visitor, please.'],
+    verdict: {
+      right: [
+        'Well answered. The visitor is pleased.',
+        "Right! They'll speak well of you on the road.",
+        'Correct. A royal nod for you.',
+      ],
+      partial: [
+        "Half an answer. They'll take it.",
+        'Close. The visitor shrugs and moves on.',
+        'Partly right. Good enough for the road.',
+      ],
+      wrong: [
+        "Wrong. They'll tell the whole road.",
+        'Not quite. The visitor frowns.',
+        "Wrong! Lucky I don't turn you into a frog.",
+      ],
+      missed: [
+        'You ignored our guest. How rude.',
+        'No answer? The visitor wandered off.',
+        'Silence. The road remembers that.',
+      ],
+    },
     stem: 'text',
   },
   // Never offered as a round: the host's questions are random events inside other rounds.
@@ -241,8 +1219,66 @@ export const MODES: Record<string, Mode> = {
     host: INNKEEPER,
     greeting: 'Pull up a stool. The house has a few questions of its own.',
     blurb: 'Your host wrote these ones behind my bar. Whatever they ask, answer it.',
-    waiting: 'Another drink while we wait?',
-    reveal: "Who's buying the next round?",
+    ask: [
+      'Your host wrote this one. Have a go.',
+      'One of the house specials.',
+      "Straight from the host's own notes.",
+    ],
+    waiting: [
+      'Another drink while we wait?',
+      "I'll wipe down the bar while the others finish.",
+      "The table's still thinking. More ale?",
+    ],
+    pace: {
+      quick: [
+        'Quick! Your host will be impressed.',
+        'Fast! Faster than your host wrote it.',
+        'That was quick. Have a drink.',
+      ],
+      middling: [
+        'Answered at a fair pace. More ale?',
+        'A steady answer. Now we wait.',
+        'In good time. The others are thinking.',
+      ],
+      late: [
+        'Just in time! Your host was watching.',
+        'Just in time! Nearly last orders.',
+        'Just in time! The bell almost rang.',
+      ],
+      early: [
+        'Answered early! Bold of you.',
+        'Early! You must know your host well.',
+        "So early! Let's see if it pays.",
+      ],
+      later: [
+        "Took your time. Can't blame you.",
+        'Waited for a better look. Wise.',
+        'Late, but answered. That counts.',
+      ],
+    },
+    reveal: ["Who's buying the next round?", 'Drinks on the winner!', 'The house has the answer.'],
+    verdict: {
+      right: [
+        'Right! Your host will be pleased.',
+        "Correct. That's one for the house.",
+        "Spot on. The next pint's yours.",
+      ],
+      partial: [
+        'Close enough for the house.',
+        'Half right. Half a pint, then.',
+        'Nearly there. Your host will allow it.',
+      ],
+      wrong: [
+        "Not what your host wrote, I'm afraid.",
+        'Wrong! Better buy your host a drink.',
+        "No, friend. Check your host's notes.",
+      ],
+      missed: [
+        "No answer? Your drink's gone warm.",
+        'Nothing? Your host asked nicely.',
+        'You let that one pass you by.',
+      ],
+    },
     // Every type a host can write asks in a sentence; the view below it is the answer.
     stem: 'text',
   },
@@ -255,8 +1291,66 @@ export const MODES: Record<string, Mode> = {
     host: INNKEEPER,
     greeting: 'Someone has come in off the road, and they want a word.',
     blurb: 'Someone has turned up with a question. Answer it, and they will be on their way.',
-    waiting: "They'll be on their way once everyone has answered.",
-    reveal: 'And off they go.',
+    ask: [
+      "Someone's come in off the road.",
+      'A visitor with a question.',
+      'Listen to our guest, now.',
+    ],
+    waiting: [
+      "They'll be on their way once everyone has answered.",
+      'Our guest is waiting on the rest of you.',
+      'Nearly done with our visitor.',
+    ],
+    pace: {
+      quick: [
+        'Quick! Our guest is impressed.',
+        'Fast! Our visitor barely blinked.',
+        'That was speedy.',
+      ],
+      middling: [
+        'In good time. Our guest nods.',
+        'A fair pace. Now we wait.',
+        'Answered steadily.',
+      ],
+      late: [
+        'Just in time! Our guest was leaving.',
+        'Just in time! The door nearly shut.',
+        'Just in time! Nearly missed them.',
+      ],
+      early: [
+        'Answered early! Bold.',
+        'So early! Our guest had barely spoken.',
+        'Early! You know this visitor.',
+      ],
+      later: [
+        'You let them finish. Good manners.',
+        'Took your time. Our guest waited.',
+        'A patient answer.',
+      ],
+    },
+    reveal: ['And off they go.', 'Back on the road with them.', 'Mind the door on your way out.'],
+    verdict: {
+      right: [
+        'Our guest liked that answer.',
+        "Right! They'll leave happy.",
+        'Correct. Off they go, satisfied.',
+      ],
+      partial: [
+        "Half an answer. They'll take it.",
+        'Close enough for our visitor.',
+        'Nearly. Our guest nods.',
+      ],
+      wrong: [
+        'Our guest is not impressed.',
+        "Wrong. They'll grumble on the road.",
+        'Not quite what they wanted.',
+      ],
+      missed: [
+        'You left our guest waiting.',
+        'No answer for our visitor.',
+        'Our guest heard nothing from you.',
+      ],
+    },
     // In character, and still a sentence.
     stem: 'text',
   },

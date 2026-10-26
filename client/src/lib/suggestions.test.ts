@@ -10,6 +10,7 @@ import {
   creditProblem,
   existingMode,
   exportName,
+  hasExtras,
   hasRound,
   hostOf,
   inGameOrder,
@@ -25,6 +26,7 @@ import {
   roundsFor,
   similarKey,
   sourceProblems,
+  stepsFor,
   summary,
   wikiProblem,
   type QuestionContent,
@@ -249,7 +251,7 @@ describe('the checks', () => {
     expect(npcNameProblem('Araxxor', ['Vorkath'])).toBeNull()
   })
 
-  it('preview a Who’s That NPC? as its prompt and the list, with no picture', () => {
+  it('preview a Who’s That NPC? as its prompt, with no picture or list yet', () => {
     const content = {
       type: 'pick_from_list' as const,
       mode: 'whos_that_npc',
@@ -259,7 +261,7 @@ describe('the checks', () => {
     expect([open.type, open.mode, open.view, open.picture]).toEqual([
       'pick_from_list',
       'whos_that_npc',
-      { prompt: "Who's that NPC?", vocab: 'npcs' },
+      { prompt: "Who's that NPC?" },
       null,
     ])
     expect(answerOf({ kind: 'question', content })).toBe('Araxxor')
@@ -397,5 +399,83 @@ describe('similar questions', () => {
     expect(
       similarKey({ ...odd, payload: { ...odd.payload, options: ['Kalphite Queen', 'Vorkath'] } }),
     ).not.toBe(similarKey(odd))
+  })
+})
+
+describe('steps in the suggestion form', () => {
+  it('offers Extras only to question choices that have an intro, picture item, or explanation', () => {
+    const withoutExtras = CHOICES.filter((c) => !hasExtras(c)).map((c) => c.id)
+    expect(withoutExtras).toEqual(['item', 'guess_examine', 'whos_that_npc'])
+  })
+
+  it('builds four steps for a round with extras, and marks missing steps on submit', () => {
+    const dropTable = CHOICES.find((c) => c.id === 'drop_table')!
+    expect(
+      stepsFor({
+        choice: dropTable,
+        attempted: false,
+        questionDone: true,
+        extrasFilled: false,
+        extrasValid: true,
+        sourceDone: false,
+        creditDone: true,
+      }),
+    ).toEqual([
+      { title: 'Question', done: true, missing: false },
+      { title: 'Extras', optional: true, done: false, missing: false },
+      { title: 'Source', done: false, missing: false },
+      { title: 'Credit', done: true, missing: false },
+    ])
+    expect(
+      stepsFor({
+        choice: dropTable,
+        attempted: true,
+        questionDone: true,
+        extrasFilled: true,
+        extrasValid: true,
+        sourceDone: false,
+        creditDone: true,
+      }),
+    ).toEqual([
+      { title: 'Question', done: true, missing: false },
+      { title: 'Extras', optional: true, done: true, missing: false },
+      { title: 'Source', done: false, missing: true },
+      { title: 'Credit', done: true, missing: false },
+    ])
+  })
+
+  it('builds three steps for a wiki-only round without extras, and two for an item', () => {
+    const examine = CHOICES.find((c) => c.id === 'guess_examine')!
+    expect(
+      stepsFor({
+        choice: examine,
+        attempted: true,
+        questionDone: false,
+        extrasFilled: false,
+        extrasValid: true,
+        sourceDone: true,
+        creditDone: false,
+      }),
+    ).toEqual([
+      { title: 'Question', done: false, missing: true },
+      { title: 'Wiki page', done: true, missing: false },
+      { title: 'Credit', done: false, missing: true },
+    ])
+
+    const item = CHOICES.find((c) => c.id === 'item')!
+    expect(
+      stepsFor({
+        choice: item,
+        attempted: true,
+        questionDone: false,
+        extrasFilled: false,
+        extrasValid: true,
+        sourceDone: false,
+        creditDone: true,
+      }),
+    ).toEqual([
+      { title: 'Item', done: false, missing: true },
+      { title: 'Credit', done: true, missing: false },
+    ])
   })
 })

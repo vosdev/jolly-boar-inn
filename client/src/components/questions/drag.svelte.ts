@@ -33,8 +33,25 @@ export interface Board {
   area(): HTMLElement | undefined
 }
 
-/** How close to the window's edge a dragged row scrolls the page. */
+/** How close to the edge of what scrolls a dragged row scrolls it. */
 const EDGE_PX = 48
+
+/**
+ * What scrolls the rows: the nearest ancestor that scrolls, such as a fitted room's stage,
+ * whose window does not scroll, or else the page.
+ */
+function scrollerOf(node: Element | undefined): Element {
+  for (let up = node?.parentElement; up; up = up.parentElement) {
+    const { overflowY } = getComputedStyle(up)
+    const scrolls = overflowY === 'auto' || overflowY === 'scroll'
+    if (scrolls && up.scrollHeight > up.clientHeight) return up
+  }
+  return document.scrollingElement ?? document.documentElement
+}
+
+function isPage(scroller: Element): boolean {
+  return scroller === document.scrollingElement || scroller === document.documentElement
+}
 
 export class Dragging {
   /** The row the keyboard holds, and the places as they were when it was lifted. */
@@ -45,6 +62,13 @@ export class Dragging {
     pointer: number
     startX: number
     startY: number
+    /** The row's own px per screen px: a room scaled to the window scales its rows. */
+    scale: number
+    /** What scrolls the rows, where it stood, and its screen px per its own px. */
+    scroller: Element
+    scrollLeft: number
+    scrollTop: number
+    scrollerScale: number
     dx: number
     dy: number
   } | null>(null)
@@ -57,10 +81,30 @@ export class Dragging {
     this.#board = board
   }
 
-  /** Moving a row between places and the tray redraws its handle, which loses focus. */
-  async refocus(shown: number): Promise<void> {
+  /**
+   * Runs `change`, which redraws the rows, and leaves every scrolled ancestor of the area
+   * where it was: Safari has no scroll anchoring, so the stage jumped to its top.
+   */
+  async keepScroll(change: () => void): Promise<void> {
+    const held: [Element, number][] = []
+    for (let up = this.#board.area()?.parentElement; up; up = up.parentElement) {
+      if (up.scrollTop > 0) held.push([up, up.scrollTop])
+    }
+    change()
     await tick()
-    this.#board.area()?.querySelector<HTMLElement>(`[data-handle="${shown}"]`)?.focus()
+    for (const [element, top] of held) if (element.scrollTop !== top) element.scrollTop = top
+  }
+
+  /**
+   * Runs `change`, a move of row `shown`, keeping the scroll and the row in view. Moving a
+   * row between places and the tray redraws its handle, which loses focus; `focus` takes it
+   * back without scrolling to it, which `scrollIntoView` then does only as far as it must.
+   */
+  async moved(shown: number, change: () => void, focus = false): Promise<void> {
+    await this.keepScroll(change)
+    const handle = this.#board.area()?.querySelector<HTMLElement>(`[data-handle="${shown}"]`)
+    if (focus) handle?.focus({ preventScroll: true })
+    handle?.scrollIntoView?.({ block: 'nearest' })
   }
 
   key(event: KeyboardEvent, shown: number): void {
@@ -77,13 +121,13 @@ export class Dragging {
       (event.key === 'ArrowUp' || event.key === 'ArrowDown')
     ) {
       event.preventDefault()
-      board.set(board.step(board.slots(), shown, event.key === 'ArrowUp' ? -1 : 1))
-      void this.refocus(shown)
+      const by = event.key === 'ArrowUp' ? -1 : 1
+      void this.moved(shown, () => board.set(board.step(board.slots(), shown, by)), true)
     } else if (this.lifted?.shown === shown && event.key === 'Escape') {
       event.preventDefault()
-      board.set(this.lifted.before)
+      const before = this.lifted.before
       this.lifted = null
-      void this.refocus(shown)
+      void this.moved(shown, () => board.set(before), true)
     }
   }
 
@@ -117,13 +161,23 @@ export class Dragging {
     if (target.closest('button:not(.handle)') !== null) return
     if (event.pointerType !== 'mouse' && target.closest('.handle') === null) return
     event.preventDefault()
-    ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
+    const row = event.currentTarget as HTMLElement
+    row.setPointerCapture?.(event.pointerId)
+    const drawn = row.getBoundingClientRect().width
+    const scroller = scrollerOf(this.#board.area())
+    const tall = isPage(scroller) ? 0 : scroller.getBoundingClientRect().height
+    const own = scroller instanceof HTMLElement ? scroller.offsetHeight : 0
     this.lifted = null
     this.drag = {
       shown,
       pointer: event.pointerId,
-      startX: event.clientX + window.scrollX,
-      startY: event.clientY + window.scrollY,
+      startX: event.clientX,
+      startY: event.clientY,
+      scale: row.offsetWidth > 0 && drawn > 0 ? drawn / row.offsetWidth : 1,
+      scroller,
+      scrollLeft: scroller.scrollLeft,
+      scrollTop: scroller.scrollTop,
+      scrollerScale: own > 0 && tall > 0 ? tall / own : 1,
       dx: 0,
       dy: 0,
     }
@@ -132,10 +186,16 @@ export class Dragging {
   follow(event: PointerEvent): void {
     const drag = this.drag
     if (drag === null || event.pointerId !== drag.pointer) return
-    if (event.clientY < EDGE_PX) window.scrollBy(0, -EDGE_PX / 4)
-    else if (event.clientY > window.innerHeight - EDGE_PX) window.scrollBy(0, EDGE_PX / 4)
-    drag.dx = event.clientX + window.scrollX - drag.startX
-    drag.dy = event.clientY + window.scrollY - drag.startY
+    const { scroller } = drag
+    const box = isPage(scroller) ? null : scroller.getBoundingClientRect()
+    const top = Math.max(0, box?.top ?? 0)
+    const bottom = Math.min(window.innerHeight, box?.bottom ?? window.innerHeight)
+    if (event.clientY < top + EDGE_PX) scroller.scrollTop -= EDGE_PX / 4
+    else if (event.clientY > bottom - EDGE_PX) scroller.scrollTop += EDGE_PX / 4
+    const scrolledX = (scroller.scrollLeft - drag.scrollLeft) * drag.scrollerScale
+    const scrolledY = (scroller.scrollTop - drag.scrollTop) * drag.scrollerScale
+    drag.dx = (event.clientX - drag.startX + scrolledX) / drag.scale
+    drag.dy = (event.clientY - drag.startY + scrolledY) / drag.scale
     this.over = this.targetAt(event.clientX, event.clientY)
   }
 
@@ -145,8 +205,10 @@ export class Dragging {
     const target = this.targetAt(event.clientX, event.clientY)
     this.letGo()
     const slots = this.#board.slots()
-    if (target === 'tray') this.#board.set(toTray(slots, shown))
-    else if (target !== null) this.#board.set(this.#board.drop(slots, shown, target))
+    if (target === 'tray') void this.moved(shown, () => this.#board.set(toTray(slots, shown)))
+    else if (target !== null) {
+      void this.moved(shown, () => this.#board.set(this.#board.drop(slots, shown, target)))
+    }
   }
 
   letGo(): void {

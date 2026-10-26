@@ -114,6 +114,13 @@ def test_washed_out_scroll_ink_fails(css: str) -> None:
     assert any("--scroll-ink" in line and "--scroll-paper" in line for line in problems)
 
 
+def test_a_speaker_name_that_cannot_be_read_fails(css: str) -> None:
+    """The game's dark red on a dark theme's dialogue box vanishes, and is caught."""
+    broken = _swap(css, "tzhaar", "--speaker", "#800000")
+    problems = check.check(broken)
+    assert any("--speaker" in line and "--panel-raised" in line for line in problems)
+
+
 def test_scroll_muted_that_cannot_be_read_fails(css: str) -> None:
     broken = _swap(css, "wilderness", "--scroll-muted", "#b09c6c")
     problems = check.check(broken)

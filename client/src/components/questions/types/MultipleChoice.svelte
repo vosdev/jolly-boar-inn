@@ -49,6 +49,6 @@
   )
 </script>
 
-<GemChoices options={q.options} {picked} {answer} {revealed} {canAnswer} {results} {onAnswer}>
+<GemChoices options={q.options} {picked} {answer} {revealed} {canAnswer} {results} {onAnswer} named>
   {#snippet label(option: string)}{option}{/snippet}
 </GemChoices>

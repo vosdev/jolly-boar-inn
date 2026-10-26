@@ -21,6 +21,8 @@ export interface Cast {
   guest: string | null
   /** The host at the sheet's top: the hiscores. */
   tall: boolean
+  /** The host above the sheet, speaking in a bubble. */
+  speaks: boolean
   /** What the screen shows, so a question going from open to revealed stays put. */
   scene: string | null
   /** A random event playing its own entrance (section 12). */
@@ -77,6 +79,7 @@ export function castOf(parts: Partial<Cast> & { host: string }): Cast {
     hero: null,
     guest: null,
     tall: false,
+    speaks: false,
     scene: null,
     entering: false,
     within: Infinity,
@@ -87,7 +90,7 @@ export function castOf(parts: Partial<Cast> & { host: string }): Cast {
 /** Who the room sees standing there, and where. */
 function standing(cast: Cast): string {
   const who = cast.hero !== null ? `hero ${cast.hero}` : (cast.guest ?? cast.host)
-  return `${who} ${cast.tall ? 'top' : 'foot'}`
+  return `${who} ${cast.speaks ? 'above' : cast.tall ? 'top' : 'foot'}`
 }
 
 /**

@@ -9,6 +9,7 @@ import { render } from '@testing-library/svelte'
 import { tick } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { roomShown } from '../lib/roomFit'
 import WallLights from './WallLights.svelte'
 import source from './WallLights.svelte?raw'
 
@@ -147,5 +148,28 @@ describe('WallLights', () => {
     expect(style).toMatch(
       /@media \(min-width: 50rem\) \{\s*\.wall-lights \{\s*display: block;\s*\}/,
     )
+  })
+
+  describe('beside a room', () => {
+    afterEach(() => roomShown.set(null))
+
+    it('stands on the floor the room leaves, measured from the room’s edge', async () => {
+      roomShown.set({ fit: { scale: 1.5, width: 1700, height: 920, left: 440, compact: false } })
+      const wall = (await shown('jolly')).querySelector<HTMLElement>('.wall-lights')!
+      expect(wall.classList.contains('beside-room')).toBe(true)
+      expect(wall.classList.contains('no-floor')).toBe(false)
+      expect(wall.style.getPropertyValue('--room-floor')).toBe('440px')
+    })
+
+    it('has no floor to stand on where the room fills the window', async () => {
+      roomShown.set({ fit: { scale: 1, width: 1440, height: 844, left: 0, compact: true } })
+      const wall = (await shown('jolly')).querySelector('.wall-lights')!
+      expect(wall.classList.contains('no-floor')).toBe(true)
+    })
+
+    it('stays put as the room scales: one height, and the room’s edge, never the window’s', () => {
+      expect(source).toMatch(/\.beside-room \{\s*--beside-stage: var\(--room-floor\);/)
+      expect(source).toMatch(/--fitting-y: calc\(var\(--topbar-height\) \+ 9\.5rem\);/)
+    })
   })
 })

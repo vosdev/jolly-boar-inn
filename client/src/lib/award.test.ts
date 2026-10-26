@@ -14,7 +14,7 @@ import cosmicRune from '../assets/sprites/cosmic-rune.svg'
 import snelm from '../assets/sprites/snelm.svg'
 import superKebab from '../assets/sprites/super-kebab.svg'
 import tokkul from '../assets/sprites/tokkul.svg'
-import { NO_AWARD, awardFor, pinFor } from './award'
+import { NO_AWARD, awardFor, pinFor, verdictFor } from './award'
 
 describe('awardFor', () => {
   it('throws confetti for full credit', () => {
@@ -73,5 +73,18 @@ describe('pinFor', () => {
     expect([600, 799].map(skull)).toEqual([bountySkull4, bountySkull4])
     expect([800, 1000].map(skull)).toEqual([bountySkull5, bountySkull5])
     expect(pinFor('wilderness', 700)).toMatchObject({ sprite: true })
+  })
+})
+
+describe('verdictFor', () => {
+  it('calls full credit right, some points partial, none wrong and no answer missed', () => {
+    expect(verdictFor({ value: 0, correct: true, credit: 1, points: 850 }, true)).toBe('right')
+    expect(verdictFor({ value: 0, correct: false, credit: 0.4, points: 340 }, true)).toBe('partial')
+    expect(verdictFor({ value: 0, correct: false, credit: 0, points: 0 }, true)).toBe('wrong')
+    expect(verdictFor(null, true)).toBe('missed')
+  })
+
+  it('has no verdict for somebody the question was never theirs to answer', () => {
+    expect(verdictFor(null, false)).toBeNull()
   })
 })

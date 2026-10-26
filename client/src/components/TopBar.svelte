@@ -11,6 +11,9 @@
    * `ThermonuclearSmokeDevil` — and one of those in 56px beside the controls either
    * truncates to something worse than useless or pushes the controls off a phone. The
    * lobby shows the code big with the link to share it, and Join keeps its own heading.
+   * A past game (`past`) is the exception, since the code is all that names it: there the
+   * middle says "FireCape, finished Sun 25 Oct at 21:14", and on a narrow screen "FireCape,
+   * 25 Oct", where the code gives way before the date or the name.
    *
    * **One slot** after GitHub, for the menu: head, name and theme emblem in one control,
    * which opens who you are, sound and theme. It falls back to a placeholder that holds
@@ -25,6 +28,11 @@
    * `PUBLIC_SITE_LOGO`, and the bundled sign when there is neither or the file will not
    * load. The version is in the footer, not here.
    *
+   * **In a room** the bar runs the window's width (`full`), and its middle says where the
+   * night is (`where`): "Round 1 of 3: More or Less", "Lobby". A stacked room, a phone's,
+   * passes none. An admin's Host menu (`HostMenu`) comes first among the controls while the
+   * room is playing.
+   *
    * **In a team game** the bar is the frame's: the player's god's colour, and the god's
    * symbol in place of the sign, still the way home. On a screen with no timer under the
    * bar, the team's badge hangs from it; the timer bar hangs it otherwise.
@@ -32,9 +40,13 @@
   import { onMount, type Snippet } from 'svelte'
   import { initial, logo, logos, siteName } from 'virtual:branding'
 
+  import type { BarPast, BarWhere } from '../lib/barWhere'
+  import { finishedAt, finishedDay } from '../lib/dates'
+  import type { HostAction } from '../lib/hostMenu'
   import { REPO_URL } from '../lib/links'
   import { team as teamNamed, type TeamId } from '../lib/teams'
   import { watchTheme } from '../lib/theme'
+  import HostMenu from './HostMenu.svelte'
   import TeamBadge from './TeamBadge.svelte'
   import TeamLogo from './TeamLogo.svelte'
 
@@ -49,6 +61,10 @@
     navigate,
     menu,
     wide = false,
+    full = false,
+    where = null,
+    past = null,
+    host = null,
     team = null,
     badge = false,
     autohide = false,
@@ -57,6 +73,14 @@
     menu?: Snippet
     /** The screen under the bar uses the wide page, so the bar's ends follow it. */
     wide?: boolean
+    /** The screen under the bar is a room, which takes the window's whole width. */
+    full?: boolean
+    /** Where the room's night is, for the bar's middle. */
+    where?: BarWhere | null
+    /** The past game under the bar, which its middle names. */
+    past?: BarPast | null
+    /** The admin's controls for the room's phase; null draws no Host menu. */
+    host?: HostAction[] | null
     /** The player's team in a team game, whose frame the bar wears. */
     team?: TeamId | null
     /** Hang the team's badge from the bar: there is no timer bar to hang it. */
@@ -93,7 +117,13 @@
 
 {#if autohide}<div class="peek" aria-hidden="true"></div>{/if}
 <header class="bar" class:framed={team !== null} class:autohide>
-  <div class="inner" class:wide>
+  <div
+    class="inner"
+    class:wide
+    class:full
+    class:placed={where !== null || past !== null}
+    class:past={past !== null}
+  >
     <a class="skip" href="#content">Skip to the game</a>
 
     <div class="mark">
@@ -126,7 +156,26 @@
       <p class="wordmark" aria-hidden="true">{siteName}</p>
     </div>
 
+    {#if where !== null}
+      <p class="where">
+        {where.lead}{#if where.mode !== null}{' '}<strong>{where.mode}</strong>{/if}
+      </p>
+    {/if}
+
+    {#if past !== null}
+      <p class="where past">
+        <strong class="named">{past.code}</strong>{#if past.finishedAt !== null}<span class="when"
+            >, <span class="long">finished {finishedAt(past.finishedAt)}</span><span class="short"
+              >{finishedDay(past.finishedAt)}</span
+            ></span
+          >{/if}
+      </p>
+    {/if}
+
     <div class="controls">
+      {#if host !== null}
+        <HostMenu actions={host} />
+      {/if}
       <a
         class="control github"
         href={REPO_URL}
@@ -226,6 +275,71 @@
      rather than with the window. */
   .inner.wide {
     width: min(var(--page-wide), 100% - 2rem);
+  }
+
+  .inner.full {
+    width: calc(100% - 3rem);
+  }
+
+  /* Three columns, so where the night is stands in the bar's middle whatever its ends hold. */
+  .inner.placed {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .where {
+    margin: 0;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+
+  .where strong {
+    color: var(--ink);
+    font-weight: 650;
+  }
+
+  .past .where {
+    display: flex;
+    min-width: 0;
+  }
+
+  .past .named {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .past .when {
+    flex: none;
+  }
+
+  .past .short {
+    display: none;
+  }
+
+  /* Under the room's frame the code may be long beside a phone's controls: the middle
+     follows the sign and gives way before the name does. */
+  @media (width < 64rem) {
+    .inner.placed.past {
+      display: flex;
+    }
+
+    .past .where {
+      flex: 0 10 auto;
+    }
+
+    .past .long {
+      display: none;
+    }
+
+    .past .short {
+      display: inline;
+    }
+  }
+
+  .framed .where,
+  .framed .where strong {
+    color: var(--frame-ink);
   }
 
   .inner {

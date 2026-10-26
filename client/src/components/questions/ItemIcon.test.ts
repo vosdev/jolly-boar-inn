@@ -17,7 +17,6 @@ vi.mock('../../lib/items', () => ({
 
 const WHIP = { name: 'Abyssal whip', asset: 'item:4151' }
 const BONES = { name: 'Dragon bones', asset: 'item:536' }
-const ASK = 'What does it go for on the Grand Exchange?'
 
 function open(type: string, view: Record<string, unknown>): OpenQuestion {
   return {
@@ -62,15 +61,18 @@ const icons = (root: ParentNode = document) =>
 const onAnswer = () => {}
 
 describe('The Price is Right’s icon', () => {
-  it('is on the scroll under the question, open and revealed', () => {
+  it('is on the scroll under the item’s name, open and revealed', () => {
     const question = open('price_is_right', price(WHIP))
     const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
     const paper = document.querySelector('.paper')!
     expect(icons(paper)).toEqual(['item:4151'])
     const icon = paper.querySelector('.item')!
-    expect(
-      screen.getByText(ASK).compareDocumentPosition(icon) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy()
+    const name = paper.querySelector('.subject')!
+    expect(name.textContent).toBe('Abyssal whip')
+    expect(name.compareDocumentPosition(icon) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // The item and its picture are the whole sheet: the question is the host's.
+    expect(paper.textContent?.trim()).toBe('Abyssal whip')
+    expect(document.querySelector('.bubble')?.textContent).toMatch(/Grand Exchange/)
     unmount()
 
     const reveal = { ...price(WHIP), value: 1_600_000, answer_index: 1 }

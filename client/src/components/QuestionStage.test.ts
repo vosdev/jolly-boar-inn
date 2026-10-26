@@ -1,6 +1,7 @@
 /**
- * A round's question on the stage: its stem typed onto the scroll in the hold the server
- * gives it, and the answers under the line held back until `answerable_at`.
+ * A round's question on the stage: the host's ask line typed in its bubble and then its stem
+ * onto the scroll, in the hold the server gives it, and the answers under the line held back
+ * until `answerable_at`.
  *
  * The clock is faked so the hold is counted, not waited out.
  */
@@ -10,6 +11,7 @@ import { tick } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { interludeFor } from '../lib/interlude'
+import { MODES, pickLines } from '../lib/modes'
 import type { OpenQuestion } from '../lib/protocol'
 import { serverOffsetMs } from '../lib/stores'
 import { seen, spoken, typing } from '../test-typing'
@@ -17,7 +19,8 @@ import QuestionStage from './QuestionStage.svelte'
 
 const NOW = Date.parse('2026-10-09T20:00:00Z')
 const PROMPT = 'What is the combat level of a Black demon?'
-const HOLD = 2000
+// Room for the longest ask line and the prompt at the natural pace, as the server holds it.
+const HOLD = 4000
 
 function open(patch: Partial<OpenQuestion> = {}, hold = HOLD): OpenQuestion {
   return {
@@ -47,6 +50,8 @@ function stage(question: OpenQuestion, live = true, reveal: Record<string, unkno
 
 const buttons = () => screen.queryAllByRole('button')
 const ask = () => document.querySelector('.paper .ask')!
+const bubbleLine = () => document.querySelector('.bubble .line:not(.later)')!
+const letters = (line: string) => [...line].length
 
 async function after(ms: number): Promise<void> {
   await vi.advanceTimersByTimeAsync(ms)
@@ -64,12 +69,19 @@ afterEach(() => {
 })
 
 describe('a round’s question typing in', () => {
-  it('types the prompt from 400 ms at 50 letters a second', async () => {
+  it('types the host’s ask line in its bubble from 400 ms, then the prompt, at 50 a second', async () => {
+    const line = pickLines(MODES.bestiary!, open()).ask
+    const [, prompt] = interludeFor(HOLD, [letters(line), letters(PROMPT)], 400, 0).lines
     stage(open())
-    expect(seen(ask())).toBe('')
+    expect(seen(bubbleLine())).toBe('')
     await after(399)
-    expect(seen(ask())).toBe('')
+    expect(seen(bubbleLine())).toBe('')
     await after(501)
+    expect(seen(bubbleLine())).toBe([...line].slice(0, 25).join(''))
+    expect(seen(ask())).toBe('')
+    await after(Math.ceil(prompt!.from) - 900)
+    expect(seen(bubbleLine())).toBe(line)
+    await after(500)
     expect(seen(ask())).toBe([...PROMPT].slice(0, 25).join(''))
   })
 
@@ -131,14 +143,15 @@ describe('a round’s question typing in', () => {
     expect(buttons()).toHaveLength(4)
   })
 
-  it('types a quote’s question, pauses, then the quote', async () => {
+  it('types the quote after the ask line, with no heading of its own', async () => {
     const view = { prompt: 'Who said it?', quote: 'Buying gf', options: ['A', 'B', 'C', 'D'] }
-    const [, quoted] = interludeFor(3000, [12, 9], 400, 0).lines
-    stage(open({ mode: 'who_said_that', view }, 3000))
-    const caption = document.querySelector('.paper figcaption')!
+    const question = open({ mode: 'who_said_that', view }, HOLD)
+    const line = pickLines(MODES.who_said_that!, question).ask
+    const [, quoted] = interludeFor(HOLD, [letters(line), 9], 400, 0).lines
+    stage(question)
+    expect(document.querySelector('.paper figcaption')).toBeNull()
     const quote = document.querySelector('.paper blockquote')!
     await after(Math.floor(quoted!.from))
-    expect(seen(caption)).toBe('Who said it?')
     expect(seen(quote)).toBe('')
     await after(Math.ceil(quoted!.from + quoted!.for) - Math.floor(quoted!.from))
     expect(seen(quote)).toBe('Buying gf')
@@ -151,10 +164,13 @@ describe('a round’s question typing in', () => {
       options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
       as_of: '2026-09-01',
     }
-    stage(open({ type: 'more_less', mode: 'more_less', view }, 3000))
+    const question = open({ type: 'more_less', mode: 'more_less', view }, HOLD)
     const line = 'Which costs less on the Grand Exchange?'
+    const said = pickLines(MODES.more_less!, question).ask
+    const [, asked] = interludeFor(HOLD, [letters(said), letters(line)], 400, 0).lines
+    stage(question)
     expect(spoken(ask())).toBe(line)
-    await after(400 + 240)
+    await after(Math.ceil(asked!.from) + 240)
     expect(seen(ask())).toBe('Which costs ')
     await after(60)
     expect(seen(ask())).toBe('Which costs les')

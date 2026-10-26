@@ -37,6 +37,7 @@
   } from '../../../lib/slots'
   import { Dragging, sendBeforeEnd } from '../drag.svelte'
   import DragActions from '../DragActions.svelte'
+  import DragLayout from '../DragLayout.svelte'
   import DragRow from '../DragRow.svelte'
   import GemButton, { GEMS } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
@@ -107,12 +108,12 @@
   }
 
   function restart(): void {
-    slots = emptySlots(q.fields.length)
     dragging.lifted = null
+    void dragging.keepScroll(() => (slots = emptySlots(q.fields.length)))
   }
 
   function back(shown: number): void {
-    slots = toTray(slots, shown)
+    void dragging.moved(shown, () => (slots = toTray(slots, shown)))
   }
 
   sendBeforeEnd(
@@ -154,50 +155,58 @@
     <p class="left">Left over: {leftOver.map(textOf).join(', ')}</p>
   {/if}
 {:else}
-  <p class="ask">
-    Drag one onto each{decoys > 0 ? `; ${decoys} will be left over` : ''}
-  </p>
-  {#if canAnswer}
-    <div bind:this={area}>
-      <ol class="fields">
-        {#each q.fields as field, index (index)}
-          {@const shown = board[index] ?? null}
-          <li class="field" data-place={index} class:over={dragging.over === index}>
-            {@render label(field, index)}
-            <div class="slot">
-              {#if shown === null}
-                <div class="empty"><span class="sr">{`${fieldName(index)}, `}</span>empty</div>
-              {:else}
-                {@render option(shown, index)}
-              {/if}
-            </div>
-          </li>
-        {/each}
-      </ol>
-      <ul class="tray" data-tray class:over={dragging.over === 'tray'}>
-        {#each tray as shown (shown)}
-          <li>{@render option(shown, undefined)}</li>
-        {/each}
-      </ul>
-    </div>
-  {:else}
-    <ol class="fields">
-      {#each q.fields as field, index (index)}
-        <li class="field">
-          {@render label(field, index)}
-          <div class="empty">empty</div>
-        </li>
-      {/each}
-    </ol>
-    <ul class="tray">
-      {#each q.options as option, shown (shown)}
-        <li><GemButton tag="div" gem={gemAt(shown)} status="idle">{option.text}</GemButton></li>
-      {/each}
-    </ul>
-  {/if}
-  {#if movable}
-    <DragActions {moved} {ready} onrestart={restart} onsubmit={submit} />
-  {/if}
+  <DragLayout>
+    {#snippet ask()}
+      <p class="ask">
+        Drag one onto each{decoys > 0 ? `; ${decoys} will be left over` : ''}
+      </p>
+    {/snippet}
+    {#snippet list()}
+      {#if canAnswer}
+        <div bind:this={area}>
+          <ol class="fields">
+            {#each q.fields as field, index (index)}
+              {@const shown = board[index] ?? null}
+              <li class="field" data-place={index} class:over={dragging.over === index}>
+                {@render label(field, index)}
+                <div class="slot">
+                  {#if shown === null}
+                    <div class="empty"><span class="sr">{`${fieldName(index)}, `}</span>empty</div>
+                  {:else}
+                    {@render option(shown, index)}
+                  {/if}
+                </div>
+              </li>
+            {/each}
+          </ol>
+          <ul class="tray" data-tray class:over={dragging.over === 'tray'}>
+            {#each tray as shown (shown)}
+              <li>{@render option(shown, undefined)}</li>
+            {/each}
+          </ul>
+        </div>
+      {:else}
+        <ol class="fields">
+          {#each q.fields as field, index (index)}
+            <li class="field">
+              {@render label(field, index)}
+              <div class="empty">empty</div>
+            </li>
+          {/each}
+        </ol>
+        <ul class="tray">
+          {#each q.options as option, shown (shown)}
+            <li><GemButton tag="div" gem={gemAt(shown)} status="idle">{option.text}</GemButton></li>
+          {/each}
+        </ul>
+      {/if}
+    {/snippet}
+    {#snippet actions()}
+      {#if movable}
+        <DragActions {moved} {ready} onrestart={restart} onsubmit={submit} />
+      {/if}
+    {/snippet}
+  </DragLayout>
 {/if}
 
 {#snippet label(field: Field, index: number)}

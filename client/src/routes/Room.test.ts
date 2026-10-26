@@ -13,21 +13,25 @@ import { type Component, tick } from 'svelte'
 import { get } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { OpenQuestion, RoomView, Standing, Welcome } from '../lib/protocol'
+import type { OpenQuestion, PlayerResult, RoomView, Standing, Welcome } from '../lib/protocol'
 import { TYPE_VIEWS } from '../components/questions/index'
 import type { TypeViewProps } from '../components/questions/props'
 import { HISCORES_HOST } from '../lib/hiscores'
 import { RETURN_MS } from '../lib/interlude'
-import { MODES } from '../lib/modes'
+import { MODES, modeLabel } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
 import { ENTER_MOVE_MS, HOST_IN_MS, HOST_OUT_MS, MOVE_MS, WORDS_OUT_MS } from '../lib/stageMoves'
 import { applyServerMessage, connection, resetRoom } from '../lib/stores'
+import { barWhere } from '../lib/barWhere'
+import { hostMenu } from '../lib/hostMenu'
+import { roomShown } from '../lib/roomFit'
 import { timerBar } from '../lib/timerbar'
 import { stubAnimations } from '../test-animate'
 import { clearVocabCache } from '../lib/vocab'
 import { savePastGame } from '../lib/history'
 import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
+import frameSource from '../components/RoomFrame.svelte?raw'
 
 vi.mock('../lib/session', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/session')>()
@@ -79,6 +83,7 @@ function roomView(patch: Partial<RoomView>): RoomView {
     next_at: new Date(Date.now() + 10_000).toISOString(),
     reveal_seconds: null,
     estimated_seconds: 0,
+    played: [],
     segment: SEGMENT,
     finished_at: null,
     ...patch,
@@ -157,6 +162,19 @@ async function arrive(message: Welcome): Promise<void> {
   await screen.findByRole('heading', { level: 1 })
 }
 
+/** The labels in the top bar's Host menu, which App draws from this store. */
+function hostLabels(): string[] | null {
+  return get(hostMenu)?.map((action) => action.label) ?? null
+}
+
+/** Pick `label` from the Host menu. */
+async function host(label: string): Promise<void> {
+  const action = get(hostMenu)?.find((one) => one.label === label)
+  expect(action, label).toBeDefined()
+  action!.run()
+  await tick()
+}
+
 describe('Room', () => {
   it('spells the code in the address bar as the server does', async () => {
     history.replaceState(null, '', '/r/ABYSSAL')
@@ -176,12 +194,39 @@ describe('Room', () => {
       'Zezima (you)',
       'Woox',
     ])
-    expect(screen.getByRole('heading', { level: 2, name: 'Hiscores' })).toBeTruthy()
+    expect(document.querySelector('.bubble .speech')?.textContent).toContain('Wise Old Man')
+  })
+
+  it('names the next round between rounds, the bar under its round', async () => {
+    const next = { ...SEGMENT, mode: 'more_less', index: 1, start: SEGMENT.count, count: 4 }
+    await arrive(welcome(roomView({ next_segment: next })))
+    // No desktop frame here, so it is the phone's strip.
+    expect(screen.getByRole('region', { name: 'Next up' }).textContent).toMatch(
+      /Next up:\s*More or Less\s*10/,
+    )
+    expect(get(timerBar)).toMatchObject({ quiet: true, progress: '1/2' })
+  })
+
+  it('shows the hosts of the rounds played on a splash a reload arrives into', async () => {
+    const room = roomView({
+      phase: 'splash',
+      next_at: null,
+      settings: { ...roomView({}).settings, mode_order: 'random' },
+      segment: { ...SEGMENT, mode: 'more_less', index: 2, total: 4, start: 2 },
+      played: ['price_is_right', 'bestiary'],
+    })
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(room))
+    await screen.findByRole('heading', { level: 2, name: MODES.more_less!.label })
+    const faces = [...document.querySelectorAll('.stops.wide .stop')].map(
+      (stop) => stop.querySelector('.face img') !== null,
+    )
+    expect(faces).toEqual([true, true, true, false])
   })
 
   it('lets the host start the next round early', async () => {
     await arrive(welcome(roomView({}), 'admin'))
-    screen.getByRole('button', { name: 'Start the next round now' }).click()
+    await host('Start the next round now')
     expect(sent).toContainEqual({ t: 'skip', phase: 'standings', index: 0 })
   })
 
@@ -227,7 +272,7 @@ describe('Room', () => {
     expect(document.querySelector('.hiscores')).toBeNull()
   })
 
-  it('writes what we earned on the scroll for the reveal, without the total', async () => {
+  it('puts what we earned on the dialogue box’s name row for the reveal, without the total', async () => {
     const open: OpenQuestion = {
       question_id: 'q1',
       index: 0,
@@ -257,7 +302,7 @@ describe('Room', () => {
     expect(get(timerBar)?.label).toBe('to answer')
     expect(document.querySelector('.slot')).toBeNull()
 
-    // Answered and waiting: our answer held, and how the room is doing.
+    // Answered and waiting: our answer held, and no line about where it landed.
     screen.getByText('Abyssal whip').click()
     expect(sent).toContainEqual({ t: 'answer', question_id: 'q1', value: 0 })
     applyServerMessage({
@@ -268,10 +313,8 @@ describe('Room', () => {
       answered: 1,
       of: 2,
     })
-    await screen.findByText(/answered — waiting for the room/)
-    expect(document.querySelector('.waiting .count')?.textContent).toBe('1 of 2')
-    applyServerMessage({ t: 'answer_count', question_id: 'q1', answered: 2, of: 2, waiting: [] })
-    await screen.findByText('2 of 2')
+    await tick()
+    expect(document.body.textContent).not.toContain('Answer in')
 
     applyServerMessage({
       t: 'question_closed',
@@ -289,8 +332,10 @@ describe('Room', () => {
     expect(document.querySelector('.slot .earned')?.textContent?.trim()).toBe('+850')
     // What we earned, and only that: the total waits for the standings.
     expect(document.querySelector('.slot .total')).toBeNull()
-    expect(document.querySelector('.paper')!.contains(document.querySelector('.slot'))).toBe(true)
+    expect(document.querySelector('.bubble .title .chip .slot')).toBeTruthy()
+    expect(document.querySelector('.paper .slot')).toBeNull()
     expect(get(timerBar)?.label).toBe('to the next question')
+    expect(get(timerBar)?.next).toBe('Next')
     // The bar is full on this question's own reveal, which the frame says.
     expect(get(timerBar)?.totalSeconds).toBe(16)
   })
@@ -337,7 +382,7 @@ describe('Room', () => {
       reveal_seconds: 8,
       picture: null,
     })
-    await waitFor(() => expect(document.querySelector('.paper .slot')).toBeTruthy())
+    await waitFor(() => expect(document.querySelector('.bubble .slot')).toBeTruthy())
     expect(get(timerBar)?.progress).toBe('1/2')
     expect(screen.getByRole('heading', { level: 1 }).classList.contains('sr')).toBe(true)
     const drawnRound = [...document.body.querySelectorAll('*')].filter(
@@ -446,7 +491,7 @@ describe('Room', () => {
         reveal_seconds: 8,
         picture: null,
       })
-      await screen.findByText('1 of 1')
+      await screen.findByText(/1 of 1 got it right/)
       expect(screen.getByText(fallback)).toBeTruthy()
       expect(screen.getByText(/Question 1 of 2/)).toBeTruthy()
     } finally {
@@ -489,6 +534,337 @@ describe('Room', () => {
     applyServerMessage({ t: 'game_finished', standings: STANDINGS, team_standings: null })
     await screen.findByRole('button', { name: 'Skip to the hiscores' })
     expect(document.querySelector('.hiscores')).toBeNull()
+  })
+})
+
+/** A More or Less question for the table panel's tests, `waiting` still to answer. */
+function tableQuestion(id: string, waiting: string[]): OpenQuestion {
+  return {
+    question_id: id,
+    index: id === 'q1' ? 0 : 1,
+    total: 2,
+    type: 'more_less',
+    mode: 'more_less',
+    segment: SEGMENT,
+    view: {
+      metric: 'ge_price',
+      direction: 'more',
+      options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+      as_of: '2026-09-01',
+    },
+    opened_at: new Date().toISOString(),
+    ends_at: inSeconds(10),
+    you_can_answer: true,
+    answered: 2 - waiting.length,
+    of: 2,
+    waiting,
+    picture: null,
+    random_event: null,
+    answerable_at: new Date().toISOString(),
+  }
+}
+
+/** The names in the panel's two halves while a question is open. */
+function halves(table: HTMLElement): { answered: string[]; thinking: string[] } {
+  const names = (label: string): string[] => {
+    const list = within(table).queryByRole('list', { name: label })
+    return list === null
+      ? []
+      : within(list)
+          .getAllByRole('listitem')
+          .map((item) => item.querySelector('.pet-name')?.textContent ?? '')
+  }
+  return { answered: names('Answered'), thinking: names('Still thinking') }
+}
+
+describe('the room’s frame', () => {
+  const root = document.documentElement
+  const height = innerHeight
+
+  function windowOf(width: number, tall: number): void {
+    Object.defineProperty(root, 'clientWidth', { configurable: true, value: width })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: tall })
+  }
+
+  afterEach(() => {
+    cleanup()
+    delete (root as { clientWidth?: number }).clientWidth
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
+  })
+
+  it('puts the stage beside the table at 1440×900, and stacks them under 1024px', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(document.querySelector('.frame.fitted')).toBeTruthy()
+    expect(get(roomShown)?.fit.scale).toBe(1)
+
+    windowOf(1000, 900)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(document.querySelector('.frame.fitted')).toBeNull()
+    expect(get(roomShown)).toBeNull()
+  })
+
+  it('shrinks the padding and the chathead under 920px of layout height, and not at 920', async () => {
+    windowOf(1512, 920 + 56)
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(document.querySelector('.frame.fitted.compact')).toBeNull()
+
+    windowOf(1512, 919 + 56)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(document.querySelector('.frame.fitted.compact')).toBeTruthy()
+    // jsdom has no layout, so the compact rules and the sizes the frame hands them are checked.
+    const rule = frameSource.match(/\.fitted\.compact \.play \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toMatch(/--head-size: 72px;/)
+    expect(frameSource).toMatch(
+      /\.fitted \.play \{[^}]*gap: var\(--play-gap\);\s*padding: var\(--play-padding\);/,
+    )
+    const frame = () => document.querySelector<HTMLElement>('.frame.fitted')!.style
+    expect(frame().getPropertyValue('--play-padding')).toBe('16px 32px 16px')
+    expect(frame().getPropertyValue('--play-gap')).toBe('28px')
+    windowOf(1512, 920 + 56)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(frame().getPropertyValue('--play-padding')).toBe('30px 40px 28px')
+  })
+
+  it('puts who is in at the table, out of the stage', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({
+      t: 'question_open',
+      question: {
+        question_id: 'q1',
+        index: 0,
+        total: 2,
+        type: 'more_less',
+        mode: 'more_less',
+        segment: SEGMENT,
+        view: {
+          metric: 'ge_price',
+          direction: 'more',
+          options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+          as_of: '2026-09-01',
+        },
+        opened_at: new Date().toISOString(),
+        ends_at: inSeconds(10),
+        you_can_answer: true,
+        answered: 0,
+        of: 2,
+        waiting: [],
+        picture: null,
+        random_event: null,
+        answerable_at: new Date().toISOString(),
+      },
+    })
+    const table = await screen.findByRole('group', { name: 'At the table' })
+    expect(table.closest('.table')).toBeTruthy()
+    expect(table.closest('.stage-side')).toBeNull()
+  })
+
+  it('moves a player from Still thinking to Answered as they answer, and the counts follow', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+    const table = await screen.findByRole('group', { name: 'At the table' })
+    expect(halves(table)).toEqual({ answered: [], thinking: ['Zezima', 'Woox'] })
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 0')
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Still thinking 2')
+
+    applyServerMessage({ t: 'answer_count', question_id: 'q1', answered: 1, of: 2, waiting: ['a'] })
+    await tick()
+    expect(halves(table)).toEqual({ answered: ['Woox'], thinking: ['Zezima'] })
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 1')
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Still thinking 1')
+
+    // Our own ack carries no list: it still moves us up.
+    ;(await screen.findByText('Abyssal whip')).click()
+    applyServerMessage({
+      t: 'answer_ack',
+      question_id: 'q1',
+      scoring: 'speed',
+      band: 1,
+      answered: 2,
+      of: 2,
+    })
+    await tick()
+    expect(halves(table)).toEqual({ answered: ['Zezima', 'Woox'], thinking: [] })
+    expect(table.textContent?.replace(/\s+/g, ' ')).toContain('Answered 2')
+  })
+
+  function closeWith(results: Record<string, PlayerResult>, unanswered: string[]): void {
+    applyServerMessage({
+      t: 'question_closed',
+      unanswered,
+      question_id: 'q1',
+      reveal: {
+        answer_index: 0,
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+      },
+      results,
+      standings: STANDINGS,
+      team_standings: null,
+      next_at: inSeconds(10),
+      reveal_seconds: 10,
+      picture: null,
+    })
+  }
+
+  it('turns the table into the results for the reveal: every answer, its count and names', async () => {
+    windowOf(1440, 900)
+    await arrive(
+      welcome(
+        roomView({
+          phase: 'open',
+          next_at: null,
+          settings: { ...roomView({}).settings, name_wrong_answers: true },
+        }),
+      ),
+    )
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a', 'b']) })
+    closeWith({ b: { value: 1, correct: false, credit: 0, points: 0 } }, ['a'])
+    const panel = await screen.findByRole('group', { name: 'Results' })
+    expect(screen.queryByRole('group', { name: 'At the table' })).toBeNull()
+    expect(panel.textContent).toContain('0 of 2 got it right')
+    const rows = [...panel.querySelectorAll('.row')].map((row) => [
+      row.querySelector('.label')?.textContent,
+      row.querySelector('.number')?.textContent,
+      row.querySelector('.names')?.textContent ?? '',
+    ])
+    expect(rows).toEqual([
+      ['Dragon bones', '1', 'Woox'],
+      ['No answer', '1', 'You'],
+    ])
+  })
+
+  it('names the right answer’s players always, and the others only when the room asks', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
+    closeWith(
+      {
+        a: { value: 0, correct: true, credit: 1, points: 900 },
+        b: { value: 1, correct: false, credit: 0, points: 0 },
+      },
+      [],
+    )
+    const panel = await screen.findByRole('group', { name: 'Results' })
+    const rows = [...panel.querySelectorAll('.row')]
+    expect(rows.map((row) => row.querySelector('.label')?.textContent)).toEqual([
+      'Abyssal whip',
+      'Dragon bones',
+    ])
+    expect(rows[0]!.querySelector('.names')?.textContent).toBe('You')
+    expect(rows[1]!.querySelector('.names')).toBeNull()
+    expect(rows[1]!.querySelector('.number')?.textContent).toBe('1')
+  })
+
+  it('opens the results from a phone’s strip, which says who got it right', async () => {
+    windowOf(375, 812)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', []) })
+    closeWith(
+      {
+        a: { value: 0, correct: true, credit: 1, points: 900 },
+        b: { value: 1, correct: false, credit: 0, points: 0 },
+      },
+      [],
+    )
+    const strip = await screen.findByRole('button', { name: /1 of 2 got it right/ })
+    expect(screen.queryByRole('group', { name: 'Results' })).toBeNull()
+    await fireEvent.click(strip)
+    const sheet = screen.getByRole('dialog', { name: 'Results' })
+    expect(within(sheet).getByRole('group', { name: 'Results' })).toBeTruthy()
+  })
+
+  it('puts the table in a strip at a phone’s foot, and a new question closes its sheet', async () => {
+    windowOf(375, 812)
+    await arrive(welcome(roomView({ phase: 'open', next_at: null })))
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q1', ['a']) })
+    const strip = await screen.findByRole('button', { name: /1 of 2 answered/ })
+    expect(screen.queryByRole('group', { name: 'At the table' })).toBeNull()
+    await fireEvent.click(strip)
+    const sheet = screen.getByRole('dialog', { name: 'At the table' })
+    expect(within(sheet).getByRole('list', { name: 'Answered' }).textContent).toContain('Woox')
+    applyServerMessage({ t: 'question_open', question: tableQuestion('q2', ['a', 'b']) })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByRole('button', { name: /0 of 2 answered/ })).toBeTruthy()
+  })
+
+  it('keeps the stage where it is from a question to its reveal', async () => {
+    windowOf(1440, 900)
+    await arrive(welcome(roomView({ phase: 'reveal', next_at: inSeconds(10) })))
+    expect(document.querySelector('.play.revealing')).toBeTruthy()
+    // jsdom has no layout, so the rules themselves are checked: the column is as wide as
+    // the reveal needs from the first frame, and the stage is not centred in its height, so
+    // taller answers grow downward only.
+    const css = frameSource
+    expect(css).toMatch(
+      /\.fitted \.play \{[^}]*grid-template-columns: minmax\(0, 1fr\) var\(--play-column\)/,
+    )
+    const frame = document.querySelector<HTMLElement>('.frame.fitted')!.style
+    expect(frame.getPropertyValue('--play-column')).toBe('380px')
+    expect(css).not.toMatch(/\.fitted \.play\.revealing \{[^}]*grid-template-columns/)
+    expect(css).toMatch(/\.fitted \.stage-in \{\s*margin-block: 0 auto/)
+  })
+
+  it('tells the bar where the night is', async () => {
+    await arrive(welcome(roomView({ phase: 'standings' })))
+    expect(get(barWhere)).toEqual({ lead: 'Hiscores after round 1 of 2', mode: null })
+    cleanup()
+    expect(get(barWhere)).toBeNull()
+  })
+
+  it('names the round the splash presents, not the one just played', async () => {
+    const open: OpenQuestion = {
+      question_id: 'q1',
+      index: 0,
+      total: 2,
+      type: 'more_less',
+      mode: 'more_less',
+      segment: { ...SEGMENT, total: 4, count: 1 },
+      view: {
+        metric: 'ge_price',
+        direction: 'more',
+        options: [{ subject: { name: 'Abyssal whip' } }, { subject: { name: 'Dragon bones' } }],
+        as_of: '2026-09-01',
+      },
+      opened_at: new Date().toISOString(),
+      ends_at: new Date(Date.now() + 10_000).toISOString(),
+      you_can_answer: true,
+      picture: null,
+      random_event: null,
+      answerable_at: new Date().toISOString(),
+      answered: 0,
+      of: 0,
+      waiting: [],
+    }
+    await arrive(welcome(roomView({ phase: 'open', next_at: null, total: 4 })))
+    applyServerMessage({ t: 'question_open', question: open })
+    await waitFor(() => expect(get(barWhere)?.lead).toBe('Round 1 of 4:'))
+    applyServerMessage({
+      t: 'room_updated',
+      room: roomView({
+        phase: 'splash',
+        next_at: null,
+        current_index: 1,
+        total: 4,
+        segment: { ...SEGMENT, mode: 'price_is_right', index: 1, total: 4, start: 1 },
+      }),
+      players: [],
+    })
+    await waitFor(() =>
+      expect(get(barWhere)).toEqual({ lead: 'Round 2 of 4:', mode: modeLabel('price_is_right') }),
+    )
+  })
+
+  it('keeps the TV out of the frame and the bar', async () => {
+    windowOf(1440, 900)
+    const tv = welcome(roomView({ phase: 'standings' }))
+    await arrive({ ...tv, you: { ...tv.you, role: 'tv' } })
+    expect(document.querySelector('.frame.fitted')).toBeNull()
+    expect(get(barWhere)).toBeNull()
   })
 })
 
@@ -739,7 +1115,7 @@ describe('a random event’s way out', () => {
       await tick()
       close(Date.now() + 8000)
       await tick()
-      const row = document.querySelector('.stage-row')!
+      const row = document.querySelector('.speaker')!
       expect(row.classList.contains('returning')).toBe(false)
       await vi.advanceTimersByTimeAsync(8000 - RETURN_MS - 10)
       await tick()
@@ -755,7 +1131,7 @@ describe('a random event’s way out', () => {
       })
       await tick()
       expect(document.querySelector('.hiscores')).not.toBeNull()
-      expect(document.querySelector('.stage-row:is(.event, .returning)')).toBeNull()
+      expect(document.querySelector(':is(.speaker, .stage-row):is(.event, .returning)')).toBeNull()
     } finally {
       vi.useRealTimers()
     }
@@ -876,7 +1252,9 @@ describe('the shared stage', () => {
     await tick()
     expect(document.querySelectorAll('.scroll')).toHaveLength(1)
     expect(document.querySelector('.scroll')).toBe(scroll)
-    expect(document.querySelector('.stage-ghost')?.textContent).toContain(MODES.more_less!.label)
+    expect(document.querySelector('.stage-row .stage-ghost')?.textContent).toContain(
+      MODES.more_less!.label,
+    )
     expect(words().style.opacity).toBe('0')
     expect(words().textContent).toContain('Which costs more')
     expect(under().textContent).toContain('Abyssal whip')
@@ -890,7 +1268,7 @@ describe('the shared stage', () => {
     expect(row().classList.contains('presence-here')).toBe(true)
   })
 
-  it('clears the sheet before a random event slides the scroll over, then shows its words', async () => {
+  it('clears the sheet and the bubble before a random event walks on, then shows its words', async () => {
     await onSplash()
     applyServerMessage({
       t: 'question_open',
@@ -905,16 +1283,20 @@ describe('the shared stage', () => {
       },
     })
     await tick()
-    expect(document.querySelector('.stage-ghost')?.textContent).toContain(MODES.more_less!.label)
+    expect(document.querySelector('.stage-row .stage-ghost')?.textContent).toContain(
+      MODES.more_less!.label,
+    )
     expect(words().style.opacity).toBe('0')
-    expect(row().classList.contains('entering')).toBe(false)
+    expect(document.querySelector('.speaker')!.classList.contains('entering')).toBe(false)
     await vi.advanceTimersByTimeAsync(WORDS_OUT_MS)
     expect(document.querySelector('.stage-ghost')).toBeNull()
-    expect(row().classList.contains('entering')).toBe(true)
+    expect(document.querySelector('.speaker')!.classList.contains('entering')).toBe(true)
     expect(words().style.opacity).toBe('0')
     await vi.advanceTimersByTimeAsync(ENTER_MOVE_MS)
     expect(words().style.opacity).toBe('')
-    expect(words().textContent).toContain('Evil Bob')
+    expect(words().textContent).not.toContain('Random event')
+    expect(document.querySelector('.bubble .tag')!.textContent).toBe('Random event')
+    expect(document.querySelector('.bubble .speech')!.textContent).toContain('Evil Bob')
   })
 
   it('swaps the host for the Wise Old Man at the standings, before his words', async () => {
@@ -940,7 +1322,8 @@ describe('the shared stage', () => {
       players: [],
     })
     await tick()
-    const host = () => document.querySelector<HTMLImageElement>('.stage-row .npc.host img')!
+    // He speaks in his bubble, so he stands above the sheet, not beside it.
+    const host = () => document.querySelector<HTMLImageElement>('.speaker .npc.host img')!
     expect(row().classList.contains('presence-leaving')).toBe(true)
     expect(words().style.opacity).toBe('0')
     await vi.advanceTimersByTimeAsync(HOST_OUT_MS)
@@ -1078,13 +1461,13 @@ describe('the host’s skip', () => {
     ['after the game’s last question', reveal(3), 'Show the final standings'],
   ])('says where a reveal %s goes, and names it when pressed', async (_, view, label) => {
     await arrive(welcome(view, 'admin'))
-    screen.getByRole('button', { name: label }).click()
+    await host(label)
     expect(sent).toEqual([{ t: 'skip', phase: 'reveal', index: view.current_index }])
   })
 
   it('names the question it closes', async () => {
     await arrive(welcome(roomView({ phase: 'open', current_index: 1, next_at: null }), 'admin'))
-    screen.getByRole('button', { name: 'Close this question now' }).click()
+    await host('Close this question now')
     expect(sent).toEqual([{ t: 'skip', phase: 'open', index: 1 }])
   })
 
@@ -1092,7 +1475,8 @@ describe('the host’s skip', () => {
     // The splash is the whole screen, with no heading for `arrive` to wait on.
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
     applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
-    ;(await screen.findByRole('button', { name: 'Start the round now' })).click()
+    await waitFor(() => expect(hostLabels()).not.toBeNull())
+    await host('Start the round now')
     expect(sent).toEqual([{ t: 'skip', phase: 'splash', index: 0 }])
   })
 })
@@ -1100,7 +1484,7 @@ describe('the host’s skip', () => {
 describe('the host’s End the game', () => {
   async function ask(): Promise<HTMLElement> {
     await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
-    await fireEvent.click(screen.getByRole('button', { name: 'End the game' }))
+    await host('End the game')
     const dialog = screen.getByRole('dialog')
     expect(dialog.textContent).toContain('End the game now and show the final standings?')
     return dialog
@@ -1124,16 +1508,13 @@ describe('the host’s End the game', () => {
 describe('the host’s End the round', () => {
   async function ask(view: RoomView): Promise<HTMLElement> {
     await arrive(welcome(view, 'admin'))
-    await fireEvent.click(screen.getByRole('button', { name: 'End the round' }))
+    await host('End the round')
     return screen.getByRole('dialog')
   }
 
   it('sits between the skip and End the game', async () => {
     await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
-    const names = screen.getAllByRole('button').map((button) => button.textContent?.trim())
-    const at = names.indexOf('End the round')
-    expect(names[at - 1]).toBe('Show the standings now')
-    expect(names[at + 1]).toBe('End the game')
+    expect(hostLabels()).toEqual(['Show the standings now', 'End the round', 'End the game'])
   })
 
   it('ends the round on screen only once the host confirms', async () => {
@@ -1163,17 +1544,66 @@ describe('the host’s End the round', () => {
 
   it('is not offered during the standings', async () => {
     await arrive(welcome(roomView({ phase: 'standings' }), 'admin'))
-    expect(screen.queryByRole('button', { name: 'End the round' })).toBeNull()
+    expect(hostLabels()).toEqual(['Start the next round now', 'End the game'])
   })
 
   it('is on the splash, beside its skip', async () => {
     render(Room, { code: 'ABYSSAL', navigate: () => {} })
     applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
-    await fireEvent.click(await screen.findByRole('button', { name: 'End the round' }))
+    await waitFor(() =>
+      expect(hostLabels()).toEqual(['Start the round now', 'End the round', 'End the game']),
+    )
+    await host('End the round')
     await fireEvent.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'End the round' }),
     )
     expect(sent).toEqual([{ t: 'end_round', index: 0 }])
+  })
+})
+
+describe('the Host menu', () => {
+  it('is an admin’s, and not a player’s', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' })))
+    expect(hostLabels()).toBeNull()
+    cleanup()
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    expect(hostLabels()).not.toBeNull()
+  })
+
+  it('lists the question’s own actions while it is open', async () => {
+    await arrive(welcome(roomView({ phase: 'open', next_at: null }), 'admin'))
+    expect(hostLabels()).toEqual(['Close this question now', 'End the round', 'End the game'])
+  })
+
+  it('is not there in the lobby or after the game', async () => {
+    for (const status of ['lobby', 'finished'] as const) {
+      render(Room, { code: 'ABYSSAL', navigate: () => {} })
+      applyServerMessage(
+        welcome(roomView({ status, phase: 'idle', next_at: null, segment: null }), 'admin'),
+      )
+      await tick()
+      expect(hostLabels(), status).toBeNull()
+      cleanup()
+    }
+  })
+
+  it('goes with the room', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    cleanup()
+    expect(hostLabels()).toBeNull()
+  })
+
+  it('leaves no host panel under the answers or on the splash', async () => {
+    await arrive(welcome(roomView({ phase: 'reveal' }), 'admin'))
+    expect(screen.queryByRole('heading', { name: 'Host' })).toBeNull()
+    expect(screen.queryByText(/in the room\./)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'End the game' })).toBeNull()
+    cleanup()
+    render(Room, { code: 'ABYSSAL', navigate: () => {} })
+    applyServerMessage(welcome(roomView({ phase: 'splash', next_at: null }), 'admin'))
+    await waitFor(() => expect(hostLabels()).not.toBeNull())
+    expect(screen.queryByRole('button', { name: 'Start the round now' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'End the round' })).toBeNull()
   })
 })
 

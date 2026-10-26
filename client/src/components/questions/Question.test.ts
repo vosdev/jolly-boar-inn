@@ -15,9 +15,9 @@ import ribbon from '../../assets/stage/ribbon.svg'
 import bountySkull2 from '../../assets/sprites/bounty-skull-2.svg'
 import bountySkull5 from '../../assets/sprites/bounty-skull-5.svg'
 import { serverNow } from '../../lib/clock'
-import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
-import { MODES } from '../../lib/modes'
-import { answerCount, players } from '../../lib/stores'
+import type { OpenQuestion, PlayerResult, Scoring } from '../../lib/protocol'
+import { MODES, pickLines } from '../../lib/modes'
+import { answerAck, answerCount, players } from '../../lib/stores'
 import { clearVocabCache } from '../../lib/vocab'
 import QuestionStage from '../QuestionStage.svelte'
 import { STEMS, TYPE_VIEWS, viewFor } from './index'
@@ -414,29 +414,179 @@ describe('every type on the stage', () => {
       })
       expect(paper().textContent?.trim()).not.toBe('')
       expect(paper().querySelector(pressable)).toBeNull()
-      expect(paper().querySelector('.slot')?.textContent).toContain('No answer · +0')
+      expect(paper().querySelector('.slot')).toBeNull()
+      expect(document.querySelector('.bubble .slot')?.textContent).toContain('No answer · +0')
     })
   }
 
-  it('holds the line the points go on, so the answers do not move for them', () => {
+  it('keeps no points foot on the sheet, open or revealed', () => {
+    const question = open('more_less', 'more_less')
+    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(paper().querySelector('.foot, .said, .slot')).toBeNull()
+    unmount()
+    render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
+    expect(paper().querySelector('.foot, .said, .slot')).toBeNull()
+  })
+
+  const bubble = () => document.querySelector('.bubble') as HTMLElement
+  const said = () => bubble().querySelector('.line:not(.later)')!.textContent?.trim()
+
+  it('has the host say its ask line in its bubble before anyone answers', () => {
+    const question = open('more_less', 'more_less')
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(bubble().querySelector('.npc.host')).toBeTruthy()
+    expect(bubble().classList.contains('on')).toBe(true)
+    expect(said()).toBe(pickLines(MODES.more_less!, question).ask)
+    expect(MODES.more_less!.ask).toContain(said())
+  })
+
+  it('gives two screens the same line for the same question', () => {
+    const question = open('bestiary', 'bestiary', { ...VIEW, prompt: 'Who?' })
+    const first = render(QuestionStage, { question, yourValue: null, onAnswer })
+    const mine = said()
+    first.unmount()
+    render(QuestionStage, { question: { ...question }, yourValue: null, onAnswer })
+    expect(said()).toBe(mine)
+  })
+
+  it('moves the examine’s instruction to the bubble, leaving the examine alone on the sheet', () => {
+    const question = open('free_text', 'guess_examine', { prompt: 'Future web developers.' })
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(paper().querySelector('.examine')?.textContent?.trim()).toBe('Future web developers.')
+    expect(paper().textContent).not.toMatch(/examine of/)
+    expect(said()).toMatch(/examine/)
+  })
+
+  it('names the host in its dialogue box while the question is open', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: null, onAnswer })
-    const said = paper().querySelector('.said')
-    expect(said).toBeTruthy()
-    expect(said!.textContent?.trim()).toBe('')
+    const name = bubble().querySelector('.speech > .name')
+    expect(name?.textContent).toBe(MODES.more_less!.host.name)
   })
 
-  it('has the host say its waiting line at the foot of the sheet once you have answered', () => {
+  describe('waiting by how fast you were', () => {
+    afterEach(() => answerAck.set(null))
+
+    const waitingFor = (ack: { scoring: Scoring; band: number | null } | null) => {
+      answerAck.set(ack)
+      const { unmount } = render(QuestionStage, {
+        question: open('more_less', 'more_less'),
+        yourValue: 0,
+        onAnswer,
+      })
+      const line = said()
+      unmount()
+      return line
+    }
+
+    it('picks bands 1–2, 3 and 4–5 from their own groups', () => {
+      const pace = MODES.more_less!.pace
+      for (const band of [1, 2])
+        expect(pace.quick).toContain(waitingFor({ scoring: 'speed', band }))
+      expect(pace.middling).toContain(waitingFor({ scoring: 'speed', band: 3 }))
+      for (const band of [4, 5]) expect(pace.late).toContain(waitingFor({ scoring: 'speed', band }))
+    })
+
+    it('picks the first step as early and a later one as later', () => {
+      const pace = MODES.more_less!.pace
+      expect(pace.early).toContain(waitingFor({ scoring: 'step', band: 1 }))
+      expect(pace.later).toContain(waitingFor({ scoring: 'step', band: 3 }))
+    })
+
+    it('waits with the plain lines on a ranked question, and before the ack', () => {
+      const plain = MODES.more_less!.waiting
+      expect(plain).toContain(waitingFor({ scoring: 'accuracy', band: null }))
+      expect(plain).toContain(waitingFor(null))
+    })
+
+    it('says it under the answers on a phone while the TV has the stage', () => {
+      answerAck.set({ scoring: 'speed', band: 5 })
+      render(QuestionStage, {
+        question: open('more_less', 'more_less'),
+        yourValue: 0,
+        onAnswer,
+        answersOnly: true,
+      })
+      const line = document.querySelector('.bare > .host-line')?.textContent
+      expect(MODES.more_less!.pace.late).toContain(line)
+    })
+  })
+
+  it('has the host say its waiting line in its bubble, dimmed, once you have answered', () => {
     render(QuestionStage, { question: open('more_less', 'more_less'), yourValue: 0, onAnswer })
-    expect(paper().querySelector('.said')!.textContent?.trim()).toBe(MODES.more_less!.waiting)
+    expect(bubble().classList.contains('dim')).toBe(true)
+    const waiting = pickLines(MODES.more_less!, open('more_less', 'more_less')).waiting
+    expect(said()).toBe(waiting)
+    expect(paper().textContent).not.toContain(waiting)
   })
 
-  it('has the host say its reveal line beside your points', () => {
+  const chip = () => bubble().querySelector('.title .chip .slot')
+
+  it('has the host react in its bubble, undimmed, and your points on a chip on its name row', () => {
     const question = open('more_less', 'more_less')
     const result = { value: 0, correct: true, credit: 1, points: 850 }
     render(QuestionStage, { question, reveal: REVEAL, yourValue: 0, result, onAnswer })
-    const said = paper().querySelector('.said')!
-    expect(said.querySelector('.line')?.textContent).toBe(MODES.more_less!.reveal)
-    expect(said.querySelector('.slot')?.textContent).toContain('+850')
+    expect(bubble().classList.contains('on')).toBe(true)
+    expect(said()).toContain(pickLines(MODES.more_less!, question, { verdict: 'right' }).reveal)
+    expect(chip()?.textContent).toContain('+850')
+  })
+
+  it('shows no chip while the question is open, answered or not', () => {
+    const question = open('more_less', 'more_less')
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(bubble().querySelector('.slot')).toBeNull()
+    unmount()
+    render(QuestionStage, { question, yourValue: 0, onAnswer })
+    expect(bubble().querySelector('.slot')).toBeNull()
+  })
+
+  it('reacts to a right, a partial, a wrong and a missed answer from their own sets', () => {
+    const question = open('more_less', 'more_less')
+    const cases = [
+      ['right', { value: 0, correct: true, credit: 1, points: 850 }, '+850'],
+      ['partial', { value: 0, correct: false, credit: 0.5, points: 340 }, '+340'],
+      ['wrong', { value: 1, correct: false, credit: 0, points: 0 }, '+0'],
+      ['missed', null, 'No answer · +0'],
+    ] as const
+    for (const [verdict, result, shown] of cases) {
+      const { unmount } = render(QuestionStage, {
+        question,
+        reveal: REVEAL,
+        yourValue: result === null ? null : result.value,
+        result,
+        onAnswer,
+      })
+      expect(MODES.more_less!.verdict[verdict], verdict).toContain(
+        bubble().querySelector('.line:not(.later) p')?.textContent,
+      )
+      expect(chip()?.textContent, verdict).toContain(shown)
+      unmount()
+    }
+  })
+
+  it('gives somebody who could not answer the room’s reveal line and no chip', () => {
+    const question = { ...open('more_less', 'more_less'), you_can_answer: false }
+    render(QuestionStage, { question, reveal: REVEAL, yourValue: null, onAnswer })
+    expect(said()).toContain(pickLines(MODES.more_less!, question).reveal)
+    expect(bubble().querySelector('.slot')).toBeNull()
+  })
+
+  it('puts the explanation in the reveal’s bubble, off the sheet, and no countdown', () => {
+    const question = open('more_less', 'more_less')
+    const why = 'Rune prices crashed when the mines were reopened.'
+    const nextAt = new Date(Date.now() + 6000).toISOString()
+    render(QuestionStage, {
+      question,
+      reveal: { ...REVEAL, explanation: why },
+      yourValue: 0,
+      onAnswer,
+      nextAt,
+    })
+    expect(said()).toContain(why)
+    expect(said()).not.toMatch(/\bin \d+ seconds?\b/)
+    expect(document.querySelector('.bubble .next')).toBeNull()
+    expect(screen.getAllByText(why)).toHaveLength(1)
+    expect(paper().textContent).not.toContain(why)
   })
 
   it('draws the scroll open, as it always is', () => {
@@ -674,10 +824,10 @@ describe('a phone while the TV shows the question', () => {
     expect(screen.getByRole('button', { name: /77/ })).toBeTruthy()
   })
 
-  it('keeps the waiting line once you have answered', () => {
+  it('says nothing under the answers once you have answered', () => {
     const question = open('more_less', 'more_less')
     render(QuestionStage, { question, yourValue: 0, onAnswer, answersOnly: true })
-    expect(document.querySelector('.panel.waiting')?.textContent).toContain('Waiting for the room')
+    expect(document.body.textContent).not.toContain('Answer in')
   })
 
   it('gets the whole question back when the TV goes', async () => {
@@ -802,6 +952,34 @@ describe("the room's TV", () => {
     expect(document.querySelector('.slot')).toBeNull()
   })
 
+  it('says the room’s reveal line and shows no chip, though its player could answer', () => {
+    const question = { ...watching, you_can_answer: true }
+    const result = { value: 0, correct: true, credit: 1, points: 850 }
+    render(QuestionStage, {
+      question,
+      reveal: { ...VIEW_TV, answer_index: 0 },
+      yourValue: 0,
+      result,
+      onAnswer,
+      tv: true,
+    })
+    const line = document.querySelector('.paper .said .line')?.textContent
+    expect(line).toBe(pickLines(MODES.custom!, question).reveal)
+    expect(document.querySelector('.slot')).toBeNull()
+  })
+
+  it('says no waiting line, only the ask line, while the question is open', () => {
+    answerAck.set({ scoring: 'speed', band: 1 })
+    render(QuestionStage, { question: watching, yourValue: 0, onAnswer, tv: true })
+    answerAck.set(null)
+    const lines = MODES.custom!
+    const text = document.body.textContent ?? ''
+    for (const line of [...lines.waiting, ...Object.values(lines.pace).flat()]) {
+      expect(text).not.toContain(line)
+    }
+    expect(document.querySelector('.bubble')).toBeNull()
+  })
+
   it("reveals a random event's tally and names the same way", () => {
     render(QuestionStage, {
       question: { ...watching, random_event: 'death' },
@@ -813,5 +991,62 @@ describe("the room's TV", () => {
     })
     expect(document.querySelector('.stage.tv .tv-panel')?.textContent).toContain(NAMES)
     expect(document.querySelector('.slot')).toBeNull()
+  })
+})
+
+describe('the sheet holds only the question', () => {
+  const sheet = () => document.querySelector('.paper')!.textContent
+
+  it("drops Who's That NPC?'s heading, open and revealed", () => {
+    const view = { prompt: "Who's that NPC?", vocab: 'npcs' }
+    const question = { ...open('pick_from_list', 'whos_that_npc', view), picture: 'feedc0de.png' }
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(sheet()).not.toContain("Who's that NPC?")
+    unmount()
+    render(QuestionStage, {
+      question,
+      reveal: { ...view, answer_id: 8058, subject: { name: 'Vorkath' } },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(sheet()).not.toContain("Who's that NPC?")
+    expect(sheet()).toContain('Vorkath')
+  })
+
+  it('drops Who Said That?’s heading and keeps the quote, open and revealed', () => {
+    const view = { prompt: 'Who said this?', quote: 'Buying gf', options: ['A', 'B', 'C', 'D'] }
+    const question = open('multiple_choice', 'who_said_that', view)
+    const { unmount } = render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(sheet()).not.toContain('Who said this?')
+    expect(sheet()).toContain('Buying gf')
+    unmount()
+    render(QuestionStage, {
+      question,
+      reveal: { ...view, answer_index: 1 },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(sheet()).not.toContain('Who said this?')
+    expect(sheet()).toContain('Buying gf')
+  })
+
+  it('still has the host ask for a mode whose sheet has no words', () => {
+    const view = { prompt: "Who's that NPC?", vocab: 'npcs' }
+    const question = { ...open('pick_from_list', 'whos_that_npc', view), picture: 'feedc0de.png' }
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    expect(document.querySelector('.bubble')!.textContent).toMatch(/\S{3}/)
+  })
+
+  it('shows no "Answer in" line after answering, in a round or a random event', () => {
+    const round = open('more_less', 'more_less')
+    const { unmount } = render(QuestionStage, { question: round, yourValue: 0, onAnswer })
+    expect(document.body.textContent).not.toContain('Answer in')
+    unmount()
+    const event = {
+      ...open('multiple_choice', 'random_event', { prompt: 'Which?', options: ['70', '77'] }),
+      random_event: 'death',
+    }
+    render(QuestionStage, { question: event, yourValue: 0, onAnswer })
+    expect(document.body.textContent).not.toContain('Answer in')
   })
 })

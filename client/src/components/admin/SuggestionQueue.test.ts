@@ -204,7 +204,7 @@ describe('SuggestionQueue', () => {
     render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
     await fireEvent.click((await screen.findByText(/Which letters dial/)).closest('button')!)
     const preview = screen.getByLabelText('As players will see it')
-    expect(within(preview).getByText('Fairy Queen', { selector: '.who' })).toBeTruthy()
+    expect(within(preview).getByText('Fairy Queen', { selector: '.name' })).toBeTruthy()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     expect(screen.getByRole('radio', { name: 'Fairy Queen' })).toHaveProperty('checked', true)
@@ -385,7 +385,11 @@ describe('SuggestionQueue', () => {
     render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
     await fireEvent.click((await screen.findByText("Who's that NPC?")).closest('button')!)
     expect(screen.getByText('Araxxor', { selector: 'strong' })).toBeTruthy()
-    expect(screen.getByLabelText('As players will see it').querySelector('.picture')).toBeNull()
+    const preview = screen.getByLabelText('As players will see it')
+    expect(preview.querySelector('.picture img')).toBeNull()
+    expect(preview.querySelector('.picture .placeholder')?.textContent).toBe(
+      'The picture is added once the innkeeper imports it.',
+    )
   })
 
   it('links a question’s non-wiki source beside, or instead of, its wiki page', async () => {

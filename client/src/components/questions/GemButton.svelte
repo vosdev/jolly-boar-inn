@@ -99,11 +99,19 @@
    * whatever the room's `name_wrong_answers`. It is the one other thing a reveal adds. A
    * gem nobody picked shows no number, which its empty bar already says.
    *
+   * `pickers` names who picked it under the label, on the desktop room's reveal
+   * (`lib/pickers.svelte.ts`): their pets and names, then "and N more". Ours is among
+   * them as "you", so the button's own "you" tag is dropped; the screen reader still hears
+   * ", your answer".
+   *
    * The fade is `color-mix(in srgb, gem 25%, panel)`. `server/scripts/check_contrast.py`
    * holds `--gem-ink` to 4.5:1 against exactly that mix in every theme, as
    * `FADED_GEM_SHARE`; change the two together.
    */
   import type { Snippet } from 'svelte'
+
+  import type { Pickers } from '../../lib/pickers.svelte'
+  import Pet from '../Pet.svelte'
 
   let {
     gem,
@@ -114,6 +122,7 @@
     place,
     said,
     votes = null,
+    pickers = null,
     tag = 'button',
     disabled = false,
     onclick,
@@ -137,6 +146,8 @@
     said?: string
     /** On a reveal: how many picked it, of how many answered; null for no count. */
     votes?: { count: number; of: number } | null
+    /** On a reveal: who picked it, named under the label; null for none. */
+    pickers?: Pickers | null
     tag?: 'button' | 'div'
     disabled?: boolean
     onclick?: () => void
@@ -160,13 +171,20 @@
 </script>
 
 {#snippet inside()}
-  <span class="content">{@render children()}</span>
+  <span class="content"
+    >{@render children()}{#if pickers !== null}<span class="pickers" aria-hidden="true"
+        >{#each pickers.shown as picker (picker.id)}<span class="picker" class:me={picker.you}
+            ><Pet pet={picker.pet} size={24} label="" />{picker.name}</span
+          >{/each}{#if pickers.more > 0}<span class="picker more">and {pickers.more} more</span
+          >{/if}</span
+      >{/if}</span
+  >
   {#if checked !== null}
     <span class="tick" class:checked aria-hidden="true">{checked ? '✓' : ''}</span>
   {:else if place !== undefined}
     <span class="tick" class:checked={place !== null} aria-hidden="true">{place ?? ''}</span>
   {/if}
-  {#if yours}
+  {#if yours && pickers === null}
     <span class="you" aria-hidden="true">you</span>
   {/if}
   {#if votes !== null}
@@ -175,6 +193,11 @@
   {/if}
   {#if spoken !== ''}<span class="sr">{spoken}</span>{/if}
   {#if votes !== null}<span class="sr">, picked by {votes.count} of {votes.of}</span>{/if}
+  {#if pickers !== null}<span class="sr"
+      >: {pickers.shown.map((picker) => picker.name).join(', ')}{pickers.more > 0
+        ? ` and ${pickers.more} more`
+        : ''}</span
+    >{/if}
   {#if end !== undefined}<span class="end">{@render end()}</span>{/if}
 {/snippet}
 
@@ -283,6 +306,27 @@
   .content {
     min-width: 0;
     overflow-wrap: anywhere;
+  }
+
+  .pickers {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.6rem;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+  }
+
+  .picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    white-space: nowrap;
+  }
+
+  .picker.me {
+    font-weight: 700;
   }
 
   .faded,

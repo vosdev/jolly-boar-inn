@@ -38,7 +38,7 @@ from app.ws.protocol import (
     TeamStanding,
 )
 
-NAME_MAX = 24
+NAME_MAX = 12
 # Letters only, from the Latin blocks whose accented letters a player could type:
 # names are read aloud and compared by eye, and every other script has letters that look
 # like these. ``names.ts`` holds the same ranges.
@@ -68,7 +68,7 @@ def new_invite_key() -> str:
 
 
 def normalize_name(raw: str) -> str:
-    """NFKC, trimmed, spaces collapsed, then 1-24 of Latin letters, digits, space, _ and -."""
+    """NFKC, trimmed, spaces collapsed, then 1-``NAME_MAX`` Latin letters, digits, space, _, -."""
     name = _SPACES.sub(" ", unicodedata.normalize("NFKC", raw).strip())
     if not 1 <= len(name) <= NAME_MAX:
         raise BadName(f"display name must be 1 to {NAME_MAX} characters")
@@ -384,6 +384,20 @@ class Room:
     def current_segment(self) -> Segment | None:
         return None if self.current_index is None else self.segment_at(self.current_index)
 
+    @property
+    def next_segment(self) -> Segment | None:
+        """The round after the current one, or ``None`` past the last."""
+        current = self.current_segment
+        if current is None or current.index + 1 >= len(self.segments):
+            return None
+        return self.segments[current.index + 1]
+
+    @property
+    def played(self) -> list[str]:
+        """The modes of the rounds before the current one, in the order they were played."""
+        current = self.current_segment
+        return [] if current is None else [s.mode for s in self.segments[: current.index]]
+
     def question_seconds(self, question: RoomQuestion) -> int:
         """How long ``question`` stays open: its type's time at the room's pace."""
         return answer_seconds(question.type, question.payload, self.settings.pace)
@@ -462,6 +476,8 @@ class Room:
             reveal_seconds=self.reveal_seconds if self.phase == "reveal" else None,
             estimated_seconds=self.estimated_seconds(),
             segment=self.current_segment,
+            next_segment=self.next_segment if self.phase == "standings" else None,
+            played=self.played,
             finished_at=self.finished_at,
             rounds=rounds,
             key=self.invite_key if admin else None,

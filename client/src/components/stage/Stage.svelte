@@ -15,12 +15,12 @@
   import { onMount, untrack, type Snippet } from 'svelte'
 
   import type { Award } from '../../lib/award'
-  import { sharedStage, type Look } from '../../lib/sharedStage.svelte'
+  import { sharedStage, type Bubble, type Look } from '../../lib/sharedStage.svelte'
   import StageView from './StageView.svelte'
 
   let {
     paper,
-    beside,
+    said,
     children,
     ...look
   }: {
@@ -33,12 +33,13 @@
     entering?: boolean
     returning?: boolean
     tall?: boolean
-    beside?: Snippet
+    said?: Snippet
     children?: Snippet
     scene?: string | null
     within?: number
     tv?: boolean
     wide?: boolean
+    bubble?: Bubble | null
   } = $props()
 
   const shared = sharedStage()
@@ -47,7 +48,7 @@
 
   let paperPart = $state<HTMLElement | null>(null)
   let underPart = $state<HTMLElement | null>(null)
-  let besidePart = $state<HTMLElement | null>(null)
+  let saidPart = $state<HTMLElement | null>(null)
 
   $effect(() => {
     if (scene !== null) scene.look = { ...look }
@@ -58,21 +59,21 @@
     shared.enter(scene, {
       paper: paperPart,
       under: children ? underPart : null,
-      beside: beside ? besidePart : null,
+      said: said ? saidPart : null,
     })
     return () => shared.leave(scene)
   })
 </script>
 
 {#if shared === null}
-  <StageView {...look} {paper} {beside} {children} />
+  <StageView {...look} {paper} {said} {children} />
 {:else}
   <!-- Each part is moved onto the shared stage whole, and lays out as if it were the slot
        it lands in. -->
   <div hidden>
     <div class="part" bind:this={paperPart}>{@render paper()}</div>
     <div class="part" bind:this={underPart}>{@render children?.()}</div>
-    <div class="part" bind:this={besidePart}>{@render beside?.()}</div>
+    <div class="part" bind:this={saidPart}>{@render said?.()}</div>
   </div>
 {/if}
 

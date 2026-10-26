@@ -44,3 +44,21 @@ describe('the entrance', () => {
     expect(scroll).toEqual({ duration: ENTER_MOVE_MS, delay: 0 })
   })
 })
+
+describe('the speaker above the sheet', () => {
+  it('keeps its chathead in its panel on a phone, where the sheet-side host stands on the sheet', () => {
+    const rule = source.match(/\n {2}\.stage \.speaker \.npc \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain('position: relative')
+    expect(rule).toContain('animation: none')
+  })
+
+  it('takes its chathead size from the room, 92px unless the room is compact', () => {
+    expect(source).toMatch(/\.speaker \{\s*--head: var\(--head-size, 92px\);/)
+  })
+
+  it('hides or dims only the line under the name, never the name itself', () => {
+    expect(source).toMatch(/\.bubble\.off \.speech > :global\(:not\(\.name\)\) \{/)
+    expect(source).toMatch(/\.bubble\.dim \.speech > :global\(:not\(\.name\)\) \{/)
+    expect(source).not.toMatch(/\.bubble\.(off|dim) \{/)
+  })
+})

@@ -177,9 +177,15 @@
       return
     }
     const box = input.getBoundingClientRect()
+    // The room may be scaled to the window; the list's max-height is in its own px.
+    const scale = input.offsetHeight > 0 ? box.height / input.offsetHeight : 1
+    // A list past the edge of a scrolling stage would lengthen the stage and scroll it.
+    const clip = scrollerOf(input)?.getBoundingClientRect()
+    const top = Math.max(viewport.offsetTop, clip?.top ?? -Infinity)
+    const bottom = Math.min(viewport.offsetTop + viewport.height, clip?.bottom ?? Infinity)
     const room = {
-      above: box.top - viewport.offsetTop,
-      below: viewport.offsetTop + viewport.height - box.bottom,
+      above: (box.top - top) / scale,
+      below: (bottom - box.bottom) / scale,
     }
     const preferred = preferAbove ? 'above' : 'below'
     const other = preferAbove ? 'below' : 'above'
@@ -187,6 +193,13 @@
       room[preferred] < MIN_LIST_HEIGHT && room[other] > room[preferred] ? other : preferred
     above = side === 'above'
     maxHeight = Math.max(MIN_LIST_HEIGHT, Math.floor(room[side]) - 12)
+  }
+
+  function scrollerOf(element: HTMLElement): HTMLElement | null {
+    for (let up = element.parentElement; up !== null; up = up.parentElement) {
+      if (/auto|scroll/.test(getComputedStyle(up).overflowY)) return up
+    }
+    return null
   }
 
   // The keyboard opening resizes the visual viewport; the scroll that focusing starts
@@ -217,6 +230,24 @@
     answer={answerName}
     yours={answered === null ? null : (pickedName ?? (list === null ? '…' : 'not in this list'))}
   />
+{:else if typeof q.vocab !== 'string'}
+  <div class="pick">
+    <div class="field">
+      <input
+        id="{uid}-input"
+        type="text"
+        role="combobox"
+        placeholder="Start typing a name…"
+        aria-label="Search the list"
+        aria-autocomplete="list"
+        aria-expanded="false"
+        aria-controls={listId}
+        disabled
+      />
+    </div>
+    <button type="button" class="primary" disabled>Submit</button>
+    <p class="note">The NPC joins the list once the innkeeper imports it.</p>
+  </div>
 {:else if failed}
   <p class="note">The list could not be loaded.</p>
   <button type="button" onclick={() => typeof q.vocab === 'string' && fetchList(q.vocab)}>
@@ -232,7 +263,6 @@
       submit()
     }}
   >
-    <label class="label" for="{uid}-input">Search the list</label>
     <div class="field">
       <input
         bind:this={input}
@@ -245,6 +275,7 @@
         spellcheck="false"
         enterkeyhint="done"
         placeholder="Start typing a name…"
+        aria-label="Search the list"
         aria-autocomplete="list"
         aria-expanded={expanded}
         aria-controls={listId}
@@ -301,10 +332,6 @@
     gap: 0.6rem;
   }
 
-  .label {
-    color: var(--muted);
-  }
-
   .field {
     position: relative;
   }
@@ -346,6 +373,11 @@
   }
 
   [role='option'] {
+    display: flex;
+    align-items: center;
+    /* The stage keeps room for five of these under the input (lib/pictureFit.ts). */
+    min-height: 2.5rem;
+    box-sizing: border-box;
     padding: 0.55rem 0.6rem;
     border-radius: calc(var(--radius) - 2px);
     cursor: pointer;
@@ -363,5 +395,9 @@
 
   .pick button {
     min-height: 56px;
+  }
+
+  .pick .note {
+    margin: 0;
   }
 </style>

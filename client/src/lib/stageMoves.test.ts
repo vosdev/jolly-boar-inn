@@ -45,6 +45,15 @@ describe('handoffFor', () => {
     expect(handoffFor(wom, castOf({ host: 'wise_old_man', tall: true }), true).kind).toBe('swap')
   })
 
+  it('swaps when the host steps up above the sheet to speak, and moves only words after', () => {
+    const beside = castOf({ host: 'bob_barter' })
+    const above = castOf({ host: 'bob_barter', speaks: true })
+    expect(handoffFor(beside, above, true).kind).toBe('swap')
+    expect(
+      handoffFor(above, castOf({ host: 'bob_barter', speaks: true, scene: 'q1' }), true).kind,
+    ).toBe('same')
+  })
+
   it('keeps the stage as it is when a question goes from open to revealed', () => {
     const open = castOf({ host: 'bob_barter', scene: 'q1' })
     expect(handoffFor(open, castOf({ host: 'bob_barter', scene: 'q1' }), true)).toEqual(CUT)

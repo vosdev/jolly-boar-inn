@@ -2,7 +2,8 @@
   /**
    * A native modal `<dialog>` that rises from the bottom of a phone, or fills it with
    * `full`, and sits in the middle of a wider screen. Shown for as long as it is mounted,
-   * like `ConfirmDialog`; Escape asks the caller to close it rather than closing it here.
+   * like `ConfirmDialog`; Escape asks the caller to close it rather than closing it here,
+   * and so does a tap outside it with `outside`.
    */
   import { onMount, type Snippet } from 'svelte'
 
@@ -10,6 +11,7 @@
     labelledby = undefined,
     label = undefined,
     full = false,
+    outside = false,
     onclose,
     children,
   }: {
@@ -17,6 +19,7 @@
     labelledby?: string
     label?: string
     full?: boolean
+    outside?: boolean
     onclose: () => void
     children: Snippet
   } = $props()
@@ -32,6 +35,18 @@
     event.preventDefault()
     onclose()
   }
+
+  // A tap on the backdrop lands on the dialog itself, as does one on its padding.
+  function tap(event: MouseEvent): void {
+    if (!outside || dialog === null || event.target !== dialog) return
+    const box = dialog.getBoundingClientRect()
+    const within =
+      event.clientX >= box.left &&
+      event.clientX <= box.right &&
+      event.clientY >= box.top &&
+      event.clientY <= box.bottom
+    if (!within) onclose()
+  }
 </script>
 
 <dialog
@@ -41,6 +56,7 @@
   aria-labelledby={labelledby}
   aria-label={label}
   oncancel={escape}
+  onclick={tap}
 >
   {@render children()}
 </dialog>

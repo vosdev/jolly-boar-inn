@@ -44,6 +44,201 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.194.2',
+    date: '2026-10-26',
+    text: 'Who is That NPC? suggestions show a placeholder preview.',
+  },
+  {
+    version: '0.194.1',
+    date: '2026-10-26',
+    text: 'Dragging a row scrolls the stage; countdowns stay quiet.',
+  },
+  {
+    version: '0.194.0',
+    date: '2026-10-26',
+    text: 'Suggesting a question or item walks through numbered steps with checkmarks, optional extras, and a progress line.',
+  },
+  {
+    version: '0.193.0',
+    date: '2026-10-26',
+    text: 'Past games open like the end of a game: the Wise Old Man with the full hiscores, and the room and time up top.',
+  },
+  {
+    version: '0.192.2',
+    date: '2026-10-26',
+    text: 'Sort It Out fits a short laptop screen.',
+  },
+  {
+    version: '0.192.1',
+    date: '2026-10-26',
+    text: 'The server image takes the latest security fixes.',
+  },
+  {
+    version: '0.192.0',
+    date: '2026-10-25',
+    text: 'At the final, the Wise Old Man holds up each trophy in his dialogue box as he names the place.',
+  },
+  {
+    version: '0.191.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? never draws its picture larger than it really is, and the answer list always has room for five names.",
+  },
+  {
+    version: '0.190.0',
+    date: '2026-10-25',
+    text: 'The answers on a reveal no longer show "you" twice: your chathead already says it.',
+  },
+  {
+    version: '0.189.0',
+    date: '2026-10-25',
+    text: 'The Ready and Full screen switches no longer sit inside a big circle.',
+  },
+  {
+    version: '0.188.0',
+    date: '2026-10-25',
+    text: 'Between rounds, the Next up panel is only as tall as what it says, with the countdown under the round.',
+  },
+  {
+    version: '0.187.0',
+    date: '2026-10-25',
+    text: 'The table shows chatheads again, three to a row, and a long name wraps instead of being cut.',
+  },
+  {
+    version: '0.186.0',
+    date: '2026-10-25',
+    text: 'Names are now up to 12 characters, as in OSRS, and the table shows them whole, two to a row.',
+  },
+  {
+    version: '0.185.0',
+    date: '2026-10-25',
+    text: 'The lobby shows the code on one line and folds long round lists into +N more, and offers full screen in a short window.',
+  },
+  {
+    version: '0.184.1',
+    date: '2026-10-25',
+    text: 'Moving a row in Sort It Out no longer jumps back to the top.',
+  },
+  {
+    version: '0.184.0',
+    date: '2026-10-25',
+    text: "Who's That NPC? pictures now use the room the screen has left, so they fit a laptop and fill a big screen.",
+  },
+  {
+    version: '0.183.0',
+    date: '2026-10-25',
+    text: 'On a laptop the room steps down a size instead of scrolling, so the question fits.',
+  },
+  {
+    version: '0.182.0',
+    date: '2026-10-25',
+    text: 'Once you answer, the host notices how quick you were, and says so. Just in time!',
+  },
+  {
+    version: '0.181.0',
+    date: '2026-10-25',
+    text: "Your points now show in the host's dialogue box, and the host reacts to how you did. The question sheet is shorter.",
+  },
+  {
+    version: '0.180.0',
+    date: '2026-10-25',
+    text: 'The question sheet drops what the host already says: the mode heading, the Answer in line and the search label.',
+  },
+  {
+    version: '0.179.0',
+    date: '2026-10-25',
+    text: 'Between rounds, the standings say "Moving on in" instead of "Starts in", as the next round begins on its splash.',
+  },
+  {
+    version: '0.178.1',
+    date: '2026-10-25',
+    text: 'The top bar names the coming round on its splash.',
+  },
+  {
+    version: '0.178.0',
+    date: '2026-10-25',
+    text: 'On a shuffled or surprise night, the splash shows who hosted the rounds already played.',
+  },
+  {
+    version: '0.177.0',
+    date: '2026-10-25',
+    text: 'The round scroll reads more cleanly, unknown rounds show a "?", and the countdown sits by Ready.',
+  },
+  {
+    version: '0.176.0',
+    date: '2026-10-25',
+    text: 'Ready is now a switch that shows clearly whether you are ready.',
+  },
+  {
+    version: '0.175.0',
+    date: '2026-10-25',
+    text: 'Hosts now ask each question themselves, in lines that change every time. Random events hand back without a flicker.',
+  },
+  {
+    version: '0.174.0',
+    date: '2026-10-25',
+    text: 'Hosts and random event NPCs now talk in a dialogue box like the game’s. The timer says what comes next.',
+  },
+  {
+    version: '0.173.0',
+    date: '2026-10-25',
+    text: 'In the room, every theme now centres the words on its sheet, the lobby code included.',
+  },
+  {
+    version: '0.172.0',
+    date: '2026-10-25',
+    text: 'In the room, the host and the sheet no longer jump when the answers are revealed.',
+  },
+  {
+    version: '0.171.0',
+    date: '2026-10-24',
+    text: 'On a computer, the reveal shows who picked each answer, right on the answer.',
+  },
+  {
+    version: '0.170.0',
+    date: '2026-10-24',
+    text: 'Between rounds the hiscores say who hosts the next round and count down to it.',
+  },
+  {
+    version: '0.169.0',
+    date: '2026-10-24',
+    text: 'Before each round, a row of tonight’s hosts shows how far the night has come, and a large countdown.',
+  },
+  {
+    version: '0.168.0',
+    date: '2026-10-24',
+    text: 'The lobby shows the code and invite link large, and a card for each of tonight’s rounds.',
+  },
+  {
+    version: '0.167.0',
+    date: '2026-10-24',
+    text: 'After each question the table beside the stage shows who picked what, with a count and a bar per answer.',
+  },
+  {
+    version: '0.166.0',
+    date: '2026-10-24',
+    text: 'On a laptop the question and its answers use the width of the screen, each answer sized to fit.',
+  },
+  {
+    version: '0.165.0',
+    date: '2026-10-24',
+    text: 'The host now speaks in a bubble above the question, and a random event’s NPC in one on the right.',
+  },
+  {
+    version: '0.164.0',
+    date: '2026-10-24',
+    text: 'The table beside the stage shows who has answered and who is still thinking, by team in a team game.',
+  },
+  {
+    version: '0.163.0',
+    date: '2026-10-24',
+    text: "The host's buttons moved from under the question to a Host menu in the top bar.",
+  },
+  {
+    version: '0.162.0',
+    date: '2026-10-24',
+    text: 'Rooms fill a laptop or desktop screen: the stage on the left, who is at the table on the right.',
+  },
+  {
     version: '0.161.1',
     date: '2026-10-24',
     text: 'A behind-the-scenes security update.',

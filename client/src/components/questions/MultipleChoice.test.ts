@@ -133,7 +133,7 @@ describe('multiple_choice in a quote round', () => {
     }
   })
 
-  it('sets the quote apart below the prompt, above the options', () => {
+  it('sets the quote apart above the options, without the standing prompt', () => {
     render(Question, {
       question: open(true, QUOTE, 'who_said_that'),
       yourValue: null,
@@ -141,7 +141,7 @@ describe('multiple_choice in a quote round', () => {
     })
     const quote = screen.getByText('What am I to do?')
     expect(quote.tagName).toBe('BLOCKQUOTE')
-    expect(screen.getByText('Who said this?').tagName).toBe('FIGCAPTION')
+    expect(screen.queryByText('Who said this?')).toBeNull()
     expect(quote.compareDocumentPosition(screen.getByText('Cook'))).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )

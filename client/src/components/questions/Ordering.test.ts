@@ -5,6 +5,7 @@
  */
 
 import { fireEvent, render, screen } from '@testing-library/svelte'
+import { tick } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { OpenQuestion } from '../../lib/protocol'
@@ -13,6 +14,7 @@ import { GEMS } from './GemButton.svelte'
 import { viewFor } from './index'
 import Question from './Question.svelte'
 import TextStem from './stems/TextStem.svelte'
+import source from './types/Ordering.svelte?raw'
 import Ordering, { dropAt, filled, placeNumbers, placement, stepped } from './types/Ordering.svelte'
 
 // As the server shuffles them: Bronze is first by rank, Adamant last.
@@ -132,6 +134,97 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+describe('a stage that scrolls', () => {
+  /** A scrolled stage that Safari throws back to the top whenever its rows are redrawn. */
+  function scrolledStage() {
+    const stage = document.createElement('div')
+    document.body.append(stage)
+    let at = 0
+    Object.defineProperty(stage, 'scrollTop', {
+      get: () => at,
+      set: (value: number) => (at = value),
+    })
+    new MutationObserver(() => (at = 0)).observe(stage, { childList: true, subtree: true })
+    return { stage, top: () => at, scrollTo: (top: number) => (at = top) }
+  }
+
+  async function inStage(top: number) {
+    const scrolled = scrolledStage()
+    render(Question, {
+      target: scrolled.stage,
+      props: { question: open(), yourValue: null, onAnswer: () => {} },
+    })
+    await tick()
+    scrolled.scrollTo(top)
+    return scrolled
+  }
+
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('takes focus back after a keyboard move without letting the browser scroll to it', async () => {
+    await inStage(0)
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus')
+    await press('Bronze', ' ')
+    await press('Bronze', 'ArrowUp')
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+    expect(document.activeElement).toBe(handle('Bronze'))
+  })
+
+  it('leaves the scroll where it was after a keyboard move, and keeps the row in view', async () => {
+    const stage = await inStage(240)
+    const into = vi.fn()
+    HTMLElement.prototype.scrollIntoView = into
+    await press('Iron', ' ')
+    await press('Iron', 'ArrowUp')
+    await tick()
+    expect(placed()).toEqual(['Mithril', 'Bronze', 'Iron', 'Adamant', 'Steel'])
+    expect(stage.top()).toBe(240)
+    expect(into).toHaveBeenCalledWith({ block: 'nearest' })
+    expect(into.mock.contexts.at(-1)).toBe(handle('Iron'))
+  })
+
+  it('scrolls the stage, not the window, while a row is dragged near the stage’s foot', async () => {
+    const scrolled = scrolledStage()
+    const stage = scrolled.stage
+    stage.style.overflowY = 'auto'
+    Object.defineProperty(stage, 'scrollHeight', { get: () => 900 })
+    Object.defineProperty(stage, 'clientHeight', { get: () => 400 })
+    render(Question, {
+      target: stage,
+      props: { question: open(), yourValue: null, onAnswer: () => {} },
+    })
+    await tick()
+    const rect = HTMLElement.prototype.getBoundingClientRect
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this === stage) return { top: 0, bottom: 400, left: 0, right: 300 } as DOMRect
+      return rect.call(this)
+    })
+    const page = vi.spyOn(window, 'scrollBy').mockImplementation(() => {})
+    const grip = handle('Steel')
+    await fireEvent.pointerDown(grip, { pointerId: 1, button: 0, clientY: 200 })
+    await fireEvent.pointerMove(grip, { pointerId: 1, button: 0, clientY: 390 })
+    expect(scrolled.top()).toBeGreaterThan(0)
+    expect(page).not.toHaveBeenCalled()
+  })
+
+  it('leaves the scroll where it was after a drag, and after Start over', async () => {
+    layout()
+    const stage = await inStage(240)
+    await dragTo('Steel', 0)
+    await tick()
+    expect(placed()[0]).toBe('Steel')
+    expect(stage.top()).toBe(240)
+    await fireEvent.click(rewind())
+    await tick()
+    expect(placed()).toEqual(SHOWN)
+    expect(stage.top()).toBe(240)
+  })
+})
+
 describe('ordering', () => {
   it('is drawn by the text stem over its own view', () => {
     expect(viewFor('ordering', 'custom')).toEqual({ stem: TextStem, view: Ordering })
@@ -196,6 +289,16 @@ describe('ordering', () => {
     expect(placed()).toEqual(SHOWN)
     await press('Iron', 'ArrowUp')
     expect(placed()).toEqual(SHOWN)
+  })
+
+  it('follows the pointer at the room’s scale: a row drawn at twice its size moves half as far', async () => {
+    layout()
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(150)
+    render(Question, { question: open(), yourValue: null, onAnswer: () => {} })
+    const grip = handle('Steel')
+    await fireEvent.pointerDown(grip, { pointerId: 1, button: 0, clientY: 268 })
+    await fireEvent.pointerMove(grip, { pointerId: 1, button: 0, clientY: 70 })
+    expect(document.querySelector<HTMLElement>('.row.dragged')?.style.translate).toBe('0px -99px')
   })
 
   it('moves a row dragged by its handle, and the rows between make room', async () => {
@@ -482,5 +585,24 @@ describe('ordering', () => {
   it('numbers ties by the first place they share', () => {
     expect(placeNumbers([1, 1, 2, 3])).toEqual([1, 1, 3, 4])
     expect(placeNumbers([1, 2, 2, 2, 5])).toEqual([1, 2, 2, 2, 5])
+  })
+})
+
+describe('ordering rows in the compact room', () => {
+  // jsdom lays nothing out, so the 36px rows are measured in the browser (design.md section 8);
+  // this keeps the rules scoped to the compact room, so 920px and up keeps its 56px rows.
+  const rule = (selector: string) =>
+    source.match(new RegExp(`\\n {2}${selector} \\{([^}]*)\\}`))?.[1] ?? ''
+
+  it('shrinks the rows only under .fitted.compact, to no less than 36px', () => {
+    expect(rule(String.raw`:global\(\.fitted\.compact\) \.entries :global\(\.gem\)`)).toContain(
+      'min-height: 36px',
+    )
+    expect(rule(String.raw`:global\(\.fitted\.compact\) \.empty`)).toContain('min-height: 36px')
+    expect(source).not.toMatch(/\n {2}\.entries :global\(\.gem\) \{/)
+  })
+
+  it('sets the tray two abreast there', () => {
+    expect(rule(String.raw`:global\(\.fitted\.compact\) \.tray`)).toContain('repeat(2,')
   })
 })

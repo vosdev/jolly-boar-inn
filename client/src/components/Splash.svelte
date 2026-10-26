@@ -11,15 +11,18 @@
    * the countdown once one runs, so everybody sees the same number. The host's skip is
    * the override, and ends it for everyone at once.
    *
-   * The scroll holds only the mode's name, its host's greeting and the blurb. The name is
-   * there whole; the greeting and the blurb type in once the stage has come over from the
-   * screen before, at the questions' pace (`lib/interlude.ts`). The splash has no hold to
-   * fit, so nothing waits on the typing. The round's count and pace, a price round's date,
-   * the ready check and the countdown go under the line (section 8 of ideas/design.md). The
-   * date is said here once, so the questions need not.
+   * The host says its greeting and the blurb in its bubble above the scroll (the TV's scroll
+   * holds them). The name is there whole; the
+   * greeting and the blurb type in once the stage has come over from the screen before,
+   * at the questions' pace (`lib/interlude.ts`). The splash has no hold to
+   * fit, so nothing waits on the typing. The scroll holds, under the name, its Create hint, then
+   * which round this is and how many questions it holds, and a price round's date, said
+   * here once so the questions need not. Under it, tonight's row of hosts (`lib/tonight.ts`),
+   * section 9 of ideas/design.md.
    *
-   * The ready check (section 7.1 of ideas/design.md) is a grid of pets with each player's
-   * name underneath (`RosterPet`): faded while away, checked once they tap ready. A tap can be
+   * The ready check (section 9 of ideas/design.md) is the table panel, Ready over Not ready
+   * yet, with the wait or the countdown, large, over the switch; on the TV a grid of pets
+   * (`RosterPet`), checked once they tap ready. A tap can be
    * taken back once per splash — below the threshold that stops the countdown again —
    * and after that it stays put, so nobody can spam the countdown on and off. The
    * server holds the same limit; this screen only stops offering what it would refuse.
@@ -33,14 +36,23 @@
   import { asOfDate } from '../lib/dates'
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
   import { MODES, hostOf } from '../lib/modes'
-  import type { PlayerView, Segment } from '../lib/protocol'
+  import { msUntil, serverNow } from '../lib/clock'
+  import type { PlayerView, RoomSettings, Segment } from '../lib/protocol'
+  import { tonight, type Tonight } from '../lib/tonight'
   import { loadPricesAsOf, pricesAsOf } from '../lib/pricesAsOf.svelte'
   import { playing, readyThreshold } from '../lib/ready'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
+  import { Seating } from '../lib/tableGroups'
   import { Typist, lettersOf } from '../lib/typing.svelte'
+  import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
+  import Switch from './Switch.svelte'
+  import Mystery from './Mystery.svelte'
   import RosterPet from './RosterPet.svelte'
+  import NpcFace from './NpcFace.svelte'
+  import TablePanel from './TablePanel.svelte'
+  import Said from './stage/Said.svelte'
   import Stage from './stage/Stage.svelte'
   import Typed from './stage/Typed.svelte'
   import Timer from './Timer.svelte'
@@ -51,9 +63,9 @@
     players,
     youId,
     onReady,
-    onSkip = null,
-    onEndRound = null,
     tv = false,
+    settings = null,
+    played = [],
   }: {
     segment: Segment
     /** When the countdown ends, from `room.next_at`; null while the splash waits. */
@@ -62,12 +74,12 @@
     youId: string | null
     /** Tap ready, or take it back. */
     onReady: (ready: boolean) => void
-    /** The host's skip; null for everyone else. */
-    onSkip?: (() => void) | null
-    /** The host's end of the round, which skips it whole; null for everyone else. */
-    onEndRound?: (() => void) | null
     /** Drawn on the room's TV. */
     tv?: boolean
+    /** The room's settings, for which rounds' hosts tonight's row may show. */
+    settings?: RoomSettings | null
+    /** The modes of the rounds already played, in order, for their hosts on tonight's row. */
+    played?: string[]
   } = $props()
 
   // A room can play a mode from a newer server than this client was built against. The
@@ -76,7 +88,8 @@
   const label = $derived(mode?.label ?? segment.mode)
   const host = $derived(hostOf(segment.mode))
 
-  const greeting = $derived(`“${host.greeting}”`)
+  // The bubble says who speaks; the TV's sheet has no bubble, so it quotes the host.
+  const greeting = $derived(tv ? `“${host.greeting}”` : host.greeting)
   const letters = $derived([greeting, mode?.blurb ?? ''].map(lettersOf))
   const typeFrom = untrack(() =>
     Math.max(SPLASH_TYPE_FROM_MS, stageArrival({ host: host.host.id })),
@@ -98,6 +111,10 @@
   const readyCount = $derived(present.filter((player) => player.ready === true).length)
   const youReady = $derived(players.some((player) => player.id === youId && player.ready === true))
   const summary = $derived(`${readyCount} of ${present.length} ready`)
+  const seating = new Seating()
+  const seated = $derived(
+    seating.seat(players, youId, (p) => p.ready === true, segment.index, settings?.teams ?? []),
+  )
   /** Taps still wanted before the countdown starts: a count, never a name. */
   const short = $derived(Math.max(0, readyThreshold(present.length) - readyCount))
 
@@ -135,12 +152,39 @@
     void loadPricesAsOf()
   })
 
+  const night = $derived({
+    index: segment.index,
+    total: segment.total,
+    mode: segment.mode,
+    played,
+    modes: settings?.modes,
+    modeOrder: settings?.mode_order,
+    hidden: settings?.hide_rounds === true,
+  })
+  /** Ten rounds in a row on a desktop, the nearest twelve past that, five on a phone. */
+  const wide = $derived(tonight(night, 12))
+  const narrow = $derived(tonight(night, 5))
+  const startsIn = $derived(
+    endsAt === null ? null : Math.max(0, Math.ceil(msUntil(endsAt, $serverNow) / 1000)),
+  )
+  const questions = $derived(`${segment.count} ${segment.count === 1 ? 'question' : 'questions'}`)
   // Built here rather than in the markup, where Svelte would trim the space before the dot.
-  const length = $derived(
-    `Round ${segment.index + 1} of ${segment.total} · ` +
-      `${segment.count} ${segment.count === 1 ? 'question' : 'questions'}`,
+  const length = $derived(`Round ${segment.index + 1} of ${segment.total} · ${questions}`)
+  /** The scroll's small line: a lone round has no "of 1" worth saying. */
+  const shape = $derived(
+    segment.total > 1 ? `Round ${segment.index + 1} of ${segment.total}, ${questions}` : questions,
+  )
+  const waiting = $derived(
+    short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`,
   )
 </script>
+
+{#snippet words()}
+  <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>
+  {#if mode !== null}
+    <p class="blurb"><Typed line={mode.blurb} shown={typist.shown[1]} /></p>
+  {/if}
+{/snippet}
 
 {#snippet count()}
   <p class="count">{length}</p>
@@ -161,60 +205,88 @@
   {#if endsAt !== null}
     <Timer {endsAt} totalSeconds={span} label="until the round starts" />
   {:else}
-    <p class="waiting surface">
-      {short === 1 ? 'Waiting for 1 more to be ready' : `Waiting for ${short} more to be ready`}
-    </p>
+    <p class="waiting surface">{waiting}</p>
   {/if}
 {/snippet}
 
+{#snippet row(night: Tonight, which: string)}
+  <ol class="stops {which}" aria-label="Tonight's rounds">
+    {#if night.before > 0}<li class="more" aria-hidden="true">+{night.before}</li>{/if}
+    {#each night.stops as stop (stop.index)}
+      <li class="stop {stop.state}" aria-current={stop.state === 'now' ? 'step' : undefined}>
+        <span class="face">
+          {#if stop.mode !== null}
+            <NpcFace npc={hostOf(stop.mode).host.id} />
+          {:else}
+            <span class="unknown"><Mystery /></span>
+          {/if}
+        </span>
+        <span class="label">
+          {stop.state === 'now' ? label : stop.index + 1}
+        </span>
+      </li>
+    {/each}
+    {#if night.after > 0}<li class="more" aria-hidden="true">+{night.after}</li>{/if}
+  </ol>
+{/snippet}
+
 <section class="splash">
-  <Stage host={host.host.id} {tv} wide={tv}>
+  <Stage host={host.host.id} {tv} wide={tv} bubble={tv ? null : 'on'}>
     {#snippet paper()}
       <h2>{label}</h2>
-      <p class="greeting"><Typed line={greeting} shown={typist.shown[0]} /></p>
-      {#if mode !== null}
-        <p class="blurb"><Typed line={mode.blurb} shown={typist.shown[1]} /></p>
-      {/if}
       {#if tv}
+        {@render words()}
         <div class="tv-foot board">
           {@render count()}
           {@render pets()}
           {@render countdown()}
         </div>
+      {:else}
+        {#if mode !== null}
+          <p class="hint">{mode.hint}</p>
+        {/if}
+        <p class="asof shape">{shape}</p>
+        {#if asOf !== null}
+          <p class="asof">{prices} as of {asOfDate(asOf)}.</p>
+        {/if}
       {/if}
     {/snippet}
 
+    {#snippet said()}
+      <Said name={host.host.name} line={words} />
+    {/snippet}
+
     {#if !tv}
-      <div class="panel board">
-        {@render count()}
-
-        <div class="ready">
-          <button
-            type="button"
-            class:primary={!youReady}
-            aria-pressed={youReady}
-            disabled={youReady && undone}
-            onclick={press}
-          >
-            {youReady ? (undone ? '✓ Ready' : '✓ Ready — tap to undo') : "✓ I'm ready"}
-          </button>
-          <FullScreenSwitch />
-          {@render pets()}
-          <span class="note tally" aria-hidden="true">{summary}</span>
-        </div>
-
-        {@render countdown()}
-        {#if onSkip !== null || onEndRound !== null}
-          <div class="host">
-            {#if onSkip !== null}
-              <button type="button" class="small" onclick={onSkip}>Start the round now</button>
-            {/if}
-            {#if onEndRound !== null}
-              <button type="button" class="small" onclick={onEndRound}>End the round</button>
+      <section class="panel night" aria-labelledby="tonight">
+        <h3 id="tonight">Tonight</h3>
+        {@render row(wide, 'wide')}
+        {@render row(narrow, 'narrow')}
+      </section>
+      <AtTable>
+        <TablePanel groups={seated} {youId} labels={['Ready', 'Not ready yet']}>
+          <div class="starts">
+            {#if startsIn !== null}
+              <p class="starting">
+                <span>Starting in</span>
+                <strong>{startsIn}</strong>
+              </p>
+            {:else}
+              <p class="waiting-big">{waiting}</p>
             {/if}
           </div>
-        {/if}
-      </div>
+          <div class="ready">
+            <Switch
+              label="Ready"
+              large
+              tone="ok"
+              checked={youReady}
+              disabled={youReady && undone}
+              onclick={press}
+            />
+            <FullScreenSwitch />
+          </div>
+        </TablePanel>
+      </AtTable>
     {/if}
   </Stage>
 </section>
@@ -253,6 +325,10 @@
   .greeting {
     margin: 0 0 0.4rem;
     font-size: max(0.9rem, 1rem * var(--scroll-text, 1));
+  }
+
+  /* On the TV's sheet, where the quotes and the slant say it is the host's. */
+  :global(.content) .greeting {
     font-style: italic;
   }
 
@@ -268,15 +344,158 @@
     color: var(--muted);
   }
 
+  .hint {
+    margin: 0;
+    font-size: max(0.95rem, 1.05rem * var(--scroll-text, 1));
+  }
+
+  .hint + .shape {
+    margin-top: 0.5rem;
+  }
+
+  .shape,
+  .shape + .asof {
+    margin-bottom: 0;
+    color: var(--scroll-muted);
+  }
+
+  .shape + .asof {
+    margin-top: 0.2rem;
+  }
+
+  /* Tonight's row, alone and centred under the sheet. */
+  .night {
+    margin-bottom: 0;
+    text-align: center;
+  }
+
+  .night h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+  }
+
+  .stops {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stop {
+    --face: 2.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    width: 3.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .stop .face {
+    display: grid;
+    place-items: center;
+    width: var(--face);
+    height: var(--face);
+  }
+
+  /* Sized outright: a percentage of a grid cell's height is no height at all. */
+  .stop .face :global(img) {
+    width: var(--face);
+    max-width: none;
+    height: var(--face);
+    max-height: none;
+    object-fit: contain;
+    opacity: 0.55;
+  }
+
+  .stop.done .face :global(img) {
+    opacity: 0.3;
+    filter: grayscale(0.7);
+  }
+
+  .unknown {
+    width: 2.3rem;
+    height: 2.5rem;
+  }
+
+  .stop.now {
+    --face: 4.75rem;
+    width: 6.5rem;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .stop.now .face :global(img) {
+    opacity: 1;
+  }
+
+  .label {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .more {
+    align-self: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .stops.narrow {
+    display: none;
+  }
+
+  /* Over the ready switch in the table panel, the countdown large. */
+  .starts {
+    margin: 0 0 0.6rem;
+    text-align: center;
+  }
+
+  .starting {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .starting strong {
+    font-family: var(--font-numeric);
+    font-size: 4.5rem;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .waiting-big {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  /* A phone's stage: the nearest five. */
+  @container (max-width: 40rem) {
+    .stops.wide {
+      display: none;
+    }
+
+    .stops.narrow {
+      display: flex;
+    }
+
+    .starting strong {
+      font-size: 3rem;
+    }
+  }
+
   .ready {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem 0.9rem;
-  }
-
-  .ready button {
-    min-height: 44px;
   }
 
   .pets {
@@ -292,10 +511,6 @@
     width: 4.25rem;
   }
 
-  .tally {
-    font-variant-numeric: tabular-nums;
-  }
-
   /* Where the timer will be once one runs, the same plaque, so nothing below moves. */
   .waiting {
     align-self: stretch;
@@ -306,12 +521,5 @@
     background: var(--panel);
     color: var(--muted);
     text-align: right;
-  }
-
-  .host {
-    align-self: flex-end;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
 </style>

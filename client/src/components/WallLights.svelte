@@ -9,10 +9,15 @@
    * sheet and its host stand where they would hang. The right one is the left one mirrored,
    * so both turn the same face toward the page. Nor behind a TV's stage, which is scaled
    * over the room they would hang in (`tvFit`).
+   *
+   * Beside a room laid out for a desktop (`roomShown`) they stand on the floor its frame
+   * leaves, measured from the room's edge rather than the window's, at one height; where
+   * the room fills the window there is no floor for them.
    */
   import { onMount } from 'svelte'
 
   import fairyRing from '../assets/sprites/fairy-ring.svg'
+  import { roomShown } from '../lib/roomFit'
   import { watchTheme } from '../lib/theme'
   import { tvFit } from '../lib/tv'
   import GauntletDoorLogo from './GauntletDoorLogo.svelte'
@@ -39,10 +44,22 @@
   )
 
   const SIDES = ['left', 'right'] as const
+
+  /** The narrowest floor beside a room that a light still stands on, in px. */
+  const LEAST_FLOOR = 48
+
+  const floor = $derived($roomShown === null ? null : $roomShown.fit.left)
 </script>
 
 {#if lit && $tvFit === null}
-  <div class="wall-lights" data-lights={lit} aria-hidden="true">
+  <div
+    class="wall-lights"
+    class:beside-room={floor !== null}
+    class:no-floor={floor !== null && floor < LEAST_FLOOR}
+    style:--room-floor={floor === null ? null : `${floor}px`}
+    data-lights={lit}
+    aria-hidden="true"
+  >
     {#each SIDES as side (side)}
       <div class="light {side}"></div>
       <div class="fitting {side}" data-light={side}>
@@ -84,11 +101,19 @@
     --fitting-x: calc(var(--beside-stage) - min(var(--beside-stage) / 2, 10rem));
   }
 
+  .beside-room {
+    --beside-stage: var(--room-floor);
+  }
+
   /* Below this the gap beside the stage is too narrow for even the smallest light. */
   @media (min-width: 50rem) {
     .wall-lights {
       display: block;
     }
+  }
+
+  .wall-lights.no-floor {
+    display: none;
   }
 
   /* A candle's warm glow, flickering. */

@@ -27,8 +27,10 @@
   import type { OrderingQuestion } from '../../lib/ordering'
   import { profile } from '../../lib/profile'
   import type { OpenQuestion } from '../../lib/protocol'
+  import type { Snippet } from 'svelte'
   import {
     creditProblem,
+    hasExtras,
     INTRO_ROUNDS,
     QUESTION_DIFFICULTIES,
     takesDifficulty,
@@ -39,6 +41,7 @@
     questionPreview,
     sourceProblems,
     stageMode,
+    stepsFor,
     SUGGESTED_TYPE_LABELS,
     wikiProblem,
     type Choice,
@@ -55,6 +58,8 @@
   import OrderingForm from '../OrderingForm.svelte'
   import Segmented from '../Segmented.svelte'
   import SimilarQuestions from './SimilarQuestions.svelte'
+  import StepCard from './StepCard.svelte'
+  import SuggestSteps from './SuggestSteps.svelte'
   import TryPreview from './TryPreview.svelte'
 
   let {
@@ -219,6 +224,32 @@
   const itemError = $derived(itemProblem({ name }, typeof roster === 'string' ? [] : roster))
   const rosterFound = $derived(typeof roster === 'string' ? [] : search(roster, rosterQuery))
 
+  let formProgress = $state({ questionDone: false, extrasFilled: false, extrasValid: true })
+  const withExtras = $derived(hasExtras(choice))
+  const sourceDone = $derived(
+    choice.wikiOnly ? wikiError === null : Object.values(sourceErrors).every((e) => e === null),
+  )
+  const creditDone = $derived(creditError === null)
+  const steps = $derived(
+    stepsFor({
+      choice,
+      attempted,
+      questionDone:
+        choice.kind === 'item'
+          ? itemError === null
+          : naming
+            ? npcError === null
+            : formProgress.questionDone,
+      extrasFilled:
+        formProgress.extrasFilled || (Boolean(choice.pictureItem) && pictureItem.trim() !== ''),
+      extrasValid: formProgress.extrasValid && (!choice.pictureItem || pictureItemError === null),
+      sourceDone,
+      creditDone,
+    }),
+  )
+  const sourceStepIndex = $derived(withExtras ? 2 : 1)
+  const creditStepIndex = $derived(choice.kind === 'item' ? 1 : withExtras ? 3 : 2)
+
   function send(content: SuggestionContent): void {
     onsave({ kind: choice.kind, content, credit: credit.trim(), credit_shown: shown })
   }
@@ -283,25 +314,22 @@
 {/snippet}
 
 {#snippet creditFields(show: boolean)}
-  <fieldset class="credit">
-    <legend>Credit</legend>
-    <div class="field">
-      <label for="{id}-credit">Your name</label>
-      <input id="{id}-credit" type="text" maxlength={NAME_MAX} bind:value={credit} />
-      <p class="note hint">Letters, digits, spaces, _ and -, up to {NAME_MAX}.</p>
-      {@render problem(creditError, show)}
-    </div>
-    <label class="check">
-      <input type="checkbox" bind:checked={shown} disabled={choice.kind === 'item'} />
-      Show my name to players when this comes up in a game
-    </label>
-    {#if choice.kind === 'item'}
-      <p class="note hint">
-        More or Less and The Price is Right do not support displaying the author of a question. The
-        innkeeper still sees your name.
-      </p>
-    {/if}
-  </fieldset>
+  <div class="field">
+    <label for="{id}-credit">Your name</label>
+    <input id="{id}-credit" type="text" maxlength={NAME_MAX} bind:value={credit} />
+    <p class="note hint">Letters, digits, spaces, _ and -, up to {NAME_MAX}.</p>
+    {@render problem(creditError, show)}
+  </div>
+  <label class="check">
+    <input type="checkbox" bind:checked={shown} disabled={choice.kind === 'item'} />
+    Show my name to players when this comes up in a game
+  </label>
+  {#if choice.kind === 'item'}
+    <p class="note hint">
+      More or Less and The Price is Right do not support displaying the author of a question. The
+      innkeeper still sees your name.
+    </p>
+  {/if}
 {/snippet}
 
 {#snippet difficultyField()}
@@ -312,11 +340,14 @@
   {/if}
 {/snippet}
 
-{#snippet questionFields(show: boolean)}
+{#snippet inQuestionFields()}
   {#if choice.named}
     <p class="note hint">Players see the right answer's render. Name it as the wiki does.</p>
   {/if}
   {@render difficultyField()}
+{/snippet}
+
+{#snippet inExtrasFields(show: boolean)}
   {#if choice.pictureItem}
     <div class="field">
       <label for="{id}-picture">Item to show, if any</label>
@@ -325,12 +356,35 @@
       {@render problem(pictureItemError, show)}
     </div>
   {/if}
-  {#if choice.wikiOnly}
-    {@render wikiField(show)}
+{/snippet}
+
+{#snippet progressHead()}
+  <SuggestSteps {steps} />
+{/snippet}
+
+{#snippet stepQuestionCard(body: Snippet)}
+  <StepCard number={1} step={steps[0]!}>
+    {@render body()}
+  </StepCard>
+{/snippet}
+
+{#snippet stepExtrasCard(body: Snippet)}
+  <StepCard number={2} step={steps[1]!}>
+    {@render body()}
+  </StepCard>
+{/snippet}
+
+{#snippet questionFields(show: boolean)}
+  <StepCard number={sourceStepIndex + 1} step={steps[sourceStepIndex]!}>
+    {#if choice.wikiOnly}
+      {@render wikiField(show)}
+    {:else}
+      {@render sourceFields(show)}
+    {/if}
+  </StepCard>
+  <StepCard number={creditStepIndex + 1} step={steps[creditStepIndex]!}>
     {@render creditFields(show)}
-  {:else}
-    {@render sourceFields(show)}
-  {/if}
+  </StepCard>
 {/snippet}
 
 {#snippet sourceFields(show: boolean)}
@@ -362,7 +416,6 @@
     </p>
     {@render problem(sourceErrors.source_url ?? sourceErrors.either, show)}
   </div>
-  {@render creditFields(show)}
 {/snippet}
 
 {#snippet tryPreview(open: OpenQuestion)}
@@ -384,26 +437,33 @@
 
 {#if naming}
   <div class="editor surface" role="group" aria-labelledby="{id}-title">
+    <SuggestSteps {steps} />
     <div class="layout">
       <div class="fields">
         <h3 id="{id}-title">{choice.label}</h3>
-        {#if picker}
+        <StepCard number={1} step={steps[0]!}>
+          {#if picker}
+            <div class="field">
+              <Segmented
+                legend="How players answer"
+                options={picker.options}
+                bind:value={() => current ?? '', picker.onpick}
+              />
+            </div>
+          {/if}
           <div class="field">
-            <Segmented
-              legend="How players answer"
-              options={picker.options}
-              bind:value={() => current ?? '', picker.onpick}
-            />
+            <label for="{id}-npc">Monster or NPC, as the wiki spells it</label>
+            <input id="{id}-npc" type="text" bind:value={npcName} />
+            {@render problem(npcError, attempted)}
           </div>
-        {/if}
-        <div class="field">
-          <label for="{id}-npc">Monster or NPC, as the wiki spells it</label>
-          <input id="{id}-npc" type="text" bind:value={npcName} />
-          {@render problem(npcError, attempted)}
-        </div>
-        {@render difficultyField()}
-        {@render wikiField(attempted)}
-        {@render creditFields(attempted)}
+          {@render difficultyField()}
+        </StepCard>
+        <StepCard number={2} step={steps[1]!}>
+          {@render wikiField(attempted)}
+        </StepCard>
+        <StepCard number={3} step={steps[2]!}>
+          {@render creditFields(attempted)}
+        </StepCard>
         {@render similar()}
         {@render buttons(saveNpc)}
       </div>
@@ -426,10 +486,16 @@
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
     {saveLabel}
+    head={progressHead}
+    inQuestion={inQuestionFields}
+    inExtras={inExtrasFields}
+    stepQuestion={stepQuestionCard}
+    stepExtras={withExtras ? stepExtrasCard : undefined}
     fields={questionFields}
     onattempt={questionFieldsPass}
     {onnpc}
     ondraft={(question) => (drafted = question)}
+    onprogress={(state) => (formProgress = state)}
     nearSave={similar}
     preview={tryPreview}
     onsave={saveQuestion}
@@ -444,10 +510,16 @@
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
     {saveLabel}
+    head={progressHead}
+    inQuestion={inQuestionFields}
+    inExtras={inExtrasFields}
+    stepQuestion={stepQuestionCard}
+    stepExtras={withExtras ? stepExtrasCard : undefined}
     fields={questionFields}
     onattempt={questionFieldsPass}
     {onnpc}
     ondraft={(question) => (drafted = question)}
+    onprogress={(state) => (formProgress = state)}
     nearSave={similar}
     preview={tryPreview}
     onsave={saveQuestion}
@@ -467,10 +539,16 @@
     intro={INTRO_ROUNDS.includes(choice.id)}
     {picker}
     {saveLabel}
+    head={progressHead}
+    inQuestion={inQuestionFields}
+    inExtras={inExtrasFields}
+    stepQuestion={stepQuestionCard}
+    stepExtras={withExtras ? stepExtrasCard : undefined}
     fields={questionFields}
     onattempt={questionFieldsPass}
     {onnpc}
     ondraft={(question) => (drafted = question)}
+    onprogress={(state) => (formProgress = state)}
     nearSave={similar}
     preview={tryPreview}
     onsave={saveQuestion}
@@ -478,19 +556,24 @@
   />
 {:else}
   <div class="editor surface" role="group" aria-labelledby="{id}-title">
+    <SuggestSteps {steps} />
     <div class="layout">
       <div class="fields">
         <h3 id="{id}-title">{choice.label}</h3>
-        <p class="note">
-          An item players will recognise, for More or Less and The Price is Right. Untradeable items
-          are welcome: those rounds use alch and shop prices too.
-        </p>
-        <div class="field">
-          <label for="{id}-item">Item name, as the wiki spells it</label>
-          <input id="{id}-item" type="text" bind:value={name} />
-          {@render problem(itemError, attempted)}
-        </div>
-        {@render creditFields(attempted)}
+        <StepCard number={1} step={steps[0]!}>
+          <p class="note item-note">
+            An item players will recognise, for More or Less and The Price is Right. Untradeable
+            items are welcome: those rounds use alch and shop prices too.
+          </p>
+          <div class="field">
+            <label for="{id}-item">Item name, as the wiki spells it</label>
+            <input id="{id}-item" type="text" bind:value={name} />
+            {@render problem(itemError, attempted)}
+          </div>
+        </StepCard>
+        <StepCard number={2} step={steps[1]!}>
+          {@render creditFields(attempted)}
+        </StepCard>
         {@render buttons(saveItem)}
       </div>
       <section class="roster" aria-labelledby="{id}-roster">
@@ -546,17 +629,8 @@
     margin: 0.3rem 0 0;
   }
 
-  .credit {
-    border: var(--border-width) dashed var(--line);
-    border-radius: min(var(--radius), 8px);
-    padding: 0.75rem 1rem 0.5rem;
-    margin: 0 0 1rem;
-  }
-
-  .credit legend {
-    padding: 0 0.3rem;
-    font-size: 0.9rem;
-    color: var(--muted);
+  .item-note {
+    margin: 0 0 0.75rem;
   }
 
   .actions {

@@ -107,6 +107,7 @@
   import { trayOf } from '../../../lib/slots'
   import { Dragging, sendBeforeEnd } from '../drag.svelte'
   import DragActions from '../DragActions.svelte'
+  import DragLayout from '../DragLayout.svelte'
   import DragRow from '../DragRow.svelte'
   import GemButton, { GEMS } from '../GemButton.svelte'
   import type { TypeViewProps } from '../props'
@@ -175,8 +176,8 @@
   }
 
   function restart(): void {
-    slots = [...start]
     dragging.lifted = null
+    void dragging.keepScroll(() => (slots = [...start]))
   }
 
   sendBeforeEnd(
@@ -237,45 +238,53 @@
   </ol>
   {#if q.picks === undefined}<p class="end">{q.ends[1]}</p>{/if}
 {:else}
-  <p class="ask">
-    Drag {q.picks === undefined ? '' : `${q.picks} `}into order: {q.ends[0]} → {q.ends[1]}
-  </p>
-  {#if canAnswer}
-    <div bind:this={area}>
-      <ol class="entries">
-        {#each board as shown, index (shown ?? `empty ${index}`)}
-          <li data-place={index} class:over={dragging.over === index}>
-            {#if shown === null}
-              <div class="empty">
-                <span class="sr">Place </span>{index + 1}<span class="sr">, empty</span>
-              </div>
-            {:else}
-              {@render row(shown, index + 1)}
-            {/if}
-          </li>
-        {/each}
-      </ol>
-      {#if q.picks !== undefined}
-        <p class="rest">the rest</p>
-        <ul class="entries tray" data-tray class:over={dragging.over === 'tray'}>
-          {#each tray as shown (shown)}
-            <li>{@render row(shown, undefined)}</li>
+  <DragLayout>
+    {#snippet ask()}
+      <p class="ask">
+        Drag {q.picks === undefined ? '' : `${q.picks} `}into order: {q.ends[0]} → {q.ends[1]}
+      </p>
+    {/snippet}
+    {#snippet list()}
+      {#if canAnswer}
+        <div bind:this={area}>
+          <ol class="entries">
+            {#each board as shown, index (shown ?? `empty ${index}`)}
+              <li data-place={index} class:over={dragging.over === index}>
+                {#if shown === null}
+                  <div class="empty">
+                    <span class="sr">Place </span>{index + 1}<span class="sr">, empty</span>
+                  </div>
+                {:else}
+                  {@render row(shown, index + 1)}
+                {/if}
+              </li>
+            {/each}
+          </ol>
+          {#if q.picks !== undefined}
+            <p class="rest">the rest</p>
+            <ul class="entries tray" data-tray class:over={dragging.over === 'tray'}>
+              {#each tray as shown (shown)}
+                <li>{@render row(shown, undefined)}</li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      {:else}
+        <ol class="entries">
+          {#each q.entries as entry, shown (shown)}
+            <li>
+              <GemButton tag="div" gem={gemAt(shown)} status="idle">{entry.text}</GemButton>
+            </li>
           {/each}
-        </ul>
+        </ol>
       {/if}
-    </div>
-  {:else}
-    <ol class="entries">
-      {#each q.entries as entry, shown (shown)}
-        <li>
-          <GemButton tag="div" gem={gemAt(shown)} status="idle">{entry.text}</GemButton>
-        </li>
-      {/each}
-    </ol>
-  {/if}
-  {#if movable}
-    <DragActions {moved} {ready} onrestart={restart} onsubmit={submit} />
-  {/if}
+    {/snippet}
+    {#snippet actions()}
+      {#if movable}
+        <DragActions {moved} {ready} onrestart={restart} onsubmit={submit} />
+      {/if}
+    {/snippet}
+  </DragLayout>
 {/if}
 
 {#snippet row(shown: number, place: number | undefined)}
@@ -343,6 +352,40 @@
     content: '';
     flex: 1;
     border-top: 1px dashed var(--line);
+  }
+
+  /* A short window's room (`lib/roomFit.ts`): the rows come down to 36px, still a target for
+     a thumb or a pointer, so a six-row order and the fairy rings fit the compact stage
+     open and revealed. */
+  :global(.fitted.compact) .entries {
+    gap: 3px;
+  }
+
+  :global(.fitted.compact) .entries :global(.gem) {
+    min-height: 36px;
+    padding-block: 0.15rem;
+  }
+
+  /* The tray's rows are unordered, so two abreast costs nothing: a drop lands on the tray as
+     a whole, and the places above stay in one column. */
+  :global(.fitted.compact) .tray {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :global(.fitted.compact) .empty {
+    min-height: 36px;
+  }
+
+  :global(.fitted.compact) .ask {
+    margin-bottom: 0.3rem;
+  }
+
+  :global(.fitted.compact) .end {
+    margin-block: 0.1rem;
+  }
+
+  :global(.fitted.compact) .rest {
+    margin-block: 0.3rem;
   }
 
   .detail,
