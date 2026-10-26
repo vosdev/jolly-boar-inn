@@ -112,7 +112,7 @@ jobs:
         working-directory: client
 
   containers:
-    name: Containers (build, compose smoke test)
+    name: Containers (build, compose, smoke test, scan)
     runs-on: ${{ (vars.RUNNER && !github.event.pull_request.head.repo.fork) && vars.RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     # docker-compose.yml requires this rather than defaulting to the dev password.

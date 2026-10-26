@@ -84,9 +84,13 @@ ENV PYTHONUNBUFFERED=1 \
     PATH="/app/server/.venv/bin:$PATH"
 
 # Nothing in the container installs packages, and pip's vendored urllib3 and msgpack would
-# be the image's only known vulnerabilities.
+# be the image's only known vulnerabilities. Debian ships security fixes days before the
+# Python image is rebuilt with them, so the scan would fail on fixes the base lacks.
 RUN useradd --system --no-create-home --uid 10001 app \
-    && python -m pip uninstall --yes --root-user-action=ignore pip
+    && python -m pip uninstall --yes --root-user-action=ignore pip \
+    && apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
 # Layout mirrors the repo so ../client/dist, ../data/packs and ../schema resolve unchanged.
 # Everything stays root-owned: the app user needs to read it, never to write it.
