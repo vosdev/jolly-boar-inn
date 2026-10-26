@@ -98,12 +98,12 @@ export function questionPreview(content: QuestionContent): OpenQuestion {
   if (content.type === 'ordering') return orderingPreview(content as OrderingQuestion, mode)
   if (content.type === 'matching') return matchingPreview(content as MatchingQuestion, mode)
   if (content.type === 'pick_from_list') {
-    // No picture: there is none until the import finds the NPC's id.
+    // No picture or list: neither exists until the import finds the NPC's id.
     const open = previewOf({ type: 'multiple_choice', payload: {} }, mode)
     return {
       ...open,
       type: 'pick_from_list',
-      view: { prompt: content.payload.prompt, vocab: 'npcs' },
+      view: { prompt: content.payload.prompt },
     }
   }
   return previewOf(content as CustomQuestion, mode === 'random_event' ? undefined : mode)

@@ -117,4 +117,31 @@ describe('TryPreview', () => {
     expect(api.tryQuestion).toHaveBeenCalledTimes(1)
     expect(revealSide().checked).toBe(false)
   })
+
+  it('previews a Who’s That NPC? shadow with a placeholder and disabled combobox, and reveals the name', async () => {
+    const npc: QuestionContent = {
+      type: 'pick_from_list',
+      mode: 'whos_that_npc',
+      payload: { prompt: "Who's that NPC?", subject: { name: 'Araxxor' } },
+    }
+    const view = { prompt: "Who's that NPC?" }
+    vi.mocked(api.tryQuestion).mockResolvedValue({
+      view,
+      reveal: { ...view, subject: { name: 'Araxxor' } },
+      result: null,
+    })
+    const { container } = show(npc, false)
+    await settle()
+    expect(screen.queryByText('Loading the list…')).toBeNull()
+    expect(screen.getByRole<HTMLInputElement>('combobox').disabled).toBe(true)
+    expect(screen.getByText('The NPC joins the list once the innkeeper imports it.')).toBeTruthy()
+    expect(container.querySelector('.picture .placeholder')?.textContent).toBe(
+      'The picture is added once the innkeeper imports it.',
+    )
+    expect(container.querySelector('.caption')).toBeNull()
+
+    await fireEvent.click(revealSide())
+    expect(container.querySelector('.caption')?.textContent).toBe('Araxxor')
+    expect(screen.getByText('Araxxor', { selector: '.answer strong' })).toBeTruthy()
+  })
 })

@@ -230,6 +230,24 @@
     answer={answerName}
     yours={answered === null ? null : (pickedName ?? (list === null ? '…' : 'not in this list'))}
   />
+{:else if typeof q.vocab !== 'string'}
+  <div class="pick">
+    <div class="field">
+      <input
+        id="{uid}-input"
+        type="text"
+        role="combobox"
+        placeholder="Start typing a name…"
+        aria-label="Search the list"
+        aria-autocomplete="list"
+        aria-expanded="false"
+        aria-controls={listId}
+        disabled
+      />
+    </div>
+    <button type="button" class="primary" disabled>Submit</button>
+    <p class="note">The NPC joins the list once the innkeeper imports it.</p>
+  </div>
 {:else if failed}
   <p class="note">The list could not be loaded.</p>
   <button type="button" onclick={() => typeof q.vocab === 'string' && fetchList(q.vocab)}>
@@ -377,5 +395,9 @@
 
   .pick button {
     min-height: 56px;
+  }
+
+  .pick .note {
+    margin: 0;
   }
 </style>

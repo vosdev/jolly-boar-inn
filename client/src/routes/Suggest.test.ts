@@ -615,7 +615,14 @@ describe('Suggest', () => {
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Araxxor')
     const preview = screen.getByRole('region', { name: 'Preview' })
     expect(within(preview).queryByText("Who's that NPC?")).toBeNull()
-    expect(preview.querySelector('.picture')).toBeNull()
+    expect(preview.querySelector('.picture img')).toBeNull()
+    expect(preview.querySelector('.picture .placeholder')?.textContent).toBe(
+      'The picture is added once the innkeeper imports it.',
+    )
+    expect(within(preview).getByRole<HTMLInputElement>('combobox').disabled).toBe(true)
+    expect(
+      within(preview).getByText('The NPC joins the list once the innkeeper imports it.'),
+    ).toBeTruthy()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
