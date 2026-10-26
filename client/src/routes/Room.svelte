@@ -96,7 +96,7 @@
   } from '../lib/stores'
   import { teamsOf } from '../lib/teams'
   import { timerBar } from '../lib/timerbar'
-  import { nextTab, nextUp } from '../lib/nextUp'
+  import { nextTab, nextUp, type Next } from '../lib/nextUp'
   import { reloadIfStale } from '../lib/version'
   import { listFor, prefetchVocab } from '../lib/vocab'
   import { RoomSocket, type ClosureReason } from '../lib/ws'
@@ -325,6 +325,12 @@
    * after a round's last, which goes to the standings (or the next round with them off),
    * and after the game's last, which goes to the final screen.
    */
+  const SKIP_TO: Record<Next, string> = {
+    'Next question': 'Skip to the next question',
+    Standings: 'Show the standings now',
+    'Next round': 'Start the next round now',
+    'Final standings': 'Show the final standings',
+  }
   const skipLabel = $derived.by(() => {
     const current = $room
     if (current?.phase === 'splash') return 'Start the round now'
@@ -333,13 +339,10 @@
     if (current?.phase !== 'reveal' || current.current_index === null) {
       return 'Skip to the next question'
     }
-    const at = current.current_index
-    if (at + 1 >= current.total) return 'Show the final standings'
-    const round = current.segment
-    if (round === null || at !== round.start + round.count - 1) return 'Skip to the next question'
-    return current.settings.standings_seconds > 0
-      ? 'Show the standings now'
-      : 'Start the next round now'
+    const at = { index: current.current_index, total: current.total }
+    if (current.segment === null && at.index + 1 < at.total) return 'Skip to the next question'
+    const segment = current.segment ?? { start: 0, count: at.total }
+    return SKIP_TO[nextUp({ ...at, segment }, current.settings.standings_seconds > 0)]
   })
 
   /** Ask before ending the round on screen; standings have no round left to end. */

@@ -167,6 +167,22 @@ describe('Next up', () => {
     expect(strip.textContent).toMatch(/Next up:\s*More or Less\s*8/)
   })
 
+  it('never has a screen reader read its count out every second', () => {
+    const endsAt = new Date(Date.now() + 8_000).toISOString()
+    for (const stacked of [false, true]) {
+      const { unmount } = render(Standings, {
+        standings: NOW,
+        segment: SEGMENT,
+        next: NEXT,
+        endsAt,
+        stacked,
+      })
+      const panel = screen.getByRole('region', { name: 'Next up' })
+      expect(panel.querySelector('[aria-live]')).toBeNull()
+      unmount()
+    }
+  })
+
   it('is not shown without a next round, nor on the TV', () => {
     render(Standings, { standings: NOW, segment: SEGMENT })
     expect(screen.queryByRole('region', { name: 'Next up' })).toBeNull()

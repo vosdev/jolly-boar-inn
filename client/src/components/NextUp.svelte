@@ -33,7 +33,7 @@
   <section class="strip surface" aria-label="Next up">
     <span class="face" aria-hidden="true"><NpcFace npc={host} /></span>
     <span class="summary"><span class="muted">Next up:</span> {label}</span>
-    {#if startsIn !== null}<strong class="count" aria-live="polite">{startsIn}</strong>{/if}
+    {#if startsIn !== null}<strong class="count">{startsIn}</strong>{/if}
   </section>
 {:else}
   <section class="panel next-up" aria-labelledby="next-up">
@@ -46,7 +46,7 @@
       </div>
     </div>
     {#if startsIn !== null}
-      <p class="starts" aria-live="polite">
+      <p class="starts">
         <span>Moving on in</span>
         <strong class="count">{startsIn}</strong>
       </p>

@@ -33,13 +33,13 @@ export function normalizeName(raw: string): string {
 
 /**
  * Why the server would refuse this name, or null if it would take it. The same rules as
- * `normalize_name`, checked on `normalizeName(raw)`: 1 to `limit` characters of Latin
+ * `normalize_name`, checked on `normalizeName(raw)`: 1 to `NAME_MAX` characters of Latin
  * letters, accents included, digits, spaces, `_` and `-`. Uniqueness is the room's to check.
  */
-export function nameProblem(raw: string, limit = NAME_MAX): string | null {
+export function nameProblem(raw: string): string | null {
   const name = normalizeName(raw)
   if (name === '') return 'Pick a name.'
-  if (length(name) > limit) return `At most ${limit} characters.`
+  if (length(name) > NAME_MAX) return `At most ${NAME_MAX} characters.`
   if (!ALLOWED.test(name)) return 'Only letters, digits, spaces, _ and - in a name.'
   return null
 }

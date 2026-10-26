@@ -569,7 +569,7 @@ questions, answers included: players' suggestions and the packs, never a room's.
 `POST /api/rooms {display_name, avatar?, returning, theme?, device?, invite_only?, public?, code?, settings, custom_questions}`, in one transaction:
 
 1. Validate the name before the rate limiter, so a typo costs no quota: NFKC, trimmed, single
-   spaces, 1–24 Latin letters (accents allowed), digits, spaces, `_` and `-`.
+   spaces, 1–12 Latin letters (accents allowed), digits, spaces, `_` and `-`.
 2. Rate limit per IPv4 address or IPv6 /64.
 3. Take `code` if sent: one a draw could give (422 `bad_code`, checked before the limiter), else 409
    `code_taken`. Without it, draw from `room-words.json` with `secrets.SystemRandom`: five plain

@@ -265,6 +265,23 @@ describe('Splash ready check', () => {
       .map((row) => row.querySelector('.pet-name')?.textContent ?? '')
   }
 
+  it('seats a team game by the room’s gods, each half under its team', () => {
+    const [zezima, woox] = players(true)
+    render(Splash, {
+      segment: SEGMENT,
+      endsAt: null,
+      players: [
+        { ...zezima!, team: 'zamorak' },
+        { ...woox!, team: 'saradomin' },
+      ],
+      youId: 'a',
+      onReady: () => {},
+      settings: { ...SETTINGS, teams: ['saradomin', 'zamorak'] },
+    })
+    expect(names('Ready, Zamorak')).toEqual(['Zezima'])
+    expect(names('Not ready yet, Saradomin')).toEqual(['Woox'])
+  })
+
   it('splits the table into Ready and Not ready yet, each pet with its name under it', () => {
     splash(SEGMENT, true)
     expect(names('Ready')).toEqual(['Zezima'])
@@ -393,6 +410,7 @@ describe('Splash countdown', () => {
     expect(starting()).toContain('Starting in 10')
     await vi.advanceTimersByTimeAsync(4_000)
     expect(starting()).toContain('Starting in 6')
+    expect(document.querySelector('.starting')?.closest('[aria-live]')).toBeNull()
     expect(document.querySelector('.waiting-big')).toBeNull()
   })
 })

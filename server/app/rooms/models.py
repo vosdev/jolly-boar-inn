@@ -67,11 +67,11 @@ def new_invite_key() -> str:
     return secrets.token_urlsafe(9)
 
 
-def normalize_name(raw: str, limit: int = NAME_MAX) -> str:
-    """NFKC, trimmed, spaces collapsed, then 1-``limit`` Latin letters, digits, spaces, _ and -."""
+def normalize_name(raw: str) -> str:
+    """NFKC, trimmed, spaces collapsed, then 1-``NAME_MAX`` Latin letters, digits, space, _, -."""
     name = _SPACES.sub(" ", unicodedata.normalize("NFKC", raw).strip())
-    if not 1 <= len(name) <= limit:
-        raise BadName(f"display name must be 1 to {limit} characters")
+    if not 1 <= len(name) <= NAME_MAX:
+        raise BadName(f"display name must be 1 to {NAME_MAX} characters")
     if not all(ch in _NAME_MARKS or _is_latin_letter(ch) for ch in name):
         raise BadName("Only letters, digits, spaces, _ and - in a name.")
     return name
