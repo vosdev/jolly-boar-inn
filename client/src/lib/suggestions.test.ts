@@ -251,7 +251,7 @@ describe('the checks', () => {
     expect(npcNameProblem('Araxxor', ['Vorkath'])).toBeNull()
   })
 
-  it('preview a Who’s That NPC? as its prompt and the list, with no picture', () => {
+  it('preview a Who’s That NPC? as its prompt, with no picture or list yet', () => {
     const content = {
       type: 'pick_from_list' as const,
       mode: 'whos_that_npc',
@@ -261,7 +261,7 @@ describe('the checks', () => {
     expect([open.type, open.mode, open.view, open.picture]).toEqual([
       'pick_from_list',
       'whos_that_npc',
-      { prompt: "Who's that NPC?", vocab: 'npcs' },
+      { prompt: "Who's that NPC?" },
       null,
     ])
     expect(answerOf({ kind: 'question', content })).toBe('Araxxor')

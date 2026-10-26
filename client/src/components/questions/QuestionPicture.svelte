@@ -99,19 +99,23 @@
   })
 </script>
 
-{#if src !== null}
+{#if src !== null || large}
   <div
     class="picture"
     class:large
     bind:this={box}
     style:--picture-height={fitted === null ? null : `${fitted}px`}
   >
-    <div class="frame" class:shadow class:lifted={shadow && lifted}>
-      <img {src} alt="" bind:this={img} onload={loaded} />
-      {#if shadow}
-        <span class="fill" style:--outline="url('{src}')"></span>
-      {/if}
-    </div>
+    {#if src !== null}
+      <div class="frame" class:shadow class:lifted={shadow && lifted}>
+        <img {src} alt="" bind:this={img} onload={loaded} />
+        {#if shadow}
+          <span class="fill" style:--outline="url('{src}')"></span>
+        {/if}
+      </div>
+    {:else}
+      <p class="placeholder">The picture is added once the innkeeper imports it.</p>
+    {/if}
   </div>
   {#if caption}
     <p class="caption">{caption}</p>
@@ -138,6 +142,23 @@
     position: relative;
     display: flex;
     max-width: 100%;
+  }
+
+  .placeholder {
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: 16rem;
+    height: 100%;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border: var(--border-width) dashed color-mix(in srgb, var(--scroll-ink) 35%, transparent);
+    border-radius: min(var(--radius), 8px);
+    color: var(--scroll-muted);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    line-height: 1.4;
   }
 
   img {
