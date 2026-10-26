@@ -2,7 +2,7 @@
 
 import { cleanup, render } from '@testing-library/svelte'
 import { tick } from 'svelte'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import QuestionPicture from './QuestionPicture.svelte'
 
@@ -32,6 +32,7 @@ async function loadRender(box: HTMLElement): Promise<void> {
 }
 
 afterEach(() => {
+  vi.unstubAllGlobals()
   cleanup()
   document.body.innerHTML = ''
 })
@@ -88,6 +89,30 @@ describe('a large picture on a stage', () => {
     await loadRender(box)
     // 300 left, less the list's 234 and the 100 it already has under the input.
     expect(box.style.getPropertyValue('--picture-height')).toBe('166px')
+  })
+
+  it('keeps the suggestions’ room once the answer is in and the input is gone', async () => {
+    const resized: (() => void)[] = []
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          resized.push(callback)
+        }
+        observe(): void {}
+        disconnect(): void {}
+      },
+    )
+    const { box, stage } = onStage(700, 700)
+    const input = document.createElement('input')
+    input.setAttribute('role', 'combobox')
+    stage.firstElementChild!.append(input)
+    await loadRender(box)
+    expect(box.style.getPropertyValue('--picture-height')).toBe('160px')
+    input.remove()
+    for (const callback of resized) callback()
+    await tick()
+    expect(box.style.getPropertyValue('--picture-height')).toBe('160px')
   })
 
   it('keeps one box from the silhouette to the reveal', async () => {

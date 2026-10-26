@@ -44,6 +44,11 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.194.3',
+    date: '2026-10-26',
+    text: 'The NPC shadow no longer grows once you answer.',
+  },
+  {
     version: '0.194.2',
     date: '2026-10-26',
     text: 'Who is That NPC? suggestions show a placeholder preview.',

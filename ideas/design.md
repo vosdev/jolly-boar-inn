@@ -396,7 +396,7 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
   tall (4rem on a phone) from the first frame, through the reveal. A smaller render keeps its size.
   Who's That NPC? gives it the stage height left over, less five 2.5rem suggestion rows under the
   answer input (160px to 12rem, never above one image pixel per screen pixel; 12rem off a room's
-  stage); the list stays inside the stage. One box open and revealed, and its shadow, which fades into the render (700 ms)
+  stage); the list stays inside the stage. One box open, answered and revealed, and its shadow, which fades into the render (700 ms)
   with the name under it on the reveal. One flat colour, no glow or gradient, so a see-through part shows lighter
   in every theme: the scroll ink, Toktz's lava orange and the Gauntlet's crystal cyan.
   An item's inventory icon, in a 72px box at whole pixels, sits under The Price is Right's question

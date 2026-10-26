@@ -24,8 +24,9 @@
    * suggestions, between `PICTURE_LEAST` and the smaller of its 12rem off a stage and the render's height
    * as drawn: the room is laid out at one size and scaled up to the window, so its px are not
    * the screen's. The caption's room is kept from the start so the reveal does not move it.
-   * The height is measured while the question is open and held from the reveal on, so the
-   * silhouette and the render share one box and a taller reveal scrolls rather than shrinks it.
+   * The height is measured while the question is open, keeping the suggestions' room after the
+   * answer locks the input away, and held from the reveal on, so the silhouette and the render
+   * share one box and a taller reveal scrolls rather than shrinks it.
    */
   import { PICTURE_MOST_REM, pictureHeight, suggestionsHeight } from '../../lib/pictureFit'
   import { pictureUrl } from '../../lib/pictures'
@@ -51,6 +52,9 @@
   let img = $state<HTMLImageElement | null>(null)
   let natural = $state(0)
   let fitted = $state<number | null>(null)
+  // What the open question took besides the picture while its input was up: an answer locks
+  // the input away, and the picture must not then grow under the player's eyes.
+  let taken = 0
 
   function loaded(): void {
     natural = img?.naturalHeight ?? 0
@@ -83,8 +87,9 @@
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
       const sheet = parseFloat(getComputedStyle(mine).getPropertyValue('--scroll-scale')) || 1
       const list = input === null ? 0 : Math.max(0, suggestionsHeight(rem) - below)
+      if (input !== null) taken = rest + list
       fitted = pictureHeight(
-        stage.clientHeight - rest - list,
+        stage.clientHeight - Math.max(rest + list, taken),
         natural,
         scale || 1,
         PICTURE_MOST_REM * rem * sheet,
