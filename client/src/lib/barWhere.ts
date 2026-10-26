@@ -25,3 +25,12 @@ export function whereOf(
   if (phase === 'standings') return { lead: `Hiscores after ${round}`, mode: null }
   return { lead: `Round ${segment.index + 1} of ${segment.total}:`, mode: modeLabel(segment.mode) }
 }
+
+/** A past game, for the bar's middle: its code, and when it ended if this browser kept it. */
+export interface BarPast {
+  code: string
+  finishedAt: string | null
+}
+
+/** Set by a past game's page, drawn by the top bar; null says nothing. */
+export const barPast = writable<BarPast | null>(null)

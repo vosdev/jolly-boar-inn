@@ -82,7 +82,13 @@
   >
 {/snippet}
 
-<ol class="team-hiscores" class:arriving class:columns aria-label="Team hiscores">
+<ol
+  class="team-hiscores"
+  class:arriving
+  class:columns
+  class:totals={!changes}
+  aria-label="Team hiscores"
+>
   {#each teams as row, i (row.team)}
     {@const god = team(row.team)}
     {@const members = membersOf(row.team, standings, teamOf)}
@@ -100,12 +106,10 @@
           >
           {#if !columns}{@render moved(move)}{/if}
         </span>
-        {#if columns}<span class="moved">{@render moved(move)}</span>{/if}
+        {#if columns && changes}<span class="moved">{@render moved(move)}</span>{/if}
         <span class="logo"><TeamLogo team={row.team} /></span>
         <span class="name">{god.name}</span>
-        {#if columns}<span class="round"
-            >{#if changes}{@render gained(row)}{/if}</span
-          >{/if}
+        {#if columns && changes}<span class="round">{@render gained(row)}</span>{/if}
         <span class="points">
           <span class="total"
             ><CountUp
@@ -181,6 +185,11 @@
     grid-template-columns: 3.5rem 3rem 1.9rem 1fr 7.5rem 7.5rem;
   }
 
+  /* Totals alone, a past game's: no move or gain to give a column. */
+  .columns.totals .head {
+    grid-template-columns: 3.5rem 1.9rem 1fr 7.5rem;
+  }
+
   .columns .rank {
     align-self: center;
   }
@@ -191,6 +200,10 @@
 
   .columns .members {
     padding-left: 7.4rem;
+  }
+
+  .columns.totals .members {
+    padding-left: 4rem;
   }
 
   .logo {

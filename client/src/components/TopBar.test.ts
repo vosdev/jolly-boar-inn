@@ -83,4 +83,16 @@ describe('TopBar', () => {
     render(TopBar, { navigate, menu: slot('You') })
     expect(controls()).toEqual(['Source code on GitHub', 'You'])
   })
+
+  it('names a past game and when it ended in its middle, and only the code for one never kept', () => {
+    const finishedAt = new Date(2026, 9, 25, 21, 14).toISOString()
+    const { unmount } = render(TopBar, { navigate, past: { code: 'FireCape', finishedAt } })
+    const middle = document.querySelector('.where')!
+    expect(middle.querySelector('.long')!.textContent).toBe('finished Sun 25 Oct at 21:14')
+    expect(middle.querySelector('.short')!.textContent).toBe('25 Oct')
+    expect(middle.querySelector('strong')!.textContent).toBe('FireCape')
+    unmount()
+    render(TopBar, { navigate, past: { code: 'FireCape', finishedAt: null } })
+    expect(document.querySelector('.where')!.textContent?.trim()).toBe('FireCape')
+  })
 })

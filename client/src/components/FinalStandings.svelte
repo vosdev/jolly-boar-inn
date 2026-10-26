@@ -13,8 +13,8 @@
    * A team game's table ranks its teams, each with its members under it, and he names the
    * winning team instead.
    *
-   * In the room his lines, and the trophy, are in his bubble, and the room has no table
-   * panel beside it. A past game, and the room's TV, keep them on the sheet. On the TV the
+   * His lines, and the trophy, are in his bubble, and the room has no table panel beside
+   * it; a past game is drawn the same. The room's TV keeps them on the sheet. On the TV the
    * sheet takes the whole stage, a long table scrolls (`crawl`), and nothing is offered: no
    * Skip, and no panel under the table.
    */
@@ -104,7 +104,7 @@
       places.map((step) => trophyLine(step.rank, step.tier, step.standings.length > 1, seed))),
   ]
   const playing = untrack(() => ceremony) && !instant && steps.length > 0
-  const bubble = $derived<Bubble | null>(tv || past ? null : 'on')
+  const bubble = $derived<Bubble | null>(tv ? null : 'on')
   const columns = $derived(bubble !== null && !stacked)
   const open = untrack(() =>
     Math.max(

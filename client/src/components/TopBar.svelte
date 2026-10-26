@@ -11,6 +11,9 @@
    * `ThermonuclearSmokeDevil` — and one of those in 56px beside the controls either
    * truncates to something worse than useless or pushes the controls off a phone. The
    * lobby shows the code big with the link to share it, and Join keeps its own heading.
+   * A past game (`past`) is the exception, since the code is all that names it: there the
+   * middle says "FireCape, finished Sun 25 Oct at 21:14", and on a narrow screen "FireCape,
+   * 25 Oct", where the code gives way before the date or the name.
    *
    * **One slot** after GitHub, for the menu: head, name and theme emblem in one control,
    * which opens who you are, sound and theme. It falls back to a placeholder that holds
@@ -37,7 +40,8 @@
   import { onMount, type Snippet } from 'svelte'
   import { initial, logo, logos, siteName } from 'virtual:branding'
 
-  import type { BarWhere } from '../lib/barWhere'
+  import type { BarPast, BarWhere } from '../lib/barWhere'
+  import { finishedAt, finishedDay } from '../lib/dates'
   import type { HostAction } from '../lib/hostMenu'
   import { REPO_URL } from '../lib/links'
   import { team as teamNamed, type TeamId } from '../lib/teams'
@@ -59,6 +63,7 @@
     wide = false,
     full = false,
     where = null,
+    past = null,
     host = null,
     team = null,
     badge = false,
@@ -72,6 +77,8 @@
     full?: boolean
     /** Where the room's night is, for the bar's middle. */
     where?: BarWhere | null
+    /** The past game under the bar, which its middle names. */
+    past?: BarPast | null
     /** The admin's controls for the room's phase; null draws no Host menu. */
     host?: HostAction[] | null
     /** The player's team in a team game, whose frame the bar wears. */
@@ -110,7 +117,13 @@
 
 {#if autohide}<div class="peek" aria-hidden="true"></div>{/if}
 <header class="bar" class:framed={team !== null} class:autohide>
-  <div class="inner" class:wide class:full class:placed={where !== null}>
+  <div
+    class="inner"
+    class:wide
+    class:full
+    class:placed={where !== null || past !== null}
+    class:past={past !== null}
+  >
     <a class="skip" href="#content">Skip to the game</a>
 
     <div class="mark">
@@ -146,6 +159,16 @@
     {#if where !== null}
       <p class="where">
         {where.lead}{#if where.mode !== null}{' '}<strong>{where.mode}</strong>{/if}
+      </p>
+    {/if}
+
+    {#if past !== null}
+      <p class="where past">
+        <strong class="named">{past.code}</strong>{#if past.finishedAt !== null}<span class="when"
+            >, <span class="long">finished {finishedAt(past.finishedAt)}</span><span class="short"
+              >{finishedDay(past.finishedAt)}</span
+            ></span
+          >{/if}
       </p>
     {/if}
 
@@ -273,6 +296,45 @@
   .where strong {
     color: var(--ink);
     font-weight: 650;
+  }
+
+  .past .where {
+    display: flex;
+    min-width: 0;
+  }
+
+  .past .named {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .past .when {
+    flex: none;
+  }
+
+  .past .short {
+    display: none;
+  }
+
+  /* Under the room's frame the code may be long beside a phone's controls: the middle
+     follows the sign and gives way before the name does. */
+  @media (width < 64rem) {
+    .inner.placed.past {
+      display: flex;
+    }
+
+    .past .where {
+      flex: 0 10 auto;
+    }
+
+    .past .long {
+      display: none;
+    }
+
+    .past .short {
+      display: inline;
+    }
   }
 
   .framed .where,
