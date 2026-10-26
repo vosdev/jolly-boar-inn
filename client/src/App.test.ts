@@ -321,11 +321,11 @@ describe('App', () => {
     await screen.findByRole('heading', { level: 1, name: 'Final standings' })
     expect(screen.getByText('Gz, Zezima! Here are the full hiscores.')).toBeTruthy()
     expect(document.querySelector('.hiscores .gain')).toBeNull()
-    expect(screen.getByText(/The room has closed/)).toBeTruthy()
+    expect(screen.queryByText(/The room has closed/)).toBeNull()
     cleanup()
 
     at('/history/ABYSSAL/2610012006')
-    await screen.findByText('This browser kept no result for that game.')
+    await screen.findByText("I've no record of that game. This browser kept no hiscores for it.")
   })
 
   it("offers the credits in every screen's footer", async () => {

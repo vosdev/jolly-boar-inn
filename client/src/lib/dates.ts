@@ -25,6 +25,27 @@ export function finishedTime(iso: string): string {
     : parsed.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+/** When a past game ended, for the top bar, in the reader's own zone: "Sun 25 Oct at 21:14". */
+export function finishedAt(iso: string): string {
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return iso
+  const day = parsed.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+  const time = parsed.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return `${day} at ${time}`
+}
+
+/** The day a game ended, in the reader's own zone, for a narrow screen: "25 Oct". */
+export function finishedDay(iso: string): string {
+  const parsed = new Date(iso)
+  return Number.isNaN(parsed.getTime())
+    ? iso
+    : parsed.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
 const HOUR_MS = 3_600_000
 
 /**

@@ -31,7 +31,7 @@ import { clearVocabCache } from '../lib/vocab'
 import { savePastGame } from '../lib/history'
 import type { RoomSocketHandlers } from '../lib/ws'
 import Room from './Room.svelte'
-import roomSource from './Room.svelte?raw'
+import frameSource from '../components/RoomFrame.svelte?raw'
 
 vi.mock('../lib/session', async (importOriginal) => {
   const real = await importOriginal<typeof import('../lib/session')>()
@@ -615,10 +615,10 @@ describe('the room’s frame', () => {
     await tick()
     expect(document.querySelector('.frame.fitted.compact')).toBeTruthy()
     // jsdom has no layout, so the compact rules themselves are checked.
-    const rule = roomSource.match(/\.fitted\.compact \.play \{([^}]*)\}/)?.[1] ?? ''
+    const rule = frameSource.match(/\.fitted\.compact \.play \{([^}]*)\}/)?.[1] ?? ''
     expect(rule).toMatch(/--head-size: 72px;/)
     expect(rule).toMatch(/padding: 16px 32px 16px;/)
-    expect(roomSource).toMatch(/\.fitted \.play \{[^}]*gap: 28px;\s*padding: 30px 40px 28px;/)
+    expect(frameSource).toMatch(/\.fitted \.play \{[^}]*gap: 28px;\s*padding: 30px 40px 28px;/)
   })
 
   it('puts who is in at the table, out of the stage', async () => {
@@ -791,7 +791,7 @@ describe('the room’s frame', () => {
     // jsdom has no layout, so the rules themselves are checked: the column is as wide as
     // the reveal needs from the first frame, and the stage is not centred in its height, so
     // taller answers grow downward only.
-    const css = roomSource
+    const css = frameSource
     expect(css).toMatch(/\.fitted \.play \{[^}]*grid-template-columns: minmax\(0, 1fr\) 380px/)
     expect(css).not.toMatch(/\.fitted \.play\.revealing \{[^}]*grid-template-columns/)
     expect(css).toMatch(/\.fitted \.stage-in \{\s*margin-block: 0 auto/)

@@ -40,7 +40,7 @@
   import { adminTabOf, type AdminTab } from './lib/admin'
   import { keyFromHash } from './lib/invite'
   import { getSession, normalizeCode } from './lib/session'
-  import { barWhere } from './lib/barWhere'
+  import { barPast, barWhere } from './lib/barWhere'
   import { hostMenu } from './lib/hostMenu'
   import { roomShown } from './lib/roomFit'
   import { room, you } from './lib/stores'
@@ -73,8 +73,8 @@
     if (path === '/suggest') return { name: 'suggest' }
     if (path === '/report') return { name: 'report' }
     const past = HISTORY_PATH.exec(path)
-    if (past !== null)
-      return { name: 'history', code: normalizeCode(past[1] ?? ''), stamp: past[2] ?? '' }
+    // As spelled in the link: a game this browser never kept has no other spelling to show.
+    if (past !== null) return { name: 'history', code: past[1] ?? '', stamp: past[2] ?? '' }
     const match = ROOM_PATH.exec(path)
     if (match === null) return { name: 'home' }
     const code = normalizeCode(match[1] ?? '')
@@ -99,7 +99,10 @@
   const tv = $derived(route.name === 'room' && $you?.role === 'tv')
   /** A room runs the bar across the window; its lobby alone has the footer under it. */
   const inRoom = $derived(route.name === 'room' && !tv)
-  const footer = $derived(route.name !== 'room' || (!tv && $room?.status === 'lobby'))
+  // A past game is drawn as the room's final, which has none either.
+  const footer = $derived(
+    route.name === 'history' ? false : route.name !== 'room' || (!tv && $room?.status === 'lobby'),
+  )
   $effect(() => wearTeam(team))
 
   /** `state` rides along in `history.state`, for the screen at `to` to read. */
@@ -141,8 +144,9 @@
 <TopBar
   {navigate}
   {wide}
-  full={inRoom}
+  full={inRoom || route.name === 'history'}
   where={$roomShown === null ? null : $barWhere}
+  past={route.name === 'history' ? $barPast : null}
   host={inRoom ? $hostMenu : null}
   {team}
   badge={$timerBar === null}

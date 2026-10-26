@@ -157,7 +157,9 @@ learns the position, which is worth more than variety.
   room the bar runs the window's width, and from 1024px its middle says where the night is:
   "Round 1 of 3: **More or Less**", "Lobby", "Hiscores after round 2 of 3", "Final hiscores". On a phone Suggest comes last. A browser holding the admin token gets *Admin (n)* in Suggest, n the pending suggestions.
 - **No room code.** Codes are words like `ThermonuclearSmokeDevil`, which either truncate to nothing
-  or push the controls off a phone. The lobby and Join show the code instead.
+  or push the controls off a phone. The lobby and Join show the code instead. A past game is the
+  exception: "**FireCape**, finished Sun 25 Oct at 21:14", on a phone "**FireCape**, 25 Oct", the code
+  ellipsising before the date or the name.
 - **A team game** frames the screen in the player's god from the moment they join a team until
   they leave the room: the bar in the god's colour with its symbol for the sign, a 6px edge round
   the window, the timer and its tabs in the god's shades, and a badge (symbol and name) centred
@@ -267,8 +269,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   row's right end as a chip, in the box's ink ("+850", "No answer · +0"), none for a player who
   could not answer. The line below reads from the left, in Quill. A hidden line keeps its room, so the sheet never moves when the host speaks, and the box
   is from the first frame as tall as the most its screen will say.
-- **Elsewhere the host stands beside the sheet**: a past game's hiscores
-  (§11, at a long sheet's top-left), Home and the TV. There it stands at the scroll's bottom-left,
+- **Elsewhere the host stands beside the sheet**: Home and the TV. There it stands at the scroll's bottom-left,
   over its left roll, 78px wide overlapping 30px (68px and 32px on a phone); under 448px of screen,
   and on the TV, it stands on the sheet and the words wrap around it.
 - **Under 448px of screen** the sheet runs edge to edge and the rolls sit half off the screen's
@@ -437,12 +438,12 @@ in display tabular numerals and the box's ink:
 Standings appear between rounds and at the end, never between questions, in the `standings` phase
 (architecture §7). A single-round game shows only the final ones. Both are the Wise Old Man's
 hiscores on the stage (§8), for wiseoldman.net, where OSRS players track their gains. He speaks in
-his bubble and the table is the whole sheet; a past game and the TV put him at the sheet's
-top-left beside his line, the title "Hiscores" or "Final hiscores" over it.
+his bubble and the table is the whole sheet; the TV puts him at the sheet's top-left beside his
+line, the title "Hiscores" or "Final hiscores" over it.
 
 The table is the OSRS hiscores. On a desktop each row is one line: Rank, the places moved (▲2,
-▼1), pet and name, "This round" (+1,240, muted) and bold points. On a phone, the TV and a past
-game it is `#`, name and points, two lines a row, the move under the rank and the gain under the
+▼1), pet and name, "This round" (+1,240, muted) and bold points. On a phone and the TV it is `#`,
+name and points, two lines a row, the move under the rank and the gain under the
 total. "(you)" never splits from itself. The first round has no moves. Your row is highlighted,
 and between rounds pinned to the sheet's foot when below it.
 
@@ -467,8 +468,9 @@ top to bottom, and he says "Gz, Name! Here are the full hiscores." A Skip button
 
 The final standings have no table panel: the stage stands in the middle of the room. The TV,
 which has no dialogue box, holds the trophy beside his line at the sheet's head. The ceremony plays only for a client that watched the game end. A reload, a late arrival and a
-past game from history show the table at once, as does reduced motion; a past game shows only the
-totals, without moves or gains. Trophies are art, not tokens.
+past game show the table at once, as does reduced motion. A past game (`/history`) is drawn as
+this final, totals only: no moves or gains. A game this browser never kept has him say "I've no
+record of that game. This browser kept no hiscores for it." over a sheet saying "Room FireCape". Trophies are art, not tokens.
 
 **A team game** ranks its teams instead, with the same moves, gains and timing: rank, logo, name
 and points, the god's colour on the team's edge, and under each its members with their own

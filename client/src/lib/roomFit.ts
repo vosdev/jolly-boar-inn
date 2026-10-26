@@ -74,3 +74,22 @@ export function stageEdges(fit: RoomFit): { left: number; width: number } {
 
 /** The room as it is drawn now; null outside a room or stacked. */
 export const roomShown = writable<{ fit: RoomFit } | null>(null)
+
+/** The frame for the window as it is now; the bar's height is the shell's, from app.css. */
+export function measureRoom(): RoomFit | null {
+  const root = document.documentElement
+  const bar = parseFloat(getComputedStyle(root).getPropertyValue('--topbar-height')) || 56
+  return roomFit({ width: root.clientWidth, height: innerHeight }, bar)
+}
+
+/** Call `refit` whenever the window's size changes; returns the way to stop. */
+export function watchRoomSize(refit: () => void): () => void {
+  // A scrollbar coming or going changes the width without resizing the window.
+  const watch = new ResizeObserver(refit)
+  watch.observe(document.documentElement)
+  addEventListener('resize', refit)
+  return () => {
+    watch.disconnect()
+    removeEventListener('resize', refit)
+  }
+}
