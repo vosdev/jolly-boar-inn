@@ -8,7 +8,7 @@
    */
   import type { Snippet } from 'svelte'
 
-  import { roomShown, type RoomFit } from '../lib/roomFit'
+  import { PADDING, PLAY, roomShown, type RoomFit } from '../lib/roomFit'
 
   let {
     fit,
@@ -29,6 +29,9 @@
   })
 
   $effect(() => () => roomShown.set(null))
+
+  // The sizes `roomFit` lays the room out with, so the CSS cannot drift from its sums.
+  const padding = $derived(fit === null ? null : fit.compact ? PADDING.compact : PADDING.full)
 </script>
 
 <div
@@ -38,6 +41,13 @@
   style:--room-scale={fit?.scale ?? null}
   style:--room-width={fit === null ? null : `${fit.width}px`}
   style:--room-height={fit === null ? null : `${fit.height}px`}
+  style:--play-gap={fit === null ? null : `${PLAY.gap}px`}
+  style:--play-table={fit === null ? null : `${PLAY.table}px`}
+  style:--play-column={fit === null ? null : `${PLAY.tableReveal}px`}
+  style:--stage-wide={fit === null ? null : `${PLAY.stageWide}px`}
+  style:--play-padding={padding === null
+    ? null
+    : `${padding.top}px ${padding.side}px ${padding.bottom}px`}
 >
   <div class="play" class:revealing class:final>
     <div class="stage-side" data-fit-stage>
@@ -57,10 +67,6 @@
     overflow: hidden;
   }
 
-  .fitted {
-    --stage-wide: 960px;
-  }
-
   .fitted .play {
     position: absolute;
     top: 0;
@@ -71,15 +77,14 @@
     transform: scale(var(--room-scale));
     transform-origin: top center;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    gap: 28px;
-    padding: 30px 40px 28px;
+    grid-template-columns: minmax(0, 1fr) var(--play-column);
+    gap: var(--play-gap);
+    padding: var(--play-padding);
   }
 
   /* A short window's room: less padding, and a smaller chathead in the dialogue box. */
   .fitted.compact .play {
     --head-size: 72px;
-    padding: 16px 32px 16px;
   }
 
   /* The name's row and two lines, whatever the smaller chathead leaves. */
@@ -88,9 +93,9 @@
   }
 
   /* The column is always as wide as a reveal needs, so the stage keeps its width; the table
-     is 300px wide until the reveal and fills the column then. */
+     is narrower until the reveal and fills the column then. */
   .fitted .play:not(.revealing) .table {
-    width: 300px;
+    width: var(--play-table);
     justify-self: end;
   }
 

@@ -185,6 +185,32 @@ describe('a stage that scrolls', () => {
     expect(into.mock.contexts.at(-1)).toBe(handle('Iron'))
   })
 
+  it('scrolls the stage, not the window, while a row is dragged near the stage’s foot', async () => {
+    const scrolled = scrolledStage()
+    const stage = scrolled.stage
+    stage.style.overflowY = 'auto'
+    Object.defineProperty(stage, 'scrollHeight', { get: () => 900 })
+    Object.defineProperty(stage, 'clientHeight', { get: () => 400 })
+    render(Question, {
+      target: stage,
+      props: { question: open(), yourValue: null, onAnswer: () => {} },
+    })
+    await tick()
+    const rect = HTMLElement.prototype.getBoundingClientRect
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this === stage) return { top: 0, bottom: 400, left: 0, right: 300 } as DOMRect
+      return rect.call(this)
+    })
+    const page = vi.spyOn(window, 'scrollBy').mockImplementation(() => {})
+    const grip = handle('Steel')
+    await fireEvent.pointerDown(grip, { pointerId: 1, button: 0, clientY: 200 })
+    await fireEvent.pointerMove(grip, { pointerId: 1, button: 0, clientY: 390 })
+    expect(scrolled.top()).toBeGreaterThan(0)
+    expect(page).not.toHaveBeenCalled()
+  })
+
   it('leaves the scroll where it was after a drag, and after Start over', async () => {
     layout()
     const stage = await inStage(240)

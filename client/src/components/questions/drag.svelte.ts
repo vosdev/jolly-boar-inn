@@ -33,8 +33,25 @@ export interface Board {
   area(): HTMLElement | undefined
 }
 
-/** How close to the window's edge a dragged row scrolls the page. */
+/** How close to the edge of what scrolls a dragged row scrolls it. */
 const EDGE_PX = 48
+
+/**
+ * What scrolls the rows: the nearest ancestor that scrolls, such as a fitted room's stage,
+ * whose window does not scroll, or else the page.
+ */
+function scrollerOf(node: Element | undefined): Element {
+  for (let up = node?.parentElement; up; up = up.parentElement) {
+    const { overflowY } = getComputedStyle(up)
+    const scrolls = overflowY === 'auto' || overflowY === 'scroll'
+    if (scrolls && up.scrollHeight > up.clientHeight) return up
+  }
+  return document.scrollingElement ?? document.documentElement
+}
+
+function isPage(scroller: Element): boolean {
+  return scroller === document.scrollingElement || scroller === document.documentElement
+}
 
 export class Dragging {
   /** The row the keyboard holds, and the places as they were when it was lifted. */
@@ -47,6 +64,11 @@ export class Dragging {
     startY: number
     /** The row's own px per screen px: a room scaled to the window scales its rows. */
     scale: number
+    /** What scrolls the rows, where it stood, and its screen px per its own px. */
+    scroller: Element
+    scrollLeft: number
+    scrollTop: number
+    scrollerScale: number
     dx: number
     dy: number
   } | null>(null)
@@ -142,13 +164,20 @@ export class Dragging {
     const row = event.currentTarget as HTMLElement
     row.setPointerCapture?.(event.pointerId)
     const drawn = row.getBoundingClientRect().width
+    const scroller = scrollerOf(this.#board.area())
+    const tall = isPage(scroller) ? 0 : scroller.getBoundingClientRect().height
+    const own = scroller instanceof HTMLElement ? scroller.offsetHeight : 0
     this.lifted = null
     this.drag = {
       shown,
       pointer: event.pointerId,
-      startX: event.clientX + window.scrollX,
-      startY: event.clientY + window.scrollY,
+      startX: event.clientX,
+      startY: event.clientY,
       scale: row.offsetWidth > 0 && drawn > 0 ? drawn / row.offsetWidth : 1,
+      scroller,
+      scrollLeft: scroller.scrollLeft,
+      scrollTop: scroller.scrollTop,
+      scrollerScale: own > 0 && tall > 0 ? tall / own : 1,
       dx: 0,
       dy: 0,
     }
@@ -157,10 +186,16 @@ export class Dragging {
   follow(event: PointerEvent): void {
     const drag = this.drag
     if (drag === null || event.pointerId !== drag.pointer) return
-    if (event.clientY < EDGE_PX) window.scrollBy(0, -EDGE_PX / 4)
-    else if (event.clientY > window.innerHeight - EDGE_PX) window.scrollBy(0, EDGE_PX / 4)
-    drag.dx = (event.clientX + window.scrollX - drag.startX) / drag.scale
-    drag.dy = (event.clientY + window.scrollY - drag.startY) / drag.scale
+    const { scroller } = drag
+    const box = isPage(scroller) ? null : scroller.getBoundingClientRect()
+    const top = Math.max(0, box?.top ?? 0)
+    const bottom = Math.min(window.innerHeight, box?.bottom ?? window.innerHeight)
+    if (event.clientY < top + EDGE_PX) scroller.scrollTop -= EDGE_PX / 4
+    else if (event.clientY > bottom - EDGE_PX) scroller.scrollTop += EDGE_PX / 4
+    const scrolledX = (scroller.scrollLeft - drag.scrollLeft) * drag.scrollerScale
+    const scrolledY = (scroller.scrollTop - drag.scrollTop) * drag.scrollerScale
+    drag.dx = (event.clientX - drag.startX + scrolledX) / drag.scale
+    drag.dy = (event.clientY - drag.startY + scrolledY) / drag.scale
     this.over = this.targetAt(event.clientX, event.clientY)
   }
 

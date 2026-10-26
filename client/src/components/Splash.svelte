@@ -44,7 +44,6 @@
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { serverOffsetMs } from '../lib/stores'
   import { Seating } from '../lib/tableGroups'
-  import { TEAM_IDS } from '../lib/teams'
   import { Typist, lettersOf } from '../lib/typing.svelte'
   import AtTable from './AtTable.svelte'
   import FullScreenSwitch from './FullScreenSwitch.svelte'
@@ -113,10 +112,8 @@
   const youReady = $derived(players.some((player) => player.id === youId && player.ready === true))
   const summary = $derived(`${readyCount} of ${present.length} ready`)
   const seating = new Seating()
-  /** The teams the players play for: a splash has no settings, and the teams are the same. */
-  const teams = $derived(TEAM_IDS.filter((team) => players.some((p) => p.team === team)))
   const seated = $derived(
-    seating.seat(players, youId, (p) => p.ready === true, segment.index, teams),
+    seating.seat(players, youId, (p) => p.ready === true, segment.index, settings?.teams ?? []),
   )
   /** Taps still wanted before the countdown starts: a count, never a name. */
   const short = $derived(Math.max(0, readyThreshold(present.length) - readyCount))
@@ -269,7 +266,7 @@
         <TablePanel groups={seated} {youId} labels={['Ready', 'Not ready yet']}>
           <div class="starts">
             {#if startsIn !== null}
-              <p class="starting" aria-live="polite">
+              <p class="starting">
                 <span>Starting in</span>
                 <strong>{startsIn}</strong>
               </p>

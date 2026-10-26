@@ -13,8 +13,11 @@ export interface Placed {
   segment: { start: number; count: number }
 }
 
+/** What a reveal can hand over to. */
+export type Next = 'Next question' | 'Standings' | 'Next round' | 'Final standings'
+
 /** What comes after the reveal of `question`. */
-export function nextUp(question: Placed, standings: boolean): string {
+export function nextUp(question: Placed, standings: boolean): Next {
   if (question.index + 1 >= question.total) return 'Final standings'
   const { start, count } = question.segment
   if (question.index !== start + count - 1) return 'Next question'
@@ -22,7 +25,7 @@ export function nextUp(question: Placed, standings: boolean): string {
 }
 
 /** `nextUp`'s words cut to fit the timer bar's tab: "Next", "Standings" or "Final". */
-export function nextTab(what: string): string {
+export function nextTab(what: Next): string {
   if (what === 'Final standings') return 'Final'
   return what === 'Standings' ? 'Standings' : 'Next'
 }

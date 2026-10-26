@@ -614,11 +614,19 @@ describe('the room’s frame', () => {
     window.dispatchEvent(new Event('resize'))
     await tick()
     expect(document.querySelector('.frame.fitted.compact')).toBeTruthy()
-    // jsdom has no layout, so the compact rules themselves are checked.
+    // jsdom has no layout, so the compact rules and the sizes the frame hands them are checked.
     const rule = frameSource.match(/\.fitted\.compact \.play \{([^}]*)\}/)?.[1] ?? ''
     expect(rule).toMatch(/--head-size: 72px;/)
-    expect(rule).toMatch(/padding: 16px 32px 16px;/)
-    expect(frameSource).toMatch(/\.fitted \.play \{[^}]*gap: 28px;\s*padding: 30px 40px 28px;/)
+    expect(frameSource).toMatch(
+      /\.fitted \.play \{[^}]*gap: var\(--play-gap\);\s*padding: var\(--play-padding\);/,
+    )
+    const frame = () => document.querySelector<HTMLElement>('.frame.fitted')!.style
+    expect(frame().getPropertyValue('--play-padding')).toBe('16px 32px 16px')
+    expect(frame().getPropertyValue('--play-gap')).toBe('28px')
+    windowOf(1512, 920 + 56)
+    window.dispatchEvent(new Event('resize'))
+    await tick()
+    expect(frame().getPropertyValue('--play-padding')).toBe('30px 40px 28px')
   })
 
   it('puts who is in at the table, out of the stage', async () => {
@@ -792,7 +800,11 @@ describe('the room’s frame', () => {
     // the reveal needs from the first frame, and the stage is not centred in its height, so
     // taller answers grow downward only.
     const css = frameSource
-    expect(css).toMatch(/\.fitted \.play \{[^}]*grid-template-columns: minmax\(0, 1fr\) 380px/)
+    expect(css).toMatch(
+      /\.fitted \.play \{[^}]*grid-template-columns: minmax\(0, 1fr\) var\(--play-column\)/,
+    )
+    const frame = document.querySelector<HTMLElement>('.frame.fitted')!.style
+    expect(frame.getPropertyValue('--play-column')).toBe('380px')
     expect(css).not.toMatch(/\.fitted \.play\.revealing \{[^}]*grid-template-columns/)
     expect(css).toMatch(/\.fitted \.stage-in \{\s*margin-block: 0 auto/)
   })
