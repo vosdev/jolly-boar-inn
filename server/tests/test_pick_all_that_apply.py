@@ -47,6 +47,11 @@ def test_example_validates() -> None:
     schema.validate(EXAMPLE)
     with_picks = {**EXAMPLE, "payload": payload(picks=2)}
     schema.validate({**with_picks, "id": schema.content_id(with_picks)})
+    all_right = {
+        **EXAMPLE,
+        "payload": payload(answer_indices=[0, 1, 2, 3, 4, 5], picks=6),
+    }
+    schema.validate({**all_right, "id": schema.content_id(all_right)})
 
 
 def shown(authored: list[int], p: dict[str, Any] = EXAMPLE["payload"]) -> list[int]:
@@ -156,11 +161,13 @@ def test_check_fails_no_right_option() -> None:
     ]
 
 
-def test_check_fails_every_option_right() -> None:
-    errors = pick_all_that_apply.check(
-        payload(options=["Sarachnis", "Venenatis", "Kalphite Queen"], answer_indices=[0, 1, 2])
+def test_check_passes_every_option_right() -> None:
+    assert (
+        pick_all_that_apply.check(
+            payload(options=["Sarachnis", "Venenatis", "Kalphite Queen"], answer_indices=[0, 1, 2])
+        )
+        == []
     )
-    assert errors == ["answer_indices: every option is right, so ticking them all is the answer"]
 
 
 def test_check_fails_an_index_that_is_none_of_the_options() -> None:
@@ -193,11 +200,11 @@ def test_check_fails_two_options_that_read_the_same() -> None:
         (lambda p: p.update(options=["Sarachnis", "Venenatis"]), "$.payload.options"),
         (lambda p: p.update(options=[str(n) for n in range(7)]), "$.payload.options"),
         (lambda p: p.update(answer_indices=[]), "$.payload.answer_indices"),
-        (lambda p: p.update(answer_indices=[0, 1, 2, 3, 4, 5]), "$.payload.answer_indices"),
+        (lambda p: p.update(answer_indices=[0, 1, 2, 3, 4, 5, 6]), "$.payload.answer_indices"),
         (lambda p: p.update(answer_indices=[1, 1]), "$.payload.answer_indices"),
         (lambda p: p.update(answer_indices=[6]), "$.payload.answer_indices[0]"),
         (lambda p: p.update(picks=0), "$.payload.picks"),
-        (lambda p: p.update(picks=6), "$.payload.picks"),
+        (lambda p: p.update(picks=7), "$.payload.picks"),
         (lambda p: p.pop("answer_indices"), "$.payload"),
     ],
 )

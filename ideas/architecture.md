@@ -218,7 +218,7 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `min`, `max` or `answer` off the three-figure grid, and an `answer` on an end or on the middle
   where the slider starts (half rounded up).
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
-  rejects none or every option right, and a `picks` that is not their count.
+  rejects no option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
   prefix, ignoring case and accents. Only a selected entry can be submitted, with its own button.
 
