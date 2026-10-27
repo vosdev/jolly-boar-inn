@@ -4,7 +4,7 @@
   /** Never a round anywhere (`custom`, `random_event`), or only on a server switched to testing. */
   const NOT_SHOWN = new Set(['custom', 'random_event', 'random_events_only'])
 
-  /** The modes Home shows, in `MODES` order. */
+  /** The modes Home shows; each visit walks them in its own order. */
   export const SHOWN: readonly Mode[] = Object.values(MODES).filter(
     (mode) => !NOT_SHOWN.has(mode.id),
   )
@@ -16,7 +16,8 @@
 <script lang="ts">
   /**
    * One game mode at a time on Home's sheet (section 8 of ideas/design.md): its host's
-   * chathead, its name, its hint and who presents it, moving on by itself.
+   * chathead, its name, its hint and who presents it, moving on by itself. The order is
+   * shuffled per visit, so the first mode is not always the same one.
    *
    * Every slide is drawn in the same cell and only the current one shows, so the tallest
    * sets the height and nothing under the sheet moves as they change. The region is not
@@ -27,6 +28,7 @@
   import { reducedMotion } from '../lib/interlude'
   import { npcArt } from '../lib/npcs'
 
+  const order = shuffled(SHOWN)
   let index = $state(0)
   let hovered = $state(false)
   let focused = $state(false)
@@ -46,7 +48,7 @@
   $effect(() => {
     if (still || hovered || focused || hidden) return
     const shown = index
-    const timer = setTimeout(() => (index = (shown + 1) % SHOWN.length), ADVANCE_MS)
+    const timer = setTimeout(() => (index = (shown + 1) % order.length), ADVANCE_MS)
     return () => clearTimeout(timer)
   })
 
@@ -59,6 +61,16 @@
   function onFocusOut(event: FocusEvent): void {
     const next = event.relatedTarget
     if (!(next instanceof Node) || !(event.currentTarget as Element).contains(next)) focused = false
+  }
+
+  /** A Fisher-Yates shuffle of a copy of `list`. */
+  function shuffled<T>(list: readonly T[]): T[] {
+    const copy = [...list]
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[copy[i], copy[j]] = [copy[j] as T, copy[i] as T]
+    }
+    return copy
   }
 
   function keyboardFocused(element: Element): boolean {
@@ -79,7 +91,7 @@
   onfocusout={onFocusOut}
 >
   <div class="stack">
-    {#each SHOWN as mode, i (mode.id)}
+    {#each order as mode, i (mode.id)}
       {@const art = npcArt(mode.host.id)}
       <div class="slide" class:on={i === index} inert={i !== index} data-mode={mode.id}>
         <img class="face {art.cut}" src={art.url} alt="" draggable="false" />
@@ -90,7 +102,7 @@
     {/each}
   </div>
   <div class="picker">
-    {#each SHOWN as mode, i (mode.id)}
+    {#each order as mode, i (mode.id)}
       {@const art = npcArt(mode.host.id)}
       <button
         type="button"

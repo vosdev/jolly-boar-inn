@@ -323,7 +323,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
 - **Home** is a 960px column. Its host, as the lobby's (§9), is the selfhoster's hero for the theme
   (§14), else the Wise Old Man, saying the site's line in the dialogue box at its usual sizes. The
   theme's sheet under it holds the room code, Join, Create a room and How to play, and beside them
-  one playable mode at a time: host's chathead, name, hint, "Presented by: <host>". It crossfades
+  one playable mode at a time, shuffled per visit: host's chathead, name, hint, "Presented by: <host>". It crossfades
   every 4.5 s, holds on hover or keyboard focus and under reduced motion, and is as tall as the
   tallest mode; a row of chatheads (dots on a phone) picks one. Then Public
   rooms while any are listed, Rooms you created here and Past games side by side while they have

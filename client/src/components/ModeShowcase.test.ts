@@ -1,4 +1,4 @@
-/** Home's game modes: every round in order, one at a time, held while someone is looking at it. */
+/** Home's game modes: every round once, in a shuffled order, held while someone is looking at it. */
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -8,7 +8,15 @@ import { MODES, UPCOMING_MODES } from '../lib/modes'
 import { npcArt } from '../lib/npcs'
 import ModeShowcase, { ADVANCE_MS, SHOWN } from './ModeShowcase.svelte'
 
-beforeEach(() => vi.useFakeTimers())
+/** A draw of 1 - ε leaves the shuffle as it was, so most tests can name slides by `SHOWN`. */
+function unshuffled(): void {
+  vi.spyOn(Math, 'random').mockReturnValue(0.999999)
+}
+
+beforeEach(() => {
+  vi.useFakeTimers()
+  unshuffled()
+})
 
 afterEach(() => {
   cleanup()
@@ -27,24 +35,42 @@ async function wait(ms: number): Promise<void> {
 }
 
 describe('ModeShowcase', () => {
-  it('shows every playable mode once, in order, with its chathead, name, hint and host', async () => {
+  it('shows every playable mode once per cycle, with its chathead, name, hint and host', async () => {
+    vi.mocked(Math.random).mockRestore()
     render(ModeShowcase)
     const seen: string[] = []
-    for (const mode of SHOWN) {
+    for (let i = 0; i < SHOWN.length; i++) {
       const slide = current()
-      seen.push(slide.dataset.mode ?? '')
+      const mode = MODES[slide.dataset.mode ?? ''] as (typeof SHOWN)[number]
+      seen.push(mode.id)
       expect(slide.querySelector('img')?.getAttribute('src')).toBe(npcArt(mode.host.id).url)
       expect(slide.textContent).toContain(mode.label)
       expect(slide.textContent).toContain(mode.hint)
       expect(slide.textContent).toContain(`Presented by: ${mode.host.name}`)
       await wait(ADVANCE_MS)
     }
-    expect(seen).toEqual(
-      Object.keys(MODES).filter(
-        (id) => !['custom', 'random_event', 'random_events_only'].includes(id),
-      ),
+    expect([...seen].sort()).toEqual(
+      Object.keys(MODES)
+        .filter((id) => !['custom', 'random_event', 'random_events_only'].includes(id))
+        .sort(),
     )
     expect(current().dataset.mode).toBe(seen[0])
+  })
+
+  it('starts each visit on a different shuffle, the chathead row in the same order', () => {
+    vi.mocked(Math.random).mockReturnValue(0)
+    render(ModeShowcase)
+    const first = current().dataset.mode
+    expect(first).not.toBe(SHOWN[0]?.id)
+    const slides = [...document.querySelectorAll<HTMLElement>('.slide')].map(
+      (s) => MODES[s.dataset.mode ?? '']?.label,
+    )
+    const row = [...document.querySelectorAll('.pick')].map((b) => b.getAttribute('aria-label'))
+    expect(row).toEqual(slides)
+    cleanup()
+    unshuffled()
+    render(ModeShowcase)
+    expect(current().dataset.mode).toBe(SHOWN[0]?.id)
   })
 
   it('never shows random events or upcoming modes', () => {
