@@ -16,7 +16,7 @@ COPY schema/question.schema.json ../schema/question.schema.json
 # The app's version, which the top bar shows (ideas/architecture.md, Versioning).
 COPY VERSION ../VERSION
 # A selfhoster's name, logo and default theme are baked into the bundle (.env.example).
-ARG PUBLIC_SITE_NAME PUBLIC_SITE_LOGO PUBLIC_DEFAULT_THEME
+ARG PUBLIC_SITE_NAME PUBLIC_SITE_LOGO PUBLIC_HERO_NAME PUBLIC_DEFAULT_THEME
 COPY branding/ ../branding/
 RUN pnpm build
 

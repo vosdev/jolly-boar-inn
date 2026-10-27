@@ -819,6 +819,8 @@ html[data-team] body::after {
      footer follow whichever the screen under them uses. */
   --page-width: 42rem;
   --page-wide: 64rem;
+  /* Home's column, inside the wide page. */
+  --home-width: 960px;
   font-family: var(--font-body);
   color: var(--ink);
   background: var(--bg);

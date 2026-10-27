@@ -13,6 +13,7 @@ services:
       args:
         PUBLIC_SITE_NAME: ${PUBLIC_SITE_NAME:-}
         PUBLIC_SITE_LOGO: ${PUBLIC_SITE_LOGO:-}
+        PUBLIC_HERO_NAME: ${PUBLIC_HERO_NAME:-}
         PUBLIC_DEFAULT_THEME: ${PUBLIC_DEFAULT_THEME:-}
     # A name for what `build` makes. `make image` tags the same build with the version.
     image: jolly-boar-inn:${APP_VERSION:-latest}

@@ -16,10 +16,10 @@
    *
    * The host is its chathead, at 78px and at 68px on a phone.
    *
-   * Home's stage may have a `hero` instead, a selfhoster's picture (§14 of design.md). It is
-   * no chathead: a whole figure, shorter for its width, so it stands bigger. With 600px of
-   * stage it is 240px beside the scroll, which widens to keep its own 30rem; narrower it
-   * takes the host's place at 120px, and on a phone stands partly off the screen's edge.
+   * Home's and the lobby's stage may have a `hero` instead, a selfhoster's picture (§14 of
+   * design.md). Beside the scroll, on the TV, it is no chathead: a whole figure, shorter for
+   * its width, so it stands bigger. With 600px of stage it is 240px beside the scroll, which
+   * widens to keep its own 30rem; narrower it takes the host's place at 120px.
    *
    * A random event's NPC, the `guest`, stands on the right instead, and the host leaves
    * the stage (section 12). `entering` plays that change: the host fades out, the scroll
@@ -33,8 +33,7 @@
    * top-left beside the line it speaks, and the sheet keeps its full width below. What is
    * written beside the host clears it by `--host-clear`.
    *
-   * The sheet is the theme's (`lib/sheet.ts`), and `board` asks for Home's notice board. A
-   * sheet without rolls takes their room away, so the host laps over the sheet's own edge.
+   * The sheet is the theme's (`lib/sheet.ts`). A sheet without rolls takes their room away, so the host laps over the sheet's own edge.
    *
    * A stage with a `bubble` is a room's, desktop first (section 8): above the sheet is the
    * game's dialogue box, one panel holding whoever speaks, its chathead at the left and its
@@ -67,7 +66,6 @@
     host = FALLBACK_NPC,
     paper,
     award = NO_AWARD,
-    board = false,
     guest = null,
     entering = false,
     returning = false,
@@ -89,8 +87,6 @@
     /** What is written on the sheet. */
     paper?: Snippet
     award?: Award
-    /** Home's notice board in place of the scroll, where the theme has one. */
-    board?: boolean
     /** The NPC id of a random event's NPC, who takes the stage from the host. */
     guest?: string | null
     /** Play the guest's entrance rather than start with it in place. */
@@ -121,7 +117,7 @@
   const guestArt = $derived(guest === null ? null : npcArt(guest, undefined, STRANGER))
 
   let theme = $state(document.documentElement.dataset.theme ?? '')
-  const sheet = $derived(sheetFor(theme, board))
+  const sheet = $derived(sheetFor(theme))
 
   onMount(() => watchTheme((now) => (theme = now)))
 

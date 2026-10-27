@@ -186,9 +186,8 @@ describe('App', () => {
     at('/create')
     await fireEvent.click(within(bar()).getByRole('link', { name: /, home$/ }))
     expect(location.pathname).toBe('/')
-    expect(
-      screen.getByRole('heading', { level: 1, name: /^Think you know Gielinor\?/ }),
-    ).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'The Jolly Boar Inn' })).toBeTruthy()
+    expect(screen.getByLabelText('Room code')).toBeTruthy()
   })
 
   it.each([['/'], ['/create'], ['/r/ABYSSAL']])('puts the footer under %s', async (path) => {

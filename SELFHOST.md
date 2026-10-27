@@ -50,7 +50,7 @@ Besides assets, some questions are dynamically generated based on Grand Exchange
 
 ## Branding
 
-Three variables in `.env` give your instance its own name, logo and default theme:
-`PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO` and `PUBLIC_DEFAULT_THEME`, described in
+Four variables in `.env` give your instance its own name, logo, host and default theme:
+`PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO`, `PUBLIC_HERO_NAME` and `PUBLIC_DEFAULT_THEME`, described in
 [`.env.example`](.env.example). They are baked into the client, so run `docker compose build`
 after changing them.

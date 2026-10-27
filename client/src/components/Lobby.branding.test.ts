@@ -19,6 +19,7 @@ vi.mock('virtual:branding', () => ({
   favicons: {},
   hero: '/assets/hero-abc123.svg',
   heroes: { tzhaar: '/assets/hero-tzhaar-def456.svg' },
+  heroName: 'Broav',
   defaultTheme: '',
 }))
 
@@ -87,5 +88,10 @@ describe('Lobby, with a hero', () => {
     await waitFor(() => expect(stageArt()).toEqual(['/assets/hero-tzhaar-def456.svg']))
     document.documentElement.dataset.theme = 'wilderness'
     await waitFor(() => expect(stageArt()).toEqual(['/assets/hero-abc123.svg']))
+  })
+
+  it('names the hero over the dialogue box', () => {
+    render(Lobby, { socket: { send: () => true } as unknown as RoomSocket })
+    expect(document.querySelector('.bubble .name')?.textContent).toBe('Broav')
   })
 })

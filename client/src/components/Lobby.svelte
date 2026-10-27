@@ -52,9 +52,9 @@
    * asking again.
    */
   import { onMount, tick } from 'svelte'
-  import { hero, heroes, siteName } from 'virtual:branding'
 
   import { SETTLED, SPLASH_TYPE_FROM_MS, interludeFor, reducedMotion } from '../lib/interlude'
+  import { heroFor, speakerFor } from '../lib/hero'
   import { inviteLink } from '../lib/invite'
   import { roomShown } from '../lib/roomFit'
   import { hostOf, modeLabel } from '../lib/modes'
@@ -91,7 +91,7 @@
   let { socket }: { socket: RoomSocket } = $props()
 
   let theme = $state('')
-  const heroArt = $derived(heroes[theme] ?? hero)
+  const heroArt = $derived(heroFor(theme))
   onMount(() => watchTheme((current) => (theme = current)))
 
   const GREETING = 'Pull up a stool and share the code. We start once the table is ready.'
@@ -537,7 +537,7 @@
   <section class="lobby">
     <Stage host="wise_old_man" hero={heroArt} bubble="on">
       {#snippet said()}
-        <Said name={heroArt === null ? 'Wise Old Man' : siteName} line={greeting} />
+        <Said name={speakerFor(heroArt)} line={greeting} />
       {/snippet}
       {#snippet paper()}
         <h1 class="sr">Lobby</h1>

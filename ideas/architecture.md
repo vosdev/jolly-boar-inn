@@ -48,7 +48,7 @@ client/src/components/questions/   viewFor(type, mode), Question, gem buttons; t
 Routes: `/`, `/create`, `/r/:code` (the room with a session, Join without), `/r/:code/create` and
 `/history/:code/:stamp` (a finished game from this browser, `stamp` its `finished_at` as UTC
 `YYMMDDHHMM`), `/admin` and its tabs `/admin/suggestions`, `/reports`, `/questions` and `/roster` (the
-operator's view, section 10), linked from Home's Suggest panel once this
+operator's view, section 10), linked from Reldo's box on Home once this
 browser holds the admin token, and `/suggest` and `/report` (section 11), linked once it has finished a game. The credits are a sheet from the footer.
 The retired `/r/:code/admin` resolves like `/r/:code`, because whoever holds that link knows the code.
 
@@ -643,7 +643,7 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 - One process per database: the app holds `pg_try_advisory_lock` on its own connection. A second
   process fails to start or answers `503 db_unavailable`, so stop the old container first.
 - The app's env vars and defaults are in `config.py`. `.env.example` documents them, the
-  scripts' `WIKI_USER_AGENT`, and the client's build-time `PUBLIC_SITE_*` and
+  scripts' `WIKI_USER_AGENT`, and the client's build-time `PUBLIC_SITE_*`, `PUBLIC_HERO_NAME` and
   `PUBLIC_DEFAULT_THEME` (`client/site-branding.ts`). `PUBLIC_BASE_URL` only makes a shared
   link's `og:image` absolute, written into `index.html` as it is served; the client links from
   `location.origin`.

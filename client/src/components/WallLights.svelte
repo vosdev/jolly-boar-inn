@@ -90,10 +90,9 @@
     overflow: hidden;
     pointer-events: none;
 
-    /* Either side of Broav and the sheet, which fill the reading column on Home: each light
-       stands halfway across the gap beside it, and shrinks as that gap narrows. On a wide
-       screen it stays near the sheet rather than drifting off with the window's edge, away
-       from the centred page. */
+    /* Either side of the page's column: each light stands halfway across the gap beside
+       it, and shrinks as that gap narrows. On a wide screen it stays near the sheet rather
+       than drifting off with the window's edge, away from the centred page. */
     --beside-stage: calc((100vw - var(--page-width)) / 2);
     --fitting-width: clamp(2.5rem, var(--beside-stage) - 1rem, 5.25rem);
     --light-reach: calc(var(--fitting-width) * 7);
@@ -105,6 +104,11 @@
     --beside-stage: var(--room-floor);
   }
 
+  /* Home's column is wider than the reading column, so its lights stand beside that. */
+  :global(body:has(main .home)) .wall-lights {
+    --beside-stage: calc((100vw - var(--home-width)) / 2);
+  }
+
   /* Below this the gap beside the stage is too narrow for even the smallest light. */
   @media (min-width: 50rem) {
     .wall-lights {
@@ -114,6 +118,13 @@
 
   .wall-lights.no-floor {
     display: none;
+  }
+
+  /* Short of the narrowest light either side of Home's column. */
+  @media (width < 67rem) {
+    :global(body:has(main .home)) .wall-lights {
+      display: none;
+    }
   }
 
   /* A candle's warm glow, flickering. */
