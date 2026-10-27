@@ -536,13 +536,22 @@ export function stepsFor(state: {
   choice: Choice
   attempted: boolean
   questionDone: boolean
+  difficultyDone?: boolean
   extrasFilled: boolean
   extrasValid: boolean
   sourceDone: boolean
   creditDone: boolean
 }): SuggestStep[] {
-  const { choice, attempted, questionDone, extrasFilled, extrasValid, sourceDone, creditDone } =
-    state
+  const {
+    choice,
+    attempted,
+    questionDone,
+    difficultyDone = false,
+    extrasFilled,
+    extrasValid,
+    sourceDone,
+    creditDone,
+  } = state
   if (choice.kind === 'item') {
     return [
       { title: 'Item', done: questionDone, missing: attempted && !questionDone },
@@ -552,6 +561,13 @@ export function stepsFor(state: {
   const steps: SuggestStep[] = [
     { title: 'Question', done: questionDone, missing: attempted && !questionDone },
   ]
+  if (takesDifficulty(choice.id)) {
+    steps.push({
+      title: 'Difficulty',
+      done: difficultyDone,
+      missing: attempted && !difficultyDone,
+    })
+  }
   if (hasExtras(choice)) {
     steps.push({
       title: 'Extras',

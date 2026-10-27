@@ -696,7 +696,7 @@ key into them, so cleanup leaves it.
   or an `item` (a name not on the roster).
   A Who's That NPC? shadow's payload is its fixed prompt and `subject.name`, an NPC not on its
   list (`NAMED_MODES`); a render's right option names its NPC, and it has no `image` (`RENDER_MODES`). A question but an NPC's (`NO_DIFFICULTY_MODES`) may carry a `difficulty`;
-  `/suggest` and the queue's editor always send one, Medium picked first. Each has a `credit`
+  `/suggest` requires picking one, loading with the toggle unselected. Each has a `credit`
   held to the name rules and `credit_shown`, never true for an item. Pending, approved,
   rejected or imported. A round not built yet takes questions; they wait in approved. The client offers the form after a finished game; 10 an hour
   per address (`SUGGESTIONS_PER_HOUR`) is the backstop.

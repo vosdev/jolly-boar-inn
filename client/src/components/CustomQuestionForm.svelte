@@ -59,6 +59,7 @@
     inQuestion = undefined,
     inExtras = undefined,
     stepQuestion = undefined,
+    stepDifficulty = undefined,
     stepExtras = undefined,
     fields: more = undefined,
     onattempt = () => true,
@@ -105,6 +106,8 @@
     inExtras?: Snippet<[boolean]>
     /** Wraps the core question fields in a step card when given. */
     stepQuestion?: Snippet<[Snippet]>
+    /** Renders the difficulty step card when given. */
+    stepDifficulty?: Snippet
     /** Wraps the optional extras fields in a step card when given. */
     stepExtras?: Snippet<[Snippet]>
     /** More fields, under the question's own. */
@@ -570,6 +573,10 @@
         {@render stepQuestion(questionBody)}
       {:else}
         {@render questionBody()}
+      {/if}
+
+      {#if stepDifficulty}
+        {@render stepDifficulty()}
       {/if}
 
       {#if stepExtras}

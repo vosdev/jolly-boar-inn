@@ -13,7 +13,7 @@
     legend: string
     hideLegend?: boolean
     options: { value: T; label: string }[]
-    value: T
+    value: T | undefined
     disabled?: boolean
   } = $props()
 
