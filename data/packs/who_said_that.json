@@ -253,6 +253,1018 @@
         "answer_index": 0
       },
       "difficulty": "medium"
+    },
+    {
+      "id": "q_2db40dc5b51bf5f5",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Tell me... a story...",
+        "options": [
+          "Juna",
+          "Reldo",
+          "Wise Old Man",
+          "Brundt the Chieftain"
+        ],
+        "answer_index": 0,
+        "explanation": "Juna, the giant serpent guarding the Tears of Guthix cavern, when you offer to tell her a story of your adventures."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Juna",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_4b72f386fa6c766b",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Look out, here comes TzTok-Jad!",
+        "options": [
+          "TzHaar-Ket-Keh",
+          "TzHaar-Mej-Jal",
+          "TzHaar-Mej-Kah",
+          "TzKal-Zuk"
+        ],
+        "answer_index": 1,
+        "explanation": "TzHaar-Mej-Jal, warning you at the start of wave 63 in the TzHaar Fight Cave."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:TzHaar-Mej-Jal",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_055e1e2bd28524f7",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Do you not see what's happened here, you absolute cretin! Obviously some fiend has done something to Drezel and tricked your feeble intellect into helping them!",
+        "options": [
+          "King Roald",
+          "Sir Amik Varze",
+          "King Lathas",
+          "Duke Horacio"
+        ],
+        "answer_index": 0,
+        "explanation": "King Roald in Priest in Peril, after you tell him you killed the Temple Guardian. Before a 2020 update, he first asked 'Are you mentally deficient???'"
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Priest_in_Peril",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d1a9baf42a74ec44",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "You think I made these just for fun?!!?",
+        "options": [
+          "Romily Weaklax",
+          "Cook",
+          "Sandwich lady",
+          "Gnome Waiter"
+        ],
+        "answer_index": 2,
+        "explanation": "The Sandwich lady random event, if you ignore her while she waits to offer you a snack."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Sandwich_lady",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_2bbd6318f23d6360",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "I 'new it were you matey! 'Ere, have some ob the good stuff!",
+        "options": [
+          "Thurgo",
+          "Doric",
+          "Drunken Dwarf",
+          "Redbeard Frank"
+        ],
+        "answer_index": 2,
+        "explanation": "The Drunken Dwarf random event, when he hands you a kebab and a beer."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Drunken_Dwarf",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3b9369fa5a9ff083",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Ahahahaha! I am Count Check, the renowned security expert. Would you like me to check your account to see if it is secure?",
+        "options": [
+          "Count Draynor",
+          "Count Check",
+          "Lowerniel Drakan",
+          "Vanstrom Klause"
+        ],
+        "answer_index": 1,
+        "explanation": "Count Check, the friendly vampyre who checks your account security."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Count_Check",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_7db32b721329cc8b",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Oh, he isn't normally a chicken, or at least he wasn't until he helped me test my pouletmorph machine.",
+        "options": [
+          "Professor Oddenstein",
+          "Wizard Frumscone",
+          "Seddu",
+          "Dr Fenkenstrain"
+        ],
+        "answer_index": 0,
+        "explanation": "Professor Oddenstein on the top floor of Draynor Manor during Ernest the Chicken."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Ernest_the_Chicken",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_76208408e5864431",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Buy me a drink pleassh...",
+        "options": [
+          "Bartender",
+          "Dr Harlow",
+          "Drunken Dwarf",
+          "Barfy Bill"
+        ],
+        "answer_index": 1,
+        "explanation": "Dr Harlow, the retired vampyre slayer in the Blue Moon Inn during Vampyre Slayer."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Vampyre_Slayer",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a1be37fc1eb8f679",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Hello young one. Cross my palm with silver and the future will be revealed to you.",
+        "options": [
+          "Aggie",
+          "Madame Caldarium",
+          "Aris",
+          "Betty"
+        ],
+        "answer_index": 2,
+        "explanation": "Aris in her tent in Varrock Square at the start of Demon Slayer."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Demon_Slayer",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_974dc908aec90b18",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Blub! Blub...where is my Juliet? Have you seen her?",
+        "options": [
+          "Phillipa",
+          "Father Lawrence",
+          "Apothecary",
+          "Romeo"
+        ],
+        "answer_index": 3,
+        "explanation": "Romeo wandering Varrock Square looking for Juliet at the start of Romeo & Juliet."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Romeo_%26_Juliet",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_a4c3f411eddde845",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "What are you doing on my land? You're not the one who keeps leaving all my gates open and letting out all my sheep, are you?",
+        "options": [
+          "Fred the Farmer",
+          "Gillie Groats",
+          "Seth Groats",
+          "Sarah"
+        ],
+        "answer_index": 0,
+        "explanation": "Fred the Farmer at his farmhouse north of Lumbridge, where Sheep Shearer starts."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Sheep_Shearer",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_d8a6dcbb4bc688eb",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Hey, who said you could use that? My anvils get enough work with my own use. I make pickaxes, and it takes a lot of hard work.",
+        "options": [
+          "Thurgo",
+          "Doric",
+          "Horvik",
+          "Nurmof"
+        ],
+        "answer_index": 1,
+        "explanation": "Doric, north of Falador, when you try to use his anvils before completing Doric's Quest."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Doric%27s_Quest",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_68f35b9edbbca6e0",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Sorry kiddo, I'm a fur trader not a damsel in distress.",
+        "options": [
+          "Charlie the Tramp",
+          "Baraek",
+          "Scavvo",
+          "Lowe"
+        ],
+        "answer_index": 1,
+        "explanation": "Baraek, the fur trader in Varrock Square, when you ask him for a quest."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Baraek",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_87826434a3a672ab",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Charles. Charles E. Trampin' at your service. Now, about that change you were going to give me...",
+        "options": [
+          "Charlie the Tramp",
+          "Baraek",
+          "Reldo",
+          "Romeo"
+        ],
+        "answer_index": 0,
+        "explanation": "Charlie the Tramp by Varrock's south entrance, when you ask him who he is."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Charlie_the_Tramp",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_24d766703c74060a",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "I use my secret magical technique to melt your body down into a puddle of its elements.",
+        "options": [
+          "Dark Wizard",
+          "Makeover Mage",
+          "Wizard Cromperty",
+          "Dr Fenkenstrain"
+        ],
+        "answer_index": 1,
+        "explanation": "The Makeover Mage west of Falador, explaining how a makeover works."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Makeover_Mage",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3b8447b9dc3d84c5",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "So what do you think I did? March across the street, smash the bank wall, knock out the bankers and steal all the money?",
+        "options": [
+          "Wise Old Man",
+          "Evil Bob",
+          "Hatius Cosaintus",
+          "Miss Schism"
+        ],
+        "answer_index": 0,
+        "explanation": "The Wise Old Man in Draynor Village, feigning innocence when accused of robbing Draynor Bank."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Wise_Old_Man",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2dcf449c01feb13b",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Rain of knowledge!",
+        "options": [
+          "Deranged archaeologist",
+          "Crazy archaeologist",
+          "Chaos Fanatic",
+          "Reldo"
+        ],
+        "answer_index": 1,
+        "explanation": "Bellock, the Crazy archaeologist in the Wilderness, right before he hurls exploding books."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Crazy_archaeologist",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_95420e42041034c5",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Learn to read!",
+        "options": [
+          "Crazy archaeologist",
+          "Deranged archaeologist",
+          "Reldo",
+          "Archmage Sedridor"
+        ],
+        "answer_index": 1,
+        "explanation": "The Deranged archaeologist on Fossil Island, right before his special attack with exploding books."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Deranged_archaeologist",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8546b5cd066ed0e3",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Devilish Oxen Roll!",
+        "options": [
+          "Chaos Elemental",
+          "Chaos Fanatic",
+          "Salarin the Twisted",
+          "Chronozon"
+        ],
+        "answer_index": 1,
+        "explanation": "The Chaos Fanatic in the Wilderness. The line is an anagram of 'Lord Helix lives on!' from Twitch Plays Pokémon."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Chaos_Fanatic",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_9ec376f777b2c650",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Now that was quite the show! I haven't been that entertained in a long time. Of course, you know I can't let you leave here alive. Time for your final performance...",
+        "options": [
+          "Verzik Vitur",
+          "Vanescula Drakan",
+          "The Maiden of Sugadinti",
+          "Nex"
+        ],
+        "answer_index": 0,
+        "explanation": "Lady Verzik Vitur in the Theatre of Blood, before the final boss fight begins."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Verzik_Vitur",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_1eb8720ecf65aedc",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "If a tree falls in the forest and no one is around, then nobody gets Woodcutting xp.",
+        "options": [
+          "Gnome child",
+          "Oracle",
+          "Wise Old Man",
+          "Bob"
+        ],
+        "answer_index": 1,
+        "explanation": "The Oracle on Ice Mountain, when asked to impart her wise knowledge."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Oracle",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_ff59a4d101e62e20",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "While me, I'm much more. I am the pyramidic containment of an A.",
+        "options": [
+          "Gnome child",
+          "King Narnode Shareen",
+          "Brimstail",
+          "Glough"
+        ],
+        "answer_index": 0,
+        "explanation": "A Gnome child in the Tree Gnome Stronghold, after telling you that you are 'the contained centre of an O'."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Gnome_child",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_3a6e2db7afb4933c",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Ahh, I see all the newcomers arriving in Lumbridge, fresh-faced and eager for adventure. I remember you...",
+        "options": [
+          "Duke Horacio",
+          "Hans",
+          "Lumbridge Guide",
+          "Father Aereck"
+        ],
+        "answer_index": 1,
+        "explanation": "Hans in the Lumbridge Castle courtyard, right before he tells you your account's age and time played."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Hans",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_606a24ba4cb11cf5",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Yes! I buy and sell axes! Take your pick (or axe)!",
+        "options": [
+          "Brian",
+          "Bob",
+          "Horvik",
+          "Cassie"
+        ],
+        "answer_index": 1,
+        "explanation": "Bob of Bob's Brilliant Axes in Lumbridge, when asked if he has anything to sell."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Bob",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_8c8ec2772f91ae61",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Go away! I'm meditating!",
+        "options": [
+          "Father Aereck",
+          "Father Urhney",
+          "Father Lawrence",
+          "Brother Jered"
+        ],
+        "answer_index": 1,
+        "explanation": "Father Urhney in his shack in the Lumbridge Swamp during The Restless Ghost."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:The_Restless_Ghost",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_116dbbd30ce12e36",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Wooo wooo wooooo!",
+        "options": [
+          "Restless ghost",
+          "Drezel",
+          "Necrovarus",
+          "Treus Dayth"
+        ],
+        "answer_index": 0,
+        "explanation": "The Restless ghost in Lumbridge graveyard when spoken to without a ghostspeak amulet."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:The_Restless_Ghost",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_57b975c906cdb26f",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Not red! Red armour make you look fat.",
+        "options": [
+          "General Bentnoze",
+          "General Wartface",
+          "Wormbrain",
+          "Grubfoot"
+        ],
+        "answer_index": 1,
+        "explanation": "General Wartface arguing with General Bentnoze in Goblin Village during Goblin Diplomacy."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Goblin_Diplomacy",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_25048ccabd900399",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "You need an eye of newt, a rat's tail, an onion... Oh and a piece of burnt meat.",
+        "options": [
+          "Aggie",
+          "Betty",
+          "Hetty",
+          "Baba Yaga"
+        ],
+        "answer_index": 2,
+        "explanation": "Hetty the witch in Rimmington, listing the ingredients for Witch's Potion."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Witch%27s_Potion",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3d95690a10e2314f",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "I'd like some rum made on Karamja Island. There's no rum like Karamja Rum!",
+        "options": [
+          "Captain Tobias",
+          "Redbeard Frank",
+          "Customs Officer",
+          "Luthas"
+        ],
+        "answer_index": 1,
+        "explanation": "Redbeard Frank in Port Sarim at the start of Pirate's Treasure."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Pirate%27s_Treasure",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_bb922d18b051abc1",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "My beloved feline friend Fluffs. She's been purring by my side for almost a decade. Please, could you go search for her while I look over the kids?",
+        "options": [
+          "Gertrude",
+          "Hetty",
+          "Juliet",
+          "Veronica"
+        ],
+        "answer_index": 0,
+        "explanation": "Gertrude in her house west of Varrock at the start of Gertrude's Cat."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Gertrude%27s_Cat",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_540f278a14287c27",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "The wizard Grayzag next door decided he didn't like me so he enlisted an army of hundreds of imps.",
+        "options": [
+          "Wizard Traiborn",
+          "Wizard Mizgog",
+          "Archmage Sedridor",
+          "Wizard Frumscone"
+        ],
+        "answer_index": 1,
+        "explanation": "Wizard Mizgog on the top floor of the Wizards' Tower at the start of Imp Catcher."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Imp_Catcher",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2aa7d54ae2ee09aa",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "I am the leader of the White Knights of Falador. Why do you seek my audience?",
+        "options": [
+          "Sir Vyvin",
+          "Sir Tiffy Cashien",
+          "Sir Amik Varze",
+          "Sir Renitee"
+        ],
+        "answer_index": 2,
+        "explanation": "Sir Amik Varze in the White Knights' Castle in Falador."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Black_Knights%27_Fortress",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7e65b9920702d22f",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Absolutely, top-hole! Well, can't stay and chat all day, dontchaknow! Ta-ta for now!",
+        "options": [
+          "Sir Amik Varze",
+          "Sir Tiffy Cashien",
+          "Sir Vyvin",
+          "Party Pete"
+        ],
+        "answer_index": 1,
+        "explanation": "Sir Tiffy Cashien sitting on his bench in Falador Park."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Sir_Tiffy_Cashien",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0c15bbdb095b90c2",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "I've won the Dance Trophy at the Kandarin Ball three years in a trot!",
+        "options": [
+          "Party Pete",
+          "Romeo",
+          "Hatius Cosaintus",
+          "Postie Pete"
+        ],
+        "answer_index": 0,
+        "explanation": "Party Pete in the Falador Party Room, when you tell him you want to party."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Party_Pete",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_33a32b31b68fed42",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Players can not trim armour. Don't fall for this popular scam!",
+        "options": [
+          "Horvik",
+          "Town Crier",
+          "Count Check",
+          "Oziach"
+        ],
+        "answer_index": 1,
+        "explanation": "The Town Crier, when asked for a handy tip."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Town_Crier",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f5fdd8d68b32f5a1",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "WELCOME to the GREATEST QUIZ SHOW in the entire of Gielinor!",
+        "options": [
+          "Party Pete",
+          "Quiz Master",
+          "Mysterious Old Man",
+          "Flippa"
+        ],
+        "answer_index": 1,
+        "explanation": "The Quiz Master random event, welcoming you to Odd One Out."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Quiz_Master",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_3ab246319387fca0",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Ah, so you are there. I hoped you would talk to me, I get so lonely. Here, have a present! I must be going now though.",
+        "options": [
+          "Genie",
+          "Mysterious Old Man",
+          "Rick Turpentine",
+          "Dr Jekyll"
+        ],
+        "answer_index": 1,
+        "explanation": "The Mysterious Old Man random event, when he appears simply to give you a reward."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Mysterious_Old_Man",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ade25ca76ed38470",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "You should be careful about insulting a witch. You never know what shape you could wake up in.",
+        "options": [
+          "Hetty",
+          "Aggie",
+          "Betty",
+          "Baba Yaga"
+        ],
+        "answer_index": 1,
+        "explanation": "Aggie the witch in Draynor Village, after you call her a mad old witch."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Aggie",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_438372c9ac9033f0",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "I do indeed. I gave it to my mother. That's why I now live alone.",
+        "options": [
+          "Dr Jekyll",
+          "Apothecary",
+          "Makeover Mage",
+          "Evil Dave"
+        ],
+        "answer_index": 1,
+        "explanation": "The Varrock Apothecary, when you ask if he knows a potion to make hair fall out."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Apothecary",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_d92ea54bf0924163",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "I have used a sword since I was a girl. My first kill was before I was even six years old.",
+        "options": [
+          "Nieve",
+          "Lady Keli",
+          "Vanescula Drakan",
+          "Konar quo Maten"
+        ],
+        "answer_index": 1,
+        "explanation": "Lady Keli, leader of the gang holding Prince Ali captive in Draynor Village."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Prince_Ali_Rescue",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_cc58de05041a788b",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "By the power of custard!",
+        "options": [
+          "Culinaromancer",
+          "Melzar the Mad",
+          "Evil Dave",
+          "Lumbridge Cook"
+        ],
+        "answer_index": 1,
+        "explanation": "Melzar the Mad, yelling overhead in Melzar's Maze during Dragon Slayer I."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Dragon_Slayer_I",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_43e2fcafeb32b557",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Me not stoopid, it worth at least 10,000 coins!",
+        "options": [
+          "Wormbrain",
+          "General Wartface",
+          "General Bentnoze",
+          "Zanik"
+        ],
+        "answer_index": 0,
+        "explanation": "Wormbrain in the Port Sarim jail during Dragon Slayer I, when offered 500 coins for Lozar's map piece."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Dragon_Slayer_I",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b24cc4211732fc25",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "The first is more interesting. We cut off your arms, have them reanimated as undead, reattach them and then you should be able to cut the trees normally.",
+        "options": [
+          "Dr Fenkenstrain",
+          "Ava",
+          "Professor Oddenstein",
+          "Mi-Gor"
+        ],
+        "answer_index": 1,
+        "explanation": "Ava in Draynor Manor during Animal Magnetism, suggesting how you might chop an undead tree."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Animal_Magnetism",
+      "difficulty": "hard"
+    },
+    {
+      "id": "q_d70b01471d886168",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [
+        "dialogue"
+      ],
+      "payload": {
+        "prompt": "Who said this?",
+        "quote": "Shhhh! It's a library you know!",
+        "options": [
+          "Reldo",
+          "Postie Pete",
+          "Movario",
+          "Archmage Sedridor"
+        ],
+        "answer_index": 1,
+        "explanation": "Postie Pete, when shouted at in the Keldagrim palace library."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Postie_Pete",
+      "difficulty": "hard"
     }
   ]
 }
