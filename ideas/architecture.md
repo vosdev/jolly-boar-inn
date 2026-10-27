@@ -641,6 +641,9 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 
 - The container runs read-only, `cap_drop: ALL`, `no-new-privileges`, as uid 10001 over root-owned
   code.
+- `profiling.py` starts `pyroscope-io` CPU profiling only when `PYROSCOPE_SERVER_ADDRESS` is set,
+  tagged `service_name` and the app version, never a room, name or address. It adds no
+  capability to the container above, and a failed start is logged, not fatal.
 - One process per database: the app holds `pg_try_advisory_lock` on its own connection. A second
   process fails to start or answers `503 db_unavailable`, so stop the old container first.
 - The app's env vars and defaults are in `config.py`. `.env.example` documents them, the

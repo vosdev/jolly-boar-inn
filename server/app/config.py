@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     admin_token: str = ""
     # The scraper's key to ``/metrics``. Empty, ``/metrics`` does not exist.
     metrics_token: str = ""
+    # Where profiles go (Pyroscope or Grafana Cloud Profiles). Empty, the profiler never starts.
+    pyroscope_server_address: str = ""
+    pyroscope_basic_auth_user: str = ""
+    pyroscope_basic_auth_password: str = ""
+    pyroscope_tenant_id: str = ""
 
     @field_validator("admin_token")
     @classmethod
