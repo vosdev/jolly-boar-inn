@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * The front page (section 8 of ideas/design.md): the site's hero in the dialogue box over
-   * the theme's sheet, which holds Join and Create; under it the public rooms, the rooms this
+   * the theme's sheet, which holds Join and Create beside the game modes; under it the public rooms, the rooms this
    * browser created and the games it finished, each only while it has any.
    *
    * "Rooms you created here" is the list in localStorage, and removing one really
@@ -19,6 +19,7 @@
   import DialogueBox from '../components/DialogueBox.svelte'
   import HowToPlay from '../components/HowToPlay.svelte'
   import Icon from '../components/Icon.svelte'
+  import ModeShowcase from '../components/ModeShowcase.svelte'
   import Pet from '../components/Pet.svelte'
   import Said from '../components/stage/Said.svelte'
   import Stage from '../components/stage/Stage.svelte'
@@ -204,50 +205,55 @@
     {/snippet}
     {#snippet paper()}
       <h1 class="sr">{siteName}</h1>
-      <div class="entry">
-        <form class="join" onsubmit={join}>
-          <div class="field">
-            <label for="code">Room code</label>
-            <input
-              id="code"
-              type="text"
-              bind:value={code}
-              oninput={() => (codeProblem = null)}
-              aria-invalid={codeProblem !== null}
-              aria-describedby={codeProblem === null ? undefined : 'code-problem'}
-              placeholder="ThermonuclearSmokeDevil"
-              autocomplete="off"
-              spellcheck="false"
-            />
-          </div>
-          <button class="primary big" type="submit" disabled={code.trim() === ''}>Join</button>
-        </form>
-        {#if codeProblem !== null}
-          <p id="code-problem" class="error">{codeProblem}</p>
-        {/if}
-        <p class="or">or</p>
-        {#if full === true}
-          <p id="room-limit" class="banner">
-            You already have five rooms. Remove one under "Rooms you created here" to make another.
-          </p>
-        {/if}
-        <button
-          type="button"
-          class="big"
-          disabled={full === true}
-          aria-describedby={full === true ? 'room-limit' : undefined}
-          onclick={() => navigate('/create')}
-        >
-          Create a room
-        </button>
-        <button
-          type="button"
-          class="how-to"
-          aria-haspopup="dialog"
-          onclick={() => (showHowTo = true)}
-        >
-          How to play
-        </button>
+      <div class="halves">
+        <div class="entry">
+          <form class="join" onsubmit={join}>
+            <div class="field">
+              <label for="code">Room code</label>
+              <input
+                id="code"
+                type="text"
+                bind:value={code}
+                oninput={() => (codeProblem = null)}
+                aria-invalid={codeProblem !== null}
+                aria-describedby={codeProblem === null ? undefined : 'code-problem'}
+                placeholder="ThermonuclearSmokeDevil"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+            <button class="primary big" type="submit" disabled={code.trim() === ''}>Join</button>
+          </form>
+          {#if codeProblem !== null}
+            <p id="code-problem" class="error">{codeProblem}</p>
+          {/if}
+          <p class="or">or</p>
+          {#if full === true}
+            <p id="room-limit" class="banner">
+              You already have five rooms. Remove one under "Rooms you created here" to make
+              another.
+            </p>
+          {/if}
+          <button
+            type="button"
+            class="big"
+            disabled={full === true}
+            aria-describedby={full === true ? 'room-limit' : undefined}
+            onclick={() => navigate('/create')}
+          >
+            Create a room
+          </button>
+          <button
+            type="button"
+            class="how-to"
+            aria-haspopup="dialog"
+            onclick={() => (showHowTo = true)}
+          >
+            How to play
+          </button>
+        </div>
+        <span class="split" aria-hidden="true"></span>
+        <ModeShowcase />
       </div>
     {/snippet}
   </Stage>
@@ -430,14 +436,35 @@
     margin-bottom: 1.25rem;
   }
 
-  /* Alone until the slideshow takes the sheet's other half, so centred on it. The sheet
-     writes in Quill; its controls keep the page's face, as they do everywhere else. */
+  /* Join and Create beside the game modes, one over the other once two would be cramped. */
+  .halves {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2px minmax(0, 1fr);
+    gap: 1.75rem;
+    padding-block: 0.5rem;
+    text-align: start;
+  }
+
+  @media (max-width: 47.98rem) {
+    .halves {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .split {
+      display: none;
+    }
+  }
+
+  .split {
+    background: repeating-linear-gradient(var(--scroll-edge) 0 6px, transparent 6px 11px);
+    opacity: 0.6;
+  }
+
+  /* The sheet writes in Quill; its controls keep the page's face, as they do everywhere else. */
   .entry {
     display: grid;
     gap: 0.75rem;
-    width: min(100%, 30rem);
-    margin-inline: auto;
-    padding-block: 0.5rem;
+    align-content: center;
     font-family: var(--font-body);
   }
 

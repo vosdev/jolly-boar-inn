@@ -94,6 +94,12 @@ describe('Home', () => {
     }
   })
 
+  it('shows the game modes on the same sheet as Join and Create', () => {
+    render(Home, { navigate })
+    const sheet = screen.getByLabelText('Room code').closest('.scroll')
+    expect(screen.getByRole('region', { name: 'Game modes' }).closest('.scroll')).toBe(sheet)
+  })
+
   it('is hosted by the Wise Old Man, in the dialogue box, without a hero in the branding', () => {
     render(Home, { navigate })
     const art = [...document.querySelectorAll('.stage .bubble .npc img')]
