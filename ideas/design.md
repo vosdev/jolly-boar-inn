@@ -322,7 +322,7 @@ Create shows each mode on a card with its host's chathead. The stage was agreed 
   sheet. A mode with no host, or a host with no art, gets the generic boar.
 - **Home** is a 960px column. Its host, as the lobby's (§9), is the selfhoster's hero for the theme
   (§14), else the Wise Old Man, saying the site's line in the dialogue box at its usual sizes. The
-  theme's sheet under it holds the room code, Join, Create a room and How to play, and beside them
+  theme's sheet under it holds the room code, Join, Create a room and How to play (§9), and beside them
   one playable mode at a time, shuffled per visit: host's chathead, name, hint, "Presented by: <host>". It crossfades
   every 4.5 s, holds on hover or keyboard focus and under reduced motion, and is as tall as the
   tallest mode; a row of chatheads (dots on a phone) picks one. Then Public
@@ -375,11 +375,17 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
   nearest 12, on a phone the nearest 5, with "+N" for the rest. The table panel holds,
   over the Ready switch, "Waiting for 2 more to be ready", never by name, then "Starting in 4",
   large, once the countdown runs.
-- **How to play:** a link on the Lobby's rounds and on Home's opens a sheet, a row per way of
-  answering: a small drawing of the control and one plain sentence, with every Submit named in
-  bold, since players overlooked it. The Lobby shows its rounds' types, or all of them when
-  random events, host's questions or hidden rounds could bring any. It ends "Quicker and correct
-  answers score more."
+- **How to play:** a row per way of answering: a small drawing of the control and one plain
+  sentence, with every Submit named in bold, since players overlooked it. The Lobby's link opens
+  them on a sheet: its rounds' types, or all of them when random events, host's questions or
+  hidden rounds could bring any, ending "Quicker and correct answers score more." On Home, How to
+  play and a slide's mode name open a view of Home, not a route: under the dialogue box, which
+  stays, the sheet and panels fade out and the page fades in, each view a history entry so Back
+  steps out. The overview (the hero speaking): Back to the inn, four steps of a night, a tile per
+  playable mode and one for Random events, every way of answering, Teams and On the TV. A tile
+  swaps the page to its mode (the host saying greeting and blurb; name, host, hint and only its
+  types from `/api/modes`) or to Random events (the Mysterious Old Man; every event NPC and its
+  theme), with All game modes back.
 
 ## 10. The question screen and the reveal
 

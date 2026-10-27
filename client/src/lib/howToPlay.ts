@@ -82,6 +82,46 @@ export const SCORING_LINE = 'Quicker and correct answers score more.'
 export const TEAMS_PARAGRAPH =
   "In a team game everyone picks a team in the lobby. Speed doesn't count: your team scores the average of its members' points."
 
+/** Home's How to play page: the night in four steps, each a title and a sentence. */
+export const NIGHT_STEPS: readonly { title: string; text: string }[] = [
+  {
+    title: 'Create a room',
+    text: 'Pick the hosts, each of whom runs one round, and set the house rules. The room is kept for a few days.',
+  },
+  {
+    title: 'Share the code',
+    text: 'Friends join with the code or the invite link. They pick a name and a pet; nobody needs an account.',
+  },
+  {
+    title: 'Play the rounds',
+    text: 'Each host asks in their own way, and random events can barge in with questions of their own.',
+  },
+  {
+    title: 'Climb the hiscores',
+    text: 'Quicker and correct answers score more, and the hiscores between rounds show who is ahead.',
+  },
+]
+
+/** The page's Teams section, before `TEAMS_PARAGRAPH`. */
+export const TEAMS_SETUP =
+  'Whoever creates the room can make it a team game, on Create or later in the lobby, with a team for each god they pick.'
+
+/** After `TEAMS_PARAGRAPH`: what the standings show of a team. */
+export const TEAMS_STANDINGS =
+  'The hiscores rank the teams, each with its members and their points under it, so a weak link shows.'
+
+/** The page's TV section, a paragraph each. */
+export const TV_PARAGRAPHS: readonly string[] = [
+  'Playing in one room? Put the game on a TV. Open the room on the TV and join it like anyone else, then whoever created the room taps its pet in the lobby and picks Make TV.',
+  'The TV shows every question large, the answers as they come in and the hiscores, for the whole room to see. Everyone answers on their own phone; the TV never answers and scores nothing.',
+]
+
+/** The types a round of mode `id` is answered in, by `/api/modes`; null for a mode it does not list. */
+export function modeTypes(id: string, modes: ModePacing[]): Set<string> | null {
+  const mode = modes.find((entry) => entry.id === id)
+  return mode === undefined ? null : new Set(mode.types)
+}
+
 /** Whether to explain teams: in a team room, and from Home, where any room might be one. */
 export function showsTeams(settings: RoomSettings | null): boolean {
   return settings === null || settings.teams.length > 0

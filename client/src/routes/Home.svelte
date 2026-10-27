@@ -11,15 +11,19 @@
    *
    * A browser that has finished a game is asked for its questions too, and for what was wrong
    * with ours (`lib/suggestions.ts`, `lib/reports.ts`), by Reldo at the column's foot.
+   *
+   * How to play is a view of Home, not a route: everything under the dialogue box fades
+   * out and the page fades in, while the box stays and its speaker changes. Each view
+   * the page opens is a history entry at the same address, so Back steps out of it.
    */
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import DialogueBox from '../components/DialogueBox.svelte'
-  import HowToPlay from '../components/HowToPlay.svelte'
+  import HowToPage, { type HowToView } from '../components/HowToPage.svelte'
   import Icon from '../components/Icon.svelte'
-  import ModeShowcase from '../components/ModeShowcase.svelte'
+  import ModeShowcase, { SHOWN } from '../components/ModeShowcase.svelte'
   import Pet from '../components/Pet.svelte'
   import Said from '../components/stage/Said.svelte'
   import Stage from '../components/stage/Stage.svelte'
@@ -39,7 +43,9 @@
   import type { Route } from '../lib/stats'
   import { maySuggest } from '../lib/suggestions'
   import { getQueue, storedAdminToken } from '../lib/admin'
-  import { modeLabel } from '../lib/modes'
+  import { MODES, modeLabel } from '../lib/modes'
+  import { STRANGER } from '../lib/randomEvents'
+  import { OUT_MS, cuts } from '../lib/routeFade'
   import {
     createdRoomExpiries,
     forgetCreated,
@@ -79,7 +85,74 @@
   })
 
   let code = $state('')
-  let showHowTo = $state(false)
+
+  /** What `history.state` carries for a view of How to play; `from` is the view it was opened from. */
+  interface HowToEntry {
+    howTo: HowToView
+    depth: number
+    from: HowToView | null
+  }
+
+  function entryNow(): HowToEntry | null {
+    const state: unknown = history.state
+    if (typeof state !== 'object' || state === null || !('howTo' in state)) return null
+    const entry = state as HowToEntry
+    const known =
+      entry.howTo === 'overview' ||
+      entry.howTo === 'events' ||
+      SHOWN.some((mode) => mode.id === entry.howTo)
+    return known ? entry : null
+  }
+
+  /** The view on screen, null for Home itself; a reload keeps it, as the history does. */
+  let howTo = $state<HowToView | null>(entryNow()?.howTo ?? null)
+  /** While the old view fades out and before the new one fades in. */
+  let fading = $state(false)
+  let swap = 0
+
+  async function show(next: HowToView | null): Promise<void> {
+    if (next === howTo) return
+    const mine = ++swap
+    if (cuts()) {
+      howTo = next
+      scrollTo(0, 0)
+      return
+    }
+    fading = true
+    await new Promise((done) => setTimeout(done, OUT_MS))
+    if (mine !== swap) return
+    howTo = next
+    scrollTo(0, 0)
+    await tick()
+    // A frame at opacity 0 first, or the new view would not fade in.
+    requestAnimationFrame(() => requestAnimationFrame(() => mine === swap && (fading = false)))
+  }
+
+  function open(next: HowToView): void {
+    const entry: HowToEntry = { howTo: next, depth: (entryNow()?.depth ?? 0) + 1, from: howTo }
+    history.pushState(entry, '', location.pathname)
+    void show(next)
+  }
+
+  /** Back to the overview: the entry before, if that is where this view was opened. */
+  function allModes(): void {
+    if (entryNow()?.from === 'overview') history.back()
+    else open('overview')
+  }
+
+  function leaveHowTo(): void {
+    const depth = entryNow()?.depth ?? 0
+    if (depth > 0) history.go(-depth)
+    else void show(null)
+  }
+
+  onMount(() => {
+    const onPop = (): void => void show(entryNow()?.howTo ?? null)
+    addEventListener('popstate', onPop)
+    return () => removeEventListener('popstate', onPop)
+  })
+
+  const howToMode = $derived(howTo === null ? null : (MODES[howTo] ?? null))
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
   let confirming = $state<string | null>(null)
@@ -87,7 +160,7 @@
   let confirmingPast = $state<PastGame | null>(null)
   let codeProblem = $state<string | null>(null)
   let notice = $state<{ text: string; bad: boolean } | null>(null)
-  let open = $state<PublicRoom[]>([])
+  let publicRooms = $state<PublicRoom[]>([])
   /** Null until the list has been checked against the server, so Create is not refused early. */
   let full = $state<boolean | null>(null)
 
@@ -96,7 +169,7 @@
   /** A failed fetch keeps the last list: it is a convenience, never worth an error. */
   async function refreshOpen(): Promise<void> {
     try {
-      open = await getPublicRooms()
+      publicRooms = await getPublicRooms()
     } catch {
       return
     }
@@ -198,75 +271,103 @@
   </p>
 {/snippet}
 
-<div class="home">
-  <Stage host="wise_old_man" hero={heroArt} bubble="on">
+{#snippet newHere()}
+  <p>
+    New here? This is how a night at {siteName} goes. Pick one of my hosts below to see their round.
+  </p>
+{/snippet}
+
+{#snippet visitors()}
+  <p>
+    Some nights the road brings visitors. They barge in mid-round with a question of their own, then
+    go on their way.
+  </p>
+{/snippet}
+
+{#snippet presents()}
+  <p>{howToMode?.greeting}</p>
+  <p>{howToMode?.blurb}</p>
+{/snippet}
+
+<div class="home" class:fading>
+  <Stage
+    host={howToMode?.host.id ?? (howTo === 'events' ? STRANGER : 'wise_old_man')}
+    hero={howToMode === null && howTo !== 'events' ? heroArt : null}
+    bubble="on"
+    paper={howTo === null ? sheet : undefined}
+  >
     {#snippet said()}
-      <Said name={speakerFor(heroArt)} line={welcome} />
-    {/snippet}
-    {#snippet paper()}
-      <h1 class="sr">{siteName}</h1>
-      <div class="halves">
-        <div class="entry">
-          <form class="join" onsubmit={join}>
-            <div class="field">
-              <label for="code">Room code</label>
-              <input
-                id="code"
-                type="text"
-                bind:value={code}
-                oninput={() => (codeProblem = null)}
-                aria-invalid={codeProblem !== null}
-                aria-describedby={codeProblem === null ? undefined : 'code-problem'}
-                placeholder="ThermonuclearSmokeDevil"
-                autocomplete="off"
-                spellcheck="false"
-              />
-            </div>
-            <button class="primary big" type="submit" disabled={code.trim() === ''}>Join</button>
-          </form>
-          {#if codeProblem !== null}
-            <p id="code-problem" class="error">{codeProblem}</p>
-          {/if}
-          <p class="or">or</p>
-          {#if full === true}
-            <p id="room-limit" class="banner">
-              You already have five rooms. Remove one under "Rooms you created here" to make
-              another.
-            </p>
-          {/if}
-          <button
-            type="button"
-            class="big"
-            disabled={full === true}
-            aria-describedby={full === true ? 'room-limit' : undefined}
-            onclick={() => navigate('/create')}
-          >
-            Create a room
-          </button>
-          <button
-            type="button"
-            class="how-to"
-            aria-haspopup="dialog"
-            onclick={() => (showHowTo = true)}
-          >
-            How to play
-          </button>
-        </div>
-        <span class="split" aria-hidden="true"></span>
-        <ModeShowcase />
-      </div>
+      {#if howToMode !== null}
+        <Said name={howToMode.host.name} line={presents} />
+      {:else if howTo === 'events'}
+        <Said name="Mysterious Old Man" line={visitors} />
+      {:else}
+        <Said name={speakerFor(heroArt)} line={howTo === null ? welcome : newHere} />
+      {/if}
     {/snippet}
   </Stage>
 
-  {#if showHowTo}
-    <HowToPlay onclose={() => (showHowTo = false)} />
-  {/if}
+  <div class="below">
+    {#if howTo !== null}
+      <HowToPage view={howTo} onopen={open} onall={allModes} onback={leaveHowTo} />
+    {:else}
+      {@render rest()}
+    {/if}
+  </div>
+</div>
 
-  {#if open.length > 0}
+{#snippet sheet()}
+  <h1 class="sr">{siteName}</h1>
+  <div class="halves">
+    <div class="entry">
+      <form class="join" onsubmit={join}>
+        <div class="field">
+          <label for="code">Room code</label>
+          <input
+            id="code"
+            type="text"
+            bind:value={code}
+            oninput={() => (codeProblem = null)}
+            aria-invalid={codeProblem !== null}
+            aria-describedby={codeProblem === null ? undefined : 'code-problem'}
+            placeholder="ThermonuclearSmokeDevil"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        <button class="primary big" type="submit" disabled={code.trim() === ''}>Join</button>
+      </form>
+      {#if codeProblem !== null}
+        <p id="code-problem" class="error">{codeProblem}</p>
+      {/if}
+      <p class="or">or</p>
+      {#if full === true}
+        <p id="room-limit" class="banner">
+          You already have five rooms. Remove one under "Rooms you created here" to make another.
+        </p>
+      {/if}
+      <button
+        type="button"
+        class="big"
+        disabled={full === true}
+        aria-describedby={full === true ? 'room-limit' : undefined}
+        onclick={() => navigate('/create')}
+      >
+        Create a room
+      </button>
+      <button type="button" class="how-to" onclick={() => open('overview')}> How to play </button>
+    </div>
+    <span class="split" aria-hidden="true"></span>
+    <ModeShowcase onpick={open} />
+  </div>
+{/snippet}
+
+{#snippet rest()}
+  {#if publicRooms.length > 0}
     <section class="panel">
       <h2>Public rooms</h2>
       <ul class="players">
-        {#each open as room (room.code)}
+        {#each publicRooms as room (room.code)}
           <li>
             <Pet pet={petOf(room.host)} size={32} cut="icon" label="" />
             <span class="name">
@@ -402,7 +503,7 @@
       </DialogueBox>
     </section>
   {/if}
-</div>
+{/snippet}
 
 {#if confirming !== null}
   {@const room = confirming}
@@ -434,6 +535,29 @@
   .home > :global(.stage.speaks) {
     max-width: none;
     margin-bottom: 1.25rem;
+  }
+
+  /* Between Home and How to play the dialogue box stays; its speaker, its words and
+     everything under it fade out (150 ms) and back in (200 ms). */
+  .below,
+  .home :global(.stage .stage-row),
+  .home :global(.stage .speaker .bubble > *) {
+    transition: opacity 200ms ease-out;
+  }
+
+  .fading .below,
+  .fading :global(.stage .stage-row),
+  .fading :global(.stage .speaker .bubble > *) {
+    opacity: 0;
+    transition-duration: 150ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .below,
+    .home :global(.stage .stage-row),
+    .home :global(.stage .speaker .bubble > *) {
+      transition: none;
+    }
   }
 
   /* Join and Create beside the game modes, one over the other once two would be cramped. */

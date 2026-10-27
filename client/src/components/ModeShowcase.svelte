@@ -28,6 +28,9 @@
   import { reducedMotion } from '../lib/interlude'
   import { npcArt } from '../lib/npcs'
 
+  /** A mode's name opens its view on the How to play page. */
+  let { onpick }: { onpick: (mode: string) => void } = $props()
+
   const order = shuffled(SHOWN)
   let index = $state(0)
   let hovered = $state(false)
@@ -95,7 +98,11 @@
       {@const art = npcArt(mode.host.id)}
       <div class="slide" class:on={i === index} inert={i !== index} data-mode={mode.id}>
         <img class="face {art.cut}" src={art.url} alt="" draggable="false" />
-        <p class="name">{mode.label}</p>
+        <p class="name">
+          <button type="button" class="open" onclick={() => onpick(mode.id)}
+            >{mode.label}<span class="sr">, how to play</span></button
+          >
+        </p>
         <p class="hint">{mode.hint}</p>
         <p class="by">Presented by: {mode.host.name}</p>
       </div>
@@ -174,6 +181,20 @@
   .name {
     font-size: 1.5rem;
     line-height: 1.15;
+  }
+
+  /* The name in the sheet's own face and ink, underlined as How to play is beside it. */
+  .open {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--scroll-ink);
+    font: inherit;
+    text-align: start;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
   }
 
   .hint,
