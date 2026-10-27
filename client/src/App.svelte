@@ -3,6 +3,8 @@
    * The router. Hash-free:
    *
    *   /                Home
+   *   /how-to-play     How to play, drawn by Home under its dialogue box,
+   *   /how-to-play/:v  on a game mode (`/how-to-play/more-or-less`) or `random-events`
    *   /create          Create
    *   /r/:code         Room if this browser has a session for it, otherwise Join
    *   /r/:code/create  Create
@@ -36,6 +38,9 @@
   import Room from './routes/Room.svelte'
   import Report from './routes/Report.svelte'
   import Suggest from './routes/Suggest.svelte'
+  import type { HowToView } from './components/HowToPage.svelte'
+  import { SHOWN } from './components/ModeShowcase.svelte'
+  import { howToViewOf } from './lib/howToPlay'
   import { routeIn, routeOut } from './lib/routeFade'
   import { adminTabOf, type AdminTab } from './lib/admin'
   import { keyFromHash } from './lib/invite'
@@ -49,6 +54,7 @@
 
   type Route =
     | { name: 'home' }
+    | { name: 'how-to'; view: HowToView }
     | { name: 'create' }
     | { name: 'join'; code: string }
     | { name: 'room'; code: string }
@@ -72,6 +78,8 @@
     if (tab !== null) return { name: 'admin', tab }
     if (path === '/suggest') return { name: 'suggest' }
     if (path === '/report') return { name: 'report' }
+    const view = howToViewOf(path, SHOWN)
+    if (view !== null) return { name: 'how-to', view }
     const past = HISTORY_PATH.exec(path)
     // As spelled in the link: a game this browser never kept has no other spelling to show.
     if (past !== null) return { name: 'history', code: past[1] ?? '', stamp: past[2] ?? '' }
@@ -83,10 +91,16 @@
   }
 
   let route = $state<Route>(resolve(currentPath()))
-  // Create and its lobby are different screens, so they fade; Admin's tabs are one.
-  const routeKey = $derived(route.name === 'admin' ? 'admin' : JSON.stringify(route))
+  // Create and its lobby are different screens, so they fade; Admin's tabs are one, and
+  // so are Home and How to play, which keep the dialogue box and fade what is under it.
+  const routeKey = $derived.by(() => {
+    if (route.name === 'admin') return 'admin'
+    if (route.name === 'home' || route.name === 'how-to') return 'home'
+    return JSON.stringify(route)
+  })
   const wide = $derived(
     route.name === 'home' ||
+      route.name === 'how-to' ||
       route.name === 'create' ||
       route.name === 'admin' ||
       route.name === 'suggest',
@@ -122,6 +136,7 @@
       route.name !== 'admin' &&
       route.name !== 'suggest' &&
       route.name !== 'report' &&
+      route.name !== 'how-to' &&
       !invite &&
       (location.hash !== '' || currentPath().endsWith('/admin'))
     ) {
@@ -171,8 +186,8 @@
        the incoming one down. A room keeps its screen across its own code's re-renders. -->
   {#key routeKey}
     <div class="route" in:routeIn out:routeOut>
-      {#if route.name === 'home'}
-        <Home {navigate} />
+      {#if route.name === 'home' || route.name === 'how-to'}
+        <Home {navigate} howTo={route.name === 'how-to' ? route.view : null} />
       {:else if route.name === 'create'}
         <Create {navigate} />
       {:else if route.name === 'admin'}

@@ -153,6 +153,41 @@ export function rowsFor(types: Set<string>): HowToRow[] {
   return HOW_TO_ROWS.filter((row) => row.types.some((type) => types.has(type)))
 }
 
+/** The How to play page's address; its views sit under it. */
+export const HOW_TO_PATH = '/how-to-play'
+
+const EVENTS_SLUG = 'random-events'
+
+/** A mode's part of the address, from its name, which reads better in a shared link than its id. */
+export function slugOf(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+/** The address of a view of How to play: `'overview'`, `'events'` or a mode's id. */
+export function howToPath(view: string, modes: readonly { id: string; label: string }[]): string {
+  if (view === 'events') return `${HOW_TO_PATH}/${EVENTS_SLUG}`
+  const mode = modes.find((entry) => entry.id === view)
+  return mode === undefined ? HOW_TO_PATH : `${HOW_TO_PATH}/${slugOf(mode.label)}`
+}
+
+/**
+ * The view at `path`, null when it is not How to play's. A mode it does not know, renamed
+ * or retired since the link was shared, gets the overview rather than Home.
+ */
+export function howToViewOf(
+  path: string,
+  modes: readonly { id: string; label: string }[],
+): string | null {
+  if (path === HOW_TO_PATH) return 'overview'
+  if (!path.startsWith(`${HOW_TO_PATH}/`)) return null
+  const slug = path.slice(HOW_TO_PATH.length + 1)
+  if (slug === EVENTS_SLUG) return 'events'
+  return modes.find((mode) => slugOf(mode.label) === slug)?.id ?? 'overview'
+}
+
 let loading: Promise<ModePacing[]> | null = null
 
 /** `/api/modes`, fetched once per page; a failure is tried again on the next call. */

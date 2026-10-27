@@ -12,11 +12,11 @@
    * A browser that has finished a game is asked for its questions too, and for what was wrong
    * with ours (`lib/suggestions.ts`, `lib/reports.ts`), by Reldo at the column's foot.
    *
-   * How to play is a view of Home, not a route: everything under the dialogue box fades
-   * out and the page fades in, while the box stays and its speaker changes. Each view
-   * the page opens is a history entry at the same address, so Back steps out of it.
+   * How to play, at `/how-to-play` and a view under it, is drawn here too: everything
+   * under the dialogue box fades out and the page fades in, while the box stays and its
+   * speaker changes. The router says which view; Home only fades between them.
    */
-  import { onMount, tick } from 'svelte'
+  import { onMount, tick, untrack } from 'svelte'
   import { siteName } from 'virtual:branding'
 
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
@@ -39,6 +39,7 @@
     winnerIn,
     type PastGame,
   } from '../lib/history'
+  import { howToPath } from '../lib/howToPlay'
   import { atRoomLimit } from '../lib/roomLimit'
   import type { Route } from '../lib/stats'
   import { maySuggest } from '../lib/suggestions'
@@ -55,7 +56,14 @@
   } from '../lib/session'
   import { watchTheme } from '../lib/theme'
 
-  let { navigate }: { navigate: (to: string, state?: { via: Route }) => void } = $props()
+  let {
+    navigate,
+    howTo = null,
+  }: {
+    navigate: (to: string, state?: { via: Route } | { howTo: HowToEntry }) => void
+    /** How to play's view at this address, null for Home itself. */
+    howTo?: HowToView | null
+  } = $props()
 
   /** The server caches the list for 5 s; twice that keeps a Home left open current. */
   const PUBLIC_REFRESH_MS = 10_000
@@ -86,52 +94,54 @@
 
   let code = $state('')
 
-  /** What `history.state` carries for a view of How to play; `from` is the view it was opened from. */
+  /**
+   * What `history.state` carries for a view of How to play: `from` is the view it was
+   * opened from, `home` how many entries back Home is, null when Home is not behind it.
+   */
   interface HowToEntry {
-    howTo: HowToView
-    depth: number
     from: HowToView | null
+    home: number | null
   }
 
   function entryNow(): HowToEntry | null {
     const state: unknown = history.state
     if (typeof state !== 'object' || state === null || !('howTo' in state)) return null
-    const entry = state as HowToEntry
-    const known =
-      entry.howTo === 'overview' ||
-      entry.howTo === 'events' ||
-      SHOWN.some((mode) => mode.id === entry.howTo)
-    return known ? entry : null
+    return (state as { howTo: HowToEntry }).howTo
   }
 
-  /** The view on screen, null for Home itself; a reload keeps it, as the history does. */
-  let howTo = $state<HowToView | null>(entryNow()?.howTo ?? null)
+  /** The view on screen, which trails `howTo` while the old one fades out. */
+  let shown = $state<HowToView | null>(untrack(() => howTo))
   /** While the old view fades out and before the new one fades in. */
   let fading = $state(false)
   let swap = 0
 
   async function show(next: HowToView | null): Promise<void> {
-    if (next === howTo) return
+    if (next === shown) return
     const mine = ++swap
     if (cuts()) {
-      howTo = next
+      shown = next
       scrollTo(0, 0)
       return
     }
     fading = true
     await new Promise((done) => setTimeout(done, OUT_MS))
     if (mine !== swap) return
-    howTo = next
+    shown = next
     scrollTo(0, 0)
     await tick()
     // A frame at opacity 0 first, or the new view would not fade in.
     requestAnimationFrame(() => requestAnimationFrame(() => mine === swap && (fading = false)))
   }
 
+  $effect(() => {
+    const next = howTo
+    untrack(() => void show(next))
+  })
+
   function open(next: HowToView): void {
-    const entry: HowToEntry = { howTo: next, depth: (entryNow()?.depth ?? 0) + 1, from: howTo }
-    history.pushState(entry, '', location.pathname)
-    void show(next)
+    const before = entryNow()?.home ?? null
+    const home = howTo === null ? 1 : before === null ? null : before + 1
+    navigate(howToPath(next, SHOWN), { howTo: { from: howTo, home } })
   }
 
   /** Back to the overview: the entry before, if that is where this view was opened. */
@@ -140,19 +150,14 @@
     else open('overview')
   }
 
+  /** Back through the entries to Home, if it is behind them, so Back does not return here. */
   function leaveHowTo(): void {
-    const depth = entryNow()?.depth ?? 0
-    if (depth > 0) history.go(-depth)
-    else void show(null)
+    const home = entryNow()?.home ?? null
+    if (home !== null) history.go(-home)
+    else navigate('/')
   }
 
-  onMount(() => {
-    const onPop = (): void => void show(entryNow()?.howTo ?? null)
-    addEventListener('popstate', onPop)
-    return () => removeEventListener('popstate', onPop)
-  })
-
-  const howToMode = $derived(howTo === null ? null : (MODES[howTo] ?? null))
+  const howToMode = $derived(shown === null ? null : (MODES[shown] ?? null))
   let removing = $state<string | null>(null)
   /** The room whose Remove is waiting on a yes. */
   let confirming = $state<string | null>(null)
@@ -291,25 +296,25 @@
 
 <div class="home" class:fading>
   <Stage
-    host={howToMode?.host.id ?? (howTo === 'events' ? STRANGER : 'wise_old_man')}
-    hero={howToMode === null && howTo !== 'events' ? heroArt : null}
+    host={howToMode?.host.id ?? (shown === 'events' ? STRANGER : 'wise_old_man')}
+    hero={howToMode === null && shown !== 'events' ? heroArt : null}
     bubble="on"
-    paper={howTo === null ? sheet : undefined}
+    paper={shown === null ? sheet : undefined}
   >
     {#snippet said()}
       {#if howToMode !== null}
         <Said name={howToMode.host.name} line={presents} />
-      {:else if howTo === 'events'}
+      {:else if shown === 'events'}
         <Said name="Mysterious Old Man" line={visitors} />
       {:else}
-        <Said name={speakerFor(heroArt)} line={howTo === null ? welcome : newHere} />
+        <Said name={speakerFor(heroArt)} line={shown === null ? welcome : newHere} />
       {/if}
     {/snippet}
   </Stage>
 
   <div class="below">
-    {#if howTo !== null}
-      <HowToPage view={howTo} onopen={open} onall={allModes} onback={leaveHowTo} />
+    {#if shown !== null}
+      <HowToPage view={shown} onopen={open} onall={allModes} onback={leaveHowTo} />
     {:else}
       {@render rest()}
     {/if}

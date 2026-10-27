@@ -8,7 +8,7 @@
    * Home's How to play page, under Home's dialogue box, which speaks for it: the overview
    * (a night in four steps, the game modes, every way of answering, teams and the TV), or
    * one mode's view, or the random events'. Picking a mode swaps the whole page, as
-   * Suggest's editor does; Home keeps which view shows, in the browser's history.
+   * Suggest's editor does; which view shows is the address's (`/how-to-play/<mode>`).
    *
    * Which modes there are is the slideshow's list; which types each is answered in is
    * `/api/modes`, so a mode's view shows only what its round asks.
