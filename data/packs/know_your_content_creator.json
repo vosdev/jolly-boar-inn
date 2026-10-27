@@ -156,6 +156,510 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Deadman_Mansions",
       "difficulty": "hard"
+    },
+    {
+      "id": "q_04912df4f191aa9d",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "payload": {
+        "prompt": "Whose Hardcore Ironman series coined this catchphrase?",
+        "quote": "Dying on my HCIM: completed.",
+        "options": [
+          "Solo Mission",
+          "B0aty",
+          "Torvesta",
+          "C Engineer"
+        ],
+        "answer_index": 3,
+        "explanation": "C Engineer, whose monotone \"Completed\" voice line also became a popular RuneLite plugin."
+      },
+      "source_url": "https://www.youtube.com/@CEngineer",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_c07ebdb113d5575e",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "payload": {
+        "prompt": "Which YouTuber is famous for opening his videos with this greeting?",
+        "quote": "Hello, it's me, A Friend.",
+        "options": [
+          "Soup",
+          "A Friend",
+          "SirPugger",
+          "Woox"
+        ],
+        "answer_index": 1,
+        "explanation": "Dovydas, better known as A Friend, who opened with \"Hello, it's me, A Friend\" and ended with a sudden \"Bye.\""
+      },
+      "source_url": "https://www.youtube.com/@AFriendRS",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f813895a5f35ac77",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "payload": {
+        "prompt": "Whose classic RuneScape machinima videos made a meme of headbanging while shouting a god's name?",
+        "quote": "GUTHIX!",
+        "options": [
+          "Skychi",
+          "Sosolid2k",
+          "Excl",
+          "TehNoobShow"
+        ],
+        "answer_index": 3,
+        "explanation": "TehNoobShow, in the classic Gods Exposed machinima series."
+      },
+      "source_url": "https://www.youtube.com/@TehNoobWorld",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_631a56e0ff67b772",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "payload": {
+        "prompt": "Which PvP creator's videos frequently open with him whispering from a bush or disguise?",
+        "quote": "I'm literally shaking right now.",
+        "options": [
+          "Torvesta",
+          "Framed",
+          "Odablock",
+          "Skill Specs"
+        ],
+        "answer_index": 0,
+        "explanation": "Torvesta, known for his high-risk Wilderness PKing and undercover skull-trick videos."
+      },
+      "source_url": "https://www.youtube.com/@Torvesta",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_17c7f8e4d6cc0ab1",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "payload": {
+        "prompt": "Whose restricted Ironman series begins with this rule?",
+        "quote": "Each 1,000 XP unlocks one tile.",
+        "options": [
+          "Verf",
+          "J1mmy",
+          "Settled",
+          "Limpwurt"
+        ],
+        "answer_index": 2,
+        "explanation": "Settled's Tileman series, where every movement tile had to be bought with experience all the way to the Infernal cape."
+      },
+      "source_url": "https://www.youtube.com/@Settledrs",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b26f2a192e11f464",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Paul, the Ultimate Ironman tutor in Lumbridge, is named after which streamer who pioneered unofficial Ironman play?",
+        "options": [
+          "MMORPG",
+          "Faux",
+          "Mammal",
+          "Sick Nerd"
+        ],
+        "answer_index": 1,
+        "explanation": "Faux (Paul), whose self-restricted Ironman streams helped inspire Jagex's official Ironman modes."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ironman_tutor",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_77d8c0aa0053d458",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which player designed Rooftop Agility and waves at you from the end of the Seers' Village and Ardougne courses?",
+        "options": [
+          "Zezima",
+          "Lynx Titan",
+          "GentleTractor",
+          "BigRedJapan"
+        ],
+        "answer_index": 3,
+        "explanation": "BigRedJapan pitched Rooftop Agility in a 2013 player-designed content competition and appears as an NPC on the courses."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/BigRedJapan",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_1f43f0d6eeef396a",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "A broken-down tractor in Hosidius is an in-game tribute to which community member whose map designs inspired the Great Kourend rework?",
+        "options": [
+          "BigRedJapan",
+          "FlippingOldschool",
+          "Soup",
+          "GentleTractor"
+        ],
+        "answer_index": 3,
+        "explanation": "GentleTractor, whose player-made redesign map of Zeah shaped Jagex's overhaul of Great Kourend."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Gentle_tractor",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7d5cdd90a7b794c7",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "How did Woox famously survive the final fog in the October 2016 Deadman Invitational before being disqualified?",
+        "options": [
+          "Buying stews in the Warriors' Guild",
+          "Spam-casting Redemption in a POH",
+          "Tick-eating purple sweets",
+          "Unnoting food at Phials"
+        ],
+        "answer_index": 3,
+        "explanation": "Woox stood in Rimmington unnoting food with Phials to out-eat the fog damage."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Invitational",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e380e87fce2a8990",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which Fossil Island demi-boss famously ended A Friend's high-ranking Hardcore Ironman, \"White Cat22\"?",
+        "options": [
+          "Deranged Archaeologist",
+          "Lobstrosity",
+          "Ancient Wyvern",
+          "Herbiboar"
+        ],
+        "answer_index": 0,
+        "explanation": "Deranged Archaeologist, whose special attack hit White Cat22 twice in a row shortly after Fossil Island's release in 2017."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Deranged_archaeologist",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2f0f1a7624bfb542",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which creator hosts Gielinor Games, the survivor-style competition series pitting OSRS creators against each other?",
+        "options": [
+          "J1mmy",
+          "Solo Mission",
+          "Framed",
+          "Soup"
+        ],
+        "answer_index": 3,
+        "explanation": "Soup, who created and hosts Gielinor Games and is also fondly teased for his chaotic quest guides."
+      },
+      "source_url": "https://www.youtube.com/@SoupRS",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_f66a935d970b5f04",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which creator is behind By Release, a series completing every quest in chronological order of its original release date?",
+        "options": [
+          "Settled",
+          "J1mmy",
+          "Slayermusiq1",
+          "Hanannie"
+        ],
+        "answer_index": 1,
+        "explanation": "J1mmy, who played through every quest in release order starting from 2001's Cook's Assistant."
+      },
+      "source_url": "https://www.youtube.com/@J1mmy",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_c3fe0cb8a39e0851",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which YouTuber became famous for real-time quest guides that always open with \"Hi, and welcome to my guide\"?",
+        "options": [
+          "Slayermusiq1",
+          "Kaoz",
+          "Theoatrix",
+          "Soup"
+        ],
+        "answer_index": 0,
+        "explanation": "Slayermusiq1, whose step-by-step quest guides carried players before the RuneLite Quest Helper plugin existed."
+      },
+      "source_url": "https://www.youtube.com/@slayermusiq1",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_0e4d7d200d87a571",
+      "type": "closest_number",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "What hitsplat did Skill Specs land on B0aty with an Armadyl godsword in 2015, turning the number into an OSRS meme?",
+        "answer": 73,
+        "unit": "damage",
+        "explanation": "73. Right after B0aty laughed that Skill Specs couldn't kill him, Skill Specs landed a 73 AGS spec to KO him."
+      },
+      "source_url": "https://www.twitch.tv/b0aty",
+      "difficulty": "easy"
+    },
+    {
+      "id": "q_c0807ddc7f8132e3",
+      "type": "closest_number",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "What was the combat level of the lowest-level account on which Rendi obtained a Fire cape in Old School RuneScape?",
+        "answer": 3,
+        "unit": "combat level",
+        "explanation": "Combat level 3, achieved by Rendi in 2020 using rings of recoil and tick-eating before Jagex patched the mechanics."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/TzHaar_Fight_Cave",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a1e04b44b7fed519",
+      "type": "pick_all_that_apply",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which of these are the names of the three Ironman tutors outside Lumbridge Castle?",
+        "options": [
+          "Phials",
+          "Hans",
+          "Adam",
+          "Bob",
+          "Juan",
+          "Paul"
+        ],
+        "answer_indices": [
+          2,
+          4,
+          5
+        ],
+        "explanation": "Adam (after B0aty, for Ironman), Paul (after Faux, for Ultimate Ironman) and Juan (a pun on \"one\" life, for Hardcore Ironman)."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Ironman_tutor",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_dc200d5afff7a4d3",
+      "type": "number_slider",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "How many US dollars did Mod Ash offer to pay Woox out of his own pocket after Woox was disqualified from the October 2016 Deadman Invitational?",
+        "answer": 10000,
+        "min": 1000,
+        "max": 50000,
+        "scale": "log",
+        "unit": "USD",
+        "explanation": "$10,000, matching the tournament's first-place prize, after Woox survived the fog by unnoting food at Phials."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Deadman_Invitational",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_759b42aeadf9b990",
+      "type": "number_slider",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "How many episodes did Settled's Swampletics series run for, from the first episode to the Theatre of Blood finale?",
+        "answer": 33,
+        "min": 10,
+        "max": 60,
+        "scale": "linear",
+        "unit": "episodes",
+        "explanation": "33 episodes between 2018 and 2022, ending with Swampletics completing the Theatre of Blood."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Soggy_journal",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a3352c9918a80aab",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "In his famous Reddit AMA while grinding to become the first player with 200 million XP in every skill, what did Lynx Titan say he ate every day?",
+        "options": [
+          "Chicken and rice four times",
+          "Bread three times and lasagne once",
+          "Two bowls of oatmeal and a pizza",
+          "Instant noodles and black coffee"
+        ],
+        "answer_index": 1,
+        "explanation": "Bread three times a day and lasagne once a day for nearly four years."
+      },
+      "wiki": "https://oldschool.runescape.wiki/w/Lynx_Titan",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_73744fe5d9893fdd",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which creator popularized the Xtreme Onechunk Ironman ruleset, grinding 99 Defence and 99 Woodcutting before leaving the starting Lumbridge chunk?",
+        "options": [
+          "Verf",
+          "Limpwurt",
+          "Settled",
+          "Mudkip"
+        ],
+        "answer_index": 1,
+        "explanation": "Limpwurt, whose extreme chunk-locked rules require completing every highest-level task and boss drop in a map chunk before rolling the next."
+      },
+      "source_url": "https://www.youtube.com/@Limpwurt",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_20fe926011628272",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which creator spent thousands of hours maxing an Ultimate Ironman locked entirely to Karamja?",
+        "options": [
+          "C Engineer",
+          "Limpwurt",
+          "Raikesy",
+          "Verf"
+        ],
+        "answer_index": 3,
+        "explanation": "Verf, whose Karamja-only Ultimate Ironman started at level 3 and eventually maxed and completed the Inferno."
+      },
+      "source_url": "https://www.youtube.com/@Verf",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_dc303776f3fde502",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "quote"
+      ],
+      "payload": {
+        "prompt": "Which satirical Wilderness PKer uses a robotic text-to-speech voice to deliver lines like this while sending players back to Lumbridge?",
+        "quote": "Smoked quicker than a Virginia Slim on a cold Sunday morning.",
+        "options": [
+          "25 Buttholes",
+          "Odablock",
+          "Torvesta",
+          "Framed"
+        ],
+        "answer_index": 0,
+        "explanation": "25 Buttholes, known for his deadpan text-to-speech PKing videos and catchphrase \"wow, hahaha.\""
+      },
+      "source_url": "https://www.youtube.com/@25buttholes",
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4712a993afd77d8f",
+      "type": "multiple_choice",
+      "mode": "know_your_content_creator",
+      "source": "pack",
+      "tags": [
+        "trivia"
+      ],
+      "payload": {
+        "prompt": "Which YouTuber is best known for investigating and exposing bizarre bot farms across Gielinor?",
+        "options": [
+          "J1mmy",
+          "SirPugger",
+          "Theoatrix",
+          "FlippingOldschool"
+        ],
+        "answer_index": 1,
+        "explanation": "SirPugger, whose videos track down hidden bot farms, gold farmers and exploits."
+      },
+      "source_url": "https://www.youtube.com/@SirPugger",
+      "difficulty": "easy"
     }
   ]
 }

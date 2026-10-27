@@ -31,10 +31,6 @@ def test_who_said_that_is_multiple_choice() -> None:
     assert questions_bounds("who_said_that").default == 5
 
 
-# Played, but waiting for a player's suggestion before its pack holds one.
-AWAITING = {"number_slider"}
-
-
 def test_know_your_content_creator_mixes_four_types() -> None:
     mode = "know_your_content_creator"
     assert MODES[mode].types == {
@@ -44,14 +40,15 @@ def test_know_your_content_creator_mixes_four_types() -> None:
         "pick_all_that_apply",
     }
     assert questions_bounds(mode).default == 5
+    assert {q["type"] for q in questions(mode)} == MODES[mode].types
 
 
-def test_a_know_your_content_creator_round_draws_and_scores_all_three_types() -> None:
+def test_a_know_your_content_creator_round_draws_and_scores_all_four_types() -> None:
     mode = "know_your_content_creator"
     settings = RoomSettings(modes=[{"mode": mode, "questions": len(questions(mode))}])
     (played,) = select(load_packs(PACKS_DIR), [], settings, random.Random(1))
     own = [q for q in played.questions if q["mode"] == mode]
-    assert {q["type"] for q in own} == MODES[mode].types - AWAITING
+    assert {q["type"] for q in own} == MODES[mode].types
     for question in own:
         payload, player = question["payload"], uuid.uuid4()
         value = TYPES[question["type"]].parse_value(payload, right_value(question["type"], payload))
