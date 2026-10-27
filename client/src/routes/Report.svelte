@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * `/report`: tell the innkeeper what is wrong with a pack question (`lib/reports.ts`).
+   * `/report`: tell us what is wrong with a pack question (`lib/reports.ts`).
    *
    * A mode, then one of its questions, or for a price mode the item, then what is wrong.
    * Only for a browser that has finished a game, as Home's link is. Before any field the
@@ -143,20 +143,20 @@
 {:else if view === 'checking'}
   <section class="panel">
     <h1>Report a question</h1>
-    <p class="note">Checking with the innkeeper…</p>
+    <p class="note">Checking…</p>
   </section>
 {:else if view === 'limited'}
   <section class="panel">
     <h1>Report a question</h1>
     <p>
-      That's as many reports as the innkeeper reads from one connection in an hour. Try again
+      That's as many reports as we read from one connection in an hour. Try again
       {retryIn(retryAt, Date.now())}.
     </p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
 {:else if view === 'sent'}
   <section class="panel">
-    <h1>Thanks, the innkeeper will look into it</h1>
+    <h1>Thanks, we'll look into it</h1>
     <p>
       A fixed question comes back in a later update. There's no account, so you won't hear back.
     </p>
@@ -168,7 +168,7 @@
 {:else}
   <section class="panel">
     <h1>Report a question</h1>
-    <p class="note">A wrong answer, a typo, an outdated fact: tell the innkeeper which question.</p>
+    <p class="note">A wrong answer, a typo, an outdated fact: tell us which question.</p>
   </section>
   {#if failure !== null}
     <div class="banner bad">{failure}</div>
@@ -219,7 +219,7 @@
             {#if attempted && textError !== null}<p class="error">{textError}</p>{/if}
           </div>
           <button type="submit" class="primary" disabled={view === 'sending'}>
-            {view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
+            {view === 'sending' ? 'Sending…' : 'Send report'}
           </button>
         </form>
       {/if}

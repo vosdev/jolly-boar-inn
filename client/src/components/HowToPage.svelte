@@ -76,7 +76,7 @@
   <div>
     <section class="panel">
       <p class="back">
-        <button type="button" class="link" onclick={onback}>← Back to the inn</button>
+        <button type="button" class="link" onclick={onback}>← Back</button>
       </p>
       <h1 tabindex="-1" bind:this={heading}>How to play</h1>
       <h2>A night at the inn</h2>

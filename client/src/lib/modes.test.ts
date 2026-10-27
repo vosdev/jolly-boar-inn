@@ -1,6 +1,6 @@
 /**
  * Every mode is presented by a host who speaks all of its lines, picked the same on every
- * screen, and a mode this build does not know is presented by the innkeeper, in lines that
+ * screen, and a mode this build does not know is presented by the house, in lines that
  * fit any round.
  */
 
@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ASK_MAX,
   GENERIC_HOST,
-  INNKEEPER,
+  HOUSE,
   MODES,
   PACES,
   SHARED_TROPHY_LINES,
@@ -104,7 +104,7 @@ describe('hosts', () => {
     expect(hostOf('more_less').host.name).toBe('Ali Morrisane')
     expect(hostOf('guess_examine').host.name).toBe('The Examiner')
     expect(hostOf('sort_it_out').host).toEqual({ id: 'historian_minas', name: 'Historian Minas' })
-    expect(hostOf('custom').host).toEqual(INNKEEPER)
+    expect(hostOf('custom').host).toEqual(HOUSE)
     expect(hostOf('random_events_only').host.id).toBe('crowned_frog')
     expect(hostOf('who_said_that').host.id).toBe('cracked_jennys_tea_cup')
     expect(hostOf('know_your_content_creator').host.id).toBe('gnome_child')
@@ -131,9 +131,9 @@ describe('hosts', () => {
     expect(hostOf('release_order').reveal).toBe(GENERIC_HOST.reveal)
   })
 
-  it('has the innkeeper present a mode with no entry, in its generic lines', () => {
+  it('has the house present a mode with no entry, in its generic lines', () => {
     expect(hostOf('zoom_quiz')).toBe(GENERIC_HOST)
-    expect(GENERIC_HOST.host).toEqual(INNKEEPER)
+    expect(GENERIC_HOST.host).toEqual(HOUSE)
   })
 })
 

@@ -91,7 +91,7 @@ describe('Suggest, choosing a game', () => {
           screen.queryByRole('heading', { name: 'What would you like to suggest?' }),
         ).toBeNull(),
       )
-      expect(screen.getByRole('button', { name: 'Send to the innkeeper' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Send to Reldo' })).toBeTruthy()
     } finally {
       unstub()
     }
@@ -120,7 +120,7 @@ describe('Suggest', () => {
     played()
     render(Suggest, { navigate })
     await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText(/Required: the item’s name/)).toBeTruthy()
     expect(screen.getByText(/Required: a name to credit/)).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
@@ -132,14 +132,14 @@ describe('Suggest', () => {
 
     await type(/Item name/, ' Ancient mace ')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'item',
       content: { name: 'Ancient mace' },
       credit: 'AFKFisher',
       credit_shown: false,
     })
-    await screen.findByRole('heading', { name: /on the innkeeper's desk/ })
+    await screen.findByRole('heading', { name: /on Reldo's desk/ })
   })
 
   it('lists the items already in the game, searchable, and refuses one of them', async () => {
@@ -158,7 +158,7 @@ describe('Suggest', () => {
 
     await type(/Item name/, 'abyssal WHIP ')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Already in the game.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
   })
@@ -225,12 +225,12 @@ describe('Suggest', () => {
     expect(preview.textContent).toContain('Yuck, I don’t like cabbage.')
     expect(within(preview).getAllByRole('button')).toHaveLength(4)
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Required: the page you checked it on.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Cabbage')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
       content: {
@@ -267,14 +267,14 @@ describe('Suggest', () => {
     await type('Answer 2', 'Hazelmere')
     await fireEvent.click(screen.getByLabelText('Answer 2 is right'))
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(
       screen.getByText(/Required: the wiki page you checked it on, or another https link/),
     ).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
       content: {
@@ -309,17 +309,17 @@ describe('Suggest', () => {
     await type('Answer 1', 'Rick')
     await type('Answer 2', 'Zezima')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText(/or another https link/)).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
     await type(/Another source/, 'http://example.com/clip')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('A link starting https://.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
     await type(/Another source/, ' https://www.youtube.com/watch?v=dQw4w9WgXcQ ')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
       content: {
@@ -361,7 +361,7 @@ describe('Suggest', () => {
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
     await type('Your name', 'AFKFisher')
     expect(screen.getByText('Pssst, adventurer.', { selector: '.lore' })).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     const sent = vi.mocked(api.sendSuggestion).mock.calls[0]?.[0] as {
       content: { payload: object }
     }
@@ -387,7 +387,7 @@ describe('Suggest', () => {
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Zezima')
     await type(/Another source/, 'https://example.com/clip')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     const sent = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
     expect(sent).toMatchObject({
       wiki: 'https://oldschool.runescape.wiki/w/Zezima',
@@ -404,7 +404,7 @@ describe('Suggest', () => {
     await fireEvent.click(card)
     expect(screen.queryByRole('group', { name: 'How players answer' })).toBeNull()
     expect(screen.queryByLabelText('Who asks it')).toBeNull()
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getAllByText('Can’t be empty.').length).toBeGreaterThan(0)
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
@@ -421,7 +421,7 @@ describe('Suggest', () => {
     await fireEvent.change(screen.getByLabelText('Players order'), { target: { value: '3' } })
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Crafting')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
       content: {
@@ -468,12 +468,12 @@ describe('Suggest', () => {
     await fireEvent.click(screen.getAllByLabelText('Tied with the one above')[0]!)
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Update:Quests')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Required: the date it came out.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
     await type('Detail of entry 3', '4 January 2001')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
       content: {
@@ -524,7 +524,7 @@ describe('Suggest', () => {
     )
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
       type: 'free_text',
       mode: 'drop_table',
@@ -547,7 +547,7 @@ describe('Suggest', () => {
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Dragon_warhammer')
     await type('Your name', 'AFKFisher')
     expect(document.querySelector('.picture')).toBeNull()
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     const content = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
     expect(content).toMatchObject({ type: 'closest_number', picture_item: 'Dragon warhammer' })
     expect(content).not.toHaveProperty('payload.image')
@@ -562,13 +562,13 @@ describe('Suggest', () => {
     await type('Answer', '624')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/General_Graardor')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).not.toHaveBeenCalled()
     await type('Lowest', '100')
     await type('Highest', '1000')
     expect(screen.getByRole('slider').getAttribute('aria-valuenow')).toBe('550')
     await fireEvent.click(screen.getByLabelText('Log'))
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
       type: 'number_slider',
       mode: 'bestiary',
@@ -585,7 +585,7 @@ describe('Suggest', () => {
     await type('Answer 2', 'Greater demon')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).not.toHaveProperty(
       'picture_item',
     )
@@ -606,7 +606,7 @@ describe('Suggest', () => {
     await waitFor(() => expect(existingRows()).toEqual(['Vorkath']))
     await type('Monster or NPC, as the wiki spells it', ' vorkath')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Already in the game.')).toBeTruthy()
     expect(screen.getByText(/Required: the page you checked it on/)).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
@@ -617,13 +617,11 @@ describe('Suggest', () => {
     expect(within(preview).queryByText("Who's that NPC?")).toBeNull()
     expect(preview.querySelector('.picture img')).toBeNull()
     expect(preview.querySelector('.picture .placeholder')?.textContent).toBe(
-      'The picture is added once the innkeeper imports it.',
+      'The picture is added once imported.',
     )
     expect(within(preview).getByRole<HTMLInputElement>('combobox').disabled).toBe(true)
-    expect(
-      within(preview).getByText('The NPC joins the list once the innkeeper imports it.'),
-    ).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    expect(within(preview).getByText('The NPC joins the list once imported.')).toBeTruthy()
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
       kind: 'question',
       content: {
@@ -649,7 +647,7 @@ describe('Suggest', () => {
     await waitFor(() => expect(existingRows()).toEqual(['Spotted kebbit']))
     await type('Monster or NPC, as the wiki spells it', 'Spotted kebbit')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.queryByText('Already in the game.')).toBeNull()
 
     await fireEvent.click(screen.getByLabelText('Render'))
@@ -659,7 +657,7 @@ describe('Suggest', () => {
     await type('Answer 1', 'Dark kebbit')
     await type('Answer 2', 'Spotted kebbit')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Dark_kebbit')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
       type: 'multiple_choice',
       mode: 'whos_that_npc',
@@ -713,7 +711,7 @@ describe('Suggest', () => {
     await type('Entry 3', 'Black demon')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Combat_level')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
       type: 'ordering',
       mode: 'bestiary',
@@ -741,7 +739,7 @@ describe('Suggest', () => {
     expect(preview.getByText('Dragon warhammer')).toBeTruthy()
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Slayer')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
       type: 'matching',
       mode: 'drop_table',
@@ -759,7 +757,7 @@ describe('Suggest', () => {
     await fireEvent.click(await screen.findByRole('button', { name: /A random event question/ }))
     await fireEvent.click(screen.getByLabelText('Put in order'))
     expect(screen.getByLabelText('First end')).toBeTruthy()
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Pick who asks it.')).toBeTruthy()
     expect(api.sendSuggestion).not.toHaveBeenCalled()
 
@@ -777,7 +775,7 @@ describe('Suggest', () => {
     expect(preview.getByText('Turn the dials, mortal.', { selector: '.lore' })).toBeTruthy()
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Fairy_ring')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toEqual({
       type: 'ordering',
       mode: 'random_event',
@@ -806,7 +804,7 @@ describe('Suggest', () => {
     )
     expect(faces.map((face) => face.getAttribute('aria-label'))).not.toContain('A random NPC')
     expect(faces.some((face) => (face as HTMLInputElement).checked)).toBe(false)
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Pick who asks it.')).toBeTruthy()
   })
 
@@ -815,7 +813,7 @@ describe('Suggest', () => {
     render(Suggest, { navigate })
     const cards = (await screen.findAllByRole('button')).filter((b) => b.closest('.choices'))
     expect(cards.at(-1)?.textContent).toMatch(
-      /Not sure where it fits\s*Any question\. The innkeeper picks its round\./,
+      /Not sure where it fits\s*Any question\. Reldo picks its round\./,
     )
     expect(cards.at(-1)?.querySelector('img')?.getAttribute('src')).toBe(npcArt(FALLBACK_NPC).url)
     await fireEvent.click(cards.at(-1)!)
@@ -846,7 +844,7 @@ describe('Suggest', () => {
     await type('Accepted answer 1', 'Abyssal demon')
     await type('Another source, if the wiki can’t show it', 'https://example.com/clip')
     await type('Your name', 'AFKFisher')
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     const sent = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
     expect(sent).toMatchObject({
       type: 'free_text',
@@ -867,7 +865,7 @@ describe('Suggest', () => {
     await type(/Item name/, 'Ancient mace')
     await type('Your name', 'AFKFisher')
     vi.mocked(api.getSuggestionAllowance).mockResolvedValue({ left: 0, retry_at: null })
-    await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     await waitFor(() => expect(screen.getByText(/Try again later/)).toBeTruthy())
   })
 
@@ -907,7 +905,7 @@ describe('Suggest', () => {
 
       await type('Your name', 'AFKFisher')
       await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
-      const send = screen.getByRole('button', { name: 'Send to the innkeeper' })
+      const send = screen.getByRole('button', { name: 'Send to Reldo' })
       expect((send as HTMLButtonElement).disabled).toBe(false)
       await fireEvent.click(send)
       expect(api.sendSuggestion).toHaveBeenCalledTimes(1)
@@ -944,7 +942,7 @@ describe('Suggest', () => {
       expect(stepDots()).toEqual(['1 Question', '2 Extras (optional)', '3 Source', '4 Credit'])
       expect(screen.getAllByText('Optional')).toHaveLength(1)
 
-      await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
       expect(stepDots()).toEqual(['! Question', '2 Extras (optional)', '! Source', '! Credit'])
       expect(screen.getByRole('group', { name: 'Question' }).classList.contains('missing')).toBe(
         true,
@@ -985,7 +983,7 @@ describe('Suggest', () => {
       await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
       await fireEvent.click(await screen.findByRole('button', { name: /A popular item/ }))
       expect(stepDots()).toEqual(['1 Item', '2 Credit'])
-      await fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+      await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
       expect(stepDots()).toEqual(['! Item', '! Credit'])
       await type(/Item name/, 'Ancient mace')
       expect(stepDots()).toEqual(['✓ Item', '! Credit'])

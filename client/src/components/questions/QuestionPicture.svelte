@@ -119,7 +119,7 @@
         {/if}
       </div>
     {:else}
-      <p class="placeholder">The picture is added once the innkeeper imports it.</p>
+      <p class="placeholder">The picture is added once imported.</p>
     {/if}
   </div>
   {#if caption}

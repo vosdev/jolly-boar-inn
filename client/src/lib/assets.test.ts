@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import MANIFEST from '../../../data/assets.json'
-import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
+import { HOUSE, MODES, UPCOMING_MODES } from './modes'
 import { TIERS } from './hiscores'
 import { RANDOM_EVENTS, randomEventFor } from './randomEvents'
 
@@ -23,9 +23,9 @@ function hasNpc(id: string): boolean {
 }
 
 describe('the asset manifest', () => {
-  it('has art for every mode host but the innkeeper, who is committed', () => {
+  it('has art for every mode host but the house, whose drawing is committed', () => {
     const hosts = new Set(Object.values(MODES).map((mode) => mode.host.id))
-    hosts.delete(INNKEEPER.id)
+    hosts.delete(HOUSE.id)
     expect([...hosts].filter((id) => !hasNpc(id))).toEqual([])
   })
 
