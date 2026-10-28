@@ -20,11 +20,11 @@ many events a room gets, and a pack event is an NPC asking its own question.
 
 import random
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from app.modes import MODES
+from app.modes import MODES, drawable
 from app.questions.packs import EVENT_MODE, Pack
 from app.random_events import RANDOM_EVENTS
 from app.rooms.settings import EVENT_EVERY, TIERS, RoomSettings, event_windows
@@ -68,6 +68,7 @@ def select(
     custom: Sequence[dict[str, Any]],
     settings: RoomSettings,
     rng: random.Random,
+    pictures: Collection[str] = (),
 ) -> list[Round]:
     """The room's rounds: one per mode picked, as long as that mode asked to be.
 
@@ -93,11 +94,14 @@ def select(
     ``settings.difficulty`` orders each round pool so the tiers it allows are drawn first
     and the rest only top up a round they cannot fill: a hard room with too few hard
     questions plays easier ones rather than a short round. The NPCs' pool is never ordered.
+
+    A ``pictured`` mode's pool holds only the questions whose picture is in ``pictures``.
     """
     pools: dict[str, list[dict[str, Any]]] = {}
     for pack in packs:
         for question in pack.questions:
-            pools.setdefault(question["mode"], []).append(question)
+            if drawable(question, pictures):
+                pools.setdefault(question["mode"], []).append(question)
     allowed = TIERS[settings.difficulty]
     for mode_id, pool in pools.items():
         rng.shuffle(pool)

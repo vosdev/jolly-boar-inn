@@ -13,15 +13,15 @@ from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
+from app.modes import steps_of
 from app.questions.types import (
     TYPES,
     answer_seconds,
     pictured,
     reveal_seconds,
     scoring_of,
-    steps_of,
 )
-from app.questions.types.scoring import Scoring
+from app.questions.types.scoring import Scoring, Steps
 from app.rooms import codes, duration, scoring, segments
 from app.rooms.errors import BadName, NotAdmin
 from app.rooms.settings import RoomSettings
@@ -252,18 +252,14 @@ class RoomQuestion:
     answers: dict[UUID, Submitted] = field(default_factory=dict)
 
     @property
-    def steps(self) -> int | None:
-        """How many frames the question shows itself in, for ``STEP`` scoring (section 6).
-
-        Its type says, so the engine never reads a payload. Pixel Hunt's ``pick_from_list``
-        payloads will be the only ones with any (the Images milestone). Every other question is
-        ``None``, which is also what turns ``STEP`` into ``SPEED``.
-        """
-        return steps_of(self.type, self.payload)
+    def steps(self) -> Steps | None:
+        """How the question's picture builds up, for ``STEP`` scoring (section 8): its mode's,
+        Pixel Hunt's alone. ``None`` turns ``STEP`` into ``SPEED``."""
+        return steps_of(self.mode)
 
     @property
     def scoring(self) -> Scoring:
-        """How this question's credit becomes points, as its type and payload decide."""
+        """How this question's credit becomes points, as its type and mode decide."""
         return scoring.effective(scoring_of(self.type), self.steps)
 
     def can_answer(self, player_id: UUID) -> bool:

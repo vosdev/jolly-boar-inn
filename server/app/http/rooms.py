@@ -89,7 +89,8 @@ class ModeNotOffered(ApiError):
 @router.post("", status_code=201)
 async def create_room(body: CreateRoom, request: Request) -> dict[str, Any]:
     ip = client_host(request)
-    available = {mode.id for mode in offered(request.app.state.settings, request.app.state.packs)}
+    state = request.app.state
+    available = {mode.id for mode in offered(state.settings, state.packs, state.rooms.pictures)}
     # A surprise room's modes are drawn from the offered ones, so it names none of its own.
     picked = [] if body.settings.surprise_modes else body.settings.modes
     unavailable = [e.mode for e in picked if e.mode not in available]

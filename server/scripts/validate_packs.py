@@ -4,7 +4,9 @@ Fails on schema errors, an ``id`` that does not match the content, an ``answer``
 contradicts the stored facts, a ``mode`` this build does not play or a ``type`` that
 disagrees with its mode's, and duplicate ids within or across packs. For random events it
 also fails an NPC's file that is not named after a roster id, a question in one that names
-its own NPC, and a question anywhere else that names one (``app/questions/packs.py``).
+its own NPC, and a question anywhere else that names one (``app/questions/packs.py``). A
+question in a ``pictured`` mode must picture its own roster item, with a detail picture in
+``data/assets.json``.
 
 Usage (from ``server/``)::
 
@@ -12,17 +14,42 @@ Usage (from ``server/``)::
 """
 
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 
-from app.questions.packs import EVENTS_DIR, PackError, load_packs
+from add_detail_pictures import has_picture
+from fetch_assets import MANIFEST, load_manifest
+
+from app.modes import MODES
+from app.questions.packs import EVENTS_DIR, Pack, PackError, load_packs
 
 DEFAULT_DIR = Path(__file__).resolve().parents[2] / "data" / "packs"
+
+
+def picture_errors(packs: Iterable[Pack], manifest: dict[str, str]) -> list[str]:
+    """Each question of a ``pictured`` mode that does not show its own item's detail picture."""
+    errors = []
+    for pack in packs:
+        for question in pack.questions:
+            mode = MODES.get(question["mode"])
+            if mode is None or not mode.pictured:
+                continue
+            payload = question["payload"]
+            answer = payload.get("answer_id")
+            if payload.get("vocab") != "items" or payload.get("image") != f"item:{answer}":
+                errors.append(f"{pack.path.name}: {question['id']} must picture its own item")
+            elif not has_picture(manifest, answer):
+                errors.append(f"{pack.path.name}: {question['id']}: item {answer} has no picture")
+    return errors
 
 
 def main(argv: list[str]) -> int:
     directory = Path(argv[1]) if len(argv) > 1 else DEFAULT_DIR
     try:
         packs = load_packs(directory)
+        problems = picture_errors(packs, load_manifest(MANIFEST))
+        if problems:
+            raise PackError(problems)
     except (FileNotFoundError, PackError) as exc:
         problems = exc.errors if isinstance(exc, PackError) else [str(exc)]
         for line in problems:

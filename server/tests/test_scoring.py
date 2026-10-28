@@ -23,7 +23,7 @@ from uuid import uuid4
 import pytest
 
 from app.questions.types import TYPES, scoring_of
-from app.questions.types.scoring import Scoring
+from app.questions.types.scoring import Scoring, Steps
 from app.rooms.models import Player, Room, Totals
 from app.rooms.scoring import (
     BUCKETS,
@@ -46,6 +46,10 @@ def test_buckets_are_the_documented_table() -> None:
     assert BUCKETS == SECTION_6
     assert SLOWEST == 5
 
+
+# Eight steps over the whole time: seven to build up, then the whole picture.
+EIGHT = Steps(build=7, of=8)
+PIXEL_HUNT = Steps(build=17, of=25)
 
 # --- the edges ----------------------------------------------------------------------
 
@@ -143,15 +147,17 @@ def test_a_type_that_says_something_is_scored_its_way(monkeypatch) -> None:
     ("declared", "steps", "scored"),
     [
         (Scoring.SPEED, None, Scoring.SPEED),
-        (Scoring.SPEED, 8, Scoring.SPEED),  # steps turn nothing into STEP
+        (Scoring.SPEED, EIGHT, Scoring.SPEED),  # steps turn nothing into STEP
         (Scoring.ACCURACY, None, Scoring.ACCURACY),
-        (Scoring.ACCURACY, 8, Scoring.ACCURACY),
-        (Scoring.STEP, 8, Scoring.STEP),
-        (Scoring.STEP, 1, Scoring.STEP),
+        (Scoring.ACCURACY, EIGHT, Scoring.ACCURACY),
+        (Scoring.STEP, EIGHT, Scoring.STEP),
+        (Scoring.STEP, PIXEL_HUNT, Scoring.STEP),
         (Scoring.STEP, None, Scoring.SPEED),  # a question that never changes
     ],
 )
-def test_step_without_steps_is_speed(declared: Scoring, steps: int | None, scored: Scoring) -> None:
+def test_step_without_steps_is_speed(
+    declared: Scoring, steps: Steps | None, scored: Scoring
+) -> None:
     assert effective(declared, steps) is scored
 
 
@@ -234,7 +240,7 @@ STEP_EDGES = [
 
 @pytest.mark.parametrize(("elapsed_s", "expected"), STEP_EDGES)
 def test_step_edges(elapsed_s: float, expected: int) -> None:
-    assert step(elapsed_s, 16, 8) == expected
+    assert step(elapsed_s, 16, EIGHT) == expected
 
 
 @pytest.mark.parametrize(("elapsed_s", "expected"), STEP_EDGES)
@@ -242,12 +248,38 @@ def test_step_edges(elapsed_s: float, expected: int) -> None:
 def test_step_edges_are_fractions_of_the_question_time(
     question_s: int, elapsed_s: float, expected: int
 ) -> None:
-    assert step(elapsed_s / 16 * question_s, question_s, 8) == expected
+    assert step(elapsed_s / 16 * question_s, question_s, EIGHT) == expected
 
 
-@pytest.mark.parametrize("elapsed_s", [-1.0, 0.0, 15.0, 30.0, 45.0])
-def test_one_step_is_always_the_first(elapsed_s: float) -> None:
-    assert step(elapsed_s, 30, 1) == 1
+@pytest.mark.parametrize(("build", "of"), [(0, 25), (25, 25), (26, 25), (-1, 25)])
+def test_the_build_up_takes_some_of_the_time_and_not_all(build: int, of: int) -> None:
+    with pytest.raises(ValueError):
+        Steps(build=build, of=of)
+
+
+# (seconds into a 25-second Pixel Hunt question, step): a second a step, then whole at 17.
+PIXEL_HUNT_EDGES = [
+    (0.0, 1),
+    (1.0, 1),
+    (1.001, 2),
+    (16.5, 17),
+    (17.0, 17),
+    (17.001, 18),
+    (24.9, 18),
+    (25.0, 18),
+]
+
+
+@pytest.mark.parametrize(("elapsed_s", "expected"), PIXEL_HUNT_EDGES)
+def test_pixel_hunt_builds_up_over_17_of_25_seconds(elapsed_s: float, expected: int) -> None:
+    assert step(elapsed_s, 25, PIXEL_HUNT) == expected
+    assert step(elapsed_s * 31 / 25, 31, PIXEL_HUNT) == expected
+
+
+def test_pixel_hunt_pays_1000_down_to_435_then_400_once_whole() -> None:
+    awarded = [step_points(k, PIXEL_HUNT.count) for k in range(1, 19)]
+    assert awarded == [round(400 + 600 * (18 - k) / 17) for k in range(1, 19)]
+    assert (awarded[0], awarded[16], awarded[17]) == (1000, 435, 400)
 
 
 @pytest.mark.parametrize(
@@ -293,18 +325,18 @@ STEPPED = [
     (8, 8, 1.0, 400),
     (2, 8, 0.5, 457),
     (8, 8, 0.0, 0),
-    (1, 1, 1.0, 1000),
+    (17, 18, 1.0, 435),
     (9, 8, 1.0, 400),
 ]
 
 
 @pytest.mark.parametrize(("step_number", "steps", "credit", "points"), STEPPED)
 def test_step_scoring(step_number: int, steps: int, credit: float, points: int) -> None:
-    assert points_for(Scoring.STEP, credit, step_number, steps) == points
+    assert points_for(Scoring.STEP, credit, step_number, Steps(steps - 1, steps)) == points
 
 
 def test_the_step_band_is_the_step() -> None:
-    assert band(Scoring.STEP, 5.0, 16, 8) == 3
+    assert band(Scoring.STEP, 5.0, 16, EIGHT) == 3
 
 
 def test_step_without_steps_is_scored_on_speed() -> None:
@@ -338,7 +370,7 @@ def test_accuracy_ignores_elapsed_time_entirely(credit: float, points: int) -> N
 @pytest.mark.parametrize("elapsed_s", [-1.0, 0.0, 1.0, 15.0, 29.0, 30.0, 600.0])
 def test_accuracy_has_no_band(elapsed_s: float) -> None:
     assert band(Scoring.ACCURACY, elapsed_s, 30, None) is None
-    assert band(Scoring.ACCURACY, elapsed_s, 30, 8) is None
+    assert band(Scoring.ACCURACY, elapsed_s, 30, EIGHT) is None
 
 
 def test_accuracy_pays_no_attention_to_a_band_it_is_handed() -> None:
@@ -351,10 +383,10 @@ def test_accuracy_pays_no_attention_to_a_band_it_is_handed() -> None:
 @pytest.mark.parametrize("credit", [-0.1, 1.0001, 2.0, math.nan])
 @pytest.mark.parametrize(
     ("scoring", "band_number", "steps"),
-    [(Scoring.SPEED, 1, None), (Scoring.STEP, 1, 8), (Scoring.ACCURACY, None, None)],
+    [(Scoring.SPEED, 1, None), (Scoring.STEP, 1, EIGHT), (Scoring.ACCURACY, None, None)],
 )
 def test_credit_outside_zero_to_one_is_refused(
-    scoring: Scoring, band_number: int | None, steps: int | None, credit: float
+    scoring: Scoring, band_number: int | None, steps: Steps | None, credit: float
 ) -> None:
     """A type that grades 1.2 has a bug, and paying 1200 for it would hide it."""
     with pytest.raises(ValueError, match="outside 0..1"):
@@ -452,9 +484,9 @@ def test_closest_number_pays_its_usual_points_in_a_team_game(credit: float) -> N
 @pytest.mark.parametrize("elapsed_s", [0.5, 3.0, 6.0, 9.9])
 def test_pixel_hunt_pays_its_usual_points_in_a_team_game(elapsed_s: float) -> None:
     how = scoring_of("pick_from_list")
-    team_band = band(how, elapsed_s, 10, 8, team=True)
-    assert team_band == band(how, elapsed_s, 10, 8) == step(elapsed_s, 10, 8)
-    assert points_for(how, 1.0, team_band, 8, team=True) == step_points(team_band, 8)
+    team_band = band(how, elapsed_s, 10, EIGHT, team=True)
+    assert team_band == band(how, elapsed_s, 10, EIGHT) == step(elapsed_s, 10, EIGHT)
+    assert points_for(how, 1.0, team_band, EIGHT, team=True) == step_points(team_band, 8)
 
 
 @pytest.mark.parametrize("elapsed_s", [0.5, 3.0, 9.9])

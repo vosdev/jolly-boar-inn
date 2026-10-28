@@ -52,6 +52,7 @@ async def report(body: Report, request: Request) -> dict[str, Any]:
     snapshot, text = reports.check(
         request.app.state.packs,
         request.app.state.settings,
+        request.app.state.rooms.pictures,
         body.mode,
         body.question,
         body.item,

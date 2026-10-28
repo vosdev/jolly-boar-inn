@@ -19,7 +19,7 @@ from app.modes import type_questions
 from app.questions import schema
 from app.questions.packs import load_packs
 from app.questions.submission import Submission
-from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of, steps_of
+from app.questions.types import TYPES, answer_seconds, reveal_seconds, scoring_of
 from app.questions.types.scoring import Scoring
 from tests import answers
 from tests.packs import PACKS_DIR
@@ -93,7 +93,7 @@ EXAMPLES: dict[str, Example] = {
         wrong=4587,
         secret=frozenset({"answer_id", "subject", "name", "asset", "explanation"}),
         scoring=Scoring.STEP,
-        seconds=(20, 6),
+        seconds=(25, 6),
     ),
     "multiple_choice": Example(
         payload={
@@ -427,6 +427,7 @@ def test_each_type_states_its_timing_and_its_scoring(type_id: str) -> None:
 
 
 @per_type
-def test_a_question_without_steps_has_none(type_id: str) -> None:
-    """Only a payload that says how many frames it zooms over is scored on them."""
-    assert steps_of(type_id, example(type_id).payload) is None
+def test_no_type_says_how_a_picture_builds_up(type_id: str) -> None:
+    """The mode sets the steps (``Mode.steps``), so no payload carries any."""
+    assert not hasattr(TYPES[type_id], "steps")
+    assert "steps" not in example(type_id).payload

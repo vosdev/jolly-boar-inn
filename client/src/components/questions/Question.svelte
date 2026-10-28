@@ -9,13 +9,12 @@
    *
    * It adds no markup of its own around the pair, only what every mode shows the same way:
    * a pack question's `picture` under the stem (large, in a mode whose `picture` says so, and
-   * its shadow until the reveal when the question is picked from the list; on the buttons it
-   * is the render among look-alikes), and after the view the note for somebody who
+   * its shadow or its build-up until the reveal when the question is picked from the list; on
+   * the buttons it is the render among look-alikes), and after the view the note for somebody who
    * cannot answer and the reveal's `explanation` where the author gave one. A mode with no stem, which is `more_less`, renders exactly
    * the view it rendered before stems existed, with nothing in between to shift a pixel.
    *
-   * The stem also gets the question's schedule, counted on `lib/clock.ts`'s server clock,
-   * for a stem that shows more of itself as time runs out.
+   * The stem also gets the question's schedule, counted on `lib/clock.ts`'s server clock.
    *
    * A type this build has no view for gets the honest fallback in place of the whole
    * question, stem included: a sentence with no way to answer it reads as a broken
@@ -42,7 +41,9 @@
 
   import { serverNow } from '../../lib/clock'
   import { MODES } from '../../lib/modes'
+  import type { Build } from '../../lib/pixelHunt'
   import type { OpenQuestion, PlayerResult } from '../../lib/protocol'
+  import { room } from '../../lib/stores'
   import { viewFor } from './index'
   import type { StemTiming } from './props'
   import QuestionPicture from './QuestionPicture.svelte'
@@ -87,8 +88,20 @@
       ? data.explanation
       : null,
   )
-  const pictured = $derived(MODES[question.mode]?.picture === 'shadow')
-  const shadowed = $derived(pictured && question.type === 'pick_from_list')
+  const picture = $derived(MODES[question.mode]?.picture)
+  const pictured = $derived(picture !== undefined)
+  const listed = $derived(question.type === 'pick_from_list')
+  const shadowed = $derived(picture === 'shadow' && listed)
+  const build: Build | null = $derived(
+    picture === 'build' && listed
+      ? {
+          room: $room?.code ?? '',
+          questionId: question.question_id,
+          answerableAt: question.answerable_at ?? question.opened_at,
+          endsAt: question.ends_at,
+        }
+      : null,
+  )
   const subjectName = $derived.by(() => {
     const subject = data.subject as { name?: unknown } | undefined
     if (typeof subject?.name === 'string') return subject.name
@@ -99,7 +112,6 @@
   const timing: StemTiming = $derived({
     answerableAt: question.answerable_at ?? question.opened_at,
     endsAt: question.ends_at,
-    steps: typeof question.view.steps === 'number' ? question.view.steps : null,
     now: serverNow,
   })
 </script>
@@ -122,6 +134,7 @@
       name={question.picture}
       large={pictured}
       shadow={shadowed}
+      {build}
       lifted={revealed}
       caption={pictured && revealed ? subjectName : null}
     />

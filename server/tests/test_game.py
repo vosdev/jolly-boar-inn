@@ -46,7 +46,6 @@ from app.questions.types import (
     answer_seconds,
     more_less,
     multiple_choice,
-    pick_from_list,
     reveal_seconds,
 )
 from app.questions.types.scoring import Scoring
@@ -1964,37 +1963,27 @@ def test_a_type_scored_on_accuracy_pays_the_same_early_or_late(table, monkeypatc
     assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 1000, "Lynx": 0}
 
 
-def test_a_type_scored_on_steps_pays_the_frame_the_answer_arrived_on(table, monkeypatch) -> None:
-    """``SCORING = STEP`` with ``steps`` in the payload pays by the step, and without
-    them it is ``SPEED`` -- in the ack as well as the points, so a client is never told a
-    step number for a question that has no steps.
-
-    Only Pixel Hunt's ``pick_from_list`` payloads will carry ``steps``, and that is Phase
-    3, so ``more_less`` is lent the type's two hooks and the open question's in-memory
-    payload is given four: 2.5 seconds a frame.
-    """
-    monkeypatch.setattr(more_less, "SCORING", Scoring.STEP, raising=False)
-    monkeypatch.setattr(more_less, "steps", pick_from_list.steps, raising=False)
-    game = table("Zezima", "Woox", seconds=10, close_when_all_answered=False)
-    zezima, woox = game.players
+def test_pixel_hunt_pays_the_step_the_answer_arrived_on(table, pictures) -> None:
+    """Pixel Hunt's 17 build-up steps are a second each of 25, then the whole picture is the
+    18th: in the ack as well as the points."""
+    game = table(
+        "Zezima", "Woox", "Lynx", modes=["pixel_hunt"], seconds=25, close_when_all_answered=False
+    )
+    zezima, woox, lynx = game.players
     game.start()
     game.opened(0)
-    game.question(0).payload["steps"] = 4
-    first = answer_after(game, zezima, 0, game.right(0), 1.0)
-    third = answer_after(game, woox, 0, game.right(0), 6.0)
-    assert (first["scoring"], first["band"]) == ("step", 1)
-    assert (third["scoring"], third["band"]) == ("step", 3)
+    acks = [
+        answer_after(game, seat, 0, game.right(0), seconds)
+        for seat, seconds in ((zezima, 0.5), (woox, 16.5), (lynx, 20.0))
+    ]
+    assert [(ack["scoring"], ack["band"]) for ack in acks] == [
+        ("step", 1),
+        ("step", 17),
+        ("step", 18),
+    ]
     game.skip()
     closed = game.admin.take("question_closed")
-    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 600}
-
-    game.opened(1)
-    assert "steps" not in game.question(1).payload
-    ack = answer_after(game, zezima, 1, game.right(1), AFTER[2])
-    assert (ack["scoring"], ack["band"]) == ("speed", 2)
-    game.skip()
-    closed = game.admin.take("question_closed")
-    assert points_by_name(game, closed) == {"Zezima": 900}
+    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 435, "Lynx": 400}
 
 
 def test_partial_credit_scores_without_being_correct(table, db, monkeypatch) -> None:
@@ -2124,7 +2113,7 @@ def play_right_and_wrong(game: Game, index: int) -> dict[str, Any]:
 # A mode that borrows another's pool has its own test, in ``test_random_events_only.py``.
 @pytest.mark.parametrize("mode", [mode.id for mode in round_modes() if mode.pool is None])
 def test_a_round_of_every_mode_takes_a_right_and_a_wrong_answer_and_closes(
-    table, db, mode: str
+    table, db, pictures, mode: str
 ) -> None:
     game = table("Zezima", "Woox", modes=[mode], questions=1, seconds=10)
     game.start()

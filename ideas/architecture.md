@@ -80,8 +80,8 @@ A **type** is an answer shape: what a player sends, how it is checked, how it ea
 **mode** is a round: what the host picks, what a splash introduces, what a pack pools by. Five
 planned modes share `multiple_choice`; as five types they would be five copies of `grade`.
 
-`Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None)` in
-`modes/`, registered in `MODES` in the create form's order.
+`Mode(id, types, is_round=True, questions=None, pool=None, setting=None, options=None,
+steps=None, pictured=False)` in `modes/`, registered in `MODES` in the create form's order.
 
 - `id` is `questions.mode` and the settings key. It is never renamed once shipped.
 - A round may mix types. The game loop reads only `question.type`, which also times the question. A
@@ -93,7 +93,7 @@ planned modes share `multiple_choice`; as five types they would be five copies o
   the `Settings` flag that offers the mode; off, or with an empty pool, `/api/modes` omits it and
   `POST /api/rooms` is a 403 `mode_not_offered`. A stored room keeps playing it. `options` holds a
   round's `multiple_choice` questions to fewer options than the schema's two to six; `mode_errors`
-  refuses the rest.
+  refuses the rest. `steps` and `pictured` are Pixel Hunt's (sections 8 and 12).
 
 Each module in `questions/types/` exports:
 
@@ -103,7 +103,6 @@ def reveal(payload) -> dict           # what the close shows
 def parse_value(payload, value)       # the canonical answer, or None for bad_value
 def grade(payload, submissions) -> dict[player_id, float]   # credit, 0.0 to 1.0
 def check(payload) -> list[str]       # the stored answer follows from the stored facts
-def steps(payload) -> int | None      # optional: frames it reveals itself in
 def pictured(view, payload, pictures) # optional: a pack question's pictures inside its view
 SCORING: Scoring                      # SPEED by default (section 8)
 ANSWER, REVEAL: Timing                # base + per_item seconds, at run pace
@@ -119,7 +118,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
   `walk`, ×1 `run`, ×0.75 `teleport`, a half rounded up, at least 5 s to answer and 4 s to reveal.
   At `run`: `multiple_choice` 10 + 2/option and 4 + 0.5/option, `pick_all_that_apply` 10 + 3 and
   4 + 1, `ordering` and `matching` 10 + 5 and 4 + 2 per entry or field, `price_is_right` 15 and 6,
-  `more_less` 10 and 5, `pick_from_list` 20 and 6, `free_text` 20 and 7, `closest_number` 20 and 8,
+  `more_less` 10 and 5, `pick_from_list` 25 and 6, `free_text` 20 and 7, `closest_number` 20 and 8,
   `number_slider` 15 and 8.
   `name_wrong_answers` adds 1 s to every reveal after the pace, for the names.
 - A game's minutes (`rooms/duration.py`) are a ceiling: every question's full answer and reveal,
@@ -143,7 +142,7 @@ def items(payload) -> int             # optional: options or entries; 0 without 
 | `who_said_that` | Who Said That? | `multiple_choice` | hand-written | done |
 | `know_your_content_creator` | Know Your Content Creator | `multiple_choice`, `closest_number`, `number_slider`, `pick_all_that_apply` | hand-written | done |
 | `whos_that_npc` | Who's That NPC? | `pick_from_list` over `popular-npcs.json`, a shadow; `multiple_choice`, a render | hand-written | done |
-| `pixel_hunt` | Pixel Hunt | `pick_from_list` | renders | Images |
+| `pixel_hunt` | Pixel Hunt | `pick_from_list` over `popular-items.json`, a detail picture built up | generated from the roster | done: Zoom out, Pixelate |
 | `minimap_guesser`, `name_that_spell` | Minimap Guesser, Name that spell | undecided | | Images (minimap), Sound (spell) |
 
 Create lists the unbuilt ones from `UPCOMING_MODES` in `lib/modes.ts`.
@@ -220,7 +219,8 @@ server's Pydantic models and the client's TS types are derived by hand and teste
 - `pick_all_that_apply` stores sorted `answer_indices` and an optional `picks`, shown open. `check()`
   rejects no option right, and a `picks` that is not their count.
 - `pick_from_list` answers through one strict WAI-ARIA combobox. Typing only searches, by word
-  prefix, ignoring case and accents. Only a selected entry can be submitted, with its own button.
+  prefix, ignoring case and accents. Only a selected entry can be submitted, with its own button;
+  the mode, not the payload, sets its `steps` (section 8).
 
 ## 5. Packs, selection, segments
 
@@ -228,8 +228,9 @@ server's Pydantic models and the client's TS types are derived by hand and teste
   `data/packs/random_events/<npc>.json`, is `{pack, random_event, questions}`; the loader stamps
   the NPC on each question and refuses a file named after nobody on the roster.
 - `validate_packs.py` fails CI on a schema error, a duplicate or mismatched id, an unknown mode, a
-  type its mode does not allow, a stray `random_event`, a price type filed as an event, or one
-  `pick_from_list` prompt under two answers, unless each has a picture.
+  type its mode does not allow, a stray `random_event`, a price type filed as an event, one
+  `pick_from_list` prompt under two answers unless each has a picture, or a Pixel Hunt question
+  without its own item's detail picture.
 - Custom questions are rows with `source = 'room'`, `mode = 'custom'` and `author_player_id`.
 - Create's editor writes `multiple_choice`, `free_text`, `closest_number`, `number_slider` and
   `pick_all_that_apply` (`picks` only as a "tell players how many" box), and `MatchingForm` a
@@ -339,7 +340,7 @@ PlayerResult { value, correct, credit, points }
 - `picture` is a pack question's file in `/pictures/` under a random name, from `data/pictures.json`
   (section 12), or null: no image, a host's question, or a file the client lacks: `client/dist`,
   or `client/public` under `make dev`. Served immutable, and drawn under the stem in every mode,
-  open and revealed. Devtools still show the whole picture before it zooms out or loses its shadow.
+  open and revealed. Devtools still show the whole picture before it builds up or loses its shadow.
 - `answerable_at` is `opened_at` plus the hold the question types in (`rooms/hold.py`): 0.4 s (0.9 s
   for an event), each line, a round's host's ask line counted as 50 letters, at 50 letters a second
   with a 0.5–1 s pause after it, then 0.2 s. Answers before it are `not_open`, and `ends_at` and timing count from it, so the typing
@@ -481,7 +482,7 @@ from taking the lock. `grade` returns credit; `scoring.py` turns it into points 
 |---|---|---|
 | `SPEED` | `round(bucket points × credit)` | `more_less`, `price_is_right`, `number_slider`, `multiple_choice`, `free_text`, `pick_all_that_apply`, `ordering`, `matching` |
 | `ACCURACY` | `round(1000 × credit)` | `closest_number` |
-| `STEP` | `round(step points × credit)` | `pick_from_list` with `steps` |
+| `STEP` | `round(step points × credit)` | `pick_from_list` in a mode with `steps` |
 
 | Speed bucket | Fraction of the question's seconds | Points |
 |---|---|---|
@@ -506,12 +507,13 @@ Slider (`price_is_right`): 1.0 for a guess that rounds to the price at two figur
 linearly from that band's edge to 0 at a quarter of the log width; the reveal ticks every guess.
 `number_slider` has no band: 1.0 on the answer, 0 a quarter of the track's width away.
 
-Steps (Pixel Hunt): `steps` frames over the question's seconds. Points fall from 1000 on step 1 to
-400 on the last, `round(400 + 600 × (steps - k) / (steps - 1))`; one step pays 1000. A payload
-without `steps` scores on speed.
+Steps (Pixel Hunt): `Steps(build=17, of=25)`, 17 steps of a 25th of the question's seconds while
+the picture builds up, then the whole picture as step 18. Points fall from 1000 to 435 on step
+17 and 400 on 18, `round(400 + 600 × (18 - k) / 17)`. A mode without `steps` scores on speed.
 
-- There is no `question_update` message. The step schedule is a function of `answerable_at`,
-  `ends_at` and `steps`, so clients advance it themselves and a reconnect lands on the right frame.
+- There is no `question_update` message. Clients work the schedule out from `answerable_at` and
+  `ends_at`, and the reveal (`lib/pixelHunt.ts`, one `<canvas>`, a function of the picture, the
+  build-up's progress and a seed) and its seed from a hash of the room code and `question_id`.
 - `points_for(scoring, credit, band, steps, team=)` is the one entry point. It refuses credit outside 0..1
   rather than paying for a type's bug.
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".
@@ -768,7 +770,10 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
   Packs that would still not load write nothing.
 - `make edit-roster FILE=…` applies an export of roster changes: a rename keeps the item's place, a
   removal drops it. A change to an id the roster lacks, or packs that would not load, writes nothing.
-  The price pack keeps the old names until the next `gen-price-questions`.
+  It rewrites the Pixel Hunt pack too; the price pack keeps the old names until `gen-price-questions`.
+- `make gen-pixel-hunt` writes `pixel_hunt.json` offline: a question per roster item with a detail
+  picture in `assets.json` and off the script's blocklist, keeping its difficulty (else `medium`).
+  A `pictured` round draws a question only when `data/pictures.json` has its picture.
 - Examine, Bestiary, Drop Table, Odd One Out, Release Order and Sort It Out are hand-written packs,
   like the random events. No importer fetches wiki facts, so the owner picks every monster and
   question.

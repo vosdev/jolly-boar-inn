@@ -362,21 +362,20 @@ describe('the stem’s schedule', () => {
 
   it('is the question’s, on the server clock', () => {
     const question = {
-      ...open('more_less', 'stemmed', { ...VIEW, steps: 8 }),
+      ...open('more_less', 'stemmed'),
       answerable_at: '2026-09-21T20:00:02Z',
     }
     render(Question, { question, yourValue: null, onAnswer })
     expect(seen).toEqual({
       answerableAt: '2026-09-21T20:00:02Z',
       endsAt: '2026-09-21T20:00:10Z',
-      steps: 8,
       now: serverNow,
     })
   })
 
-  it('opens at `opened_at` with no hold sent, and has no steps with none in the view', () => {
+  it('opens at `opened_at` with no hold sent', () => {
     render(Question, { question: open('more_less', 'stemmed'), yourValue: null, onAnswer })
-    expect(seen).toMatchObject({ answerableAt: '2026-09-21T20:00:00Z', steps: null })
+    expect(seen).toMatchObject({ answerableAt: '2026-09-21T20:00:00Z' })
   })
 })
 
@@ -687,6 +686,34 @@ describe('Who’s That NPC?’s shadow', () => {
     )
     expect(paper().querySelector('.frame.shadow.lifted .fill')).toBeTruthy()
     expect(paper().querySelector('.caption')!.textContent).toBe('Vorkath')
+  })
+})
+
+describe('Pixel Hunt’s picture', () => {
+  const VIEW_ITEM = { prompt: 'Which item is this?', vocab: 'items' }
+  const question = { ...open('pick_from_list', 'pixel_hunt', VIEW_ITEM), picture: 'feedc0de.png' }
+  const paper = () => document.querySelector('.paper') as HTMLElement
+
+  it('builds up on a canvas over the image held invisible while the question is open', () => {
+    render(QuestionStage, { question, yourValue: null, onAnswer })
+    const frame = paper().querySelector('.picture.large .frame.building')!
+    expect(frame.querySelector('img')!.getAttribute('src')).toBe('/pictures/feedc0de.png')
+    expect(frame.querySelector('canvas')).toBeTruthy()
+    expect(paper().querySelector('.shadow, .fill, .caption')).toBeNull()
+  })
+
+  it('is the whole picture with its name on the reveal', () => {
+    render(QuestionStage, {
+      question,
+      reveal: { ...VIEW_ITEM, answer_id: 4151, subject: { name: 'Abyssal whip' } },
+      yourValue: null,
+      onAnswer,
+    })
+    expect(paper().querySelector('.picture.large img')!.getAttribute('src')).toBe(
+      '/pictures/feedc0de.png',
+    )
+    expect(paper().querySelector('canvas, .building')).toBeNull()
+    expect(paper().querySelector('.caption')!.textContent).toBe('Abyssal whip')
   })
 })
 

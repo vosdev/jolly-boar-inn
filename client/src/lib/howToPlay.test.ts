@@ -128,7 +128,7 @@ describe('How to play addresses', () => {
   })
 
   it('give the overview for a mode they do not know, and nothing outside the page', () => {
-    expect(howToViewOf('/how-to-play/pixel-hunt', SHOWN)).toBe('overview')
+    expect(howToViewOf('/how-to-play/scrying-pool', SHOWN)).toBe('overview')
     expect(howToViewOf('/how-to-playground', SHOWN)).toBeNull()
     expect(howToViewOf('/', SHOWN)).toBeNull()
   })

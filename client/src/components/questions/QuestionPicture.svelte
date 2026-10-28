@@ -16,8 +16,9 @@
    * `shadow` draws the render's outline filled with the theme's flat `--silhouette`, over
    * the image held invisible so the fill is exactly its size. `lifted` fades the shadow
    * into the render, as the reveal does. It is an animation, not a transition, because the
-   * reveal draws a new picture that is lifted from its first frame. `caption` is the name
-   * under it.
+   * reveal draws a new picture that is lifted from its first frame. `build` draws Pixel
+   * Hunt's build-up over the image held invisible the same way, until it is `lifted`.
+   * `caption` is the name under it.
    *
    * A `large` picture on a room's stage (the nearest `[data-fit-stage]`) takes the height the
    * stage has left once everything else is in, and the room under the answer input for its
@@ -30,6 +31,8 @@
    */
   import { PICTURE_MOST_REM, pictureHeight, suggestionsHeight } from '../../lib/pictureFit'
   import { pictureUrl } from '../../lib/pictures'
+  import type { Build } from '../../lib/pixelHunt'
+  import BuildUp from './BuildUp.svelte'
 
   let {
     name,
@@ -37,9 +40,11 @@
     lifted = false,
     large = false,
     caption = null,
+    build = null,
   }: {
     name: string | null | undefined
     shadow?: boolean
+    build?: Build | null
     lifted?: boolean
     /** The picture is the whole question, so it gets the room a prompt would have had. */
     large?: boolean
@@ -47,6 +52,7 @@
   } = $props()
 
   const src = $derived(pictureUrl(name))
+  const building = $derived(build !== null && !lifted)
 
   let box = $state<HTMLElement | null>(null)
   let img = $state<HTMLImageElement | null>(null)
@@ -112,10 +118,12 @@
     style:--picture-height={fitted === null ? null : `${fitted}px`}
   >
     {#if src !== null}
-      <div class="frame" class:shadow class:lifted={shadow && lifted}>
+      <div class="frame" class:shadow class:building class:lifted={shadow && lifted}>
         <img {src} alt="" bind:this={img} onload={loaded} />
         {#if shadow}
           <span class="fill" style:--outline="url('{src}')"></span>
+        {:else if building && build}
+          <BuildUp image={img} {...build} />
         {/if}
       </div>
     {:else}
@@ -171,7 +179,8 @@
     max-height: var(--picture-height);
   }
 
-  .shadow img {
+  .shadow img,
+  .building img {
     opacity: 0;
   }
 

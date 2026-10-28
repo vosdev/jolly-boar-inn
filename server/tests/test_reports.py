@@ -59,6 +59,8 @@ def offline(settings: Settings, dist: Path) -> Iterator[TestClient]:
     """No database: everything a report is refused for is decided before one is needed."""
     configured = settings.model_copy(update={"packs_dir": PACKS_DIR, "admin_token": TOKEN})
     with TestClient(create_app(configured, dist)) as client:
+        images = {q["payload"].get("image") for q in mode_questions(PACKS, "pixel_hunt")}
+        client.app.state.rooms.pictures = {asset: "0000000000000000.png" for asset in images}
         yield client
 
 
@@ -125,6 +127,7 @@ WHAT_PLAYERS_READ = {
     "minigame_madness": _prompt,
     "random_event": _prompt,
     "odd_one_out": lambda q: ", ".join(q["payload"]["options"]),
+    "pixel_hunt": lambda q: q["payload"]["subject"]["name"],
     "whos_that_npc": lambda q: (
         q["payload"]["subject"]["name"]
         if q["type"] == "pick_from_list"

@@ -8,6 +8,7 @@ import the registry to get it.
 from dataclasses import dataclass
 
 from app.questions.types.bounds import Bounds
+from app.questions.types.scoring import Steps
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,6 +38,10 @@ class Mode:
 
     ``options`` bounds how many options its ``multiple_choice`` questions offer, when the
     schema's two to six would make the round a guess.
+
+    ``steps`` is how a round's picture builds up, for its ``STEP`` questions; without it they
+    score on speed. ``pictured`` keeps a question whose picture this install lacks out of the
+    round: the picture is the whole question.
     """
 
     id: str
@@ -46,6 +51,8 @@ class Mode:
     pool: str | None = None
     setting: str | None = None
     options: tuple[int, int] | None = None
+    steps: Steps | None = None
+    pictured: bool = False
 
     def __post_init__(self) -> None:
         # A bare string would be read as a set of its letters.

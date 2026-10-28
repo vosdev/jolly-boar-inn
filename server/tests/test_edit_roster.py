@@ -57,6 +57,26 @@ def test_a_rename_and_a_removal_rewrite_the_roster_in_place(
     assert "make gen-price-questions" in capsys.readouterr().out
 
 
+def test_the_pixel_hunt_pack_follows_the_roster(repo: dict[str, Path]) -> None:
+    """A renamed item's question takes its new name and a removed one's leaves; the rest keep
+    their difficulty."""
+    path = repo["packs"] / "pixel_hunt.json"
+    pack = json.loads(path.read_text())
+    pack["questions"][0]["difficulty"] = "hard"
+    path.write_text(json.dumps(pack))
+    first, second, third = (q["payload"] for q in pack["questions"][:3])
+    renames = [{"id": second["answer_id"], "name": "Renamed item"}]
+    assert run(repo, {"renames": renames, "removes": [third["answer_id"]]}) == 0
+    after = json.loads(path.read_text())["questions"]
+    assert len(after) == len(pack["questions"]) - 1
+    assert (after[0]["payload"]["answer_id"], after[0]["difficulty"]) == (
+        first["answer_id"],
+        "hard",
+    )
+    assert after[1]["payload"]["subject"] == {"name": "Renamed item"}
+    assert third["answer_id"] not in {q["payload"]["answer_id"] for q in after}
+
+
 def test_an_empty_export_changes_nothing(repo: dict[str, Path]) -> None:
     text = repo["roster"].read_text()
     assert run(repo, {"renames": [], "removes": []}) == 0

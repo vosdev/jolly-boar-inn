@@ -18,10 +18,11 @@ from uuid import uuid4
 import pytest
 
 from app.config import REPO_ROOT
+from app.modes import steps_of
 from app.questions import schema, vocab
 from app.questions.submission import Submission
-from app.questions.types import TYPES, pick_from_list, scoring_of, steps_of
-from app.questions.types.scoring import Scoring
+from app.questions.types import TYPES, pick_from_list, scoring_of
+from app.questions.types.scoring import Scoring, Steps
 from app.rooms import scoring
 
 SERVER_DIR = REPO_ROOT / "server"
@@ -63,15 +64,17 @@ def test_the_type_is_registered() -> None:
 
 
 def test_it_scores_on_steps_which_without_steps_is_speed() -> None:
-    """Section 6: one type for Pixel Hunt's frames and Guess the Examine's one line."""
+    """Section 8: one type for Pixel Hunt's build-up and Who's That NPC?'s one shadow."""
     assert scoring_of("pick_from_list") is Scoring.STEP
-    assert scoring.effective(Scoring.STEP, EXAMPLE["payload"].get("steps")) is Scoring.SPEED
-    assert scoring.effective(Scoring.STEP, 8) is Scoring.STEP
+    assert scoring.effective(Scoring.STEP, steps_of("whos_that_npc")) is Scoring.SPEED
+    assert scoring.effective(Scoring.STEP, steps_of("pixel_hunt")) is Scoring.STEP
 
 
-def test_its_steps_hook_is_how_the_engine_learns_the_frames() -> None:
-    assert steps_of("pick_from_list", payload(steps=8)) == 8
-    assert steps_of("pick_from_list", EXAMPLE["payload"]) is None
+def test_the_mode_sets_the_steps() -> None:
+    assert steps_of("pixel_hunt") == Steps(build=17, of=25)
+    assert steps_of("whos_that_npc") is None
+    assert steps_of("random_event") is None
+    assert steps_of("a_mode_this_build_lacks") is None
 
 
 def test_example_validates() -> None:
@@ -177,7 +180,7 @@ def test_validate_packs_fails_an_answer_id_missing_from_its_vocabulary(tmp_path:
         (lambda p: p.pop("vocab"), "$.payload"),
         (lambda p: p.update(vocab="quests"), "$.payload.vocab"),
         (lambda p: p.update(answer_id="4151"), "$.payload.answer_id"),
-        (lambda p: p.update(steps=13), "$.payload.steps"),
+        (lambda p: p.update(steps=8), "$.payload"),
         (lambda p: p.update(accepted=["whip"]), "$.payload"),
         (lambda p: p.update(prompt=""), "$.payload.prompt"),
     ],
@@ -196,8 +199,7 @@ def test_client_view_withholds_the_answer_and_anything_that_names_it() -> None:
     """The subject *is* the answer here, so it waits for the reveal with ``answer_id``."""
     view = pick_from_list.client_view(EXAMPLE["payload"])
     assert view == {"prompt": "A weapon from the abyss.", "vocab": "items"}
-    stepped = pick_from_list.client_view(payload(steps=8, image="item:4151"))
-    assert stepped == {**view, "steps": 8}
+    assert pick_from_list.client_view(payload(image="item:4151")) == view
 
 
 def test_reveal_adds_the_answer_and_what_it_was() -> None:

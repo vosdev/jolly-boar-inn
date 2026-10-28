@@ -3,9 +3,9 @@
 Payload shape (schema ``$defs/pick_from_list``)::
 
     {"intro"?: str, "prompt": str, "vocab": "items" | "npcs", "answer_id": int,
-     "subject"?: {"name", "asset"?}, "image"?: asset, "steps"?: 1..12, "explanation"?: str}
+     "subject"?: {"name", "asset"?}, "image"?: asset, "explanation"?: str}
 
-Who's That NPC? and Pixel Hunt in the Images milestone will answer this way: questions you
+Who's That NPC? and Pixel Hunt answer this way: questions you
 can only answer by knowing, not by ruling out a few buttons. The player searches the
 vocabulary and submits an entry's id; what they typed to find it never leaves the client.
 That is the whole design: an id is either the answer or it is not, so there is no
@@ -18,9 +18,8 @@ edit that drops or renames an item that a question answers to fails CI rather th
 quiz night. For the same reason ``parse_value`` refuses an id the vocabulary does not
 have: a submission that could never be right is a malformed one, not a wrong one.
 
-``steps`` is Pixel Hunt's -- how many frames the picture zooms out over -- and ``steps()``
-hands it to the engine. Without it the question shows one thing, and ``STEP`` scoring falls
-back to speed (section 6).
+``STEP`` scoring takes its steps from the mode: Pixel Hunt's picture builds up, and every
+other round's question shows one thing and scores on speed (section 8).
 
 The subject is the answer, so it is withheld with ``answer_id`` until the reveal.
 """
@@ -35,11 +34,11 @@ from app.questions.types.scoring import Scoring
 from app.questions.types.timing import Timing
 
 SCORING = Scoring.STEP
-# A sentence to read, then a search to type and an entry to pick.
-ANSWER = Timing(base=20)
+# A picture to watch build up, then a search to type and an entry to pick.
+ANSWER = Timing(base=25)
 REVEAL = Timing(base=6)
 
-_OPEN_KEYS = ("intro", "prompt", "vocab", "steps")
+_OPEN_KEYS = ("intro", "prompt", "vocab")
 
 
 def client_view(payload: dict[str, Any]) -> dict[str, Any]:
@@ -68,11 +67,6 @@ def parse_value(payload: dict[str, Any], value: Any) -> int | None:
     if entry is None or names is None or names.name_of(entry) is None:
         return None
     return entry
-
-
-def steps(payload: dict[str, Any]) -> int | None:
-    """How many frames the picture zooms out over; ``None`` for a question that shows one."""
-    return payload.get("steps")
 
 
 def check(payload: dict[str, Any]) -> list[str]:

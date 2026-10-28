@@ -248,6 +248,19 @@ def stub_mode(
 
 
 @pytest.fixture
+def pictures(app: FastAPI, client: TestClient) -> dict[str, str]:
+    """Every pack question's picture, as though ``build_pictures.py`` had copied them all."""
+    images = {
+        q["payload"]["image"]
+        for pack in app.state.packs
+        for q in pack.questions
+        if "image" in q["payload"]
+    }
+    app.state.rooms.pictures = {asset: f"{n:016x}.png" for n, asset in enumerate(sorted(images))}
+    return dict(app.state.rooms.pictures)
+
+
+@pytest.fixture
 def second_mode(app: FastAPI, client: TestClient) -> Iterator[str]:
     """A second playable mode, so a room can be more than one round.
 
