@@ -605,15 +605,18 @@
   /* Zanaris's sign at the Cosmic altar: teal stone with pale crystal shards at its corners,
      stretched to any sheet, and a clump of the city's mushrooms at its foot. */
   :where(.scroll[data-sheet='sign']) .paper {
-    padding: calc(1.8rem * var(--k)) calc(2.4rem * var(--k)) calc(1.8rem * var(--k));
+    padding: calc(1.8rem * var(--k)) calc(3rem * var(--k)) calc(1.8rem * var(--k));
     background: none;
     box-shadow: none;
   }
 
+  /* The stone's body spans x 12 to 488 of its 500, so it overhangs the sheet by that margin
+     and its edge lines up with the panels beside it. */
   .altar {
     position: absolute;
-    inset: 0;
-    width: 100%;
+    top: 0;
+    left: -2.52%;
+    width: 105.04%;
     height: 100%;
   }
 
