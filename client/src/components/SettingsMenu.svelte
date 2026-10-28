@@ -34,15 +34,21 @@
    * clears it on the server, and it stays off until the name is typed in again. The room's
    * TV has no You section: nobody plays as it, so it has no name or pet to pick.
    *
+   * On a screen wide enough for it, the menu is a sheet under the bar in two halves: the
+   * name, the theme and the sound on the left, the pet grid always open on the right, so
+   * the inputs for name and pet line up. On a phone, the sections stack and the pets wait
+   * behind "Change pet".
+   *
    * The menu is a non-modal dialog. Escape, a tap outside, or tabbing out of it closes
    * it; Escape hands focus back to the control, and so does a tap outside that landed on
    * nothing focusable, so a tap on an answer button keeps its focus.
    */
   import { tick } from 'svelte'
+  import { MediaQuery } from 'svelte/reactivity'
 
   import { Cooldown } from '../lib/cooldown.svelte'
   import { nameProblem } from '../lib/names'
-  import { petOf } from '../lib/pets'
+  import { petOf, randomPet } from '../lib/pets'
   import { profile, saveProfile } from '../lib/profile'
   import type { PlayerView } from '../lib/protocol'
   import { connection, players, profileError, requestsSettled, room, roomSend } from '../lib/stores'
@@ -58,6 +64,8 @@
   const PENDING_MS = 5_000
   /** Well inside the server's 60 s, so a menu held open never lapses. */
   const EDITING_REFRESH_MS = 30_000
+  /** Where the sheet, the window less 2rem, has room for two halves. */
+  const wide = new MediaQuery('(min-width: 46rem)')
 
   let {
     live = null,
@@ -90,6 +98,7 @@
   const inRoom = $derived(live !== null)
   const canRename = $derived(!inRoom || $room?.status === 'lobby')
   const isTV = $derived(live?.role === 'tv')
+  const halves = $derived(wide.current && !isTV)
   const editing = $derived(
     open &&
       nameFocused &&
@@ -169,7 +178,9 @@
   async function openMenu(): Promise<void> {
     open = true
     draft = currentName
-    draftPet = shownPet
+    // Somebody with no profile yet sees the pet their first save will give them, and can
+    // change it before it is theirs.
+    draftPet = shownPet ?? randomPet()
     saved = null
     unanswered = false
     resting = false
@@ -248,6 +259,48 @@
 
 <svelte:window onpointerdown={onWindowPointerDown} onkeydown={onWindowKeyDown} />
 
+{#snippet petPicker(inline: boolean)}
+  <PetPicker
+    bind:value={() => draftPet ?? '', (pet) => (draftPet = pet)}
+    {taken}
+    {inline}
+    disabled={pending !== null}
+    onchange={() => {
+      saved = null
+      resting = false
+    }}
+  />
+{/snippet}
+
+{#snippet nameForm()}
+  <form
+    onsubmit={submit}
+    oninput={() => (resting = false)}
+    onfocusin={(event) => (nameFocused = isNameField(event.target))}
+    onfocusout={() => (nameFocused = false)}
+  >
+    <NameField id="profile-name" bind:value={draft} avoid={$room?.code ?? ''} />
+    <div class="row">
+      <button
+        class="primary small"
+        type="submit"
+        disabled={!ok || pending !== null || profileHold.held}
+      >
+        Save
+      </button>
+      {#if pending !== null}
+        <span class="note">Asking the room…</span>
+      {:else if refusal !== null}
+        <span class="error">{refusal}</span>
+      {:else if unanswered}
+        <span class="error">The room didn't answer. Try again.</span>
+      {:else if saved !== null}
+        <span class="note">{saved}</span>
+      {/if}
+    </div>
+  </form>
+{/snippet}
+
 <div class="menu" bind:this={root} onfocusout={onFocusOut}>
   <button
     type="button"
@@ -273,59 +326,61 @@
     {/if}
     <span class="chip-name">{shownName ?? 'Set your display name'}</span>
     <span class="bar-emblem" aria-hidden="true"><Emblem {theme} /></span>
+    <svg class="chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+      <path d="M2 4l4 4 4-4" />
+    </svg>
   </button>
 
   {#if open}
-    <div class="panel-menu" role="dialog" aria-label="Settings" tabindex="-1" bind:this={panel}>
-      {#if !isTV}
-        <section aria-labelledby="menu-you">
-          <h2 class="section-title" id="menu-you">You</h2>
-          <fieldset class="you" disabled={!canRename}>
-            {#if draftPet !== null}
-              <PetPicker
-                bind:value={draftPet}
-                {taken}
-                disabled={pending !== null}
-                onchange={() => {
-                  saved = null
-                  resting = false
-                }}
-              />
-            {/if}
-            <form
-              onsubmit={submit}
-              oninput={() => (resting = false)}
-              onfocusin={(event) => (nameFocused = isNameField(event.target))}
-              onfocusout={() => (nameFocused = false)}
-            >
-              <NameField id="profile-name" bind:value={draft} avoid={$room?.code ?? ''} />
-              <div class="row">
-                <button
-                  class="primary small"
-                  type="submit"
-                  disabled={!ok || pending !== null || profileHold.held}
-                >
-                  Save
-                </button>
-                {#if pending !== null}
-                  <span class="note">Asking the room…</span>
-                {:else if refusal !== null}
-                  <span class="error">{refusal}</span>
-                {:else if unanswered}
-                  <span class="error">The room didn't answer. Try again.</span>
-                {:else if saved !== null}
-                  <span class="note">{saved}</span>
-                {/if}
-              </div>
-            </form>
+    <div class="backdrop" aria-hidden="true"></div>
+    <div
+      class="panel-menu"
+      class:halves
+      role="dialog"
+      aria-label="Settings"
+      tabindex="-1"
+      bind:this={panel}
+    >
+      {#if halves}
+        <div class="side">
+          <section aria-labelledby="menu-you">
+            <h2 class="sr" id="menu-you">You</h2>
+            <fieldset class="you face" disabled={!canRename}>
+              {#if draftPet !== null}
+                <Pet pet={draftPet} size={64} label="" />
+              {/if}
+              {@render nameForm()}
+            </fieldset>
             {#if !canRename}
               <p class="note">Names are fixed once the game has started.</p>
             {/if}
-          </fieldset>
-        </section>
+          </section>
+          <ThemeChoices current={theme} onpick={pickTheme} named />
+          <SoundSettings />
+        </div>
+        <fieldset class="you pets" disabled={!canRename}>
+          {#if draftPet !== null}
+            {@render petPicker(true)}
+          {/if}
+        </fieldset>
+      {:else}
+        {#if !isTV}
+          <section aria-labelledby="menu-you">
+            <h2 class="section-title" id="menu-you">You</h2>
+            <fieldset class="you" disabled={!canRename}>
+              {#if draftPet !== null}
+                {@render petPicker(false)}
+              {/if}
+              {@render nameForm()}
+              {#if !canRename}
+                <p class="note">Names are fixed once the game has started.</p>
+              {/if}
+            </fieldset>
+          </section>
+        {/if}
+        <SoundSettings />
+        <ThemeChoices current={theme} onpick={pickTheme} />
       {/if}
-      <SoundSettings />
-      <ThemeChoices current={theme} onpick={pickTheme} />
     </div>
   {/if}
 </div>
@@ -338,9 +393,8 @@
     border: none;
   }
 
-  /* Deliberately not positioned: the menu anchors to the top bar's column instead
-     (TopBar's `.inner`) and opens flush with its right edge, so at 320px it has the whole
-     width less the gutter however wide the name is. */
+  /* Deliberately not positioned: the sheet places itself against the window, so it is as
+     wide as Home's column on every screen, whatever the bar's own column measures. */
   .menu {
     display: flex;
     min-width: 0;
@@ -378,28 +432,93 @@
     stroke: currentColor;
   }
 
+  .chevron {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    transition: transform 150ms ease-out;
+  }
+
+  .control[aria-expanded='true'] .chevron {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chevron {
+      transition: none;
+    }
+  }
+
   .bar-emblem {
     flex: none;
     width: 32px;
     height: 32px;
   }
 
-  /* Never wider than the screen it opens on, and never taller: a phone held sideways
-     scrolls the menu, not the page under it. */
+  /* Dims the page without catching the tap: a tap outside still lands where it was aimed,
+     and closes the sheet on its way. */
+  .backdrop {
+    position: fixed;
+    inset: var(--topbar-height) 0 0;
+    background: rgb(0 0 0 / 0.35);
+    pointer-events: none;
+  }
+
+  /* Hangs from the bar, Home's width or the window's less a gutter, and never taller than
+     the window: a phone held sideways scrolls the sheet, not the page under it. */
   .panel-menu {
-    position: absolute;
-    top: calc(100% + 0.35rem);
-    right: 0;
+    position: fixed;
+    top: calc(var(--topbar-height) + var(--border-width));
+    left: 50%;
+    translate: -50% 0;
     display: grid;
+    align-content: start;
     gap: 1.25rem;
-    width: min(20rem, 100vw - 2rem);
+    width: min(var(--page-wide), 100vw - 2rem);
+    box-sizing: border-box;
     max-height: calc(100dvh - var(--topbar-height) - 1rem);
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 1rem;
+    color: var(--ink);
     background: var(--panel-raised);
     border: var(--border-width) solid var(--line);
-    border-radius: var(--radius);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
     box-shadow: var(--shadow);
+  }
+
+  .panel-menu.halves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.25rem;
+    padding: 1.5rem 1.75rem 1.75rem;
+  }
+
+  .side {
+    display: grid;
+    align-content: start;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  /* The chathead stands beside the name field, level with its input. */
+  .face {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0.75rem;
+  }
+
+  .face > :global(:first-child) {
+    margin-top: 0.9rem;
+  }
+
+  .pets {
+    display: flex;
+    flex-direction: column;
   }
 
   .panel-menu:focus {

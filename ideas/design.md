@@ -165,11 +165,15 @@ learns the position, which is worth more than variety.
   the window, the timer and its tabs in the god's shades, and a badge (symbol and name) centred
   under the timer, or under the bar where there is none. The theme stays the player's.
 
-The control opens one panel: **You** (name and pet; the local profile outside a room, the live
-player via `set_profile` inside one), **Sound** (§7) and **Theme**, a grid of emblems four abreast,
-the chosen one ringed and named under it. Picking a theme repaints at once and the panel stays open. Escape, a
-tap outside or tabbing out closes it, and focus returns to the control unless the tap gave it
-elsewhere. An emblem is an item icon of the theme's place (§14), 32px in the bar; unfetched, a flat
+The control, with a ⌄ that turns over while open, drops a sheet from the bar over the dimmed page,
+64rem or the window less 2rem: **You** (name and pet; the local profile outside a room, the live
+player via `set_profile` inside one), **Theme**, each emblem on its own theme's panel, and
+**Sound** (§7). From 46rem it is two halves: name, Theme (five abreast, every name written) and
+Sound on the left, the pet search and grid always open on the right, level with the name. Narrower
+it stacks You, Sound and Theme (four abreast, the chosen one named), the pets behind "Change pet".
+The TV gets Theme and Sound. A browser with no profile sees the pet its first save will give it.
+Picking a theme repaints at once and the sheet stays open. Escape, a tap outside or tabbing out
+closes it, and focus returns to the control unless the tap gave it elsewhere. An emblem is an item icon of the theme's place (§14), 32px in the bar; unfetched, a flat
 mark in the theme's `--accent` stands in.
 
 ## 6. Names and pets

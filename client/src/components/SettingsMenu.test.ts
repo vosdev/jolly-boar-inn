@@ -20,6 +20,7 @@ import type { ClientMessage, PlayerView, RoomView } from '../lib/protocol'
 import { applyServerMessage, connection, resetRoom, roomSend } from '../lib/stores'
 import { EMBLEMS } from '../lib/emblems'
 import { THEME_LABELS, THEMES } from '../lib/theme'
+import { PICKABLE } from '../lib/pets'
 import { petsDrawn } from '../test-pets'
 import SettingsMenu from './SettingsMenu.svelte'
 
@@ -348,7 +349,7 @@ describe('SettingsMenu, the menu', () => {
     delete document.documentElement.dataset.theme
   })
 
-  it('shows the pet, the name and the current theme’s emblem in one control', () => {
+  it('shows the pet, the name, the current theme’s emblem and a chevron in one control', () => {
     profile.set({ name: 'Zezima', pet: 'aggy' })
     localStorage.setItem('jbi:theme', 'pollnivneach')
     render(SettingsMenu, { live: null })
@@ -357,6 +358,18 @@ describe('SettingsMenu, the menu', () => {
     )
     expect(control().querySelector('.chip-name')!.textContent).toBe('Zezima')
     expect(barEmblem()).toBe('pollnivneach')
+    expect(control().querySelector('.chevron')).toBeTruthy()
+  })
+
+  it('shows somebody with no profile yet the pet their first save gives them', async () => {
+    await opened()
+    await fireEvent.click(screen.getByRole('button', { name: 'Change pet' }))
+    const drafted = radios().find((radio) => radio.checked && radio.name !== 'theme')!.value
+    await fireEvent.input(screen.getByRole('textbox', { name: 'Your display name' }), {
+      target: { value: 'Woox' },
+    })
+    await fireEvent.submit(save().form!)
+    expect(get(profile)).toEqual({ name: 'Woox', pet: drafted })
   })
 
   it('reaches the name, the pet, both sound switches and every theme from one panel', async () => {
@@ -565,5 +578,62 @@ describe('SettingsMenu, the themes', () => {
     expect(radios().find((radio) => radio.checked)?.value).toBe('jolly')
     await fireEvent.click(radios().find((radio) => radio.value === 'wilderness')!)
     expect(document.documentElement.dataset.theme).toBe('wilderness')
+  })
+})
+
+describe('SettingsMenu, the wide sheet', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    delete document.documentElement.dataset.theme
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('min-width: 46rem'),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+  })
+
+  const pets = () => within(menu()!).queryByRole('radiogroup', { name: 'Pets' })
+
+  it('puts the name, every named theme and sound beside a pet grid that is always open', async () => {
+    profile.set({ name: 'Zezima', pet: 'aggy' })
+    await opened()
+    const panel = within(menu()!)
+    expect(panel.queryByRole('button', { name: 'Change pet' })).toBeNull()
+    expect(panel.getByRole('textbox', { name: 'Your display name' })).toBeTruthy()
+    expect(panel.getByRole('textbox', { name: 'Search pets' })).toBeTruthy()
+    expect(within(pets()!).getAllByRole('radio')).toHaveLength(PICKABLE.length)
+    expect(panel.getByRole('group', { name: 'Theme' })).toBeTruthy()
+    for (const theme of THEMES) expect(panel.getByText(THEME_LABELS[theme].name)).toBeTruthy()
+    expect(panel.getByRole('button', { name: 'Music & effects' })).toBeTruthy()
+  })
+
+  it('saves a pet picked from the open grid', async () => {
+    profile.set({ name: 'Zezima', pet: 'aggy' })
+    await opened()
+    await fireEvent.click(screen.getByRole('radio', { name: 'Baby Mole' }))
+    await fireEvent.submit(save().form!)
+    expect(get(profile)).toEqual({ name: 'Zezima', pet: 'baby_mole' })
+  })
+
+  it('greys the pet grid out with the name once the game has started', async () => {
+    welcome(me, { ...LOBBY, status: 'playing', phase: 'open', current_index: 0 })
+    await opened(me)
+    expect(screen.getByRole('textbox', { name: 'Your display name' }).matches(':disabled')).toBe(
+      true,
+    )
+    expect(screen.getByRole('radio', { name: 'Baby Mole' }).matches(':disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Random' }).matches(':disabled')).toBe(true)
+    expect(screen.getByText('Names are fixed once the game has started.')).toBeTruthy()
+  })
+
+  it('gives the TV only theme and sound', async () => {
+    const tv = { ...me, role: 'tv' as const }
+    welcome(tv)
+    await opened(tv)
+    expect(menu()!.classList.contains('halves')).toBe(false)
+    expect(pets()).toBeNull()
+    expect(within(menu()!).queryByRole('textbox')).toBeNull()
+    expect(within(menu()!).getByRole('group', { name: 'Theme' })).toBeTruthy()
   })
 })

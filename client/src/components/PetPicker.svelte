@@ -13,7 +13,9 @@
    * in the caller, which says when it counts.
    *
    * The grid stays shut until asked for, so the name prompt, which is answered with one
-   * tap, is no taller than it was.
+   * tap, is no taller than it was. `inline` is for the wide settings sheet, which has room
+   * for it: the search and the grid are always out, and the chathead is the caller's to
+   * draw beside the name.
    */
   import { tick } from 'svelte'
 
@@ -25,6 +27,7 @@
     value = $bindable(),
     taken = [],
     disabled = false,
+    inline = false,
     onchange,
   }: {
     /** The pet's id. */
@@ -32,6 +35,8 @@
     /** Pets already in the room, so Random leans toward one nobody has. */
     taken?: string[]
     disabled?: boolean
+    /** Search and grid always open, with no chathead or "Change pet". */
+    inline?: boolean
     /** A pick was made, by hand or by Random. */
     onchange?: () => void
   } = $props()
@@ -48,6 +53,11 @@
     return needle === ''
       ? PICKABLE
       : PICKABLE.filter((pet) => pet.name.toLowerCase().includes(needle))
+  })
+
+  // Always open, the grid starts where your pet is, as a grid opened by hand does.
+  $effect(() => {
+    if (inline) grid?.querySelector('label:has(:checked)')?.scrollIntoView?.({ block: 'nearest' })
   })
 
   function pick(pet: string): void {
@@ -78,72 +88,98 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="picker" onkeydown={onKeyDown}>
-  <div class="current">
-    <Pet pet={value} size={64} label="" />
-    <div class="who">
-      <span class="pet-name">{petName(value)}</span>
-      <span class="buttons">
-        <button type="button" class="small random" {disabled} onclick={random}>
-          <Die /> Random
-        </button>
-        <button
-          type="button"
-          class="small"
-          {disabled}
-          aria-expanded={open}
-          aria-controls="{id}-finder"
-          bind:this={toggle}
-          onclick={toggleOpen}
-        >
-          {open ? 'Done' : 'Change pet'}
-        </button>
-      </span>
-    </div>
-  </div>
+{#snippet searchField()}
+  <input
+    id="{id}-search"
+    type="text"
+    inputmode="search"
+    enterkeyhint="search"
+    autocomplete="off"
+    autocapitalize="off"
+    spellcheck="false"
+    aria-label="Search pets"
+    placeholder={inline ? 'Search pets' : undefined}
+    bind:value={query}
+    bind:this={search}
+    {disabled}
+    onkeydown={(event) => {
+      if (event.key === 'Enter') event.preventDefault()
+    }}
+  />
+{/snippet}
 
-  {#if open}
-    <div class="finder" id="{id}-finder">
-      <label for="{id}-search">Search pets</label>
-      <input
-        id="{id}-search"
-        type="text"
-        inputmode="search"
-        enterkeyhint="search"
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        bind:value={query}
-        bind:this={search}
-        {disabled}
-        onkeydown={(event) => {
-          if (event.key === 'Enter') event.preventDefault()
-        }}
-      />
-      <p class="note">
-        {matches.length === 0
-          ? 'No pet has that name.'
-          : `${matches.length} ${matches.length === 1 ? 'pet' : 'pets'}`}
-      </p>
-      <div class="pets" role="radiogroup" aria-label="Pets" bind:this={grid}>
-        {#each matches as pet (pet.id)}
-          <label class="cell" title={pet.name}>
-            <input
-              type="radio"
-              class="sr"
-              name="{id}-pet"
-              value={pet.id}
-              checked={value === pet.id}
-              {disabled}
-              onchange={() => pick(pet.id)}
-            />
-            <Pet pet={pet.id} size={40} cut="icon" label="" />
-            <span class="sr">{pet.name}</span>
-          </label>
-        {/each}
+{#snippet randomButton()}
+  <button type="button" class="small random" {disabled} onclick={random}>
+    <Die /> Random
+  </button>
+{/snippet}
+
+{#snippet petGrid()}
+  <div class="pets" class:tall={inline} role="radiogroup" aria-label="Pets" bind:this={grid}>
+    {#each matches as pet (pet.id)}
+      <label class="cell" title={pet.name}>
+        <input
+          type="radio"
+          class="sr"
+          name="{id}-pet"
+          value={pet.id}
+          checked={value === pet.id}
+          {disabled}
+          onchange={() => pick(pet.id)}
+        />
+        <Pet pet={pet.id} size={40} cut="icon" label="" />
+        <span class="sr">{pet.name}</span>
+      </label>
+    {/each}
+  </div>
+{/snippet}
+
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="picker" class:inline onkeydown={onKeyDown}>
+  {#if inline}
+    <label for="{id}-search">Pet: <strong class="pet-name">{petName(value)}</strong></label>
+    <div class="search-row">
+      {@render searchField()}
+      {@render randomButton()}
+    </div>
+    {#if matches.length === 0}
+      <p class="note">No pet has that name.</p>
+    {/if}
+    {@render petGrid()}
+  {:else}
+    <div class="current">
+      <Pet pet={value} size={64} label="" />
+      <div class="who">
+        <span class="pet-name">{petName(value)}</span>
+        <span class="buttons">
+          {@render randomButton()}
+          <button
+            type="button"
+            class="small"
+            {disabled}
+            aria-expanded={open}
+            aria-controls="{id}-finder"
+            bind:this={toggle}
+            onclick={toggleOpen}
+          >
+            {open ? 'Done' : 'Change pet'}
+          </button>
+        </span>
       </div>
     </div>
+
+    {#if open}
+      <div class="finder" id="{id}-finder">
+        <label for="{id}-search">Search pets</label>
+        {@render searchField()}
+        <p class="note">
+          {matches.length === 0
+            ? 'No pet has that name.'
+            : `${matches.length} ${matches.length === 1 ? 'pet' : 'pets'}`}
+        </p>
+        {@render petGrid()}
+      </div>
+    {/if}
   {/if}
 </div>
 
@@ -181,6 +217,32 @@
     gap: 0.35rem;
   }
 
+  .picker.inline {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin-bottom: 0;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .search-row input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .inline .pet-name {
+    color: var(--ink);
+  }
+
+  .inline .note {
+    margin: 0 0 0.4rem;
+  }
+
   .finder {
     margin-top: 0.75rem;
   }
@@ -194,6 +256,7 @@
   .pets {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(3rem, 1fr));
+    align-content: start;
     gap: 0.25rem;
     max-height: 13.5rem;
     overflow-y: auto;
@@ -202,6 +265,12 @@
     background: var(--panel);
     border: var(--border-width) solid var(--line);
     border-radius: min(var(--radius), 8px);
+  }
+
+  /* Beside the name, theme and sound there is room for more rows; a search that leaves a
+     few pets shrinks it to them. */
+  .pets.tall {
+    max-height: 24rem;
   }
 
   .cell {
