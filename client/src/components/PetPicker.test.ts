@@ -1,6 +1,7 @@
 /**
  * The pet picker: shut until asked, a search over every pickable pet, a native radio group
- * for the keyboard and a screen reader, and Random.
+ * for the keyboard and a screen reader, and Random. Inline, for the wide settings sheet,
+ * the search and grid are always out.
  */
 
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
@@ -138,5 +139,27 @@ describe('PetPicker', () => {
     expect((screen.getByRole('button', { name: 'Change pet' }) as HTMLButtonElement).disabled).toBe(
       true,
     )
+  })
+
+  it('inline, keeps the search and every pet out, under the pet’s name, with no Change pet', () => {
+    const { container } = picker('aggy', { inline: true })
+    expect(screen.queryByRole('button', { name: 'Change pet' })).toBeNull()
+    expect(screen.getByRole('textbox', { name: 'Search pets' })).toBeTruthy()
+    expect(within(grid()).getAllByRole('radio')).toHaveLength(PICKABLE.length)
+    expect((screen.getByRole('radio', { name: 'Aggy' }) as HTMLInputElement).checked).toBe(true)
+    expect(container.querySelector('label[for$="-search"]')!.textContent).toBe('Pet: Aggy')
+    expect(petsDrawn(container).filter((drawn) => drawn.size === 64)).toEqual([])
+  })
+
+  it('inline, picks from the grid and narrows it by name', async () => {
+    const onchange = vi.fn()
+    picker('aggy', { inline: true, onchange })
+    await fireEvent.input(screen.getByRole('textbox', { name: 'Search pets' }), {
+      target: { value: 'baby mole' },
+    })
+    await fireEvent.click(screen.getByRole('radio', { name: 'Baby Mole' }))
+    expect(onchange).toHaveBeenCalledOnce()
+    expect(screen.getByText('Baby Mole', { selector: '.pet-name' })).toBeTruthy()
+    expect(within(grid()).getAllByRole('radio').length).toBeLessThan(5)
   })
 })

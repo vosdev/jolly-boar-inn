@@ -10,7 +10,8 @@
    *
    * A list of rows grew a full row per theme and pushed the menu past a phone's height, so
    * the tiles sit four abreast and only the chosen theme's name is written out, under them.
-   * Every tile still carries its name for a screen reader.
+   * Every tile still carries its name for a screen reader. The wide sheet has the room to
+   * write every name under its own tile, five abreast (`named`).
    *
    * Each emblem sits on a tile carrying its own `data-theme`, so the tile is that theme's
    * panel and the mark is in that theme's accent, whatever the page is painted in.
@@ -24,7 +25,11 @@
   import { THEME_LABELS, type Theme } from '../lib/theme'
   import Emblem from './Emblem.svelte'
 
-  let { current, onpick }: { current: Theme; onpick: (theme: Theme) => void } = $props()
+  let {
+    current,
+    onpick,
+    named = false,
+  }: { current: Theme; onpick: (theme: Theme) => void; named?: boolean } = $props()
 
   function nameOf(theme: EmblemId): string {
     return isBuilt(theme) ? THEME_LABELS[theme].name : UNBUILT_THEMES[theme]
@@ -33,7 +38,7 @@
 
 <fieldset>
   <legend class="section-title">Theme</legend>
-  <div class="grid">
+  <div class="grid" class:named>
     {#each EMBLEMS as theme (theme)}
       {@const built = isBuilt(theme)}
       <label class="option" class:selected={theme === current} class:unbuilt={!built}>
@@ -46,11 +51,13 @@
           onchange={() => isBuilt(theme) && onpick(theme)}
         />
         <span class="tile" data-theme={theme} aria-hidden="true"><Emblem {theme} /></span>
-        <span class="sr">{nameOf(theme)}</span>
+        <span class="name" class:sr={!named}>{nameOf(theme)}</span>
       </label>
     {/each}
   </div>
-  <p class="current" aria-hidden="true">{THEME_LABELS[current].name}</p>
+  {#if !named}
+    <p class="current" aria-hidden="true">{THEME_LABELS[current].name}</p>
+  {/if}
 </fieldset>
 
 <style>
@@ -64,6 +71,10 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.3rem;
+  }
+
+  .grid.named {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .option {
@@ -117,6 +128,18 @@
     background: var(--panel);
     border: var(--border-width) solid var(--line);
     border-radius: var(--radius);
+  }
+
+  .name:not(.sr) {
+    margin-top: 0.3rem;
+    padding-inline: 0.15rem;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .selected .name {
+    font-weight: 600;
   }
 
   .current {
