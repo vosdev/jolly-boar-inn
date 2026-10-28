@@ -1,5 +1,5 @@
 /**
- * Pixel Hunt's reveals: every screen picks the same one from the room and the question, the
+ * Pixel Hunt's reveals: every screen deals the same one from the room and the question, the
  * box is empty while the host types and each reveal makes its entrance, Zoom out starts on
  * the item, Pixelate keeps its eight levels to the minute, Tiles opens the item's cells in
  * seeded order, the puzzle box ends solved, the lantern wanders the same way on every screen,
@@ -25,6 +25,7 @@ import {
   TILES,
   ZOOM_OUT,
   arrived,
+  deal,
   drawFrame,
   entered,
   innerLines,
@@ -45,6 +46,7 @@ import {
   type Look,
   type Pen,
   type Picture,
+  type Reveal,
 } from './pixelHunt'
 
 const IMAGE = { id: 'the image' } as unknown as CanvasImageSource
@@ -150,19 +152,20 @@ describe('the schedule', () => {
 
 describe('the reveal a question gets', () => {
   const QUESTION = '5f0c6a4e-3c1b-4b9e-9a51-0d2f1c7e8b10'
+  const ids = (reveals: readonly Reveal[]): string[] => reveals.map(({ id }) => id)
 
   it('is the same on every screen and after a reconnect, by the room and the question', () => {
-    const phone = revealFor('WHIPLASH', QUESTION)
-    const tv = revealFor('WHIPLASH', QUESTION)
-    const reconnected = revealFor('whiplash', QUESTION)
+    const phone = revealFor('WHIPLASH', QUESTION, 3)
+    const tv = revealFor('WHIPLASH', QUESTION, 3)
+    const reconnected = revealFor('whiplash', QUESTION, 3)
     expect(tv).toEqual(phone)
     expect(reconnected).toEqual(phone)
     expect(REVEALS).toContain(phone.reveal)
     expect(Number.isInteger(phone.seed) && phone.seed >= 0).toBe(true)
   })
 
-  it('offers every reveal at random over a 60-question sample, with seeds of their own', () => {
-    expect(REVEALS.map(({ id }) => id)).toEqual(
+  it('deals every reveal once in each six questions, none twice in a row', () => {
+    expect(ids(REVEALS)).toEqual(
       expect.arrayContaining([
         'zoom_out',
         'pixelate',
@@ -172,13 +175,32 @@ describe('the reveal a question gets', () => {
         'sketch',
       ]),
     )
-    const picked = Array.from({ length: 60 }, (_, n) =>
-      revealFor('WHIPLASH', `00000000-0000-4000-8000-${n.toString(16).padStart(12, '0')}`),
+    for (const room of ['WHIPLASH', 'GOBLIN2', 'ZANARIS']) {
+      const dealt = Array.from({ length: 60 }, (_, index) => revealFor(room, QUESTION, index))
+      for (let deck = 0; deck < 10; deck++) {
+        const six = dealt.slice(deck * 6, deck * 6 + 6).map(({ reveal }) => reveal.id)
+        expect(new Set(six).size).toBe(6)
+      }
+      for (let n = 1; n < 60; n++) expect(dealt[n]!.reveal).not.toBe(dealt[n - 1]!.reveal)
+      expect(deal(room, 0)).toEqual(dealt.slice(0, 6).map(({ reveal }) => reveal))
+    }
+  })
+
+  it('shuffles the order by the room, so the first question is not always the same reveal', () => {
+    const rooms = Array.from({ length: 120 }, (_, n) => `ROOM${n}`)
+    const first = rooms.map((room) => revealFor(room, QUESTION, 0).reveal.id)
+    expect(new Set(first)).toEqual(new Set(ids(REVEALS)))
+    expect(ids(deal('WHIPLASH', 1))).not.toEqual(ids(deal('WHIPLASH', 0)))
+  })
+
+  it('gives each question a seed of its own', () => {
+    const seeds = Array.from(
+      { length: 60 },
+      (_, n) =>
+        revealFor('WHIPLASH', `00000000-0000-4000-8000-${n.toString(16).padStart(12, '0')}`, n)
+          .seed,
     )
-    expect(new Set(picked.map(({ reveal }) => reveal.id))).toEqual(
-      new Set(REVEALS.map(({ id }) => id)),
-    )
-    expect(new Set(picked.map(({ seed }) => seed)).size).toBe(60)
+    expect(new Set(seeds).size).toBe(60)
   })
 })
 

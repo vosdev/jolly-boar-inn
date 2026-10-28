@@ -97,6 +97,7 @@
       ? {
           room: $room?.code ?? '',
           questionId: question.question_id,
+          index: question.index,
           answerableAt: question.answerable_at ?? question.opened_at,
           endsAt: question.ends_at,
         }

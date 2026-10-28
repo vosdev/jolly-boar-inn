@@ -2,8 +2,8 @@
  * Pixel Hunt's reveals: one picture built up on a `<canvas>` over the first 17 of the
  * question's 25 seconds, then whole until the answer.
  *
- * Every screen in the room picks the same reveal and seed from the room code and the
- * question's id, with nothing on the wire: the TV, each phone, a reconnect and a restart all
+ * Every screen in the room deals the same reveal from the room code and the question's
+ * number, and the same seed from the question's id, with nothing on the wire: the TV, each phone, a reconnect and a restart all
  * draw the same frame at the same server time. Each reveal is a function of the picture,
  * the build-up's progress `p` from 0 to 1 and the seed, so one more is one more entry in
  * `REVEALS`. The box is empty while the host types, each reveal makes its entrance over the
@@ -20,6 +20,8 @@ export const BUILD_UP = 17 / 25
 export interface Build {
   room: string
   questionId: string
+  /** The question's number in the game, `OpenQuestion.index`. */
+  index: number
   /** ISO 8601, as `OpenQuestion` carries them. */
   answerableAt: string
   endsAt: string
@@ -94,10 +96,44 @@ function hash(text: string): number {
   return state
 }
 
-/** The reveal a question is drawn with and its seed, from the room code and its id. */
-export function revealFor(room: string, questionId: string): { reveal: Reveal; seed: number } {
-  const key = `${room.toUpperCase()}:${questionId}`
-  return { reveal: REVEALS[hash(key) % REVEALS.length]!, seed: hash(`${key}:seed`) }
+/** The reveals shuffled by the room code, one order per `deck`. */
+function shuffled(room: string, deck: number): Reveal[] {
+  const next = random(hash(`${room.toUpperCase()}:deck:${deck}`))
+  const order = [...REVEALS]
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1))
+    ;[order[i], order[j]] = [order[j]!, order[i]!]
+  }
+  return order
+}
+
+/**
+ * The reveals in the order a game deals them out, from `deck` 0 on: each deck all of them,
+ * shuffled by the room code, so a round of a few questions shows a few different ones and the
+ * first is anyone's. A deck never starts with the one the deck before ended on.
+ */
+export function deal(room: string, deck: number): Reveal[] {
+  const order = shuffled(room, deck)
+  if (deck > 0 && order[0] === shuffled(room, deck - 1).at(-1)) {
+    ;[order[0], order[1]] = [order[1]!, order[0]!]
+  }
+  return order
+}
+
+/**
+ * The reveal a question is drawn with, dealt by its number in the game, and its seed from
+ * the room code and its id.
+ */
+export function revealFor(
+  room: string,
+  questionId: string,
+  index: number,
+): { reveal: Reveal; seed: number } {
+  const deck = Math.floor(index / REVEALS.length)
+  return {
+    reveal: deal(room, deck)[index % REVEALS.length]!,
+    seed: hash(`${room.toUpperCase()}:${questionId}:seed`),
+  }
 }
 
 /**

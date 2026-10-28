@@ -513,8 +513,8 @@ the picture builds up, then the whole picture as step 18. Points fall from 1000 
 
 - There is no `question_update` message. Clients work the schedule out from `answerable_at` and
   `ends_at`, and the reveal (`lib/pixelHunt.ts`, one `<canvas>`, a function of the picture, the
-  build-up's progress and a seed, empty before `answerable_at`) and its seed from a hash of the
-  room code and `question_id`.
+  build-up's progress and a seed, empty before `answerable_at`). Reveals are dealt by `index`,
+  all six per six questions in an order shuffled by the room code; the seed hashes `question_id`.
 - `points_for(scoring, credit, band, steps, team=)` is the one entry point. It refuses credit outside 0..1
   rather than paying for a type's bug.
 - `correct` is `credit >= 1.0`: three of five in order scores, and is not "correct".
