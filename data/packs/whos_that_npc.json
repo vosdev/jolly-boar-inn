@@ -1072,6 +1072,447 @@
         "answer_index": 3,
         "image": "npc:5533"
       }
+    },
+    {
+      "id": "q_cb9c1dc773feb3ff",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Brutus",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 15626,
+        "image": "npc:15626",
+        "subject": {
+          "name": "Brutus"
+        }
+      }
+    },
+    {
+      "id": "q_cab262a9d98b5f21",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Tormented_Demon",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 13599,
+        "image": "npc:13599",
+        "subject": {
+          "name": "Tormented Demon"
+        }
+      }
+    },
+    {
+      "id": "q_b31244e894b6e29b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Akkha",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 11789,
+        "image": "npc:11789",
+        "subject": {
+          "name": "Akkha"
+        }
+      }
+    },
+    {
+      "id": "q_4926b30661b6c143",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Krystilia",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7663,
+        "image": "npc:7663",
+        "subject": {
+          "name": "Krystilia"
+        }
+      }
+    },
+    {
+      "id": "q_063173f8c2cb5d4d",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Turael",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 13618,
+        "image": "npc:13618",
+        "subject": {
+          "name": "Turael"
+        }
+      }
+    },
+    {
+      "id": "q_98d4e2156333fda8",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Vannaka",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 3307,
+        "image": "npc:3307",
+        "subject": {
+          "name": "Vannaka"
+        }
+      }
+    },
+    {
+      "id": "q_3e30bc2138c68a54",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Chaeldar",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 404,
+        "image": "npc:404",
+        "subject": {
+          "name": "Chaeldar"
+        }
+      }
+    },
+    {
+      "id": "q_8e4f3bf8ac1aad5b",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Nieve",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6797,
+        "image": "npc:6797",
+        "subject": {
+          "name": "Nieve"
+        }
+      }
+    },
+    {
+      "id": "q_555e8ddf293c4af3",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Duradel",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 13622,
+        "image": "npc:13622",
+        "subject": {
+          "name": "Duradel"
+        }
+      }
+    },
+    {
+      "id": "q_9f6d8bdc2d98120d",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Mortimer",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 16175,
+        "image": "npc:16175",
+        "subject": {
+          "name": "Mortimer"
+        }
+      }
+    },
+    {
+      "id": "q_a90e5adb5dbbbb24",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Twisted_Banshee",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7272,
+        "image": "npc:7272",
+        "subject": {
+          "name": "Twisted Banshee"
+        }
+      }
+    },
+    {
+      "id": "q_3ebf8d726462e6c2",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Pyrelord",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 6762,
+        "image": "npc:6762",
+        "subject": {
+          "name": "Pyrelord"
+        }
+      }
+    },
+    {
+      "id": "q_3a1517da0959f07f",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Killerwatt",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 470,
+        "image": "npc:470",
+        "subject": {
+          "name": "Killerwatt"
+        }
+      }
+    },
+    {
+      "id": "q_6583046a3e403fbc",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bloodveld",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 484,
+        "image": "npc:484",
+        "subject": {
+          "name": "Bloodveld"
+        }
+      }
+    },
+    {
+      "id": "q_92d3ad17a14f5dbe",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Warped_Tortoise",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 12490,
+        "image": "npc:12490",
+        "subject": {
+          "name": "Warped Tortoise"
+        }
+      }
+    },
+    {
+      "id": "q_87229281a4a929d2",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Cave_horror",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 1050,
+        "image": "npc:1050",
+        "subject": {
+          "name": "Cave horror"
+        }
+      }
+    },
+    {
+      "id": "q_22f44ea909d484d2",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Dust_devil",
+      "difficulty": "easy",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7249,
+        "image": "npc:7249",
+        "subject": {
+          "name": "Dust devil"
+        }
+      }
+    },
+    {
+      "id": "q_3d7e2169895d5c19",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Skeletal_Wyvern",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 468,
+        "image": "npc:468",
+        "subject": {
+          "name": "Skeletal Wyvern"
+        }
+      }
+    },
+    {
+      "id": "q_06e5535d6b0f3e8a",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ancient_Wyvern",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 7795,
+        "image": "npc:7795",
+        "subject": {
+          "name": "Ancient Wyvern"
+        }
+      }
+    },
+    {
+      "id": "q_4a8f8a22ecaae607",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Flesh_Crawler",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2500,
+        "image": "npc:2500",
+        "subject": {
+          "name": "Flesh Crawler"
+        }
+      }
+    },
+    {
+      "id": "q_61daf6e128870148",
+      "type": "pick_from_list",
+      "mode": "whos_that_npc",
+      "source": "pack",
+      "tags": [
+        "shadow"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Ankou",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Who's that NPC?",
+        "vocab": "npcs",
+        "answer_id": 2516,
+        "image": "npc:2516",
+        "subject": {
+          "name": "Ankou"
+        }
+      }
     }
   ]
 }

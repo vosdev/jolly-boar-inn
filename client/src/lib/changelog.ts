@@ -44,6 +44,16 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.210.2',
+    date: '2026-10-28',
+    text: 'New items now get a Pixel Hunt question and pictures.',
+  },
+  {
+    version: '0.210.1',
+    date: '2026-10-28',
+    text: '129 new questions and items for the rounds.',
+  },
+  {
     version: '0.210.0',
     date: '2026-10-28',
     text: "Zanaris's stone sign is wider and lines up with the panels, so no text sits on its crystal edges.",

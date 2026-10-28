@@ -8,7 +8,9 @@ The file is ``{"questions": [...], "items": [...]}``, as
   are stored shuffled, since the form puts the right one first, except a Guess the Examine
   line's: that pack keeps the right name first;
 - an item joins ``data/popular-items.json`` under the id the wiki's item infobox gives its
-  name, tradeable or not.
+  name, tradeable or not. It gets its inventory icon and, when the wiki has one, its detail
+  image in ``data/assets.json``, and ``data/packs/pixel_hunt.json`` is written again from the
+  roster, as ``make gen-pixel-hunt`` would.
 
 A Who's That NPC? question names its NPC: the NPC joins ``data/popular-npcs.json`` under the id
 of the first infobox row on its wiki page (the page it links, or the one its name spells), and
@@ -35,13 +37,14 @@ writes nothing and names the problem.
 An item's id is asked of the wiki's ``infobox_item`` bucket through ``wiki.py``, once per item
 not on the roster yet, so that needs ``WIKI_USER_AGENT``. The row on the item's own page wins
 over one on another page (Fire cape's animation item), and a name that still means several ids
-is refused, to be edited in ``/admin``. ``--items-file`` and ``--npcs-file`` read saved rows
-instead.
+is refused, to be edited in ``/admin``. The new items' detail images are found in one more
+query. ``--items-file``, ``--npcs-file`` and ``--detail-file`` read saved rows, and a saved list
+of the detail image titles that exist, instead.
 
 Usage (from ``server/``)::
 
     uv run python scripts/import_suggestions.py FILE [--packs-dir DIR] [--roster PATH]
-        [--npcs PATH] [--assets PATH] [--items-file PATH] [--npcs-file PATH]
+        [--npcs PATH] [--assets PATH] [--items-file PATH] [--npcs-file PATH] [--detail-file PATH]
 """
 
 import argparse
@@ -58,7 +61,9 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
+import add_detail_pictures
 import wiki
+from fetch_assets import Located, WikiSource
 
 from app import suggestions
 from app.errors import ApiError
@@ -96,6 +101,24 @@ class Plan:
     added: list[str] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)
     refused: list[str] = field(default_factory=list)
+
+
+@dataclass
+class SavedTitles:
+    """The detail image titles a saved list says exist, standing in for the wiki."""
+
+    titles: set[str]
+    requests: int = 0
+
+    def locate(self, titles: list[str]) -> Located:
+        """Each of ``titles`` the list holds."""
+        return Located(
+            where={t: t for t in titles if t in self.titles},
+            missing=[t for t in titles if t not in self.titles],
+        )
+
+    def fetch(self, where: str) -> bytes:
+        raise NotImplementedError("a saved list has no files")
 
 
 def render_pack(data: dict[str, Any]) -> str:
@@ -477,10 +500,12 @@ def plan_items(
         if isinstance(known, str):
             plan.refused.append(f"{where}: {name!r} {known}")
             continue
-        number, spelled, _ = known
+        number, spelled, icon = known
         if number in on_roster:
             plan.skipped.append(f"{where}: id {number} is already on the roster")
             continue
+        if not has_target(plan.assets, f"items/{number}"):
+            plan.assets[f"items/{number}.png"] = icon
         names.add(fold(spelled))
         on_roster.add(number)
         plan.items.append({"id": number, "name": spelled})
@@ -494,6 +519,19 @@ def insert_sorted(items: list[dict[str, Any]], new: dict[str, Any]) -> None:
     items.insert(at, new)
 
 
+def pixel_hunt_pack(
+    packs_dir: Path, items: list[dict[str, Any]], assets: dict[str, str]
+) -> dict[Path, str]:
+    """The Pixel Hunt pack for ``items`` and ``assets`` if it differs from the one on disk."""
+    # gen_pixel_hunt imports this module, so it can only be loaded once this one is.
+    import gen_pixel_hunt
+
+    out = packs_dir / f"{gen_pixel_hunt.MODE}.json"
+    pack = gen_pixel_hunt.generate(items, assets, gen_pixel_hunt.difficulties(out))
+    text = gen_pixel_hunt.render(pack)
+    return {} if out.is_file() and out.read_text(encoding="utf-8") == text else {out: text}
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("file", type=Path, help="the file /admin exported")
@@ -504,6 +542,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--items-file", type=Path, help="saved infobox_item rows, for offline runs")
     parser.add_argument(
         "--npcs-file", type=Path, help="saved monster and NPC infobox rows, for offline runs"
+    )
+    parser.add_argument(
+        "--detail-file", type=Path, help="saved list of detail image titles, for offline runs"
     )
     return parser.parse_args(argv)
 
@@ -569,6 +610,17 @@ def main(argv: list[str]) -> int:
         npc_rows = npc_lookup(wanted_npcs(questions))
         plan_questions(questions, args.packs_dir, ids, plan, lookup, npc_rows)
         plan_items(data.get("items", []), lookup, plan)
+        fresh = plan.items[roster_before:]
+        if fresh and not plan.refused:
+            if args.detail_file is not None:
+                saved = json.loads(args.detail_file.read_text(encoding="utf-8"))
+                finder: Any = SavedTitles(set(saved))
+            else:
+                source = source or wiki.connect()
+                finder = WikiSource(source)
+            found = add_detail_pictures.plan(fresh, plan.assets, finder)
+            plan.assets.update(found.added)
+            plan.skipped.extend(f"no detail image for {line}" for line in found.missing)
     except (wiki.MissingUserAgent, OSError, ValueError) as exc:
         print(f"FAILED: {exc}", file=sys.stderr)
         return 1
@@ -583,6 +635,8 @@ def main(argv: list[str]) -> int:
         insert_sorted(items, item)
     changed = {path: render_pack(pack) for path, pack in plan.packs.items()}
     changed = {path: text for path, text in changed.items() if original.get(path) != text}
+    if len(plan.items) > roster_before:
+        changed |= pixel_hunt_pack(args.packs_dir, items, plan.assets)
     roster = render_roster(roster_text, items)
     npcs = plan.npcs[:npcs_before]
     for npc in plan.npcs[npcs_before:]:
