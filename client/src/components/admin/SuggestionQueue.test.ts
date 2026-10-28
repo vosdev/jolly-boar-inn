@@ -233,13 +233,13 @@ describe('SuggestionQueue', () => {
       return [...select.options].map((option) => option.textContent ?? '')
     }
 
-    it('reads "No round yet", from the innkeeper, and cannot be approved', async () => {
+    it('reads "No round yet", from the house, and cannot be approved', async () => {
       vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [unplaced], counts: COUNTS })
       render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
       const summary = (await screen.findByText('Unplaced?')).closest('button')!
       expect(within(summary).getByText('No round yet')).toBeTruthy()
       expect(within(summary).queryByText('Waits for its round')).toBeNull()
-      expect(summary.querySelector('img')?.getAttribute('src')).toBe(npcArt('innkeeper').url)
+      expect(summary.querySelector('img')?.getAttribute('src')).toBe(npcArt('house').url)
       await fireEvent.click(summary)
       expect(screen.getByRole('button', { name: 'Approve' })).toHaveProperty('disabled', true)
       expect(screen.getByText(/pick its round before approving it/)).toBeTruthy()
@@ -388,7 +388,7 @@ describe('SuggestionQueue', () => {
     const preview = screen.getByLabelText('As players will see it')
     expect(preview.querySelector('.picture img')).toBeNull()
     expect(preview.querySelector('.picture .placeholder')?.textContent).toBe(
-      'The picture is added once the innkeeper imports it.',
+      'The picture is added once imported.',
     )
   })
 

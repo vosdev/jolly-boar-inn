@@ -43,7 +43,7 @@
   import type { OpenQuestion, PlayerResult } from '../lib/protocol'
   import { NO_AWARD, awardFor, verdictFor } from '../lib/award'
   import { QUESTION_TYPE_FROM_MS, SETTLED, interludeFor, reducedMotion } from '../lib/interlude'
-  import { hostOf, INNKEEPER, MODES, PACES, VERDICTS, paceOf, pickLines } from '../lib/modes'
+  import { hostOf, HOUSE, MODES, PACES, VERDICTS, paceOf, pickLines } from '../lib/modes'
   import { stageArrival } from '../lib/sharedStage.svelte'
   import { answerAck, serverOffsetMs } from '../lib/stores'
   import { TV_CLOSE_MS } from '../lib/tv'
@@ -90,7 +90,7 @@
     answersOnly?: boolean
     /** This browser is the room's TV. */
     tv?: boolean
-    /** A picture to stand in the innkeeper's place; other hosts keep their own. */
+    /** A picture to stand in the host's place; other hosts keep their own. */
     hero?: string | null
     children?: Snippet
   } = $props()
@@ -172,7 +172,7 @@
   {/snippet}
   <Stage
     host={host.host.id}
-    hero={host.host.id === INNKEEPER.id ? hero : null}
+    hero={host.host.id === HOUSE.id ? hero : null}
     {scene}
     within={reveal === null ? holdMs : Infinity}
     paper={sheet}

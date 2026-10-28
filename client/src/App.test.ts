@@ -413,7 +413,7 @@ describe('App', () => {
       expect(location.pathname).toBe('/')
     })
 
-    it('goes back to the overview from All game modes, and to Home from Back to the inn', async () => {
+    it('goes back to the overview from All game modes, and to Home from Back', async () => {
       at('/')
       await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
       await fireEvent.click(await screen.findByRole('button', { name: /^Bestiary/ }))
@@ -422,7 +422,7 @@ describe('App', () => {
       await fireEvent.click(await screen.findByRole('button', { name: /^Drop Table/ }))
       await fireEvent.click(await screen.findByRole('button', { name: '← All game modes' }))
       await waitFor(() => expect(location.pathname).toBe('/how-to-play'))
-      await fireEvent.click(await screen.findByRole('button', { name: '← Back to the inn' }))
+      await fireEvent.click(await screen.findByRole('button', { name: '← Back' }))
       await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
       expect(location.pathname).toBe('/')
       expect(history.state).toBeNull()
@@ -433,7 +433,7 @@ describe('App', () => {
       await fireEvent.click(await screen.findByRole('button', { name: '← All game modes' }))
       await screen.findByRole('heading', { level: 1, name: 'How to play' })
       expect(location.pathname).toBe('/how-to-play')
-      await fireEvent.click(screen.getByRole('button', { name: '← Back to the inn' }))
+      await fireEvent.click(screen.getByRole('button', { name: '← Back' }))
       await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
       expect(location.pathname).toBe('/')
     })

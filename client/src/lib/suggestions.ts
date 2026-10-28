@@ -16,7 +16,7 @@
 import type { CustomQuestion, CustomType } from './customQuestions'
 import { CUSTOM_TYPES, TYPE_LABELS, previewOf } from './customQuestions'
 import { pastGames } from './history'
-import { INNKEEPER, MODES, UPCOMING_MODES } from './modes'
+import { HOUSE, MODES, UPCOMING_MODES } from './modes'
 import { nameProblem } from './names'
 import {
   answerLine as matchingLine,
@@ -288,7 +288,7 @@ const ORDERING_HINTS: Record<string, string> = {
 
 /**
  * The card for a question that fits no round the player can name. It is no mode: it is
- * stored with none, previewed in no round and presented by the innkeeper.
+ * stored with none, previewed in no round and presented by the house.
  */
 export const NO_ROUND = 'no_round'
 
@@ -354,15 +354,15 @@ export const CHOICES: readonly Choice[] = [
     id: NO_ROUND,
     kind: 'question',
     label: 'Not sure where it fits',
-    hint: 'Any question. The innkeeper picks its round.',
-    host: INNKEEPER.id,
+    hint: 'Any question. Reldo picks its round.',
+    host: HOUSE.id,
     types: [...CUSTOM_TYPES, 'ordering', 'matching'],
   },
 ]
 
 /**
  * The mode a choice's question is drawn as. A question with no round yet is drawn as the
- * host's own, so its stem prints and the innkeeper asks it.
+ * host's own, so its stem prints and the house asks it.
  */
 export function stageMode(choiceId: string): string {
   return choiceId === NO_ROUND ? 'custom' : choiceId
@@ -402,7 +402,7 @@ export function placedIn(content: QuestionContent, round: string): QuestionConte
 /** The NPC a stored suggestion shows: a random event's own, else its choice's host. */
 export function hostOf(kind: SuggestionKind, content: SuggestionContent): string {
   const event = kind === 'question' ? (content as QuestionContent).random_event : undefined
-  return event ?? choiceOf(kind, content)?.host ?? 'innkeeper'
+  return event ?? choiceOf(kind, content)?.host ?? 'house'
 }
 
 /** A mode's name as players would read it, built or not. */

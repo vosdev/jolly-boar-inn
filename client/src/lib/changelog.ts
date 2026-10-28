@@ -44,19 +44,24 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: '0.201.1',
+    version: '0.202.1',
     date: '2026-10-28',
     text: 'How to play now sits above the game mode slideshow.',
   },
   {
-    version: '0.201.0',
+    version: '0.202.0',
     date: '2026-10-28',
     text: 'The Mysterious Old Man joins the game mode slideshow on Home, and opens how random events work.',
   },
   {
-    version: '0.200.0',
+    version: '0.201.0',
     date: '2026-10-28',
     text: 'Try a question on How to play: answer a sample from a game mode and see what you would have scored.',
+  },
+  {
+    version: '0.200.0',
+    date: '2026-10-27',
+    text: 'Reldo now receives your question suggestions, and problem reports go straight to us.',
   },
   {
     version: '0.199.1',

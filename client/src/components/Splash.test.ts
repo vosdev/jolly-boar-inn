@@ -135,7 +135,7 @@ describe('Splash stage', () => {
     expect(bubble().classList.contains('on')).toBe(true)
   })
 
-  it('has the innkeeper present a mode this build lacks, in the generic greeting', () => {
+  it('has the house present a mode this build lacks, in the generic greeting', () => {
     splash({ ...SEGMENT, mode: 'zoom_quiz' })
     expect(bubble().textContent).toContain(GENERIC_HOST.greeting)
     for (const img of document.querySelectorAll<HTMLImageElement>('.npc.host img')) {

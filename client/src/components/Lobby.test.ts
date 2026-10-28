@@ -478,7 +478,7 @@ describe('Lobby', () => {
     expect(sent).toEqual([{ t: 'start_game' }])
   })
 
-  it('draws each player’s own pet, or the innkeeper for none, at 48px as the splash does', () => {
+  it('draws each player’s own pet, or the boar for none, at 48px as the splash does', () => {
     lobby([
       { ...HOST, avatar: 'baby_mole' },
       { ...WOOX, avatar: null },
