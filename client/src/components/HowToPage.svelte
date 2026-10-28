@@ -31,6 +31,7 @@
   import { MODES } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
   import { RANDOM_EVENTS, STRANGER } from '../lib/randomEvents'
+  import { SAMPLES } from '../lib/samples'
   import AnswerRows from './AnswerRows.svelte'
   import { SHOWN } from './ModeShowcase.svelte'
 
@@ -39,6 +40,7 @@
     onopen,
     onall,
     onback,
+    ontry,
   }: {
     view: HowToView
     /** Open a mode's view, or the random events'. */
@@ -47,6 +49,8 @@
     onall: () => void
     /** Leave the page for Home. */
     onback: () => void
+    /** Play a mode's sample question in the dialogue box's place. */
+    ontry: (mode: string) => void
   } = $props()
 
   let modes = $state<ModePacing[] | null>(null)
@@ -79,6 +83,11 @@
         <button type="button" class="link" onclick={onback}>← Back</button>
       </p>
       <h1 tabindex="-1" bind:this={heading}>How to play</h1>
+      <p>
+        <button type="button" class="primary" onclick={() => ontry('more_less')}
+          >Try a question</button
+        >
+      </p>
       <h2>A night at the inn</h2>
       <ol class="steps">
         {#each NIGHT_STEPS as step (step.title)}
@@ -170,6 +179,11 @@
     <h1 tabindex="-1" bind:this={heading}>{mode.label}</h1>
     <p class="note">Hosted by {mode.host.name}</p>
     <p>{mode.hint}</p>
+    {#if mode.id in SAMPLES}
+      <p>
+        <button type="button" class="primary" onclick={() => ontry(mode.id)}>Try a question</button>
+      </p>
+    {/if}
     <h2>How you answer</h2>
     {#if types === null}
       <p class="note">Loading…</p>
