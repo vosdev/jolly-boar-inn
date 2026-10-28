@@ -109,6 +109,7 @@ describe('SuggestionQueue', () => {
       content: {
         type: 'ordering',
         mode: 'sort_it_out',
+        difficulty: 'medium',
         wiki: 'https://oldschool.runescape.wiki/w/Crafting',
         payload: {
           prompt: 'Sort the <b>gems</b> by level.',
@@ -225,7 +226,11 @@ describe('SuggestionQueue', () => {
   describe('a question with no round', () => {
     const { mode: _mode, ...content } = row().content as QuestionContent
     const unplaced = row({
-      content: { ...content, payload: { ...content.payload, prompt: 'Unplaced?' } },
+      content: {
+        ...content,
+        difficulty: 'medium',
+        payload: { ...content.payload, prompt: 'Unplaced?' },
+      },
     })
 
     function rounds(): string[] {
@@ -294,6 +299,7 @@ describe('SuggestionQueue', () => {
         content: {
           type: 'ordering',
           mode: 'sort_it_out',
+          difficulty: 'medium',
           wiki: WIKI,
           payload: {
             prompt: 'Sort these.',

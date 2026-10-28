@@ -408,13 +408,14 @@ describe('steps in the suggestion form', () => {
     expect(withoutExtras).toEqual(['item', 'guess_examine', 'whos_that_npc'])
   })
 
-  it('builds four steps for a round with extras, and marks missing steps on submit', () => {
+  it('builds five steps for a round with extras, and marks missing steps on submit', () => {
     const dropTable = CHOICES.find((c) => c.id === 'drop_table')!
     expect(
       stepsFor({
         choice: dropTable,
         attempted: false,
         questionDone: true,
+        difficultyDone: true,
         extrasFilled: false,
         extrasValid: true,
         sourceDone: false,
@@ -422,6 +423,7 @@ describe('steps in the suggestion form', () => {
       }),
     ).toEqual([
       { title: 'Question', done: true, missing: false },
+      { title: 'Difficulty', done: true, missing: false },
       { title: 'Extras', optional: true, done: false, missing: false },
       { title: 'Source', done: false, missing: false },
       { title: 'Credit', done: true, missing: false },
@@ -431,6 +433,7 @@ describe('steps in the suggestion form', () => {
         choice: dropTable,
         attempted: true,
         questionDone: true,
+        difficultyDone: false,
         extrasFilled: true,
         extrasValid: true,
         sourceDone: false,
@@ -438,19 +441,21 @@ describe('steps in the suggestion form', () => {
       }),
     ).toEqual([
       { title: 'Question', done: true, missing: false },
+      { title: 'Difficulty', done: false, missing: true },
       { title: 'Extras', optional: true, done: true, missing: false },
       { title: 'Source', done: false, missing: true },
       { title: 'Credit', done: true, missing: false },
     ])
   })
 
-  it('builds three steps for a wiki-only round without extras, and two for an item', () => {
+  it('builds four steps for a wiki-only round without extras, and two for an item', () => {
     const examine = CHOICES.find((c) => c.id === 'guess_examine')!
     expect(
       stepsFor({
         choice: examine,
         attempted: true,
         questionDone: false,
+        difficultyDone: false,
         extrasFilled: false,
         extrasValid: true,
         sourceDone: true,
@@ -458,8 +463,27 @@ describe('steps in the suggestion form', () => {
       }),
     ).toEqual([
       { title: 'Question', done: false, missing: true },
+      { title: 'Difficulty', done: false, missing: true },
       { title: 'Wiki page', done: true, missing: false },
       { title: 'Credit', done: false, missing: true },
+    ])
+
+    const event = CHOICES.find((c) => c.id === 'random_event')!
+    expect(
+      stepsFor({
+        choice: event,
+        attempted: false,
+        questionDone: true,
+        extrasFilled: false,
+        extrasValid: true,
+        sourceDone: true,
+        creditDone: true,
+      }),
+    ).toEqual([
+      { title: 'Question', done: true, missing: false },
+      { title: 'Extras', optional: true, done: false, missing: false },
+      { title: 'Source', done: true, missing: false },
+      { title: 'Credit', done: true, missing: false },
     ])
 
     const item = CHOICES.find((c) => c.id === 'item')!

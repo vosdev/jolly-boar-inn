@@ -102,7 +102,7 @@
   let sourceUrl = $state(start?.source_url ?? '')
   let name = $state(start?.name ?? '')
   let pictureItem = $state(start?.picture_item ?? '')
-  let difficulty = $state<QuestionDifficulty>(start?.difficulty ?? 'medium')
+  let difficulty = $state<QuestionDifficulty | undefined>(start?.difficulty)
   // An NPC's question is drawn whatever the room's difficulty, so it is asked for none.
   // svelte-ignore state_referenced_locally
   const tiered = choice.kind === 'question' && takesDifficulty(choice.id)
@@ -226,6 +226,9 @@
 
   let formProgress = $state({ questionDone: false, extrasFilled: false, extrasValid: true })
   const withExtras = $derived(hasExtras(choice))
+  const difficultyError = $derived(
+    tiered && difficulty === undefined ? 'Pick how hard it is.' : null,
+  )
   const sourceDone = $derived(
     choice.wikiOnly ? wikiError === null : Object.values(sourceErrors).every((e) => e === null),
   )
@@ -240,6 +243,7 @@
           : naming
             ? npcError === null
             : formProgress.questionDone,
+      difficultyDone: !tiered || difficulty !== undefined,
       extrasFilled:
         formProgress.extrasFilled || (Boolean(choice.pictureItem) && pictureItem.trim() !== ''),
       extrasValid: formProgress.extrasValid && (!choice.pictureItem || pictureItemError === null),
@@ -247,8 +251,12 @@
       creditDone,
     }),
   )
-  const sourceStepIndex = $derived(withExtras ? 2 : 1)
-  const creditStepIndex = $derived(choice.kind === 'item' ? 1 : withExtras ? 3 : 2)
+  const difficultyStepIndex = $derived(tiered ? 1 : -1)
+  const extrasStepIndex = $derived(withExtras ? (tiered ? 2 : 1) : -1)
+  const sourceStepIndex = $derived(
+    choice.kind === 'item' ? -1 : 1 + Number(tiered) + Number(withExtras),
+  )
+  const creditStepIndex = $derived(choice.kind === 'item' ? 1 : sourceStepIndex + 1)
 
   function send(content: SuggestionContent): void {
     onsave({ kind: choice.kind, content, credit: credit.trim(), credit_shown: shown })
@@ -260,7 +268,8 @@
     const checked = choice.wikiOnly
       ? wikiError === null
       : Object.values(sourceErrors).every((e) => e === null)
-    return creditError === null && pictureItemError === null && checked
+    const tieredPass = !tiered || difficulty !== undefined
+    return creditError === null && pictureItemError === null && checked && tieredPass
   }
 
   function saveQuestion(built: CustomQuestion | OrderingQuestion | MatchingQuestion): void {
@@ -272,14 +281,21 @@
       ...(choice.id === NO_ROUND ? {} : { mode: choice.id }),
       ...given,
       ...(pictured ? { picture_item: pictureItem.trim() } : {}),
-      ...(tiered ? { difficulty } : {}),
+      ...(tiered && difficulty !== undefined ? { difficulty } : {}),
     })
   }
 
   function saveNpc(): void {
     attempted = true
-    if (creditError !== null || wikiError !== null || npcError !== null) return
-    send({ ...npcQuestion, wiki: wiki.trim(), difficulty })
+    if (
+      creditError !== null ||
+      wikiError !== null ||
+      npcError !== null ||
+      (tiered && difficulty === undefined)
+    ) {
+      return
+    }
+    send({ ...npcQuestion, wiki: wiki.trim(), ...(difficulty !== undefined ? { difficulty } : {}) })
   }
 
   function saveItem(): void {
@@ -330,10 +346,11 @@
   {/if}
 {/snippet}
 
-{#snippet difficultyField()}
+{#snippet difficultyField(show: boolean)}
   {#if tiered}
     <div class="field">
       <Segmented legend="How hard is it?" options={QUESTION_DIFFICULTIES} bind:value={difficulty} />
+      {@render problem(difficultyError, show)}
     </div>
   {/if}
 {/snippet}
@@ -342,7 +359,6 @@
   {#if choice.named}
     <p class="note hint">Players see the right answer's render. Name it as the wiki does.</p>
   {/if}
-  {@render difficultyField()}
 {/snippet}
 
 {#snippet inExtrasFields(show: boolean)}
@@ -366,8 +382,16 @@
   </StepCard>
 {/snippet}
 
+{#snippet stepDifficultyCard()}
+  {#if tiered}
+    <StepCard number={difficultyStepIndex + 1} step={steps[difficultyStepIndex]!}>
+      {@render difficultyField(attempted)}
+    </StepCard>
+  {/if}
+{/snippet}
+
 {#snippet stepExtrasCard(body: Snippet)}
-  <StepCard number={2} step={steps[1]!}>
+  <StepCard number={extrasStepIndex + 1} step={steps[extrasStepIndex]!}>
     {@render body()}
   </StepCard>
 {/snippet}
@@ -452,12 +476,16 @@
             <input id="{id}-npc" type="text" bind:value={npcName} />
             {@render problem(npcError, attempted)}
           </div>
-          {@render difficultyField()}
         </StepCard>
-        <StepCard number={2} step={steps[1]!}>
+        {#if tiered}
+          <StepCard number={difficultyStepIndex + 1} step={steps[difficultyStepIndex]!}>
+            {@render difficultyField(attempted)}
+          </StepCard>
+        {/if}
+        <StepCard number={sourceStepIndex + 1} step={steps[sourceStepIndex]!}>
           {@render wikiField(attempted)}
         </StepCard>
-        <StepCard number={3} step={steps[2]!}>
+        <StepCard number={creditStepIndex + 1} step={steps[creditStepIndex]!}>
           {@render creditFields(attempted)}
         </StepCard>
         {@render similar()}
@@ -486,6 +514,7 @@
     inQuestion={inQuestionFields}
     inExtras={inExtrasFields}
     stepQuestion={stepQuestionCard}
+    stepDifficulty={tiered ? stepDifficultyCard : undefined}
     stepExtras={withExtras ? stepExtrasCard : undefined}
     fields={questionFields}
     onattempt={questionFieldsPass}
@@ -510,6 +539,7 @@
     inQuestion={inQuestionFields}
     inExtras={inExtrasFields}
     stepQuestion={stepQuestionCard}
+    stepDifficulty={tiered ? stepDifficultyCard : undefined}
     stepExtras={withExtras ? stepExtrasCard : undefined}
     fields={questionFields}
     onattempt={questionFieldsPass}
@@ -539,6 +569,7 @@
     inQuestion={inQuestionFields}
     inExtras={inExtrasFields}
     stepQuestion={stepQuestionCard}
+    stepDifficulty={tiered ? stepDifficultyCard : undefined}
     stepExtras={withExtras ? stepExtrasCard : undefined}
     fields={questionFields}
     onattempt={questionFieldsPass}

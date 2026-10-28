@@ -224,6 +224,7 @@ describe('Suggest', () => {
     const preview = screen.getByRole('region', { name: 'Preview' })
     expect(preview.textContent).toContain('Yuck, I don’t like cabbage.')
     expect(within(preview).getAllByRole('button')).toHaveLength(4)
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Required: the page you checked it on.')).toBeTruthy()
@@ -261,7 +262,9 @@ describe('Suggest', () => {
     expect(question.value).toBe("Which one doesn't belong?")
     expect(question.readOnly).toBe(true)
     const tier = within(screen.getByRole('group', { name: 'How hard is it?' }))
-    expect(tier.getByRole<HTMLInputElement>('radio', { name: 'Medium' }).checked).toBe(true)
+    expect(tier.getByRole<HTMLInputElement>('radio', { name: 'Medium' }).checked).toBe(false)
+    expect(tier.getByRole<HTMLInputElement>('radio', { name: 'Easy' }).checked).toBe(false)
+    expect(tier.getByRole<HTMLInputElement>('radio', { name: 'Hard' }).checked).toBe(false)
     await fireEvent.click(tier.getByRole('radio', { name: 'Hard' }))
     await type('Answer 1', 'Dharok')
     await type('Answer 2', 'Hazelmere')
@@ -308,6 +311,7 @@ describe('Suggest', () => {
     expect(preview.querySelector('blockquote')?.textContent).toBe('Never gonna give you up')
     await type('Answer 1', 'Rick')
     await type('Answer 2', 'Zezima')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText(/or another https link/)).toBeTruthy()
@@ -386,6 +390,7 @@ describe('Suggest', () => {
     await type('Answer 2', 'Minecraft')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Zezima')
     await type(/Another source/, 'https://example.com/clip')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     const sent = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
@@ -420,6 +425,7 @@ describe('Suggest', () => {
     await type('Entry 4', 'Emerald')
     await fireEvent.change(screen.getByLabelText('Players order'), { target: { value: '3' } })
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Crafting')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).toHaveBeenCalledWith({
@@ -467,6 +473,7 @@ describe('Suggest', () => {
     await type('Entry 3', 'Dragon Slayer')
     await fireEvent.click(screen.getAllByLabelText('Tied with the one above')[0]!)
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Update:Quests')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Required: the date it came out.')).toBeTruthy()
@@ -523,6 +530,7 @@ describe('Suggest', () => {
       within(screen.getByRole('group', { name: 'Typos allowed' })).getByLabelText('2'),
     )
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
@@ -545,6 +553,7 @@ describe('Suggest', () => {
     await type('Answer', '3000')
     await type('Item to show, if any', '  Dragon warhammer ')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Dragon_warhammer')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     expect(document.querySelector('.picture')).toBeNull()
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
@@ -561,6 +570,7 @@ describe('Suggest', () => {
     await type('Question', "What is General Graardor's combat level?")
     await type('Answer', '624')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/General_Graardor')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(api.sendSuggestion).not.toHaveBeenCalled()
@@ -584,6 +594,7 @@ describe('Suggest', () => {
     await type('Answer 1', 'Abyssal demon')
     await type('Answer 2', 'Greater demon')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).not.toHaveProperty(
@@ -605,6 +616,7 @@ describe('Suggest', () => {
     await fireEvent.click(await screen.findByRole('button', { name: /Who is That NPC\?/ }))
     await waitFor(() => expect(existingRows()).toEqual(['Vorkath']))
     await type('Monster or NPC, as the wiki spells it', ' vorkath')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(screen.getByText('Already in the game.')).toBeTruthy()
@@ -657,6 +669,7 @@ describe('Suggest', () => {
     await type('Answer 1', 'Dark kebbit')
     await type('Answer 2', 'Spotted kebbit')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Dark_kebbit')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
       type: 'multiple_choice',
@@ -710,6 +723,7 @@ describe('Suggest', () => {
     await type('Entry 2', 'Hill Giant')
     await type('Entry 3', 'Black demon')
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Combat_level')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
@@ -738,6 +752,7 @@ describe('Suggest', () => {
     const preview = within(screen.getByRole('region', { name: 'Preview' }))
     expect(preview.getByText('Dragon warhammer')).toBeTruthy()
     await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Slayer')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     expect(vi.mocked(api.sendSuggestion).mock.calls[0]![0].content).toMatchObject({
@@ -843,6 +858,7 @@ describe('Suggest', () => {
     await type('Question', 'Which monster drops the Abyssal whip?')
     await type('Accepted answer 1', 'Abyssal demon')
     await type('Another source, if the wiki can’t show it', 'https://example.com/clip')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     await type('Your name', 'AFKFisher')
     await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
     const sent = vi.mocked(api.sendSuggestion).mock.calls[0]![0].content
@@ -903,6 +919,7 @@ describe('Suggest', () => {
         mode: 'odd_one_out',
       })
 
+      await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
       await type('Your name', 'AFKFisher')
       await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Barrows_Brothers')
       const send = screen.getByRole('button', { name: 'Send to Reldo' })
@@ -939,12 +956,27 @@ describe('Suggest', () => {
       render(Suggest, { navigate })
       await fireEvent.click(await screen.findByRole('button', { name: /Drop Table/ }))
 
-      expect(stepDots()).toEqual(['1 Question', '2 Extras (optional)', '3 Source', '4 Credit'])
+      expect(stepDots()).toEqual([
+        '1 Question',
+        '2 Difficulty',
+        '3 Extras (optional)',
+        '4 Source',
+        '5 Credit',
+      ])
       expect(screen.getAllByText('Optional')).toHaveLength(1)
 
       await fireEvent.click(screen.getByRole('button', { name: 'Send to Reldo' }))
-      expect(stepDots()).toEqual(['! Question', '2 Extras (optional)', '! Source', '! Credit'])
+      expect(stepDots()).toEqual([
+        '! Question',
+        '! Difficulty',
+        '3 Extras (optional)',
+        '! Source',
+        '! Credit',
+      ])
       expect(screen.getByRole('group', { name: 'Question' }).classList.contains('missing')).toBe(
+        true,
+      )
+      expect(screen.getByRole('group', { name: 'Difficulty' }).classList.contains('missing')).toBe(
         true,
       )
       expect(screen.getByRole('group', { name: 'Extras' }).classList.contains('missing')).toBe(
@@ -956,28 +988,67 @@ describe('Suggest', () => {
       await type('Question', 'Which monster drops the Abyssal whip?')
       await type('Answer 1', 'Abyssal demon')
       await type('Answer 2', 'Greater demon')
-      expect(stepDots()).toEqual(['✓ Question', '2 Extras (optional)', '! Source', '! Credit'])
+      expect(stepDots()).toEqual([
+        '✓ Question',
+        '! Difficulty',
+        '3 Extras (optional)',
+        '! Source',
+        '! Credit',
+      ])
       expect(screen.getByRole('group', { name: 'Question' }).classList.contains('done')).toBe(true)
       expect(screen.getByRole('group', { name: 'Question' }).classList.contains('missing')).toBe(
         false,
       )
 
+      await fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
+      expect(stepDots()).toEqual([
+        '✓ Question',
+        '✓ Difficulty',
+        '3 Extras (optional)',
+        '! Source',
+        '! Credit',
+      ])
+      expect(screen.getByRole('group', { name: 'Difficulty' }).classList.contains('done')).toBe(
+        true,
+      )
+      expect(screen.getByRole('group', { name: 'Difficulty' }).classList.contains('missing')).toBe(
+        false,
+      )
+
       await type('Item to show, if any', 'Abyssal whip')
-      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '! Source', '! Credit'])
+      expect(stepDots()).toEqual([
+        '✓ Question',
+        '✓ Difficulty',
+        '✓ Extras (optional)',
+        '! Source',
+        '! Credit',
+      ])
       expect(screen.getByRole('group', { name: 'Extras' }).classList.contains('done')).toBe(true)
 
       await type('Relevant Wiki page', 'https://oldschool.runescape.wiki/w/Abyssal_demon')
-      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '✓ Source', '! Credit'])
+      expect(stepDots()).toEqual([
+        '✓ Question',
+        '✓ Difficulty',
+        '✓ Extras (optional)',
+        '✓ Source',
+        '! Credit',
+      ])
 
       await type('Your name', 'AFKFisher')
-      expect(stepDots()).toEqual(['✓ Question', '✓ Extras (optional)', '✓ Source', '✓ Credit'])
+      expect(stepDots()).toEqual([
+        '✓ Question',
+        '✓ Difficulty',
+        '✓ Extras (optional)',
+        '✓ Source',
+        '✓ Credit',
+      ])
     })
 
     it('omits Extras for rounds without optional fields, and shows two steps for an item', async () => {
       played()
       render(Suggest, { navigate })
       await fireEvent.click(await screen.findByRole('button', { name: /Guess the Examine/ }))
-      expect(stepDots()).toEqual(['1 Question', '2 Wiki page', '3 Credit'])
+      expect(stepDots()).toEqual(['1 Question', '2 Difficulty', '3 Wiki page', '4 Credit'])
       expect(screen.queryByRole('group', { name: 'Extras' })).toBeNull()
 
       await fireEvent.click(screen.getByRole('button', { name: /Everything you can suggest/ }))
