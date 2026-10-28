@@ -2,8 +2,9 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { SHOWN } from '../components/ModeShowcase.svelte'
 import type { ModePacing } from './api'
-import { HOW_TO_ROWS, allTypes, roomTypes, rowsFor } from './howToPlay'
+import { HOW_TO_ROWS, allTypes, howToPath, howToViewOf, roomTypes, rowsFor } from './howToPlay'
 import type { RoomSettings } from './protocol'
 
 function mode(id: string, types: string[]): ModePacing {
@@ -106,6 +107,31 @@ it('shares one row, drawn as a slider, for the two slider types', () => {
     const rows = rowsFor(new Set([type]))
     expect(rows.map((row) => [row.title, row.drawing])).toEqual([['Slide to your guess', 'slider']])
   }
+})
+
+describe('How to play addresses', () => {
+  it('spell a mode by its name', () => {
+    expect(howToPath('more_less', SHOWN)).toBe('/how-to-play/more-or-less')
+    expect(howToPath('whos_that_npc', SHOWN)).toBe('/how-to-play/who-is-that-npc')
+    expect(howToPath('events', SHOWN)).toBe('/how-to-play/random-events')
+    expect(howToPath('overview', SHOWN)).toBe('/how-to-play')
+  })
+
+  it('read back as the view they were made from, each mode its own', () => {
+    const paths = new Set<string>()
+    for (const view of ['overview', 'events', ...SHOWN.map((mode) => mode.id)]) {
+      const path = howToPath(view, SHOWN)
+      paths.add(path)
+      expect(howToViewOf(path, SHOWN)).toBe(view)
+    }
+    expect(paths.size).toBe(SHOWN.length + 2)
+  })
+
+  it('give the overview for a mode they do not know, and nothing outside the page', () => {
+    expect(howToViewOf('/how-to-play/pixel-hunt', SHOWN)).toBe('overview')
+    expect(howToViewOf('/how-to-playground', SHOWN)).toBeNull()
+    expect(howToViewOf('/', SHOWN)).toBeNull()
+  })
 })
 
 describe('loadModes', () => {

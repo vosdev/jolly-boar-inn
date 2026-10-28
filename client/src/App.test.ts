@@ -377,6 +377,68 @@ describe('App', () => {
     }
   })
 
+  describe('How to play', () => {
+    beforeEach(() => {
+      vi.mocked(api.getModes).mockResolvedValue([
+        { id: 'more_less', types: ['more_less'], questions: null, seconds: null, as_of: null },
+      ])
+    })
+
+    const heading = (): Promise<HTMLElement> => screen.findByRole('heading', { level: 1 })
+
+    it.each([
+      ['/how-to-play', 'How to play'],
+      ['/how-to-play/more-or-less', 'More or Less'],
+      ['/how-to-play/random-events', 'Random events'],
+      ['/how-to-play/no-such-mode', 'How to play'],
+    ])('draws %s on the wide page as %s', async (path, title) => {
+      at(path)
+      expect((await heading()).textContent).toBe(title)
+      expect(document.querySelector('main')!.classList.contains('wide')).toBe(true)
+      expect(location.pathname).toBe(path)
+    })
+
+    it("opens from Home's How to play at its own address, and Back steps out a view at a time", async () => {
+      at('/')
+      await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
+      expect(location.pathname).toBe('/how-to-play')
+      await screen.findByRole('heading', { level: 1, name: 'How to play' })
+      await fireEvent.click(screen.getByRole('button', { name: /^More or Less/ }))
+      expect(location.pathname).toBe('/how-to-play/more-or-less')
+      await screen.findByRole('heading', { level: 1, name: 'More or Less' })
+      history.back()
+      await screen.findByRole('heading', { level: 1, name: 'How to play' })
+      history.back()
+      await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+      expect(location.pathname).toBe('/')
+    })
+
+    it('goes back to the overview from All game modes, and to Home from Back to the inn', async () => {
+      at('/')
+      await fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
+      await fireEvent.click(await screen.findByRole('button', { name: /^Bestiary/ }))
+      await fireEvent.click(await screen.findByRole('button', { name: '← All game modes' }))
+      await waitFor(() => expect(location.pathname).toBe('/how-to-play'))
+      await fireEvent.click(await screen.findByRole('button', { name: /^Drop Table/ }))
+      await fireEvent.click(await screen.findByRole('button', { name: '← All game modes' }))
+      await waitFor(() => expect(location.pathname).toBe('/how-to-play'))
+      await fireEvent.click(await screen.findByRole('button', { name: '← Back to the inn' }))
+      await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+      expect(location.pathname).toBe('/')
+      expect(history.state).toBeNull()
+    })
+
+    it('leaves a shared link for Home and the overview all the same', async () => {
+      at('/how-to-play/more-or-less')
+      await fireEvent.click(await screen.findByRole('button', { name: '← All game modes' }))
+      await screen.findByRole('heading', { level: 1, name: 'How to play' })
+      expect(location.pathname).toBe('/how-to-play')
+      await fireEvent.click(screen.getByRole('button', { name: '← Back to the inn' }))
+      await waitFor(() => expect(screen.getByLabelText('Room code')).toBeTruthy())
+      expect(location.pathname).toBe('/')
+    })
+  })
+
   it('links to /admin from Home alone, which shows it only to a browser holding the token', () => {
     const sources = import.meta.glob(['./**/*.svelte', './**/*.ts', '!./**/*.test.ts'], {
       query: '?raw',
