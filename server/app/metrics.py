@@ -9,6 +9,7 @@ scrape sees one instant of the process's memory.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import TYPE_CHECKING, Literal, get_args
 
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
 
     from app.rooms.state import RoomManager
 
-__all__ = ["CONTENT_TYPE_LATEST", "render"]
+__all__ = ["CONTENT_TYPE_LATEST", "monitor_event_loop_lag", "render"]
 
 GameOutcome = Literal["finished", "ended_early", "abandoned"]
 CleanupResult = Literal["ok", "db_unavailable", "error"]
@@ -166,6 +167,13 @@ CLEANUP_INTERVAL = Gauge(
     "Configured seconds between expired-room cleanup passes.",
     registry=REGISTRY,
 )
+EVENT_LOOP_LAG = Histogram(
+    "jbi_event_loop_lag_seconds",
+    "How late the event loop wakes a sleeping task; every room shares this lag.",
+    buckets=(0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
+    registry=REGISTRY,
+)
+LAG_PROBE_INTERVAL = 0.1
 BUILD_INFO = Gauge("jbi_build_info", "Server version.", ["version"], registry=REGISTRY)
 PROCESS_START_TIME = Gauge(
     "jbi_process_start_time_seconds",
@@ -189,6 +197,15 @@ for _msg_type in WS_MESSAGE_TYPES:
     WS_MESSAGES.labels(type=_msg_type)
 for _disconnect in WS_DISCONNECT_REASONS:
     WS_DISCONNECTS.labels(reason=_disconnect)
+
+
+async def monitor_event_loop_lag(interval: float = LAG_PROBE_INTERVAL) -> None:
+    """Sleep ``interval`` forever and observe how much later than that the loop resumes us."""
+    loop = asyncio.get_running_loop()
+    while True:
+        start = loop.time()
+        await asyncio.sleep(interval)
+        EVENT_LOOP_LAG.observe(max(0.0, loop.time() - start - interval))
 
 
 def render(app: FastAPI) -> bytes:
