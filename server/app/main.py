@@ -204,7 +204,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except (OSError, asyncpg.PostgresError) as exc:
         log.warning("database unavailable, will retry on demand: %s", exc)
     app.state.cleanup = asyncio.create_task(cleanup_expired_rooms(app), name="room-cleanup")
+    app.state.lag_probe = asyncio.create_task(
+        metrics.monitor_event_loop_lag(), name="event-loop-lag"
+    )
     yield
+    app.state.lag_probe.cancel()
+    with suppress(asyncio.CancelledError):
+        await app.state.lag_probe
     app.state.cleanup.cancel()
     with suppress(asyncio.CancelledError):
         await app.state.cleanup  # before the pool goes, like the timers below

@@ -180,6 +180,32 @@
           "refId": "C"
         }
       ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "thresholdsStyle": { "mode": "line" } },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "id": 9,
+      "title": "Event Loop Lag (alert at p99 100 ms)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.5, sum by (le) (rate(jbi_event_loop_lag_seconds_bucket[5m])))", "legendFormat": "p50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(jbi_event_loop_lag_seconds_bucket[5m])))", "legendFormat": "p95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(jbi_event_loop_lag_seconds_bucket[5m])))", "legendFormat": "p99", "refId": "C" }
+      ]
     }
   ],
   "schemaVersion": 39,

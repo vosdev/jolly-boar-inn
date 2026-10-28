@@ -1,6 +1,8 @@
 """``GET /metrics``: OpenMetrics exposition, bearer auth, gauges, counters and fixed labels."""
 
+import asyncio
 import hmac
+import time
 from pathlib import Path
 
 import pytest
@@ -401,6 +403,7 @@ def test_every_label_comes_from_a_fixed_set_and_no_secret_reaches_the_output(
         "jbi_cleanup_runs": {"result": set(metrics.CLEANUP_RESULTS)},
         "jbi_cleanup_last_success_timestamp_seconds": {},
         "jbi_cleanup_interval_seconds": {},
+        "jbi_event_loop_lag_seconds": {},
         "jbi_build_info": {"version": {APP_VERSION}},
         "jbi_process_start_time_seconds": {},
     }
@@ -414,3 +417,33 @@ def test_every_label_comes_from_a_fixed_set_and_no_secret_reaches_the_output(
             assert set(labels) == set(expected_keys), (sample.name, labels)
             for key, value in labels.items():
                 assert value in expected_keys[key], f"{sample.name}[{key}] = {value!r}"
+
+
+def test_event_loop_lag_is_exposed(app: FastAPI) -> None:
+    with TestClient(app) as client:
+        scraped = scrape(client)
+    assert "jbi_event_loop_lag_seconds_bucket" in scraped
+    edges = {labels["le"] for labels, _ in scraped["jbi_event_loop_lag_seconds_bucket"]}
+    assert {"0.001", "0.1", "5.0", "+Inf"} <= edges
+
+
+async def test_lag_probe_sees_a_blocked_loop() -> None:
+    def bucket(edge: str) -> float:
+        value = metrics.REGISTRY.get_sample_value("jbi_event_loop_lag_seconds_bucket", {"le": edge})
+        assert value is not None
+        return value
+
+    slow_before = bucket("+Inf") - bucket("0.025")
+    probe = asyncio.create_task(metrics.monitor_event_loop_lag(0.01))
+    await asyncio.sleep(0.03)
+    time.sleep(0.1)  # noqa: ASYNC251 -- blocks the loop on purpose, like a CPU-heavy step
+    await asyncio.sleep(0.03)
+    probe.cancel()
+    assert bucket("+Inf") - bucket("0.025") > slow_before
+
+
+def test_lag_probe_stops_with_the_app(app: FastAPI) -> None:
+    with TestClient(app):
+        probe = app.state.lag_probe
+        assert not probe.done()
+    assert probe.cancelled()
