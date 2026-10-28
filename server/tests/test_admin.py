@@ -249,6 +249,8 @@ def test_stats_are_every_counter_ever_kept(client: TestClient, db, table) -> Non
     assert {(c["metric"], c["count"]) for c in counts[2:]} == {
         ("rooms_created", 1),
         ("players_joined", 2),
+        ("peak_players", 2),
+        ("peak_rooms", 1),
     }
 
 

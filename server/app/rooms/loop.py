@@ -34,7 +34,13 @@ from app.rooms import ready, scoring
 from app.rooms.errors import BadState
 from app.rooms.hold import hold_seconds, typed_lines
 from app.rooms.models import Broadcast, Player, Room, RoomQuestion, _require_admin
-from app.rooms.queries import _count_round_finished, _fetch_totals, _round_start, _void_question
+from app.rooms.queries import (
+    _count_round_finished,
+    _fetch_totals,
+    _round_key,
+    _round_start,
+    _void_question,
+)
 from app.stats import Metric, bump, duration_bucket
 from app.ws.protocol import GameFinished, PlayerResult, QuestionClosed, QuestionOpen, Segment
 
@@ -240,6 +246,7 @@ class Loop:
                 closed_at,
             )
             await bump(conn, Metric.GAMES_ENDED_EARLY)
+            await bump(conn, Metric.ENDED_EARLY_AT_ROUND, _round_key(room))
             if cut_short is not None:
                 await bump(conn, Metric.ROUNDS_ENDED_EARLY, cut_short.mode)
         metrics.GAMES.labels(outcome="ended_early").inc()
@@ -610,7 +617,7 @@ class Loop:
                 await conn.execute(
                     "update questions set closed_at = $1 where id = $2", closed_at, question.id
                 )
-                await _count_round_finished(conn, room, question.position)
+                await _count_round_finished(conn, room, question.position, closed_at)
                 await bump(conn, closed_by, question.mode)
                 if graded:
                     await conn.executemany(

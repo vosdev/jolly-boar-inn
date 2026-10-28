@@ -13,17 +13,6 @@ export type Range = '30' | '90' | '365' | 'all'
 /** A chart colour, one of the theme's tokens. */
 export type Tone = 'ok' | 'bad' | 'muted' | 'accent' | 'warn'
 
-/** One bar: a day, or a week once the range is too long for a bar a day. */
-export interface Bucket {
-  start: string
-  days: number
-  finished: number
-  endedEarly: number
-  abandoned: number
-  joined: number
-  returning: number
-}
-
 export interface ModeRank {
   mode: string
   started: number
@@ -31,15 +20,24 @@ export interface ModeRank {
 }
 
 const DAY_MS = 86_400_000
-/** Longer than this, a bar is a week: a year as 53 bars rather than 365 slivers. */
+/** Longer than this, a chart is a 7-day moving line: a year of daily bars is slivers. */
 const DAILY_UP_TO = 90
+const WINDOW = 7
 
-const BUCKET_FIELD: Record<string, keyof Bucket> = {
-  games_finished: 'finished',
-  games_ended_early: 'endedEarly',
-  games_abandoned: 'abandoned',
-  players_joined: 'joined',
-  players_returning: 'returning',
+/** Round lengths in minutes, as the server buckets them. */
+export const ROUND_LENGTHS = ['0-2', '2-5', '5-10', '10+'] as const
+
+/** Who a join failure is down to: the player, the instance's limits, or the room and its host. */
+export type FailureGroup = 'player' | 'ours' | 'host'
+
+export const FAILURE_GROUPS: Record<string, FailureGroup> = {
+  not_found: 'player',
+  name_taken: 'player',
+  bad_key: 'player',
+  room_full: 'ours',
+  requests_full: 'ours',
+  not_joinable: 'host',
+  request_denied: 'host',
 }
 
 function dayOf(ms: number): string {
@@ -69,40 +67,144 @@ export function rangeDays(counts: Count[], range: Range, today: string): string[
   return days
 }
 
+/** A chart's days and one value per day for each metric asked for, in that order. */
+export interface Series {
+  days: string[]
+  values: number[][]
+  /** Each value is the mean of its day and the six before it, for a range past 90 days. */
+  smoothed: boolean
+}
+
 /**
- * The range's bars, oldest first. Weeks are counted back from `today`, so the newest bar
- * is always a whole week and only the oldest may be short.
+ * Each of `metrics` per day over the range, oldest first. The last day is today and so
+ * always partial; the chart draws it as such rather than this leaving it out.
  */
-export function buckets(counts: Count[], range: Range, today: string): Bucket[] {
+export function series(
+  counts: Count[],
+  range: Range,
+  today: string,
+  metrics: readonly string[],
+): Series {
   const days = rangeDays(counts, range, today)
-  const size = days.length > DAILY_UP_TO ? 7 : 1
-  const total = Math.ceil(days.length / size)
-  const bars: Bucket[] = []
-  const barOf = new Map<string, Bucket>()
-  days.forEach((day, i) => {
-    const index = total - 1 - Math.floor((days.length - 1 - i) / size)
-    let bar = bars[index]
-    if (bar === undefined) {
-      bar = {
-        start: day,
-        days: 0,
-        finished: 0,
-        endedEarly: 0,
-        abandoned: 0,
-        joined: 0,
-        returning: 0,
-      }
-      bars[index] = bar
-    }
-    bar.days += 1
-    barOf.set(day, bar)
-  })
+  const index = new Map(days.map((day, i) => [day, i]))
+  const values = metrics.map(() => days.map(() => 0))
   for (const count of counts) {
-    const bar = barOf.get(count.day)
-    const field = BUCKET_FIELD[count.metric]
-    if (bar !== undefined && field !== undefined) (bar[field] as number) += count.count
+    const at = metrics.indexOf(count.metric)
+    const i = index.get(count.day)
+    if (at >= 0 && i !== undefined) values[at]![i]! += count.count
   }
-  return bars
+  const smoothed = days.length > DAILY_UP_TO
+  return { days, values: smoothed ? values.map(moving) : values, smoothed }
+}
+
+/** The trailing 7-day mean of `values`, over fewer days where fewer came before. */
+function moving(values: number[]): number[] {
+  return values.map((_, i) => {
+    const window = values.slice(Math.max(0, i - WINDOW + 1), i + 1)
+    return window.reduce((a, b) => a + b, 0) / window.length
+  })
+}
+
+/** One headline figure, its value over the previous period, and the change between them. */
+export interface Figure {
+  /** `null` for a rate with nothing to divide by. */
+  value: number | null
+  previous: number | null
+  /** Relative for a count (0.25 is 25% up), percentage points for a rate; `null` if unknown. */
+  change: number | null
+}
+
+export interface Headline {
+  /** Whole days: today is left out, so a morning does not read as a slump. */
+  days: number
+  /** False for "all", which has nothing before it to compare with. */
+  compared: boolean
+  games: Figure
+  players: Figure
+  /** Finished over every game that ended, so a game still running counts nowhere. */
+  finishRate: Figure
+  returnRate: Figure
+}
+
+const ENDED = ['games_finished', 'games_ended_early', 'games_abandoned']
+
+/** The range's headline figures over whole days up to yesterday, each against the days before. */
+export function headline(counts: Count[], range: Range, today: string): Headline {
+  const yesterday = dayOf(msOf(today) - DAY_MS)
+  const current = rangeDays(counts, range, yesterday).filter((day) => day <= yesterday)
+  const first = current[0] ?? yesterday
+  const before =
+    range === 'all'
+      ? null
+      : current.map((_, i) => dayOf(msOf(first) - (current.length - i) * DAY_MS))
+  const over = (days: string[] | null) => {
+    if (days === null) return null
+    const inside = new Set(days)
+    const sum = (metrics: string[]) =>
+      counts
+        .filter((c) => metrics.includes(c.metric) && inside.has(c.day))
+        .reduce((n, c) => n + c.count, 0)
+    const ended = sum(ENDED)
+    const joined = sum(['players_joined'])
+    return {
+      games: sum(['games_started']),
+      players: joined,
+      finishRate: ended === 0 ? null : sum(['games_finished']) / ended,
+      returnRate: joined === 0 ? null : sum(['players_returning']) / joined,
+    }
+  }
+  const now = over(current)!
+  const then = over(before)
+  const count = (value: number, previous: number | undefined): Figure => ({
+    value,
+    previous: previous ?? null,
+    change: previous === undefined || previous === 0 ? null : (value - previous) / previous,
+  })
+  const rate = (value: number | null, previous: number | null | undefined): Figure => ({
+    value,
+    previous: previous ?? null,
+    change: value === null || previous == null ? null : value - previous,
+  })
+  return {
+    days: current.length,
+    compared: then !== null,
+    games: count(now.games, then?.games),
+    players: count(now.players, then?.players),
+    finishRate: rate(now.finishRate, then?.finishRate),
+    returnRate: rate(now.returnRate, then?.returnRate),
+  }
+}
+
+/** Joins tried over the range and how many failed, by whom the failure was down to. */
+export interface JoinFunnel {
+  attempts: number
+  failed: Record<FailureGroup, number>
+}
+
+/**
+ * A host's own join comes with their room, so it is no attempt; every failure the browsers
+ * reported is one, retries of a taken name included.
+ */
+export function joinFunnel(counts: Count[], range: Range, today: string): JoinFunnel {
+  const failed: Record<FailureGroup, number> = { player: 0, ours: 0, host: 0 }
+  for (const row of breakdown(counts, range, today, ['join_failures'])) {
+    const group = FAILURE_GROUPS[row.key]
+    if (group !== undefined) failed[group] += row.total
+  }
+  const joins =
+    total(counts, range, today, 'players_joined') - total(counts, range, today, 'rooms_created')
+  return { attempts: Math.max(0, joins) + failed.player + failed.ours + failed.host, failed }
+}
+
+/** Finished rounds per mode in the range, split by how long each took, most rounds first. */
+export function roundLengths(counts: Count[], range: Range, today: string): Breakdown[] {
+  const split: Count[] = []
+  for (const count of counts) {
+    if (count.metric !== 'round_durations') continue
+    const at = count.key.lastIndexOf('/')
+    split.push({ ...count, metric: count.key.slice(at + 1), key: count.key.slice(0, at) })
+  }
+  return breakdown(split, range, today, ROUND_LENGTHS)
 }
 
 /** Modes by rounds started in the range, most first, with how many of those finished. */

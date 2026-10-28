@@ -33,11 +33,23 @@
     type AdminTab,
   } from '../lib/admin'
   import type { Count, Live, LiveRoom } from '../lib/admin'
-  import { breakdown, buckets, modeRanking, total, utcToday, type Range } from '../lib/adminCharts'
+  import {
+    breakdown,
+    FAILURE_GROUPS,
+    headline,
+    joinFunnel,
+    modeRanking,
+    ROUND_LENGTHS,
+    roundLengths,
+    series,
+    total,
+    utcToday,
+    type Figure,
+    type Range,
+  } from '../lib/adminCharts'
   import { ApiFailure } from '../lib/api'
   import { TYPE_LABELS } from '../lib/customQuestions'
   import { MODES } from '../lib/modes'
-  import { THEME_LABELS } from '../lib/theme'
 
   let {
     tab = 'overview',
@@ -72,11 +84,43 @@
     request_denied: 'Host said no',
   }
 
-  const DEVICES: Record<string, string> = { mobile: 'Mobile', desktop: 'Desktop' }
-
   const FREQUENCIES: Record<string, string> = { less: 'Less', default: 'Default', more: 'More' }
 
   const LENGTHS = ['0-10', '10-20', '20-30', '30-45', '45-60', '60+']
+
+  const PLAYER_COUNTS = ['1', '2-4', '5-9', '10-19', '20+']
+
+  const ROUNDS = ['1', '2', '3', '4', '5', '6', '7', '8+']
+
+  /** The failures in the order of who they are down to, so each group reads together. */
+  const FAILURE_ORDER = (['player', 'ours', 'host'] as const).flatMap((group) =>
+    Object.keys(FAILURE_GROUPS).filter((key) => FAILURE_GROUPS[key] === group),
+  )
+
+  const GROUPS = ['audience', 'gameplay', 'funnel'] as const
+  type Group = (typeof GROUPS)[number]
+
+  /** Which breakdown groups are open, kept per browser: a convenience, so storage may fail. */
+  const OPEN_GROUPS = 'jbi:admin-open-groups'
+
+  function readOpen(): Record<Group, boolean> {
+    const open = { audience: false, gameplay: false, funnel: false }
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(OPEN_GROUPS) ?? '[]')
+      if (Array.isArray(saved)) for (const g of GROUPS) open[g] = saved.includes(g)
+    } catch {
+      // Unreadable or denied: every group starts closed.
+    }
+    return open
+  }
+
+  function saveOpen(open: Record<Group, boolean>): void {
+    try {
+      localStorage.setItem(OPEN_GROUPS, JSON.stringify(GROUPS.filter((g) => open[g])))
+    } catch {
+      // Denied: the groups start closed next time.
+    }
+  }
 
   const RANGES: { value: Range; label: string }[] = [
     { value: '30', label: '30 days' },
@@ -96,11 +140,24 @@
   /** Ticks each second, so the button's age counts up between refreshes. */
   let now = $state(Date.now())
   let range = $state<Range>('90')
+  let opened = $state(readOpen())
   let busy = false
 
   const today = $derived(utcToday(updatedAt ?? Date.now()))
-  const bars = $derived(buckets(counts, range, today))
-  const per = $derived(bars.some((b) => b.days === 7) ? 'week' : 'day')
+  const figures = $derived(headline(counts, range, today))
+  const games = $derived(
+    series(counts, range, today, ['games_finished', 'games_ended_early', 'games_abandoned']),
+  )
+  const joins = $derived(series(counts, range, today, ['players_joined', 'players_returning']))
+  const peaks = $derived(series(counts, range, today, ['peak_players', 'peak_rooms']))
+  const tiles = $derived([
+    { label: 'Games', figure: figures.games, rate: false, none: 'No games' },
+    { label: 'Players', figure: figures.players, rate: false, none: 'No players' },
+    { label: 'Finish rate', figure: figures.finishRate, rate: true, none: 'No games' },
+    { label: 'Return rate', figure: figures.returnRate, rate: true, none: 'No players' },
+  ])
+  const funnel = $derived(joinFunnel(counts, range, today))
+  const failedJoins = $derived(funnel.failed.player + funnel.failed.ours + funnel.failed.host)
   const ranking = $derived(modeRanking(counts, range, today))
   const topStarted = $derived(Math.max(1, ...ranking.map((r) => r.started)))
   const of = (metrics: string[], order?: string[]) =>
@@ -109,9 +166,10 @@
     of(['questions_all_answered', 'questions_timed_out', 'questions_skipped']),
   )
   const routes = $derived(of(['join_routes']))
-  const failures = $derived(of(['join_failures']))
-  const devices = $derived(of(['devices']))
-  const themes = $derived(of(['themes']))
+  const failures = $derived(of(['join_failures'], FAILURE_ORDER))
+  const sizes = $derived(of(['game_players'], PLAYER_COUNTS))
+  const rounds = $derived(of(['ended_early_at_round', 'abandoned_at_round'], ROUNDS))
+  const roundTimes = $derived(roundLengths(counts, range, today))
   const frequencies = $derived(of(['event_frequency']))
   const customTypes = $derived(of(['custom_questions']))
   const customGames = $derived(total(counts, range, today, 'games_with_custom'))
@@ -125,6 +183,29 @@
 
   function named(names: Record<string, string>): (key: string) => string {
     return (key) => names[key] ?? key
+  }
+
+  function toggle(group: Group, event: Event): void {
+    opened[group] = (event.currentTarget as HTMLDetailsElement).open
+    saveOpen(opened)
+  }
+
+  function percent(share: number): string {
+    return `${Math.round(share * 100)}%`
+  }
+
+  /** A share of `whole`, or nothing to say when there is no whole. */
+  function shareOf(part: number, whole: number): string {
+    return whole === 0 ? '—' : percent(part / whole)
+  }
+
+  /** How a figure moved since the previous period: relative for a count, points for a rate. */
+  function changeText(figure: Figure, rate: boolean): string {
+    if (figure.change === null) return 'nothing to compare'
+    const amount = Math.round(figure.change * 100)
+    if (amount === 0) return 'no change'
+    const sign = amount > 0 ? '+' : '−'
+    return `${sign}${Math.abs(amount)}${rate ? ' pts' : '%'}`
   }
 
   function lengthName(key: string): string {
@@ -344,24 +425,55 @@
         <h2 id="history-heading">History</h2>
         <Segmented legend="Range" options={RANGES} bind:value={range} />
       </div>
+      <dl class="headline" aria-label="The range in figures">
+        {#each tiles as tile (tile.label)}
+          <div class="tile">
+            <dt>{tile.label}</dt>
+            <dd class="value">
+              {#if tile.figure.value === null || (!tile.rate && tile.figure.value === 0)}
+                {tile.none}
+              {:else}
+                {tile.rate ? percent(tile.figure.value) : tile.figure.value}
+              {/if}
+            </dd>
+            {#if figures.compared}
+              <dd
+                class="change"
+                class:up={(tile.figure.change ?? 0) > 0}
+                class:down={(tile.figure.change ?? 0) < 0}
+              >
+                {changeText(tile.figure, tile.rate)}
+              </dd>
+            {/if}
+          </div>
+        {/each}
+      </dl>
+      <p class="note">
+        Over the last {figures.days} full {figures.days === 1 ? 'day' : 'days'}, today left out{figures.compared
+          ? `, against the ${figures.days} before`
+          : ''}. Finish rate is finished games over games that ended; return rate is returning
+        players over players who joined.
+      </p>
       <HistoryChart
-        title="Games per {per}, by how they ended"
-        kind="stacked"
-        days={bars.map((b) => b.start)}
+        title={games.smoothed ? 'Games a day, 7-day average' : 'Games per day, by how they ended'}
+        kind={games.smoothed ? 'lines' : 'stacked'}
+        days={games.days}
+        partial
         series={[
-          { label: 'finished', tone: 'ok', values: bars.map((b) => b.finished) },
-          { label: 'ended early', tone: 'muted', values: bars.map((b) => b.endedEarly) },
-          { label: 'abandoned', tone: 'bad', values: bars.map((b) => b.abandoned) },
+          { label: 'finished', tone: 'ok', values: games.values[0] ?? [] },
+          { label: 'ended early', tone: 'muted', values: games.values[1] ?? [] },
+          { label: 'abandoned', tone: 'bad', values: games.values[2] ?? [] },
         ]}
       />
       <HistoryChart
-        title="Players per {per}"
+        title={joins.smoothed ? 'Players a day, 7-day average' : 'Players per day'}
         kind="lines"
         height={120}
-        days={bars.map((b) => b.start)}
+        days={joins.days}
+        partial
         series={[
-          { label: 'joined', tone: 'accent', values: bars.map((b) => b.joined) },
-          { label: 'returning', tone: 'warn', values: bars.map((b) => b.returning) },
+          { label: 'joined', tone: 'accent', values: joins.values[0] ?? [] },
+          { label: 'returning', tone: 'warn', values: joins.values[1] ?? [] },
         ]}
       />
       <h3>Modes by rounds started</h3>
@@ -384,63 +496,110 @@
           {/each}
         </ol>
       {/if}
-      <div class="breakdowns">
-        <BreakdownList
-          title="How questions closed, by mode"
-          rows={closes}
-          label={modeName}
-          parts={[
-            { label: 'everyone answered', tone: 'ok' },
-            { label: 'time ran out', tone: 'warn' },
-            { label: 'skipped', tone: 'muted' },
+      <details class="group" open={opened.audience} ontoggle={(e) => toggle('audience', e)}>
+        <summary><h3>Audience</h3></summary>
+        <HistoryChart
+          title={peaks.smoothed
+            ? 'Most at once, 7-day average of each day’s peak'
+            : 'Most at once, each day'}
+          kind="lines"
+          height={120}
+          days={peaks.days}
+          partial
+          series={[
+            { label: 'players connected', tone: 'accent', values: peaks.values[0] ?? [] },
+            { label: 'rooms in use', tone: 'ok', values: peaks.values[1] ?? [] },
           ]}
         />
-        <BreakdownList
-          title="Finished games by length"
-          rows={lengths}
-          label={lengthName}
-          parts={[{ label: 'games', tone: 'accent' }]}
-        />
-        <BreakdownList
-          title="How players got in"
-          rows={routes}
-          label={named(ROUTES)}
-          parts={[{ label: 'joins', tone: 'accent' }]}
-        />
-        <BreakdownList
-          title="Join failures players saw"
-          rows={failures}
-          label={named(FAILURES)}
-          parts={[{ label: 'failures', tone: 'bad' }]}
-        />
-        <BreakdownList
-          title="Devices, once per browser"
-          rows={devices}
-          label={named(DEVICES)}
-          parts={[{ label: 'browsers', tone: 'accent' }]}
-        />
-        <BreakdownList
-          title="Themes picked, once per browser"
-          rows={themes}
-          label={(key) => THEME_LABELS[key as keyof typeof THEME_LABELS]?.name ?? key}
-          parts={[{ label: 'browsers', tone: 'accent' }]}
-        />
-        <BreakdownList
-          title="Games started by random event frequency"
-          rows={frequencies}
-          label={named(FREQUENCIES)}
-          parts={[{ label: 'games', tone: 'accent' }]}
-        />
-        <BreakdownList
-          title="Hosts' own questions by type"
-          rows={customTypes}
-          label={(key) => TYPE_LABELS[key as keyof typeof TYPE_LABELS] ?? key}
-          parts={[{ label: 'questions', tone: 'accent' }]}
-          note={customGames > 0
-            ? `In ${customGames} ${customGames === 1 ? 'game' : 'games'} started.`
-            : undefined}
-        />
-      </div>
+        <div class="breakdowns">
+          <BreakdownList
+            title="Games started by players in them"
+            rows={sizes}
+            parts={[{ label: 'games', tone: 'accent' }]}
+          />
+          <BreakdownList
+            title="How players got in"
+            rows={routes}
+            label={named(ROUTES)}
+            parts={[{ label: 'joins', tone: 'accent' }]}
+          />
+        </div>
+      </details>
+      <details class="group" open={opened.gameplay} ontoggle={(e) => toggle('gameplay', e)}>
+        <summary><h3>Gameplay</h3></summary>
+        <div class="breakdowns">
+          <BreakdownList
+            title="How questions closed, by mode"
+            rows={closes}
+            label={modeName}
+            parts={[
+              { label: 'everyone answered', tone: 'ok' },
+              { label: 'time ran out', tone: 'warn' },
+              { label: 'skipped', tone: 'muted' },
+            ]}
+          />
+          <BreakdownList
+            title="Finished rounds by length, by mode"
+            rows={roundTimes}
+            label={modeName}
+            parts={ROUND_LENGTHS.map((key, i) => ({
+              label: lengthName(key),
+              tone: (['ok', 'accent', 'warn', 'bad'] as const)[i] ?? 'muted',
+            }))}
+          />
+          <BreakdownList
+            title="Finished games by length"
+            rows={lengths}
+            label={lengthName}
+            parts={[{ label: 'games', tone: 'accent' }]}
+          />
+          <BreakdownList
+            title="Games started by random event frequency"
+            rows={frequencies}
+            label={named(FREQUENCIES)}
+            parts={[{ label: 'games', tone: 'accent' }]}
+          />
+          <BreakdownList
+            title="Hosts' own questions by type"
+            rows={customTypes}
+            label={(key) => TYPE_LABELS[key as keyof typeof TYPE_LABELS] ?? key}
+            parts={[{ label: 'questions', tone: 'accent' }]}
+            note={customGames > 0
+              ? `In ${customGames} ${customGames === 1 ? 'game' : 'games'} started.`
+              : undefined}
+          />
+        </div>
+      </details>
+      <details class="group" open={opened.funnel} ontoggle={(e) => toggle('funnel', e)}>
+        <summary><h3>Funnel</h3></summary>
+        {#if funnel.attempts === 0}
+          <p class="note">No joins in this range.</p>
+        {:else}
+          <p class="funnel">
+            {shareOf(failedJoins, funnel.attempts)} of {funnel.attempts} join attempts failed:
+            {shareOf(funnel.failed.player, funnel.attempts)} the player's mistake,
+            {shareOf(funnel.failed.ours, funnel.attempts)} our limits,
+            {shareOf(funnel.failed.host, funnel.attempts)} the room or its host.
+          </p>
+        {/if}
+        <div class="breakdowns">
+          <BreakdownList
+            title="Join failures players saw"
+            rows={failures}
+            label={named(FAILURES)}
+            parts={[{ label: 'failures', tone: 'bad' }]}
+          />
+          <BreakdownList
+            title="Round a game stopped in"
+            rows={rounds}
+            label={(key) => `Round ${key}`}
+            parts={[
+              { label: 'ended early', tone: 'muted' },
+              { label: 'abandoned', tone: 'bad' },
+            ]}
+          />
+        </div>
+      </details>
     </section>
   {/if}
 {/if}
@@ -623,6 +782,70 @@
     font-weight: normal;
     color: var(--muted);
     margin: 0 0 0.4rem;
+  }
+
+  .headline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    gap: 0.75rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .tile {
+    padding: 0.6rem 0.75rem;
+    border: var(--border-width) solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .tile dt {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .tile dd {
+    margin: 0;
+  }
+
+  .tile .value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tile .change {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tile .change.up {
+    color: var(--ok);
+  }
+
+  .tile .change.down {
+    color: var(--bad);
+  }
+
+  .group {
+    margin-top: 1.25rem;
+    border-top: var(--border-width) solid var(--line);
+    padding-top: 0.5rem;
+  }
+
+  .group summary {
+    cursor: pointer;
+  }
+
+  .group summary h3 {
+    display: inline;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: inherit;
+  }
+
+  .funnel {
+    margin: 0.75rem 0 0;
   }
 
   .breakdowns {
