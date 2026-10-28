@@ -23,6 +23,7 @@
     image,
     room,
     questionId,
+    index,
     answerableAt,
     endsAt,
   }: Build & { image: HTMLImageElement | null } = $props()
@@ -57,8 +58,6 @@
     const style = getComputedStyle(target)
     const token = (name: string): string => style.getPropertyValue(name).trim()
     return {
-      tile: token('--tile'),
-      tileLight: token('--tile-light'),
       tileDark: token('--tile-dark'),
       tileSeam: token('--tile-seam'),
       ink: token('--ink'),
@@ -75,7 +74,7 @@
     if (picture === null || pen === null) return
     target.width = picture.width
     target.height = picture.height
-    const { reveal, seed } = revealFor(room, questionId)
+    const { reveal, seed } = revealFor(room, questionId, index)
     const theme = look(target)
     const from = Date.parse(answerableAt)
     const to = Date.parse(endsAt)

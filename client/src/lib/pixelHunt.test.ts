@@ -1,15 +1,16 @@
 /**
- * Pixel Hunt's reveals: every screen picks the same one from the room and the question,
- * Zoom out starts on the item, Pixelate keeps its eight levels to the minute, Tiles opens the
- * item's tiles in seeded order, the puzzle box ends solved, the lantern wanders the same way on
- * every screen, Sketch's pen goes round the item, and the picture is whole once the build-up is
- * over.
+ * Pixel Hunt's reveals: every screen deals the same one from the room and the question, the
+ * box is empty while the host types and each reveal makes its entrance, Zoom out starts on
+ * the item, Pixelate keeps its eight levels to the minute, Tiles opens the item's cells in
+ * seeded order, the puzzle box ends solved, the lantern wanders the same way on every screen,
+ * Sketch's pen goes round the item, and the picture is whole once the build-up is over.
  */
 
 import { describe, expect, it } from 'vitest'
 
 import {
   BUILD_UP,
+  ENTRY,
   LANTERN,
   OUTLINE_TIME,
   PIXEL_LEVELS,
@@ -23,7 +24,10 @@ import {
   WASH_FROM,
   TILES,
   ZOOM_OUT,
+  arrived,
+  deal,
   drawFrame,
+  entered,
   innerLines,
   lanternLight,
   lanternRadius,
@@ -42,13 +46,12 @@ import {
   type Look,
   type Pen,
   type Picture,
+  type Reveal,
 } from './pixelHunt'
 
 const IMAGE = { id: 'the image' } as unknown as CanvasImageSource
 
 const LOOK: Look = {
-  tile: 'tile',
-  tileLight: 'light',
   tileDark: 'dark',
   tileSeam: 'seam',
   ink: 'ink',
@@ -72,25 +75,36 @@ type Call = [string, ...unknown[]]
 /** A pen that writes down what it is asked to do, and each fill's colour and alpha. */
 function recorder(): Pen & {
   calls: Call[]
-  fills: { style: unknown; alpha: number; box: number[] }[]
+  fills: { style: unknown; alpha: number; box: number[]; op: string }[]
+  images: { alpha: number; box: unknown[] }[]
 } {
   const calls: Call[] = []
-  const fills: { style: unknown; alpha: number; box: number[] }[] = []
+  const fills: { style: unknown; alpha: number; box: number[]; op: string }[] = []
+  const images: { alpha: number; box: unknown[] }[] = []
   const pen = {
     calls,
     fills,
+    images,
     fillStyle: '' as Pen['fillStyle'],
     globalAlpha: 1,
+    globalCompositeOperation: 'source-over' as Pen['globalCompositeOperation'],
     imageSmoothingEnabled: true,
     clearRect: (...args: number[]) => void calls.push(['clearRect', ...args]),
     fillRect: (...args: number[]) => {
       calls.push(['fillRect', ...args])
-      fills.push({ style: pen.fillStyle, alpha: pen.globalAlpha, box: args })
+      fills.push({
+        style: pen.fillStyle,
+        alpha: pen.globalAlpha,
+        box: args,
+        op: pen.globalCompositeOperation,
+      })
     },
     setTransform: ((...args: number[]) =>
       void calls.push(['setTransform', ...args])) as Pen['setTransform'],
-    drawImage: ((...args: unknown[]) =>
-      void calls.push(['drawImage', ...args])) as Pen['drawImage'],
+    drawImage: ((...args: unknown[]) => {
+      calls.push(['drawImage', ...args])
+      images.push({ alpha: pen.globalAlpha, box: args.slice(1) })
+    }) as Pen['drawImage'],
     createRadialGradient: ((...args: number[]) => {
       const stops: [number, string][] = []
       calls.push(['createRadialGradient', ...args, stops])
@@ -122,7 +136,7 @@ const ENDS = OPENS + 25_000
 describe('the schedule', () => {
   it('builds up over the first 17 of 25 seconds and stays whole after', () => {
     expect(BUILD_UP).toBe(17 / 25)
-    expect(progress(OPENS, ENDS, OPENS - 500)).toBe(0)
+    expect(progress(OPENS, ENDS, OPENS - 500)).toBeLessThan(0)
     expect(progress(OPENS, ENDS, OPENS)).toBe(0)
     expect(progress(OPENS, ENDS, OPENS + 8_500)).toBeCloseTo(0.5)
     expect(progress(OPENS, ENDS, OPENS + 17_000)).toBe(1)
@@ -138,19 +152,20 @@ describe('the schedule', () => {
 
 describe('the reveal a question gets', () => {
   const QUESTION = '5f0c6a4e-3c1b-4b9e-9a51-0d2f1c7e8b10'
+  const ids = (reveals: readonly Reveal[]): string[] => reveals.map(({ id }) => id)
 
   it('is the same on every screen and after a reconnect, by the room and the question', () => {
-    const phone = revealFor('WHIPLASH', QUESTION)
-    const tv = revealFor('WHIPLASH', QUESTION)
-    const reconnected = revealFor('whiplash', QUESTION)
+    const phone = revealFor('WHIPLASH', QUESTION, 3)
+    const tv = revealFor('WHIPLASH', QUESTION, 3)
+    const reconnected = revealFor('whiplash', QUESTION, 3)
     expect(tv).toEqual(phone)
     expect(reconnected).toEqual(phone)
     expect(REVEALS).toContain(phone.reveal)
     expect(Number.isInteger(phone.seed) && phone.seed >= 0).toBe(true)
   })
 
-  it('offers every reveal at random over a 60-question sample, with seeds of their own', () => {
-    expect(REVEALS.map(({ id }) => id)).toEqual(
+  it('deals every reveal once in each six questions, none twice in a row', () => {
+    expect(ids(REVEALS)).toEqual(
       expect.arrayContaining([
         'zoom_out',
         'pixelate',
@@ -160,13 +175,32 @@ describe('the reveal a question gets', () => {
         'sketch',
       ]),
     )
-    const picked = Array.from({ length: 60 }, (_, n) =>
-      revealFor('WHIPLASH', `00000000-0000-4000-8000-${n.toString(16).padStart(12, '0')}`),
+    for (const room of ['WHIPLASH', 'GOBLIN2', 'ZANARIS']) {
+      const dealt = Array.from({ length: 60 }, (_, index) => revealFor(room, QUESTION, index))
+      for (let deck = 0; deck < 10; deck++) {
+        const six = dealt.slice(deck * 6, deck * 6 + 6).map(({ reveal }) => reveal.id)
+        expect(new Set(six).size).toBe(6)
+      }
+      for (let n = 1; n < 60; n++) expect(dealt[n]!.reveal).not.toBe(dealt[n - 1]!.reveal)
+      expect(deal(room, 0)).toEqual(dealt.slice(0, 6).map(({ reveal }) => reveal))
+    }
+  })
+
+  it('shuffles the order by the room, so the first question is not always the same reveal', () => {
+    const rooms = Array.from({ length: 120 }, (_, n) => `ROOM${n}`)
+    const first = rooms.map((room) => revealFor(room, QUESTION, 0).reveal.id)
+    expect(new Set(first)).toEqual(new Set(ids(REVEALS)))
+    expect(ids(deal('WHIPLASH', 1))).not.toEqual(ids(deal('WHIPLASH', 0)))
+  })
+
+  it('gives each question a seed of its own', () => {
+    const seeds = Array.from(
+      { length: 60 },
+      (_, n) =>
+        revealFor('WHIPLASH', `00000000-0000-4000-8000-${n.toString(16).padStart(12, '0')}`, n)
+          .seed,
     )
-    expect(new Set(picked.map(({ reveal }) => reveal.id))).toEqual(
-      new Set(REVEALS.map(({ id }) => id)),
-    )
-    expect(new Set(picked.map(({ seed }) => seed)).size).toBe(60)
+    expect(new Set(seeds).size).toBe(60)
   })
 })
 
@@ -256,6 +290,80 @@ describe('Pixelate', () => {
   })
 })
 
+/** Build-up progress at `seconds` into a 25-second question. */
+const at = (seconds: number): number => progress(OPENS, ENDS, OPENS + seconds * 1000)
+
+/** Whether `pen` put anything visible on the canvas. */
+const drewAnything = (pen: ReturnType<typeof recorder>): boolean =>
+  pen.images.some(({ alpha }) => alpha > 0) ||
+  pen.fills.some(({ alpha }) => alpha > 0) ||
+  pen.calls.some(([name]) => name === 'lineTo') ||
+  pen.calls.some(([name, , , radius]) => name === 'arc' && Number(radius) > 0)
+
+describe('while the host types', () => {
+  it('leaves the box empty, whichever the reveal, until answers open', () => {
+    const whole = picture(16, () => true)
+    for (const reveal of REVEALS) {
+      for (const seconds of [-3, -0.01]) {
+        const pen = recorder()
+        drawFrame(pen, whole, reveal, at(seconds), 9, LOOK)
+        expect(pen.calls).toEqual([
+          ['setTransform', 1, 0, 0, 1, 0, 0],
+          ['clearRect', 0, 0, 16, 16],
+        ])
+      }
+    }
+  })
+})
+
+describe('the entrance', () => {
+  const whole = picture(50, (x, y) => Math.abs(x - y) < 6)
+
+  it('takes the first half second of the build-up, within the first step', () => {
+    expect(ENTRY).toBeCloseTo(0.5 / 17)
+    expect(entered(0)).toBe(0)
+    expect(entered(ENTRY / 2)).toBeCloseTo(0.5)
+    expect(entered(ENTRY)).toBe(1)
+    expect(arrived(0, 0, 25)).toBe(0)
+    expect(arrived(ENTRY * 0.4, 0, 25)).toBe(1)
+    expect(arrived(ENTRY * 0.6, 24, 25)).toBe(0)
+    expect(arrived(ENTRY, 24, 25)).toBe(1)
+  })
+
+  it('starts every reveal from the empty box as answers open', () => {
+    // Lantern draws the picture and masks it all away; its own tests cover the mask.
+    for (const reveal of REVEALS.filter(({ id }) => id !== 'lantern')) {
+      const pen = recorder()
+      drawFrame(pen, whole, reveal, 0, 9, LOOK)
+      expect(drewAnything(pen), reveal.id).toBe(false)
+      const later = recorder()
+      drawFrame(later, whole, reveal, at(0.3), 9, LOOK)
+      expect(drewAnything(later), reveal.id).toBe(true)
+    }
+  })
+
+  it('fades Zoom out and Pixelate in', () => {
+    for (const seconds of [0.1, 0.25, 0.5]) {
+      const zoom = recorder()
+      ZOOM_OUT.draw(zoom, whole, at(seconds), 9, LOOK)
+      expect(zoom.images[0]!.alpha).toBeCloseTo(entered(at(seconds)))
+      const blocks = recorder()
+      PIXELATE.draw(blocks, whole, at(seconds), 9, LOOK)
+      expect(blocks.fills[0]!.alpha).toBeCloseTo(entered(at(seconds)))
+    }
+  })
+
+  it('grows the Sketch pen tip in', () => {
+    const tip = (seconds: number): number => {
+      const pen = recorder()
+      SKETCH.draw(pen, whole, at(seconds), 9, LOOK)
+      return pen.calls.find(([name]) => name === 'arc')![3] as number
+    }
+    expect(tip(0.25)).toBeCloseTo(50 * 0.016 * 0.5)
+    expect(tip(1)).toBeCloseTo(50 * 0.016)
+  })
+})
+
 describe('the end of the build-up', () => {
   it('draws the picture whole, whichever the reveal, through to the answer', () => {
     const whole = picture(16, () => true)
@@ -286,11 +394,8 @@ describe('the end of the build-up', () => {
   })
 })
 
-/** Build-up progress at `seconds` into a 25-second question. */
-const at = (seconds: number): number => progress(OPENS, ENDS, OPENS + seconds * 1000)
-
 describe('Tiles', () => {
-  // A pickaxe across the diagonal of a 50px square, and two corner tiles only 6% covered.
+  // A pickaxe across the diagonal of a 50px square, and two corner cells only 6% covered.
   const pickaxe = picture(
     50,
     (x, y) => Math.abs(x - y) < 6 || (x >= 40 && x < 43 && y < 2) || (x < 2 && y >= 40 && y < 43),
@@ -298,16 +403,29 @@ describe('Tiles', () => {
   const cover = tileCover(pickaxe, TILE_GRID)
   const item = cover.flatMap((share, cell) => (share > 0.08 ? [cell] : []))
 
-  /** The cells that still carry a tile, by where `TILES` drew their base. */
-  function closed(p: number, seed: number): number[] {
+  const draw = (seconds: number) => {
     const pen = recorder()
-    TILES.draw(pen, pickaxe, p, seed, LOOK)
-    return pen.fills
-      .filter(({ style, alpha }) => style === 'tile' && alpha > 0)
-      .map(({ box: [x, y] }) => Math.round(y! / 10) * TILE_GRID + Math.round(x! / 10))
+    TILES.draw(pen, pickaxe, at(seconds), 9, LOOK)
+    return pen
   }
 
-  it('counts as the item only the tiles more than 8% opaque', () => {
+  /** The cells whose part of the picture `TILES` drew, with how strongly. */
+  function shown(seconds: number): Map<number, number> {
+    const cells = new Map<number, number>()
+    for (const { alpha, box } of draw(seconds).images) {
+      const [x, y] = box.slice(4, 6) as number[]
+      if (alpha > 0) cells.set(Math.round(y! / 10) * TILE_GRID + Math.round(x! / 10), alpha)
+    }
+    return cells
+  }
+
+  /** The seams' alphas, one per cell's four sides. */
+  const seams = (seconds: number): number[] =>
+    draw(seconds)
+      .fills.filter(({ style }) => style === 'seam')
+      .map(({ alpha }) => alpha)
+
+  it('counts as the item only the cells more than 8% opaque', () => {
     expect(cover[0]).toBeCloseTo(0.8)
     expect(cover[1]).toBeCloseTo(0.15)
     expect(cover[4]).toBeCloseTo(0.06)
@@ -316,7 +434,7 @@ describe('Tiles', () => {
     expect(item).toEqual([0, 1, 5, 6, 7, 11, 12, 13, 17, 18, 19, 23, 24])
   })
 
-  it('opens the item tiles in the same seeded order on every screen', () => {
+  it('opens the item cells in the same seeded order on every screen', () => {
     for (const seed of [0, 9, 4_000_000_000]) {
       const order = tileOrder(pickaxe, seed)
       expect(tileOrder(pickaxe, seed)).toEqual(order)
@@ -325,48 +443,48 @@ describe('Tiles', () => {
     expect(tileOrder(pickaxe, 1)).not.toEqual(tileOrder(pickaxe, 2))
   })
 
-  it('opens one item tile at a time, evenly, and the empty ones only at the end', () => {
+  it('draws the grid cell by cell onto the empty box, with no cover over the stage', () => {
+    expect(seams(0).every((alpha) => alpha === 0)).toBe(true)
+    const drawing = seams(0.25).filter((alpha) => alpha > 0)
+    expect(drawing.length).toBeGreaterThan(0)
+    expect(drawing.length).toBeLessThan(25 * 4)
+    expect(seams(0.5)).toEqual(Array(25 * 4).fill(0.8))
+    const styles = new Set(draw(5).fills.map(({ style }) => style))
+    expect(styles).toEqual(new Set(['seam']))
+    expect(shown(0.5).size).toBe(0)
+  })
+
+  it('opens one item cell at a time, evenly after the entrance, and the empty ones only at the end', () => {
     const order = tileOrder(pickaxe, 9)
     const opens = tileOpensAt(order)
-    order.forEach((cell, index) => expect(opens[cell]).toBeCloseTo(index / order.length))
+    order.forEach((cell, index) =>
+      expect(opens[cell]).toBeCloseTo(at(0.5 + (16.5 * index) / order.length)),
+    )
     for (let cell = 0; cell < TILE_GRID * TILE_GRID; cell++) {
       if (!order.includes(cell)) expect(opens[cell]).toBeCloseTo(1 - 0.25 / 17)
     }
-    expect(closed(0, 9)).toHaveLength(25)
-    const beforeEnd = closed(at(16.7), 9)
-    expect(beforeEnd.filter((cell) => item.includes(cell))).toEqual([])
-    expect(beforeEnd).toHaveLength(25 - item.length)
-    const midway = closed(at(8.5), 9)
-    for (const cell of order.slice(Math.ceil(order.length / 2) + 1)) expect(midway).toContain(cell)
+    expect([...shown(16.7).keys()].sort((a, b) => a - b)).toEqual(item)
+    const midway = [...shown(8.5).keys()]
+    for (const cell of order.slice(Math.ceil(order.length / 2) + 1)) {
+      expect(midway).not.toContain(cell)
+    }
   })
 
-  it('fades a tile out over 0.25 s with no flip', () => {
+  it('fades a cell in over 0.25 s', () => {
     const order = tileOrder(pickaxe, 9)
     const second = order[1]!
-    const opensAt = 17 / order.length
-    const alphaAt = (seconds: number): number => {
-      const pen = recorder()
-      TILES.draw(pen, pickaxe, at(seconds), 9, LOOK)
-      const [x, y] = [(second % 5) * 10, Math.floor(second / 5) * 10]
-      return (
-        pen.fills.find(({ style, box }) => style === 'tile' && box[0] === x && box[1] === y)
-          ?.alpha ?? 0
-      )
-    }
-    expect(alphaAt(opensAt - 0.01)).toBe(1)
+    const opensAt = 0.5 + 16.5 / order.length
+    const alphaAt = (seconds: number): number => shown(seconds).get(second) ?? 0
+    expect(alphaAt(opensAt - 0.01)).toBe(0)
     expect(alphaAt(opensAt + 0.125)).toBeCloseTo(0.5)
-    expect(alphaAt(opensAt + 0.26)).toBe(0)
-    const pen = recorder()
-    TILES.draw(pen, pickaxe, at(opensAt + 0.1), 9, LOOK)
-    expect(pen.calls.filter(([name]) => name === 'setTransform')).toEqual([])
+    expect(alphaAt(opensAt + 0.26)).toBe(1)
+    expect(draw(opensAt + 0.1).calls.filter(([name]) => name === 'setTransform')).toEqual([])
   })
 
-  it('draws each tile with its bevel and seam in the theme', () => {
-    const pen = recorder()
-    TILES.draw(pen, pickaxe, 0, 9, LOOK)
-    const styles = new Set(pen.fills.map(({ style }) => style))
-    expect(styles).toEqual(new Set(['tile', 'light', 'dark', 'seam']))
-    expect(pen.calls[0]).toEqual(['drawImage', IMAGE, 0, 0])
+  it('fades the grid as the build-up ends', () => {
+    expect(seams(16.1)[0]).toBeCloseTo(0.8)
+    expect(seams(16.6)[0]).toBeCloseTo(0.4)
+    expect(seams(16.99)[0]).toBeLessThan(0.02)
   })
 })
 
@@ -408,15 +526,44 @@ describe('Slide puzzle', () => {
     }
   })
 
-  it('eases each slide over 60% of its slot', () => {
-    const slot = (1 - 0.8 / 17) / PUZZLE_SLIDES
-    const moving = (p: number) =>
-      puzzleAt(77, p).pieces.find(
+  it('drops its pieces into the empty box row by row before the hole shows', () => {
+    const draw = (seconds: number) => {
+      const pen = recorder()
+      SLIDE_PUZZLE.draw(
+        pen,
+        picture(50, () => true),
+        at(seconds),
+        77,
+        LOOK,
+      )
+      return pen
+    }
+    expect(draw(0).images).toEqual([])
+    const dropping = draw(0.25)
+    expect(dropping.images.length).toBeGreaterThan(0)
+    expect(dropping.images.length).toBeLessThan(24)
+    expect(dropping.fills.find(({ style }) => style === 'dark')!.alpha).toBeCloseTo(0.5)
+    const dropped = draw(0.5)
+    expect(dropped.images.map(({ alpha }) => alpha)).toEqual(Array(24).fill(1))
+    const { pieces } = puzzleAt(77, at(0.5))
+    for (const { column, row } of pieces) {
+      expect(dropped.images).toContainEqual({
+        alpha: 1,
+        box: [expect.any(Number), expect.any(Number), 10, 10, column * 10, row * 10, 10, 10],
+      })
+    }
+  })
+
+  it('waits for the entrance, then eases each slide over 60% of its slot', () => {
+    const slot = (17 - 0.8 - 0.5) / PUZZLE_SLIDES
+    const moving = (seconds: number) =>
+      puzzleAt(77, at(seconds)).pieces.find(
         ({ column, row }) => !Number.isInteger(column) || !Number.isInteger(row),
       )
-    expect(moving(slot * 3)).toBeUndefined()
-    expect(moving(slot * 3.3)).toBeDefined()
-    expect(moving(slot * 3.61)).toBeUndefined()
+    expect(puzzleAt(77, at(0.5))).toEqual(puzzleAt(77, 0))
+    expect(moving(0.5 + slot * 3)).toBeUndefined()
+    expect(moving(0.5 + slot * 3.3)).toBeDefined()
+    expect(moving(0.5 + slot * 3.61)).toBeUndefined()
   })
 
   it('ends solved at the end of the build-up, then the last piece drops in', () => {
@@ -467,15 +614,15 @@ describe('Slide puzzle', () => {
 })
 
 describe('Lantern', () => {
-  it('grows its light from 9% to 36% of the picture, with p squared', () => {
-    expect(lanternRadius(0)).toBeCloseTo(0.09)
-    expect(lanternRadius(0.5)).toBeCloseTo(0.09 + 0.27 / 4)
-    expect(lanternRadius(1)).toBeCloseTo(0.36)
+  it('grows its light from 13% to 45% of the picture, with p squared', () => {
+    expect(lanternRadius(0)).toBeCloseTo(0.13)
+    expect(lanternRadius(0.5)).toBeCloseTo(0.13 + 0.32 / 4)
+    expect(lanternRadius(1)).toBeCloseTo(0.45)
     for (const seed of [0, 5, 4_000_000_000]) {
       // The flicker moves it by 5.5% at most.
       for (const [p, radius] of [
-        [0, 0.09],
-        [1, 0.36],
+        [0, 0.13],
+        [1, 0.45],
       ] as const) {
         expect(lanternLight(p, seed).radius).toBeGreaterThanOrEqual(radius * 0.945)
         expect(lanternLight(p, seed).radius).toBeLessThanOrEqual(radius * 1.055)
@@ -497,28 +644,56 @@ describe('Lantern', () => {
     }
   })
 
-  it('draws black around the light, and lights the room up over the last 0.8 s', () => {
-    const darkness = (seconds: number) => {
-      const pen = recorder()
-      LANTERN.draw(
-        pen,
-        picture(40, () => true),
-        at(seconds),
-        7,
-        LOOK,
-      )
-      expect(pen.calls[0]).toEqual(['drawImage', IMAGE, 0, 0])
-      const gradient = pen.calls.find(([name]) => name === 'createRadialGradient')
-      return { alpha: pen.fills[0]?.alpha ?? 0, gradient }
+  /** What Lantern draws at `seconds`: each fill's way of compositing and its gradient. */
+  const lantern = (seconds: number) => {
+    const pen = recorder()
+    LANTERN.draw(
+      pen,
+      picture(40, () => true),
+      at(seconds),
+      7,
+      LOOK,
+    )
+    const gradients = pen.calls.filter(([name]) => name === 'createRadialGradient')
+    return { pen, gradients }
+  }
+
+  /** The alpha a gradient's last stop leaves outside it. */
+  const outside = (gradient: Call): number =>
+    Number(/([\d.]+)\)$/.exec((gradient.at(-1) as [number, string][]).at(-1)![1])![1])
+
+  it('shows the item only in the light, never dark over the stage or the shape of the item', () => {
+    const { pen, gradients } = lantern(3)
+    const { x, y, radius } = lanternLight(at(3), 7)
+    expect(pen.calls[0]).toEqual(['drawImage', IMAGE, 0, 0])
+    const mask = pen.fills.find(({ op }) => op === 'destination-in')!
+    expect(mask.box).toEqual([0, 0, 40, 40])
+    const shown = gradients[1]!
+    expect(shown.slice(1, 7)).toEqual([x * 40, y * 40, 0, x * 40, y * 40, radius * 40])
+    expect(outside(shown)).toBe(0)
+    expect(pen.fills.filter(({ op }) => op === 'source-over')).toEqual([])
+    expect(pen.globalCompositeOperation).toBe('source-over')
+  })
+
+  it('casts a warm pool on the stage behind the item that fades out inside the box', () => {
+    for (const seconds of [0.5, 3, 9, 15]) {
+      const { pen, gradients } = lantern(seconds)
+      const { x, y } = lanternLight(at(seconds), 7)
+      expect(pen.fills.at(-1)!.op).toBe('destination-over')
+      const pool = gradients.at(-1)!
+      const reach = pool[6] as number
+      expect(reach).toBeGreaterThan(0)
+      expect(reach).toBeLessThanOrEqual(Math.min(x, y, 1 - x, 1 - y) * 40 + 1e-9)
+      expect(outside(pool)).toBe(0)
     }
-    const start = darkness(0)
-    const { x, y, radius } = lanternLight(0, 7)
-    expect(start.alpha).toBe(1)
-    expect(start.gradient!.slice(1, 7)).toEqual([x * 40, y * 40, 0, x * 40, y * 40, radius * 40])
-    expect((start.gradient![7] as [number, string][]).at(-1)).toEqual([1, '#000'])
-    expect(darkness(16.1).alpha).toBe(1)
-    expect(darkness(16.6).alpha).toBeCloseTo(0.5)
-    expect(darkness(16.995).alpha).toBeLessThan(0.01)
+  })
+
+  it('flares up as answers open, and lights the whole item up over the last 0.8 s', () => {
+    expect(lantern(0).gradients[0]![6]).toBe(1e-3)
+    expect(lantern(0.25).gradients[1]![6]).toBeCloseTo(lanternLight(at(0.25), 7).radius * 40 * 0.5)
+    expect(outside(lantern(16.1).gradients[1]!)).toBe(0)
+    expect(outside(lantern(16.6).gradients[1]!)).toBeCloseTo(0.5)
+    expect(outside(lantern(16.995).gradients[1]!)).toBeGreaterThan(0.99)
   })
 })
 
