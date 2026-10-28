@@ -66,7 +66,7 @@
     choice,
     initial = undefined,
     asked = [],
-    saveLabel = 'Send to the innkeeper',
+    saveLabel = 'Send to Reldo',
     hero = null,
     onnpc = undefined,
     onsave,
@@ -81,7 +81,7 @@
      */
     asked?: readonly string[]
     saveLabel?: string
-    /** The selfhoster's hero, who stands on the preview's stage when the innkeeper asks. */
+    /** The selfhoster's hero, who stands on the preview's stage when the host asks. */
     hero?: string | null
     /** Told which NPC asks a random event's question whenever that changes, `''` for none. */
     onnpc?: (npc: string) => void
@@ -306,9 +306,7 @@
       placeholder="https://oldschool.runescape.wiki/w/…"
       bind:value={wiki}
     />
-    <p class="note hint">
-      All submissions are fact-checked by the innkeeper against the OSRS wiki.
-    </p>
+    <p class="note hint">All submissions are fact-checked against the OSRS wiki.</p>
     {@render problem(wikiError, show)}
   </div>
 {/snippet}
@@ -326,8 +324,8 @@
   </label>
   {#if choice.kind === 'item'}
     <p class="note hint">
-      More or Less and The Price is Right do not support displaying the author of a question. The
-      innkeeper still sees your name.
+      More or Less and The Price is Right do not support displaying the author of a question. Reldo
+      still sees your name.
     </p>
   {/if}
 {/snippet}
@@ -397,9 +395,7 @@
       placeholder="https://oldschool.runescape.wiki/w/…"
       bind:value={wiki}
     />
-    <p class="note hint">
-      All submissions are fact-checked by the innkeeper against the OSRS wiki.
-    </p>
+    <p class="note hint">All submissions are fact-checked against the OSRS wiki.</p>
     {@render problem(sourceErrors.wiki, show)}
   </div>
   <div class="field">

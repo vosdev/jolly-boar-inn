@@ -216,11 +216,11 @@ export interface Mode extends HostLines {
 export type StemId = 'text' | 'asset' | 'examine' | 'quote' | 'more_less' | 'price'
 
 /** The inn's own: the host's questions, and any round this build has no host for. */
-export const INNKEEPER: Host = { id: 'innkeeper', name: 'The Innkeeper' }
+export const HOUSE: Host = { id: 'house', name: 'The House' }
 
 /** What a mode this build does not know is presented with. It makes up no blurb. */
 export const GENERIC_HOST: HostLines = {
-  host: INNKEEPER,
+  host: HOUSE,
   greeting: 'Welcome to the Jolly Boar Inn. This round is on the house.',
   ask: [
     "Here's one for the table.",
@@ -264,7 +264,7 @@ export const GENERIC_HOST: HostLines = {
     right: [
       "Spot on. That one's on the house.",
       'Right you are! Pour this one a pint.',
-      'Correct! The whole inn salutes you.',
+      'Correct! The whole table salutes you.',
     ],
     partial: [
       'Close enough for a half pint.',
@@ -1216,7 +1216,7 @@ export const MODES: Record<string, Mode> = {
     id: 'custom',
     label: "Host's Questions",
     hint: 'Questions the host wrote for this room.',
-    host: INNKEEPER,
+    host: HOUSE,
     greeting: 'Pull up a stool. The house has a few questions of its own.',
     blurb: 'Your host wrote these ones behind my bar. Whatever they ask, answer it.',
     ask: [
@@ -1288,7 +1288,7 @@ export const MODES: Record<string, Mode> = {
     id: 'random_event',
     label: 'Random Event',
     hint: 'An NPC interrupts the round with a question of their own.',
-    host: INNKEEPER,
+    host: HOUSE,
     greeting: 'Someone has come in off the road, and they want a word.',
     blurb: 'Someone has turned up with a question. Answer it, and they will be on their way.',
     ask: [
@@ -1415,7 +1415,7 @@ export function modeLabel(id: string): string {
 }
 
 /**
- * Who presents mode `id`, and their lines: the innkeeper's generic ones for a mode this
+ * Who presents mode `id`, and their lines: the house's generic ones for a mode this
  * build lacks, said by its host-to-be if it is one still being built.
  */
 export function hostOf(id: string): HostLines {

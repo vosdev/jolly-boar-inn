@@ -176,13 +176,13 @@ describe('the choices', () => {
     ])
   })
 
-  it('offers one with no round all seven types, from the innkeeper, and nothing a round adds', () => {
+  it('offers one with no round all seven types, from the house, and nothing a round adds', () => {
     const any = CHOICES.find((c) => c.id === NO_ROUND)
     expect([any?.kind, any?.label, any?.hint, any?.host]).toEqual([
       'question',
       'Not sure where it fits',
-      'Any question. The innkeeper picks its round.',
-      'innkeeper',
+      'Any question. Reldo picks its round.',
+      'house',
     ])
     expect(any?.types).toEqual([
       'multiple_choice',
@@ -206,7 +206,7 @@ describe('the choices', () => {
     expect(choiceOf('question', QUESTION)?.id).toBe('odd_one_out')
     const { mode: _mode, ...unplaced } = QUESTION
     expect(choiceOf('question', unplaced)?.id).toBe(NO_ROUND)
-    expect(hostOf('question', unplaced)).toBe('innkeeper')
+    expect(hostOf('question', unplaced)).toBe('house')
     expect(questionPreview(unplaced).mode).toBe('custom')
     expect(choiceOf('item', { name: 'Abyssal whip' })?.id).toBe('item')
   })

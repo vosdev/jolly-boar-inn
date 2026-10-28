@@ -380,7 +380,7 @@ chrome or circle around them), on in `--ok`, in lobby and splash;
   them on a sheet: its rounds' types, or all of them when random events, host's questions or
   hidden rounds could bring any, ending "Quicker and correct answers score more." On Home, How to
   play and a slide's mode name open `/how-to-play` and `/how-to-play/<mode>`: under the dialogue
-  box, which stays, the sheet and panels fade out and the page fades in. The overview (the hero speaking): Back to the inn, four steps of a night, a tile per
+  box, which stays, the sheet and panels fade out and the page fades in. The overview (the hero speaking): Back, four steps of a night, a tile per
   playable mode and one for Random events, every way of answering, Teams and On the TV. A tile
   swaps the page to its mode (the host saying greeting and blurb; name, host, hint and only its
   types from `/api/modes`) or to Random events (the Mysterious Old Man; every event NPC and its
