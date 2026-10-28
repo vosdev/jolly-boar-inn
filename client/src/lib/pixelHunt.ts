@@ -6,7 +6,8 @@
  * question's id, with nothing on the wire: the TV, each phone, a reconnect and a restart all
  * draw the same frame at the same server time. Each reveal is a function of the picture,
  * the build-up's progress `p` from 0 to 1 and the seed, so one more is one more entry in
- * `REVEALS`. The picture is whole from `p` = 1 on, whatever the reveal.
+ * `REVEALS`. The box is empty while the host types, each reveal makes its entrance over the
+ * first `ENTRY` of the build-up, and the picture is whole from `p` = 1 on, whatever the reveal.
  *
  * The browser holds the whole picture from the first frame, so devtools give it away. That
  * is accepted: the server's step scoring is what counts.
@@ -42,6 +43,7 @@ export type Pen = Pick<
   | 'setTransform'
   | 'fillStyle'
   | 'globalAlpha'
+  | 'globalCompositeOperation'
   | 'imageSmoothingEnabled'
   | 'createRadialGradient'
   | 'beginPath'
@@ -77,11 +79,14 @@ export interface Reveal {
   draw: (pen: Pen, picture: Picture, p: number, seed: number, look: Look) => void
 }
 
-/** How far the build-up is at `now`: 0 when answers open, 1 at 17/25 of the way to the end. */
+/**
+ * How far the build-up is at `now`: below 0 while the host types, 0 when answers open, 1 at
+ * 17/25 of the way to the end.
+ */
 export function progress(answerableAt: number, endsAt: number, now: number): number {
   const span = (endsAt - answerableAt) * BUILD_UP
   if (!(span > 0)) return 1
-  return Math.min(1, Math.max(0, (now - answerableAt) / span))
+  return Math.min(1, (now - answerableAt) / span)
 }
 
 /** FNV-1a over `text`: the same 32 bits in every browser. */
@@ -97,7 +102,10 @@ export function revealFor(room: string, questionId: string): { reveal: Reveal; s
   return { reveal: REVEALS[hash(key) % REVEALS.length]!, seed: hash(`${key}:seed`) }
 }
 
-/** One frame: the reveal's while it builds up, the whole picture from `p` = 1. */
+/**
+ * One frame: nothing before answers open, so nobody gets a look while the host types; the
+ * reveal's while it builds up; the whole picture from `p` = 1.
+ */
 export function drawFrame(
   pen: Pen,
   picture: Picture,
@@ -109,14 +117,16 @@ export function drawFrame(
   pen.setTransform(1, 0, 0, 1, 0, 0)
   pen.globalAlpha = 1
   pen.clearRect(0, 0, picture.width, picture.height)
+  if (p < 0) return
   if (p >= 1) {
     pen.imageSmoothingEnabled = true
     pen.drawImage(picture.image, 0, 0)
     return
   }
-  reveal.draw(pen, picture, Math.max(0, p), seed, look)
+  reveal.draw(pen, picture, p, seed, look)
   pen.setTransform(1, 0, 0, 1, 0, 0)
   pen.globalAlpha = 1
+  pen.globalCompositeOperation = 'source-over'
 }
 
 const opaqueCache = new WeakMap<Uint8ClampedArray, number[]>()
@@ -145,13 +155,14 @@ export function zoomScale(p: number): number {
 }
 
 /**
- * Zoom out: one smooth pull-back from 800%. The first frame is centred on a seeded opaque
- * pixel, so it never shows empty background; that pixel slides to its own place as the
- * scale comes down, so the last frame is the picture as it is.
+ * Zoom out: one smooth pull-back from 800%, fading in as it starts. The first frame is
+ * centred on a seeded opaque pixel, so it never shows empty background; that pixel slides
+ * to its own place as the scale comes down, so the last frame is the picture as it is.
  */
 export const ZOOM_OUT: Reveal = {
   id: 'zoom_out',
   draw(pen, picture, p, seed) {
+    pen.globalAlpha = entered(p)
     const [x, y] = opaquePixel(picture, seed)
     const scale = zoomScale(p)
     const along = (8 - scale) / 7
@@ -224,10 +235,11 @@ function edges(index: number, count: number, size: number): [number, number] {
 
 const blockCache = new WeakMap<Uint8ClampedArray, Map<number, (string | null)[]>>()
 
-/** Pixelate: hard-edged blocks, 4 across at first and 48 by the last quarter. */
+/** Pixelate: hard-edged blocks fading in 4 across, and 48 across by the last quarter. */
 export const PIXELATE: Reveal = {
   id: 'pixelate',
   draw(pen, picture, p) {
+    pen.globalAlpha = entered(p)
     const n = pixelBlocks(p)
     let cached = blockCache.get(picture.data)
     if (cached === undefined) blockCache.set(picture.data, (cached = new Map()))
@@ -266,6 +278,34 @@ function clamp01(value: number): number {
  */
 function seconds(length: number): number {
   return length / (25 * BUILD_UP)
+}
+
+/** How long a reveal takes to make its entrance once answers open: within the first step. */
+export const ENTRY = seconds(0.5)
+
+/** How far the eased share of `length` from `start` is at `p`, 0 to 1. */
+function eased(p: number, start: number, length: number): number {
+  const along = clamp01((p - start) / length)
+  return along * along * (3 - 2 * along)
+}
+
+/** How far the entrance is at `p`, eased, 0 to 1. */
+export function entered(p: number): number {
+  return eased(p, 0, ENTRY)
+}
+
+/** The share of `ENTRY` one of `count` tiles or pieces takes to arrive; the rest staggers them. */
+const ARRIVAL = 0.4
+
+/** How far the `index`th of `count` tiles or pieces dealt in at the entrance is at `p`, 0 to 1. */
+export function arrived(p: number, index: number, count: number): number {
+  const stagger = count > 1 ? index / (count - 1) : 0
+  return eased(p, stagger * (1 - ARRIVAL) * ENTRY, ARRIVAL * ENTRY)
+}
+
+/** `p` on the clock that starts once the entrance is done, still ending at 1. */
+function afterEntry(p: number): number {
+  return clamp01((p - ENTRY) / (1 - ENTRY))
 }
 
 /** One cell's box in an `n` by `n` grid over the picture, as `[x, y, width, height]`. */
@@ -341,24 +381,30 @@ export function tileOrder(picture: Picture, seed: number): number[] {
   return order
 }
 
-/** When each tile starts to open: the item's evenly over the build-up, the rest at its end. */
+/**
+ * When each tile starts to open: the item's evenly over the build-up after the entrance,
+ * the rest at its end.
+ */
 export function tileOpensAt(order: readonly number[]): number[] {
   const opens = Array.from({ length: TILE_GRID * TILE_GRID }, () => 1 - TILE_FADE)
-  order.forEach((cell, index) => (opens[cell] = index / order.length))
+  order.forEach((cell, index) => (opens[cell] = ENTRY + (1 - ENTRY) * (index / order.length)))
   return opens
 }
 
 /**
- * Tiles: a 5×5 cover over the picture. The tiles that hold part of the item open one at a
- * time in seeded order, each fading out with no flip; the empty ones go with the end.
+ * Tiles: a 5×5 cover dealt onto the empty box row by row, growing into place. The tiles
+ * that hold part of the item then open one at a time in seeded order, each fading out with
+ * no flip; the empty ones go with the end.
  */
 export const TILES: Reveal = {
   id: 'tiles',
   draw(pen, picture, p, seed, look) {
     pen.imageSmoothingEnabled = true
-    pen.drawImage(picture.image, 0, 0)
+    // Under a tile still on its way the picture would show.
+    if (p >= ENTRY) pen.drawImage(picture.image, 0, 0)
     tileOpensAt(tileOrder(picture, seed)).forEach((opensAt, cell) => {
-      const left = 1 - clamp01((p - opensAt) / TILE_FADE)
+      const dealt = arrived(p, cell, TILE_GRID * TILE_GRID)
+      const left = dealt * (1 - clamp01((p - opensAt) / TILE_FADE))
       if (left <= 0) return
       pen.globalAlpha = left
       const [x, y, width, height] = cellBox(
@@ -367,7 +413,15 @@ export const TILES: Reveal = {
         cell % TILE_GRID,
         Math.floor(cell / TILE_GRID),
       )
-      drawTile(pen, look, x!, y!, width!, height!)
+      const grow = 0.6 + 0.4 * dealt
+      drawTile(
+        pen,
+        look,
+        x! + (width! * (1 - grow)) / 2,
+        y! + (height! * (1 - grow)) / 2,
+        width! * grow,
+        height! * grow,
+      )
     })
     pen.globalAlpha = 1
   },
@@ -422,8 +476,8 @@ export interface Placed {
 }
 
 /**
- * The puzzle box at `p`: the scramble played back in reverse up to the settle, each slide
- * eased over the start of its slot. `holes` is the open slot, or with a slide under way,
+ * The puzzle box at `p`: the scramble played back in reverse from the end of the entrance
+ * up to the settle, each slide eased over the start of its slot. `holes` is the open slot, or with a slide under way,
  * both slots the moving piece spans.
  */
 export function puzzleAt(seed: number, p: number): { pieces: Placed[]; holes: number[] } {
@@ -435,7 +489,7 @@ export function puzzleAt(seed: number, p: number): { pieces: Placed[]; holes: nu
     board[holes[slide]!] = board[holes[slide + 1]!]!
     board[holes[slide + 1]!] = -1
   }
-  const played = clamp01(p / (1 - PUZZLE_SETTLE)) * PUZZLE_SLIDES
+  const played = clamp01(afterEntry(p) / afterEntry(1 - PUZZLE_SETTLE)) * PUZZLE_SLIDES
   const done = Math.floor(played)
   for (let slide = 0; slide < done; slide++) {
     const to = holes[PUZZLE_SLIDES - slide]!
@@ -469,7 +523,8 @@ export function puzzleAt(seed: number, p: number): { pieces: Placed[]; holes: nu
 
 /**
  * Slide puzzle: a clue-scroll puzzle box solving itself, its seeded scramble played back
- * in reverse. Solved, the last piece drops in and the seams fade as the build-up ends.
+ * in reverse. Its pieces drop into the empty box first, row by row, and the hole shows once
+ * they are in. Solved, the last piece drops in and the seams fade as the build-up ends.
  */
 export const SLIDE_PUZZLE: Reveal = {
   id: 'slide_puzzle',
@@ -479,7 +534,7 @@ export const SLIDE_PUZZLE: Reveal = {
     const width = picture.width / PUZZLE_GRID
     const height = picture.height / PUZZLE_GRID
     pen.imageSmoothingEnabled = true
-    pen.globalAlpha = 1 - settled
+    pen.globalAlpha = (1 - settled) * entered(p)
     pen.fillStyle = look.tileDark
     for (const slot of holes) {
       pen.fillRect(
@@ -489,10 +544,14 @@ export const SLIDE_PUZZLE: Reveal = {
         height,
       )
     }
-    for (const { piece, column, row } of pieces) {
+    for (const { piece, column, row: resting } of pieces) {
       const sourceX = (piece % PUZZLE_GRID) * width
       const sourceY = Math.floor(piece / PUZZLE_GRID) * height
-      pen.globalAlpha = 1
+      const slot = Math.round(resting) * PUZZLE_GRID + Math.round(column)
+      const dropped = arrived(p, slot, PUZZLE_GRID * PUZZLE_GRID)
+      if (dropped <= 0) continue
+      const row = resting - 0.35 * (1 - dropped)
+      pen.globalAlpha = dropped
       // The hole's colour would show through the see-through parts of a piece over it.
       pen.clearRect(column * width, row * height, width, height)
       pen.drawImage(
@@ -506,7 +565,7 @@ export const SLIDE_PUZZLE: Reveal = {
         width,
         height,
       )
-      pen.globalAlpha = 0.8 * (1 - settled)
+      pen.globalAlpha = 0.8 * (1 - settled) * dropped
       drawSeam(pen, look, column * width, row * height, width, height)
     }
     pen.globalAlpha = settled
@@ -545,8 +604,9 @@ export function lanternLight(p: number, seed: number): { x: number; y: number; r
 }
 
 /**
- * Lantern: pitch black but for a warm light that wanders a seeded path and flickers,
- * growing as it goes. As the build-up ends the room lights up.
+ * Lantern: a warm light flares up on the stage and wanders a seeded path, flickering and
+ * growing as it goes. Only what it falls on of the item shows: outside it is the stage, not
+ * a dark box, and never the item's shape. As the build-up ends the whole item lights up.
  */
 export const LANTERN: Reveal = {
   id: 'lantern',
@@ -556,18 +616,37 @@ export const LANTERN: Reveal = {
     const dark = 1 - clamp01((p - (1 - LANTERN_SETTLE)) / LANTERN_SETTLE)
     if (dark <= 0) return
     const { x, y, radius } = lanternLight(p, seed)
-    const reach = radius * Math.max(picture.width, picture.height)
+    const reach = radius * entered(p) * Math.max(picture.width, picture.height)
     const cx = x * picture.width
     const cy = y * picture.height
-    const light = pen.createRadialGradient(cx, cy, 0, cx, cy, reach)
-    light.addColorStop(0, 'rgba(255, 180, 80, 0.14)')
-    light.addColorStop(0.55, 'rgba(0, 0, 0, 0)')
-    light.addColorStop(0.88, 'rgba(0, 0, 0, 0.75)')
-    light.addColorStop(1, '#000')
-    pen.globalAlpha = dark
-    pen.fillStyle = light
-    pen.fillRect(0, 0, picture.width, picture.height)
     pen.globalAlpha = 1
+    if (reach > 0) {
+      const tint = pen.createRadialGradient(cx, cy, 0, cx, cy, reach)
+      tint.addColorStop(0, `rgba(255, 180, 80, ${0.14 * dark})`)
+      tint.addColorStop(0.55, 'rgba(255, 180, 80, 0)')
+      pen.globalCompositeOperation = 'source-atop'
+      pen.fillStyle = tint
+      pen.fillRect(0, 0, picture.width, picture.height)
+    }
+    const shown = pen.createRadialGradient(cx, cy, 0, cx, cy, Math.max(reach, 1e-3))
+    shown.addColorStop(0, '#000')
+    shown.addColorStop(0.55, '#000')
+    shown.addColorStop(1, `rgba(0, 0, 0, ${1 - dark})`)
+    pen.globalCompositeOperation = 'destination-in'
+    pen.fillStyle = shown
+    pen.fillRect(0, 0, picture.width, picture.height)
+    // The pool on the stage fades out before the canvas's edge, so the box never shows.
+    const pool = Math.min(reach * 1.15, cx, cy, picture.width - cx, picture.height - cy)
+    if (pool > 0) {
+      const glow = pen.createRadialGradient(cx, cy, 0, cx, cy, pool)
+      glow.addColorStop(0, `rgba(255, 190, 100, ${0.32 * dark})`)
+      glow.addColorStop(0.5, `rgba(255, 170, 80, ${0.14 * dark})`)
+      glow.addColorStop(1, 'rgba(255, 160, 70, 0)')
+      pen.globalCompositeOperation = 'destination-over'
+      pen.fillStyle = glow
+      pen.fillRect(0, 0, picture.width, picture.height)
+    }
+    pen.globalCompositeOperation = 'source-over'
   },
 }
 
@@ -808,8 +887,9 @@ export function sketchPhase(p: number): {
 }
 
 /**
- * Sketch: a pen traces the item's outline from a seeded point, the inner lines fade in, and
- * the colour washes in under them. As the build-up ends the colour is whole and the lines go.
+ * Sketch: the pen tip pops onto the empty box, traces the item's outline from a seeded
+ * point, the inner lines fade in, and the colour washes in under them. As the build-up ends
+ * the colour is whole and the lines go.
  */
 export const SKETCH: Reveal = {
   id: 'sketch',
@@ -856,7 +936,7 @@ export const SKETCH: Reveal = {
     if (tip && tipAt !== null) {
       pen.fillStyle = look.bad
       pen.beginPath()
-      pen.arc(tipAt[0], tipAt[1], size * 0.016, 0, 2 * Math.PI)
+      pen.arc(tipAt[0], tipAt[1], size * 0.016 * entered(p), 0, 2 * Math.PI)
       pen.fill()
     }
     pen.globalAlpha = 1
