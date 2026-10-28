@@ -92,14 +92,12 @@ describe('problems', () => {
     ])
   })
 
-  it('refuses a pick all that apply with no answer right, or every one', () => {
+  it('refuses a pick all that apply with no answer right, but allows every one', () => {
     const { picks: _, ...open } = PICK_ALL.payload
     expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [] } })).toContain(
       'payload.answer_indices: Tick at least one right answer.',
     )
-    expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [0, 1, 2] } })).toEqual([
-      'payload.answer_indices: Leave at least one answer wrong.',
-    ])
+    expect(paths({ ...PICK_ALL, payload: { ...open, answer_indices: [0, 1, 2] } })).toEqual([])
     expect(
       paths({ ...PICK_ALL, payload: { ...open, options: ['Imp', 'imp', 'Hellhound'] } }),
     ).toEqual(['payload.options[1]: Same as answer 1.'])

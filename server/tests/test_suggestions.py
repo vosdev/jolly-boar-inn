@@ -563,11 +563,10 @@ def test_an_npc_may_ask_a_matching_and_one_may_come_with_no_round(client: TestCl
 
 
 def test_a_pick_all_is_held_to_its_types_check(client: TestClient) -> None:
-    every = {**PICK_ALL["content"]["payload"], "answer_indices": [0, 1, 2, 3]}
-    del every["picks"]
-    response = client.post("/api/suggestions", json=_with(PICK_ALL, payload=every))
+    unsorted = {**PICK_ALL["content"]["payload"], "answer_indices": [2, 0]}
+    response = client.post("/api/suggestions", json=_with(PICK_ALL, payload=unsorted))
     assert response.status_code == 422
-    assert "every option is right" in response.text
+    assert "must be in ascending order" in response.text
     response = client.post("/api/suggestions", json=_with(PICK_ALL, mode="odd_one_out"))
     assert response.status_code == 422
     assert "'pick_all_that_apply' is not offered for 'odd_one_out'" in response.text

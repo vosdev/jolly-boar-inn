@@ -14,8 +14,7 @@ are right. Without it, any number from one to all of them may be picked.
 
 Credit is the right picks over every option that is right or picked: the exact set is full
 credit, and each missed right option or extra wrong one costs, so ticking everything pays
-no more than guessing. ``check`` refuses a question where every option is right, which
-would make ticking everything the answer, and one where none is.
+no more than guessing. ``check`` refuses a question where no option is right.
 """
 
 from typing import Any
@@ -96,13 +95,11 @@ def parse_value(payload: dict[str, Any], value: Any) -> list[int] | None:
 
 
 def check(payload: dict[str, Any]) -> list[str]:
-    """Consistency: some options right and some wrong, ``picks`` says how many, no repeats."""
+    """Consistency: at least one option right, ``picks`` says how many, no repeats."""
     errors: list[str] = []
     options, answers = payload["options"], payload["answer_indices"]
     if not answers:
         errors.append("answer_indices: no option is right")
-    elif len(set(answers)) >= len(options):
-        errors.append("answer_indices: every option is right, so ticking them all is the answer")
     out_of_range = [index for index in answers if not 0 <= index < len(options)]
     if out_of_range:
         errors.append(

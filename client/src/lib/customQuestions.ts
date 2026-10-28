@@ -107,9 +107,6 @@ function consistency(type: CustomType, payload: Record<string, unknown>): Proble
     if (type === 'pick_all_that_apply' && Array.isArray(right)) {
       if (right.length === 0) {
         found.push(at('payload.answer_indices', 'Tick at least one right answer.', 'missing'))
-      } else if (right.length >= options.length) {
-        // Ticking everything would then be the answer, so the server refuses it.
-        found.push(at('payload.answer_indices', 'Leave at least one answer wrong.'))
       }
     }
     const seen = new Map<string, number>()

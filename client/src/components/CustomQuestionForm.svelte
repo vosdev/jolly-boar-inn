@@ -412,7 +412,7 @@
         onclick={addOption}>Add an answer</button
       >
       <p class="note">
-        {optionsMin} to {optionsMax} answers: at least one right, and one wrong.
+        {optionsMin} to {optionsMax} answers: at least one right.
       </p>
       {@render errors('payload.options')}
       {@render errors('payload.answer_indices')}

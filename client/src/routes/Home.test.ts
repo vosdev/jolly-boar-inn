@@ -185,8 +185,11 @@ describe('How to play on Home', () => {
     render(Home, { navigate })
     const slide = document.querySelector<HTMLElement>('.showcase .slide.on')!
     await fireEvent.click(slide.querySelector('.name button')!)
-    const label = MODES[slide.dataset.mode ?? '']?.label ?? ''
-    expect(navigate).toHaveBeenCalledWith(`/how-to-play/${slugOf(label)}`, expect.anything())
+    const slug =
+      slide.dataset.mode === 'events'
+        ? 'random-events'
+        : slugOf(MODES[slide.dataset.mode ?? '']?.label ?? '')
+    expect(navigate).toHaveBeenCalledWith(`/how-to-play/${slug}`, expect.anything())
   })
 })
 
