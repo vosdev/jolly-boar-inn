@@ -218,8 +218,9 @@ wheels = [
 
 [[package]]
 name = "jolly-boar-inn"
-version = "0.206.0"
+version = "0.206.1"
 source = { editable = "." }
+default-groups = ["data", "dev"]
 dependencies = [
     { name = "asyncpg" },
     { name = "fastapi" },
@@ -231,6 +232,9 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+data = [
+    { name = "pillow" },
+]
 dev = [
     { name = "httpx" },
     { name = "pytest" },
@@ -242,7 +246,6 @@ dev = [
 logo = [
     { name = "numpy" },
     { name = "opencv-python-headless" },
-    { name = "pillow" },
     { name = "resvg-py" },
 ]
 
@@ -258,6 +261,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+data = [{ name = "pillow", specifier = ">=11" }]
 dev = [
     { name = "httpx", specifier = ">=0.27" },
     { name = "pytest", specifier = ">=8" },
@@ -269,7 +273,6 @@ dev = [
 logo = [
     { name = "numpy", specifier = ">=2" },
     { name = "opencv-python-headless", specifier = ">=4.10" },
-    { name = "pillow", specifier = ">=11" },
     { name = "resvg-py", specifier = ">=0.2" },
 ]
 

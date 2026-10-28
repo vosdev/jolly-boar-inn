@@ -743,8 +743,8 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
 
 - The `make` targets for scripts that write into the checkout (`gen-*`, `fetch-assets`, `logo`) run
   them in `docker-compose.data.yml`, so a host needs only git, docker and make. Its `data` stage is
-  the builder's venv plus git; `logo`, on top, adds the `logo` group for `make logo` alone. The
-  runtime copies neither. The repo is mounted, run as the host user.
+  the builder's venv (no groups) plus git and the `data` group (Pillow); `logo`, on top, adds the
+  `logo` group for `make logo` alone. The runtime copies neither. The repo is mounted, run as the host user.
 - Every fetch goes through `scripts/wiki.py`: the operator's `WIKI_USER_AGENT` (environment or
   `.env`) or no request, and one request a second per process. Offline flags need neither. A test
   fails any other script importing a network module, bar `smoke_ws` and `loadtest` (the app's).
@@ -776,8 +776,11 @@ Right until it does (More/Less keeps `sample.json`'s five). The tests generate o
   into place, skipping files that exist. Images are never committed: every target must be
   git-ignored. A question's picture, `pictures/<item|npc>/<id>.<ext>`, is staged in `.pictures/`;
   `build_pictures.py` then copies each one a pack uses to `client/public/pictures/<random>.<ext>`,
-  out of the bundle, which would merge it with an identical item icon. `data/pictures.json` maps
-  asset to file; a file keeps its name until its bytes change, and an unused one is removed.
+  out of the bundle, which would merge it with an identical item icon; an item's is cropped to its
+  opaque box, padded square and shrunk to at most 512 px, as a deterministic PNG. `data/pictures.json`
+  maps asset to file; a file keeps its name until its written bytes change, and an unused one is removed.
+  An item's picture is its wiki detail image: `add_detail_pictures.py` adds one for each roster
+  item that has one, in one batched `imageinfo` lookup, and lists the rest.
   Every item the roster or a pack question names has an `items/<id>.png`, its inventory icon:
   never a picture's file, whose bytes would match the icon bundled under the item's id.
   Questions from the wiki keep its CC BY-NC-SA notice, which the README (#98) carries.
