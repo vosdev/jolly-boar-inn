@@ -124,6 +124,13 @@
     flex-direction: column;
   }
 
+  /* The stage scrolls, which also clips sideways, so it holds a margin for what overhangs
+     the sheet (Zanaris's stone) and gives it back, leaving the stage's own width as it is. */
+  .fitted .stage-side {
+    padding-inline: 3%;
+    margin-inline: -3%;
+  }
+
   .fitted .stage-in {
     margin-block: 0 auto;
   }
