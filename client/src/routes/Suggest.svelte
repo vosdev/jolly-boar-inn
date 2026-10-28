@@ -16,7 +16,7 @@
   import ExistingQuestions from '../components/suggest/ExistingQuestions.svelte'
   import SuggestionEditor from '../components/suggest/SuggestionEditor.svelte'
   import { ApiFailure, getSuggestionAllowance, sendSuggestion } from '../lib/api'
-  import { INNKEEPER } from '../lib/modes'
+  import { HOUSE } from '../lib/modes'
   import { npcArt } from '../lib/npcs'
   import {
     CHOICES,
@@ -112,23 +112,23 @@
 {:else if view === 'checking'}
   <section class="panel">
     <h1>Suggest a question</h1>
-    <p class="note">Checking with the innkeeper…</p>
+    <p class="note">Checking with Reldo…</p>
   </section>
 {:else if view === 'limited'}
   <section class="panel">
     <h1>Suggest a question</h1>
     <p>
-      That's as many as the innkeeper reads from one connection in an hour. Try again
+      That's as many as Reldo reads from one connection in an hour. Try again
       {retryIn(retryAt, Date.now())}.
     </p>
     <button type="button" onclick={() => navigate('/')}>Home</button>
   </section>
 {:else if view === 'sent'}
   <section class="panel">
-    <h1>Thanks, it's on the innkeeper's desk</h1>
+    <h1>Thanks, it's on Reldo's desk</h1>
     <p>
-      The innkeeper reads every suggestion. An approved one joins the game in a later update.
-      There's no account, so you won't hear back: watch for it in a game.
+      Reldo reads every suggestion. An approved one joins the game in a later update. There's no
+      account, so you won't hear back: watch for it in a game.
     </p>
     <div class="row">
       <button type="button" class="primary" onclick={() => void another()}>Suggest another</button>
@@ -139,7 +139,7 @@
   <section class="panel">
     <h1>Suggest a question</h1>
     <p class="note">
-      Everything here is written by players and read by the innkeeper before anyone plays it.
+      Everything here is written by players and read by Reldo before anyone plays it.
     </p>
   </section>
   {#if failure !== null}
@@ -152,7 +152,7 @@
         <ul class="choices">
           {#each CHOICES as option (option.id)}
             {@const art =
-              option.host === INNKEEPER.id && heroArt !== null
+              option.host === HOUSE.id && heroArt !== null
                 ? { url: heroArt, cut: 'hero' }
                 : npcArt(option.host)}
             <li>
@@ -180,7 +180,7 @@
               {choice}
               {asked}
               hero={heroArt}
-              saveLabel={view === 'sending' ? 'Sending…' : 'Send to the innkeeper'}
+              saveLabel={view === 'sending' ? 'Sending…' : 'Send to Reldo'}
               onnpc={(npc) => (asker = npc)}
               onsave={(body) => void send(body)}
               oncancel={() => (choice = null)}

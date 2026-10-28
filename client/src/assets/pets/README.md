@@ -10,4 +10,4 @@ files `data/assets.json` names:
 | `<id>.png` | The inventory icon | Small: the picker, the top bar |
 
 The wiki files are game assets and not committed (`.gitignore`): `make fetch-assets ONLY=pets`
-fetches them. A pet can be picked once both files are in the manifest; one with neither file is drawn as the innkeeper.
+fetches them. A pet can be picked once both files are in the manifest; one with neither file is drawn as the boar.

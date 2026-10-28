@@ -131,7 +131,9 @@ describe('the Wise Old Man', () => {
   it('names one winner, several, or nobody', () => {
     expect(winnersLine(['Zezima'])).toBe('Gz, Zezima! Here are the full hiscores.')
     expect(winnersLine(['A', 'B', 'C'])).toBe('Gz, A, B and C! Here are the full hiscores.')
-    expect(winnersLine([])).toBe('Nobody scored. A quiet night at the inn.')
+    expect(winnersLine([])).toBe(
+      "Nobody scored. I guess they didn't really know Gielinor after all.",
+    )
   })
 })
 
@@ -172,7 +174,7 @@ describe('team standings', () => {
       'Saradomin and Zamorak win!',
     )
     expect(teamWinnersLine([teamRow('saradomin', 0, 1), teamRow('zamorak', 0, 1)])).toBe(
-      'Nobody scored. A quiet night at the inn.',
+      "Nobody scored. I guess they didn't really know Gielinor after all.",
     )
   })
 })

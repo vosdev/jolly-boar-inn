@@ -77,10 +77,10 @@ export interface QueuedReport {
   created_at: string
 }
 
-/** The NPC on a mode's card: a random event is asked by one of them, not the innkeeper. */
+/** The NPC on a mode's card: a random event is asked by one of them, not the house. */
 export function reportHost(mode: string): string {
   if (mode === 'random_event') return 'sandwich_lady'
-  return MODES[mode]?.host.id ?? 'innkeeper'
+  return MODES[mode]?.host.id ?? 'house'
 }
 
 export function reportModeName(mode: string): string {

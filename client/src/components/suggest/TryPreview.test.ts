@@ -134,9 +134,9 @@ describe('TryPreview', () => {
     await settle()
     expect(screen.queryByText('Loading the list…')).toBeNull()
     expect(screen.getByRole<HTMLInputElement>('combobox').disabled).toBe(true)
-    expect(screen.getByText('The NPC joins the list once the innkeeper imports it.')).toBeTruthy()
+    expect(screen.getByText('The NPC joins the list once imported.')).toBeTruthy()
     expect(container.querySelector('.picture .placeholder')?.textContent).toBe(
-      'The picture is added once the innkeeper imports it.',
+      'The picture is added once imported.',
     )
     expect(container.querySelector('.caption')).toBeNull()
 

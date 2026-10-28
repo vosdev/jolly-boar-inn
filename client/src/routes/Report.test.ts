@@ -63,7 +63,7 @@ async function write(text: string): Promise<void> {
   })
 }
 
-const send = () => fireEvent.click(screen.getByRole('button', { name: 'Send to the innkeeper' }))
+const send = () => fireEvent.click(screen.getByRole('button', { name: 'Send report' }))
 
 describe('Report', () => {
   it('asks for a game first, and asks the server nothing', () => {
@@ -95,7 +95,7 @@ describe('Report', () => {
       question: 'q_1',
       text: 'It is the cat, not the dog.',
     })
-    await screen.findByText(/the innkeeper will look into it/)
+    await screen.findByText(/we'll look into it/)
   })
 
   it('draws a question as text and reports a price round by item', async () => {
@@ -152,6 +152,6 @@ describe('Report', () => {
     await write('Something is off.')
     vi.mocked(api.getReportAllowance).mockResolvedValue({ left: 0, retry_at: null })
     await send()
-    await screen.findByText(/as many reports as the innkeeper reads/)
+    await screen.findByText(/as many reports as we read/)
   })
 })

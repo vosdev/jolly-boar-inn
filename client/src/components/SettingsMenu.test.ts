@@ -119,7 +119,7 @@ describe('SettingsMenu', () => {
     expect(petsDrawn(document.querySelector('.chip')!)).toEqual([{ pet: 'aggy', size: 32 }])
   })
 
-  it('draws the pet the room knows inside one, or the innkeeper for none', async () => {
+  it('draws the pet the room knows inside one, or the boar for none', async () => {
     const chip = render(SettingsMenu, { live: me })
     expect(petsDrawn(document.querySelector('.chip')!)).toEqual([
       { pet: 'abyssal_orphan', size: 32 },

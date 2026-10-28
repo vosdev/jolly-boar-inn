@@ -125,7 +125,9 @@ describe('FinalStandings', () => {
     const quiet = [standing('Zezima', 0, 1), standing('Woox', 0, 1)]
     render(FinalStandings, { standings: quiet, youId: null, ceremony: true, children })
     expect(document.querySelector('.hiscores')).not.toBeNull()
-    expect(screen.getByText('Nobody scored. A quiet night at the inn.')).toBeTruthy()
+    expect(
+      screen.getByText("Nobody scored. I guess they didn't really know Gielinor after all."),
+    ).toBeTruthy()
   })
 
   describe('in a team game', () => {
