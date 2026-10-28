@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT, Settings
 from app.main import create_app
-from app.static import BASE_URL_SLOT
+from app.static import BASE_URL_SLOT, FARO_URL_SLOT
 
 
 def test_index_and_spa_fallback(settings: Settings, dist: Path) -> None:
@@ -91,6 +91,27 @@ def test_index_gets_the_base_url_the_share_card_needs(settings: Settings, dist: 
                 assert BASE_URL_SLOT not in response.text
                 assert response.headers["cache-control"] == "no-cache"
                 assert response.headers["content-type"].startswith("text/html")
+
+
+def test_index_gets_the_faro_receiver_or_nothing(settings: Settings, dist: Path) -> None:
+    """Empty, the client never loads the SDK; the slot must not survive either way."""
+    assert f"FARO_URL_SLOT = '{FARO_URL_SLOT}'" in (
+        REPO_ROOT / "client" / "site-branding.ts"
+    ).read_text(encoding="utf-8")
+    (dist / "index.html").write_text(
+        f'<!doctype html><meta name="faro-url" content="{FARO_URL_SLOT}">'
+    )
+    for faro_url, written in (
+        ("", ""),
+        ("/faro/collect", "/faro/collect"),
+        ('https://faro.example/"><script>', "https://faro.example/&quot;&gt;&lt;script&gt;"),
+    ):
+        configured = settings.model_copy(update={"faro_url": faro_url})
+        with TestClient(create_app(configured, dist)) as client:
+            for path in ("/", "/r/ABYSSAL"):
+                response = client.get(path)
+                assert f'<meta name="faro-url" content="{written}">' in response.text, faro_url
+                assert FARO_URL_SLOT not in response.text
 
 
 def test_robots_hides_private_pages_and_names_the_sitemap(settings: Settings, dist: Path) -> None:

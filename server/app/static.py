@@ -18,6 +18,9 @@ NO_CACHE = "no-cache"
 # a shared link's card has to be absolute, and the address is the server's setting, not the
 # build's, so a change of domain needs a restart rather than a rebuild.
 BASE_URL_SLOT = "__PUBLIC_BASE_URL__"
+# Where the client sends its errors and Web Vitals, empty when off: a server setting for the
+# same reason, and the CSP that has to allow it is the server's too.
+FARO_URL_SLOT = "__FARO_URL__"
 
 # Rooms and finished games belong to their players, and a room's page is Join for anyone else.
 PRIVATE_PATHS = ("/api/", "/ws/", "/metrics", "/r/", "/history/", "/admin")
@@ -44,12 +47,15 @@ class ClientPath(PathConvertor):
 register_url_convertor("client", ClientPath())
 
 
-def mount_client(app: FastAPI, dist: Path = CLIENT_DIST, base_url: str = "") -> None:
+def mount_client(
+    app: FastAPI, dist: Path = CLIENT_DIST, base_url: str = "", faro_url: str = ""
+) -> None:
     """Register a catch-all GET route. Must be called after every API route."""
 
     index = dist / "index.html"
     root = base_url.rstrip("/")
     address = escape(root)
+    collector = escape(faro_url)
 
     # Registered before the catch-all, which would otherwise answer them with ``index.html``.
     @app.api_route("/robots.txt", methods=["GET", "HEAD"], include_in_schema=False)
@@ -92,5 +98,9 @@ def mount_client(app: FastAPI, dist: Path = CLIENT_DIST, base_url: str = "") -> 
             # A picture's random name changes with its file (``scripts/build_pictures.py``).
             cache = IMMUTABLE if path.startswith(("assets/", "pictures/")) else NO_CACHE
             return FileResponse(candidate, headers={"Cache-Control": cache})
-        page = index.read_text(encoding="utf-8").replace(BASE_URL_SLOT, address)
+        page = (
+            index.read_text(encoding="utf-8")
+            .replace(BASE_URL_SLOT, address)
+            .replace(FARO_URL_SLOT, collector)
+        )
         return HTMLResponse(page, headers={"Cache-Control": NO_CACHE})

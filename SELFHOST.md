@@ -62,3 +62,14 @@ Set `PYROSCOPE_SERVER_ADDRESS` in `.env` to send CPU profiles to Pyroscope or Gr
 Profiles, so a lag spike traces to the code behind it. Unset, nothing runs. Basic auth and a
 tenant id are optional, see [`.env.example`](.env.example). Profiles carry the app version only,
 no room, name or address.
+
+## Client errors and Web Vitals
+
+Set `FARO_URL` in `.env` to send players' browser errors and Web Vitals to a Grafana Faro
+receiver, such as Alloy's `faro.receiver` forwarding to Loki. Unset, browsers never load the SDK.
+A restart is enough, no rebuild. Reports carry no tokens, stored data or room codes.
+
+The simplest setup is a path, `FARO_URL=/faro/collect`, with your reverse proxy sending
+`/faro/collect` to the receiver's `/collect`. An absolute URL works too: the app adds its origin to
+the CSP, and the receiver's `cors_allowed_origins` must list your site. Sessions end when the tab
+closes; how long Loki keeps them is its retention setting.

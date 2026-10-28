@@ -18,6 +18,7 @@ def test_defaults_match_architecture_table() -> None:
     assert s.random_event_game_mode is False
     assert s.packs_dir == Path("../data/packs")
     assert s.log_level == "info"
+    assert s.faro_url == ""
 
 
 def test_env_overrides(monkeypatch) -> None:
@@ -52,6 +53,22 @@ def test_a_non_positive_cleanup_interval_is_refused(monkeypatch, bad: str) -> No
     readable error instead of running a delete as fast as the pool can serve one.
     """
     monkeypatch.setenv("ROOM_CLEANUP_INTERVAL_SECONDS", bad)
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
+
+
+@pytest.mark.parametrize("url", ["", "/faro/collect", "https://faro.example/collect"])
+def test_faro_url_is_a_path_or_web_address(monkeypatch, url: str) -> None:
+    monkeypatch.setenv("FARO_URL", url)
+    assert Settings(_env_file=None).faro_url == url
+
+
+@pytest.mark.parametrize(
+    "bad", ["faro/collect", "//faro.example", "ftp://faro.example", "https://"]
+)
+def test_any_other_faro_url_is_refused(monkeypatch, bad: str) -> None:
+    """The CSP would block anything else: a typo stops the app rather than report nothing."""
+    monkeypatch.setenv("FARO_URL", bad)
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
 
