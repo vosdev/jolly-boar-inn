@@ -14,6 +14,7 @@ import {
   takeAdminToken,
   timeUntil,
 } from './admin'
+import { findSimilar, getSuggestionAllowance } from './api'
 
 const TOKEN = '0123456789abcdef0123456789abcdef'
 
@@ -119,5 +120,22 @@ describe('the tabs', () => {
 
   it('writes the path each tab is read from', () => {
     for (const tab of ADMIN_TABS) expect(adminTabOf(adminPath(tab))).toBe(tab)
+  })
+})
+
+describe('suggestion calls', () => {
+  it('carry the operator bearer only when this browser holds one', async () => {
+    const fetchMock = vi.fn(
+      async (_url: string, _init?: RequestInit) => new Response('{"left":10,"retry_at":null}'),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    await getSuggestionAllowance()
+    expect(fetchMock.mock.calls[0]).toEqual(['/api/suggestions/allowance', { headers: {} }])
+    localStorage.setItem('jbi:admin', TOKEN)
+    await getSuggestionAllowance()
+    await findSimilar({ type: 'free_text', payload: { prompt: 'p', accepted: ['a'] } } as never)
+    for (const call of fetchMock.mock.calls.slice(1)) {
+      expect(call[1]?.headers).toMatchObject({ authorization: `Bearer ${TOKEN}` })
+    }
   })
 })

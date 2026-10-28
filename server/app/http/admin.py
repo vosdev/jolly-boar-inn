@@ -25,13 +25,22 @@ class Unauthorized(ApiError):
     headers = {"WWW-Authenticate": "Bearer"}
 
 
-def require_token(request: Request) -> None:
-    """Refuse the request unless it carries the operator's token."""
+def is_operator(request: Request) -> bool:
+    """Whether the request carries the operator's token; false when none is configured."""
     expected: str = request.app.state.settings.admin_token
     scheme, _, given = request.headers.get("authorization", "").partition(" ")
     # Headers arrive as latin-1, so encoding back gives the bytes that were sent.
     sent = given.strip().encode("latin-1")
-    if not hmac.compare_digest(sent, expected.encode("ascii")) or scheme.lower() != "bearer":
+    return (
+        expected != ""
+        and hmac.compare_digest(sent, expected.encode("ascii"))
+        and scheme.lower() == "bearer"
+    )
+
+
+def require_token(request: Request) -> None:
+    """Refuse the request unless it carries the operator's token."""
+    if not is_operator(request):
         raise Unauthorized("a valid admin token is required")
 
 

@@ -34,7 +34,7 @@ function row(over: Partial<QueuedSuggestion> = {}): QueuedSuggestion {
     kind: 'question',
     content: {
       type: 'multiple_choice',
-      mode: 'odd_one_out',
+      mode: 'bestiary',
       wiki: WIKI,
       payload: {
         prompt: '<b>Which</b> is not a Barrows brother?',
@@ -378,7 +378,7 @@ describe('SuggestionQueue', () => {
     )
   })
 
-  it('shows a Who’s That NPC? by its prompt, with the NPC as its answer', async () => {
+  it('shows a Who’s That NPC? by its NPC, not its fixed prompt', async () => {
     const npc = row({
       content: {
         type: 'pick_from_list',
@@ -389,7 +389,9 @@ describe('SuggestionQueue', () => {
     })
     vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [npc], counts: COUNTS })
     render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
-    await fireEvent.click((await screen.findByText("Who's that NPC?")).closest('button')!)
+    await fireEvent.click(
+      (await screen.findByText('Araxxor', { selector: '.text' })).closest('button')!,
+    )
     expect(screen.getByText('Araxxor', { selector: 'strong' })).toBeTruthy()
     const preview = screen.getByLabelText('As players will see it')
     expect(preview.querySelector('.picture img')).toBeNull()
@@ -416,7 +418,9 @@ describe('SuggestionQueue', () => {
     })
     vi.mocked(admin.getQueue).mockResolvedValue({ suggestions: [only, row()], counts: COUNTS })
     render(SuggestionQueue, { token: 't', onrefused: vi.fn() })
-    await fireEvent.click((await screen.findByText('Who said this?')).closest('button')!)
+    await fireEvent.click(
+      (await screen.findByText('Who said this? “<b>Hi</b>”')).closest('button')!,
+    )
     expect(
       screen.getByRole('link', { name: (name) => name.includes(clip) }).getAttribute('href'),
     ).toBe(clip)

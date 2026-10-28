@@ -596,11 +596,12 @@ export const STATUS_LABELS: Record<SuggestionStatus, string> = {
   imported: 'Imported',
 }
 
-/** One line for the queue's list. */
+/** One line for the queue's list. A fixed prompt tells questions apart by nothing, so those show what differs. */
 export function summary(suggestion: Pick<SuggestionBody, 'kind' | 'content'>): string {
   if (suggestion.kind === 'item') return (suggestion.content as ItemContent).name
-  const prompt = (suggestion.content as QuestionContent).payload.prompt
-  return typeof prompt === 'string' ? prompt : ''
+  const content = suggestion.content as QuestionContent
+  if (content.mode === 'whos_that_npc') return answerOf(suggestion)
+  return matchLine(content)
 }
 
 /** The right answer, as the reviewer checks it against the wiki. */

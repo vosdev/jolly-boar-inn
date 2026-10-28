@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import Settings
-from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter
+from app.http.ratelimit import SUGGESTIONS_PER_HOUR, RateLimiter, client_key
 from app.main import create_app
 from app.modes import round_modes
 from app.questions.submission import Submission
@@ -863,6 +863,45 @@ def test_one_suggestion_over_the_hourly_limit_is_a_429(client: TestClient) -> No
     assert response.json()["code"] == "rate_limited"
     allowance = client.get("/api/suggestions/allowance").json()
     assert allowance["left"] == 0 and allowance["retry_at"] is not None
+
+
+def test_the_operator_is_held_to_none_of_the_suggestion_limits(
+    app: FastAPI, client: TestClient
+) -> None:
+    app.state.suggestions = RateLimiter(limit=1)
+    app.state.similar = RateLimiter(limit=1)
+    app.state.tries = RateLimiter(limit=1)
+    draft = {"content": ODD["content"]}
+    for _ in range(3):
+        assert client.post("/api/suggestions", json=ITEM, headers=BEARER).status_code == 201
+        assert (
+            client.post("/api/suggestions/similar", json=draft, headers=BEARER).status_code == 200
+        )
+        assert client.post("/api/suggestions/try", json=draft, headers=BEARER).status_code == 200
+    assert client.get("/api/suggestions/allowance", headers=BEARER).json() == {
+        "left": 1,
+        "retry_at": None,
+    }
+    suggest(client, ITEM)
+    assert client.post("/api/suggestions", json=ITEM).status_code == 429
+
+
+def test_a_wrong_or_empty_bearer_does_not_lift_the_limits(app: FastAPI, client: TestClient) -> None:
+    app.state.suggestions = RateLimiter(limit=1)
+    wrong = {"Authorization": f"Bearer {TOKEN}x"}
+    empty = {"Authorization": "Bearer "}
+    suggest(client, ITEM)
+    assert client.post("/api/suggestions", json=ITEM, headers=wrong).status_code == 429
+    assert client.post("/api/suggestions", json=ITEM, headers=empty).status_code == 429
+
+
+def test_an_empty_bearer_is_no_operator_without_a_token(settings: Settings, dist: Path) -> None:
+    app = create_app(settings, dist)
+    with TestClient(app) as client:
+        app.state.suggestions = RateLimiter(limit=1)
+        assert app.state.suggestions.allow(client_key("testclient"))
+        allowance = client.get("/api/suggestions/allowance", headers={"Authorization": "Bearer "})
+        assert allowance.json()["left"] == 0
 
 
 def test_a_refused_suggestion_costs_no_quota(app: FastAPI, client: TestClient) -> None:
