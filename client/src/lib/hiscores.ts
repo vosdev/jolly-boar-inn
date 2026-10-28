@@ -156,7 +156,7 @@ export function listNames(names: readonly string[]): string {
 /** The Wise Old Man over the final hiscores: the winners, or nobody. */
 export function winnersLine(winners: readonly string[]): string {
   return winners.length === 0
-    ? 'Nobody scored. A quiet night at the inn.'
+    ? "Nobody scored. I guess they didn't really know Gielinor after all."
     : `Gz, ${listNames(winners)}! Here are the full hiscores.`
 }
 

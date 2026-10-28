@@ -25,7 +25,7 @@ vi.mock('../../lib/admin', async (importOriginal) => {
   }
 })
 
-// The renders are not committed, so without this every NPC is the innkeeper's drawing.
+// The renders are not committed, so without this every NPC is the boar's drawing.
 vi.mock('../../lib/npcs', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../lib/npcs')>()),
   npcArt: (id: string) => ({ url: `/npcs/${id}.png`, cut: 'chathead' }),
