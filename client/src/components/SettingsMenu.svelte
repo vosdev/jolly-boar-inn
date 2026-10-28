@@ -36,7 +36,7 @@
    *
    * On a screen wide enough for it, the menu is a sheet under the bar in two halves: the
    * name, the theme and the sound on the left, the pet grid always open on the right, so
-   * the inputs for name and pet line up. Narrower, the sections stack and the pets wait
+   * the inputs for name and pet line up. On a phone, the sections stack and the pets wait
    * behind "Change pet".
    *
    * The menu is a non-modal dialog. Escape, a tap outside, or tabbing out of it closes
@@ -64,7 +64,7 @@
   const PENDING_MS = 5_000
   /** Well inside the server's 60 s, so a menu held open never lapses. */
   const EDITING_REFRESH_MS = 30_000
-  /** Where the sheet, 2rem narrower than the window, has room for two halves. */
+  /** Where the sheet, the window less 2rem, has room for two halves. */
   const wide = new MediaQuery('(min-width: 46rem)')
 
   let {
@@ -394,7 +394,7 @@
   }
 
   /* Deliberately not positioned: the sheet places itself against the window, so it is as
-     wide as Home's column on every screen, however narrow the bar's own column is. */
+     wide as Home's column on every screen, whatever the bar's own column measures. */
   .menu {
     display: flex;
     min-width: 0;
