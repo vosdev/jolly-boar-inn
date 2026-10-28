@@ -44,13 +44,13 @@
    * sets the height and nothing under the sheet moves as they change. The region is not
    * live: a screen reader announcing every 4.5 s would talk over the rest of the page.
    */
-  import { onMount } from 'svelte'
+  import { onMount, type Snippet } from 'svelte'
 
   import { reducedMotion } from '../lib/interlude'
   import { npcArt } from '../lib/npcs'
 
   /** A slide's name opens its view on the How to play page. */
-  let { onpick }: { onpick: (view: string) => void } = $props()
+  let { onpick, top }: { onpick: (view: string) => void; top?: Snippet } = $props()
 
   const order = shuffled(SLIDES)
   let index = $state(0)
@@ -114,6 +114,7 @@
   onfocusin={onFocusIn}
   onfocusout={onFocusOut}
 >
+  {@render top?.()}
   <div class="stack">
     {#each order as mode, i (mode.id)}
       {@const art = npcArt(mode.host.id)}
