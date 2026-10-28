@@ -1,5 +1,6 @@
 <script lang="ts" module>
   import { MODES, type Mode } from '../lib/modes'
+  import { STRANGER } from '../lib/randomEvents'
 
   /** Never a round anywhere (`custom`, `random_event`), or only on a server switched to testing. */
   const NOT_SHOWN = new Set(['custom', 'random_event', 'random_events_only'])
@@ -9,13 +10,33 @@
     (mode) => !NOT_SHOWN.has(mode.id),
   )
 
+  /** What a slide shows: a mode, or the random events under their stranger. */
+  interface Slide {
+    /** A mode's id, or `events`, as `howToPath` knows the views. */
+    id: string
+    label: string
+    hint: string
+    host: { id: string; name: string }
+  }
+
+  /** The Mysterious Old Man stands for every random event; his name opens their page. */
+  const EVENTS: Slide = {
+    id: 'events',
+    label: 'Random events',
+    hint: 'Now and then a stranger interrupts a round with a question of their own.',
+    host: { id: STRANGER, name: 'Mysterious Old Man' },
+  }
+
+  /** Every slide there is; each visit walks them in its own order. */
+  export const SLIDES: readonly Slide[] = [...SHOWN, EVENTS]
+
   /** How long a mode stays before the next fades in. */
   export const ADVANCE_MS = 4500
 </script>
 
 <script lang="ts">
   /**
-   * One game mode at a time on Home's sheet (section 8 of ideas/design.md): its host's
+   * One game mode (or the random events) at a time on Home's sheet (section 8 of ideas/design.md): its host's
    * chathead, its name, its hint and who presents it, moving on by itself. The order is
    * shuffled per visit, so the first mode is not always the same one.
    *
@@ -28,10 +49,10 @@
   import { reducedMotion } from '../lib/interlude'
   import { npcArt } from '../lib/npcs'
 
-  /** A mode's name opens its view on the How to play page. */
-  let { onpick }: { onpick: (mode: string) => void } = $props()
+  /** A slide's name opens its view on the How to play page. */
+  let { onpick }: { onpick: (view: string) => void } = $props()
 
-  const order = shuffled(SHOWN)
+  const order = shuffled(SLIDES)
   let index = $state(0)
   let hovered = $state(false)
   let focused = $state(false)
