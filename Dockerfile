@@ -32,11 +32,11 @@ WORKDIR /app/server
 # Dependencies first so they cache independently of app code.
 COPY server/pyproject.toml server/uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-install-project
+    uv sync --locked --no-default-groups --no-install-project
 
 COPY server/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev
+    uv sync --locked --no-default-groups
 
 # ---- Data: the scripts that write into a checkout (docker-compose.data.yml) --
 # Never part of the runtime: that stage does not copy from this one, so `make image` skips it,
@@ -55,6 +55,14 @@ ENV PYTHONUNBUFFERED=1 \
     HOME=/tmp \
     PYTHONPATH=/repo/server \
     PATH="/app/server/.venv/bin:$PATH"
+# Pillow, which the builder's venv leaves out for the runtime. uv and the lock are mounted, so
+# the group is the only new layer.
+RUN --mount=from=builder,source=/usr/local/bin/uv,target=/usr/local/bin/uv \
+    --mount=type=bind,source=server/pyproject.toml,target=/app/server/pyproject.toml \
+    --mount=type=bind,source=server/uv.lock,target=/app/server/uv.lock \
+    --mount=type=cache,target=/root/.cache/uv \
+    UV_CACHE_DIR=/root/.cache/uv UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never \
+    uv sync --project /app/server --locked --no-default-groups --group data --no-install-project --inexact
 WORKDIR /repo/server
 
 # ---- Logo: the data stage plus what `make logo` draws with ---------------------
@@ -66,7 +74,7 @@ RUN --mount=from=builder,source=/usr/local/bin/uv,target=/usr/local/bin/uv \
     --mount=type=bind,source=server/uv.lock,target=/app/server/uv.lock \
     --mount=type=cache,target=/root/.cache/uv \
     UV_CACHE_DIR=/root/.cache/uv UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never \
-    uv sync --project /app/server --locked --no-dev --group logo --no-install-project --inexact
+    uv sync --project /app/server --locked --no-default-groups --group logo --no-install-project --inexact
 
 # ---- Stage 3: runtime ------------------------------------------------------
 # Same image the uv base is built from, so the venv's interpreter symlink into

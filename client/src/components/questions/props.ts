@@ -25,18 +25,12 @@ interface Drawn {
   revealed: boolean
 }
 
-/**
- * The question's schedule. A stem that shows more of itself as time runs out — Pixel
- * Hunt's zoom — works out its frame from these on its own (architecture section 6), since
- * there is no message that would tell it.
- */
+/** The question's schedule, for whatever shows more of itself as time runs out. */
 export interface StemTiming {
   /** ISO 8601: when answers open and the clock starts; `opened_at` from an older server. */
   answerableAt: string
   /** ISO 8601: when the question closes. */
   endsAt: string
-  /** How many frames the time is divided into; null for a question that shows one. */
-  steps: number | null
   /** The server's time in ms (`lib/clock.ts`), which the schedule is counted against. */
   now: Readable<number>
 }

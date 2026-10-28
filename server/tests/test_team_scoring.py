@@ -4,20 +4,15 @@
 from typing import Any
 from uuid import UUID
 
-from app.questions.types import more_less, pick_from_list
+from app.questions.types import more_less
 from app.questions.types.scoring import Scoring
 from tests.game_api import AFTER, Game, answer_after, assert_memory_matches_db
 
 
 def team_table(table: Any, *names: str, **settings: Any) -> Game:
     """A team game of Saradomin against Zamorak, everyone on a team, nobody closing early."""
-    game = table(
-        *names,
-        teams=["saradomin", "zamorak"],
-        seconds=10,
-        close_when_all_answered=False,
-        **settings,
-    )
+    settings.setdefault("seconds", 10)
+    game = table(*names, teams=["saradomin", "zamorak"], close_when_all_answered=False, **settings)
     for index, seat in enumerate(game.seats):
         seat.send(t="set_team", team="saradomin" if index % 2 else "zamorak")
         seat.settle()
@@ -76,18 +71,15 @@ def test_an_accuracy_question_pays_its_usual_points(table, monkeypatch) -> None:
     assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 0}
 
 
-def test_a_step_question_pays_the_frame_the_answer_arrived_on(table, monkeypatch) -> None:
-    monkeypatch.setattr(more_less, "SCORING", Scoring.STEP, raising=False)
-    monkeypatch.setattr(more_less, "steps", pick_from_list.steps, raising=False)
-    game = team_table(table, "Zezima", "Woox")
+def test_a_step_question_pays_the_frame_the_answer_arrived_on(table, pictures) -> None:
+    game = team_table(table, "Zezima", "Woox", modes=["pixel_hunt"], seconds=25)
     zezima, woox = game.players
     game.start()
     game.opened(0)
-    game.question(0).payload["steps"] = 4
-    first = answer_after(game, zezima, 0, game.right(0), 1.0)
-    third = answer_after(game, woox, 0, game.right(0), 6.0)
+    first = answer_after(game, zezima, 0, game.right(0), 0.5)
+    third = answer_after(game, woox, 0, game.right(0), 2.5)
     assert (first["scoring"], first["band"]) == ("step", 1)
     assert (third["scoring"], third["band"]) == ("step", 3)
     game.skip()
     closed = game.admin.take("question_closed")
-    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 600}
+    assert points_by_name(game, closed) == {"Zezima": 1000, "Woox": 929}

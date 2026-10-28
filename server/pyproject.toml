@@ -1,6 +1,6 @@
 [project]
 name = "jolly-boar-inn"
-version = "0.206.0"
+version = "0.209.0"
 description = "Jolly Boar Inn Quiz Night server"
 requires-python = ">=3.14"
 license = "AGPL-3.0-only"
@@ -23,13 +23,20 @@ dev = [
     "pytest-timeout>=2.4.0",
     "pytest-xdist>=3.6",
 ]
-# `make logo`, the owner's tool: never in the runtime image.
+# The data scripts' own packages (`docker-compose.data.yml`): never in the runtime image.
+data = [
+    "pillow>=11",
+]
+# `make logo`, the owner's tool, on top of `data`: never in the runtime image.
 logo = [
     "numpy>=2",
     "opencv-python-headless>=4.10",
-    "pillow>=11",
     "resvg-py>=0.2",
 ]
+
+[tool.uv]
+# The tests run the data scripts, so a plain `uv sync` installs their packages too.
+default-groups = ["dev", "data"]
 
 [build-system]
 requires = ["hatchling"]

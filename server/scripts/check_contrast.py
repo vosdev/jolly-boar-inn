@@ -89,8 +89,9 @@ SHAPE = (
 )
 TEXTURE = ("--texture-panel", "--texture-bg")
 SCROLL = ("--scroll-paper", "--scroll-edge", "--scroll-ink", "--scroll-muted", "--silhouette")
+TILE = ("--tile", "--tile-light", "--tile-dark", "--tile-seam")
 
-COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL
+COLOUR_TOKENS = SURFACE + BRAND + VERDICT + SEMANTIC + GEMS + GEM_INK + SCROLL + TILE
 REQUIRED_TOKENS = COLOUR_TOKENS + SHAPE + TEXTURE + ("--scroll-facet-light",)
 
 TEXT_RATIO = 4.5

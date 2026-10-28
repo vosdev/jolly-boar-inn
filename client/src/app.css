@@ -134,13 +134,19 @@
      the ink on it. Checked like a panel: --scroll-ink 7:1 and --scroll-muted 4.5:1 on the
      paper, which also has to stand off --bg and --panel. --scroll-facet-light is how much
      white the creases catch. --silhouette fills a shadow on the sheet, 3:1 on the paper:
-     one flat colour, so a see-through part of a render shows lighter in every theme. */
+     one flat colour, so a see-through part of a render shows lighter in every theme.
+     --tile is a Pixel Hunt tile over the picture, with a light top-left and dark
+     bottom-right bevel and a 1px --tile-seam; the puzzle box's hole is --tile-dark. */
   --scroll-paper: #cfbb88;
   --scroll-edge: #7a5e30;
   --scroll-ink: #241708;
   --scroll-muted: #4f3a1c;
   --scroll-facet-light: 0.08;
   --silhouette: #241708;
+  --tile: #6b4f2a;
+  --tile-light: #8a6a3c;
+  --tile-dark: #4a3519;
+  --tile-seam: #4a3519;
 
   color-scheme: light;
 }
@@ -208,6 +214,10 @@
   --scroll-muted: #5a4629;
   --scroll-facet-light: 0.08;
   --silhouette: #2b2319;
+  --tile: #c99a58;
+  --tile-light: #e3c088;
+  --tile-dark: #8f6a35;
+  --tile-seam: #8f6a35;
 
   color-scheme: light;
 }
@@ -270,6 +280,10 @@
   --scroll-muted: #cbc1b5;
   --scroll-facet-light: 0.04;
   --silhouette: #efe8df;
+  --tile: #4d4745;
+  --tile-light: #6c6461;
+  --tile-dark: #262221;
+  --tile-seam: #262221;
 
   color-scheme: dark;
 }
@@ -336,6 +350,10 @@
   --scroll-muted: #565c73;
   --scroll-facet-light: 0.08;
   --silhouette: #23263a;
+  --tile: #3f5f99;
+  --tile-light: #7090cc;
+  --tile-dark: #273f6a;
+  --tile-seam: #273f6a;
 
   color-scheme: light;
 }
@@ -403,6 +421,10 @@
   --scroll-muted: #d6b9a4;
   --scroll-facet-light: 0.05;
   --silhouette: #ff8a1e;
+  --tile: #2a1914;
+  --tile-light: #4a2a20;
+  --tile-dark: #0c0605;
+  --tile-seam: #ff6a1a;
 
   color-scheme: dark;
 }
@@ -468,6 +490,10 @@
   --scroll-muted: #54471f;
   --scroll-facet-light: 0.08;
   --silhouette: #2a2210;
+  --tile: #5e6e24;
+  --tile-light: #86993a;
+  --tile-dark: #3a4515;
+  --tile-seam: #3a4515;
 
   color-scheme: light;
 }
@@ -533,6 +559,10 @@
   --scroll-muted: #8adfe3;
   --scroll-facet-light: 0.04;
   --silhouette: #1ac8d8;
+  --tile: #1e3438;
+  --tile-light: #2f5358;
+  --tile-dark: #0b1618;
+  --tile-seam: #1ac8d8;
 
   color-scheme: dark;
 }
@@ -597,6 +627,10 @@
   --scroll-muted: #f2a08e;
   --scroll-facet-light: 0.04;
   --silhouette: #e2483e;
+  --tile: #3a1414;
+  --tile-light: #5a2020;
+  --tile-dark: #1a0808;
+  --tile-seam: #e2483e;
 
   color-scheme: dark;
 }
@@ -660,6 +694,10 @@
   --scroll-muted: #363b37;
   --scroll-facet-light: 0.06;
   --silhouette: #1c201d;
+  --tile: #3f5f55;
+  --tile-light: #5c7d72;
+  --tile-dark: #22362f;
+  --tile-seam: #22362f;
 
   color-scheme: dark;
 }
@@ -724,6 +762,10 @@
   --scroll-muted: #163d48;
   --scroll-facet-light: 0.06;
   --silhouette: #04161b;
+  --tile: #3f8394;
+  --tile-light: #78bccc;
+  --tile-dark: #25596a;
+  --tile-seam: #25596a;
 
   color-scheme: light;
 }

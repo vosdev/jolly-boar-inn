@@ -1,4 +1,4 @@
-.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-price-questions import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
+.PHONY: all setup dev dev-server dev-client db-up db-down db-reset db-logs db-shell test lint validate-packs check-contrast gen-protocol gen-price-questions gen-pixel-hunt import-suggestions edit-packs edit-roster rehash-questions fetch-assets logo loadtest image
 
 # The app's version: /VERSION is the one place it lives (ideas/architecture.md, Versioning).
 VERSION := $(shell cat VERSION)
@@ -102,6 +102,12 @@ loadtest:
 # environment (.env.example).
 gen-price-questions:
 	$(DATA) scripts/gen_price_questions.py
+
+# Rewrite data/packs/pixel_hunt.json from the roster: one question per item with a detail
+# picture in data/assets.json, bar the script's blocklist, keeping each item's difficulty.
+# Offline. Run it after add_detail_pictures.py or a roster change, then commit the pack.
+gen-pixel-hunt:
+	$(DATA) scripts/gen_pixel_hunt.py
 
 # Add an export from /admin's suggestion queue to the packs and the roster, then review the
 # diff and commit it. FILE may be anywhere, such as ~/Downloads: it is copied into the

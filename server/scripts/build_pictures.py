@@ -9,10 +9,15 @@ to ``client/public/pictures/<random>.<ext>`` and records ``asset -> file`` in
 git-ignored, so every install has its own names. ``public/`` because Vite copies it as it is:
 the bundler would merge a picture with an identical item icon and serve it under the icon's id.
 
-A picture keeps its name while its file stays the same. A new one, or one whose file changed,
-gets a fresh name: ``/pictures/`` is served as immutable, so a changed file under an old name
-would never reach a browser that cached it. A picture no pack uses any more, or whose staged
-file is gone, is dropped, along with anything else in the client's folder.
+An item's picture is cropped to what is not transparent, padded to a square with a transparent
+margin and shrunk to at most ``MAX_SIDE`` px, never enlarged, so the item fills its picture
+rather than sitting in the wiki's empty canvas. It is always written as a PNG, which Pillow
+writes the same bytes for every time it is given the same picture.
+
+A picture keeps its name while the file written for it stays the same. A new one, or one whose
+file changed, gets a fresh name: ``/pictures/`` is served as immutable, so a changed file under
+an old name would never reach a browser that cached it. A picture no pack uses any more, or
+whose staged file is gone, is dropped, along with anything else in the client's folder.
 
 Packs that would not load, or an output git would commit, write nothing.
 
@@ -23,6 +28,7 @@ Usage (from ``server/``)::
 
 import argparse
 import hashlib
+import io
 import json
 import secrets
 import sys
@@ -38,6 +44,7 @@ from fetch_assets import (
     git_ignored,
     write_atomic,
 )
+from PIL import Image
 
 from app.questions import vocab
 from app.questions.packs import Pack, PackError, load_packs
@@ -45,6 +52,7 @@ from app.questions.packs import Pack, PackError, load_packs
 PACKS = REPO_ROOT / "data" / "packs"
 OUT = REPO_ROOT / "client" / "public" / "pictures"
 MAPPING = REPO_ROOT / "data" / "pictures.json"
+MAX_SIDE = 512
 
 
 @dataclass
@@ -78,6 +86,28 @@ def staged(staging: Path, asset: str) -> Path | None:
     return None
 
 
+def squared(body: bytes) -> bytes:
+    """``body``'s image cropped to its opaque part, padded square, at most ``MAX_SIDE``, as PNG."""
+    with Image.open(io.BytesIO(body)) as opened:
+        image = opened.convert("RGBA")
+    box = image.getchannel("A").getbbox()
+    if box is not None:
+        image = image.crop(box)
+    side = max(image.size)
+    square = Image.new("RGBA", (side, side))
+    square.paste(image, ((side - image.width) // 2, (side - image.height) // 2))
+    if side > MAX_SIDE:
+        # Premultiplied, so the fully transparent margin bleeds no black into the edge.
+        square = (
+            square.convert("RGBa")
+            .resize((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
+            .convert("RGBA")
+        )
+    out = io.BytesIO()
+    square.save(out, "PNG", optimize=True)
+    return out.getvalue()
+
+
 def load_mapping(path: Path) -> dict[str, dict[str, str]]:
     """The mapping a previous run wrote, or an empty one."""
     if not path.is_file():
@@ -104,7 +134,9 @@ def build(
         if source is None:
             report.missing.append(asset)
             continue
-        body = source.read_bytes()
+        body, suffix = source.read_bytes(), source.suffix
+        if asset.startswith("item:") and suffix != ".svg":
+            body, suffix = squared(body), ".png"
         digest = hashlib.sha256(body).hexdigest()
         before = old.get(asset)
         if before is not None and before["sha256"] == digest:
@@ -116,7 +148,7 @@ def build(
                 name = fresh()
             taken.add(name)
             report.named.append(asset)
-        target = out / f"{name}{source.suffix}"
+        target = out / f"{name}{suffix}"
         if not target.is_file() or target.read_bytes() != body:
             write_atomic(target, body)
         mapping[asset] = {"file": target.name, "sha256": digest}

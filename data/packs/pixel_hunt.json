@@ -1,0 +1,4119 @@
+{
+  "pack": "pixel_hunt",
+  "questions": [
+    {
+      "id": "q_8b8d9dcc2c6da66d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 10348,
+        "image": "item:10348",
+        "subject": {
+          "name": "3rd Age platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1c6ae9869faa1342",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13263,
+        "image": "item:13263",
+        "subject": {
+          "name": "Abyssal bludgeon"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8e8a8416117fabb8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13265,
+        "image": "item:13265",
+        "subject": {
+          "name": "Abyssal dagger"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d0fe88d95597d900",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12006,
+        "image": "item:12006",
+        "subject": {
+          "name": "Abyssal tentacle"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0d68fb7e06508e5c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4151,
+        "image": "item:4151",
+        "subject": {
+          "name": "Abyssal whip"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cee06e6b473f03ab",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4712,
+        "image": "item:4712",
+        "subject": {
+          "name": "Ahrim's robetop"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a4ed1c4e2a8c8c56",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 556,
+        "image": "item:556",
+        "subject": {
+          "name": "Air rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e18686b924994905",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6585,
+        "image": "item:6585",
+        "subject": {
+          "name": "Amulet of fury"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_73b15ed9bf4916d2",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19553,
+        "image": "item:19553",
+        "subject": {
+          "name": "Amulet of torture"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_989bc2aaf54383fa",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21018,
+        "image": "item:21018",
+        "subject": {
+          "name": "Ancestral hat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_de73fe1a25462184",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21024,
+        "image": "item:21024",
+        "subject": {
+          "name": "Ancestral robe bottom"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d3f94e4b0d0f3ed3",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21021,
+        "image": "item:21021",
+        "subject": {
+          "name": "Ancestral robe top"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9caa7f43d2f31fb8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12460,
+        "image": "item:12460",
+        "subject": {
+          "name": "Ancient platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c5ed441345547133",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4675,
+        "image": "item:4675",
+        "subject": {
+          "name": "Ancient staff"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cf993a0de0dc3f77",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13441,
+        "image": "item:13441",
+        "subject": {
+          "name": "Anglerfish"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7d23da2a94c5d142",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21079,
+        "image": "item:21079",
+        "subject": {
+          "name": "Arcane prayer scroll"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_78705e94e42db59a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6733,
+        "image": "item:6733",
+        "subject": {
+          "name": "Archers ring"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_800ef8ff74c76d01",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19675,
+        "image": "item:19675",
+        "subject": {
+          "name": "Arclight"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7d058a031e47e7d9",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11830,
+        "image": "item:11830",
+        "subject": {
+          "name": "Armadyl chainskirt"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a1323ca55476fa2d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11828,
+        "image": "item:11828",
+        "subject": {
+          "name": "Armadyl chestplate"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a73587e00fb01bc1",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11785,
+        "image": "item:11785",
+        "subject": {
+          "name": "Armadyl crossbow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5d2672cfcb90f980",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11802,
+        "image": "item:11802",
+        "subject": {
+          "name": "Armadyl godsword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ce689c50e1ae352d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11826,
+        "image": "item:11826",
+        "subject": {
+          "name": "Armadyl helmet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_47046397e37191f2",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12470,
+        "image": "item:12470",
+        "subject": {
+          "name": "Armadyl platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1b1da8c557d87c9d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 9075,
+        "image": "item:9075",
+        "subject": {
+          "name": "Astral rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_dc3acdbe88a8aa69",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 9747,
+        "image": "item:9747",
+        "subject": {
+          "name": "Attack cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6bd4ca723da6fffb",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 10499,
+        "image": "item:10499",
+        "subject": {
+          "name": "Ava's accumulator"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_06767478bc63ba82",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22109,
+        "image": "item:22109",
+        "subject": {
+          "name": "Ava's assembler"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_542a8ee6f6b2f83b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22322,
+        "image": "item:22322",
+        "subject": {
+          "name": "Avernic defender"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bb0c86772ef1d941",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1759,
+        "image": "item:1759",
+        "subject": {
+          "name": "Ball of wool"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_16fc90cf4998a647",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11836,
+        "image": "item:11836",
+        "subject": {
+          "name": "Bandos boots"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_15ed23e53b115493",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11832,
+        "image": "item:11832",
+        "subject": {
+          "name": "Bandos chestplate"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9542e406d6a86356",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11804,
+        "image": "item:11804",
+        "subject": {
+          "name": "Bandos godsword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_85ef941da796aeb8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12480,
+        "image": "item:12480",
+        "subject": {
+          "name": "Bandos platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e09c8358af6b16b7",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11834,
+        "image": "item:11834",
+        "subject": {
+          "name": "Bandos tassets"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_854ef47deda7fe96",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 7462,
+        "image": "item:7462",
+        "subject": {
+          "name": "Barrows gloves"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f6f200628d4873b3",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1917,
+        "image": "item:1917",
+        "subject": {
+          "name": "Beer"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f040d6c02cbee4d4",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3751,
+        "image": "item:3751",
+        "subject": {
+          "name": "Berserker helm"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_78597ee8ee39d17e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6737,
+        "image": "item:6737",
+        "subject": {
+          "name": "Berserker ring"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1ab81043f2d24938",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 532,
+        "image": "item:532",
+        "subject": {
+          "name": "Big bones"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_efd5ad3b1021e5cc",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11959,
+        "image": "item:11959",
+        "subject": {
+          "name": "Black chinchompa"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c83c82f9b1d9536a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2503,
+        "image": "item:2503",
+        "subject": {
+          "name": "Black d'hide body"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3769ad8ebea76678",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 23997,
+        "image": "item:23997",
+        "subject": {
+          "name": "Blade of Saeldor (inactive)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ba070a37deac2185",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 565,
+        "image": "item:565",
+        "subject": {
+          "name": "Blood rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3dbaa56aeafce0ee",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1055,
+        "image": "item:1055",
+        "subject": {
+          "name": "Blue halloween mask"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b41695f1b0ad2131",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1042,
+        "image": "item:1042",
+        "subject": {
+          "name": "Blue partyhat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_773c53fa100dbb46",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 526,
+        "image": "item:526",
+        "subject": {
+          "name": "Bones"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_21006847e15b6683",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 25862,
+        "image": "item:25862",
+        "subject": {
+          "name": "Bow of Faerdhinen (inactive)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1c003365b9fafc0b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1777,
+        "image": "item:1777",
+        "subject": {
+          "name": "Bow string"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1bc9a52d7ebe8d0c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 882,
+        "image": "item:882",
+        "subject": {
+          "name": "Bronze arrow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_356bc5c555f1c6c9",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1205,
+        "image": "item:1205",
+        "subject": {
+          "name": "Bronze dagger"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9b3196d100988b2c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1925,
+        "image": "item:1925",
+        "subject": {
+          "name": "Bucket"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_573acbc8ac8f65e4",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1965,
+        "image": "item:1965",
+        "subject": {
+          "name": "Cabbage"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_40d4550c67a81453",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1891,
+        "image": "item:1891",
+        "subject": {
+          "name": "Cake"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_346325e7f9ed9e0d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 562,
+        "image": "item:562",
+        "subject": {
+          "name": "Chaos rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9231fe73ad51b823",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1755,
+        "image": "item:1755",
+        "subject": {
+          "name": "Chisel"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d663ab892e29c291",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 962,
+        "image": "item:962",
+        "subject": {
+          "name": "Christmas cracker"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_14729f206928cf2e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3105,
+        "image": "item:3105",
+        "subject": {
+          "name": "Climbing boots"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b51a79a511e31107",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 453,
+        "image": "item:453",
+        "subject": {
+          "name": "Coal"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9490a10b5de1a54c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 995,
+        "image": "item:995",
+        "subject": {
+          "name": "Coins"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_868c106c8c636181",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3144,
+        "image": "item:3144",
+        "subject": {
+          "name": "Cooked karambwan"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ba8fb95f8a2a338f",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 9801,
+        "image": "item:9801",
+        "subject": {
+          "name": "Cooking cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6daf1980159a6325",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 564,
+        "image": "item:564",
+        "subject": {
+          "name": "Cosmic rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a6176df43c6c7064",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1739,
+        "image": "item:1739",
+        "subject": {
+          "name": "Cowhide"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_458a62444464b48a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11235,
+        "image": "item:11235",
+        "subject": {
+          "name": "Dark bow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_20aba3d8ca499082",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11936,
+        "image": "item:11936",
+        "subject": {
+          "name": "Dark crab"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_56ecbc39906faf69",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 560,
+        "image": "item:560",
+        "subject": {
+          "name": "Death rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9f43d5a014c47863",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21034,
+        "image": "item:21034",
+        "subject": {
+          "name": "Dexterous prayer scroll"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a281173d9c256ec7",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4718,
+        "image": "item:4718",
+        "subject": {
+          "name": "Dharok's greataxe"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2e14e3eeccd76989",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4716,
+        "image": "item:4716",
+        "subject": {
+          "name": "Dharok's helm"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2560beeea73337de",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21015,
+        "image": "item:21015",
+        "subject": {
+          "name": "Dinh's bulwark"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_349b9aa160cdcbdd",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11286,
+        "image": "item:11286",
+        "subject": {
+          "name": "Draconic visage"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_aeaaff2df2190fb7",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 7158,
+        "image": "item:7158",
+        "subject": {
+          "name": "Dragon 2h sword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_53f17fa9b0081dd6",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11212,
+        "image": "item:11212",
+        "subject": {
+          "name": "Dragon arrow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6bbb498695a64492",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6739,
+        "image": "item:6739",
+        "subject": {
+          "name": "Dragon axe"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2229123b4c6ab04e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1377,
+        "image": "item:1377",
+        "subject": {
+          "name": "Dragon battleaxe"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_980cdf640787a279",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 536,
+        "image": "item:536",
+        "subject": {
+          "name": "Dragon bones"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4abde0b0b685adf1",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11840,
+        "image": "item:11840",
+        "subject": {
+          "name": "Dragon boots"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d83f420124cacc71",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3140,
+        "image": "item:3140",
+        "subject": {
+          "name": "Dragon chainbody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_df81f728351e620d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13652,
+        "image": "item:13652",
+        "subject": {
+          "name": "Dragon claws"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_368d06c345120881",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1215,
+        "image": "item:1215",
+        "subject": {
+          "name": "Dragon dagger"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c85369fdc50e3583",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12954,
+        "image": "item:12954",
+        "subject": {
+          "name": "Dragon defender"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7f9b1ca427d56abf",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11335,
+        "image": "item:11335",
+        "subject": {
+          "name": "Dragon full helm"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_456955bb4a5c5fd1",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3204,
+        "image": "item:3204",
+        "subject": {
+          "name": "Dragon halberd"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_68f60a5531e4ba72",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21012,
+        "image": "item:21012",
+        "subject": {
+          "name": "Dragon hunter crossbow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4a3d2a1e315a39a1",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22978,
+        "image": "item:22978",
+        "subject": {
+          "name": "Dragon hunter lance"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_034ea5830c1aa9f7",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1305,
+        "image": "item:1305",
+        "subject": {
+          "name": "Dragon longsword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ed93750ffe910819",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1149,
+        "image": "item:1149",
+        "subject": {
+          "name": "Dragon med helm"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b6475be5ff523ecd",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11920,
+        "image": "item:11920",
+        "subject": {
+          "name": "Dragon pickaxe"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d5b9f14f7ab26afe",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21892,
+        "image": "item:21892",
+        "subject": {
+          "name": "Dragon platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5b24af51d51a4e11",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4587,
+        "image": "item:4587",
+        "subject": {
+          "name": "Dragon scimitar"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7c03fee596891405",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1187,
+        "image": "item:1187",
+        "subject": {
+          "name": "Dragon sq shield"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9d2d5899a665a01f",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13576,
+        "image": "item:13576",
+        "subject": {
+          "name": "Dragon warhammer"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_42eed40ee124bb69",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11284,
+        "image": "item:11284",
+        "subject": {
+          "name": "Dragonfire shield"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cd98e6eb1d99ce01",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 557,
+        "image": "item:557",
+        "subject": {
+          "name": "Earth rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_152b6ba94a55934b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1961,
+        "image": "item:1961",
+        "subject": {
+          "name": "Easter egg"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cbbc196ef3b5c92e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11942,
+        "image": "item:11942",
+        "subject": {
+          "name": "Ecumenical key"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4beae4587f574c79",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21003,
+        "image": "item:21003",
+        "subject": {
+          "name": "Elder maul"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d5a4992b9ddf317e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12817,
+        "image": "item:12817",
+        "subject": {
+          "name": "Elysian spirit shield"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_823b4d0ef33b97b8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 25859,
+        "image": "item:25859",
+        "subject": {
+          "name": "Enhanced crystal weapon seed"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3808c0d55309f948",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13235,
+        "image": "item:13235",
+        "subject": {
+          "name": "Eternal boots"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0b442d598fb2727d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 35,
+        "image": "item:35",
+        "subject": {
+          "name": "Excalibur"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7781863a41a80ae4",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 314,
+        "image": "item:314",
+        "subject": {
+          "name": "Feather"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1eb02e3032289f76",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22981,
+        "image": "item:22981",
+        "subject": {
+          "name": "Ferocious gloves"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f302f422a77e8803",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 10551,
+        "image": "item:10551",
+        "subject": {
+          "name": "Fighter torso"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_803dcdd4a1309e49",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6570,
+        "image": "item:6570",
+        "subject": {
+          "name": "Fire cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6837fd96296598c0",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 554,
+        "image": "item:554",
+        "subject": {
+          "name": "Fire rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_decd4fb7935adfff",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22324,
+        "image": "item:22324",
+        "subject": {
+          "name": "Ghrazi rapier"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_87af743e201afac1",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3486,
+        "image": "item:3486",
+        "subject": {
+          "name": "Gilded full helm"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_145e44f7c1deac02",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3488,
+        "image": "item:3488",
+        "subject": {
+          "name": "Gilded kiteshield"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0281dc678620d2de",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3481,
+        "image": "item:3481",
+        "subject": {
+          "name": "Gilded platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_861de832c794a2da",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3483,
+        "image": "item:3483",
+        "subject": {
+          "name": "Gilded platelegs"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cb0f688d9a049171",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2357,
+        "image": "item:2357",
+        "subject": {
+          "name": "Gold bar"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_eaa91b5c6fb5ee44",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4153,
+        "image": "item:4153",
+        "subject": {
+          "name": "Granite maul"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8a8bb9c1d745e9f8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1135,
+        "image": "item:1135",
+        "subject": {
+          "name": "Green d'hide body"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1f4fcbadc4c31296",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1053,
+        "image": "item:1053",
+        "subject": {
+          "name": "Green halloween mask"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9470439de7f8e5ed",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1044,
+        "image": "item:1044",
+        "subject": {
+          "name": "Green partyhat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_363f377ab6f2ca4d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 207,
+        "image": "item:207",
+        "subject": {
+          "name": "Grimy ranarr weed"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_82e9402c01f72480",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4726,
+        "image": "item:4726",
+        "subject": {
+          "name": "Guthan's warspear"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_fd7ee6489d304589",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2669,
+        "image": "item:2669",
+        "subject": {
+          "name": "Guthix platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c698bae477fe31fb",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2347,
+        "image": "item:2347",
+        "subject": {
+          "name": "Hammer"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bf808da1bbe5c464",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 24511,
+        "image": "item:24511",
+        "subject": {
+          "name": "Harmonised orb"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5b6c4c1a6581d9ca",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19481,
+        "image": "item:19481",
+        "subject": {
+          "name": "Heavy ballista"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_81192933d6aea4da",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 10828,
+        "image": "item:10828",
+        "subject": {
+          "name": "Helm of Neitiznot"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d774bba8854d5875",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21295,
+        "image": "item:21295",
+        "subject": {
+          "name": "Infernal cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2982c0867b97bcf5",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 24417,
+        "image": "item:24417",
+        "subject": {
+          "name": "Inquisitor's mace"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a09b53c5beea66a0",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1323,
+        "image": "item:1323",
+        "subject": {
+          "name": "Iron scimitar"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_aeeb3d8b64f3862f",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1993,
+        "image": "item:1993",
+        "subject": {
+          "name": "Jug of wine"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cd7ee1401890b413",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4736,
+        "image": "item:4736",
+        "subject": {
+          "name": "Karil's leathertop"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_554901df7ee0e71b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21006,
+        "image": "item:21006",
+        "subject": {
+          "name": "Kodai wand"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_82d52d163f56a88e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12004,
+        "image": "item:12004",
+        "subject": {
+          "name": "Kraken tentacle"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e3be935242e2f435",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 563,
+        "image": "item:563",
+        "subject": {
+          "name": "Law rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f2c3448ccc9bdd92",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 25975,
+        "image": "item:25975",
+        "subject": {
+          "name": "Lightbearer"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_73bac735d8afee9c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 379,
+        "image": "item:379",
+        "subject": {
+          "name": "Lobster"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_aa23975a44bf5528",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6889,
+        "image": "item:6889",
+        "subject": {
+          "name": "Mage's book"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_92a93c014aafe7df",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1513,
+        "image": "item:1513",
+        "subject": {
+          "name": "Magic logs"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_33a2c88a8f29a669",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 861,
+        "image": "item:861",
+        "subject": {
+          "name": "Magic shortbow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5258890f53768835",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 391,
+        "image": "item:391",
+        "subject": {
+          "name": "Manta ray"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_114f71812a9e8155",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1517,
+        "image": "item:1517",
+        "subject": {
+          "name": "Maple logs"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_381160005ba0b5fe",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 27229,
+        "image": "item:27229",
+        "subject": {
+          "name": "Masori body"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bca4b7e3ca80215d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6914,
+        "image": "item:6914",
+        "subject": {
+          "name": "Master wand"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_75534b59ebee1659",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13280,
+        "image": "item:13280",
+        "subject": {
+          "name": "Max cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_97cf4077c60ab38b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 558,
+        "image": "item:558",
+        "subject": {
+          "name": "Mind rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ea506ea2b8bc5d04",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4012,
+        "image": "item:4012",
+        "subject": {
+          "name": "Monkey nuts"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ce1655b616bfe732",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 7946,
+        "image": "item:7946",
+        "subject": {
+          "name": "Monkfish"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7be5e2ab16cd9636",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13221,
+        "image": "item:13221",
+        "subject": {
+          "name": "Music cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_51541ff148220c92",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4091,
+        "image": "item:4091",
+        "subject": {
+          "name": "Mystic robe top"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_93c26e8be4428f9a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22114,
+        "image": "item:22114",
+        "subject": {
+          "name": "Mythical cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cf45ec1a1e3dce8c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 561,
+        "image": "item:561",
+        "subject": {
+          "name": "Nature rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_591f1546be0a53f5",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19547,
+        "image": "item:19547",
+        "subject": {
+          "name": "Necklace of anguish"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d40ffbbdbfeaa69a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 24271,
+        "image": "item:24271",
+        "subject": {
+          "name": "Neitiznot faceguard"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_117847c0ca9ee43f",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 24422,
+        "image": "item:24422",
+        "subject": {
+          "name": "Nightmare staff"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_72eab93e93ae5fc3",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6568,
+        "image": "item:6568",
+        "subject": {
+          "name": "Obsidian cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9458190dbed0d2ed",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12002,
+        "image": "item:12002",
+        "subject": {
+          "name": "Occult necklace"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_862eb76d2a78f755",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13190,
+        "image": "item:13190",
+        "subject": {
+          "name": "Old school bond"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_68f28df688203fb5",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6573,
+        "image": "item:6573",
+        "subject": {
+          "name": "Onyx"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_137c4aef3b4fff4d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 26219,
+        "image": "item:26219",
+        "subject": {
+          "name": "Osmumten's fang"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ea4ecbebf092a60f",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13237,
+        "image": "item:13237",
+        "subject": {
+          "name": "Pegasian boots"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ce3fa031653f343b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2434,
+        "image": "item:2434",
+        "subject": {
+          "name": "Prayer potion(4)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1af77dd151be3d44",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 13239,
+        "image": "item:13239",
+        "subject": {
+          "name": "Primordial boots"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4950ff40fe1bbcd1",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 7936,
+        "image": "item:7936",
+        "subject": {
+          "name": "Pure essence"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_95fe1516702703f7",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1046,
+        "image": "item:1046",
+        "subject": {
+          "name": "Purple partyhat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_aaf3848b9241ea9c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 10476,
+        "image": "item:10476",
+        "subject": {
+          "name": "Purple sweets"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_58763106b700b2d8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 9813,
+        "image": "item:9813",
+        "subject": {
+          "name": "Quest point cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_88e36730272cacb0",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 257,
+        "image": "item:257",
+        "subject": {
+          "name": "Ranarr weed"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9e046f504584b52e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2577,
+        "image": "item:2577",
+        "subject": {
+          "name": "Ranger boots"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4f1fada6cd01e4d1",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2444,
+        "image": "item:2444",
+        "subject": {
+          "name": "Ranging potion(4)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3e92327278275d96",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 317,
+        "image": "item:317",
+        "subject": {
+          "name": "Raw shrimps"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ef9bff395d349785",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1057,
+        "image": "item:1057",
+        "subject": {
+          "name": "Red halloween mask"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c861b1ef746f5f0e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1038,
+        "image": "item:1038",
+        "subject": {
+          "name": "Red partyhat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_eb0f7533543ce914",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2325,
+        "image": "item:2325",
+        "subject": {
+          "name": "Redberry pie"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_eab849c492a1bc70",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19669,
+        "image": "item:19669",
+        "subject": {
+          "name": "Redwood logs"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_99bfa22a30c878d6",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2570,
+        "image": "item:2570",
+        "subject": {
+          "name": "Ring of life"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4506c7738bb94130",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2550,
+        "image": "item:2550",
+        "subject": {
+          "name": "Ring of recoil"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_e739081cdf13e36c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19550,
+        "image": "item:19550",
+        "subject": {
+          "name": "Ring of suffering"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_da5ca159f071fb31",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2572,
+        "image": "item:2572",
+        "subject": {
+          "name": "Ring of wealth"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ed92a3363992a3b4",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 954,
+        "image": "item:954",
+        "subject": {
+          "name": "Rope"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f172e83bf555d94e",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4566,
+        "image": "item:4566",
+        "subject": {
+          "name": "Rubber chicken"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_414035274c3605da",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1319,
+        "image": "item:1319",
+        "subject": {
+          "name": "Rune 2h sword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3ee0fc7315df1704",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 892,
+        "image": "item:892",
+        "subject": {
+          "name": "Rune arrow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_db03c357512e143b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1163,
+        "image": "item:1163",
+        "subject": {
+          "name": "Rune full helm"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a3a63c3a59200f6b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1201,
+        "image": "item:1201",
+        "subject": {
+          "name": "Rune kiteshield"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_f185deb2ad86ce9d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1275,
+        "image": "item:1275",
+        "subject": {
+          "name": "Rune pickaxe"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_afabd1839f6ac90a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1127,
+        "image": "item:1127",
+        "subject": {
+          "name": "Rune platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9bf1efcba897cdf6",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12791,
+        "image": "item:12791",
+        "subject": {
+          "name": "Rune pouch"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7dff668b2abf539a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1333,
+        "image": "item:1333",
+        "subject": {
+          "name": "Rune scimitar"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_19b16c0d124ffb66",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 451,
+        "image": "item:451",
+        "subject": {
+          "name": "Runite ore"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_2b83e3b4cd99f583",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 329,
+        "image": "item:329",
+        "subject": {
+          "name": "Salmon"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_6e19f54489e3b21b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22481,
+        "image": "item:22481",
+        "subject": {
+          "name": "Sanguinesti staff (uncharged)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_43f0d5f98920f947",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1050,
+        "image": "item:1050",
+        "subject": {
+          "name": "Santa hat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_c4ac48be9f3c1726",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6685,
+        "image": "item:6685",
+        "subject": {
+          "name": "Saradomin brew(4)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_840b68417e21c53d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11806,
+        "image": "item:11806",
+        "subject": {
+          "name": "Saradomin godsword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a157d674dcefe757",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2661,
+        "image": "item:2661",
+        "subject": {
+          "name": "Saradomin platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b5ed5ef4bdb6336b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11838,
+        "image": "item:11838",
+        "subject": {
+          "name": "Saradomin sword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_35a0d02c99d5a34c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22486,
+        "image": "item:22486",
+        "subject": {
+          "name": "Scythe of Vitur (uncharged)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d038abb812e30533",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6731,
+        "image": "item:6731",
+        "subject": {
+          "name": "Seers ring"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_d65cc4910560b43a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12929,
+        "image": "item:12929",
+        "subject": {
+          "name": "Serpentine helm (uncharged)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_552676d814048e04",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 385,
+        "image": "item:385",
+        "subject": {
+          "name": "Shark"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a90b221c1e4baf90",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 315,
+        "image": "item:315",
+        "subject": {
+          "name": "Shrimps"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_fcbf0b5d40583cc4",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11864,
+        "image": "item:11864",
+        "subject": {
+          "name": "Slayer helmet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_4dabf98c75bd3a89",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11865,
+        "image": "item:11865",
+        "subject": {
+          "name": "Slayer helmet (i)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_464260ab6e25db94",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3000,
+        "image": "item:3000",
+        "subject": {
+          "name": "Snapdragon"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_33c4b54f9dd05b56",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 566,
+        "image": "item:566",
+        "subject": {
+          "name": "Soul rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_081107f9e7460fcb",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 952,
+        "image": "item:952",
+        "subject": {
+          "name": "Spade"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b3f7377b8acdeb31",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11791,
+        "image": "item:11791",
+        "subject": {
+          "name": "Staff of the Dead"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_322dfcfcb634700b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12625,
+        "image": "item:12625",
+        "subject": {
+          "name": "Stamina potion(4)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_fbd7713638e52414",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2,
+        "image": "item:2",
+        "subject": {
+          "name": "Steel cannonball"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_bf30fad38d11ea67",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12695,
+        "image": "item:12695",
+        "subject": {
+          "name": "Super combat potion(4)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_704ed9bebc096f62",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 3024,
+        "image": "item:3024",
+        "subject": {
+          "name": "Super restore(4)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_06388dab1b2f3a8c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 22124,
+        "image": "item:22124",
+        "subject": {
+          "name": "Superior dragon bones"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_cf2f97e91b647210",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 373,
+        "image": "item:373",
+        "subject": {
+          "name": "Swordfish"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_44cd2d606625ad72",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 8013,
+        "image": "item:8013",
+        "subject": {
+          "name": "Teleport to house (tablet)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_31d7a27fd59ca39b",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 590,
+        "image": "item:590",
+        "subject": {
+          "name": "Tinderbox"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8fef7f47a70a3bf8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19544,
+        "image": "item:19544",
+        "subject": {
+          "name": "Tormented bracelet"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_51f764a18e61f28a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 269,
+        "image": "item:269",
+        "subject": {
+          "name": "Torstol"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_39c3fe7765ca701c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 26384,
+        "image": "item:26384",
+        "subject": {
+          "name": "Torva platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ea30b1af3f7bdefe",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12924,
+        "image": "item:12924",
+        "subject": {
+          "name": "Toxic blowpipe (empty)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_fe1ad57f72306a9f",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 27277,
+        "image": "item:27277",
+        "subject": {
+          "name": "Tumeken's shadow (uncharged)"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_5d680ded85e1d591",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 20997,
+        "image": "item:20997",
+        "subject": {
+          "name": "Twisted bow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_1ec846347933bd02",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21000,
+        "image": "item:21000",
+        "subject": {
+          "name": "Twisted buckler"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_eea43304bf4898d9",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6528,
+        "image": "item:6528",
+        "subject": {
+          "name": "Tzhaar-ket-om"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_3e8c38bd2f6e9938",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1631,
+        "image": "item:1631",
+        "subject": {
+          "name": "Uncut dragonstone"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7667f09b95fb132c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 4759,
+        "image": "item:4759",
+        "subject": {
+          "name": "Verac's plateskirt"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_46fe14e5755c1aa7",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 227,
+        "image": "item:227",
+        "subject": {
+          "name": "Vial of water"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_9b47fd48d6ef091a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 8839,
+        "image": "item:8839",
+        "subject": {
+          "name": "Void knight top"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_213f373e1a06e6ff",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 27690,
+        "image": "item:27690",
+        "subject": {
+          "name": "Voidwaker"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0dbb2cee84e109a8",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 555,
+        "image": "item:555",
+        "subject": {
+          "name": "Water rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_89e2671830d5d63d",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1048,
+        "image": "item:1048",
+        "subject": {
+          "name": "White partyhat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_959a3c849da41b55",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1519,
+        "image": "item:1519",
+        "subject": {
+          "name": "Willow logs"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_0db9b0cc4d87f801",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 9807,
+        "image": "item:9807",
+        "subject": {
+          "name": "Woodcutting cape"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_dc604d34986e6704",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 21880,
+        "image": "item:21880",
+        "subject": {
+          "name": "Wrath rune"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_8ab185e6c847bc58",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 6812,
+        "image": "item:6812",
+        "subject": {
+          "name": "Wyvern bones"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_b4e4f5c7a28aacea",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1040,
+        "image": "item:1040",
+        "subject": {
+          "name": "Yellow partyhat"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_32c156d1da9ab105",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 1515,
+        "image": "item:1515",
+        "subject": {
+          "name": "Yew logs"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_7cf5ef764c3a7337",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11808,
+        "image": "item:11808",
+        "subject": {
+          "name": "Zamorak godsword"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_98fd0b203fd45fd5",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 2653,
+        "image": "item:2653",
+        "subject": {
+          "name": "Zamorak platebody"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_63435dfcfb3950bb",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11889,
+        "image": "item:11889",
+        "subject": {
+          "name": "Zamorakian hasta"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_53d49c82b015459a",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 11824,
+        "image": "item:11824",
+        "subject": {
+          "name": "Zamorakian spear"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_87c39acb1b975546",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 26374,
+        "image": "item:26374",
+        "subject": {
+          "name": "Zaryte crossbow"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_a7bf6dd7bc431651",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 26235,
+        "image": "item:26235",
+        "subject": {
+          "name": "Zaryte vambraces"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_96f5087b7fd4557c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 19529,
+        "image": "item:19529",
+        "subject": {
+          "name": "Zenyte shard"
+        }
+      },
+      "difficulty": "medium"
+    },
+    {
+      "id": "q_ab5f6a039394d26c",
+      "type": "pick_from_list",
+      "mode": "pixel_hunt",
+      "source": "pack",
+      "tags": [],
+      "payload": {
+        "prompt": "Which item is this?",
+        "vocab": "items",
+        "answer_id": 12934,
+        "image": "item:12934",
+        "subject": {
+          "name": "Zulrah's scales"
+        }
+      },
+      "difficulty": "medium"
+    }
+  ]
+}

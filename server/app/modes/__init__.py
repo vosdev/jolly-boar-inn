@@ -21,12 +21,13 @@ Copy -- what a mode is called and how it is explained -- is not here. It stays o
 client, in ``lib/modes.ts``.
 """
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Collection, Iterable
 from typing import TYPE_CHECKING, Any
 
 from app.modes.mode import Mode
 from app.questions.types import TYPES
 from app.questions.types.bounds import Bounds
+from app.questions.types.scoring import Steps
 
 # Only for the annotation: the packs import the registry to check a question's mode.
 if TYPE_CHECKING:
@@ -96,6 +97,13 @@ MODES: dict[str, Mode] = {
     "whos_that_npc": Mode(
         id="whos_that_npc", types=frozenset({"pick_from_list", "multiple_choice"})
     ),
+    # An item's picture builds up for 17 of the 25 seconds, then stays whole.
+    "pixel_hunt": Mode(
+        id="pixel_hunt",
+        types=frozenset({"pick_from_list"}),
+        steps=Steps(build=17, of=25),
+        pictured=True,
+    ),
     # The NPCs' questions as a round, to test them in a row. Off unless the instance says so.
     "random_events_only": Mode(
         id="random_events_only",
@@ -125,16 +133,35 @@ def round_modes() -> list[Mode]:
     return [mode for mode in MODES.values() if mode.is_round]
 
 
-def offered(settings: Any, packs: Iterable[Pack]) -> list[Mode]:
-    """The modes this instance lets a host pick: switched on, and a round only with questions."""
+def drawable(question: dict[str, Any], pictures: Collection[str]) -> bool:
+    """Whether a room may draw ``question``: in a ``pictured`` mode, only with its picture."""
+    mode = MODES.get(question["mode"])
+    return mode is None or not mode.pictured or question["payload"].get("image") in pictures
+
+
+def offered(settings: Any, packs: Iterable[Pack], pictures: Collection[str] = ()) -> list[Mode]:
+    """The modes this instance lets a host pick: switched on, and a round only with questions
+    it can draw, given the ``pictures`` it has."""
     # The price pack is generated on each instance, so a fresh clone has none yet.
-    pooled = {question["mode"] for pack in packs for question in pack.questions}
+    pooled = {
+        question["mode"]
+        for pack in packs
+        for question in pack.questions
+        if drawable(question, pictures)
+    }
     return [
         m
         for m in MODES.values()
         if (m.setting is None or getattr(settings, m.setting))
         and (not m.is_round or (m.pool or m.id) in pooled)
     ]
+
+
+def steps_of(mode: str) -> Steps | None:
+    """How a round of ``mode`` builds its picture up, or ``None``: a stored room may play a
+    mode this build no longer has."""
+    entry = MODES.get(mode)
+    return None if entry is None else entry.steps
 
 
 def type_questions(type_id: str) -> Bounds:

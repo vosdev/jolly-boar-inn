@@ -14,10 +14,11 @@ The id only links to the pack while it still matches.
 ``choices`` is what the report form and ``/suggest`` search, named by what players read
 while a question is open. Odd One Out's questions all ask the same thing, so their label
 is the options in pack order, which says which question it is but not which option is
-the odd one. Who's That NPC? asks the same too, and its picture is the question, so its
-label is the NPC's name: the one answer a label ever gives.
+the odd one. Who's That NPC? and Pixel Hunt ask the same too, and the picture is the
+question, so a list pick's label is the name it answers to: the one answer a label gives.
 """
 
+from collections.abc import Collection
 from typing import Any, Literal
 from uuid import UUID
 
@@ -59,9 +60,9 @@ def pack_modes() -> list[str]:
     ]
 
 
-def report_modes(settings: Any, packs: list[Pack]) -> list[str]:
+def report_modes(settings: Any, packs: list[Pack], pictures: Collection[str]) -> list[str]:
     """The pack modes this instance plays, which a player may report from."""
-    on = {mode.id for mode in offered(settings, packs)}
+    on = {mode.id for mode in offered(settings, packs, pictures)}
     return [mode for mode in pack_modes() if mode in on]
 
 
@@ -72,9 +73,9 @@ def label(question: dict[str, Any]) -> str:
         return ", ".join(payload["options"])
     if question["mode"] == NPC_MODE and question["type"] == "multiple_choice":
         return payload["options"][payload["answer_index"]]
-    if question["mode"] == NPC_MODE:
-        npcs = vocab.get(payload["vocab"])
-        name = npcs.name_of(payload["answer_id"]) if npcs else None
+    if question["type"] == "pick_from_list" and "image" in payload:
+        names = vocab.get(payload["vocab"])
+        name = names.name_of(payload["answer_id"]) if names else None
         if name is not None:
             return name
     quote = payload.get("quote")
@@ -138,13 +139,14 @@ def _text(value: str) -> str:
 def check(
     packs: list[Pack],
     settings: Any,
+    pictures: Collection[str],
     mode: str,
     question: str | None,
     item: int | None,
     body: str,
 ) -> tuple[dict[str, Any] | None, str]:
     """The snapshot and the tidied text of a report, or ``BadReport`` naming the problem."""
-    if mode not in report_modes(settings, packs):
+    if mode not in report_modes(settings, packs, pictures):
         raise BadReport(f"$.mode: {mode!r} takes no reports")
     return _snapshot(packs, mode, question, item), _text(body)
 

@@ -7,8 +7,9 @@ before anything is written, and the packs are loaded against the roster as it wo
 change to an id the roster does not hold, one id changed twice, a name that is no item name,
 or packs that would not load write nothing and name the problem.
 
-A rename or a removal leaves the price pack as it was: run ``make gen-price-questions``
-afterwards to bring it in line.
+The Pixel Hunt pack is rewritten with the roster, as ``gen_pixel_hunt.py`` would. A rename or
+a removal leaves the price pack as it was: run ``make gen-price-questions`` afterwards to
+bring it in line.
 
 Usage (from ``server/``)::
 
@@ -21,6 +22,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import gen_pixel_hunt
+from fetch_assets import MANIFEST, load_manifest
 from import_suggestions import DEFAULT_PACKS, DEFAULT_ROSTER, check_packs, render_roster
 
 from app import roster_edits
@@ -99,7 +102,14 @@ def main(argv: list[str]) -> int:
         return 1
 
     rendered = render_roster(text, after)
-    trouble = check_packs(args.packs_dir, {}, rendered)
+    hunt = args.packs_dir / f"{gen_pixel_hunt.MODE}.json"
+    changed = {}
+    if hunt.is_file():
+        pack = gen_pixel_hunt.generate(
+            after, load_manifest(MANIFEST), gen_pixel_hunt.difficulties(hunt)
+        )
+        changed[hunt] = gen_pixel_hunt.render(pack)
+    trouble = check_packs(args.packs_dir, changed, rendered)
     if trouble:
         for line in trouble:
             print(line, file=sys.stderr)
@@ -107,6 +117,8 @@ def main(argv: list[str]) -> int:
         return 1
     if rendered != text:
         args.roster.write_text(rendered, encoding="utf-8")
+    for path, written in changed.items():
+        path.write_text(written, encoding="utf-8")
     print(
         f"OK: {len(data.get('renames', []))} renamed, {len(data.get('removes', []))} removed;"
         " run make gen-price-questions to bring the price pack in line"

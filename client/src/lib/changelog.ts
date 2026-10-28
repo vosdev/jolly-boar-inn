@@ -44,6 +44,26 @@ export function groupByMinor(entries: ChangelogEntry[]): ChangelogGroup[] {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.209.0',
+    date: '2026-10-28',
+    text: 'Two more Pixel Hunt reveals: a lantern wanders a dark room, or a pen sketches the item before the colour comes in.',
+  },
+  {
+    version: '0.208.0',
+    date: '2026-10-28',
+    text: 'Pixel Hunt has two new reveals: tiles lift off the item one by one, or a clue puzzle box solves itself.',
+  },
+  {
+    version: '0.207.0',
+    date: '2026-10-28',
+    text: 'New round: Pixel Hunt. Name the item as its picture zooms out or sharpens; the sooner you name it, the more it scores.',
+  },
+  {
+    version: '0.206.1',
+    date: '2026-10-28',
+    text: 'Item pictures now fill their frame, cropped to the item.',
+  },
+  {
     version: '0.206.0',
     date: '2026-10-28',
     text: 'Your name opens a wide sheet: name, theme and sound on one side, every pet to pick from on the other.',

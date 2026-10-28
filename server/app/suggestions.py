@@ -33,11 +33,11 @@ import asyncpg
 
 from app import reports, similar
 from app.errors import ApiError
-from app.modes import MODES
+from app.modes import MODES, steps_of
 from app.questions import schema, text, vocab
 from app.questions.packs import Pack, mode_questions
 from app.questions.submission import Submission
-from app.questions.types import TYPES, scoring_of, steps_of
+from app.questions.types import TYPES, scoring_of
 from app.questions.types.scoring import Scoring
 from app.rooms import scoring
 
@@ -431,7 +431,7 @@ def trial(content: dict[str, Any], value: Any) -> dict[str, Any]:
         raise BadTryValue(f"not a valid answer to a {type_} question")
     raw = module.grade(payload, [Submission(_TRIER, parsed)]).get(_TRIER, 0.0)
     credit = scoring.settle_credit(type_, raw)
-    steps = steps_of(type_, payload)
+    steps = steps_of(content.get("mode") or "")
     how = scoring.effective(scoring_of(type_), steps)
     band = 1 if how is Scoring.STEP else None
     points = scoring.points_for(how, credit, band, steps, team=True)

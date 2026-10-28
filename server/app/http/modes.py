@@ -34,6 +34,9 @@ def list_modes(request: Request) -> list[dict[str, Any]]:
     never offers what ``POST /api/rooms`` would refuse.
     """
     packs = request.app.state.packs
+    # Without its lifespan the app has no rooms, and so no pictures.
+    rooms = request.app.state.rooms
+    pictures = {} if rooms is None else rooms.pictures
     return [
         {
             "id": mode.id,
@@ -42,7 +45,7 @@ def list_modes(request: Request) -> list[dict[str, Any]]:
             "seconds": typical_seconds(pool),
             "as_of": _as_of(pool),
         }
-        for mode in offered(request.app.state.settings, packs)
+        for mode in offered(request.app.state.settings, packs, pictures)
         for pool in [mode_questions(packs, mode.pool or mode.id)]
     ]
 

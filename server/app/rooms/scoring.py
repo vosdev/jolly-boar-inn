@@ -13,8 +13,8 @@ is 900 x 0.6.
 The bucket edges are fractions of the question's own length -- its mode's ``seconds`` --
 rather than absolute seconds, so a slow round and a quick one in the same game are both
 scored on how fast you were for that round: a 30-second question buckets at 3 / 7.5 / 15 /
-22.5 / 30 s, a 10-second one at 1 / 2.5 / 5 / 7.5 / 10 s. Steps divide the same length
-evenly, so step ``k`` of ``n`` is on screen for the ``k``-th ``n``-th of it.
+22.5 / 30 s, a 10-second one at 1 / 2.5 / 5 / 7.5 / 10 s. Steps are fractions of it too:
+Pixel Hunt's 17 build-up steps are a 25th each, and the whole picture is the 18th.
 
 The *band* is what an answer earns the moment it arrives, before anything is graded: its
 bucket, its step, or nothing at all for ``ACCURACY``, where the clock does not count.
@@ -29,7 +29,7 @@ import logging
 import math
 from typing import assert_never
 
-from app.questions.types.scoring import Scoring
+from app.questions.types.scoring import Scoring, Steps
 
 log = logging.getLogger("app.rooms")
 
@@ -59,42 +59,43 @@ def bucket(elapsed_s: float, question_s: int) -> int:
     return SLOWEST
 
 
-def step(elapsed_s: float, question_s: int, steps: int) -> int:
-    """Which step, 1..``steps``, was on screen when an answer that took ``elapsed_s`` arrived.
+def step(elapsed_s: float, question_s: int, steps: Steps) -> int:
+    """Which step, 1..``steps.count``, was on screen when an answer that took ``elapsed_s``
+    arrived: a build-up step, or the last once the picture is whole.
 
     Inclusive edges and a clamp at the end, the same as ``bucket``: an answer on the very
     instant the picture changes is credited to the step it was looking at.
     """
-    for k in range(1, steps + 1):
-        if elapsed_s * steps <= k * question_s:
+    for k in range(1, steps.build + 1):
+        if elapsed_s * steps.of <= k * question_s:
             return k
-    return steps
+    return steps.count
 
 
-def step_points(step: int, steps: int) -> int:
-    """1000 on the first step down to 400 on the last, in even strides.
+def step_points(step: int, count: int) -> int:
+    """1000 on the first of ``count`` steps down to 400 on the last, in even strides.
 
     One step is the first and the last at once, and pays the top rather than dividing by
-    zero. A step outside ``1..steps`` clamps, as a bucket past the last one does.
+    zero. A step outside ``1..count`` clamps, as a bucket past the last one does.
     """
-    if steps == 1:
+    if count == 1:
         return STEP_TOP
-    step = max(1, min(steps, step))
-    return round(STEP_BOTTOM + (STEP_TOP - STEP_BOTTOM) * (steps - step) / (steps - 1))
+    step = max(1, min(count, step))
+    return round(STEP_BOTTOM + (STEP_TOP - STEP_BOTTOM) * (count - step) / (count - 1))
 
 
-def effective(scoring: Scoring, steps: int | None) -> Scoring:
-    """``STEP`` with no ``steps`` in the payload is ``SPEED``.
+def effective(scoring: Scoring, steps: Steps | None) -> Scoring:
+    """``STEP`` in a mode with no ``steps`` is ``SPEED``.
 
-    One type serves Pixel Hunt, which zooms out over eight frames, and Who's That NPC?,
-    which shows one render: a question that never changes has nothing to be early about,
-    so it is scored on being quick instead.
+    One type serves Pixel Hunt, whose picture builds up, and Who's That NPC?, which shows
+    one shadow: a question that never changes has nothing to be early about, so it is
+    scored on being quick instead.
     """
     return Scoring.SPEED if scoring is Scoring.STEP and steps is None else scoring
 
 
 def band(
-    scoring: Scoring, elapsed_s: float, question_s: int, steps: int | None, *, team: bool = False
+    scoring: Scoring, elapsed_s: float, question_s: int, steps: Steps | None, *, team: bool = False
 ) -> int | None:
     """What an answer has earned on arrival: its bucket, its step, or ``None`` for
     ``ACCURACY`` and for ``SPEED`` in a team game."""
@@ -111,7 +112,7 @@ def band(
 
 
 def points_for(
-    scoring: Scoring, credit: float, band: int | None, steps: int | None, *, team: bool = False
+    scoring: Scoring, credit: float, band: int | None, steps: Steps | None, *, team: bool = False
 ) -> int:
     """Points for one graded answer: the scoring's table at ``band``, or 1000 for
     ``ACCURACY``, times ``credit``.
@@ -130,7 +131,7 @@ def points_for(
             top = BUCKETS[band - 1][1]
         case Scoring.STEP:
             assert band is not None and steps is not None
-            top = step_points(band, steps)
+            top = step_points(band, steps.count)
         case Scoring.ACCURACY:
             top = ACCURACY_TOP
         case _:

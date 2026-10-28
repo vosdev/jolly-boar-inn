@@ -200,11 +200,11 @@ export interface Mode extends HostLines {
    */
   stem: StemId | null
   /**
-   * How the question's picture shows: `shadow` draws it large with the name under it on the
-   * reveal, and while a question picked from the list is open fills its outline with the
-   * theme's `--silhouette`. Left out, as it is.
+   * How the question's picture shows: large with the name under it on the reveal, and while
+   * a question picked from the list is open, `shadow` fills its outline with the theme's
+   * `--silhouette` and `build` builds it up (`lib/pixelHunt.ts`). Left out, as it is.
    */
-  picture?: 'shadow'
+  picture?: 'shadow' | 'build'
 }
 
 /**
@@ -1139,6 +1139,86 @@ export const MODES: Record<string, Mode> = {
     stem: null,
     picture: 'shadow',
   },
+  pixel_hunt: {
+    id: 'pixel_hunt',
+    label: 'Pixel Hunt',
+    hint: 'How fast can you recognize the item?',
+    host: { id: 'sherlock', name: 'Sherlock' },
+    greeting: 'Elementary! Every item leaves a clue, if you look closely.',
+    blurb:
+      "I'll show you an item, a little at a time. Name it from the list before the picture gives it away.",
+    ask: [
+      'Look closely. What item is this?',
+      'A clue is forming. Name the item.',
+      "Here's a fresh piece of evidence.",
+      'What do you deduce from this one?',
+    ],
+    waiting: [
+      'The others are still examining the evidence.',
+      'Patience. Not everyone has cracked it yet.',
+      'The trail has gone cold for some of them.',
+      'Still deducing, the rest of them.',
+    ],
+    pace: {
+      quick: [
+        'Quick! A sharp eye for detail.',
+        'Swift work. Not a clue wasted.',
+        "Fast! You'd make a fine detective.",
+      ],
+      middling: [
+        'A steady deduction. Well reasoned.',
+        'In at a fair pace. Now we wait.',
+        'Careful work, neither rushed nor slow.',
+      ],
+      late: [
+        'Just in time! The case nearly closed.',
+        'Just in time! You cut it fine, my friend.',
+        'Just in time! The trail was going cold.',
+      ],
+      early: [
+        'From a few pixels? Remarkable!',
+        'Named before the picture came clear. Elementary!',
+        'You spotted it early. Impressive.',
+      ],
+      later: [
+        'Waited for more clues? Prudent.',
+        'A closer look never hurt a case.',
+        'More evidence, more certainty. Wise.',
+      ],
+    },
+    reveal: [
+      'The case is solved.',
+      "Here's the culprit.",
+      'Elementary, all along.',
+      'The evidence, revealed.',
+    ],
+    verdict: {
+      right: [
+        'Correct! Elementary, my friend.',
+        'Case closed. Well deduced!',
+        'Right! Not a detail escaped you.',
+      ],
+      partial: [
+        'Partly right. Keep investigating.',
+        "Close, but the case isn't closed.",
+        'Some of it, not all. Look again.',
+      ],
+      wrong: [
+        'Wrong item! A false lead.',
+        'Not that one. The clues misled you.',
+        'A red herring caught you out.',
+      ],
+      missed: [
+        'No answer? The trail went cold.',
+        'You let this case slip away.',
+        'No guess at all? Even a hunch helps.',
+      ],
+    },
+    // The prompt is the same line every time, which the host's ask line says; the picture
+    // alone is the question.
+    stem: null,
+    picture: 'build',
+  },
   // Only on a server that switched it on, for testing the NPCs' questions in a row.
   random_events_only: {
     id: 'random_events_only',
@@ -1370,12 +1450,6 @@ export const UPCOMING_MODES: { id: string; label: string; hint: string; host: st
     label: 'Release Order',
     hint: 'Put quests and monsters in the order they came out.',
     host: 'aris',
-  },
-  {
-    id: 'pixel_hunt',
-    label: 'Pixel Hunt',
-    hint: 'How fast can you recognize the item?',
-    host: 'sherlock',
   },
   {
     id: 'name_that_spell',

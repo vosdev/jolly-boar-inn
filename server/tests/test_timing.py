@@ -27,7 +27,7 @@ def entries(count: int) -> dict[str, Any]:
         ("ordering", entries(6), 40, 16),
         ("price_is_right", {}, 15, 6),
         ("more_less", {}, 10, 5),
-        ("pick_from_list", {}, 20, 6),
+        ("pick_from_list", {}, 25, 6),
         ("free_text", {}, 20, 7),
         ("closest_number", {}, 20, 8),
         ("number_slider", {}, 15, 8),
@@ -48,6 +48,12 @@ def test_walk_adds_a_quarter_and_teleport_takes_one_off(
 ) -> None:
     assert answer_seconds("ordering", entries(6), pace) == answer
     assert reveal_seconds("ordering", entries(6), pace) == reveal
+
+
+@pytest.mark.parametrize(("pace", "answer"), [("walk", 31), ("run", 25), ("teleport", 19)])
+def test_a_list_pick_answers_in_25_seconds_at_run(pace: str, answer: int) -> None:
+    """Pixel Hunt's picture builds up for 17 of them; Who's That NPC?'s shadows get the same."""
+    assert answer_seconds("pick_from_list", {}, pace) == answer
 
 
 def test_a_half_second_rounds_up() -> None:

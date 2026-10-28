@@ -1,13 +1,15 @@
 """The data scripts run in the ``data`` container, so a host needs only git, docker and make.
 
 A server has no uv, and the runtime image must not get it, so these targets go through
-``docker-compose.data.yml`` and the Dockerfile's ``data`` stage, which the runtime never uses.
-``make logo`` alone gets the ``logo`` stage on top, so OpenCV and NumPy stay out of the rest.
+``docker-compose.data.yml`` and the Dockerfile's ``data`` stage, which the runtime never uses
+and which alone adds Pillow. ``make logo`` alone gets the ``logo`` stage on top, so OpenCV and
+NumPy stay out of the rest.
 """
 
 import os
 import re
 import subprocess
+import tomllib
 
 from app.config import REPO_ROOT
 
@@ -108,6 +110,19 @@ def test_only_the_logo_stage_has_the_logo_group() -> None:
     assert stages["logo"].startswith("FROM data AS logo\n")
     with_group = [name for name, text in stages.items() if "--group logo" in text]
     assert with_group == ["logo"]
+
+
+def test_pillow_is_in_the_data_stage_and_not_in_the_runtimes_venv() -> None:
+    """The builder's venv, which the runtime copies, leaves every group out."""
+    stages = _stages((REPO_ROOT / "Dockerfile").read_text(encoding="utf-8"))
+    syncs = re.findall(r"uv sync[^\n]*", stages["builder"])
+    assert syncs and all("--no-default-groups" in sync for sync in syncs)
+    assert "--group" not in stages["builder"]
+    assert [name for name, text in stages.items() if "--group data" in text] == ["data"]
+    with open(REPO_ROOT / "server" / "pyproject.toml", "rb") as file:
+        groups = tomllib.load(file)["dependency-groups"]
+    assert any(dep.startswith("pillow") for dep in groups["data"])
+    assert not any(dep.startswith("pillow") for name in ("dev", "logo") for dep in groups[name])
 
 
 def test_the_runtime_never_carries_the_data_stages() -> None:

@@ -134,7 +134,6 @@ describe('price_is_right', () => {
     const timing = {
       answerableAt: '2026-09-21T20:00:00Z',
       endsAt: '2026-09-21T20:00:20Z',
-      steps: null,
       now: readable(0),
     }
     const { container } = render(AssetStem, { data: { subject: {} }, revealed: false, timing })
