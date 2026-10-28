@@ -686,7 +686,7 @@
           "Chronozon"
         ],
         "answer_index": 1,
-        "explanation": "The Chaos Fanatic in the Wilderness. The line is an anagram of 'Lord Helix lives on!' from Twitch Plays Pokémon."
+        "explanation": "The Chaos Fanatic in the Wilderness. The line is an anagram of 'Lord Helix lives on!' from Twitch Plays Pok\u00e9mon."
       },
       "wiki": "https://oldschool.runescape.wiki/w/Chaos_Fanatic",
       "difficulty": "hard"
@@ -1265,6 +1265,30 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Transcript:Postie_Pete",
       "difficulty": "hard"
+    },
+    {
+      "id": "q_460caa5f85cf9fcd",
+      "type": "multiple_choice",
+      "mode": "who_said_that",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Transcript:Aubury",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "quote": "The Cape of Runecrafting has been upgraded with each talisman, allowing you to access all Runecrafting altars. Is there anything else I can help you with?",
+        "prompt": "Who said that?",
+        "options": [
+          "Wizard Persten",
+          "Cordelia",
+          "The Great Guardian",
+          "Aubury",
+          "Felix",
+          "Wizard Mizgog"
+        ],
+        "explanation": "This is said by Aubury, the owner of the Magic Shop in Varrock, when he sells you a Runecrafting Cape.",
+        "answer_index": 3
+      }
     }
   ]
 }

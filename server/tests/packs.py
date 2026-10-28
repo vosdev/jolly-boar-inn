@@ -19,8 +19,9 @@ import gen_price_questions as gen  # noqa: E402
 
 # 2026-09-18T22:47:24Z, so every pack question is as of one fixed day.
 TRADED = 1789771644
-# Neighbours 7% apart: each item has a dozen or more partners in the 1.25x..4x window.
-STEP = 1.07
+# The dearest item costs about 1.6 billion gp however long the roster, so neighbours sit closer
+# the more items there are, and each keeps partners in the 1.25x..4x window.
+TOP = 1.6e7
 
 
 def _build() -> Path:
@@ -31,7 +32,8 @@ def _build() -> Path:
         REPO_ROOT / "data" / "packs", packs, ignore=shutil.ignore_patterns("prices.json")
     )
     roster = gen.load_roster(gen.DEFAULT_ROSTER)
-    prices = {item["id"]: round(100 * STEP**k) for k, item in enumerate(roster)}
+    step = TOP ** (1 / (len(roster) - 1))
+    prices = {item["id"]: round(100 * step**k) for k, item in enumerate(roster)}
     mapping = [
         {"id": item["id"], "name": item["name"], "highalch": prices[item["id"]] * 3 // 5}
         for item in roster

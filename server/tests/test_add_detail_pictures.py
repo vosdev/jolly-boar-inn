@@ -112,4 +112,5 @@ def test_every_roster_item_with_a_detail_image_has_a_picture() -> None:
         "Combat bracelet(4)",
         "Games necklace(8)",
         "Ring of dueling(8)",
+        "Slayer ring (8)",
     ]

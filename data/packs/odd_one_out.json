@@ -766,6 +766,29 @@
         "answer_index": 2
       },
       "difficulty": "easy"
+    },
+    {
+      "id": "q_4c6068e7d78dac71",
+      "type": "multiple_choice",
+      "mode": "odd_one_out",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Mystic_robes",
+      "difficulty": "hard",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Which one doesn't belong?",
+        "options": [
+          "Enchanted",
+          "Blue",
+          "Light",
+          "Dark",
+          "Dusk",
+          "Shattered"
+        ],
+        "explanation": "All but Enchanted are colour variants of the Mystic robes.",
+        "answer_index": 0
+      }
     }
   ]
 }

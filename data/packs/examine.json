@@ -533,6 +533,52 @@
         "answer_index": 0
       },
       "difficulty": "easy"
+    },
+    {
+      "id": "q_d3ea3c02917f07c4",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/3rd_Age_kiteshield",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Fabulously ancient armour beaten from magical silver.",
+        "options": [
+          "3rd Age kiteshield",
+          "Ancient wyvern shield",
+          "Ancient ceremonial mask",
+          "Ancient full helm"
+        ],
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_3a91d4dcd3eb0325",
+      "type": "multiple_choice",
+      "mode": "guess_examine",
+      "source": "pack",
+      "tags": [
+        "examine"
+      ],
+      "wiki": "https://oldschool.runescape.wiki/w/Bloodveld",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "The tongue of evil.",
+        "options": [
+          "Bloodveld",
+          "Worm Tongue",
+          "Frank",
+          "Evil Dave",
+          "Evil Chicken",
+          "Tree spirit"
+        ],
+        "answer_index": 0
+      }
     }
   ]
 }

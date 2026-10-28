@@ -815,6 +815,119 @@
       },
       "wiki": "https://oldschool.runescape.wiki/w/Bosses",
       "difficulty": "medium"
+    },
+    {
+      "id": "q_e1407949db268dd3",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/King_Black_Dragon",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Pick all that are true for the King Black Dragon.",
+        "options": [
+          "Poisonous",
+          "Combat level 276",
+          "One tail",
+          "Three heads",
+          "Max hit 65",
+          "100% weakness to water spells"
+        ],
+        "explanation": "He has a 50% weakness to water spells",
+        "answer_indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "id": "q_89901a6d5ee02ff6",
+      "type": "closest_number",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/The_Leviathan",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "answer": 18,
+        "prompt": "How many teeth does the Leviathan have?",
+        "within": 1,
+        "explanation": "This big fish has a total of 18 teeth! Did you ever think to count them?"
+      }
+    },
+    {
+      "id": "q_e01df6384acda83d",
+      "type": "multiple_choice",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Commander_Zilyana",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "What is the colour of Commander Zilyana's eyes?",
+        "options": [
+          "White",
+          "Blue",
+          "Green",
+          "Orange",
+          "Red",
+          "Yellow"
+        ],
+        "explanation": "Her eyes are a bright white!",
+        "answer_index": 0
+      }
+    },
+    {
+      "id": "q_b62011b5e967cada",
+      "type": "pick_all_that_apply",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Kree%27arra",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "prompt": "Which of these are true of Kree'arra?",
+        "options": [
+          "Silver beak",
+          "Four wings",
+          "Aggressive",
+          "Resistant to venom",
+          "Flying",
+          "A sergeant in Armadyl's forces"
+        ],
+        "explanation": "Kree'arra is a general with a golden-coloured beak and has only two wings.",
+        "answer_indices": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "id": "q_094c645a9d6f975c",
+      "type": "number_slider",
+      "mode": "bestiary",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/Godsword_shard_1",
+      "difficulty": "medium",
+      "credit": "TwintigApril",
+      "payload": {
+        "max": 20,
+        "min": 1,
+        "scale": "linear",
+        "answer": 16,
+        "prompt": "How many different monsters have the Godsword shards on their drop table?",
+        "explanation": "Each of the 4 generals and each of their 4 sergeants can drop the Godsword shards!"
+      }
     }
   ]
 }

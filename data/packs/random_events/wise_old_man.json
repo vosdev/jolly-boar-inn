@@ -102,6 +102,29 @@
         "answer_index": 2,
         "explanation": "The God Wars spanned the whole Third Age, about 4,000 years, until Guthix woke and ended them."
       }
+    },
+    {
+      "id": "q_a9c75d5b2b4b6832",
+      "type": "multiple_choice",
+      "mode": "random_event",
+      "source": "pack",
+      "tags": [],
+      "wiki": "https://oldschool.runescape.wiki/w/One_Small_Favour",
+      "credit": "TwintigApril",
+      "payload": {
+        "intro": "Everybody's favourite quest is One Small Favour",
+        "prompt": "How many favours do you complete during this quest?",
+        "options": [
+          "16",
+          "19",
+          "18",
+          "12",
+          "14",
+          "15"
+        ],
+        "explanation": "You complete a total of 19 favours during the One Small Favour quest.",
+        "answer_index": 1
+      }
     }
   ]
 }
