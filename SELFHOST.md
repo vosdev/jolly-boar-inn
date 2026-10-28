@@ -54,3 +54,11 @@ Four variables in `.env` give your instance its own name, logo, host and default
 `PUBLIC_SITE_NAME`, `PUBLIC_SITE_LOGO`, `PUBLIC_HERO_NAME` and `PUBLIC_DEFAULT_THEME`, described in
 [`.env.example`](.env.example). They are baked into the client, so run `docker compose build`
 after changing them.
+
+
+## Profiling
+
+Set `PYROSCOPE_SERVER_ADDRESS` in `.env` to send CPU profiles to Pyroscope or Grafana Cloud
+Profiles, so a lag spike traces to the code behind it. Unset, nothing runs. Basic auth and a
+tenant id are optional, see [`.env.example`](.env.example). Profiles carry the app version only,
+no room, name or address.

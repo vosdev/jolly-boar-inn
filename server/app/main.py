@@ -13,7 +13,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app import accesslog, metrics
+from app import accesslog, metrics, profiling
 from app.config import Settings, get_settings
 from app.db import create_pool, run_migrations
 from app.errors import ApiError
@@ -178,6 +178,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
     logging.basicConfig(level=settings.log_level.upper())
     accesslog.install()
+    profiling.start(settings)
     # Before the packs: a pack question is checked against the vocabulary it answers from,
     # and a roster that cannot be one should fail as itself, not as every question on it.
     vocabularies.load_all()
