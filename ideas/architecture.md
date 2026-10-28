@@ -647,12 +647,16 @@ ends at the proxy, and HSTS would lock out a LAN selfhoster on plain HTTP.
 - `profiling.py` starts `pyroscope-io` CPU profiling only when `PYROSCOPE_SERVER_ADDRESS` is set,
   tagged `service_name` and the app version, never a room, name or address. It adds no
   capability to the container above, and a failed start is logged, not fatal.
+- With `FARO_URL` set, the client lazily loads the Faro web SDK for uncaught errors, unhandled
+  rejections, Web Vitals and a tab-long session, nothing else. `lib/faro.ts` strips queries,
+  fragments, room paths, stored codes and tokens from every report. A path goes through the proxy;
+  an absolute URL's origin joins `connect-src`.
 - One process per database: the app holds `pg_try_advisory_lock` on its own connection. A second
   process fails to start or answers `503 db_unavailable`, so stop the old container first.
 - The app's env vars and defaults are in `config.py`. `.env.example` documents them, the
   scripts' `WIKI_USER_AGENT`, and the client's build-time `PUBLIC_SITE_*`, `PUBLIC_HERO_NAME` and
   `PUBLIC_DEFAULT_THEME` (`client/site-branding.ts`). `PUBLIC_BASE_URL` only makes a shared
-  link's `og:image` absolute, written into `index.html` as it is served; the client links from
+  link's `og:image` absolute, written into `index.html` as it is served like `FARO_URL`; the client links from
   `location.origin`.
 
 ## 11. Database

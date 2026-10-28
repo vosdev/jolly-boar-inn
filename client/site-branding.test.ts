@@ -3,7 +3,7 @@
  * mistyped one falls back to.
  */
 
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -12,6 +12,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import {
   BASE_URL_SLOT,
   DEFAULT_SITE_NAME,
+  FARO_URL_SLOT,
+  faroTag,
   definedThemes,
   favicons,
   readBranding,
@@ -231,5 +233,13 @@ describe('a shared link', () => {
     expect(tags['og:image:width']).toBe('1200')
     expect(tags['og:image:height']).toBe('630')
     expect(tags['twitter:card']).toBe('summary_large_image')
+  })
+})
+
+describe('faroTag', () => {
+  it('leaves the slot the server fills and lib/faro.ts reads', () => {
+    expect(faroTag.attrs).toEqual({ name: 'faro-url', content: FARO_URL_SLOT })
+    const faro = readFileSync(join(import.meta.dirname, 'src/lib/faro.ts'), 'utf-8')
+    expect(faro).toContain(`const SLOT = '${FARO_URL_SLOT}'`)
   })
 })

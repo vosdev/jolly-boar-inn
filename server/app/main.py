@@ -34,7 +34,7 @@ from app.http import metrics as http_metrics
 from app.http.bodylimit import BodyLimit
 from app.http.forwarded import UntrustedForwardWarning
 from app.http.head import HeadAsGet
-from app.http.headers import SecurityHeaders
+from app.http.headers import SecurityHeaders, content_security_policy
 from app.http.jsonbody import JsonBody
 from app.http.metrics import HttpMetrics
 from app.http.ratelimit import (
@@ -283,7 +283,8 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     app.add_middleware(HttpMetrics)
     app.add_middleware(HeadAsGet)
     app.add_middleware(UntrustedForwardWarning)
-    app.add_middleware(SecurityHeaders)  # last, so it wraps the others' responses too
+    csp = content_security_policy(app.state.settings.faro_url)
+    app.add_middleware(SecurityHeaders, csp=csp)  # last, so it wraps the others' responses too
     app.add_exception_handler(ApiError, _api_error)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, _validation_error)  # type: ignore[arg-type]
 
@@ -313,7 +314,7 @@ def create_app(settings: Settings | None = None, client_dist: Path = CLIENT_DIST
     if app.state.settings.metrics_token:
         app.include_router(http_metrics.router)
     app.include_router(ws_handler.router)
-    mount_client(app, client_dist, app.state.settings.public_base_url)
+    mount_client(app, client_dist, app.state.settings.public_base_url, app.state.settings.faro_url)
     return app
 
 

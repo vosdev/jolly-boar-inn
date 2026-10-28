@@ -35,6 +35,20 @@ def test_headers_on_every_response(settings: Settings, dist: Path) -> None:
     assert asset.headers["cache-control"].startswith("public, max-age=31536000")
 
 
+def test_a_faro_receiver_elsewhere_is_allowed_to_take_reports(
+    settings: Settings, dist: Path
+) -> None:
+    for faro_url, connect in (
+        ("", "connect-src 'self';"),
+        ("/faro/collect", "connect-src 'self';"),
+        ("https://faro.example:12347/collect", "connect-src 'self' https://faro.example:12347;"),
+    ):
+        configured = settings.model_copy(update={"faro_url": faro_url})
+        with TestClient(create_app(configured, dist)) as client:
+            for path in ("/", "/api/health"):
+                assert connect in client.get(path).headers["content-security-policy"], faro_url
+
+
 def test_access_log_filter_strips_query_string() -> None:
     record = logging.LogRecord(
         "uvicorn.access",

@@ -260,6 +260,19 @@ export function favicons(branding: Branding, colours = themeColours()): Record<s
  */
 export const BASE_URL_SLOT = '__PUBLIC_BASE_URL__'
 
+/**
+ * Where the server writes `FARO_URL` (`server/app/static.py`), empty when it is off. A
+ * runtime setting, because the CSP that has to allow the receiver is the server's.
+ */
+export const FARO_URL_SLOT = '__FARO_URL__'
+
+/** The tag `lib/faro.ts` reads the receiver's address from. */
+export const faroTag: HtmlTagDescriptor = {
+  tag: 'meta',
+  attrs: { name: 'faro-url', content: FARO_URL_SLOT },
+  injectTo: 'head',
+}
+
 /** What a shared link says, and the card it shows when the selfhoster has one. */
 export function shareTags(branding: Branding): HtmlTagDescriptor[] {
   const meta = (key: 'property' | 'name', value: string, content: string): HtmlTagDescriptor => ({
@@ -382,7 +395,10 @@ export function siteBranding(): Plugin {
           injectTo: 'head',
         })
       }
-      return { html: retitle(html, branding.name), tags: [...tags, ...shareTags(branding)] }
+      return {
+        html: retitle(html, branding.name),
+        tags: [...tags, ...shareTags(branding), faroTag],
+      }
     },
   }
 }

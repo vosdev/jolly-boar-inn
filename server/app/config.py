@@ -6,6 +6,7 @@ Every variable is documented in `.env.example` at the repo root.
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -62,6 +63,20 @@ class Settings(BaseSettings):
     pyroscope_basic_auth_user: str = ""
     pyroscope_basic_auth_password: str = ""
     pyroscope_tenant_id: str = ""
+    # Where browsers send errors and Web Vitals (a Faro receiver). Empty, the SDK is never loaded.
+    faro_url: str = ""
+
+    @field_validator("faro_url")
+    @classmethod
+    def _faro_url_is_a_path_or_web_address(cls, url: str) -> str:
+        if not url or (url.startswith("/") and not url.startswith("//")):
+            return url
+        parts = urlsplit(url)
+        if parts.scheme in ("http", "https") and parts.netloc:
+            return url
+        raise ValueError(
+            "FARO_URL must be a path on this site (/faro/collect) or an http(s) address"
+        )
 
     @field_validator("admin_token")
     @classmethod
