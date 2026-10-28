@@ -383,10 +383,13 @@
       >
         Create a room
       </button>
-      <button type="button" class="how-to" onclick={() => open('overview')}> How to play </button>
     </div>
     <span class="split" aria-hidden="true"></span>
-    <ModeShowcase onpick={open} />
+    <ModeShowcase onpick={open}>
+      {#snippet top()}
+        <button type="button" class="how-to" onclick={() => open('overview')}> How to play </button>
+      {/snippet}
+    </ModeShowcase>
   </div>
 {/snippet}
 

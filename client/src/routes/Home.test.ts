@@ -92,6 +92,12 @@ describe('How to play on Home', () => {
     })
   })
 
+  it('puts How to play at the top of the slideshow', () => {
+    render(Home, { navigate })
+    const showcase = document.querySelector('.showcase') as HTMLElement
+    expect(showcase.firstElementChild?.textContent?.trim()).toBe('How to play')
+  })
+
   it('draws the page in place of the sheet, the dialogue box still on top', () => {
     openPage()
     expect(screen.getByRole('heading', { level: 1, name: 'How to play' })).toBeTruthy()
