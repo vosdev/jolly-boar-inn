@@ -276,8 +276,37 @@ describe('the checks', () => {
 
 describe('the queue', () => {
   it('says each kind in one line, with its answer', () => {
-    expect(summary({ kind: 'question', content: QUESTION })).toBe('Which is not a Barrows brother?')
+    expect(summary({ kind: 'question', content: QUESTION })).toBe('Dharok, Hazelmere')
     expect(answerOf({ kind: 'question', content: QUESTION })).toBe('Hazelmere')
+    const npc = {
+      ...QUESTION,
+      mode: 'whos_that_npc',
+      type: 'pick_from_list' as const,
+      payload: { prompt: "Who's that NPC?", subject: { name: 'Zulrah' } },
+    }
+    expect(summary({ kind: 'question', content: npc })).toBe('Zulrah')
+    const render = {
+      ...QUESTION,
+      mode: 'whos_that_npc',
+      payload: { prompt: "Who's that NPC?", options: ['Vorkath', 'Zulrah'], answer_index: 1 },
+    }
+    expect(summary({ kind: 'question', content: render })).toBe('Zulrah')
+    const odd = {
+      ...QUESTION,
+      mode: 'odd_one_out',
+      payload: {
+        prompt: "Which one doesn't belong?",
+        options: ['Guthan', 'Dharok', 'Hazelmere'],
+        answer_index: 2,
+      },
+    }
+    expect(summary({ kind: 'question', content: odd })).toBe('Guthan, Dharok, Hazelmere')
+    const said = {
+      ...QUESTION,
+      mode: 'who_said_that',
+      payload: { ...QUESTION.payload, prompt: 'Who said that?', quote: 'Ow!' },
+    }
+    expect(summary({ kind: 'question', content: said })).toBe('Who said that? “Ow!”')
     const typed = {
       ...QUESTION,
       type: 'free_text' as const,
