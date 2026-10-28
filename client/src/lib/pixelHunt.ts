@@ -58,10 +58,8 @@ export type Pen = Pick<
   | 'lineCap'
 >
 
-/** The theme's colours a reveal draws with (`--tile` and the rest in `app.css`), as CSS. */
+/** The theme's colours a reveal draws with (`--tile-dark` and the rest in `app.css`), as CSS. */
 export interface Look {
-  tile: string
-  tileLight: string
   tileDark: string
   tileSeam: string
   /** Text on a panel: Sketch's lines. */
@@ -315,21 +313,7 @@ function cellBox(picture: Picture, n: number, column: number, row: number): numb
   return [column * width, row * height, width, height]
 }
 
-/** A tile in the theme's look: its base, a light top-left and dark bottom-right bevel. */
-function drawTile(pen: Pen, look: Look, x: number, y: number, width: number, height: number) {
-  const bevel = width * 0.05
-  pen.fillStyle = look.tile
-  pen.fillRect(x, y, width, height)
-  pen.fillStyle = look.tileDark
-  pen.fillRect(x, y + height - bevel, width, bevel)
-  pen.fillRect(x + width - bevel, y, bevel, height)
-  pen.fillStyle = look.tileLight
-  pen.fillRect(x, y, width, bevel)
-  pen.fillRect(x, y, bevel, height)
-  drawSeam(pen, look, x, y, width, height)
-}
-
-/** The 1px seam just inside a tile's or a piece's edge, in the design's 60px tile. */
+/** The 1px seam just inside a cell's or a piece's edge, in the design's 60px tile. */
 function drawSeam(pen: Pen, look: Look, x: number, y: number, width: number, height: number) {
   const seam = width / 60
   pen.fillStyle = look.tileSeam
@@ -342,11 +326,14 @@ function drawSeam(pen: Pen, look: Look, x: number, y: number, width: number, hei
 /** Tiles across and down. */
 export const TILE_GRID = 5
 
-/** How opaque a tile must be on average to hold part of the item. */
+/** How opaque a cell must be on average to hold part of the item. */
 export const TILE_THRESHOLD = 0.08
 
-/** How long a tile takes to fade out. */
+/** How long a cell takes to fade in. */
 const TILE_FADE = seconds(0.25)
+
+/** How long the grid takes to fade, ending the build-up. */
+const GRID_SETTLE = seconds(0.8)
 
 /** How opaque each tile of an `n` by `n` grid is on average, 0 to 1, row by row. */
 export function tileCover(picture: Picture, n: number): number[] {
@@ -392,36 +379,29 @@ export function tileOpensAt(order: readonly number[]): number[] {
 }
 
 /**
- * Tiles: a 5×5 cover dealt onto the empty box row by row, growing into place. The tiles
- * that hold part of the item then open one at a time in seeded order, each fading out with
- * no flip; the empty ones go with the end.
+ * Tiles: a 5×5 grid of seams drawn onto the empty box cell by cell, over nothing but the
+ * stage. The cells that hold part of the item then fade in one at a time in seeded order;
+ * the empty ones go with the end, and the grid fades as the build-up ends.
  */
 export const TILES: Reveal = {
   id: 'tiles',
   draw(pen, picture, p, seed, look) {
+    const settled = clamp01((p - (1 - GRID_SETTLE)) / GRID_SETTLE)
     pen.imageSmoothingEnabled = true
-    // Under a tile still on its way the picture would show.
-    if (p >= ENTRY) pen.drawImage(picture.image, 0, 0)
     tileOpensAt(tileOrder(picture, seed)).forEach((opensAt, cell) => {
-      const dealt = arrived(p, cell, TILE_GRID * TILE_GRID)
-      const left = dealt * (1 - clamp01((p - opensAt) / TILE_FADE))
-      if (left <= 0) return
-      pen.globalAlpha = left
       const [x, y, width, height] = cellBox(
         picture,
         TILE_GRID,
         cell % TILE_GRID,
         Math.floor(cell / TILE_GRID),
       )
-      const grow = 0.6 + 0.4 * dealt
-      drawTile(
-        pen,
-        look,
-        x! + (width! * (1 - grow)) / 2,
-        y! + (height! * (1 - grow)) / 2,
-        width! * grow,
-        height! * grow,
-      )
+      const open = clamp01((p - opensAt) / TILE_FADE)
+      if (open > 0) {
+        pen.globalAlpha = open
+        pen.drawImage(picture.image, x!, y!, width!, height!, x!, y!, width!, height!)
+      }
+      pen.globalAlpha = 0.8 * arrived(p, cell, TILE_GRID * TILE_GRID) * (1 - settled)
+      if (pen.globalAlpha > 0) drawSeam(pen, look, x!, y!, width!, height!)
     })
     pen.globalAlpha = 1
   },
@@ -578,9 +558,9 @@ export const SLIDE_PUZZLE: Reveal = {
 /** How long the room takes to light up, ending the build-up. */
 const LANTERN_SETTLE = seconds(0.8)
 
-/** The lantern light's radius at `p` before it flickers, as a share of the picture: 9% to 36%. */
+/** The lantern light's radius at `p` before it flickers, as a share of the picture: 13% to 45%. */
 export function lanternRadius(p: number): number {
-  return 0.09 + 0.27 * p * p
+  return 0.13 + 0.32 * p * p
 }
 
 /**

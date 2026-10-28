@@ -46,7 +46,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '0.211.0',
     date: '2026-10-28',
-    text: "Pixel Hunt's picture makes its entrance once answers open, and the lantern now lights the stage, not a black box.",
+    text: "Pixel Hunt's picture makes its entrance once answers open, the lantern lights the stage, and tiles are now a grid.",
   },
   {
     version: '0.210.2',

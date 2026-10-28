@@ -57,8 +57,6 @@
     const style = getComputedStyle(target)
     const token = (name: string): string => style.getPropertyValue(name).trim()
     return {
-      tile: token('--tile'),
-      tileLight: token('--tile-light'),
       tileDark: token('--tile-dark'),
       tileSeam: token('--tile-seam'),
       ink: token('--ink'),
