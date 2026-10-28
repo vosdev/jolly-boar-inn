@@ -59,6 +59,8 @@ ITEM_ROWS = [
     {"page_name": "Dusty key", "item_name": "Dusty key", "item_id": ["1590"]},
     {"page_name": "Mystery box", "item_name": "Mystery box", "item_id": ["6199", "6200"]},
 ]
+# The detail images the wiki has for those items; Dusty key has none.
+DETAIL_TITLES = ["Amulet of glory detail.png", "Abyssal whip detail.png"]
 
 
 # The wiki's monster and NPC infobox rows, as its Bucket API answers them.
@@ -85,6 +87,8 @@ def repo(tmp_path: Path) -> dict[str, Path]:
     shutil.copy(REPO_ROOT / "data" / "assets.json", assets)
     rows = tmp_path / "items.json"
     rows.write_text(json.dumps(ITEM_ROWS))
+    details = tmp_path / "details.json"
+    details.write_text(json.dumps(DETAIL_TITLES))
     return {
         "packs": packs,
         "roster": roster,
@@ -92,6 +96,7 @@ def repo(tmp_path: Path) -> dict[str, Path]:
         "npc_rows": npc_rows,
         "assets": assets,
         "items": rows,
+        "details": details,
         "dir": tmp_path,
     }
 
@@ -102,6 +107,7 @@ def run(repo: dict[str, Path], export: dict[str, Any]) -> int:
     args = [str(file), "--packs-dir", str(repo["packs"]), "--roster", str(repo["roster"])]
     args += ["--npcs", str(repo["npcs"]), "--assets", str(repo["assets"])]
     args += ["--items-file", str(repo["items"]), "--npcs-file", str(repo["npc_rows"])]
+    args += ["--detail-file", str(repo["details"])]
     return import_suggestions.main(args)
 
 
@@ -335,6 +341,42 @@ def test_an_item_takes_its_id_from_the_wiki_in_name_order(repo: dict[str, Path])
     items = json.loads(repo["roster"].read_text())["items"]
     at = items.index({"id": 1704, "name": "Amulet of glory"})
     assert items[at - 1]["name"].casefold() < "amulet of glory" < items[at + 1]["name"].casefold()
+
+
+def pixel_hunt(repo: dict[str, Path]) -> list[dict[str, Any]]:
+    return json.loads((repo["packs"] / "pixel_hunt.json").read_text())["questions"]
+
+
+def test_a_new_item_gets_its_icon_its_detail_image_and_a_pixel_hunt_question(
+    repo: dict[str, Path],
+) -> None:
+    export = {"items": [{"name": "amulet of glory", "credit": "Woox", "credit_shown": False}]}
+    assert run(repo, export) == 0
+    assets = json.loads(repo["assets"].read_text())
+    assert assets["items/1704.png"] == "Amulet of glory.png"
+    assert assets["pictures/item/1704.png"] == "Amulet of glory detail.png"
+    assert list(assets) == sorted(assets)
+    assert 1704 in [q["payload"]["answer_id"] for q in pixel_hunt(repo)]
+    assert loads(repo)
+
+
+def test_a_new_item_without_a_detail_image_is_left_out_of_pixel_hunt(
+    repo: dict[str, Path], capsys: pytest.CaptureFixture[str]
+) -> None:
+    export = {"items": [{"name": "Dusty key", "credit": "Woox", "credit_shown": False}]}
+    assert run(repo, export) == 0
+    assert json.loads(repo["assets"].read_text())["items/1590.png"] == "Dusty key.png"
+    assert "pictures/item/1590.png" not in json.loads(repo["assets"].read_text())
+    assert 1590 not in [q["payload"]["answer_id"] for q in pixel_hunt(repo)]
+    assert "no detail image for 1590 Dusty key" in capsys.readouterr().out
+
+
+def test_importing_an_item_twice_changes_nothing_the_second_time(repo: dict[str, Path]) -> None:
+    export = {"items": [{"name": "amulet of glory", "credit": "Woox", "credit_shown": False}]}
+    assert run(repo, export) == 0
+    before = snapshot(repo)
+    assert run(repo, export) == 0
+    assert snapshot(repo) == before
 
 
 def test_importing_the_same_file_twice_changes_nothing_the_second_time(
