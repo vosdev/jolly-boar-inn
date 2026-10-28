@@ -43,14 +43,29 @@ export type Pen = Pick<
   | 'fillStyle'
   | 'globalAlpha'
   | 'imageSmoothingEnabled'
+  | 'createRadialGradient'
+  | 'beginPath'
+  | 'moveTo'
+  | 'lineTo'
+  | 'arc'
+  | 'stroke'
+  | 'fill'
+  | 'strokeStyle'
+  | 'lineWidth'
+  | 'lineJoin'
+  | 'lineCap'
 >
 
-/** The theme's tile tokens (`--tile` and the rest in `app.css`), as CSS colours. */
+/** The theme's colours a reveal draws with (`--tile` and the rest in `app.css`), as CSS. */
 export interface Look {
   tile: string
   tileLight: string
   tileDark: string
   tileSeam: string
+  /** Text on a panel: Sketch's lines. */
+  ink: string
+  /** The verdict's wrong: Sketch's pen tip. */
+  bad: string
 }
 
 export interface Reveal {
@@ -501,5 +516,360 @@ export const SLIDE_PUZZLE: Reveal = {
   },
 }
 
+/** How long the room takes to light up, ending the build-up. */
+const LANTERN_SETTLE = seconds(0.8)
+
+/** The lantern light's radius at `p` before it flickers, as a share of the picture: 9% to 36%. */
+export function lanternRadius(p: number): number {
+  return 0.09 + 0.27 * p * p
+}
+
+/**
+ * Where the lantern is at `p` and how far it reaches, as shares of the picture: a wander on
+ * two slow waves whose phases the seed sets, swaying less as the light grows, and a flicker.
+ */
+export function lanternLight(p: number, seed: number): { x: number; y: number; radius: number } {
+  const next = random(seed)
+  const [wanderX, wanderY, flickerA, flickerB] = [next(), next(), next(), next()].map(
+    (share) => share * 2 * Math.PI,
+  )
+  // Seconds at the usual pace, so the waves keep the design's speed whatever the length.
+  const t = p * 25 * BUILD_UP
+  const sway = 1 - 0.6 * p
+  const flicker = 1 + 0.035 * Math.sin(t * 17 + flickerA!) + 0.02 * Math.sin(t * 7.3 + flickerB!)
+  return {
+    x: 0.5 + 0.3 * Math.sin(t * 0.9 + wanderX!) * sway,
+    y: 0.5 + 0.26 * Math.sin(t * 1.27 + wanderY!) * sway,
+    radius: lanternRadius(p) * flicker,
+  }
+}
+
+/**
+ * Lantern: pitch black but for a warm light that wanders a seeded path and flickers,
+ * growing as it goes. As the build-up ends the room lights up.
+ */
+export const LANTERN: Reveal = {
+  id: 'lantern',
+  draw(pen, picture, p, seed) {
+    pen.imageSmoothingEnabled = true
+    pen.drawImage(picture.image, 0, 0)
+    const dark = 1 - clamp01((p - (1 - LANTERN_SETTLE)) / LANTERN_SETTLE)
+    if (dark <= 0) return
+    const { x, y, radius } = lanternLight(p, seed)
+    const reach = radius * Math.max(picture.width, picture.height)
+    const cx = x * picture.width
+    const cy = y * picture.height
+    const light = pen.createRadialGradient(cx, cy, 0, cx, cy, reach)
+    light.addColorStop(0, 'rgba(255, 180, 80, 0.14)')
+    light.addColorStop(0.55, 'rgba(0, 0, 0, 0)')
+    light.addColorStop(0.88, 'rgba(0, 0, 0, 0.75)')
+    light.addColorStop(1, '#000')
+    pen.globalAlpha = dark
+    pen.fillStyle = light
+    pen.fillRect(0, 0, picture.width, picture.height)
+    pen.globalAlpha = 1
+  },
+}
+
+export type Point = [number, number]
+
+/** How opaque a pixel must be to count as the item's, for its outline. */
+const SOLID = 128
+
+/** How far a simplified outline may stray from the pixel edge, in pixels. */
+const OUTLINE_TOLERANCE = 0.8
+
+/** A part smaller than this share of the biggest is a speck, and gets no outline. */
+const SPECK = 0.02
+
+/**
+ * The outer edges of the item's opaque parts, from the alpha: each a closed loop of pixel
+ * edges going clockwise, with its area. Holes run the other way and are left out.
+ */
+function edgeLoops(picture: Picture): { points: Point[]; area: number }[] {
+  const { width, height, data } = picture
+  const solid = (x: number, y: number): boolean =>
+    x >= 0 && y >= 0 && x < width && y < height && data[(y * width + x) * 4 + 3]! >= SOLID
+  // Each pixel side between the item and the outside, clockwise around its pixel, so the
+  // item is on its right; keyed by the corner it starts from.
+  const from = new Map<number, number[]>()
+  const ends: number[] = []
+  const corner = (x: number, y: number): number => y * (width + 1) + x
+  const add = (x0: number, y0: number, x1: number, y1: number): void => {
+    const start = corner(x0, y0)
+    let out = from.get(start)
+    if (out === undefined) from.set(start, (out = []))
+    out.push(ends.length / 4)
+    ends.push(x0, y0, x1, y1)
+  }
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (!solid(x, y)) continue
+      if (!solid(x, y - 1)) add(x, y, x + 1, y)
+      if (!solid(x + 1, y)) add(x + 1, y, x + 1, y + 1)
+      if (!solid(x, y + 1)) add(x + 1, y + 1, x, y + 1)
+      if (!solid(x - 1, y)) add(x, y + 1, x, y)
+    }
+  }
+  const sides = ends.length / 4
+  const used = new Uint8Array(sides)
+  const loops: { points: Point[]; area: number }[] = []
+  for (let first = 0; first < sides; first++) {
+    if (used[first]) continue
+    const points: Point[] = []
+    let side = first
+    while (!used[side]) {
+      used[side] = 1
+      const [x0, y0, x1, y1] = ends.slice(side * 4, side * 4 + 4) as [
+        number,
+        number,
+        number,
+        number,
+      ]
+      // The middle of each side, so the pixel staircase reads as a slope.
+      points.push([(x0 + x1) / 2, (y0 + y1) / 2])
+      const dx = x1 - x0
+      const dy = y1 - y0
+      const next = (from.get(corner(x1, y1)) ?? []).filter((n) => !used[n])
+      if (next.length === 0) break
+      // Two ways on where parts only touch at a corner: turning right keeps them apart.
+      const turn = (n: number): number => {
+        const ndx = ends[n * 4 + 2]! - ends[n * 4]!
+        const ndy = ends[n * 4 + 3]! - ends[n * 4 + 1]!
+        return ndx === -dy && ndy === dx ? 0 : ndx === dx && ndy === dy ? 1 : 2
+      }
+      side = next.reduce((best, n) => (turn(n) < turn(best) ? n : best))
+    }
+    let area = 0
+    points.forEach(([x, y], i) => {
+      const [nx, ny] = points[(i + 1) % points.length]!
+      area += x * ny - nx * y
+    })
+    if (area > 0) loops.push({ points, area: area / 2 })
+  }
+  return loops
+}
+
+/** `line` with the points that lie within `tolerance` of a straight run dropped, ends kept. */
+function simplify(line: Point[], tolerance: number): Point[] {
+  const keep = new Uint8Array(line.length)
+  keep[0] = 1
+  keep[line.length - 1] = 1
+  const stack: [number, number][] = [[0, line.length - 1]]
+  while (stack.length > 0) {
+    const [start, end] = stack.pop()!
+    const [ax, ay] = line[start]!
+    const [bx, by] = line[end]!
+    const length = Math.hypot(bx - ax, by - ay)
+    let far = -1
+    let farthest = tolerance
+    for (let i = start + 1; i < end; i++) {
+      const [x, y] = line[i]!
+      const off =
+        length === 0
+          ? Math.hypot(x - ax, y - ay)
+          : Math.abs((bx - ax) * (ay - y) - (ax - x) * (by - ay)) / length
+      if (off > farthest) [far, farthest] = [i, off]
+    }
+    if (far < 0) continue
+    keep[far] = 1
+    stack.push([start, far], [far, end])
+  }
+  return line.filter((_, i) => keep[i])
+}
+
+const loopCache = new WeakMap<Uint8ClampedArray, { points: Point[]; area: number }[]>()
+
+/**
+ * The outline Sketch's pen traces: a closed loop round each of the item's parts, the
+ * biggest first, specks left out. Each starts and ends at a point on its edge the seed
+ * picks, the biggest's being where the pen sets down.
+ */
+export function sketchOutline(picture: Picture, seed: number): Point[][] {
+  let loops = loopCache.get(picture.data)
+  if (loops === undefined) {
+    loops = edgeLoops(picture).sort((a, b) => b.area - a.area)
+    const biggest = loops[0]?.area ?? 0
+    loops = loops.filter(({ area }) => area >= biggest * SPECK)
+    loopCache.set(picture.data, loops)
+  }
+  return loops.map(({ points }) => {
+    const start = seed % points.length
+    const round = [...points.slice(start), ...points.slice(0, start), points[start]!]
+    return simplify(round, OUTLINE_TOLERANCE)
+  })
+}
+
+/** How strong a colour edge must be, in luminance per pixel, to begin to show as a line. */
+const LINE_FROM = 48
+
+/** How much stronger again it must be to show as a full line. */
+const LINE_RANGE = 112
+
+/**
+ * How dark each pixel's inner line is, 0 to 255, row by row: where the picture's colours
+ * change sharply inside the item, by a Sobel filter over its brightness on white paper.
+ */
+export function innerLines(picture: Picture): Uint8ClampedArray {
+  const { width, height, data } = picture
+  const paper = new Float32Array(width * height)
+  for (let i = 0; i < width * height; i++) {
+    const a = data[i * 4 + 3]! / 255
+    const lum = 0.299 * data[i * 4]! + 0.587 * data[i * 4 + 1]! + 0.114 * data[i * 4 + 2]!
+    paper[i] = lum * a + 255 * (1 - a)
+  }
+  const at = (x: number, y: number): number =>
+    paper[Math.min(height - 1, Math.max(0, y)) * width + Math.min(width - 1, Math.max(0, x))]!
+  const lines = new Uint8ClampedArray(width * height)
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3]! < SOLID) continue
+      const gx =
+        at(x + 1, y - 1) +
+        2 * at(x + 1, y) +
+        at(x + 1, y + 1) -
+        at(x - 1, y - 1) -
+        2 * at(x - 1, y) -
+        at(x - 1, y + 1)
+      const gy =
+        at(x - 1, y + 1) +
+        2 * at(x, y + 1) +
+        at(x + 1, y + 1) -
+        at(x - 1, y - 1) -
+        2 * at(x, y - 1) -
+        at(x + 1, y - 1)
+      lines[y * width + x] = 255 * clamp01((Math.hypot(gx, gy) - LINE_FROM) / LINE_RANGE)
+    }
+  }
+  return lines
+}
+
+const lineCache = new WeakMap<Uint8ClampedArray, { ink: string; layer: CanvasImageSource | null }>()
+
+/** The inner lines in `ink` on a see-through layer the picture's size, once per picture. */
+function lineLayer(picture: Picture, ink: string): CanvasImageSource | null {
+  const cached = lineCache.get(picture.data)
+  if (cached?.ink === ink) return cached.layer
+  let layer: CanvasImageSource | null = null
+  if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(picture.width, picture.height)
+    const pen = canvas.getContext('2d')
+    if (pen !== null) {
+      pen.fillStyle = ink
+      pen.fillRect(0, 0, 1, 1)
+      const [r, g, b] = pen.getImageData(0, 0, 1, 1).data
+      const strength = innerLines(picture)
+      const pixels = new ImageData(picture.width, picture.height)
+      strength.forEach((alpha, i) => {
+        pixels.data[i * 4] = r!
+        pixels.data[i * 4 + 1] = g!
+        pixels.data[i * 4 + 2] = b!
+        pixels.data[i * 4 + 3] = alpha
+      })
+      pen.putImageData(pixels, 0, 0)
+      layer = canvas
+    }
+  }
+  lineCache.set(picture.data, { ink, layer })
+  return layer
+}
+
+/** How long the pen takes over the outline: about 6 seconds, at most 40% of the build-up. */
+export const OUTLINE_TIME = Math.min(seconds(6), 0.4)
+
+/** How long the inner lines take to fade in once the outline is done. */
+const LINES_FADE = seconds(1.5)
+
+/** When the colour starts to wash in: over the last 65% of the time after the outline. */
+export const WASH_FROM = OUTLINE_TIME + (1 - OUTLINE_TIME) * 0.35
+
+/** How long the colour takes from 85% to whole and the lines to fade, ending the build-up. */
+export const SKETCH_SETTLE = seconds(0.8)
+
+/** Where Sketch is at `p`: the share of the outline traced, and each layer's opacity. */
+export function sketchPhase(p: number): {
+  traced: number
+  tip: boolean
+  outline: number
+  lines: number
+  colour: number
+} {
+  const drawing = clamp01(p / OUTLINE_TIME)
+  const settled = clamp01((p - (1 - SKETCH_SETTLE)) / SKETCH_SETTLE)
+  const washed = clamp01((p - WASH_FROM) / (1 - SKETCH_SETTLE - WASH_FROM))
+  return {
+    // The hand hurries and hesitates a little, never going back.
+    traced: clamp01(drawing + 0.015 * Math.sin(drawing * 40)),
+    tip: drawing < 1,
+    outline: 1 - settled,
+    lines: clamp01((p - OUTLINE_TIME) / LINES_FADE) * (1 - settled),
+    colour: 0.85 * washed + 0.15 * settled,
+  }
+}
+
+/**
+ * Sketch: a pen traces the item's outline from a seeded point, the inner lines fade in, and
+ * the colour washes in under them. As the build-up ends the colour is whole and the lines go.
+ */
+export const SKETCH: Reveal = {
+  id: 'sketch',
+  draw(pen, picture, p, seed, look) {
+    const { traced, tip, outline, lines, colour } = sketchPhase(p)
+    const size = Math.max(picture.width, picture.height)
+    // Found on the first frame, so a slow phone stalls as the question opens, not mid-sketch.
+    const layer = lineLayer(picture, look.ink)
+    pen.imageSmoothingEnabled = true
+    if (colour > 0) {
+      pen.globalAlpha = colour
+      pen.drawImage(picture.image, 0, 0)
+    }
+    if (lines > 0 && layer !== null) {
+      pen.globalAlpha = lines
+      pen.drawImage(layer, 0, 0)
+    }
+    if (outline <= 0) return
+    const loops = sketchOutline(picture, seed)
+    const total = loops.reduce((sum, loop) => sum + pathLength(loop), 0)
+    let left = traced * total
+    let tipAt: Point | null = null
+    pen.globalAlpha = outline
+    pen.strokeStyle = look.ink
+    pen.lineWidth = size * 0.009
+    pen.lineJoin = 'round'
+    pen.lineCap = 'round'
+    pen.beginPath()
+    for (const loop of loops) {
+      if (left <= 0) break
+      pen.moveTo(...loop[0]!)
+      tipAt = loop[0]!
+      for (let i = 1; i < loop.length && left > 0; i++) {
+        const [ax, ay] = loop[i - 1]!
+        const [bx, by] = loop[i]!
+        const step = Math.hypot(bx - ax, by - ay)
+        const along = step === 0 ? 1 : Math.min(1, left / step)
+        tipAt = [ax + (bx - ax) * along, ay + (by - ay) * along]
+        pen.lineTo(...tipAt)
+        left -= step
+      }
+    }
+    pen.stroke()
+    if (tip && tipAt !== null) {
+      pen.fillStyle = look.bad
+      pen.beginPath()
+      pen.arc(tipAt[0], tipAt[1], size * 0.016, 0, 2 * Math.PI)
+      pen.fill()
+    }
+    pen.globalAlpha = 1
+  },
+}
+
+function pathLength(line: Point[]): number {
+  let length = 0
+  for (let i = 1; i < line.length; i++) {
+    length += Math.hypot(line[i]![0] - line[i - 1]![0], line[i]![1] - line[i - 1]![1])
+  }
+  return length
+}
+
 /** The reveals a question may be drawn with. */
-export const REVEALS: readonly Reveal[] = [ZOOM_OUT, PIXELATE, TILES, SLIDE_PUZZLE]
+export const REVEALS: readonly Reveal[] = [ZOOM_OUT, PIXELATE, TILES, SLIDE_PUZZLE, LANTERN, SKETCH]

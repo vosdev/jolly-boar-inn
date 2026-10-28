@@ -52,7 +52,7 @@
     return { width: scratch.width, height: scratch.height, data, image: img }
   }
 
-  /** The theme's tile tokens where the canvas sits, so a tile is in the player's theme. */
+  /** The theme's colours where the canvas sits, so a reveal is in the player's theme. */
   function look(target: HTMLCanvasElement): Look {
     const style = getComputedStyle(target)
     const token = (name: string): string => style.getPropertyValue(name).trim()
@@ -61,6 +61,8 @@
       tileLight: token('--tile-light'),
       tileDark: token('--tile-dark'),
       tileSeam: token('--tile-seam'),
+      ink: token('--ink'),
+      bad: token('--bad'),
     }
   }
 

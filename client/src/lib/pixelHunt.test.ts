@@ -1,29 +1,40 @@
 /**
  * Pixel Hunt's reveals: every screen picks the same one from the room and the question,
  * Zoom out starts on the item, Pixelate keeps its eight levels to the minute, Tiles opens the
- * item's tiles in seeded order, the puzzle box ends solved, and the picture is whole once the
- * build-up is over.
+ * item's tiles in seeded order, the puzzle box ends solved, the lantern wanders the same way on
+ * every screen, Sketch's pen goes round the item, and the picture is whole once the build-up is
+ * over.
  */
 
 import { describe, expect, it } from 'vitest'
 
 import {
   BUILD_UP,
+  LANTERN,
+  OUTLINE_TIME,
   PIXEL_LEVELS,
   PIXELATE,
   PUZZLE_SLIDES,
   REVEALS,
+  SKETCH,
+  SKETCH_SETTLE,
   SLIDE_PUZZLE,
   TILE_GRID,
+  WASH_FROM,
   TILES,
   ZOOM_OUT,
   drawFrame,
+  innerLines,
+  lanternLight,
+  lanternRadius,
   opaquePixel,
   pixelBlocks,
   progress,
   puzzleAt,
   revealFor,
   scramble,
+  sketchOutline,
+  sketchPhase,
   tileCover,
   tileOpensAt,
   tileOrder,
@@ -35,7 +46,14 @@ import {
 
 const IMAGE = { id: 'the image' } as unknown as CanvasImageSource
 
-const LOOK: Look = { tile: 'tile', tileLight: 'light', tileDark: 'dark', tileSeam: 'seam' }
+const LOOK: Look = {
+  tile: 'tile',
+  tileLight: 'light',
+  tileDark: 'dark',
+  tileSeam: 'seam',
+  ink: 'ink',
+  bad: 'bad',
+}
 
 /** A `size` square, see-through but for the pixels `opaque` names, all a reddish brown. */
 function picture(size: number, opaque: (x: number, y: number) => boolean): Picture {
@@ -73,6 +91,21 @@ function recorder(): Pen & {
       void calls.push(['setTransform', ...args])) as Pen['setTransform'],
     drawImage: ((...args: unknown[]) =>
       void calls.push(['drawImage', ...args])) as Pen['drawImage'],
+    createRadialGradient: ((...args: number[]) => {
+      const stops: [number, string][] = []
+      calls.push(['createRadialGradient', ...args, stops])
+      return { addColorStop: (at: number, colour: string) => void stops.push([at, colour]) }
+    }) as unknown as Pen['createRadialGradient'],
+    strokeStyle: '' as Pen['strokeStyle'],
+    lineWidth: 1,
+    lineJoin: 'miter' as Pen['lineJoin'],
+    lineCap: 'butt' as Pen['lineCap'],
+    beginPath: () => void calls.push(['beginPath']),
+    moveTo: (...args: number[]) => void calls.push(['moveTo', ...args]),
+    lineTo: (...args: number[]) => void calls.push(['lineTo', ...args]),
+    arc: ((...args: unknown[]) => void calls.push(['arc', ...args])) as Pen['arc'],
+    stroke: () => void calls.push(['stroke', pen.strokeStyle, pen.globalAlpha]),
+    fill: () => void calls.push(['fill', pen.fillStyle, pen.globalAlpha]),
   }
   return pen
 }
@@ -118,7 +151,14 @@ describe('the reveal a question gets', () => {
 
   it('offers every reveal at random over a 60-question sample, with seeds of their own', () => {
     expect(REVEALS.map(({ id }) => id)).toEqual(
-      expect.arrayContaining(['zoom_out', 'pixelate', 'tiles', 'slide_puzzle']),
+      expect.arrayContaining([
+        'zoom_out',
+        'pixelate',
+        'tiles',
+        'slide_puzzle',
+        'lantern',
+        'sketch',
+      ]),
     )
     const picked = Array.from({ length: 60 }, (_, n) =>
       revealFor('WHIPLASH', `00000000-0000-4000-8000-${n.toString(16).padStart(12, '0')}`),
@@ -423,5 +463,177 @@ describe('Slide puzzle', () => {
     expect(hole(16.6)).toBeCloseTo(0.5)
     expect(seam(16.6)).toBeCloseTo(0.4)
     expect(hole(16.99)).toBeLessThan(0.02)
+  })
+})
+
+describe('Lantern', () => {
+  it('grows its light from 9% to 36% of the picture, with p squared', () => {
+    expect(lanternRadius(0)).toBeCloseTo(0.09)
+    expect(lanternRadius(0.5)).toBeCloseTo(0.09 + 0.27 / 4)
+    expect(lanternRadius(1)).toBeCloseTo(0.36)
+    for (const seed of [0, 5, 4_000_000_000]) {
+      // The flicker moves it by 5.5% at most.
+      for (const [p, radius] of [
+        [0, 0.09],
+        [1, 0.36],
+      ] as const) {
+        expect(lanternLight(p, seed).radius).toBeGreaterThanOrEqual(radius * 0.945)
+        expect(lanternLight(p, seed).radius).toBeLessThanOrEqual(radius * 1.055)
+      }
+    }
+  })
+
+  it('wanders the same seeded path on every screen, swaying less as it grows', () => {
+    const path = (seed: number) => Array.from({ length: 50 }, (_, n) => lanternLight(n / 50, seed))
+    expect(path(31)).toEqual(path(31))
+    expect(path(31)).not.toEqual(path(32))
+    for (const seed of [1, 2, 3, 4]) {
+      for (let n = 0; n <= 100; n++) {
+        const { x, y } = lanternLight(n / 100, seed)
+        const sway = 1 - 0.6 * (n / 100)
+        expect(Math.abs(x - 0.5)).toBeLessThanOrEqual(0.3 * sway + 1e-9)
+        expect(Math.abs(y - 0.5)).toBeLessThanOrEqual(0.26 * sway + 1e-9)
+      }
+    }
+  })
+
+  it('draws black around the light, and lights the room up over the last 0.8 s', () => {
+    const darkness = (seconds: number) => {
+      const pen = recorder()
+      LANTERN.draw(
+        pen,
+        picture(40, () => true),
+        at(seconds),
+        7,
+        LOOK,
+      )
+      expect(pen.calls[0]).toEqual(['drawImage', IMAGE, 0, 0])
+      const gradient = pen.calls.find(([name]) => name === 'createRadialGradient')
+      return { alpha: pen.fills[0]?.alpha ?? 0, gradient }
+    }
+    const start = darkness(0)
+    const { x, y, radius } = lanternLight(0, 7)
+    expect(start.alpha).toBe(1)
+    expect(start.gradient!.slice(1, 7)).toEqual([x * 40, y * 40, 0, x * 40, y * 40, radius * 40])
+    expect((start.gradient![7] as [number, string][]).at(-1)).toEqual([1, '#000'])
+    expect(darkness(16.1).alpha).toBe(1)
+    expect(darkness(16.6).alpha).toBeCloseTo(0.5)
+    expect(darkness(16.995).alpha).toBeLessThan(0.01)
+  })
+})
+
+describe('Sketch', () => {
+  // A plus sign: a 12px bar each way, crossing in the middle of a 40px square.
+  const plus = picture(
+    40,
+    (x, y) => (x >= 14 && x < 26 && y >= 4 && y < 36) || (y >= 14 && y < 26 && x >= 4 && x < 36),
+  )
+  const onEdge = ([x, y]: [number, number]): boolean => {
+    const solid = (px: number, py: number) =>
+      plus.data[(Math.floor(py) * 40 + Math.floor(px)) * 4 + 3] === 255
+    return [
+      [-0.5, -0.5],
+      [0.5, -0.5],
+      [-0.5, 0.5],
+      [0.5, 0.5],
+    ].some(([dx, dy]) => solid(x + dx!, y + dy!) !== solid(x - dx!, y - dy!))
+  }
+
+  it('outlines a shape with one closed path round it, from the seeded point on its edge', () => {
+    for (const seed of [0, 17, 4_000_000_000]) {
+      const loops = sketchOutline(plus, seed)
+      expect(loops).toHaveLength(1)
+      const loop = loops[0]!
+      expect(loop[0]).toEqual(loop.at(-1))
+      for (const point of loop) expect(onEdge(point), `${point}`).toBe(true)
+      // The shoelace area: the path goes all the way round the plus's 12 × 32 × 2 − 12².
+      let area = 0
+      loop.forEach(([x, y], i) => {
+        const [nx, ny] = loop[(i + 1) % loop.length]!
+        area += (x * ny - nx * y) / 2
+      })
+      expect(area).toBeGreaterThan(624 - 40)
+      expect(area).toBeLessThan(624)
+      expect(sketchOutline(plus, seed)).toEqual(loops)
+    }
+    const starts = [0, 1, 2, 50, 99].map((seed) => sketchOutline(plus, seed)[0]![0])
+    expect(new Set(starts.map(String)).size).toBe(5)
+  })
+
+  it('outlines each part, biggest first, leaving out specks and holes', () => {
+    const parts = picture(
+      40,
+      (x, y) =>
+        (x >= 2 && x < 22 && y >= 2 && y < 22 && !(x >= 8 && x < 16 && y >= 8 && y < 16)) ||
+        (x >= 28 && x < 36 && y >= 28 && y < 36) ||
+        (x === 38 && y === 2),
+    )
+    const loops = sketchOutline(parts, 3)
+    expect(loops).toHaveLength(2)
+    expect(Math.min(...loops[0]!.map(([x]) => x))).toBeLessThan(3)
+    expect(Math.min(...loops[1]!.map(([x]) => x))).toBeGreaterThan(27)
+  })
+
+  it('finds inner lines where the colours change, and not in a flat colour', () => {
+    const halves = picture(20, () => true)
+    for (let y = 0; y < 20; y++) {
+      for (let x = 10; x < 20; x++) halves.data.set([240, 230, 200, 255], (y * 20 + x) * 4)
+    }
+    const lines = innerLines(halves)
+    expect(lines[10 * 20 + 9]).toBe(255)
+    expect(lines[10 * 20 + 10]).toBe(255)
+    expect(lines[10 * 20 + 4]).toBe(0)
+    expect(lines[10 * 20 + 15]).toBe(0)
+    expect(innerLines(picture(20, () => false)).every((dark) => dark === 0)).toBe(true)
+  })
+
+  it('traces the outline over 6 s, fades the lines in, then washes the colour in', () => {
+    expect(OUTLINE_TIME).toBeCloseTo(6 / 17)
+    expect(WASH_FROM).toBeCloseTo(OUTLINE_TIME + (1 - OUTLINE_TIME) * 0.35)
+    expect(SKETCH_SETTLE).toBeCloseTo(0.8 / 17)
+    const phase = (seconds: number) => sketchPhase(at(seconds))
+    expect(phase(0)).toEqual({ traced: 0, tip: true, outline: 1, lines: 0, colour: 0 })
+    expect(phase(3).traced).toBeCloseTo(0.5, 1)
+    expect(phase(5.9).tip).toBe(true)
+    expect(phase(5.9).lines).toBe(0)
+    let traced = 0
+    for (let n = 0; n <= 600; n++) {
+      const now = phase(n / 100).traced
+      expect(now).toBeGreaterThanOrEqual(traced)
+      traced = now
+    }
+    expect(phase(6)).toMatchObject({ traced: 1, tip: false, lines: 0, colour: 0 })
+    expect(phase(6.75).lines).toBeCloseTo(0.5)
+    expect(phase(7.5).lines).toBeCloseTo(1)
+    expect(phase(9.84).colour).toBe(0)
+    expect(phase(9.9).colour).toBeGreaterThan(0)
+    expect(phase(16.2)).toMatchObject({ outline: 1, lines: 1 })
+    expect(phase(16.2).colour).toBeCloseTo(0.85)
+    expect(phase(16.6).lines).toBeCloseTo(0.5)
+    expect(phase(16.6).colour).toBeCloseTo(0.925)
+    expect(phase(16.999).outline).toBeLessThan(0.01)
+    expect(phase(16.999).colour).toBeGreaterThan(0.99)
+  })
+
+  it('draws the pen tip where the traced line ends, in the theme, until the outline is done', () => {
+    const draw = (seconds: number) => {
+      const pen = recorder()
+      SKETCH.draw(pen, plus, at(seconds), 17, LOOK)
+      return pen.calls
+    }
+    const start = sketchOutline(plus, 17)[0]![0]!
+    const early = draw(0.05)
+    expect(early.find(([name]) => name === 'moveTo')).toEqual(['moveTo', ...start])
+    expect(early.find(([name]) => name === 'stroke')).toEqual(['stroke', 'ink', 1])
+    const lastLine = early.findLast(([name]) => name === 'lineTo')!
+    const tip = early.find(([name]) => name === 'arc')!
+    expect(tip.slice(1, 3)).toEqual(lastLine.slice(1, 3))
+    expect(early.find(([name]) => name === 'fill')).toEqual(['fill', 'bad', 1])
+    expect(early.some(([name]) => name === 'drawImage')).toBe(false)
+    const outlined = draw(6.5)
+    expect(outlined.some(([name]) => name === 'arc')).toBe(false)
+    const lines = outlined.filter(([name]) => name === 'lineTo')
+    expect(lines.at(-1)!.slice(1)).toEqual(start)
+    expect(draw(12).filter(([name]) => name === 'drawImage')[0]).toEqual(['drawImage', IMAGE, 0, 0])
   })
 })
